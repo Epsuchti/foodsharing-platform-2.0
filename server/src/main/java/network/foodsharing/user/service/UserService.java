@@ -71,6 +71,12 @@ public class UserService {
                 : repository.findByIdIn(userIds).stream().filter(User::isActive).toList();
     }
 
+    /** Active users whose home region is one of the given regions. */
+    @Transactional(readOnly = true)
+    public List<User> findActiveByHomeRegions(Collection<UUID> regionIds) {
+        return regionIds.isEmpty() ? List.of() : repository.findByHomeRegionIdInAndActiveTrue(regionIds);
+    }
+
     /** @throws ApiException 404 USER_NOT_FOUND (also returns inactive users; callers check permissions) */
     @Transactional(readOnly = true)
     public User require(UUID userId) {

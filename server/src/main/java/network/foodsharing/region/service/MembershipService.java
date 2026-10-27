@@ -200,6 +200,12 @@ public class MembershipService {
         return added;
     }
 
+    /** Active member ids of a region or group. */
+    @Transactional(readOnly = true)
+    public List<UUID> membersOf(UUID regionId) {
+        return memberships.findActiveUserIds(regionId);
+    }
+
     /** Regions and groups of the user: memberships plus regions they administrate. */
     @Transactional(readOnly = true)
     public List<Unit> units(UUID userId) {

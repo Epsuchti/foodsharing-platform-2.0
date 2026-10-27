@@ -1,0 +1,9 @@
+Hoi [(${displayName})],
+
+dini Bewerbig für d Arbeitsgruppe [(${groupName})] isch agnoh worde. Willkomme im Team!
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+[(${link})]
+
+Dis foodsharing-Team

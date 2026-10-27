@@ -1,0 +1,8 @@
+Hi [(${displayName})],
+
+unfortunately your application to the working group [(${groupName})] was declined.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+Your foodsharing team

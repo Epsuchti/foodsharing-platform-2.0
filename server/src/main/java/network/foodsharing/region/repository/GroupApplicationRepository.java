@@ -15,4 +15,8 @@ public interface GroupApplicationRepository extends JpaRepository<GroupApplicati
                                                                     GroupApplicationStatus status);
 
     List<GroupApplication> findByUserId(UUID userId);
+
+    Optional<GroupApplication> findByIdAndGroupId(UUID id, UUID groupId);
+
+    List<GroupApplication> findByGroupIdOrderByCreatedAtDesc(UUID groupId);
 }

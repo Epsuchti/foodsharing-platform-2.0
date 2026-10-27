@@ -1,5 +1,6 @@
 package network.foodsharing.region.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,4 +25,6 @@ public interface RegionAdminRepository extends JpaRepository<RegionAdmin, UUID> 
 
     @Query("select a.userId from RegionAdmin a where a.regionId = :regionId")
     Set<UUID> findUserIds(@Param("regionId") UUID regionId);
+
+    List<RegionAdmin> findByRegionIdIn(Collection<UUID> regionIds);
 }

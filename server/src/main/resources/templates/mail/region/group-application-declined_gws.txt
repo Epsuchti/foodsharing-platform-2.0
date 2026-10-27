@@ -1,0 +1,8 @@
+Hoi [(${displayName})],
+
+dini Bewerbig für d Arbeitsgruppe [(${groupName})] isch leider abglehnt worde.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+Dis foodsharing-Team

@@ -46,7 +46,21 @@ public class MailTemplateService {
         String name = template + "_" + language.getValue();
         String text = textEngine.process(name, context);
         String html = exists(name + ".html") ? htmlEngine.process(name, context) : null;
-        return new RenderedMail(subject(template, language), text, html, language);
+        return new RenderedMail(interpolate(subject(template, language), variables), text, html, language);
+    }
+
+    /** Replaces {@code {name}} placeholders of a subject with the template variables (missing ones stay). */
+    static String interpolate(String subject, Map<String, Object> variables) {
+        if (subject == null || variables == null || subject.indexOf('{') < 0) {
+            return subject;
+        }
+        String result = subject;
+        for (Map.Entry<String, Object> entry : variables.entrySet()) {
+            if (entry.getValue() != null) {
+                result = result.replace("{" + entry.getKey() + "}", String.valueOf(entry.getValue()));
+            }
+        }
+        return result;
     }
 
     private String subject(String template, Language language) {

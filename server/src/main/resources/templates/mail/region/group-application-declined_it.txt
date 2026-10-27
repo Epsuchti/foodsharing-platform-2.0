@@ -1,0 +1,8 @@
+Ciao [(${displayName})],
+
+purtroppo la tua candidatura al gruppo di lavoro [(${groupName})] è stata rifiutata.
+[# th:if="${message != null}"]
+Messaggio: [(${message})]
+[/]
+
+Il tuo team foodsharing

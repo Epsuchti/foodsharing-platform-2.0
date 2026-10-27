@@ -10,4 +10,6 @@ public interface RegionPostcodeRepository extends JpaRepository<RegionPostcode, 
     List<RegionPostcode> findByCountryAndPostcode(String country, String postcode);
 
     List<RegionPostcode> findByRegionId(UUID regionId);
+
+    void deleteByRegionId(UUID regionId);
 }

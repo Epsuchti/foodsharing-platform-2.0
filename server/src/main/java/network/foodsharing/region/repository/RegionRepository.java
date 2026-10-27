@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.region.domain.Region;
+import network.foodsharing.region.domain.UnitType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,4 +32,14 @@ public interface RegionRepository extends JpaRepository<Region, UUID> {
     @Query(value = "select r.* from region r join region_closure c on c.ancestor_id = r.id where c.region_id = :id "
             + "order by c.depth desc", nativeQuery = true)
     List<Region> findAncestors(@Param("id") UUID id);
+
+    @Query("select r from Region r where r.type in :types and (:q is null or lower(r.name) like :q "
+            + "or lower(r.slug) like :q) order by r.name")
+    Page<Region> search(@Param("q") String q, @Param("types") Collection<UnitType> types, Pageable pageable);
+
+    Page<Region> findByParentId(UUID parentId, Pageable pageable);
+
+    Page<Region> findByParentIdIsNull(Pageable pageable);
+
+    Optional<Region> findByEmailName(String emailName);
 }

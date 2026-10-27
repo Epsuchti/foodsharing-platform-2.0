@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface RegionOnboardingStepI18nRepository extends JpaRepository<RegionOnboardingStepI18n, UUID> {
 
     List<RegionOnboardingStepI18n> findByOwnerIdIn(Collection<UUID> ownerIds);
+
+    void deleteByOwnerId(UUID ownerId);
 }

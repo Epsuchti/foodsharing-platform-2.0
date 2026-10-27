@@ -1,0 +1,9 @@
+Hi [(${displayName})],
+
+your application to the working group [(${groupName})] was accepted. Welcome to the team!
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+[(${link})]
+
+Your foodsharing team

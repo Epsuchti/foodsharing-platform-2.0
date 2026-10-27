@@ -1,0 +1,8 @@
+Hallo [(${displayName})],
+
+deine Bewerbung für die Arbeitsgruppe [(${groupName})] wurde leider abgelehnt.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+Dein foodsharing-Team

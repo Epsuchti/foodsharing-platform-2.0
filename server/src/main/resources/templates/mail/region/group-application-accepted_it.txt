@@ -1,0 +1,9 @@
+Ciao [(${displayName})],
+
+la tua candidatura al gruppo di lavoro [(${groupName})] è stata accettata. Benvenuto nel team!
+[# th:if="${message != null}"]
+Messaggio: [(${message})]
+[/]
+[(${link})]
+
+Il tuo team foodsharing

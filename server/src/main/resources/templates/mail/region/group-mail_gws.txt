@@ -1,0 +1,6 @@
+[(${senderName})] schribt a d Arbeitsgruppe [(${groupName})]:
+
+[(${body})]
+
+--
+[(${link})]

@@ -1,0 +1,6 @@
+[(${senderName})] writes to the working group [(${groupName})]:
+
+[(${body})]
+
+--
+[(${link})]
