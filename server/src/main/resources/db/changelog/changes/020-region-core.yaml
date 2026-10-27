@@ -1,0 +1,316 @@
+# Milestone 2 (T11): region tree, closure table, membership, admins, options, pins, postcodes,
+# functions, statistics, region permissions, region onboarding steps.
+databaseChangeLog:
+  - changeSet:
+      id: 020-1
+      author: platform
+      comment: 'Regions and working groups (plan §15.3); working groups are rows of type WORKING_GROUP.'
+      changes:
+        - createTable:
+            tableName: region
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: parent_id, type: UUID, constraints: {foreignKeyName: fk_region_parent_id, references: region(id)}}
+              - column: {name: slug, type: VARCHAR(100), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_region_slug}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: type, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: teaser, type: VARCHAR(2000)}
+              - column: {name: description, type: VARCHAR(32600)}
+              - column: {name: photo_url, type: VARCHAR(500)}
+              - column: {name: email_name, type: VARCHAR(100), constraints: {unique: true, uniqueConstraintName: uq_region_email_name}}
+              - column: {name: time_zone, type: VARCHAR(60), defaultValue: Europe/Zurich, constraints: {nullable: false}}
+              - column: {name: country, type: VARCHAR(2)}
+              - column: {name: join_mode, type: VARCHAR(20), defaultValue: OPEN, constraints: {nullable: false}}
+              - column: {name: moderated, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: sort_order, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: active, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: has_children, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: conference_url, type: VARCHAR(500)}
+              - column: {name: apply_type, type: VARCHAR(20)}
+              - column: {name: group_category, type: VARCHAR(20)}
+              - column: {name: min_pickups, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: min_bananas, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: min_weeks, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: quiz_kinds, type: VARCHAR(200)}
+              - column: {name: max_active_bookings_per_user, type: INT, defaultValueNumeric: 3, constraints: {nullable: false}}
+              - column: {name: prevent_duplicate_guide_bookings, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: prevent_duplicate_category_bookings, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: require_fairteiler_visit_by_third, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: ignored_categories, type: VARCHAR(400)}
+              - column: {name: cleaning_store_id, type: UUID}
+              - column: {name: learning_pages_mandatory, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: latitude, type: DOUBLE}
+              - column: {name: longitude, type: DOUBLE}
+        - createIndex:
+            tableName: region
+            indexName: ix_region_parent_id
+            columns:
+              - column: {name: parent_id}
+        - createIndex:
+            tableName: region
+            indexName: ix_region_type
+            columns:
+              - column: {name: type}
+  - changeSet:
+      id: 020-2
+      author: platform
+      comment: 'Closure table: one row per (region, ancestor) incl. the region itself at depth 0. Maintained with plain SQL by RegionTreeService (no entity, no audit columns).'
+      changes:
+        - createTable:
+            tableName: region_closure
+            columns:
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_closure_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: ancestor_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_closure_ancestor_id, references: region(id), deleteCascade: true}}
+              - column: {name: depth, type: INT, constraints: {nullable: false}}
+        - addPrimaryKey:
+            tableName: region_closure
+            columnNames: region_id, ancestor_id
+            constraintName: pk_region_closure
+        - createIndex:
+            tableName: region_closure
+            indexName: ix_region_closure_ancestor_id
+            columns:
+              - column: {name: ancestor_id}
+  - changeSet:
+      id: 020-3
+      author: platform
+      comment: 'Members of regions and working groups.'
+      changes:
+        - createTable:
+            tableName: region_membership
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_membership, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_membership_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_membership_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: active, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: joined_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: application_text, type: VARCHAR(2000)}
+        - addUniqueConstraint:
+            tableName: region_membership
+            columnNames: user_id, region_id
+            constraintName: uq_region_membership_user_id_region_id
+        - createIndex:
+            tableName: region_membership
+            indexName: ix_region_membership_user_id
+            columns:
+              - column: {name: user_id}
+        - createIndex:
+            tableName: region_membership
+            indexName: ix_region_membership_region_id
+            columns:
+              - column: {name: region_id}
+  - changeSet:
+      id: 020-4
+      author: platform
+      comment: 'Ambassadors of regions / admins of working groups (parity fs_botschafter).'
+      changes:
+        - createTable:
+            tableName: region_admin
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_admin, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_admin_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_admin_region_id, references: region(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: region_admin
+            columnNames: user_id, region_id
+            constraintName: uq_region_admin_user_id_region_id
+        - createIndex:
+            tableName: region_admin
+            indexName: ix_region_admin_region_id
+            columns:
+              - column: {name: region_id}
+  - changeSet:
+      id: 020-5
+      author: platform
+      comment: 'Region options (RegionOptionKey -> value).'
+      changes:
+        - createTable:
+            tableName: region_option
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_option, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_option_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: option_key, type: VARCHAR(60), constraints: {nullable: false}}
+              - column: {name: option_value, type: VARCHAR(500)}
+        - addUniqueConstraint:
+            tableName: region_option
+            columnNames: region_id, option_key
+            constraintName: uq_region_option_region_id_option_key
+  - changeSet:
+      id: 020-6
+      author: platform
+      comment: 'Region pin on the map (one per region).'
+      changes:
+        - createTable:
+            tableName: region_pin
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_pin, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_region_pin_region_id, foreignKeyName: fk_region_pin_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: latitude, type: DOUBLE, constraints: {nullable: false}}
+              - column: {name: longitude, type: DOUBLE, constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(2000)}
+              - column: {name: status, type: VARCHAR(20), defaultValue: ACTIVE, constraints: {nullable: false}}
+  - changeSet:
+      id: 020-7
+      author: platform
+      comment: 'Postcodes per region (region suggestions, plan §8.3).'
+      changes:
+        - createTable:
+            tableName: region_postcode
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_postcode, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_postcode_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: country, type: VARCHAR(2), constraints: {nullable: false}}
+              - column: {name: postcode, type: VARCHAR(10), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: region_postcode
+            columnNames: country, postcode, region_id
+            constraintName: uq_region_postcode_country_postcode_region_id
+        - createIndex:
+            tableName: region_postcode
+            indexName: ix_region_postcode_region_id
+            columns:
+              - column: {name: region_id}
+  - changeSet:
+      id: 020-8
+      author: platform
+      comment: 'Working group assigned to a function of a region (upstream fs_region_function).'
+      changes:
+        - createTable:
+            tableName: region_function
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_function, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_function_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: function_key, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: group_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_function_group_id, references: region(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: region_function
+            columnNames: region_id, function_key
+            constraintName: uq_region_function_region_id_function_key
+        - createIndex:
+            tableName: region_function
+            indexName: ix_region_function_group_id
+            columns:
+              - column: {name: group_id}
+  - changeSet:
+      id: 020-9
+      author: platform
+      comment: 'Region statistics cache (plan §13.2 R13), refreshed nightly.'
+      changes:
+        - createTable:
+            tableName: region_statistics
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_statistics, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_region_statistics_region_id, foreignKeyName: fk_region_statistics_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: last_modified, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: active_home_region_foodsavers, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: active_cooperations, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: pickups_last_month, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: saved_food_weight_last_month, type: DOUBLE, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: active_food_share_points, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: food_baskets_last_month, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: member_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+  - changeSet:
+      id: 020-10
+      author: platform
+      comment: 'Region-scoped feature permissions granted directly (plan §9 layer 3).'
+      changes:
+        - createTable:
+            tableName: region_permission
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_permission, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_permission_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_permission_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: permission, type: VARCHAR(60), constraints: {nullable: false}}
+              - column: {name: granted_by, type: UUID}
+        - addUniqueConstraint:
+            tableName: region_permission
+            columnNames: user_id, region_id, permission
+            constraintName: uq_region_permission_user_id_region_id_permission
+        - createIndex:
+            tableName: region_permission
+            indexName: ix_region_permission_region_id
+            columns:
+              - column: {name: region_id}
+  - changeSet:
+      id: 020-11
+      author: platform
+      comment: 'Extra onboarding steps of a region (plan §11.1) with translations (A14).'
+      changes:
+        - createTable:
+            tableName: region_onboarding_step
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_onboarding_step, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_onboarding_step_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: step_key, type: VARCHAR(60), constraints: {nullable: false}}
+              - column: {name: sort_order, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: region_onboarding_step
+            columnNames: region_id, step_key
+            constraintName: uq_region_onboarding_step_region_id_step_key
+        - createTable:
+            tableName: region_onboarding_step_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_onboarding_step_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_onboarding_step_i18n_owner_id, references: region_onboarding_step(id), deleteCascade: true}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: title, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(4000)}
+        - addUniqueConstraint:
+            tableName: region_onboarding_step_i18n
+            columnNames: owner_id, language
+            constraintName: uq_region_onboarding_step_i18n_owner_id_language

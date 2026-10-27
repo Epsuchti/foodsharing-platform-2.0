@@ -22,7 +22,43 @@ tags:
     description: Development helpers, only present in the local and e2e profiles.
     x-dev-only: true
   - name: onboarding
-    description: Onboarding journey (filled in milestone 2).
+    description: Onboarding journey of the current user (plan §11).
+  - name: regions
+    description: 'Regions: tree, membership, members, permissions, options, pin, statistics, settings, admin log.'
+  - name: region-admin
+    description: 'Region administration (ORGA): create, edit, move, delete, functions, CSV import.'
+  - name: public-regions
+    description: 'Public region pages, region suggestions and the region tree (logged out).'
+  - name: groups
+    description: 'Working groups: list, detail, applications, members, admins, group mail.'
+  - name: admin-users
+    description: 'User management for ambassadors / FS management / orga.'
+  - name: quizzes
+    description: 'Quizzes, quiz sessions and the quiz editor.'
+  - name: content
+    description: 'Content page administration (ORGA / PR).'
+  - name: public-content
+    description: 'Published content pages and learning chapters.'
+  - name: legal
+    description: 'Consents to legal documents and publishing new versions.'
+  - name: public-legal
+    description: 'Published legal documents.'
+  - name: public-onboarding
+    description: 'Explainer page data (logged out).'
+  - name: intro-pickups
+    description: 'Introductory pickups (EinAbs) for newcomers: bookable list, bookings, subscription.'
+  - name: intro-pickup-guide
+    description: 'EinAb guides: own EinAbs, bookings, comments, templates, iCal, newcomer funnel.'
+  - name: intro-pickup-admin
+    description: 'EinAb administration per region (CAN_MANAGE_USERS).'
+  - name: public-intro-pickups
+    description: 'Public EinAb list, guide iCal feeds and unsubscribe links.'
+  - name: verification
+    description: 'Verification queue, verify/unverify, identity confirmation.'
+  - name: passports
+    description: 'Foodsaver passports (PDF, requests, batch generation) and wallets.'
+  - name: jobs
+    description: 'Progress and results of long-running jobs.'
 x-framework-endpoints:
   - /oauth2/authorization/google
   - /login/oauth2/code/google
@@ -74,6 +110,10 @@ paths:
     $ref: './paths/users.yaml#/~1api~1users~1me'
   /api/users/me/settings:
     $ref: './paths/users.yaml#/~1api~1users~1me~1settings'
+  /api/users/me/profile:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1profile'
+  /api/users/{userId}:
+    $ref: './paths/users.yaml#/~1api~1users~1{userId}'
   # --- history ---
   /api/history:
     $ref: './paths/history.yaml#/~1api~1history'
@@ -96,4 +136,273 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1users~1{userId}~1role'
   /api/dev/clock:
     $ref: './paths/dev.yaml#/~1api~1dev~1clock'
+  # --- dev (M2) ---
+  /api/dev/notifications:
+    $ref: './paths/dev.yaml#/~1api~1dev~1notifications'
+  /api/dev/jobs/{name}/run:
+    $ref: './paths/dev.yaml#/~1api~1dev~1jobs~1{name}~1run'
+  /api/dev/fixtures/ical:
+    $ref: './paths/dev.yaml#/~1api~1dev~1fixtures~1ical'
   # --- onboarding ---
+  /api/onboarding/journey:
+    $ref: './paths/onboarding.yaml#/~1api~1onboarding~1journey'
+  /api/onboarding/learning/{key}/read:
+    $ref: './paths/onboarding.yaml#/~1api~1onboarding~1learning~1{key}~1read'
+  /api/onboarding/regions/{regionId}/users/{userId}/steps/{stepKey}/confirm:
+    $ref: './paths/onboarding.yaml#/~1api~1onboarding~1regions~1{regionId}~1users~1{userId}~1steps~1{stepKey}~1confirm'
+  # --- regions ---
+  /api/regions/mine:
+    $ref: './paths/regions.yaml#/~1api~1regions~1mine'
+  /api/regions/search:
+    $ref: './paths/regions.yaml#/~1api~1regions~1search'
+  /api/regions/{regionId}:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}'
+  /api/regions/{regionId}/children:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1children'
+  /api/regions/{regionId}/members/me:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1members~1me'
+  /api/users/me/home-region:
+    $ref: './paths/regions.yaml#/~1api~1users~1me~1home-region'
+  /api/regions/{regionId}/members:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1members'
+  /api/regions/{regionId}/members/{userId}:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1members~1{userId}'
+  /api/regions/{regionId}/admins/{userId}:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1admins~1{userId}'
+  /api/regions/{regionId}/permissions:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1permissions'
+  /api/regions/{regionId}/permissions/{userId}/{permission}:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1permissions~1{userId}~1{permission}'
+  /api/regions/{regionId}/options:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1options'
+  /api/regions/{regionId}/options/permissions:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1options~1permissions'
+  /api/regions/{regionId}/pin:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1pin'
+  /api/regions/{regionId}/statistics:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1statistics'
+  /api/regions/{regionId}/conference:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1conference'
+  /api/regions/{regionId}/settings:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1settings'
+  /api/regions/{regionId}/history:
+    $ref: './paths/regions.yaml#/~1api~1regions~1{regionId}~1history'
+  # --- region-admin ---
+  /api/admin/regions:
+    $ref: './paths/region-admin.yaml#/~1api~1admin~1regions'
+  /api/admin/regions/{regionId}:
+    $ref: './paths/region-admin.yaml#/~1api~1admin~1regions~1{regionId}'
+  /api/admin/regions/{regionId}/move:
+    $ref: './paths/region-admin.yaml#/~1api~1admin~1regions~1{regionId}~1move'
+  /api/admin/regions/import:
+    $ref: './paths/region-admin.yaml#/~1api~1admin~1regions~1import'
+  /api/admin/regions/{regionId}/functions/{function}:
+    $ref: './paths/region-admin.yaml#/~1api~1admin~1regions~1{regionId}~1functions~1{function}'
+  # --- public-regions ---
+  /api/public/regions/suggest:
+    $ref: './paths/public-regions.yaml#/~1api~1public~1regions~1suggest'
+  /api/public/regions/tree:
+    $ref: './paths/public-regions.yaml#/~1api~1public~1regions~1tree'
+  /api/public/regions/{slug}:
+    $ref: './paths/public-regions.yaml#/~1api~1public~1regions~1{slug}'
+  # --- groups ---
+  /api/regions/{regionId}/groups:
+    $ref: './paths/groups.yaml#/~1api~1regions~1{regionId}~1groups'
+  /api/groups/mine:
+    $ref: './paths/groups.yaml#/~1api~1groups~1mine'
+  /api/groups/{groupId}:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}'
+  /api/groups/{groupId}/archive:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1archive'
+  /api/groups/{groupId}/members/me:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1members~1me'
+  /api/groups/{groupId}/applications:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1applications'
+  /api/groups/{groupId}/applications/me:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1applications~1me'
+  /api/groups/{groupId}/applications/{applicationId}/decision:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1applications~1{applicationId}~1decision'
+  /api/groups/{groupId}/members:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1members'
+  /api/groups/{groupId}/members/{userId}:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1members~1{userId}'
+  /api/groups/{groupId}/admins/{userId}:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1admins~1{userId}'
+  /api/groups/{groupId}/mail:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1mail'
+  /api/groups/{groupId}/conference:
+    $ref: './paths/groups.yaml#/~1api~1groups~1{groupId}~1conference'
+  # --- admin-users ---
+  /api/admin/users/{userId}/profile:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1profile'
+  /api/admin/users/{userId}/active:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1active'
+  /api/admin/users/{userId}/change-history:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1change-history'
+  # --- quizzes ---
+  /api/quizzes:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes'
+  /api/quizzes/{kind}:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}'
+  /api/quizzes/{kind}/status:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1status'
+  /api/quizzes/{kind}/sessions:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1sessions'
+  /api/quizzes/{kind}/sessions/current/question:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1sessions~1current~1question'
+  /api/quizzes/{kind}/sessions/current/answer:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1sessions~1current~1answer'
+  /api/quizzes/{kind}/sessions/current/results:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1sessions~1current~1results'
+  /api/quizzes/{kind}/confirm:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1confirm'
+  /api/users/me/quiz-sessions:
+    $ref: './paths/quizzes.yaml#/~1api~1users~1me~1quiz-sessions'
+  /api/users/{userId}/quiz-sessions:
+    $ref: './paths/quizzes.yaml#/~1api~1users~1{userId}~1quiz-sessions'
+  /api/quiz-sessions/{sessionId}:
+    $ref: './paths/quizzes.yaml#/~1api~1quiz-sessions~1{sessionId}'
+  /api/quizzes/{kind}/questions:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1questions'
+  /api/quizzes/{kind}/questions/{questionId}:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1questions~1{questionId}'
+  /api/quizzes/{kind}/questions/{questionId}/answers:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1questions~1{questionId}~1answers'
+  /api/quizzes/{kind}/questions/{questionId}/answers/{answerId}:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1questions~1{questionId}~1answers~1{answerId}'
+  /api/quizzes/{kind}/questions/{questionId}/comments:
+    $ref: './paths/quizzes.yaml#/~1api~1quizzes~1{kind}~1questions~1{questionId}~1comments'
+  # --- content ---
+  /api/content/pages:
+    $ref: './paths/content.yaml#/~1api~1content~1pages'
+  /api/content/pages/{slug}:
+    $ref: './paths/content.yaml#/~1api~1content~1pages~1{slug}'
+  # --- public-content ---
+  /api/public/content/learning:
+    $ref: './paths/public-content.yaml#/~1api~1public~1content~1learning'
+  /api/public/content/learning/{key}:
+    $ref: './paths/public-content.yaml#/~1api~1public~1content~1learning~1{key}'
+  /api/public/content/{slug}:
+    $ref: './paths/public-content.yaml#/~1api~1public~1content~1{slug}'
+  # --- legal ---
+  /api/legal/consents:
+    $ref: './paths/legal.yaml#/~1api~1legal~1consents'
+  /api/legal/{kind}/versions:
+    $ref: './paths/legal.yaml#/~1api~1legal~1{kind}~1versions'
+  # --- public-legal ---
+  /api/public/legal/{kind}:
+    $ref: './paths/public-legal.yaml#/~1api~1public~1legal~1{kind}'
+  # --- public-onboarding ---
+  /api/public/onboarding/explainer:
+    $ref: './paths/public-onboarding.yaml#/~1api~1public~1onboarding~1explainer'
+  # --- intro-pickups ---
+  /api/regions/{regionId}/intro-pickups/bookable:
+    $ref: './paths/intro-pickups.yaml#/~1api~1regions~1{regionId}~1intro-pickups~1bookable'
+  /api/intro-pickups/slots/{slotId}/book:
+    $ref: './paths/intro-pickups.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1book'
+  /api/users/me/intro-pickups:
+    $ref: './paths/intro-pickups.yaml#/~1api~1users~1me~1intro-pickups'
+  /api/intro-pickups/slots/{slotId}/booking:
+    $ref: './paths/intro-pickups.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1booking'
+  /api/intro-pickups/{introPickupId}/calendar.ics:
+    $ref: './paths/intro-pickups.yaml#/~1api~1intro-pickups~1{introPickupId}~1calendar.ics'
+  /api/users/me/intro-pickup-subscription:
+    $ref: './paths/intro-pickups.yaml#/~1api~1users~1me~1intro-pickup-subscription'
+  # --- intro-pickup-guide ---
+  /api/guide/profile:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1profile'
+  /api/guide/regions:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1regions'
+  /api/regions/{regionId}/guide/intro-pickups:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1regions~1{regionId}~1guide~1intro-pickups'
+  /api/intro-pickups/{introPickupId}:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1{introPickupId}'
+  /api/intro-pickups/{introPickupId}/guide:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1{introPickupId}~1guide'
+  /api/regions/{regionId}/guide/assignable-guides:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1regions~1{regionId}~1guide~1assignable-guides'
+  /api/regions/{regionId}/guide/bookings:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1regions~1{regionId}~1guide~1bookings'
+  /api/intro-pickups/slots/{slotId}/book-for:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1book-for'
+  /api/intro-pickups/slots/{slotId}/booking/by-guide:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1booking~1by-guide'
+  /api/intro-pickups/slots/{slotId}/done:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1done'
+  /api/intro-pickups/slots/{slotId}/count:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1count'
+  /api/intro-pickups/slots/{slotId}/comments:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1comments'
+  /api/guide/private-info-templates:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1private-info-templates'
+  /api/guide/private-info-templates/{category}:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1private-info-templates~1{category}'
+  /api/guide/ical-candidates:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1ical-candidates'
+  /api/guide/ical-feed-link:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1ical-feed-link'
+  /api/regions/{regionId}/newcomer-funnel:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1regions~1{regionId}~1newcomer-funnel'
+  # --- intro-pickup-admin ---
+  /api/regions/{regionId}/admin/intro-pickups:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1intro-pickups'
+  /api/regions/{regionId}/admin/intro-pickups/{introPickupId}:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1intro-pickups~1{introPickupId}'
+  /api/regions/{regionId}/admin/users/{userId}/historical-intro-pickups:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1users~1{userId}~1historical-intro-pickups'
+  /api/regions/{regionId}/admin/bookings:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1bookings'
+  /api/intro-pickups/slots/{slotId}/counted:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1counted'
+  /api/intro-pickups/slots/{slotId}/admin-comments:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1intro-pickups~1slots~1{slotId}~1admin-comments'
+  /api/regions/{regionId}/admin/guides:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1guides'
+  /api/regions/{regionId}/admin/guides/{userId}/enabled:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1guides~1{userId}~1enabled'
+  /api/regions/{regionId}/admin/past-import/preview:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1past-import~1preview'
+  /api/regions/{regionId}/admin/past-import/confirm:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1past-import~1confirm'
+  /api/regions/{regionId}/admin/store-aliases:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1store-aliases'
+  /api/regions/{regionId}/admin/store-aliases/{aliasId}:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1store-aliases~1{aliasId}'
+  # --- public-intro-pickups ---
+  /api/public/regions/{slug}/intro-pickups:
+    $ref: './paths/public-intro-pickups.yaml#/~1api~1public~1regions~1{slug}~1intro-pickups'
+  /api/public/intro-pickups/ical/{token}:
+    $ref: './paths/public-intro-pickups.yaml#/~1api~1public~1intro-pickups~1ical~1{token}'
+  /api/public/intro-pickups/unsubscribe:
+    $ref: './paths/public-intro-pickups.yaml#/~1api~1public~1intro-pickups~1unsubscribe'
+  # --- verification ---
+  /api/regions/{regionId}/verification/queue:
+    $ref: './paths/verification.yaml#/~1api~1regions~1{regionId}~1verification~1queue'
+  /api/users/{userId}/verification:
+    $ref: './paths/verification.yaml#/~1api~1users~1{userId}~1verification'
+  /api/users/{userId}/verification/history:
+    $ref: './paths/verification.yaml#/~1api~1users~1{userId}~1verification~1history'
+  /api/users/{userId}/identity:
+    $ref: './paths/verification.yaml#/~1api~1users~1{userId}~1identity'
+  # --- passports ---
+  /api/users/me/passport:
+    $ref: './paths/passports.yaml#/~1api~1users~1me~1passport'
+  /api/users/me/passport.pdf:
+    $ref: './paths/passports.yaml#/~1api~1users~1me~1passport.pdf'
+  /api/users/me/passport-requests:
+    $ref: './paths/passports.yaml#/~1api~1users~1me~1passport-requests'
+  /api/regions/{regionId}/passport-requests:
+    $ref: './paths/passports.yaml#/~1api~1regions~1{regionId}~1passport-requests'
+  /api/regions/{regionId}/passports:
+    $ref: './paths/passports.yaml#/~1api~1regions~1{regionId}~1passports'
+  /api/users/{userId}/passport-history:
+    $ref: './paths/passports.yaml#/~1api~1users~1{userId}~1passport-history'
+  /api/users/me/wallets/apple:
+    $ref: './paths/passports.yaml#/~1api~1users~1me~1wallets~1apple'
+  /api/users/me/wallets/google:
+    $ref: './paths/passports.yaml#/~1api~1users~1me~1wallets~1google'
+  # --- jobs ---
+  /api/jobs/{jobId}:
+    $ref: './paths/jobs.yaml#/~1api~1jobs~1{jobId}'
+  /api/jobs/{jobId}/result:
+    $ref: './paths/jobs.yaml#/~1api~1jobs~1{jobId}~1result'

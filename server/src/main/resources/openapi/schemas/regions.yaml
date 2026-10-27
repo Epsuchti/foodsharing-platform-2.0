@@ -1,0 +1,474 @@
+UnitType:
+  type: string
+  description: 'Region / working-group type (upstream UnitType). Members join PART_OF_TOWN, CITY, REGION, DISTRICT directly.'
+  enum: [CONTINENT, COUNTRY, FEDERAL_STATE, REGION, CITY, BIG_CITY, DISTRICT, PART_OF_TOWN, WORKING_GROUP]
+
+RegionJoinMode:
+  type: string
+  enum: [OPEN, APPLICATION]
+
+WorkingGroupFunction:
+  type: string
+  description: 'Working-group function with region-wide rights (plan §9). REPORT, ARBITRATION, FSMANAGEMENT, BOARD are restricted (ORGA only).'
+  enum: [WELCOME, VOTING, FSP, STORES_COORDINATION, REPORT, MEDIATION, ARBITRATION, FSMANAGEMENT, PR, MODERATION, BOARD, ELECTION, RESOURCES]
+
+RegionRef:
+  type: object
+  required: [id, slug, name, type]
+  properties:
+    id:
+      type: string
+      format: uuid
+    slug:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: './regions.yaml#/UnitType'
+    parentId:
+      type: string
+      format: uuid
+
+RegionRefPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './regions.yaml#/RegionRef'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+GroupRef:
+  type: object
+  required: [id, slug, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    slug:
+      type: string
+    name:
+      type: string
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+
+UnitMembership:
+  type: object
+  description: 'A region or working group the user belongs to (SessionInfo.units, my regions page).'
+  required: [id, name, slug, type, member, admin, homeRegion]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    slug:
+      type: string
+    type:
+      $ref: './regions.yaml#/UnitType'
+    parentId:
+      type: string
+      format: uuid
+    member:
+      type: boolean
+    admin:
+      type: boolean
+    homeRegion:
+      type: boolean
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+
+RegionMembershipState:
+  type: object
+  required: [member, admin, homeRegion]
+  properties:
+    member:
+      type: boolean
+    admin:
+      type: boolean
+    homeRegion:
+      type: boolean
+    joinedAt:
+      type: string
+      format: date-time
+
+RegionFunctionAssignment:
+  type: object
+  required: [function, group]
+  properties:
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+    group:
+      $ref: './regions.yaml#/GroupRef'
+
+AgeBand:
+  type: object
+  required: [label, count]
+  properties:
+    label:
+      description: 'e.g. 18-25, 26-35, 36-50, 51-65, 66+, unknown'
+      type: string
+    count:
+      type: integer
+      format: int32
+
+RegionStatistics:
+  type: object
+  required: [activeHomeRegionFoodsavers, activeCooperations, pickupsLastMonth, savedFoodWeightLastMonth, activeFoodSharePoints, foodBasketsLastMonth, memberCount, genderCounts, ageBands]
+  properties:
+    lastModified:
+      type: string
+      format: date-time
+    activeHomeRegionFoodsavers:
+      type: integer
+      format: int32
+    activeCooperations:
+      type: integer
+      format: int32
+    pickupsLastMonth:
+      type: integer
+      format: int32
+    savedFoodWeightLastMonth:
+      description: 'kg'
+      type: number
+      format: double
+    activeFoodSharePoints:
+      type: integer
+      format: int32
+    foodBasketsLastMonth:
+      type: integer
+      format: int32
+    memberCount:
+      type: integer
+      format: int32
+    genderCounts:
+      description: 'Gender name -> member count'
+      type: object
+      additionalProperties:
+        type: integer
+        format: int32
+    ageBands:
+      type: array
+      items:
+        $ref: './regions.yaml#/AgeBand'
+
+RegionDetail:
+  type: object
+  required: [id, slug, name, type, hasChildren, memberCount, ambassadors, functions, membership, timeZone, joinMode, moderated]
+  properties:
+    id:
+      type: string
+      format: uuid
+    slug:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: './regions.yaml#/UnitType'
+    parentId:
+      type: string
+      format: uuid
+    parent:
+      $ref: './regions.yaml#/RegionRef'
+    teaser:
+      type: string
+    description:
+      description: 'Markdown'
+      type: string
+    photoUrl:
+      type: string
+    emailName:
+      type: string
+    timeZone:
+      type: string
+    country:
+      type: string
+    joinMode:
+      $ref: './regions.yaml#/RegionJoinMode'
+    moderated:
+      type: boolean
+    hasChildren:
+      type: boolean
+    memberCount:
+      type: integer
+      format: int32
+    ambassadors:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    welcomeTeam:
+      $ref: './regions.yaml#/GroupRef'
+    functions:
+      type: array
+      items:
+        $ref: './regions.yaml#/RegionFunctionAssignment'
+    conferenceUrl:
+      type: string
+    membership:
+      $ref: './regions.yaml#/RegionMembershipState'
+    statistics:
+      $ref: './regions.yaml#/RegionStatistics'
+
+HomeRegionUpdate:
+  type: object
+  required: [regionId]
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    reason:
+      type: string
+      maxLength: 500
+
+RegionMember:
+  type: object
+  required: [user, admin, verified, permissions]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    admin:
+      type: boolean
+    joinedAt:
+      type: string
+      format: date-time
+    lastPickupAt:
+      description: 'Null until pickups exist (M3).'
+      type: string
+      format: date-time
+    permissions:
+      type: array
+      items:
+        $ref: './common.yaml#/Permission'
+    verified:
+      type: boolean
+    homeRegion:
+      type: boolean
+
+RegionMemberPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './regions.yaml#/RegionMember'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+RegionPermissionGrant:
+  type: object
+  required: [user, permission, source]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    permission:
+      $ref: './common.yaml#/Permission'
+    source:
+      description: 'DIRECT or FUNCTION:<WorkingGroupFunction>'
+      type: string
+    grantedBy:
+      $ref: './users.yaml#/UserSummary'
+    grantedAt:
+      type: string
+      format: date-time
+
+PickupRule:
+  type: object
+  required: [active, timespanDays, limitNumber, limitDayNumber, inactiveHours]
+  properties:
+    active:
+      type: boolean
+    timespanDays:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 365
+    limitNumber:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 1000
+    limitDayNumber:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 100
+    inactiveHours:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 720
+
+RegionOptions:
+  type: object
+  required: [enableReportButton, enableMediationButton, pickupRule, allowHidingInForum, reportReasonOptions, reportReasonOther, notifyAddressChange]
+  properties:
+    enableReportButton:
+      type: boolean
+    enableMediationButton:
+      type: boolean
+    pickupRule:
+      $ref: './regions.yaml#/PickupRule'
+    allowHidingInForum:
+      type: boolean
+    reportReasonOptions:
+      description: 'Report reason option set (upstream ReportReasonOptions).'
+      type: integer
+      format: int32
+    reportReasonOther:
+      type: boolean
+    notifyAddressChange:
+      type: boolean
+
+RegionOptionsPatch:
+  type: object
+  properties:
+    enableReportButton:
+      type: boolean
+    enableMediationButton:
+      type: boolean
+    pickupRule:
+      $ref: './regions.yaml#/PickupRule'
+    allowHidingInForum:
+      type: boolean
+    reportReasonOptions:
+      type: integer
+      format: int32
+    reportReasonOther:
+      type: boolean
+    notifyAddressChange:
+      type: boolean
+    reason:
+      type: string
+      maxLength: 500
+
+RegionOptionPermissions:
+  type: object
+  required: [mayEditReportButtons, mayEditPickupRule, mayEditUserRelated, mayEditPin]
+  properties:
+    mayEditReportButtons:
+      type: boolean
+    mayEditPickupRule:
+      type: boolean
+    mayEditUserRelated:
+      type: boolean
+    mayEditPin:
+      type: boolean
+
+RegionPin:
+  type: object
+  required: [latitude, longitude, active]
+  properties:
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    description:
+      type: string
+      maxLength: 2000
+    active:
+      type: boolean
+
+ConferenceLink:
+  type: object
+  required: [url]
+  properties:
+    url:
+      type: string
+
+RegionOnboardingStep:
+  type: object
+  required: [key, titles, sortOrder]
+  properties:
+    id:
+      type: string
+      format: uuid
+    key:
+      type: string
+      minLength: 1
+      maxLength: 60
+    titles:
+      description: 'language -> title'
+      type: object
+      additionalProperties:
+        type: string
+    descriptions:
+      type: object
+      additionalProperties:
+        type: string
+    sortOrder:
+      type: integer
+      format: int32
+
+IntroPickupRegionSettings:
+  type: object
+  required: [maxActiveBookingsPerUser, preventDuplicateGuideBookings, preventDuplicateCategoryBookings, requireFairteilerVisitByThirdIntroPickup, ignoredCategories]
+  properties:
+    maxActiveBookingsPerUser:
+      description: 'Also the number of EinAbs a newcomer needs (reference parity).'
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 20
+    preventDuplicateGuideBookings:
+      type: boolean
+    preventDuplicateCategoryBookings:
+      type: boolean
+    requireFairteilerVisitByThirdIntroPickup:
+      type: boolean
+    ignoredCategories:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    cleaningStoreId:
+      type: string
+      format: uuid
+
+OnboardingRegionSettings:
+  type: object
+  required: [learningPagesMandatory, extraSteps]
+  properties:
+    learningPagesMandatory:
+      type: boolean
+    extraSteps:
+      type: array
+      items:
+        $ref: './regions.yaml#/RegionOnboardingStep'
+
+RegionSettings:
+  type: object
+  required: [introPickups, onboarding, joinMode, timeZone]
+  properties:
+    introPickups:
+      $ref: './regions.yaml#/IntroPickupRegionSettings'
+    onboarding:
+      $ref: './regions.yaml#/OnboardingRegionSettings'
+    joinMode:
+      $ref: './regions.yaml#/RegionJoinMode'
+    timeZone:
+      type: string
+    conferenceUrl:
+      type: string
+
+RegionSettingsPatch:
+  type: object
+  properties:
+    introPickups:
+      $ref: './regions.yaml#/IntroPickupRegionSettings'
+    onboarding:
+      $ref: './regions.yaml#/OnboardingRegionSettings'
+    joinMode:
+      $ref: './regions.yaml#/RegionJoinMode'
+    timeZone:
+      type: string
+      maxLength: 60
+    conferenceUrl:
+      type: string
+      maxLength: 500
+    reason:
+      type: string
+      maxLength: 500

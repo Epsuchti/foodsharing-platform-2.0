@@ -1,0 +1,86 @@
+LegalDocumentKind:
+  type: string
+  enum: [PRIVACY_POLICY, LEGAL_AGREEMENT, CONFIDENTIALITY_NOTICE]
+
+LegalDocument:
+  type: object
+  required: [kind, version, publishedAt, body, language]
+  properties:
+    kind:
+      $ref: './legal.yaml#/LegalDocumentKind'
+    version:
+      type: string
+    publishedAt:
+      type: string
+      format: date-time
+    summary:
+      type: string
+    body:
+      description: 'Markdown'
+      type: string
+    language:
+      $ref: './common.yaml#/Language'
+    fallback:
+      type: boolean
+
+ConsentStatus:
+  type: object
+  required: [kind, currentVersion, required, pending]
+  properties:
+    kind:
+      $ref: './legal.yaml#/LegalDocumentKind'
+    currentVersion:
+      type: string
+    acceptedVersion:
+      type: string
+    acceptedAt:
+      type: string
+      format: date-time
+    required:
+      type: boolean
+    pending:
+      type: boolean
+
+LegalConsentRequest:
+  type: object
+  required: [kind, version]
+  properties:
+    kind:
+      $ref: './legal.yaml#/LegalDocumentKind'
+    version:
+      type: string
+      minLength: 1
+      maxLength: 32
+
+LegalVersionCreate:
+  type: object
+  required: [version, summaries, bodies, requireReconsent]
+  properties:
+    version:
+      type: string
+      minLength: 1
+      maxLength: 32
+    summaries:
+      type: object
+      additionalProperties:
+        type: string
+    bodies:
+      type: object
+      additionalProperties:
+        type: string
+    requireReconsent:
+      type: boolean
+
+LegalVersionView:
+  type: object
+  required: [kind, version, publishedAt, requireReconsent]
+  properties:
+    kind:
+      $ref: './legal.yaml#/LegalDocumentKind'
+    version:
+      type: string
+    publishedAt:
+      type: string
+      format: date-time
+    requireReconsent:
+      type: boolean

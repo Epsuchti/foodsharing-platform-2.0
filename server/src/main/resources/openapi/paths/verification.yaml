@@ -1,0 +1,236 @@
+/api/regions/{regionId}/verification/queue:
+  get:
+    tags: [verification]
+    operationId: listVerificationQueue
+    summary: 'Newcomers waiting for verification.'
+    x-permission: 'mayAdministrateRegion (ambassador or FSMANAGEMENT admin)'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: filter
+        in: query
+        schema:
+          $ref: '../schemas/verification.yaml#/VerificationQueueFilter'
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/verification.yaml#/VerificationCandidatePage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/verification:
+  post:
+    tags: [verification]
+    operationId: verifyUser
+    summary: 'Verify a user (required message; bell and mail to the user).'
+    x-permission: 'mayAdministrateUser'
+    x-history: VerificationAction.VERIFIED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/RequiredMessage'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserSummary'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [verification]
+    operationId: unverifyUser
+    summary: 'Withdraw the verification.'
+    x-permission: 'mayAdministrateUser'
+    x-history: VerificationAction.UNVERIFIED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/RequiredMessage'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserSummary'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_VERIFIED or HAS_FUTURE_PICKUPS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/verification/history:
+  get:
+    tags: [verification]
+    operationId: getVerificationHistory
+    summary: 'Verification history (plan §10.2).'
+    x-permission: 'mayAdministrateUser'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: actions
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/history.yaml#/HistoryEntryPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/identity:
+  get:
+    tags: [verification]
+    operationId: getIdentityStatus
+    summary: 'Identity check state.'
+    x-permission: 'mayAdministrateUser or self'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/verification.yaml#/IdentityStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [verification]
+    operationId: confirmIdentity
+    summary: 'Confirm that the user''s identity was checked (not on oneself).'
+    x-permission: 'mayAdministrateUser'
+    x-history: VerificationAction.IDENTITY_CONFIRMED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/verification.yaml#/IdentityStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or CANNOT_CONFIRM_OWN_IDENTITY', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'IDENTITY_ALREADY_CONFIRMED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [verification]
+    operationId: revertIdentityConfirmation
+    summary: 'Revert an identity confirmation.'
+    x-permission: 'ORGA'
+    x-history: VerificationAction.IDENTITY_CONFIRMATION_REVERTED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/ReasonBody'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/verification.yaml#/IdentityStatus'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'IDENTITY_NOT_CONFIRMED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

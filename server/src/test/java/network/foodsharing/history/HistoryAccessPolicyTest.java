@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class HistoryAccessPolicyTest {
 
     private final HistoryAccessPolicy policy = new HistoryAccessPolicy(
-            List.of(new UserHistoryAccessRule(), new SystemHistoryAccessRule()), new PermissionService());
+            List.of(new UserHistoryAccessRule(new PermissionService()), new SystemHistoryAccessRule()), new PermissionService());
 
     private final SessionPrincipal foodsaver = TestAuth.principal(SeedUsers.FOODSAVER);
     private final SessionPrincipal ambassador = TestAuth.principal(SeedUsers.WELCOME);
@@ -61,7 +61,7 @@ class HistoryAccessPolicyTest {
     @Test
     void twoRulesForOneSubjectTypeAreAStartupError() {
         assertThatThrownBy(() -> new HistoryAccessPolicy(
-                List.of(new UserHistoryAccessRule(), new UserHistoryAccessRule()), new PermissionService()))
+                List.of(new UserHistoryAccessRule(new PermissionService()), new UserHistoryAccessRule(new PermissionService())), new PermissionService()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("USER");
     }

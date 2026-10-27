@@ -1,0 +1,453 @@
+QuizKind:
+  type: string
+  enum: [FOODSAVER, STORE_MANAGER, AMBASSADOR, HYGIENE, FOODSHARER, SAVING_FOOD, REPORTS]
+
+QuizSessionStatus:
+  type: string
+  enum: [RUNNING, PASSED, FAILED]
+
+AnswerRating:
+  type: string
+  enum: [WRONG, CORRECT, NEUTRAL]
+
+QuizRunningInfo:
+  type: object
+  required: [questionCount, questionsAnswered, timed]
+  properties:
+    questionCount:
+      type: integer
+      format: int32
+    questionsAnswered:
+      type: integer
+      format: int32
+    timed:
+      type: boolean
+    test:
+      type: boolean
+
+QuizStatus:
+  type: object
+  required: [triesSinceLastPass, waitDaysAfterNextFailure, mayStartNow, requiresConfirmation]
+  properties:
+    lastSessionStatus:
+      $ref: './quizzes.yaml#/QuizSessionStatus'
+    triesSinceLastPass:
+      type: integer
+      format: int32
+    currentWaitDays:
+      description: 'Days until the next try; -1 = disqualified.'
+      type: integer
+      format: int32
+    waitDaysAfterNextFailure:
+      type: integer
+      format: int32
+    expiresInDays:
+      description: 'Only inside the warning window (hygiene).'
+      type: integer
+      format: int32
+    confirmed:
+      type: boolean
+    running:
+      $ref: './quizzes.yaml#/QuizRunningInfo'
+    mayStartNow:
+      type: boolean
+    requiresConfirmation:
+      type: boolean
+    passedAt:
+      type: string
+      format: date-time
+
+QuizOverview:
+  type: object
+  required: [kind, name, questionCountTimed, questionCountUntimed, maxFailurePoints, mayTry, mayRead, mayEdit, status]
+  properties:
+    kind:
+      $ref: './quizzes.yaml#/QuizKind'
+    name:
+      type: string
+    description:
+      type: string
+    questionCountTimed:
+      type: integer
+      format: int32
+    questionCountUntimed:
+      type: integer
+      format: int32
+    maxFailurePoints:
+      type: integer
+      format: int32
+    mayTry:
+      type: boolean
+    mayRead:
+      type: boolean
+    mayEdit:
+      type: boolean
+    status:
+      $ref: './quizzes.yaml#/QuizStatus'
+
+StartQuizSession:
+  type: object
+  required: [timed]
+  properties:
+    timed:
+      type: boolean
+    test:
+      description: 'Practice session without effects.'
+      type: boolean
+
+QuizAnswerOption:
+  type: object
+  required: [id, text]
+  properties:
+    id:
+      type: string
+      format: uuid
+    text:
+      type: string
+
+QuizQuestionView:
+  type: object
+  required: [id, text, answers]
+  properties:
+    id:
+      type: string
+      format: uuid
+    text:
+      type: string
+    durationSeconds:
+      description: 'Only for timed sessions'
+      type: integer
+      format: int32
+    wikiLink:
+      type: string
+    answers:
+      type: array
+      items:
+        $ref: './quizzes.yaml#/QuizAnswerOption'
+
+ActiveQuestion:
+  type: object
+  required: [index, total, question, questionAgeSeconds, timedOut]
+  properties:
+    index:
+      type: integer
+      format: int32
+    total:
+      type: integer
+      format: int32
+    question:
+      $ref: './quizzes.yaml#/QuizQuestionView'
+    questionAgeSeconds:
+      type: integer
+      format: int32
+    timedOut:
+      type: boolean
+
+SelectedAnswers:
+  type: object
+  properties:
+    answerIds:
+      description: 'Null or empty = no answer / timed out.'
+      type: array
+      items:
+        type: string
+        format: uuid
+
+AnswerSolution:
+  type: object
+  required: [id, text, rating, selected]
+  properties:
+    id:
+      type: string
+      format: uuid
+    text:
+      type: string
+    rating:
+      $ref: './quizzes.yaml#/AnswerRating'
+    selected:
+      type: boolean
+    explanation:
+      type: string
+
+AnswerResult:
+  type: object
+  required: [solution, timedOut, finished]
+  properties:
+    solution:
+      type: array
+      items:
+        $ref: './quizzes.yaml#/AnswerSolution'
+    timedOut:
+      type: boolean
+    finished:
+      type: boolean
+    failurePoints:
+      type: number
+      format: double
+
+QuizResultAnswer:
+  type: object
+  required: [text, rating, selected]
+  properties:
+    text:
+      type: string
+    rating:
+      $ref: './quizzes.yaml#/AnswerRating'
+    selected:
+      type: boolean
+    explanation:
+      type: string
+
+QuizResultQuestion:
+  type: object
+  required: [text, timedOut, userFailurePoints, answers]
+  properties:
+    text:
+      type: string
+    wikiLink:
+      type: string
+    timedOut:
+      type: boolean
+    userFailurePoints:
+      type: number
+      format: double
+    answers:
+      type: array
+      items:
+        $ref: './quizzes.yaml#/QuizResultAnswer'
+
+NextTryInfo:
+  type: object
+  required: [waitDays, disqualified]
+  properties:
+    waitDays:
+      type: integer
+      format: int32
+    disqualified:
+      type: boolean
+
+QuizResult:
+  type: object
+  required: [status, failurePoints, maxFailurePoints, questions, nextTryInfo, requiresConfirmation]
+  properties:
+    status:
+      $ref: './quizzes.yaml#/QuizSessionStatus'
+    failurePoints:
+      type: number
+      format: double
+    maxFailurePoints:
+      type: integer
+      format: int32
+    questions:
+      type: array
+      items:
+        $ref: './quizzes.yaml#/QuizResultQuestion'
+    nextTryInfo:
+      $ref: './quizzes.yaml#/NextTryInfo'
+    requiresConfirmation:
+      type: boolean
+    confirmationDocument:
+      $ref: './legal.yaml#/LegalDocumentKind'
+    test:
+      type: boolean
+
+QuizSessionView:
+  type: object
+  required: [id, kind, status, startedAt, failurePoints, maxFailurePoints, questionCount, timed, test]
+  properties:
+    id:
+      type: string
+      format: uuid
+    userId:
+      type: string
+      format: uuid
+    kind:
+      $ref: './quizzes.yaml#/QuizKind'
+    status:
+      $ref: './quizzes.yaml#/QuizSessionStatus'
+    startedAt:
+      type: string
+      format: date-time
+    endedAt:
+      type: string
+      format: date-time
+    failurePoints:
+      type: number
+      format: double
+    maxFailurePoints:
+      type: integer
+      format: int32
+    questionCount:
+      type: integer
+      format: int32
+    timed:
+      type: boolean
+    test:
+      type: boolean
+
+QuizDetail:
+  type: object
+  required: [kind, names, descriptions, maxFailurePoints, questionCountTimed, questionCountUntimed, questionCount, mayEdit]
+  properties:
+    kind:
+      $ref: './quizzes.yaml#/QuizKind'
+    names:
+      type: object
+      additionalProperties:
+        type: string
+    descriptions:
+      type: object
+      additionalProperties:
+        type: string
+    maxFailurePoints:
+      type: integer
+      format: int32
+    questionCountTimed:
+      type: integer
+      format: int32
+    questionCountUntimed:
+      type: integer
+      format: int32
+    questionCount:
+      type: integer
+      format: int32
+    mayEdit:
+      type: boolean
+
+QuizUpdate:
+  type: object
+  properties:
+    names:
+      type: object
+      additionalProperties:
+        type: string
+    descriptions:
+      type: object
+      additionalProperties:
+        type: string
+    maxFailurePoints:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 100
+    questionCountTimed:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 100
+    questionCountUntimed:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 100
+    reason:
+      type: string
+      maxLength: 500
+
+AnswerDetail:
+  type: object
+  required: [id, texts, explanations, rating]
+  properties:
+    id:
+      type: string
+      format: uuid
+    texts:
+      type: object
+      additionalProperties:
+        type: string
+    explanations:
+      type: object
+      additionalProperties:
+        type: string
+    rating:
+      $ref: './quizzes.yaml#/AnswerRating'
+
+QuestionDetail:
+  type: object
+  required: [id, texts, failurePoints, mandatory, answers, commentCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+    texts:
+      type: object
+      additionalProperties:
+        type: string
+    durationSeconds:
+      type: integer
+      format: int32
+    wikiLink:
+      type: string
+    mandatory:
+      type: boolean
+    failurePoints:
+      type: integer
+      format: int32
+    answers:
+      type: array
+      items:
+        $ref: './quizzes.yaml#/AnswerDetail'
+    commentCount:
+      type: integer
+      format: int32
+
+QuestionUpdate:
+  type: object
+  properties:
+    texts:
+      type: object
+      additionalProperties:
+        type: string
+    durationSeconds:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 600
+    wikiLink:
+      type: string
+      maxLength: 500
+    mandatory:
+      type: boolean
+    failurePoints:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 10
+
+AnswerUpdate:
+  type: object
+  properties:
+    texts:
+      type: object
+      additionalProperties:
+        type: string
+    explanations:
+      type: object
+      additionalProperties:
+        type: string
+    rating:
+      $ref: './quizzes.yaml#/AnswerRating'
+
+QuestionComment:
+  type: object
+  required: [id, author, text, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: './users.yaml#/UserSummary'
+    text:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+
+QuestionCommentCreate:
+  type: object
+  required: [text]
+  properties:
+    text:
+      type: string
+      minLength: 1
+      maxLength: 4000

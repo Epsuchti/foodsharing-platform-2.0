@@ -1,0 +1,105 @@
+package network.foodsharing.region.service;
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import network.foodsharing.config.AppProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+
+/**
+ * Postcode geocoding with Photon (komoot, OSM based): timeouts, a 24 h cache and a simple circuit breaker (after
+ * {@code failure-threshold} consecutive failures no calls for {@code open-seconds}), plan §6.2 external calls.
+ */
+@Component
+@ConditionalOnProperty(name = "app.geocoding.provider", havingValue = "photon", matchIfMissing = true)
+public class PhotonGeocodingClient implements GeocodingClient {
+
+    private static final Logger log = LoggerFactory.getLogger(PhotonGeocodingClient.class);
+
+    private record CacheEntry(Optional<GeoPoint> point, Instant expiresAt) {
+    }
+
+    private final AppProperties.Geocoding settings;
+    private final ObjectMapper objectMapper;
+    private final Clock clock;
+    private final HttpClient http;
+    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
+    private int consecutiveFailures;
+    private Instant openUntil = Instant.EPOCH;
+
+    public PhotonGeocodingClient(AppProperties properties, ObjectMapper objectMapper, Clock clock) {
+        this.settings = properties.getGeocoding();
+        this.objectMapper = objectMapper;
+        this.clock = clock;
+        this.http = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(settings.getConnectTimeoutMs()))
+                .followRedirects(HttpClient.Redirect.NEVER).build();
+    }
+
+    @Override
+    public Optional<GeoPoint> geocodePostcode(String country, String postcode) {
+        if (postcode == null || postcode.isBlank()) {
+            return Optional.empty();
+        }
+        String key = StaticGeocodingClient.key(country, postcode);
+        Instant now = clock.instant();
+        CacheEntry cached = cache.get(key);
+        if (cached != null && cached.expiresAt().isAfter(now)) {
+            return cached.point();
+        }
+        synchronized (this) {
+            if (openUntil.isAfter(now)) {
+                throw new GeocodingUnavailableException("geocoding circuit open", null);
+            }
+        }
+        try {
+            Optional<GeoPoint> point = fetch(country == null ? "CH" : country, postcode.strip());
+            synchronized (this) {
+                consecutiveFailures = 0;
+            }
+            cache.put(key, new CacheEntry(point, now.plus(Duration.ofHours(settings.getCacheHours()))));
+            return point;
+        } catch (Exception e) {
+            synchronized (this) {
+                consecutiveFailures++;
+                if (consecutiveFailures >= settings.getFailureThreshold()) {
+                    openUntil = now.plusSeconds(settings.getOpenSeconds());
+                    consecutiveFailures = 0;
+                }
+            }
+            log.warn("Photon geocoding failed for {}: {}", key, e.toString());
+            throw new GeocodingUnavailableException("geocoding failed", e);
+        }
+    }
+
+    private Optional<GeoPoint> fetch(String country, String postcode) throws Exception {
+        String query = URLEncoder.encode(postcode, StandardCharsets.UTF_8);
+        URI uri = URI.create(settings.getPhotonUrl() + "/api?limit=1&layer=postcode&q=" + query
+                + "&countrycode=" + URLEncoder.encode(country.toLowerCase(java.util.Locale.ROOT), StandardCharsets.UTF_8));
+        HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofMillis(settings.getReadTimeoutMs()))
+                .header("Accept", "application/json").GET().build();
+        HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            throw new IllegalStateException("Photon answered " + response.statusCode());
+        }
+        JsonNode features = objectMapper.readTree(response.body()).path("features");
+        if (!features.isArray() || features.isEmpty()) {
+            return Optional.empty();
+        }
+        JsonNode coordinates = features.get(0).path("geometry").path("coordinates");
+        return Optional.of(new GeoPoint(coordinates.get(1).asDouble(), coordinates.get(0).asDouble()));
+    }
+}

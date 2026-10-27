@@ -1,0 +1,236 @@
+RegionImportStatus:
+  type: string
+  enum: [CREATE, UPDATE, UNCHANGED, ERROR]
+
+RegionForAdministration:
+  type: object
+  required: [name, type, parentId, timeZone, joinMode, moderated]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    slug:
+      description: 'Generated from the name when empty.'
+      type: string
+      maxLength: 100
+    type:
+      $ref: './regions.yaml#/UnitType'
+    parentId:
+      type: string
+      format: uuid
+    emailName:
+      type: string
+      maxLength: 100
+    teaser:
+      type: string
+      maxLength: 2000
+    description:
+      type: string
+      maxLength: 32600
+    timeZone:
+      type: string
+      maxLength: 60
+    country:
+      type: string
+      maxLength: 2
+    joinMode:
+      $ref: './regions.yaml#/RegionJoinMode'
+    moderated:
+      type: boolean
+    ambassadorIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    functions:
+      type: array
+      items:
+        $ref: './region-admin.yaml#/RegionFunctionUpdateItem'
+    reason:
+      type: string
+      maxLength: 500
+
+RegionFunctionUpdateItem:
+  type: object
+  required: [function, groupId]
+  properties:
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+    groupId:
+      type: string
+      format: uuid
+
+RegionAdminUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 200
+    slug:
+      type: string
+      maxLength: 100
+    type:
+      $ref: './regions.yaml#/UnitType'
+    emailName:
+      type: string
+      maxLength: 100
+    teaser:
+      type: string
+      maxLength: 2000
+    description:
+      type: string
+      maxLength: 32600
+    timeZone:
+      type: string
+      maxLength: 60
+    country:
+      type: string
+      maxLength: 2
+    joinMode:
+      $ref: './regions.yaml#/RegionJoinMode'
+    moderated:
+      type: boolean
+    ambassadorIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    functions:
+      type: array
+      items:
+        $ref: './region-admin.yaml#/RegionFunctionUpdateItem'
+    reason:
+      type: string
+      maxLength: 500
+
+RegionAdminItem:
+  type: object
+  required: [region, childCount, memberCount, ambassadors, functions, timeZone, joinMode, moderated]
+  properties:
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    childCount:
+      type: integer
+      format: int32
+    memberCount:
+      type: integer
+      format: int32
+    ambassadors:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    functions:
+      type: array
+      items:
+        $ref: './regions.yaml#/RegionFunctionAssignment'
+    emailName:
+      type: string
+    timeZone:
+      type: string
+    country:
+      type: string
+    joinMode:
+      $ref: './regions.yaml#/RegionJoinMode'
+    moderated:
+      type: boolean
+    teaser:
+      type: string
+    description:
+      type: string
+
+RegionAdminPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './region-admin.yaml#/RegionAdminItem'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+MoveRegionRequest:
+  type: object
+  required: [newParentId]
+  properties:
+    newParentId:
+      type: string
+      format: uuid
+    reason:
+      type: string
+      maxLength: 500
+
+RegionsCsvImport:
+  type: object
+  required: [csv, dryRun]
+  properties:
+    csv:
+      description: 'Columns parent_slug,slug,name,type,time_zone,country,postcodes (postcodes separated by spaces)'
+      type: string
+      minLength: 1
+      maxLength: 2000000
+    dryRun:
+      type: boolean
+
+RegionImportRow:
+  type: object
+  required: [line, status, errors]
+  properties:
+    line:
+      type: integer
+      format: int32
+    parentSlug:
+      type: string
+    slug:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: './regions.yaml#/UnitType'
+    timeZone:
+      type: string
+    country:
+      type: string
+    postcodes:
+      type: array
+      items:
+        type: string
+    status:
+      $ref: './region-admin.yaml#/RegionImportStatus'
+    errors:
+      description: 'Error keys, e.g. UNKNOWN_PARENT, INVALID_TYPE'
+      type: array
+      items:
+        type: string
+
+RegionsImportPreview:
+  type: object
+  required: [rows, created, updated, errors, dryRun]
+  properties:
+    rows:
+      type: array
+      items:
+        $ref: './region-admin.yaml#/RegionImportRow'
+    created:
+      type: integer
+      format: int32
+    updated:
+      type: integer
+      format: int32
+    errors:
+      type: integer
+      format: int32
+    dryRun:
+      type: boolean
+
+RegionFunctionUpdate:
+  type: object
+  required: [groupId]
+  properties:
+    groupId:
+      type: string
+      format: uuid
+    reason:
+      type: string
+      maxLength: 500

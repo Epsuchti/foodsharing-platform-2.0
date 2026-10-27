@@ -1,0 +1,189 @@
+/api/regions/{regionId}/intro-pickups/bookable:
+  get:
+    tags: [intro-pickups]
+    operationId: listBookableIntroPickups
+    summary: 'Upcoming EinAbs of a region with bookability for the current user.'
+    x-permission: 'member'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          $ref: '../schemas/intro-pickups.yaml#/IntroPickupCategory'
+      - name: visitFairteiler
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/BookableIntroPickupPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_REGION_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/intro-pickups/slots/{slotId}/book:
+  post:
+    tags: [intro-pickups]
+    operationId: bookSlot
+    summary: 'Book a slot.'
+    x-permission: 'member'
+    x-history: IntroPickupAction.SLOT_BOOKED
+    parameters:
+      - name: slotId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/MyBooking'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'BOOKING_USER_DISABLED or GUIDES_CANNOT_BOOK', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'SLOT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_REGION_MEMBER, SLOT_NOT_AVAILABLE, USER_ALREADY_BOOKED_IN_INTRO_PICKUP, USER_ALREADY_BOOKED_WITH_GUIDE, USER_ALREADY_BOOKED_IN_CATEGORY, USER_BOOKING_LIMIT_REACHED, FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP or MINIMUM_PICKUP_COUNT_NOT_REACHED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/intro-pickups:
+  get:
+    tags: [intro-pickups]
+    operationId: listMyBookings
+    summary: 'Own EinAb bookings.'
+    x-permission: 'self'
+    parameters:
+      - name: past
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/intro-pickups.yaml#/MyBooking'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/intro-pickups/slots/{slotId}/booking:
+  delete:
+    tags: [intro-pickups]
+    operationId: cancelMyBooking
+    summary: 'Cancel an own upcoming booking.'
+    x-permission: 'self'
+    x-history: IntroPickupAction.BOOKING_CANCELLED_BY_USER
+    parameters:
+      - name: slotId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ONLY_OWN_BOOKINGS_CANCELLABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'SLOT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PAST_BOOKING_NOT_CANCELLABLE or ONLY_BOOKED_APPOINTMENTS_CANCELLABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/intro-pickups/{introPickupId}/calendar.ics:
+  get:
+    tags: [intro-pickups]
+    operationId: getIntroPickupIcs
+    summary: 'Calendar entry of an EinAb (booked user or guide).'
+    x-permission: 'booked user or guide'
+    parameters:
+      - name: introPickupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          text/calendar:
+            schema:
+              type: string
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'INTRO_PICKUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/intro-pickup-subscription:
+  get:
+    tags: [intro-pickups]
+    operationId: getMySubscription
+    summary: 'Notification subscription for new bookable EinAbs.'
+    x-permission: 'self'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/IntroPickupSubscription'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'RESOURCE_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  put:
+    tags: [intro-pickups]
+    operationId: subscribe
+    summary: 'Subscribe (or change the subscription).'
+    x-permission: 'self'
+    x-history: IntroPickupAction.SUBSCRIBED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/SubscriptionUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/IntroPickupSubscription'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOTIFICATION_NOT_NEEDED_VERIFIED or NOT_REGION_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [intro-pickups]
+    operationId: unsubscribeMine
+    summary: 'Unsubscribe.'
+    x-permission: 'self'
+    x-history: IntroPickupAction.UNSUBSCRIBED
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'RESOURCE_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

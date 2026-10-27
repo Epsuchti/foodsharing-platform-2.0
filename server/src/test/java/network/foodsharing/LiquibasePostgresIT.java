@@ -52,7 +52,16 @@ class LiquibasePostgresIT {
         // The foodsaver number sequence starts above the seed numbers.
         assertThat(jdbc.queryForObject("select nextval('foodsaver_number_seq')", Long.class)).isGreaterThan(100014L);
 
-        List<String> tables = jdbc.queryForList("select table_name from information_schema.tables "
+        // M2 region seed and the closure table on PostgreSQL
+        assertThat(jdbc.queryForObject("select count(*) from region", Integer.class)).isEqualTo(68);
+        assertThat(jdbc.queryForObject("select count(*) from region_closure", Integer.class)).isEqualTo(225);
+        assertThat(jdbc.queryForObject("select count(*) from region_membership", Integer.class)).isEqualTo(61);
+        assertThat(jdbc.queryForObject("select count(*) from user_account where home_region_id is not null",
+                Integer.class)).isEqualTo(12);
+        assertThat(jdbc.queryForObject("select count(*) from group_application", Integer.class)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from user_note", Integer.class)).isEqualTo(3);
+
+        List<String> tables =jdbc.queryForList("select table_name from information_schema.tables "
                 + "where table_schema = 'public'", String.class);
         if (tables.contains("auth_identity")) {
             assertThat(jdbc.queryForObject("select count(*) from auth_identity", Integer.class)).isEqualTo(16);

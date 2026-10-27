@@ -1,0 +1,139 @@
+/api/admin/users/{userId}/profile:
+  patch:
+    tags: [admin-users]
+    operationId: updateUserProfileAsAdmin
+    summary: 'Change admin-editable profile fields of a user (reason required).'
+    x-permission: 'mayAdministrateUser'
+    x-history: UserAction.PROFILE_UPDATED_BY_ADMIN
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/admin-users.yaml#/AdminUserProfileUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserProfile'
+      '400': {description: 'VALIDATION_FAILED or INVALID_PHONE_NUMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_A_MEMBER (home region) or CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  get:
+    tags: [admin-users]
+    operationId: getUserProfileAsAdmin
+    summary: 'Full profile of a user for administrators.'
+    x-permission: 'mayAdministrateUser'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserProfile'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/users/{userId}/active:
+  put:
+    tags: [admin-users]
+    operationId: setUserActive
+    summary: 'Enable or disable an account (the sessions of a disabled account stop working at once).'
+    x-permission: 'mayAdministrateUser'
+    x-history: UserAction.DEACTIVATED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/admin-users.yaml#/ActiveUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserProfile'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CANNOT_DEACTIVATE_SELF', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/users/{userId}/change-history:
+  get:
+    tags: [admin-users]
+    operationId: getUserChangeHistory
+    summary: 'Profile change history of a user (plan §10.2).'
+    x-permission: 'mayAdministrateUser or self'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: actions
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/history.yaml#/HistoryEntryPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

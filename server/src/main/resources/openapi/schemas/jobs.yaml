@@ -1,0 +1,25 @@
+JobStatus:
+  type: string
+  enum: [RUNNING, DONE, FAILED]
+
+JobProgress:
+  type: object
+  required: [id, status, total, done, resultAvailable]
+  properties:
+    id:
+      type: string
+      format: uuid
+    status:
+      $ref: './jobs.yaml#/JobStatus'
+    total:
+      type: integer
+      format: int32
+    done:
+      type: integer
+      format: int32
+    message:
+      type: string
+    resultAvailable:
+      type: boolean
+    resultContentType:
+      type: string

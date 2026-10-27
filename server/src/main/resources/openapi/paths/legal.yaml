@@ -1,0 +1,92 @@
+/api/legal/consents:
+  get:
+    tags: [legal]
+    operationId: getMyConsents
+    summary: 'Consent state per legal document.'
+    x-permission: 'self'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/legal.yaml#/ConsentStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [legal]
+    operationId: acceptLegalDocument
+    summary: 'Accept the current version of a document.'
+    x-permission: 'self'
+    x-history: LegalAction.CONSENT_GIVEN
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/legal.yaml#/LegalConsentRequest'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/legal.yaml#/ConsentStatus'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'LEGAL_DOCUMENT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'LEGAL_VERSION_OUTDATED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/legal/{kind}/versions:
+  get:
+    tags: [legal]
+    operationId: listLegalVersions
+    summary: 'Published versions of a document.'
+    x-permission: 'ORGA'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/legal.yaml#/LegalDocumentKind'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/legal.yaml#/LegalVersionView'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [legal]
+    operationId: publishLegalVersion
+    summary: 'Publish a new version (optionally requiring everyone to consent again).'
+    x-permission: 'ORGA'
+    x-history: ContentAction.LEGAL_VERSION_PUBLISHED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/legal.yaml#/LegalDocumentKind'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/legal.yaml#/LegalVersionCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/legal.yaml#/LegalVersionView'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'LEGAL_VERSION_EXISTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

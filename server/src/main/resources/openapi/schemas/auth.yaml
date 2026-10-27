@@ -8,12 +8,26 @@ SessionInfo:
       $ref: './auth.yaml#/SessionUser'
     permissions:
       type: array
-      description: Effective permission names (M1 empty; region-scoped permissions arrive in M2).
+      description: >-
+        Effective region-scoped permissions as "<PERMISSION>@<regionId>" ("<PERMISSION>@*" for ORGA), see
+        docs/conventions.md A10.
       items:
         type: string
     sessionId:
       type: string
       format: uuid
+    units:
+      type: array
+      description: Regions and working groups of the user (filled by the region module's SessionInfoEnricher).
+      items:
+        $ref: './regions.yaml#/UnitMembership'
+    pendingConsents:
+      type: array
+      description: Legal documents the user still has to accept (filled by the legal enricher).
+      items:
+        $ref: './legal.yaml#/LegalDocumentKind'
+    onboarding:
+      $ref: './onboarding.yaml#/OnboardingState'
 
 SessionUser:
   type: object
@@ -36,6 +50,17 @@ SessionUser:
       $ref: './common.yaml#/Theme'
     verified:
       type: boolean
+    homeRegionId:
+      type: string
+      format: uuid
+    foodsaverNumber:
+      type: integer
+      format: int64
+    quizRole:
+      $ref: './common.yaml#/Role'
+    phone:
+      type: string
+      description: Mobile phone number (onboarding step 2 checks it is set).
 
 MagicLinkRequest:
   type: object

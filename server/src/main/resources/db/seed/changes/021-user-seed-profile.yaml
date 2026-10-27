@@ -1,0 +1,28 @@
+# Profile fields of the seed users (T11). A separate changeset after the region seed because home_region_id
+# references region; it only updates existing user_account rows (loaded by 001-user-seed-users).
+databaseChangeLog:
+  - changeSet:
+      id: seed-021-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Profile, address, phone, home region, identity confirmation and passport dates.'
+      changes:
+        - loadUpdateData:
+            tableName: user_account
+            file: ../user/user_profile.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: date_of_birth, type: STRING}
+              - column: {name: latitude, type: NUMERIC}
+              - column: {name: longitude, type: NUMERIC}
+              - column: {name: home_region_id, type: UUID}
+              - column: {name: newsletter_opt_in, type: BOOLEAN}
+              - column: {name: identity_confirmed_at, type: STRING}
+              - column: {name: identity_confirmed_by, type: UUID}
+              - column: {name: last_passport_at, type: STRING}

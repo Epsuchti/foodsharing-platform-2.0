@@ -1,0 +1,262 @@
+/api/admin/regions:
+  get:
+    tags: [region-admin]
+    operationId: listRegionsForAdmin
+    summary: 'Region tree level for administration.'
+    x-permission: 'ORGA'
+    parameters:
+      - name: parentId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/region-admin.yaml#/RegionAdminPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [region-admin]
+    operationId: createRegion
+    summary: 'Create a region or working group.'
+    x-permission: 'ORGA'
+    x-history: RegionAction.CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/region-admin.yaml#/RegionForAdministration'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/region-admin.yaml#/RegionAdminItem'
+      '400': {description: 'VALIDATION_FAILED, SLUG_TAKEN, EMAIL_NAME_TAKEN, DUPLICATE_FUNCTION_GROUP or INVALID_TIME_ZONE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/regions/{regionId}:
+  get:
+    tags: [region-admin]
+    operationId: getRegionForAdmin
+    summary: 'One region for the edit dialog.'
+    x-permission: 'ORGA'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/region-admin.yaml#/RegionAdminItem'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  patch:
+    tags: [region-admin]
+    operationId: updateRegion
+    summary: 'Edit a region.'
+    x-permission: 'ORGA'
+    x-history: RegionAction.UPDATED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/region-admin.yaml#/RegionAdminUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/region-admin.yaml#/RegionAdminItem'
+      '400': {description: 'VALIDATION_FAILED, SLUG_TAKEN, EMAIL_NAME_TAKEN, DUPLICATE_FUNCTION_GROUP or INVALID_TIME_ZONE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [region-admin]
+    operationId: deleteRegion
+    summary: 'Delete a region (refused with children; with members only with force).'
+    x-permission: 'ORGA'
+    x-history: RegionAction.DELETED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: force
+        in: query
+        schema:
+          type: boolean
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/ReasonBody'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'REGION_HAS_CHILDREN or REGION_HAS_MEMBERS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/regions/{regionId}/move:
+  post:
+    tags: [region-admin]
+    operationId: moveRegion
+    summary: 'Move a region to a new parent.'
+    x-permission: 'ORGA'
+    x-history: RegionAction.MOVED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/region-admin.yaml#/MoveRegionRequest'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/region-admin.yaml#/RegionAdminItem'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CANNOT_MOVE_INTO_DESCENDANT', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/regions/import:
+  post:
+    tags: [region-admin]
+    operationId: importRegionsCsv
+    summary: 'Import regions from CSV (dry run returns the preview only).'
+    x-permission: 'ORGA'
+    x-history: RegionAction.REGIONS_IMPORTED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/region-admin.yaml#/RegionsCsvImport'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/region-admin.yaml#/RegionsImportPreview'
+      '400': {description: 'VALIDATION_FAILED or IMPORT_TOO_LARGE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/regions/{regionId}/functions/{function}:
+  put:
+    tags: [region-admin]
+    operationId: setRegionFunction
+    summary: 'Assign a working group to a function of the region.'
+    x-permission: 'ORGA'
+    x-history: RegionAction.FUNCTION_ASSIGNED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: function
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/regions.yaml#/WorkingGroupFunction'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/region-admin.yaml#/RegionFunctionUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/regions.yaml#/RegionFunctionAssignment'
+      '400': {description: 'VALIDATION_FAILED or DUPLICATE_FUNCTION_GROUP', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or RESTRICTED_FUNCTION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or GROUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [region-admin]
+    operationId: removeRegionFunction
+    summary: 'Remove a function assignment.'
+    x-permission: 'ORGA'
+    x-history: RegionAction.FUNCTION_REMOVED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: function
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/regions.yaml#/WorkingGroupFunction'
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or RESTRICTED_FUNCTION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

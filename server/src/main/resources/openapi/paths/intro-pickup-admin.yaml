@@ -1,0 +1,478 @@
+/api/regions/{regionId}/admin/intro-pickups:
+  get:
+    tags: [intro-pickup-admin]
+    operationId: listRegionIntroPickups
+    summary: 'All upcoming EinAbs of the region.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: past
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/IntroPickupDetailPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/intro-pickups/{introPickupId}:
+  delete:
+    tags: [intro-pickup-admin]
+    operationId: deleteIntroPickupAsAdmin
+    summary: 'Delete an EinAb without bookings (reason mailed to the guide).'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.DELETED_BY_ADMIN
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: introPickupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/ReasonBody'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or INTRO_PICKUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PAST_INTRO_PICKUP_NOT_DELETABLE or BOOKED_SLOTS_PREVENT_DELETE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/users/{userId}/historical-intro-pickups:
+  post:
+    tags: [intro-pickup-admin]
+    operationId: createHistoricalIntroPickup
+    summary: 'Record an EinAb that happened before the platform.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.HISTORICAL_CREATED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/HistoricalIntroPickupCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/GuideBooking'
+      '400': {description: 'VALIDATION_FAILED or HISTORICAL_INTRO_PICKUP_NOT_IN_PAST', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_REGION_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/bookings:
+  get:
+    tags: [intro-pickup-admin]
+    operationId: listRegionBookings
+    summary: 'All bookings of the region.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: past
+        in: query
+        schema:
+          type: boolean
+      - name: userId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/GuideBookingPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/intro-pickups/slots/{slotId}/counted:
+  put:
+    tags: [intro-pickup-admin]
+    operationId: setBookingCounted
+    summary: 'Count or uncount a past booking.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.COUNTED
+    parameters:
+      - name: slotId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/BookingCountedUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/GuideBooking'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'SLOT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ONLY_PAST_APPOINTMENTS_COUNTABLE, ONLY_CANCELLED_APPOINTMENTS_COUNTABLE or ONLY_COUNTED_APPOINTMENTS_NOT_COUNTABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/intro-pickups/slots/{slotId}/admin-comments:
+  post:
+    tags: [intro-pickup-admin]
+    operationId: addAdminComment
+    summary: 'Admin comment on a booking.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.COMMENT_ADDED
+    parameters:
+      - name: slotId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/SlotCommentCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/SlotComment'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'SLOT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'BOOKING_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/guides:
+  get:
+    tags: [intro-pickup-admin]
+    operationId: listGuides
+    summary: 'Guides of the region.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/GuideSummaryPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/guides/{userId}/enabled:
+  put:
+    tags: [intro-pickup-admin]
+    operationId: setGuideEnabled
+    summary: 'Enable or disable a guide (grants/revokes CAN_GIVE_INTRO_PICKUPS).'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.GUIDE_ENABLED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/GuideEnabledUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/GuideSummary'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_REGION_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/past-import/preview:
+  post:
+    tags: [intro-pickup-admin]
+    operationId: previewPastImport
+    summary: 'Analyse a CSV of past EinAbs (nothing is stored).'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: NONE
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/PastImportRequest'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/PastImportPreview'
+      '400': {description: 'VALIDATION_FAILED or IMPORT_TOO_LARGE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/past-import/confirm:
+  post:
+    tags: [intro-pickup-admin]
+    operationId: confirmPastImport
+    summary: 'Import the CREATE rows (re-analyses; repeating adds only missing rows).'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.IMPORTED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/PastImportRequest'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/PastImportResult'
+      '400': {description: 'VALIDATION_FAILED or IMPORT_TOO_LARGE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/store-aliases:
+  get:
+    tags: [intro-pickup-admin]
+    operationId: listStoreAliases
+    summary: 'Store name aliases used by the CSV import.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/intro-pickups.yaml#/StoreAlias'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [intro-pickup-admin]
+    operationId: createStoreAlias
+    summary: 'Add a store name alias.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.STORE_ALIAS_CHANGED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/StoreAliasUpdate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/StoreAlias'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'STORE_ALIAS_EXISTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/admin/store-aliases/{aliasId}:
+  put:
+    tags: [intro-pickup-admin]
+    operationId: updateStoreAlias
+    summary: 'Change a store name alias.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.STORE_ALIAS_CHANGED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: aliasId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/StoreAliasUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/StoreAlias'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or STORE_ALIAS_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'STORE_ALIAS_EXISTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [intro-pickup-admin]
+    operationId: deleteStoreAlias
+    summary: 'Delete a store name alias.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    x-history: IntroPickupAction.STORE_ALIAS_CHANGED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: aliasId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or STORE_ALIAS_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

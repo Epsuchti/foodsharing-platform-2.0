@@ -1,0 +1,282 @@
+ApplyType:
+  type: string
+  description: 'Who may join: NOBODY (admins add members), EVERYBODY (application, optional requirements), OPEN (join directly).'
+  enum: [NOBODY, EVERYBODY, OPEN]
+
+GroupCategory:
+  type: string
+  enum: [DEVELOPMENT, EXCHANGE, ADMINISTRATIVE, PROJECT, ARCHIVED]
+
+GroupApplicationStatus:
+  type: string
+  enum: [PENDING, ACCEPTED, DECLINED, CANCELLED]
+
+GroupMembershipState:
+  type: object
+  required: [member, admin, applied]
+  properties:
+    member:
+      type: boolean
+    admin:
+      type: boolean
+    applied:
+      type: boolean
+
+GroupRequirements:
+  type: object
+  required: [minPickups, minBananas, minWeeks]
+  properties:
+    minPickups:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 10000
+    minBananas:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 10000
+    minWeeks:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 1000
+
+GroupRequirementCheck:
+  type: object
+  required: [pickupsOk, bananasOk, weeksOk]
+  properties:
+    pickupsOk:
+      type: boolean
+    bananasOk:
+      type: boolean
+    weeksOk:
+      type: boolean
+    pickups:
+      type: integer
+      format: int32
+    bananas:
+      type: integer
+      format: int32
+    weeks:
+      type: integer
+      format: int32
+
+WorkingGroupSummary:
+  type: object
+  required: [id, name, slug, category, applyType, memberCount, adminNames, membership, mayApply, mayJoin, mayEdit, subGroups]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    slug:
+      type: string
+    parentId:
+      type: string
+      format: uuid
+    teaser:
+      type: string
+    photoUrl:
+      type: string
+    category:
+      $ref: './groups.yaml#/GroupCategory'
+    applyType:
+      $ref: './groups.yaml#/ApplyType'
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+    memberCount:
+      type: integer
+      format: int32
+    adminNames:
+      type: array
+      items:
+        type: string
+    membership:
+      $ref: './groups.yaml#/GroupMembershipState'
+    mayApply:
+      type: boolean
+    mayJoin:
+      type: boolean
+    mayEdit:
+      type: boolean
+    subGroups:
+      type: array
+      items:
+        $ref: './regions.yaml#/GroupRef'
+
+WorkingGroupDetail:
+  type: object
+  required: [id, name, slug, category, applyType, memberCount, admins, membership, mayApply, mayJoin, mayEdit, requirements, subGroups]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    slug:
+      type: string
+    parent:
+      $ref: './regions.yaml#/RegionRef'
+    teaser:
+      type: string
+    description:
+      type: string
+    photoUrl:
+      type: string
+    category:
+      $ref: './groups.yaml#/GroupCategory'
+    applyType:
+      $ref: './groups.yaml#/ApplyType'
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+    memberCount:
+      type: integer
+      format: int32
+    admins:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    membership:
+      $ref: './groups.yaml#/GroupMembershipState'
+    mayApply:
+      type: boolean
+    mayJoin:
+      type: boolean
+    mayEdit:
+      type: boolean
+    requirements:
+      $ref: './groups.yaml#/GroupRequirements'
+    requirementCheck:
+      $ref: './groups.yaml#/GroupRequirementCheck'
+    conferenceUrl:
+      type: string
+    emailName:
+      type: string
+    subGroups:
+      type: array
+      items:
+        $ref: './regions.yaml#/GroupRef'
+
+WorkingGroupCreate:
+  type: object
+  required: [name, category, applyType]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    teaser:
+      type: string
+      maxLength: 2000
+    description:
+      type: string
+      maxLength: 32600
+    photoUrl:
+      type: string
+      maxLength: 500
+    category:
+      $ref: './groups.yaml#/GroupCategory'
+    applyType:
+      $ref: './groups.yaml#/ApplyType'
+    requirements:
+      $ref: './groups.yaml#/GroupRequirements'
+    function:
+      $ref: './regions.yaml#/WorkingGroupFunction'
+    reason:
+      type: string
+      maxLength: 500
+
+WorkingGroupUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 200
+    teaser:
+      type: string
+      maxLength: 2000
+    description:
+      type: string
+      maxLength: 32600
+    photoUrl:
+      type: string
+      maxLength: 500
+    category:
+      $ref: './groups.yaml#/GroupCategory'
+    applyType:
+      $ref: './groups.yaml#/ApplyType'
+    requirements:
+      $ref: './groups.yaml#/GroupRequirements'
+    reason:
+      type: string
+      maxLength: 500
+
+GroupApplicationCreate:
+  type: object
+  required: [text]
+  properties:
+    text:
+      type: string
+      minLength: 1
+      maxLength: 4000
+
+GroupApplication:
+  type: object
+  required: [id, user, status, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    user:
+      $ref: './users.yaml#/UserSummary'
+    text:
+      type: string
+    status:
+      $ref: './groups.yaml#/GroupApplicationStatus'
+    createdAt:
+      type: string
+      format: date-time
+    decidedAt:
+      type: string
+      format: date-time
+    decidedBy:
+      $ref: './users.yaml#/UserSummary'
+    decisionMessage:
+      type: string
+
+GroupApplicationDecision:
+  type: object
+  required: [accept]
+  properties:
+    accept:
+      type: boolean
+    message:
+      type: string
+      maxLength: 2000
+
+GroupMember:
+  type: object
+  required: [user, admin]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    admin:
+      type: boolean
+    joinedAt:
+      type: string
+      format: date-time
+
+GroupMail:
+  type: object
+  required: [subject, body]
+  properties:
+    subject:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 10000

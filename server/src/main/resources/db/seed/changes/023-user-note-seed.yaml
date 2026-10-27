@@ -1,0 +1,26 @@
+# User notes (T11): verification messages and an admin note.
+databaseChangeLog:
+  - changeSet:
+      id: seed-023-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Notes about seed users.'
+      changes:
+        - loadUpdateData:
+            tableName: user_note
+            file: ../user/user_note.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: author_id, type: UUID}

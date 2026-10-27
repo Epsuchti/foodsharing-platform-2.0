@@ -1,2 +1,173 @@
-# Onboarding schemas (milestone 2).
-{}
+# Onboarding schemas (plan §11).
+JourneyStepKey:
+  type: string
+  enum: [ACCOUNT, PROFILE_REGION, LEARN, QUIZ, AGREEMENT, INTRO_PICKUPS, ID_CHECK, PASSPORT]
+
+JourneyStepStatus:
+  type: string
+  enum: [LOCKED, AVAILABLE, IN_PROGRESS, WAITING_FOR_OTHERS, DONE]
+
+JourneyProgress:
+  type: object
+  required: [done, booked, required]
+  properties:
+    done:
+      type: integer
+      format: int32
+    booked:
+      type: integer
+      format: int32
+    required:
+      type: integer
+      format: int32
+    fairteilerDone:
+      type: boolean
+
+JourneyNextAction:
+  type: object
+  required: [labelKey, route]
+  properties:
+    labelKey:
+      type: string
+    route:
+      type: string
+
+JourneyWaitingFor:
+  type: object
+  required: [labelKey, contacts]
+  properties:
+    labelKey:
+      type: string
+    contacts:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    typicalDays:
+      type: integer
+      format: int32
+
+JourneyStep:
+  type: object
+  required: [key, status, estimatedDuration]
+  properties:
+    key:
+      description: 'JourneyStepKey or region extra step key'
+      type: string
+    status:
+      $ref: './onboarding.yaml#/JourneyStepStatus'
+    titleKey:
+      type: string
+    title:
+      description: 'Region extra steps: translated title'
+      type: string
+    progress:
+      $ref: './onboarding.yaml#/JourneyProgress'
+    nextAction:
+      $ref: './onboarding.yaml#/JourneyNextAction'
+    estimatedDuration:
+      description: 'ISO-8601 duration, e.g. PT10M'
+      type: string
+    blockedReason:
+      type: string
+    blockedArgs:
+      type: object
+      additionalProperties:
+        type: string
+    waitingFor:
+      $ref: './onboarding.yaml#/JourneyWaitingFor'
+    optional:
+      type: boolean
+    details:
+      type: object
+      additionalProperties: true
+
+JourneyTrack:
+  type: object
+  required: [key, steps]
+  properties:
+    key:
+      description: 'HYGIENE, STORE_MANAGER, GUIDE, AMBASSADOR'
+      type: string
+    steps:
+      type: array
+      items:
+        $ref: './onboarding.yaml#/JourneyStep'
+
+Journey:
+  type: object
+  required: [complete, steps, extraSteps]
+  properties:
+    complete:
+      type: boolean
+    currentStep:
+      type: string
+    steps:
+      type: array
+      items:
+        $ref: './onboarding.yaml#/JourneyStep'
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    extraSteps:
+      type: array
+      items:
+        $ref: './onboarding.yaml#/JourneyStep'
+    tracks:
+      type: array
+      items:
+        $ref: './onboarding.yaml#/JourneyTrack'
+
+OnboardingState:
+  type: object
+  description: 'SessionInfo.onboarding: whether the journey is complete and the current step key.'
+  required: [complete]
+  properties:
+    complete:
+      type: boolean
+    currentStep:
+      type: string
+
+JourneyStepPreview:
+  type: object
+  required: [key, titleKey, estimatedDuration]
+  properties:
+    key:
+      $ref: './onboarding.yaml#/JourneyStepKey'
+    titleKey:
+      type: string
+    descriptionKey:
+      type: string
+    estimatedDuration:
+      type: string
+
+ExplainerCounters:
+  type: object
+  required: [foodsavers, regions, kgSaved, pickups, stores]
+  properties:
+    foodsavers:
+      type: integer
+      format: int32
+    regions:
+      type: integer
+      format: int32
+    kgSaved:
+      type: number
+      format: double
+    pickups:
+      type: integer
+      format: int32
+    stores:
+      type: integer
+      format: int32
+
+Explainer:
+  type: object
+  required: [counters, journeyPreview]
+  properties:
+    counters:
+      $ref: './onboarding.yaml#/ExplainerCounters'
+    region:
+      $ref: './public-regions.yaml#/PublicRegion'
+    journeyPreview:
+      type: array
+      items:
+        $ref: './onboarding.yaml#/JourneyStepPreview'

@@ -1,0 +1,6 @@
+id,version,created_at,updated_at,created_by,updated_by,owner_id,language,title,description
+00000010-0011-4000-8000-000000000001,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000010-0010-4000-8000-000000000001,de,Neuen-Treffen besuchen,Komm an ein Neuen-Treffen des Begrüssungsteams (jeden ersten Montag im Monat).
+00000010-0011-4000-8000-000000000002,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000010-0010-4000-8000-000000000001,en,Attend a newcomer meeting,Join a newcomer meeting of the welcome team (first Monday of every month).
+00000010-0011-4000-8000-000000000003,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000010-0010-4000-8000-000000000001,gws,Neuä-Träff bsueche,Chumm as Neuä-Träff vom Begrüessigsteam (jede erschte Mäntig im Monet).
+00000010-0011-4000-8000-000000000004,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000010-0010-4000-8000-000000000001,fr,Participer à une rencontre des nouveaux,Viens à une rencontre de l'équipe d'accueil (chaque premier lundi du mois).
+00000010-0011-4000-8000-000000000005,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000010-0010-4000-8000-000000000001,it,Partecipare a un incontro per i nuovi,Partecipa a un incontro del team di benvenuto (ogni primo lunedì del mese).

@@ -137,3 +137,124 @@ Implemented with Angular `resource()`/`rxResource` + `httpResource` is not used 
 
 ---
 
+
+# Milestone 2 additions (A10–A17, from plan-m2 Part A; binding for M2+)
+
+### A10. Scoped permission model (plan §9, three layers in one `PermissionService`)
+- `security.PermissionService` is the only entry point and depends on no feature module. Layers 2/3 come from the SPI
+  `security.ScopedPermissionResolver` (implemented by `region.service.RegionPermissionResolver`; without a bean, e.g.
+  in `@WebMvcTest`, `PermissionService` uses `NoopScopedPermissionResolver` = nobody holds scoped roles). The
+  resolver works on plain user ids; the **ORGA override is applied by `PermissionService`** before it asks the resolver.
+- `security.WorkingGroupFunction` (+ `isRestricted()` = REPORT, ARBITRATION, FSMANAGEMENT, BOARD) and
+  `security.Permission` live in `security` so the SPI can name them without a `security → region` cycle.
+- `PermissionService` methods: `isMemberOf`, `isAmbassador` (admin of region/group; ORGA is *not* automatically one),
+  `isAmbassadorOrOrga`, `isAmbassadorOfAny`, `hasFunction(p, fn, regionId)`, `mayAdministrateRegion`,
+  `mayAdministrateUser`, `has(p, Permission, regionId)`, `hasAnywhere`, `effectivePermissions` and the `requireXxx`
+  variants (401 without principal, 403 `ACCESS_DENIED`). Services check permissions there, never ad hoc.
+- Rules (`RegionPermissionResolver`):
+  - member = active `region_membership`; admin = `region_admin` (ambassador of a region / admin of a group).
+  - `hasFunctionGroupPermission(fn, region)`: the region has a `region_function` row for `fn` → its group's admins;
+    otherwise the region's ambassadors (upstream `hasFunctionGroupPermissionForRegion`; "a function group supersedes
+    the ambassadors").
+  - `hasRegionPermission(p, region)`: a `region_permission` row, or membership (not only admin) of a group that holds a
+    function of that region whose grants (`app.permissions.function-grants`) contain `p`. Defaults:
+    FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, STORES_COORDINATION → CAN_USE_AUTOMATIONS +
+    CAN_SEE_USER_PICKUP_COUNT_GROUPING + CAN_SEE_ALL_AUTOMATION_DECISIONS, VOTING → CAN_MANAGE_SURVEYS. Grants are per
+    region (no inheritance to sub-regions).
+  - `mayAdministrateRegion(actor, region)`: actor is ambassador of the region **or one of its ancestors**, or admin of
+    the FSMANAGEMENT group of such a region (working-group admin roles do not count). `mayAdministrateUser(actor, user)`:
+    the same for any region the user is an active member of.
+- Who grants `region_permission`: ambassadors of the region and ORGA; `CAN_MANAGE_USERS` holders only
+  `CAN_GIVE_INTRO_PICKUPS` (T12).
+- Joining: only "accessible" types `PART_OF_TOWN, CITY, REGION, DISTRICT` (`UnitType.isAccessible()`); **any signed-in
+  user** may join (deviation from upstream `mayJoinRegion`, journey step 2 happens as FOODSHARER); join mode
+  APPLICATION → 409 `REGION_REQUIRES_APPLICATION`. The first joined region becomes the home region. Leaving the home
+  region is refused (409 `CANNOT_LEAVE_HOME_REGION`) unless another accessible membership exists, which then becomes
+  the home region (earliest joined).
+- `SessionInfo.permissions` strings: `"<PERMISSION>@<regionId>"`, ORGA `"<PERMISSION>@*"`, sorted.
+- The full matrix is `region/PermissionServiceMatrixTest` — extend it with every rule change.
+
+### A11. SessionInfo enrichment
+- SPI `security.SessionInfoEnricher { void enrich(SessionPrincipal, SessionInfoBuilder) }`; `SessionInfoBuilder` is a
+  hand-written holder of plain values (`homeRegionId`, `Unit(id, name, slug, type, parentId, member, admin,
+  homeRegion, function)` records with enum *names*, pending consent kind names, extra permission strings,
+  `onboarding(complete, currentStep)`) because `security` may not use generated models (ArchUnit rule 3).
+- `auth.mapper.AuthMapper.sessionInfo(...)` applies every enricher bean in `@Order`; a failing enricher is logged and
+  skipped (the session bootstrap never fails). `SessionUser` gained `homeRegionId, foodsaverNumber, quizRole, phone`;
+  `SessionInfo` gained `units`, `pendingConsents`, `onboarding` (all optional fields in the contract).
+- Enrichers: region (T12: units + nothing else; permissions already come from `PermissionService`), legal (T14),
+  onboarding (T22).
+
+### A12. Notifications before M4
+- `notification.service.NotificationService.notify(NotificationRequest)`: one bell per **active** recipient
+  (`notification.domain.Bell`, table `bell`, changelog 019) and, when built with `.mail(template)`, a mail through the
+  M1 outbox in the recipient's language (variables = params + `link` (absolute) + `displayName`). Records
+  `NotificationAction.SENT` (code `NOTIFICATION_SENT`, subject SYSTEM); every bell records
+  `NotificationAction.BELL_CREATED` (`NOTIFICATION_BELL_CREATED`, secondary subject = recipient).
+- Build requests with `NotificationRequest.to(recipientIds, NotificationType.X).param(..).link("/path")
+  .identifier(BellService.identifier(type, ids...)).mail("<module>/<name>").build()`. Identifiers are
+  `<TYPE>-<id>[-<id>]` (upstream `BellType::createIdentifier`); `NotificationService.removeBells(identifier)`
+  soft-deletes them (e.g. `REGION_NEW_MEMBER-<userId>` when the user is verified, T16).
+- `NotificationType` (notification module) holds all M2 types plus `GENERIC` (title from param `titleKey`); tasks do
+  not add constants — use GENERIC. Bell title key = `bell.<TYPE>`.
+- Mail templates: `templates/mail/<module>/<name>_<lang>.html|txt`, subject key `mail.<module>/<name>.subject`.
+- Cross-module notifications run in `@TransactionalEventListener(AFTER_COMMIT)` **+
+  `@Transactional(propagation = REQUIRES_NEW)`** listeners (without REQUIRES_NEW the writes of an AFTER_COMMIT listener
+  are never committed). Example: `region.service.RegionNotificationListener` (welcome bell on join).
+- Tests read notifications through `GET /api/dev/notifications?userId&type` (one BELL entry per bell plus a MAIL entry
+  when it was mailed).
+
+### A13. Seed date shifting (local profile only)
+- SPI `common.seed.SeedDateShiftContributor { void shift(Duration delta) }`. `dev.service.SeedDateShiftRunner`
+  (`@Profile("local")`, `ApplicationRunner`) shifts by the whole days between the last anchor (table
+  `seed_shift_state`, initially SEED_NOW's date 2026-11-02) and today in Europe/Zurich, inside one transaction, then
+  stores the new anchor. e2e has a fixed clock → nothing shifts. Contributors update only seed rows (fixed seed ids)
+  with plain SQL. After `POST /api/dev/seed/reset` the next shift happens at the next start.
+
+### A14. User-generated content in five languages
+- Translatable rows use a sibling table `<table>_i18n(owner_id, language VARCHAR(5), …text columns)` with
+  `uq_<table>_i18n_owner_language` (see `region_onboarding_step_i18n`); reads fall back requested → de → any. No JSON
+  text blobs. Seed translations: per-table CSV `db/seed/<module>/<table>_i18n.csv` (gws/fr/it machine translated).
+
+### A15. Time zones and "today"
+- Every region has `time_zone` (default `Europe/Zurich`); services use `RegionService.zoneOf(regionId)`, never a
+  constant.
+
+### A16. Public endpoints and tags
+- Public endpoints live under `/api/public/<module>/…` with tag `public-<module>` and their own
+  `Public<Module>Controller` (`security: []` in the contract). Token-protected downloads answer 404 on unknown tokens.
+
+### A17. Jobs and long-running work
+- `*Job` classes have `@Scheduled` (scheduling is globally off with `app.scheduling.enabled=false`) and implement
+  `common.jobs.RunnableJob { jobName(); runNow(); }` so tests can run them: `POST /api/dev/jobs/{name}/run`
+  (e.g. `region-maintenance`). Single instance until ShedLock (M4).
+- Long-running requests use `common.jobs.ProgressTracker` (`submit(ownerId, total, work)` on a virtual thread, or
+  `runNow`; result = bytes + content type + file name, kept `app.jobs.result-ttl-minutes`) and answer `JobRef{jobId}`;
+  clients poll `GET /api/jobs/{jobId}` and download `GET /api/jobs/{jobId}/result` (tag `jobs`,
+  `common.web.JobsController`, owner only, 404 `JOB_NOT_FOUND` for everyone else). Work in a job has no security
+  context or transaction: capture the actor id before submitting.
+
+### A18. Backend patterns established in M2 (T10/T11)
+- **Contract**: all M2 operations exist; unimplemented ones throw `ApiException.notImplemented("<operationId>")`
+  (501 `NOT_IMPLEMENTED`) in their controller stubs. Implementing a task = replace the stub bodies of its controller.
+  Tag files: one per controller, also for public variants (`public-content`, `public-legal`, `public-regions`,
+  `public-intro-pickups`, `public-onboarding`).
+- **Domain enums vs generated enums**: services and entities use the module's own enums (`region.domain.UnitType`,
+  `user.domain.Gender`, `quiz.domain.QuizKind`, …); mappers convert by name (`X.fromValue(e.name())` /
+  `Enum.valueOf(model.name())`). The generated enum of the same name is referenced only in `web`/`mapper`.
+- **User data across modules**: the user module never depends on the region module. Region data the user module needs
+  comes from the SPI `user.service.RegionDirectory` (implemented by `region.service.RegionUserDirectory`); the home
+  region is a plain `home_region_id` column. User cards are `UserMapper.toSummary(user, withPhone)`; whether contact
+  data may be shown is `UserService.mayCurrentUserSeeContact(user)`.
+- **Profile changes** are recorded explicitly per field (`PROFILE_UPDATED`, `PROFILE_UPDATED_BY_ADMIN` with the
+  required reason, `PHONE_CHANGED`, `HOME_REGION_CHANGED`); phone numbers and date of birth are redacted (`***`).
+  Phone numbers are validated with `user.service.PhoneNumberValidator` and stored in E.164 (CH default).
+- **Working groups are regions** (`type = WORKING_GROUP`, parent = their region); GROUP history uses `GroupAction`
+  (`Region.historySubjectType()` switches by type). Closure table `region_closure` is plain SQL
+  (`RegionClosureRepository`, no entity); create regions through `RegionTreeService.attach`, move with `move`.
+- **Seeds**: changes to an existing table's seed go into a new numbered seed changeset with its own CSV (e.g.
+  `021-user-seed-profile.yaml` updates `user_account` rows via `loadUpdateData` with the new columns only), never into
+  an existing seed changeset. `scripts/gen-region-closure.mjs` regenerates `region_closure.csv` after editing
+  `region.csv` (parents before children).
+- **Slice tests**: `@JpaSliceTest` + `@Import(services…, RegionClosureRepository.class)`; `region/RegionFixtures`
+  builds trees, users, memberships, admins, functions and grants.

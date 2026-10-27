@@ -8,6 +8,7 @@ import network.foodsharing.api.model.CapturedMail;
 import network.foodsharing.api.model.DevClockRequest;
 import network.foodsharing.api.model.DevClockState;
 import network.foodsharing.api.model.DevLoginRequest;
+import network.foodsharing.api.model.DevNotification;
 import network.foodsharing.api.model.DevRoleRequest;
 import network.foodsharing.api.model.DevUser;
 import network.foodsharing.api.model.SessionInfo;
@@ -15,10 +16,12 @@ import network.foodsharing.auth.mapper.AuthMapper;
 import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.common.web.HttpExchange;
 import network.foodsharing.dev.mapper.DevMapper;
+import network.foodsharing.dev.service.DevNotificationService;
 import network.foodsharing.dev.service.DevService;
 import network.foodsharing.dev.service.DevService.DevLogin;
 import network.foodsharing.security.PermissionService;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,13 +34,15 @@ public class DevController implements DevApi {
     private final DevMapper mapper;
     private final AuthMapper authMapper;
     private final PermissionService permissionService;
+    private final DevNotificationService notificationService;
 
     public DevController(DevService devService, DevMapper mapper, AuthMapper authMapper,
-                         PermissionService permissionService) {
+                         PermissionService permissionService, DevNotificationService notificationService) {
         this.devService = devService;
         this.mapper = mapper;
         this.authMapper = authMapper;
         this.permissionService = permissionService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -78,5 +83,23 @@ public class DevController implements DevApi {
     public ResponseEntity<DevClockState> setDevClock(DevClockRequest devClockRequest) {
         Instant now = devService.setClock(TimeMapper.toInstant(devClockRequest.getFixedAt()));
         return ResponseEntity.ok(mapper.toClockState(now, devService.isClockFixed()));
+    }
+
+    @Override
+    public ResponseEntity<List<DevNotification>> listDevNotifications(UUID userId, String type) {
+        return ResponseEntity.ok(notificationService.notifications(userId, type).stream()
+                .flatMap(bell -> mapper.toDevNotifications(bell).stream()).toList());
+    }
+
+    @Override
+    public ResponseEntity<Void> runDevJob(String name) {
+        notificationService.runJob(name);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<String> getDevIcalFixture() {
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/calendar;charset=UTF-8"))
+                .body(notificationService.icalFixture());
     }
 }
