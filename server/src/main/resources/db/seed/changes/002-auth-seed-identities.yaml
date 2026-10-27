@@ -1,0 +1,32 @@
+# Login identities of the seed users: an EMAIL identity for everyone, GOOGLE identities (fake OIDC subjects
+# fake-google-<name>) for foodsaver@local and bot@local. The table is created by changes/005-auth-identities.yaml
+# (T4); until it exists this changeset is marked as ran, so the seed also loads on a schema without it.
+databaseChangeLog:
+  - changeSet:
+      id: seed-002-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: EMAIL identities for all seed users, GOOGLE identities for foodsaver and bot.
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: auth_identity
+      changes:
+        - loadUpdateData:
+            tableName: auth_identity
+            file: ../auth/auth_identity.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: last_used_at, type: STRING}

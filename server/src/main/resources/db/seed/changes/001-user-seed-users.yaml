@@ -1,0 +1,32 @@
+# Seed users of plan §7.3 (one per role and journey stage). Fixed ids, see docs/seed-ids.md.
+# Timestamps are absolute, relative to SEED_NOW = 2026-11-02T09:00:00Z. Generated columns: none.
+databaseChangeLog:
+  - changeSet:
+      id: seed-001-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 14 seed users (newbie ... orga) with M1 columns.
+      changes:
+        - loadUpdateData:
+            tableName: user_account
+            file: ../user/user_account.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: email_verified_at, type: STRING}
+              - column: {name: verified, type: BOOLEAN}
+              - column: {name: verified_at, type: STRING}
+              - column: {name: active, type: BOOLEAN}
+              - column: {name: last_login_at, type: STRING}
+              - column: {name: registered_at, type: STRING}
+              - column: {name: foodsaver_number, type: NUMERIC}
