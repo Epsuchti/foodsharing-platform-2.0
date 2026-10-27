@@ -176,9 +176,9 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D8.3 | Passkey registration and login. | todo | | | | | |
 | D8.4 | Cookie sessions + CSRF + session list. | todo | | | | | |
 | D8.5 | `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env. | done | application-prod.properties | | | | config |
-| D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | in-progress | history module, TrackedFieldListener | | | | backend tests green; e2e in T7 |
+| D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | done | history module, TrackedFieldListener | shared/history-timeline | d10-history @D10.1 | history.screen.ts (no baseline yet) |  |
 | D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | done | ArchitectureTest rule 4 + fixture test | | | | proved by ArchitectureRuleFixtureTest |
-| D10.3 | All views from the table above. | todo | | | | | |
+| D10.3 | All views from the table above. | in-progress | | fs-history-timeline, /me/activity | d10-history @D10.3 | | my activity done; other views come with their modules |
 | D11.5.1 | New user goes from landing page to "account created" in **≤ 2 clicks** with Google. | todo | | | | | |
 | D11.5.2 | At any time the user sees which step they are on and the single next action. | todo | | | | | |
 | D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | todo | | | | | |
