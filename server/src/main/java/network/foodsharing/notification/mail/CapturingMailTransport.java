@@ -38,6 +38,11 @@ public class CapturingMailTransport implements MailTransport {
     }
 
     @Override
+    public void send(OutgoingMail outgoing) {
+        send(outgoing.to(), outgoing.subject(), outgoing.textBody(), outgoing.htmlBody());
+    }
+
+    /** Captures a mail directly (tests). */
     public void send(String to, String subject, String textBody, String htmlBody) {
         CapturedMail mail = new CapturedMail(UUID.randomUUID(), to, subject, textBody == null ? "" : textBody, htmlBody,
                 extractLinks(textBody, htmlBody), clock.instant());

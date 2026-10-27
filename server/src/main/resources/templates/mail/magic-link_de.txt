@@ -1,0 +1,10 @@
+[# th:if="${displayName != null}"]Hallo [(${displayName})],[/][# th:if="${displayName == null}"]Hallo,[/]
+
+klicke auf den folgenden Link, um dich bei foodsharing anzumelden. Falls du noch kein Konto hast, wird es dabei erstellt:
+
+[(${link})]
+
+Der Link ist [(${validityMinutes})] Minuten gültig und kann nur einmal verwendet werden.
+Du hast keine Anmeldung angefordert? Dann kannst du diese E-Mail einfach ignorieren.
+
+Dein foodsharing-Team

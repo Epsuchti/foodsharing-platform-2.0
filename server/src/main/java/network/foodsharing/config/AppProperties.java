@@ -1,6 +1,8 @@
 package network.foodsharing.config;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -41,6 +43,10 @@ public class AppProperties {
         private int maxLoginRequestsPerEmail = 3;
         private int maxLoginRequestsPerIp = 10;
         private int loginRequestWindowMinutes = 15;
+        /** HMAC key for short-lived signed cookies (Google login return URL). */
+        private String signingSecret = "local-dev-signing-secret";
+        /** In-app path after a login without (valid) return URL. */
+        private String defaultReturnPath = "/";
         private final Google google = new Google();
         private final MagicLink magicLink = new MagicLink();
         private final Passkeys passkeys = new Passkeys();
@@ -57,6 +63,8 @@ public class AppProperties {
         @Setter
         public static class MagicLink {
             private boolean enabled = true;
+            /** Frontend route the mail links to: {@code <base-url><verify-path>?token=…[&returnUrl=…]}. */
+            private String verifyPath = "/login/verify";
         }
 
         @Getter
@@ -66,6 +74,8 @@ public class AppProperties {
             /** Must equal the cookie host (localhost in local/e2e). */
             private String rpId = "localhost";
             private String rpName = "foodsharing";
+            /** Origins allowed in WebAuthn client data; empty = {@code app.base-url}. */
+            private List<String> allowedOrigins = new ArrayList<>();
         }
     }
 
@@ -75,6 +85,12 @@ public class AppProperties {
         private String from = "noreply@foodsharing.network";
         /** smtp (default) or capture (e2e: mails are kept in memory and served by /api/dev/mails). */
         private String transport = "smtp";
+        /** Mails sent per outbox job run. */
+        private int outboxBatchSize = 20;
+        /** After this many failed attempts a mail is marked FAILED. */
+        private int outboxMaxAttempts = 8;
+        /** Retry delay = base × 2^(attempts − 1). */
+        private int outboxBackoffBaseMinutes = 1;
     }
 
     @Getter

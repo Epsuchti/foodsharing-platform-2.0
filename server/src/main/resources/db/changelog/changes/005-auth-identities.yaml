@@ -1,0 +1,171 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-1
+      author: platform
+      comment: Login identities (Google subject, verified email) linked to a user (plan §8.1). Seeded by T3 (seed 002).
+      changes:
+        - createTable:
+            tableName: auth_identity
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_auth_identity, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_auth_identity_user_id
+                    references: user_account(id)
+                    deleteCascade: true
+              - column: {name: provider, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: subject, type: VARCHAR(320), constraints: {nullable: false}}
+              - column: {name: label, type: VARCHAR(200)}
+              - column: {name: last_used_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: auth_identity
+            columnNames: provider, subject
+            constraintName: uq_auth_identity_provider_subject
+        - createIndex:
+            tableName: auth_identity
+            indexName: ix_auth_identity_user_id
+            columns:
+              - column: {name: user_id}
+
+  - changeSet:
+      id: 005-2
+      author: platform
+      comment: Magic-link login tokens (single use, 30 min). Only the SHA-256 of the token is stored.
+      changes:
+        - createTable:
+            tableName: login_token
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_login_token, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: email, type: VARCHAR(320), constraints: {nullable: false}}
+              - column: {name: token_hash, type: CHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_login_token_token_hash}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: used_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: return_url, type: VARCHAR(500)}
+              - column: {name: language, type: VARCHAR(5)}
+              - column: {name: ip_hash, type: CHAR(64)}
+        - createIndex:
+            tableName: login_token
+            indexName: ix_login_token_email_created_at
+            columns:
+              - column: {name: email}
+              - column: {name: created_at}
+
+  - changeSet:
+      id: 005-3
+      author: platform
+      comment: WebAuthn user handles (one per user) and passkey credentials (Spring Security WebAuthn, plan §8.1).
+      changes:
+        - createTable:
+            tableName: passkey_user_entity
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_passkey_user_entity, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_passkey_user_entity_user_id
+                    foreignKeyName: fk_passkey_user_entity_user_id
+                    references: user_account(id)
+                    deleteCascade: true
+              - column: {name: handle, type: VARCHAR(128), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_passkey_user_entity_handle}}
+        - createTable:
+            tableName: passkey_credential
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_passkey_credential, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_passkey_credential_user_id
+                    references: user_account(id)
+                    deleteCascade: true
+              - column: {name: credential_id, type: VARCHAR(1024), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_passkey_credential_credential_id}}
+              - column: {name: public_key_cose, type: VARCHAR(4096), constraints: {nullable: false}}
+              - column: {name: signature_count, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: transports, type: VARCHAR(100)}
+              - column: {name: label, type: VARCHAR(100), constraints: {nullable: false}}
+              - column: {name: credential_type, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: uv_initialized, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: backup_eligible, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: backup_state, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: attestation_object, type: VARCHAR(16384)}
+              - column: {name: attestation_client_data_json, type: VARCHAR(8192)}
+              - column: {name: last_used_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: passkey_credential
+            indexName: ix_passkey_credential_user_id
+            columns:
+              - column: {name: user_id}
+
+  - changeSet:
+      id: 005-4
+      author: platform
+      comment: Registration attempts (parity registration_attempt), email domain blocklist and IP blocks (parity fs_ipblock).
+      changes:
+        - createTable:
+            tableName: registration_attempt
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_registration_attempt, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: email_hash, type: CHAR(64), constraints: {nullable: false}}
+              - column: {name: ip_hash, type: CHAR(64)}
+              - column: {name: outcome, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: provider, type: VARCHAR(20), constraints: {nullable: false}}
+        - createIndex:
+            tableName: registration_attempt
+            indexName: ix_registration_attempt_created_at
+            columns:
+              - column: {name: created_at}
+        - createTable:
+            tableName: email_blocklist
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_email_blocklist, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: pattern, type: VARCHAR(320), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_email_blocklist_pattern}}
+              - column: {name: reason, type: VARCHAR(500)}
+        - createTable:
+            tableName: ip_block
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_ip_block, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: cidr, type: VARCHAR(50), constraints: {nullable: false}}
+              - column: {name: reason, type: VARCHAR(500)}
+              - column: {name: until_at, type: TIMESTAMP WITH TIME ZONE}

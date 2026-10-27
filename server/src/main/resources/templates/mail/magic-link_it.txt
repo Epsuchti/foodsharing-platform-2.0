@@ -1,0 +1,10 @@
+[# th:if="${displayName != null}"]Ciao [(${displayName})],[/][# th:if="${displayName == null}"]Ciao,[/]
+
+clicca sul link seguente per accedere a foodsharing. Se non hai ancora un account, verrà creato:
+
+[(${link})]
+
+Il link è valido [(${validityMinutes})] minuti e può essere usato una sola volta.
+Non hai richiesto l’accesso? Ignora semplicemente questa e-mail.
+
+Il tuo team foodsharing
