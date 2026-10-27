@@ -16,3 +16,4 @@ e2e/all-blob-reports/
 e2e/.state/
 node_modules/
 .DS_Store
+.claude/
