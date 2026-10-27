@@ -1,0 +1,8 @@
+{
+  "errorPages.notFound.title": "Questa pagina non esiste",
+  "errorPages.notFound.text": "Forse c’è un errore di battitura o il link non è aggiornato.",
+  "errorPages.forbidden.title": "Non hai accesso a questa pagina",
+  "errorPages.forbidden.text": "Questa pagina è visibile solo per determinati ruoli. Contatta i tuoi ambasciatori se pensi che sia un errore.",
+  "errorPages.home": "Vai alla pagina iniziale",
+  "errorPages.back": "Indietro"
+}

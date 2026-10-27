@@ -1,0 +1,16 @@
+{
+  "dashboard.page.title": "Panoramica",
+  "dashboard.page.greetingMorning": "Buongiorno",
+  "dashboard.page.greetingDay": "Ciao",
+  "dashboard.page.greetingEvening": "Buonasera",
+  "dashboard.page.nextStepTitle": "Il tuo prossimo passo",
+  "dashboard.page.nextStepText": "Presto ti accompagneremo qui passo dopo passo: scegliere la regione, il quiz, i primi ritiri.",
+  "dashboard.page.comingSoon": "Presto disponibile",
+  "dashboard.page.quickLinks": "Accesso rapido",
+  "dashboard.page.sessionsTitle": "Dispositivi connessi",
+  "dashboard.page.sessionsText": "Vedi dove hai effettuato l’accesso e disconnetti i dispositivi.",
+  "dashboard.page.activityTitle": "La mia attività",
+  "dashboard.page.activityText": "Tutto quello che hai fatto, tracciabile.",
+  "dashboard.page.settingsTitle": "Impostazioni",
+  "dashboard.page.settingsText": "Lingua, aspetto e metodi di accesso."
+}

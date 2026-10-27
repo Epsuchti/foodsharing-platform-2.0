@@ -1,1 +1,377 @@
-/* You can add global styles to this file, and also import other style files */
+// Global styles. Layer order (declared by provideOptimus cssLayer): base, optimus, app.
+// Component styles are unlayered and therefore win over all three.
+
+@layer base, optimus, app;
+
+// ---------------------------------------------------------------------------------------------------
+// Design tokens (light). Optimus components use their own --p-* tokens from FoodsharingPreset; these are
+// the app-level tokens for layout and shared components.
+// ---------------------------------------------------------------------------------------------------
+:root {
+  --fs-primary-50: #effaf2;
+  --fs-primary-100: #d8f3df;
+  --fs-primary-200: #b4e7c2;
+  --fs-primary-500: #25834a;
+  --fs-primary-700: #195d35;
+
+  --fs-bg: #f6f8f4;
+  --fs-surface: #ffffff;
+  --fs-surface-muted: #f3f6f1;
+  --fs-border: #e1e8dd;
+  --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20;
+  --fs-text-muted: #5c6b60;
+  --fs-primary: #25834a;
+  --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7;
+  --fs-danger: #b53c35;
+  --fs-danger-soft: #fdf1ef;
+  --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c;
+  --fs-warning-soft: #fff7e8;
+  --fs-warning-border: #f1d6a6;
+  --fs-warning-text: #6e4108;
+  --fs-header-bg: rgb(255 255 255 / 0.86);
+  --fs-header-border: rgb(199 212 194 / 0.7);
+
+  --fs-radius-sm: 0.625rem;
+  --fs-radius-md: 0.875rem;
+  --fs-radius-lg: 1.125rem;
+  --fs-radius-xl: 1.5rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04);
+  --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08);
+  --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+
+  --fs-page-max: 76rem;
+  --fs-gutter: clamp(1rem, 0.6rem + 2vw, 2rem);
+  --fs-header-h: 4rem;
+  --fs-tabbar-h: 4.25rem;
+
+  --fs-font:
+    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  color-scheme: light;
+}
+
+:root.fs-dark {
+  --fs-bg: #111611;
+  --fs-surface: #1a201a;
+  --fs-surface-muted: #212821;
+  --fs-border: #2c352b;
+  --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea;
+  --fs-text-muted: #a3b09f;
+  --fs-primary: #4cba70;
+  --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14);
+  --fs-primary-200: #1f4a2f;
+  --fs-danger: #f08a80;
+  --fs-danger-soft: rgb(240 138 128 / 0.1);
+  --fs-danger-border: rgb(240 138 128 / 0.3);
+  --fs-warning: #f2b84b;
+  --fs-warning-soft: rgb(242 184 75 / 0.1);
+  --fs-warning-border: rgb(242 184 75 / 0.3);
+  --fs-warning-text: #f6d79b;
+  --fs-header-bg: rgb(17 22 17 / 0.82);
+  --fs-header-border: rgb(61 71 59 / 0.7);
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
+  --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+
+  color-scheme: dark;
+}
+
+// ---------------------------------------------------------------------------------------------------
+// Base
+// ---------------------------------------------------------------------------------------------------
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-height: 100%;
+    background: var(--fs-bg);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html,
+  body {
+    margin: 0;
+  }
+
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+      radial-gradient(
+        60rem 30rem at 0% -10%,
+        color-mix(in srgb, var(--fs-primary) 9%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        40rem 24rem at 100% 0%,
+        color-mix(in srgb, #f2b84b 8%, transparent),
+        transparent 70%
+      ),
+      var(--fs-bg);
+    background-attachment: fixed;
+    color: var(--fs-text);
+    font-family: var(--fs-font);
+    font-size: 1rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: color-mix(in srgb, var(--fs-primary) 14%, transparent);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--fs-text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  a {
+    color: var(--fs-primary-strong);
+    font-weight: 600;
+    text-underline-offset: 0.18em;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+  }
+
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent);
+    outline-offset: 2px;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------
+// App-wide helpers and Optimus refinements
+// ---------------------------------------------------------------------------------------------------
+@layer app {
+  fs-root {
+    display: block;
+  }
+
+  // Header icon buttons (language/theme menus)
+  .hdr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fs-text-muted);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+
+    &:hover {
+      background: var(--fs-surface-muted);
+      color: var(--fs-text);
+    }
+
+    .pi {
+      font-size: 1.05rem;
+    }
+  }
+
+  // Menus inside popovers and drawers
+  .menu-list {
+    display: grid;
+    min-width: 12rem;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .menu-list__item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 0;
+    border-radius: var(--fs-radius-sm);
+    background: transparent;
+    color: var(--fs-text);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 550;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--fs-surface-muted);
+    }
+
+    > .pi:first-child {
+      width: 1.1rem;
+      color: var(--fs-text-muted);
+    }
+
+    > .pi-check {
+      margin-left: auto;
+      color: var(--fs-primary);
+    }
+  }
+
+  .menu-list__item--active {
+    background: var(--fs-primary-soft);
+    color: var(--fs-primary-strong);
+    font-weight: 700;
+  }
+
+  .menu-list__separator {
+    height: 1px;
+    margin: 0.35rem 0;
+    background: var(--fs-border);
+  }
+
+  // Link buttons (<a class="fs-btn">): router links that look like Optimus buttons, independent of whether
+  // the Optimus button styles are loaded on the page.
+  .fs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.125rem;
+    border: 1px solid var(--p-primary-color, var(--fs-primary));
+    border-radius: 0.75rem;
+    background: var(--p-primary-color, var(--fs-primary));
+    color: var(--p-primary-contrast-color, #fff);
+    font: inherit;
+    font-weight: 650;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+
+    &:hover {
+      border-color: var(--p-primary-hover-color, var(--fs-primary-strong));
+      background: var(--p-primary-hover-color, var(--fs-primary-strong));
+      color: var(--p-primary-contrast-color, #fff);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--fs-primary) 28%, transparent);
+    }
+  }
+
+  .fs-btn--outlined {
+    border-color: var(--fs-border-strong);
+    background: var(--fs-surface);
+    color: var(--fs-text);
+
+    &:hover {
+      border-color: var(--fs-primary);
+      background: var(--fs-primary-soft);
+      color: var(--fs-primary-strong);
+      box-shadow: none;
+    }
+  }
+
+  .fs-btn--lg {
+    padding: 0.8rem 1.4rem;
+    font-size: 1.05rem;
+  }
+
+  .fs-btn--sm {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  .p-button {
+    font-weight: 650;
+  }
+
+  .p-button:not(.p-button-text):not(.p-button-link):not(.p-button-outlined):not(:disabled):hover {
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--p-primary-color) 28%, transparent);
+  }
+
+  .p-popover {
+    border-radius: var(--fs-radius-lg);
+    box-shadow: var(--fs-shadow-lg);
+  }
+
+  .p-popover-content {
+    padding: 0.4rem;
+  }
+
+  .p-toast-message {
+    box-shadow: var(--fs-shadow-lg);
+  }
+
+  .p-dialog {
+    box-shadow: var(--fs-shadow-lg);
+  }
+
+  .fs-mobile-menu.p-drawer {
+    width: min(22rem, 88vw);
+  }
+
+  // Simple utility classes for pages
+  .fs-card {
+    padding: clamp(1.1rem, 1rem + 1vw, 1.5rem);
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-lg);
+    background: var(--fs-surface);
+    box-shadow: var(--fs-shadow-sm);
+  }
+
+  .fs-stack {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .fs-muted {
+    color: var(--fs-text-muted);
+  }
+
+  .fs-visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+}

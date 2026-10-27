@@ -1,0 +1,8 @@
+{
+  "errorPages.notFound.title": "Diese Seite gibt es nicht",
+  "errorPages.notFound.text": "Vielleicht hat sich ein Tippfehler eingeschlichen oder der Link ist veraltet.",
+  "errorPages.forbidden.title": "Hier hast du keinen Zugriff",
+  "errorPages.forbidden.text": "Diese Seite ist nur für bestimmte Rollen sichtbar. Wende dich an deine Botschafter:innen, wenn du glaubst, dass das ein Fehler ist.",
+  "errorPages.home": "Zur Startseite",
+  "errorPages.back": "Zurück"
+}

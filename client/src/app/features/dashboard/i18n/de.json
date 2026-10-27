@@ -1,0 +1,16 @@
+{
+  "dashboard.page.title": "Übersicht",
+  "dashboard.page.greetingMorning": "Guten Morgen",
+  "dashboard.page.greetingDay": "Hallo",
+  "dashboard.page.greetingEvening": "Guten Abend",
+  "dashboard.page.nextStepTitle": "Dein nächster Schritt",
+  "dashboard.page.nextStepText": "Bald begleiten wir dich hier Schritt für Schritt: Region wählen, Quiz, erste Abholungen.",
+  "dashboard.page.comingSoon": "Bald verfügbar",
+  "dashboard.page.quickLinks": "Schnellzugriff",
+  "dashboard.page.sessionsTitle": "Angemeldete Geräte",
+  "dashboard.page.sessionsText": "Sieh, wo du angemeldet bist, und melde Geräte ab.",
+  "dashboard.page.activityTitle": "Meine Aktivität",
+  "dashboard.page.activityText": "Alles, was du getan hast – nachvollziehbar.",
+  "dashboard.page.settingsTitle": "Einstellungen",
+  "dashboard.page.settingsText": "Sprache, Darstellung und Anmeldemethoden."
+}

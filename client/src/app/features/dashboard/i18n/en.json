@@ -1,0 +1,16 @@
+{
+  "dashboard.page.title": "Dashboard",
+  "dashboard.page.greetingMorning": "Good morning",
+  "dashboard.page.greetingDay": "Hello",
+  "dashboard.page.greetingEvening": "Good evening",
+  "dashboard.page.nextStepTitle": "Your next step",
+  "dashboard.page.nextStepText": "Soon we’ll guide you here step by step: choose a region, take the quiz, join your first pickups.",
+  "dashboard.page.comingSoon": "Coming soon",
+  "dashboard.page.quickLinks": "Quick links",
+  "dashboard.page.sessionsTitle": "Signed-in devices",
+  "dashboard.page.sessionsText": "See where you’re signed in and sign devices out.",
+  "dashboard.page.activityTitle": "My activity",
+  "dashboard.page.activityText": "Everything you did – traceable.",
+  "dashboard.page.settingsTitle": "Settings",
+  "dashboard.page.settingsText": "Language, appearance and login methods."
+}

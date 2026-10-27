@@ -1,0 +1,8 @@
+{
+  "errorPages.notFound.title": "This page doesn’t exist",
+  "errorPages.notFound.text": "Maybe there’s a typo or the link is outdated.",
+  "errorPages.forbidden.title": "You don’t have access here",
+  "errorPages.forbidden.text": "This page is only visible to certain roles. Contact your ambassadors if you think this is a mistake.",
+  "errorPages.home": "Go to start page",
+  "errorPages.back": "Go back"
+}

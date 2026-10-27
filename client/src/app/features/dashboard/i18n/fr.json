@@ -1,0 +1,16 @@
+{
+  "dashboard.page.title": "Tableau de bord",
+  "dashboard.page.greetingMorning": "Bonjour",
+  "dashboard.page.greetingDay": "Salut",
+  "dashboard.page.greetingEvening": "Bonsoir",
+  "dashboard.page.nextStepTitle": "Ta prochaine étape",
+  "dashboard.page.nextStepText": "Bientôt, nous t’accompagnerons ici pas à pas : choisir une région, le quiz, tes premières collectes.",
+  "dashboard.page.comingSoon": "Bientôt disponible",
+  "dashboard.page.quickLinks": "Accès rapide",
+  "dashboard.page.sessionsTitle": "Appareils connectés",
+  "dashboard.page.sessionsText": "Vois où tu es connecté·e et déconnecte des appareils.",
+  "dashboard.page.activityTitle": "Mon activité",
+  "dashboard.page.activityText": "Tout ce que tu as fait – en toute transparence.",
+  "dashboard.page.settingsTitle": "Paramètres",
+  "dashboard.page.settingsText": "Langue, apparence et méthodes de connexion."
+}
