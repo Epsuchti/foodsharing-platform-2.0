@@ -1,0 +1,28 @@
+# Working-group applications (T11): pending for foodsaver@local, declined for jumper@local.
+databaseChangeLog:
+  - changeSet:
+      id: seed-022-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Applications to the Zürich PR group.'
+      changes:
+        - loadUpdateData:
+            tableName: group_application
+            file: ../region/group_application.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: group_id, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: decided_by, type: UUID}
+              - column: {name: decided_at, type: STRING}

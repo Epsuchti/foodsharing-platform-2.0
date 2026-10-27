@@ -24,6 +24,7 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.error.ApiExceptionHandler;
 import network.foodsharing.config.DevSecurityConfig;
 import network.foodsharing.dev.mapper.DevMapper;
+import network.foodsharing.dev.service.DevNotificationService;
 import network.foodsharing.dev.service.DevService;
 import network.foodsharing.dev.service.DevService.DevLogin;
 import network.foodsharing.dev.service.DevService.DevUserView;
@@ -57,6 +58,9 @@ class DevControllerTest {
 
     @MockitoBean
     private DevService devService;
+
+    @MockitoBean
+    private DevNotificationService notificationService;
 
     @Test
     void listDevUsersReturnsSeedUsersWithDescriptionKeys() throws Exception {

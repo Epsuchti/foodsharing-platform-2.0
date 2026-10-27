@@ -1,0 +1,105 @@
+ContentPageKind:
+  type: string
+  enum: [PAGE, LEARNING_CHAPTER, FAQ]
+
+ContentPage:
+  type: object
+  required: [slug, title, body, language, fallback]
+  properties:
+    slug:
+      type: string
+    kind:
+      $ref: './content.yaml#/ContentPageKind'
+    title:
+      type: string
+    body:
+      description: 'Markdown (rendered and sanitised by the client)'
+      type: string
+    language:
+      $ref: './common.yaml#/Language'
+    fallback:
+      description: 'True when the requested language is missing'
+      type: boolean
+    updatedAt:
+      type: string
+      format: date-time
+    estimatedMinutes:
+      type: integer
+      format: int32
+    nextChapterKey:
+      type: string
+
+LearningChapter:
+  type: object
+  required: [key, title, estimatedMinutes, sortOrder]
+  properties:
+    key:
+      type: string
+    title:
+      type: string
+    summary:
+      type: string
+    estimatedMinutes:
+      type: integer
+      format: int32
+    sortOrder:
+      type: integer
+      format: int32
+    language:
+      $ref: './common.yaml#/Language'
+
+ContentPageSummary:
+  type: object
+  required: [slug, kind, titles, published, sortOrder]
+  properties:
+    slug:
+      type: string
+    kind:
+      $ref: './content.yaml#/ContentPageKind'
+    titles:
+      type: object
+      additionalProperties:
+        type: string
+    languages:
+      type: array
+      items:
+        $ref: './common.yaml#/Language'
+    published:
+      type: boolean
+    sortOrder:
+      type: integer
+      format: int32
+    estimatedMinutes:
+      type: integer
+      format: int32
+    updatedAt:
+      type: string
+      format: date-time
+
+ContentPageUpdate:
+  type: object
+  required: [titles, bodies, kind, published]
+  properties:
+    titles:
+      type: object
+      additionalProperties:
+        type: string
+    bodies:
+      type: object
+      additionalProperties:
+        type: string
+    kind:
+      $ref: './content.yaml#/ContentPageKind'
+    sortOrder:
+      type: integer
+      format: int32
+    estimatedMinutes:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 600
+    published:
+      type: boolean
+    reason:
+      type: string
+      maxLength: 500

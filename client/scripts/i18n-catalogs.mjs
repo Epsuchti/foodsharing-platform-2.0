@@ -16,7 +16,7 @@ export const APP_ROOT = 'src/app';
 export const GLOBAL_PREFIXES = ['common.', 'errors.', 'nav.', 'lang.', 'theme.'];
 
 /** Feature folders whose key prefix differs from the folder name (the folder name would clash with a global prefix). */
-export const FEATURE_PREFIX_OVERRIDES = { errors: 'errorPages.' };
+export const FEATURE_PREFIX_OVERRIDES = { errors: 'errorPages.', bells: 'bell.' };
 
 /** Returns the module id ("core", "shared", "layout", "features/<m>") of a path below src/app, or null. */
 export function moduleOf(path) {

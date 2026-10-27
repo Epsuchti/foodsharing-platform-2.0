@@ -69,3 +69,34 @@ CapturedMail:
     sentAt:
       type: string
       format: date-time
+
+DevNotificationChannel:
+  type: string
+  enum: [BELL, MAIL]
+
+DevNotification:
+  type: object
+  required: [id, userId, type, channel, params, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    userId:
+      type: string
+      format: uuid
+    type:
+      description: 'NotificationType name'
+      type: string
+    channel:
+      $ref: './dev.yaml#/DevNotificationChannel'
+    params:
+      type: object
+      additionalProperties:
+        type: string
+    link:
+      type: string
+    identifier:
+      type: string
+    createdAt:
+      type: string
+      format: date-time

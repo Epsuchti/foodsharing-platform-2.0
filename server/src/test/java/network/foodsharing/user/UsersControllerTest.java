@@ -29,6 +29,7 @@ import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.testsupport.WithSeedUser;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.mapper.UserMapper;
+import network.foodsharing.user.service.ProfileChange;
 import network.foodsharing.user.service.SettingsChange;
 import network.foodsharing.user.service.UserService;
 import network.foodsharing.user.web.UsersController;
@@ -154,6 +155,80 @@ class UsersControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
         verify(userService, never()).updateSettings(any());
+    }
+
+    @Test
+    @WithSeedUser("foodsaver")
+    void updatesTheOwnProfile() throws Exception {
+        AtomicReference<ProfileChange> change = new AtomicReference<>();
+        User updated = foodsaver();
+        updated.setMobilePhone("+41791234567");
+        updated.setGender(network.foodsharing.user.domain.Gender.FEMALE);
+        updated.setFoodsaverNumber(100006L);
+        when(userService.updateMyProfile(any())).thenAnswer(invocation -> {
+            change.set(invocation.getArgument(0));
+            return updated;
+        });
+
+        mvc.perform(patch("/api/users/me/profile").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"firstName\":\"Sarah\",\"mobilePhone\":\"079 123 45 67\",\"gender\":\"FEMALE\","
+                                + "\"contactVisibility\":\"PUBLIC\",\"dateOfBirth\":\"1988-11-30\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mobilePhone").value("+41791234567"))
+                .andExpect(jsonPath("$.phoneValid").value(true))
+                .andExpect(jsonPath("$.gender").value("FEMALE"))
+                .andExpect(jsonPath("$.foodsaverNumber").value(100006));
+
+        assertThat(change.get().firstName()).isEqualTo("Sarah");
+        assertThat(change.get().mobilePhone()).isEqualTo("079 123 45 67");
+        assertThat(change.get().contactVisibility()).isEqualTo(network.foodsharing.user.domain.ContactVisibility.PUBLIC);
+        assertThat(change.get().dateOfBirth()).isEqualTo(java.time.LocalDate.of(1988, 11, 30));
+    }
+
+    @Test
+    @WithSeedUser("foodsaver")
+    void invalidProfileUpdatesAre400() throws Exception {
+        when(userService.updateMyProfile(any())).thenThrow(new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                ApiErrorCode.INVALID_PHONE_NUMBER,
+                java.util.List.of(new network.foodsharing.common.error.ApiFieldError("mobilePhone", "PhoneNumber", "x")),
+                java.util.Map.of()));
+        mvc.perform(patch("/api/users/me/profile").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"mobilePhone\":\"12\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PHONE_NUMBER"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("mobilePhone"));
+        mvc.perform(patch("/api/users/me/profile").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"displayName\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("displayName"));
+        mvc.perform(patch("/api/users/me/profile").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"gender\":\"ROBOT\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/users/me/profile").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithSeedUser("bot")
+    void userSummaryShowsThePhoneOnlyWhenAllowed() throws Exception {
+        User user = foodsaver();
+        user.setMobilePhone("+41791234506");
+        when(userService.requireActive(SeedUsers.FOODSAVER.id())).thenReturn(user);
+        when(userService.mayCurrentUserSeeContact(user)).thenReturn(false);
+        mvc.perform(get("/api/users/" + SeedUsers.FOODSAVER.id()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("foodsaver"))
+                .andExpect(jsonPath("$.verified").value(true))
+                .andExpect(jsonPath("$.phone").doesNotExist());
+        when(userService.mayCurrentUserSeeContact(user)).thenReturn(true);
+        mvc.perform(get("/api/users/" + SeedUsers.FOODSAVER.id()))
+                .andExpect(jsonPath("$.phone").value("+41791234506"));
+
+        when(userService.requireActive(SeedUsers.NEWBIE.id())).thenThrow(ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+        mvc.perform(get("/api/users/" + SeedUsers.NEWBIE.id()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
     }
 
     private static User foodsaver() {

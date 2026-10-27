@@ -1,0 +1,46 @@
+AdminUserProfileUpdate:
+  type: object
+  required: [reason]
+  properties:
+    firstName:
+      type: string
+      maxLength: 100
+    lastName:
+      type: string
+      maxLength: 100
+    street:
+      type: string
+      maxLength: 200
+    postcode:
+      type: string
+      maxLength: 20
+    city:
+      type: string
+      maxLength: 100
+    mobilePhone:
+      type: string
+      maxLength: 50
+    dateOfBirth:
+      type: string
+      format: date
+    gender:
+      $ref: './users.yaml#/Gender'
+    homeRegionId:
+      type: string
+      format: uuid
+    reason:
+      description: 'Required: why an admin changes the profile (history).'
+      type: string
+      minLength: 1
+      maxLength: 1000
+
+ActiveUpdate:
+  type: object
+  required: [active, reason]
+  properties:
+    active:
+      type: boolean
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 1000

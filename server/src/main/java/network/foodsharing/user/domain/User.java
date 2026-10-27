@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,8 +20,10 @@ import network.foodsharing.history.SubjectType;
 import network.foodsharing.history.Tracked;
 
 /**
- * A platform user (table {@code user_account}). M1 fields; the remaining §15.1 fields are added by later
- * milestones. Enum columns store the Java constant name (e.g. {@code GWS}, {@code FOODSAVER}).
+ * A platform user (table {@code user_account}). M1 fields plus the §15.1 fields needed by milestone 2 (plan §8.3);
+ * the rest (sleep, statistics, options) arrive with their milestones. Enum columns store the Java constant name
+ * (e.g. {@code GWS}, {@code FOODSAVER}). The home region is a plain id (FK in the database) so the user module does
+ * not depend on the region module.
  */
 @Getter
 @Setter
@@ -84,6 +87,88 @@ public class User extends BaseEntity implements HistorySubject {
 
     @Column(name = "foodsaver_number", unique = true)
     private Long foodsaverNumber;
+
+    // --- milestone 2 (plan §15.1) ---
+
+    @Tracked
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", nullable = false, length = 20)
+    private Gender gender = Gender.NOT_SELECTED;
+
+    @Tracked(redact = true)
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Tracked(redact = true)
+    @Column(name = "mobile_phone", length = 50)
+    private String mobilePhone;
+
+    @Tracked(redact = true)
+    @Column(name = "landline_phone", length = 50)
+    private String landlinePhone;
+
+    @Column(name = "homepage", length = 500)
+    private String homepage;
+
+    @Tracked
+    @Enumerated(EnumType.STRING)
+    @Column(name = "contact_visibility", nullable = false, length = 20)
+    private ContactVisibility contactVisibility = ContactVisibility.TEAM;
+
+    @Tracked
+    @Column(name = "street", length = 200)
+    private String street;
+
+    @Tracked
+    @Column(name = "postcode", length = 20)
+    private String postcode;
+
+    @Tracked
+    @Column(name = "city", length = 100)
+    private String city;
+
+    @Column(name = "country", length = 2)
+    private String country;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Tracked
+    @Column(name = "home_region_id")
+    private UUID homeRegionId;
+
+    @Column(name = "about_me_public", length = 16000)
+    private String aboutMePublic;
+
+    @Column(name = "about_me_internal", length = 16000)
+    private String aboutMeInternal;
+
+    @Column(name = "position_description", length = 500)
+    private String positionDescription;
+
+    @Column(name = "newsletter_opt_in", nullable = false)
+    private boolean newsletterOptIn;
+
+    @Column(name = "identity_confirmed_at")
+    private Instant identityConfirmedAt;
+
+    @Column(name = "identity_confirmed_by")
+    private UUID identityConfirmedBy;
+
+    @Column(name = "last_passport_at")
+    private Instant lastPassportAt;
+
+    @Column(name = "info_mail_message", nullable = false)
+    private boolean infoMailMessage = true;
+
+    @Column(name = "no_automatic_delete", nullable = false)
+    private boolean noAutomaticDelete;
+
+    @Column(name = "beta_tester", nullable = false)
+    private boolean betaTester;
 
     @Override
     public SubjectType historySubjectType() {

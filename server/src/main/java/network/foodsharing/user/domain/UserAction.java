@@ -10,7 +10,12 @@ public enum UserAction implements HistoryAction {
     SETTINGS_CHANGED,
     FIELD_CHANGED,
     ROLE_CHANGED,
-    DEACTIVATED;
+    DEACTIVATED,
+    PROFILE_UPDATED,
+    PROFILE_UPDATED_BY_ADMIN,
+    ACTIVATED,
+    HOME_REGION_CHANGED,
+    PHONE_CHANGED;
 
     @Override
     public String code() {

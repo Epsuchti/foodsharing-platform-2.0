@@ -5,16 +5,17 @@ import { Popover } from '@openng/optimus-ui/popover';
 import { AuthFacadeService } from '../core/auth/auth-facade.service';
 import { SessionService } from '../core/auth/session.service';
 import { TPipe } from '../core/i18n/t.pipe';
+import { PasskeyNudgeComponent } from '../features/auth/components/passkey-nudge.component';
 import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
 import { NavContextService } from './nav-context.service';
 
 /**
- * Avatar button with the user menu (items with area 'user' from nav.config.ts + logout).
- * Owned by T6 (auth/account frontend) from P-2 on.
+ * Avatar button with the user menu: profile (head), items with area 'user' from nav.config.ts, logout; plus the
+ * passkey nudge after a login. Owned by T6 (auth/account frontend) from P-2 on.
  */
 @Component({
   selector: 'fs-user-menu',
-  imports: [Popover, RouterLink, TPipe, UserAvatarComponent],
+  imports: [PasskeyNudgeComponent, Popover, RouterLink, TPipe, UserAvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
@@ -22,23 +23,30 @@ import { NavContextService } from './nav-context.service';
         type="button"
         class="user-btn"
         (click)="op.toggle($event)"
-        [attr.aria-label]="user.displayName + ' – ' + ('layout.userMenu.open' | t)"
         aria-haspopup="true"
         data-testid="shell.userMenu"
       >
         <fs-user-avatar
+          aria-hidden="true"
           [name]="user.displayName"
           [avatarUrl]="user.avatarUrl"
           [role]="user.role"
           [colorSeed]="user.id"
           size="sm"
         />
+        <!-- accessible name = visible name + hidden hint (WCAG 2.5.3 label in name) -->
         <span class="user-btn__name">{{ user.displayName }}</span>
+        <span class="fs-visually-hidden">{{ 'layout.userMenu.open' | t }}</span>
         <i class="pi pi-chevron-down user-btn__chevron" aria-hidden="true"></i>
       </button>
       <p-popover #op>
         <div class="um">
-          <div class="um__head">
+          <a
+            class="um__head"
+            routerLink="/account/profile"
+            (click)="op.hide()"
+            data-testid="nav.user.profile"
+          >
             <fs-user-avatar
               [name]="user.displayName"
               [avatarUrl]="user.avatarUrl"
@@ -49,9 +57,12 @@ import { NavContextService } from './nav-context.service';
             <div class="um__who">
               <strong>{{ user.displayName }}</strong>
               <span>{{ user.email }}</span>
-              <span class="um__role">{{ 'common.role.' + user.role | t }}</span>
+              <span class="um__role" data-testid="shell.userMenu.role">{{
+                'common.role.' + user.role | t
+              }}</span>
             </div>
-          </div>
+            <i class="pi pi-chevron-right um__go" aria-hidden="true"></i>
+          </a>
           <ul class="menu-list" role="menu">
             @for (item of nav.user(); track item.id) {
               <li role="none">
@@ -83,6 +94,7 @@ import { NavContextService } from './nav-context.service';
           </ul>
         </div>
       </p-popover>
+      <fs-passkey-nudge />
     }
   `,
   styles: `
@@ -135,8 +147,21 @@ import { NavContextService } from './nav-context.service';
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.25rem 0.25rem 0.75rem;
+      padding: 0.5rem 0.5rem 0.75rem;
       border-bottom: 1px solid var(--fs-border);
+      border-radius: var(--fs-radius-sm) var(--fs-radius-sm) 0 0;
+      color: var(--fs-text);
+      font-weight: inherit;
+      text-decoration: none;
+    }
+    .um__head:hover,
+    .um__head:focus-visible {
+      background: var(--fs-surface-muted);
+    }
+    .um__go {
+      margin-left: auto;
+      color: var(--fs-text-muted);
+      font-size: 0.75rem;
     }
     .um__who {
       display: grid;

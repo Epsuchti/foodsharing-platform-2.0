@@ -1,0 +1,77 @@
+WalletAvailability:
+  type: string
+  enum: [AVAILABLE, NOT_CONFIGURED, NOT_VERIFIED]
+
+PaperSize:
+  type: string
+  enum: [A4, CARD]
+
+PassportStatus:
+  type: object
+  required: [verified, valid, requestPending, walletApple, walletGoogle]
+  properties:
+    verified:
+      type: boolean
+    lastIssuedAt:
+      type: string
+      format: date-time
+    validFrom:
+      type: string
+      format: date
+    validUntil:
+      type: string
+      format: date
+    valid:
+      type: boolean
+    requestPending:
+      type: boolean
+    walletApple:
+      $ref: './passports.yaml#/WalletAvailability'
+    walletGoogle:
+      $ref: './passports.yaml#/WalletAvailability'
+
+PassportRequestView:
+  type: object
+  required: [id, user, requestedAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    user:
+      $ref: './users.yaml#/UserSummary'
+    requestedAt:
+      type: string
+      format: date-time
+    fulfilledAt:
+      type: string
+      format: date-time
+    fulfilledBy:
+      $ref: './users.yaml#/UserSummary'
+
+CreateRegionPassports:
+  type: object
+  required: [userIds, createPdf, renew, paperSize, notifyUsers]
+  properties:
+    userIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    createPdf:
+      type: boolean
+    renew:
+      type: boolean
+    validFrom:
+      type: string
+      format: date
+    paperSize:
+      $ref: './passports.yaml#/PaperSize'
+    notifyUsers:
+      type: boolean
+
+GoogleWalletLink:
+  type: object
+  required: [saveUrl]
+  properties:
+    saveUrl:
+      type: string

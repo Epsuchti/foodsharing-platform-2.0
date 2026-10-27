@@ -1,0 +1,851 @@
+IntroPickupCategory:
+  type: string
+  enum: [SUPERMARKET, TAKEOUT, MARKET, BAKERY, RESTAURANT, FAIRTEILER_CLEANING, MESSE, GROSSABHOLUNG, ONLINE]
+
+SlotStatus:
+  type: string
+  enum: [AVAILABLE, BOOKED, DONE, CANCELLED]
+
+SubscriptionChannel:
+  type: string
+  enum: [IN_APP, EMAIL]
+
+FunnelStage:
+  type: string
+  enum: [REGISTERED, FIRST_BOOKED, IN_PROGRESS, FAIRTEILER_MISSING, COMPLETE, VERIFIED]
+
+NewcomerNextStep:
+  type: string
+  enum: [BOOK_EINAB, BOOK_FAIRTEILER_EINAB, ATTEND_BOOKED, WAIT_FOR_VERIFICATION, DONE]
+
+GapSeverity:
+  type: string
+  enum: [OK, LOW, MISSING]
+
+PastImportStatus:
+  type: string
+  enum: [CREATE, SKIP_DUPLICATE, NEEDS_ATTENTION]
+
+PastImportReason:
+  type: string
+  enum: [MISSING_ID, INVALID_ID, UNKNOWN_USER, INVALID_DATE, FUTURE_DATE, MISSING_STORE, UNKNOWN_CATEGORY, USER_OTHER_REGION, ALREADY_IMPORTED, DUPLICATE_IN_FILE, NOT_COUNTED, FAIRTEILER_UNKNOWN, NO_FEEDBACK, CATEGORY_MAPPED, STORE_NAME_CORRECTED]
+
+PublicIntroPickup:
+  type: object
+  required: [id, category, startAt, visitFairteiler, freeSlots]
+  properties:
+    id:
+      type: string
+      format: uuid
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      type: string
+      format: date-time
+    publicGeneralLocation:
+      type: string
+    businessName:
+      type: string
+    publicInfo:
+      type: string
+    visitFairteiler:
+      type: boolean
+    freeSlots:
+      type: integer
+      format: int32
+    regionSlug:
+      type: string
+
+PublicIntroPickupPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/PublicIntroPickup'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+BookableIntroPickup:
+  type: object
+  required: [id, category, startAt, guide, visitFairteiler, freeSlots, bookable]
+  properties:
+    id:
+      type: string
+      format: uuid
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      type: string
+      format: date-time
+    guide:
+      $ref: './users.yaml#/UserSummary'
+    publicLocation:
+      type: string
+    publicGeneralLocation:
+      type: string
+    businessName:
+      type: string
+    publicInfo:
+      type: string
+    visitFairteiler:
+      type: boolean
+    minimumPickupCount:
+      type: integer
+      format: int32
+    freeSlots:
+      type: integer
+      format: int32
+    slotId:
+      description: 'First free slot'
+      type: string
+      format: uuid
+    bookable:
+      type: boolean
+    notBookableReason:
+      $ref: './common.yaml#/ApiErrorCode'
+
+BookableIntroPickupPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/BookableIntroPickup'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+BookedIntroPickup:
+  type: object
+  required: [id, category, startAt, guide, visitFairteiler]
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      type: string
+      format: date-time
+    guide:
+      $ref: './users.yaml#/UserSummary'
+    businessName:
+      type: string
+    publicGeneralLocation:
+      type: string
+    privateAddress:
+      type: string
+    privateInfo:
+      type: string
+    publicInfo:
+      type: string
+    onlineCallLink:
+      type: string
+    visitFairteiler:
+      type: boolean
+
+MyBooking:
+  type: object
+  required: [slotId, introPickup, status]
+  properties:
+    slotId:
+      type: string
+      format: uuid
+    introPickup:
+      $ref: './intro-pickups.yaml#/BookedIntroPickup'
+    status:
+      $ref: './intro-pickups.yaml#/SlotStatus'
+    bookedAt:
+      type: string
+      format: date-time
+    doneAt:
+      type: string
+      format: date-time
+    counted:
+      type: boolean
+
+IntroPickupSubscription:
+  type: object
+  required: [regionId, channel, language, active]
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    channel:
+      $ref: './intro-pickups.yaml#/SubscriptionChannel'
+    deliveryEmail:
+      type: string
+    language:
+      $ref: './common.yaml#/Language'
+    active:
+      type: boolean
+
+SubscriptionUpdate:
+  type: object
+  required: [regionId, channel, language]
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    channel:
+      $ref: './intro-pickups.yaml#/SubscriptionChannel'
+    deliveryEmail:
+      type: string
+      maxLength: 320
+    language:
+      $ref: './common.yaml#/Language'
+
+GuideProfile:
+  type: object
+  properties:
+    icalLink:
+      type: string
+    phone:
+      type: string
+    feedUrl:
+      type: string
+
+GuideProfileUpdate:
+  type: object
+  properties:
+    icalLink:
+      type: string
+      maxLength: 2000
+    phone:
+      type: string
+      maxLength: 50
+
+IntroPickupSlot:
+  type: object
+  required: [id, status]
+  properties:
+    id:
+      type: string
+      format: uuid
+    status:
+      $ref: './intro-pickups.yaml#/SlotStatus'
+    bookingUser:
+      $ref: './users.yaml#/UserSummary'
+    bookedAt:
+      type: string
+      format: date-time
+    doneAt:
+      type: string
+      format: date-time
+    commentCount:
+      type: integer
+      format: int32
+
+IntroPickupDetail:
+  type: object
+  required: [id, regionId, category, startAt, guide, slotCount, visitFairteiler, slots, booked]
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      type: string
+      format: date-time
+    guide:
+      $ref: './users.yaml#/UserSummary'
+    slotCount:
+      type: integer
+      format: int32
+    minimumPickupCount:
+      type: integer
+      format: int32
+    businessName:
+      type: string
+    storeId:
+      type: string
+      format: uuid
+    privateAddress:
+      type: string
+    publicGeneralLocation:
+      type: string
+    onlineCallLink:
+      type: string
+    privateInfo:
+      type: string
+    publicInfo:
+      type: string
+    visitFairteiler:
+      type: boolean
+    imported:
+      type: boolean
+    slots:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/IntroPickupSlot'
+    booked:
+      description: 'At least one slot is BOOKED or DONE'
+      type: boolean
+
+IntroPickupDetailPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/IntroPickupDetail'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+IntroPickupCreate:
+  type: object
+  required: [category, startAt, slotCount, visitFairteiler]
+  properties:
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      type: string
+      format: date-time
+    slotCount:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 100
+    minimumPickupCount:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 1000
+    businessName:
+      type: string
+      maxLength: 500
+    storeId:
+      type: string
+      format: uuid
+    privateAddress:
+      type: string
+      maxLength: 500
+    publicGeneralLocation:
+      type: string
+      maxLength: 500
+    onlineCallLink:
+      type: string
+      maxLength: 2000
+    privateInfo:
+      type: string
+      maxLength: 4000
+    publicInfo:
+      type: string
+      maxLength: 4000
+    savePrivateInfoAsTemplate:
+      type: boolean
+    visitFairteiler:
+      type: boolean
+
+IntroPickupUpdate:
+  type: object
+  properties:
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      type: string
+      format: date-time
+    slotCount:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 100
+    minimumPickupCount:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 1000
+    businessName:
+      type: string
+      maxLength: 500
+    storeId:
+      type: string
+      format: uuid
+    privateAddress:
+      type: string
+      maxLength: 500
+    publicGeneralLocation:
+      type: string
+      maxLength: 500
+    onlineCallLink:
+      type: string
+      maxLength: 2000
+    privateInfo:
+      type: string
+      maxLength: 4000
+    publicInfo:
+      type: string
+      maxLength: 4000
+    savePrivateInfoAsTemplate:
+      type: boolean
+    visitFairteiler:
+      type: boolean
+
+AssignGuideRequest:
+  type: object
+  required: [guideId]
+  properties:
+    guideId:
+      type: string
+      format: uuid
+
+BookForUserRequest:
+  type: object
+  required: [userId]
+  properties:
+    userId:
+      type: string
+      format: uuid
+
+GuideBooking:
+  type: object
+  required: [slotId, introPickup, user, status]
+  properties:
+    slotId:
+      type: string
+      format: uuid
+    introPickup:
+      $ref: './intro-pickups.yaml#/IntroPickupDetail'
+    user:
+      $ref: './users.yaml#/UserSummary'
+    status:
+      $ref: './intro-pickups.yaml#/SlotStatus'
+    bookedAt:
+      type: string
+      format: date-time
+    doneAt:
+      type: string
+      format: date-time
+    counted:
+      type: boolean
+    commentCount:
+      type: integer
+      format: int32
+
+GuideBookingPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/GuideBooking'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+SlotComment:
+  type: object
+  required: [id, author, text, adminComment, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: './users.yaml#/UserSummary'
+    text:
+      type: string
+    adminComment:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+
+SlotCommentCreate:
+  type: object
+  required: [comment]
+  properties:
+    comment:
+      type: string
+      minLength: 1
+      maxLength: 4000
+
+PrivateInfoTemplate:
+  type: object
+  required: [category, content]
+  properties:
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    content:
+      type: string
+
+IcalCandidate:
+  type: object
+  required: [startAt, summary]
+  properties:
+    startAt:
+      type: string
+      format: date-time
+    endAt:
+      type: string
+      format: date-time
+    summary:
+      type: string
+    location:
+      type: string
+
+FeedLink:
+  type: object
+  required: [url]
+  properties:
+    url:
+      type: string
+
+NewcomerProgress:
+  type: object
+  required: [stage, counted, upcoming, target, stalled, nextStep]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    stage:
+      $ref: './intro-pickups.yaml#/FunnelStage'
+    counted:
+      type: integer
+      format: int32
+    upcoming:
+      type: integer
+      format: int32
+    target:
+      type: integer
+      format: int32
+    fairteilerDone:
+      type: boolean
+    fairteilerBooked:
+      type: boolean
+    registeredAt:
+      type: string
+      format: date-time
+    lastActivityAt:
+      type: string
+      format: date-time
+    daysInStage:
+      type: integer
+      format: int32
+    stalled:
+      type: boolean
+    nextStep:
+      $ref: './intro-pickups.yaml#/NewcomerNextStep'
+
+FunnelStep:
+  type: object
+  required: [stage, userCount, reachedCount, stalledCount, users]
+  properties:
+    stage:
+      $ref: './intro-pickups.yaml#/FunnelStage'
+    introPickupCount:
+      type: integer
+      format: int32
+    userCount:
+      type: integer
+      format: int32
+    reachedCount:
+      type: integer
+      format: int32
+    stalledCount:
+      type: integer
+      format: int32
+    medianDaysInStep:
+      type: number
+      format: double
+    users:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/NewcomerProgress'
+
+FunnelGap:
+  type: object
+  required: [category, withFairteiler, students, openSlots, severity]
+  properties:
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    withFairteiler:
+      type: boolean
+    students:
+      type: integer
+      format: int32
+    openSlots:
+      type: integer
+      format: int32
+    severity:
+      $ref: './intro-pickups.yaml#/GapSeverity'
+
+NewcomerFunnel:
+  type: object
+  required: [targetIntroPickups, fairteilerRequired, days, totalUsers, inTrainingUsers, stalledUsers, introPickupsStillNeeded, openSlots, fairteilerVisitsStillNeeded, openFairteilerSlots, gapHorizonDays, steps, gaps]
+  properties:
+    targetIntroPickups:
+      type: integer
+      format: int32
+    fairteilerRequired:
+      type: boolean
+    days:
+      type: integer
+      format: int32
+    totalUsers:
+      type: integer
+      format: int32
+    inTrainingUsers:
+      type: integer
+      format: int32
+    stalledUsers:
+      type: integer
+      format: int32
+    introPickupsStillNeeded:
+      type: integer
+      format: int32
+    openSlots:
+      type: integer
+      format: int32
+    fairteilerVisitsStillNeeded:
+      type: integer
+      format: int32
+    openFairteilerSlots:
+      type: integer
+      format: int32
+    gapHorizonDays:
+      type: integer
+      format: int32
+    steps:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/FunnelStep'
+    gaps:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/FunnelGap'
+
+HistoricalIntroPickupCreate:
+  type: object
+  required: [category, startAt, businessName, visitFairteiler]
+  properties:
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    startAt:
+      description: 'Must be in the past'
+      type: string
+      format: date-time
+    businessName:
+      type: string
+      minLength: 1
+      maxLength: 500
+    visitFairteiler:
+      type: boolean
+    comment:
+      type: string
+      maxLength: 4000
+
+BookingCountedUpdate:
+  type: object
+  required: [counted]
+  properties:
+    counted:
+      type: boolean
+    reason:
+      type: string
+      maxLength: 500
+
+GuideSummary:
+  type: object
+  required: [user, active, canManageUsers, introPickupCount]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    active:
+      type: boolean
+    canManageUsers:
+      type: boolean
+    introPickupCount:
+      type: integer
+      format: int32
+    lastIntroPickupAt:
+      type: string
+      format: date-time
+    nextIntroPickupAt:
+      type: string
+      format: date-time
+
+GuideSummaryPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/GuideSummary'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+GuideEnabledUpdate:
+  type: object
+  required: [enabled]
+  properties:
+    enabled:
+      type: boolean
+    reason:
+      type: string
+      maxLength: 500
+
+PastImportRequest:
+  type: object
+  required: [csv]
+  properties:
+    csv:
+      type: string
+      minLength: 1
+      maxLength: 5000000
+
+PastImportCounts:
+  type: object
+  required: [totalRows, willCreate, willSkip, needsAttention, knownUsers, unknownUsers]
+  properties:
+    totalRows:
+      type: integer
+      format: int32
+    willCreate:
+      type: integer
+      format: int32
+    willSkip:
+      type: integer
+      format: int32
+    needsAttention:
+      type: integer
+      format: int32
+    knownUsers:
+      type: integer
+      format: int32
+    unknownUsers:
+      type: integer
+      format: int32
+
+PastImportRow:
+  type: object
+  required: [line, rawDate, rawStore, store, rawCategory, visitFairteiler, hasComment, status, reasons]
+  properties:
+    line:
+      type: integer
+      format: int32
+    foodsaverNumber:
+      type: integer
+      format: int64
+    userId:
+      type: string
+      format: uuid
+    userDisplayName:
+      type: string
+    rawDate:
+      type: string
+    date:
+      type: string
+      format: date
+    rawStore:
+      type: string
+    store:
+      type: string
+    rawCategory:
+      type: string
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    visitFairteiler:
+      type: boolean
+    hasComment:
+      type: boolean
+    status:
+      $ref: './intro-pickups.yaml#/PastImportStatus'
+    reasons:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/PastImportReason'
+
+PastImportMapping:
+  type: object
+  required: [from, to, count]
+  properties:
+    from:
+      type: string
+    to:
+      type: string
+    count:
+      type: integer
+      format: int32
+
+PastImportPreview:
+  type: object
+  required: [counts, rows, storeMappings, categoryMappings]
+  properties:
+    counts:
+      $ref: './intro-pickups.yaml#/PastImportCounts'
+    rows:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/PastImportRow'
+    storeMappings:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/PastImportMapping'
+    categoryMappings:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/PastImportMapping'
+
+PastImportResult:
+  type: object
+  required: [created, skipped, needsAttention]
+  properties:
+    created:
+      type: integer
+      format: int32
+    skipped:
+      type: integer
+      format: int32
+    needsAttention:
+      type: integer
+      format: int32
+    jobId:
+      description: 'Set when the import runs as a job (> 500 rows)'
+      type: string
+      format: uuid
+
+StoreAlias:
+  type: object
+  required: [id, aliasKey, storeName]
+  properties:
+    id:
+      type: string
+      format: uuid
+    aliasKey:
+      type: string
+    storeName:
+      type: string
+
+StoreAliasUpdate:
+  type: object
+  required: [aliasKey, storeName]
+  properties:
+    aliasKey:
+      type: string
+      minLength: 1
+      maxLength: 200
+    storeName:
+      type: string
+      minLength: 1
+      maxLength: 500
+
+UnsubscribeRequest:
+  type: object
+  required: [token]
+  properties:
+    token:
+      type: string
+      minLength: 1
+      maxLength: 128

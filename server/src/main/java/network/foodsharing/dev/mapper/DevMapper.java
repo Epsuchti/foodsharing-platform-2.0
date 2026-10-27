@@ -1,10 +1,17 @@
 package network.foodsharing.dev.mapper;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.UUID;
 import network.foodsharing.api.model.CapturedMail;
 import network.foodsharing.api.model.DevClockState;
+import network.foodsharing.api.model.DevNotification;
+import network.foodsharing.api.model.DevNotificationChannel;
 import network.foodsharing.api.model.DevUser;
 import network.foodsharing.common.mapper.TimeMapper;
+import network.foodsharing.dev.service.DevNotificationService.DevBell;
 import network.foodsharing.dev.service.DevService.DevUserView;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -44,5 +51,34 @@ public class DevMapper {
         state.setNow(TimeMapper.toOffset(now));
         state.setFixed(fixed);
         return state;
+    }
+
+    /** A bell as BELL entry, plus a MAIL entry when it was also mailed. */
+    public List<DevNotification> toDevNotifications(
+            DevBell devBell) {
+        var bell = devBell.bell();
+        var result = new ArrayList<DevNotification>();
+        result.add(devNotification(bell.getId(), devBell, DevNotificationChannel.BELL));
+        if (bell.getMailOutboxId() != null) {
+            result.add(devNotification(bell.getMailOutboxId(), devBell,
+                    DevNotificationChannel.MAIL));
+        }
+        return result;
+    }
+
+    private static DevNotification devNotification(
+            UUID id, DevBell devBell,
+            DevNotificationChannel channel) {
+        var bell = devBell.bell();
+        var view = new DevNotification();
+        view.setId(id);
+        view.setUserId(bell.getUserId());
+        view.setType(bell.getType().name());
+        view.setChannel(channel);
+        view.setParams(new LinkedHashMap<>(devBell.params()));
+        view.setLink(bell.getLink());
+        view.setIdentifier(bell.getIdentifier());
+        view.setCreatedAt(TimeMapper.toOffset(bell.getCreatedAt()));
+        return view;
     }
 }

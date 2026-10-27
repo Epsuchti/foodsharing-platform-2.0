@@ -2,9 +2,13 @@ package network.foodsharing.config;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import network.foodsharing.security.Permission;
+import network.foodsharing.security.WorkingGroupFunction;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -28,6 +32,16 @@ public class AppProperties {
     private final Dev dev = new Dev();
     private final History history = new History();
     private final ClientErrors clientErrors = new ClientErrors();
+    // --- milestone 2 ---
+    private final Permissions permissions = new Permissions();
+    private final Region region = new Region();
+    private final Geocoding geocoding = new Geocoding();
+    private final Quiz quiz = new Quiz();
+    private final Intropickup intropickup = new Intropickup();
+    private final Verification verification = new Verification();
+    private final Wallet wallet = new Wallet();
+    private final Onboarding onboarding = new Onboarding();
+    private final Jobs jobs = new Jobs();
 
     @Getter
     @Setter
@@ -120,5 +134,123 @@ public class AppProperties {
     @Setter
     public static class ClientErrors {
         private int maxPerMinutePerIp = 30;
+    }
+
+    @Getter
+    @Setter
+    public static class Permissions {
+        /**
+         * Region permissions granted to every member of a region's function group (plan §9, A10). Defaults:
+         * FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, STORES_COORDINATION → the automation
+         * permissions, VOTING → CAN_MANAGE_SURVEYS.
+         */
+        private Map<WorkingGroupFunction, List<Permission>> functionGrants = defaultFunctionGrants();
+
+        public static Map<WorkingGroupFunction, List<Permission>> defaultFunctionGrants() {
+            Map<WorkingGroupFunction, List<Permission>> grants = new EnumMap<>(WorkingGroupFunction.class);
+            grants.put(WorkingGroupFunction.FSMANAGEMENT, List.of(Permission.CAN_MANAGE_USERS));
+            grants.put(WorkingGroupFunction.WELCOME, List.of(Permission.CAN_GIVE_INTRO_PICKUPS));
+            grants.put(WorkingGroupFunction.STORES_COORDINATION, List.of(Permission.CAN_USE_AUTOMATIONS,
+                    Permission.CAN_SEE_USER_PICKUP_COUNT_GROUPING, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS));
+            grants.put(WorkingGroupFunction.VOTING, List.of(Permission.CAN_MANAGE_SURVEYS));
+            return grants;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Region {
+        private String defaultTimeZone = "Europe/Zurich";
+        private String maintenanceCron = "0 15 3 * * *";
+        private String statisticsCron = "0 45 3 * * *";
+        /** {slug} is replaced by the region / group slug. */
+        private String conferenceUrlTemplate = "https://meet.jit.si/foodsharing-{slug}";
+        /** Region suggestions by distance only within this radius. */
+        private double suggestionRadiusKm = 50;
+        /** Group mails per user and hour. */
+        private int groupMailsPerHour = 5;
+    }
+
+    @Getter
+    @Setter
+    public static class Geocoding {
+        /** photon (prod) or static (local/e2e/test: db/seed/region/geocoding.csv). */
+        private String provider = "photon";
+        private String photonUrl = "https://photon.komoot.io";
+        private int connectTimeoutMs = 3000;
+        private int readTimeoutMs = 3000;
+        private int cacheHours = 24;
+        /** Consecutive failures that open the circuit breaker, and how long it stays open. */
+        private int failureThreshold = 5;
+        private int openSeconds = 60;
+    }
+
+    @Getter
+    @Setter
+    public static class Quiz {
+        private int networkBufferSeconds = 5;
+        private int hygieneValidityDays = 365;
+        private int hygieneWarningDays = 90;
+        private int roleQuizWaitDaysThirdTry = 30;
+    }
+
+    @Getter
+    @Setter
+    public static class Intropickup {
+        private int maxSlotCount = 3;
+        private int importMaxRows = 5000;
+        private int gapHorizonDays = 30;
+        private int stalledAfterDays = 30;
+        private List<String> icalAllowedHosts = new ArrayList<>(List.of("foodsharing.network", "foodsharing.de"));
+    }
+
+    @Getter
+    @Setter
+    public static class Verification {
+        private int passportValidityYears = 3;
+    }
+
+    @Getter
+    @Setter
+    public static class Wallet {
+        private final Apple apple = new Apple();
+        private final Google google = new Google();
+
+        @Getter
+        @Setter
+        public static class Apple {
+            private boolean enabled = false;
+            private String passTypeId;
+            private String teamId;
+            /** Path of the PKCS#12 signing certificate. */
+            private String certificateP12;
+            private String certificatePassword;
+            /** Path of the Apple WWDR intermediate certificate. */
+            private String wwdrCertificate;
+        }
+
+        @Getter
+        @Setter
+        public static class Google {
+            private boolean enabled = false;
+            private String issuerId;
+            private String classId;
+            /** Path of the service account JSON key. */
+            private String serviceAccountJson;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Onboarding {
+        private String nudgeCron = "0 0 9 * * *";
+        private int stalledAfterDays = 30;
+    }
+
+    @Getter
+    @Setter
+    public static class Jobs {
+        /** How long finished job results stay available (ProgressTracker). */
+        private int resultTtlMinutes = 60;
     }
 }

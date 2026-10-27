@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//foodsharing platform//dev fixture//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:dev-fixture-1@foodsharing.local
+DTSTAMP:20261102T090000Z
+DTSTART:20261105T170000Z
+DTEND:20261105T180000Z
+SUMMARY:Einführungsabholung Bäckerei Babu's
+LOCATION:Babu's Bakery\, Löwenstrasse 1\, 8001 Zürich
+END:VEVENT
+BEGIN:VEVENT
+UID:dev-fixture-2@foodsharing.local
+DTSTAMP:20261102T090000Z
+DTSTART:20261112T160000Z
+DTEND:20261112T170000Z
+SUMMARY:Einführungsabholung Supermarkt
+LOCATION:Aldi Badenerstrasse\, Badenerstrasse 120\, 8004 Zürich
+END:VEVENT
+END:VCALENDAR

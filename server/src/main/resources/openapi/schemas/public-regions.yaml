@@ -1,0 +1,93 @@
+RegionMatch:
+  type: string
+  enum: [POSTCODE, DISTANCE]
+
+PublicRegion:
+  type: object
+  required: [id, slug, name, type, children, memberCount, storeCount, nextIntroPickups, ambassadorNames]
+  properties:
+    id:
+      type: string
+      format: uuid
+    slug:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: './regions.yaml#/UnitType'
+    teaser:
+      type: string
+    description:
+      type: string
+    photoUrl:
+      type: string
+    contactEmail:
+      description: '<emailName>@<domain> when the region has an email name'
+      type: string
+    ambassadorNames:
+      type: array
+      items:
+        type: string
+    children:
+      type: array
+      items:
+        $ref: './regions.yaml#/RegionRef'
+    parent:
+      $ref: './regions.yaml#/RegionRef'
+    memberCount:
+      type: integer
+      format: int32
+    storeCount:
+      description: '0 until stores exist (M3)'
+      type: integer
+      format: int32
+    nextIntroPickups:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/PublicIntroPickup'
+    pin:
+      $ref: './regions.yaml#/RegionPin'
+    timeZone:
+      type: string
+
+RegionSuggestion:
+  type: object
+  required: [region, matchedBy]
+  properties:
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    distanceKm:
+      type: number
+      format: double
+    matchedBy:
+      $ref: './public-regions.yaml#/RegionMatch'
+    ambassadorCount:
+      type: integer
+      format: int32
+    nextIntroPickupAt:
+      type: string
+      format: date-time
+
+PublicRegionNode:
+  type: object
+  required: [id, slug, name, type, active, children]
+  properties:
+    id:
+      type: string
+      format: uuid
+    slug:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: './regions.yaml#/UnitType'
+    parentId:
+      type: string
+      format: uuid
+    active:
+      description: 'Has ambassadors, i.e. accepts newcomers'
+      type: boolean
+    children:
+      type: array
+      items:
+        $ref: './public-regions.yaml#/PublicRegionNode'

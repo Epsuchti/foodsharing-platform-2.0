@@ -1,0 +1,88 @@
+VerificationQueueFilter:
+  type: string
+  enum: [READY, ALL_UNVERIFIED]
+
+UserAddress:
+  type: object
+  properties:
+    street:
+      type: string
+    postcode:
+      type: string
+    city:
+      type: string
+    country:
+      type: string
+
+VerificationJourney:
+  type: object
+  required: [introPickupsDone, introPickupsRequired, fairteilerDone, learningDone]
+  properties:
+    introPickupsDone:
+      type: integer
+      format: int32
+    introPickupsRequired:
+      type: integer
+      format: int32
+    fairteilerDone:
+      type: boolean
+    quizPassedAt:
+      type: string
+      format: date-time
+    agreementAcceptedAt:
+      type: string
+      format: date-time
+    learningDone:
+      type: boolean
+
+VerificationCandidate:
+  type: object
+  required: [user, journey, guideComments]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    phone:
+      type: string
+    dateOfBirth:
+      type: string
+      format: date
+    address:
+      $ref: './verification.yaml#/UserAddress'
+    journey:
+      $ref: './verification.yaml#/VerificationJourney'
+    identityConfirmedAt:
+      type: string
+      format: date-time
+    guideComments:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/SlotComment'
+    lastIntroPickupAt:
+      type: string
+      format: date-time
+    registeredAt:
+      type: string
+      format: date-time
+
+VerificationCandidatePage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './verification.yaml#/VerificationCandidate'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+IdentityStatus:
+  type: object
+  required: [confirmed]
+  properties:
+    confirmed:
+      type: boolean
+    confirmedAt:
+      type: string
+      format: date-time
+    confirmedBy:
+      $ref: './users.yaml#/UserSummary'

@@ -1,3 +1,71 @@
-# Onboarding paths (tag `onboarding`). Intentionally empty in milestone 1; milestone 2 adds the journey endpoints
-# and references them from openapi.yaml in the `# --- onboarding ---` block.
-{}
+# Onboarding journey (tag `onboarding`, plan §11).
+/api/onboarding/journey:
+  get:
+    tags: [onboarding]
+    operationId: getMyJourney
+    summary: 'The current user''s onboarding journey (§11.1).'
+    x-permission: 'self'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/onboarding.yaml#/Journey'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/onboarding/learning/{key}/read:
+  post:
+    tags: [onboarding]
+    operationId: markChapterRead
+    summary: 'Mark a learning chapter as read.'
+    x-permission: 'self'
+    x-history: OnboardingAction.CHAPTER_READ
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/onboarding.yaml#/Journey'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'CONTENT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/onboarding/regions/{regionId}/users/{userId}/steps/{stepKey}/confirm:
+  post:
+    tags: [onboarding]
+    operationId: confirmRegionStep
+    summary: 'Confirm a region extra step for a newcomer.'
+    x-permission: 'ambassador or CAN_MANAGE_USERS@region'
+    x-history: OnboardingAction.REGION_STEP_CONFIRMED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: stepKey
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND, USER_NOT_FOUND or RESOURCE_NOT_FOUND (step)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_A_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

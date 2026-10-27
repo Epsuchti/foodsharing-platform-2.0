@@ -41,6 +41,11 @@ public class MutableClock extends Clock {
         return base.instant();
     }
 
+    /** The underlying clock (see {@link #realInstant()}). */
+    public Clock realClock() {
+        return base;
+    }
+
     @Override
     public ZoneId getZone() {
         return ZoneOffset.UTC;

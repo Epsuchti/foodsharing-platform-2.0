@@ -1,20 +1,31 @@
 package network.foodsharing.user.service;
 
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Language;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.error.ApiFieldError;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
+import network.foodsharing.security.PermissionService;
+import network.foodsharing.security.SessionPrincipal;
+import network.foodsharing.user.domain.ContactVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.domain.UserAction;
 import network.foodsharing.user.repository.UserRepository;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,17 +33,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
+    private static final String REDACTED = "***";
+
     private final UserRepository repository;
     private final CurrentActorService currentActorService;
     private final HistoryService history;
     private final Clock clock;
+    private final PermissionService permissionService;
+    private final ObjectProvider<RegionDirectory> regionDirectory;
 
     public UserService(UserRepository repository, CurrentActorService currentActorService, HistoryService history,
-                       Clock clock) {
+                       Clock clock, PermissionService permissionService, ObjectProvider<RegionDirectory> regionDirectory) {
         this.repository = repository;
         this.currentActorService = currentActorService;
         this.history = history;
         this.clock = clock;
+        this.permissionService = permissionService;
+        this.regionDirectory = regionDirectory;
     }
 
     /** @throws ApiException 401 when not signed in, 404 USER_NOT_FOUND when the account is gone or disabled */
@@ -45,6 +62,25 @@ public class UserService {
     @Transactional(readOnly = true)
     public Optional<User> findActive(UUID userId) {
         return repository.findById(userId).filter(User::isActive);
+    }
+
+    /** Active users by id (missing / inactive ids are skipped). */
+    @Transactional(readOnly = true)
+    public List<User> findActive(Collection<UUID> userIds) {
+        return userIds.isEmpty() ? List.of()
+                : repository.findByIdIn(userIds).stream().filter(User::isActive).toList();
+    }
+
+    /** @throws ApiException 404 USER_NOT_FOUND (also returns inactive users; callers check permissions) */
+    @Transactional(readOnly = true)
+    public User require(UUID userId) {
+        return repository.findById(userId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+    }
+
+    /** @throws ApiException 404 USER_NOT_FOUND when missing or disabled */
+    @Transactional(readOnly = true)
+    public User requireActive(UUID userId) {
+        return findActive(userId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +103,87 @@ public class UserService {
             user.setTheme(change.theme());
         }
         return user;
+    }
+
+    /**
+     * Changes the current user's own profile (plan §8.3). One PROFILE_UPDATED entry per changed field
+     * (PHONE_CHANGED for the mobile phone, HOME_REGION_CHANGED for the home region; phone numbers and the date of
+     * birth are redacted). Phone numbers are stored in E.164 form.
+     *
+     * @throws ApiException 400 INVALID_PHONE_NUMBER / VALIDATION_FAILED, 404 REGION_NOT_FOUND, 409 NOT_A_MEMBER
+     */
+    @Transactional
+    public User updateMyProfile(ProfileChange change) {
+        User user = getCurrentForUpdate();
+        checkHomeRegion(user, change.homeRegionId());
+        applyProfile(user, change, UserAction.PROFILE_UPDATED, null);
+        return user;
+    }
+
+    /**
+     * An administrator changes admin-editable fields (reason required); PROFILE_UPDATED_BY_ADMIN per field.
+     *
+     * @throws ApiException 403 unless mayAdministrateUser, 404 USER_NOT_FOUND, 400 INVALID_PHONE_NUMBER,
+     *                      409 NOT_A_MEMBER (home region)
+     */
+    @Transactional
+    public User updateProfileAsAdmin(UUID userId, ProfileChange change, String reason) {
+        permissionService.requireMayAdministrateUser(currentActorService.requirePrincipal(), userId);
+        User user = require(userId);
+        String requiredReason = requireReason(reason);
+        checkHomeRegion(user, change.homeRegionId());
+        applyProfile(user, change, UserAction.PROFILE_UPDATED_BY_ADMIN, requiredReason);
+        return user;
+    }
+
+    /**
+     * Enables or disables an account; a disabled account's sessions stop working at once (the session filter only
+     * accepts active users). Records ACTIVATED / DEACTIVATED with the reason.
+     *
+     * @throws ApiException 403 unless mayAdministrateUser, 404 USER_NOT_FOUND, 409 CANNOT_DEACTIVATE_SELF
+     */
+    @Transactional
+    public User setActive(UUID userId, boolean active, String reason) {
+        SessionPrincipal actor = currentActorService.requirePrincipal();
+        permissionService.requireMayAdministrateUser(actor, userId);
+        User user = require(userId);
+        String requiredReason = requireReason(reason);
+        if (!active && actor.userId().equals(userId)) {
+            throw ApiException.conflict(ApiErrorCode.CANNOT_DEACTIVATE_SELF);
+        }
+        if (user.isActive() != active) {
+            history.record(history.event(active ? UserAction.ACTIVATED : UserAction.DEACTIVATED, userId)
+                    .change("active", user.isActive(), active).reason(requiredReason).build());
+            user.setActive(active);
+        }
+        return user;
+    }
+
+    /**
+     * Sets the home region and records HOME_REGION_CHANGED. Membership and region type are checked by the caller
+     * (region module).
+     */
+    @Transactional
+    public User changeHomeRegion(UUID userId, UUID regionId) {
+        User user = require(userId);
+        if (!Objects.equals(user.getHomeRegionId(), regionId)) {
+            history.record(history.event(UserAction.HOME_REGION_CHANGED, userId)
+                    .change("homeRegionId", user.getHomeRegionId(), regionId).region(regionId).build());
+            user.setHomeRegionId(regionId);
+        }
+        return user;
+    }
+
+    /** May the current user see this user's phone numbers (PUBLIC visibility, self, or administrators)? */
+    @Transactional(readOnly = true)
+    public boolean mayCurrentUserSeeContact(User user) {
+        Optional<SessionPrincipal> principal = currentActorService.principal();
+        if (principal.isEmpty()) {
+            return false;
+        }
+        return user.getContactVisibility() == ContactVisibility.PUBLIC
+                || principal.get().userId().equals(user.getId())
+                || permissionService.mayAdministrateUser(principal.get(), user.getId());
     }
 
     /**
@@ -119,5 +236,122 @@ public class UserService {
     private User getCurrentForUpdate() {
         UUID userId = currentActorService.requireUserId();
         return findActive(userId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+    }
+
+    private void checkHomeRegion(User user, UUID regionId) {
+        if (regionId == null || regionId.equals(user.getHomeRegionId())) {
+            return;
+        }
+        RegionDirectory directory = regionDirectory.getIfAvailable();
+        if (directory == null || directory.find(regionId).isEmpty()) {
+            throw ApiException.notFound(ApiErrorCode.REGION_NOT_FOUND);
+        }
+        if (!directory.isActiveMember(user.getId(), regionId)) {
+            throw ApiException.conflict(ApiErrorCode.NOT_A_MEMBER);
+        }
+        if (!directory.isAccessible(regionId)) {
+            throw ApiException.conflict(ApiErrorCode.REGION_NOT_JOINABLE);
+        }
+    }
+
+    private static String requireReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED,
+                    List.of(new ApiFieldError("reason", "NotBlank", "a reason is required")), Map.of());
+        }
+        return reason.strip();
+    }
+
+    @FunctionalInterface
+    private interface Recorder {
+        void record(String field, Object oldValue, Object newValue, boolean redact, UserAction specificAction);
+    }
+
+    private void applyProfile(User user, ProfileChange change, UserAction action, String reason) {
+        List<ApiFieldError> phoneErrors = new ArrayList<>();
+        String mobile = phone("mobilePhone", change.mobilePhone(), phoneErrors);
+        String landline = phone("landlinePhone", change.landlinePhone(), phoneErrors);
+        if (!phoneErrors.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.INVALID_PHONE_NUMBER, phoneErrors, Map.of());
+        }
+        if (change.displayName() != null && change.displayName().isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED,
+                    List.of(new ApiFieldError("displayName", "NotBlank", "display name must not be blank")), Map.of());
+        }
+        UUID userId = user.getId();
+        boolean own = action == UserAction.PROFILE_UPDATED;
+        Recorder recorder = (field, oldValue, newValue, redact, specificAction) -> history.record(
+                history.event(specificAction == null ? action : specificAction, userId)
+                        .change(field, redact && oldValue != null ? REDACTED : oldValue,
+                                redact && newValue != null ? REDACTED : newValue)
+                        .reason(reason).build());
+        text(change.firstName(), user.getFirstName(), user::setFirstName, "firstName", recorder);
+        text(change.lastName(), user.getLastName(), user::setLastName, "lastName", recorder);
+        text(change.displayName(), user.getDisplayName(), user::setDisplayName, "displayName", recorder);
+        value(change.gender(), user.getGender(), user::setGender, "gender", false, recorder);
+        value(change.dateOfBirth(), user.getDateOfBirth(), user::setDateOfBirth, "dateOfBirth", true, recorder);
+        if (change.mobilePhone() != null && !Objects.equals(mobile, user.getMobilePhone())) {
+            recorder.record("mobilePhone", user.getMobilePhone(), mobile, true, own ? UserAction.PHONE_CHANGED : null);
+            user.setMobilePhone(mobile);
+        }
+        if (change.landlinePhone() != null && !Objects.equals(landline, user.getLandlinePhone())) {
+            recorder.record("landlinePhone", user.getLandlinePhone(), landline, true, null);
+            user.setLandlinePhone(landline);
+        }
+        text(change.homepage(), user.getHomepage(), user::setHomepage, "homepage", recorder);
+        value(change.contactVisibility(), user.getContactVisibility(), user::setContactVisibility,
+                "contactVisibility", false, recorder);
+        text(change.street(), user.getStreet(), user::setStreet, "street", recorder);
+        text(change.postcode(), user.getPostcode(), user::setPostcode, "postcode", recorder);
+        text(change.city(), user.getCity(), user::setCity, "city", recorder);
+        text(change.country() == null ? null : change.country().toUpperCase(Locale.ROOT), user.getCountry(),
+                user::setCountry, "country", recorder);
+        value(change.latitude(), user.getLatitude(), user::setLatitude, "latitude", false, recorder);
+        value(change.longitude(), user.getLongitude(), user::setLongitude, "longitude", false, recorder);
+        text(change.aboutMePublic(), user.getAboutMePublic(), user::setAboutMePublic, "aboutMePublic", recorder);
+        text(change.aboutMeInternal(), user.getAboutMeInternal(), user::setAboutMeInternal, "aboutMeInternal",
+                recorder);
+        text(change.positionDescription(), user.getPositionDescription(), user::setPositionDescription,
+                "positionDescription", recorder);
+        if (change.newsletterOptIn() != null && change.newsletterOptIn() != user.isNewsletterOptIn()) {
+            recorder.record("newsletterOptIn", user.isNewsletterOptIn(), change.newsletterOptIn(), false, null);
+            user.setNewsletterOptIn(change.newsletterOptIn());
+        }
+        if (change.homeRegionId() != null && !change.homeRegionId().equals(user.getHomeRegionId())) {
+            recorder.record("homeRegionId", user.getHomeRegionId(), change.homeRegionId(), false,
+                    own ? UserAction.HOME_REGION_CHANGED : null);
+            user.setHomeRegionId(change.homeRegionId());
+        }
+    }
+
+    private static String phone(String field, String value, List<ApiFieldError> errors) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        if (!PhoneNumberValidator.isValid(value)) {
+            errors.add(new ApiFieldError(field, "PhoneNumber", "not a valid phone number"));
+            return null;
+        }
+        return PhoneNumberValidator.normalize(value);
+    }
+
+    private static void text(String requested, String current, Consumer<String> setter, String field,
+                             Recorder recorder) {
+        if (requested == null) {
+            return;
+        }
+        String value = requested.isBlank() ? null : requested.strip();
+        if (!Objects.equals(value, current)) {
+            recorder.record(field, current, value, false, null);
+            setter.accept(value);
+        }
+    }
+
+    private static <T> void value(T requested, T current, Consumer<T> setter, String field, boolean redact,
+                                  Recorder recorder) {
+        if (requested != null && !requested.equals(current)) {
+            recorder.record(field, current, requested, redact, null);
+            setter.accept(requested);
+        }
     }
 }

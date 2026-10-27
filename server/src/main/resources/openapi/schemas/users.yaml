@@ -32,6 +32,63 @@ UserProfile:
     lastLoginAt:
       type: string
       format: date-time
+    active:
+      type: boolean
+    verifiedAt:
+      type: string
+      format: date-time
+    foodsaverNumber:
+      type: integer
+      format: int64
+      description: Displayed foodsaver ID.
+    quizRole:
+      $ref: './common.yaml#/Role'
+    gender:
+      $ref: './users.yaml#/Gender'
+    dateOfBirth:
+      type: string
+      format: date
+    mobilePhone:
+      type: string
+    landlinePhone:
+      type: string
+    phoneValid:
+      type: boolean
+      description: True when the mobile phone number passes the phone number validation.
+    homepage:
+      type: string
+    contactVisibility:
+      $ref: './users.yaml#/ContactVisibility'
+    street:
+      type: string
+    postcode:
+      type: string
+    city:
+      type: string
+    country:
+      type: string
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    homeRegion:
+      $ref: './regions.yaml#/RegionRef'
+    aboutMePublic:
+      type: string
+    aboutMeInternal:
+      type: string
+    positionDescription:
+      type: string
+    newsletterOptIn:
+      type: boolean
+    identityConfirmedAt:
+      type: string
+      format: date-time
+    lastPassportAt:
+      type: string
+      format: date-time
 
 UserSettingsUpdate:
   type: object
@@ -44,3 +101,104 @@ UserSettingsUpdate:
       type: string
       maxLength: 500
       description: Optional reason stored in the action history.
+
+Gender:
+  type: string
+  enum: [NOT_SELECTED, MALE, FEMALE, DIVERSE]
+
+ContactVisibility:
+  type: string
+  enum: [PUBLIC, TEAM, NONE]
+
+UserSummary:
+  type: object
+  description: 'Short user card used in lists (members, guides, ambassadors).'
+  required: [id, displayName, role, verified]
+  properties:
+    id:
+      type: string
+      format: uuid
+    displayName:
+      type: string
+    firstName:
+      type: string
+    avatarUrl:
+      type: string
+    role:
+      $ref: './common.yaml#/Role'
+    verified:
+      type: boolean
+    foodsaverNumber:
+      type: integer
+      format: int64
+    homeRegion:
+      $ref: './regions.yaml#/RegionRef'
+    sleepMode:
+      description: 'Null until sleep mode exists (milestone 6).'
+      type: boolean
+    phone:
+      description: 'Only when the viewer may see contact details.'
+      type: string
+
+UserProfileUpdate:
+  type: object
+  description: 'Own profile fields (plan §8.3/§15.1). Omitted fields stay unchanged; an empty string clears a text field.'
+  properties:
+    firstName:
+      type: string
+      maxLength: 100
+    lastName:
+      type: string
+      maxLength: 100
+    displayName:
+      type: string
+      minLength: 1
+      maxLength: 100
+    gender:
+      $ref: './users.yaml#/Gender'
+    dateOfBirth:
+      type: string
+      format: date
+    mobilePhone:
+      type: string
+      maxLength: 50
+    landlinePhone:
+      type: string
+      maxLength: 50
+    homepage:
+      type: string
+      maxLength: 500
+    contactVisibility:
+      $ref: './users.yaml#/ContactVisibility'
+    street:
+      type: string
+      maxLength: 200
+    postcode:
+      type: string
+      maxLength: 20
+    city:
+      type: string
+      maxLength: 100
+    country:
+      type: string
+      maxLength: 2
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    aboutMePublic:
+      type: string
+      maxLength: 16000
+    aboutMeInternal:
+      type: string
+      maxLength: 16000
+    positionDescription:
+      type: string
+      maxLength: 500
+    newsletterOptIn:
+      type: boolean
+    reason:
+      type: string
+      maxLength: 500

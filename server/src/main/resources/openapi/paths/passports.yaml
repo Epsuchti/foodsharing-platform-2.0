@@ -1,0 +1,201 @@
+/api/users/me/passport:
+  get:
+    tags: [passports]
+    operationId: getMyPassportStatus
+    summary: 'Own passport and wallet state.'
+    x-permission: 'self'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/passports.yaml#/PassportStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/passport.pdf:
+  get:
+    tags: [passports]
+    operationId: downloadMyPassport
+    summary: 'Download the own passport as PDF.'
+    x-permission: 'self (verified)'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PASSPORT_NOT_VALID', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/passport-requests:
+  post:
+    tags: [passports]
+    operationId: requestPassport
+    summary: 'Ask the ambassadors of the home region for a (new) passport.'
+    x-permission: 'self (verified)'
+    x-history: PassportAction.PASSPORT_REQUESTED
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/passports.yaml#/PassportStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PASSPORT_REQUEST_PENDING', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/passport-requests:
+  get:
+    tags: [passports]
+    operationId: listPassportRequests
+    summary: 'Open passport requests of the region''s members.'
+    x-permission: 'ambassador or ORGA'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: includeFulfilled
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/passports.yaml#/PassportRequestView'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/passports:
+  post:
+    tags: [passports]
+    operationId: createRegionPassports
+    summary: 'Generate passports for members (runs as a job; result is one PDF).'
+    x-permission: 'ambassador or ORGA'
+    x-history: PassportAction.PASSPORT_GENERATED_BY_AMBASSADOR
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/passports.yaml#/CreateRegionPassports'
+    responses:
+      '202':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/JobRef'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or USERS_NOT_IN_REGION (args.userIds)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/passport-history:
+  get:
+    tags: [passports]
+    operationId: getPassportHistory
+    summary: 'Passport history (plan §10.2).'
+    x-permission: 'mayAdministrateUser or self'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: actions
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/history.yaml#/HistoryEntryPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/wallets/apple:
+  get:
+    tags: [passports]
+    operationId: getAppleWalletPass
+    summary: 'Apple Wallet pass (pkpass).'
+    x-permission: 'self (verified)'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/vnd.apple.pkpass:
+            schema:
+              type: string
+              format: binary
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PASSPORT_NOT_VALID', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'WALLET_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/wallets/google:
+  get:
+    tags: [passports]
+    operationId: getGoogleWalletLink
+    summary: 'Google Wallet save link.'
+    x-permission: 'self (verified)'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/passports.yaml#/GoogleWalletLink'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PASSPORT_NOT_VALID', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'WALLET_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

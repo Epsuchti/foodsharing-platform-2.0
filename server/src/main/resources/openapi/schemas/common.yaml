@@ -32,6 +32,114 @@ ApiErrorCode:
     - HISTORY_SUBJECT_NOT_READABLE
     # --- dev ---
     - DEV_USER_NOT_FOUND
+    # --- users (M2) ---
+    - INVALID_PHONE_NUMBER
+    - CANNOT_DEACTIVATE_SELF
+    # --- region ---
+    - REGION_NOT_FOUND
+    - REGION_NOT_JOINABLE
+    - REGION_REQUIRES_APPLICATION
+    - CANNOT_LEAVE_HOME_REGION
+    - NOT_A_MEMBER
+    - CANNOT_REMOVE_AMBASSADOR
+    - OPTION_NOT_EDITABLE
+    - SLUG_TAKEN
+    - EMAIL_NAME_TAKEN
+    - DUPLICATE_FUNCTION_GROUP
+    - RESTRICTED_FUNCTION
+    - CANNOT_MOVE_INTO_DESCENDANT
+    - REGION_HAS_CHILDREN
+    - REGION_HAS_MEMBERS
+    - INVALID_TIME_ZONE
+    - GEOCODING_UNAVAILABLE
+    - IMPORT_TOO_LARGE
+    # --- groups ---
+    - GROUP_NOT_FOUND
+    - GROUP_NOT_OPEN
+    - GROUP_APPLICATIONS_CLOSED
+    - ALREADY_APPLIED
+    - ALREADY_MEMBER
+    - GROUP_REQUIREMENTS_NOT_MET
+    - APPLICATION_NOT_FOUND
+    - APPLICATION_NOT_PENDING
+    # --- quiz ---
+    - QUIZ_NOT_FOUND
+    - QUESTION_NOT_FOUND
+    - ANSWER_NOT_FOUND
+    - QUIZ_NOT_ALLOWED
+    - QUIZ_SESSION_RUNNING
+    - QUIZ_WAIT_TIME
+    - QUIZ_DISQUALIFIED
+    - QUIZ_ALREADY_PASSED
+    - NO_RUNNING_SESSION
+    - QUIZ_SESSION_NOT_FOUND
+    - QUIZ_NOT_PASSED
+    - CONSENT_REQUIRED
+    # --- legal/content ---
+    - LEGAL_DOCUMENT_NOT_FOUND
+    - LEGAL_VERSION_OUTDATED
+    - LEGAL_VERSION_EXISTS
+    - CONTENT_NOT_FOUND
+    # --- intro-pickups ---
+    - INTRO_PICKUP_NOT_FOUND
+    - SLOT_NOT_FOUND
+    - SLOT_NOT_AVAILABLE
+    - USER_ALREADY_BOOKED_IN_INTRO_PICKUP
+    - USER_ALREADY_BOOKED_WITH_GUIDE
+    - USER_ALREADY_BOOKED_IN_CATEGORY
+    - USER_BOOKING_LIMIT_REACHED
+    - MINIMUM_PICKUP_COUNT_NOT_REACHED
+    - FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP
+    - GUIDES_CANNOT_BOOK
+    - BOOKING_USER_DISABLED
+    - NOT_REGION_MEMBER
+    - GUIDE_NOT_FOUND
+    - PAST_BOOKING_NOT_CANCELLABLE
+    - ONLY_OWN_BOOKINGS_CANCELLABLE
+    - ONLY_BOOKED_APPOINTMENTS_CANCELLABLE
+    - NOTIFICATION_NOT_NEEDED_VERIFIED
+    - ICAL_LINK_NOT_ALLOWED
+    - ICAL_FETCH_FAILED
+    - LOCATION_REQUIRED
+    - PUBLIC_LOCATION_REQUIRED
+    - BUSINESS_NAME_REQUIRED
+    - SLOT_COUNT_OUT_OF_RANGE
+    - ONLINE_CALL_LINK_REQUIRED
+    - INTRO_PICKUP_START_IN_PAST
+    - GUIDE_INACTIVE
+    - PAST_INTRO_PICKUP_NOT_EDITABLE
+    - PAST_INTRO_PICKUP_NOT_DELETABLE
+    - SLOT_COUNT_REDUCTION_NOT_SUPPORTED
+    - BOOKED_SLOTS_PREVENT_DELETE
+    - ONLY_OWN_INTRO_PICKUPS_MANAGEABLE
+    - PAST_INTRO_PICKUP_NOT_REASSIGNABLE
+    - ASSIGNABLE_GUIDE_NOT_FOUND
+    - ONLY_BOOKED_APPOINTMENTS_COMPLETABLE
+    - FUTURE_APPOINTMENT_NOT_COMPLETABLE
+    - ONLY_CANCELLED_APPOINTMENTS_COUNTABLE
+    - ONLY_PAST_APPOINTMENTS_COUNTABLE
+    - ONLY_COUNTED_APPOINTMENTS_NOT_COUNTABLE
+    - BOOKING_NOT_FOUND
+    - HISTORICAL_INTRO_PICKUP_NOT_IN_PAST
+    - INVALID_UNSUBSCRIBE_TOKEN
+    - STORE_ALIAS_NOT_FOUND
+    - STORE_ALIAS_EXISTS
+    # --- verification/passports ---
+    - ALREADY_VERIFIED
+    - NOT_VERIFIED
+    - HAS_FUTURE_PICKUPS
+    - IDENTITY_ALREADY_CONFIRMED
+    - IDENTITY_NOT_CONFIRMED
+    - CANNOT_CONFIRM_OWN_IDENTITY
+    - PASSPORT_NOT_VALID
+    - PASSPORT_REQUEST_PENDING
+    - USERS_NOT_IN_REGION
+    - WALLET_NOT_CONFIGURED
+    # --- jobs ---
+    - JOB_NOT_FOUND
+    - JOB_RESULT_NOT_AVAILABLE
+    # --- dev (M2) ---
+    - DEV_JOB_NOT_FOUND
     # --- onboarding ---
 
 ApiError:
@@ -111,3 +219,44 @@ MessageResponse:
   properties:
     message:
       type: string
+
+Permission:
+  type: string
+  description: 'Region-scoped feature permission (plan §9 layer 3). Mirrors network.foodsharing.security.Permission.'
+  enum: [CAN_GIVE_INTRO_PICKUPS, CAN_MANAGE_USERS, CAN_USE_AUTOMATIONS, CAN_SEE_USER_PICKUP_COUNT_GROUPING, CAN_SEE_ALL_AUTOMATION_DECISIONS, CAN_MANAGE_SURVEYS]
+
+ReasonBody:
+  type: object
+  required: [reason]
+  properties:
+    reason:
+      description: 'Required reason, stored in the action history.'
+      type: string
+      minLength: 1
+      maxLength: 1000
+
+OptionalReasonBody:
+  type: object
+  properties:
+    reason:
+      description: 'Optional reason, stored in the action history.'
+      type: string
+      maxLength: 1000
+
+RequiredMessage:
+  type: object
+  required: [message]
+  properties:
+    message:
+      description: 'Message to the user (at least 10 characters), also stored in the history.'
+      type: string
+      minLength: 10
+      maxLength: 4000
+
+JobRef:
+  type: object
+  required: [jobId]
+  properties:
+    jobId:
+      type: string
+      format: uuid

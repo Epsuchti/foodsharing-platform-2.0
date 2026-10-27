@@ -1,0 +1,25 @@
+# Milestone 2 (T11): notes about a user (verification messages until messaging exists, M5).
+databaseChangeLog:
+  - changeSet:
+      id: 023-1
+      author: platform
+      comment: 'Notes about users written by admins.'
+      changes:
+        - createTable:
+            tableName: user_note
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_user_note, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_user_note_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID}
+              - column: {name: kind, type: VARCHAR(30), constraints: {nullable: false}}
+              - column: {name: text, type: VARCHAR(8000), constraints: {nullable: false}}
+        - createIndex:
+            tableName: user_note
+            indexName: ix_user_note_user_id
+            columns:
+              - column: {name: user_id}

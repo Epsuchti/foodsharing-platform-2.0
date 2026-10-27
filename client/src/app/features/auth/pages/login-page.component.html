@@ -1,0 +1,153 @@
+<div class="login" data-testid="auth.login.page">
+  <section class="welcome" aria-labelledby="login-title">
+    <div class="welcome__art" aria-hidden="true">
+      <span class="blob blob--a"></span>
+      <span class="blob blob--b"></span>
+      <span class="welcome__emblem"><i class="pi pi-heart-fill"></i></span>
+    </div>
+    <p class="welcome__eyebrow">{{ 'auth.login.eyebrow' | t }}</p>
+    <h1 id="login-title" class="welcome__title">{{ 'auth.login.title' | t }}</h1>
+    <p class="welcome__lead">{{ 'auth.login.lead' | t }}</p>
+    <ul class="welcome__points">
+      <li>
+        <span class="point__icon"><i class="pi pi-key" aria-hidden="true"></i></span>
+        <span>
+          <strong>{{ 'auth.login.pointNoPasswordTitle' | t }}</strong>
+          {{ 'auth.login.pointNoPasswordText' | t }}
+        </span>
+      </li>
+      <li>
+        <span class="point__icon"><i class="pi pi-bolt" aria-hidden="true"></i></span>
+        <span>
+          <strong>{{ 'auth.login.pointOneClickTitle' | t }}</strong>
+          {{ 'auth.login.pointOneClickText' | t }}
+        </span>
+      </li>
+      <li>
+        <span class="point__icon"><i class="pi pi-map-marker" aria-hidden="true"></i></span>
+        <span>
+          <strong>{{ 'auth.login.pointNearbyTitle' | t }}</strong>
+          {{ 'auth.login.pointNearbyText' | t }}
+        </span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="login-card-title">
+    <h2 id="login-card-title" class="card__title">{{ 'auth.login.cardTitle' | t }}</h2>
+    <p class="card__subtitle">{{ 'auth.login.cardSubtitle' | t }}</p>
+
+    @if (urlError(); as failure) {
+      @if (!urlErrorDismissed()) {
+        <fs-error-state
+          [error]="failure"
+          [heading]="'auth.login.errorTitle' | t"
+          [retryable]="false"
+          [compact]="true"
+          testId="auth.login.error"
+          data-testid="auth.login.error"
+        />
+      }
+    }
+
+    @if (loginMethods().google) {
+      <button
+        type="button"
+        class="google"
+        [disabled]="redirectingToGoogle()"
+        (click)="continueWithGoogle()"
+        data-testid="auth.login.google"
+      >
+        @if (redirectingToGoogle()) {
+          <i class="pi pi-spin pi-spinner google__spinner" aria-hidden="true"></i>
+        } @else {
+          <fs-google-logo />
+        }
+        <span>{{
+          (redirectingToGoogle() ? 'auth.login.googleRedirecting' : 'auth.login.google') | t
+        }}</span>
+      </button>
+    }
+
+    @if (loginMethods().magicLink) {
+      @if (loginMethods().google) {
+        <div class="divider" role="separator">
+          <span>{{ 'auth.login.or' | t }}</span>
+        </div>
+      }
+
+      <form class="email" [formGroup]="form" (ngSubmit)="submitEmail()" novalidate>
+        <label class="email__label" for="login-email">{{ 'auth.login.emailLabel' | t }}</label>
+        <input
+          #emailInput
+          pInputText
+          id="login-email"
+          type="email"
+          inputmode="email"
+          autocomplete="username webauthn"
+          autocapitalize="none"
+          spellcheck="false"
+          formControlName="email"
+          [placeholder]="'auth.login.emailPlaceholder' | t"
+          [attr.aria-invalid]="emailInvalid()"
+          [attr.aria-describedby]="emailInvalid() ? 'login-email-error' : 'login-email-hint'"
+          [class.ng-dirty]="emailInvalid()"
+          [class.ng-invalid]="emailInvalid()"
+          data-testid="auth.login.email"
+        />
+        @if (emailInvalid()) {
+          <p id="login-email-error" class="email__error" data-testid="auth.login.emailError">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            {{ emailErrorKey() | t }}
+          </p>
+        } @else {
+          <p id="login-email-hint" class="email__hint">{{ 'auth.login.emailHint' | t }}</p>
+        }
+        @if (emailError(); as message) {
+          <p class="email__alert" role="alert" data-testid="auth.login.requestError">
+            <i class="pi pi-ban" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+          </p>
+        }
+        <p-button
+          type="submit"
+          [label]="'auth.login.sendLink' | t"
+          icon="pi pi-envelope"
+          [outlined]="loginMethods().google"
+          [loading]="requestLink.busy()"
+          styleClass="email__submit"
+          [fluid]="true"
+          data-testid="auth.login.emailSubmit"
+        />
+      </form>
+    }
+
+    @if (passkeysAvailable()) {
+      <button
+        type="button"
+        class="passkey"
+        [disabled]="passkeyLogin.busy()"
+        (click)="usePasskey()"
+        data-testid="auth.login.passkey"
+      >
+        <i
+          class="pi"
+          [class.pi-spin]="passkeyLogin.busy()"
+          [class.pi-spinner]="passkeyLogin.busy()"
+          [class.pi-key]="!passkeyLogin.busy()"
+          aria-hidden="true"
+        ></i>
+        <span>{{ 'auth.login.passkey' | t }}</span>
+      </button>
+    }
+
+    <p class="card__note">
+      <i class="pi pi-sparkles" aria-hidden="true"></i>
+      <span>{{ 'auth.login.newHere' | t }}</span>
+    </p>
+  </section>
+</div>
+
+@if (appInfo.devMode()) {
+  <fs-dev-user-switcher class="dev" [returnUrl]="safeReturn()" />
+}

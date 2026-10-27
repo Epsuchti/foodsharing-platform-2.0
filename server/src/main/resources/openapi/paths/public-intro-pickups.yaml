@@ -1,0 +1,86 @@
+/api/public/regions/{slug}/intro-pickups:
+  get:
+    tags: [public-intro-pickups]
+    operationId: listPublicIntroPickups
+    summary: 'Upcoming EinAbs with free slots (general area only).'
+    security: []
+    x-permission: 'PUBLIC'
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          $ref: '../schemas/intro-pickups.yaml#/IntroPickupCategory'
+      - name: visitFairteiler
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/PublicIntroPickupPage'
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '429': {description: 'TOO_MANY_REQUESTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/public/intro-pickups/ical/{token}:
+  get:
+    tags: [public-intro-pickups]
+    operationId: getGuideIcalFeed
+    summary: 'A guide''s EinAb feed (token in the URL; 404 on unknown tokens). Clients append .ics as a file name hint.'
+    security: []
+    x-permission: 'token'
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          text/calendar:
+            schema:
+              type: string
+      '404': {description: 'RESOURCE_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/public/intro-pickups/unsubscribe:
+  post:
+    tags: [public-intro-pickups]
+    operationId: unsubscribeByToken
+    summary: 'Unsubscribe from EinAb notifications via the mail link.'
+    security: []
+    x-permission: 'token'
+    x-history: IntroPickupAction.UNSUBSCRIBED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/intro-pickups.yaml#/UnsubscribeRequest'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+      '400': {description: 'VALIDATION_FAILED or INVALID_UNSUBSCRIBE_TOKEN', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '429': {description: 'TOO_MANY_REQUESTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

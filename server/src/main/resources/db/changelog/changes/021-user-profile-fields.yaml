@@ -1,0 +1,45 @@
+# Milestone 2 (T11): the remaining user fields of plan §15.1 needed by M2 (§8.3).
+databaseChangeLog:
+  - changeSet:
+      id: 021-1
+      author: platform
+      comment: 'Profile, contact, address, home region, consent-free admin flags.'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: gender, type: VARCHAR(20), defaultValue: NOT_SELECTED, constraints: {nullable: false}}
+              - column: {name: date_of_birth, type: DATE}
+              - column: {name: mobile_phone, type: VARCHAR(50)}
+              - column: {name: landline_phone, type: VARCHAR(50)}
+              - column: {name: homepage, type: VARCHAR(500)}
+              - column: {name: contact_visibility, type: VARCHAR(20), defaultValue: TEAM, constraints: {nullable: false}}
+              - column: {name: street, type: VARCHAR(200)}
+              - column: {name: postcode, type: VARCHAR(20)}
+              - column: {name: city, type: VARCHAR(100)}
+              - column: {name: country, type: VARCHAR(2)}
+              - column: {name: latitude, type: DOUBLE}
+              - column: {name: longitude, type: DOUBLE}
+              - column: {name: home_region_id, type: UUID}
+              - column: {name: about_me_public, type: VARCHAR(16000)}
+              - column: {name: about_me_internal, type: VARCHAR(16000)}
+              - column: {name: position_description, type: VARCHAR(500)}
+              - column: {name: newsletter_opt_in, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: identity_confirmed_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: identity_confirmed_by, type: UUID}
+              - column: {name: last_passport_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: info_mail_message, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: no_automatic_delete, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: beta_tester, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - addForeignKeyConstraint:
+            baseTableName: user_account
+            baseColumnNames: home_region_id
+            constraintName: fk_user_account_home_region_id
+            referencedTableName: region
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: user_account
+            indexName: ix_user_account_home_region_id
+            columns:
+              - column: {name: home_region_id}

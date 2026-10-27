@@ -1,0 +1,605 @@
+/api/quizzes:
+  get:
+    tags: [quizzes]
+    operationId: listQuizzes
+    summary: 'All quizzes with the user''s status.'
+    x-permission: 'AUTHENTICATED'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/quizzes.yaml#/QuizOverview'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}:
+  get:
+    tags: [quizzes]
+    operationId: getQuiz
+    summary: 'Quiz settings (editor view).'
+    x-permission: 'quiz reader'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuizDetail'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  patch:
+    tags: [quizzes]
+    operationId: updateQuiz
+    summary: 'Change quiz settings.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.QUIZ_UPDATED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/QuizUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuizDetail'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/status:
+  get:
+    tags: [quizzes]
+    operationId: getQuizStatus
+    summary: 'The user''s status for one quiz.'
+    x-permission: 'AUTHENTICATED'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: test
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuizStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/sessions:
+  post:
+    tags: [quizzes]
+    operationId: startQuizSession
+    summary: 'Start a quiz session.'
+    x-permission: 'mayTry'
+    x-history: QuizSessionAction.SESSION_STARTED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/StartQuizSession'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuizStatus'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'QUIZ_NOT_ALLOWED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'QUIZ_SESSION_RUNNING, QUIZ_WAIT_TIME (args.days), QUIZ_DISQUALIFIED or QUIZ_ALREADY_PASSED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/sessions/current/question:
+  get:
+    tags: [quizzes]
+    operationId: getNextQuestion
+    summary: 'The current question of the running session.'
+    x-permission: 'self'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: test
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/ActiveQuestion'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NO_RUNNING_SESSION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/sessions/current/answer:
+  post:
+    tags: [quizzes]
+    operationId: answerQuestion
+    summary: 'Answer the current question; returns the solution.'
+    x-permission: 'self'
+    x-history: QuizSessionAction.QUESTION_ANSWERED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: test
+        in: query
+        schema:
+          type: boolean
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/SelectedAnswers'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/AnswerResult'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NO_RUNNING_SESSION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/sessions/current/results:
+  get:
+    tags: [quizzes]
+    operationId: getQuizResults
+    summary: 'Results of the latest finished session.'
+    x-permission: 'self'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: test
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuizResult'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND or QUIZ_SESSION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/confirm:
+  post:
+    tags: [quizzes]
+    operationId: confirmQuiz
+    summary: 'Confirm a passed role quiz (raises the role; store manager needs the confidentiality notice).'
+    x-permission: 'self'
+    x-history: QuizSessionAction.QUIZ_CONFIRMED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuizStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'QUIZ_NOT_PASSED or CONSENT_REQUIRED (args.kind)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/quiz-sessions:
+  get:
+    tags: [quizzes]
+    operationId: listMyQuizSessions
+    summary: 'Own quiz session history.'
+    x-permission: 'self'
+    parameters:
+      - name: kind
+        in: query
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/quizzes.yaml#/QuizSessionView'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/quiz-sessions:
+  get:
+    tags: [quizzes]
+    operationId: listUserQuizSessions
+    summary: 'Quiz session history of a user.'
+    x-permission: 'mayAdministrateUser or quiz editor'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: kind
+        in: query
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/quizzes.yaml#/QuizSessionView'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quiz-sessions/{sessionId}:
+  delete:
+    tags: [quizzes]
+    operationId: deleteQuizSession
+    summary: 'Delete a quiz session.'
+    x-permission: 'quiz editor'
+    x-history: QuizSessionAction.SESSION_DELETED
+    parameters:
+      - name: sessionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_SESSION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/questions:
+  get:
+    tags: [quizzes]
+    operationId: listQuestions
+    summary: 'All questions of a quiz.'
+    x-permission: 'quiz reader'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/quizzes.yaml#/QuestionDetail'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [quizzes]
+    operationId: createQuestion
+    summary: 'Add a question.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.QUESTION_CREATED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/QuestionUpdate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuestionDetail'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/questions/{questionId}:
+  patch:
+    tags: [quizzes]
+    operationId: updateQuestion
+    summary: 'Edit a question.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.QUESTION_UPDATED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/QuestionUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuestionDetail'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND or QUESTION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [quizzes]
+    operationId: deleteQuestion
+    summary: 'Delete a question.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.QUESTION_DELETED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND or QUESTION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/questions/{questionId}/answers:
+  post:
+    tags: [quizzes]
+    operationId: createAnswer
+    summary: 'Add an answer.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.ANSWER_CREATED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/AnswerUpdate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/AnswerDetail'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND or QUESTION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/questions/{questionId}/answers/{answerId}:
+  patch:
+    tags: [quizzes]
+    operationId: updateAnswer
+    summary: 'Edit an answer.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.ANSWER_UPDATED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/AnswerUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/AnswerDetail'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND, QUESTION_NOT_FOUND or ANSWER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [quizzes]
+    operationId: deleteAnswer
+    summary: 'Delete an answer.'
+    x-permission: 'quiz editor'
+    x-history: QuizAction.ANSWER_DELETED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND, QUESTION_NOT_FOUND or ANSWER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/quizzes/{kind}/questions/{questionId}/comments:
+  get:
+    tags: [quizzes]
+    operationId: listQuestionComments
+    summary: 'Comments on a question.'
+    x-permission: 'quiz reader'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/quizzes.yaml#/QuestionComment'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND or QUESTION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [quizzes]
+    operationId: addQuestionComment
+    summary: 'Comment on a question.'
+    x-permission: 'quiz reader'
+    x-history: QuizAction.COMMENT_ADDED
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/quizzes.yaml#/QuizKind'
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/quizzes.yaml#/QuestionCommentCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/quizzes.yaml#/QuestionComment'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'QUIZ_NOT_FOUND or QUESTION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

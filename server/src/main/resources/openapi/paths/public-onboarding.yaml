@@ -1,0 +1,22 @@
+/api/public/onboarding/explainer:
+  get:
+    tags: [public-onboarding]
+    operationId: getExplainer
+    summary: 'Explainer page data: live counters, region card, journey preview (§11.2).'
+    security: []
+    x-permission: 'PUBLIC'
+    parameters:
+      - name: regionId
+        in: query
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/onboarding.yaml#/Explainer'
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '429': {description: 'TOO_MANY_REQUESTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

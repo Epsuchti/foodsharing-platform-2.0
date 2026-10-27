@@ -105,8 +105,71 @@ class LocalProfileSmokeIT {
                 .andExpect(jsonPath("$.authenticated").value(true))
                 .andExpect(jsonPath("$.user.id").value(SeedUsers.ORGA.id().toString()))
                 .andExpect(jsonPath("$.user.role").value("ORGA"));
-        assertThat(jdbc.queryForObject("select count(*) from history_entry where action = 'LOGIN' and metadata like ?",
-                Integer.class, "%\"DEV\"%")).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from history_entry where action = 'LOGIN' and metadata like ? "
+                + "and subject_id = ?", Integer.class, "%\"DEV\"%", SeedUsers.ORGA.id())).isEqualTo(1);
+    }
+
+    @Test
+    void regionTreeSeedIsConsistent() {
+        assertThat(jdbc.queryForObject("select count(*) from region where type = 'FEDERAL_STATE'", Integer.class))
+                .isEqualTo(26);
+        assertThat(jdbc.queryForObject("select count(*) from region where type = 'WORKING_GROUP' and parent_id = "
+                + "(select id from region where slug = 'zuerich-stadt')", Integer.class)).isEqualTo(16);
+        // closure: exactly one row per region and ancestor (computed here from parent_id)
+        Map<Object, Object> parents = jdbc.queryForList("select id, parent_id from region").stream()
+                .collect(java.util.HashMap::new, (map, row) -> map.put(row.get("ID"), row.get("PARENT_ID")),
+                        java.util.HashMap::putAll);
+        int expected = 0;
+        for (Object id : parents.keySet()) {
+            for (Object current = id; current != null; current = parents.get(current)) {
+                expected++;
+            }
+        }
+        assertThat(jdbc.queryForObject("select count(*) from region_closure", Integer.class)).isEqualTo(expected);
+        assertThat(jdbc.queryForObject("select count(*) from region_closure c join region r on r.id = c.region_id "
+                + "where c.depth = 0 and c.ancestor_id <> c.region_id", Integer.class)).isZero();
+        assertThat(jdbc.queryForList("select a.slug from region_closure c join region a on a.id = c.ancestor_id "
+                + "join region r on r.id = c.region_id where r.slug = 'zuerich-stadt' order by c.depth desc",
+                String.class)).containsExactly("europa", "schweiz", "kanton-zuerich", "zuerich-stadt");
+        // seed users: 12 members of Zürich Stadt with it as home region; newbie and profile have no region yet
+        assertThat(jdbc.queryForObject("select count(*) from region_membership m join region r on r.id = m.region_id "
+                + "where r.slug = 'zuerich-stadt' and m.user_id <> ?", Integer.class, SeedUsers.NEWBIE.id())).isEqualTo(12);
+        assertThat(jdbc.queryForObject("select count(*) from user_account where home_region_id is null and id <> ?",
+                Integer.class, SeedUsers.NEWBIE.id())).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select mobile_phone from user_account where id = ?", String.class,
+                SeedUsers.FOODSAVER.id())).isEqualTo("+41791234506");
+    }
+
+    @Test
+    void newbieJoinsZurichAndTheWelcomeTeamGetsABell() throws Exception {
+        MvcResult login = mvc.perform(post("/api/dev/login-as").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"" + SeedUsers.NEWBIE.id() + "\"}"))
+                .andExpect(status().isOk()).andReturn();
+        Cookie session = Arrays.stream(login.getResponse().getCookies())
+                .filter(cookie -> cookie.getName().equals("fs_session")).findFirst().orElseThrow();
+        String zurich = jdbc.queryForObject("select cast(id as varchar) from region where slug = 'zuerich-stadt'",
+                String.class);
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/api/regions/" + zurich + "/members/me").cookie(session)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.homeRegion").value(true));
+        mvc.perform(get("/api/regions/mine").cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].slug").value("zuerich-stadt"));
+        mvc.perform(get("/api/dev/notifications").param("type", "REGION_NEW_MEMBER")
+                        .param("userId", SeedUsers.WELCOME.id().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].identifier").value("REGION_NEW_MEMBER-" + SeedUsers.NEWBIE.id()));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .delete("/api/regions/" + zurich + "/members/me").cookie(session)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CANNOT_LEAVE_HOME_REGION"));
+        mvc.perform(post("/api/dev/jobs/region-maintenance/run")).andExpect(status().isNoContent());
+        assertThat(jdbc.queryForObject("select count(*) from region_membership where user_id = ?", Integer.class,
+                SeedUsers.NEWBIE.id())).isEqualTo(4);
     }
 
     @Test

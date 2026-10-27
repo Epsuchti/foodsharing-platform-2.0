@@ -1,0 +1,29 @@
+/api/public/legal/{kind}:
+  get:
+    tags: [public-legal]
+    operationId: getLegalDocument
+    summary: 'Current version of a legal document.'
+    security: []
+    x-permission: 'PUBLIC'
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/legal.yaml#/LegalDocumentKind'
+      - name: lang
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/Language'
+      - name: version
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/legal.yaml#/LegalDocument'
+      '404': {description: 'LEGAL_DOCUMENT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

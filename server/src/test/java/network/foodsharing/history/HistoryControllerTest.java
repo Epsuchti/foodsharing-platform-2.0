@@ -175,7 +175,8 @@ class HistoryControllerTest {
                         .value("history.action.SYSTEM.REGISTRATION_BLOCKED"));
         mvc.perform(get("/api/history/actions"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.action == 'FIELD_CHANGED')].subjectType").value("USER"));
+                .andExpect(jsonPath("$[?(@.action == 'FIELD_CHANGED')].subjectType")
+                        .value(org.hamcrest.Matchers.containsInAnyOrder("USER", "REGION", "GROUP")));
     }
 
     @Test

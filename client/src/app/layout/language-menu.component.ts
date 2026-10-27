@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, input, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
 import { Popover } from '@openng/optimus-ui/popover';
 
 import { I18nService } from '../core/i18n/i18n.service';
@@ -20,11 +27,8 @@ import { TPipe } from '../core/i18n/t.pipe';
       data-testid="shell.languageMenu"
     >
       <i class="pi pi-language" aria-hidden="true"></i>
-      <!-- Accessible name "Sprache: DE" contains the visible code (WCAG 2.5.3 label in name). -->
-      <span class="fs-visually-hidden">{{ 'layout.header.language' | t }}: </span>
-      <span class="hdr-btn__code">{{
-        i18n.language() === 'gws' ? 'CH' : i18n.language().toUpperCase()
-      }}</span>
+      <span class="fs-visually-hidden">{{ 'layout.header.language' | t }}</span>
+      <span class="hdr-btn__code">{{ code() }}</span>
     </button>
     <p-popover #op>
       <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.language' | t">
@@ -56,6 +60,10 @@ export class LanguageMenuComponent {
   protected readonly languages = LANGUAGES;
   protected readonly popover = viewChild.required<Popover>('op');
   readonly showLabel = input(true);
+  /** Short code shown on the button (and part of its accessible name, WCAG 2.5.3). */
+  protected readonly code = computed(() =>
+    this.i18n.language() === 'gws' ? 'CH' : this.i18n.language().toUpperCase(),
+  );
 
   protected choose(language: UiLanguage): void {
     this.popover().hide();

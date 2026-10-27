@@ -6,8 +6,8 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 
 | ID | Feature | Status | Backend | Frontend | E2E test | Screenshot test | Notes |
 |---|---|---|---|---|---|---|---|
-| A1 | Sign-up (Google / magic link, §8), registration attempt tracking, email blocklist | todo | | | | | |
-| A2 | Login / logout, passkeys, session refresh after role change | todo | | | | | |
+| A1 | Sign-up (Google / magic link, §8), registration attempt tracking, email blocklist | done | auth: AccountService, MagicLinkService, Google handlers, blocklist | features/auth login | tests/auth/a1-signup @A1 | auth.screen.ts (baseline pending) |  |
+| A2 | Login / logout, passkeys, session refresh after role change | done | auth: LoginService, passkeys (WebAuthn), session refresh | features/auth, core/auth/webauthn.client | tests/auth/a2-login @A2 | auth.screen.ts (baseline pending) | passkey tests chromium-only |
 | A3 | Email verification & email change with confirmation (request / complete / abort, recorded in history) | todo | | | | | |
 | A4 | All profile fields from §15.1, editable by the user; admin-editable fields by ambassadors with history | todo | | | | | |
 | A5 | Profile photo upload with crop | todo | | | | | |
@@ -17,17 +17,17 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | A9 | Sleep mode: none / temporary (from–until) / full, with message; shown everywhere the user appears | todo | | | | | |
 | A10 | Notification settings: per region forum (new threads / all), per thread (bell/mail), per FSP (bell/mail), newsletter, pickup reminders on/off, mention notifications on/off, activity feed filters; channels bell / email / push / Telegram | todo | | | | | |
 | A11 | Calendar token: personal ICS feed of pickups, EinAbs, events, with reminders; regenerate / delete token | todo | | | | | |
-| A12 | Language selection (de, en, gws, fr, it) | todo | | | | | |
+| A12 | Language selection (de, en, gws, fr, it) | done | UserService.updateSettings | I18nService + settings page | tests/account/a12-language @A12 | auth.screen.ts |  |
 | A13 | Delete account with reason (anonymise content, archive record as `fs_foodsaver_archive`), no-automatic-delete flag for admins | todo | | | | | |
 | A14 | Business card PDF (verified foodsavers, choice of role/region) | todo | | | | | |
 | A15 | Trust bananas: give (foodsaver+) with text, list received/sent, delete own, banana count | todo | | | | | |
 | A16 | Buddies ("Ich kenne"): request, accept, list, remove | todo | | | | | |
-| A17 | Theme switcher (light/dark/system) | todo | | | | | |
+| A17 | Theme switcher (light/dark/system) | done | theme setting | ThemeService + settings | tests/account/a17-theme @A17 | auth.screen.ts |  |
 | A18 | Email bounce handling: flag invalid addresses, show warning to user and admins, admin can clear | todo | | | | | |
 | A19 | Dashboard: onboarding card, my next pickups, pickup options with free slots, activity feed with filters (forum, stores, regions, groups, mailboxes, events), nearby baskets (optional container), bells | todo | | | | | |
 | A20 | Info mail message / infomail flag for important announcements | todo | | | | | |
 | A21 | Data export (GDPR): download all my data as JSON | todo | | | | | |
-| A22 | Security: active sessions, login history, log out everywhere | todo | | | | | |
+| A22 | Security: active sessions, login history, log out everywhere | done | AuthSessionService list/revoke | account/sessions, security-log | tests/account/a22-sessions @A22 | auth.screen.ts |  |
 | R1 | Region tree with all types (continent, country, federal state/canton, region, city, big city, district, part of town) and working groups; closure table for fast ancestry queries | todo | | | | | |
 | R2 | Join / leave region, home region; nightly add to parent regions; application-based joining where configured | todo | | | | | |
 | R3 | Region page: description, teaser, photo, members, ambassadors, stores, FSPs, events, polls, achievements, pickups, forum, ambassador forum, wall, statistics (members, gender list, age bands, pickups, kg, cooperations) | todo | | | | | |
@@ -170,11 +170,11 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D5.4 | CI job running spec validation and `oasdiff breaking`. | in-progress | .github/workflows/ci.yml contract job | | | | scripts/check-openapi.mjs + oasdiff.sh; CI not run (no remote) |
 | D7.1 | `db.changelog-master.yaml` + `001-initial`. | done | db.changelog-master.yaml + 001..006 | | | | LiquibasePostgresIT |
 | D7.2 | Seed CSVs + `context: seed` changesets. | done | db/seed/** | | d4-smoke @D4.2 | |  |
-| D7.3 | Dev user switcher (local only) + test that it is absent in `prod`. | todo | | | | | |
-| D8.1 | Google login end-to-end incl. account creation and linking. | todo | | | | | |
-| D8.2 | Email magic link with Mailpit locally, rate limit, open-redirect guard. | todo | | | | | |
-| D8.3 | Passkey registration and login. | todo | | | | | |
-| D8.4 | Cookie sessions + CSRF + session list. | todo | | | | | |
+| D7.3 | Dev user switcher (local only) + test that it is absent in `prod`. | done | dev module @Profile(local,e2e) | login dev switcher | d7-dev-switcher @D7.3 | | ProdLikeProfileTest |
+| D8.1 | Google login end-to-end incl. account creation and linking. | done | Google OIDC | login | a1-signup @A1 | | GoogleLoginIT |
+| D8.2 | Email magic link with Mailpit locally, rate limit, open-redirect guard. | done | MagicLinkService | login/sent, login/verify | a2-login @A2 | | MagicLinkFlowIT |
+| D8.3 | Passkey registration and login. | done | Spring WebAuthn + JPA repos | settings passkeys | a2-login @A2 | |  |
+| D8.4 | Cookie sessions + CSRF + session list. | done | fs_session cookie + CSRF | sessions page | d8-csrf @D8.4, a22-sessions | |  |
 | D8.5 | `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env. | done | application-prod.properties | | | | config |
 | D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | done | history module, TrackedFieldListener | shared/history-timeline | d10-history @D10.1 | history.screen.ts (no baseline yet) |  |
 | D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | done | ArchitectureTest rule 4 + fixture test | | | | proved by ArchitectureRuleFixtureTest |

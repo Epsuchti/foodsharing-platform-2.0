@@ -1,0 +1,34 @@
+# Milestone 2 (T11): applications to working groups (plan §13.2 R9).
+databaseChangeLog:
+  - changeSet:
+      id: 022-1
+      author: platform
+      comment: 'One application per user and group while PENDING (enforced by the service).'
+      changes:
+        - createTable:
+            tableName: group_application
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_group_application, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: group_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_group_application_group_id, references: region(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_group_application_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: text, type: VARCHAR(4000)}
+              - column: {name: status, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: decided_by, type: UUID}
+              - column: {name: decided_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: decision_message, type: VARCHAR(2000)}
+        - createIndex:
+            tableName: group_application
+            indexName: ix_group_application_group_id_status
+            columns:
+              - column: {name: group_id}
+              - column: {name: status}
+        - createIndex:
+            tableName: group_application
+            indexName: ix_group_application_user_id
+            columns:
+              - column: {name: user_id}
