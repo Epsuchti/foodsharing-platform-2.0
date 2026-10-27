@@ -1,0 +1,231 @@
+:host {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+:host(.fs-history-timeline--compact) {
+  gap: 0.75rem;
+}
+
+/* --- toolbar: filters + export ------------------------------------------------------------------ */
+.ht__toolbar {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-surface);
+  box-shadow: var(--fs-shadow-sm);
+
+  @media (min-width: 48rem) {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+  }
+}
+
+.ht__filters {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+
+  @media (min-width: 40rem) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+}
+
+.ht__filter {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+
+  @media (min-width: 40rem) {
+    flex: 0 1 16rem;
+  }
+}
+
+.ht__filter--actions {
+  @media (min-width: 40rem) {
+    flex-basis: 18rem;
+  }
+}
+
+.ht__filter-label {
+  color: var(--fs-text-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+:host ::ng-deep .ht__control {
+  width: 100%;
+}
+
+:host ::ng-deep .ht__control.p-datepicker,
+:host ::ng-deep .ht__control .p-datepicker-input {
+  width: 100%;
+}
+
+.ht__reset {
+  justify-self: start;
+
+  @media (min-width: 40rem) {
+    align-self: flex-end;
+  }
+}
+
+.ht__export {
+  justify-self: stretch;
+
+  @media (min-width: 48rem) {
+    flex: 0 0 auto;
+  }
+}
+
+:host ::ng-deep .ht__export .p-button {
+  width: 100%;
+}
+
+/* --- list ------------------------------------------------------------------------------------- */
+.ht__count {
+  margin: 0 0 0.25rem;
+  color: var(--fs-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ht__day {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ht__day + .ht__day {
+  margin-top: 1rem;
+}
+
+.ht__day-title {
+  position: sticky;
+  z-index: 1;
+  top: calc(var(--fs-header-h) + 0.25rem);
+  justify-self: start;
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--fs-border);
+  border-radius: 999px;
+  background: var(--fs-surface);
+  color: var(--fs-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+:host(.fs-history-timeline--compact) .ht__day-title {
+  position: static;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fs-text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* stacked cards (mobile, compact) */
+.ht__cards {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:host(.fs-history-timeline--compact) .ht__cards {
+  gap: 0.5rem;
+}
+
+/* p-timeline (desktop) */
+:host ::ng-deep .ht__timeline {
+  .p-timeline-event {
+    min-height: 0;
+  }
+
+  .p-timeline-event-opposite {
+    flex: 0 0 4rem;
+    padding: 0.55rem 0.9rem 0 0;
+    text-align: right;
+  }
+
+  .p-timeline-event-separator {
+    flex: 0 0 auto;
+  }
+
+  .p-timeline-event-connector {
+    width: 2px;
+    background: var(--fs-border);
+  }
+
+  .p-timeline-event-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 0 1.25rem 1rem;
+  }
+
+  .p-timeline-event:last-child .p-timeline-event-content {
+    padding-bottom: 0.25rem;
+  }
+
+  fs-history-entry {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-md);
+    background: var(--fs-surface);
+    box-shadow: var(--fs-shadow-sm);
+  }
+}
+
+.ht__time {
+  color: var(--fs-text-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .ht__paginator {
+  margin-top: 0.5rem;
+  border-radius: var(--fs-radius-md);
+  background: transparent;
+}
+
+/* --- skeleton --------------------------------------------------------------------------------- */
+.ht__skeleton {
+  display: grid;
+  gap: 1rem;
+}
+
+.ht__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.ht__skeleton-lines {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 0.45rem;
+}
+
+/* placeholders ("Alle Aktionen", "Gesamter Zeitraum") need body-text contrast (WCAG AA) */
+:host ::ng-deep .ht__control .p-placeholder,
+:host ::ng-deep .ht__control .p-multiselect-label.p-placeholder,
+:host ::ng-deep .ht__control input::placeholder {
+  color: var(--fs-text-muted);
+  opacity: 1;
+}
