@@ -17,3 +17,10 @@ e2e/.state/
 node_modules/
 .DS_Store
 .claude/
+
+# ER diagram: commit only the summary diagrams + table order (regenerate with npm run er-diagram)
+docs/er/*
+!docs/er/diagrams/
+docs/er/diagrams/*
+!docs/er/diagrams/summary/
+!docs/er/deletionOrder.txt
