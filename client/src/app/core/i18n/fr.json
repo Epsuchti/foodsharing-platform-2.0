@@ -64,5 +64,8 @@
   "errors.DEV_USER_NOT_FOUND": "Cet utilisateur de test n’existe pas.",
   "errors.NETWORK": "Pas de connexion au serveur. Vérifie ta connexion internet.",
   "errors.UNKNOWN": "Une erreur inconnue s’est produite.",
-  "errors.CLIENT_ERROR": "Une erreur s’est produite dans l’application. Nous avons été prévenus – recharge la page si quelque chose ne fonctionne plus."
+  "errors.CLIENT_ERROR": "Une erreur s’est produite dans l’application. Nous avons été prévenus – recharge la page si quelque chose ne fonctionne plus.",
+  "errors.PASSKEY_CANCELLED": "L’opération a été annulée.",
+  "errors.PASSKEY_EXISTS": "Il existe déjà une clé d’accès pour cet appareil.",
+  "errors.PASSKEY_UNSUPPORTED": "Ce navigateur ou cet appareil ne prend pas en charge les clés d’accès."
 }

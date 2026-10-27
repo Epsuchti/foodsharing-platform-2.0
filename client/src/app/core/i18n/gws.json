@@ -64,5 +64,8 @@
   "errors.DEV_USER_NOT_FOUND": "Die Testperson gits nöd.",
   "errors.NETWORK": "Kei Verbindig zum Server. Prüef dini Internetverbindig.",
   "errors.UNKNOWN": "En unbekannte Fähler isch passiert.",
-  "errors.CLIENT_ERROR": "I de App isch en Fähler passiert. Mir sind informiert – lad d Siite neu, wänn öppis nüme gaht."
+  "errors.CLIENT_ERROR": "I de App isch en Fähler passiert. Mir sind informiert – lad d Siite neu, wänn öppis nüme gaht.",
+  "errors.PASSKEY_CANCELLED": "De Vorgang isch abbroche worde.",
+  "errors.PASSKEY_EXISTS": "Für das Grät gits scho en Passkey.",
+  "errors.PASSKEY_UNSUPPORTED": "De Browser oder das Grät unterstützt kei Passkeys."
 }

@@ -64,5 +64,8 @@
   "errors.DEV_USER_NOT_FOUND": "Diese Testperson gibt es nicht.",
   "errors.NETWORK": "Keine Verbindung zum Server. Prüfe deine Internetverbindung.",
   "errors.UNKNOWN": "Ein unbekannter Fehler ist aufgetreten.",
-  "errors.CLIENT_ERROR": "In der App ist ein Fehler passiert. Wir wurden informiert – lade die Seite neu, falls etwas nicht mehr funktioniert."
+  "errors.CLIENT_ERROR": "In der App ist ein Fehler passiert. Wir wurden informiert – lade die Seite neu, falls etwas nicht mehr funktioniert.",
+  "errors.PASSKEY_CANCELLED": "Der Vorgang wurde abgebrochen.",
+  "errors.PASSKEY_EXISTS": "Für dieses Gerät gibt es schon einen Passkey.",
+  "errors.PASSKEY_UNSUPPORTED": "Dieser Browser oder dieses Gerät unterstützt keine Passkeys."
 }

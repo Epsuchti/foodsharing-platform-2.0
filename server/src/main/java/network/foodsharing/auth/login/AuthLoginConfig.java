@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 import network.foodsharing.auth.service.PasskeyService;
 import network.foodsharing.config.AppProperties;
+import network.foodsharing.config.MutableClock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
@@ -41,18 +42,28 @@ public class AuthLoginConfig {
     @Bean
     public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory(AppProperties properties, Clock clock) {
         OidcIdTokenDecoderFactory factory = new OidcIdTokenDecoderFactory();
+        Clock tokenClock = tokenClock(clock);
         factory.setJwtValidatorFactory(registration -> {
             JwtTimestampValidator timestamps = new JwtTimestampValidator();
-            timestamps.setClock(clock);
+            timestamps.setClock(tokenClock);
             // Boot applies its built-in "google" template (issuer https://accounts.google.com) to the registration;
             // the issuer is checked by issuerValidator against app.auth.google.issuer instead (fake OIDC in local/e2e).
             OidcIdTokenValidator idToken = new OidcIdTokenValidator(
                     ClientRegistration.withClientRegistration(registration).issuerUri(null).build());
-            idToken.setClock(clock);
+            idToken.setClock(tokenClock);
             return new DelegatingOAuth2TokenValidator<>(timestamps, idToken,
                     issuerValidator(properties.getAuth().getGoogle().getIssuer()));
         });
         return factory;
+    }
+
+    /**
+     * The clock id-token timestamps (iat/exp) are checked against: the identity provider's real time, not the
+     * application clock that local/e2e may fix at another instant (decision 20 — the fake provider signs with real
+     * time too, like Google).
+     */
+    static Clock tokenClock(Clock clock) {
+        return clock instanceof MutableClock mutable ? mutable.realClock() : clock;
     }
 
     /** Accepts {@code expected} and, as Google documents, the same issuer without {@code https://}. */

@@ -1,0 +1,340 @@
+:host {
+  display: grid;
+  gap: 2rem;
+  width: min(100%, 64rem);
+  margin: 0 auto;
+}
+
+.login {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 60rem) {
+  .login {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: stretch;
+  }
+}
+
+// --- welcome panel -------------------------------------------------------------------------------
+.welcome {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.welcome__art {
+  position: relative;
+  display: grid;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0 auto 0.4rem;
+  place-items: center;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 46% 54% 58% 42% / 50% 44% 56% 50%;
+}
+
+.blob--a {
+  inset: 0;
+  background: color-mix(in srgb, var(--fs-primary) 22%, transparent);
+  transform: rotate(-12deg);
+}
+
+.blob--b {
+  inset: 0.55rem -0.4rem -0.3rem 0.6rem;
+  background: color-mix(in srgb, #f2b84b 30%, transparent);
+  transform: rotate(18deg);
+}
+
+.welcome__emblem {
+  position: relative;
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--fs-primary);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--fs-primary) 35%, transparent);
+  color: #fff;
+  font-size: 1.4rem;
+}
+
+.welcome__eyebrow {
+  margin: 0;
+  color: var(--fs-primary-strong);
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.welcome__title {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.welcome__lead {
+  max-width: 32rem;
+  margin: 0 auto;
+  color: var(--fs-text-muted);
+  font-size: 1.05rem;
+  text-wrap: pretty;
+}
+
+.welcome__points {
+  display: none;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    color: var(--fs-text-muted);
+    font-size: 0.95rem;
+  }
+
+  strong {
+    display: block;
+    color: var(--fs-text);
+    font-size: 1rem;
+  }
+}
+
+.point__icon {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+@media (min-width: 60rem) {
+  .welcome {
+    padding: 2.5rem 2.25rem;
+    overflow: hidden;
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-xl);
+    background:
+      radial-gradient(
+        28rem 18rem at 100% 0%,
+        color-mix(in srgb, #f2b84b 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        30rem 22rem at 0% 100%,
+        color-mix(in srgb, var(--fs-primary) 16%, transparent),
+        transparent 70%
+      ),
+      var(--fs-surface);
+    text-align: left;
+  }
+
+  .welcome__art {
+    margin: 0 0 0.75rem;
+  }
+
+  .welcome__lead {
+    margin: 0;
+  }
+
+  .welcome__points {
+    display: grid;
+  }
+}
+
+// --- login card ----------------------------------------------------------------------------------
+.card {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-xl);
+  background: var(--fs-surface);
+  box-shadow: var(--fs-shadow-md);
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 750;
+}
+
+.card__subtitle {
+  margin: -0.6rem 0 0.25rem;
+  color: var(--fs-text-muted);
+  font-size: 0.95rem;
+}
+
+.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid var(--p-primary-color, var(--fs-primary));
+  border-radius: var(--fs-radius-md);
+  background: var(--p-primary-color, var(--fs-primary));
+  color: var(--p-primary-contrast-color, #fff);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--p-primary-hover-color, var(--fs-primary-strong));
+    background: var(--p-primary-hover-color, var(--fs-primary-strong));
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--fs-primary) 30%, transparent);
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.85;
+  }
+}
+
+.google__spinner {
+  width: 1.75rem;
+  text-align: center;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  color: var(--fs-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &::before,
+  &::after {
+    height: 1px;
+    flex: 1 1 auto;
+    background: var(--fs-border);
+    content: '';
+  }
+}
+
+.email {
+  display: grid;
+  gap: 0.45rem;
+
+  input {
+    width: 100%;
+    min-height: 3rem;
+    font-size: 1rem;
+  }
+}
+
+.email__label {
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.email__hint,
+.email__error {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.email__hint {
+  color: var(--fs-text-muted);
+}
+
+.email__error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--fs-danger);
+  font-weight: 600;
+}
+
+.email__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0.15rem 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--fs-danger-border);
+  border-radius: var(--fs-radius-sm);
+  background: var(--fs-danger-soft);
+  color: var(--fs-text);
+  font-size: 0.9rem;
+
+  .pi {
+    margin-top: 0.2rem;
+    color: var(--fs-danger);
+  }
+}
+
+.email p-button {
+  margin-top: 0.35rem;
+}
+
+.passkey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  justify-self: center;
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-radius: var(--fs-radius-sm);
+  background: transparent;
+  color: var(--fs-primary-strong);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--fs-primary-soft);
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+}
+
+.card__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0.25rem 0 0;
+  padding: 0.85rem 1rem;
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-surface-muted);
+  color: var(--fs-text-muted);
+  font-size: 0.88rem;
+
+  .pi {
+    margin-top: 0.2rem;
+    color: var(--fs-primary);
+  }
+}

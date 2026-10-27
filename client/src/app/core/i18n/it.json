@@ -64,5 +64,8 @@
   "errors.DEV_USER_NOT_FOUND": "Questo utente di test non esiste.",
   "errors.NETWORK": "Nessuna connessione al server. Controlla la tua connessione internet.",
   "errors.UNKNOWN": "Si è verificato un errore sconosciuto.",
-  "errors.CLIENT_ERROR": "Si è verificato un errore nell’app. Siamo stati avvisati: ricarica la pagina se qualcosa non funziona più."
+  "errors.CLIENT_ERROR": "Si è verificato un errore nell’app. Siamo stati avvisati: ricarica la pagina se qualcosa non funziona più.",
+  "errors.PASSKEY_CANCELLED": "L’operazione è stata annullata.",
+  "errors.PASSKEY_EXISTS": "Esiste già una passkey per questo dispositivo.",
+  "errors.PASSKEY_UNSUPPORTED": "Questo browser o dispositivo non supporta le passkey."
 }

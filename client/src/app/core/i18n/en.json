@@ -64,5 +64,8 @@
   "errors.DEV_USER_NOT_FOUND": "This test user does not exist.",
   "errors.NETWORK": "No connection to the server. Please check your internet connection.",
   "errors.UNKNOWN": "An unknown error occurred.",
-  "errors.CLIENT_ERROR": "Something went wrong in the app. We have been notified – reload the page if something stops working."
+  "errors.CLIENT_ERROR": "Something went wrong in the app. We have been notified – reload the page if something stops working.",
+  "errors.PASSKEY_CANCELLED": "The passkey prompt was cancelled.",
+  "errors.PASSKEY_EXISTS": "There is already a passkey for this device.",
+  "errors.PASSKEY_UNSUPPORTED": "This browser or device doesn’t support passkeys."
 }

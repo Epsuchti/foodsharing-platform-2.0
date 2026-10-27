@@ -28,5 +28,20 @@
   "dev.gallery.fieldAgree": "J’ai lu les règles",
   "dev.gallery.fieldNotify": "Recevoir des notifications push",
   "dev.gallery.toastSummary": "Enregistré",
-  "dev.gallery.toastDetail": "Tes modifications ont été appliquées."
+  "dev.gallery.toastDetail": "Tes modifications ont été appliquées.",
+  "dev.users.newbie": "Vient de s’inscrire, rien fait encore",
+  "dev.users.profile": "Remplit son profil",
+  "dev.users.quiz": "Passe le quiz foodsaver",
+  "dev.users.einab1": "1 collecte d’introduction sur 3 faite",
+  "dev.users.pending": "Attend la vérification d’identité",
+  "dev.users.foodsaver": "Foodsaveuse vérifiée",
+  "dev.users.jumper": "Remplace sur les collectes libres",
+  "dev.users.sleepy": "Foodsaver en mode veille",
+  "dev.users.bieb": "Responsable de commerce",
+  "dev.users.guide": "Accompagne les collectes d’introduction",
+  "dev.users.bot": "Ambassadeur pour Zurich",
+  "dev.users.welcome": "Ambassadrice dans l’équipe d’accueil",
+  "dev.users.reports": "Ambassadrice dans l’équipe des signalements",
+  "dev.users.orga": "Équipe orga, peut tout faire",
+  "dev.users.other": "Autre utilisateur"
 }
