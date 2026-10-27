@@ -170,9 +170,9 @@ class HistoryControllerTest {
     void actionsCanBeListedPerSubjectType() throws Exception {
         mvc.perform(get("/api/history/actions").param("subjectType", "SYSTEM"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].subjectType").value("SYSTEM"))
-                .andExpect(jsonPath("$[0].action").value("REGISTRATION_BLOCKED"))
-                .andExpect(jsonPath("$[0].labelKey").value("history.action.SYSTEM.REGISTRATION_BLOCKED"));
+                .andExpect(jsonPath("$[*].subjectType").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("SYSTEM"))))
+                .andExpect(jsonPath("$[?(@.action == 'REGISTRATION_BLOCKED')].labelKey")
+                        .value("history.action.SYSTEM.REGISTRATION_BLOCKED"));
         mvc.perform(get("/api/history/actions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.action == 'FIELD_CHANGED')].subjectType").value("USER"));

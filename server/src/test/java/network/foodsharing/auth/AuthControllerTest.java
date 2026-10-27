@@ -49,6 +49,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import network.foodsharing.auth.service.AuthMethodsService;
+import network.foodsharing.auth.service.MagicLinkService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -70,6 +72,12 @@ class AuthControllerTest {
 
     @MockitoBean
     private HistoryQueryService historyQueryService;
+
+    @MockitoBean
+    private AuthMethodsService authMethodsService;
+
+    @MockitoBean
+    private MagicLinkService magicLinkService;
 
     @Test
     void anonymousSessionIsNotAuthenticated() throws Exception {
@@ -239,17 +247,6 @@ class AuthControllerTest {
                 eq(1), eq(5));
         assertThat(actions.getValue()).contains("LOGIN", "LOGOUT", "LOGIN_FAILED", "SESSION_REVOKED",
                 "SESSIONS_REVOKED_ALL", "PASSKEY_REGISTERED").doesNotContain("REGISTRATION_BLOCKED", "FIELD_CHANGED");
-    }
-
-    @Test
-    @WithSeedUser("foodsaver")
-    void loginMethodOperationsAreNotImplementedYet() throws Exception {
-        mvc.perform(get("/api/auth/methods"))
-                .andExpect(status().isNotImplemented())
-                .andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
-        mvc.perform(post("/api/auth/magic-link").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"a@b.ch\"}"))
-                .andExpect(status().isNotImplemented());
     }
 
     private static AuthSession session(UUID id, String userAgent) {

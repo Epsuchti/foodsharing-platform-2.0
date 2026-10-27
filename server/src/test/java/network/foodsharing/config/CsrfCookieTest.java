@@ -25,6 +25,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import network.foodsharing.auth.service.AuthMethodsService;
+import network.foodsharing.auth.service.MagicLinkService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -50,6 +52,12 @@ class CsrfCookieTest {
 
     @MockitoBean
     private HistoryQueryService historyQueryService;
+
+    @MockitoBean
+    private AuthMethodsService authMethodsService;
+
+    @MockitoBean
+    private MagicLinkService magicLinkService;
 
     @Test
     void theSessionBootstrapHandsOutAReadableCsrfCookieThatMutationsMustEcho() throws Exception {
