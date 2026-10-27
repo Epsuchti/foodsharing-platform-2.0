@@ -72,6 +72,7 @@ export function parseLedger(markdown) {
       title: (row.feature ?? row.deliverable ?? '').replace(/\*\*/g, ''),
       status: (row.status ?? '').toLowerCase(),
       kind: /deliverable/i.test(heading) ? 'deliverable' : 'feature',
+      notes: row.notes ?? '',
     });
   }
   return rows;
@@ -158,7 +159,10 @@ export function evaluate(rows, tests, { strict, mode }) {
     else if (entry.fail > 0) result = entry.pass > 0 ? 'partly failing' : 'failing';
     else if (entry.pass > 0) result = 'passing';
     else result = 'not run';
-    if (row.status === 'done') {
+    // Build-time deliverables (ArchUnit, lint, config) are proven by the Maven build, not by Playwright:
+    // the ledger notes say "proved by <test>" and the e2e column stays empty.
+    const buildProven = row.kind === 'deliverable' && /^proved by /i.test((row.notes ?? '').trim());
+    if (row.status === 'done' && !buildProven) {
       const ok = mode === 'list' ? total > 0 : entry.pass > 0;
       if (!ok) problems.push(`${row.id} is done in the ledger but has no ${mode === 'list' ? '' : 'passing '}tagged test`);
     }

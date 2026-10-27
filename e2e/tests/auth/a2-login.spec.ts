@@ -58,7 +58,7 @@ test('A2 used or expired token shows error state with new-link action @A2', asyn
   await expect(other.getByTestId('auth.verify.tokenError')).toBeVisible();
 });
 
-test('A2 passkey registration and login @A2 @chromium-only', async ({ page, apiOf }) => {
+test('A2 passkey registration and login @A2 @D8.3 @chromium-only', async ({ page, apiOf }) => {
   await skipPasskeyNudge(page);
   const authenticator = await addVirtualAuthenticator(page);
   await page.goto('/login');

@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
   await skipPasskeyNudge(page);
 });
 
-test('A22 active sessions list marks current @A22 @page', async ({ page, as, apiOf }) => {
+test('A22 active sessions list marks current @A22 @D8.4 @page', async ({ page, as, apiOf }) => {
   const phone = await as('foodsaver');
   const phoneSession = await sessionIdOf(apiOf(phone));
   const ownSession = await sessionIdOf(apiOf(page));

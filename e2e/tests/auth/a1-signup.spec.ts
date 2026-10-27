@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
   await skipPasskeyNudge(page);
 });
 
-test('A1 sign-up with Google creates an account @A1 @page', async ({ page, apiOf }) => {
+test('A1 sign-up with Google creates an account @A1 @D8.1 @page', async ({ page, apiOf }) => {
   const email = newEmail('google');
   await page.goto('/login');
   await page.getByTestId('auth.login.google').click();
@@ -68,7 +68,7 @@ test('A1 unverified Google email is rejected @A1', async ({ page, apiOf }) => {
   await expect(page.getByTestId('auth.login.email')).toBeVisible();
 });
 
-test('A1 magic link sign-up for a new email @A1', async ({ page, mails, apiOf }) => {
+test('A1 magic link sign-up for a new email @A1 @D8.2', async ({ page, mails, apiOf }) => {
   await useFreshClientIp(page);
   const email = newEmail('link');
   await page.goto('/login?method=email');

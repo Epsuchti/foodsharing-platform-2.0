@@ -55,7 +55,7 @@ test('D4.3 deep link serves the app @D4.3', async ({ page, api }) => {
   expect(unknownApi.status()).toBe(404);
 });
 
-test('D4.2 local profile boots with seed users @D4.2', async ({ api, dev }) => {
+test('D4.2 local profile boots with seed users @D4.2 @D7.1 @D7.2', async ({ api, dev }) => {
   // Read the db component regardless of the aggregate status (D4.1 asserts that one).
   const health = (await (await api.get('/actuator/health')).json()) as {
     components?: { db?: { status?: string; details?: { database?: string } } };
