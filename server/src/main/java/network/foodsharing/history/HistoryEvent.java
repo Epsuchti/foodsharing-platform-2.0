@@ -133,12 +133,22 @@ public final class HistoryEvent {
             return this;
         }
 
-        /** Shortcut for field + old + new. */
+        /**
+         * Shortcut for field + old + new. Enums are stored by constant name (as the {@code @Tracked} listener and
+         * the database columns do), not by {@code toString()} (generated API enums return their JSON value).
+         */
         public Builder change(String field, Object oldValue, Object newValue) {
             this.field = field;
-            this.oldValue = oldValue == null ? null : String.valueOf(oldValue);
-            this.newValue = newValue == null ? null : String.valueOf(newValue);
+            this.oldValue = asText(oldValue);
+            this.newValue = asText(newValue);
             return this;
+        }
+
+        private static String asText(Object value) {
+            if (value == null) {
+                return null;
+            }
+            return value instanceof Enum<?> enumValue ? enumValue.name() : String.valueOf(value);
         }
 
         /** Overrides the request's {@link HistoryContext#reason()}. */

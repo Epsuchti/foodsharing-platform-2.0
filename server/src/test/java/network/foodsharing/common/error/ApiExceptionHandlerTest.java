@@ -130,6 +130,111 @@ class ApiExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
     }
 
+    @Test
+    void constraintViolationsBecomeValidationFailedWithTheLastPathNodeAsField() throws Exception {
+        mvc.perform(get("/test/constraint-violation"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.retryable").value(false))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("name"))
+                .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").isNotEmpty());
+    }
+
+    @Test
+    void parameterValidationBecomesValidationFailedWithTheParameterName() throws Exception {
+        mvc.perform(get("/test/param-validated").param("size", "500"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("size"))
+                .andExpect(jsonPath("$.fieldErrors[0].code").value("Max"));
+    }
+
+    @Test
+    void typeMismatchAndMissingParametersAreValidationFailed() throws Exception {
+        mvc.perform(get("/test/param-validated").param("size", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("size"))
+                .andExpect(jsonPath("$.fieldErrors[0].code").value("TypeMismatch"));
+        mvc.perform(get("/test/param-validated"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("size"))
+                .andExpect(jsonPath("$.fieldErrors[0].code").value("NotNull"));
+    }
+
+    @Test
+    void apiExceptionCarriesFieldErrorsAndArgs() throws Exception {
+        mvc.perform(get("/test/api-field-errors"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
+                .andExpect(jsonPath("$.fieldErrors[0].code").value("Blocked"))
+                .andExpect(jsonPath("$.args.domain").value("example.org"))
+                .andExpect(jsonPath("$.retryAfterSeconds").doesNotExist())
+                .andExpect(header().doesNotExist("Retry-After"));
+    }
+
+    @Test
+    void retryAfterIsRoundedUpToAtLeastOneSecond() throws Exception {
+        mvc.perform(get("/test/rate-limited-short"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string("Retry-After", "1"))
+                .andExpect(jsonPath("$.retryAfterSeconds").value(1));
+    }
+
+    @Test
+    void serviceUnavailableIsRetryable() throws Exception {
+        mvc.perform(get("/test/unavailable"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(header().string("Retry-After", "30"))
+                .andExpect(jsonPath("$.retryable").value(true))
+                .andExpect(jsonPath("$.retryAfterSeconds").value(30));
+    }
+
+    @Test
+    void clientErrorsAreNotRetryable() throws Exception {
+        for (String path : new String[] {"/test/api-exception", "/test/denied", "/test/unauthenticated",
+                "/test/optimistic-lock", "/test/no-resource", "/test/entity-not-found"}) {
+            mvc.perform(get(path)).andExpect(jsonPath("$.retryable").value(false));
+        }
+    }
+
+    @Test
+    void responseStatusExceptionsAreMapped() throws Exception {
+        mvc.perform(get("/test/response-status").param("status", "404"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+        mvc.perform(get("/test/response-status").param("status", "409"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        mvc.perform(get("/test/response-status").param("status", "502"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("UNEXPECTED_ERROR"))
+                .andExpect(jsonPath("$.retryable").value(true));
+    }
+
+    @Test
+    void unsupportedMediaTypeIsMalformedRequest() throws Exception {
+        mvc.perform(post("/test/validated").contentType(MediaType.TEXT_PLAIN).content("x"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    }
+
+    @Test
+    void everyErrorBodyCarriesTheTraceIdOfTheResponseHeader() throws Exception {
+        for (String path : new String[] {"/test/api-exception", "/test/rate-limited", "/test/denied",
+                "/test/unauthenticated", "/test/optimistic-lock", "/test/no-resource", "/test/entity-not-found",
+                "/test/boom", "/test/not-implemented", "/test/constraint-violation", "/test/param-validated"}) {
+            MvcResult result = mvc.perform(get(path)).andReturn();
+            String traceId = result.getResponse().getHeader(TraceIdFilter.HEADER);
+            org.assertj.core.api.Assertions.assertThat(traceId).as(path).matches("[0-9a-f]{12}");
+            org.assertj.core.api.Assertions.assertThat(result.getResponse().getContentAsString()).as(path)
+                    .contains("\"traceId\":\"" + traceId + "\"");
+        }
+    }
+
     record Payload(@NotBlank @Size(max = 10) String name) {
     }
 
@@ -184,6 +289,42 @@ class ApiExceptionHandlerTest {
         @GetMapping("/test/not-implemented")
         void notImplemented() {
             throw ApiException.notImplemented("op");
+        }
+
+        @GetMapping("/test/constraint-violation")
+        void constraintViolation() {
+            try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
+                var violations = factory.getValidator().validate(new Payload(""));
+                throw new jakarta.validation.ConstraintViolationException(violations);
+            }
+        }
+
+        @GetMapping("/test/param-validated")
+        void paramValidated(@org.springframework.web.bind.annotation.RequestParam("size")
+                            @jakarta.validation.constraints.Max(100) Integer size) {
+        }
+
+        @GetMapping("/test/api-field-errors")
+        void apiFieldErrors() {
+            throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED,
+                    java.util.List.of(new ApiFieldError("email", "Blocked", "blocked domain")),
+                    java.util.Map.of("domain", "example.org"));
+        }
+
+        @GetMapping("/test/rate-limited-short")
+        void rateLimitedShort() {
+            throw ApiException.tooManyRequests(ApiErrorCode.TOO_MANY_REQUESTS, Duration.ofMillis(200));
+        }
+
+        @GetMapping("/test/unavailable")
+        void unavailable() {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, ApiErrorCode.UNEXPECTED_ERROR)
+                    .withRetryAfter(Duration.ofSeconds(30));
+        }
+
+        @GetMapping("/test/response-status")
+        void responseStatus(@org.springframework.web.bind.annotation.RequestParam("status") int status) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.valueOf(status));
         }
     }
 

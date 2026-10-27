@@ -39,6 +39,29 @@ class SpaForwardingControllerTest {
     }
 
     @Test
+    void frameworkEndpointsAndNestedFilesAreNotForwarded() throws Exception {
+        mvc.perform(get("/dev/oidc")).andExpect(status().isNotFound()).andExpect(forwardedUrl(null));
+        mvc.perform(get("/dev/oidc/.well-known/openid-configuration")).andExpect(forwardedUrl(null));
+        mvc.perform(get("/login/webauthn")).andExpect(status().isNotFound()).andExpect(forwardedUrl(null));
+        mvc.perform(get("/oauth2/authorization/google")).andExpect(status().isNotFound()).andExpect(forwardedUrl(null));
+        mvc.perform(get("/webauthn/register/options")).andExpect(forwardedUrl(null));
+        mvc.perform(get("/h2-console/login.do")).andExpect(forwardedUrl(null));
+        mvc.perform(get("/assets/icons/logo.svg")).andExpect(status().isNotFound()).andExpect(forwardedUrl(null));
+        mvc.perform(get("/some/deep/file.png"))
+                .andExpect(status().isNotFound())
+                .andExpect(forwardedUrl(null))
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+    }
+
+    @Test
+    void deepLinksWithSimilarPrefixesAreStillForwarded() throws Exception {
+        mvc.perform(get("/dev/oidc-info")).andExpect(forwardedUrl("/index.html"));
+        mvc.perform(get("/history/me")).andExpect(forwardedUrl("/index.html"));
+        mvc.perform(get("/account/sessions")).andExpect(forwardedUrl("/index.html"));
+        mvc.perform(get("/apiary")).andExpect(forwardedUrl("/index.html"));
+    }
+
+    @Test
     void unknownApiPathsNeedAuthentication() throws Exception {
         mvc.perform(get("/api/x"))
                 .andExpect(status().isUnauthorized())
@@ -51,6 +74,11 @@ class SpaForwardingControllerTest {
         mvc.perform(get("/api/x"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
-                .andExpect(jsonPath("$.traceId").isNotEmpty());
+                .andExpect(jsonPath("$.traceId").isNotEmpty())
+                .andExpect(jsonPath("$.retryable").value(false));
+        mvc.perform(get("/api/x/y/z.json"))
+                .andExpect(status().isNotFound())
+                .andExpect(forwardedUrl(null))
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
     }
 }
