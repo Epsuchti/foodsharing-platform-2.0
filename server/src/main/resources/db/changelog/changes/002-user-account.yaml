@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-1
+      author: platform
+      comment: Users (plan §15.1, milestone 1 fields).
+      changes:
+        - createTable:
+            tableName: user_account
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_user_account, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: email, type: VARCHAR(320), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_user_account_email}}
+              - column: {name: email_verified_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: display_name, type: VARCHAR(100), constraints: {nullable: false}}
+              - column: {name: first_name, type: VARCHAR(100)}
+              - column: {name: last_name, type: VARCHAR(100)}
+              - column: {name: preferred_language, type: VARCHAR(5), defaultValue: DE, constraints: {nullable: false}}
+              - column: {name: theme, type: VARCHAR(10), defaultValue: SYSTEM, constraints: {nullable: false}}
+              - column: {name: role, type: VARCHAR(20), defaultValue: FOODSHARER, constraints: {nullable: false}}
+              - column: {name: quiz_role, type: VARCHAR(20)}
+              - column: {name: verified, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: verified_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: active, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: last_login_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: registered_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: avatar_url, type: VARCHAR(500)}
+              - column: {name: foodsaver_number, type: BIGINT, constraints: {unique: true, uniqueConstraintName: uq_user_account_foodsaver_number}}
+  - changeSet:
+      id: 002-2
+      author: platform
+      comment: Displayed foodsaver ID. Starts at 200000; seed users use 100001-100099.
+      changes:
+        - createSequence:
+            sequenceName: foodsaver_number_seq
+            startValue: 200000
+            incrementBy: 1

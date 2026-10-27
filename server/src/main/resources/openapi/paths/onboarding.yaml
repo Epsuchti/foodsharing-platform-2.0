@@ -1,0 +1,3 @@
+# Onboarding paths (tag `onboarding`). Intentionally empty in milestone 1; milestone 2 adds the journey endpoints
+# and references them from openapi.yaml in the `# --- onboarding ---` block.
+{}

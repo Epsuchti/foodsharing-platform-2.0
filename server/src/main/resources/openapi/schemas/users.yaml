@@ -1,0 +1,46 @@
+UserProfile:
+  type: object
+  required: [id, email, displayName, language, theme, role, verified, registeredAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    email:
+      type: string
+    emailVerifiedAt:
+      type: string
+      format: date-time
+    displayName:
+      type: string
+    firstName:
+      type: string
+    lastName:
+      type: string
+    language:
+      $ref: './common.yaml#/Language'
+    theme:
+      $ref: './common.yaml#/Theme'
+    role:
+      $ref: './common.yaml#/Role'
+    verified:
+      type: boolean
+    avatarUrl:
+      type: string
+    registeredAt:
+      type: string
+      format: date-time
+    lastLoginAt:
+      type: string
+      format: date-time
+
+UserSettingsUpdate:
+  type: object
+  properties:
+    language:
+      $ref: './common.yaml#/Language'
+    theme:
+      $ref: './common.yaml#/Theme'
+    reason:
+      type: string
+      maxLength: 500
+      description: Optional reason stored in the action history.

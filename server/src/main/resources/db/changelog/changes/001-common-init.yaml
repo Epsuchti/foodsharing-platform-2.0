@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-1
+      author: platform
+      comment: Marker for the start of milestone 1 (proves includeAll works on H2, Postgres and in the jar).
+      changes:
+        - tagDatabase:
+            tag: m1-start

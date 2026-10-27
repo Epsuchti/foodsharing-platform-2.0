@@ -1,1 +1,15 @@
 /.idea/
+server/target/
+server/data/
+server/local-secrets.properties
+client/node/
+client/node_modules/
+client/dist/
+client/src/app/api/
+client/public/i18n/
+e2e/node_modules/
+e2e/.auth/
+e2e/test-results/
+e2e/playwright-report/
+node_modules/
+.DS_Store

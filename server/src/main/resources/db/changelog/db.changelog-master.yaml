@@ -1,0 +1,13 @@
+# Never edit this file after T0. Add changelogs as changes/NNN-<module>-<short-name>.yaml (number ranges per
+# milestone: M1 001-019, M2 020-059, M3 060-099, M4 100-129, M5 130-159, M6 160-199) and seed data as
+# ../seed/changes/NNN-<module>-<short-name>.yaml (context seed). includeAll orders files alphabetically.
+databaseChangeLog:
+  - includeAll:
+      path: changes/
+      relativeToChangelogFile: true
+      errorIfMissingOrEmpty: true
+  - includeAll:
+      path: ../seed/changes/
+      relativeToChangelogFile: true
+      errorIfMissingOrEmpty: false
+      contextFilter: seed

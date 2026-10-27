@@ -1,0 +1,39 @@
+/api/users/me:
+  get:
+    tags: [users]
+    operationId: getCurrentUser
+    summary: Profile of the current user.
+    x-permission: self
+    responses:
+      '200':
+        description: Profile
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserProfile'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/settings:
+  patch:
+    tags: [users]
+    operationId: updateMySettings
+    summary: Change language and/or theme of the current user.
+    x-permission: self
+    x-history: UserAction.SETTINGS_CHANGED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/users.yaml#/UserSettingsUpdate'
+    responses:
+      '200':
+        description: Updated profile
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserProfile'
+      '400': {description: 'VALIDATION_FAILED or MALFORMED_REQUEST', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

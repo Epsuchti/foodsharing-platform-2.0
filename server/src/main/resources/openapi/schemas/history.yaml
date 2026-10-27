@@ -1,0 +1,87 @@
+HistorySubjectType:
+  type: string
+  description: Mirrors the Java enum network.foodsharing.history.SubjectType (extended per milestone).
+  enum: [USER, REGION, GROUP, STORE, PICKUP, INTRO_PICKUP, CONVERSATION, THREAD, EVENT, POLL, SURVEY, BASKET, FSP, REPORT, SYSTEM]
+
+HistoryActorType:
+  type: string
+  enum: [USER, SYSTEM, AUTOMATION]
+
+HistoryActor:
+  type: object
+  required: [displayName, type]
+  properties:
+    id:
+      type: string
+      format: uuid
+    displayName:
+      type: string
+    avatarUrl:
+      type: string
+    type:
+      $ref: './history.yaml#/HistoryActorType'
+
+HistoryEntry:
+  type: object
+  required: [id, occurredAt, actorType, subjectType, subjectId, action]
+  properties:
+    id:
+      type: string
+      format: uuid
+    occurredAt:
+      type: string
+      format: date-time
+    actor:
+      $ref: './history.yaml#/HistoryActor'
+    actorType:
+      $ref: './history.yaml#/HistoryActorType'
+    subjectType:
+      $ref: './history.yaml#/HistorySubjectType'
+    subjectId:
+      type: string
+      format: uuid
+    secondarySubjectId:
+      type: string
+      format: uuid
+    action:
+      type: string
+      description: Action code, unique within the subject type (e.g. LOGIN, FIELD_CHANGED).
+    field:
+      type: string
+    oldValue:
+      type: string
+    newValue:
+      type: string
+    reason:
+      type: string
+    metadata:
+      type: object
+      additionalProperties: true
+    regionId:
+      type: string
+      format: uuid
+    traceId:
+      type: string
+
+HistoryEntryPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './history.yaml#/HistoryEntry'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+HistoryActionInfo:
+  type: object
+  required: [subjectType, action, labelKey]
+  properties:
+    subjectType:
+      $ref: './history.yaml#/HistorySubjectType'
+    action:
+      type: string
+    labelKey:
+      type: string
+      description: i18n key, `history.action.<SUBJECT>.<ACTION>`.

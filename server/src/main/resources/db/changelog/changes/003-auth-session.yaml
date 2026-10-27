@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-1
+      author: platform
+      comment: Server-side sessions behind the fs_session cookie (plan §8.2). Only the SHA-256 of the token is stored.
+      changes:
+        - createTable:
+            tableName: auth_session
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_auth_session, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_auth_session_user_id
+                    references: user_account(id)
+                    deleteCascade: true
+              - column: {name: token_hash, type: CHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_auth_session_token_hash}}
+              - column: {name: last_seen_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: user_agent, type: VARCHAR(500)}
+              - column: {name: ip_hash, type: CHAR(64)}
+              - column: {name: revoked_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: revoked_reason, type: VARCHAR(40)}
+        - createIndex:
+            tableName: auth_session
+            indexName: ix_auth_session_user_id
+            columns:
+              - column: {name: user_id}

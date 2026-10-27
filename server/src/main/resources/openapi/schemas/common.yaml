@@ -1,0 +1,113 @@
+# Shared schemas. ApiErrorCode is the ONLY definition of error codes (Java enum and TS enum are generated
+# from it). Each module adds its codes inside its own comment block.
+ApiErrorCode:
+  type: string
+  enum:
+    # --- common ---
+    - AUTHENTICATION_REQUIRED
+    - ACCESS_DENIED
+    - VALIDATION_FAILED
+    - MALFORMED_REQUEST
+    - RESOURCE_NOT_FOUND
+    - CONCURRENT_MODIFICATION
+    - UNEXPECTED_ERROR
+    - TOO_MANY_REQUESTS
+    - NOT_IMPLEMENTED
+    # --- auth ---
+    - INVALID_LOGIN_TOKEN
+    - LOGIN_TOKEN_EXPIRED_OR_USED
+    - EMAIL_DOMAIN_BLOCKED
+    - IP_BLOCKED
+    - TOO_MANY_LOGIN_REQUESTS
+    - GOOGLE_LOGIN_FAILED
+    - GOOGLE_EMAIL_NOT_VERIFIED
+    - LAST_LOGIN_METHOD_CANNOT_BE_REMOVED
+    - INVALID_RETURN_URL
+    - SESSION_NOT_FOUND
+    - PASSKEY_NOT_FOUND
+    - ACCOUNT_DISABLED
+    # --- users ---
+    - USER_NOT_FOUND
+    # --- history ---
+    - HISTORY_SUBJECT_NOT_READABLE
+    # --- dev ---
+    - DEV_USER_NOT_FOUND
+    # --- onboarding ---
+
+ApiError:
+  type: object
+  description: Every 4xx/5xx response body.
+  required: [code, message, traceId, retryable]
+  properties:
+    code:
+      $ref: './common.yaml#/ApiErrorCode'
+    message:
+      type: string
+      description: English text for logs and developers; the UI translates `code` instead.
+    traceId:
+      type: string
+      description: Also in the X-Trace-Id response header and the server logs.
+    fieldErrors:
+      type: array
+      items:
+        $ref: './common.yaml#/FieldError'
+    retryable:
+      type: boolean
+    retryAfterSeconds:
+      type: integer
+      format: int32
+    args:
+      type: object
+      description: Interpolation parameters for the translated `errors.<CODE>` text.
+      additionalProperties:
+        type: string
+
+FieldError:
+  type: object
+  required: [field, code]
+  properties:
+    field:
+      type: string
+    code:
+      type: string
+      description: Validation constraint name, e.g. NotBlank, Size, Email.
+    message:
+      type: string
+
+PageMeta:
+  type: object
+  required: [page, size, totalItems, totalPages]
+  properties:
+    page:
+      type: integer
+      format: int32
+      description: Zero-based page index.
+    size:
+      type: integer
+      format: int32
+    totalItems:
+      type: integer
+      format: int64
+    totalPages:
+      type: integer
+      format: int32
+
+Language:
+  type: string
+  enum: [de, en, gws, fr, it]
+
+Theme:
+  type: string
+  enum: [LIGHT, DARK, SYSTEM]
+
+Role:
+  type: string
+  description: Global journey role. FOODSHARER < FOODSAVER < STORE_MANAGER < AMBASSADOR < ORGA.
+  enum: [FOODSHARER, FOODSAVER, STORE_MANAGER, AMBASSADOR, ORGA]
+
+MessageResponse:
+  type: object
+  required: [message]
+  properties:
+    message:
+      type: string

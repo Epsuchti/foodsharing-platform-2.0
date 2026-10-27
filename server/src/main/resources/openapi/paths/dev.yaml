@@ -1,0 +1,150 @@
+# Only served in the local and e2e profiles (DevController is @Profile({"local","e2e"})).
+/api/dev/users:
+  get:
+    tags: [dev]
+    operationId: listDevUsers
+    summary: Seed users for the dev user switcher, ordered by journey stage.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    responses:
+      '200':
+        description: Seed users
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/dev.yaml#/DevUser'
+      '404': {description: 'Not available outside local/e2e', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/dev/login-as:
+  post:
+    tags: [dev]
+    operationId: loginAsDevUser
+    summary: Log in as a seed user (sets the session cookie).
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: AuthAction.LOGIN
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/dev.yaml#/DevLoginRequest'
+    responses:
+      '200':
+        description: Logged in
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/auth.yaml#/SessionInfo'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'DEV_USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/dev/seed/reset:
+  post:
+    tags: [dev]
+    operationId: resetSeed
+    summary: Drop the H2 database and re-run Liquibase incl. seed data.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: NONE
+    responses:
+      '204':
+        description: Reset done
+      '409': {description: 'Not an H2 database', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/dev/mails:
+  get:
+    tags: [dev]
+    operationId: listCapturedMails
+    summary: Mails captured by the capturing mail transport, newest first.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    parameters:
+      - name: to
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Captured mails
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/dev.yaml#/CapturedMail'
+      '404': {description: 'Not available outside local/e2e', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [dev]
+    operationId: clearCapturedMails
+    summary: Forget all captured mails.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: NONE
+    responses:
+      '204':
+        description: Cleared
+      '404': {description: 'Not available outside local/e2e', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/dev/users/{userId}/role:
+  put:
+    tags: [dev]
+    operationId: setDevUserRole
+    summary: Change a user's global role (for session refresh tests).
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: UserAction.ROLE_CHANGED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/dev.yaml#/DevRoleRequest'
+    responses:
+      '200':
+        description: Updated user
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/dev.yaml#/DevUser'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'DEV_USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/dev/clock:
+  put:
+    tags: [dev]
+    operationId: setDevClock
+    summary: Fix the server clock (or release it).
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: NONE
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/dev.yaml#/DevClockRequest'
+    responses:
+      '200':
+        description: Clock state
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/dev.yaml#/DevClockState'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

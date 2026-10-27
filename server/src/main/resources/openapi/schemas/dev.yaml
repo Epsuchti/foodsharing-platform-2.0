@@ -1,0 +1,71 @@
+DevUser:
+  type: object
+  required: [id, email, displayName, role, descriptionKey]
+  properties:
+    id:
+      type: string
+      format: uuid
+    email:
+      type: string
+    displayName:
+      type: string
+    role:
+      $ref: './common.yaml#/Role'
+    descriptionKey:
+      type: string
+
+DevLoginRequest:
+  type: object
+  required: [userId]
+  properties:
+    userId:
+      type: string
+      format: uuid
+
+DevRoleRequest:
+  type: object
+  required: [role]
+  properties:
+    role:
+      $ref: './common.yaml#/Role'
+
+DevClockRequest:
+  type: object
+  properties:
+    fixedAt:
+      type: string
+      format: date-time
+      description: Fix the server clock at this instant; omit to return to the system clock.
+
+DevClockState:
+  type: object
+  required: [now, fixed]
+  properties:
+    now:
+      type: string
+      format: date-time
+    fixed:
+      type: boolean
+
+CapturedMail:
+  type: object
+  required: [id, to, subject, text, links, sentAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    to:
+      type: string
+    subject:
+      type: string
+    text:
+      type: string
+    html:
+      type: string
+    links:
+      type: array
+      items:
+        type: string
+    sentAt:
+      type: string
+      format: date-time

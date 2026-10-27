@@ -1,0 +1,35 @@
+/api/public/app-info:
+  get:
+    tags: [public]
+    operationId: getAppInfo
+    summary: Version, dev mode, languages and enabled login methods.
+    security: []
+    x-permission: PUBLIC
+    responses:
+      '200':
+        description: App info
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/public.yaml#/AppInfo'
+      '429': {description: 'Too many requests', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/public/client-errors:
+  post:
+    tags: [public]
+    operationId: reportClientError
+    summary: Report an unexpected client error (logged with the trace id, rate limited per IP).
+    security: []
+    x-permission: PUBLIC
+    x-history: NONE
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/public.yaml#/ClientErrorReport'
+    responses:
+      '202':
+        description: Accepted
+      '400': {description: 'Invalid report', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '429': {description: 'Too many reports from this IP', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

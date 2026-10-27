@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: Foodsharing Platform API
+  version: 1.0.0
+  description: |
+    Contract for Foodsharing Platform 2.0. Split per tag: `paths/<tag>.yaml` holds the path items of one tag,
+    `schemas/<tag>.yaml` its models, `schemas/common.yaml` the shared ones (ApiError, ApiErrorCode, paging, enums).
+    Every operation documents `x-permission`; every mutating operation documents `x-history`
+    (`<Module>Action.<VALUE>` or `NONE`). See docs/conventions.md (A5).
+servers:
+  - url: /
+tags:
+  - name: public
+    description: Unauthenticated endpoints (app info, client error reports).
+  - name: auth
+    description: Session, login methods, sessions and security log.
+  - name: users
+    description: The current user's profile and settings.
+  - name: history
+    description: Action history (audit trail).
+  - name: dev
+    description: Development helpers, only present in the local and e2e profiles.
+    x-dev-only: true
+  - name: onboarding
+    description: Onboarding journey (filled in milestone 2).
+x-framework-endpoints:
+  - /oauth2/authorization/google
+  - /login/oauth2/code/google
+  - /webauthn/register/options
+  - /webauthn/register
+  - /webauthn/authenticate/options
+  - /login/webauthn
+  - /dev/oidc/**
+  - /actuator/**
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: fs_session
+security:
+  - cookieAuth: []
+paths:
+  # --- public ---
+  /api/public/app-info:
+    $ref: './paths/public.yaml#/~1api~1public~1app-info'
+  /api/public/client-errors:
+    $ref: './paths/public.yaml#/~1api~1public~1client-errors'
+  # --- auth ---
+  /api/auth/session:
+    $ref: './paths/auth.yaml#/~1api~1auth~1session'
+  /api/auth/logout:
+    $ref: './paths/auth.yaml#/~1api~1auth~1logout'
+  /api/auth/magic-link:
+    $ref: './paths/auth.yaml#/~1api~1auth~1magic-link'
+  /api/auth/magic-link/verify:
+    $ref: './paths/auth.yaml#/~1api~1auth~1magic-link~1verify'
+  /api/auth/methods:
+    $ref: './paths/auth.yaml#/~1api~1auth~1methods'
+  /api/auth/methods/{identityId}:
+    $ref: './paths/auth.yaml#/~1api~1auth~1methods~1{identityId}'
+  /api/auth/passkeys/{passkeyId}:
+    $ref: './paths/auth.yaml#/~1api~1auth~1passkeys~1{passkeyId}'
+  /api/auth/sessions:
+    $ref: './paths/auth.yaml#/~1api~1auth~1sessions'
+  /api/auth/sessions/{sessionId}:
+    $ref: './paths/auth.yaml#/~1api~1auth~1sessions~1{sessionId}'
+  /api/auth/sessions/revoke-others:
+    $ref: './paths/auth.yaml#/~1api~1auth~1sessions~1revoke-others'
+  /api/auth/security-log:
+    $ref: './paths/auth.yaml#/~1api~1auth~1security-log'
+  # --- users ---
+  /api/users/me:
+    $ref: './paths/users.yaml#/~1api~1users~1me'
+  /api/users/me/settings:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1settings'
+  # --- history ---
+  /api/history:
+    $ref: './paths/history.yaml#/~1api~1history'
+  /api/history/me:
+    $ref: './paths/history.yaml#/~1api~1history~1me'
+  /api/history/actions:
+    $ref: './paths/history.yaml#/~1api~1history~1actions'
+  /api/history/export:
+    $ref: './paths/history.yaml#/~1api~1history~1export'
+  # --- dev ---
+  /api/dev/users:
+    $ref: './paths/dev.yaml#/~1api~1dev~1users'
+  /api/dev/login-as:
+    $ref: './paths/dev.yaml#/~1api~1dev~1login-as'
+  /api/dev/seed/reset:
+    $ref: './paths/dev.yaml#/~1api~1dev~1seed~1reset'
+  /api/dev/mails:
+    $ref: './paths/dev.yaml#/~1api~1dev~1mails'
+  /api/dev/users/{userId}/role:
+    $ref: './paths/dev.yaml#/~1api~1dev~1users~1{userId}~1role'
+  /api/dev/clock:
+    $ref: './paths/dev.yaml#/~1api~1dev~1clock'
+  # --- onboarding ---

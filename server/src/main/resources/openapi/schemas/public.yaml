@@ -1,0 +1,49 @@
+AppInfo:
+  type: object
+  required: [version, devMode, languages, loginMethods, serverTime]
+  properties:
+    version:
+      type: string
+    devMode:
+      type: boolean
+      description: True in the local and e2e profiles (dev user switcher, gallery).
+    languages:
+      type: array
+      items:
+        $ref: './common.yaml#/Language'
+    loginMethods:
+      $ref: './public.yaml#/LoginMethods'
+    serverTime:
+      type: string
+      format: date-time
+
+LoginMethods:
+  type: object
+  required: [google, magicLink, passkeys]
+  properties:
+    google:
+      type: boolean
+    magicLink:
+      type: boolean
+    passkeys:
+      type: boolean
+
+ClientErrorReport:
+  type: object
+  required: [message, route, userAgent]
+  properties:
+    message:
+      type: string
+      maxLength: 2000
+    stack:
+      type: string
+      maxLength: 16000
+    route:
+      type: string
+      maxLength: 500
+    traceId:
+      type: string
+      maxLength: 32
+    userAgent:
+      type: string
+      maxLength: 500
