@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+seit einiger Zeit ist auf deinem Weg zur Foodsaverin bzw. zum Foodsaver nichts passiert. Dein nächster Schritt wartet auf dich – es dauert nur ein paar Minuten.
+
+[(${link})]
+
+Dein foodsharing-Team

@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+sit e chli Ziit isch uf dim Wäg zur Foodsaverin oder zum Foodsaver nüt passiert. Din nächschte Schritt wartet uf dich – es gaht nur es paar Minute.
+
+[(${link})]
+
+Dis foodsharing-Team

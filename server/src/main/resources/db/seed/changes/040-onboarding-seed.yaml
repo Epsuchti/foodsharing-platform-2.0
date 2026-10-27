@@ -1,0 +1,52 @@
+# Seed (T22): learning progress and a confirmed region step.
+databaseChangeLog:
+  - changeSet:
+      id: seed-040-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Chapters read by users 03-14 (newbie and profile have read nothing).'
+      changes:
+        - loadUpdateData:
+            tableName: learning_progress
+            file: ../onboarding/learning_progress.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: read_at, type: STRING}
+  - changeSet:
+      id: seed-040-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'newcomer-meeting of Zürich Stadt confirmed for pending (by welcome).'
+      changes:
+        - loadUpdateData:
+            tableName: user_onboarding_step_done
+            file: ../onboarding/user_onboarding_step_done.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: step_id, type: UUID}
+              - column: {name: confirmed_by, type: UUID}
+              - column: {name: confirmed_at, type: STRING}

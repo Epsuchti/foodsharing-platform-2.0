@@ -54,7 +54,7 @@ public class VerificationMapper {
         journey.setFairteilerDone(candidate.progress().fairteilerDone());
         journey.setQuizPassedAt(toOffset(candidate.quizPassedAt()));
         journey.setAgreementAcceptedAt(toOffset(candidate.agreementAcceptedAt()));
-        journey.setLearningDone(user.getQuizRole() != null || candidate.quizPassedAt() != null);
+        journey.setLearningDone(candidate.learningDone());
         model.setJourney(journey);
         model.setIdentityConfirmedAt(toOffset(user.getIdentityConfirmedAt()));
         model.setGuideComments(candidate.comments().stream().map(this::toComment).toList());

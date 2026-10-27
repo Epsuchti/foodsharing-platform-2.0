@@ -43,6 +43,12 @@ public class RegionService {
                 .anyMatch(assignment -> assignment.getFunction() == function);
     }
 
+    /** Active regions (no working groups) with at least one ambassador (explainer counter). */
+    @Transactional(readOnly = true)
+    public long countRegionsWithAmbassadors() {
+        return admins.countRegionsWithAdmins();
+    }
+
     @Transactional(readOnly = true)
     public Optional<Region> find(UUID regionId) {
         return regionId == null ? Optional.empty() : regions.findById(regionId);

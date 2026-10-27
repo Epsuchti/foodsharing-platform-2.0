@@ -77,6 +77,18 @@ public class UserService {
         return userIds.isEmpty() ? List.of() : repository.findByIdIn(userIds);
     }
 
+    /** Number of active verified users (explainer counter). */
+    @Transactional(readOnly = true)
+    public long countVerifiedActive() {
+        return repository.countByVerifiedTrueAndActiveTrue();
+    }
+
+    /** Active users who are not verified yet (onboarding nudges). */
+    @Transactional(readOnly = true)
+    public List<User> findActiveUnverified() {
+        return repository.findByVerifiedFalseAndActiveTrue();
+    }
+
     /** Users by foodsaver number (CSV imports), including disabled ones. */
     @Transactional(readOnly = true)
     public List<User> findByFoodsaverNumbers(Collection<Long> numbers) {

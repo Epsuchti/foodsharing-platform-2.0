@@ -11,6 +11,7 @@ import network.foodsharing.content.domain.LegalDocumentKind;
 import network.foodsharing.content.service.LegalService;
 import network.foodsharing.intropickup.service.IntroPickupProgressService;
 import network.foodsharing.intropickup.service.NewcomerProgressService.Stage;
+import network.foodsharing.onboarding.service.JourneyService;
 import network.foodsharing.quiz.domain.QuizKind;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.service.MembershipService;
@@ -35,7 +36,7 @@ public class VerificationQueueService {
     public enum Filter { READY, ALL_UNVERIFIED }
 
     public record Candidate(User user, IntroPickupProgressService.Summary progress, Instant quizPassedAt,
-                            Instant agreementAcceptedAt, Instant lastIntroPickupAt,
+                            Instant agreementAcceptedAt, Instant lastIntroPickupAt, boolean learningDone,
                             List<IntroPickupProgressService.GuideComment> comments) {
     }
 
@@ -47,11 +48,13 @@ public class VerificationQueueService {
     private final QuizSessionService quizzes;
     private final CurrentActorService currentActor;
     private final PermissionService permissions;
+    private final JourneyService journeys;
 
     public VerificationQueueService(RegionService regions, MembershipService memberships, UserService users,
                                     IntroPickupProgressService progress, LegalService legal,
                                     QuizSessionService quizzes, CurrentActorService currentActor,
-                                    PermissionService permissions) {
+                                    PermissionService permissions, JourneyService journeys) {
+        this.journeys = journeys;
         this.regions = regions;
         this.memberships = memberships;
         this.users = users;
@@ -84,7 +87,8 @@ public class VerificationQueueService {
                 continue;
             }
             result.add(new Candidate(user, summary, quizzes.passedAt(user.getId(), QuizKind.FOODSAVER).orElse(null),
-                    agreement, progress.lastIntroPickupAt(user.getId()), progress.commentsOn(user.getId())));
+                    agreement, progress.lastIntroPickupAt(user.getId()), journeys.learningDone(user.getId()),
+                    progress.commentsOn(user.getId())));
         }
         result.sort(Comparator.comparing(Candidate::lastIntroPickupAt,
                 Comparator.nullsLast(Comparator.reverseOrder())));

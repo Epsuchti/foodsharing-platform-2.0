@@ -67,6 +67,10 @@ public class IntroPickupGuideService {
     public record BookingCancelledByGuide(UUID introPickupId, UUID userId, String reason) {
     }
 
+    /** A booking was marked done (onboarding: waiting step may be resolved). */
+    public record IntroPickupMarkedDone(UUID introPickupId, UUID userId) {
+    }
+
     private final IntroPickupRepository pickups;
     private final IntroPickupSlotRepository slots;
     private final IntroPickupCommentRepository comments;
@@ -372,6 +376,7 @@ public class IntroPickupGuideService {
         slot.setDoneAt(views.now());
         history.record(history.event(IntroPickupAction.MARKED_DONE, pickup.getId())
                 .secondarySubject(slot.getBookingUserId()).region(pickup.getRegionId()).build());
+        events.publishEvent(new IntroPickupMarkedDone(pickup.getId(), slot.getBookingUserId()));
         return views.booking(slot);
     }
 

@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+da un po' di tempo non è successo nulla nel tuo percorso per diventare foodsaver. Il tuo prossimo passo ti aspetta: bastano pochi minuti.
+
+[(${link})]
+
+Il tuo team foodsharing

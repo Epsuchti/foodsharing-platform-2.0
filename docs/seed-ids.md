@@ -131,3 +131,10 @@ years, kind AMBASSADOR, issued by bot; bot's by orga), `…-09` sleepy 2022-10-0
 `passport_request` `00000014-0002-…-01`: open request of foodsaver@local. `wallet_pass`: none (wallets are disabled in
 local / e2e and answer 503 WALLET_NOT_CONFIGURED).
 
+### Onboarding (T22, module 0015)
+
+`learning_progress` `00000015-0001-…-01`–`48`: users 03–14 have read all four learning chapters (newbie and profile
+none). `user_onboarding_step_done` `00000015-0002-…-01`: Zürich Stadt's `newcomer-meeting` confirmed for pending (by
+welcome). Resulting journeys: newbie / profile PROFILE_REGION, quiz QUIZ or AGREEMENT, pending ID_CHECK (waiting),
+verified users complete or PASSPORT.
+

@@ -175,6 +175,12 @@ public class QuizSessionService {
         });
     }
 
+    /** Attempt state of a user for a quiz kind (onboarding journey), if the quiz exists. */
+    @Transactional(readOnly = true)
+    public Optional<QuizRuleService.TryState> tryStateOf(UUID userId, QuizKind kind) {
+        return quizzes.findByKind(kind).map(quiz -> rules.tryState(kind, attempts(userId, quiz), clock.instant()));
+    }
+
     /** When the user last passed the quiz (verification queue), if ever. */
     @Transactional(readOnly = true)
     public Optional<Instant> passedAt(UUID userId, QuizKind kind) {

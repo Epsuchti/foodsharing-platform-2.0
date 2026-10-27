@@ -16,6 +16,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByFoodsaverNumberIn(Collection<Long> numbers);
 
+    long countByVerifiedTrueAndActiveTrue();
+
+    List<User> findByVerifiedFalseAndActiveTrue();
+
     List<User> findByHomeRegionIdInAndActiveTrue(Collection<UUID> regionIds);
 
     @Query(value = "select nextval('foodsaver_number_seq')", nativeQuery = true)

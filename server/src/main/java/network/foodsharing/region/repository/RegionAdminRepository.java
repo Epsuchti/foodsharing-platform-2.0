@@ -23,6 +23,10 @@ public interface RegionAdminRepository extends JpaRepository<RegionAdmin, UUID> 
     @Query("select a.regionId from RegionAdmin a where a.userId = :userId")
     Set<UUID> findRegionIds(@Param("userId") UUID userId);
 
+    @Query("select count(distinct a.regionId) from RegionAdmin a, Region r where r.id = a.regionId "
+            + "and r.type <> network.foodsharing.region.domain.UnitType.WORKING_GROUP and r.active = true")
+    long countRegionsWithAdmins();
+
     @Query("select a.userId from RegionAdmin a where a.regionId = :regionId")
     Set<UUID> findUserIds(@Param("regionId") UUID regionId);
 
