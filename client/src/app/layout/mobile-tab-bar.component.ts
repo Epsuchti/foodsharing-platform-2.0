@@ -51,7 +51,9 @@ import { NavContextService } from './nav-context.service';
       [visible]="menuOpen()"
       (visibleChange)="menuOpen.set($event)"
       position="right"
+      appendTo="body"
       [header]="'nav.menu' | t"
+      [ariaCloseLabel]="'common.close' | t"
       styleClass="fs-mobile-menu"
       data-testid="shell.mobileMenu"
     >
@@ -84,7 +86,10 @@ import { NavContextService } from './nav-context.service';
             </a>
           </li>
         }
-        <li class="menu-list__separator" role="separator"></li>
+      </ul>
+      <!-- Two lists with a rule in between: a separator <li> would break the list semantics (axe "list"). -->
+      <hr class="menu-list__separator mm__rule" />
+      <ul class="menu-list">
         @for (item of nav.user(); track item.id) {
           <li>
             <a
@@ -219,6 +224,9 @@ import { NavContextService } from './nav-context.service';
     }
     .mm__section {
       margin-top: 1.25rem;
+    }
+    .mm__rule {
+      border: 0;
     }
     .mm__heading {
       margin: 0 0 0.5rem;

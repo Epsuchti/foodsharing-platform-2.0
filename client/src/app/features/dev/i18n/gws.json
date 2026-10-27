@@ -28,5 +28,22 @@
   "dev.gallery.fieldAgree": "Ich ha d Regle gläse",
   "dev.gallery.fieldNotify": "Push-Nachrichte übercho",
   "dev.gallery.toastSummary": "Gspicheret",
-  "dev.gallery.toastDetail": "Dini Änderige sind übernoh worde."
+  "dev.gallery.toastDetail": "Dini Änderige sind übernoh worde.",
+  "dev.users.newbie": "Grad registriert, no nüt gmacht",
+  "dev.users.profile": "Füllt grad s Profil us",
+  "dev.users.quiz": "Macht s Foodsaver-Quiz",
+  "dev.users.einab1": "1 vo 3 Iifüerigsabholige gmacht",
+  "dev.users.pending": "Wartet uf d Uswiisprüefig",
+  "dev.users.foodsaver": "Verifizierti Foodsaverin",
+  "dev.users.jumper": "Springt bi freie Abholige ii",
+  "dev.users.sleepy": "Foodsaver im Schlafmodus",
+  "dev.users.bieb": "Betriebsverantwortlichi",
+  "dev.users.guide": "Begleitet Iifüerigsabholige",
+  "dev.users.bot": "Botschafter für Züri",
+  "dev.users.welcome": "Botschafterin im Willkommensteam",
+  "dev.users.reports": "Botschafterin im Meldigsteam",
+  "dev.users.orga": "Orga-Team, darf alles",
+  "dev.users.other": "Wiiteri Person",
+  "dev.gallery.reload": "Neu lade",
+  "dev.gallery.liveLanguages": "Sprooche vom Server"
 }

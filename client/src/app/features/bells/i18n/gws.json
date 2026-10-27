@@ -1,0 +1,22 @@
+{
+  "bell.GENERIC": "Neui Benachrichtigung",
+  "bell.REGION_NEW_MEMBER": "Neus Mitglied im Bezirk",
+  "bell.GROUP_APPLICATION_RECEIVED": "Neui Bewärbig für dini Arbeitsgruppe",
+  "bell.GROUP_APPLICATION_ACCEPTED": "Dini Bewärbig isch aagnoh worde",
+  "bell.GROUP_APPLICATION_DECLINED": "Dini Bewärbig isch abglehnt worde",
+  "bell.GROUP_MAIL": "Neui Nachricht a d Arbeitsgruppe",
+  "bell.INTRO_PICKUP_BOOKED": "Iifüehrigsabholig buecht",
+  "bell.INTRO_PICKUP_BOOKED_GUIDE": "Öpper het sich für dini Iifüehrigsabholig aagmäldet",
+  "bell.INTRO_PICKUP_CANCELLED_BY_GUIDE": "Dini Iifüehrigsabholig isch abgseit worde",
+  "bell.INTRO_PICKUP_CANCELLED_BY_USER": "E Aamäldig isch abgseit worde",
+  "bell.INTRO_PICKUP_DELETED_BY_ADMIN": "E Iifüehrigsabholig isch glöscht worde",
+  "bell.INTRO_PICKUP_NEW_BOOKABLE": "Neui Iifüehrigsabholige verfüegbar",
+  "bell.INTRO_PICKUP_SUBSCRIPTION_CONFIRMED": "Benachrichtigunge für neui Termin aktiviert",
+  "bell.INTRO_PICKUP_UPDATED": "Dini Iifüehrigsabholig isch gänderet worde",
+  "bell.USER_VERIFIED": "Du bisch jetzt verifiziert",
+  "bell.PASSPORT_CREATED": "Din Uswiis isch parat",
+  "bell.QUIZ_PASSED": "Quiz bestande",
+  "bell.ONBOARDING_STALLED": "Din nächschte Schritt wartet uf di",
+  "bell.ONBOARDING_STEP_UNBLOCKED": "En neue Schritt isch frei",
+  "bell.HYGIENE_EXPIRING": "Dis Hygiene-Quiz lauft bald ab"
+}

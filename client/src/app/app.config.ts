@@ -35,6 +35,7 @@ import { retryInterceptor } from './core/http/retry.interceptor';
 import { I18nTitleStrategy } from './core/i18n/i18n-title.strategy';
 import { I18nService } from './core/i18n/i18n.service';
 import { isUiLanguage } from './core/i18n/languages';
+import { OptimusLocaleService } from './core/i18n/optimus-locale';
 import { FoodsharingPreset } from './core/theme/foodsharing-preset';
 import { ThemeService, themeFromApi } from './core/theme/theme.service';
 
@@ -48,6 +49,7 @@ async function initializeApp(): Promise<void> {
   const i18n = inject(I18nService);
   const theme = inject(ThemeService);
   const auth = inject(AuthFacadeService);
+  const locale = inject(OptimusLocaleService);
 
   const [info] = await Promise.all([session.bootstrap(), appInfo.load()]);
   const user = info.authenticated ? info.user : undefined;
@@ -55,6 +57,7 @@ async function initializeApp(): Promise<void> {
     theme.setPreference(themeFromApi(user.theme), { persist: false });
   }
   await i18n.initialize(user && isUiLanguage(user.language) ? user.language : null);
+  locale.start();
   auth.startSessionRefresh();
 }
 

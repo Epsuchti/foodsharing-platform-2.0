@@ -24,7 +24,7 @@ import { NavContextService } from './nav-context.service';
         }
       </nav>
       @if (appInfo.version(); as version) {
-        <p class="ftr__version" data-testid="shell.version">
+        <p class="ftr__version" data-testid="shell.version" data-screenshot-mask>
           {{ 'layout.footer.version' | t: { version } }}
         </p>
       }

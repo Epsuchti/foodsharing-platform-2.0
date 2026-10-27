@@ -13,9 +13,14 @@ import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
 import { of } from 'rxjs';
 
-import { ApiErrorCode, Role } from '../../../api';
+import { ApiErrorCode, PublicService, Role } from '../../../api';
 import { ApiErrorView } from '../../../core/data/api-error';
-import { DataState, DataStatus, staticDataState } from '../../../core/data/data-state';
+import {
+  DataState,
+  DataStatus,
+  loadResource,
+  staticDataState,
+} from '../../../core/data/data-state';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { isUiLanguage } from '../../../core/i18n/languages';
 import { TPipe } from '../../../core/i18n/t.pipe';
@@ -91,6 +96,10 @@ export class GalleryPageComponent implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly themeService = inject(ThemeService);
   private readonly messages = inject(MessageService);
+  private readonly publicApi = inject(PublicService);
+
+  /** A real loadResource (offline/auto-retry and request-bar e2e tests run against it). */
+  protected readonly live = loadResource({ loader: () => this.publicApi.getAppInfo() });
 
   /** Query params (component input binding). */
   readonly theme = input<string | undefined>(undefined);

@@ -1,5 +1,7 @@
 :host {
   display: grid;
+  /* without minmax(0, …) the nowrap fact chips size the track and widen the page on phones */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.55rem;
   min-width: 0;
 }

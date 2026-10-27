@@ -129,8 +129,14 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       text-decoration: none;
     }
     @media (max-width: 30rem) {
+      /* icon only on narrow phones; the label stays for screen readers (link name) */
       .hdr__login span {
-        display: none;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
       }
     }
   `,

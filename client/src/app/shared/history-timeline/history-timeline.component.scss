@@ -94,7 +94,7 @@
 
 /* --- list ------------------------------------------------------------------------------------- */
 .ht__count {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.75rem;
   color: var(--fs-text-muted);
   font-size: 0.85rem;
   font-weight: 600;
@@ -140,6 +140,8 @@
 /* stacked cards (mobile, compact) */
 .ht__cards {
   display: grid;
+  /* minmax(0, …): long values (trace ids, e-mails) wrap instead of widening the page on phones */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.6rem;
   margin: 0;
   padding: 0;
