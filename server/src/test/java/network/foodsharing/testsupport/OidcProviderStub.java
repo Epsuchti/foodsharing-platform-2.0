@@ -40,7 +40,7 @@ public final class OidcProviderStub implements AutoCloseable {
     private final RSAKey key;
     private final Map<String, Map<String, Object>> claimsByCode = new ConcurrentHashMap<>();
     private final Map<String, Map<String, Object>> claimsByAccessToken = new ConcurrentHashMap<>();
-    private volatile Instant now = Instant.parse("2026-11-02T09:00:00Z");
+    private volatile Instant now = java.time.Clock.systemUTC().instant();
 
     public OidcProviderStub() {
         try {
@@ -60,7 +60,7 @@ public final class OidcProviderStub implements AutoCloseable {
         return "http://localhost:" + server.getAddress().getPort();
     }
 
-    /** The instant used for iat/exp (the application's fixed clock). */
+    /** The instant used for iat/exp (real time, like a real provider; decision 34). */
     public void now(Instant instant) {
         this.now = instant;
     }
