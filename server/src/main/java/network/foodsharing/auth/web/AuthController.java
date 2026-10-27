@@ -1,5 +1,6 @@
 package network.foodsharing.auth.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.UUID;
 import network.foodsharing.api.AuthApi;
@@ -15,8 +16,10 @@ import network.foodsharing.api.model.SessionView;
 import network.foodsharing.auth.domain.AuthAction;
 import network.foodsharing.auth.domain.SessionRevokeReason;
 import network.foodsharing.auth.mapper.AuthMapper;
+import network.foodsharing.auth.service.AuthMethodsService;
 import network.foodsharing.auth.service.AuthSessionService;
-import network.foodsharing.common.error.ApiException;
+import network.foodsharing.auth.service.MagicLinkLogin;
+import network.foodsharing.auth.service.MagicLinkService;
 import network.foodsharing.common.web.HttpExchange;
 import network.foodsharing.history.SubjectType;
 import network.foodsharing.history.mapper.HistoryMapper;
@@ -26,14 +29,19 @@ import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionCookieWriter;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Session endpoints (T1). Login-method endpoints answer 501 NOT_IMPLEMENTED until T4 implements them.
+ * Sessions, magic links, login methods and the security log. Google login and passkey ceremonies are framework
+ * endpoints ({@code auth.login.AuthSecurityCustomizer}), not part of this controller.
  */
 @RestController
 public class AuthController implements AuthApi {
+
+    /** {@code MessageResponse.message} of {@code requestMagicLink}, the same whether or not the account exists. */
+    static final String MAGIC_LINK_SENT = "MAGIC_LINK_SENT";
 
     private static final List<String> SECURITY_LOG_ACTIONS = java.util.Arrays.stream(AuthAction.values())
             .filter(action -> action.subjectType() == SubjectType.USER)
@@ -48,11 +56,14 @@ public class AuthController implements AuthApi {
     private final HistoryMapper historyMapper;
     private final AuthMapper mapper;
     private final SessionCookieWriter cookieWriter;
+    private final MagicLinkService magicLinkService;
+    private final AuthMethodsService authMethodsService;
 
     public AuthController(AuthSessionService sessionService, UserService userService,
                           CurrentActorService currentActorService, PermissionService permissionService,
                           HistoryQueryService historyQueryService, HistoryMapper historyMapper, AuthMapper mapper,
-                          SessionCookieWriter cookieWriter) {
+                          SessionCookieWriter cookieWriter, MagicLinkService magicLinkService,
+                          AuthMethodsService authMethodsService) {
         this.sessionService = sessionService;
         this.userService = userService;
         this.currentActorService = currentActorService;
@@ -61,6 +72,8 @@ public class AuthController implements AuthApi {
         this.historyMapper = historyMapper;
         this.mapper = mapper;
         this.cookieWriter = cookieWriter;
+        this.magicLinkService = magicLinkService;
+        this.authMethodsService = authMethodsService;
     }
 
     @Override
@@ -110,31 +123,44 @@ public class AuthController implements AuthApi {
 
     @Override
     public ResponseEntity<MessageResponse> requestMagicLink(MagicLinkRequest magicLinkRequest) {
-        throw ApiException.notImplemented("requestMagicLink");
+        HttpServletRequest request = HttpExchange.request();
+        magicLinkService.request(magicLinkRequest.getEmail(), magicLinkRequest.getReturnUrl(),
+                magicLinkRequest.getLanguage(), HttpExchange.clientIp(request));
+        MessageResponse response = new MessageResponse();
+        response.setMessage(MAGIC_LINK_SENT);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @Override
     public ResponseEntity<SessionInfo> verifyMagicLink(MagicLinkVerifyRequest magicLinkVerifyRequest) {
-        throw ApiException.notImplemented("verifyMagicLink");
+        MagicLinkLogin login = magicLinkService.verify(magicLinkVerifyRequest.getToken(), HttpExchange.request(),
+                HttpExchange.response());
+        SessionPrincipal principal = login.session().principal();
+        return ResponseEntity.ok(mapper.sessionInfo(principal, login.user(),
+                permissionService.effectivePermissions(principal)));
     }
 
     @Override
     public ResponseEntity<AuthMethods> listAuthMethods() {
-        throw ApiException.notImplemented("listAuthMethods");
+        AuthMethodsService.LoginMethods methods = authMethodsService.list();
+        return ResponseEntity.ok(mapper.toMethods(methods.identities(), methods.passkeys()));
     }
 
     @Override
     public ResponseEntity<Void> unlinkAuthMethod(UUID identityId) {
-        throw ApiException.notImplemented("unlinkAuthMethod");
+        authMethodsService.unlinkIdentity(identityId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<PasskeyView> renamePasskey(UUID passkeyId, PasskeyRenameRequest passkeyRenameRequest) {
-        throw ApiException.notImplemented("renamePasskey");
+        return ResponseEntity.ok(mapper.toView(authMethodsService.renamePasskey(passkeyId,
+                passkeyRenameRequest.getLabel())));
     }
 
     @Override
     public ResponseEntity<Void> deletePasskey(UUID passkeyId) {
-        throw ApiException.notImplemented("deletePasskey");
+        authMethodsService.deletePasskey(passkeyId);
+        return ResponseEntity.noContent().build();
     }
 }

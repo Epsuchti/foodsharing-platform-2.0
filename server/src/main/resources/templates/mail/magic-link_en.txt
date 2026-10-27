@@ -1,0 +1,10 @@
+[# th:if="${displayName != null}"]Hello [(${displayName})],[/][# th:if="${displayName == null}"]Hello,[/]
+
+click the following link to sign in to foodsharing. If you do not have an account yet, it will be created:
+
+[(${link})]
+
+The link is valid for [(${validityMinutes})] minutes and can only be used once.
+You did not ask to sign in? Then simply ignore this email.
+
+Your foodsharing team

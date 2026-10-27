@@ -2,9 +2,11 @@ package network.foodsharing.config;
 
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiErrorResponseWriter;
+import network.foodsharing.security.HttpSecurityCustomizer;
 import network.foodsharing.security.SessionAuthenticator;
 import network.foodsharing.security.SessionCookieAuthenticationFilter;
 import network.foodsharing.security.SessionCookieWriter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -14,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
@@ -21,7 +24,9 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
  * Main security chain (docs/conventions.md A9): cookie sessions ({@code fs_session}), CSRF via the
  * {@code XSRF-TOKEN} cookie + {@code X-XSRF-TOKEN} header, JSON 401/403 bodies. Everything under {@code /api/**}
  * needs a session except the public/auth bootstrap endpoints; non-API paths (SPA, static files) are open.
- * Google OAuth2 login and WebAuthn are added to this chain by the auth module (T4).
+ * Google OAuth2 login and WebAuthn are added to this chain by the auth module through {@link HttpSecurityCustomizer}
+ * beans. The security context is never stored in the servlet session: {@code JSESSIONID} only carries the
+ * OAuth2/WebAuthn handshakes, never API authentication.
  */
 @Configuration
 public class SecurityConfig {
@@ -34,7 +39,12 @@ public class SecurityConfig {
             "/api/auth/magic-link/verify"
     };
 
-    public static final String[] FRAMEWORK_ENDPOINTS = {"/oauth2/**", "/login/oauth2/**", "/login/webauthn", "/webauthn/**"};
+    /** Login endpoints of the frameworks (Google OAuth2, passkey login). */
+    public static final String[] FRAMEWORK_ENDPOINTS = {"/oauth2/**", "/login/oauth2/**", "/login/webauthn",
+            "/webauthn/authenticate/options"};
+
+    /** Passkey registration (options + finish) needs a session. */
+    public static final String[] AUTHENTICATED_FRAMEWORK_ENDPOINTS = {"/webauthn/register", "/webauthn/register/**"};
 
     @Bean
     @Order(10)
@@ -42,7 +52,8 @@ public class SecurityConfig {
                                                    SessionAuthenticator sessionAuthenticator,
                                                    SessionCookieWriter sessionCookieWriter,
                                                    ApiErrorResponseWriter errorWriter,
-                                                   AppProperties properties) throws Exception {
+                                                   AppProperties properties,
+                                                   ObjectProvider<HttpSecurityCustomizer> customizers) throws Exception {
         CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setCookieCustomizer(cookie -> cookie
                 .secure(properties.getAuth().isCookieSecure())
@@ -52,7 +63,9 @@ public class SecurityConfig {
         // Load the token on every request so the XSRF-TOKEN cookie is always present for the SPA.
         csrfHandler.setCsrfRequestAttributeName(null);
 
-        return http
+        http
+                .securityContext(context -> context
+                        .securityContextRepository(new RequestAttributeSecurityContextRepository()))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfRepository)
                         .csrfTokenRequestHandler(csrfHandler))
@@ -67,6 +80,9 @@ public class SecurityConfig {
                                 "/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ORGA")
                         .requestMatchers(PUBLIC_API).permitAll()
+                        // Passkeys are deleted via DELETE /api/auth/passkeys/{id} (last-method guard + history).
+                        .requestMatchers(HttpMethod.DELETE, "/webauthn/register/**").denyAll()
+                        .requestMatchers(AUTHENTICATED_FRAMEWORK_ENDPOINTS).authenticated()
                         .requestMatchers(FRAMEWORK_ENDPOINTS).permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
@@ -82,7 +98,10 @@ public class SecurityConfig {
                                 org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
                                         .ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)))
                 .addFilterBefore(new SessionCookieAuthenticationFilter(sessionAuthenticator, sessionCookieWriter),
-                        AnonymousAuthenticationFilter.class)
-                .build();
+                        AnonymousAuthenticationFilter.class);
+        for (HttpSecurityCustomizer customizer : customizers.orderedStream().toList()) {
+            customizer.customize(http);
+        }
+        return http.build();
     }
 }

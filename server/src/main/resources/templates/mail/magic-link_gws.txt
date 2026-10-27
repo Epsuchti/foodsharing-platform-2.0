@@ -1,0 +1,10 @@
+[# th:if="${displayName != null}"]Hoi [(${displayName})],[/][# th:if="${displayName == null}"]Hoi,[/]
+
+klick uf de folgendi Link, zum di bi foodsharing aazmälde. Wänn du no kei Konto häsch, wird s debii erstellt:
+
+[(${link})]
+
+De Link isch [(${validityMinutes})] Minute gültig und chan nur eimal bruucht wärde.
+Du häsch kei Aamäldig aagforderet? Dänn chasch die E-Mail eifach ignoriere.
+
+Dis foodsharing-Team

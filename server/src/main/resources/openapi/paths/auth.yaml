@@ -51,7 +51,6 @@
       '400': {description: 'VALIDATION_FAILED, EMAIL_DOMAIN_BLOCKED or INVALID_RETURN_URL', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'IP_BLOCKED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '429': {description: 'TOO_MANY_LOGIN_REQUESTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '501': {description: 'NOT_IMPLEMENTED (until T4)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/auth/magic-link/verify:
   post:
@@ -76,7 +75,6 @@
               $ref: '../schemas/auth.yaml#/SessionInfo'
       '400': {description: 'INVALID_LOGIN_TOKEN or LOGIN_TOKEN_EXPIRED_OR_USED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCOUNT_DISABLED, EMAIL_DOMAIN_BLOCKED or IP_BLOCKED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '501': {description: 'NOT_IMPLEMENTED (until T4)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/auth/methods:
   get:
@@ -92,7 +90,6 @@
             schema:
               $ref: '../schemas/auth.yaml#/AuthMethods'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '501': {description: 'NOT_IMPLEMENTED (until T4)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/auth/methods/{identityId}:
   delete:
@@ -114,7 +111,6 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'RESOURCE_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'LAST_LOGIN_METHOD_CANNOT_BE_REMOVED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '501': {description: 'NOT_IMPLEMENTED (until T4)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/auth/passkeys/{passkeyId}:
   patch:
@@ -146,7 +142,6 @@
       '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'PASSKEY_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '501': {description: 'NOT_IMPLEMENTED (until T4)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   delete:
     tags: [auth]
     operationId: deletePasskey
@@ -166,7 +161,6 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'PASSKEY_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'LAST_LOGIN_METHOD_CANNOT_BE_REMOVED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '501': {description: 'NOT_IMPLEMENTED (until T4)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/auth/sessions:
   get:
