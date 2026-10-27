@@ -1,0 +1,31 @@
+# Action history of the seed users: ACCOUNT_CREATED for everyone, role promotions, and logins, logouts, settings and
+# field changes for foodsaver@local and orga@local. All entries are at or before SEED_NOW (2026-11-02T09:00:00Z).
+databaseChangeLog:
+  - changeSet:
+      id: seed-004-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: History entries of the seed users.
+      changes:
+        - loadUpdateData:
+            tableName: history_entry
+            file: ../history/history_entry.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: occurred_at, type: STRING}
+              - column: {name: actor_id, type: UUID}
+              - column: {name: subject_id, type: UUID}
+              - column: {name: secondary_subject_id, type: UUID}
+              - column: {name: metadata, type: STRING}
+              - column: {name: region_id, type: UUID}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Sign in with Google (fake, dev only)</title>
+    <style>
+        :root { color-scheme: light dark; --accent: #25834a; --border: #c9d1cc; --muted: #5b6660; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: #f3f5f4; color: #18201b; }
+        @media (prefers-color-scheme: dark) {
+            body { background: #121614; color: #e7ece9; }
+            .card { background: #1c221f !important; }
+            :root { --border: #36403a; --muted: #a3ada7; }
+        }
+        main { max-width: 440px; margin: 40px auto; padding: 0 16px; }
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+        h1 { font-size: 20px; margin: 0 0 4px; }
+        p.hint { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+                 background: #fff3cd; color: #6b4e00; border-radius: 4px; padding: 2px 6px; margin-bottom: 12px; }
+        .accounts { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 8px; }
+        .account { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border);
+                   border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        .account:hover, .account:focus-visible { border-color: var(--accent); outline: none; }
+        .account img { width: 36px; height: 36px; border-radius: 50%; }
+        .account small { display: block; color: var(--muted); }
+        fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px 14px; margin: 0 0 16px; }
+        legend { font-weight: 600; padding: 0 4px; }
+        label { display: block; margin: 8px 0 4px; font-size: 13px; }
+        input[type=text], input[type=email], select { width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+                   border-radius: 6px; font: inherit; background: transparent; color: inherit; }
+        .check { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+        .check label { margin: 0; }
+        button.primary { margin-top: 14px; width: 100%; padding: 10px; border: 0; border-radius: 6px; background: var(--accent);
+                         color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+        button.link { background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
+        .error { background: #fde8e8; color: #8a1c1c; border-radius: 6px; padding: 10px 12px; }
+    </style>
+</head>
+<body>
+<main>
+    <div class="card" data-testid="dev.oidc.page">
+        <span class="badge">Dev only</span>
+        <h1>Sign in with Google</h1>
+        <p class="hint">Fake OIDC provider of the local/e2e profile. Choose an account to continue.</p>
+
+        <div th:if="${error}" class="error" data-testid="dev.oidc.error" th:text="${error}">error</div>
+
+        <th:block th:unless="${error}">
+            <ul class="accounts" data-testid="dev.oidc.accounts">
+                <li th:each="account : ${accounts}">
+                    <form method="post" th:action="${action}">
+                        <input type="hidden" name="client_id" th:value="${clientId}">
+                        <input type="hidden" name="redirect_uri" th:value="${redirectUri}">
+                        <input type="hidden" name="scope" th:value="${scope}">
+                        <input type="hidden" name="state" th:value="${state}">
+                        <input type="hidden" name="nonce" th:value="${nonce}">
+                        <input type="hidden" name="choice" value="account">
+                        <input type="hidden" name="account" th:value="${account.subject}">
+                        <button type="submit" class="account" th:attr="data-testid='dev.oidc.account-' + ${account.key}">
+                            <img th:if="${account.picture}" th:src="${account.picture}" alt="">
+                            <span><span th:text="${account.name}">Name</span><small th:text="${account.email}">email</small></span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+
+            <form method="post" th:action="${action}" data-testid="dev.oidc.new-form">
+                <input type="hidden" name="client_id" th:value="${clientId}">
+                <input type="hidden" name="redirect_uri" th:value="${redirectUri}">
+                <input type="hidden" name="scope" th:value="${scope}">
+                <input type="hidden" name="state" th:value="${state}">
+                <input type="hidden" name="nonce" th:value="${nonce}">
+                <input type="hidden" name="choice" value="new">
+                <fieldset>
+                    <legend>New Google user</legend>
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" required th:value="${loginHint}" data-testid="dev.oidc.new-email">
+                    <label for="name">Name</label>
+                    <input id="name" name="name" type="text" placeholder="Anna Beispiel" data-testid="dev.oidc.new-name">
+                    <label for="locale">Language</label>
+                    <select id="locale" name="locale" data-testid="dev.oidc.new-locale">
+                        <option value="de">Deutsch (de)</option>
+                        <option value="de-CH">Schwiizerdütsch (de-CH)</option>
+                        <option value="en">English (en)</option>
+                        <option value="fr">Français (fr)</option>
+                        <option value="it">Italiano (it)</option>
+                    </select>
+                    <div class="check">
+                        <input id="unverified" name="unverified" type="checkbox" data-testid="dev.oidc.new-unverified">
+                        <label for="unverified">Email not verified (email_verified=false)</label>
+                    </div>
+                    <button type="submit" class="primary" data-testid="dev.oidc.new-submit">Continue as new user</button>
+                </fieldset>
+            </form>
+
+            <form method="post" th:action="${action}">
+                <input type="hidden" name="client_id" th:value="${clientId}">
+                <input type="hidden" name="redirect_uri" th:value="${redirectUri}">
+                <input type="hidden" name="state" th:value="${state}">
+                <input type="hidden" name="choice" value="cancel">
+                <button type="submit" class="link" data-testid="dev.oidc.cancel">Cancel</button>
+            </form>
+        </th:block>
+    </div>
+</main>
+</body>
+</html>

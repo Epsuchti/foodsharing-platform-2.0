@@ -1,0 +1,29 @@
+# Blocked email domains (parity: foodsharing email blocklist). The table is created by
+# changes/005-auth-identities.yaml (T4); until it exists this changeset is marked as ran.
+databaseChangeLog:
+  - changeSet:
+      id: seed-003-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: mailinator.com and example.invalid are blocked.
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: email_blocklist
+      changes:
+        - loadUpdateData:
+            tableName: email_blocklist
+            file: ../auth/email_blocklist.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}

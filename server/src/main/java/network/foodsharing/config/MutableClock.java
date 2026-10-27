@@ -32,6 +32,15 @@ public class MutableClock extends Clock {
         return fixedAt != null;
     }
 
+    /**
+     * The underlying (normally system) time, ignoring a fixed instant. Only for values checked by third-party code
+     * against the real time, e.g. the iat/exp claims of the fake OIDC provider's id tokens, which Spring Security
+     * validates against the system clock.
+     */
+    public Instant realInstant() {
+        return base.instant();
+    }
+
     @Override
     public ZoneId getZone() {
         return ZoneOffset.UTC;
