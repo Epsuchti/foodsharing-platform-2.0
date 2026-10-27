@@ -1,0 +1,26 @@
+# Milestone 2 (T16): wallet passes (Apple / Google) of the digital passport.
+databaseChangeLog:
+  - changeSet:
+      id: 051-1
+      author: platform
+      comment: 'One pass per user and wallet.'
+      changes:
+        - createTable:
+            tableName: wallet_pass
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_wallet_pass, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_wallet_pass_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: wallet_type, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: serial, type: VARCHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_wallet_pass_serial}}
+              - column: {name: auth_token, type: VARCHAR(64)}
+              - column: {name: object_id, type: VARCHAR(200)}
+              - column: {name: last_rendered_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: wallet_pass
+            columnNames: user_id, wallet_type
+            constraintName: uq_wallet_pass_user_id_wallet_type

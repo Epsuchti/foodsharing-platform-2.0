@@ -1,0 +1,53 @@
+# Milestone 2 (T16): passport issues and passport requests (plan §13.9 Ve3).
+databaseChangeLog:
+  - changeSet:
+      id: 050-1
+      author: platform
+      comment: 'One row per printed / generated passport (validity of the passport of the user).'
+      changes:
+        - createTable:
+            tableName: passport_issue
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_passport_issue, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_passport_issue_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: issued_by, type: UUID, constraints: {foreignKeyName: fk_passport_issue_issued_by, references: user_account(id)}}
+              - column: {name: valid_from, type: DATE, constraints: {nullable: false}}
+              - column: {name: valid_until, type: DATE, constraints: {nullable: false}}
+              - column: {name: kind, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: renew, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: region_id, type: UUID, constraints: {foreignKeyName: fk_passport_issue_region_id, references: region(id)}}
+        - createIndex:
+            tableName: passport_issue
+            indexName: ix_passport_issue_user_id_valid_until
+            columns:
+              - column: {name: user_id}
+              - column: {name: valid_until}
+  - changeSet:
+      id: 050-2
+      author: platform
+      comment: 'Passport requests of users to their ambassadors.'
+      changes:
+        - createTable:
+            tableName: passport_request
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_passport_request, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_passport_request_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: requested_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: fulfilled_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: fulfilled_by, type: UUID, constraints: {foreignKeyName: fk_passport_request_fulfilled_by, references: user_account(id)}}
+        - createIndex:
+            tableName: passport_request
+            indexName: ix_passport_request_user_id_fulfilled_at
+            columns:
+              - column: {name: user_id}
+              - column: {name: fulfilled_at}

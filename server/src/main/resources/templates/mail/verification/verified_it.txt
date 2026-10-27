@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+congratulazioni: ora sei foodsaver verificato/a. La tua tessera si trova nel tuo profilo.
+
+[(${link})]
+
+Il tuo team foodsharing

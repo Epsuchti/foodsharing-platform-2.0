@@ -1,0 +1,56 @@
+# Seed (T16): passport issues and an open passport request.
+databaseChangeLog:
+  - changeSet:
+      id: seed-050-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Passport issues of the verified users (sleepy expired).'
+      changes:
+        - loadUpdateData:
+            tableName: passport_issue
+            file: ../verification/passport_issue.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: issued_by, type: UUID}
+              - column: {name: valid_from, type: DATE}
+              - column: {name: valid_until, type: DATE}
+              - column: {name: renew, type: BOOLEAN}
+              - column: {name: region_id, type: UUID}
+  - changeSet:
+      id: seed-050-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Open passport request of foodsaver@local.'
+      changes:
+        - loadUpdateData:
+            tableName: passport_request
+            file: ../verification/passport_request.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: requested_at, type: STRING}
+              - column: {name: fulfilled_at, type: STRING}
+              - column: {name: fulfilled_by, type: UUID}

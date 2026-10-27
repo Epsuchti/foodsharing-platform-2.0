@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+d Botschafterinne und Botschafter vo [(${regionName})] händ din Foodsaver-Uswiis erstellt.
+
+[(${link})]
+
+Dis foodsharing-Team

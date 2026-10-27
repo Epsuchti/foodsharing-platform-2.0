@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+congratulations: you are now a verified foodsaver. Your passport is in your profile.
+
+[(${link})]
+
+Your foodsharing team

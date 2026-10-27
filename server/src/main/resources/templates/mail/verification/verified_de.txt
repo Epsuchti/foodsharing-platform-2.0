@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+herzlichen Glückwunsch: du bist jetzt verifizierte Foodsaverin bzw. verifizierter Foodsaver. Deinen Ausweis findest du in deinem Profil.
+
+[(${link})]
+
+Dein foodsharing-Team

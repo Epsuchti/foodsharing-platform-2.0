@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+les ambassadeurs et ambassadrices de [(${regionName})] ont créé ta carte de foodsaver.
+
+[(${link})]
+
+Ton équipe foodsharing

@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+félicitations : tu es maintenant foodsaver vérifié·e. Ta carte se trouve dans ton profil.
+
+[(${link})]
+
+Ton équipe foodsharing

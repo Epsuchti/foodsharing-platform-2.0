@@ -28,8 +28,7 @@ public class IntroPickupProgressService {
                           boolean stalled, Instant lastActivityAt) {
     }
 
-    public record GuideComment(UUID authorId, String authorName, String text, boolean adminComment,
-                               Instant createdAt) {
+    public record GuideComment(UUID id, User author, String text, boolean adminComment, Instant createdAt) {
     }
 
     private final NewcomerProgressService progress;
@@ -79,8 +78,7 @@ public class IntroPickupProgressService {
                 .filter(Objects::nonNull).toList());
         return list.stream().map(c -> {
             User author = c.getAuthorId() == null ? null : authors.get(c.getAuthorId());
-            return new GuideComment(c.getAuthorId(), author == null ? null : author.getDisplayName(), c.getText(),
-                    c.isAdminComment(), c.getCreatedAt());
+            return new GuideComment(c.getId(), author, c.getText(), c.isAdminComment(), c.getCreatedAt());
         }).toList();
     }
 }

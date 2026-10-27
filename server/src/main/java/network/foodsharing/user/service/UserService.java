@@ -240,6 +240,35 @@ public class UserService {
         return user;
     }
 
+    /** Verified flag and date; the verification module records VERIFIED / UNVERIFIED. */
+    @Transactional
+    @NoHistory(reason = "the caller records VerificationAction.VERIFIED / UNVERIFIED with the required message")
+    public User setVerified(UUID userId, boolean verified, java.time.Instant at) {
+        User user = require(userId);
+        user.setVerified(verified);
+        user.setVerifiedAt(verified ? at : null);
+        return user;
+    }
+
+    /** Identity confirmation (null = reverted); the verification module records the history. */
+    @Transactional
+    @NoHistory(reason = "the caller records IDENTITY_CONFIRMED / IDENTITY_CONFIRMATION_REVERTED")
+    public User setIdentityConfirmation(UUID userId, java.time.Instant at, UUID by) {
+        User user = require(userId);
+        user.setIdentityConfirmedAt(at);
+        user.setIdentityConfirmedBy(by);
+        return user;
+    }
+
+    /** Start of the current passport validity; the passport module records the history. */
+    @Transactional
+    @NoHistory(reason = "the caller records PASSPORT_GENERATED / PASSPORT_GENERATED_BY_AMBASSADOR")
+    public User setLastPassportAt(UUID userId, java.time.Instant at) {
+        User user = require(userId);
+        user.setLastPassportAt(at);
+        return user;
+    }
+
     /** Sets the quiz role (plan §9 {@code quiz_rolle}); the quiz module records QUIZ_ROLE_RAISED. */
     @Transactional
     @NoHistory(reason = "the caller records QuizSessionAction.QUIZ_ROLE_RAISED")

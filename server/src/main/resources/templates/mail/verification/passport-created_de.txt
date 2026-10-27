@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+die Botschafterinnen und Botschafter von [(${regionName})] haben deinen Foodsaver-Ausweis erstellt.
+
+[(${link})]
+
+Dein foodsharing-Team

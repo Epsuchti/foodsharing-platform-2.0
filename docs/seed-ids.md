@@ -124,3 +124,10 @@ BAKERY), `intro_pickup_subscription` `0006-…01` newbie IN_APP inactive, `0006-
 `seed-unsubscribe-quiz`), `intro_pickup_store_alias` `0007-…01`–`06` (babus, babusbakery, aldibadnerstrasse, tinyfish…).
 Local starts shift these dates with the seed anchor (`IntroPickupSeedDateShift`).
 
+### Passports (T16, module 0014)
+
+`passport_issue` `00000014-0001-…-01`–`08` for users 06, 07, 09–14 (valid from their `last_passport_at` date for 3
+years, kind AMBASSADOR, issued by bot; bot's by orga), `…-09` sleepy 2022-10-01 → 2025-10-01 (expired).
+`passport_request` `00000014-0002-…-01`: open request of foodsaver@local. `wallet_pass`: none (wallets are disabled in
+local / e2e and answer 503 WALLET_NOT_CONFIGURED).
+

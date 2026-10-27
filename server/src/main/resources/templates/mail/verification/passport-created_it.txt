@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+gli ambasciatori e le ambasciatrici di [(${regionName})] hanno creato la tua tessera foodsaver.
+
+[(${link})]
+
+Il tuo team foodsharing

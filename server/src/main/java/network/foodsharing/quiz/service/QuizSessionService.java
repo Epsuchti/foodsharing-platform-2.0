@@ -175,6 +175,13 @@ public class QuizSessionService {
         });
     }
 
+    /** When the user last passed the quiz (verification queue), if ever. */
+    @Transactional(readOnly = true)
+    public Optional<Instant> passedAt(UUID userId, QuizKind kind) {
+        return quizzes.findByKind(kind).flatMap(quiz -> Optional.ofNullable(
+                rules.tryState(kind, attempts(userId, quiz), clock.instant()).passedAt()));
+    }
+
     StatusView status(Quiz quiz, User user, boolean test) {
         QuizKind kind = quiz.getKind();
         QuizRuleService.TryState state = rules.tryState(kind, attempts(user.getId(), quiz), clock.instant());

@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+härzliche Glückwunsch: du bisch jetzt verifizierti Foodsaverin oder verifiziert Foodsaver. Din Uswiis findsch i dim Profil.
+
+[(${link})]
+
+Dis foodsharing-Team

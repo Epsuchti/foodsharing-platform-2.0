@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+the ambassadors of [(${regionName})] created your foodsaver passport.
+
+[(${link})]
+
+Your foodsharing team
