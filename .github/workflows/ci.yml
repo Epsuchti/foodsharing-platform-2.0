@@ -1,0 +1,257 @@
+name: CI
+
+# plan §18.6: contract (validate + oasdiff), build (./mvnw verify), sharded Playwright e2e + feature coverage,
+# screenshot tests in the official Playwright image, ER diagram, release image on tags.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '24.15.0'
+  E2E_SHARDS: 4
+
+jobs:
+  contract:
+    name: OpenAPI contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Validate spec and contract rules
+        run: node scripts/check-openapi.mjs
+      - name: Breaking changes against the base branch (oasdiff)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          bash scripts/oasdiff.sh "origin/${{ github.base_ref }}"
+
+  build:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      # Testcontainers (Postgres ITs) uses the runner's Docker.
+      - name: ./mvnw verify (backend tests, client build, lint, i18n check, client tests)
+        working-directory: server
+        run: ./mvnw -B -ntp verify
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: server/target/foodsharing-platform-*.jar
+          if-no-files-found: error
+          retention-days: 7
+
+  e2e:
+    name: E2E ${{ matrix.project }} ${{ matrix.shard }}/4
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit, mobile-chrome, mobile-safari]
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: server/target
+      - name: Install e2e dependencies and browser
+        working-directory: e2e
+        run: |
+          npm ci
+          case "${{ matrix.project }}" in
+            firefox) browser=firefox ;;
+            webkit|mobile-safari) browser=webkit ;;
+            *) browser=chromium ;;
+          esac
+          npx playwright install --with-deps "$browser"
+      - name: Type-check specs
+        working-directory: e2e
+        run: npx tsc --noEmit -p .
+      # Each shard starts its own jar (global-setup.ts) with its own in-memory database.
+      - name: Playwright
+        working-directory: e2e
+        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/${{ env.E2E_SHARDS }}
+      - name: Upload blob report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.project }}-${{ matrix.shard }}
+          path: e2e/blob-report
+          retention-days: 7
+      - name: Upload failure artifacts
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-${{ matrix.project }}-${{ matrix.shard }}
+          path: |
+            e2e/test-results/server.log
+            e2e/test-results/artifacts
+          retention-days: 7
+
+  coverage:
+    name: Feature coverage
+    needs: e2e
+    if: ${{ !cancelled() && needs.e2e.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+        working-directory: e2e
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: blob-report-*
+          path: e2e/all-blob-reports
+          merge-multiple: true
+      - name: Merge shard reports
+        working-directory: e2e
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
+        run: |
+          mkdir -p test-results
+          npx playwright merge-reports --reporter json,html ./all-blob-reports
+      - name: Coverage gate (docs/ledger.md vs @ID tags)
+        run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json
+      - name: Upload report and coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            e2e/playwright-report
+            docs/coverage.md
+          retention-days: 14
+
+  screenshots:
+    name: Screenshot tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: server/target
+      # Starts the jar on the runner and runs Playwright inside mcr.microsoft.com/playwright:v1.64.1-noble.
+      - name: Compare with e2e/__screenshots__
+        run: bash e2e/scripts/screenshots.sh
+      - name: Upload screenshot report (expected / actual / diff)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results/server-screenshots.log
+          retention-days: 14
+
+  er-diagram:
+    name: ER diagram
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: server/target
+      - run: bash scripts/er-diagram.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: er-diagram
+          path: docs/er
+          retention-days: 30
+
+  release:
+    name: Release image
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [contract, build, e2e, screenshots]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: server/target
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/foodsharing-platform" >> "$GITHUB_OUTPUT"
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: server
+          platforms: linux/amd64,linux/arm64
+          build-args: JAR_FILE=target/foodsharing-platform-*.jar
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}
+            ${{ steps.meta.outputs.image }}:latest

@@ -1,0 +1,46 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      spring:
+        patterns: ['org.springframework*']
+
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*', 'angular-eslint']
+      optimus:
+        patterns: ['@openng/*']
+
+  # Playwright is pinned together with the screenshot image (mcr.microsoft.com/playwright:v<version>-noble in
+  # e2e/scripts/screenshots.sh); bump both in one PR and re-baseline screenshots deliberately.
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: '@playwright/test'
+        update-types: ['version-update:semver-minor', 'version-update:semver-major']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /server
+    schedule:
+      interval: weekly
