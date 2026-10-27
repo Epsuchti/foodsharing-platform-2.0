@@ -106,6 +106,13 @@ public class IntroPickupGuideService {
         this.properties = properties;
     }
 
+    private network.foodsharing.store.service.StoreService storeService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setStoreService(network.foodsharing.store.service.StoreService storeService) {
+        this.storeService = storeService;
+    }
+
     // ------------------------------------------------------------------------------------------- read
 
     /** Regions in which the current user gives EinAbs. */
@@ -487,6 +494,10 @@ public class IntroPickupGuideService {
     }
 
     void validate(PickupInput input) {
+        if (input.storeId() != null && input.category() != IntroPickupCategory.ONLINE && storeService != null
+                && !storeService.exists(input.storeId())) {
+            throw ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND);
+        }
         if (input.category() == IntroPickupCategory.ONLINE) {
             String link = trim(input.onlineCallLink());
             if (link == null || link.length() > 2000

@@ -1,0 +1,183 @@
+# Seed (B2): store categories, groceries, weight categories, chains, KAMs, 25 stores.
+databaseChangeLog:
+  - changeSet:
+      id: seed-060-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Store categories.'
+      changes:
+        - loadUpdateData:
+            tableName: store_category
+            file: ../store/store_category.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+  - changeSet:
+      id: seed-060-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Groceries.'
+      changes:
+        - loadUpdateData:
+            tableName: grocery
+            file: ../store/grocery.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+  - changeSet:
+      id: seed-060-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Weight categories (approximations of upstream fs_fetchweight).'
+      changes:
+        - loadUpdateData:
+            tableName: pickup_weight_category
+            file: ../store/pickup_weight_category.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: min_kg, type: NUMERIC}
+              - column: {name: max_kg, type: NUMERIC}
+              - column: {name: average_kg, type: NUMERIC}
+              - column: {name: sort_order, type: NUMERIC}
+  - changeSet:
+      id: seed-060-4
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Store chains.'
+      changes:
+        - loadUpdateData:
+            tableName: store_chain
+            file: ../store/store_chain.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: press_allowed, type: BOOLEAN}
+              - column: {name: forum_thread_id, type: UUID}
+              - column: {name: estimated_store_count, type: NUMERIC}
+  - changeSet:
+      id: seed-060-5
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Key account managers: bieb (Coop), bot (Migros).'
+      changes:
+        - loadUpdateData:
+            tableName: store_chain_kam
+            file: ../store/store_chain_kam.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: chain_id, type: UUID}
+              - column: {name: user_id, type: UUID}
+  - changeSet:
+      id: seed-060-6
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: '25 stores (22 Zürich Stadt, 3 Winterthur).'
+      changes:
+        - loadUpdateData:
+            tableName: store
+            file: ../store/store.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID}
+              - column: {name: latitude, type: NUMERIC}
+              - column: {name: longitude, type: NUMERIC}
+              - column: {name: category_id, type: UUID}
+              - column: {name: chain_id, type: UUID}
+              - column: {name: status_date, type: DATE}
+              - column: {name: cooperation_start, type: DATE}
+              - column: {name: prefetch_days, type: NUMERIC}
+              - column: {name: use_region_pickup_rule, type: BOOLEAN}
+              - column: {name: requires_hygiene, type: BOOLEAN}
+              - column: {name: requires_verified, type: BOOLEAN}
+              - column: {name: requires_phone, type: BOOLEAN}
+              - column: {name: requires_application_text, type: BOOLEAN}
+              - column: {name: team_conversation_id, type: UUID}
+              - column: {name: jumper_conversation_id, type: UUID}
+              - column: {name: deleted_at, type: STRING}
+  - changeSet:
+      id: seed-060-7
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Groceries per store.'
+      changes:
+        - loadUpdateData:
+            tableName: store_grocery
+            file: ../store/store_grocery.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID}
+              - column: {name: grocery_id, type: UUID}

@@ -1,5 +1,10 @@
 package network.foodsharing.store.web;
 
+import org.springframework.http.HttpStatus;
+import network.foodsharing.common.mapper.PageMapper;
+import network.foodsharing.store.service.StoreService;
+import network.foodsharing.store.service.StoreQueryService;
+import network.foodsharing.store.mapper.StoreMapper;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -31,6 +36,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class StoresController implements StoresApi {
 
+    private final StoreService stores;
+    private final StoreQueryService queries;
+    private final StoreMapper mapper;
+
+    public StoresController(StoreService stores, StoreQueryService queries, StoreMapper mapper) {
+        this.stores = stores;
+        this.queries = queries;
+        this.mapper = mapper;
+    }
+
     @Override
     public ResponseEntity<WallPost> addWallPost(UUID storeId, WallPostCreate wallPostCreate) {
         throw ApiException.notImplemented("addWallPost");
@@ -38,7 +53,8 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<StoreDetail> createStore(UUID regionId, StoreCreate storeCreate) {
-        throw ApiException.notImplemented("createStore");
+        var store = stores.create(regionId, mapper.toInput(storeCreate));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDetail(queries.detail(store.getId())));
     }
 
     @Override
@@ -53,7 +69,7 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<StoreDetail> getStore(UUID storeId) {
-        throw ApiException.notImplemented("getStore");
+        return ResponseEntity.ok(mapper.toDetail(queries.detail(storeId)));
     }
 
     @Override
@@ -63,12 +79,12 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<StoreMetadata> getStoreMetadata() {
-        throw ApiException.notImplemented("getStoreMetadata");
+        return ResponseEntity.ok(mapper.toMetadata(queries.metadata()));
     }
 
     @Override
     public ResponseEntity<StorePermissions> getStorePermissions(UUID storeId) {
-        throw ApiException.notImplemented("getStorePermissions");
+        return ResponseEntity.ok(mapper.toPermissions(queries.permissionsOf(storeId)));
     }
 
     @Override
@@ -78,12 +94,19 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<List<StoreListItem>> listMyStores(Boolean excludeInactive) {
-        throw ApiException.notImplemented("listMyStores");
+        return ResponseEntity.ok(queries.myStores(Boolean.TRUE.equals(excludeInactive)).stream().map(mapper::toListItem).toList());
     }
 
     @Override
     public ResponseEntity<StoreListPage> listRegionStores(UUID regionId, List<CooperationStatus> cooperationStatus, List<TeamSearchStatus> teamStatus, String search, Boolean includeSubregions, Integer page, Integer size) {
-        throw ApiException.notImplemented("listRegionStores");
+        var result = queries.regionStores(regionId,
+                cooperationStatus == null ? null : cooperationStatus.stream().map(s -> network.foodsharing.store.domain.CooperationStatus.valueOf(s.name())).toList(),
+                teamStatus == null ? null : teamStatus.stream().map(s -> network.foodsharing.store.domain.TeamSearchStatus.valueOf(s.name())).toList(),
+                search, Boolean.TRUE.equals(includeSubregions), page, size);
+        StoreListPage model = new StoreListPage();
+        model.setItems(result.getContent().stream().map(mapper::toListItem).toList());
+        model.setPage(PageMapper.toPageMeta(result));
+        return ResponseEntity.ok(model);
     }
 
     @Override
@@ -93,6 +116,7 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<StoreDetail> updateStore(UUID storeId, StorePatch storePatch) {
-        throw ApiException.notImplemented("updateStore");
+        stores.update(storeId, mapper.toInput(storePatch));
+        return ResponseEntity.ok(mapper.toDetail(queries.detail(storeId)));
     }
 }

@@ -3,7 +3,6 @@ package network.foodsharing.region.service;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,13 +11,11 @@ import org.springframework.context.annotation.Configuration;
 public class StoreStatsDefaults {
 
     @Bean
-    @ConditionalOnMissingBean(RegionStoreStats.class)
     RegionStoreStats noRegionStoreStats() {
         return regionId -> 0;
     }
 
     @Bean
-    @ConditionalOnMissingBean(MemberPickupStats.class)
     MemberPickupStats noMemberPickupStats() {
         return new MemberPickupStats() {
             @Override

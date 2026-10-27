@@ -62,8 +62,15 @@ public class RegionMapper {
 
     private final UserMapper users;
 
+    private network.foodsharing.region.service.RegionStoreStats storeStats = regionId -> 0;
+
     public RegionMapper(UserMapper users) {
         this.users = users;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setStoreStats(network.foodsharing.region.service.RegionStoreStats storeStats) {
+        this.storeStats = storeStats;
     }
 
     public RegionRef toRef(Region region) {
@@ -351,7 +358,7 @@ public class RegionMapper {
         model.setChildren(view.children().stream().map(this::toRef).toList());
         model.setParent(toRef(view.parent()));
         model.setMemberCount((int) view.memberCount());
-        model.setStoreCount(0);
+        model.setStoreCount(storeStats.establishedStoreCount(region.getId()));
         model.setNextIntroPickups(view.nextIntroPickups().stream().map(this::toPublicIntroPickup).toList());
         model.setPin(toPin(view.pin()));
         model.setTimeZone(region.getTimeZone());

@@ -1,0 +1,21 @@
+# Milestone 3 (B2): weight categories (approximations of upstream fs_fetchweight).
+databaseChangeLog:
+  - changeSet:
+      id: 064-1
+      author: platform
+      comment: 'Weight categories with an average kg per pickup.'
+      changes:
+        - createTable:
+            tableName: pickup_weight_category
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_weight_category, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: code, type: VARCHAR(20), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_pickup_weight_category_code}}
+              - column: {name: min_kg, type: 'DECIMAL(6,2)'}
+              - column: {name: max_kg, type: 'DECIMAL(6,2)'}
+              - column: {name: average_kg, type: 'DECIMAL(6,2)', constraints: {nullable: false}}
+              - column: {name: sort_order, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}

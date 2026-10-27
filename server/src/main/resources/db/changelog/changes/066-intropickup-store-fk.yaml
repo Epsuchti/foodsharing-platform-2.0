@@ -1,0 +1,14 @@
+# Milestone 3 (B2): intro_pickup.store_id references store.
+databaseChangeLog:
+  - changeSet:
+      id: 066-1
+      author: platform
+      comment: 'Foreign key of the EinAb store.'
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: intro_pickup
+            baseColumnNames: store_id
+            constraintName: fk_intro_pickup_store_id
+            referencedTableName: store
+            referencedColumnNames: id
+            onDelete: SET NULL

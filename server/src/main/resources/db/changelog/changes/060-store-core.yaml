@@ -1,0 +1,162 @@
+# Milestone 3 (B2): stores, categories, groceries, chains (plan §12, upstream fs_betrieb).
+databaseChangeLog:
+  - changeSet:
+      id: 060-1
+      author: platform
+      comment: 'Store categories.'
+      changes:
+        - createTable:
+            tableName: store_category
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store_category, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_store_category_name}}
+              - column: {name: type, type: VARCHAR(20), defaultValue: PICKUP, constraints: {nullable: false}}
+  - changeSet:
+      id: 060-2
+      author: platform
+      comment: 'Groceries a store gives.'
+      changes:
+        - createTable:
+            tableName: grocery
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_grocery, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_grocery_name}}
+  - changeSet:
+      id: 060-3
+      author: platform
+      comment: 'Store chains.'
+      changes:
+        - createTable:
+            tableName: store_chain
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store_chain, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: hq_street, type: VARCHAR(200)}
+              - column: {name: hq_postcode, type: VARCHAR(20)}
+              - column: {name: hq_city, type: VARCHAR(100)}
+              - column: {name: hq_country, type: VARCHAR(2)}
+              - column: {name: status, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: press_allowed, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: forum_thread_id, type: UUID}
+              - column: {name: notes, type: VARCHAR(2000)}
+              - column: {name: common_store_information, type: VARCHAR(32600)}
+              - column: {name: estimated_store_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+  - changeSet:
+      id: 060-4
+      author: platform
+      comment: 'Key account managers of chains.'
+      changes:
+        - createTable:
+            tableName: store_chain_kam
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store_chain_kam, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: chain_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_chain_kam_chain_id, references: store_chain(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_chain_kam_user_id, references: user_account(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: store_chain_kam
+            columnNames: chain_id, user_id
+            constraintName: uq_store_chain_kam_chain_id_user_id
+  - changeSet:
+      id: 060-5
+      author: platform
+      comment: 'Stores.'
+      changes:
+        - createTable:
+            tableName: store
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_region_id, references: region(id)}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: street, type: VARCHAR(200)}
+              - column: {name: postcode, type: VARCHAR(20)}
+              - column: {name: city, type: VARCHAR(100)}
+              - column: {name: country, type: VARCHAR(2)}
+              - column: {name: latitude, type: DOUBLE}
+              - column: {name: longitude, type: DOUBLE}
+              - column: {name: category_id, type: UUID, constraints: {foreignKeyName: fk_store_category_id, references: store_category(id)}}
+              - column: {name: chain_id, type: UUID, constraints: {foreignKeyName: fk_store_chain_id, references: store_chain(id)}}
+              - column: {name: cooperation_status, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: status_date, type: DATE}
+              - column: {name: cooperation_start, type: DATE}
+              - column: {name: convince_status, type: VARCHAR(40), defaultValue: NOT_SET, constraints: {nullable: false}}
+              - column: {name: contact_person, type: VARCHAR(200)}
+              - column: {name: contact_phone, type: VARCHAR(50)}
+              - column: {name: contact_fax, type: VARCHAR(50)}
+              - column: {name: contact_email, type: VARCHAR(320)}
+              - column: {name: publicity, type: VARCHAR(20), defaultValue: NOT_CHOSEN, constraints: {nullable: false}}
+              - column: {name: sticker, type: VARCHAR(20), defaultValue: NOT_CHOSEN, constraints: {nullable: false}}
+              - column: {name: public_info, type: VARCHAR(4000)}
+              - column: {name: public_pickup_time, type: VARCHAR(20), defaultValue: NOT_SET, constraints: {nullable: false}}
+              - column: {name: weight_category, type: VARCHAR(20), defaultValue: NOT_SET, constraints: {nullable: false}}
+              - column: {name: prefetch_days, type: INT, defaultValueNumeric: 14, constraints: {nullable: false}}
+              - column: {name: use_region_pickup_rule, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: requires_hygiene, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: requires_verified, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: requires_phone, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: requires_application_text, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: team_status, type: VARCHAR(20), defaultValue: CLOSED, constraints: {nullable: false}}
+              - column: {name: special_notes, type: VARCHAR(32600)}
+              - column: {name: description, type: VARCHAR(32600)}
+              - column: {name: team_conversation_id, type: UUID}
+              - column: {name: jumper_conversation_id, type: UUID}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: store
+            indexName: ix_store_region_id
+            columns:
+              - column: {name: region_id}
+        - createIndex:
+            tableName: store
+            indexName: ix_store_chain_id
+            columns:
+              - column: {name: chain_id}
+        - createIndex:
+            tableName: store
+            indexName: ix_store_cooperation_status
+            columns:
+              - column: {name: cooperation_status}
+  - changeSet:
+      id: 060-6
+      author: platform
+      comment: 'Groceries per store.'
+      changes:
+        - createTable:
+            tableName: store_grocery
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store_grocery, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_grocery_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: grocery_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_grocery_grocery_id, references: grocery(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: store_grocery
+            columnNames: store_id, grocery_id
+            constraintName: uq_store_grocery_store_id_grocery_id
