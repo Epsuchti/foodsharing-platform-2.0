@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
@@ -6,6 +7,16 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
  */
 
 screenshotTest.use({ seedReset: 'off' });
+
+/**
+ * Full-page captures stitch the page below the first viewport, where a `position: fixed` tab bar would be painted
+ * in the middle of the content. For the contact sheet it is placed in the flow at the end of the page instead.
+ */
+async function tabBarInFlow(page: Page): Promise<void> {
+  await page.addStyleTag({
+    content: 'fs-mobile-tab-bar { position: static !important; } .fs-shell--tabbar { padding-bottom: 0 !important; }',
+  });
+}
 
 forEachVariant((variant) => {
   screenshotTest.describe(variant.name, () => {
@@ -44,6 +55,7 @@ forEachVariant((variant) => {
       screenshotTest(`dashboard ${variant.name} @D4.3 @screenshot`, async ({ page, visual }) => {
         await page.goto('/dashboard');
         await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+        await tabBarInFlow(page);
         await visual.expectScreen(page, `dashboard-${variant.name}`);
       });
 
@@ -52,6 +64,7 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
         await context.setOffline(true);
         await expect(page.getByTestId('shell.offlineBanner')).toBeVisible();
+        await tabBarInFlow(page);
         await visual.expectScreen(page, `offline-${variant.name}`);
         await context.setOffline(false);
       });

@@ -17,6 +17,9 @@ forEachVariant((variant) => {
       await expect(page.locator('html')).toHaveAttribute('lang', variant.lang);
       await expect(page.getByTestId('gallery.live.state')).toHaveAttribute('data-state', 'success');
 
+      // Element captures scroll the section into view; the sticky header would be painted over its top.
+      await page.addStyleTag({ content: 'fs-header { position: static !important; }' });
+
       const sections = page.locator('section[data-testid^="gallery."]');
       const ids = await sections.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')!));
       expect(ids.length).toBeGreaterThan(20);

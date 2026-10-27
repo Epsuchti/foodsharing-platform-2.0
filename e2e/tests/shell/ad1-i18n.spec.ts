@@ -1,4 +1,4 @@
-import { LANGUAGES, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
+import { LANGUAGES, SEED_NOW, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
 import { schema } from '../../support/openapi';
 
 /** AD1 (§14.4 "translations with i18n:check"): the packaged jar serves complete catalogs for all five languages. */
@@ -57,3 +57,32 @@ for (const lang of LANGUAGES) {
     }
   });
 }
+
+const DATEPICKER: Record<string, { month: RegExp; today: RegExp; weekday: RegExp }> = {
+  de: { month: /November/, today: /^Heute$/, weekday: /^Mo$/ },
+  fr: { month: /novembre/, today: /^Aujourd’hui$/, weekday: /^lu$/ },
+  it: { month: /novembre/, today: /^Oggi$/, weekday: /^lu$/ },
+  en: { month: /November/, today: /^Today$/, weekday: /^Mo$/ },
+};
+
+test.describe('datepicker locale', () => {
+  test.use({ role: 'foodsaver', seedReset: 'test' });
+
+  for (const [lang, expected] of Object.entries(DATEPICKER)) {
+    test(`AD1 datepicker month and day names follow the UI language (${lang}) @AD1`, async ({ page, apiOf }) => {
+      await page.clock.setFixedTime(new Date(SEED_NOW));
+      // Logged in, the account language wins over the device setting.
+      const response = await apiOf(page).patch('/api/users/me/settings', { language: lang });
+      expect(response.status(), await response.text()).toBe(200);
+      await page.goto('/me/activity');
+      await expect(page.locator('html')).toHaveAttribute('lang', HTML_LANG[lang]);
+      await page.getByTestId('history.myActivity.filter.dateRange').locator('input').click();
+      const panel = page.locator('.p-datepicker-panel').first();
+      await expect(panel).toBeVisible();
+      await expect(panel.locator('.p-datepicker-select-month')).toHaveText(expected.month);
+      // Monday first (Swiss convention).
+      await expect(panel.locator('thead th').first()).toHaveText(expected.weekday);
+      await expect(panel.getByRole('button', { name: expected.today })).toBeVisible();
+    });
+  }
+});

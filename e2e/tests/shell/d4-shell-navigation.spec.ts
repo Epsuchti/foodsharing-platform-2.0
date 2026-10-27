@@ -98,6 +98,11 @@ test.describe('logged in', () => {
     await expect(drawer).toBeHidden();
     await expect.poll(() => path(page)).toBe('/dev/gallery');
     await expect(dashboardTab).not.toHaveAttribute('aria-current', 'page');
+    // No horizontal overflow on a phone (it would widen the layout viewport and move the fixed tab bar).
+    await expect(page.getByTestId('gallery.dataState.live')).toBeVisible();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+      .toBeLessThanOrEqual(0);
 
     await dashboardTab.click();
     await expect.poll(() => path(page)).toBe('/dashboard');

@@ -22,7 +22,7 @@ import { NavContextService } from './nav-context.service';
         type="button"
         class="user-btn"
         (click)="op.toggle($event)"
-        [attr.aria-label]="'layout.userMenu.open' | t"
+        [attr.aria-label]="user.displayName + ' – ' + ('layout.userMenu.open' | t)"
         aria-haspopup="true"
         data-testid="shell.userMenu"
       >

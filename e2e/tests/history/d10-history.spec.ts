@@ -81,9 +81,7 @@ async function closeOverlay(page: Page): Promise<void> {
 test.describe('as foodsaver', () => {
   test.use({ role: 'foodsaver', seedReset: 'test' });
 
-  // No `@page` auto-gate: axe runs below scoped to the page content, because the shared header (layout, M1 T8) still
-  // has findings of its own (label-content-name-mismatch on the language/user buttons) that T8 fixes.
-  test('D10.3 my activity shows own actions with filters and pagination @D10.3', async ({ page, api, apiOf }) => {
+  test('D10.3 my activity shows own actions with filters and pagination @D10.3 @page', async ({ page, api, apiOf }) => {
     await changeThemeRepeatedly(api, 10);
     await page.goto('/me/activity');
     await expectDataState(page, LIST, 'success');

@@ -140,6 +140,8 @@
 /* stacked cards (mobile, compact) */
 .ht__cards {
   display: grid;
+  /* minmax(0, …): long values (trace ids, e-mails) wrap instead of widening the page on phones */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.6rem;
   margin: 0;
   padding: 0;
