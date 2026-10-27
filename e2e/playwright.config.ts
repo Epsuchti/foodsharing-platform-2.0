@@ -21,6 +21,7 @@ const SCREENS = 'screenshots/**/*.screen.ts';
 const SCREENSHOTS = process.env.E2E_SCREENSHOTS === '1';
 
 const shared: PlaywrightTestConfig['use'] = {
+  serviceWorkers: 'block',
   locale: 'de-CH',
   timezoneId: 'Europe/Zurich',
   testIdAttribute: 'data-testid',
