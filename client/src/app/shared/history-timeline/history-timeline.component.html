@@ -1,0 +1,220 @@
+@if (showFilters() || csvExport()) {
+  <div class="ht__toolbar" role="group" [attr.aria-label]="'shared.historyTimeline.filters' | t">
+    @if (showFilters()) {
+      <div class="ht__filters">
+        @if (filters().dateRange) {
+          <div class="ht__filter ht__filter--range">
+            <label class="ht__filter-label" [for]="uid + '-range'">
+              {{ 'shared.historyTimeline.filter.dateRange' | t }}
+            </label>
+            <p-datepicker
+              [inputId]="uid + '-range'"
+              selectionMode="range"
+              [ngModel]="range()"
+              (ngModelChange)="onRangeChange($event)"
+              (onClose)="onRangeClose()"
+              [readonlyInput]="true"
+              [showIcon]="true"
+              iconDisplay="input"
+              [showButtonBar]="true"
+              [showClear]="true"
+              dateFormat="dd.mm.yy"
+              [firstDayOfWeek]="1"
+              appendTo="body"
+              [placeholder]="'shared.historyTimeline.filter.dateRangePlaceholder' | t"
+              styleClass="ht__control"
+              [attr.data-testid]="testId() + '.filter.dateRange'"
+            />
+          </div>
+        }
+        @if (filters().actions) {
+          <div class="ht__filter ht__filter--actions">
+            <label class="ht__filter-label" [for]="uid + '-actions'">
+              {{ 'shared.historyTimeline.filter.actions' | t }}
+            </label>
+            <p-multiselect
+              [inputId]="uid + '-actions'"
+              [options]="actionOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="selectedActions()"
+              (ngModelChange)="onActionsChange($event)"
+              [filter]="actionOptions().length > 8"
+              [showToggleAll]="false"
+              [showClear]="true"
+              [maxSelectedLabels]="2"
+              [selectedItemsLabel]="'shared.historyTimeline.filter.actionsSelected' | t"
+              [placeholder]="'shared.historyTimeline.filter.allActions' | t"
+              appendTo="body"
+              styleClass="ht__control"
+              panelStyleClass="ht__actions-panel"
+              [attr.data-testid]="testId() + '.filter.actions'"
+            >
+              <ng-template #empty>
+                @if (actionsState.status() === 'empty' || actionsState.status() === 'success') {
+                  <span>{{ 'shared.historyTimeline.filter.noActions' | t }}</span>
+                } @else {
+                  <fs-data-state
+                    [state]="actionsState"
+                    [compact]="true"
+                    skeleton="list"
+                    [skeletonRows]="3"
+                    [attr.data-testid]="testId() + '.filter.actionsState'"
+                  />
+                }
+              </ng-template>
+            </p-multiselect>
+          </div>
+        }
+        @if (actorOptions().length > 0) {
+          <div class="ht__filter ht__filter--actor">
+            <label class="ht__filter-label" [for]="uid + '-actor'">
+              {{ 'shared.historyTimeline.filter.actor' | t }}
+            </label>
+            <p-select
+              [inputId]="uid + '-actor'"
+              [options]="actorOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="selectedActor()"
+              (ngModelChange)="onActorChange($event)"
+              [showClear]="true"
+              [filter]="actorOptions().length > 8"
+              appendTo="body"
+              [placeholder]="'shared.historyTimeline.filter.allActors' | t"
+              styleClass="ht__control"
+              [attr.data-testid]="testId() + '.filter.actor'"
+            />
+          </div>
+        }
+        @if (activeFilterCount() > 0) {
+          <p-button
+            class="ht__reset"
+            [label]="'shared.historyTimeline.filter.reset' | t"
+            icon="pi pi-filter-slash"
+            [text]="true"
+            size="small"
+            (onClick)="resetFilters()"
+            [attr.data-testid]="testId() + '.filter.reset'"
+          />
+        }
+      </div>
+    }
+    @if (csvExport()) {
+      <p-button
+        class="ht__export"
+        [label]="'shared.historyTimeline.export' | t"
+        icon="pi pi-download"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="exporter.busy()"
+        (onClick)="exporter.run(filter())"
+        [attr.data-testid]="testId() + '.export'"
+      />
+    }
+  </div>
+}
+
+<fs-data-state
+  [state]="state"
+  [skeleton]="skeletonTpl"
+  emptyIcon="pi pi-history"
+  [emptyTitle]="
+    activeFilterCount() > 0
+      ? ('shared.historyTimeline.emptyFilteredTitle' | t)
+      : (emptyTitle() ?? ('shared.historyTimeline.emptyTitle' | t))
+  "
+  [emptyText]="
+    activeFilterCount() > 0 ? ('shared.historyTimeline.emptyFilteredText' | t) : emptyText()
+  "
+  [emptyActionLabel]="activeFilterCount() > 0 ? ('shared.historyTimeline.filter.reset' | t) : undefined"
+  emptyActionIcon="pi pi-filter-slash"
+  (emptyAction)="resetFilters()"
+  [askWho]="askWho()"
+  [backLink]="backLink()"
+  [compact]="compact()"
+  [attr.data-testid]="testId() + '.list'"
+>
+  <ng-template [fsData]="state">
+    @if (pageMeta(); as meta) {
+      <p class="ht__count" [attr.data-testid]="testId() + '.count'" aria-live="polite">
+        {{ 'shared.historyTimeline.count' | t: { count: meta.totalItems } }}
+      </p>
+    }
+
+    @for (group of groups(); track group.key) {
+      <section class="ht__day" [attr.aria-labelledby]="uid + '-day-' + group.key">
+        <h3 class="ht__day-title" [id]="uid + '-day-' + group.key">{{ group.label }}</h3>
+        @if (effectiveLayout() === 'timeline') {
+          <p-timeline [value]="group.entries" align="left" styleClass="ht__timeline">
+            <ng-template #marker let-entry>
+              <fs-history-icon [action]="entry.action" />
+            </ng-template>
+            <ng-template #opposite let-entry>
+              <time class="ht__time" [attr.datetime]="entry.occurredAt">
+                {{ entry.occurredAt | fsDate: 'time' }}
+              </time>
+            </ng-template>
+            <ng-template #content let-entry>
+              <fs-history-entry
+                [entry]="entry"
+                [showTime]="false"
+                [viewerId]="viewerId()"
+                [testId]="testId() + '.entry'"
+                [attr.data-testid]="testId() + '.entry'"
+              />
+            </ng-template>
+          </p-timeline>
+        } @else {
+          <ol class="ht__cards">
+            @for (entry of group.entries; track entry.id) {
+              <li>
+                <fs-history-entry
+                  [entry]="entry"
+                  [showMarker]="true"
+                  [compact]="compact()"
+                  [viewerId]="viewerId()"
+                  [testId]="testId() + '.entry'"
+                  [attr.data-testid]="testId() + '.entry'"
+                />
+              </li>
+            }
+          </ol>
+        }
+      </section>
+    }
+
+    @if (pageMeta(); as meta) {
+      @if (meta.totalPages > 1) {
+        <p-paginator
+          [first]="meta.page * meta.size"
+          [rows]="meta.size"
+          [totalRecords]="meta.totalItems"
+          [pageLinkSize]="compact() || !wideLayout() ? 3 : 5"
+          [showFirstLastIcon]="!compact()"
+          (onPageChange)="onPage($event)"
+          styleClass="ht__paginator"
+          [attr.data-testid]="testId() + '.paginator'"
+        />
+      }
+    }
+  </ng-template>
+</fs-data-state>
+
+<ng-template #skeletonTpl>
+  <div class="ht__skeleton" [attr.data-layout]="effectiveLayout()">
+    <p-skeleton width="9rem" height="1rem" />
+    @for (row of skeletonRows; track row) {
+      <div class="ht__skeleton-row">
+        @if (effectiveLayout() === 'timeline') {
+          <p-skeleton width="3rem" height="0.85rem" />
+        }
+        <p-skeleton shape="circle" size="2.25rem" />
+        <div class="ht__skeleton-lines">
+          <p-skeleton [width]="row % 2 ? '55%' : '40%'" height="1rem" />
+          <p-skeleton [width]="row % 2 ? '30%' : '45%'" height="0.8rem" />
+        </div>
+      </div>
+    }
+  </div>
+</ng-template>

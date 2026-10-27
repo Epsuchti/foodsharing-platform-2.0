@@ -161,24 +161,24 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 
 | ID | Deliverable | Status | Backend | Frontend | E2E test | Screenshot test | Notes |
 |---|---|---|---|---|---|---|---|
-| D4.1 | Skeleton repo with the layout above; `./mvnw clean package` produces one runnable jar. | todo | | | | | |
-| D4.2 | `local` profile boots with H2 + seed data and no external accounts needed. | todo | | | | | |
-| D4.3 | Opening `http://localhost:8080/some/deep/link` serves the Angular app. | todo | | | | | |
-| D5.1 | Split spec skeleton with `common.yaml` and the `auth`, `public`, `onboarding` tags. | todo | | | | | |
-| D5.2 | ArchUnit test: every `@RestController` implements exactly one interface from `network.foodsharing.api`. | todo | | | | | |
-| D5.3 | ESLint rule banning `HttpClient` outside `core/`/`api/`. | todo | | | | | |
-| D5.4 | CI job running spec validation and `oasdiff breaking`. | todo | | | | | |
-| D7.1 | `db.changelog-master.yaml` + `001-initial`. | todo | | | | | |
-| D7.2 | Seed CSVs + `context: seed` changesets. | todo | | | | | |
+| D4.1 | Skeleton repo with the layout above; `./mvnw clean package` produces one runnable jar. | done | server/pom.xml, Dockerfile | client build in jar | d4-smoke @D4.1 | |  |
+| D4.2 | `local` profile boots with H2 + seed data and no external accounts needed. | done | application-local, seed changesets | | d4-smoke @D4.2 | | LocalProfileSmokeIT |
+| D4.3 | Opening `http://localhost:8080/some/deep/link` serves the Angular app. | done | SpaForwardingController | | d4-smoke @D4.3 | |  |
+| D5.1 | Split spec skeleton with `common.yaml` and the `auth`, `public`, `onboarding` tags. | done | openapi/ split spec | | d4-smoke @D5.1 | | OpenApiContractTest |
+| D5.2 | ArchUnit test: every `@RestController` implements exactly one interface from `network.foodsharing.api`. | done | ArchitectureTest rule 1 | | | | proved by ArchitectureTest (backend) |
+| D5.3 | ESLint rule banning `HttpClient` outside `core/`/`api/`. | done | | eslint.config.js no-restricted-imports + check-data-state.mjs | | | proved by npm run lint in mvn verify |
+| D5.4 | CI job running spec validation and `oasdiff breaking`. | in-progress | .github/workflows/ci.yml contract job | | | | scripts/check-openapi.mjs + oasdiff.sh; CI not run (no remote) |
+| D7.1 | `db.changelog-master.yaml` + `001-initial`. | done | db.changelog-master.yaml + 001..006 | | | | LiquibasePostgresIT |
+| D7.2 | Seed CSVs + `context: seed` changesets. | done | db/seed/** | | d4-smoke @D4.2 | |  |
 | D7.3 | Dev user switcher (local only) + test that it is absent in `prod`. | todo | | | | | |
 | D8.1 | Google login end-to-end incl. account creation and linking. | todo | | | | | |
 | D8.2 | Email magic link with Mailpit locally, rate limit, open-redirect guard. | todo | | | | | |
 | D8.3 | Passkey registration and login. | todo | | | | | |
 | D8.4 | Cookie sessions + CSRF + session list. | todo | | | | | |
-| D8.5 | `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env. | todo | | | | | |
-| D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | todo | | | | | |
-| D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | todo | | | | | |
-| D10.3 | All views from the table above. | todo | | | | | |
+| D8.5 | `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env. | done | application-prod.properties | | | | config |
+| D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | done | history module, TrackedFieldListener | shared/history-timeline | d10-history @D10.1 | history.screen.ts (no baseline yet) |  |
+| D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | done | ArchitectureTest rule 4 + fixture test | | | | proved by ArchitectureRuleFixtureTest |
+| D10.3 | All views from the table above. | in-progress | | fs-history-timeline, /me/activity | d10-history @D10.3 | | my activity done; other views come with their modules |
 | D11.5.1 | New user goes from landing page to "account created" in **≤ 2 clicks** with Google. | todo | | | | | |
 | D11.5.2 | At any time the user sees which step they are on and the single next action. | todo | | | | | |
 | D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | todo | | | | | |

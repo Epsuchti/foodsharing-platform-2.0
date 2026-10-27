@@ -11,6 +11,8 @@ import { Tag } from '@openng/optimus-ui/tag';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
+import { of } from 'rxjs';
+
 import { ApiErrorCode, PublicService, Role } from '../../../api';
 import { ApiErrorView } from '../../../core/data/api-error';
 import {
@@ -25,6 +27,15 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { ThemeService, isThemePreference } from '../../../core/theme/theme.service';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { SkeletonPreset } from '../../../shared/data-state/skeleton-presets.component';
+import {
+  DEMO_USER_ID,
+  demoActionsSource,
+  demoHistorySource,
+  emptyHistorySource,
+  failingHistorySource,
+  loadingHistorySource,
+} from '../../../shared/history-timeline/history-demo';
+import { HistoryTimelineComponent } from '../../../shared/history-timeline/history-timeline.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
@@ -64,6 +75,7 @@ function demoError(status: number, code: ApiErrorView['code'], retryable: boolea
     Button,
     Checkbox,
     FormsModule,
+    HistoryTimelineComponent,
     InputText,
     Message,
     PageHeaderComponent,
@@ -157,6 +169,17 @@ export class GalleryPageComponent implements OnInit {
     forbidden: demoError(403, ApiErrorCode.AccessDenied, false),
     notFound: demoError(404, ApiErrorCode.ResourceNotFound, false),
     offline: demoError(0, 'NETWORK', true),
+  };
+
+  // history timeline demo (history section)
+  protected readonly history = {
+    viewerId: DEMO_USER_ID,
+    actions: demoActionsSource,
+    filled: demoHistorySource,
+    empty: emptyHistorySource,
+    loading: loadingHistorySource,
+    error: failingHistorySource(demoError(500, ApiErrorCode.UnexpectedError, true)),
+    noop: () => of(''),
   };
 
   // form kit demo values

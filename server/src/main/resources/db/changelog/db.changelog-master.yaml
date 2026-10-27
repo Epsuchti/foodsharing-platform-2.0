@@ -6,8 +6,10 @@ databaseChangeLog:
       path: changes/
       relativeToChangelogFile: true
       errorIfMissingOrEmpty: true
+      endsWithFilter: .yaml
   - includeAll:
       path: ../seed/changes/
       relativeToChangelogFile: true
       errorIfMissingOrEmpty: false
+      endsWithFilter: .yaml
       contextFilter: seed
