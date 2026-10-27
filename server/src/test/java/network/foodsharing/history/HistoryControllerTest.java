@@ -176,7 +176,8 @@ class HistoryControllerTest {
         mvc.perform(get("/api/history/actions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.action == 'FIELD_CHANGED')].subjectType")
-                        .value(org.hamcrest.Matchers.containsInAnyOrder("USER", "REGION", "GROUP")));
+                        .value(org.hamcrest.Matchers.containsInAnyOrder("USER", "REGION", "GROUP", "STORE",
+                                "STORE_CHAIN")));
     }
 
     @Test

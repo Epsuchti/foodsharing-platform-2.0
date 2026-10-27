@@ -37,8 +37,8 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | quiz | 0013 | `quiz`(+`_i18n`), `quiz_question`(+`_i18n`), `quiz_answer`(+`_i18n`), `quiz_question_comment`, `quiz_session` | 0001–0008 | T13 |
 | verification | 0014 | `passport_issue`, `passport_request`, `wallet_pass` | 0001–0003 | T16 |
 | onboarding | 0015 | `learning_progress`, `user_onboarding_step_done`, `onboarding_nudge` | 0001–0003 | T22 |
-| store | 0020 | | | M3 |
-| pickup | 0021 | | | M3 |
+| store | 0020 | `store`, `store_category`, `store_chain`, `store_chain_kam`, `grocery`, `store_grocery`, `store_membership`, `store_wall_post` | 0001–0008 | M3 (B2, B3, B6) |
+| pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category` | 0001–0004 | M3 (B2, B4) |
 | intropickup | 0030 | `intro_pickup`, `intro_pickup_slot`, `intro_pickup_comment`, `guide_profile`, `private_info_template`, `intro_pickup_subscription`, `intro_pickup_store_alias` | 0001–0007 | T15 |
 
 Seed changelog numbers: M1 uses `001`–`004`; later milestones follow the same ranges as the schema changelogs

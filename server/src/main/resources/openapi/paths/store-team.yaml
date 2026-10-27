@@ -1,0 +1,426 @@
+/api/stores/{storeId}/team:
+  get:
+    tags: [store-team]
+    operationId: getStoreTeam
+    summary: 'Team, jumpers, applications and invitations.'
+    x-permission: 'mayAccessStore'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreTeam'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/applications:
+  post:
+    tags: [store-team]
+    operationId: applyToStore
+    summary: 'Apply to the store team.'
+    x-permission: 'AUTHENTICATED'
+    x-history: StoreLogAction.REQUEST_TO_JOIN
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/stores.yaml#/StoreApplicationCreate'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED or APPLICATION_TEXT_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_IN_TEAM, TEAM_CLOSED, NOT_REGION_MEMBER, PROFILE_INCOMPLETE, NO_HOME_REGION, PHONE_REQUIRED or HYGIENE_CERTIFICATE_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/applications/me:
+  delete:
+    tags: [store-team]
+    operationId: cancelMyStoreApplication
+    summary: 'Withdraw the own application.'
+    x-permission: 'self'
+    x-history: StoreLogAction.REQUEST_CANCELLED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_APPLIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/applications/{userId}/accept:
+  post:
+    tags: [store-team]
+    operationId: acceptApplication
+    summary: 'Accept an application (optionally onto the waiting list).'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.REQUEST_APPROVED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: moveToStandby
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_APPLIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/applications/{userId}/decline:
+  post:
+    tags: [store-team]
+    operationId: declineApplication
+    summary: 'Decline an application with a message.'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.REQUEST_DECLINED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/RequiredMessage'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_APPLIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/invitations/{userId}:
+  post:
+    tags: [store-team]
+    operationId: inviteUser
+    summary: 'Invite a user to the team.'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.INVITED_TO_TEAM
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_IN_TEAM', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [store-team]
+    operationId: withdrawInvitation
+    summary: 'Withdraw an invitation.'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.INVITATION_WITHDRAWN
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_INVITED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/invitations/me/accept:
+  post:
+    tags: [store-team]
+    operationId: acceptInvitation
+    summary: 'Accept an invitation (requirements are checked again).'
+    x-permission: 'self'
+    x-history: StoreLogAction.INVITATION_ACCEPTED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_INVITED, NOT_REGION_MEMBER, PROFILE_INCOMPLETE, NO_HOME_REGION, PHONE_REQUIRED or HYGIENE_CERTIFICATE_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/invitations/me/decline:
+  post:
+    tags: [store-team]
+    operationId: declineInvitation
+    summary: 'Decline an invitation.'
+    x-permission: 'self'
+    x-history: StoreLogAction.INVITATION_DECLINED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_INVITED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/team/{userId}:
+  delete:
+    tags: [store-team]
+    operationId: removeMember
+    summary: 'Remove a member (message required) or leave (self, message optional); future sign-ups are deleted.'
+    x-permission: 'mayEditTeam or self'
+    x-history: StoreLogAction.REMOVED_FROM_STORE
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/RequiredMessage'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_TEAM_MEMBER or MANAGER_CANNOT_LEAVE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [store-team]
+    operationId: addMemberDirectly
+    summary: 'Add a user to the team without an application.'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.ADDED_WITHOUT_REQUEST
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: standby
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_IN_TEAM', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/team/{userId}/standby:
+  post:
+    tags: [store-team]
+    operationId: moveToStandby
+    summary: 'Move a member to the waiting list (message required).'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.MOVED_TO_JUMPER
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/RequiredMessage'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_TEAM_MEMBER or MANAGER_CANNOT_LEAVE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/team/{userId}/regular:
+  post:
+    tags: [store-team]
+    operationId: moveToRegularTeam
+    summary: 'Move a jumper into the regular team.'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.MOVED_TO_TEAM
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_TEAM_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/managers/{userId}:
+  put:
+    tags: [store-team]
+    operationId: appointManager
+    summary: 'Appoint a store manager.'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.APPOINT_STORE_MANAGER
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TOO_MANY_MANAGERS, ALREADY_MANAGER or NOT_TEAM_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [store-team]
+    operationId: removeManager
+    summary: 'Remove a store manager (message required).'
+    x-permission: 'mayEditTeam'
+    x-history: StoreLogAction.REMOVED_AS_STORE_MANAGER
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/RequiredMessage'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_MANAGER or LAST_MANAGER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

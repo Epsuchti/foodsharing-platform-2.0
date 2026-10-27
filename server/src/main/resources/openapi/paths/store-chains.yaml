@@ -1,0 +1,140 @@
+/api/store-chains:
+  get:
+    tags: [store-chains]
+    operationId: listStoreChains
+    summary: 'Store chains.'
+    x-permission: 'FOODSAVER'
+    parameters:
+      - name: status
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '../schemas/store-chains.yaml#/StoreChainStatus'
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/store-chains.yaml#/StoreChainPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [store-chains]
+    operationId: createStoreChain
+    summary: 'Create a store chain.'
+    x-permission: 'mayAdministrateChains'
+    x-history: StoreChainAction.CHAIN_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/store-chains.yaml#/StoreChainUpdate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/store-chains.yaml#/StoreChain'
+      '400': {description: 'VALIDATION_FAILED or INVALID_KAM', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/store-chains/{chainId}:
+  get:
+    tags: [store-chains]
+    operationId: getStoreChain
+    summary: 'A store chain.'
+    x-permission: 'FOODSAVER'
+    parameters:
+      - name: chainId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/store-chains.yaml#/StoreChain'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'CHAIN_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  patch:
+    tags: [store-chains]
+    operationId: updateStoreChain
+    summary: 'Change a chain (KAMs: not the KAM list).'
+    x-permission: 'mayAdministrateChains or KAM of the chain'
+    x-history: StoreChainAction.CHAIN_UPDATED
+    parameters:
+      - name: chainId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/store-chains.yaml#/StoreChainUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/store-chains.yaml#/StoreChain'
+      '400': {description: 'VALIDATION_FAILED or INVALID_KAM', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED or KAM_CANNOT_EDIT_KAMS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'CHAIN_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/store-chains/{chainId}/stores:
+  get:
+    tags: [store-chains]
+    operationId: listChainStores
+    summary: 'Stores of a chain.'
+    x-permission: 'mayAdministrateChains or KAM of the chain'
+    parameters:
+      - name: chainId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/stores.yaml#/StoreListItem'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'CHAIN_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

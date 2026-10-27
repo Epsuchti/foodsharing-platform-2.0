@@ -1,0 +1,20 @@
+# Store category / grocery admin schemas (milestone 3).
+NamedItemUpdate:
+  type: object
+  required: [name]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    type:
+      type: string
+      maxLength: 20
+
+MergeRequest:
+  type: object
+  required: [targetId]
+  properties:
+    targetId:
+      type: string
+      format: uuid

@@ -1,0 +1,408 @@
+/api/store-metadata:
+  get:
+    tags: [stores]
+    operationId: getStoreMetadata
+    summary: 'Categories, groceries, weight categories and chains.'
+    x-permission: 'FOODSAVER'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreMetadata'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/stores:
+  get:
+    tags: [stores]
+    operationId: listRegionStores
+    summary: 'Stores of a region (default cooperation filter: UNCLEAR, NO_CONTACT, IN_NEGOTIATION, COOPERATION_ESTABLISHED).'
+    x-permission: 'member of the region or mayCoordinateRegionStores'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: cooperationStatus
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '../schemas/stores.yaml#/CooperationStatus'
+      - name: teamStatus
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '../schemas/stores.yaml#/TeamSearchStatus'
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: includeSubregions
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreListPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [stores]
+    operationId: createStore
+    summary: 'Create a store; the creator becomes member and manager.'
+    x-permission: 'mayCreateStore'
+    x-history: StoreLogAction.STORE_CREATED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/stores.yaml#/StoreCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreDetail'
+      '400': {description: 'VALIDATION_FAILED or GEOCODING_UNAVAILABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND or CATEGORY_NOT_FOUND or CHAIN_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/stores:
+  get:
+    tags: [stores]
+    operationId: listMyStores
+    summary: 'Stores the current user is in (any team status).'
+    x-permission: 'self'
+    parameters:
+      - name: excludeInactive
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/stores.yaml#/StoreListItem'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}:
+  get:
+    tags: [stores]
+    operationId: getStore
+    summary: 'Store information (sensitive details only with mayReadWall).'
+    x-permission: 'mayAccessStore'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreDetail'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  patch:
+    tags: [stores]
+    operationId: updateStore
+    summary: 'Change store fields (all optional); move to another region.'
+    x-permission: 'mayEditStore'
+    x-history: StoreLogAction.STORE_UPDATED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/stores.yaml#/StorePatch'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreDetail'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED, REGION_NOT_FOUND, CATEGORY_NOT_FOUND or CHAIN_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TEAM_MEMBERS_NOT_IN_TARGET_REGION (args.names) or CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [stores]
+    operationId: deleteStore
+    summary: 'Delete a store that never had pickup sign-ups.'
+    x-permission: 'mayDeleteStore'
+    x-history: StoreLogAction.DELETE_STORE
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/ReasonBody'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'STORE_HAS_PICKUPS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/permissions:
+  get:
+    tags: [stores]
+    operationId: getStorePermissions
+    summary: 'What the current user may do in the store.'
+    x-permission: 'AUTHENTICATED'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StorePermissions'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/wall:
+  get:
+    tags: [stores]
+    operationId: listWallPosts
+    summary: 'Store wall (newest first).'
+    x-permission: 'mayReadWall'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/WallPostPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [stores]
+    operationId: addWallPost
+    summary: 'Post on the store wall.'
+    x-permission: 'mayPostWall'
+    x-history: StoreLogAction.WALL_POST_ADDED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/stores.yaml#/WallPostCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/WallPost'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/wall/{postId}:
+  delete:
+    tags: [stores]
+    operationId: deleteWallPost
+    summary: 'Delete a wall post (own always; older than 30 days: coordinators of the store / region).'
+    x-permission: 'A19 wall delete'
+    x-history: StoreLogAction.DELETED_FROM_WALL
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or WALL_POST_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/log:
+  get:
+    tags: [stores]
+    operationId: getStoreLog
+    summary: 'Store log (history entries of the store).'
+    x-permission: 'maySeeStoreLog'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: actions
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/history.yaml#/HistoryEntryPage'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/statistics:
+  get:
+    tags: [stores]
+    operationId: getStoreStatistics
+    summary: 'Pickups and kilograms per month.'
+    x-permission: 'mayAccessStore'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreStatistics'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

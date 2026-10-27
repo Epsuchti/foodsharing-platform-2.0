@@ -53,6 +53,16 @@ tags:
     description: 'EinAb administration per region (CAN_MANAGE_USERS).'
   - name: public-intro-pickups
     description: 'Public EinAb list, guide iCal feeds and unsubscribe links.'
+  - name: stores
+    description: 'Stores: lists, detail, create/edit/delete, wall, store log, statistics (plan §12).'
+  - name: store-team
+    description: 'Store teams: applications, invitations, jumpers, managers.'
+  - name: pickups
+    description: 'Pickups: weekly schedule, slots, sign-ups, confirmations, history, agenda.'
+  - name: store-chains
+    description: 'Store chains and key account managers.'
+  - name: store-categories
+    description: 'Store categories and groceries (ORGA).'
   - name: verification
     description: 'Verification queue, verify/unverify, identity confirmation.'
   - name: passports
@@ -406,3 +416,94 @@ paths:
     $ref: './paths/jobs.yaml#/~1api~1jobs~1{jobId}'
   /api/jobs/{jobId}/result:
     $ref: './paths/jobs.yaml#/~1api~1jobs~1{jobId}~1result'
+  # --- stores ---
+  /api/store-metadata:
+    $ref: './paths/stores.yaml#/~1api~1store-metadata'
+  /api/regions/{regionId}/stores:
+    $ref: './paths/stores.yaml#/~1api~1regions~1{regionId}~1stores'
+  /api/users/me/stores:
+    $ref: './paths/stores.yaml#/~1api~1users~1me~1stores'
+  /api/stores/{storeId}:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}'
+  /api/stores/{storeId}/permissions:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1permissions'
+  /api/stores/{storeId}/wall:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1wall'
+  /api/stores/{storeId}/wall/{postId}:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1wall~1{postId}'
+  /api/stores/{storeId}/log:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1log'
+  /api/stores/{storeId}/statistics:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics'
+  # --- store-team ---
+  /api/stores/{storeId}/team:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team'
+  /api/stores/{storeId}/applications:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications'
+  /api/stores/{storeId}/applications/me:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications~1me'
+  /api/stores/{storeId}/applications/{userId}/accept:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications~1{userId}~1accept'
+  /api/stores/{storeId}/applications/{userId}/decline:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications~1{userId}~1decline'
+  /api/stores/{storeId}/invitations/{userId}:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1invitations~1{userId}'
+  /api/stores/{storeId}/invitations/me/accept:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1invitations~1me~1accept'
+  /api/stores/{storeId}/invitations/me/decline:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1invitations~1me~1decline'
+  /api/stores/{storeId}/team/{userId}:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1{userId}'
+  /api/stores/{storeId}/team/{userId}/standby:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1{userId}~1standby'
+  /api/stores/{storeId}/team/{userId}/regular:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1{userId}~1regular'
+  /api/stores/{storeId}/managers/{userId}:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1managers~1{userId}'
+  # --- pickups ---
+  /api/stores/{storeId}/regular-pickups:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1regular-pickups'
+  /api/stores/{storeId}/pickups:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups'
+  /api/stores/{storeId}/pickups/{pickupAt}:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}'
+  /api/stores/{storeId}/pickups/{pickupAt}/eligibility:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1eligibility'
+  /api/stores/{storeId}/pickups/{pickupAt}/signups:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups'
+  /api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups~1{userId}'
+  /api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}/confirm:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups~1{userId}~1confirm'
+  /api/stores/{storeId}/pickup-history:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickup-history'
+  /api/users/me/pickups:
+    $ref: './paths/pickups.yaml#/~1api~1users~1me~1pickups'
+  /api/users/{userId}/pickups/past:
+    $ref: './paths/pickups.yaml#/~1api~1users~1{userId}~1pickups~1past'
+  /api/users/{userId}/pickups:
+    $ref: './paths/pickups.yaml#/~1api~1users~1{userId}~1pickups'
+  /api/users/me/pickups/options:
+    $ref: './paths/pickups.yaml#/~1api~1users~1me~1pickups~1options'
+  /api/users/{userId}/agenda/{date}:
+    $ref: './paths/pickups.yaml#/~1api~1users~1{userId}~1agenda~1{date}'
+  # --- store-chains ---
+  /api/store-chains:
+    $ref: './paths/store-chains.yaml#/~1api~1store-chains'
+  /api/store-chains/{chainId}:
+    $ref: './paths/store-chains.yaml#/~1api~1store-chains~1{chainId}'
+  /api/store-chains/{chainId}/stores:
+    $ref: './paths/store-chains.yaml#/~1api~1store-chains~1{chainId}~1stores'
+  # --- store-categories ---
+  /api/store-categories:
+    $ref: './paths/store-categories.yaml#/~1api~1store-categories'
+  /api/store-categories/{id}:
+    $ref: './paths/store-categories.yaml#/~1api~1store-categories~1{id}'
+  /api/store-categories/{id}/merge:
+    $ref: './paths/store-categories.yaml#/~1api~1store-categories~1{id}~1merge'
+  /api/groceries:
+    $ref: './paths/store-categories.yaml#/~1api~1groceries'
+  /api/groceries/{id}:
+    $ref: './paths/store-categories.yaml#/~1api~1groceries~1{id}'
+  /api/groceries/{id}/merge:
+    $ref: './paths/store-categories.yaml#/~1api~1groceries~1{id}~1merge'

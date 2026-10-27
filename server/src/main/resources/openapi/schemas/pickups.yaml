@@ -1,0 +1,200 @@
+# Pickup schemas (milestone 3).
+Weekday:
+  type: string
+  enum: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
+
+PickupEligibilityReason:
+  type: string
+  enum: [NOT_TEAM_MEMBER, JUMPER_CANNOT_PICKUP, NOT_VERIFIED, HYGIENE_CERTIFICATE_REQUIRED, PHONE_REQUIRED, SLEEPING, PICKUP_IN_PAST, SIGNUP_NOT_YET_OPEN, NO_FREE_SLOT, ALREADY_SIGNED_UP, REGION_RULE_TIMESPAN_LIMIT, REGION_RULE_DAY_LIMIT]
+
+RegularPickup:
+  type: object
+  required: [weekday, startTime, slotCount]
+  properties:
+    weekday:
+      $ref: './pickups.yaml#/Weekday'
+    startTime:
+      description: 'HH:mm'
+      type: string
+      maxLength: 5
+    slotCount:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 50
+    description:
+      type: string
+      maxLength: 100
+
+PickupSlot:
+  type: object
+  required: [user, confirmed]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    confirmed:
+      type: boolean
+
+RegionPickupRuleState:
+  type: object
+  required: [active]
+  properties:
+    active:
+      type: boolean
+    timespanDays:
+      type: integer
+      format: int32
+    limitNumber:
+      type: integer
+      format: int32
+    limitDayNumber:
+      type: integer
+      format: int32
+    inactiveHours:
+      type: integer
+      format: int32
+    pickupsInTimespan:
+      type: integer
+      format: int32
+    pickupsSameDay:
+      type: integer
+      format: int32
+
+PickupEligibility:
+  type: object
+  required: [eligible, reasons]
+  properties:
+    eligible:
+      type: boolean
+    reasons:
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupEligibilityReason'
+    regionRule:
+      $ref: './pickups.yaml#/RegionPickupRuleState'
+
+Pickup:
+  type: object
+  required: [storeId, pickupAt, slotCount, occupiedSlots, isAvailable, isRegular]
+  properties:
+    storeId:
+      type: string
+      format: uuid
+    pickupAt:
+      type: string
+      format: date-time
+    slotCount:
+      type: integer
+      format: int32
+    description:
+      type: string
+    occupiedSlots:
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupSlot'
+    isAvailable:
+      type: boolean
+    isRegular:
+      type: boolean
+    eligibility:
+      $ref: './pickups.yaml#/PickupEligibility'
+
+PickupEdit:
+  type: object
+  required: [slotCount]
+  properties:
+    slotCount:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 50
+    description:
+      type: string
+      maxLength: 100
+
+SignupResult:
+  type: object
+  required: [confirmed]
+  properties:
+    confirmed:
+      type: boolean
+
+PickupHistoryPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './pickups.yaml#/Pickup'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+UserPickup:
+  type: object
+  required: [store, pickupAt, confirmed, slotCount]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupAt:
+      type: string
+      format: date-time
+    confirmed:
+      type: boolean
+    slotCount:
+      type: integer
+      format: int32
+    occupiedSlots:
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupSlot'
+    description:
+      type: string
+
+UserPickupPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './pickups.yaml#/UserPickup'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+PickupOption:
+  type: object
+  required: [store, pickupAt, slotCount, occupiedSlots]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupAt:
+      type: string
+      format: date-time
+    slotCount:
+      type: integer
+      format: int32
+    description:
+      type: string
+    occupiedSlots:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    isConfirmed:
+      type: boolean
+
+AgendaDay:
+  type: object
+  required: [date, pickups, introPickups]
+  properties:
+    date:
+      type: string
+      format: date
+    pickups:
+      type: array
+      items:
+        $ref: './pickups.yaml#/UserPickup'
+    introPickups:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/MyBooking'

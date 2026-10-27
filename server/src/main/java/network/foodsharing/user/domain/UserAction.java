@@ -8,6 +8,7 @@ import network.foodsharing.history.SubjectType;
 public enum UserAction implements HistoryAction {
     ACCOUNT_CREATED,
     SETTINGS_CHANGED,
+    PICKUP_REMINDERS_CHANGED,
     FIELD_CHANGED,
     ROLE_CHANGED,
     DEACTIVATED,

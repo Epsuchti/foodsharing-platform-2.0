@@ -1,0 +1,99 @@
+# Store chain schemas (milestone 3).
+StoreChainStatus:
+  type: string
+  enum: [NOT_COOPERATING, WAITING, COOPERATING, INSUFFICIENT_BRANCHES, CLOSED]
+
+ChainHeadquarters:
+  type: object
+  properties:
+    street:
+      type: string
+      maxLength: 200
+    postcode:
+      type: string
+      maxLength: 20
+    city:
+      type: string
+      maxLength: 100
+    country:
+      type: string
+      maxLength: 2
+
+StoreChain:
+  type: object
+  required: [id, name, status, pressAllowed, estimatedStoreCount, storeCount, kams]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    headquarters:
+      $ref: './store-chains.yaml#/ChainHeadquarters'
+    status:
+      $ref: './store-chains.yaml#/StoreChainStatus'
+    pressAllowed:
+      type: boolean
+    forumThreadId:
+      type: string
+      format: uuid
+    notes:
+      description: 'Chain admins and KAMs only'
+      type: string
+    commonStoreInformation:
+      type: string
+    estimatedStoreCount:
+      type: integer
+      format: int32
+    storeCount:
+      type: integer
+      format: int32
+    kams:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    updatedAt:
+      type: string
+      format: date-time
+
+StoreChainPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './store-chains.yaml#/StoreChain'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+StoreChainUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    headquarters:
+      $ref: './store-chains.yaml#/ChainHeadquarters'
+    status:
+      $ref: './store-chains.yaml#/StoreChainStatus'
+    pressAllowed:
+      type: boolean
+    forumThreadId:
+      type: string
+      format: uuid
+    notes:
+      type: string
+      maxLength: 2000
+    commonStoreInformation:
+      type: string
+      maxLength: 32600
+    estimatedStoreCount:
+      type: integer
+      format: int32
+    kamIds:
+      type: array
+      items:
+        type: string
+        format: uuid

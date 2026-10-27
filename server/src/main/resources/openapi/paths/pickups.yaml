@@ -1,0 +1,442 @@
+/api/stores/{storeId}/regular-pickups:
+  get:
+    tags: [pickups]
+    operationId: getRegularPickups
+    summary: 'Weekly pickup schedule.'
+    x-permission: 'maySeePickups'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/RegularPickup'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  put:
+    tags: [pickups]
+    operationId: replaceRegularPickups
+    summary: 'Replace the weekly schedule.'
+    x-permission: 'mayEditPickups'
+    x-history: StoreLogAction.UPDATE_REGULAR_PICKUP_SETTINGS
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../schemas/pickups.yaml#/RegularPickup'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/RegularPickup'
+      '400': {description: 'VALIDATION_FAILED, SLOT_COUNT_OUT_OF_RANGE or DUPLICATE_PICKUP_DAY_TIME', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickups:
+  get:
+    tags: [pickups]
+    operationId: listPickups
+    summary: 'Pickups in a range (default now .. now + prefetch days, plus later sign-ups).'
+    x-permission: 'maySeePickups'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/Pickup'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickups/{pickupAt}:
+  put:
+    tags: [pickups]
+    operationId: editPickup
+    summary: 'Change slot count / description of one pickup (0 slots cancels it).'
+    x-permission: 'mayEditPickups'
+    x-history: StoreLogAction.UPDATE_SLOT_COUNT
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/pickups.yaml#/PickupEdit'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/Pickup'
+      '400': {description: 'VALIDATION_FAILED, PICKUP_IN_PAST, SLOT_COUNT_OUT_OF_RANGE or DESCRIPTION_TOO_LONG', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'MORE_OCCUPIED_SLOTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickups/{pickupAt}/eligibility:
+  get:
+    tags: [pickups]
+    operationId: checkEligibility
+    summary: 'Whether the current user may sign up, with all failing reasons.'
+    x-permission: 'maySeePickups'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/PickupEligibility'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickups/{pickupAt}/signups:
+  post:
+    tags: [pickups]
+    operationId: signUp
+    summary: 'Sign up for a pickup.'
+    x-permission: 'maySeePickups'
+    x-history: StoreLogAction.SIGN_UP_SLOT
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/SignupResult'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PICKUP_NOT_ELIGIBLE (args.reason)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}:
+  delete:
+    tags: [pickups]
+    operationId: signOut
+    summary: 'Sign out (self) or remove someone (mayEditPickups, optional message).'
+    x-permission: 'self or mayEditPickups'
+    x-history: StoreLogAction.SIGN_OUT_SLOT
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/stores.yaml#/OptionalMessage'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED or PICKUP_IN_PAST', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or SIGNUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}/confirm:
+  post:
+    tags: [pickups]
+    operationId: confirmSignup
+    summary: 'Confirm a sign-up.'
+    x-permission: 'mayConfirmPickups'
+    x-history: StoreLogAction.SLOT_CONFIRMED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or SIGNUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_CONFIRMED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickup-history:
+  get:
+    tags: [pickups]
+    operationId: getStorePickupHistory
+    summary: 'Past pickups with their slots.'
+    x-permission: 'maySeePickupHistory'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/PickupHistoryPage'
+      '400': {description: 'VALIDATION_FAILED or RANGE_TOO_LARGE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/pickups:
+  get:
+    tags: [pickups]
+    operationId: listMyPickups
+    summary: 'Upcoming pickups of the current user.'
+    x-permission: 'self'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/UserPickup'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/pickups/past:
+  get:
+    tags: [pickups]
+    operationId: listPastPickups
+    summary: 'Past pickups of a user.'
+    x-permission: 'self or mayAdministrateUser'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/UserPickupPage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/pickups:
+  delete:
+    tags: [pickups]
+    operationId: deleteAllFuturePickups
+    summary: 'Sign a user out of all future pickups.'
+    x-permission: 'self or mayAdministrateUser'
+    x-history: StoreLogAction.ALL_FUTURE_PICKUPS_DELETED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/ReasonBody'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/me/pickups/options:
+  get:
+    tags: [pickups]
+    operationId: listPickupOptions
+    summary: 'Upcoming pickups with free slots in the current user''s stores.'
+    x-permission: 'verified FOODSAVER'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/PickupOption'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'NOT_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/users/{userId}/agenda/{date}:
+  get:
+    tags: [pickups]
+    operationId: getAgenda
+    summary: 'Pickups and EinAbs of a day.'
+    x-permission: 'self or mayAdministrateUser'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: date
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/AgendaDay'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

@@ -2,6 +2,8 @@ UserProfile:
   type: object
   required: [id, email, displayName, language, theme, role, verified, registeredAt]
   properties:
+    pickupRemindersEnabled:
+      type: boolean
     id:
       type: string
       format: uuid
@@ -97,6 +99,9 @@ UserSettingsUpdate:
       $ref: './common.yaml#/Language'
     theme:
       $ref: './common.yaml#/Theme'
+    pickupRemindersEnabled:
+      type: boolean
+      description: Reminder bell + mail before own pickups (milestone 3).
     reason:
       type: string
       maxLength: 500

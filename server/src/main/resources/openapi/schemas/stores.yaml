@@ -1,0 +1,697 @@
+# Store schemas (milestone 3, plan §12).
+CooperationStatus:
+  type: string
+  enum: [UNCLEAR, NO_CONTACT, IN_NEGOTIATION, DOES_NOT_WANT_TO_WORK_WITH_US, COOPERATION_ESTABLISHED, GIVES_TO_OTHER_CHARITY, PERMANENTLY_CLOSED]
+
+ConvinceStatus:
+  type: string
+  enum: [NOT_SET, NO_PROBLEM_AT_ALL, AFTER_SOME_PERSUASION, DIFFICULT_NEGOTIATION, LOOKED_BAD_BUT_WORKED]
+
+PublicityStatus:
+  type: string
+  enum: [NOT_ALLOWED, ALLOWED, NOT_CHOSEN]
+
+StickerStatus:
+  type: string
+  enum: [NO_STICKER, HAS_STICKER, NOT_CHOSEN]
+
+PublicPickupTime:
+  type: string
+  enum: [NOT_SET, MORNING, NOON_AFTERNOON, EVENING, NIGHT]
+
+TeamSearchStatus:
+  type: string
+  enum: [CLOSED, OPEN, OPEN_SEARCHING]
+
+StoreMembershipStatus:
+  type: string
+  enum: [APPLIED, MEMBER, JUMPER, INVITED]
+
+UserTeamStatus:
+  type: string
+  description: 'Derived team status of a user in a store (A19)'
+  enum: [NO_MEMBER, APPLIED, INVITED, WAITING_LIST, MEMBER, COORDINATOR]
+
+WallMilestone:
+  type: string
+  enum: [NONE, STORE_CREATED, COOPERATION_STARTED, STATUS_CHANGED, TEAM_STATUS_CHANGED]
+
+FreeSlotStatus:
+  type: string
+  enum: [GREEN, YELLOW, ORANGE, RED]
+
+StoreAddress:
+  type: object
+  properties:
+    street:
+      type: string
+      maxLength: 200
+    postcode:
+      type: string
+      maxLength: 20
+    city:
+      type: string
+      maxLength: 100
+    country:
+      type: string
+      maxLength: 2
+
+StoreContact:
+  type: object
+  properties:
+    person:
+      type: string
+      maxLength: 200
+    phone:
+      type: string
+      maxLength: 50
+    fax:
+      type: string
+      maxLength: 50
+    email:
+      type: string
+      maxLength: 320
+
+StoreCategory:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    type:
+      type: string
+    storeCount:
+      type: integer
+      format: int32
+
+Grocery:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    storeCount:
+      type: integer
+      format: int32
+
+WeightCategory:
+  type: object
+  required: [code, label, averageKg]
+  properties:
+    code:
+      type: string
+    label:
+      type: string
+    averageKg:
+      type: number
+      format: double
+
+ChainRef:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
+StoreRef:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    regionId:
+      type: string
+      format: uuid
+    timeZone:
+      type: string
+
+StoreMetadata:
+  type: object
+  required: [categories, groceries, weightCategories, chains]
+  properties:
+    categories:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreCategory'
+    groceries:
+      type: array
+      items:
+        $ref: './stores.yaml#/Grocery'
+    weightCategories:
+      type: array
+      items:
+        $ref: './stores.yaml#/WeightCategory'
+    chains:
+      type: array
+      items:
+        $ref: './stores.yaml#/ChainRef'
+
+StoreListItem:
+  type: object
+  required: [id, name, address, cooperationStatus, teamStatus, region, membership, isManager, freeSlotStatus, freeSlotCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    address:
+      $ref: './stores.yaml#/StoreAddress'
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    category:
+      $ref: './stores.yaml#/StoreCategory'
+    chain:
+      $ref: './stores.yaml#/ChainRef'
+    cooperationStatus:
+      $ref: './stores.yaml#/CooperationStatus'
+    teamStatus:
+      $ref: './stores.yaml#/TeamSearchStatus'
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    membership:
+      $ref: './stores.yaml#/UserTeamStatus'
+    isManager:
+      type: boolean
+    nextPickupAt:
+      type: string
+      format: date-time
+    freeSlotStatus:
+      $ref: './stores.yaml#/FreeSlotStatus'
+    freeSlotCount:
+      type: integer
+      format: int32
+
+StoreListPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreListItem'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+StoreCreate:
+  type: object
+  required: [name, address, cooperationStatus, teamStatus]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    address:
+      $ref: './stores.yaml#/StoreAddress'
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    categoryId:
+      type: string
+      format: uuid
+    chainId:
+      type: string
+      format: uuid
+    groceryIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    cooperationStatus:
+      $ref: './stores.yaml#/CooperationStatus'
+    cooperationStart:
+      type: string
+      format: date
+    convinceStatus:
+      $ref: './stores.yaml#/ConvinceStatus'
+    contact:
+      $ref: './stores.yaml#/StoreContact'
+    publicity:
+      $ref: './stores.yaml#/PublicityStatus'
+    sticker:
+      $ref: './stores.yaml#/StickerStatus'
+    publicInfo:
+      type: string
+      maxLength: 4000
+    publicPickupTime:
+      $ref: './stores.yaml#/PublicPickupTime'
+    weightCategory:
+      type: string
+      maxLength: 20
+    prefetchDays:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 42
+    useRegionPickupRule:
+      type: boolean
+    requiresHygieneCertificate:
+      type: boolean
+    requiresVerified:
+      type: boolean
+    requiresPhone:
+      type: boolean
+    requiresApplicationText:
+      type: boolean
+    teamStatus:
+      $ref: './stores.yaml#/TeamSearchStatus'
+    specialNotes:
+      type: string
+      maxLength: 32600
+    description:
+      type: string
+      maxLength: 32600
+    firstWallPost:
+      type: string
+      maxLength: 4000
+
+StorePatch:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    address:
+      $ref: './stores.yaml#/StoreAddress'
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    categoryId:
+      type: string
+      format: uuid
+    chainId:
+      type: string
+      format: uuid
+    groceryIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    cooperationStatus:
+      $ref: './stores.yaml#/CooperationStatus'
+    cooperationStart:
+      type: string
+      format: date
+    convinceStatus:
+      $ref: './stores.yaml#/ConvinceStatus'
+    contact:
+      $ref: './stores.yaml#/StoreContact'
+    publicity:
+      $ref: './stores.yaml#/PublicityStatus'
+    sticker:
+      $ref: './stores.yaml#/StickerStatus'
+    publicInfo:
+      type: string
+      maxLength: 4000
+    publicPickupTime:
+      $ref: './stores.yaml#/PublicPickupTime'
+    weightCategory:
+      type: string
+      maxLength: 20
+    prefetchDays:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 42
+    useRegionPickupRule:
+      type: boolean
+    requiresHygieneCertificate:
+      type: boolean
+    requiresVerified:
+      type: boolean
+    requiresPhone:
+      type: boolean
+    requiresApplicationText:
+      type: boolean
+    teamStatus:
+      $ref: './stores.yaml#/TeamSearchStatus'
+    specialNotes:
+      type: string
+      maxLength: 32600
+    description:
+      type: string
+      maxLength: 32600
+    regionId:
+      description: 'Move the store to another region'
+      type: string
+      format: uuid
+    reason:
+      type: string
+      maxLength: 500
+
+StoreTeamCounts:
+  type: object
+  required: [members, jumpers, applied, invited]
+  properties:
+    members:
+      type: integer
+      format: int32
+    jumpers:
+      type: integer
+      format: int32
+    applied:
+      type: integer
+      format: int32
+    invited:
+      type: integer
+      format: int32
+
+StorePermissions:
+  type: object
+  required: [mayAccess, mayReadWall, mayPostWall, mayDeleteAnyWallPost, mayEditStore, mayEditTeam, maySeePhoneNumbers, maySeeMemberDistance, maySeePickups, mayEditPickups, mayConfirmPickups, maySeePickupHistory, maySeeStoreLog, mayDelete, mayApply, mayLeave, mayChatTeam, mayChatJumper, isKam, isManager, teamStatus]
+  properties:
+    mayAccess:
+      type: boolean
+    mayReadWall:
+      type: boolean
+    mayPostWall:
+      type: boolean
+    mayDeleteAnyWallPost:
+      type: boolean
+    mayEditStore:
+      type: boolean
+    mayEditTeam:
+      type: boolean
+    maySeePhoneNumbers:
+      type: boolean
+    maySeeMemberDistance:
+      type: boolean
+    maySeePickups:
+      type: boolean
+    mayEditPickups:
+      type: boolean
+    mayConfirmPickups:
+      type: boolean
+    maySeePickupHistory:
+      type: boolean
+    maySeeStoreLog:
+      type: boolean
+    mayDelete:
+      type: boolean
+    mayApply:
+      type: boolean
+    mayLeave:
+      type: boolean
+    mayChatTeam:
+      type: boolean
+    mayChatJumper:
+      type: boolean
+    isKam:
+      type: boolean
+    isManager:
+      type: boolean
+    teamStatus:
+      $ref: './stores.yaml#/UserTeamStatus'
+
+StoreDetail:
+  type: object
+  required: [id, name, address, cooperationStatus, teamStatus, region, timeZone, managers, teamCounts, membership, permissions, prefetchDays]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    address:
+      $ref: './stores.yaml#/StoreAddress'
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    category:
+      $ref: './stores.yaml#/StoreCategory'
+    chain:
+      $ref: './stores.yaml#/ChainRef'
+    groceries:
+      type: array
+      items:
+        $ref: './stores.yaml#/Grocery'
+    cooperationStatus:
+      $ref: './stores.yaml#/CooperationStatus'
+    statusDate:
+      type: string
+      format: date
+    cooperationStart:
+      type: string
+      format: date
+    convinceStatus:
+      $ref: './stores.yaml#/ConvinceStatus'
+    contact:
+      $ref: './stores.yaml#/StoreContact'
+    publicity:
+      $ref: './stores.yaml#/PublicityStatus'
+    sticker:
+      $ref: './stores.yaml#/StickerStatus'
+    publicInfo:
+      type: string
+    publicPickupTime:
+      $ref: './stores.yaml#/PublicPickupTime'
+    weightCategory:
+      type: string
+    prefetchDays:
+      type: integer
+      format: int32
+    useRegionPickupRule:
+      type: boolean
+    requiresHygieneCertificate:
+      type: boolean
+    requiresVerified:
+      type: boolean
+    requiresPhone:
+      type: boolean
+    requiresApplicationText:
+      type: boolean
+    teamStatus:
+      $ref: './stores.yaml#/TeamSearchStatus'
+    specialNotes:
+      description: 'Only with mayReadWall'
+      type: string
+    description:
+      type: string
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    timeZone:
+      type: string
+    managers:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    teamCounts:
+      $ref: './stores.yaml#/StoreTeamCounts'
+    membership:
+      $ref: './stores.yaml#/UserTeamStatus'
+    permissions:
+      $ref: './stores.yaml#/StorePermissions'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+WallPost:
+  type: object
+  required: [id, text, milestone, createdAt, mayDelete]
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: './users.yaml#/UserSummary'
+    text:
+      type: string
+    milestone:
+      $ref: './stores.yaml#/WallMilestone'
+    createdAt:
+      type: string
+      format: date-time
+    mayDelete:
+      type: boolean
+
+WallPostPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './stores.yaml#/WallPost'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+WallPostCreate:
+  type: object
+  required: [text]
+  properties:
+    text:
+      type: string
+      minLength: 1
+      maxLength: 4000
+
+StoreStatisticsMonth:
+  type: object
+  required: [month, pickups, kg]
+  properties:
+    month:
+      description: 'yyyy-MM'
+      type: string
+    pickups:
+      type: integer
+      format: int32
+    kg:
+      type: number
+      format: double
+
+StoreMemberPickups:
+  type: object
+  required: [user, pickups]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    pickups:
+      type: integer
+      format: int32
+
+StoreStatistics:
+  type: object
+  required: [totalPickups, totalKg, months]
+  properties:
+    totalPickups:
+      type: integer
+      format: int32
+    totalKg:
+      type: number
+      format: double
+    weightCategory:
+      $ref: './stores.yaml#/WeightCategory'
+    months:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreStatisticsMonth'
+    perMember:
+      description: 'Only with mayEditStore'
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreMemberPickups'
+
+TeamMember:
+  type: object
+  required: [user, isManager, status, verified, pickupCount, sleeping]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    isManager:
+      type: boolean
+    status:
+      $ref: './stores.yaml#/StoreMembershipStatus'
+    verified:
+      type: boolean
+    hygieneCertificateUntil:
+      type: string
+      format: date-time
+    pickupCount:
+      type: integer
+      format: int32
+    firstPickupAt:
+      type: string
+      format: date-time
+    lastPickupAt:
+      type: string
+      format: date-time
+    addedAt:
+      type: string
+      format: date-time
+    distanceKm:
+      description: 'Only with maySeeMemberDistance'
+      type: number
+      format: double
+    sleeping:
+      type: boolean
+
+StoreApplication:
+  type: object
+  required: [user, appliedAt]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    text:
+      type: string
+    appliedAt:
+      type: string
+      format: date-time
+
+StoreInvitation:
+  type: object
+  required: [user, invitedAt]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    invitedBy:
+      $ref: './users.yaml#/UserSummary'
+    invitedAt:
+      type: string
+      format: date-time
+
+StoreTeam:
+  type: object
+  required: [members, jumpers]
+  properties:
+    members:
+      type: array
+      items:
+        $ref: './stores.yaml#/TeamMember'
+    jumpers:
+      type: array
+      items:
+        $ref: './stores.yaml#/TeamMember'
+    applications:
+      description: 'Only with mayEditTeam'
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreApplication'
+    invitations:
+      description: 'Only with mayEditTeam'
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreInvitation'
+
+StoreApplicationCreate:
+  type: object
+  properties:
+    text:
+      type: string
+      maxLength: 4000
+
+OptionalMessage:
+  type: object
+  properties:
+    message:
+      type: string
+      maxLength: 4000
+    sendMessage:
+      type: boolean

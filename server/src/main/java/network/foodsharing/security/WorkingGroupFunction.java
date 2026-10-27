@@ -10,6 +10,7 @@ public enum WorkingGroupFunction {
     VOTING,
     FSP,
     STORES_COORDINATION,
+    STORE_CHAINS,
     REPORT,
     MEDIATION,
     ARBITRATION,

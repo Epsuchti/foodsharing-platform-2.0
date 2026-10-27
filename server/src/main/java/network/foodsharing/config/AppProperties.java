@@ -38,6 +38,8 @@ public class AppProperties {
     private final Geocoding geocoding = new Geocoding();
     private final Quiz quiz = new Quiz();
     private final Intropickup intropickup = new Intropickup();
+    private final Store store = new Store();
+    private final Pickup pickup = new Pickup();
     private final Verification verification = new Verification();
     private final Wallet wallet = new Wallet();
     private final Onboarding onboarding = new Onboarding();
@@ -202,6 +204,23 @@ public class AppProperties {
         private int gapHorizonDays = 30;
         private int stalledAfterDays = 30;
         private List<String> icalAllowedHosts = new ArrayList<>(List.of("foodsharing.network", "foodsharing.de"));
+    }
+
+    @Getter
+    @Setter
+    public static class Store {
+        private int maxManagers = 3;
+        private int defaultPrefetchDays = 14;
+        private int maxSlotsPerPickup = 50;
+        private int wallDeleteAfterDays = 30;
+    }
+
+    @Getter
+    @Setter
+    public static class Pickup {
+        private int reminderHoursBefore = 24;
+        private String reminderCron = "0 0 * * * *";
+        private int freeSlotStatusDays = 5;
     }
 
     @Getter
