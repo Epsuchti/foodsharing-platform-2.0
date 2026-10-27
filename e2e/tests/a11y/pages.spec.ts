@@ -21,6 +21,9 @@ interface RouteCase {
 const ROUTES: RouteCase[] = [
   { path: '/', role: null, ready: 'public.landing.hero' },
   { path: '/login', role: null },
+  { path: '/login/sent?email=newbie%40local', role: null },
+  // without a token: the verify page shows its error state
+  { path: '/login/verify', role: null },
   { path: '/forbidden', role: null },
   { path: '/does-not-exist', role: null },
   { path: '/dev/gallery', role: null, ready: 'gallery.dataState.live' },
@@ -29,6 +32,7 @@ const ROUTES: RouteCase[] = [
   { path: '/account/settings', role: 'foodsaver' },
   { path: '/account/sessions', role: 'foodsaver' },
   { path: '/account/security-log', role: 'foodsaver' },
+  { path: '/account/profile', role: 'foodsaver' },
   { path: '/me/activity', role: 'foodsaver' },
 ];
 
@@ -47,6 +51,18 @@ async function settle(page: Page, ready?: string): Promise<void> {
     )
     .toBe(0);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // Lazy routes render in steps: wait for a heading and until Optimus buttons have their label/icon.
+  await expect(page.locator('main h1, main h2').first()).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          [...document.querySelectorAll('main button')].filter(
+            (button) => !button.textContent?.trim() && !button.getAttribute('aria-label') && !button.querySelector('[class*="pi-"], svg'),
+          ).length,
+      ),
+    )
+    .toBe(0);
 }
 
 for (const theme of ['light', 'dark'] as const) {

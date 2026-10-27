@@ -66,7 +66,12 @@
         data-testid="gallery.live.reload"
       />
     </header>
-    <fs-data-state [state]="live" skeleton="list" [skeletonRows]="1" data-testid="gallery.live.state">
+    <fs-data-state
+      [state]="live"
+      skeleton="list"
+      [skeletonRows]="1"
+      data-testid="gallery.live.state"
+    >
       <ng-template [fsData]="live" let-info>
         <p class="live__label">{{ 'dev.gallery.liveLanguages' | t }}</p>
         <div class="row" data-testid="gallery.live.languages">

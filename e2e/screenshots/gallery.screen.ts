@@ -17,8 +17,12 @@ forEachVariant((variant) => {
       await expect(page.locator('html')).toHaveAttribute('lang', variant.lang);
       await expect(page.getByTestId('gallery.live.state')).toHaveAttribute('data-state', 'success');
 
-      // Element captures scroll the section into view; the sticky header would be painted over its top.
+      // Element captures scroll the section into view; the sticky header would be painted over its top, and
+      // sticky parts inside a section (timeline day titles) would stick mid-section when it is taller than the
+      // viewport. A tall viewport (same width, so the same breakpoints) keeps every section fully in view.
       await page.addStyleTag({ content: 'fs-header { position: static !important; }' });
+      const viewport = page.viewportSize()!;
+      await page.setViewportSize({ width: viewport.width, height: 2400 });
 
       const sections = page.locator('section[data-testid^="gallery."]');
       const ids = await sections.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')!));

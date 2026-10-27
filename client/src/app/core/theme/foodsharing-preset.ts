@@ -37,7 +37,13 @@ const SURFACE_PALETTE = {
  * Aura's severity colours (500 shades) fail WCAG AA contrast with white text and as text on white. These
  * overrides move solid buttons and coloured text one notch darker in light mode and lighter in dark mode.
  */
-const SEVERITY_HUES = { info: 'sky', success: 'green', warn: 'orange', help: 'purple', danger: 'red' } as const;
+const SEVERITY_HUES = {
+  info: 'sky',
+  success: 'green',
+  warn: 'orange',
+  help: 'purple',
+  danger: 'red',
+} as const;
 type Severity = keyof typeof SEVERITY_HUES;
 
 function bySeverity<T>(build: (hue: string) => T): Record<Severity, T> {
@@ -76,7 +82,10 @@ function messageColors(shade: number) {
 
 function toastColors(shade: number) {
   return Object.fromEntries(
-    Object.entries(MESSAGE_HUES).map(([severity, hue]) => [severity, { color: `{${hue}.${shade}}` }]),
+    Object.entries(MESSAGE_HUES).map(([severity, hue]) => [
+      severity,
+      { color: `{${hue}.${shade}}` },
+    ]),
   );
 }
 

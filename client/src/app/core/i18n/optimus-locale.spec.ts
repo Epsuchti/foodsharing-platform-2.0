@@ -41,7 +41,11 @@ describe('OptimusLocaleService', () => {
   it('translates datepicker names, Today/Clear and keeps the other aria labels', () => {
     const { i18n, optimus, service } = setup();
     i18n.useCatalog(
-      { 'common.optimus.today': 'Aujourd’hui', 'common.optimus.clear': 'Effacer', 'common.close': 'Fermer' },
+      {
+        'common.optimus.today': 'Aujourd’hui',
+        'common.optimus.clear': 'Effacer',
+        'common.close': 'Fermer',
+      },
       'fr',
     );
     service.start();
