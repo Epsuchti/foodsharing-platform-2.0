@@ -12,6 +12,7 @@
   <a href="#g-error">ErrorState</a>
   <a href="#g-users">UserChip</a>
   <a href="#g-header">PageHeader</a>
+  <a href="#g-history">HistoryTimeline</a>
   <a href="#g-kit">{{ 'dev.gallery.kit' | t }}</a>
 </nav>
 
@@ -187,6 +188,65 @@
     <p-button [label]="'dev.gallery.secondary' | t" severity="secondary" [outlined]="true" />
   </fs-page-header>
 </section>
+
+<!-- HistoryTimeline (history section, M1 T7) -->
+<h2 class="group" id="g-history">HistoryTimeline</h2>
+<section class="specimen" data-testid="gallery.historyTimeline.filled">
+  <header class="specimen__head"><code>filled (filters, export)</code></header>
+  <fs-history-timeline
+    [source]="history.filled"
+    [actionsSource]="history.actions"
+    [csvExport]="history.noop"
+    [viewerId]="history.viewerId"
+    testId="gallery.historyTimeline.filledTimeline"
+  />
+</section>
+<div class="grid">
+  <section class="specimen" data-testid="gallery.historyTimeline.cards">
+    <header class="specimen__head"><code>cards (mobile layout)</code></header>
+    <fs-history-timeline
+      [source]="history.filled"
+      [filters]="{}"
+      layout="cards"
+      [pageSize]="4"
+      [viewerId]="history.viewerId"
+      testId="gallery.historyTimeline.cardsTimeline"
+    />
+  </section>
+  <section class="specimen" data-testid="gallery.historyTimeline.compact">
+    <header class="specimen__head"><code>compact</code></header>
+    <fs-history-timeline
+      [source]="history.filled"
+      [compact]="true"
+      [pageSize]="3"
+      testId="gallery.historyTimeline.compactTimeline"
+    />
+  </section>
+  <section class="specimen" data-testid="gallery.historyTimeline.empty">
+    <header class="specimen__head"><code>empty</code></header>
+    <fs-history-timeline
+      [source]="history.empty"
+      [filters]="{}"
+      testId="gallery.historyTimeline.emptyTimeline"
+    />
+  </section>
+  <section class="specimen" data-testid="gallery.historyTimeline.loading">
+    <header class="specimen__head"><code>loading</code></header>
+    <fs-history-timeline
+      [source]="history.loading"
+      [filters]="{}"
+      testId="gallery.historyTimeline.loadingTimeline"
+    />
+  </section>
+  <section class="specimen" data-testid="gallery.historyTimeline.error">
+    <header class="specimen__head"><code>error</code></header>
+    <fs-history-timeline
+      [source]="history.error"
+      [filters]="{}"
+      testId="gallery.historyTimeline.errorTimeline"
+    />
+  </section>
+</div>
 
 <!-- Buttons, forms, tags, messages, toasts -->
 <h2 class="group" id="g-kit">{{ 'dev.gallery.kit' | t }}</h2>
