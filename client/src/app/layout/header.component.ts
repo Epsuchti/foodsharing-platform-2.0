@@ -128,9 +128,15 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       margin-left: 0.35rem;
       text-decoration: none;
     }
+    /* Icon-only on small phones; the label stays for screen readers (display:none would drop the link name). */
     @media (max-width: 30rem) {
       .hdr__login span {
-        display: none;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
       }
     }
   `,

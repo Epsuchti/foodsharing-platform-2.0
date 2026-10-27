@@ -117,3 +117,17 @@
   gap: 0.6rem;
   font-size: 0.92rem;
 }
+
+.specimen__head--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.live__label {
+  margin: 0 0 0.5rem;
+  color: var(--fs-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}

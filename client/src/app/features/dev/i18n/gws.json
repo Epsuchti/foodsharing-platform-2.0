@@ -28,5 +28,7 @@
   "dev.gallery.fieldAgree": "Ich ha d Regle gläse",
   "dev.gallery.fieldNotify": "Push-Nachrichte übercho",
   "dev.gallery.toastSummary": "Gspicheret",
-  "dev.gallery.toastDetail": "Dini Änderige sind übernoh worde."
+  "dev.gallery.toastDetail": "Dini Änderige sind übernoh worde.",
+  "dev.gallery.reload": "Neu lade",
+  "dev.gallery.liveLanguages": "Sprooche vom Server"
 }

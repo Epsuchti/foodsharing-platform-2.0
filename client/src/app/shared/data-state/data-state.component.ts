@@ -152,10 +152,11 @@ import { SkeletonPreset, SkeletonPresetComponent } from './skeleton-presets.comp
     }
     .ds__content {
       min-width: 0;
-      transition: opacity 200ms ease;
+      transition: filter 200ms ease;
     }
+    /* Stale data is desaturated instead of faded: fading drops muted text below WCAG AA contrast. */
     .ds__content--stale {
-      opacity: 0.72;
+      filter: grayscale(0.7);
     }
   `,
 })

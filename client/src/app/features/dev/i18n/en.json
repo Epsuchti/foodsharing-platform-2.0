@@ -28,5 +28,7 @@
   "dev.gallery.fieldAgree": "I have read the rules",
   "dev.gallery.fieldNotify": "Receive push notifications",
   "dev.gallery.toastSummary": "Saved",
-  "dev.gallery.toastDetail": "Your changes have been applied."
+  "dev.gallery.toastDetail": "Your changes have been applied.",
+  "dev.gallery.reload": "Reload",
+  "dev.gallery.liveLanguages": "Server languages"
 }

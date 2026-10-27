@@ -53,6 +53,29 @@
     <header class="specimen__head"><code>compact (error)</code></header>
     <fs-data-state [state]="states[4].state" [compact]="true" />
   </section>
+  <section class="specimen" data-testid="gallery.dataState.live">
+    <header class="specimen__head specimen__head--split">
+      <code>live (GET /api/public/app-info)</code>
+      <p-button
+        [label]="'dev.gallery.reload' | t"
+        icon="pi pi-refresh"
+        size="small"
+        [text]="true"
+        (onClick)="live.reload()"
+        data-testid="gallery.live.reload"
+      />
+    </header>
+    <fs-data-state [state]="live" skeleton="list" [skeletonRows]="1" data-testid="gallery.live.state">
+      <ng-template [fsData]="live" let-info>
+        <p class="live__label">{{ 'dev.gallery.liveLanguages' | t }}</p>
+        <div class="row" data-testid="gallery.live.languages">
+          @for (language of info.languages; track language) {
+            <p-tag [value]="language" severity="secondary" />
+          }
+        </div>
+      </ng-template>
+    </fs-data-state>
+  </section>
 </div>
 
 <!-- Skeleton presets -->

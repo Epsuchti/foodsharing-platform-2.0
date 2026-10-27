@@ -1,0 +1,41 @@
+import { expect, forEachVariant, screenshotTest } from './_setup';
+
+/**
+ * Component gallery (/dev/gallery, plan §18.4): one element screenshot per `section[data-testid^="gallery."]`
+ * × light/dark × de/fr, on the desktop and the mobile screenshot project. Design changes to a shared component
+ * show up here once instead of on every page.
+ */
+
+screenshotTest.use({ seedReset: 'off' });
+
+forEachVariant((variant) => {
+  screenshotTest.describe(variant.name, () => {
+    screenshotTest.use({ variant });
+
+    screenshotTest(`gallery sections ${variant.name} @screenshot`, async ({ page, visual }) => {
+      await page.goto('/dev/gallery');
+      await expect(page.locator('html')).toHaveAttribute('lang', variant.lang);
+      await expect(page.getByTestId('gallery.live.state')).toHaveAttribute('data-state', 'success');
+
+      const sections = page.locator('section[data-testid^="gallery."]');
+      const ids = await sections.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-testid')!));
+      expect(ids.length).toBeGreaterThan(20);
+      expect(new Set(ids).size, 'gallery section test ids are unique').toBe(ids.length);
+
+      for (const id of ids) {
+        const section = page.getByTestId(id);
+        await section.scrollIntoViewIfNeeded();
+        // The loading/refreshing specimens never settle on purpose; the live one was checked above.
+        await visual.expectElement(section, `${id.replace(/^gallery\./, '')}-${variant.name}`, { waitForData: false });
+      }
+    });
+
+    screenshotTest(`gallery toast ${variant.name} @screenshot`, async ({ page, visual }) => {
+      await page.goto('/dev/gallery');
+      await page.getByTestId('gallery.toasts.success').click();
+      const toast = page.locator('.p-toast-message').first();
+      await expect(toast).toBeVisible();
+      await visual.expectElement(toast, `toast-success-${variant.name}`, { waitForData: false });
+    });
+  });
+});

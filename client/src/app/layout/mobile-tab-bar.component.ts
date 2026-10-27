@@ -51,7 +51,9 @@ import { NavContextService } from './nav-context.service';
       [visible]="menuOpen()"
       (visibleChange)="menuOpen.set($event)"
       position="right"
+      appendTo="body"
       [header]="'nav.menu' | t"
+      [ariaCloseLabel]="'common.close' | t"
       styleClass="fs-mobile-menu"
       data-testid="shell.mobileMenu"
     >

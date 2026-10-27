@@ -24,13 +24,61 @@ const SURFACE_PALETTE = {
   200: '#dde5d9',
   300: '#c4d0bf',
   400: '#98a693',
-  500: '#6d7b69',
+  // Aura's muted text and secondary buttons use 500: ≥ 4.5:1 on white and on surface.100 (WCAG AA).
+  500: '#5f6d5b',
   600: '#535f50',
   700: '#3d473b',
   800: '#283027',
   900: '#1a201a',
   950: '#121712',
 } as const;
+
+/**
+ * Aura's severity colours (500 shades) fail WCAG AA contrast with white text and as text on white. These
+ * overrides move solid buttons and coloured text one notch darker in light mode and lighter in dark mode.
+ */
+const SEVERITY_HUES = { info: 'sky', success: 'green', warn: 'orange', help: 'purple', danger: 'red' } as const;
+type Severity = keyof typeof SEVERITY_HUES;
+
+function bySeverity<T>(build: (hue: string) => T): Record<Severity, T> {
+  return Object.fromEntries(
+    Object.entries(SEVERITY_HUES).map(([severity, hue]) => [severity, build(hue)]),
+  ) as Record<Severity, T>;
+}
+
+const solidButton = (hue: string) => ({
+  background: `{${hue}.700}`,
+  hoverBackground: `{${hue}.800}`,
+  activeBackground: `{${hue}.900}`,
+  borderColor: `{${hue}.700}`,
+  hoverBorderColor: `{${hue}.800}`,
+  activeBorderColor: `{${hue}.900}`,
+  color: '#ffffff',
+  hoverColor: '#ffffff',
+  activeColor: '#ffffff',
+  focusRing: { color: `{${hue}.700}`, shadow: 'none' },
+});
+
+const MESSAGE_HUES = { info: 'blue', success: 'green', warn: 'yellow', error: 'red' } as const;
+
+function messageColors(shade: number) {
+  return Object.fromEntries(
+    Object.entries(MESSAGE_HUES).map(([severity, hue]) => [
+      severity,
+      {
+        color: `{${hue}.${shade}}`,
+        outlined: { color: `{${hue}.${shade}}`, borderColor: `{${hue}.${shade}}` },
+        simple: { color: `{${hue}.${shade}}` },
+      },
+    ]),
+  );
+}
+
+function toastColors(shade: number) {
+  return Object.fromEntries(
+    Object.entries(MESSAGE_HUES).map(([severity, hue]) => [severity, { color: `{${hue}.${shade}}` }]),
+  );
+}
 
 /**
  * Optimus/Aura preset with the foodsharing palette. Dark mode is switched by the `.fs-dark` class on <html>
@@ -88,6 +136,39 @@ export const FoodsharingPreset = definePreset(Aura, {
         paddingY: '0.625rem',
         paddingX: '1.125rem',
       },
+      colorScheme: {
+        light: {
+          root: bySeverity(solidButton),
+          outlined: {
+            ...bySeverity((hue) => ({ color: `{${hue}.700}`, borderColor: `{${hue}.300}` })),
+            // primary.500 on the hover/active tint (primary.50/100) is just below 4.5:1
+            primary: { color: '{primary.600}' },
+          },
+          text: {
+            ...bySeverity((hue) => ({ color: `{${hue}.700}` })),
+            primary: { color: '{primary.600}' },
+          },
+        },
+        dark: {
+          outlined: bySeverity((hue) => ({ color: `{${hue}.300}` })),
+          text: bySeverity((hue) => ({ color: `{${hue}.300}` })),
+        },
+      },
+    },
+    message: {
+      colorScheme: {
+        light: messageColors(800),
+        dark: messageColors(300),
+      },
+    },
+    toast: {
+      root: {
+        borderRadius: '1rem',
+      },
+      colorScheme: {
+        light: toastColors(800),
+        dark: toastColors(300),
+      },
     },
     card: {
       root: {
@@ -97,11 +178,6 @@ export const FoodsharingPreset = definePreset(Aura, {
     dialog: {
       root: {
         borderRadius: '1.25rem',
-      },
-    },
-    toast: {
-      root: {
-        borderRadius: '1rem',
       },
     },
   },

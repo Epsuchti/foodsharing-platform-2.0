@@ -28,5 +28,7 @@
   "dev.gallery.fieldAgree": "Ich habe die Regeln gelesen",
   "dev.gallery.fieldNotify": "Push-Nachrichten erhalten",
   "dev.gallery.toastSummary": "Gespeichert",
-  "dev.gallery.toastDetail": "Deine Änderungen wurden übernommen."
+  "dev.gallery.toastDetail": "Deine Änderungen wurden übernommen.",
+  "dev.gallery.reload": "Neu laden",
+  "dev.gallery.liveLanguages": "Sprachen des Servers"
 }

@@ -16,11 +16,12 @@ import { TPipe } from '../core/i18n/t.pipe';
       class="hdr-btn"
       [class.hdr-btn--labelled]="showLabel()"
       (click)="op.toggle($event)"
-      [attr.aria-label]="'layout.header.language' | t"
       aria-haspopup="true"
       data-testid="shell.languageMenu"
     >
       <i class="pi pi-language" aria-hidden="true"></i>
+      <!-- Accessible name "Sprache: DE" contains the visible code (WCAG 2.5.3 label in name). -->
+      <span class="fs-visually-hidden">{{ 'layout.header.language' | t }}: </span>
       <span class="hdr-btn__code">{{
         i18n.language() === 'gws' ? 'CH' : i18n.language().toUpperCase()
       }}</span>
