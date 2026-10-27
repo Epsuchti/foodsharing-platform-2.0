@@ -124,7 +124,8 @@ public class StorePermissionService {
                 edit || kam, edit, coordinate, status == UserTeamStatus.NO_MEMBER && open && actor != null,
                 status == UserTeamStatus.MEMBER || status == UserTeamStatus.WAITING_LIST
                         || status == UserTeamStatus.APPLIED,
-                TEAM.contains(status), ACCESS.contains(status) || edit, kam, status == UserTeamStatus.COORDINATOR,
+                TEAM.contains(status),
+                status == UserTeamStatus.COORDINATOR || status == UserTeamStatus.WAITING_LIST, kam, status == UserTeamStatus.COORDINATOR,
                 coordinate, status);
     }
 

@@ -20,7 +20,7 @@ import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.NotificationRequest;
-import network.foodsharing.notification.service.NotificationService;
+import org.springframework.context.ApplicationEventPublisher;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.region.service.RegionPermissionResolver;
@@ -66,7 +66,7 @@ public class StoreTeamService {
     private final MembershipService regionMemberships;
     private final RegionPermissionResolver resolver;
     private final RegionReadService regionReads;
-    private final NotificationService notifications;
+    private final ApplicationEventPublisher events;
     private final CurrentActorService currentActor;
     private final HistoryService history;
     private final AppProperties properties;
@@ -75,7 +75,7 @@ public class StoreTeamService {
     public StoreTeamService(StoreService stores, StoreMembershipRepository memberships, StorePermissionService rights,
                             StorePickupInfo pickupInfo, UserService users, QuizSessionService quizzes,
                             MembershipService regionMemberships, RegionPermissionResolver resolver,
-                            RegionReadService regionReads, NotificationService notifications,
+                            RegionReadService regionReads, ApplicationEventPublisher events,
                             CurrentActorService currentActor, HistoryService history, AppProperties properties,
                             Clock clock) {
         this.stores = stores;
@@ -87,7 +87,7 @@ public class StoreTeamService {
         this.regionMemberships = regionMemberships;
         this.resolver = resolver;
         this.regionReads = regionReads;
-        this.notifications = notifications;
+        this.events = events;
         this.currentActor = currentActor;
         this.history = history;
         this.properties = properties;
@@ -272,7 +272,7 @@ public class StoreTeamService {
         Store store = requireEditTeam(storeId);
         StoreMembership m = require(storeId, userId, StoreMembershipStatus.INVITED, ApiErrorCode.NOT_INVITED);
         memberships.delete(m);
-        notifications.removeBells(BellService.identifier(NotificationType.STORE_INVITATION, storeId, userId));
+        StoreNotifications.removeBells(events, BellService.identifier(NotificationType.STORE_INVITATION, storeId, userId));
         log(StoreLogAction.INVITATION_WITHDRAWN, store, userId, null);
     }
 
@@ -284,7 +284,7 @@ public class StoreTeamService {
         checkRequirements(store, user, null, false, false);
         m.setStatus(StoreMembershipStatus.MEMBER);
         m.setAddedAt(clock.instant());
-        notifications.removeBells(BellService.identifier(NotificationType.STORE_INVITATION, storeId, user.getId()));
+        StoreNotifications.removeBells(events, BellService.identifier(NotificationType.STORE_INVITATION, storeId, user.getId()));
         log(StoreLogAction.INVITATION_ACCEPTED, store, user.getId(), null);
         notify(managerIds(storeId), NotificationType.STORE_INVITATION_ACCEPTED, store, null, user.getDisplayName(),
                 null, null);
@@ -296,7 +296,7 @@ public class StoreTeamService {
         User user = currentActor.requireUser();
         StoreMembership m = require(storeId, user.getId(), StoreMembershipStatus.INVITED, ApiErrorCode.NOT_INVITED);
         memberships.delete(m);
-        notifications.removeBells(BellService.identifier(NotificationType.STORE_INVITATION, storeId, user.getId()));
+        StoreNotifications.removeBells(events, BellService.identifier(NotificationType.STORE_INVITATION, storeId, user.getId()));
         log(StoreLogAction.INVITATION_DECLINED, store, user.getId(), null);
         notify(managerIds(storeId), NotificationType.STORE_INVITATION_DECLINED, store, null, user.getDisplayName(),
                 null, null);
@@ -442,7 +442,7 @@ public class StoreTeamService {
         if (recipients.isEmpty()) {
             return;
         }
-        notifications.notify(NotificationRequest.to(recipients, type).param("storeId", store.getId().toString())
+        StoreNotifications.send(events, NotificationRequest.to(recipients, type).param("storeId", store.getId().toString())
                 .param("storeName", store.getName()).param("message", message).param("userName", userName)
                 .link("/stores/" + store.getId()).identifier(identifier).mail(mail).icon("store").build());
     }
