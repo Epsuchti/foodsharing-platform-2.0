@@ -6,6 +6,8 @@ import { ClockControl } from './clock';
 import { errors, type ErrorHelpers } from './errors';
 import { i18n, type I18nHelpers } from './i18n';
 import { MailBox } from './mails';
+import { pdf, type PdfHelpers } from './pdf';
+import { RegionHelpers } from './regions';
 import { webauthn, type WebAuthnHelpers } from './webauthn';
 
 export type SeedResetMode = 'file' | 'test' | 'off';
@@ -41,6 +43,10 @@ export interface Fixtures {
   errors: ErrorHelpers;
   i18n: I18nHelpers;
   webauthn: WebAuthnHelpers;
+  /** Seed regions by slug and `joinRegion(role, slugOrId)` through the real API (M2). */
+  region: RegionHelpers;
+  /** PDF text assertions: `expectPdfContains(responseOrDownload, ['text'])`. */
+  pdf: PdfHelpers;
   /** internal: performs the automatic seed reset according to `seedReset`. */
   _seed: void;
 }
@@ -154,6 +160,12 @@ export const test = base.extend<Options & Fixtures>({
   webauthn: async ({}, use) => {
     await use(webauthn);
   },
+  region: async ({ baseURL }, use) => {
+    await use(new RegionHelpers(baseURL!));
+  },
+  pdf: async ({}, use) => {
+    await use(pdf);
+  },
 });
 
 export { expect };
@@ -164,5 +176,7 @@ export { expectNoSeriousViolations } from './a11y';
 export * from './errors';
 export { LANGUAGES, setLanguage, expectNoMissingKeys } from './i18n';
 export { addVirtualAuthenticator, type VirtualAuthenticator } from './webauthn';
+export { expectPdfContains, pdfText, type PdfSource, type PdfText } from './pdf';
+export { RegionHelpers, regionId, seedRegion, seedRegions, type SeedRegion } from './regions';
 export { ROLES, SEED_NOW, authFile, roleEmail, type Role } from '../support/env';
 export type * from './types';

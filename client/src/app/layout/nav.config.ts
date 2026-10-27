@@ -35,6 +35,58 @@ const loggedOut = (ctx: NavContext) => !ctx.isAuthenticated;
 const notYet = () => false;
 
 /**
+ * M2 pages that exist. Each page task (T18–T23) flips its flag when its page lands; until then the item is
+ * declared with its real visibility rule but hidden.
+ */
+export const M2_PAGES_READY = {
+  regions: false,
+  onboarding: false,
+  quizzes: false,
+  introPickups: false,
+  passport: false,
+  guide: false,
+  newcomers: false,
+  verification: false,
+  users: false,
+  adminRegions: false,
+  adminQuizzes: false,
+  adminContent: false,
+};
+type M2Page = keyof typeof M2_PAGES_READY;
+const when =
+  (page: M2Page, rule: (ctx: NavContext) => boolean) =>
+  (ctx: NavContext): boolean =>
+    M2_PAGES_READY[page] && rule(ctx);
+
+/** Grant of a scoped permission (`<P>@<regionId>` / `<P>@*`) for any region. */
+export function hasPermissionAnywhere(ctx: NavContext, permission: string): boolean {
+  return (ctx.session?.permissions ?? []).some(
+    (entry) => entry === permission || entry.startsWith(permission + '@'),
+  );
+}
+/** Ambassador of a region / admin of a group, or ORGA. */
+export function isAnyAdmin(ctx: NavContext): boolean {
+  return ctx.hasRole(Role.Orga) || (ctx.session?.units ?? []).some((unit) => unit.admin);
+}
+const isOrga = (ctx: NavContext) => ctx.isAuthenticated && ctx.hasRole(Role.Orga);
+const onboardingOpen = (ctx: NavContext) =>
+  ctx.isAuthenticated && ctx.session?.onboarding?.complete === false;
+const canGuide = (ctx: NavContext) =>
+  ctx.isAuthenticated && hasPermissionAnywhere(ctx, 'CAN_GIVE_INTRO_PICKUPS');
+const managesUsers = (ctx: NavContext) =>
+  ctx.isAuthenticated && (isAnyAdmin(ctx) || hasPermissionAnywhere(ctx, 'CAN_MANAGE_USERS'));
+/** Quiz editors: ORGA or admins of a working group (the server decides per quiz). */
+const editsQuizzes = (ctx: NavContext) =>
+  ctx.isAuthenticated &&
+  (ctx.hasRole(Role.Orga) ||
+    (ctx.session?.units ?? []).some((unit) => unit.admin && unit.type === 'WORKING_GROUP'));
+/** Content admins: ORGA or admins of the PR function group. */
+const editsContent = (ctx: NavContext) =>
+  ctx.isAuthenticated &&
+  (ctx.hasRole(Role.Orga) ||
+    (ctx.session?.units ?? []).some((unit) => unit.admin && unit.function === 'PR'));
+
+/**
  * The declarative navigation (docs/conventions.md A7). Extended once per milestone in one commit.
  * Test ids: `nav.<id>` (desktop/drawer), `nav.tab.<id>` (mobile tab bar), `nav.user.<id>` (user menu).
  */
@@ -88,6 +140,85 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/me/activity',
     visible: loggedIn,
   },
+  // --- M2: regions & onboarding ---
+  {
+    id: 'onboarding',
+    labelKey: 'nav.onboarding',
+    icon: 'pi pi-compass',
+    route: '/onboarding',
+    visible: when('onboarding', onboardingOpen),
+  },
+  {
+    id: 'regions',
+    labelKey: 'nav.regions',
+    icon: 'pi pi-map-marker',
+    route: '/regions/mine',
+    visible: when('regions', loggedIn),
+  },
+  {
+    id: 'quizzes',
+    labelKey: 'nav.quizzes',
+    icon: 'pi pi-question-circle',
+    route: '/quizzes',
+    visible: when('quizzes', loggedIn),
+  },
+  {
+    id: 'introPickups',
+    labelKey: 'nav.introPickups',
+    icon: 'pi pi-users',
+    route: '/me/intro-pickups',
+    visible: when('introPickups', loggedIn),
+  },
+  {
+    id: 'guide',
+    labelKey: 'nav.guide',
+    icon: 'pi pi-flag',
+    route: '/guide',
+    visible: when('guide', canGuide),
+  },
+  // --- M2: admin section ---
+  {
+    id: 'newcomers',
+    labelKey: 'nav.newcomers',
+    icon: 'pi pi-chart-line',
+    route: '/regions/home/newcomers',
+    visible: when('newcomers', managesUsers),
+  },
+  {
+    id: 'verification',
+    labelKey: 'nav.verification',
+    icon: 'pi pi-verified',
+    route: '/regions/home/verification',
+    visible: when('verification', managesUsers),
+  },
+  {
+    id: 'users',
+    labelKey: 'nav.users',
+    icon: 'pi pi-id-card',
+    route: '/regions/home/users',
+    visible: when('users', managesUsers),
+  },
+  {
+    id: 'adminRegions',
+    labelKey: 'nav.adminRegions',
+    icon: 'pi pi-sitemap',
+    route: '/admin/regions',
+    visible: when('adminRegions', isOrga),
+  },
+  {
+    id: 'adminQuizzes',
+    labelKey: 'nav.adminQuizzes',
+    icon: 'pi pi-pencil',
+    route: '/quizzes/edit',
+    visible: when('adminQuizzes', editsQuizzes),
+  },
+  {
+    id: 'adminContent',
+    labelKey: 'nav.adminContent',
+    icon: 'pi pi-book',
+    route: '/admin/content',
+    visible: when('adminContent', editsContent),
+  },
   // --- dev (local/e2e profile) ---
   {
     id: 'gallery',
@@ -111,6 +242,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-desktop',
     route: '/account/sessions',
     visible: loggedIn,
+    area: 'user',
+  },
+  {
+    id: 'passport',
+    labelKey: 'nav.passport',
+    icon: 'pi pi-id-card',
+    route: '/me/passport',
+    visible: when('passport', (ctx) => ctx.isAuthenticated && !!ctx.session?.user?.verified),
     area: 'user',
   },
   {

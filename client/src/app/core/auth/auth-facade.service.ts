@@ -122,7 +122,7 @@ export class AuthFacadeService {
 
   private leavePageIfNoLongerAllowed(): void {
     for (const route of this.routeChain()) {
-      if (!routeAccess(this.session, route.data)) {
+      if (!routeAccess(this.session, route.data, route)) {
         void this.router.navigateByUrl('/forbidden');
         return;
       }
