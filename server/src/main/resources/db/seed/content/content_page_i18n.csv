@@ -1,0 +1,156 @@
+id,version,created_at,updated_at,created_by,updated_by,owner_id,language,title,body
+00000012-0002-4000-8000-000000000001,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000001,de,Die Regeln,"## Die wichtigsten Regeln
+
+- Zuverlässig sein: eingetragen heisst abholen.
+- Alles mitnehmen, was der Betrieb gibt.
+- Nichts verkaufen, alles verschenken.
+- Den Abholort sauber verlassen."
+00000012-0002-4000-8000-000000000002,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000001,en,The rules,"## The most important rules
+
+- Be reliable: signed up means picking up.
+- Take everything the business gives.
+- Never sell, always give away.
+- Leave the pickup place clean."
+00000012-0002-4000-8000-000000000003,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000001,gws,D Regle,"## Di wichtigschte Regle
+
+- Zueverlässig sii: iitreit heisst abhole.
+- Alles mitnäh, was de Betrieb git.
+- Nüt verchaufe, alles verschänke.
+- De Abholort suuber verlah."
+00000012-0002-4000-8000-000000000004,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000001,fr,Les règles,"## Les règles essentielles
+
+- Être fiable : inscrit veut dire présent.
+- Prendre tout ce que le commerce donne.
+- Ne jamais vendre, toujours donner.
+- Laisser le lieu de collecte propre."
+00000012-0002-4000-8000-000000000005,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000001,it,Le regole,"## Le regole principali
+
+- Essere affidabili: iscritto significa presente.
+- Prendere tutto ciò che il negozio dà.
+- Mai vendere, sempre regalare.
+- Lasciare pulito il luogo del ritiro."
+00000012-0002-4000-8000-000000000006,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000002,de,Hygiene,"## Hygiene beim Retten
+
+Kühlkette einhalten, Fleisch und Fisch nach dem Verbrauchsdatum nicht weitergeben, saubere Behälter verwenden."
+00000012-0002-4000-8000-000000000007,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000002,en,Hygiene,"## Hygiene when saving food
+
+Keep the cold chain, never pass on meat and fish after the use-by date, use clean containers."
+00000012-0002-4000-8000-000000000008,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000002,gws,Hygiene,"## Hygiene bim Rette
+
+Chüelchetti iihalte, Fleisch und Fisch nach em Verbruchsdatum nöd wiitergä, suuberi Behälter bruuche."
+00000012-0002-4000-8000-000000000009,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000002,fr,Hygiène,"## L'hygiène
+
+Respecter la chaîne du froid, ne jamais donner viande et poisson après la date limite, utiliser des contenants propres."
+00000012-0002-4000-8000-000000000010,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000002,it,Igiene,"## L'igiene
+
+Rispettare la catena del freddo, non cedere carne e pesce dopo la scadenza, usare contenitori puliti."
+00000012-0002-4000-8000-000000000011,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000003,de,So läuft eine Abholung,"## Ablauf
+
+1. Pünktlich beim Betrieb sein.
+2. Beim Personal melden und den Ausweis zeigen.
+3. Lebensmittel sortieren und einpacken.
+4. Verteilen: Familie, Freunde, Fairteiler."
+00000012-0002-4000-8000-000000000012,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000003,en,How a pickup works,"## Procedure
+
+1. Be at the business on time.
+2. Report to the staff and show your passport.
+3. Sort and pack the food.
+4. Share it: family, friends, food share points."
+00000012-0002-4000-8000-000000000013,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000003,gws,So lauft e Abholig,"## Ablauf
+
+1. Pünktlich bim Betrieb sii.
+2. Bim Personal mälde und de Uswiis zeige.
+3. Läbensmittel sortiere und iipacke.
+4. Verteile: Familie, Fründe, Fairteiler."
+00000012-0002-4000-8000-000000000014,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000003,fr,Comment se passe une collecte,"## Déroulement
+
+1. Être à l'heure au commerce.
+2. S'annoncer au personnel et montrer sa carte.
+3. Trier et emballer la nourriture.
+4. Partager : famille, amis, Fairteiler."
+00000012-0002-4000-8000-000000000015,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000003,it,Come funziona un ritiro,"## Procedura
+
+1. Essere puntuali al negozio.
+2. Presentarsi al personale e mostrare la tessera.
+3. Smistare e imballare il cibo.
+4. Condividere: famiglia, amici, Fairteiler."
+00000012-0002-4000-8000-000000000016,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000004,de,Umgang miteinander,"## Freundlich und respektvoll
+
+Wir sind Gäste im Betrieb. Wir danken dem Personal und lösen Probleme im Team, nicht vor Ort."
+00000012-0002-4000-8000-000000000017,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000004,en,Getting along,"## Friendly and respectful
+
+We are guests at the business. We thank the staff and solve problems within the team, not on site."
+00000012-0002-4000-8000-000000000018,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000004,gws,Umgang mitenand,"## Fründlich und respektvoll
+
+Mir sind Gäscht im Betrieb. Mir danked em Personal und lösed Problem im Team, nöd vor Ort."
+00000012-0002-4000-8000-000000000019,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000004,fr,Savoir-vivre,"## Aimable et respectueux
+
+Nous sommes invités dans le commerce. Nous remercions le personnel et réglons les problèmes en équipe."
+00000012-0002-4000-8000-000000000020,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000004,it,Buone maniere,"## Gentili e rispettosi
+
+Siamo ospiti del negozio. Ringraziamo il personale e risolviamo i problemi nel team."
+00000012-0002-4000-8000-000000000021,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000005,de,Häufige Fragen,"## Kostet foodsharing etwas?
+
+Nein, alles ist kostenlos.
+
+## Wie werde ich Foodsaver?
+
+Region wählen, Lernseiten lesen, Quiz bestehen, drei Einführungsabholungen machen."
+00000012-0002-4000-8000-000000000022,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000005,en,Frequently asked questions,"## Does foodsharing cost anything?
+
+No, everything is free.
+
+## How do I become a foodsaver?
+
+Choose a region, read the learning pages, pass the quiz, do three introductory pickups."
+00000012-0002-4000-8000-000000000023,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000005,gws,Hüüfigi Frage,"## Choschtet foodsharing öppis?
+
+Nei, alles isch gratis.
+
+## Wie wird ich Foodsaver?
+
+Region wähle, Lärnsiite läse, Quiz bestah, drü Iifüerigsabholige mache."
+00000012-0002-4000-8000-000000000024,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000005,fr,Questions fréquentes,"## Foodsharing coûte-t-il quelque chose ?
+
+Non, tout est gratuit.
+
+## Comment devenir foodsaver ?
+
+Choisir une région, lire les pages, réussir le quiz, faire trois collectes d'introduction."
+00000012-0002-4000-8000-000000000025,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000005,it,Domande frequenti,"## Foodsharing costa qualcosa?
+
+No, è tutto gratuito.
+
+## Come divento foodsaver?
+
+Scegli una regione, leggi le pagine, supera il quiz, fai tre ritiri introduttivi."
+00000012-0002-4000-8000-000000000026,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000006,de,Unsere Vision,Eine Welt ohne Lebensmittelverschwendung.
+00000012-0002-4000-8000-000000000027,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000006,en,Our vision,A world without food waste.
+00000012-0002-4000-8000-000000000028,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000006,gws,Üsi Vision,E Wält ohni Läbensmittelverschwändig.
+00000012-0002-4000-8000-000000000029,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000006,fr,Notre vision,Un monde sans gaspillage alimentaire.
+00000012-0002-4000-8000-000000000030,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000006,it,La nostra visione,Un mondo senza spreco alimentare.
+00000012-0002-4000-8000-000000000031,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000007,de,Impressum,"foodsharing Schweiz, Zürich."
+00000012-0002-4000-8000-000000000032,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000007,en,Imprint,"foodsharing Switzerland, Zurich."
+00000012-0002-4000-8000-000000000033,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000007,gws,Impressum,"foodsharing Schwiiz, Züri."
+00000012-0002-4000-8000-000000000034,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000007,fr,Mentions légales,"foodsharing Suisse, Zurich."
+00000012-0002-4000-8000-000000000035,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000007,it,Colophon,"foodsharing Svizzera, Zurigo."
+00000012-0002-4000-8000-000000000036,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000008,de,Datenschutz,Die aktuelle Datenschutzerklärung findest du unter [/legal/PRIVACY_POLICY](/legal/PRIVACY_POLICY).
+00000012-0002-4000-8000-000000000037,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000008,en,Privacy,The current privacy policy is at [/legal/PRIVACY_POLICY](/legal/PRIVACY_POLICY).
+00000012-0002-4000-8000-000000000038,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000008,gws,Dateschutz,D aktuelli Dateschutzerklärig findsch under [/legal/PRIVACY_POLICY](/legal/PRIVACY_POLICY).
+00000012-0002-4000-8000-000000000039,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000008,fr,Protection des données,La politique de confidentialité actuelle se trouve sous [/legal/PRIVACY_POLICY](/legal/PRIVACY_POLICY).
+00000012-0002-4000-8000-000000000040,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000008,it,Protezione dei dati,L'informativa sulla privacy attuale si trova su [/legal/PRIVACY_POLICY](/legal/PRIVACY_POLICY).
+00000012-0002-4000-8000-000000000041,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000009,de,Als Foodsharer,Teile Lebensmittel mit Essenskörben und Fairteilern.
+00000012-0002-4000-8000-000000000042,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000009,en,As a foodsharer,Share food with food baskets and food share points.
+00000012-0002-4000-8000-000000000043,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000009,gws,Als Foodsharer,Teil Läbensmittel mit Ässenschörb und Fairteiler.
+00000012-0002-4000-8000-000000000044,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000009,fr,En tant que foodsharer,Partage de la nourriture avec des paniers et des Fairteiler.
+00000012-0002-4000-8000-000000000045,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000009,it,Come foodsharer,Condividi cibo con cesti e Fairteiler.
+00000012-0002-4000-8000-000000000046,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000010,de,Als Foodsaver,Rette Lebensmittel direkt bei Betrieben in deiner Region.
+00000012-0002-4000-8000-000000000047,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000010,en,As a foodsaver,Save food directly at businesses in your region.
+00000012-0002-4000-8000-000000000048,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000010,gws,Als Foodsaver,Rett Läbensmittel diräkt bi Betrieb i dinere Region.
+00000012-0002-4000-8000-000000000049,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000010,fr,En tant que foodsaver,Sauve de la nourriture directement chez les commerces.
+00000012-0002-4000-8000-000000000050,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000010,it,Come foodsaver,Salva il cibo direttamente presso i negozi della tua regione.
+00000012-0002-4000-8000-000000000051,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000011,de,Für Betriebe,"Kooperiere mit uns: wir holen ab, zuverlässig und kostenlos."
+00000012-0002-4000-8000-000000000052,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000011,en,For businesses,"Cooperate with us: we pick up, reliably and for free."
+00000012-0002-4000-8000-000000000053,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000011,gws,Für Betrieb,"Kooperier mit üs: mir holed ab, zueverlässig und gratis."
+00000012-0002-4000-8000-000000000054,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000011,fr,Pour les commerces,"Coopérez avec nous : nous collectons, fiablement et gratuitement."
+00000012-0002-4000-8000-000000000055,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0001-4000-8000-000000000011,it,Per i negozi,Collabora con noi: ritiriamo in modo affidabile e gratuito.

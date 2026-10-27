@@ -1,0 +1,38 @@
+# Milestone 2 (T14): content pages and learning chapters in five languages (A14).
+databaseChangeLog:
+  - changeSet:
+      id: 035-1
+      author: platform
+      comment: 'Content pages (PAGE, LEARNING_CHAPTER, FAQ); slug = learning chapter key.'
+      changes:
+        - createTable:
+            tableName: content_page
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_content_page, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: slug, type: VARCHAR(100), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_content_page_slug}}
+              - column: {name: kind, type: VARCHAR(30), constraints: {nullable: false}}
+              - column: {name: sort_order, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: estimated_minutes, type: INT}
+              - column: {name: published, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - createTable:
+            tableName: content_page_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_content_page_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_content_page_i18n_owner_id, references: content_page(id), deleteCascade: true}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: title, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: body, type: VARCHAR(32600), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: content_page_i18n
+            columnNames: owner_id, language
+            constraintName: uq_content_page_i18n_owner_id_language

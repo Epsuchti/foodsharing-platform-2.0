@@ -22,11 +22,25 @@ public class RegionService {
     private final RegionRepository regions;
     private final RegionClosureRepository closure;
     private final AppProperties properties;
+    private final network.foodsharing.region.repository.RegionFunctionRepository functions;
+    private final network.foodsharing.region.repository.RegionAdminRepository admins;
 
-    public RegionService(RegionRepository regions, RegionClosureRepository closure, AppProperties properties) {
+    public RegionService(RegionRepository regions, RegionClosureRepository closure, AppProperties properties,
+                         network.foodsharing.region.repository.RegionFunctionRepository functions,
+                         network.foodsharing.region.repository.RegionAdminRepository admins) {
         this.regions = regions;
         this.closure = closure;
         this.properties = properties;
+        this.functions = functions;
+        this.admins = admins;
+    }
+
+    /** Is the user admin of a working group that holds this function in any region (e.g. PR for content)? */
+    @Transactional(readOnly = true)
+    public boolean isFunctionGroupAdminAnywhere(UUID userId, network.foodsharing.security.WorkingGroupFunction function) {
+        java.util.Set<UUID> adminOf = admins.findRegionIds(userId);
+        return !adminOf.isEmpty() && functions.findByGroupIdIn(adminOf).stream()
+                .anyMatch(assignment -> assignment.getFunction() == function);
     }
 
     @Transactional(readOnly = true)

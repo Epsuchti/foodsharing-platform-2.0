@@ -1,0 +1,46 @@
+id,version,created_at,updated_at,created_by,updated_by,owner_id,language,summary,body
+00000012-0004-4000-8000-000000000001,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000001,de,"Wir speichern nur, was für foodsharing nötig ist.","# Datenschutzerklärung
+
+Wir verarbeiten Name, E-Mail, Telefon und Region, um Abholungen zu organisieren. Daten werden nie verkauft. Du kannst dein Konto jederzeit löschen."
+00000012-0004-4000-8000-000000000002,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000001,en,We only store what foodsharing needs.,"# Privacy policy
+
+We process name, email, phone and region to organise pickups. Data is never sold. You can delete your account at any time."
+00000012-0004-4000-8000-000000000003,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000001,gws,"Mir spichered nur, was foodsharing bruucht.","# Dateschutzerklärig
+
+Mir verarbeited Name, E-Mail, Telefon und Region, zum Abholige organisiere. Date wärded nie verchauft."
+00000012-0004-4000-8000-000000000004,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000001,fr,Nous ne conservons que le nécessaire.,"# Politique de confidentialité
+
+Nous traitons nom, e-mail, téléphone et région pour organiser les collectes. Les données ne sont jamais vendues."
+00000012-0004-4000-8000-000000000005,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000001,it,Conserviamo solo ciò che serve.,"# Informativa sulla privacy
+
+Trattiamo nome, e-mail, telefono e regione per organizzare i ritiri. I dati non vengono mai venduti."
+00000012-0004-4000-8000-000000000006,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000002,de,Die Rechtsvereinbarung für Foodsaver.,"# Rechtsvereinbarung
+
+Ich hole zuverlässig ab, halte die Hygieneregeln ein und gebe Lebensmittel nur kostenlos weiter. Ich handle auf eigene Verantwortung."
+00000012-0004-4000-8000-000000000007,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000002,en,The legal agreement for foodsavers.,"# Legal agreement
+
+I pick up reliably, follow the hygiene rules and only pass on food for free. I act on my own responsibility."
+00000012-0004-4000-8000-000000000008,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000002,gws,D Rächtsvereibarig für Foodsaver.,"# Rächtsvereibarig
+
+Ich hol zueverlässig ab, halt d Hygieneregle ii und gib Läbensmittel nur gratis wiiter."
+00000012-0004-4000-8000-000000000009,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000002,fr,L'accord juridique des foodsavers.,"# Accord juridique
+
+Je collecte de manière fiable, respecte les règles d'hygiène et ne donne la nourriture que gratuitement."
+00000012-0004-4000-8000-000000000010,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000002,it,L'accordo legale per i foodsaver.,"# Accordo legale
+
+Ritiro in modo affidabile, rispetto le regole d'igiene e cedo il cibo solo gratuitamente."
+00000012-0004-4000-8000-000000000011,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000003,de,Vertraulichkeit für Betriebsverantwortliche.,"# Vertraulichkeitserklärung
+
+Interne Informationen über Betriebe und Kontaktpersonen behandle ich vertraulich."
+00000012-0004-4000-8000-000000000012,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000003,en,Confidentiality for store managers.,"# Confidentiality notice
+
+I treat internal information about businesses and contact persons confidentially."
+00000012-0004-4000-8000-000000000013,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000003,gws,Vertraulichkeit für Betriebsverantwortlichi.,"# Vertraulichkeitserklärig
+
+Interni Informatione über Betrieb und Kontaktpersone behandle ich vertraulich."
+00000012-0004-4000-8000-000000000014,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000003,fr,Confidentialité pour les responsables.,"# Déclaration de confidentialité
+
+Je traite de manière confidentielle les informations internes sur les commerces."
+00000012-0004-4000-8000-000000000015,0,2026-01-15T10:00:00Z,2026-01-15T10:00:00Z,NULL,NULL,00000012-0003-4000-8000-000000000003,it,Riservatezza per i responsabili.,"# Dichiarazione di riservatezza
+
+Tratto in modo riservato le informazioni interne sui negozi."

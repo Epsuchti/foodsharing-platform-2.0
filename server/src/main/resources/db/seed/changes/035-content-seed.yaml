@@ -1,0 +1,121 @@
+# Content seed (T14): learning chapters, FAQ, pages, legal documents (version 2026-01) and the seed users' consents.
+databaseChangeLog:
+  - changeSet:
+      id: seed-035-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Content pages and learning chapters.'
+      changes:
+        - loadUpdateData:
+            tableName: content_page
+            file: ../content/content_page.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: sort_order, type: NUMERIC}
+              - column: {name: estimated_minutes, type: NUMERIC}
+              - column: {name: published, type: BOOLEAN}
+  - changeSet:
+      id: seed-035-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Page texts in five languages.'
+      changes:
+        - loadUpdateData:
+            tableName: content_page_i18n
+            file: ../content/content_page_i18n.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID}
+  - changeSet:
+      id: seed-035-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Legal document versions.'
+      changes:
+        - loadUpdateData:
+            tableName: legal_document_version
+            file: ../content/legal_document_version.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: published_at, type: STRING}
+              - column: {name: require_reconsent, type: BOOLEAN}
+  - changeSet:
+      id: seed-035-4
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Legal texts in five languages.'
+      changes:
+        - loadUpdateData:
+            tableName: legal_document_version_i18n
+            file: ../content/legal_document_version_i18n.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID}
+  - changeSet:
+      id: seed-035-5
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Consents of the seed users.'
+      changes:
+        - loadUpdateData:
+            tableName: legal_acceptance
+            file: ../content/legal_acceptance.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: accepted_at, type: STRING}
