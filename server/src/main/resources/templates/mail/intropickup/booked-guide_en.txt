@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+[(${userName})] booked your intro pickup at [(${businessName})] on [(${when})].
+
+[(${link})]
+
+Your foodsharing team

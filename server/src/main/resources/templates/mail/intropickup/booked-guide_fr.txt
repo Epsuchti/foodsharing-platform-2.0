@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+[(${userName})] a réservé ta collecte d'initiation chez [(${businessName})] le [(${when})].
+
+[(${link})]
+
+Ton équipe foodsharing

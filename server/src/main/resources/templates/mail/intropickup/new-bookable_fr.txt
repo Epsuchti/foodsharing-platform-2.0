@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+une nouvelle collecte d'initiation chez [(${businessName})] le [(${when})] est disponible à la réservation.
+Se désabonner : [(${unsubscribeLink})]
+[(${link})]
+
+Ton équipe foodsharing

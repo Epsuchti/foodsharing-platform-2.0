@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+du wirst ab jetzt informiert, wenn im Bezirk [(${regionName})] neue Einführungsabholungen buchbar sind.
+Abmelden: [(${unsubscribeLink})]
+[(${link})]
+
+Dein foodsharing-Team

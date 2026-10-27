@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+[(${userName})] ha disdetto la prenotazione del tuo ritiro introduttivo presso [(${businessName})] il [(${when})]. Il posto è di nuovo libero.
+
+[(${link})]
+
+Il tuo team foodsharing

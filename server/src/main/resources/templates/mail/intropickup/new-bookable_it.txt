@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+c'è un nuovo ritiro introduttivo presso [(${businessName})] il [(${when})] che puoi prenotare.
+Annulla iscrizione: [(${unsubscribeLink})]
+[(${link})]
+
+Il tuo team foodsharing

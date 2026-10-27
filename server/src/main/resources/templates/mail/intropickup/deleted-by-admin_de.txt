@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+deine Einführungsabholung bei [(${businessName})] am [(${when})] wurde von der Bezirksverwaltung gelöscht.
+[# th:if="${reason != null}"]
+Begründung: [(${reason})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Iifüehrigsabholig bi [(${businessName})] am [(${when})] isch vo de Bezirksverwaltig glöscht worde.
+[# th:if="${reason != null}"]
+Begründig: [(${reason})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

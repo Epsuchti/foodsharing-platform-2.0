@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+the intro pickup at [(${businessName})] was changed and takes place on [(${when})]. Please check the details.
+
+[(${link})]
+
+Your foodsharing team

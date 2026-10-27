@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+es git e neui Iifüehrigsabholig bi [(${businessName})] am [(${when})], wo du chasch bueche.
+Abmälde: [(${unsubscribeLink})]
+[(${link})]
+
+Dis foodsharing-Team

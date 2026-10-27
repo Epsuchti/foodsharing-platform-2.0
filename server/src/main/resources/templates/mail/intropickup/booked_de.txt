@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+du hast die Einführungsabholung bei [(${businessName})] am [(${when})] gebucht. Adresse und Treffpunkt findest du unter „Meine Einführungsabholungen“.
+Kalender: [(${calendarLink})]
+[(${link})]
+
+Dein foodsharing-Team

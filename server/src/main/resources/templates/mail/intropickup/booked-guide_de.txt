@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+[(${userName})] hat deine Einführungsabholung bei [(${businessName})] am [(${when})] gebucht.
+
+[(${link})]
+
+Dein foodsharing-Team

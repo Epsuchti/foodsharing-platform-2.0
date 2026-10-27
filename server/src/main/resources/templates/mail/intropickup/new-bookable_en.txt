@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+there is a new intro pickup at [(${businessName})] on [(${when})] that you can book.
+Unsubscribe: [(${unsubscribeLink})]
+[(${link})]
+
+Your foodsharing team

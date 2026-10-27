@@ -71,6 +71,18 @@ public class UserService {
                 : repository.findByIdIn(userIds).stream().filter(User::isActive).toList();
     }
 
+    /** Users by id, including disabled ones (display of past data). */
+    @Transactional(readOnly = true)
+    public List<User> findAll(Collection<UUID> userIds) {
+        return userIds.isEmpty() ? List.of() : repository.findByIdIn(userIds);
+    }
+
+    /** Users by foodsaver number (CSV imports), including disabled ones. */
+    @Transactional(readOnly = true)
+    public List<User> findByFoodsaverNumbers(Collection<Long> numbers) {
+        return numbers.isEmpty() ? List.of() : repository.findByFoodsaverNumberIn(numbers);
+    }
+
     /** Active users whose home region is one of the given regions. */
     @Transactional(readOnly = true)
     public List<User> findActiveByHomeRegions(Collection<UUID> regionIds) {

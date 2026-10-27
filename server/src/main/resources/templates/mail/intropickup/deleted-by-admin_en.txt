@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+your intro pickup at [(${businessName})] on [(${when})] was deleted by the region administration.
+[# th:if="${reason != null}"]
+Reason: [(${reason})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+ta collecte d'initiation chez [(${businessName})] le [(${when})] a été supprimée par l'administration de la région.
+[# th:if="${reason != null}"]
+Motif: [(${reason})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

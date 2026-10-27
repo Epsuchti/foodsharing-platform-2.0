@@ -1,0 +1,108 @@
+# Milestone 2 (T15): introductory pickups (EinAbs), their slots and comments (plan §14.1).
+databaseChangeLog:
+  - changeSet:
+      id: 045-1
+      author: platform
+      comment: 'EinAbs. store_id gets its foreign key in M3; business_name is kept as free text.'
+      changes:
+        - createTable:
+            tableName: intro_pickup
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_intro_pickup, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: category, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: start_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: guide_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_guide_id, references: user_account(id)}}
+              - column: {name: visit_fairteiler, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: slot_count, type: INT, defaultValueNumeric: 1, constraints: {nullable: false}}
+              - column: {name: minimum_pickup_count, type: INT}
+              - column: {name: business_name, type: VARCHAR(500)}
+              - column: {name: store_id, type: UUID}
+              - column: {name: private_address, type: VARCHAR(500)}
+              - column: {name: public_general_location, type: VARCHAR(500)}
+              - column: {name: online_call_link, type: VARCHAR(2000)}
+              - column: {name: private_info, type: VARCHAR(4000)}
+              - column: {name: public_info, type: VARCHAR(4000)}
+              - column: {name: imported, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: intro_pickup
+            indexName: ix_intro_pickup_region_id_start_at
+            columns:
+              - column: {name: region_id}
+              - column: {name: start_at}
+        - createIndex:
+            tableName: intro_pickup
+            indexName: ix_intro_pickup_guide_id
+            columns:
+              - column: {name: guide_id}
+  - changeSet:
+      id: 045-2
+      author: platform
+      comment: 'Places of an EinAb; a booking is a slot with a booking user.'
+      changes:
+        - createTable:
+            tableName: intro_pickup_slot
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_intro_pickup_slot, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: intro_pickup_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_slot_intro_pickup_id, references: intro_pickup(id), deleteCascade: true}}
+              - column: {name: guide_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_slot_guide_id, references: user_account(id)}}
+              - column: {name: status, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: booking_user_id, type: UUID, constraints: {foreignKeyName: fk_intro_pickup_slot_booking_user_id, references: user_account(id)}}
+              - column: {name: booked_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: done_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: intro_pickup_slot
+            indexName: ix_intro_pickup_slot_intro_pickup_id
+            columns:
+              - column: {name: intro_pickup_id}
+        - createIndex:
+            tableName: intro_pickup_slot
+            indexName: ix_intro_pickup_slot_booking_user_id_status
+            columns:
+              - column: {name: booking_user_id}
+              - column: {name: status}
+        - createIndex:
+            tableName: intro_pickup_slot
+            indexName: ix_intro_pickup_slot_guide_id
+            columns:
+              - column: {name: guide_id}
+  - changeSet:
+      id: 045-3
+      author: platform
+      comment: 'Comments of guides and admins on a booking (feedback for the verification).'
+      changes:
+        - createTable:
+            tableName: intro_pickup_comment
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_intro_pickup_comment, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: slot_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_comment_slot_id, references: intro_pickup_slot(id), deleteCascade: true}}
+              - column: {name: booking_user_id, type: UUID, constraints: {foreignKeyName: fk_intro_pickup_comment_booking_user_id, references: user_account(id)}}
+              - column: {name: author_id, type: UUID, constraints: {foreignKeyName: fk_intro_pickup_comment_author_id, references: user_account(id)}}
+              - column: {name: admin_comment, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: text, type: VARCHAR(4000), constraints: {nullable: false}}
+        - createIndex:
+            tableName: intro_pickup_comment
+            indexName: ix_intro_pickup_comment_slot_id
+            columns:
+              - column: {name: slot_id}
+        - createIndex:
+            tableName: intro_pickup_comment
+            indexName: ix_intro_pickup_comment_booking_user_id
+            columns:
+              - column: {name: booking_user_id}

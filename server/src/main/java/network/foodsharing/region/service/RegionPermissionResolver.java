@@ -132,6 +132,23 @@ public class RegionPermissionResolver implements ScopedPermissionResolver {
         return closure.ancestorsOfAll(userRegions).stream().anyMatch(scopes::contains);
     }
 
+    /**
+     * Users holding a region permission in the region: direct grants plus active members of function groups whose
+     * function grants it (ORGA is not included; callers add it where it matters).
+     */
+    public Set<UUID> holders(Permission permission, UUID regionId) {
+        Set<UUID> result = new java.util.HashSet<>();
+        permissions.findByRegionId(regionId).stream().filter(grant -> grant.getPermission() == permission)
+                .forEach(grant -> result.add(grant.getUserId()));
+        Map<WorkingGroupFunction, List<Permission>> grants = properties.getPermissions().getFunctionGrants();
+        for (RegionFunction assignment : functions.findByRegionId(regionId)) {
+            if (grants.getOrDefault(assignment.getFunction(), List.of()).contains(permission)) {
+                result.addAll(memberships.findActiveUserIds(assignment.getGroupId()));
+            }
+        }
+        return result;
+    }
+
     /** Permissions granted through function groups the user is an active member of, by region. */
     Map<UUID, Set<Permission>> functionGrants(UUID userId) {
         Set<UUID> memberGroups = memberships.findActiveRegionIds(userId);

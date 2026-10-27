@@ -1,0 +1,41 @@
+# Milestone 2 (T15): guide profiles (iCal link and feed token) and private-info templates.
+databaseChangeLog:
+  - changeSet:
+      id: 046-1
+      author: platform
+      comment: 'Guide settings, one row per guide.'
+      changes:
+        - createTable:
+            tableName: guide_profile
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_guide_profile, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_guide_profile_user_id, foreignKeyName: fk_guide_profile_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: ical_link, type: VARCHAR(2000)}
+              - column: {name: ical_feed_token, type: VARCHAR(64), constraints: {unique: true, uniqueConstraintName: uq_guide_profile_ical_feed_token}}
+              - column: {name: phone, type: VARCHAR(50)}
+  - changeSet:
+      id: 046-2
+      author: platform
+      comment: 'Saved private info per guide and category.'
+      changes:
+        - createTable:
+            tableName: private_info_template
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_private_info_template, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: guide_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_private_info_template_guide_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: category, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: content, type: VARCHAR(4000), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: private_info_template
+            columnNames: guide_id, category
+            constraintName: uq_private_info_template_guide_id_category

@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+you booked the intro pickup at [(${businessName})] on [(${when})]. Address and meeting point are under "My intro pickups".
+Calendar: [(${calendarLink})]
+[(${link})]
+
+Your foodsharing team

@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+il tuo ritiro introduttivo presso [(${businessName})] il [(${when})] è stato eliminato dall'amministrazione della regione.
+[# th:if="${reason != null}"]
+Motivo: [(${reason})]
+[/]
+
+[(${link})]
+
+Il tuo team foodsharing

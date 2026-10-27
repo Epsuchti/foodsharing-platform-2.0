@@ -1,0 +1,29 @@
+# Milestone 2 (T15): notification subscriptions for new bookable EinAbs (EA9).
+databaseChangeLog:
+  - changeSet:
+      id: 047-1
+      author: platform
+      comment: 'One subscription per user.'
+      changes:
+        - createTable:
+            tableName: intro_pickup_subscription
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_intro_pickup_subscription, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_intro_pickup_subscription_user_id, foreignKeyName: fk_intro_pickup_subscription_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_subscription_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: channel, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: delivery_email, type: VARCHAR(320)}
+              - column: {name: language, type: VARCHAR(5), defaultValue: de, constraints: {nullable: false}}
+              - column: {name: active, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: unsubscribe_token, type: VARCHAR(128), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_intro_pickup_subscription_unsubscribe_token}}
+        - createIndex:
+            tableName: intro_pickup_subscription
+            indexName: ix_intro_pickup_subscription_region_id_active
+            columns:
+              - column: {name: region_id}
+              - column: {name: active}

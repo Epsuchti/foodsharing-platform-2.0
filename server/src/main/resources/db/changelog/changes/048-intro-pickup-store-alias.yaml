@@ -1,0 +1,23 @@
+# Milestone 2 (T15): store name aliases for the past EinAb CSV import (EA19).
+databaseChangeLog:
+  - changeSet:
+      id: 048-1
+      author: platform
+      comment: 'Normalised alias key → store name, per region.'
+      changes:
+        - createTable:
+            tableName: intro_pickup_store_alias
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_intro_pickup_store_alias, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_intro_pickup_store_alias_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: alias_key, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: store_name, type: VARCHAR(500), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: intro_pickup_store_alias
+            columnNames: region_id, alias_key
+            constraintName: uq_intro_pickup_store_alias_region_id_alias_key

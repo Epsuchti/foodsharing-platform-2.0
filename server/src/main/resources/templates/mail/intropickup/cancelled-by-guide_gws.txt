@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Buechig für d Iifüehrigsabholig bi [(${businessName})] am [(${when})] isch vo de Iifüehrerin oder em Iifüehrer abgseit worde. Du chasch en anderi Iifüehrigsabholig bueche.
+[# th:if="${reason != null}"]
+Begründig: [(${reason})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

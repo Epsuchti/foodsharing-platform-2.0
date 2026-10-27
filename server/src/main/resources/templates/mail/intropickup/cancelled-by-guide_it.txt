@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+la guida ha annullato la tua prenotazione per il ritiro introduttivo presso [(${businessName})] il [(${when})]. Puoi prenotare un altro ritiro introduttivo.
+[# th:if="${reason != null}"]
+Motivo: [(${reason})]
+[/]
+
+[(${link})]
+
+Il tuo team foodsharing

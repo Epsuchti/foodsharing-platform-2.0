@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+[(${userName})] a annulé la réservation de ta collecte d'initiation chez [(${businessName})] le [(${when})]. La place est de nouveau libre.
+
+[(${link})]
+
+Ton équipe foodsharing

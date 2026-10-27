@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+d Iifüehrigsabholig bi [(${businessName})] isch gänderet worde und findet am [(${when})] statt. Bitte lueg d Details aa.
+
+[(${link})]
+
+Dis foodsharing-Team

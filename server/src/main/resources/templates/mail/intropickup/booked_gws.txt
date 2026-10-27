@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+du häsch d Iifüehrigsabholig bi [(${businessName})] am [(${when})] buecht. Adrässe und Träffpunkt findsch under „Mini Iifüehrigsabholige“.
+Kaländer: [(${calendarLink})]
+[(${link})]
+
+Dis foodsharing-Team

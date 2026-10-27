@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+hai prenotato il ritiro introduttivo presso [(${businessName})] il [(${when})]. Indirizzo e punto d'incontro sono in «I miei ritiri introduttivi».
+Calendario: [(${calendarLink})]
+[(${link})]
+
+Il tuo team foodsharing

@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+il ritiro introduttivo presso [(${businessName})] è stato modificato e si svolge il [(${when})]. Controlla i dettagli.
+
+[(${link})]
+
+Il tuo team foodsharing

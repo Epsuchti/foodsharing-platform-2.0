@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+es gibt eine neue Einführungsabholung bei [(${businessName})] am [(${when})], die du buchen kannst.
+Abmelden: [(${unsubscribeLink})]
+[(${link})]
+
+Dein foodsharing-Team

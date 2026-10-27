@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+from now on you will be told when new intro pickups can be booked in [(${regionName})].
+Unsubscribe: [(${unsubscribeLink})]
+[(${link})]
+
+Your foodsharing team

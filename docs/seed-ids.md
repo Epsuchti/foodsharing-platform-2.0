@@ -109,3 +109,18 @@ orga — quiz-registrierung. Group members: guide and bot in WELCOME; foodsaver 
 permissions in zuerich-stadt: guide CAN_GIVE_INTRO_PICKUPS, bot all six, welcome CAN_MANAGE_USERS. Applications to the
 PR group: foodsaver PENDING, jumper DECLINED (by bot). Identity confirmed for users 06–14 (by bot; bot by orga);
 `last_passport_at` for 06–14 (sleepy's is 2022-10-01, i.e. expired).
+
+### EinAbs (T15, module 0030)
+
+`intro_pickup` `00000030-0001-…-01`–`14`: upcoming in zuerich-stadt (SEED_NOW +2 … +28 days, 17:00 UTC), guide@local
+`01`–`10` (SUPERMARKET 3 slots, TAKEOUT, MARKET, RESTAURANT, FAIRTEILER_CLEANING with visit, MESSE, GROSSABHOLUNG with
+`minimum_pickup_count=1`, ONLINE with call link, SUPERMARKET with visit, BAKERY), bot@local `11`–`14` (BAKERY — slot
+`…0002-…21` booked by einab1 —, RESTAURANT with visit, TAKEOUT, MARKET); `15` Winterthur (bot). Past: `16` einab1 DONE
+(SUPERMARKET, guide), `17`–`19` pending DONE (incl. Fairteiler visit with welcome), `20`–`22` foodsaver and `23`–`25`
+jumper DONE (imported, historic), `26` sleepy CANCELLED (not counted), `27` an unbooked past EinAb of guide. Slots
+`0002-…01`–`42`, comments `0003-…01`–`07`. `guide_profile` `0004-…01` (guide, feed token
+`5eedf00dc0ffee0000000000000000000000000000000010`, phone), `private_info_template` `0005-…01/02` (guide SUPERMARKET,
+BAKERY), `intro_pickup_subscription` `0006-…01` newbie IN_APP inactive, `0006-…02` quiz@local EMAIL active (token
+`seed-unsubscribe-quiz`), `intro_pickup_store_alias` `0007-…01`–`06` (babus, babusbakery, aldibadnerstrasse, tinyfish…).
+Local starts shift these dates with the seed anchor (`IntroPickupSeedDateShift`).
+

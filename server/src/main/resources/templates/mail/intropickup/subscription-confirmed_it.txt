@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+d'ora in poi riceverai un avviso quando nuovi ritiri introduttivi sono prenotabili a [(${regionName})].
+Annulla iscrizione: [(${unsubscribeLink})]
+[(${link})]
+
+Il tuo team foodsharing

@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+[(${userName})] cancelled the booking for your intro pickup at [(${businessName})] on [(${when})]. The place is free again.
+
+[(${link})]
+
+Your foodsharing team

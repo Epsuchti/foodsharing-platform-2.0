@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+la personne qui guide a annulé ta réservation pour la collecte d'initiation chez [(${businessName})] le [(${when})]. Tu peux réserver une autre collecte d'initiation.
+[# th:if="${reason != null}"]
+Motif: [(${reason})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

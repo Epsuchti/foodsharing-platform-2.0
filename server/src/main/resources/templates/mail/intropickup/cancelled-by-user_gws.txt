@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+[(${userName})] hät d Buechig für dini Iifüehrigsabholig bi [(${businessName})] am [(${when})] abgseit. De Platz isch wieder frei.
+
+[(${link})]
+
+Dis foodsharing-Team

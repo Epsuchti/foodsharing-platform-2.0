@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+[(${userName})] ha prenotato il tuo ritiro introduttivo presso [(${businessName})] il [(${when})].
+
+[(${link})]
+
+Il tuo team foodsharing

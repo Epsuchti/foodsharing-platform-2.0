@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+tu seras désormais informé·e quand de nouvelles collectes d'initiation sont réservables à [(${regionName})].
+Se désabonner : [(${unsubscribeLink})]
+[(${link})]
+
+Ton équipe foodsharing

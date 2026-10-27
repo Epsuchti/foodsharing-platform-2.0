@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+la collecte d'initiation chez [(${businessName})] a été modifiée et a lieu le [(${when})]. Merci de vérifier les détails.
+
+[(${link})]
+
+Ton équipe foodsharing

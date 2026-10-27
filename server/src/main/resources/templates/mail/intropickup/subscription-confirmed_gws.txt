@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+du wirsch ab jetzt informiert, wänn im Bezirk [(${regionName})] neui Iifüehrigsabholige buechbar sind.
+Abmälde: [(${unsubscribeLink})]
+[(${link})]
+
+Dis foodsharing-Team

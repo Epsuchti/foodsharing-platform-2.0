@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+tu as réservé la collecte d'initiation chez [(${businessName})] le [(${when})]. L'adresse et le lieu de rendez-vous se trouvent sous « Mes collectes d'initiation ».
+Calendrier : [(${calendarLink})]
+[(${link})]
+
+Ton équipe foodsharing

@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+[(${userName})] hät dini Iifüehrigsabholig bi [(${businessName})] am [(${when})] buecht.
+
+[(${link})]
+
+Dis foodsharing-Team

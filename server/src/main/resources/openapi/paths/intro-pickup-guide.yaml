@@ -170,7 +170,7 @@
           application/json:
             schema:
               $ref: '../schemas/intro-pickups.yaml#/IntroPickupDetail'
-      '400': {description: 'VALIDATION_FAILED, LOCATION_REQUIRED, PUBLIC_LOCATION_REQUIRED, BUSINESS_NAME_REQUIRED, SLOT_COUNT_OUT_OF_RANGE or ONLINE_CALL_LINK_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '400': {description: 'VALIDATION_FAILED, LOCATION_REQUIRED, PUBLIC_LOCATION_REQUIRED, BUSINESS_NAME_REQUIRED, SLOT_COUNT_OUT_OF_RANGE, ONLINE_CALL_LINK_REQUIRED or INTRO_PICKUP_START_IN_PAST', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ONLY_OWN_INTRO_PICKUPS_MANAGEABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'INTRO_PICKUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

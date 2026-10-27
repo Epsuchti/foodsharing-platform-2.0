@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+die Einführungsabholung bei [(${businessName})] wurde geändert und findet am [(${when})] statt. Bitte prüfe die Details.
+
+[(${link})]
+
+Dein foodsharing-Team

@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+[(${userName})] hat die Buchung für deine Einführungsabholung bei [(${businessName})] am [(${when})] abgesagt. Der Platz ist wieder frei.
+
+[(${link})]
+
+Dein foodsharing-Team

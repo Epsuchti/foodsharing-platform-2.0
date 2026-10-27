@@ -1,0 +1,180 @@
+# Seed (T15): EinAbs of Zürich Stadt / Winterthur, bookings, comments, guide profile, templates, subscriptions, store aliases.
+databaseChangeLog:
+  - changeSet:
+      id: seed-045-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: '14 upcoming EinAbs in Zürich Stadt, 1 in Winterthur, past EinAbs of the newcomers.'
+      changes:
+        - loadUpdateData:
+            tableName: intro_pickup
+            file: ../intropickup/intro_pickup.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID}
+              - column: {name: start_at, type: STRING}
+              - column: {name: guide_id, type: UUID}
+              - column: {name: visit_fairteiler, type: BOOLEAN}
+              - column: {name: slot_count, type: NUMERIC}
+              - column: {name: minimum_pickup_count, type: NUMERIC}
+              - column: {name: store_id, type: UUID}
+              - column: {name: imported, type: BOOLEAN}
+              - column: {name: deleted_at, type: STRING}
+  - changeSet:
+      id: seed-045-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Slots; bookings of einab1, pending, foodsaver, jumper, sleepy.'
+      changes:
+        - loadUpdateData:
+            tableName: intro_pickup_slot
+            file: ../intropickup/intro_pickup_slot.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: intro_pickup_id, type: UUID}
+              - column: {name: guide_id, type: UUID}
+              - column: {name: booking_user_id, type: UUID}
+              - column: {name: booked_at, type: STRING}
+              - column: {name: done_at, type: STRING}
+  - changeSet:
+      id: seed-045-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Guide feedback on past bookings.'
+      changes:
+        - loadUpdateData:
+            tableName: intro_pickup_comment
+            file: ../intropickup/intro_pickup_comment.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: slot_id, type: UUID}
+              - column: {name: booking_user_id, type: UUID}
+              - column: {name: author_id, type: UUID}
+              - column: {name: admin_comment, type: BOOLEAN}
+  - changeSet:
+      id: seed-045-4
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Guide profile of guide@local with a feed token.'
+      changes:
+        - loadUpdateData:
+            tableName: guide_profile
+            file: ../intropickup/guide_profile.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+  - changeSet:
+      id: seed-045-5
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Private-info templates of guide@local.'
+      changes:
+        - loadUpdateData:
+            tableName: private_info_template
+            file: ../intropickup/private_info_template.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: guide_id, type: UUID}
+  - changeSet:
+      id: seed-045-6
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Subscriptions: newbie (inactive), quiz@local (e-mail).'
+      changes:
+        - loadUpdateData:
+            tableName: intro_pickup_subscription
+            file: ../intropickup/intro_pickup_subscription.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: region_id, type: UUID}
+              - column: {name: active, type: BOOLEAN}
+  - changeSet:
+      id: seed-045-7
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Store aliases of Zürich Stadt for the past import.'
+      changes:
+        - loadUpdateData:
+            tableName: intro_pickup_store_alias
+            file: ../intropickup/intro_pickup_store_alias.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID}
