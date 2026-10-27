@@ -1,0 +1,197 @@
+# Quiz seed (T13): 7 quizzes with questions and answers in five languages (gws/fr/it machine translated), and the seed users' quiz sessions.
+databaseChangeLog:
+  - changeSet:
+      id: seed-030-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Quizzes.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz
+            file: ../quiz/quiz.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: max_failure_points, type: NUMERIC}
+              - column: {name: question_count_timed, type: NUMERIC}
+              - column: {name: question_count_untimed, type: NUMERIC}
+  - changeSet:
+      id: seed-030-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Quiz names and descriptions.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz_i18n
+            file: ../quiz/quiz_i18n.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID}
+  - changeSet:
+      id: seed-030-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Questions.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz_question
+            file: ../quiz/quiz_question.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: quiz_id, type: UUID}
+              - column: {name: duration_seconds, type: NUMERIC}
+              - column: {name: mandatory, type: BOOLEAN}
+              - column: {name: failure_points, type: NUMERIC}
+              - column: {name: deleted_at, type: STRING}
+  - changeSet:
+      id: seed-030-4
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Question texts.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz_question_i18n
+            file: ../quiz/quiz_question_i18n.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID}
+  - changeSet:
+      id: seed-030-5
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Answers.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz_answer
+            file: ../quiz/quiz_answer.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: question_id, type: UUID}
+              - column: {name: deleted_at, type: STRING}
+  - changeSet:
+      id: seed-030-6
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Answer texts and explanations.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz_answer_i18n
+            file: ../quiz/quiz_answer_i18n.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID}
+  - changeSet:
+      id: seed-030-7
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Quiz sessions of the seed users.'
+      changes:
+        - loadUpdateData:
+            tableName: quiz_session
+            file: ../quiz/quiz_session.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: quiz_id, type: UUID}
+              - column: {name: question_index, type: NUMERIC}
+              - column: {name: started_at, type: STRING}
+              - column: {name: question_started_at, type: STRING}
+              - column: {name: ended_at, type: STRING}
+              - column: {name: failure_points, type: NUMERIC}
+              - column: {name: max_failure_points, type: NUMERIC}
+              - column: {name: question_count, type: NUMERIC}
+              - column: {name: timed, type: BOOLEAN}
+              - column: {name: test, type: BOOLEAN}
+  - changeSet:
+      id: seed-030-8
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'quiz@local passed the foodsaver quiz (not yet confirmed).'
+      changes:
+        - loadUpdateData:
+            tableName: user_account
+            file: ../quiz/user_quiz_role.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}

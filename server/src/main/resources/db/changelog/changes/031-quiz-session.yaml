@@ -1,0 +1,38 @@
+# Milestone 2 (T13): quiz sessions with a JSON snapshot of the asked questions.
+databaseChangeLog:
+  - changeSet:
+      id: 031-1
+      author: platform
+      comment: 'One attempt of a user at a quiz; questions and results are JSON snapshots.'
+      changes:
+        - createTable:
+            tableName: quiz_session
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_session, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_session_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: quiz_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_session_quiz_id, references: quiz(id), deleteCascade: true}}
+              - column: {name: status, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: questions, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: results, type: VARCHAR(32600)}
+              - column: {name: question_index, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: started_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: question_started_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: ended_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: failure_points, type: 'DECIMAL(6,2)', defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: max_failure_points, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: question_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: timed, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: test, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: language, type: VARCHAR(5), defaultValue: de, constraints: {nullable: false}}
+        - createIndex:
+            tableName: quiz_session
+            indexName: ix_quiz_session_user_id_quiz_id_created_at
+            columns:
+              - column: {name: user_id}
+              - column: {name: quiz_id}
+              - column: {name: created_at}

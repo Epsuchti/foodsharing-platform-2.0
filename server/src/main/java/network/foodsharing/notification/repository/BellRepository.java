@@ -12,6 +12,8 @@ public interface BellRepository extends JpaRepository<Bell, UUID> {
 
     List<Bell> findByIdentifierAndDeletedAtIsNull(String identifier);
 
+    boolean existsByIdentifierAndCreatedAtAfter(String identifier, java.time.Instant since);
+
     @Query("select b from Bell b where (:userId is null or b.userId = :userId) and (:type is null or b.type = :type) "
             + "order by b.createdAt desc, b.id")
     List<Bell> search(@Param("userId") UUID userId, @Param("type") NotificationType type);

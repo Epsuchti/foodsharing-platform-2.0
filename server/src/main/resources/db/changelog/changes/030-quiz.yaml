@@ -1,0 +1,139 @@
+# Milestone 2 (T13): quizzes, questions, answers, comments.
+databaseChangeLog:
+  - changeSet:
+      id: 030-1
+      author: platform
+      comment: 'Quizzes (plan §13.9 Q1) with names / descriptions in five languages (A14).'
+      changes:
+        - createTable:
+            tableName: quiz
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: kind, type: VARCHAR(40), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_quiz_kind}}
+              - column: {name: max_failure_points, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: question_count_timed, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: question_count_untimed, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - createTable:
+            tableName: quiz_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_i18n_owner_id, references: quiz(id), deleteCascade: true}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(32600)}
+        - addUniqueConstraint:
+            tableName: quiz_i18n
+            columnNames: owner_id, language
+            constraintName: uq_quiz_i18n_owner_id_language
+  - changeSet:
+      id: 030-2
+      author: platform
+      comment: 'Questions (soft-deleted, sessions keep a snapshot) with translations.'
+      changes:
+        - createTable:
+            tableName: quiz_question
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_question, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: quiz_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_question_quiz_id, references: quiz(id), deleteCascade: true}}
+              - column: {name: duration_seconds, type: INT, defaultValueNumeric: 60, constraints: {nullable: false}}
+              - column: {name: wiki_link, type: VARCHAR(500)}
+              - column: {name: mandatory, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: failure_points, type: INT, defaultValueNumeric: 1, constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: quiz_question
+            indexName: ix_quiz_question_quiz_id
+            columns:
+              - column: {name: quiz_id}
+        - createTable:
+            tableName: quiz_question_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_question_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_question_i18n_owner_id, references: quiz_question(id), deleteCascade: true}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: text, type: VARCHAR(4000), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: quiz_question_i18n
+            columnNames: owner_id, language
+            constraintName: uq_quiz_question_i18n_owner_id_language
+  - changeSet:
+      id: 030-3
+      author: platform
+      comment: 'Answers with rating and explanation (translated).'
+      changes:
+        - createTable:
+            tableName: quiz_answer
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_answer, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: question_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_answer_question_id, references: quiz_question(id), deleteCascade: true}}
+              - column: {name: rating, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: quiz_answer
+            indexName: ix_quiz_answer_question_id
+            columns:
+              - column: {name: question_id}
+        - createTable:
+            tableName: quiz_answer_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_answer_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_answer_i18n_owner_id, references: quiz_answer(id), deleteCascade: true}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: text, type: VARCHAR(2000), constraints: {nullable: false}}
+              - column: {name: explanation, type: VARCHAR(4000)}
+        - addUniqueConstraint:
+            tableName: quiz_answer_i18n
+            columnNames: owner_id, language
+            constraintName: uq_quiz_answer_i18n_owner_id_language
+  - changeSet:
+      id: 030-4
+      author: platform
+      comment: 'Editor comments on questions (upstream fs_question_has_wallpost).'
+      changes:
+        - createTable:
+            tableName: quiz_question_comment
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_quiz_question_comment, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: question_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_quiz_question_comment_question_id, references: quiz_question(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID, constraints: {foreignKeyName: fk_quiz_question_comment_author_id, references: user_account(id)}}
+              - column: {name: text, type: VARCHAR(4000), constraints: {nullable: false}}
+        - createIndex:
+            tableName: quiz_question_comment
+            indexName: ix_quiz_question_comment_question_id
+            columns:
+              - column: {name: question_id}

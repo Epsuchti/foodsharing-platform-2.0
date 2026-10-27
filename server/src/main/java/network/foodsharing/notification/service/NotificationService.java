@@ -74,6 +74,12 @@ public class NotificationService {
         return bells.deleteByIdentifier(identifier);
     }
 
+    /** Was a bell with this identifier created after {@code since} (e.g. "once per 30 days" reminders)? */
+    @Transactional(readOnly = true)
+    public boolean sentSince(String identifier, java.time.Instant since) {
+        return bells.existsSince(identifier, since);
+    }
+
     private String absolute(String link) {
         return link.startsWith("http") ? link : properties.getBaseUrl() + link;
     }

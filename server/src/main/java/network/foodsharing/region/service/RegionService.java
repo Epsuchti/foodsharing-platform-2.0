@@ -78,6 +78,15 @@ public class RegionService {
         return children.stream().filter(region -> includeGroups || !region.isGroup()).toList();
     }
 
+    /** Working groups whose {@code quiz_kinds} list contains the quiz kind name (quiz editor groups, A14 decision). */
+    @Transactional(readOnly = true)
+    public List<Region> groupsWithQuizKind(String quizKind) {
+        return regions.findAll().stream().filter(Region::isGroup)
+                .filter(group -> group.getQuizKinds() != null && java.util.Arrays.stream(group.getQuizKinds().split(","))
+                        .map(String::strip).anyMatch(quizKind::equals))
+                .toList();
+    }
+
     public static boolean isValidZone(String zone) {
         try {
             ZoneId.of(zone);

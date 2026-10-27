@@ -228,6 +228,15 @@ public class UserService {
         return user;
     }
 
+    /** Sets the quiz role (plan §9 {@code quiz_rolle}); the quiz module records QUIZ_ROLE_RAISED. */
+    @Transactional
+    @NoHistory(reason = "the caller records QuizSessionAction.QUIZ_ROLE_RAISED")
+    public User setQuizRole(UUID userId, Role quizRole) {
+        User user = require(userId);
+        user.setQuizRole(quizRole);
+        return user;
+    }
+
     /** Sets last_login_at. */
     @Transactional
     @NoHistory(reason = "the login itself is recorded as AuthAction.LOGIN by AuthSessionService.create")

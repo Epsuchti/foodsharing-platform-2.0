@@ -71,6 +71,11 @@ public class BellService {
     }
 
     @Transactional(readOnly = true)
+    public boolean existsSince(String identifier, java.time.Instant since) {
+        return repository.existsByIdentifierAndCreatedAtAfter(identifier, since);
+    }
+
+    @Transactional(readOnly = true)
     public List<Bell> search(UUID userId, NotificationType type) {
         return repository.search(userId, type);
     }

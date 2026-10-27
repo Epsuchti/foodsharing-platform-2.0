@@ -20,119 +20,152 @@ import network.foodsharing.api.model.QuizStatus;
 import network.foodsharing.api.model.QuizUpdate;
 import network.foodsharing.api.model.SelectedAnswers;
 import network.foodsharing.api.model.StartQuizSession;
-import network.foodsharing.common.error.ApiException;
+import network.foodsharing.quiz.mapper.QuizMapper;
+import network.foodsharing.quiz.service.QuizEditorService;
+import network.foodsharing.quiz.service.QuizSessionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Quiz API (implemented in T13).
- * Operations answer 501 NOT_IMPLEMENTED until their task implements them (docs/plan-m2.md).
- */
+/** Quiz API (plan §13.9 Q1–Q3). */
 @RestController
 public class QuizzesController implements QuizzesApi {
 
-    @Override
-    public ResponseEntity<QuestionComment> addQuestionComment(QuizKind kind, UUID questionId, QuestionCommentCreate questionCommentCreate) {
-        throw ApiException.notImplemented("addQuestionComment");
+    private final QuizSessionService sessions;
+    private final QuizEditorService editor;
+    private final QuizMapper mapper;
+
+    public QuizzesController(QuizSessionService sessions, QuizEditorService editor, QuizMapper mapper) {
+        this.sessions = sessions;
+        this.editor = editor;
+        this.mapper = mapper;
     }
 
     @Override
-    public ResponseEntity<AnswerResult> answerQuestion(QuizKind kind, SelectedAnswers selectedAnswers, Boolean test) {
-        throw ApiException.notImplemented("answerQuestion");
+    public ResponseEntity<QuestionComment> addQuestionComment(QuizKind kind, UUID questionId,
+                                                              QuestionCommentCreate body) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mapper.toComment(editor.addComment(QuizMapper.kind(kind), questionId, body.getText())));
+    }
+
+    @Override
+    public ResponseEntity<AnswerResult> answerQuestion(QuizKind kind, SelectedAnswers body, Boolean test) {
+        return ResponseEntity.ok(mapper.toAnswerResult(sessions.answer(QuizMapper.kind(kind), Boolean.TRUE.equals(test),
+                body == null ? null : body.getAnswerIds())));
     }
 
     @Override
     public ResponseEntity<QuizStatus> confirmQuiz(QuizKind kind) {
-        throw ApiException.notImplemented("confirmQuiz");
+        return ResponseEntity.ok(mapper.toStatus(sessions.confirm(QuizMapper.kind(kind))));
     }
 
     @Override
-    public ResponseEntity<AnswerDetail> createAnswer(QuizKind kind, UUID questionId, AnswerUpdate answerUpdate) {
-        throw ApiException.notImplemented("createAnswer");
+    public ResponseEntity<AnswerDetail> createAnswer(QuizKind kind, UUID questionId, AnswerUpdate body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAnswer(editor.createAnswer(QuizMapper.kind(kind),
+                questionId, new QuizEditorService.AnswerInput(body.getTexts(), body.getExplanations(),
+                        QuizMapper.rating(body.getRating())))));
     }
 
     @Override
-    public ResponseEntity<QuestionDetail> createQuestion(QuizKind kind, QuestionUpdate questionUpdate) {
-        throw ApiException.notImplemented("createQuestion");
+    public ResponseEntity<QuestionDetail> createQuestion(QuizKind kind, QuestionUpdate body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toQuestion(editor.createQuestion(
+                QuizMapper.kind(kind), question(body))));
     }
 
     @Override
     public ResponseEntity<Void> deleteAnswer(QuizKind kind, UUID questionId, UUID answerId) {
-        throw ApiException.notImplemented("deleteAnswer");
+        editor.deleteAnswer(QuizMapper.kind(kind), questionId, answerId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteQuestion(QuizKind kind, UUID questionId) {
-        throw ApiException.notImplemented("deleteQuestion");
+        editor.deleteQuestion(QuizMapper.kind(kind), questionId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteQuizSession(UUID sessionId) {
-        throw ApiException.notImplemented("deleteQuizSession");
+        sessions.deleteSession(sessionId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<ActiveQuestion> getNextQuestion(QuizKind kind, Boolean test) {
-        throw ApiException.notImplemented("getNextQuestion");
+        return ResponseEntity.ok(mapper.toActive(sessions.currentQuestion(QuizMapper.kind(kind),
+                Boolean.TRUE.equals(test))));
     }
 
     @Override
     public ResponseEntity<QuizDetail> getQuiz(QuizKind kind) {
-        throw ApiException.notImplemented("getQuiz");
+        return ResponseEntity.ok(mapper.toDetail(editor.quiz(QuizMapper.kind(kind))));
     }
 
     @Override
     public ResponseEntity<QuizResult> getQuizResults(QuizKind kind, Boolean test) {
-        throw ApiException.notImplemented("getQuizResults");
+        return ResponseEntity.ok(mapper.toResult(sessions.results(QuizMapper.kind(kind), Boolean.TRUE.equals(test))));
     }
 
     @Override
     public ResponseEntity<QuizStatus> getQuizStatus(QuizKind kind, Boolean test) {
-        throw ApiException.notImplemented("getQuizStatus");
+        return ResponseEntity.ok(mapper.toStatus(sessions.status(QuizMapper.kind(kind), Boolean.TRUE.equals(test))));
     }
 
     @Override
     public ResponseEntity<List<QuizSessionView>> listMyQuizSessions(QuizKind kind) {
-        throw ApiException.notImplemented("listMyQuizSessions");
+        return ResponseEntity.ok(sessions.mySessions(QuizMapper.kind(kind)).stream().map(mapper::toSession).toList());
     }
 
     @Override
     public ResponseEntity<List<QuestionComment>> listQuestionComments(QuizKind kind, UUID questionId) {
-        throw ApiException.notImplemented("listQuestionComments");
+        return ResponseEntity.ok(editor.comments(QuizMapper.kind(kind), questionId).stream()
+                .map(mapper::toComment).toList());
     }
 
     @Override
     public ResponseEntity<List<QuestionDetail>> listQuestions(QuizKind kind) {
-        throw ApiException.notImplemented("listQuestions");
+        return ResponseEntity.ok(editor.questions(QuizMapper.kind(kind)).stream().map(mapper::toQuestion).toList());
     }
 
     @Override
     public ResponseEntity<List<QuizOverview>> listQuizzes() {
-        throw ApiException.notImplemented("listQuizzes");
+        return ResponseEntity.ok(sessions.overview().stream().map(mapper::toOverview).toList());
     }
 
     @Override
     public ResponseEntity<List<QuizSessionView>> listUserQuizSessions(UUID userId, QuizKind kind) {
-        throw ApiException.notImplemented("listUserQuizSessions");
+        return ResponseEntity.ok(sessions.sessionsOfUser(userId, QuizMapper.kind(kind)).stream()
+                .map(mapper::toSession).toList());
     }
 
     @Override
-    public ResponseEntity<QuizStatus> startQuizSession(QuizKind kind, StartQuizSession startQuizSession) {
-        throw ApiException.notImplemented("startQuizSession");
+    public ResponseEntity<QuizStatus> startQuizSession(QuizKind kind, StartQuizSession body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toStatus(sessions.start(QuizMapper.kind(kind),
+                Boolean.TRUE.equals(body.getTimed()), Boolean.TRUE.equals(body.getTest()))));
     }
 
     @Override
-    public ResponseEntity<AnswerDetail> updateAnswer(QuizKind kind, UUID questionId, UUID answerId, AnswerUpdate answerUpdate) {
-        throw ApiException.notImplemented("updateAnswer");
+    public ResponseEntity<AnswerDetail> updateAnswer(QuizKind kind, UUID questionId, UUID answerId, AnswerUpdate body) {
+        return ResponseEntity.ok(mapper.toAnswer(editor.updateAnswer(QuizMapper.kind(kind), questionId, answerId,
+                new QuizEditorService.AnswerInput(body.getTexts(), body.getExplanations(),
+                        QuizMapper.rating(body.getRating())))));
     }
 
     @Override
-    public ResponseEntity<QuestionDetail> updateQuestion(QuizKind kind, UUID questionId, QuestionUpdate questionUpdate) {
-        throw ApiException.notImplemented("updateQuestion");
+    public ResponseEntity<QuestionDetail> updateQuestion(QuizKind kind, UUID questionId, QuestionUpdate body) {
+        return ResponseEntity.ok(mapper.toQuestion(editor.updateQuestion(QuizMapper.kind(kind), questionId,
+                question(body))));
     }
 
     @Override
-    public ResponseEntity<QuizDetail> updateQuiz(QuizKind kind, QuizUpdate quizUpdate) {
-        throw ApiException.notImplemented("updateQuiz");
+    public ResponseEntity<QuizDetail> updateQuiz(QuizKind kind, QuizUpdate body) {
+        return ResponseEntity.ok(mapper.toDetail(editor.updateQuiz(QuizMapper.kind(kind), new QuizEditorService.QuizInput(
+                body.getNames(), body.getDescriptions(), body.getMaxFailurePoints(), body.getQuestionCountTimed(),
+                body.getQuestionCountUntimed(), body.getReason()))));
+    }
+
+    private static QuizEditorService.QuestionInput question(QuestionUpdate body) {
+        return new QuizEditorService.QuestionInput(body.getTexts(), body.getDurationSeconds(), body.getWikiLink(),
+                body.getMandatory(), body.getFailurePoints());
     }
 }
