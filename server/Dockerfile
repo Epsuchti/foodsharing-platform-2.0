@@ -6,7 +6,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-ARG JAR_FILE=target/foodsharing-einab-tabelle-*.jar
+ARG JAR_FILE=target/foodsharing-platform-*.jar
 COPY ${JAR_FILE} app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
