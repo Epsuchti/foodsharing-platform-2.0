@@ -184,7 +184,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | todo | | | | | |
 | D11.5.4 | Every step works on a 360 px wide screen and in all five languages. | todo | | | | | |
 | D11.5.5 | Usability test with 5 real newcomers from Zürich before launch. | todo | | | | | |
-| D15.1 | ER diagram generated from Liquibase via SchemaSpy in CI, kept in `docs/`. | todo | | | | | |
+| D15.1 | ER diagram generated from Liquibase via SchemaSpy in CI, kept in `docs/`. | done | scripts/er-diagram.sh (SchemaSpy, Postgres 17) | | | | proved by docs/er/diagrams/summary (regenerated per milestone; full HTML via npm run er-diagram) |
 
 ## Milestones
 
