@@ -71,7 +71,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | N3 | Bells with read/unread, delete, all bell types (forum thread to activate, WG application, new member for welcome team, store requests, slot confirmations, …) | todo | | | | | |
 | N4 | Web push notifications, subscriptions per device, opt-in prompt | todo | | | | | |
 | N5 | **Telegram**: link account via bot (`/start <token>`), per-user Telegram notifications, region/store Telegram chats for alerts, test message (from reference) | todo | | | | | |
-| N6 | Mail notifications with rate limiting, outbox and templates in five languages | todo | | | | | |
+| N6 | Mail notifications with rate limiting, outbox and templates in five languages | in-progress | mail outbox, templates x5 | | | | outbox + magic-link templates done; per-type rate limits + other templates M4 |
 | N7 | Newsletter: opt-in, compose per region/global, send via built-in queue (or Listmonk), unsubscribe | todo | | | | | |
 | MB1 | Every region and working group can get an address `<email_name>@<domain>`; mailbox members configured by ambassadors / group admins | todo | | | | | |
 | MB2 | Inbox, sent, trash folders; read/unread, answered flag; unread count in navigation | todo | | | | | |
@@ -114,7 +114,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | C9 | Support ticket form including user agent and current page | todo | | | | | |
 | C10 | Uploads: images (resize, 3 sizes), attachments, usage tracking and cleanup | todo | | | | | |
 | C11 | Feature toggles (orga) | todo | | | | | |
-| C12 | Email blocklist and IP block admin | todo | | | | | |
+| C12 | Email blocklist and IP block admin | in-progress | email_blocklist, ip_block enforcement | | a1-signup blocked domain | | enforcement done; admin UI M6 |
 | C13 | OAuth2/OIDC provider for partner apps: authorization code + PKCE, userinfo, scopes `openid profile email regions`, consent with "remember", region-restricted clients, client admin | todo | | | | | |
 | C14 | Configuration admin (key/value settings) | todo | | | | | |
 | C15 | Maintenance jobs (§6.3) | todo | | | | | |
@@ -122,7 +122,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | EA1 | Region landing page with region picker; landing guard sends logged-in users to their home region | todo | | | | | |
 | EA2 | Public page of available EinAb slots per region (public location only), notification subscription widget | todo | | | | | |
 | EA3 | "What is my Foodsharing ID" help page with screenshot | todo | | | | | |
-| EA4 | Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | todo | | | | | |
+| EA4 | Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | in-progress | magic link + consent API (M2 contract) | login | a2-login @A2 | | passwordless login done; consent page + phone prompt in M2 |
 | EA5 | Booking rules per region: max active bookings (default 3), no duplicate guide, no duplicate category, Fairteiler visit required by 3rd EinAb, ignored categories | todo | | | | | |
 | EA6 | EinAb categories: supermarket, takeout, market, bakery, restaurant, Fairteiler cleaning, Messe, Grossabholung, online | todo | | | | | |
 | EA7 | My bookings, cancel booking | todo | | | | | |
@@ -152,10 +152,10 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | AU9 | Metrics tab: daily anonymous counts archived from audits, filled-after-advert, EinAb and extra slots, scoped to region | todo | | | | | |
 | AU10 | Telegram: bot token, list chats, test message, forwarding of messages sent to self | todo | | | | | |
 | AU11 | Region message account connections (send messages as a region account) | todo | | | | | |
-| AU12 | Foodsharing outage circuit breaker + offline banner | todo | | | | | |
+| AU12 | Foodsharing outage circuit breaker + offline banner | in-progress | | shared/offline-banner, OnlineStatusService | tests/shell/au12-offline @AU12 | pages.screen offline | offline banner done; integration status page + circuit breakers in M4 |
 | AU13 | Audit retention cleanup | todo | | | | | |
 | SV1 | Surveys (§14.3): create/edit/delete, co-authors, question types TEXT/SINGLE/MULTIPLE/BOOLEAN/STORE, one response per user, results, fill page without menu, login link returns | todo | | | | | |
-| AD1 | Admin & operations (§14.4): user management per region, admins list, permission matrix, last login, verified filter, version health, Prometheus, loading bar, i18n check, SMTP defaults, Mailpit | todo | | | | | |
+| AD1 | Admin & operations (§14.4): user management per region, admins list, permission matrix, last login, verified filter, version health, Prometheus, loading bar, i18n check, SMTP defaults, Mailpit | in-progress | actuator version group, prometheus | request bar, i18n check, axe sweep | ad1-* @AD1, a11y/pages @AD1 | gallery.screen | ops parts done; user management M2/M6 |
 
 ## Deliverables
 
@@ -178,7 +178,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D8.5 | `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env. | done | application-prod.properties | | | | proved by ProdLikeProfileTest/config review (application-prod.properties uses env vars) |
 | D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | done | history module, TrackedFieldListener | shared/history-timeline | d10-history @D10.1 | history.screen.ts (no baseline yet) |  |
 | D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | done | ArchitectureTest rule 4 + fixture test | | | | proved by ArchitectureRuleFixtureTest |
-| D10.3 | All views from the table above. | in-progress | | fs-history-timeline, /me/activity | d10-history @D10.3 | | my activity done; other views come with their modules |
+| D10.3 | All views from the table above. | in-progress | | fs-history-timeline, /me/activity | d10-history @D10.3 | | security log + my activity done; store log (M3), profile/verification/passport/quiz history (M2), EinAb (M2), automation audit (M4), region admin (M2), moderation (M5), report (M6) pending |
 | D11.5.1 | New user goes from landing page to "account created" in **≤ 2 clicks** with Google. | todo | | | | | |
 | D11.5.2 | At any time the user sees which step they are on and the single next action. | todo | | | | | |
 | D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | todo | | | | | |
@@ -190,7 +190,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 
 | Milestone | Status | Design rounds | Planner review | Notes |
 |---|---|---|---|---|
-| M1 | todo | 0/3 | | |
+| M1 | in-review | 1/3 | docs/review-m1.md | round 1 by quality worker (contrast, drawer, overflow); rounds 2-3 findings queued |
 | M2 | todo | 0/3 | | |
 | M3 | todo | 0/3 | | |
 | M4 | todo | 0/3 | | |
