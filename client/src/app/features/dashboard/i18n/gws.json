@@ -1,0 +1,16 @@
+{
+  "dashboard.page.title": "Übersicht",
+  "dashboard.page.greetingMorning": "Guete Morge",
+  "dashboard.page.greetingDay": "Hoi",
+  "dashboard.page.greetingEvening": "Guete Abig",
+  "dashboard.page.nextStepTitle": "Din nächschte Schritt",
+  "dashboard.page.nextStepText": "Bald begleited mir di da Schritt für Schritt: Region uswähle, Quiz, erschti Abholige.",
+  "dashboard.page.comingSoon": "Bald verfüegbar",
+  "dashboard.page.quickLinks": "Schnällzuegriff",
+  "dashboard.page.sessionsTitle": "Aagmäldeti Grät",
+  "dashboard.page.sessionsText": "Lueg, wo du aagmäldet bisch, und mäld Grät ab.",
+  "dashboard.page.activityTitle": "Mini Aktivität",
+  "dashboard.page.activityText": "Alles, wo du gmacht häsch – nachvollziehbar.",
+  "dashboard.page.settingsTitle": "Iistellige",
+  "dashboard.page.settingsText": "Sprach, Darstellig und Aamäldemethode."
+}

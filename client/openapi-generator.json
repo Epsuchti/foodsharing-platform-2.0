@@ -1,0 +1,8 @@
+{
+  "ngVersion": "22.0.0",
+  "providedInRoot": true,
+  "stringEnums": true,
+  "useSingleRequestParameter": true,
+  "withInterfaces": true,
+  "supportsES6": true
+}

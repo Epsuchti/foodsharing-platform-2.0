@@ -1,0 +1,8 @@
+{
+  "errorPages.notFound.title": "Die Siite gits nöd",
+  "errorPages.notFound.text": "Vilicht häts en Tippfähler oder de Link isch veraltet.",
+  "errorPages.forbidden.title": "Da häsch kei Zuegriff",
+  "errorPages.forbidden.text": "Die Siite isch nume für bestimmti Rolle sichtbar. Mäld di bi dine Botschafter:inne, wänn d meinsch, das seig en Fähler.",
+  "errorPages.home": "Zur Startsiite",
+  "errorPages.back": "Zrugg"
+}

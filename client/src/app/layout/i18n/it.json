@@ -1,0 +1,13 @@
+{
+  "layout.header.language": "Lingua",
+  "layout.header.theme": "Aspetto",
+  "layout.header.mainNav": "Navigazione principale",
+  "layout.userMenu.open": "Apri il menu utente",
+  "layout.brand.home": "foodsharing – home",
+  "layout.tabBar.label": "Navigazione rapida",
+  "layout.footer.claim": "Salviamo il cibo insieme",
+  "layout.footer.label": "Piè di pagina",
+  "layout.footer.version": "Versione {version}",
+  "layout.requestBar.label": "Caricamento",
+  "layout.shell.skip": "Vai al contenuto"
+}

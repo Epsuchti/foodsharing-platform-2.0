@@ -1,0 +1,8 @@
+{
+  "errorPages.notFound.title": "Cette page n’existe pas",
+  "errorPages.notFound.text": "Il y a peut-être une faute de frappe ou le lien est obsolète.",
+  "errorPages.forbidden.title": "Tu n’as pas accès à cette page",
+  "errorPages.forbidden.text": "Cette page n’est visible que pour certains rôles. Contacte tes ambassadeur·rices si tu penses qu’il s’agit d’une erreur.",
+  "errorPages.home": "Aller à l’accueil",
+  "errorPages.back": "Retour"
+}
