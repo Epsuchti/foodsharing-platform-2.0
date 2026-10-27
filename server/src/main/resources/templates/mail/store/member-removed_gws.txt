@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+du bisch us em Team vo [(${storeName})] entfernt worde.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

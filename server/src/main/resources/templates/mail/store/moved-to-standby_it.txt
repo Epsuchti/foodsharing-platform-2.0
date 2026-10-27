@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+sei stato/a spostato/a nella lista d'attesa di [(${storeName})]. I tuoi ritiri futuri sono stati cancellati.
+[# th:if="${message != null}"]
+Messaggio: [(${message})]
+[/]
+
+[(${link})]
+
+Il tuo team foodsharing

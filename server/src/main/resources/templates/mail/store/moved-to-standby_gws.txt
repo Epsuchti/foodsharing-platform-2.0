@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+du bisch bi [(${storeName})] uf d Springerlischte gsetzt worde. Dini künftige Abholige sind uustreit worde.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

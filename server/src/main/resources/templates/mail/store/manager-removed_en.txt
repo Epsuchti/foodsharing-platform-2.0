@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+you are no longer a store manager of [(${storeName})].
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

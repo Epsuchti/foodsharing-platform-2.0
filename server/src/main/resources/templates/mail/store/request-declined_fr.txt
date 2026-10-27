@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+ta candidature pour l'équipe de [(${storeName})] a malheureusement été refusée.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

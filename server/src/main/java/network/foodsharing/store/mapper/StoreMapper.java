@@ -207,6 +207,49 @@ public class StoreMapper {
         return d.teamCounts().getOrDefault(status, 0L).intValue();
     }
 
+    public network.foodsharing.api.model.StoreTeam toTeam(network.foodsharing.store.service.StoreTeamService.TeamView v) {
+        network.foodsharing.api.model.StoreTeam model = new network.foodsharing.api.model.StoreTeam();
+        model.setMembers(v.members().stream().map(this::toMember).toList());
+        model.setJumpers(v.jumpers().stream().map(this::toMember).toList());
+        if (v.applications() != null) {
+            model.setApplications(v.applications().stream().map(a -> {
+                network.foodsharing.api.model.StoreApplication app = new network.foodsharing.api.model.StoreApplication();
+                app.setUser(users.toSummary(a.user()));
+                app.setText(a.membership().getApplicationText());
+                app.setAppliedAt(toOffset(a.membership().getCreatedAt()));
+                return app;
+            }).toList());
+        }
+        if (v.invitations() != null) {
+            model.setInvitations(v.invitations().stream().map(i -> {
+                network.foodsharing.api.model.StoreInvitation inv = new network.foodsharing.api.model.StoreInvitation();
+                inv.setUser(users.toSummary(i.user()));
+                var by = i.membership().getInvitedBy() == null ? null : v.inviters().get(i.membership().getInvitedBy());
+                inv.setInvitedBy(by == null ? null : users.toSummary(by));
+                inv.setInvitedAt(toOffset(i.membership().getCreatedAt()));
+                return inv;
+            }).toList());
+        }
+        return model;
+    }
+
+    private network.foodsharing.api.model.TeamMember toMember(
+            network.foodsharing.store.service.StoreTeamService.TeamMemberView m) {
+        network.foodsharing.api.model.TeamMember model = new network.foodsharing.api.model.TeamMember();
+        model.setUser(users.toSummary(m.user(), m.withPhone()));
+        model.setIsManager(m.membership().isManager());
+        model.setStatus(convert(m.membership().getStatus(), network.foodsharing.api.model.StoreMembershipStatus.class));
+        model.setVerified(m.user().isVerified());
+        model.setHygieneCertificateUntil(toOffset(m.hygieneUntil()));
+        model.setPickupCount(m.stats().pickupCount());
+        model.setFirstPickupAt(toOffset(m.stats().firstPickupAt()));
+        model.setLastPickupAt(toOffset(m.stats().lastPickupAt()));
+        model.setAddedAt(toOffset(m.membership().getAddedAt()));
+        model.setDistanceKm(m.distanceKm());
+        model.setSleeping(false);
+        return model;
+    }
+
     public StoreInput toInput(network.foodsharing.api.model.StoreCreate c) {
         StoreAddress a = c.getAddress() == null ? new StoreAddress() : c.getAddress();
         StoreContact k = c.getContact() == null ? new StoreContact() : c.getContact();

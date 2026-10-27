@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+du wurdest aus dem Team von [(${storeName})] entfernt.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

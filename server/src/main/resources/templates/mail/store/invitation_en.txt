@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+you were invited to the team of [(${storeName})]. You can accept or decline on the store page.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+du wurdest ins Team von [(${storeName})] eingeladen. Du kannst die Einladung auf der Betriebsseite annehmen oder ablehnen.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

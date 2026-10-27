@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Bewerbig fürs Team vo [(${storeName})] isch leider abglehnt worde.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

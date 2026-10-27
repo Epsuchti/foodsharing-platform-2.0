@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+du bisch is Team vo [(${storeName})] iiglade worde. Du chasch d Iiladig uf de Betriebssiite aanäh oder ablehne.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

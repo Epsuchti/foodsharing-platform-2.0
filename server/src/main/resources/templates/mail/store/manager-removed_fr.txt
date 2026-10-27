@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+tu n'es plus responsable de [(${storeName})].
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

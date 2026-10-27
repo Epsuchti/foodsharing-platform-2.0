@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+du bisch nüm verantwortlich für [(${storeName})].
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

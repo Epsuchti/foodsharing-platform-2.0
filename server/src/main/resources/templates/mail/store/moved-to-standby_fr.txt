@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+tu as été mis·e sur la liste d'attente de [(${storeName})]. Tes collectes futures ont été annulées.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

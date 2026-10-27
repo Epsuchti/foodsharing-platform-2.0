@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+du wurdest bei [(${storeName})] auf die Springerliste gesetzt. Deine künftigen Abholungen wurden ausgetragen.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

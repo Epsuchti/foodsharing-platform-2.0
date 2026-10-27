@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+you were moved to the waiting list of [(${storeName})]. Your future pickups were removed.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team
