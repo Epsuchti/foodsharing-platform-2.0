@@ -1,10 +1,19 @@
 import { Routes } from '@angular/router';
 
+import { consentGuard } from './core/auth/consent.guard';
+
 /**
  * One lazy entry per module (docs/conventions.md A7). Feature route files export `<MODULE>_ROUTES`.
- * The public module (path '') comes last so it does not load for every other URL.
+ *
+ * Modules with one URL prefix are mounted at it; modules spanning several prefixes (regions + groups,
+ * intro pickups under `regions/:regionId/…`, …) are mounted at `''` with full paths inside. The router tries
+ * the entries in order and falls through when a module's routes do not match, so the `''` mounts sit after the
+ * public module (which only matches `/`) and before not-found.
+ *
+ * Everything runs below one parent route so `consentGuard` (pending legal consents, EA4) sees every
+ * navigation.
  */
-export const routes: Routes = [
+const MODULE_ROUTES: Routes = [
   {
     path: 'login',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
@@ -27,6 +36,20 @@ export const routes: Routes = [
     loadChildren: () => import('./features/dev/dev.routes').then((m) => m.DEV_ROUTES),
   },
   {
+    path: 'admin/regions',
+    loadChildren: () =>
+      import('./features/region-admin/region-admin.routes').then((m) => m.REGION_ADMIN_ROUTES),
+  },
+  {
+    path: 'quizzes',
+    loadChildren: () => import('./features/quiz/quiz.routes').then((m) => m.QUIZ_ROUTES),
+  },
+  {
+    path: 'onboarding',
+    loadChildren: () =>
+      import('./features/onboarding/onboarding.routes').then((m) => m.ONBOARDING_ROUTES),
+  },
+  {
     path: 'forbidden',
     title: 'common.pageTitle.forbidden',
     loadComponent: () =>
@@ -35,8 +58,37 @@ export const routes: Routes = [
       ),
   },
   {
+    // `/`, `/r/:slug`, `/find-region`
     path: '',
     loadChildren: () => import('./features/public/public.routes').then((m) => m.PUBLIC_ROUTES),
+  },
+  // --- modules with several URL prefixes (full paths inside) ---
+  {
+    path: '',
+    loadChildren: () => import('./features/regions/regions.routes').then((m) => m.REGIONS_ROUTES),
+  },
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/intro-pickups/intro-pickups.routes').then((m) => m.INTRO_PICKUPS_ROUTES),
+  },
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/verification/verification.routes').then((m) => m.VERIFICATION_ROUTES),
+  },
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/users-admin/users-admin.routes').then((m) => m.USERS_ADMIN_ROUTES),
+  },
+  {
+    path: '',
+    loadChildren: () => import('./features/legal/legal.routes').then((m) => m.LEGAL_ROUTES),
+  },
+  {
+    path: '',
+    loadChildren: () => import('./features/content/content.routes').then((m) => m.CONTENT_ROUTES),
   },
   {
     path: '**',
@@ -45,5 +97,13 @@ export const routes: Routes = [
       import('./features/errors/pages/not-found-page.component').then(
         (m) => m.NotFoundPageComponent,
       ),
+  },
+];
+
+export const routes: Routes = [
+  {
+    path: '',
+    canActivateChild: [consentGuard],
+    children: MODULE_ROUTES,
   },
 ];
