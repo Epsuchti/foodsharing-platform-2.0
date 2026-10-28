@@ -1,9 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { Role } from '../../../api';
+import { Journey, OnboardingService, Role } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
+import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey-stepper.component';
+import { currentStepOf } from '../../onboarding/pages/journey-page.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 
 /** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
@@ -35,7 +39,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
 /** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
 @Component({
   selector: 'fs-dashboard-page',
-  imports: [RouterLink, TPipe, UserAvatarComponent],
+  imports: [...DATA_STATE_IMPORTS, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
@@ -67,26 +71,47 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       </section>
 
       <div class="grid">
-        @let step = nextStep();
-        <section
-          class="card card--next"
-          data-testid="dashboard.page.nextStep"
-          [attr.data-step]="step.id"
-        >
-          <div class="card__icon"><i [class]="step.icon" aria-hidden="true"></i></div>
-          <p class="card__eyebrow">{{ 'dashboard.page.nextStepTitle' | t }}</p>
-          <h2>{{ 'dashboard.page.step.' + step.id + '.title' | t }}</h2>
-          <p>{{ 'dashboard.page.step.' + step.id + '.text' | t }}</p>
-          <a
-            class="fs-btn card__action"
-            [routerLink]="step.link"
-            [queryParams]="step.query"
-            data-testid="dashboard.page.nextStepAction"
+        @if (onboarding()) {
+          <fs-data-state [state]="journey" skeleton="card" [skeletonRows]="1" [compact]="true" class="card--next" data-testid="dashboard.page.journeyState">
+            <ng-template [fsData]="journey" let-j>
+              @let current = currentStep(j);
+              <section class="card card--next" data-testid="dashboard.page.nextStep" data-step="journey" [attr.data-journey-step]="current?.key">
+                <div class="card__icon"><i class="pi pi-flag" aria-hidden="true"></i></div>
+                <p class="card__eyebrow">{{ 'dashboard.page.journey.eyebrow' | t }}</p>
+                <h2>{{ current?.title ?? (current ? (current.titleKey ?? 'onboarding.step.' + current.key + '.title') : 'dashboard.page.journey.title') | t }}</h2>
+                <fs-journey-stepper mode="compact" [journey]="j" [linkToJourney]="undefined" testId="dashboard.page.journey" />
+                @if (current?.nextAction; as next) {
+                  <a class="fs-btn card__action" [routerLink]="next.route" data-testid="dashboard.page.nextStepAction">
+                    <span>{{ next.labelKey | t }}</span>
+                    <i class="pi pi-arrow-right" aria-hidden="true"></i>
+                  </a>
+                }
+                <a class="card__more" routerLink="/onboarding" data-testid="dashboard.page.journeyLink">{{ 'dashboard.page.journey.open' | t }}</a>
+              </section>
+            </ng-template>
+          </fs-data-state>
+        } @else {
+          @let step = nextStep();
+          <section
+            class="card card--next"
+            data-testid="dashboard.page.nextStep"
+            [attr.data-step]="step.id"
           >
-            <span>{{ 'dashboard.page.step.' + step.id + '.action' | t }}</span>
-            <i class="pi pi-arrow-right" aria-hidden="true"></i>
-          </a>
-        </section>
+            <div class="card__icon"><i [class]="step.icon" aria-hidden="true"></i></div>
+            <p class="card__eyebrow">{{ 'dashboard.page.nextStepTitle' | t }}</p>
+            <h2>{{ 'dashboard.page.step.' + step.id + '.title' | t }}</h2>
+            <p>{{ 'dashboard.page.step.' + step.id + '.text' | t }}</p>
+            <a
+              class="fs-btn card__action"
+              [routerLink]="step.link"
+              [queryParams]="step.query"
+              data-testid="dashboard.page.nextStepAction"
+            >
+              <span>{{ 'dashboard.page.step.' + step.id + '.action' | t }}</span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </section>
+        }
 
         @if (isAdmin()) {
           <section class="card card--admin" data-testid="dashboard.page.adminCard">
@@ -283,6 +308,11 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
     .card .card__eyebrow {
       color: var(--fs-primary-strong);
     }
+    .card__more {
+      color: var(--fs-primary-strong);
+      font-weight: 650;
+      font-size: 0.9rem;
+    }
     .card__action {
       justify-self: start;
       margin-top: 0.75rem;
@@ -336,7 +366,16 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
 })
 export class DashboardPageComponent {
   protected readonly session = inject(SessionService);
+  private readonly onboardingApi = inject(OnboardingService);
   protected readonly nextStep = computed(() => nextStepFor(this.session.role()));
+  /** Newcomers with an incomplete journey get "your next step" from the journey (§11, A19) instead of the role card. */
+  protected readonly onboarding = computed(() => this.session.session().onboarding?.complete === false);
+  protected readonly journey = loadResource<Journey, true | undefined>({
+    params: () => (this.onboarding() ? true : undefined),
+    loader: () => this.onboardingApi.getMyJourney(),
+    isEmpty: () => false,
+  });
+  protected readonly currentStep = currentStepOf;
   /** Name of the home region (session units, M2); hidden until the user has one. */
   protected readonly homeRegion = computed(
     () => this.session.session().units?.find((unit) => unit.homeRegion)?.name ?? null,

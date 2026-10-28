@@ -23,5 +23,8 @@
   "dashboard.page.roleHint.AMBASSADOR": "Als Botschafter:in begleitest du deinen Bezirk und hilfst neuen Foodsaver:innen beim Einstieg.",
   "dashboard.page.roleHint.ORGA": "Als Teil des Orga-Teams hast du Zugriff auf alle Bezirke und die Plattformverwaltung.",
   "dashboard.page.admin.title": "Verwaltung",
-  "dashboard.page.admin.text": "Mitglieder, Verifizierung und neue Foodsaver:innen deines Bezirks verwaltest du bald direkt hier."
+  "dashboard.page.admin.text": "Mitglieder, Verifizierung und neue Foodsaver:innen deines Bezirks verwaltest du bald direkt hier.",
+  "dashboard.page.journey.eyebrow": "Dein nächster Schritt",
+  "dashboard.page.journey.title": "Deine Reise",
+  "dashboard.page.journey.open": "Ganze Reise ansehen"
 }

@@ -63,6 +63,23 @@
   font-weight: 650;
 }
 
+/* compact on phones: one slim line "Step 4 of 8 · Quiz" + action, no segment meter (T22 journey bar) */
+@media (max-width: 47.99rem) {
+  .compact {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+  .compact .meter {
+    display: none;
+  }
+  .compact__text {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
 /* --- full / preview ------------------------------------------------------------------------- */
 .steps {
   display: grid;

@@ -1,0 +1,121 @@
+// Shared layout of the onboarding pages (T22).
+:host {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 72rem);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.stack {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.card__title .pi {
+  color: var(--fs-primary-strong);
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-text-muted);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--fs-surface-muted);
+  color: var(--fs-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tag--ok {
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.tag--warn {
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.3rem 0.75rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.facts dt {
+  color: var(--fs-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  font-size: 1.1rem;
+}

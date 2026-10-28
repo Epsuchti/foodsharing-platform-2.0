@@ -1,11 +1,11 @@
 import { acceptPendingConsents, expect, test, type Role } from '../../fixtures';
 
-/** Dashboard "next step" card: one concrete action per role until the onboarding journey (M2) replaces it. */
+/** Dashboard "next step" card: one concrete action per role; newcomers get the journey's next step (M2 T22). */
 
 // accepting newbie's consents changes data: default per-file seed reset
 
 const CASES: { role: Role; step: string; href: string }[] = [
-  { role: 'newbie', step: 'passkey', href: '/account/settings?addPasskey=1' },
+  { role: 'newbie', step: 'journey', href: '/onboarding/profile' },
   { role: 'foodsaver', step: 'profile', href: '/account/profile' },
   { role: 'orga', step: 'activity', href: '/me/activity' },
 ];
