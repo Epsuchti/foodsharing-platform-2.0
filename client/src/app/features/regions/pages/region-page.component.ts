@@ -6,6 +6,7 @@ import { switchMap } from 'rxjs';
 
 import { AuthService, RegionsService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
+import { hasPermission } from '../../../core/auth/permission.util';
 import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
@@ -51,6 +52,13 @@ export class RegionPageComponent {
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
 
+  /** Automation permission holders of this region (M4 F4). */
+  private readonly automation = computed(() =>
+    ['CAN_USE_AUTOMATIONS', 'CAN_SEE_ALL_AUTOMATION_DECISIONS', 'CAN_SEE_USER_PICKUP_COUNT_GROUPING'].some((permission) =>
+      hasPermission(this.session.session(), permission, this.ctx.regionId()),
+    ),
+  );
+
   protected readonly tabs = computed<RegionTab[]>(() => {
     const member = this.ctx.isMember() || this.ctx.isOrga();
     const admin = this.ctx.isAdmin();
@@ -63,6 +71,8 @@ export class RegionPageComponent {
       { id: 'pin', route: 'pin', icon: 'pi pi-map-marker', labelKey: 'regions.tab.pin', visible: member },
       { id: 'settings', route: 'settings', icon: 'pi pi-cog', labelKey: 'regions.tab.settings', visible: admin },
       { id: 'history', route: 'history', icon: 'pi pi-history', labelKey: 'regions.tab.history', visible: admin },
+      // M4 F4: /regions/:regionId/automation (features/automation)
+      { id: 'automation', route: 'automation', icon: 'pi pi-bolt', labelKey: 'regions.tab.automation', visible: admin || this.automation() },
     ];
     return tabs.filter((tab) => tab.visible);
   });

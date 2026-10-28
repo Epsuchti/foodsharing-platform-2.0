@@ -255,6 +255,7 @@
   "stores.delete.reason": "Reason (sent to the team)",
   "stores.delete.done": "Store deleted.",
   "stores.tab.chat": "Chat",
+  "stores.tab.automation": "Automation",
   "stores.chat.none": "You have no access to this store's chats.",
   "stores.chat.channel": "Choose chat",
   "stores.chat.team": "Team",

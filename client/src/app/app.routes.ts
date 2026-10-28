@@ -138,6 +138,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/newsletters/newsletters.routes').then((m) => m.NEWSLETTERS_ROUTES),
   },
   {
+    path: '',
+    loadChildren: () => import('./features/automation/automation.routes').then((m) => m.AUTOMATION_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

@@ -255,6 +255,7 @@
   "stores.delete.reason": "Grund (geht ans Team)",
   "stores.delete.done": "Betrieb gelöscht.",
   "stores.tab.chat": "Chat",
+  "stores.tab.automation": "Automatisierung",
   "stores.chat.none": "Du hast keinen Zugang zu den Chats dieses Betriebs.",
   "stores.chat.channel": "Chat auswählen",
   "stores.chat.team": "Team",

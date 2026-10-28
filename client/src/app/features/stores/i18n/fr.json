@@ -255,6 +255,7 @@
   "stores.delete.reason": "Motif (envoyé à l'équipe)",
   "stores.delete.done": "Entreprise supprimée.",
   "stores.tab.chat": "Discussion",
+  "stores.tab.automation": "Automatisation",
   "stores.chat.none": "Tu n’as pas accès aux discussions de ce commerce.",
   "stores.chat.channel": "Choisir la discussion",
   "stores.chat.team": "Équipe",
