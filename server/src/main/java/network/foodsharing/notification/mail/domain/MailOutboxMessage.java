@@ -54,4 +54,26 @@ public class MailOutboxMessage extends BaseEntity {
 
     @Column(name = "template", nullable = false, length = 100)
     private String template;
+
+    /** Recipient user when known (A27). */
+    @Column(name = "user_id")
+    private java.util.UUID userId;
+
+    /** NotificationCategory name, NEWSLETTER or AUTH (A27). */
+    @Column(name = "category", length = 40)
+    private String category;
+
+    /** Higher first ({@link #PRIORITY_AUTH} for sign-in mails). */
+    @Column(name = "priority", nullable = false)
+    private int priority;
+
+    /** Set when the rate limiter deferred this mail (A27). */
+    @Column(name = "rate_limited_until")
+    private Instant rateLimitedUntil;
+
+    /** Notification identifier for duplicate suppression. */
+    @Column(name = "identifier", length = 200)
+    private String identifier;
+
+    public static final int PRIORITY_AUTH = 10;
 }

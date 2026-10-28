@@ -11,4 +11,8 @@ public interface LoginTokenRepository extends JpaRepository<LoginToken, UUID> {
     Optional<LoginToken> findByTokenHash(String tokenHash);
 
     long countByEmailAndCreatedAtAfter(String email, Instant after);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("delete from LoginToken t where t.expiresAt < :before")
+    int deleteExpiredBefore(@org.springframework.data.repository.query.Param("before") Instant before);
 }

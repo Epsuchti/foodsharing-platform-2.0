@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Aafrag fürs Team vo [(${storeName})] isch automatisch aagnoh worde.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

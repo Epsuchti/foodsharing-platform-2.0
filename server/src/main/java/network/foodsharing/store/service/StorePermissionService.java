@@ -129,6 +129,13 @@ public class StorePermissionService {
                 coordinate, status);
     }
 
+    /** mayUseAutomations(store) = mayEditStore or {@code CAN_USE_AUTOMATIONS} in the store's region (M4). */
+    public boolean mayUseAutomations(SessionPrincipal actor, Store store) {
+        return actor != null && (rights(actor, store).mayEditStore()
+                || permissions.has(actor, network.foodsharing.security.Permission.CAN_USE_AUTOMATIONS,
+                        store.getRegionId()));
+    }
+
     /** ORGA, or role ≥ STORE_MANAGER and member of the region. */
     public boolean mayCreateStore(SessionPrincipal actor, UUID regionId) {
         return actor != null && (permissions.isOrga(actor)

@@ -1,0 +1,28 @@
+# Milestone 4 (B3): mail outbox polish (A27): recipient user, category, priority (AUTH first), rate-limit deferral,
+# identifier for duplicate suppression; index for the per-recipient rate-limit windows.
+databaseChangeLog:
+  - changeSet:
+      id: 103-1
+      author: platform
+      comment: 'mail_outbox: user_id, category, priority, rate_limited_until, identifier.'
+      changes:
+        - addColumn:
+            tableName: mail_outbox
+            columns:
+              - column: {name: user_id, type: UUID}
+              - column: {name: category, type: VARCHAR(40)}
+              - column: {name: priority, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: rate_limited_until, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: identifier, type: VARCHAR(200)}
+        - createIndex:
+            tableName: mail_outbox
+            indexName: ix_mail_outbox_to_address_created_at
+            columns:
+              - column: {name: to_address}
+              - column: {name: created_at}
+        - createIndex:
+            tableName: mail_outbox
+            indexName: ix_mail_outbox_status_created_at
+            columns:
+              - column: {name: status}
+              - column: {name: created_at}

@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+[(${userName})] hät sich churzfristig vo de Abholig bi [(${storeName})] am [(${when})] usträit.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

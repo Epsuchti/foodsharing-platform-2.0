@@ -1,5 +1,13 @@
 package network.foodsharing.notification.mail.service;
 
+import java.time.Instant;
+import network.foodsharing.api.model.ApiErrorCode;
+import network.foodsharing.common.error.ApiException;
+import network.foodsharing.history.NoHistory;
+import network.foodsharing.notification.domain.NotificationAction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+
 import java.time.Clock;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +36,12 @@ public class MailOutboxService {
     private final HistoryService history;
     private final AppProperties properties;
     private final Clock clock;
+    private final MailRateLimiter rateLimiter;
 
     public MailOutboxService(MailOutboxRepository repository, MailTemplateService templates,
                              MailDeliveryService delivery, HistoryService history, AppProperties properties,
-                             Clock clock) {
+                             Clock clock, MailRateLimiter rateLimiter) {
+        this.rateLimiter = rateLimiter;
         this.repository = repository;
         this.templates = templates;
         this.delivery = delivery;
@@ -40,9 +50,21 @@ public class MailOutboxService {
         this.clock = clock;
     }
 
-    /** Renders the template and queues the mail for immediate delivery; records MAIL_QUEUED. */
+    /**
+     * Renders the template and queues the mail; records MAIL_QUEUED. The {@link MailRateLimiter} may defer it
+     * ({@code rate_limited_until}) or suppress a duplicate (NOTIFICATION_MAIL_SUPPRESSED, returns null).
+     *
+     * @return the outbox id, null when suppressed
+     */
     @Transactional
     public UUID enqueue(MailDraft draft) {
+        Instant now = clock.instant();
+        MailRateLimiter.Decision decision = rateLimiter.check(draft, now);
+        if (decision.outcome() == MailRateLimiter.Outcome.SUPPRESS) {
+            history.record(history.event(NotificationAction.MAIL_SUPPRESSED, HistoryService.SYSTEM_SUBJECT_ID)
+                    .metadata(Map.of("template", draft.template(), "identifier", draft.identifier())).build());
+            return null;
+        }
         RenderedMail rendered = templates.render(draft.template(), draft.language(), draft.variables());
         MailOutboxMessage message = new MailOutboxMessage();
         message.setToAddress(draft.to());
@@ -54,7 +76,16 @@ public class MailOutboxService {
                 : StringUtils.abbreviate(rendered.htmlBody(), MailOutboxMessage.MAX_BODY_LENGTH));
         message.setStatus(MailStatus.PENDING);
         message.setAttempts(0);
-        message.setNextAttemptAt(clock.instant());
+        message.setUserId(draft.userId());
+        message.setCategory(draft.category());
+        message.setIdentifier(draft.identifier() == null ? null : StringUtils.abbreviate(draft.identifier(), 200));
+        message.setPriority(MailDraft.AUTH.equals(draft.category()) ? MailOutboxMessage.PRIORITY_AUTH : 0);
+        if (decision.outcome() == MailRateLimiter.Outcome.DEFER) {
+            message.setRateLimitedUntil(decision.until());
+            message.setNextAttemptAt(decision.until());
+        } else {
+            message.setNextAttemptAt(now);
+        }
         MailOutboxMessage saved = repository.save(message);
         history.record(history.event(MailAction.QUEUED, HistoryService.SYSTEM_SUBJECT_ID)
                 .metadata(Map.of("mailId", saved.getId().toString(), "template", draft.template()))
@@ -72,5 +103,41 @@ public class MailOutboxService {
                 PageRequest.of(0, properties.getMail().getOutboxBatchSize()));
         due.forEach(delivery::deliver);
         return due.size();
+    }
+
+    /** Outbox page for ORGA, newest first; {@code search} matches recipient, subject or template. */
+    @Transactional(readOnly = true)
+    public Page<MailOutboxMessage> search(MailStatus status, String search, int page, int size) {
+        String pattern = search == null || search.isBlank() ? null
+                : "%" + search.strip().toLowerCase(java.util.Locale.ROOT) + "%";
+        return repository.search(status, pattern, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+    }
+
+    /**
+     * Puts a FAILED (or still PENDING) mail back into the queue now with fresh attempts; records MAIL_RETRIED.
+     *
+     * @throws ApiException 404 MAIL_NOT_FOUND, 409 MAIL_NOT_RETRYABLE for sent mails
+     */
+    @Transactional
+    public MailOutboxMessage retry(UUID mailId) {
+        MailOutboxMessage message = repository.findById(mailId)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.MAIL_NOT_FOUND));
+        if (message.getStatus() == MailStatus.SENT) {
+            throw ApiException.conflict(ApiErrorCode.MAIL_NOT_RETRYABLE);
+        }
+        message.setStatus(MailStatus.PENDING);
+        message.setAttempts(0);
+        message.setNextAttemptAt(clock.instant());
+        message.setRateLimitedUntil(null);
+        history.record(history.event(NotificationAction.MAIL_RETRIED, HistoryService.SYSTEM_SUBJECT_ID)
+                .metadata(Map.of("mailId", message.getId().toString(), "template", message.getTemplate())).build());
+        return message;
+    }
+
+    /** Cleanup: SENT mails older than {@code before}; @return how many were deleted. */
+    @Transactional
+    @NoHistory(reason = "retention housekeeping of delivered mails (cleanup job)")
+    public int purgeSentBefore(Instant before) {
+        return repository.deleteByStatusAndSentAtBefore(MailStatus.SENT, before);
     }
 }

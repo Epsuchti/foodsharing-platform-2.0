@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+für d Abholig bi [(${storeName})] am [(${when})] hät sich nach ere Ustragig no niemert iitreit.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

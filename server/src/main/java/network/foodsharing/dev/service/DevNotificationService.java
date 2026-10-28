@@ -1,5 +1,8 @@
 package network.foodsharing.dev.service;
 
+import network.foodsharing.common.integration.Integration;
+import network.foodsharing.common.integration.IntegrationRegistry;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -13,6 +16,8 @@ import network.foodsharing.notification.domain.NotificationChannelType;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.CapturedMessages;
+import network.foodsharing.notification.telegram.service.TelegramClient;
+import network.foodsharing.notification.telegram.service.TelegramUpdateProcessor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -30,9 +35,14 @@ public class DevNotificationService {
     private final List<RunnableJob> jobs;
     private final JobRunner jobRunner;
     private final CapturedMessages captured;
+    private final TelegramUpdateProcessor telegram;
+    private final IntegrationRegistry integrations;
 
     public DevNotificationService(BellService bells, List<RunnableJob> jobs, JobRunner jobRunner,
-                                  CapturedMessages captured) {
+                                  CapturedMessages captured, TelegramUpdateProcessor telegram,
+                                  IntegrationRegistry integrations) {
+        this.integrations = integrations;
+        this.telegram = telegram;
         this.jobRunner = jobRunner;
         this.captured = captured;
         this.bells = bells;
@@ -80,5 +90,16 @@ public class DevNotificationService {
         } catch (java.io.IOException e) {
             throw new IllegalStateException("dev/ical-fixture.ics missing", e);
         }
+    }
+
+    /** {@code POST /api/dev/telegram/incoming}: an update as if the bot had received it (title = group chat). */
+    public void simulateTelegram(String chatId, String text, String title) {
+        telegram.process(new TelegramClient.Update(telegram.nextSyntheticUpdateId(), chatId,
+                title == null || title.isBlank() ? "private" : "group", title, text));
+    }
+
+    /** {@code POST /api/dev/integrations/{integration}/fail}: opens the breaker (ORGA gets INTEGRATION_DOWN). */
+    public void simulateIntegrationFailure(Integration integration) {
+        integrations.simulateOutage(integration);
     }
 }

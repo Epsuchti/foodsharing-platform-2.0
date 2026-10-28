@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+the external service [(${integration})] is unavailable. The platform keeps retrying.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

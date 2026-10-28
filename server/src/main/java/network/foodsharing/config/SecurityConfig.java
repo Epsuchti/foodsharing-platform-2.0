@@ -68,7 +68,9 @@ public class SecurityConfig {
                         .securityContextRepository(new RequestAttributeSecurityContextRepository()))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfRepository)
-                        .csrfTokenRequestHandler(csrfHandler))
+                        .csrfTokenRequestHandler(csrfHandler)
+                        // Telegram calls the webhook server-to-server (secret path, no session, no cookies).
+                        .ignoringRequestMatchers("/api/public/telegram/webhook/**"))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

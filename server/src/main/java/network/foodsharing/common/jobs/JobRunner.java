@@ -1,5 +1,7 @@
 package network.foodsharing.common.jobs;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
@@ -37,9 +39,16 @@ public class JobRunner {
     private final Clock clock;
     private final ObjectProvider<RunnableJob> jobs;
     private final Map<String, JobRun> lastInMemory = new ConcurrentHashMap<>();
+    private final Map<String, Integer> consecutiveFailures = new ConcurrentHashMap<>();
+    private final ApplicationEventPublisher events;
+
+    /** Published when a job failed twice in a row (once per failure streak): ORGA bell AUTOMATION_RUN_FAILED. */
+    public record JobFailedEvent(String jobName, int consecutiveFailures, String message) {
+    }
 
     public JobRunner(JobRunRepository runs, PlatformTransactionManager transactionManager, JdbcClient jdbc, Clock clock,
-            ObjectProvider<RunnableJob> jobs) {
+            ObjectProvider<RunnableJob> jobs, ApplicationEventPublisher events) {
+        this.events = events;
         this.runs = runs;
         this.tx = new TransactionTemplate(transactionManager);
         this.tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -78,11 +87,27 @@ public class JobRunner {
             run = tx.execute(status -> runs.save(record ? finished : copy(finished)));
         }
         lastInMemory.put(job.jobName(), run);
+        trackFailures(job.jobName(), failure == null ? null : run.getMessage());
         log.debug("Job {} ({}) finished: {}", job.jobName(), trigger, run.getOutcome());
         if (failure != null && trigger == JobRun.Trigger.MANUAL) {
             throw failure;
         }
         return run;
+    }
+
+    private void trackFailures(String jobName, String failureMessage) {
+        if (failureMessage == null) {
+            consecutiveFailures.remove(jobName);
+            return;
+        }
+        int count = consecutiveFailures.merge(jobName, 1, Integer::sum);
+        if (count == 2) {
+            try {
+                events.publishEvent(new JobFailedEvent(jobName, count, failureMessage));
+            } catch (RuntimeException ex) {
+                log.warn("Job failure alert for {} failed: {}", jobName, ex.toString());
+            }
+        }
     }
 
     /** Last run of a job: newest of the recorded row and the in-memory one. */

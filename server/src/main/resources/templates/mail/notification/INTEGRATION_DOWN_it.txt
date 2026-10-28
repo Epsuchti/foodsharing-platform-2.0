@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+il servizio esterno [(${integration})] non è raggiungibile. La piattaforma riprova regolarmente.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

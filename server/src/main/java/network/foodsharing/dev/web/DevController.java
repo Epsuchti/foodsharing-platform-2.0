@@ -17,7 +17,6 @@ import network.foodsharing.api.model.SessionInfo;
 import network.foodsharing.auth.mapper.AuthMapper;
 import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.common.web.HttpExchange;
-import network.foodsharing.common.error.ApiException;
 import network.foodsharing.dev.mapper.DevMapper;
 import network.foodsharing.dev.service.DevNotificationService;
 import network.foodsharing.dev.service.DevService;
@@ -126,8 +125,17 @@ public class DevController implements DevApi {
     }
 
     @Override
+    public ResponseEntity<Void> simulateIntegrationFailure(network.foodsharing.api.model.Integration integration) {
+        notificationService.simulateIntegrationFailure(
+                network.foodsharing.common.integration.Integration.valueOf(integration.name()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
     public ResponseEntity<Void> simulateTelegramUpdate(DevTelegramUpdate devTelegramUpdate) {
-        throw ApiException.notImplemented("simulateTelegramUpdate");
+        notificationService.simulateTelegram(devTelegramUpdate.getChatId(), devTelegramUpdate.getText(),
+                devTelegramUpdate.getTitle());
+        return ResponseEntity.noContent().build();
     }
 
     @Override

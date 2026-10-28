@@ -14,6 +14,8 @@ import network.foodsharing.common.jobs.JobRun;
 import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.common.jobs.RunnableJob;
 import network.foodsharing.history.service.HistoryService;
+import network.foodsharing.notification.service.IntegrationTestMessages;
+import network.foodsharing.user.domain.User;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,8 +32,11 @@ public class AdminOperationsService {
     private final JobRunner jobs;
     private final IntegrationRegistry integrations;
     private final HistoryService history;
+    private final IntegrationTestMessages testMessages;
 
-    public AdminOperationsService(JobRunner jobs, IntegrationRegistry integrations, HistoryService history) {
+    public AdminOperationsService(JobRunner jobs, IntegrationRegistry integrations, HistoryService history,
+                                  IntegrationTestMessages testMessages) {
+        this.testMessages = testMessages;
         this.jobs = jobs;
         this.integrations = integrations;
         this.history = history;
@@ -63,6 +68,14 @@ public class AdminOperationsService {
         boolean up = integrations.breaker(integration).probeNow();
         history.record(history.event(AdminAction.INTEGRATION_PROBED, HistoryService.SYSTEM_SUBJECT_ID)
                 .metadata(Map.of("integration", integration.name(), "reachable", up)).build());
+        return integrations.breaker(integration).snapshot();
+    }
+
+    /** Sends a test message through the integration (SMTP: mail to me, TELEGRAM: chat, WEB_PUSH: me). */
+    public CircuitBreaker.Snapshot sendTest(Integration integration, User caller, String target) {
+        testMessages.send(integration, caller, target);
+        history.record(history.event(AdminAction.INTEGRATION_TEST_SENT, HistoryService.SYSTEM_SUBJECT_ID)
+                .metadata(Map.of("integration", integration.name())).build());
         return integrations.breaker(integration).snapshot();
     }
 }

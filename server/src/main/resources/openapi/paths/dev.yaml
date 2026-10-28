@@ -235,6 +235,26 @@
         description: Done
       '404': {description: 'DEV_JOB_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
+/api/dev/integrations/{integration}/fail:
+  post:
+    tags: [dev]
+    operationId: simulateIntegrationFailure
+    summary: 'Open the integration breaker as if an outage had been detected (publishes IntegrationDownEvent once).'
+    security: []
+    x-dev-only: true
+    x-permission: 'DEV_PROFILE'
+    x-history: NONE
+    parameters:
+      - name: integration
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/admin.yaml#/Integration'
+    responses:
+      '204':
+        description: Done
+      '404': {description: 'Not available outside local/e2e', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
 /api/dev/fixtures/ical:
   get:
     tags: [dev]

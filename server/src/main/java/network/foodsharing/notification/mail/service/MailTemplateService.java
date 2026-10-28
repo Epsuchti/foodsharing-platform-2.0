@@ -18,12 +18,14 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
  * Renders mail templates with Thymeleaf: {@code templates/mail/<template>_<lang>.html} (HTML mode) and
  * {@code .txt} (TEXT mode, {@code [(${var})]} syntax, required); the subject is the static message
  * {@code mail.<template>.subject} from {@code i18n/<module>/messages_<lang>.properties}. Missing language variants
- * fall back to {@code de}. Variables {@code baseUrl} and {@code language} are always set.
+ * fall back to {@code de}, then {@code en}. The HTML part is always the layout around the template's own HTML or its
+ * escaped text (A27). Variables {@code baseUrl} and {@code language} are always set.
  */
 @Service
 public class MailTemplateService {
 
     static final String PREFIX = "templates/mail/";
+    static final String LAYOUT = "layout";
 
     private final TemplateEngine htmlEngine;
     private final TemplateEngine textEngine;
@@ -45,8 +47,38 @@ public class MailTemplateService {
         context.setVariable("language", language.getValue());
         String name = template + "_" + language.getValue();
         String text = textEngine.process(name, context);
-        String html = exists(name + ".html") ? htmlEngine.process(name, context) : null;
-        return new RenderedMail(interpolate(subject(template, language), variables), text, html, language);
+        String content = exists(name + ".html") ? htmlEngine.process(name, context) : textToHtml(text);
+        String subject = interpolate(subject(template, language), variables);
+        return new RenderedMail(subject, text, layout(language, subject, content, variables), language);
+    }
+
+    /**
+     * Wraps a body in {@code layout_<lang>.html} (A27): header, the body, footer with the settings link and, only when
+     * the variables carry {@code unsubscribeUrl} (newsletters), the unsubscribe link.
+     */
+    String layout(Language language, String subject, String content, Map<String, Object> variables) {
+        String name = exists(LAYOUT + "_" + language.getValue() + ".html") ? LAYOUT + "_" + language.getValue()
+                : LAYOUT + "_" + Language.DE.getValue();
+        Context context = new Context(locale(language));
+        context.setVariable("content", content);
+        context.setVariable("subject", subject);
+        context.setVariable("baseUrl", properties.getBaseUrl());
+        context.setVariable("unsubscribeUrl", variables == null ? null : variables.get("unsubscribeUrl"));
+        return htmlEngine.process(name, context);
+    }
+
+    /** Plain text → escaped HTML paragraphs (blank line = new paragraph, line break = {@code <br>}). */
+    static String textToHtml(String text) {
+        StringBuilder html = new StringBuilder();
+        for (String paragraph : text.strip().split("\\n\\s*\\n")) {
+            if (paragraph.isBlank()) {
+                continue;
+            }
+            String escaped = org.springframework.web.util.HtmlUtils.htmlEscape(paragraph.strip())
+                    .replace("\n", "<br>");
+            html.append("<p style=\"margin:0 0 12px;\">").append(escaped).append("</p>\n");
+        }
+        return html.toString();
     }
 
     /** Replaces {@code {name}} placeholders of a subject with the template variables (missing ones stay). */
@@ -78,6 +110,9 @@ public class MailTemplateService {
         }
         if (exists(template + "_" + Language.DE.getValue() + ".txt")) {
             return Language.DE;
+        }
+        if (exists(template + "_" + Language.EN.getValue() + ".txt")) {
+            return Language.EN;
         }
         throw new IllegalArgumentException("Unknown mail template " + template);
     }

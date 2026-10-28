@@ -9,7 +9,6 @@ import network.foodsharing.api.model.IntegrationMode;
 import network.foodsharing.api.model.IntegrationStatus;
 import network.foodsharing.api.model.IntegrationTest;
 import network.foodsharing.api.model.Role;
-import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.integration.CircuitBreaker;
 import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.security.CurrentActorService;
@@ -44,7 +43,9 @@ public class AdminIntegrationsController implements AdminIntegrationsApi {
     @Override
     public ResponseEntity<IntegrationStatus> testIntegration(Integration integration, IntegrationTest integrationTest) {
         currentActor.requireRole(Role.ORGA);
-        throw ApiException.notImplemented("testIntegration");
+        return ResponseEntity.ok(toApi(operations.sendTest(
+                network.foodsharing.common.integration.Integration.valueOf(integration.name()),
+                currentActor.requireUser(), integrationTest == null ? null : integrationTest.getTarget())));
     }
 
     private IntegrationStatus toApi(CircuitBreaker.Snapshot s) {

@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+deine Eintragung für die Abholung bei [(${storeName})] am [(${when})] wurde von der Automatisierung nicht bestätigt.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dein foodsharing-Team

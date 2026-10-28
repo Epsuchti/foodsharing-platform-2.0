@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+ta collecte chez [(${storeName})] le [(${when})] a été confirmée automatiquement. Merci de lire la remarque suivante.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

@@ -26,4 +26,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query(value = "select nextval('foodsaver_number_seq')", nativeQuery = true)
     long nextFoodsaverNumber();
+
+    Optional<User> findByTelegramChatId(String telegramChatId);
 }

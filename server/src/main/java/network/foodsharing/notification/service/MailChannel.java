@@ -46,7 +46,8 @@ public class MailChannel implements NotificationChannel {
         variables.put("link", request.link() == null ? null : absolute(request.link()));
         variables.put("displayName", recipient.getDisplayName());
         UUID mailId = mails.enqueue(new MailDraft(recipient.getEmail(), request.mailTemplate(),
-                recipient.getPreferredLanguage(), variables));
+                recipient.getPreferredLanguage(), variables, recipient.getId(), request.type().category().name(),
+                request.identifier()));
         bell.setMailOutboxId(mailId);
     }
 

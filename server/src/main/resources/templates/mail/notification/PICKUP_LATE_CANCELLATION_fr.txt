@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+[(${userName})] s’est désinscrit·e tardivement de la collecte chez [(${storeName})] le [(${when})].
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

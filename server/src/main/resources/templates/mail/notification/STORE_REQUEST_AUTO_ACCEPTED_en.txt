@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+your request to join the team of [(${storeName})] was accepted automatically.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

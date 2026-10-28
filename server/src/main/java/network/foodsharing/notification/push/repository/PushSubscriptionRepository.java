@@ -15,4 +15,8 @@ public interface PushSubscriptionRepository extends JpaRepository<PushSubscripti
     long countByUserId(UUID userId);
 
     boolean existsByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("delete from PushSubscription p where p.failureCount >= :max")
+    int deleteFailing(@org.springframework.data.repository.query.Param("max") int max);
 }
