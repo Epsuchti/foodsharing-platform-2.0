@@ -87,6 +87,8 @@ public class SecurityConfig {
                         .requestMatchers(AUTHENTICATED_FRAMEWORK_ENDPOINTS).authenticated()
                         .requestMatchers(FRAMEWORK_ENDPOINTS).permitAll()
                         .requestMatchers("/api/**").authenticated()
+                        // A32: the realtime handshake needs a valid session cookie (401 otherwise).
+                        .requestMatchers("/ws", "/ws/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> errorWriter.write(response, 401,

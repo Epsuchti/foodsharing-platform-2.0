@@ -46,6 +46,9 @@ class DevNotificationsControllerTest {
     private MockMvc mvc;
 
     @MockitoBean
+    private network.foodsharing.common.realtime.RealtimePublisher realtimePublisher;
+
+    @MockitoBean
     private DevService devService;
 
     @MockitoBean

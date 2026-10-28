@@ -44,14 +44,19 @@ public class DevController implements DevApi {
     private final AuthMapper authMapper;
     private final PermissionService permissionService;
     private final DevNotificationService notificationService;
+    private final network.foodsharing.common.realtime.RealtimePublisher realtime;
+    private final java.time.Clock clock;
 
     public DevController(DevService devService, DevMapper mapper, AuthMapper authMapper,
-                         PermissionService permissionService, DevNotificationService notificationService) {
+                         PermissionService permissionService, DevNotificationService notificationService,
+                         network.foodsharing.common.realtime.RealtimePublisher realtime, java.time.Clock clock) {
         this.devService = devService;
         this.mapper = mapper;
         this.authMapper = authMapper;
         this.permissionService = permissionService;
         this.notificationService = notificationService;
+        this.realtime = realtime;
+        this.clock = clock;
     }
 
     @Override
@@ -157,12 +162,17 @@ public class DevController implements DevApi {
 
     @Override
     public ResponseEntity<DevRealtimeSessions> getRealtimeSessions() {
-        throw ApiException.notImplemented("getRealtimeSessions");
+        return ResponseEntity.ok(new DevRealtimeSessions().userIds(realtime.connectedUsers().stream().sorted().toList()));
     }
 
     @Override
     public ResponseEntity<RealtimeEvent> pingRealtime(DevRealtimePing devRealtimePing) {
-        throw ApiException.notImplemented("pingRealtime");
+        java.time.Instant at = clock.instant();
+        realtime.toUsers(java.util.Set.of(devRealtimePing.getUserId()), new network.foodsharing.common.realtime.RealtimeEvent(
+                network.foodsharing.common.realtime.RealtimeEventType.PING, at, java.util.Map.of("ping", true)));
+        return ResponseEntity.ok(new RealtimeEvent().type(network.foodsharing.api.model.RealtimeEventType.PING)
+                .at(java.time.OffsetDateTime.ofInstant(at, java.time.ZoneOffset.UTC))
+                .payload(new java.util.HashMap<>(java.util.Map.of("ping", true))));
     }
 
     @Override

@@ -106,6 +106,7 @@ tags:
   - name: surveys
     description: 'Surveys: editor, fill form, results.'
 x-framework-endpoints:
+  - /ws
   - /oauth2/authorization/google
   - /login/oauth2/code/google
   - /webauthn/register/options

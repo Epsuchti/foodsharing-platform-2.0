@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class SpaForwardingController {
 
     private static final String FIRST_SEGMENT =
-            "^(?!api$|actuator$|error$|assets$|media$|images$|i18n$|h2-console$|oauth2$|webauthn$)[^.]*$";
+            "^(?!api$|actuator$|error$|assets$|media$|images$|i18n$|h2-console$|oauth2$|webauthn$|ws$)[^.]*$";
 
     private static final List<String> BACKEND_PREFIXES = List.of(
             "/dev/oidc", "/login/oauth2", "/login/webauthn");

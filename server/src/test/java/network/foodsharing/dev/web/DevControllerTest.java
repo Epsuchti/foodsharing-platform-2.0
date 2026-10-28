@@ -57,10 +57,26 @@ class DevControllerTest {
     private MockMvc mvc;
 
     @MockitoBean
+    private network.foodsharing.common.realtime.RealtimePublisher realtimePublisher;
+
+    @MockitoBean
     private DevService devService;
 
     @MockitoBean
     private DevNotificationService notificationService;
+
+    @Test
+    void realtimeSessionsAndPing() throws Exception {
+        when(realtimePublisher.connectedUsers()).thenReturn(java.util.Set.of(SeedUsers.GUIDE.id()));
+        mvc.perform(get("/api/dev/realtime/sessions")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.userIds[0]").value(SeedUsers.GUIDE.id().toString()));
+        mvc.perform(post("/api/dev/realtime/ping").with(org.springframework.security.test.web.servlet.request
+                        .SecurityMockMvcRequestPostProcessors.csrf()).contentType("application/json")
+                        .content("{\"userId\":\"" + SeedUsers.GUIDE.id() + "\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.type").value("PING"));
+        org.mockito.Mockito.verify(realtimePublisher).toUsers(org.mockito.ArgumentMatchers.eq(
+                java.util.Set.of(SeedUsers.GUIDE.id())), any());
+    }
 
     @Test
     void listDevUsersReturnsSeedUsersWithDescriptionKeys() throws Exception {

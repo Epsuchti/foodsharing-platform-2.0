@@ -1,6 +1,9 @@
 package network.foodsharing.notification.service;
 
 import java.time.Clock;
+import network.foodsharing.common.realtime.RealtimeEvent;
+import network.foodsharing.common.realtime.RealtimeEventType;
+import network.foodsharing.common.realtime.RealtimePublisher;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +30,29 @@ public class BellService {
     private final HistoryService history;
     private final ObjectMapper objectMapper;
     private final Clock clock;
+    private final org.springframework.beans.factory.ObjectProvider<RealtimePublisher> realtime;
 
-    public BellService(BellRepository repository, HistoryService history, ObjectMapper objectMapper, Clock clock) {
+    public BellService(BellRepository repository, HistoryService history, ObjectMapper objectMapper, Clock clock,
+                       org.springframework.beans.factory.ObjectProvider<RealtimePublisher> realtime) {
         this.repository = repository;
         this.history = history;
         this.objectMapper = objectMapper;
         this.clock = clock;
+        this.realtime = realtime;
+    }
+
+    /** A32: tells the user's open tabs about a new or removed bell (they refetch the list). */
+    private void publish(UUID userId, UUID bellId) {
+        RealtimePublisher publisher = realtime.getIfAvailable();
+        if (publisher == null) {
+            return;
+        }
+        Map<String, Object> payload = new java.util.HashMap<>();
+        if (bellId != null) {
+            payload.put("bellId", bellId.toString());
+        }
+        payload.put("unreadCount", repository.countByUserIdAndReadAtIsNullAndDeletedAtIsNull(userId));
+        publisher.toUsers(java.util.Set.of(userId), new RealtimeEvent(RealtimeEventType.BELL, clock.instant(), payload));
     }
 
     /** {@code <TYPE>-<id>-<id>…}, e.g. {@code REGION_NEW_MEMBER-<userId>}. */
@@ -63,6 +83,7 @@ public class BellService {
                 .secondarySubject(userId)
                 .metadata(Map.of("type", type.name(), "bellId", saved.getId().toString()))
                 .build());
+        publish(userId, saved.getId());
         return saved;
     }
 
@@ -72,6 +93,8 @@ public class BellService {
     public int deleteByIdentifier(String identifier) {
         List<Bell> bells = repository.findByIdentifierAndDeletedAtIsNull(identifier);
         bells.forEach(bell -> bell.setDeletedAt(clock.instant()));
+        repository.flush();
+        bells.stream().map(Bell::getUserId).distinct().forEach(userId -> publish(userId, null));
         return bells.size();
     }
 
