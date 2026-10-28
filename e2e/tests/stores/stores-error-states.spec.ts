@@ -40,9 +40,14 @@ test.describe('foodsaver', () => {
     await expect(page.getByTestId('stores.region.row')).toHaveCount(2);
   });
 
-  test('store page: 403 for non-members, 404 for unknown stores @S1', async ({ page }) => {
-    // foodsaver is not in the team of Hiltl's neighbour Hotel Seefeld (S-11)
+  test('store page: public view for region members, 403 outside the region, 404 for unknown stores @S1 @S6', async ({ page }) => {
+    // foodsaver is not in the team of Hotel Seefeld (S-11) but in its region: limited view with "apply"
     await page.goto(`/stores/${seedStore('S-11').id}`);
+    await expectDataState(page, 'stores.page.state', 'success');
+    await expect(page.getByTestId('stores.membership.apply')).toBeVisible();
+    await expect(page.getByTestId('stores.page.tab.team')).toHaveCount(0);
+    // Winterthur (S-23) is outside foodsaver's regions
+    await page.goto(`/stores/${seedStore('S-23').id}`);
     await expectDataState(page, 'stores.page.state', 'forbidden');
     await page.goto('/stores/00000020-0001-4000-8000-0000000009ff');
     await expectDataState(page, 'stores.page.state', 'notFound');

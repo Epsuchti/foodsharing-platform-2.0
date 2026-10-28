@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, seedStore } from '../../fixtures';
 
 /** Shared helpers of the M3 store specs. */
@@ -40,4 +40,46 @@ export async function chooseOptions(page: Page, testId: string, labels: (string 
     await page.getByTestId(testId).click({ force: true });
     await expect(page.locator('.p-overlay')).toHaveCount(0);
   }
+}
+
+/** Seed users' display names (db/seed/user). */
+export const NAMES = {
+  foodsaver: 'Sarah Müller',
+  jumper: 'Jonas Weber',
+  sleepy: 'Marco Bernasconi',
+  bieb: 'Nina Schneider',
+  guide: 'Julien Favre',
+  bot: 'Reto Baumann',
+  welcome: 'Priya Sharma',
+  reports: 'Céline Rochat',
+} as const;
+
+/** A member row of the team tab (F3) by display name. */
+export function memberRow(page: Page, name: string): Locator {
+  return page.locator(`[data-testid="stores.team.member"][data-user="${name}"]`);
+}
+
+/** Opens the row menu of a team member and clicks one of its actions (`stores.team.<action>`). */
+export async function memberAction(page: Page, name: string, action: string): Promise<void> {
+  const row = memberRow(page, name);
+  await row.scrollIntoViewIfNeeded();
+  await row.getByTestId('stores.team.menu').click();
+  await page.getByTestId(`stores.team.${action}`).click();
+}
+
+/** Fills and confirms the required-message dialog of the team tab. */
+export async function confirmWithMessage(page: Page, message: string): Promise<void> {
+  await page.getByTestId('stores.team.messageDialog.message').fill(message);
+  await page.getByTestId('stores.team.messageDialog.confirm').click();
+  await expect(page.getByTestId('stores.team.messageDialog.message')).toBeHidden();
+}
+
+/** Clicks the accept button of the shell's confirm dialog. */
+export async function acceptConfirm(page: Page): Promise<void> {
+  await page.locator('.p-confirmdialog-accept-button').click();
+}
+
+/** Toast of the shell (success or error). */
+export function toast(page: Page): Locator {
+  return page.getByTestId('shell.toast').locator('.p-toast-message').first();
 }

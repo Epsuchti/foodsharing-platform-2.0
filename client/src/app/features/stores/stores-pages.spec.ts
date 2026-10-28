@@ -154,13 +154,14 @@ describe('stores pages', () => {
     expect(qa('[data-testid="stores.region.row"]')).toHaveLength(1);
   });
 
-  it('store page: jumpers see only the overview tab, no edit, no contact call', async () => {
+  it('store page: jumpers see only the overview and team tabs, no edit, no contact call', async () => {
     await harness.navigateByUrl('/stores/s1');
     http.expectOne('/api/stores/s1').flush(detail());
     await settle();
     expect(q('[data-testid="stores.page.name"]')?.textContent?.trim()).toBe('Coop Bahnhofbrücke');
     expect(qa('[data-testid^="stores.page.tab."]').map((el) => el.getAttribute('data-testid'))).toEqual([
       'stores.page.tab.overview',
+      'stores.page.tab.team',
     ]);
     expect(q('[data-testid="stores.page.edit"]')).toBeNull();
     expect(q('[data-testid="stores.page.call"]')).toBeNull();
