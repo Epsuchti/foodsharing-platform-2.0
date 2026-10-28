@@ -47,7 +47,11 @@ public class RegionAdminController implements RegionAdminApi {
                 type(body.getType()), body.getParentId(), body.getEmailName(), body.getTeaser(), body.getDescription(),
                 body.getTimeZone(), body.getCountry(), joinMode(body.getJoinMode()), body.getModerated(),
                 body.getAmbassadorIds(), functions(body.getFunctions()), body.getReason());
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAdminItem(adminService.create(input)));
+        RegionAdminService.AdminItem created = adminService.create(input);
+        if (body.getTeamPage() != null) {
+            created = adminService.setTeamPage(created.region().getId(), body.getTeamPage(), body.getReason());
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAdminItem(created));
     }
 
     @Override
@@ -102,7 +106,11 @@ public class RegionAdminController implements RegionAdminApi {
                 type(body.getType()), null, body.getEmailName(), body.getTeaser(), body.getDescription(),
                 body.getTimeZone(), body.getCountry(), joinMode(body.getJoinMode()), body.getModerated(),
                 body.getAmbassadorIds(), functions(body.getFunctions()), body.getReason());
-        return ResponseEntity.ok(mapper.toAdminItem(adminService.update(regionId, input)));
+        RegionAdminService.AdminItem updated = adminService.update(regionId, input);
+        if (body.getTeamPage() != null) {
+            updated = adminService.setTeamPage(regionId, body.getTeamPage(), body.getReason());
+        }
+        return ResponseEntity.ok(mapper.toAdminItem(updated));
     }
 
     private static UnitType type(network.foodsharing.api.model.UnitType type) {

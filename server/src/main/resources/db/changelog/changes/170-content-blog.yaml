@@ -1,0 +1,89 @@
+# Milestone 6 (B11): content editor functions, blog, release notes, team page flag (C1, C2, C4, C16).
+databaseChangeLog:
+  - changeSet:
+      id: 170-1
+      author: platform
+      comment: 'Per-page editor function (admins of a group with this function edit the page) and claimed images.'
+      changes:
+        - addColumn:
+            tableName: content_page
+            columns:
+              - column: {name: editor_function, type: VARCHAR(40), defaultValue: PR}
+              - column: {name: image_upload_ids, type: VARCHAR(2000)}
+  - changeSet:
+      id: 170-2
+      author: platform
+      comment: 'Blog posts (global or per region); ambassadors request a check, editors publish.'
+      changes:
+        - createTable:
+            tableName: blog_post
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_blog_post, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {foreignKeyName: fk_blog_post_region, references: region(id)}}
+              - column: {name: author_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_blog_post_author, references: user_account(id)}}
+              - column: {name: title, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: teaser, type: VARCHAR(2000), constraints: {nullable: false}}
+              - column: {name: body, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: picture_upload_id, type: UUID}
+              - column: {name: published, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: awaiting_check, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: published_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: blog_post
+            indexName: ix_blog_post_published
+            columns:
+              - column: {name: published}
+              - column: {name: published_at, descending: true}
+        - createIndex:
+            tableName: blog_post
+            indexName: ix_blog_post_region
+            columns:
+              - column: {name: region_id}
+  - changeSet:
+      id: 170-3
+      author: platform
+      comment: 'Release notes (what is new) with translations.'
+      changes:
+        - createTable:
+            tableName: release_note
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_release_note, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: release_version, type: VARCHAR(40), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_release_note_version}}
+              - column: {name: released_at, type: DATE, constraints: {nullable: false}}
+        - createTable:
+            tableName: release_note_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_release_note_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_release_note_i18n_owner, references: release_note(id), deleteCascade: true}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: title, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: body, type: VARCHAR(32600), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: release_note_i18n
+            columnNames: owner_id, language
+            constraintName: uq_release_note_i18n_owner_language
+  - changeSet:
+      id: 170-4
+      author: platform
+      comment: 'Working groups shown on the public team page (C16).'
+      changes:
+        - addColumn:
+            tableName: region
+            columns:
+              - column: {name: team_page, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}

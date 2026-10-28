@@ -49,6 +49,20 @@ public class RegionService {
                 .anyMatch(assignment -> assignment.getFunction() == function);
     }
 
+    /** Admins of every working group that holds this function in any region (e.g. PR admins for the blog check). */
+    @Transactional(readOnly = true)
+    public java.util.Set<UUID> functionGroupAdminIds(network.foodsharing.security.WorkingGroupFunction function) {
+        java.util.Set<UUID> result = new java.util.TreeSet<>();
+        functions.findByFunction(function).forEach(assignment -> result.addAll(admins.findUserIds(assignment.getGroupId())));
+        return result;
+    }
+
+    /** Active working groups flagged for the public team page (C16), in sort order. */
+    @Transactional(readOnly = true)
+    public List<Region> teamPageGroups() {
+        return regions.findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAsc();
+    }
+
     /** Active regions (no working groups) with at least one ambassador (explainer counter). */
     @Transactional(readOnly = true)
     public long countRegionsWithAmbassadors() {

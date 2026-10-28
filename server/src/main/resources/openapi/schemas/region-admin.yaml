@@ -38,6 +38,9 @@ RegionForAdministration:
       $ref: './regions.yaml#/RegionJoinMode'
     moderated:
       type: boolean
+    teamPage:
+      type: boolean
+      description: Working group shown on the public team page (B11).
     ambassadorIds:
       type: array
       items:
@@ -91,6 +94,9 @@ RegionAdminUpdate:
       $ref: './regions.yaml#/RegionJoinMode'
     moderated:
       type: boolean
+    teamPage:
+      type: boolean
+      description: Working group shown on the public team page (B11).
     ambassadorIds:
       type: array
       items:
@@ -133,6 +139,8 @@ RegionAdminItem:
     joinMode:
       $ref: './regions.yaml#/RegionJoinMode'
     moderated:
+      type: boolean
+    teamPage:
       type: boolean
     teaser:
       type: string

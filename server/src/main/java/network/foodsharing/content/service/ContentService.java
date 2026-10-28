@@ -22,6 +22,7 @@ import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.security.WorkingGroupFunction;
+import network.foodsharing.upload.service.UploadService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +41,19 @@ public class ContentService {
     public record PageTexts(ContentPage page, Map<String, String> titles, Map<String, String> bodies) {
     }
 
+    /** {@code editorFunction}/{@code imageUploadIds} null = unchanged. */
     public record PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
-                            Integer sortOrder, Integer estimatedMinutes, boolean published, String reason) {
+                            Integer sortOrder, Integer estimatedMinutes, boolean published, String reason,
+                            String editorFunction, List<UUID> imageUploadIds) {
+
+        public PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
+                         Integer sortOrder, Integer estimatedMinutes, boolean published, String reason) {
+            this(titles, bodies, kind, sortOrder, estimatedMinutes, published, reason, null, null);
+        }
     }
+
+    public static final String IMAGE_MODULE = "CONTENT_IMAGE";
+    static final String DEFAULT_EDITOR_FUNCTION = WorkingGroupFunction.PR.name();
 
     static final int SUMMARY_LENGTH = 200;
 
@@ -52,9 +63,12 @@ public class ContentService {
     private final CurrentActorService currentActor;
     private final PermissionService permissions;
     private final HistoryService history;
+    private final UploadService uploads;
 
     public ContentService(ContentPageRepository pages, ContentPageI18nRepository texts, RegionService regions,
-                          CurrentActorService currentActor, PermissionService permissions, HistoryService history) {
+                          CurrentActorService currentActor, PermissionService permissions, HistoryService history,
+                          UploadService uploads) {
+        this.uploads = uploads;
         this.pages = pages;
         this.texts = texts;
         this.regions = regions;
@@ -69,6 +83,28 @@ public class ContentService {
         ContentPage page = pages.findBySlug(slug).filter(ContentPage::isPublished)
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.CONTENT_NOT_FOUND));
         return localize(page, language, null);
+    }
+
+    /** A published page, empty when missing or unpublished (no exception inside surrounding transactions). */
+    @Transactional(readOnly = true)
+    public java.util.Optional<LocalizedPage> findPublished(String slug, String language) {
+        return pages.findBySlug(slug).filter(ContentPage::isPublished)
+                .filter(page -> !texts.findByOwnerId(page.getId()).isEmpty())
+                .map(page -> localize(page, language, null));
+    }
+
+    /** Published FAQ entries (pages of kind FAQ) in sort order. */
+    @Transactional(readOnly = true)
+    public List<LocalizedPage> faq(String language) {
+        return pages.findByKindOrderBySortOrderAscSlugAsc(ContentPageKind.FAQ).stream().filter(ContentPage::isPublished)
+                .filter(page -> !texts.findByOwnerId(page.getId()).isEmpty())
+                .map(page -> localize(page, language, null)).toList();
+    }
+
+    /** Does the page still exist (upload cleanup of CONTENT_IMAGE)? */
+    @Transactional(readOnly = true)
+    public boolean exists(UUID pageId) {
+        return pages.existsById(pageId);
     }
 
     /** Published learning chapters in order. */
@@ -106,16 +142,56 @@ public class ContentService {
 
     // ---------------------------------------------------------------------------------------------- admin
 
+    /** Editor of at least one page: ORGA, PR group admins, admins of a group holding a page's editor function. */
     public boolean mayEdit(SessionPrincipal actor) {
-        return permissions.isOrga(actor) || regions.isFunctionGroupAdminAnywhere(actor.userId(), WorkingGroupFunction.PR);
+        if (permissions.isOrga(actor) || regions.isFunctionGroupAdminAnywhere(actor.userId(), WorkingGroupFunction.PR)) {
+            return true;
+        }
+        return pages.findAll().stream().map(ContentService::editorFunction).distinct()
+                .anyMatch(function -> regions.isFunctionGroupAdminAnywhere(actor.userId(), function));
     }
 
-    /** @throws ApiException 403 unless editor */
+    /** Per-page editors (decision 38 generalised): ORGA or admins of a group holding the page's editor function. */
+    public boolean mayEdit(SessionPrincipal actor, ContentPage page) {
+        return permissions.isOrga(actor) || regions.isFunctionGroupAdminAnywhere(actor.userId(), editorFunction(page));
+    }
+
+    /** The page's editor function; unknown or empty values fall back to PR. */
+    static WorkingGroupFunction editorFunction(ContentPage page) {
+        return function(page.getEditorFunction());
+    }
+
+    /** Editor function from a request: null/blank = PR, unknown names → 400 VALIDATION_FAILED. */
+    static WorkingGroupFunction requestedFunction(String value) {
+        if (value == null || value.isBlank()) {
+            return WorkingGroupFunction.PR;
+        }
+        try {
+            return WorkingGroupFunction.valueOf(value.strip().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException unknown) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "editorFunction");
+        }
+    }
+
+    static WorkingGroupFunction function(String value) {
+        if (value == null || value.isBlank()) {
+            return WorkingGroupFunction.PR;
+        }
+        try {
+            return WorkingGroupFunction.valueOf(value.strip().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException unknown) {
+            return WorkingGroupFunction.PR;
+        }
+    }
+
+    /** Pages the current user may edit. @throws ApiException 403 unless editor of at least one page */
     @Transactional(readOnly = true)
     public List<PageTexts> allPages(ContentPageKind kind) {
+        SessionPrincipal actor = currentActor.requirePrincipal();
         requireEditor();
-        List<ContentPage> rows = kind == null ? pages.findAllByOrderByKindAscSortOrderAscSlugAsc()
-                : pages.findByKindOrderBySortOrderAscSlugAsc(kind);
+        List<ContentPage> rows = (kind == null ? pages.findAllByOrderByKindAscSortOrderAscSlugAsc()
+                : pages.findByKindOrderBySortOrderAscSlugAsc(kind)).stream().filter(page -> mayEdit(actor, page))
+                .toList();
         Map<UUID, List<ContentPageI18n>> byPage = texts.findByOwnerIdIn(rows.stream().map(ContentPage::getId).toList())
                 .stream().collect(Collectors.groupingBy(ContentPageI18n::getOwnerId));
         return rows.stream().map(page -> texts(page, byPage.getOrDefault(page.getId(), List.of()))).toList();
@@ -124,9 +200,92 @@ public class ContentService {
     /** @throws ApiException 403 unless editor, 404 CONTENT_NOT_FOUND */
     @Transactional(readOnly = true)
     public PageTexts pageForEdit(String slug) {
-        requireEditor();
-        ContentPage page = pages.findBySlug(slug).orElseThrow(() -> ApiException.notFound(ApiErrorCode.CONTENT_NOT_FOUND));
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        ContentPage page = pages.findBySlug(slug).orElse(null);
+        if (page == null) {
+            requireEditor();
+            throw ApiException.notFound(ApiErrorCode.CONTENT_NOT_FOUND);
+        }
+        if (!mayEdit(actor, page)) {
+            throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+        }
         return texts(page, texts.findByOwnerId(page.getId()));
+    }
+
+    /**
+     * Creates a page with one text in {@code language} (B11). Only ORGA sets an editor function other than PR.
+     *
+     * @throws ApiException 403 unless ORGA or PR group admin, 409 CONTENT_PAGE_EXISTS
+     */
+    @Transactional
+    public LocalizedPage create(String slug, ContentPageKind kind, String language, String title, String body,
+                                String editorFunction, List<UUID> imageUploadIds) {
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        boolean orga = permissions.isOrga(actor);
+        if (!orga && !regions.isFunctionGroupAdminAnywhere(actor.userId(), WorkingGroupFunction.PR)) {
+            throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+        }
+        String normalisedSlug = slug.strip().toLowerCase(java.util.Locale.ROOT);
+        if (!normalisedSlug.matches("[a-z0-9][a-z0-9-]*")) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "slug");
+        }
+        if (pages.findBySlug(normalisedSlug).isPresent()) {
+            throw ApiException.conflict(ApiErrorCode.CONTENT_PAGE_EXISTS);
+        }
+        WorkingGroupFunction function = requestedFunction(editorFunction);
+        if (function != WorkingGroupFunction.PR && !orga) {
+            throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+        }
+        ContentPage page = new ContentPage();
+        page.setSlug(normalisedSlug);
+        page.setKind(kind == null ? ContentPageKind.PAGE : kind);
+        page.setEditorFunction(function.name());
+        page.setPublished(false);
+        ContentPage saved = pages.saveAndFlush(page);
+        ContentPageI18n text = new ContentPageI18n();
+        text.setOwnerId(saved.getId());
+        text.setLanguage(language == null ? "de" : language);
+        text.setTitle(title.strip());
+        text.setBody(body == null ? "" : body);
+        texts.saveAndFlush(text);
+        claimImages(saved, imageUploadIds, actor.userId());
+        history.record(history.event(ContentAction.PAGE_CREATED, saved.getId())
+                .metadata(Map.of("slug", normalisedSlug, "languages", text.getLanguage())).build());
+        return localize(saved, text.getLanguage(), null);
+    }
+
+    private void claimImages(ContentPage page, List<UUID> uploadIds, UUID actorId) {
+        if (uploadIds == null) {
+            return;
+        }
+        java.util.LinkedHashSet<String> current = new java.util.LinkedHashSet<>(imageIds(page));
+        for (UUID uploadId : new java.util.LinkedHashSet<>(uploadIds)) {
+            if (current.contains(uploadId.toString())) {
+                continue;
+            }
+            network.foodsharing.upload.domain.Upload upload = uploads.find(uploadId);
+            if (!actorId.equals(upload.getOwnerUserId()) || upload.getMimeType() == null
+                    || !upload.getMimeType().startsWith("image/")) {
+                throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+            }
+            uploads.claim(uploadId, new network.foodsharing.upload.service.UploadUsage(IMAGE_MODULE, page.getId()));
+            current.add(uploadId.toString());
+        }
+        String joined = String.join(",", current);
+        if (joined.length() > 2000) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "imageUploadIds");
+        }
+        page.setImageUploadIds(joined.isEmpty() ? null : joined);
+    }
+
+    /** Claimed image uploads of a page (editor view). */
+    public static List<UUID> imageUploadIds(ContentPage page) {
+        return imageIds(page).stream().map(UUID::fromString).toList();
+    }
+
+    static List<String> imageIds(ContentPage page) {
+        return page.getImageUploadIds() == null || page.getImageUploadIds().isBlank() ? List.of()
+                : List.of(page.getImageUploadIds().split(","));
     }
 
     /**
@@ -137,13 +296,21 @@ public class ContentService {
      */
     @Transactional
     public PageTexts upsert(String slug, PageInput input) {
-        requireEditor();
+        SessionPrincipal actor = currentActor.requirePrincipal();
         if (input.titles() == null || input.titles().isEmpty() || input.bodies() == null
                 || !input.bodies().keySet().containsAll(input.titles().keySet())) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "titles/bodies");
         }
         ContentPage page = pages.findBySlug(slug).orElse(null);
         boolean created = page == null;
+        if (created ? !mayEdit(actor, new ContentPage()) : !mayEdit(actor, page)) {
+            throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+        }
+        if (input.editorFunction() != null && !permissions.isOrga(actor)
+                && (created ? requestedFunction(input.editorFunction()) != WorkingGroupFunction.PR
+                : requestedFunction(input.editorFunction()) != editorFunction(page))) {
+            throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+        }
         boolean wasPublished = page != null && page.isPublished();
         if (created) {
             page = new ContentPage();
@@ -153,7 +320,11 @@ public class ContentService {
         page.setSortOrder(input.sortOrder() == null ? page.getSortOrder() : input.sortOrder());
         page.setEstimatedMinutes(input.estimatedMinutes());
         page.setPublished(input.published());
+        if (input.editorFunction() != null) {
+            page.setEditorFunction(requestedFunction(input.editorFunction()).name());
+        }
         ContentPage saved = pages.saveAndFlush(page);
+        claimImages(saved, input.imageUploadIds(), actor.userId());
         Map<String, ContentPageI18n> existing = texts.findByOwnerId(saved.getId()).stream()
                 .collect(Collectors.toMap(ContentPageI18n::getLanguage, Function.identity()));
         existing.values().stream().filter(row -> !input.titles().containsKey(row.getLanguage())).forEach(texts::delete);

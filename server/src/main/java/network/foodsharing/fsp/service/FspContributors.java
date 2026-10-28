@@ -105,6 +105,12 @@ final class FspContributors {
     @Component
     static class UploadAccess implements UploadAccessRule {
 
+        private final FoodSharePointRepository fsps;
+
+        UploadAccess(FoodSharePointRepository fsps) {
+            this.fsps = fsps;
+        }
+
         @Override
         public String module() {
             return FspService.PHOTO_MODULE;
@@ -113,6 +119,12 @@ final class FspContributors {
         @Override
         public boolean mayRead(UUID userId, UUID usageOwnerId) {
             return true;
+        }
+
+        /** A deleted FSP (row gone or soft deleted) no longer needs its photo. */
+        @Override
+        public boolean exists(UUID usageOwnerId) {
+            return fsps.findById(usageOwnerId).filter(fsp -> fsp.getDeletedAt() == null).isPresent();
         }
     }
 }
