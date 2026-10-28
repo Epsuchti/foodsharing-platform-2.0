@@ -273,7 +273,7 @@ public class StoreMapper {
         StoreAddress a = p.getAddress() == null ? new StoreAddress() : p.getAddress();
         StoreContact k = p.getContact() == null ? new StoreContact() : p.getContact();
         return new StoreInput(p.getName(), a.getStreet(), a.getPostcode(), a.getCity(), a.getCountry(),
-                p.getLatitude(), p.getLongitude(), p.getCategoryId(), p.getChainId(), p.getGroceryIds(),
+                p.getLatitude(), p.getLongitude(), p.getCategoryId(), p.getChainId(), emptyAsUnchanged(p.getGroceryIds()),
                 convert(p.getCooperationStatus(), network.foodsharing.store.domain.CooperationStatus.class),
                 p.getCooperationStart(), convert(p.getConvinceStatus(), network.foodsharing.store.domain.ConvinceStatus.class),
                 k.getPerson(), k.getPhone(), k.getFax(), k.getEmail(),
@@ -285,5 +285,82 @@ public class StoreMapper {
                 p.getRequiresApplicationText(),
                 convert(p.getTeamStatus(), network.foodsharing.store.domain.TeamSearchStatus.class),
                 p.getSpecialNotes(), p.getDescription(), p.getRegionId(), null, p.getReason());
+    }
+
+    public network.foodsharing.api.model.WallPost toWallPost(network.foodsharing.store.service.StoreWallService.PostView v) {
+        network.foodsharing.api.model.WallPost model = new network.foodsharing.api.model.WallPost();
+        model.setId(v.post().getId());
+        model.setAuthor(v.author() == null ? null : users.toSummary(v.author()));
+        model.setText(v.post().getText());
+        model.setMilestone(network.foodsharing.api.model.WallMilestone.valueOf(v.post().getMilestone().name()));
+        model.setCreatedAt(network.foodsharing.common.mapper.TimeMapper.toOffset(v.post().getCreatedAt()));
+        model.setMayDelete(v.mayDelete());
+        return model;
+    }
+
+    public network.foodsharing.api.model.StoreStatistics toStatistics(
+            network.foodsharing.store.service.StoreStatisticsService.Statistics s) {
+        network.foodsharing.api.model.StoreStatistics model = new network.foodsharing.api.model.StoreStatistics();
+        model.setTotalPickups(s.totalPickups());
+        model.setTotalKg(s.totalKg());
+        model.setWeightCategory(weight(s.weightCategory()));
+        model.setMonths(s.months().stream().map(m -> {
+            network.foodsharing.api.model.StoreStatisticsMonth month = new network.foodsharing.api.model.StoreStatisticsMonth();
+            month.setMonth(m.month().toString());
+            month.setPickups(m.pickups());
+            month.setKg(m.kg());
+            return month;
+        }).toList());
+        if (s.perMember() != null) {
+            model.setPerMember(s.perMember().stream().map(m -> {
+                network.foodsharing.api.model.StoreMemberPickups row = new network.foodsharing.api.model.StoreMemberPickups();
+                row.setUser(users.toSummary(m.user()));
+                row.setPickups(m.pickups());
+                return row;
+            }).toList());
+        }
+        return model;
+    }
+
+    public network.foodsharing.api.model.StoreChain toChain(network.foodsharing.store.service.StoreChainService.ChainView v) {
+        var c = v.chain();
+        network.foodsharing.api.model.StoreChain model = new network.foodsharing.api.model.StoreChain();
+        model.setId(c.getId());
+        model.setName(c.getName());
+        network.foodsharing.api.model.ChainHeadquarters hq = new network.foodsharing.api.model.ChainHeadquarters();
+        hq.setStreet(c.getHqStreet());
+        hq.setPostcode(c.getHqPostcode());
+        hq.setCity(c.getHqCity());
+        hq.setCountry(c.getHqCountry());
+        model.setHeadquarters(hq);
+        model.setStatus(network.foodsharing.api.model.StoreChainStatus.valueOf(c.getStatus().name()));
+        model.setPressAllowed(c.isPressAllowed());
+        model.setForumThreadId(c.getForumThreadId());
+        model.setNotes(v.showNotes() ? c.getNotes() : null);
+        model.setCommonStoreInformation(c.getCommonStoreInformation());
+        model.setEstimatedStoreCount(c.getEstimatedStoreCount());
+        model.setStoreCount(v.storeCount());
+        model.setKams(v.kams().stream().map(users::toSummary).toList());
+        model.setUpdatedAt(network.foodsharing.common.mapper.TimeMapper.toOffset(c.getUpdatedAt()));
+        return model;
+    }
+
+    public network.foodsharing.store.service.StoreChainService.ChainInput toChainInput(
+            network.foodsharing.api.model.StoreChainUpdate u) {
+        var hq = u.getHeadquarters();
+        return new network.foodsharing.store.service.StoreChainService.ChainInput(u.getName(),
+                hq == null ? null : hq.getStreet(), hq == null ? null : hq.getPostcode(),
+                hq == null ? null : hq.getCity(), hq == null ? null : hq.getCountry(),
+                u.getStatus() == null ? null : network.foodsharing.store.domain.StoreChainStatus.valueOf(u.getStatus().name()),
+                u.getPressAllowed(), u.getForumThreadId(), u.getNotes(), u.getCommonStoreInformation(),
+                u.getEstimatedStoreCount(), emptyAsUnchanged(u.getKamIds()));
+    }
+
+    /**
+     * Generated models initialise arrays with an empty list, so an omitted array cannot be told apart from an empty
+     * one; on PATCH-like updates an empty list therefore means "unchanged" (decision recorded with B7).
+     */
+    static <T> List<T> emptyAsUnchanged(List<T> values) {
+        return values == null || values.isEmpty() ? null : values;
     }
 }

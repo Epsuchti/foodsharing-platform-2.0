@@ -1,0 +1,31 @@
+# Seed (B6): store wall posts incl. milestones (store created, cooperation started) of the 18 established stores and
+# a 40-day-old post by foodsaver on S-01 (delete-older-than-30-days rule). Timestamps relative to SEED_NOW.
+databaseChangeLog:
+  - changeSet:
+      id: seed-062-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Store wall posts.'
+      changes:
+        - loadUpdateData:
+            tableName: store_wall_post
+            file: ../store/store_wall_post.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID}
+              - column: {name: author_id, type: UUID}
+              - column: {name: text, type: STRING}
+              - column: {name: milestone, type: STRING}
+              - column: {name: deleted_at, type: STRING}
+              - column: {name: deleted_by, type: UUID}

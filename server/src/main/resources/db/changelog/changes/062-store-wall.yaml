@@ -1,0 +1,29 @@
+# Milestone 3 (B6): store wall (upstream fs_betrieb_notiz). Milestones are system notes (store created, cooperation
+# started, status changes); deleted posts stay as rows (deleted_at / deleted_by) for the store log.
+databaseChangeLog:
+  - changeSet:
+      id: 062-1
+      author: platform
+      comment: 'Store wall posts.'
+      changes:
+        - createTable:
+            tableName: store_wall_post
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store_wall_post, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_wall_post_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID}
+              - column: {name: text, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: milestone, type: VARCHAR(30), defaultValue: 'NONE', constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: deleted_by, type: UUID}
+        - createIndex:
+            tableName: store_wall_post
+            indexName: ix_store_wall_post_store_id_created_at
+            columns:
+              - column: {name: store_id}
+              - column: {name: created_at, descending: true}

@@ -87,13 +87,17 @@ public class StoreService {
     private final ApplicationEventPublisher events;
     private final AppProperties properties;
     private final Clock clock;
+    private final org.springframework.beans.factory.ObjectProvider<StorePickupInfo> pickupInfo;
+    private final org.springframework.beans.factory.ObjectProvider<StoreWallService> wall;
 
     public StoreService(StoreRepository stores, StoreMembershipRepository memberships,
                         StoreCategoryRepository categories, StoreChainRepository chains, GroceryRepository groceries,
                         StoreGroceryRepository storeGroceries, PickupWeightCategoryRepository weights,
                         StorePermissionService rights, RegionService regions, RegionPermissionResolver resolver,
                         UserService users, CurrentActorService currentActor, HistoryService history,
-                        ApplicationEventPublisher events, AppProperties properties, Clock clock) {
+                        ApplicationEventPublisher events, AppProperties properties, Clock clock,
+                        org.springframework.beans.factory.ObjectProvider<StorePickupInfo> pickupInfo,
+                        org.springframework.beans.factory.ObjectProvider<StoreWallService> wall) {
         this.stores = stores;
         this.memberships = memberships;
         this.categories = categories;
@@ -110,6 +114,8 @@ public class StoreService {
         this.events = events;
         this.properties = properties;
         this.clock = clock;
+        this.pickupInfo = pickupInfo;
+        this.wall = wall;
     }
 
     /** @throws ApiException 404 STORE_NOT_FOUND, 404 STORE_DELETED for deleted stores */
@@ -240,6 +246,34 @@ public class StoreService {
                     .region(store.getRegionId()).change("prefetchDays", oldPrefetch, store.getPrefetchDays()).build());
         }
         return store;
+    }
+
+    /**
+     * Soft-deletes (archives) a store that never had a pickup sign-up: memberships stay for the history, wall posts
+     * are soft-deleted, team / jumpers / applicants get a {@code STORE_DELETED} bell after commit.
+     *
+     * @throws ApiException 404, 403 unless mayDeleteStore, 409 STORE_HAS_PICKUPS
+     */
+    @Transactional
+    public void delete(UUID storeId, String reason) {
+        Store store = require(storeId);
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        StorePermissionService.require(rights.rights(actor, store).mayDelete());
+        if (pickupInfo.getObject().hasSignups(storeId)) {
+            throw ApiException.conflict(ApiErrorCode.STORE_HAS_PICKUPS);
+        }
+        store.setDeletedAt(clock.instant());
+        wall.getObject().deleteAllOf(storeId, actor.userId());
+        String why = reason == null || reason.isBlank() ? null : reason.strip();
+        history.record(history.event(StoreLogAction.DELETE_STORE, store.getId()).region(store.getRegionId())
+                .reason(why).metadata("name", store.getName()).build());
+        List<UUID> recipients = memberships.findByStoreId(storeId).stream()
+                .filter(m -> m.getStatus() != StoreMembershipStatus.INVITED)
+                .map(StoreMembership::getUserId).filter(id -> !id.equals(actor.userId())).toList();
+        StoreNotifications.send(events, network.foodsharing.notification.service.NotificationRequest
+                .to(recipients, network.foodsharing.notification.domain.NotificationType.STORE_DELETED)
+                .param("storeId", store.getId().toString()).param("storeName", store.getName())
+                .param("message", why).link("/stores").icon("store").build());
     }
 
     private void move(Store store, UUID targetRegionId) {

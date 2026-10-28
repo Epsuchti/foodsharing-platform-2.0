@@ -178,6 +178,16 @@ class StoreTeamServiceTest {
     }
 
     @Test
+    void requestFallsBackToOrgaWithoutManagersAndAmbassadors() {
+        User orga = new User();
+        orga.setId(UUID.randomUUID());
+        when(regionReads.ambassadorsOf(REGION)).thenReturn(List.of());
+        when(users.findActiveByRole(network.foodsharing.api.model.Role.ORGA)).thenReturn(List.of(orga));
+        service.apply(STORE, "Gerne");
+        assertThat(sent(NotificationType.STORE_NEW_REQUEST).recipientIds()).containsExactly(orga.getId());
+    }
+
+    @Test
     void appointManagerLimitsUnlessCoordinator() {
         member(StoreMembershipStatus.MEMBER, true);
         member(StoreMembershipStatus.MEMBER, true);

@@ -203,6 +203,10 @@ public class StoreTeamService {
         if (recipients.isEmpty()) {
             recipients = regionReads.ambassadorsOf(store.getRegionId()).stream().map(User::getId).toList();
         }
+        if (recipients.isEmpty()) {
+            recipients = users.findActiveByRole(network.foodsharing.api.model.Role.ORGA).stream().map(User::getId)
+                    .toList();
+        }
         notify(recipients, NotificationType.STORE_NEW_REQUEST, store, null, user.getDisplayName(),
                 BellService.identifier(NotificationType.STORE_NEW_REQUEST, storeId), null);
     }
