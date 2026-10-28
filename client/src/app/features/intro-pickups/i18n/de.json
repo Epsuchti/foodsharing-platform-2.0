@@ -294,5 +294,11 @@
   "introPickups.import.resultText": "{created} angelegt, {skipped} übersprungen, {attention} zum Prüfen.",
   "introPickups.import.imported": "Import abgeschlossen",
   "introPickups.admin.addGuide": "Begleitung freischalten",
-  "introPickups.scrollTable": "Tabelle, seitlich scrollbar"
+  "introPickups.scrollTable": "Tabelle, seitlich scrollbar",
+  "introPickups.admin.status.ACTIVE": "Aktiv",
+  "introPickups.admin.status.PAUSED": "Schlafmodus",
+  "introPickups.admin.status.DISABLED": "Deaktiviert",
+  "introPickups.admin.grantAdmin": "Zur Verwaltung hinzufügen",
+  "introPickups.admin.revokeAdmin": "Verwaltungsrecht entziehen",
+  "introPickups.admin.adminSaved": "Verwaltungsrecht gespeichert"
 }

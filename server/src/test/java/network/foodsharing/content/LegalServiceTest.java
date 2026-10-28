@@ -35,6 +35,9 @@ import org.springframework.context.annotation.Import;
         RegionClosureRepository.class})
 class LegalServiceTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private network.foodsharing.upload.service.UploadService uploads;
+
     @Autowired
     private LegalService legal;
 

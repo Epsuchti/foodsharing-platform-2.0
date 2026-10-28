@@ -1,34 +1,47 @@
 package network.foodsharing.content.web;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import network.foodsharing.api.ContentApi;
 import network.foodsharing.api.model.BlogPost;
 import network.foodsharing.api.model.BlogPostCreate;
 import network.foodsharing.api.model.BlogPostPage;
 import network.foodsharing.api.model.BlogPostUpdate;
 import network.foodsharing.api.model.ContentPage;
 import network.foodsharing.api.model.ContentPageCreate;
-import network.foodsharing.api.model.PublishedUpdate;
-import network.foodsharing.api.model.ReleaseNote;
-import network.foodsharing.api.model.ReleaseNoteCreate;
-import network.foodsharing.api.model.ReleaseNoteUpdate;
-import java.util.UUID;
-import network.foodsharing.common.error.ApiException;
-import java.util.List;
-import network.foodsharing.api.ContentApi;
 import network.foodsharing.api.model.ContentPageKind;
 import network.foodsharing.api.model.ContentPageSummary;
 import network.foodsharing.api.model.ContentPageUpdate;
+import network.foodsharing.api.model.PublishedUpdate;
+import network.foodsharing.api.model.ReleaseNote;
+import network.foodsharing.api.model.ReleaseNoteCreate;
+import network.foodsharing.api.model.ReleaseNoteTranslation;
+import network.foodsharing.api.model.ReleaseNoteUpdate;
+import network.foodsharing.content.mapper.ContentMapper;
+import network.foodsharing.content.service.BlogService;
 import network.foodsharing.content.service.ContentService;
+import network.foodsharing.content.service.ReleaseNoteService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Content page administration (ORGA / PR function group admins). */
+/** Content pages, blog and release notes administration (B11). */
 @RestController
 public class ContentController implements ContentApi {
 
     private final ContentService content;
+    private final BlogService blog;
+    private final ReleaseNoteService releaseNotes;
+    private final ContentMapper mapper;
 
-    public ContentController(ContentService content) {
+    public ContentController(ContentService content, BlogService blog, ReleaseNoteService releaseNotes,
+                             ContentMapper mapper) {
         this.content = content;
+        this.blog = blog;
+        this.releaseNotes = releaseNotes;
+        this.mapper = mapper;
     }
 
     @Override
@@ -48,63 +61,86 @@ public class ContentController implements ContentApi {
         return ResponseEntity.ok(ContentModels.summary(content.upsert(slug, new ContentService.PageInput(
                 body.getTitles(), body.getBodies(), network.foodsharing.content.domain.ContentPageKind.valueOf(
                         body.getKind().name()), body.getSortOrder(), body.getEstimatedMinutes(),
-                Boolean.TRUE.equals(body.getPublished()), body.getReason()))));
-    }
-
-    // --- M6 contract stubs (docs/plan-m6.md B1) ---
-
-    @Override
-    public ResponseEntity<BlogPost> createBlogPost(BlogPostCreate blogPostCreate) {
-        throw ApiException.notImplemented("createBlogPost");
+                Boolean.TRUE.equals(body.getPublished()), body.getReason(), body.getEditorFunction(),
+                body.getImageUploadIds()))));
     }
 
     @Override
-    public ResponseEntity<ContentPage> createContentPage(ContentPageCreate contentPageCreate) {
-        throw ApiException.notImplemented("createContentPage");
+    public ResponseEntity<ContentPage> createContentPage(ContentPageCreate body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ContentMapper.page(content.create(body.getSlug(),
+                network.foodsharing.content.domain.ContentPageKind.valueOf(body.getKind().getValue()), "de",
+                body.getTitle(), body.getBody(), body.getEditorFunction(), body.getImageUploadIds())));
     }
 
-    @Override
-    public ResponseEntity<ReleaseNote> createReleaseNote(ReleaseNoteCreate releaseNoteCreate) {
-        throw ApiException.notImplemented("createReleaseNote");
-    }
+    // ------------------------------------------------------------------------------------------- blog
 
     @Override
-    public ResponseEntity<Void> deleteBlogPost(UUID blogPostId) {
-        throw ApiException.notImplemented("deleteBlogPost");
-    }
-
-    @Override
-    public ResponseEntity<Void> deleteReleaseNote(UUID releaseNoteId) {
-        throw ApiException.notImplemented("deleteReleaseNote");
+    public ResponseEntity<BlogPostPage> listBlogPosts(Integer page, Integer size) {
+        return ResponseEntity.ok(mapper.toEditPage(blog.editable(page == null ? 0 : page, size == null ? 20 : size)));
     }
 
     @Override
     public ResponseEntity<BlogPost> getBlogPost(UUID blogPostId) {
-        throw ApiException.notImplemented("getBlogPost");
+        return ResponseEntity.ok(mapper.toPost(blog.get(blogPostId)));
     }
 
     @Override
-    public ResponseEntity<BlogPostPage> listBlogPosts(Integer page, Integer size) {
-        throw ApiException.notImplemented("listBlogPosts");
+    public ResponseEntity<BlogPost> createBlogPost(BlogPostCreate body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toPost(blog.create(new BlogService.PostInput(
+                body.getTitle(), body.getTeaser(), body.getBody(), body.getRegionId(), body.getPictureUploadId()))));
     }
+
+    @Override
+    public ResponseEntity<BlogPost> updateBlogPost(UUID blogPostId, BlogPostUpdate body) {
+        return ResponseEntity.ok(mapper.toPost(blog.update(blogPostId, new BlogService.PostInput(body.getTitle(),
+                body.getTeaser(), body.getBody(), body.getRegionId(), body.getPictureUploadId()))));
+    }
+
+    @Override
+    public ResponseEntity<BlogPost> setBlogPostPublished(UUID blogPostId, PublishedUpdate body) {
+        return ResponseEntity.ok(mapper.toPost(blog.setPublished(blogPostId, Boolean.TRUE.equals(body.getPublished()))));
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteBlogPost(UUID blogPostId) {
+        blog.delete(blogPostId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ------------------------------------------------------------------------------------------- release notes
 
     @Override
     public ResponseEntity<List<ReleaseNote>> listReleaseNotesForEdit() {
-        throw ApiException.notImplemented("listReleaseNotesForEdit");
+        return ResponseEntity.ok(releaseNotes.listForEdit().stream().map(ContentMapper::toReleaseNote).toList());
     }
 
     @Override
-    public ResponseEntity<BlogPost> setBlogPostPublished(UUID blogPostId, PublishedUpdate publishedUpdate) {
-        throw ApiException.notImplemented("setBlogPostPublished");
+    public ResponseEntity<ReleaseNote> createReleaseNote(ReleaseNoteCreate body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ContentMapper.toReleaseNote(releaseNotes.create(
+                new ReleaseNoteService.NoteInput(body.getVersion(), body.getReleasedAt(), body.getTitle(),
+                        body.getBody(), translations(body.getTranslations())))));
     }
 
     @Override
-    public ResponseEntity<BlogPost> updateBlogPost(UUID blogPostId, BlogPostUpdate blogPostUpdate) {
-        throw ApiException.notImplemented("updateBlogPost");
+    public ResponseEntity<ReleaseNote> updateReleaseNote(UUID releaseNoteId, ReleaseNoteUpdate body) {
+        return ResponseEntity.ok(ContentMapper.toReleaseNote(releaseNotes.update(releaseNoteId,
+                new ReleaseNoteService.NoteInput(body.getVersion(), body.getReleasedAt(), body.getTitle(),
+                        body.getBody(), translations(body.getTranslations())))));
     }
 
     @Override
-    public ResponseEntity<ReleaseNote> updateReleaseNote(UUID releaseNoteId, ReleaseNoteUpdate releaseNoteUpdate) {
-        throw ApiException.notImplemented("updateReleaseNote");
+    public ResponseEntity<Void> deleteReleaseNote(UUID releaseNoteId) {
+        releaseNotes.delete(releaseNoteId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private static Map<String, ReleaseNoteService.Text> translations(Map<String, ReleaseNoteTranslation> values) {
+        if (values == null) {
+            return null;
+        }
+        Map<String, ReleaseNoteService.Text> result = new HashMap<>();
+        values.forEach((language, text) -> result.put(language, new ReleaseNoteService.Text(text.getTitle(),
+                text.getBody())));
+        return result;
     }
 }

@@ -42,4 +42,6 @@ public interface RegionRepository extends JpaRepository<Region, UUID> {
     Page<Region> findByParentIdIsNull(Pageable pageable);
 
     Optional<Region> findByEmailName(String emailName);
+
+    List<Region> findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAsc();
 }

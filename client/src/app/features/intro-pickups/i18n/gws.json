@@ -294,5 +294,11 @@
   "introPickups.import.resultText": "{created} aagleit, {skipped} übersprunge, {attention} zum Prüefe.",
   "introPickups.import.imported": "Import abgschlosse",
   "introPickups.admin.addGuide": "Begleitig freischalte",
-  "introPickups.scrollTable": "Tabälle, siitlich scrollbar"
+  "introPickups.scrollTable": "Tabälle, siitlich scrollbar",
+  "introPickups.admin.status.ACTIVE": "Aktiv",
+  "introPickups.admin.status.PAUSED": "Schlafmodus",
+  "introPickups.admin.status.DISABLED": "Deaktiviert",
+  "introPickups.admin.grantAdmin": "Zur Verwaltig hinzuefüege",
+  "introPickups.admin.revokeAdmin": "Verwaltigsrächt entzie",
+  "introPickups.admin.adminSaved": "Verwaltigsrächt gspeicheret"
 }

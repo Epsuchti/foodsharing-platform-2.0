@@ -98,12 +98,13 @@ public class PickupReminderJob implements RunnableJob {
                 .stream().collect(Collectors.toMap(User::getId, Function.identity()));
         int sent = 0;
         for (PickupSignup signup : due) {
-            signup.setRemindedAt(now);
             Store store = storeById.get(signup.getStoreId());
             User user = userById.get(signup.getUserId());
             if (store == null || user == null || !user.isActive() || !user.isPickupRemindersEnabled()) {
                 continue;
             }
+            // only sign-ups that are actually reminded are marked, so turning reminders back on still reminds
+            signup.setRemindedAt(now);
             StoreNotifications.send(events, NotificationRequest.to(List.of(user.getId()),
                     NotificationType.PICKUP_REMINDER).param("storeId", store.getId().toString())
                     .param("storeName", store.getName()).param("pickupAt", signup.getPickupAt().toString())

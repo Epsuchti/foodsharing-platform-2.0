@@ -123,6 +123,24 @@ public class RegionAdminService {
         return item(require(regionId));
     }
 
+    /**
+     * Shows or hides a working group on the public team page (B11, C16); records GROUP UPDATED when it changes.
+     *
+     * @throws ApiException 403 unless ORGA, 404 REGION_NOT_FOUND
+     */
+    @Transactional
+    public AdminItem setTeamPage(UUID regionId, boolean teamPage, String reason) {
+        requireOrga();
+        Region region = require(regionId);
+        if (region.isTeamPage() != teamPage) {
+            region.setTeamPage(teamPage);
+            history.record(history.event(region.isGroup() ? GroupAction.UPDATED : RegionAction.UPDATED, regionId)
+                    .region(region.isGroup() ? region.getParentId() : regionId).reason(reason)
+                    .metadata("fields", "teamPage").build());
+        }
+        return item(region);
+    }
+
     public AdminItem item(Region region) {
         return new AdminItem(region, regions.countByParentId(region.getId()),
                 memberships.countByRegionIdAndActiveTrue(region.getId()), reads.ambassadorsOf(region.getId()),

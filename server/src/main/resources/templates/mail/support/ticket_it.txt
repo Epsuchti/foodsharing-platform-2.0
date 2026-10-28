@@ -1,0 +1,12 @@
+Nuova richiesta di supporto ([(${ticketId})])
+
+Oggetto: [(${subject})]
+Da: [(${firstName})] <[(${email})]>
+Connesso/a: [(${loggedIn} ? 'sì' : 'no')] ([(${userId})])
+Pagina: [(${page})]
+Browser: [(${userAgent})]
+Allegati:
+[(${attachments})]
+
+Messaggio:
+[(${body})]

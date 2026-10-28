@@ -62,7 +62,7 @@ class ContentApiIT {
                 .andExpect(jsonPath("$.nextChapterKey").value("hygiene"))
                 .andExpect(jsonPath("$.fallback").value(false));
         mvc.perform(get("/api/public/content/faq"))
-                .andExpect(jsonPath("$.language").value("de")).andExpect(jsonPath("$.kind").value("FAQ"));
+                .andExpect(jsonPath("$.language").value("de")).andExpect(jsonPath("$.kind").value("PAGE"));
         mvc.perform(get("/api/public/content/nope")).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("CONTENT_NOT_FOUND"));
         mvc.perform(get("/api/public/legal/LEGAL_AGREEMENT").param("lang", "it"))
@@ -142,7 +142,7 @@ class ContentApiIT {
     void editorsUpsertPages() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         mvc.perform(get("/api/content/pages").cookie(bot)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(11));
+                .andExpect(jsonPath("$.length()").value(32)); // B11 seed: 38 pages, 6 with a non-PR editor function
         mvc.perform(json(put("/api/content/pages/press").cookie(bot), "{\"titles\":{\"de\":\"Presse\"},"
                         + "\"bodies\":{\"de\":\"Kontakt\"},\"kind\":\"PAGE\",\"published\":true}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.languages[0]").value("de"));

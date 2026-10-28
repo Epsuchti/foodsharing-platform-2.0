@@ -323,6 +323,7 @@ public class RegionMapper {
         model.setCountry(region.getCountry());
         model.setJoinMode(RegionJoinMode.fromValue(region.getJoinMode().name()));
         model.setModerated(region.isModerated());
+        model.setTeamPage(region.isTeamPage());
         model.setTeaser(region.getTeaser());
         model.setDescription(region.getDescription());
         return model;

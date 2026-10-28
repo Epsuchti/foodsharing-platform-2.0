@@ -26,7 +26,11 @@ test('EA17 enable/disable guide @EA17', async ({ page, api }) => {
   await sarah.getByTestId('introPickups.admin.toggleGuide').click();
   await page.getByTestId('introPickups.admin.enableDialog.message').fill('Pause bis Januar');
   await page.getByTestId('introPickups.admin.enableDialog.confirm').click();
-  await expect(sarah).toHaveCount(0); // no longer a guide of the region
+  // she stays in the list as DISABLED (with the enable action) and is no longer a guide of the region
+  await expect(sarah).toHaveAttribute('data-status', 'DISABLED');
+  await expect(sarah.getByTestId('introPickups.admin.guideStatus')).toHaveText(/Deaktiviert/);
+  await expect(sarah.getByTestId('introPickups.admin.toggleGuide')).toHaveText(/Freischalte/);
+  expect((await api.getJson<{ id: string }[]>('/api/guide/regions')).map((r) => r.id)).not.toContain(ZH);
 
   // a paused guide cannot offer dates
   const refused = await api.post(`/api/regions/${ZH}/guide/intro-pickups`, {
@@ -40,6 +44,22 @@ test('EA17 enable/disable guide @EA17', async ({ page, api }) => {
   });
   expect(refused.ok()).toBe(false);
 
+});
+
+test('EA17 region admin grants and revokes the newcomer-manager right of a guide @EA17', async ({ page }) => {
+  await page.goto(`/regions/${ZH}/intro-pickups/admin`);
+  await page.getByTestId('introPickups.admin.tab.guides').click();
+  const julien = page.getByTestId('introPickups.admin.guide').filter({ hasText: 'Julien Favre' });
+  await expect(julien).toHaveAttribute('data-status', 'ACTIVE');
+  const before = await julien.getAttribute('data-admin');
+
+  await julien.getByTestId('introPickups.admin.toggleAdmin').click();
+  const granted = before === 'true' ? 'false' : 'true';
+  await expect(julien).toHaveAttribute('data-admin', granted);
+  await expect(julien.getByTestId('introPickups.admin.managerTag')).toHaveCount(granted === 'true' ? 1 : 0);
+
+  await julien.getByTestId('introPickups.admin.toggleAdmin').click();
+  await expect(julien).toHaveAttribute('data-admin', before!);
 });
 
 test('EA17 plain members get the forbidden state @EA17', async ({ as }) => {

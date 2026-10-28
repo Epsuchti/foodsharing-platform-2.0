@@ -124,6 +124,10 @@ public class Region extends BaseEntity implements HistorySubject {
     @Column(name = "learning_pages_mandatory", nullable = false)
     private boolean learningPagesMandatory = true;
 
+    /** Working group shown on the public team page (B11, C16). */
+    @Column(name = "team_page", nullable = false)
+    private boolean teamPage;
+
     @Column(name = "latitude")
     private Double latitude;
 

@@ -17,4 +17,6 @@ public interface RegionFunctionRepository extends JpaRepository<RegionFunction, 
     List<RegionFunction> findByGroupIdIn(Collection<UUID> groupIds);
 
     Optional<RegionFunction> findFirstByGroupId(UUID groupId);
+
+    List<RegionFunction> findByFunction(WorkingGroupFunction function);
 }

@@ -294,5 +294,11 @@
   "introPickups.import.resultText": "{created} créées, {skipped} ignorées, {attention} à vérifier.",
   "introPickups.import.imported": "Import terminé",
   "introPickups.admin.addGuide": "Activer un accompagnement",
-  "introPickups.scrollTable": "Tableau, défilement horizontal"
+  "introPickups.scrollTable": "Tableau, défilement horizontal",
+  "introPickups.admin.status.ACTIVE": "Actif",
+  "introPickups.admin.status.PAUSED": "Mode veille",
+  "introPickups.admin.status.DISABLED": "Désactivé",
+  "introPickups.admin.grantAdmin": "Nommer gestionnaire",
+  "introPickups.admin.revokeAdmin": "Retirer le droit de gestion",
+  "introPickups.admin.adminSaved": "Droit de gestion enregistré"
 }

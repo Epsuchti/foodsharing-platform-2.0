@@ -294,5 +294,11 @@
   "introPickups.import.resultText": "{created} created, {skipped} skipped, {attention} need attention.",
   "introPickups.import.imported": "Import finished",
   "introPickups.admin.addGuide": "Enable a guide",
-  "introPickups.scrollTable": "Table, scrolls sideways"
+  "introPickups.scrollTable": "Table, scrolls sideways",
+  "introPickups.admin.status.ACTIVE": "Active",
+  "introPickups.admin.status.PAUSED": "Sleep mode",
+  "introPickups.admin.status.DISABLED": "Disabled",
+  "introPickups.admin.grantAdmin": "Make newcomer manager",
+  "introPickups.admin.revokeAdmin": "Remove manager right",
+  "introPickups.admin.adminSaved": "Manager right saved"
 }

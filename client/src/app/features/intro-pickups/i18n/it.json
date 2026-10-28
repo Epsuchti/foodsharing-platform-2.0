@@ -294,5 +294,11 @@
   "introPickups.import.resultText": "{created} create, {skipped} saltate, {attention} da controllare.",
   "introPickups.import.imported": "Importazione completata",
   "introPickups.admin.addGuide": "Abilita un accompagnatore",
-  "introPickups.scrollTable": "Tabella, scorrevole in orizzontale"
+  "introPickups.scrollTable": "Tabella, scorrevole in orizzontale",
+  "introPickups.admin.status.ACTIVE": "Attivo",
+  "introPickups.admin.status.PAUSED": "Modalità riposo",
+  "introPickups.admin.status.DISABLED": "Disattivato",
+  "introPickups.admin.grantAdmin": "Nomina gestore",
+  "introPickups.admin.revokeAdmin": "Revoca il diritto di gestione",
+  "introPickups.admin.adminSaved": "Diritto di gestione salvato"
 }

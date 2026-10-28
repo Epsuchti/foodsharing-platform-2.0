@@ -35,4 +35,10 @@ public class MailboxUploadAccessRule implements UploadAccessRule {
         return mails.findById(usageOwnerId).map(MailMessage::getMailboxId).flatMap(mailboxes::findById)
                 .map(mailbox -> access.readers(mailbox).contains(userId)).orElse(false);
     }
+
+    /** An attachment of a deleted mail can go. */
+    @Override
+    public boolean exists(UUID usageOwnerId) {
+        return mails.existsById(usageOwnerId);
+    }
 }
