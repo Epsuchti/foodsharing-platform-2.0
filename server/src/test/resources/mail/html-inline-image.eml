@@ -1,0 +1,19 @@
+From: Newsletter <news@example.ch>
+To: zuerich@local.test
+Subject: Newsletter mit Bild
+Message-ID: <html-1@example.ch>
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="REL"
+
+--REL
+Content-Type: text/html; charset=UTF-8
+
+<html><body><h1>Hallo</h1><script>alert(1)</script><img src="cid:logo@example.ch"><img src="https://tracker.example/p.gif"><a href="javascript:alert(1)">x</a></body></html>
+--REL
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-ID: <logo@example.ch>
+Content-Disposition: inline; filename="logo.png"
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNgYPgPAAEDAQAIicLsAAAAAElFTkSuQmCC
+--REL--

@@ -16,6 +16,8 @@ import network.foodsharing.notification.mail.domain.MailAction;
 import network.foodsharing.notification.mail.domain.MailOutboxMessage;
 import network.foodsharing.notification.mail.domain.MailStatus;
 import network.foodsharing.notification.mail.repository.MailOutboxRepository;
+import network.foodsharing.upload.domain.Upload;
+import network.foodsharing.upload.service.UploadService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +40,13 @@ public class MailDeliveryService {
     private final AppProperties properties;
     private final Clock clock;
     private final IntegrationRegistry integrations;
+    private final UploadService uploads;
 
     public MailDeliveryService(MailOutboxRepository repository, ObjectProvider<MailTransport> transport,
                                HistoryService history, AppProperties properties, Clock clock,
-                               IntegrationRegistry integrations) {
+                               IntegrationRegistry integrations, UploadService uploads) {
         this.integrations = integrations;
+        this.uploads = uploads;
         this.repository = repository;
         this.transport = transport;
         this.history = history;
@@ -65,8 +69,9 @@ public class MailDeliveryService {
         }
         Instant now = clock.instant();
         try {
-            active.send(new OutgoingMail(message.getToAddress(), properties.getMail().getFrom(), message.getSubject(),
-                    message.getTextBody(), message.getHtmlBody(), headers(message.getHeaders())));
+            active.send(new OutgoingMail(message.getToAddress(), from(message), message.getSubject(),
+                    message.getTextBody(), message.getHtmlBody(), headers(message.getHeaders()), message.getReplyTo(),
+                    attachments(message.getAttachmentsJson())));
             message.setAttempts(message.getAttempts() + 1);
             message.setStatus(MailStatus.SENT);
             message.setSentAt(now);
@@ -112,6 +117,42 @@ public class MailDeliveryService {
         return Map.of("mailId", message.getId().toString(), "template", message.getTemplate(),
                 "attempts", message.getAttempts());
     }
+
+    /** The sender override of a mailbox mail ({@code "Name <address>"}), else {@code app.mail.from}. */
+    private String from(MailOutboxMessage message) {
+        if (message.getFromAddress() == null) {
+            return properties.getMail().getFrom();
+        }
+        try {
+            return new jakarta.mail.internet.InternetAddress(message.getFromAddress(), message.getFromName(), "UTF-8")
+                    .toString();
+        } catch (java.io.UnsupportedEncodingException ex) {
+            return message.getFromAddress();
+        }
+    }
+
+    /** Upload ids (JSON string array) → lazily read attachments; a missing upload fails the attempt (retry). */
+    private java.util.List<OutgoingMail.Attachment> attachments(String json) {
+        if (json == null || json.isBlank()) {
+            return java.util.List.of();
+        }
+        java.util.List<OutgoingMail.Attachment> result = new java.util.ArrayList<>();
+        java.util.regex.Matcher ids = UUID_PATTERN.matcher(json);
+        while (ids.find()) {
+            Upload upload = uploads.find(UUID.fromString(ids.group()));
+            result.add(new OutgoingMail.Attachment(upload.getFileName(), upload.getMimeType(), () -> {
+                try (java.io.InputStream in = uploads.open(upload)) {
+                    return in.readAllBytes();
+                } catch (java.io.IOException ex) {
+                    throw new java.io.UncheckedIOException(ex);
+                }
+            }));
+        }
+        return result;
+    }
+
+    private static final java.util.regex.Pattern UUID_PATTERN = java.util.regex.Pattern
+            .compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     /** {@code Name: value} lines → header map. */
     static java.util.Map<String, String> headers(String stored) {

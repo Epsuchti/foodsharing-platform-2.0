@@ -172,6 +172,14 @@ public class User extends BaseEntity implements HistorySubject {
     @Column(name = "telegram_chat_id", length = 40, unique = true)
     private String telegramChatId;
 
+    /** Personal mailbox (MB6, A35); null = none. */
+    @Column(name = "mailbox_id")
+    private java.util.UUID mailboxId;
+
+    /** Last hard bounce of {@link #email} seen by inbound bounce processing (A35); null = none. */
+    @Column(name = "email_bounced_at")
+    private java.time.Instant emailBouncedAt;
+
     @Column(name = "no_automatic_delete", nullable = false)
     private boolean noAutomaticDelete;
 

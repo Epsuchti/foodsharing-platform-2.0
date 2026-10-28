@@ -295,6 +295,25 @@ public class UserService {
         return user;
     }
 
+    /** Bounce processing (A35): flags the user whose address bounced; returns the user id when one matches. */
+    @Transactional
+    @NoHistory(reason = "the mailbox module records MailboxAction.BOUNCE_RECORDED with the user as secondary subject")
+    public java.util.Optional<UUID> markEmailBounced(String email, java.time.Instant at) {
+        return repository.findByEmailIgnoreCase(email == null ? "" : email.strip()).map(user -> {
+            user.setEmailBouncedAt(at);
+            return user.getId();
+        });
+    }
+
+    /** Links or unlinks the personal mailbox (MB6); the mailbox module records MAILBOX_CREATED / MAILBOX_DELETED. */
+    @Transactional
+    @NoHistory(reason = "the mailbox module records MailboxAction.MAILBOX_CREATED / MAILBOX_DELETED")
+    public User setMailboxId(UUID userId, UUID mailboxId) {
+        User user = repository.findById(userId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+        user.setMailboxId(mailboxId);
+        return user;
+    }
+
     /** Verified flag and date; the verification module records VERIFIED / UNVERIFIED. */
     @Transactional
     @NoHistory(reason = "the caller records VerificationAction.VERIFIED / UNVERIFIED with the required message")

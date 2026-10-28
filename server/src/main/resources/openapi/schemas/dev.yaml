@@ -69,6 +69,14 @@ CapturedMail:
     sentAt:
       type: string
       format: date-time
+    from:
+      type: string
+      description: Sender as delivered (mailbox mails use the mailbox address, A35); absent = default sender.
+    attachmentNames:
+      type: array
+      description: File names of the attachments (mailbox mails).
+      items:
+        type: string
 
 DevNotificationChannel:
   type: string

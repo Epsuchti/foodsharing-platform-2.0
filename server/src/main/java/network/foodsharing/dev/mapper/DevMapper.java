@@ -43,6 +43,8 @@ public class DevMapper {
         model.setHtml(mail.html());
         model.setLinks(mail.links());
         model.setSentAt(TimeMapper.toOffset(mail.sentAt()));
+        model.setFrom(mail.from());
+        model.setAttachmentNames(mail.attachmentNames());
         return model;
     }
 

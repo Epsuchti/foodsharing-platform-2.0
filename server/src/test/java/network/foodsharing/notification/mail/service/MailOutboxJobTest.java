@@ -54,7 +54,7 @@ class MailOutboxJobTest {
         StaticListableBeanFactory beans = new StaticListableBeanFactory();
         beans.addBean("transport", transport);
         delivery = new MailDeliveryService(repository, beans.getBeanProvider(MailTransport.class), history,
-                properties, clock, mock(IntegrationRegistry.class));
+                properties, clock, mock(IntegrationRegistry.class), mock(network.foodsharing.upload.service.UploadService.class));
 
         message = new MailOutboxMessage();
         message.setId(UUID.randomUUID());
@@ -115,7 +115,7 @@ class MailOutboxJobTest {
     void withoutTransportTheMailStaysPending() {
         MailDeliveryService noTransport = new MailDeliveryService(repository,
                 new StaticListableBeanFactory().getBeanProvider(MailTransport.class), history, properties, clock,
-                mock(IntegrationRegistry.class));
+                mock(IntegrationRegistry.class), mock(network.foodsharing.upload.service.UploadService.class));
         noTransport.deliver(message.getId());
         assertThat(message.getStatus()).isEqualTo(MailStatus.PENDING);
         assertThat(message.getAttempts()).isZero();
