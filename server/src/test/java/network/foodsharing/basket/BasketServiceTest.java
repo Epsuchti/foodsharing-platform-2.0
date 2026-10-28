@@ -76,6 +76,9 @@ class BasketServiceTest {
     @MockitoBean
     private TeamChatPort chat;
 
+    @MockitoBean
+    private network.foodsharing.admin.service.FeatureToggleService toggles;
+
     private User owner;
     private User other;
     private User orga;

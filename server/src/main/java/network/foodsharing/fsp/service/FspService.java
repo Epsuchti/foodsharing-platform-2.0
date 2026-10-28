@@ -1,5 +1,7 @@
 package network.foodsharing.fsp.service;
 
+import network.foodsharing.admin.domain.FeatureToggle;
+import network.foodsharing.admin.service.FeatureToggleService;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -74,11 +76,15 @@ public class FspService {
     private final AppProperties properties;
     private final Clock clock;
 
+    private final FeatureToggleService toggles;
+
     public FspService(FoodSharePointRepository fsps, FspFollowerRepository followers, FspWallPostRepository posts,
                       FspPermissionService access, CurrentActorService actors, RegionService regions,
                       GeocodingClient geocoding, UploadService uploads, NotificationService notifications,
                       MailOutboxService mails, UserService users, HistoryService history, AppProperties properties,
-                      Clock clock) {
+                      Clock clock,
+            FeatureToggleService toggles) {
+        this.toggles = toggles;
         this.fsps = fsps;
         this.followers = followers;
         this.posts = posts;
@@ -114,6 +120,7 @@ public class FspService {
      */
     @Transactional
     public FoodSharePoint create(UUID regionId, FspInput in) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         regions.require(regionId);
         FspStatus status = FspRules.createStatus(access.mayAdd(actor, regionId), access.isMember(actor, regionId));
@@ -153,6 +160,7 @@ public class FspService {
     /** Editors (mayAdd or manager). @throws ApiException 404, 403 ACCESS_DENIED, 400 */
     @Transactional
     public FoodSharePoint update(UUID fspId, FspInput in) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspPermissionService.require(FspRules.mayEdit(access.requireVisible(actor, fsp)));
@@ -188,6 +196,7 @@ public class FspService {
     /** Soft delete (mayAdd). @throws ApiException 404, 403 ACCESS_DENIED */
     @Transactional
     public void delete(UUID fspId) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspPermissionService.require(FspRules.mayDelete(access.requireVisible(actor, fsp)));
@@ -200,6 +209,7 @@ public class FspService {
     /** Activate / deactivate (mayAdd). @throws ApiException 404, 403 ACCESS_DENIED */
     @Transactional
     public FoodSharePoint setStatus(UUID fspId, FspStatus status) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspPermissionService.require(FspRules.mayActivate(access.requireVisible(actor, fsp)));
@@ -223,6 +233,7 @@ public class FspService {
      */
     @Transactional
     public FoodSharePoint setManagers(UUID fspId, List<UUID> userIds) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspPermissionService.require(FspRules.mayEdit(access.requireVisible(actor, fsp)));
@@ -233,6 +244,7 @@ public class FspService {
     /** Follow (or change the bell/mail flags). @throws ApiException 404, 403 ACCESS_DENIED */
     @Transactional
     public FspFollower follow(UUID fspId, boolean bell, boolean mail) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspRules.Facts facts = access.requireVisible(actor, fsp);
@@ -256,6 +268,7 @@ public class FspService {
     /** Unfollow; managers stay responsible and only switch their bell and mail off. */
     @Transactional
     public void unfollow(UUID fspId) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         followers.findByFspIdAndUserId(fspId, actor.userId()).ifPresent(row -> {
@@ -276,6 +289,7 @@ public class FspService {
      */
     @Transactional
     public FspWallPost post(UUID fspId, String body) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         User author = actors.requireUser();
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
@@ -296,6 +310,7 @@ public class FspService {
     /** ORGA / FSP group admins / author. @throws ApiException 404 WALL_POST_NOT_FOUND, 403 ACCESS_DENIED */
     @Transactional
     public void deletePost(UUID fspId, UUID postId) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspWallPost post = posts.findById(postId).filter(p -> p.getFspId().equals(fspId) && p.getDeletedAt() == null)

@@ -47,7 +47,7 @@ class AuthSeedContractIT {
         assertThat(jdbc.queryForList("select subject from auth_identity where provider = 'GOOGLE' order by subject",
                 String.class)).containsExactly("fake-google-bot", "fake-google-foodsaver");
         assertThat(jdbc.queryForList("select pattern from email_blocklist order by pattern", String.class))
-                .containsExactly("example.invalid", "mailinator.com");
+                .containsExactly("example.invalid", "mailinator.com", "spam.example");
     }
 
     private static void run(DriverManagerDataSource dataSource, String contexts) throws Exception {

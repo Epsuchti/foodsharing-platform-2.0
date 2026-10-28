@@ -1,5 +1,7 @@
 package network.foodsharing.fsp.service;
 
+import network.foodsharing.admin.domain.FeatureToggle;
+import network.foodsharing.admin.service.FeatureToggleService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -51,9 +53,13 @@ public class FspQueryService {
     private final CurrentActorService actors;
     private final RegionService regions;
 
+    private final FeatureToggleService toggles;
+
     public FspQueryService(FoodSharePointRepository fsps, FspFollowerRepository followers,
                            FspWallPostRepository posts, FspPermissionService access, CurrentActorService actors,
-                           RegionService regions) {
+                           RegionService regions,
+            FeatureToggleService toggles) {
+        this.toggles = toggles;
         this.fsps = fsps;
         this.followers = followers;
         this.posts = posts;
@@ -64,6 +70,7 @@ public class FspQueryService {
 
     /** @throws ApiException 404 FSP_NOT_FOUND (also deleted or not visible) */
     public FspView get(UUID fspId) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspRules.Facts facts = access.requireVisible(actor, fsp);
@@ -81,6 +88,7 @@ public class FspQueryService {
      * @throws ApiException 404 REGION_NOT_FOUND
      */
     public List<FspSummaryView> ofRegion(UUID regionId, boolean includeInactive) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         regions.require(regionId);
         boolean mayAdd = includeInactive && access.mayAdd(actor, regionId);
@@ -95,6 +103,7 @@ public class FspQueryService {
 
     /** FSPs the current user follows or manages. */
     public List<FspSummaryView> mine() {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         UUID userId = actors.requireUserId();
         Set<UUID> ids = followedIds(userId);
         return ids.isEmpty() ? List.of() : summaries(fsps.findByIdInAndDeletedAtIsNullOrderByNameAsc(ids), userId);
@@ -107,6 +116,7 @@ public class FspQueryService {
 
     /** @throws ApiException 404 FSP_NOT_FOUND */
     public Page<PostView> wall(UUID fspId, int page, int size) {
+        toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspRules.Facts facts = access.requireVisible(actor, fsp);

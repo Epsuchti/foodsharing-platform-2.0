@@ -1,0 +1,45 @@
+# Milestone 6 (B10): feature toggles, runtime configuration, IP block context (C11, C12, C14).
+databaseChangeLog:
+  - changeSet:
+      id: 169-1
+      author: platform
+      comment: 'Feature toggles (A43); a missing row means the default of admin.domain.FeatureToggle.'
+      changes:
+        - createTable:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_feature_toggle, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: toggle_key, type: VARCHAR(80), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_feature_toggle_key}}
+              - column: {name: enabled, type: BOOLEAN, constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(500)}
+  - changeSet:
+      id: 169-2
+      author: platform
+      comment: 'Runtime configuration values (A43); a missing row means the default of admin.domain.ConfigurationKey.'
+      changes:
+        - createTable:
+            tableName: configuration
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_configuration, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: config_key, type: VARCHAR(120), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_configuration_key}}
+              - column: {name: config_value, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(500)}
+  - changeSet:
+      id: 169-3
+      author: platform
+      comment: 'IP blocks apply to LOGIN, REGISTRATION or ALL (C12, upstream fs_ipblock context).'
+      changes:
+        - addColumn:
+            tableName: ip_block
+            columns:
+              - column: {name: context, type: VARCHAR(20), defaultValue: ALL, constraints: {nullable: false}}

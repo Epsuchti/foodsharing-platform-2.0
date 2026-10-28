@@ -1,0 +1,232 @@
+# Admin settings seed (M6 B10, module 0052): feature toggles, configuration, one expired IP block.
+databaseChangeLog:
+  - changeSet:
+      id: seed-169-1
+      author: platform
+      context: seed
+      comment: "Feature toggles (DONATION_MODAL off, PETITION_BANNER on)."
+      changes:
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000001"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "BASKETS"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000002"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "FOOD_SHARE_POINTS"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000003"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "MAP_USERS"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000004"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "RESOURCES"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000005"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "BLOG"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000006"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "DONATION_MODAL"}
+              - column: {name: enabled, valueBoolean: false}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000007"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "PETITION_BANNER"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000008"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "OAUTH_PROVIDER"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000009"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "SUPPORT_FORM"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: feature_toggle
+            columns:
+              - column: {name: id, value: "00000052-0001-4000-8000-000000000010"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: toggle_key, value: "GLOBAL_SEARCH"}
+              - column: {name: enabled, valueBoolean: true}
+  - changeSet:
+      id: seed-169-2
+      author: platform
+      context: seed
+      comment: "Configuration values for support, petition and donations."
+      changes:
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000001"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "support.email"}
+              - column: {name: config_value, value: "support@local.test"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000002"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "petition.url"}
+              - column: {name: config_value, value: "https://petition.local.test/foodsharing"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000003"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "petition.signatures"}
+              - column: {name: config_value, value: "4213"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000004"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "petition.days-left"}
+              - column: {name: config_value, value: "21"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000005"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "donation.show-campaign-card"}
+              - column: {name: config_value, value: "true"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000006"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "donation.show-modal"}
+              - column: {name: config_value, value: "false"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000007"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "donation.modal-hours-logged-in"}
+              - column: {name: config_value, value: "168"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000008"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "donation.modal-hours-logged-out"}
+              - column: {name: config_value, value: "24"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000009"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "donation.info-url"}
+              - column: {name: config_value, value: "https://foodsharing.local.test/spenden"}
+        - insert:
+            tableName: configuration
+            columns:
+              - column: {name: id, value: "00000052-0002-4000-8000-000000000010"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-01-15T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: config_key, value: "donation.campaign-page-slugs"}
+              - column: {name: config_value, value: "spenden"}
+  - changeSet:
+      id: seed-169-3
+      author: platform
+      context: seed
+      comment: "One expired login IP block (documentation range)."
+      changes:
+        - insert:
+            tableName: ip_block
+            columns:
+              - column: {name: id, value: "00000052-0003-4000-8000-000000000001"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-03-01T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-03-01T10:00:00'}
+              - column: {name: created_by, value: "00000001-0001-4000-8000-000000000014"}
+              - column: {name: cidr, value: "198.51.100.0/24"}
+              - column: {name: reason, value: "Brute-force login attempts"}
+              - column: {name: until_at, valueDate: '2026-03-08T10:00:00'}
+              - column: {name: context, value: "LOGIN"}

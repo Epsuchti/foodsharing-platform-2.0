@@ -21,6 +21,6 @@ public class UploadCleanup implements CleanupTask {
 
     @Override
     public int cleanup(Instant now) {
-        return uploads.deleteExpired(now) + uploads.deleteOrphanVariants(now);
+        return uploads.deleteExpired(now) + uploads.deleteOrphanVariants(now) + uploads.deleteOwnerless();
     }
 }

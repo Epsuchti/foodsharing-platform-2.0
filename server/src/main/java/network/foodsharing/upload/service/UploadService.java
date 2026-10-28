@@ -247,6 +247,59 @@ public class UploadService {
         history.record(history.event(UploadAction.DELETED, upload.getId()).build());
     }
 
+    // ------------------------------------------------------------------------- administration (C10, ORGA via admin)
+
+    public record ModuleCount(String module, long count, long bytes) {
+    }
+
+    public record Summary(long count, long bytes, long unclaimedCount, List<ModuleCount> byModule) {
+    }
+
+    /** Uploads newest first; {@code module} wins over {@code unclaimed}. */
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Upload> adminPage(Boolean unclaimed, String module, int page,
+                                                                  int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        if (module != null && !module.isBlank()) {
+            return repository.findByUsageModuleOrderByCreatedAtDesc(module.strip(), pageable);
+        }
+        if (unclaimed != null) {
+            return unclaimed ? repository.findByUsageCountOrderByCreatedAtDesc(0, pageable)
+                    : repository.findByUsageCountGreaterThanOrderByCreatedAtDesc(0, pageable);
+        }
+        return repository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Summary summary() {
+        List<ModuleCount> modules = repository.countByModule().stream()
+                .map(row -> new ModuleCount(row[0] == null ? "UNCLAIMED" : (String) row[0], ((Number) row[1]).longValue(),
+                        row[2] == null ? 0 : ((Number) row[2]).longValue()))
+                .sorted(java.util.Comparator.comparing(ModuleCount::module)).toList();
+        long count = modules.stream().mapToLong(ModuleCount::count).sum();
+        long bytes = modules.stream().mapToLong(ModuleCount::bytes).sum();
+        return new Summary(count, bytes, repository.countByUsageCount(0), modules);
+    }
+
+    /**
+     * Claimed uploads whose usage owner no longer exists according to the module's {@link UploadAccessRule#exists}
+     * (UploadCleanup); deleted like any other upload.
+     */
+    @Transactional
+    @NoHistory(reason = "delegates to delete(), which records UploadAction.DELETED per upload")
+    public int deleteOwnerless() {
+        int deleted = 0;
+        for (UploadAccessRule rule : rules.values()) {
+            for (Upload upload : repository.findByUsageModuleAndUsageCountGreaterThan(rule.module(), 0)) {
+                if (upload.getUsageOwnerId() != null && !rule.exists(upload.getUsageOwnerId())) {
+                    delete(upload);
+                    deleted++;
+                }
+            }
+        }
+        return deleted;
+    }
+
     /** Unclaimed uploads past their expiry (UploadCleanup). */
     @Transactional
     @NoHistory(reason = "delegates to delete(), which records UploadAction.DELETED per upload")
