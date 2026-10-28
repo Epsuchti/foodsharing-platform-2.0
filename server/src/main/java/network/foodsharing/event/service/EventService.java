@@ -117,6 +117,12 @@ public class EventService {
         return items(events.listInvited(me, ATTENDING, clock.instant().minus(90, ChronoUnit.DAYS)), me);
     }
 
+    /** Events {@code userId} is invited to with one of {@code statuses}, ending after {@code endsAfter} (A11 feed). */
+    @Transactional(readOnly = true)
+    public List<EventItem> listForCalendar(UUID userId, Set<InvitationStatus> statuses, Instant endsAfter) {
+        return statuses.isEmpty() ? List.of() : items(events.listInvited(userId, statuses, endsAfter), userId);
+    }
+
     /** @throws ApiException 404 EVENT_NOT_FOUND, 403 ACCESS_DENIED */
     @Transactional(readOnly = true)
     public EventDetails get(UUID eventId) {
