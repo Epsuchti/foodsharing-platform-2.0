@@ -14,7 +14,7 @@ import { openPickups, openSignup, pickupRow, reasonsOf } from './_pickups';
  * PU4 eligibility reasons. Seed: S-02 Bäckerei Vohdin requires a hygiene certificate (member jumper has none;
  * Saturday 18:00 is full with bieb + jumper); S-03 Migros Limmatplatz requires a phone number (team bot manager,
  * foodsaver, guide); jumper is a jumper in S-01; guide is not in S-01's team; pending@local is unverified. Users who
- * may not see a store's pickups get 403 on eligibility and sign-up (A19).
+ * have no relation to the store get 403 on eligibility and sign-up (A19); jumpers get the reason JUMPER_CANNOT_PICKUP.
  */
 
 test.use({ seedReset: 'test' });
@@ -77,8 +77,21 @@ test.describe('jumper', () => {
 });
 
 test.describe('other roles', () => {
-  for (const role of ['guide', 'jumper', 'pending'] as const) {
-    test(`PU4 ${role === 'guide' ? 'not a team member' : role === 'jumper' ? 'jumpers cannot sign up' : 'unverified user'} is refused @PU4`, async ({ as, apiOf, store }) => {
+  test('PU4 jumpers see the reason and cannot sign up @PU4', async ({ as, apiOf, store }) => {
+    const page = await as('jumper');
+    const client = apiOf(page);
+    const path = `/api/stores/${store.id('S-01')}/pickups/${encodeURIComponent(S01_THURSDAY)}`;
+    const eligibility = await client.getJson<{ eligible: boolean; reasons: string[] }>(`${path}/eligibility`);
+    expect(eligibility.eligible).toBe(false);
+    expect(eligibility.reasons).toContain('JUMPER_CANNOT_PICKUP');
+    const signUp = await client.post(`${path}/signups`);
+    // jumpers do not see the store's pickups (maySeePickups): the sign-up itself stays ACCESS_DENIED
+    expect(signUp.status()).toBe(403);
+  });
+
+  // no relation to the store team at all: 403 (A19)
+  for (const role of ['guide', 'pending'] as const) {
+    test(`PU4 ${role === 'guide' ? 'not a team member' : 'unverified user'} is refused @PU4`, async ({ as, apiOf, store }) => {
       const client = apiOf(await as(role));
       const path = `/api/stores/${store.id('S-01')}/pickups/${encodeURIComponent(S01_THURSDAY)}`;
       expect((await client.get(`${path}/eligibility`)).status()).toBe(403);

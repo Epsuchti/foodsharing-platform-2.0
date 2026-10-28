@@ -15,6 +15,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { StoreInviteDialogComponent } from '../components/invite-dialog.component';
+import { PhoneButtonComponent } from '../../../shared/phone/phone-button.component';
 import { StorePageContext } from '../store-page.context';
 
 /** Actions that need a required message (A21: delivered as bell + mail and stored in the store log). */
@@ -34,6 +35,7 @@ interface PendingMessage {
 @Component({
   selector: 'fs-store-team-tab',
   imports: [
+    PhoneButtonComponent,
     ...DATA_STATE_IMPORTS,
     Button,
     DateTimePipe,
@@ -244,6 +246,9 @@ interface PendingMessage {
             </div>
           }
         </dl>
+        @if (member.phone && member.user.id !== myId()) {
+          <fs-phone-button [phone]="member.phone" [label]="member.user.displayName" testId="stores.team.call" />
+        }
         @if (mayEditTeam() && member.user.id !== myId()) {
           <p-button
             icon="pi pi-ellipsis-v"
