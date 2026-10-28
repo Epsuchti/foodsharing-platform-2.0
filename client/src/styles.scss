@@ -346,6 +346,15 @@
     font-weight: 650;
   }
 
+  /*
+   * A <p-button> host that a grid or column-flex parent blockifies stretches over the whole row while its inner
+   * <button> keeps its content width. Taps on the empty part of the host hit no button (a phone user tapping the
+   * middle of the row, R10 assign dialog) — size the host to its button unless the button is meant to be fluid.
+   */
+  p-button:not(:has(> .p-button-fluid)) {
+    width: fit-content;
+  }
+
   .p-button:not(.p-button-text):not(.p-button-link):not(.p-button-outlined):not(:disabled):hover {
     box-shadow: 0 4px 12px color-mix(in srgb, var(--p-primary-color) 28%, transparent);
   }
