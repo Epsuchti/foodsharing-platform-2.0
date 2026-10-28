@@ -9,7 +9,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | A1 | Sign-up (Google / magic link, §8), registration attempt tracking, email blocklist | done | auth: AccountService, MagicLinkService, Google handlers, blocklist | features/auth login | tests/auth/a1-signup @A1 | auth.screen.ts (baseline pending) |  |
 | A2 | Login / logout, passkeys, session refresh after role change | done | auth: LoginService, passkeys (WebAuthn), session refresh | features/auth, core/auth/webauthn.client | tests/auth/a2-login @A2 | auth.screen.ts (baseline pending) | passkey tests chromium-only |
 | A3 | Email verification & email change with confirmation (request / complete / abort, recorded in history) | todo | | | | | |
-| A4 | All profile fields from §15.1, editable by the user; admin-editable fields by ambassadors with history | todo | | | | | |
+| A4 | All profile fields from §15.1, editable by the user; admin-editable fields by ambassadors with history | done | UserProfileService | /account/profile, admin edit | a4-profile @A4, ad1-users | auth.screen.ts |  |
 | A5 | Profile photo upload with crop | todo | | | | | |
 | A6 | Public profile: photo, name, regions & groups, stores, pickup count, kg saved, posts, bananas, buddies count, wall, achievements, KAM roles, commitments statistics | todo | | | | | |
 | A7 | Internal notes on users ("about me internal" + user notes wall for ambassadors) | todo | | | | | |
@@ -28,19 +28,19 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | A20 | Info mail message / infomail flag for important announcements | todo | | | | | |
 | A21 | Data export (GDPR): download all my data as JSON | todo | | | | | |
 | A22 | Security: active sessions, login history, log out everywhere | done | AuthSessionService list/revoke | account/sessions, security-log | tests/account/a22-sessions @A22 | auth.screen.ts |  |
-| R1 | Region tree with all types (continent, country, federal state/canton, region, city, big city, district, part of town) and working groups; closure table for fast ancestry queries | todo | | | | | |
-| R2 | Join / leave region, home region; nightly add to parent regions; application-based joining where configured | todo | | | | | |
-| R3 | Region page: description, teaser, photo, members, ambassadors, stores, FSPs, events, polls, achievements, pickups, forum, ambassador forum, wall, statistics (members, gender list, age bands, pickups, kg, cooperations) | todo | | | | | |
-| R4 | Public region page (logged out) with description, contact, events, children, next EinAbs | todo | | | | | |
-| R5 | Region options: report button, mediation button, region pickup rule (active, timespan days, limit, per-day limit, inactive hours before pickup), allow hiding in forum, report reason options + "other", notify on address change | todo | | | | | |
-| R6 | Region pins on the map (description, active/inactive) | todo | | | | | |
-| R7 | Region admin (orga): create/edit/delete/move regions, set type, email name, ambassadors, conversation, moderated flag | todo | | | | | |
-| R8 | Member management: member list with roles/verification/last pickup, remove member, grant/revoke admin, permission overview | todo | | | | | |
-| R9 | Working groups: list, create, edit (name, teaser, description, photo), apply types (nobody / requires properties / everybody / open), application requirements (min pickups, banana count, weeks), applications accept/decline with bell, group categories (development, exchange, administrative, project, archived), archive | todo | | | | | |
-| R10 | Working-group functions with their region-wide rights (§9) | todo | | | | | |
-| R11 | Group mail (send email to all group members) | todo | | | | | |
-| R12 | Video conference room per region/group (Jitsi or BigBlueButton link, configurable) | todo | | | | | |
-| R13 | Region statistics cache (active home-region foodsavers, active cooperations, pickups last month, kg last month, active FSPs, baskets last month) | todo | | | | | |
+| R1 | Region tree with all types (continent, country, federal state/canton, region, city, big city, district, part of town) and working groups; closure table for fast ancestry queries | done | region tree + closure (T11) | /admin/regions, region picker | r7-region-admin @R7 | regions.screen.ts | tree tested via admin drill-down |
+| R2 | Join / leave region, home region; nightly add to parent regions; application-based joining where configured | done | RegionMembershipService | /regions/mine, join/leave | r2-membership @R2 | regions.screen.ts |  |
+| R3 | Region page: description, teaser, photo, members, ambassadors, stores, FSPs, events, polls, achievements, pickups, forum, ambassador forum, wall, statistics (members, gender list, age bands, pickups, kg, cooperations) | in-progress | region page API | /regions/:id tabs | r3-region-page @R3 | regions.screen.ts | stores/FSP/events/polls/forum tabs follow their milestones |
+| R4 | Public region page (logged out) with description, contact, events, children, next EinAbs | done | public regions API | /r/:slug | r4-public-region @R4 | regions.screen.ts |  |
+| R5 | Region options: report button, mediation button, region pickup rule (active, timespan days, limit, per-day limit, inactive hours before pickup), allow hiding in forum, report reason options + "other", notify on address change | done | region options | options tab | r3-region-page @R5 | regions.screen.ts |  |
+| R6 | Region pins on the map (description, active/inactive) | done | region pins | pin tab (map) | r3-region-page @R6 | regions.screen.ts | mobile-safari map click to verify |
+| R7 | Region admin (orga): create/edit/delete/move regions, set type, email name, ambassadors, conversation, moderated flag | done | region admin API | /admin/regions | r7-region-admin @R7 | regions.screen.ts |  |
+| R8 | Member management: member list with roles/verification/last pickup, remove member, grant/revoke admin, permission overview | done | members API | members tab | r3-region-page @R8 | regions.screen.ts |  |
+| R9 | Working groups: list, create, edit (name, teaser, description, photo), apply types (nobody / requires properties / everybody / open), application requirements (min pickups, banana count, weeks), applications accept/decline with bell, group categories (development, exchange, administrative, project, archived), archive | done | working groups API | /groups/:id | r9-groups @R9 | regions.screen.ts |  |
+| R10 | Working-group functions with their region-wide rights (§9) | done | functions | admin functions | r7-region-admin @R10 | |  |
+| R11 | Group mail (send email to all group members) | done | group mail | group page | r9-groups @R11 | |  |
+| R12 | Video conference room per region/group (Jitsi or BigBlueButton link, configurable) | done | conference link | group/region page | r9-groups @R12 | |  |
+| R13 | Region statistics cache (active home-region foodsavers, active cooperations, pickups last month, kg last month, active FSPs, baskets last month) | in-progress | region statistics job | statistics tab | r3-region-page @R13 | | store/basket figures fill in M3/M6 |
 | S1 | Store list per region and "my stores" with team status, cooperation status, next pickup, free slots | todo | | | | | |
 | S2 | Create store, edit all store fields from §15.2 | todo | | | | | |
 | S3 | Store chains: name, headquarters (address, country), status, press allowed, forum thread, notes, common store information, estimated store count; KAMs; chain list | todo | | | | | |
@@ -155,7 +155,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | AU12 | Foodsharing outage circuit breaker + offline banner | in-progress | | shared/offline-banner, OnlineStatusService | au12-offline, au12-pwa @AU12 | pages.screen offline | offline banner + PWA done; integration status page + circuit breakers in M4 |
 | AU13 | Audit retention cleanup | todo | | | | | |
 | SV1 | Surveys (§14.3): create/edit/delete, co-authors, question types TEXT/SINGLE/MULTIPLE/BOOLEAN/STORE, one response per user, results, fill page without menu, login link returns | todo | | | | | |
-| AD1 | Admin & operations (§14.4): user management per region, admins list, permission matrix, last login, verified filter, version health, Prometheus, loading bar, i18n check, SMTP defaults, Mailpit | in-progress | actuator version group, prometheus | request bar, i18n check, axe sweep | ad1-* @AD1, a11y/pages @AD1 | gallery.screen | ops parts done; user management M2/M6 |
+| AD1 | Admin & operations (§14.4): user management per region, admins list, permission matrix, last login, verified filter, version health, Prometheus, loading bar, i18n check, SMTP defaults, Mailpit | in-progress | actuator version group, prometheus | + /regions/:id/users, /users/:id | + ad1-users @AD1 | gallery.screen | ops + user management done; admins list/permission matrix pending check at M2 review |
 
 ## Deliverables
 
