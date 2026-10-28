@@ -276,7 +276,7 @@ jobs:
         run: |
           echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/foodsharing-platform" >> "$GITHUB_OUTPUT"
           echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: server
           platforms: linux/amd64,linux/arm64
