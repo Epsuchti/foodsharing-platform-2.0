@@ -111,6 +111,12 @@ public class RegionService {
         return memberships.findActiveUserIds(regionId);
     }
 
+    /** Regions and groups the user is an active member of (open polls). */
+    @Transactional(readOnly = true)
+    public java.util.Set<UUID> activeRegionIdsOf(UUID userId) {
+        return memberships.findActiveRegionIds(userId);
+    }
+
     /** Active members of the region and every region / group below it (newsletter recipients, N7). */
     @Transactional(readOnly = true)
     public List<UUID> memberIdsOfSubtree(UUID regionId) {

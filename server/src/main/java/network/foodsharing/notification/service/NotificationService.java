@@ -123,6 +123,13 @@ public class NotificationService {
         return bells.deleteByIdentifier(identifier);
     }
 
+    /** Removes one user's bells created with this identifier. */
+    @Transactional
+    @NoHistory(reason = "bells are transient hints; the action that resolves them records its own history")
+    public int removeBells(String identifier, UUID userId) {
+        return bells.deleteByIdentifier(identifier, userId);
+    }
+
     /** Was a bell with this identifier created after {@code since} (e.g. "once per 30 days" reminders)? */
     @Transactional(readOnly = true)
     public boolean sentSince(String identifier, Instant since) {

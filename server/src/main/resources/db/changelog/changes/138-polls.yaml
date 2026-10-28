@@ -1,0 +1,102 @@
+# Milestone 5 (B7): polls (upstream fs_poll, fs_poll_has_options, fs_poll_option_has_value, fs_foodsaver_has_poll; A36).
+# Votes are anonymous: poll_vote stores who voted, never what; values are aggregated in poll_option_value.
+databaseChangeLog:
+  - changeSet:
+      id: 138-1
+      author: platform
+      comment: 'Polls (upstream fs_poll). eligible_count frozen at creation; cancel = ends_at := now.'
+      changes:
+        - createTable:
+            tableName: poll
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_poll, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_poll_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_poll_author_id, references: user_account(id)}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(32600)}
+              - column: {name: scope, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: type, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: starts_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: ends_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: shuffle_options, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: eligible_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: vote_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: cancelled_by, type: UUID}
+              - column: {name: cancelled_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: start_notified_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: end_notified_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: poll
+            indexName: ix_poll_region_starts
+            columns:
+              - column: {name: region_id}
+              - column: {name: starts_at}
+  - changeSet:
+      id: 138-2
+      author: platform
+      comment: 'Poll options (upstream fs_poll_has_options).'
+      changes:
+        - createTable:
+            tableName: poll_option
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_poll_option, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: poll_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_poll_option_poll_id, references: poll(id), deleteCascade: true}}
+              - column: {name: option_index, type: INT, constraints: {nullable: false}}
+              - column: {name: option_text, type: VARCHAR(500), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: poll_option
+            columnNames: poll_id, option_index
+            constraintName: uq_poll_option_poll_index
+  - changeSet:
+      id: 138-3
+      author: platform
+      comment: 'Aggregated votes per option and value (upstream fs_poll_option_has_value).'
+      changes:
+        - createTable:
+            tableName: poll_option_value
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_poll_option_value, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: poll_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_poll_option_value_poll_id, references: poll(id), deleteCascade: true}}
+              - column: {name: option_index, type: INT, constraints: {nullable: false}}
+              - column: {name: option_value, type: INT, constraints: {nullable: false}}
+              - column: {name: votes, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: poll_option_value
+            columnNames: poll_id, option_index, option_value
+            constraintName: uq_poll_option_value
+  - changeSet:
+      id: 138-4
+      author: platform
+      comment: 'Who voted (upstream fs_foodsaver_has_poll.time) - never what.'
+      changes:
+        - createTable:
+            tableName: poll_vote
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_poll_vote, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: poll_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_poll_vote_poll_id, references: poll(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_poll_vote_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: voted_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: poll_vote
+            columnNames: poll_id, user_id
+            constraintName: uq_poll_vote_poll_user

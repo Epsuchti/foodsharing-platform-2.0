@@ -98,6 +98,19 @@ public class BellService {
         return bells.size();
     }
 
+    /** Soft-deletes one user's bells with this identifier (e.g. the poll bell of a user who has voted). */
+    @Transactional
+    @NoHistory(reason = "bells are transient hints; the action that resolves them records its own history")
+    public int deleteByIdentifier(String identifier, UUID userId) {
+        List<Bell> bells = repository.findByIdentifierAndUserIdAndDeletedAtIsNull(identifier, userId);
+        bells.forEach(bell -> bell.setDeletedAt(clock.instant()));
+        repository.flush();
+        if (!bells.isEmpty()) {
+            publish(userId, null);
+        }
+        return bells.size();
+    }
+
     /** My visible bells, unread first, newest first (N3). */
     @Transactional(readOnly = true)
     public Page<Bell> page(UUID userId, boolean unreadOnly, int page, int size) {

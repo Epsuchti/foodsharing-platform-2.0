@@ -344,6 +344,26 @@ absent. PATCH: absent = unchanged, `onlineLink: ""` clears, `location` replaces.
 `/api/events/mine/ics` (ACCEPTED/MAYBE, last 90 days and future). No personal calendar feed exists yet (A11 in M6),
 so events are not merged into one. `EventHistoryAccessRule`: region members and event editors.
 
+**A37c. Poll implementation notes (B7).** Rules are pure functions in `poll.service.PollRules` (facts from
+`PollPermissionService`). Status: CANCELLED (cancelled_at) > UPCOMING (now < start) > RUNNING (now < end) > ENDED.
+Non-members get 403 `ACCESS_DENIED` (ORGA may read). Create: 403 unless `mayCreate`; 400 `POLL_DATES_INVALID` (start <
+now + 1 h or start ≥ end), `POLL_OPTIONS_INVALID` (2–50, non-blank, unique ignoring case), `VALIDATION_FAILED` for a
+scope not offered (working groups: FOODSAVERS / VERIFIED_FOODSAVERS only, upstream scope counts). Scope counts: poll
+creators and ORGA. Eligibility (`PollEligibilityService`) is evaluated live at vote time; `eligible_count` is frozen at
+creation and shown to the author/ORGA always, to others once ENDED. `voteCount` is always visible; option `values`
+only once ENDED (cancelled polls never). Update: non-author 403, started/cancelled 409 `POLL_NOT_EDITABLE`; options
+replaced as a whole. Cancel: author or ORGA (else 403), ended/cancelled 409 `POLL_NOT_CANCELLABLE`; sets
+`ends_at = cancelled_at = now`. Vote order of checks: 409 `POLL_NOT_OPEN`, 409 `ALREADY_VOTED`, 403 `NOT_ELIGIBLE`,
+400 `INVALID_VOTE` (keys = option indices as strings; SELECT_ONE exactly one option with 1, SELECT_MULTIPLE any subset
+with 1, THUMBS every option 1/0/−1, SCORE every option −3…3); aggregates are incremented under a `PESSIMISTIC_WRITE`
+lock on the poll row. `notifyVoters=false` marks start/end as announced at creation, so no poll bells are ever sent.
+Bells: `POLL_NEW-<poll>` (creation, eligible), `POLL_STARTED-<poll>` and `POLL_ENDING_SOON-<poll>` (job
+`poll-notifications`, every 15 min; ending soon = ends within 24 h and ran ≥ 30 h; both skip those who voted),
+`POLL_CANCELLED-<poll>` (to the eligible except the canceller, only when voters had been notified); params `name`,
+`endsAt`; link `/polls/<id>`; voting removes the voter's open poll bells, cancelling everyone's. Realtime `POLL_STATE`
+`{pollId, voteCount}` to the author after each vote. `PollHistoryAccessRule`: region members; `VOTE_CAST` has no
+metadata.
+
 ---
 
 **M5 contract notes (B1).** Generated API model names avoid clashes with `java.lang`/entities: `ChatMessage`
