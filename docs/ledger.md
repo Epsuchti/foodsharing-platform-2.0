@@ -41,8 +41,8 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | R11 | Group mail (send email to all group members) | done | group mail | group page | r9-groups @R11 | |  |
 | R12 | Video conference room per region/group (Jitsi or BigBlueButton link, configurable) | done | conference link | group/region page | r9-groups @R12 | |  |
 | R13 | Region statistics cache (active home-region foodsavers, active cooperations, pickups last month, kg last month, active FSPs, baskets last month) | in-progress | region statistics job | statistics tab | r3-region-page @R13 | | store/basket figures fill in M3/M6 |
-| S1 | Store list per region and "my stores" with team status, cooperation status, next pickup, free slots | todo | | | | | |
-| S2 | Create store, edit all store fields from §15.2 | todo | | | | | |
+| S1 | Store list per region and "my stores" with team status, cooperation status, next pickup, free slots | done | StoreQueryService | /stores/mine, /regions/:id/stores | s1-* @S1 | stores.screen.ts (baseline pending) | unverified-user case not seeded |
+| S2 | Create store, edit all store fields from §15.2 | done | StoreService | /stores/new, /stores/:id/edit | s2-* @S2 | stores.screen.ts (baseline pending) |  |
 | S3 | Store chains: name, headquarters (address, country), status, press allowed, forum thread, notes, common store information, estimated store count; KAMs; chain list | todo | | | | | |
 | S4 | Categories admin (store categories, grocery types) with merge | todo | | | | | |
 | S5 | Team: members, jumpers (standby), invited, applied; team status (closed / open / searching); per-member stats (pickup count, first/last pickup, added date) | todo | | | | | |
@@ -55,8 +55,8 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | S12 | Store log (§10.2) with date range and action filter | todo | | | | | |
 | S13 | Delete/archive store | todo | | | | | |
 | S14 | Store statistics: pickups, kg saved per pickup weight category, per month | todo | | | | | |
-| S15 | Navigation buttons and map position | todo | | | | | |
-| S16 | Region of the store shown, store moved between regions by admins | todo | | | | | |
+| S15 | Navigation buttons and map position | done | store coordinates | overview map + navigation buttons | s15 @S15 | |  |
+| S16 | Region of the store shown, store moved between regions by admins | done | region move guard | edit page | s16 @S16 | |  |
 | PU1 | Regular pickups (weekday, time, max slots, description), interval settings | todo | | | | | |
 | PU2 | One-time pickups; edit slot count and description of any date | todo | | | | | |
 | PU3 | Sign up / sign out; store managers remove others; slot confirmation (unconfirmed → confirmed); prefetch time (how far ahead sign-up opens) | todo | | | | | |
