@@ -389,5 +389,6 @@
   "nav.storeChains": "Betriibschette",
   "nav.storeCategories": "Betriibskategorie",
   "common.metaDescription": "foodsharing – Läbesmittel rette, zäme. Hol Läbesmittel bi Betriebe ab, teil si und wird Foodsaver i dinere Region.",
-  "common.realtime.reconnecting": "Verbindig wird widerhergstellt …"
+  "common.realtime.reconnecting": "Verbindig wird widerhergstellt …",
+  "nav.mailboxes": "Postfächer"
 }

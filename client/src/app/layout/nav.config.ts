@@ -129,6 +129,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     mobileTab: true,
   }, // M5
   {
+    id: 'mailboxes',
+    labelKey: 'nav.mailboxes',
+    icon: 'pi pi-envelope',
+    route: '/mailboxes',
+    // A35 mayHaveMailbox; the page shows an empty state when the user reads no mailbox
+    visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.StoreManager),
+  }, // M5
+  {
     id: 'bells',
     labelKey: 'nav.bells',
     icon: 'pi pi-bell',

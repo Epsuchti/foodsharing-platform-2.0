@@ -210,3 +210,4 @@ export {
   type ChatMessage,
   type ConversationSummary,
 } from './messaging';
+export { MAILBOXES, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';

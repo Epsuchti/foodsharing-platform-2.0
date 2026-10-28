@@ -116,6 +116,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/messaging/messaging.routes').then((m) => m.MESSAGING_ROUTES),
   },
   {
+    path: 'mailboxes',
+    loadChildren: () => import('./features/mailboxes/mailboxes.routes').then((m) => m.MAILBOXES_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

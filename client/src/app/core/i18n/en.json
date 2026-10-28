@@ -389,5 +389,6 @@
   "nav.storeChains": "Store chains",
   "nav.storeCategories": "Store categories",
   "common.metaDescription": "foodsharing – saving food, together. Pick up food from businesses, share it and become a foodsaver in your region.",
-  "common.realtime.reconnecting": "Reconnecting …"
+  "common.realtime.reconnecting": "Reconnecting …",
+  "nav.mailboxes": "Mailboxes"
 }
