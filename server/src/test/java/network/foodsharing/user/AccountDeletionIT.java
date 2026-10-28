@@ -76,7 +76,7 @@ class AccountDeletionIT {
                 "notifications.json", "regions.json", "stores.json", "pickups.json", "community.json",
                 "calendar.json", "events.json", "mailboxes.json", "messages.json", "forum.json", "polls.json",
                 "surveys.json", "quiz.json", "onboarding.json", "verification.json", "intropickups.json",
-                "automation.json", "baskets.json", "reports.json")
+                "automation.json", "baskets.json", "reports.json", "achievements.json")
                 .anyMatch(name -> name.startsWith("uploads/") && name.endsWith("avatar-bieb.png"));
         mvc.perform(post("/api/users/me/export").with(csrf()).cookie(bieb)).andExpect(status().isTooManyRequests());
     }
@@ -86,7 +86,7 @@ class AccountDeletionIT {
     void everyPersonalDataModuleContributes() {
         Set<String> expected = Set.of("auth", "notification", "region", "store", "pickup", "mailbox", "event",
                 "calendar", "profile", "messaging", "forum", "poll", "survey", "quiz", "onboarding", "verification",
-                "intropickup", "automation", "basket", "report");
+                "intropickup", "automation", "basket", "report", "achievement");
         assertThat(modules(deletionContributors)).containsAll(expected);
         assertThat(modules(exportContributors)).containsAll(expected);
     }
