@@ -1,9 +1,10 @@
 import { Injectable, Pipe, PipeTransform, inject } from '@angular/core';
 
 import { I18nService } from '../i18n/i18n.service';
+import { RegionContextService } from '../region/region-context.service';
+import { DEFAULT_TIME_ZONE } from './time-zone';
 
-/** Until regions exist (M2) every date is shown in Zürich time. */
-export const DEFAULT_TIME_ZONE = 'Europe/Zurich';
+export { DEFAULT_TIME_ZONE } from './time-zone';
 
 export type DateStyle =
   'date' | 'dateLong' | 'time' | 'dateTime' | 'dateTimeLong' | 'weekday' | 'relative';
@@ -88,12 +89,14 @@ export class DateTimeFormatter {
 @Pipe({ name: 'fsDate', pure: false })
 export class DateTimePipe implements PipeTransform {
   private readonly formatter = inject(DateTimeFormatter);
+  private readonly region = inject(RegionContextService);
 
   transform(
     value: string | number | Date | null | undefined,
     style: DateStyle = 'dateTime',
     timeZone?: string,
   ): string {
-    return this.formatter.format(value, style, timeZone ?? DEFAULT_TIME_ZONE);
+    // the active region's zone (A15) unless the caller passes one
+    return this.formatter.format(value, style, timeZone ?? this.region.timeZone());
   }
 }

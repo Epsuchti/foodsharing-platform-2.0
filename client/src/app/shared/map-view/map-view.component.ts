@@ -1,0 +1,254 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
+import type * as Leaflet from 'leaflet';
+
+import { DataState } from '../../core/data/data-state';
+import { TPipe } from '../../core/i18n/t.pipe';
+import { DATA_STATE_IMPORTS } from '../data-state';
+
+export type MapMarkerKind = 'region-pin' | 'region' | 'store' | 'fsp' | 'basket' | 'event' | 'pickup' | 'home';
+
+export interface MapMarker {
+  id: string;
+  kind: MapMarkerKind;
+  lat: number;
+  lon: number;
+  /** Tooltip / accessible name. */
+  label: string;
+}
+
+/** Default OSM tiles; e2e and screenshots set `window.__fsTileUrl` to a local stub. */
+export const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ZURICH: [number, number] = [47.3769, 8.5417];
+
+const KIND_ICON: Record<MapMarkerKind, string> = {
+  'region-pin': 'pi-map-marker',
+  region: 'pi-map',
+  store: 'pi-shopping-bag',
+  fsp: 'pi-box',
+  basket: 'pi-shopping-cart',
+  event: 'pi-calendar',
+  pickup: 'pi-truck',
+  home: 'pi-home',
+};
+
+/**
+ * Leaflet map (§12.4 MapView) with typed markers drawn as `pi` icons (no image assets). Leaflet is loaded lazily.
+ * Wrap marker loading in `[state]` (DataState) to get skeleton/error/offline; a tile failure shows an overlay with
+ * retry while markers stay usable.
+ *
+ * `<fs-map-view [markers]="pins" [state]="regions" height="20rem" (markerClick)="open($event)" />`
+ */
+@Component({
+  selector: 'fs-map-view',
+  imports: [...DATA_STATE_IMPORTS, TPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'fs-map-view',
+    '[style.--map-height]': 'height()',
+    '[attr.data-tiles]': 'tileState()',
+    '[attr.data-testid]': 'testId()',
+  },
+  template: `
+    @if (state(); as markerState) {
+      <fs-data-state [state]="markerState" skeleton="card" [compact]="true" [testId]="testId() + '.state'" />
+    }
+    <div class="frame">
+      <div #mapEl class="map" role="region" [attr.aria-label]="ariaLabel() ?? ('shared.map.label' | t)"></div>
+      @if (tileState() === 'error') {
+        <div class="tiles-error" role="alert" [attr.data-testid]="testId() + '.tileError'">
+          <i class="pi pi-map" aria-hidden="true"></i>
+          <span>{{ 'shared.map.tilesFailed' | t }}</span>
+          <button type="button" class="fs-btn fs-btn--outlined fs-btn--sm" (click)="reloadTiles()">
+            <i class="pi pi-refresh" aria-hidden="true"></i>
+            {{ 'shared.map.retry' | t }}
+          </button>
+        </div>
+      }
+    </div>
+    @if (markers().length > 0) {
+      <ul class="fs-visually-hidden">
+        @for (marker of markers(); track marker.id) {
+          <li>{{ marker.label }}</li>
+        }
+      </ul>
+    }
+  `,
+  styles: `
+    :host {
+      --map-height: 18rem;
+      display: grid;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+    .frame {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--fs-border);
+      border-radius: var(--fs-radius-lg);
+    }
+    .map {
+      height: var(--map-height);
+      background: var(--fs-surface-muted);
+    }
+    .tiles-error {
+      position: absolute;
+      z-index: 500;
+      inset: auto 0.75rem 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid var(--fs-warning-border);
+      border-radius: var(--fs-radius-md);
+      background: var(--fs-warning-soft);
+      color: var(--fs-warning-text);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    :host ::ng-deep .fs-map-marker {
+      display: grid;
+      place-items: center;
+      border: 2px solid #fff;
+      border-radius: 50% 50% 50% 0;
+      background: #25834a;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+      color: #fff;
+      transform: rotate(-45deg);
+    }
+    :host ::ng-deep .fs-map-marker i {
+      font-size: 0.85rem;
+      transform: rotate(45deg);
+    }
+    /* Leaflet's attribution and zoom controls in our tokens (contrast in both themes) */
+    :host ::ng-deep .leaflet-control-attribution {
+      background: color-mix(in srgb, var(--fs-surface) 92%, transparent);
+      color: var(--fs-text);
+    }
+    :host ::ng-deep .leaflet-control-attribution a {
+      color: var(--fs-primary-strong);
+    }
+    :host ::ng-deep .leaflet-bar a {
+      border-color: var(--fs-border);
+      background: var(--fs-surface);
+      color: var(--fs-text);
+    }
+    :host ::ng-deep .fs-map-marker[data-kind='store'] {
+      background: #1c6f91;
+    }
+    :host ::ng-deep .fs-map-marker[data-kind='home'] {
+      background: #b5532d;
+    }
+  `,
+})
+export class MapViewComponent {
+  readonly markers = input<readonly MapMarker[]>([]);
+  /** Optional DataState of the marker data (skeleton/error/offline above the map). */
+  readonly state = input<DataState<unknown> | undefined>(undefined);
+  readonly center = input<[number, number] | undefined>(undefined);
+  readonly zoom = input(12);
+  /** Zoom to all markers when there are several. */
+  readonly fitMarkers = input(true);
+  readonly height = input('18rem');
+  readonly ariaLabel = input<string | undefined>(undefined);
+  readonly testId = input('shared.map');
+  /** Tile URL template (default: `window.__fsTileUrl` in tests, else OSM). */
+  readonly tileUrl = input<string | undefined>(undefined);
+  readonly markerClick = output<MapMarker>();
+
+  protected readonly tileState = signal<'loading' | 'ok' | 'error'>('loading');
+  private readonly mapEl = viewChild.required<ElementRef<HTMLElement>>('mapEl');
+  private map: Leaflet.Map | null = null;
+  private tiles: Leaflet.TileLayer | null = null;
+  private layer: Leaflet.LayerGroup | null = null;
+  private leaflet: typeof Leaflet | null = null;
+
+  constructor() {
+    afterNextRender(() => void this.init());
+    effect(() => {
+      const markers = this.markers();
+      this.center();
+      untracked(() => this.drawMarkers(markers));
+    });
+    inject(DestroyRef).onDestroy(() => this.map?.remove());
+  }
+
+  protected reloadTiles(): void {
+    this.tileState.set('loading');
+    this.tiles?.redraw();
+  }
+
+  private async init(): Promise<void> {
+    // Leaflet is CommonJS: the browser build exposes it as `default`, the test runner as named exports
+    const module = (await import('leaflet')) as typeof Leaflet & { default?: typeof Leaflet };
+    const L = module.default ?? module;
+    this.leaflet = L;
+    const tileUrl =
+      this.tileUrl() ?? (globalThis as { __fsTileUrl?: string }).__fsTileUrl ?? OSM_TILE_URL;
+    this.map = L.map(this.mapEl().nativeElement, {
+      center: this.center() ?? ZURICH,
+      zoom: this.zoom(),
+      scrollWheelZoom: false,
+      attributionControl: true,
+    });
+    this.tiles = L.tileLayer(tileUrl, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    })
+      .on('tileerror', () => this.tileState.set('error'))
+      .on('load', () => {
+        if (this.tileState() !== 'error') {
+          this.tileState.set('ok');
+        }
+      })
+      .addTo(this.map);
+    this.layer = L.layerGroup().addTo(this.map);
+    this.drawMarkers(this.markers());
+  }
+
+  private drawMarkers(markers: readonly MapMarker[]): void {
+    const L = this.leaflet;
+    if (!L || !this.map || !this.layer) {
+      return;
+    }
+    this.layer.clearLayers();
+    for (const marker of markers) {
+      const icon = L.divIcon({
+        className: 'fs-map-marker',
+        html: `<i class="pi ${KIND_ICON[marker.kind]}" aria-hidden="true"></i>`,
+        iconSize: [32, 32],
+        // the pin's tip (bottom left corner of the rotated square) is the position
+        iconAnchor: [16, 38],
+      });
+      L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true })
+        .on('click', () => this.markerClick.emit(marker))
+        .addTo(this.layer)
+        .getElement()
+        ?.setAttribute('data-kind', marker.kind);
+    }
+    const center = this.center();
+    if (this.fitMarkers() && markers.length > 1) {
+      this.map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lon] as [number, number])), {
+        padding: [48, 48],
+        maxZoom: 14,
+      });
+    } else if (center) {
+      this.map.setView(center, this.zoom());
+    } else if (markers.length === 1) {
+      this.map.setView([markers[0].lat, markers[0].lon], this.zoom());
+    }
+  }
+}

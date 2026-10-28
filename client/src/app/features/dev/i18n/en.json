@@ -49,5 +49,10 @@
   "dev.gallery.freq.daily": "Daily",
   "dev.gallery.freq.weekly": "Weekly",
   "dev.gallery.freq.never": "Never",
-  "dev.gallery.historyReason": "ID checked by the ambassador"
+  "dev.gallery.historyReason": "ID checked by the ambassador",
+  "dev.gallery.m2Inputs": "Inputs (M2)",
+  "dev.gallery.fieldTitle": "Title",
+  "dev.gallery.fieldBody": "Text (Markdown)",
+  "dev.gallery.verifyDemo": "Verify person",
+  "dev.gallery.verifyText": "Tell the person why you verify them – the message is sent to them."
 }

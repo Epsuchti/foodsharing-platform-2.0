@@ -9,5 +9,8 @@
   "layout.footer.label": "Fuesszeile",
   "layout.footer.version": "Version {version}",
   "layout.requestBar.label": "Wird glade",
-  "layout.shell.skip": "Zum Inhalt springe"
+  "layout.shell.skip": "Zum Inhalt springe",
+  "layout.header.region": "Bezirk: {name} – wächsle",
+  "layout.header.regions": "Dini Bezirk",
+  "layout.header.homeRegion": "Stammbezirk"
 }

@@ -49,5 +49,10 @@
   "dev.gallery.freq.daily": "Täglich",
   "dev.gallery.freq.weekly": "Wöchentlich",
   "dev.gallery.freq.never": "Nie",
-  "dev.gallery.historyReason": "Ausweis von der Botschafterin geprüft"
+  "dev.gallery.historyReason": "Ausweis von der Botschafterin geprüft",
+  "dev.gallery.m2Inputs": "Eingaben (M2)",
+  "dev.gallery.fieldTitle": "Titel",
+  "dev.gallery.fieldBody": "Text (Markdown)",
+  "dev.gallery.verifyDemo": "Person verifizieren",
+  "dev.gallery.verifyText": "Schreib der Person, warum du sie verifizierst – die Nachricht wird ihr geschickt."
 }

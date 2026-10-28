@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Tooltip } from '@openng/optimus-ui/tooltip';
 
 import { Role } from '../../api';
 import { TPipe } from '../../core/i18n/t.pipe';
@@ -9,7 +10,7 @@ import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
 /** Avatar + name (+ role label or subtitle); a link when `link` is set. */
 @Component({
   selector: 'fs-user-chip',
-  imports: [NgTemplateOutlet, RouterLink, UserAvatarComponent, TPipe],
+  imports: [NgTemplateOutlet, RouterLink, Tooltip, UserAvatarComponent, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-user-chip' },
   template: `
@@ -29,11 +30,30 @@ import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
         [colorSeed]="userId()"
       />
       <span class="chip__text">
-        <span class="chip__name">{{ name() }}</span>
+        <span class="chip__name">
+          <span class="chip__name-text">{{ name() }}</span>
+          @if (verified()) {
+            <i
+              class="pi pi-verified chip__verified"
+              role="img"
+              [attr.aria-label]="'shared.userChip.verified' | t"
+              [pTooltip]="'shared.userChip.verified' | t"
+            ></i>
+          }
+        </span>
         @if (subtitle()) {
           <span class="chip__sub">{{ subtitle() }}</span>
         } @else if (showRole() && role()) {
           <span class="chip__sub">{{ 'common.role.' + role() | t }}</span>
+        }
+        @if (foodsaverNumber()) {
+          <span
+            class="chip__sub chip__number"
+            [pTooltip]="'shared.userChip.foodsaverNumberHelp' | t"
+            tabindex="0"
+          >
+            {{ 'shared.userChip.foodsaverNumber' | t: { number: '' + foodsaverNumber() } }}
+          </span>
         }
       </span>
     </ng-template>
@@ -66,10 +86,24 @@ import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
       line-height: 1.25;
     }
     .chip__name {
-      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-width: 0;
       font-weight: 650;
+    }
+    .chip__name-text {
+      overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    .chip__verified {
+      flex: 0 0 auto;
+      color: var(--fs-primary);
+      font-size: 0.85em;
+    }
+    .chip__number {
+      font-variant-numeric: tabular-nums;
     }
     .chip__sub {
       overflow: hidden;
@@ -89,4 +123,8 @@ export class UserChipComponent {
   readonly showRole = input(false);
   readonly size = input<AvatarSize>('sm');
   readonly link = input<string | unknown[] | undefined>(undefined);
+  /** Verified foodsaver (Ve2): a check badge after the name. */
+  readonly verified = input(false);
+  /** Shown as "ID 100006" with a help tooltip (EA3: newcomers give it to their guide). */
+  readonly foodsaverNumber = input<number | null | undefined>(undefined);
 }

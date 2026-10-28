@@ -55,7 +55,8 @@ forEachVariant((variant) => {
   });
 
   test.describe(`logged in ${variant.name}`, () => {
-    test.use({ variant, role: userFor(variant) });
+    // sessions and security log list every login: start each test from the seed so they are reproducible
+    test.use({ variant, role: userFor(variant), seedReset: 'test' });
 
     test(`settings @A12 @A17 @screenshot`, async ({ page, visual }) => {
       await page.goto('/account/settings');

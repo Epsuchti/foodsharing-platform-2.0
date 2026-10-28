@@ -49,5 +49,10 @@
   "dev.gallery.freq.daily": "Chaque jour",
   "dev.gallery.freq.weekly": "Chaque semaine",
   "dev.gallery.freq.never": "Jamais",
-  "dev.gallery.historyReason": "Pièce d’identité vérifiée par l’ambassadrice"
+  "dev.gallery.historyReason": "Pièce d’identité vérifiée par l’ambassadrice",
+  "dev.gallery.m2Inputs": "Saisies (M2)",
+  "dev.gallery.fieldTitle": "Titre",
+  "dev.gallery.fieldBody": "Texte (Markdown)",
+  "dev.gallery.verifyDemo": "Vérifier la personne",
+  "dev.gallery.verifyText": "Écris à la personne pourquoi tu la vérifies – le message lui est envoyé."
 }

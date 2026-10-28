@@ -1,27 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-/** Markdown → sanitized HTML (DOMPurify; links open in a new tab with rel=noopener). */
-export function renderMarkdown(source: string | null | undefined): string {
-  const html = marked.parse(source ?? '', { async: false, gfm: true, breaks: false });
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
-}
-
-let hooked = false;
-function ensureLinkHook(): void {
-  if (hooked || typeof window === 'undefined') {
-    return;
-  }
-  hooked = true;
-  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if (node.tagName === 'A' && node.getAttribute('href')?.match(/^https?:/)) {
-      node.setAttribute('target', '_blank');
-      node.setAttribute('rel', 'noopener noreferrer');
-    }
-  });
-}
+import { MarkdownPipe } from '../../core/markdown/markdown.pipe';
 
 /**
  * Renders user or CMS Markdown (legal documents, content pages, learning chapters, …) safely:
@@ -29,9 +8,10 @@ function ensureLinkHook(): void {
  */
 @Component({
   selector: 'fs-markdown',
+  imports: [MarkdownPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-markdown' },
-  template: `<div class="md" [innerHTML]="html()"></div>`,
+  template: `<div class="md" [innerHTML]="markdown() | markdown"></div>`,
   styles: `
     :host {
       display: block;
@@ -97,12 +77,5 @@ function ensureLinkHook(): void {
   `,
 })
 export class MarkdownComponent {
-  private readonly sanitizer = inject(DomSanitizer);
   readonly markdown = input<string | null | undefined>('');
-
-  protected readonly html = computed<SafeHtml>(() => {
-    ensureLinkHook();
-    // DOMPurify already sanitized the HTML; Angular's own sanitizer would strip harmless attributes again.
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdown(this.markdown()));
-  });
 }

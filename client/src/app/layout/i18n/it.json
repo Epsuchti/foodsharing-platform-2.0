@@ -9,5 +9,8 @@
   "layout.footer.label": "Piè di pagina",
   "layout.footer.version": "Versione {version}",
   "layout.requestBar.label": "Caricamento",
-  "layout.shell.skip": "Vai al contenuto"
+  "layout.shell.skip": "Vai al contenuto",
+  "layout.header.region": "Regione: {name} – cambia",
+  "layout.header.regions": "Le tue regioni",
+  "layout.header.homeRegion": "Regione principale"
 }

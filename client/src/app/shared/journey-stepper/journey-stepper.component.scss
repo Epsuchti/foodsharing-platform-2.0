@@ -1,0 +1,263 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/* --- compact (header journey bar) ----------------------------------------------------------- */
+.compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  min-width: 0;
+}
+
+.meter {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 3px;
+}
+
+.meter__seg {
+  width: 1.4rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--fs-border-strong);
+}
+
+.meter__seg[data-status='DONE'] {
+  background: var(--fs-primary);
+}
+
+.meter__seg[data-status='IN_PROGRESS'],
+.meter__seg[data-status='AVAILABLE'] {
+  background: color-mix(in srgb, var(--fs-primary) 45%, var(--fs-border-strong));
+}
+
+.meter__seg[data-status='WAITING_FOR_OTHERS'] {
+  background: var(--fs-warning);
+}
+
+.compact__text {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  min-width: 0;
+  font-size: 0.92rem;
+}
+
+.compact__count {
+  color: var(--fs-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.compact__action {
+  flex: 0 0 auto;
+}
+
+.compact__link {
+  color: var(--fs-primary-strong);
+  font-weight: 650;
+}
+
+/* --- full / preview ------------------------------------------------------------------------- */
+.steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+}
+
+/* the line between markers */
+.step:not(:last-child)::before {
+  position: absolute;
+  top: 2.5rem;
+  bottom: 0.25rem;
+  left: 1.1rem;
+  width: 2px;
+  background: var(--fs-border);
+  content: '';
+}
+
+.step[data-status='DONE']:not(:last-child)::before {
+  background: var(--fs-primary);
+}
+
+.step__marker {
+  z-index: 1;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid var(--fs-border-strong);
+  border-radius: 50%;
+  background: var(--fs-surface);
+  color: var(--fs-text-muted);
+  font-weight: 750;
+}
+
+.step[data-status='DONE'] .step__marker {
+  border-color: var(--fs-primary);
+  background: var(--fs-primary);
+  color: #fff;
+}
+
+.step[data-status='IN_PROGRESS'] .step__marker,
+.step[data-status='AVAILABLE'] .step__marker {
+  border-color: var(--fs-primary);
+  color: var(--fs-primary-strong);
+}
+
+.step[data-status='WAITING_FOR_OTHERS'] .step__marker {
+  border-color: var(--fs-warning);
+  color: var(--fs-warning-text);
+}
+
+.step[data-status='LOCKED'] .step__title {
+  color: var(--fs-text-muted);
+}
+
+.step__body {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 0.5rem;
+  padding-top: 0.3rem;
+}
+
+.step[aria-current='step'] .step__body {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-surface);
+  box-shadow: var(--fs-shadow-sm);
+}
+
+.step__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+}
+
+.step__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.step__status {
+  color: var(--fs-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.step__text {
+  margin: 0;
+  color: var(--fs-text-muted);
+  font-size: 0.92rem;
+}
+
+.step__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--fs-text-muted);
+  font-size: 0.82rem;
+}
+
+.step__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.step__blocked {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--fs-radius-sm);
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.progress {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.progress__bar {
+  position: relative;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--fs-surface-muted);
+}
+
+.progress__done,
+.progress__booked {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+}
+
+.progress__booked {
+  background: color-mix(in srgb, var(--fs-primary) 30%, transparent);
+}
+
+.progress__done {
+  z-index: 1;
+  background: var(--fs-primary);
+}
+
+.progress__text {
+  color: var(--fs-text-muted);
+  font-size: 0.82rem;
+}
+
+.waiting {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--fs-radius-sm);
+  background: var(--fs-surface-muted);
+}
+
+.waiting__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.waiting__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps--preview .step__marker {
+  border-color: var(--fs-primary);
+  color: var(--fs-primary-strong);
+}

@@ -49,5 +49,10 @@
   "dev.gallery.freq.daily": "Täglich",
   "dev.gallery.freq.weekly": "Wöchentlich",
   "dev.gallery.freq.never": "Nie",
-  "dev.gallery.historyReason": "Uswiis vo de Botschafterin prüeft"
+  "dev.gallery.historyReason": "Uswiis vo de Botschafterin prüeft",
+  "dev.gallery.m2Inputs": "Iigabe (M2)",
+  "dev.gallery.fieldTitle": "Titel",
+  "dev.gallery.fieldBody": "Text (Markdown)",
+  "dev.gallery.verifyDemo": "Person verifiziere",
+  "dev.gallery.verifyText": "Schriib de Person, werum du si verifiziersch – d Nachricht wird ere gschickt."
 }

@@ -9,5 +9,8 @@
   "layout.footer.label": "Fusszeile",
   "layout.footer.version": "Version {version}",
   "layout.requestBar.label": "Wird geladen",
-  "layout.shell.skip": "Zum Inhalt springen"
+  "layout.shell.skip": "Zum Inhalt springen",
+  "layout.header.region": "Bezirk: {name} – wechseln",
+  "layout.header.regions": "Deine Bezirke",
+  "layout.header.homeRegion": "Stammbezirk"
 }

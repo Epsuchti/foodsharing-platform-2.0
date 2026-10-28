@@ -1,0 +1,34 @@
+import { Type } from '@angular/core';
+
+import { InputsGallerySection } from './sections/inputs.section';
+import { JourneyGallerySection } from './sections/journey.section';
+import { PeopleGallerySection } from './sections/people.section';
+import { RegionsMapGallerySection } from './sections/regions-map.section';
+import { CONTENT_GALLERY_SECTIONS } from './sections/content.section';
+import { GROUPS_GALLERY_SECTIONS } from './sections/groups.section';
+import { INTRO_PICKUPS_GALLERY_SECTIONS } from './sections/intro-pickups.section';
+import { LEGAL_GALLERY_SECTIONS } from './sections/legal.section';
+import { ONBOARDING_GALLERY_SECTIONS } from './sections/onboarding.section';
+import { QUIZ_GALLERY_SECTIONS } from './sections/quiz.section';
+import { REGIONS_GALLERY_SECTIONS } from './sections/regions.section';
+import { VERIFICATION_GALLERY_SECTIONS } from './sections/verification.section';
+
+/**
+ * Gallery sections rendered after the M1 specimens of /dev/gallery (M2 T17). Shared M2 components first, then one
+ * list per feature module (`sections/<module>.section.ts`). Every `section[data-testid^="gallery."]` inside gets
+ * a screenshot (e2e/screenshots/gallery.screen.ts).
+ */
+export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
+  JourneyGallerySection,
+  RegionsMapGallerySection,
+  InputsGallerySection,
+  PeopleGallerySection,
+  ...CONTENT_GALLERY_SECTIONS,
+  ...GROUPS_GALLERY_SECTIONS,
+  ...INTRO_PICKUPS_GALLERY_SECTIONS,
+  ...LEGAL_GALLERY_SECTIONS,
+  ...ONBOARDING_GALLERY_SECTIONS,
+  ...QUIZ_GALLERY_SECTIONS,
+  ...REGIONS_GALLERY_SECTIONS,
+  ...VERIFICATION_GALLERY_SECTIONS,
+];

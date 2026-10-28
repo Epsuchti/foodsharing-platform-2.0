@@ -6,6 +6,7 @@ import { TPipe } from '../core/i18n/t.pipe';
 import { BrandComponent } from './brand.component';
 import { LanguageMenuComponent } from './language-menu.component';
 import { NavContextService } from './nav-context.service';
+import { RegionSwitcherComponent } from './region-switcher.component';
 import { ThemeMenuComponent } from './theme-menu.component';
 import { UserMenuComponent } from './user-menu.component';
 
@@ -15,6 +16,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
 @Component({
   selector: 'fs-header',
   imports: [
+    RegionSwitcherComponent,
     BrandComponent,
     LanguageMenuComponent,
     RouterLink,
@@ -45,6 +47,9 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
         </nav>
       }
       <div class="hdr__actions">
+        @if (chrome() === 'full' && session.isAuthenticated()) {
+          <fs-region-switcher />
+        }
         <fs-language-menu />
         <fs-theme-menu />
         @if (chrome() === 'full') {
@@ -59,6 +64,8 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
         }
       </div>
     </div>
+    <!-- journey bar of newcomers (M2 T22 fills it from the shell) -->
+    <ng-content select="[fsJourneyBar]" />
   `,
   styles: `
     :host {

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
@@ -37,6 +38,7 @@ import {
 } from '../../../shared/history-timeline/history-demo';
 import { HistoryTimelineComponent } from '../../../shared/history-timeline/history-timeline.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { GALLERY_SECTIONS } from '../gallery/gallery-sections';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 
@@ -76,6 +78,7 @@ function demoError(status: number, code: ApiErrorView['code'], retryable: boolea
     Checkbox,
     FormsModule,
     HistoryTimelineComponent,
+    NgComponentOutlet,
     InputText,
     Message,
     PageHeaderComponent,
@@ -106,6 +109,8 @@ export class GalleryPageComponent implements OnInit {
   readonly lang = input<string | undefined>(undefined);
 
   protected readonly people = PEOPLE;
+  /** M2 shared components and per-feature sections. */
+  protected readonly sections = GALLERY_SECTIONS;
   protected readonly Role = Role;
   protected readonly skeletons: SkeletonPreset[] = ['list', 'card', 'table', 'form', 'detail'];
 
