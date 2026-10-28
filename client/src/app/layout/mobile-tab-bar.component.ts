@@ -9,6 +9,7 @@ import { LANGUAGES, UiLanguage } from '../core/i18n/languages';
 import { TPipe } from '../core/i18n/t.pipe';
 import { THEME_PREFERENCES, ThemePreference, ThemeService } from '../core/theme/theme.service';
 import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
+import { BellStore } from '../features/bells/bells.resource';
 import { NavContextService } from './nav-context.service';
 
 /**
@@ -42,7 +43,12 @@ import { NavContextService } from './nav-context.service';
         (click)="menuOpen.set(true)"
         data-testid="nav.tab.menu"
       >
-        <i class="pi pi-bars" aria-hidden="true"></i>
+        <span class="tabs__icon">
+          <i class="pi pi-bars" aria-hidden="true"></i>
+          @if (bells.unreadCount() > 0) {
+            <span class="tabs__badge" data-testid="nav.tab.menu.badge">{{ bells.unreadCount() > 99 ? '99+' : bells.unreadCount() }}</span>
+          }
+        </span>
         <span>{{ 'nav.menu' | t }}</span>
       </button>
     </nav>
@@ -72,6 +78,14 @@ import { NavContextService } from './nav-context.service';
           </div>
         </div>
       }
+      <!-- N3: the header bell is hidden below 48rem; the drawer links the bells page with the unread count -->
+      <a class="menu-list__item mm__bells" routerLink="/bells" (click)="menuOpen.set(false)" data-testid="nav.drawer.bells">
+        <i class="pi pi-bell" aria-hidden="true"></i>
+        <span>{{ 'nav.bells' | t }}</span>
+        @if (bells.unreadCount() > 0) {
+          <span class="tabs__badge mm__badge" data-testid="nav.drawer.bells.badge">{{ bells.unreadCount() > 99 ? '99+' : bells.unreadCount() }}</span>
+        }
+      </a>
       <ul class="menu-list">
         @for (item of nav.main(); track item.id) {
           <li>
@@ -151,6 +165,29 @@ import { NavContextService } from './nav-context.service';
     </p-drawer>
   `,
   styles: `
+    .mm__badge {
+      position: static;
+      margin-inline-start: auto;
+    }
+    .tabs__icon {
+      position: relative;
+      display: inline-flex;
+    }
+    .tabs__badge {
+      position: absolute;
+      top: -0.375rem;
+      inset-inline-start: 0.75rem;
+      min-width: 1rem;
+      height: 1rem;
+      padding: 0 0.25rem;
+      border-radius: 0.5rem;
+      background: var(--fs-danger);
+      color: #fff;
+      font-size: 0.625rem;
+      font-weight: 700;
+      line-height: 1rem;
+      text-align: center;
+    }
     :host {
       position: fixed;
       z-index: 45;
@@ -268,6 +305,8 @@ export class MobileTabBarComponent {
   protected readonly i18n = inject(I18nService);
   protected readonly theme = inject(ThemeService);
   private readonly auth = inject(AuthFacadeService);
+  /** N3: unread bells as a badge on "Menu". */
+  protected readonly bells = inject(BellStore);
 
   protected readonly languages = LANGUAGES;
   protected readonly themes: readonly ThemePreference[] = THEME_PREFERENCES;
