@@ -295,6 +295,15 @@ public class UserService {
         return user;
     }
 
+    /** Links or unlinks the personal mailbox (MB6); the mailbox module records MAILBOX_CREATED / MAILBOX_DELETED. */
+    @Transactional
+    @NoHistory(reason = "the mailbox module records MailboxAction.MAILBOX_CREATED / MAILBOX_DELETED")
+    public User setMailboxId(UUID userId, UUID mailboxId) {
+        User user = repository.findById(userId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+        user.setMailboxId(mailboxId);
+        return user;
+    }
+
     /** Verified flag and date; the verification module records VERIFIED / UNVERIFIED. */
     @Transactional
     @NoHistory(reason = "the caller records VerificationAction.VERIFIED / UNVERIFIED with the required message")

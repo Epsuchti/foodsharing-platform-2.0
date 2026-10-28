@@ -99,6 +99,12 @@ public class RegionService {
         return admins.findRegionIds(userId);
     }
 
+    /** Direct admins (ambassadors) of the region / group (mailbox readers, A35). */
+    @Transactional(readOnly = true)
+    public java.util.Set<UUID> adminIds(UUID regionId) {
+        return admins.findUserIds(regionId);
+    }
+
     /** Active members of the region and every region / group below it (newsletter recipients, N7). */
     @Transactional(readOnly = true)
     public List<UUID> memberIdsOfSubtree(UUID regionId) {

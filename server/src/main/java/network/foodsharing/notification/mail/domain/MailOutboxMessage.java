@@ -53,8 +53,22 @@ public class MailOutboxMessage extends BaseEntity {
     private Instant sentAt;
 
     /** Extra MIME headers, one {@code Name: value} per line (List-Unsubscribe). */
-    @Column(name = "headers", length = 2000)
+    @Column(name = "headers", length = 4000)
     private String headers;
+
+    /** Sender override (mailbox mails, A35); null = app.mail.from. */
+    @Column(name = "from_address", length = 320)
+    private String fromAddress;
+
+    @Column(name = "from_name", length = 200)
+    private String fromName;
+
+    @Column(name = "reply_to", length = 320)
+    private String replyTo;
+
+    /** Upload ids of the attachments as a JSON string array (mailbox mails). */
+    @Column(name = "attachments_json", length = 4000)
+    private String attachmentsJson;
 
     @Column(name = "template", nullable = false, length = 100)
     private String template;

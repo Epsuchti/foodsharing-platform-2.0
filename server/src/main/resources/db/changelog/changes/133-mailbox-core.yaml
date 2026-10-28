@@ -1,0 +1,163 @@
+# Milestone 5 (B4): region/personal mailboxes, members, stored mails and attachments; outbox from/attachments (A35).
+databaseChangeLog:
+  - changeSet:
+      id: 133-1
+      author: platform
+      comment: 'Mailboxes (upstream fs_mailbox): address <email_name>@app.mailbox.domain, owned by a region/group or a user.'
+      changes:
+        - createTable:
+            tableName: mailbox
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_mailbox, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: email_name, type: VARCHAR(64), constraints: {nullable: false}}
+              - column: {name: owner_type, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: last_access_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: mailbox
+            columnNames: email_name
+            constraintName: uq_mailbox_email_name
+        - addUniqueConstraint:
+            tableName: mailbox
+            columnNames: owner_type, owner_id
+            constraintName: uq_mailbox_owner
+  - changeSet:
+      id: 133-2
+      author: platform
+      comment: 'Mailbox members (upstream fs_mailbox_member) besides the ambassadors of the owning region.'
+      changes:
+        - createTable:
+            tableName: mailbox_member
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_mailbox_member, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: mailbox_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_mailbox_member_mailbox_id, references: mailbox(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_mailbox_member_user_id, references: user_account(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: mailbox_member
+            columnNames: mailbox_id, user_id
+            constraintName: uq_mailbox_member_mailbox_user
+        - createIndex:
+            tableName: mailbox_member
+            indexName: ix_mailbox_member_user_id
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 133-3
+      author: platform
+      comment: 'Stored mails (upstream fs_mailbox_message). Addresses as JSON arrays of {address,name}; body_html is sanitised.'
+      changes:
+        - createTable:
+            tableName: mail_message
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_mail_message, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: mailbox_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_mail_message_mailbox_id, references: mailbox(id), deleteCascade: true}}
+              - column: {name: folder, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: previous_folder, type: VARCHAR(20)}
+              - column: {name: message_id, type: VARCHAR(255)}
+              - column: {name: in_reply_to, type: VARCHAR(255)}
+              - column: {name: from_address, type: VARCHAR(320), constraints: {nullable: false}}
+              - column: {name: from_name, type: VARCHAR(200)}
+              - column: {name: to_json, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: cc_json, type: VARCHAR(8000)}
+              - column: {name: reply_to, type: VARCHAR(320)}
+              - column: {name: subject, type: VARCHAR(998), constraints: {nullable: false}}
+              - column: {name: body_text, type: VARCHAR(32600)}
+              - column: {name: body_html, type: VARCHAR(32600)}
+              - column: {name: received_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: read_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: answered_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: bounce, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: bounced_message_id, type: VARCHAR(255)}
+              - column: {name: raw_size, type: BIGINT}
+              - column: {name: spam_score, type: DOUBLE PRECISION}
+              - column: {name: sent_by_user_id, type: UUID}
+              - column: {name: attachment_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - createIndex:
+            tableName: mail_message
+            indexName: ix_mail_message_mailbox_folder_received
+            columns:
+              - column: {name: mailbox_id}
+              - column: {name: folder}
+              - column: {name: received_at, descending: true}
+        - createIndex:
+            tableName: mail_message
+            indexName: ix_mail_message_message_id
+            columns:
+              - column: {name: message_id}
+        - createIndex:
+            tableName: mail_message
+            indexName: ix_mail_message_sent_by_received
+            columns:
+              - column: {name: sent_by_user_id}
+              - column: {name: received_at}
+  - changeSet:
+      id: 133-4
+      author: platform
+      comment: 'Mail attachments; the bytes live in the upload store (claimed by module mailbox).'
+      changes:
+        - createTable:
+            tableName: mail_attachment
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_mail_attachment, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: mail_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_mail_attachment_mail_id, references: mail_message(id), deleteCascade: true}}
+              - column: {name: upload_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_mail_attachment_upload_id, references: upload(id)}}
+              - column: {name: file_name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: mime_type, type: VARCHAR(120), constraints: {nullable: false}}
+              - column: {name: size, type: BIGINT, constraints: {nullable: false}}
+              - column: {name: content_id, type: VARCHAR(255)}
+        - createIndex:
+            tableName: mail_attachment
+            indexName: ix_mail_attachment_mail_id
+            columns:
+              - column: {name: mail_id}
+        - createIndex:
+            tableName: mail_attachment
+            indexName: ix_mail_attachment_upload_id
+            columns:
+              - column: {name: upload_id}
+  - changeSet:
+      id: 133-5
+      author: platform
+      comment: 'Personal mailbox of a user (MB6).'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: mailbox_id, type: UUID, constraints: {foreignKeyName: fk_user_account_mailbox_id, references: mailbox(id)}}
+  - changeSet:
+      id: 133-6
+      author: platform
+      comment: 'Outbox: sender override, Reply-To and attachments (JSON array of upload ids) for mailbox mails.'
+      changes:
+        - addColumn:
+            tableName: mail_outbox
+            columns:
+              - column: {name: from_address, type: VARCHAR(320)}
+              - column: {name: from_name, type: VARCHAR(200)}
+              - column: {name: reply_to, type: VARCHAR(320)}
+              - column: {name: attachments_json, type: VARCHAR(4000)}
+        - modifyDataType:
+            tableName: mail_outbox
+            columnName: headers
+            newDataType: VARCHAR(4000)

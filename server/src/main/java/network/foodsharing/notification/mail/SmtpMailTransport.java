@@ -51,18 +51,25 @@ public class SmtpMailTransport implements MailTransport {
         }
         try {
             MimeMessage message = sender.createMimeMessage();
-            boolean multipart = mail.htmlBody() != null;
+            boolean multipart = mail.htmlBody() != null || !mail.attachments().isEmpty();
             MimeMessageHelper helper = new MimeMessageHelper(message, multipart, "UTF-8");
             helper.setFrom(mail.from());
             helper.setTo(mail.to());
             helper.setSubject(mail.subject());
+            if (mail.replyTo() != null) {
+                helper.setReplyTo(mail.replyTo());
+            }
             for (java.util.Map.Entry<String, String> header : mail.headers().entrySet()) {
                 message.setHeader(header.getKey(), header.getValue());
             }
-            if (multipart) {
+            if (mail.htmlBody() != null) {
                 helper.setText(mail.textBody(), mail.htmlBody());
             } else {
                 helper.setText(mail.textBody(), false);
+            }
+            for (OutgoingMail.Attachment attachment : mail.attachments()) {
+                helper.addAttachment(attachment.fileName(),
+                        new org.springframework.core.io.ByteArrayResource(attachment.bytes().get()), attachment.mimeType());
             }
             sender.send(message);
         } catch (MessagingException ex) {

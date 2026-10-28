@@ -138,7 +138,7 @@ class DevControllerTest {
     void capturedMailsAreListedAndCleared() throws Exception {
         when(devService.capturedMails("newbie@local")).thenReturn(List.of(new CapturedMail(UUID.randomUUID(),
                 "newbie@local", "Dein Login-Link", "http://localhost/login/verify?token=t", null,
-                List.of("http://localhost/login/verify?token=t"), Instant.parse("2026-11-02T09:00:00Z"))));
+                List.of("http://localhost/login/verify?token=t"), Instant.parse("2026-11-02T09:00:00Z"), null, List.of())));
         mvc.perform(get("/api/dev/mails").param("to", "newbie@local"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].subject").value("Dein Login-Link"))

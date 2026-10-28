@@ -39,13 +39,19 @@ public class CapturingMailTransport implements MailTransport {
 
     @Override
     public void send(OutgoingMail outgoing) {
-        send(outgoing.to(), outgoing.subject(), outgoing.textBody(), outgoing.htmlBody());
+        capture(outgoing.to(), outgoing.from(), outgoing.subject(), outgoing.textBody(), outgoing.htmlBody(),
+                outgoing.attachments().stream().map(OutgoingMail.Attachment::fileName).toList());
     }
 
     /** Captures a mail directly (tests). */
     public void send(String to, String subject, String textBody, String htmlBody) {
+        capture(to, null, subject, textBody, htmlBody, List.of());
+    }
+
+    private void capture(String to, String from, String subject, String textBody, String htmlBody,
+                         List<String> attachmentNames) {
         CapturedMail mail = new CapturedMail(UUID.randomUUID(), to, subject, textBody == null ? "" : textBody, htmlBody,
-                extractLinks(textBody, htmlBody), clock.instant());
+                extractLinks(textBody, htmlBody), clock.instant(), from, attachmentNames);
         mails.addFirst(mail);
         while (mails.size() > MAX_MAILS) {
             mails.pollLast();

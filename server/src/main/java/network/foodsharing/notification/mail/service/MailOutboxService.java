@@ -98,6 +98,47 @@ public class MailOutboxService {
     }
 
     /**
+     * Queues an already composed mail (no template, no rate limiter: the caller limits, e.g. mailbox compose A35);
+     * records MAIL_QUEUED.
+     *
+     * @return the outbox id
+     */
+    @Transactional
+    public UUID enqueueDirect(DirectMail mail) {
+        MailOutboxMessage message = new MailOutboxMessage();
+        message.setToAddress(mail.to());
+        message.setTemplate(DirectMail.TEMPLATE);
+        message.setLanguage(network.foodsharing.api.model.Language.DE);
+        message.setSubject(StringUtils.abbreviate(mail.subject() == null ? "" : mail.subject(), 500));
+        message.setTextBody(StringUtils.abbreviate(mail.textBody() == null ? "" : mail.textBody(),
+                MailOutboxMessage.MAX_BODY_LENGTH));
+        message.setHtmlBody(mail.htmlBody() == null ? null
+                : StringUtils.abbreviate(mail.htmlBody(), MailOutboxMessage.MAX_BODY_LENGTH));
+        message.setFromAddress(mail.fromAddress());
+        message.setFromName(mail.fromName() == null ? null : StringUtils.abbreviate(mail.fromName(), 200));
+        message.setReplyTo(mail.replyTo());
+        if (!mail.headers().isEmpty()) {
+            StringBuilder headers = new StringBuilder();
+            mail.headers().forEach((name, value) -> headers.append(name).append(": ")
+                    .append(value.replace('\n', ' ').replace('\r', ' ')).append('\n'));
+            message.setHeaders(StringUtils.abbreviate(headers.toString().strip(), 4000));
+        }
+        if (!mail.attachmentUploadIds().isEmpty()) {
+            message.setAttachmentsJson(mail.attachmentUploadIds().stream().map(id -> "\"" + id + "\"")
+                    .collect(java.util.stream.Collectors.joining(",", "[", "]")));
+        }
+        message.setStatus(MailStatus.PENDING);
+        message.setAttempts(0);
+        message.setUserId(mail.senderUserId());
+        message.setCategory("MAILBOX");
+        message.setNextAttemptAt(clock.instant());
+        MailOutboxMessage saved = repository.save(message);
+        history.record(history.event(MailAction.QUEUED, HistoryService.SYSTEM_SUBJECT_ID)
+                .metadata(Map.of("mailId", saved.getId().toString(), "template", DirectMail.TEMPLATE)).build());
+        return saved.getId();
+    }
+
+    /**
      * Delivers up to {@code app.mail.outbox-batch-size} due mails, each in its own transaction.
      *
      * @return number of mails attempted
