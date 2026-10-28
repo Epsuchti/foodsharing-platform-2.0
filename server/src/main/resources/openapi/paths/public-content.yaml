@@ -202,6 +202,12 @@
           application/json:
             schema:
               $ref: '../schemas/content.yaml#/Petition'
+      "404":
+        description: FEATURE_DISABLED (PETITION_BANNER off)
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
       "503":
         description: PETITION_INACTIVE
         content:
@@ -215,6 +221,11 @@
     operationId: getDonationPage
     summary: Donation page configuration.
     x-permission: public
+    parameters:
+      - name: lang
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/Language'
     responses:
       "200":
         description: OK

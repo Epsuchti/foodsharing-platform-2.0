@@ -1,0 +1,29 @@
+# Milestone 6 (B11): support tickets (C9). Donations are content pages + configuration keys (no table).
+databaseChangeLog:
+  - changeSet:
+      id: 171-1
+      author: platform
+      comment: 'Support tickets from the support form (logged in or public).'
+      changes:
+        - createTable:
+            tableName: support_ticket
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_support_ticket, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {foreignKeyName: fk_support_ticket_user, references: user_account(id)}}
+              - column: {name: email, type: VARCHAR(320), constraints: {nullable: false}}
+              - column: {name: first_name, type: VARCHAR(100)}
+              - column: {name: subject, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: body, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: page, type: VARCHAR(500)}
+              - column: {name: user_agent, type: VARCHAR(500)}
+              - column: {name: attachment_upload_ids, type: VARCHAR(400)}
+        - createIndex:
+            tableName: support_ticket
+            indexName: ix_support_ticket_user
+            columns:
+              - column: {name: user_id}

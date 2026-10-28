@@ -87,6 +87,6 @@
   "bell.MEDIATION_REQUEST": "Nouvelle demande de médiation",
   "bell.ACHIEVEMENT_AWARDED": "Tu as reçu une distinction",
   "bell.EMAIL_CHANGE_REQUESTED": "Changement de ton adresse e-mail demandé",
-  "bell.SUPPORT_TICKET": "Ta demande de support a été reçue",
+  "bell.SUPPORT_TICKET": "Nouvelles demandes de support",
   "bell.BASKET_REQUEST_ANSWERED": "Ta demande de panier a reçu une réponse"
 }

@@ -15,7 +15,12 @@ import network.foodsharing.api.PublicContentApi;
 import network.foodsharing.api.model.ContentPage;
 import network.foodsharing.api.model.Language;
 import network.foodsharing.api.model.LearningChapter;
+import network.foodsharing.content.mapper.ContentMapper;
+import network.foodsharing.content.service.BlogService;
+import network.foodsharing.content.service.CampaignService;
 import network.foodsharing.content.service.ContentService;
+import network.foodsharing.content.service.ReleaseNoteService;
+import network.foodsharing.content.service.TeamPageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,9 +29,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class PublicContentController implements PublicContentApi {
 
     private final ContentService content;
+    private final BlogService blog;
+    private final ReleaseNoteService releaseNotes;
+    private final TeamPageService team;
+    private final CampaignService campaigns;
+    private final ContentMapper mapper;
 
-    public PublicContentController(ContentService content) {
+    public PublicContentController(ContentService content, BlogService blog, ReleaseNoteService releaseNotes,
+                                   TeamPageService team, CampaignService campaigns, ContentMapper mapper) {
         this.content = content;
+        this.blog = blog;
+        this.releaseNotes = releaseNotes;
+        this.team = team;
+        this.campaigns = campaigns;
+        this.mapper = mapper;
     }
 
     @Override
@@ -45,23 +61,24 @@ public class PublicContentController implements PublicContentApi {
                 .map(ContentModels::chapter).toList());
     }
 
-    // --- M6 contract stubs (docs/plan-m6.md B1) ---
+    // --- M6 (B11) ---
 
     @Override
-    public ResponseEntity<DonationPage> getDonationPage() {
-        throw ApiException.notImplemented("getDonationPage");
+    public ResponseEntity<DonationPage> getDonationPage(Language lang) {
+        return ResponseEntity.ok(ContentMapper.toDonationPage(campaigns.donation(ContentModels.language(lang))));
     }
 
     @Override
     public ResponseEntity<Petition> getPetition() {
-        throw ApiException.notImplemented("getPetition");
+        return ResponseEntity.ok(ContentMapper.toPetition(campaigns.petition()));
     }
 
     @Override
     public ResponseEntity<BlogPost> getPublicBlogPost(UUID blogPostId) {
-        throw ApiException.notImplemented("getPublicBlogPost");
+        return ResponseEntity.ok(mapper.toPost(blog.publishedPost(blogPostId)));
     }
 
+    /** B12 (statistics module). */
     @Override
     public ResponseEntity<PublicStatistics> getPublicStatistics() {
         throw ApiException.notImplemented("getPublicStatistics");
@@ -69,21 +86,23 @@ public class PublicContentController implements PublicContentApi {
 
     @Override
     public ResponseEntity<List<TeamGroup>> getPublicTeam() {
-        throw ApiException.notImplemented("getPublicTeam");
+        return ResponseEntity.ok(team.groups().stream().map(ContentMapper::toTeamGroup).toList());
     }
 
     @Override
     public ResponseEntity<List<FaqEntry>> listFaq(Language lang) {
-        throw ApiException.notImplemented("listFaq");
+        return ResponseEntity.ok(content.faq(ContentModels.language(lang)).stream().map(ContentMapper::toFaq).toList());
     }
 
     @Override
     public ResponseEntity<BlogPostPage> listPublicBlogPosts(UUID regionId, Integer page, Integer size) {
-        throw ApiException.notImplemented("listPublicBlogPosts");
+        return ResponseEntity.ok(mapper.toPage(blog.published(regionId, page == null ? 0 : page,
+                size == null ? 20 : size)));
     }
 
     @Override
     public ResponseEntity<List<ReleaseNote>> listReleaseNotes(Language lang) {
-        throw ApiException.notImplemented("listReleaseNotes");
+        return ResponseEntity.ok(releaseNotes.list(ContentModels.language(lang)).stream()
+                .map(ContentMapper::toReleaseNote).toList());
     }
 }

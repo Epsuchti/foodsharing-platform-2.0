@@ -1,0 +1,12 @@
+Neui Support-Aafrog ([(${ticketId})])
+
+Betreff: [(${subject})]
+Vo: [(${firstName})] <[(${email})]>
+Aagmäldet: [(${loggedIn} ? 'jo' : 'nei')] ([(${userId})])
+Siite: [(${page})]
+Browser: [(${userAgent})]
+Aahäng:
+[(${attachments})]
+
+Nachricht:
+[(${body})]

@@ -76,7 +76,7 @@ class PickupReminderJobTest {
     }
 
     @Test
-    void remindsEnabledActiveUsersAndMarksEverySignup() {
+    void remindsEnabledActiveUsersAndMarksOnlyTheirSignups() {
         User on = user(true, true);
         User off = user(false, true);
         User gone = user(true, false);
@@ -86,7 +86,9 @@ class PickupReminderJobTest {
 
         assertThat(job.remind()).isEqualTo(1);
 
-        assertThat(due).allMatch(s -> NOW.equals(s.getRemindedAt()));
+        assertThat(due.get(0).getRemindedAt()).isEqualTo(NOW);
+        // reminders off / inactive: not marked, so re-enabling reminders still sends this pickup's reminder
+        assertThat(due.subList(1, 3)).allMatch(s -> s.getRemindedAt() == null);
         assertThat(published).hasSize(1);
         var request = ((StoreNotifications.Send) published.getFirst()).request();
         assertThat(request.type()).isEqualTo(NotificationType.PICKUP_REMINDER);

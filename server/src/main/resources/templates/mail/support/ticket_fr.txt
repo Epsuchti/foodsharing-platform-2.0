@@ -1,0 +1,12 @@
+Nouvelle demande de support ([(${ticketId})])
+
+Objet: [(${subject})]
+De: [(${firstName})] <[(${email})]>
+Connecté·e: [(${loggedIn} ? 'oui' : 'non')] ([(${userId})])
+Page: [(${page})]
+Navigateur: [(${userAgent})]
+Pièces jointes:
+[(${attachments})]
+
+Message:
+[(${body})]
