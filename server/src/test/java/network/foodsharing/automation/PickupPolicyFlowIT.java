@@ -62,10 +62,25 @@ class PickupPolicyFlowIT {
     }
 
     @Test
+    @Order(0)
+    void evaluateJobLeavesTheSeededS01SignupsAlone() throws Exception {
+        mvc.perform(post("/api/admin/jobs/automation-evaluate/run").cookie(login(SeedUsers.ORGA)).with(csrf()))
+                .andExpect(status().is2xxSuccessful());
+        assertThat(count("select count(*) from pickup_signup where store_id = ? and user_id = ? and pickup_at = ? "
+                + "and confirmed = false", java.util.UUID.fromString(S01_ID), SeedUsers.FOODSAVER.id(),
+                java.sql.Timestamp.from(java.time.Instant.parse("2026-11-05T18:00:00Z")))).isEqualTo(1);
+    }
+
+    @Test
     @Order(1)
     void signupIsConfirmedInTheSameRequestCycle() throws Exception {
         // the Zürich pickup rule (2 per 7 days) would block foodsaver's sign-ups within the 14-day window
         jdbc.update("update store set use_region_pickup_rule = false where id = ?", java.util.UUID.fromString(S01_ID));
+        // the seed keeps S-01 in dry run (M3 scenarios use its unconfirmed sign-ups); go live for this flow
+        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(login(SeedUsers.BIEB)), """
+                {"enabled":true,"dryRun":false,"gapRuleEnabled":true,"minimumGapDays":2,"cleaningRuleEnabled":false,
+                 "experienceRuleEnabled":true,"publicHolidayRuleEnabled":true,"linkedStores":[],
+                 "excludedDates":["2026-11-08"]}""")).andExpect(status().isOk());
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         mvc.perform(post(S01 + "/pickups/2026-11-12T18:00:00Z/signups").cookie(foodsaver).with(csrf()))
                 .andExpect(status().isOk());

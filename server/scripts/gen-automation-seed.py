@@ -49,10 +49,11 @@ def write(name, header, rows):
 
 BASE = ["id", "version", "created_at", "updated_at", "created_by", "updated_by"]
 
-# pickup_policy (0001): S-01 live, S-02 dry run (cleaning), S-04 dry run (linked to S-01), S-03 disabled
+# pickup_policy (0001): S-06 live (no M3 scenario uses it), S-01 dry run, S-02 dry run (cleaning), S-04 dry run (linked to S-01), S-03 disabled
 write("pickup_policy.csv", BASE + ["store_id", "enabled", "dry_run", "gap_rule_enabled", "minimum_gap_days",
                                    "cleaning_rule_enabled", "experience_rule_enabled", "public_holiday_rule_enabled"], [
-    [sid(1, 1), 0, CREATED, CREATED, None, None, store(1), "true", "false", "true", 2, "false", "true", "true"],
+    [sid(1, 1), 0, CREATED, CREATED, None, None, store(1), "true", "true", "true", 2, "false", "true", "true"],
+    [sid(1, 5), 0, CREATED, CREATED, None, None, store(6), "true", "false", "true", 2, "false", "true", "true"],
     [sid(1, 2), 0, CREATED, CREATED, None, None, store(2), "true", "true", "false", 0, "true", "false", "false"],
     [sid(1, 3), 0, CREATED, CREATED, None, None, store(4), "true", "true", "false", 0, "false", "false", "false"],
     [sid(1, 4), 0, CREATED, CREATED, None, None, store(3), "false", "true", "false", 0, "false", "false", "false"],
