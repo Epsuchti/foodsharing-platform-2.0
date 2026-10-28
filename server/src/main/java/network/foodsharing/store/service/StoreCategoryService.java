@@ -131,6 +131,15 @@ public class StoreCategoryService {
 
     // ---- groceries ----
 
+    /** Names of the given groceries (unknown ids are left out); no permission needed (baskets). */
+    @Transactional(readOnly = true)
+    public Map<UUID, String> groceryNames(java.util.Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Map.of();
+        }
+        return groceries.findAllById(ids).stream().collect(Collectors.toMap(Grocery::getId, Grocery::getName));
+    }
+
     @Transactional(readOnly = true)
     public List<Item<Grocery>> listGroceries() {
         currentActor.requireRole(Role.ORGA);

@@ -1,0 +1,108 @@
+# Milestone 6 (B5): food baskets (B1, B2; upstream fs_basket, fs_basket_has_art, fs_basket_has_types, fs_basket_anfrage).
+databaseChangeLog:
+  - changeSet:
+      id: 163-1
+      author: platform
+      comment: 'Food baskets offered by users.'
+      changes:
+        - createTable:
+            tableName: basket
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_basket, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_basket_owner_id, references: user_account(id)}}
+              - column: {name: description, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: status, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: weight_grams, type: INT}
+              - column: {name: location_type, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: lat, type: DOUBLE, constraints: {nullable: false}}
+              - column: {name: lon, type: DOUBLE, constraints: {nullable: false}}
+              - column: {name: contact_message, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: contact_phone, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: contact_mobile, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: phone, type: VARCHAR(40)}
+              - column: {name: mobile, type: VARCHAR(40)}
+              - column: {name: lifetime_days, type: INT, constraints: {nullable: false}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: taken_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: photo_upload_id, type: UUID}
+              - column: {name: request_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - createIndex:
+            tableName: basket
+            indexName: ix_basket_status_expires_at
+            columns:
+              - column: {name: status}
+              - column: {name: expires_at}
+        - createIndex:
+            tableName: basket
+            indexName: ix_basket_owner_id
+            columns:
+              - column: {name: owner_id}
+  - changeSet:
+      id: 163-2
+      author: platform
+      comment: 'Groceries and kinds of a basket.'
+      changes:
+        - createTable:
+            tableName: basket_grocery
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_basket_grocery, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: basket_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_basket_grocery_basket_id, references: basket(id), deleteCascade: true}}
+              - column: {name: grocery_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_basket_grocery_grocery_id, references: grocery(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: basket_grocery
+            columnNames: basket_id, grocery_id
+            constraintName: uq_basket_grocery
+        - createTable:
+            tableName: basket_kind
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_basket_kind, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: basket_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_basket_kind_basket_id, references: basket(id), deleteCascade: true}}
+              - column: {name: kind, type: VARCHAR(40), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: basket_kind
+            columnNames: basket_id, kind
+            constraintName: uq_basket_kind
+  - changeSet:
+      id: 163-3
+      author: platform
+      comment: 'Requests for a basket, one per requester.'
+      changes:
+        - createTable:
+            tableName: basket_request
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_basket_request, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: basket_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_basket_request_basket_id, references: basket(id), deleteCascade: true}}
+              - column: {name: requester_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_basket_request_requester_id, references: user_account(id)}}
+              - column: {name: status, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: message, type: VARCHAR(2000)}
+              - column: {name: requested_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: answered_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: basket_request
+            columnNames: basket_id, requester_id
+            constraintName: uq_basket_request
+        - createIndex:
+            tableName: basket_request
+            indexName: ix_basket_request_requester_id
+            columns:
+              - column: {name: requester_id}

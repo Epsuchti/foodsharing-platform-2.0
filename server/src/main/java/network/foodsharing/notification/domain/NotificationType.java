@@ -88,6 +88,7 @@ public enum NotificationType {
     POLL_STARTED(REGION, "vote"),
     POLL_ENDING_SOON(REGION, "vote"),
     BASKET_REQUEST(MESSAGES, "shopping-basket"),
+    BASKET_REQUEST_ANSWERED(MESSAGES, "shopping-basket"),
     BUDDY_REQUEST(MESSAGES, "user-plus"),
     BANANA_GIVEN(MESSAGES, "heart"),
     REPORT_NEW(REGION, "flag"),
