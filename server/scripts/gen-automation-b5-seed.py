@@ -73,6 +73,11 @@ write("open_slot_advert", ADVERT_HEADER, [
     base(9, 2) + [S01, 2, True, True, 6, "TELEGRAM", "-1002", None, None,
                   json.dumps(["🍞 {{storeName}} {{datetimeDe}}: {{freeSlots}} Platz frei! {{link}}"],
                              ensure_ascii=False), False, LATE, 72, True],
+    # Live (decision 60: only S-06): Telegram only, to the zuerich-stadt alert chat (region fallback of
+    # sendForStore), so no bells reach seeded users.
+    base(9, 3) + [S06, 1, True, False, 24, "TELEGRAM", "-1001", None, None,
+                  json.dumps(["{{storeName}} {{datetimeDe}}: noch {{freeSlots}} Platz frei! {{link}}"],
+                             ensure_ascii=False), False, LATE, 72, True],
 ])
 
 AUDIT_HEADER = ["advert_id", "advert_number", "store_id", "region_id", "pickup_at", "trigger_hours_before", "user_id",

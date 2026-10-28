@@ -71,6 +71,10 @@ public class MailOutboxService {
         message.setTemplate(draft.template());
         message.setLanguage(rendered.language());
         message.setSubject(StringUtils.abbreviate(rendered.subject(), 500));
+        Object unsubscribe = draft.variables().get("unsubscribeUrl");
+        if (unsubscribe != null) {
+            message.setHeaders("List-Unsubscribe: <" + unsubscribe + ">");
+        }
         message.setTextBody(StringUtils.abbreviate(rendered.textBody(), MailOutboxMessage.MAX_BODY_LENGTH));
         message.setHtmlBody(rendered.htmlBody() == null ? null
                 : StringUtils.abbreviate(rendered.htmlBody(), MailOutboxMessage.MAX_BODY_LENGTH));

@@ -207,7 +207,8 @@ public class NewsletterService {
     MailDraft draft(Newsletter newsletter, User user, String identifier) {
         return new MailDraft(user.getEmail(), TEMPLATE, user.getPreferredLanguage(), Map.of(
                 "displayName", user.getDisplayName(), "subject", newsletter.getSubject(),
-                "body", newsletter.getBodyMarkdown(), "unsubscribeUrl", tokens.unsubscribeUrl(user.getId())),
+                "body", newsletter.getBodyMarkdown(),
+                "bodyHtml", NewsletterMarkdown.toHtml(newsletter.getBodyMarkdown()), "unsubscribeUrl", tokens.unsubscribeUrl(user.getId())),
                 user.getId(), MailDraft.NEWSLETTER, identifier);
     }
 

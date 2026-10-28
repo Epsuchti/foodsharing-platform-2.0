@@ -1,0 +1,11 @@
+# Milestone 4 (B5 follow-up): extra MIME headers per outbox mail (List-Unsubscribe for newsletters).
+databaseChangeLog:
+  - changeSet:
+      id: 112-1
+      author: platform
+      comment: 'Extra mail headers.'
+      changes:
+        - addColumn:
+            tableName: mail_outbox
+            columns:
+              - column: {name: headers, type: VARCHAR(2000)}

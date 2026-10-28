@@ -52,6 +52,8 @@ public class MetricArchiveService {
     static final String ADVERT_SENT = "ADVERT.SENT";
     static final String ADVERT_FILLED = "ADVERT.FILLED_AFTER_ADVERT";
     static final String EXTRA_SLOT_ADDED = "EXTRA_SLOT.ADDED";
+    /** Counted live from intro pickups (never deleted, so never archived). */
+    static final String INTRO_PICKUP_DONE = "INTRO_PICKUP.DONE";
     static final int MAX_DAYS = 400;
 
     /** Key of a daily count. */
@@ -64,6 +66,7 @@ public class MetricArchiveService {
     private final SignoutCancellationRepository cancellations;
     private final PickupAutomationQueries pickups;
     private final MetricDailyCountRepository archive;
+    private final network.foodsharing.intropickup.service.IntroPickupMetrics introPickups;
     private final AutomationAuditService audits;
     private final RegionService regions;
     private final PermissionService permissions;
@@ -77,7 +80,8 @@ public class MetricArchiveService {
                                 PickupAutomationQueries pickups, MetricDailyCountRepository archive,
                                 AutomationAuditService audits, RegionService regions, PermissionService permissions,
                                 CurrentActorService currentActor, HistoryService history, AppProperties properties,
-                                Clock clock) {
+                                Clock clock, network.foodsharing.intropickup.service.IntroPickupMetrics introPickups) {
+        this.introPickups = introPickups;
         this.pickupAudits = pickupAudits;
         this.requestAudits = requestAudits;
         this.advertAudits = advertAudits;
@@ -164,6 +168,10 @@ public class MetricArchiveService {
                 cancellations.findByRegionIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(regionIds, start, end),
                 pickups.extraSlotsInRegions(regionIds, start, end), id -> zone);
         Map<String, Map<LocalDate, Long>> series = new TreeMap<>();
+        for (var done : introPickups.done(regionIds, start, end)) {
+            series.computeIfAbsent(INTRO_PICKUP_DONE, k -> new TreeMap<>()).merge(day(done.doneAt(), zone), 1L,
+                    Long::sum);
+        }
         live.forEach((key, value) -> series.computeIfAbsent(key.key(), k -> new TreeMap<>())
                 .merge(key.day(), value, Long::sum));
         for (MetricDailyCount row : archive.findByRegionIdInAndMetricDayBetween(regionIds, fromDay, toDay)) {

@@ -56,6 +56,9 @@ public class SmtpMailTransport implements MailTransport {
             helper.setFrom(mail.from());
             helper.setTo(mail.to());
             helper.setSubject(mail.subject());
+            for (java.util.Map.Entry<String, String> header : mail.headers().entrySet()) {
+                message.setHeader(header.getKey(), header.getValue());
+            }
             if (multipart) {
                 helper.setText(mail.textBody(), mail.htmlBody());
             } else {

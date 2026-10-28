@@ -66,7 +66,7 @@ public class MailDeliveryService {
         Instant now = clock.instant();
         try {
             active.send(new OutgoingMail(message.getToAddress(), properties.getMail().getFrom(), message.getSubject(),
-                    message.getTextBody(), message.getHtmlBody()));
+                    message.getTextBody(), message.getHtmlBody(), headers(message.getHeaders())));
             message.setAttempts(message.getAttempts() + 1);
             message.setStatus(MailStatus.SENT);
             message.setSentAt(now);
@@ -111,5 +111,19 @@ public class MailDeliveryService {
     private static Map<String, Object> metadata(MailOutboxMessage message) {
         return Map.of("mailId", message.getId().toString(), "template", message.getTemplate(),
                 "attempts", message.getAttempts());
+    }
+
+    /** {@code Name: value} lines → header map. */
+    static java.util.Map<String, String> headers(String stored) {
+        java.util.Map<String, String> headers = new java.util.LinkedHashMap<>();
+        if (stored != null) {
+            for (String line : stored.split("\n")) {
+                int colon = line.indexOf(':');
+                if (colon > 0) {
+                    headers.put(line.substring(0, colon).strip(), line.substring(colon + 1).strip());
+                }
+            }
+        }
+        return headers;
     }
 }

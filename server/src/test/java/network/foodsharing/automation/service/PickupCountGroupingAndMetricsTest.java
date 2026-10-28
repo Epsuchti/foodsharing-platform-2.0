@@ -122,7 +122,8 @@ class PickupCountGroupingAndMetricsTest {
         MetricArchiveService service = new MetricArchiveService(pickupAudits, requestAudits, advertAudits,
                 cancellations, pickups, archive, audits, regions, mock(PermissionService.class),
                 mock(CurrentActorService.class), mock(HistoryService.class, RETURNS_DEEP_STUBS), new AppProperties(),
-                Clock.fixed(NOW, ZoneOffset.UTC));
+                Clock.fixed(NOW, ZoneOffset.UTC),
+                mock(network.foodsharing.intropickup.service.IntroPickupMetrics.class));
         assertThat(service.archiveAndDelete()).isEqualTo(5);
         assertThat(existing.getMetricValue()).isEqualTo(6);
         assertThat(saved).extracting(MetricDailyCount::getMetricKey).containsExactlyInAnyOrder("ADVERT.SENT",
@@ -131,6 +132,32 @@ class PickupCountGroupingAndMetricsTest {
         verify(pickupAudits).deleteAll(List.of(declined));
         verify(advertAudits).deleteAll(List.of(filled, summary));
         verify(pickups).deleteExtraSlots(List.of(extra));
+    }
+
+    @Test
+    void seriesCountsDoneIntroPickupsAndMergesTheArchive() {
+        RegionService regions = mock(RegionService.class);
+        when(regions.zoneOf(REGION)).thenReturn(ZoneId.of("Europe/Zurich"));
+        when(regions.subtreeIds(REGION)).thenReturn(List.of(REGION));
+        PermissionService permissions = mock(PermissionService.class);
+        when(permissions.mayAdministrateRegion(any(), any())).thenReturn(true);
+        var intro = mock(network.foodsharing.intropickup.service.IntroPickupMetrics.class);
+        when(intro.done(any(), any(), any())).thenReturn(List.of(
+                new network.foodsharing.intropickup.service.IntroPickupMetrics.Done(REGION, NOW.minusSeconds(86_400))));
+        MetricDailyCountRepository archive = mock(MetricDailyCountRepository.class);
+        MetricDailyCount row = new MetricDailyCount();
+        row.setMetricKey("ADVERT.SENT");
+        row.setMetricDay(LocalDate.of(2026, 11, 1));
+        row.setMetricValue(4);
+        when(archive.findByRegionIdInAndMetricDayBetween(any(), any(), any())).thenReturn(List.of(row));
+        MetricArchiveService service = new MetricArchiveService(mock(PickupPolicyAuditRepository.class),
+                mock(RequestPolicyAuditRepository.class), mock(OpenSlotAdvertAuditRepository.class),
+                mock(SignoutCancellationRepository.class), mock(PickupAutomationQueries.class), archive,
+                mock(AutomationAuditService.class), regions, permissions, mock(CurrentActorService.class),
+                mock(HistoryService.class), new AppProperties(), Clock.fixed(NOW, ZoneOffset.UTC), intro);
+        var series = service.series(REGION, null, null);
+        assertThat(series.get("INTRO_PICKUP.DONE")).containsEntry(LocalDate.of(2026, 11, 19), 1L);
+        assertThat(series.get("ADVERT.SENT")).containsEntry(LocalDate.of(2026, 11, 1), 4L);
     }
 
     static Store store(String name) {

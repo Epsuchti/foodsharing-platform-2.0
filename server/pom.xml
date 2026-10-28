@@ -65,6 +65,17 @@
             <version>${shedlock.version}</version>
         </dependency>
         <!-- web push (M4, A23) -->
+        <!-- Newsletter markdown → HTML (N7), sanitised with jsoup's Safelist -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.21.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
         <dependency>
             <groupId>nl.martijndwars</groupId>
             <artifactId>web-push</artifactId>

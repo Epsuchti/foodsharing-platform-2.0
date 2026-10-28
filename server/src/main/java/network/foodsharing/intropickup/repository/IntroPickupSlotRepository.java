@@ -59,4 +59,11 @@ public interface IntroPickupSlotRepository extends JpaRepository<IntroPickupSlot
                                         @Param("from") Instant from, @Param("to") Instant to);
 
     boolean existsByIntroPickupIdAndStatusIn(UUID introPickupId, Collection<SlotStatus> statuses);
+
+    /** (region id, done at) of slots marked DONE in these regions within {@code from <= doneAt < to} (metrics). */
+    @Query("select p.regionId, s.doneAt from IntroPickupSlot s, IntroPickup p where s.introPickupId = p.id "
+            + "and s.status = network.foodsharing.intropickup.domain.SlotStatus.DONE and p.regionId in :regionIds "
+            + "and s.doneAt >= :from and s.doneAt < :to")
+    List<Object[]> doneIn(@Param("regionIds") java.util.Collection<UUID> regionIds,
+                          @Param("from") java.time.Instant from, @Param("to") java.time.Instant to);
 }
