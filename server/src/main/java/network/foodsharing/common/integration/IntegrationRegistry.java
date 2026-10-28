@@ -46,6 +46,16 @@ public class IntegrationRegistry {
         modes.put(Integration.TELEGRAM, mode("live".equals(properties.getTelegram().getMode())));
         modes.put(Integration.GEOCODING, mode(!"static".equals(properties.getGeocoding().getProvider())));
         modes.put(Integration.HOLIDAY_CALENDAR, mode(!"static".equals(properties.getAutomation().getHolidayProvider())));
+        modes.put(Integration.WALLET_APPLE, mode(properties.getWallet().getApple().isEnabled()));
+        modes.put(Integration.WALLET_GOOGLE, mode(properties.getWallet().getGoogle().isEnabled()));
+        modes.put(Integration.IMAP, Mode.LOG); // milestone 5
+        for (Map.Entry<Integration, Mode> entry : modes.entrySet()) {
+            // Log-only integrations are always "reachable"; wallets sign locally (no remote call to probe).
+            if (entry.getValue() == Mode.LOG || entry.getKey() == Integration.WALLET_APPLE
+                    || entry.getKey() == Integration.WALLET_GOOGLE) {
+                breakers.get(entry.getKey()).setProbe(() -> true);
+            }
+        }
     }
 
     private static Mode mode(boolean live) {
