@@ -5,6 +5,7 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
 import { AccountTabsComponent } from '../components/account-tabs.component';
 import { LoginMethodsCardComponent } from '../components/login-methods-card.component';
 import { PreferencesCardComponent } from '../components/preferences-card.component';
+import { PickupReminderCardComponent } from '../../pickups/components/pickup-reminder-card.component';
 
 /** /account/settings — language, theme (A12, A17) and login methods incl. passkeys (D8). */
 @Component({
@@ -13,6 +14,7 @@ import { PreferencesCardComponent } from '../components/preferences-card.compone
     AccountTabsComponent,
     LoginMethodsCardComponent,
     PageHeaderComponent,
+    PickupReminderCardComponent,
     PreferencesCardComponent,
     TPipe,
   ],
@@ -27,6 +29,7 @@ import { PreferencesCardComponent } from '../components/preferences-card.compone
     <div class="layout">
       <fs-preferences-card />
       <fs-login-methods-card [autoAddPasskey]="autoAdd()" />
+      <fs-pickup-reminder-card />
     </div>
   `,
   styles: `

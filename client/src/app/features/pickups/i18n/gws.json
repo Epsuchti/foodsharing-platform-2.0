@@ -94,5 +94,9 @@
   "pickups.past.deleteText": "D Iiträg für alli chömende Abholige i allne Betriib werded entfernt. D Betriebsteams gsehnd de Grund im Betriebsprotokoll.",
   "pickups.past.reason": "Grund",
   "pickups.past.deleteConfirm": "Künftigi Abholige lösche",
-  "pickups.past.deleted": "Alli künftige Abholige sind glöscht."
+  "pickups.past.deleted": "Alli künftige Abholige sind glöscht.",
+  "pickups.reminders.title": "Abholerinnerige",
+  "pickups.reminders.text": "E Glogge und es Mail 24 Stund vor jedere vo dine Abholige.",
+  "pickups.reminders.label": "A mini Abholige erinnere",
+  "pickups.reminders.saved": "Erinnerigsiistellig gspicheret."
 }

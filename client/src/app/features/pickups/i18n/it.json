@@ -94,5 +94,9 @@
   "pickups.past.deleteText": "Le iscrizioni a tutti i ritiri futuri in tutte le aziende vengono rimosse. I team vedono il motivo nel registro dell'azienda.",
   "pickups.past.reason": "Motivo",
   "pickups.past.deleteConfirm": "Elimina ritiri futuri",
-  "pickups.past.deleted": "Tutti i ritiri futuri sono stati eliminati."
+  "pickups.past.deleted": "Tutti i ritiri futuri sono stati eliminati.",
+  "pickups.reminders.title": "Promemoria dei ritiri",
+  "pickups.reminders.text": "Una campanella e un'e-mail 24 ore prima di ciascuno dei tuoi ritiri.",
+  "pickups.reminders.label": "Ricordami i miei ritiri",
+  "pickups.reminders.saved": "Impostazione dei promemoria salvata."
 }

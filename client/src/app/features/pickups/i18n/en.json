@@ -94,5 +94,9 @@
   "pickups.past.deleteText": "The sign-ups for all upcoming pickups in all stores are removed. The store teams see the reason in the store log.",
   "pickups.past.reason": "Reason",
   "pickups.past.deleteConfirm": "Delete future pickups",
-  "pickups.past.deleted": "All future pickups were deleted."
+  "pickups.past.deleted": "All future pickups were deleted.",
+  "pickups.reminders.title": "Pickup reminders",
+  "pickups.reminders.text": "A bell and an email 24 hours before each of your pickups.",
+  "pickups.reminders.label": "Remind me of my pickups",
+  "pickups.reminders.saved": "Reminder setting saved."
 }

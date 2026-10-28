@@ -94,5 +94,9 @@
   "pickups.past.deleteText": "Die Eintragungen für alle kommenden Abholungen in allen Betrieben werden entfernt. Die Betriebsteams sehen den Grund im Betriebsprotokoll.",
   "pickups.past.reason": "Grund",
   "pickups.past.deleteConfirm": "Künftige Abholungen löschen",
-  "pickups.past.deleted": "Alle künftigen Abholungen wurden gelöscht."
+  "pickups.past.deleted": "Alle künftigen Abholungen wurden gelöscht.",
+  "pickups.reminders.title": "Abholerinnerungen",
+  "pickups.reminders.text": "Eine Glocke und eine E-Mail 24 Stunden vor jeder deiner Abholungen.",
+  "pickups.reminders.label": "An meine Abholungen erinnern",
+  "pickups.reminders.saved": "Erinnerungseinstellung gespeichert."
 }

@@ -94,5 +94,9 @@
   "pickups.past.deleteText": "Les inscriptions à toutes les collectes à venir dans toutes les entreprises sont supprimées. Les équipes voient le motif dans le journal de l'entreprise.",
   "pickups.past.reason": "Motif",
   "pickups.past.deleteConfirm": "Supprimer les collectes futures",
-  "pickups.past.deleted": "Toutes les collectes futures ont été supprimées."
+  "pickups.past.deleted": "Toutes les collectes futures ont été supprimées.",
+  "pickups.reminders.title": "Rappels de collecte",
+  "pickups.reminders.text": "Une cloche et un e-mail 24 heures avant chacune de tes collectes.",
+  "pickups.reminders.label": "Me rappeler mes collectes",
+  "pickups.reminders.saved": "Réglage des rappels enregistré."
 }

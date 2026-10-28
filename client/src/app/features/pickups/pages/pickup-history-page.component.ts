@@ -28,6 +28,7 @@ const PAGE_SIZE = 25;
       [subtitle]="'pickups.past.subtitle' | t"
       icon="pi pi-history"
       [backLink]="own() ? '/pickups/mine' : ['/users', targetId()]"
+      [backLabel]="'common.back' | t"
     />
     <div class="toolbar">
       <p-button
