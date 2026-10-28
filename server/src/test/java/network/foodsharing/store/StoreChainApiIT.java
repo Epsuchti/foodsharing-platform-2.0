@@ -85,6 +85,26 @@ class StoreChainApiIT {
                 .andExpect(status().isOk());
     }
 
+    /** PATCH lists: absent = unchanged, [] = clear (containerDefaultToNull). */
+    @Test
+    void patchListsAbsentKeepsEmptyClears() throws Exception {
+        Cookie orga = login(SeedUsers.ORGA);
+        String created = mvc.perform(json(post("/api/store-chains").cookie(orga),
+                        "{\"name\":\"Manor\",\"kamIds\":[\"" + SeedUsers.BIEB.id() + "\"]}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String chain = "/api/store-chains/" + JsonPath.read(created, "$.id");
+        mvc.perform(json(patch(chain).cookie(orga), "{\"pressAllowed\":true}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.kams.length()").value(1));
+        mvc.perform(json(patch(chain).cookie(orga), "{\"kamIds\":[]}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.kams.length()").value(0));
+
+        String store = "/api/stores/00000020-0001-4000-8000-000000000001";
+        mvc.perform(json(patch(store).cookie(orga), "{\"publicInfo\":\"Hintereingang\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.groceries").isNotEmpty());
+        mvc.perform(json(patch(store).cookie(orga), "{\"groceryIds\":[]}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.groceries").isEmpty());
+    }
+
     @Test
     void categoryAdminWithMerge() throws Exception {
         Cookie orga = login(SeedUsers.ORGA);

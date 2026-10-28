@@ -61,6 +61,21 @@ class LiquibasePostgresIT {
         assertThat(jdbc.queryForObject("select count(*) from group_application", Integer.class)).isEqualTo(2);
         assertThat(jdbc.queryForObject("select count(*) from user_note", Integer.class)).isEqualTo(3);
 
+        // M3 changelogs 060-066 and their seeds on PostgreSQL
+        assertThat(jdbc.queryForObject("select count(*) from store", Integer.class)).isEqualTo(25);
+        assertThat(jdbc.queryForObject("select count(*) from store_membership", Integer.class)).isPositive();
+        assertThat(jdbc.queryForObject("select count(*) from store_wall_post", Integer.class)).isEqualTo(84);
+        assertThat(jdbc.queryForObject("select count(*) from pickup_weight_category", Integer.class)).isEqualTo(9);
+        assertThat(jdbc.queryForObject("select count(*) from regular_pickup", Integer.class)).isPositive();
+        assertThat(jdbc.queryForObject("select count(*) from pickup_signup", Integer.class)).isEqualTo(125);
+        assertThat(jdbc.queryForObject("select count(*) from region_function where function_key = 'STORE_CHAINS'",
+                Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from user_account where pickup_reminders_enabled",
+                Integer.class)).isEqualTo(SeedUsers.values().length);
+        assertThat(jdbc.queryForObject("select count(*) from information_schema.table_constraints "
+                + "where constraint_type = 'FOREIGN KEY' and table_name = 'intro_pickup' "
+                + "and constraint_name like '%store%'", Integer.class)).isEqualTo(1);
+
         List<String> tables =jdbc.queryForList("select table_name from information_schema.tables "
                 + "where table_schema = 'public'", String.class);
         if (tables.contains("auth_identity")) {

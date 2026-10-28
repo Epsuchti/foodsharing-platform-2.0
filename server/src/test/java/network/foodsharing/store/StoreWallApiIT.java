@@ -117,7 +117,7 @@ class StoreWallApiIT {
                 .andExpect(jsonPath("$.weightCategory.code").value("KG_10_20"))
                 .andExpect(jsonPath("$.perMember").isNotEmpty());
         mvc.perform(get("/api/stores/" + S01 + "/statistics").cookie(login(SeedUsers.FOODSAVER)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.perMember").isEmpty());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.perMember").doesNotExist());
     }
 
     @Test

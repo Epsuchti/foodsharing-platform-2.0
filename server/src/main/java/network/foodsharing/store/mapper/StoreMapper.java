@@ -273,7 +273,7 @@ public class StoreMapper {
         StoreAddress a = p.getAddress() == null ? new StoreAddress() : p.getAddress();
         StoreContact k = p.getContact() == null ? new StoreContact() : p.getContact();
         return new StoreInput(p.getName(), a.getStreet(), a.getPostcode(), a.getCity(), a.getCountry(),
-                p.getLatitude(), p.getLongitude(), p.getCategoryId(), p.getChainId(), emptyAsUnchanged(p.getGroceryIds()),
+                p.getLatitude(), p.getLongitude(), p.getCategoryId(), p.getChainId(), p.getGroceryIds(),
                 convert(p.getCooperationStatus(), network.foodsharing.store.domain.CooperationStatus.class),
                 p.getCooperationStart(), convert(p.getConvinceStatus(), network.foodsharing.store.domain.ConvinceStatus.class),
                 k.getPerson(), k.getPhone(), k.getFax(), k.getEmail(),
@@ -353,14 +353,6 @@ public class StoreMapper {
                 hq == null ? null : hq.getCity(), hq == null ? null : hq.getCountry(),
                 u.getStatus() == null ? null : network.foodsharing.store.domain.StoreChainStatus.valueOf(u.getStatus().name()),
                 u.getPressAllowed(), u.getForumThreadId(), u.getNotes(), u.getCommonStoreInformation(),
-                u.getEstimatedStoreCount(), emptyAsUnchanged(u.getKamIds()));
-    }
-
-    /**
-     * Generated models initialise arrays with an empty list, so an omitted array cannot be told apart from an empty
-     * one; on PATCH-like updates an empty list therefore means "unchanged" (decision recorded with B7).
-     */
-    static <T> List<T> emptyAsUnchanged(List<T> values) {
-        return values == null || values.isEmpty() ? null : values;
+                u.getEstimatedStoreCount(), u.getKamIds());
     }
 }
