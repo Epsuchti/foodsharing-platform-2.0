@@ -130,6 +130,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/mailboxes/mailboxes.routes').then((m) => m.MAILBOXES_ROUTES),
   },
   {
+    path: 'admin',
+    loadChildren: () => import('./features/admin-ops/admin-ops.routes').then((m) => m.ADMIN_OPS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

@@ -27,6 +27,7 @@ export const FEATURE_PREFIX_OVERRIDES = {
   'intro-pickups': 'introPickups.',
   'store-chains': 'storeChains.',
   'store-categories': 'storeCategories.',
+  'admin-ops': 'adminOps.',
 };
 
 /** Returns the module id ("core", "shared", "layout", "features/<m>") of a path below src/app, or null. */
