@@ -32,4 +32,18 @@ export const INTRO_PICKUPS_ROUTES: Routes = [
     title: 'introPickups.my.pageTitle',
     loadComponent: () => import('./pages/my-bookings-page.component').then((m) => m.MyBookingsPageComponent),
   },
+  {
+    path: 'guide',
+    canActivate: [authGuard],
+    title: 'introPickups.guide.pageTitle',
+    loadComponent: () =>
+      import('./pages/guide-dashboard-page.component').then((m) => m.GuideDashboardPageComponent),
+  },
+  {
+    path: 'guide/settings',
+    canActivate: [authGuard],
+    title: 'introPickups.settings.pageTitle',
+    loadComponent: () =>
+      import('./pages/guide-settings-page.component').then((m) => m.GuideSettingsPageComponent),
+  },
 ];

@@ -9,6 +9,7 @@ import { SessionService } from '../../core/auth/session.service';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { isOnline, isoToZonedLocal, zonedLocalToIso } from './intro-category';
 import { BookableListPageComponent } from './pages/bookable-list-page.component';
+import { GuideDashboardPageComponent } from './pages/guide-dashboard-page.component';
 import { MyBookingsPageComponent } from './pages/my-bookings-page.component';
 import { UnsubscribePageComponent } from './pages/unsubscribe-page.component';
 
@@ -76,6 +77,7 @@ describe('intro pickup pages', () => {
             { path: 'intro-pickups', component: BookableListPageComponent },
             { path: 'intro-pickups/unsubscribe', component: UnsubscribePageComponent },
             { path: 'me/intro-pickups', component: MyBookingsPageComponent },
+            { path: 'guide', component: GuideDashboardPageComponent },
           ],
         }),
         provideOptimus(),
@@ -150,5 +152,50 @@ describe('intro pickup pages', () => {
     req.flush({ message: 'ok' });
     await fixture.whenStable();
     expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="introPickups.unsubscribe.done"]')).not.toBeNull();
+  });
+
+  it('guide: no guide regions → empty state', async () => {
+    await harness.navigateByUrl('/guide');
+    http.expectOne('/api/guide/regions').flush([]);
+    http.expectOne('/api/guide/ical-candidates').flush([]);
+    http.expectOne('/api/guide/private-info-templates').flush([]);
+    await settle();
+    expect(q('[data-testid="introPickups.guide.regionsState"]')?.getAttribute('data-state')).toBe('empty');
+  });
+
+  it('guide: EinAbs of the guide region with slots', async () => {
+    await harness.navigateByUrl('/guide');
+    http.expectOne('/api/guide/regions').flush([{ id: REGION, slug: 'zuerich-stadt', name: 'Zürich Stadt', type: 'REGION' }]);
+    await settle();
+    http.expectOne('/api/guide/ical-candidates').flush([]);
+    http.expectOne('/api/guide/private-info-templates').flush([]);
+    http
+      .expectOne((req) => req.url === `/api/regions/${REGION}/guide/intro-pickups`)
+      .flush({
+        items: [
+          {
+            id: 'e1',
+            regionId: REGION,
+            category: 'BAKERY',
+            startAt: '2026-11-08T17:00:00Z',
+            guide: { id: 'g', displayName: 'Julien', role: Role.Foodsaver, verified: true },
+            slotCount: 2,
+            visitFairteiler: false,
+            booked: true,
+            slots: [
+              { id: 's1', status: 'BOOKED', bookingUser: { id: 'u', displayName: 'Luca', role: Role.Foodsharer, verified: false }, commentCount: 2 },
+              { id: 's2', status: 'AVAILABLE' },
+            ],
+          },
+        ],
+        page: { page: 0, size: 100, totalItems: 1, totalPages: 1 },
+      });
+    await settle();
+    expect(qa('[data-testid="introPickups.guide.einab"]').length).toBe(1);
+    expect(qa('[data-testid="introPickups.slot"]').length).toBe(2);
+    expect(q('[data-testid="introPickups.slot.cancel"]')).not.toBeNull();
+    expect(q('[data-testid="introPickups.slot.bookFor"]')).not.toBeNull();
+    expect(q('[data-testid="introPickups.slot.commentCount"]')?.textContent?.trim()).toBe('2');
+    expect(q('[data-testid="introPickups.guide.ical"]')).toBeNull();
   });
 });

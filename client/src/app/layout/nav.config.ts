@@ -44,7 +44,7 @@ export const M2_PAGES_READY = {
   quizzes: true,
   introPickups: true,
   passport: false,
-  guide: false,
+  guide: true,
   newcomers: false,
   verification: false,
   users: true,
