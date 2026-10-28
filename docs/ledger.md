@@ -49,7 +49,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | S6 | Apply to team (with text if required), accept/decline with required message, cancel request | done | StoreTeamService | store team tab | tests/stores @S6 | stores-team.screen.ts (baseline pending) |  |
 | S7 | Invitations (store managers invite; user accepts/declines; withdraw) | done | StoreTeamService | store team tab | tests/stores @S7 | stores-team.screen.ts (baseline pending) |  |
 | S8 | Move to/from standby, remove member (required message), appoint/remove store manager | done | StoreTeamService | store team tab | tests/stores @S8 | stores-team.screen.ts (baseline pending) |  |
-| S9 | Team list: phone buttons (permission-dependent), last pickup, pickup count, distance to store, sleep mode | in-progress | team list | team tab | s9-team-list @S9 | | phone buttons need TeamMember phone (backend) |
+| S9 | Team list: phone buttons (permission-dependent), last pickup, pickup count, distance to store, sleep mode | done | TeamMember.phone | team tab | s9-team-list @S9 | | phone buttons need frontend update for TeamMember.phone |
 | S10 | Team chat and jumper (standby) chat, auto-membership | todo | | | | | |
 | S11 | Store wall / notes with milestones (cooperation start, status changes) and delete rules per permission table | todo | | | | | |
 | S12 | Store log (§10.2) with date range and action filter | todo | | | | | |
