@@ -20,6 +20,6 @@ Single source of truth: `plan.md`. Build state: `docs/ledger.md`. Decisions: `do
 - Every data-loading UI element uses `DataState` (`loadResource`) and `<fs-data-state>` with skeleton, empty, error + retry, forbidden, not-found and offline states. Mutations use `runMutation`.
 - New UI text in all five languages (`de`, `en`, `gws`, `fr`, `it`); `npm run i18n:check` must pass.
 - Seed data updated with every new entity (`db/seed/`, context `seed`, fixed UUIDs, see `docs/seed-ids.md`).
-- Every feature gets a Playwright e2e test tagged with its feature ID (`@S6`) and screenshot tests for its states. Screenshot baselines are only updated deliberately (`e2e/scripts/screenshots.sh --update-snapshots`), never to make a failing test pass by accident.
+- Every feature gets a Playwright e2e test tagged with its feature ID (`@S6`) and screenshot specs for its states. Baselines are generated in batch at the end, not per task (decision 69). Screenshot baselines are only updated deliberately (`e2e/scripts/screenshots.sh --update-snapshots`), never to make a failing test pass by accident.
 - Tests are never skipped, disabled or weakened to get green. Fix the code.
 - `data-testid="<module>.<page>.<element>"` on interactive elements.
