@@ -221,15 +221,23 @@ public class PastImportService {
         List<Row> toCreate = rows.stream().filter(r -> r.status == Status.CREATE).toList();
         UUID jobId = rows.size() > JOB_THRESHOLD ? tracker.start(adminId, toCreate.size()) : null;
         int done = 0;
-        for (Row row : toCreate) {
-            IntroPickupSlot slot = admin.createPastBooking(regionId, adminId, row.userId, row.category, row.start,
-                    row.store, row.visitFairteiler, true, row.notCounted);
-            if (!row.feedback.isEmpty()) {
-                admin.addComment(slot, adminId, truncate(row.feedback), true);
+        try {
+            for (Row row : toCreate) {
+                IntroPickupSlot slot = admin.createPastBooking(regionId, adminId, row.userId, row.category, row.start,
+                        row.store, row.visitFairteiler, true, row.notCounted);
+                if (!row.feedback.isEmpty()) {
+                    admin.addComment(slot, adminId, truncate(row.feedback), true);
+                }
+                if (jobId != null && ++done % 50 == 0) {
+                    tracker.progress(jobId, done);
+                }
             }
-            if (jobId != null && ++done % 50 == 0) {
-                tracker.progress(jobId, done);
+        } catch (RuntimeException e) {
+            // the transaction rolls back; the job must not stay RUNNING for the polling client
+            if (jobId != null) {
+                tracker.fail(jobId, "IMPORT_FAILED");
             }
+            throw e;
         }
         if (jobId != null) {
             tracker.complete(jobId, null);
@@ -295,6 +303,9 @@ public class PastImportService {
             }
         }
         Set<String> seenInFile = new HashSet<>();
+        // Members of the region or of a region below it (Zürich: newcomers join a Kreis, EinAbs belong to the city).
+        Set<UUID> regionMembers = byNumber.isEmpty() ? Set.of()
+                : regions.activeMembersAmong(regions.subtreeIds(regionId), userIds);
         for (Row row : rows) {
             User user = row.foodsaverNumber == null ? null : byNumber.get(row.foodsaverNumber);
             if (row.foodsaverNumber != null && user == null) {
@@ -303,7 +314,7 @@ public class PastImportService {
             if (user != null) {
                 row.userId = user.getId();
                 row.userDisplayName = user.getDisplayName();
-                if (!resolver.isMember(user.getId(), regionId)) {
+                if (!regionMembers.contains(user.getId())) {
                     row.reasons.add(Reason.USER_OTHER_REGION);
                 }
             }
@@ -402,18 +413,19 @@ public class PastImportService {
         }
     }
 
+    /** Category labels of the EinAb table; case, umlauts, spaces and punctuation are ignored ("Take-Away"). */
     static IntroPickupCategory mapCategory(String raw, Row row) {
-        String key = raw.toLowerCase(Locale.ROOT).trim();
+        String key = storeKey(raw);
         return switch (key) {
             case "lebensmittelladen", "supermarkt", "laden" -> IntroPickupCategory.SUPERMARKET;
             case "restaurant" -> IntroPickupCategory.RESTAURANT;
-            case "bäckerei", "baeckerei" -> IntroPickupCategory.BAKERY;
-            case "takeout", "take-out", "takeaway" -> IntroPickupCategory.TAKEOUT;
+            case "baeckerei" -> IntroPickupCategory.BAKERY;
+            case "takeout", "takeaway" -> IntroPickupCategory.TAKEOUT;
             case "markt" -> IntroPickupCategory.MARKET;
             case "messe" -> IntroPickupCategory.MESSE;
             // Both categories exist; this combined label means a large pick-up at a fair.
-            case "messe/grossabholung", "grossabholung" -> IntroPickupCategory.GROSSABHOLUNG;
-            case "ft-besuch", "ft-reinigung", "fairteiler" -> {
+            case "messegrossabholung", "grossabholung" -> IntroPickupCategory.GROSSABHOLUNG;
+            case "ftbesuch", "ftreinigung", "fairteiler" -> {
                 row.reasons.add(Reason.CATEGORY_MAPPED);
                 yield IntroPickupCategory.FAIRTEILER_CLEANING;
             }
@@ -430,7 +442,8 @@ public class PastImportService {
     private void applyStoreNames(UUID regionId, List<Row> rows) {
         Map<String, String> aliasNames = new HashMap<>();
         for (IntroPickupStoreAlias alias : aliases.findByRegionIdOrderByAliasKeyAsc(regionId)) {
-            aliasNames.put(alias.getAliasKey(), alias.getStoreName());
+            // keys stored before umlaut folding ("bäckerei") are folded here, so old and new aliases both match
+            aliasNames.put(storeKey(alias.getAliasKey()), alias.getStoreName());
         }
         Map<String, String> existing = new HashMap<>();
         for (String name : pickups.findBusinessNames(regionId)) {
@@ -465,10 +478,17 @@ public class PastImportService {
         }
     }
 
-    /** Lower-case letters and digits only (also the alias key). */
+    /**
+     * Lower-case letters and digits only (also the alias key); German umlauts are folded to ae/oe/ue/ss and other
+     * accents dropped, so "Bäckerei Müller", "BAECKEREI MUELLER" and "Bäckerei Müller" (decomposed) are one store.
+     * Idempotent: {@code storeKey(storeKey(x)) == storeKey(x)}.
+     */
     public static String storeKey(String name) {
+        String folded = java.text.Normalizer.normalize(name.toLowerCase(Locale.ROOT), java.text.Normalizer.Form.NFC)
+                .replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+        folded = java.text.Normalizer.normalize(folded, java.text.Normalizer.Form.NFD);
         StringBuilder key = new StringBuilder();
-        for (char c : name.toLowerCase(Locale.ROOT).toCharArray()) {
+        for (char c : folded.toCharArray()) {
             if (Character.isLetterOrDigit(c)) {
                 key.append(c);
             }

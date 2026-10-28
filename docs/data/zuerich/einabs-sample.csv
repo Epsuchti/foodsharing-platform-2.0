@@ -1,0 +1,11 @@
+ID;Datum;No.;Betrieb;Kategorie;EinAb-Geber;FT-Besuch;Feedback
+900001;03.03.2026;1;Coop Muster Bahnhof 1;Supermarkt;Guide A;nein;Sehr motiviert und pünktlich
+900001;03.03.2026;1;coop muster bahnhof 1;Supermarkt;Guide A;nein;doppelt erfasst
+900001;10.03.26;2;Baeckerei Muster Eins;Bäckerei;Guide B;ja;"Gut gemacht;
+Fairteiler besucht"
+900002;17.03.2026;1;Migros Muster Platz 2;Lebensmittelladen;Guide A;nein;ok
+900002;24.03.2026;x;Migros Muster Platz 2;Supermarkt;Guide A;nein;nicht erschienen
+900003;17.03.2026;1;Denner Muster Strasse 3;Supermarkt;Guide B;nein;gehört zu Winterthur
+900099;17.03.2026;1;Denner Muster Strasse 3;Supermarkt;Guide B;nein;Nummer unbekannt
+900001;29.03.2026;3;Take-away Muster 9;Take-Away;Guide B;nein;prima
+900002;29.03.2026;2;MIGROS MUSTER PLATZ 2;Lebensmittelladen;Guide A;nein;Sommerzeit-Umstellung

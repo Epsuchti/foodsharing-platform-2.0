@@ -4,13 +4,15 @@
 //   node scripts/import-csv.mjs regions <file> --base-url <url> --session <fs_session> [--confirm]
 //   node scripts/import-csv.mjs stores  <file> --base-url <url> --session <fs_session> --region <slug> [--confirm]
 //   node scripts/import-csv.mjs einabs  <file> --base-url <url> --session <fs_session> --region <slug> [--confirm]
+//   node scripts/import-csv.mjs aliases <file> --base-url <url> --session <fs_session> --region <slug> [--confirm]
+//     (EinAb store aliases, columns alias,store_name; existing aliases are reported and skipped)
 //
 // Dry run by default (prints the preview); --confirm imports. The session is the value of the fs_session cookie of an
 // ORGA (regions) / store coordinator or ambassador (stores, einabs) after a normal magic-link login in the browser.
 // Never use a dev endpoint for this. Exit code 0 = no row errors, 2 = rows with errors, 1 = request failed.
 import fs from 'node:fs';
 
-const USAGE = 'usage: import-csv.mjs regions|stores|einabs <file> --base-url <url> --session <fs_session> '
+const USAGE = 'usage: import-csv.mjs regions|stores|einabs|aliases <file> --base-url <url> --session <fs_session> '
   + '[--region <slug>] [--confirm] [--json]';
 
 function parseArgs(argv) {
@@ -69,6 +71,48 @@ async function regionId(client, slug) {
   return (await client.request('GET', `/api/public/regions/${encodeURIComponent(slug)}`)).id;
 }
 
+/** Minimal CSV reader for the aliases file: comma separated, double quotes, # comment lines, header row. */
+export function parseSimpleCsv(text) {
+  const rows = [];
+  for (const raw of text.replace(/^\uFEFF/, '').split(/\r?\n/)) {
+    if (!raw.trim() || raw.trim().startsWith('#')) continue;
+    const cells = [];
+    let cell = '';
+    let quoted = false;
+    for (let i = 0; i < raw.length; i++) {
+      const c = raw[i];
+      if (quoted && c === '"' && raw[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') quoted = !quoted;
+      else if (c === ',' && !quoted) { cells.push(cell.trim()); cell = ''; }
+      else cell += c;
+    }
+    cells.push(cell.trim());
+    rows.push(cells);
+  }
+  return rows;
+}
+
+async function importAliases(client, regionUuid, csv, dryRun, log) {
+  const rows = parseSimpleCsv(csv).filter((r) => r[0].toLowerCase() !== 'alias');
+  const existing = await client.request('GET', `/api/regions/${regionUuid}/admin/store-aliases`);
+  const key = (s) => s.toLowerCase().normalize('NFC').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss').normalize('NFD').replace(/[^\p{L}\p{N}]/gu, '');
+  const known = new Set((existing.items ?? existing).map((a) => key(a.aliasKey)));
+  let created = 0;
+  let skipped = 0;
+  let errors = 0;
+  for (const [alias, storeName] of rows) {
+    if (!alias || !storeName) { errors++; log(`  ERROR ${alias ?? ''} -> ${storeName ?? ''} [MISSING_VALUE]`); continue; }
+    if (known.has(key(alias))) { skipped++; log(`  UNCHANGED ${alias} -> ${storeName}`); continue; }
+    if (!dryRun) await client.request('POST', `/api/regions/${regionUuid}/admin/store-aliases`, { aliasKey: alias, storeName });
+    known.add(key(alias));
+    created++;
+    log(`  CREATE ${alias} -> ${storeName}`);
+  }
+  log(`aliases: created=${created} skipped=${skipped} errors=${errors} dryRun=${dryRun}`);
+  return errors;
+}
+
 async function waitForJob(client, jobId) {
   for (let i = 0; i < 600; i++) {
     const job = await client.request('GET', `/api/jobs/${jobId}`);
@@ -80,7 +124,7 @@ async function waitForJob(client, jobId) {
 
 function printRows(rows, columns) {
   for (const row of rows) {
-    const problems = [...(row.errors ?? []), ...(row.warnings ?? [])];
+    const problems = [...(row.errors ?? []), ...(row.warnings ?? []), ...(row.reasons ?? [])];
     console.log(`  ${columns.map((c) => row[c] ?? '').join(' | ')}${problems.length ? `  [${problems.join(', ')}]` : ''}`);
   }
 }
@@ -115,7 +159,7 @@ export async function run(argv, log = console.log) {
     if (dryRun) {
       result = await client.request('POST', `/api/regions/${id}/admin/past-import/preview`, { csv });
       const c = result.counts;
-      if (!args.json) printRows(result.rows.filter((r) => r.status !== 'CREATE'), ['line', 'status', 'name', 'date', 'store']);
+      if (!args.json) printRows(result.rows.filter((r) => r.status !== 'CREATE' || r.reasons?.length), ['line', 'status', 'foodsaverNumber', 'rawDate', 'store']);
       log(`einabs: total=${c.totalRows} willCreate=${c.willCreate} willSkip=${c.willSkip} `
         + `needsAttention=${c.needsAttention} knownUsers=${c.knownUsers} unknownUsers=${c.unknownUsers} dryRun=true`);
       errors = c.needsAttention;
@@ -129,6 +173,8 @@ export async function run(argv, log = console.log) {
       log(`einabs: created=${result.created} skipped=${result.skipped} needsAttention=${result.needsAttention} dryRun=false`);
       errors = errors || result.needsAttention;
     }
+  } else if (kind === 'aliases') {
+    errors = await importAliases(client, await regionId(client, args.region), csv, dryRun, log);
   } else {
     throw new Error(USAGE);
   }

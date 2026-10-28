@@ -1,0 +1,5 @@
+# MODEL pending confirmation by the Zuerich EinAb team - spellings of the EinAb table mapped to the store name used on the platform.
+# Import with: node scripts/import-csv.mjs aliases docs/data/zuerich/store-aliases.csv --region zuerich-stadt --base-url URL --session TOKEN --confirm
+alias,store_name
+BÄCKEREI MUSTER EINS,Bäckerei Muster Eins 4
+Coop Bahnhof,Coop Muster Bahnhof 1
