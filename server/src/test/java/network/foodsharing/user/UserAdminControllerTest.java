@@ -60,6 +60,9 @@ class UserAdminControllerTest {
     private network.foodsharing.user.service.EmailChangePort emailChangePort;
 
     @MockitoBean
+    private network.foodsharing.user.service.AccountDeletionService accountDeletionService;
+
+    @MockitoBean
     private UserService userService;
 
     @MockitoBean

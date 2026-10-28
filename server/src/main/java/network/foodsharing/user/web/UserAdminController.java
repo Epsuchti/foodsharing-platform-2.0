@@ -44,11 +44,14 @@ public class UserAdminController implements AdminUsersApi {
     private final HistoryMapper historyMapper;
     private final network.foodsharing.user.service.UserAccountService account;
     private final network.foodsharing.user.service.EmailChangePort emailChange;
+    private final network.foodsharing.user.service.AccountDeletionService deletion;
 
     public UserAdminController(UserService userService, UserAdminService adminService, UserMapper mapper,
                                HistoryQueryService historyQueryService, HistoryMapper historyMapper,
                                network.foodsharing.user.service.UserAccountService account,
-                               network.foodsharing.user.service.EmailChangePort emailChange) {
+                               network.foodsharing.user.service.EmailChangePort emailChange,
+                               network.foodsharing.user.service.AccountDeletionService deletion) {
+        this.deletion = deletion;
         this.account = account;
         this.emailChange = emailChange;
         this.userService = userService;
@@ -99,7 +102,8 @@ public class UserAdminController implements AdminUsersApi {
 
     @Override
     public ResponseEntity<Void> adminDeleteUser(UUID userId, AccountDeletion accountDeletion) {
-        throw ApiException.notImplemented("adminDeleteUser");
+        deletion.deleteByOrga(userId, accountDeletion == null ? null : accountDeletion.getReason());
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -136,6 +140,7 @@ public class UserAdminController implements AdminUsersApi {
 
     @Override
     public ResponseEntity<Void> setNoAutomaticDelete(UUID userId, BooleanValue booleanValue) {
-        throw ApiException.notImplemented("setNoAutomaticDelete");
+        deletion.setNoAutomaticDelete(userId, Boolean.TRUE.equals(booleanValue.getValue()));
+        return ResponseEntity.noContent().build();
     }
 }

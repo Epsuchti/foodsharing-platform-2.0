@@ -40,7 +40,7 @@ public class ProfileAccountData implements AccountDeletionContributor, DataExpor
 
     @Override
     public String section() {
-        return "profile";
+        return "community";
     }
 
     @Override

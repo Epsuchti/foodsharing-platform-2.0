@@ -122,6 +122,12 @@ public class UploadService {
         return upload;
     }
 
+    /** Uploads owned by a user, oldest first (GDPR export, A21). */
+    @Transactional(readOnly = true)
+    public List<Upload> ownedBy(UUID ownerUserId) {
+        return repository.findByOwnerUserIdOrderByCreatedAt(ownerUserId);
+    }
+
     @Transactional(readOnly = true)
     public Upload find(UUID uploadId) {
         return repository.findById(uploadId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.UPLOAD_NOT_FOUND));
