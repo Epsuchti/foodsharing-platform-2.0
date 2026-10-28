@@ -366,5 +366,6 @@
   "history.action.OAUTH_CLIENT.SECRET_ROTATED": "Secret rotated",
   "history.action.OAUTH_CLIENT.CONSENT_GRANTED": "Access granted",
   "history.action.OAUTH_CLIENT.CONSENT_REVOKED": "Access revoked",
-  "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Access token issued"
+  "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Access token issued",
+  "history.action.USER.INACTIVITY_WARNED": "Inactivity warning sent"
 }

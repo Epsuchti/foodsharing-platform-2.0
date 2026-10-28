@@ -25,8 +25,12 @@ public class RegionMaintenanceJob implements RunnableJob {
 
     private final network.foodsharing.user.service.UserService users;
 
+    private final org.springframework.beans.factory.ObjectProvider<InactiveAccountWarning> inactiveWarning;
+
     public RegionMaintenanceJob(JobRunner jobRunner, MembershipService memberships,
-                                network.foodsharing.user.service.UserService users) {
+                                network.foodsharing.user.service.UserService users,
+                                org.springframework.beans.factory.ObjectProvider<InactiveAccountWarning> inactiveWarning) {
+        this.inactiveWarning = inactiveWarning;
         this.jobRunner = jobRunner;
         this.memberships = memberships;
         this.users = users;
@@ -52,6 +56,11 @@ public class RegionMaintenanceJob implements RunnableJob {
         int woken = users.wakeUpExpiredSleepers();
         if (woken > 0) {
             log.info("Region maintenance ended {} temporary sleep modes", woken);
+        }
+        InactiveAccountWarning warning = inactiveWarning.getIfAvailable();
+        int warned = warning == null ? 0 : warning.warn();
+        if (warned > 0) {
+            log.info("Region maintenance warned {} inactive accounts", warned);
         }
     }
 }

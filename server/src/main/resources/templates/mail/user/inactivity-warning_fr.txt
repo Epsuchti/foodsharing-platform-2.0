@@ -1,0 +1,9 @@
+Bonjour [(${displayName})],
+
+tu ne t'es pas connecté·e à foodsharing depuis plus de [(${days})] jours. Si tu souhaites garder ton compte, connecte-toi à nouveau :
+
+[(${link})]
+
+Si tu ne veux plus utiliser foodsharing, tu peux supprimer ton compte dans les paramètres.
+
+Ton équipe foodsharing

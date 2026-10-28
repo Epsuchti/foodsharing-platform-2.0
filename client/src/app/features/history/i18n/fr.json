@@ -366,5 +366,6 @@
   "history.action.OAUTH_CLIENT.SECRET_ROTATED": "Secret renouvelé",
   "history.action.OAUTH_CLIENT.CONSENT_GRANTED": "Accès autorisé",
   "history.action.OAUTH_CLIENT.CONSENT_REVOKED": "Accès révoqué",
-  "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Jeton d'accès émis"
+  "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Jeton d'accès émis",
+  "history.action.USER.INACTIVITY_WARNED": "Avertissement d'inactivité envoyé"
 }

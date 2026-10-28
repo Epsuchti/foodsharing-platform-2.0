@@ -1,0 +1,9 @@
+Hallo [(${displayName})],
+
+du hast dich seit mehr als [(${days})] Tagen nicht mehr bei foodsharing angemeldet. Wenn du dein Konto behalten möchtest, melde dich bitte wieder an:
+
+[(${link})]
+
+Wenn du foodsharing nicht mehr nutzen möchtest, kannst du dein Konto in den Einstellungen löschen.
+
+Dein foodsharing-Team

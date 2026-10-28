@@ -207,6 +207,8 @@ public class AppProperties {
         private double suggestionRadiusKm = 50;
         /** Group mails per user and hour. */
         private int groupMailsPerHour = 5;
+        /** Days without login after which region maintenance sends a warning mail; 0 = disabled (A13). */
+        private int inactiveDays = 0;
     }
 
     @Getter

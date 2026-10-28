@@ -11,4 +11,11 @@ public interface UploadStorage {
     InputStream open(String key) throws IOException;
 
     void delete(String key) throws IOException;
+
+    /** A stored file: its key and last modification. */
+    record StoredFile(String key, java.time.Instant modifiedAt) {
+    }
+
+    /** Every stored file (orphan clean-up); keys use {@code /} as separator. */
+    java.util.List<StoredFile> list() throws IOException;
 }

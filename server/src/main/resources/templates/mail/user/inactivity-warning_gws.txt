@@ -1,0 +1,9 @@
+Hoi [(${displayName})],
+
+du häsch di sit meh als [(${days})] Täg nöd meh bi foodsharing aagmeldet. Wenn du dis Konto wätsch bhalte, meld di bitte wieder aa:
+
+[(${link})]
+
+Wenn du foodsharing nöd meh bruuche wätsch, chasch dis Konto i de Iistellige lösche.
+
+Dis foodsharing-Team

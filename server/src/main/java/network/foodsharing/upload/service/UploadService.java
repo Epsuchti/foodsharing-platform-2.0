@@ -256,6 +256,34 @@ public class UploadService {
         return expired.size();
     }
 
+    /**
+     * Removes variant files ({@code <storage_key>_<size>}) whose upload row is gone (A41, UploadCleanup); files younger
+     * than an hour are left alone so a variant written before its row commits is never removed.
+     */
+    @Transactional(readOnly = true)
+    public int deleteOrphanVariants(Instant now) {
+        List<UploadStorage.StoredFile> files;
+        try {
+            files = storage.list();
+        } catch (IOException | UncheckedIOException e) {
+            LOG.warn("Could not list upload files: {}", e.getMessage());
+            return 0;
+        }
+        Instant cutoff = now.minus(Duration.ofHours(1));
+        int deleted = 0;
+        for (UploadStorage.StoredFile file : files) {
+            int underscore = file.key().lastIndexOf('_');
+            if (underscore < 0 || !images.isSize(file.key().substring(underscore + 1))
+                    || !file.modifiedAt().isBefore(cutoff)
+                    || repository.existsByStorageKey(file.key().substring(0, underscore))) {
+                continue;
+            }
+            deleteQuietly(file.key());
+            deleted++;
+        }
+        return deleted;
+    }
+
     public boolean isAllowed(String mimeType) {
         return properties.getUploads().getAllowedTypes().stream()
                 .anyMatch(allowed -> allowed.trim().equalsIgnoreCase(mimeType));

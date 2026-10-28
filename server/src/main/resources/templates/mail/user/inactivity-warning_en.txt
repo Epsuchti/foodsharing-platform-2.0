@@ -1,0 +1,9 @@
+Hello [(${displayName})],
+
+you have not logged in to foodsharing for more than [(${days})] days. If you want to keep your account, please log in again:
+
+[(${link})]
+
+If you no longer want to use foodsharing, you can delete your account in the settings.
+
+Your foodsharing team

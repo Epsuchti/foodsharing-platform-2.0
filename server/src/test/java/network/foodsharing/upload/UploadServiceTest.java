@@ -63,6 +63,9 @@ class UploadServiceTest {
     @Autowired
     private MutableClock clock;
 
+    @Autowired
+    private network.foodsharing.upload.service.UploadStorage storage;
+
     private UUID me;
     private UUID other;
 
@@ -136,5 +139,20 @@ class UploadServiceTest {
         assertThat(uploads.deleteExpired(clock.instant().plus(Duration.ofHours(25)))).isEqualTo(1);
         assertThat(repository.findById(unclaimed.getId())).isEmpty();
         assertThat(repository.findById(claimed.getId())).isPresent();
+    }
+
+    @Test
+    void orphanVariantFilesAreRemoved() throws Exception {
+        Upload kept = pdf(me);
+        String orphan = "orphan/" + UUID.randomUUID();
+        storage.write(kept.getStorageKey() + "_sm", new byte[] {1});
+        storage.write(orphan + "_md", new byte[] {1});
+        storage.write(orphan + "_original", new byte[] {1});
+        java.time.Instant later = java.time.Instant.parse("2999-01-01T00:00:00Z");
+        assertThat(uploads.deleteOrphanVariants(later)).isPositive();
+        storage.open(kept.getStorageKey() + "_sm").close();
+        storage.open(orphan + "_original").close();
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> storage.open(orphan + "_md"))
+                .isInstanceOf(java.io.IOException.class);
     }
 }

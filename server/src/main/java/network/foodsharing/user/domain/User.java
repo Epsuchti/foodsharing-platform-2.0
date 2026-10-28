@@ -180,6 +180,10 @@ public class User extends BaseEntity implements HistorySubject {
     @Column(name = "email_bounced_at")
     private java.time.Instant emailBouncedAt;
 
+    /** Last inactive-account warning mail (region maintenance, A13); null = never. */
+    @Column(name = "inactivity_warned_at")
+    private Instant inactivityWarnedAt;
+
     @Column(name = "no_automatic_delete", nullable = false)
     private boolean noAutomaticDelete;
 

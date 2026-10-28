@@ -1,6 +1,7 @@
 package network.foodsharing.user.service;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -295,6 +296,21 @@ public class UserService {
         user.setSleepUntil(newUntil);
         user.setSleepMessage(newMessage);
         return user;
+    }
+
+    /** Maintenance (A13): accounts without login since {@code cutoff} that were not warned since their last login. */
+    @Transactional(readOnly = true)
+    public List<User> inactiveUnwarned(Instant cutoff) {
+        return repository.findInactiveUnwarned(cutoff);
+    }
+
+    /** Maintenance (A13): the inactive-account warning mail went out (actor SYSTEM). */
+    @Transactional
+    public void markInactivityWarned(UUID userId) {
+        User user = repository.findById(userId).orElseThrow();
+        history.record(history.event(UserAction.INACTIVITY_WARNED, userId)
+                .metadata("lastLoginAt", String.valueOf(user.getLastLoginAt())).build());
+        user.setInactivityWarnedAt(clock.instant());
     }
 
     /** Maintenance (A39): TEMPORARY sleep modes whose period ended go back to NONE (actor SYSTEM). */

@@ -34,6 +34,23 @@ public class DiskUploadStorage implements UploadStorage {
         Files.deleteIfExists(resolve(key));
     }
 
+    @Override
+    public java.util.List<StoredFile> list() throws IOException {
+        if (!Files.isDirectory(root)) {
+            return java.util.List.of();
+        }
+        try (java.util.stream.Stream<Path> files = Files.walk(root)) {
+            return files.filter(Files::isRegularFile).map(path -> {
+                try {
+                    return new StoredFile(root.relativize(path).toString().replace(java.io.File.separatorChar, '/'),
+                            Files.getLastModifiedTime(path).toInstant());
+                } catch (IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+            }).toList();
+        }
+    }
+
     private Path resolve(String key) {
         Path path = root.resolve(key).normalize();
         if (!path.startsWith(root)) {

@@ -10,6 +10,12 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
+    /** Not deleted, not protected, no login (or registration) since {@code cutoff}, not warned since then (A13). */
+    @Query("select u from User u where u.deletedAt is null and u.noAutomaticDelete = false "
+            + "and coalesce(u.lastLoginAt, u.registeredAt) < :cutoff and (u.inactivityWarnedAt is null "
+            + "or u.inactivityWarnedAt < coalesce(u.lastLoginAt, u.registeredAt))")
+    List<User> findInactiveUnwarned(@org.springframework.data.repository.query.Param("cutoff") java.time.Instant cutoff);
+
     Optional<User> findByEmailIgnoreCase(String email);
 
     /** Info mail recipients (A20): active, not deleted, info mails switched on. */

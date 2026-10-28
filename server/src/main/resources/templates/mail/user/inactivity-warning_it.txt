@@ -1,0 +1,9 @@
+Ciao [(${displayName})],
+
+non accedi a foodsharing da più di [(${days})] giorni. Se vuoi mantenere il tuo account, accedi di nuovo:
+
+[(${link})]
+
+Se non vuoi più usare foodsharing, puoi eliminare il tuo account nelle impostazioni.
+
+Il tuo team foodsharing

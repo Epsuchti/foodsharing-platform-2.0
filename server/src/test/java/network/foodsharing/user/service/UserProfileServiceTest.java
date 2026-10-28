@@ -177,4 +177,21 @@ class UserProfileServiceTest {
         assertThat(service.mayCurrentUserSeeContact(user)).isTrue();
         assertThat(service.mayCurrentUserSeeContact(other)).isTrue();
     }
+
+    @Test
+    void inactiveAccountsAreWarnedOncePerInactivityPeriod() {
+        java.time.Instant now = java.time.Instant.parse("2026-06-01T00:00:00Z");
+        user.setLastLoginAt(now.minus(java.time.Duration.ofDays(400)));
+        orga.setLastLoginAt(now.minus(java.time.Duration.ofDays(400)));
+        orga.setNoAutomaticDelete(true);
+        users.saveAndFlush(user);
+        users.saveAndFlush(orga);
+        java.time.Instant cutoff = now.minus(java.time.Duration.ofDays(365));
+        assertThat(service.inactiveUnwarned(cutoff)).extracting(User::getId).containsExactly(user.getId());
+
+        service.markInactivityWarned(user.getId());
+        users.flush();
+        assertThat(service.inactiveUnwarned(cutoff)).isEmpty();
+        assertThat(history.findAll()).extracting(HistoryEntry::getAction).contains("INACTIVITY_WARNED");
+    }
 }

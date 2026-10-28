@@ -1,0 +1,11 @@
+# Milestone 6 (B4): inactivity warning of region maintenance (A13).
+databaseChangeLog:
+  - changeSet:
+      id: 177-1
+      author: platform
+      comment: 'When the inactive-account warning mail was last sent (null = never).'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: inactivity_warned_at, type: TIMESTAMP WITH TIME ZONE}

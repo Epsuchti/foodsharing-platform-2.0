@@ -366,5 +366,6 @@
   "history.action.OAUTH_CLIENT.SECRET_ROTATED": "Gheimnis erneueret",
   "history.action.OAUTH_CLIENT.CONSENT_GRANTED": "Zuegriff erlaubt",
   "history.action.OAUTH_CLIENT.CONSENT_REVOKED": "Zuegriff widerrüefe",
-  "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Zuegangstoken usgstellt"
+  "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Zuegangstoken usgstellt",
+  "history.action.USER.INACTIVITY_WARNED": "Warnig wäge Inaktivität gschickt"
 }
