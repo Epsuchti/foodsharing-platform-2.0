@@ -50,7 +50,7 @@ export const M2_PAGES_READY = {
   users: true,
   adminRegions: true,
   adminQuizzes: true,
-  adminContent: false,
+  adminContent: true,
 };
 type M2Page = keyof typeof M2_PAGES_READY;
 const when =
@@ -244,7 +244,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'vision',
     labelKey: 'nav.vision',
     icon: 'pi pi-heart',
-    route: '/about/vision',
+    route: '/pages/vision',
     visible: () => true,
     area: 'footer',
   },
@@ -261,7 +261,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'privacy',
     labelKey: 'nav.privacy',
     icon: 'pi pi-lock',
-    route: '/privacy',
+    route: '/legal/privacy-policy',
     visible: () => true,
     area: 'footer',
   },
@@ -269,7 +269,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'imprint',
     labelKey: 'nav.imprint',
     icon: 'pi pi-file',
-    route: '/imprint',
+    route: '/pages/imprint',
     visible: () => true,
     area: 'footer',
   },

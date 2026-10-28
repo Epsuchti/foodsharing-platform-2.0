@@ -91,6 +91,9 @@ describe('routeAccess / consentGuard', () => {
     expect(run('/legal/PRIVACY_POLICY')).toBe(true);
     expect(isConsentExempt('/login/verify?token=x')).toBe(true);
     expect(isConsentExempt('/legalese')).toBe(false);
+    // the foodsaver quiz confirmation accepts the legal agreement itself (Ve1)
+    expect(isConsentExempt('/quizzes/foodsaver/results')).toBe(true);
+    expect(isConsentExempt('/quizzes/foodsaver')).toBe(false);
 
     logIn([], []);
     expect(run('/dashboard')).toBe(true);

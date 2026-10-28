@@ -47,7 +47,7 @@ test.describe('logged in', () => {
     await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
 
     // Footer links and version.
-    await expect(page.getByTestId('nav.footer.privacy')).toHaveAttribute('href', '/privacy');
+    await expect(page.getByTestId('nav.footer.privacy')).toHaveAttribute('href', '/legal/privacy-policy');
     await expect(page.getByTestId('shell.version')).toBeVisible();
   });
 
