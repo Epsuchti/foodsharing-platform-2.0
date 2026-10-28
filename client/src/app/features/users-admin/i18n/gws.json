@@ -60,5 +60,6 @@
   "usersAdmin.user.newHome": "Neue Stammbezirk: {name}",
   "usersAdmin.user.reason": "Begründig",
   "usersAdmin.user.history": "Änderigsverlauf",
-  "usersAdmin.user.noHistory": "No kei Änderige"
+  "usersAdmin.user.noHistory": "No kei Änderige",
+  "usersAdmin.user.quizHistory": "Quiz-Versüech"
 }

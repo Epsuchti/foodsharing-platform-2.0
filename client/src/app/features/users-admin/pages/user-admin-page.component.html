@@ -19,6 +19,7 @@
       </div>
       <div class="summary__actions">
         <p-button [label]="'usersAdmin.user.edit' | t" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="openEdit(u)" data-testid="usersAdmin.user.edit" />
+        <p-button [label]="'usersAdmin.user.quizHistory' | t" icon="pi pi-graduation-cap" severity="secondary" [outlined]="true" [routerLink]="['/quizzes/history', u.id]" data-testid="usersAdmin.user.quizHistory" />
         <p-button
           [label]="(u.active === false ? 'usersAdmin.user.enable' : 'usersAdmin.user.disable') | t"
           [icon]="u.active === false ? 'pi pi-check-circle' : 'pi pi-ban'"

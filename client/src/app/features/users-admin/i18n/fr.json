@@ -60,5 +60,6 @@
   "usersAdmin.user.newHome": "Nouvelle région principale : {name}",
   "usersAdmin.user.reason": "Motif",
   "usersAdmin.user.history": "Historique des modifications",
-  "usersAdmin.user.noHistory": "Aucune modification"
+  "usersAdmin.user.noHistory": "Aucune modification",
+  "usersAdmin.user.quizHistory": "Tentatives de quiz"
 }

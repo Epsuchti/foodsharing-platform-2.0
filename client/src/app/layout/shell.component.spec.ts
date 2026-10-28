@@ -171,6 +171,7 @@ describe('nav.config', () => {
       'dashboard',
       'activity',
       'regions',
+      'quizzes',
     ]);
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
