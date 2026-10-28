@@ -41,7 +41,9 @@ public enum StoreLogAction implements HistoryAction {
     TEAM_STATUS_CHANGED,
     COOPERATION_STATUS_CHANGED,
     WALL_POST_ADDED,
-    ALL_FUTURE_PICKUPS_DELETED;
+    ALL_FUTURE_PICKUPS_DELETED,
+    /** D16.2: CSV import of the stores of a region (subject = the region). */
+    STORES_IMPORTED;
 
     private static final Set<String> SHORT_LIVED = Set.of("SIGN_UP_SLOT", "SIGN_OUT_SLOT", "REMOVED_FROM_SLOT", "SLOT_CONFIRMED", "UPDATE_SLOT_COUNT", "UPDATE_SLOT_DESCRIPTION");
 

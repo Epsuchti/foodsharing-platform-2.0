@@ -369,5 +369,6 @@
   "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Zuegangstoken usgstellt",
   "history.action.USER.INACTIVITY_WARNED": "Warnig wäge Inaktivität gschickt",
   "history.action.INTRO_PICKUP.GUIDE_ADMIN_GRANTED": "Admin-Rächt als Iifüehrer:in übercho",
-  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Admin-Rächt als Iifüehrer:in entzoge"
+  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Admin-Rächt als Iifüehrer:in entzoge",
+  "history.action.STORE.STORES_IMPORTED": "Betriib importiert"
 }

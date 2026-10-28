@@ -258,5 +258,18 @@
   "stores.chat.none": "Non hai accesso alle chat di questo esercizio.",
   "stores.chat.channel": "Scegli chat",
   "stores.chat.team": "Team",
-  "stores.chat.jumper": "Sostituti"
+  "stores.chat.jumper": "Sostituti",
+  "stores.import.error.MISSING_NAME": "Nome mancante",
+  "stores.import.error.NAME_TOO_LONG": "Nome troppo lungo (max. 200 caratteri)",
+  "stores.import.error.VALUE_TOO_LONG": "Un valore è troppo lungo",
+  "stores.import.error.MISSING_POSTCODE": "NPA mancante",
+  "stores.import.error.UNKNOWN_CATEGORY": "Categoria sconosciuta",
+  "stores.import.error.UNKNOWN_CHAIN": "Catena sconosciuta",
+  "stores.import.error.INVALID_COORDINATES": "Coordinate non valide",
+  "stores.import.error.INVALID_COOPERATION_STATUS": "Stato di cooperazione non valido",
+  "stores.import.error.INVALID_TEAM_STATUS": "Stato del team non valido",
+  "stores.import.warning.UNKNOWN_USER": "Responsabile non trovato (numero foodsaver)",
+  "stores.import.warning.TOO_MANY_MANAGERS": "Troppi responsabili, vengono ripresi solo i primi",
+  "stores.import.warning.MISSING_COORDINATES": "Nessuna coordinata, vengono ricavate dall'NPA",
+  "stores.import.warning.GEOCODING_FAILED": "Impossibile determinare le coordinate"
 }

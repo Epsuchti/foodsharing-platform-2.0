@@ -369,5 +369,6 @@
   "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Zugangstoken ausgestellt",
   "history.action.USER.INACTIVITY_WARNED": "Warnung wegen Inaktivität gesendet",
   "history.action.INTRO_PICKUP.GUIDE_ADMIN_GRANTED": "Admin-Rechte als Einführer:in erhalten",
-  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Admin-Rechte als Einführer:in entzogen"
+  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Admin-Rechte als Einführer:in entzogen",
+  "history.action.STORE.STORES_IMPORTED": "Betriebe importiert"
 }

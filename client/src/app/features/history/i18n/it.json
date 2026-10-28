@@ -369,5 +369,6 @@
   "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Token di accesso emesso",
   "history.action.USER.INACTIVITY_WARNED": "Avviso di inattività inviato",
   "history.action.INTRO_PICKUP.GUIDE_ADMIN_GRANTED": "Diritti di amministrazione della guida concessi",
-  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Diritti di amministrazione della guida revocati"
+  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Diritti di amministrazione della guida revocati",
+  "history.action.STORE.STORES_IMPORTED": "Negozi importati"
 }

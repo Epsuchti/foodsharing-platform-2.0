@@ -258,5 +258,18 @@
   "stores.chat.none": "You have no access to this store's chats.",
   "stores.chat.channel": "Choose chat",
   "stores.chat.team": "Team",
-  "stores.chat.jumper": "Jumpers"
+  "stores.chat.jumper": "Jumpers",
+  "stores.import.error.MISSING_NAME": "Name missing",
+  "stores.import.error.NAME_TOO_LONG": "Name too long (max. 200 characters)",
+  "stores.import.error.VALUE_TOO_LONG": "A value is too long",
+  "stores.import.error.MISSING_POSTCODE": "Postcode missing",
+  "stores.import.error.UNKNOWN_CATEGORY": "Unknown category",
+  "stores.import.error.UNKNOWN_CHAIN": "Unknown chain",
+  "stores.import.error.INVALID_COORDINATES": "Invalid coordinates",
+  "stores.import.error.INVALID_COOPERATION_STATUS": "Invalid cooperation status",
+  "stores.import.error.INVALID_TEAM_STATUS": "Invalid team status",
+  "stores.import.warning.UNKNOWN_USER": "Manager not found (foodsaver number)",
+  "stores.import.warning.TOO_MANY_MANAGERS": "Too many managers, only the first are taken over",
+  "stores.import.warning.MISSING_COORDINATES": "No coordinates, they are derived from the postcode",
+  "stores.import.warning.GEOCODING_FAILED": "Coordinates could not be determined"
 }

@@ -258,5 +258,18 @@
   "stores.chat.none": "Du hesch kei Zuegang zu de Chats vo däm Betrieb.",
   "stores.chat.channel": "Chat uswähle",
   "stores.chat.team": "Team",
-  "stores.chat.jumper": "Springer:inne"
+  "stores.chat.jumper": "Springer:inne",
+  "stores.import.error.MISSING_NAME": "Name fehlt",
+  "stores.import.error.NAME_TOO_LONG": "Name z lang (max. 200 Zeiche)",
+  "stores.import.error.VALUE_TOO_LONG": "En Wert isch z lang",
+  "stores.import.error.MISSING_POSTCODE": "PLZ fehlt",
+  "stores.import.error.UNKNOWN_CATEGORY": "Unbekannti Kategorie",
+  "stores.import.error.UNKNOWN_CHAIN": "Unbekannti Kette",
+  "stores.import.error.INVALID_COORDINATES": "Ungültigi Koordinate",
+  "stores.import.error.INVALID_COOPERATION_STATUS": "Ungültige Kooperationsstatus",
+  "stores.import.error.INVALID_TEAM_STATUS": "Ungültige Teamstatus",
+  "stores.import.warning.UNKNOWN_USER": "Verantwortlichi Person nöd gfunde (Foodsaver-Nummere)",
+  "stores.import.warning.TOO_MANY_MANAGERS": "Z vill Verantwortlichi, nur di erschte wärded übernoh",
+  "stores.import.warning.MISSING_COORDINATES": "Kei Koordinate, si wärded us de PLZ bestimmt",
+  "stores.import.warning.GEOCODING_FAILED": "Koordinate händ nöd chöne bestimmt wärde"
 }

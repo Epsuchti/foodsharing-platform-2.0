@@ -57,6 +57,8 @@ tags:
     description: 'Stores: lists, detail, create/edit/delete, wall, store log, statistics (plan §12).'
   - name: store-team
     description: 'Store teams: applications, invitations, jumpers, managers.'
+  - name: store-admin
+    description: 'Store coordination of a region: CSV import of stores (D16.2).'
   - name: pickups
     description: 'Pickups: weekly schedule, slots, sign-ups, confirmations, history, agenda.'
   - name: store-chains
@@ -550,6 +552,9 @@ paths:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1{userId}~1regular'
   /api/stores/{storeId}/managers/{userId}:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1managers~1{userId}'
+  # --- store-admin ---
+  /api/regions/{regionId}/stores/import:
+    $ref: './paths/store-admin.yaml#/~1api~1regions~1{regionId}~1stores~1import'
   # --- pickups ---
   /api/stores/{storeId}/regular-pickups:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1regular-pickups'
