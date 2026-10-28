@@ -19,6 +19,8 @@ const TABS: readonly AccountTab[] = [
     icon: 'pi pi-shield',
     labelKey: 'nav.securityLog',
   },
+  // M4 F2: notification settings live in features/notifications (route account/notifications)
+  { id: 'notifications', route: '/account/notifications', icon: 'pi pi-bell', labelKey: 'nav.notifications' },
 ];
 
 /** Switches between the account pages (scrolls horizontally on narrow phones). */

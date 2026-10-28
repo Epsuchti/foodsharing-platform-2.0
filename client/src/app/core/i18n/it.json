@@ -390,5 +390,6 @@
   "nav.storeCategories": "Categorie di negozi",
   "common.metaDescription": "foodsharing – salvare cibo, insieme. Ritira cibo nei negozi, condividilo e diventa foodsaver nella tua regione.",
   "common.realtime.reconnecting": "Riconnessione in corso …",
-  "nav.mailboxes": "Caselle di posta"
+  "nav.mailboxes": "Caselle di posta",
+  "nav.notifications": "Notifiche"
 }

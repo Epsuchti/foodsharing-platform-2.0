@@ -315,6 +315,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     visible: (ctx) => ctx.devMode,
     area: 'footer',
   },
+  // --- M4: automations & notifications ---
+  {
+    id: 'notifications',
+    labelKey: 'nav.notifications',
+    icon: 'pi pi-bell',
+    route: '/account/notifications',
+    visible: loggedIn,
+    area: 'user',
+  },
 ];
 
 export function visibleNavItems(
