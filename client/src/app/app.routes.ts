@@ -117,6 +117,11 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/bells/bells.routes').then((m) => m.BELLS_ROUTES),
   },
   {
+    path: 'account/notifications',
+    loadChildren: () =>
+      import('./features/notifications/notifications.routes').then((m) => m.NOTIFICATIONS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

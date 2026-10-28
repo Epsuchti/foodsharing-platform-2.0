@@ -182,7 +182,7 @@ describe('nav.config', () => {
     ]);
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
-    ).toEqual(['account']);
+    ).toEqual(['account', 'notifications']);
     expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'activity',

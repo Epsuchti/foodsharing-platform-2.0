@@ -1,0 +1,59 @@
+// Shared look of the notification settings cards (M4 F2).
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 60rem);
+  margin: 0 auto;
+}
+
+.card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.card__head {
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 0.2rem 0 0;
+    color: var(--fs-text-muted);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--fs-text-muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--fs-danger);
+}

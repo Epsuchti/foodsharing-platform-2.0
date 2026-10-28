@@ -10,6 +10,7 @@ import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey
 import { currentStepOf } from '../../onboarding/pages/journey-page.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 import { MyNextPickupsCardComponent } from '../../pickups/components/my-next-pickups-card.component';
+import { PushOptInCardComponent } from '../../notifications/components/push-opt-in-card.component';
 
 /** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
 export interface DashboardNextStep {
@@ -40,7 +41,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
 /** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
 @Component({
   selector: 'fs-dashboard-page',
-  imports: [...DATA_STATE_IMPORTS, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent],
+  imports: [...DATA_STATE_IMPORTS, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent, PushOptInCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
@@ -72,6 +73,9 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       </section>
 
       <div class="grid">
+        @defer (on idle) {
+          <fs-push-opt-in-card />
+        }
         <fs-my-next-pickups-card />
         @if (onboarding()) {
           <fs-data-state [state]="journey" skeleton="card" [skeletonRows]="1" [compact]="true" class="card--next" data-testid="dashboard.page.journeyState">
