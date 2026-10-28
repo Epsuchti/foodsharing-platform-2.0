@@ -397,4 +397,46 @@ public class StoreService {
     public boolean exists(UUID storeId) {
         return storeId != null && stores.findLive(storeId).isPresent();
     }
+
+    /**
+     * Locks the store row for the rest of the caller's transaction (pickup sign-ups are serialised per store).
+     *
+     * @throws ApiException 404 STORE_NOT_FOUND / STORE_DELETED
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    @network.foodsharing.history.NoHistory(reason = "takes a row lock only; the caller records history")
+    public Store lock(UUID storeId) {
+        Store store = stores.lockById(storeId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND));
+        if (store.getDeletedAt() != null) {
+            throw ApiException.notFound(ApiErrorCode.STORE_DELETED);
+        }
+        return store;
+    }
+
+    /** Live stores of the region that use the region pickup rule. */
+    @Transactional(readOnly = true)
+    public List<UUID> pickupRuleStoreIds(UUID regionId) {
+        return stores.findPickupRuleStoreIds(regionId);
+    }
+
+    /** Managers of the store (bell recipients). */
+    @Transactional(readOnly = true)
+    public List<UUID> managerIds(UUID storeId) {
+        return memberships.findByStoreId(storeId).stream()
+                .filter(m -> m.isManager() && m.getStatus() == StoreMembershipStatus.MEMBER)
+                .map(StoreMembership::getUserId).toList();
+    }
+
+    /** Regular team members incl. managers (bell recipients). */
+    @Transactional(readOnly = true)
+    public List<UUID> teamIds(UUID storeId) {
+        return memberships.findByStoreId(storeId).stream().filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER)
+                .map(StoreMembership::getUserId).toList();
+    }
+
+    /** Live stores with these ids (pickup slot info). */
+    @Transactional(readOnly = true)
+    public List<Store> liveStores(java.util.Collection<UUID> storeIds) {
+        return storeIds.isEmpty() ? List.of() : stores.findLiveIn(storeIds);
+    }
 }

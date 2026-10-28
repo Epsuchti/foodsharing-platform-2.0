@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+you were removed from the pickup at [(${storeName})] on [(${when})].
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+tu as été retiré·e de la collecte chez [(${storeName})] le [(${when})].
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

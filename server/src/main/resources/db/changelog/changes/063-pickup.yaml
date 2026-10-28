@@ -1,0 +1,85 @@
+# Milestone 3 (B4): weekly schedules, one-time pickups / overrides and sign-ups (upstream fs_abholzeiten,
+# fs_fetchdate, fs_abholer). A pickup is identified by (store_id, pickup_at) (A20).
+databaseChangeLog:
+  - changeSet:
+      id: 063-1
+      author: platform
+      comment: 'Regular (weekly) pickups.'
+      changes:
+        - createTable:
+            tableName: regular_pickup
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_regular_pickup, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_regular_pickup_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: weekday, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: start_time, type: TIME, constraints: {nullable: false}}
+              - column: {name: slot_count, type: INT, constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(100)}
+        - addUniqueConstraint:
+            tableName: regular_pickup
+            columnNames: store_id, weekday, start_time
+            constraintName: uq_regular_pickup_store_id_weekday_start_time
+  - changeSet:
+      id: 063-2
+      author: platform
+      comment: 'One-time pickups and overrides of regular occurrences (slot_count 0 cancels).'
+      changes:
+        - createTable:
+            tableName: pickup
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: pickup_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: slot_count, type: INT, constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(100)}
+        - addUniqueConstraint:
+            tableName: pickup
+            columnNames: store_id, pickup_at
+            constraintName: uq_pickup_store_id_pickup_at
+  - changeSet:
+      id: 063-3
+      author: platform
+      comment: 'Sign-ups (who picks up when).'
+      changes:
+        - createTable:
+            tableName: pickup_signup
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_signup, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_signup_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_signup_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: pickup_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: confirmed, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: confirmed_by, type: UUID}
+              - column: {name: confirmed_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: reminded_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: pickup_signup
+            columnNames: store_id, user_id, pickup_at
+            constraintName: uq_pickup_signup_store_id_user_id_pickup_at
+        - createIndex:
+            tableName: pickup_signup
+            indexName: ix_pickup_signup_store_id_pickup_at
+            columns:
+              - column: {name: store_id}
+              - column: {name: pickup_at}
+        - createIndex:
+            tableName: pickup_signup
+            indexName: ix_pickup_signup_user_id_pickup_at
+            columns:
+              - column: {name: user_id}
+              - column: {name: pickup_at}

@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+du wurdest von der Abholung bei [(${storeName})] am [(${when})] ausgetragen.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

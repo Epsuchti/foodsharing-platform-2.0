@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+du bisch vo de Abholig bi [(${storeName})] am [(${when})] usträit worde.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

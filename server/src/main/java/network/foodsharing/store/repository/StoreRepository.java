@@ -6,7 +6,9 @@ import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.store.domain.CooperationStatus;
 import network.foodsharing.store.domain.Store;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,6 +38,15 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
     long countLiveByChain(@Param("chainId") UUID chainId);
 
     long countByCategoryId(UUID categoryId);
+
+    /** Serialises sign-ups per store (B4): a row lock on the store. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Store s where s.id = :id")
+    Optional<Store> lockById(@Param("id") UUID id);
+
+    @Query("select s.id from Store s where s.regionId = :regionId and s.useRegionPickupRule = true "
+            + "and s.deletedAt is null")
+    List<UUID> findPickupRuleStoreIds(@Param("regionId") UUID regionId);
 
     List<Store> findByCategoryId(UUID categoryId);
 }
