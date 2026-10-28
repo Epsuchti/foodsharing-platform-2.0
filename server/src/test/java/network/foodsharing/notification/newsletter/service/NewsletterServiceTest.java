@@ -207,7 +207,9 @@ class NewsletterServiceTest {
         UUID id = UUID.randomUUID();
         String token = tokens.token(id);
         assertThat(tokens.verify(token)).contains(id);
-        assertThat(tokens.verify(token.substring(0, token.length() - 2) + "AA")).isEmpty();
+        char last = token.charAt(token.length() - 1);
+        String tampered = token.substring(0, token.length() - 1) + (last == 'A' ? 'B' : 'A'); // always differs
+        assertThat(tokens.verify(tampered)).isEmpty();
         assertThat(tokens.verify("garbage")).isEmpty();
         properties.getNewsletter().setSecret("other");
         assertThat(tokens.verify(token)).isEmpty();
