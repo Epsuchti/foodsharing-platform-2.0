@@ -1,0 +1,25 @@
+# Milestone 6 (B7): coordinate indexes for the map layers (M1). region_statistics already has every column (R13).
+databaseChangeLog:
+  - changeSet:
+      id: 165-1
+      author: platform
+      comment: 'Bounding-box lookups of the map layers and nearby baskets.'
+      changes:
+        - createIndex:
+            tableName: store
+            indexName: ix_store_lat_lon
+            columns:
+              - column: {name: latitude}
+              - column: {name: longitude}
+        - createIndex:
+            tableName: food_share_point
+            indexName: ix_fsp_lat_lon
+            columns:
+              - column: {name: lat}
+              - column: {name: lon}
+        - createIndex:
+            tableName: basket
+            indexName: ix_basket_lat_lon
+            columns:
+              - column: {name: lat}
+              - column: {name: lon}
