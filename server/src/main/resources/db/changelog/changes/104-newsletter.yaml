@@ -1,0 +1,53 @@
+# Milestone 4 (B5): newsletters (N7). user_account.newsletter_opt_in exists since 021.
+databaseChangeLog:
+  - changeSet:
+      id: 104-1
+      author: platform
+      comment: 'Newsletters and their recipients.'
+      changes:
+        - createTable:
+            tableName: newsletter
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_newsletter, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID}
+              - column: {name: subject, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: body_markdown, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: status, type: VARCHAR(20), defaultValue: 'DRAFT', constraints: {nullable: false}}
+              - column: {name: queued_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: sent_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: recipient_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: sent_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: failed_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - createIndex:
+            tableName: newsletter
+            indexName: ix_newsletter_status
+            columns:
+              - column: {name: status}
+        - createTable:
+            tableName: newsletter_recipient
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_newsletter_recipient, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: newsletter_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_newsletter_recipient_newsletter_id, references: newsletter(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: mail_outbox_id, type: UUID}
+              - column: {name: status, type: VARCHAR(20), defaultValue: 'PENDING', constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: newsletter_recipient
+            columnNames: newsletter_id, user_id
+            constraintName: uq_newsletter_recipient
+        - createIndex:
+            tableName: newsletter_recipient
+            indexName: ix_newsletter_recipient_status
+            columns:
+              - column: {name: newsletter_id}
+              - column: {name: status}

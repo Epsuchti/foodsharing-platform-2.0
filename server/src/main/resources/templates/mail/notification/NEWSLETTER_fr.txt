@@ -1,0 +1,8 @@
+Bonjour [(${displayName})],
+
+[(${subject})]
+
+[(${body})]
+
+Tu reçois cette newsletter parce que tu t'y es abonné·e dans tes paramètres. Se désabonner :
+[(${unsubscribeUrl})]

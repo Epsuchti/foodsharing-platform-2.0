@@ -21,11 +21,12 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  */
 class MailTemplateCoverageTest {
 
-    /** M4 types with a mail (docs/plan-m4.md B3); NEWSLETTER follows with B5, TELEGRAM_LINKED has none. */
+    /** M4 types with a mail (docs/plan-m4.md B3, B5: NEWSLETTER); TELEGRAM_LINKED has none. */
     static final Set<NotificationType> MAILED = Set.of(NotificationType.PICKUP_AUTO_DECLINED,
             NotificationType.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE, NotificationType.STORE_REQUEST_AUTO_DECLINED,
             NotificationType.STORE_REQUEST_AUTO_ACCEPTED, NotificationType.PICKUP_LATE_CANCELLATION,
-            NotificationType.PICKUP_SIGNOUT_NOT_REPLACED, NotificationType.INTEGRATION_DOWN);
+            NotificationType.PICKUP_SIGNOUT_NOT_REPLACED, NotificationType.INTEGRATION_DOWN,
+            NotificationType.NEWSLETTER);
 
     @Test
     void everyMailedTypeHasTenFilesAndFiveSubjects() throws IOException {

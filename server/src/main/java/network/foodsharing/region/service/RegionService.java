@@ -24,10 +24,13 @@ public class RegionService {
     private final AppProperties properties;
     private final network.foodsharing.region.repository.RegionFunctionRepository functions;
     private final network.foodsharing.region.repository.RegionAdminRepository admins;
+    private final network.foodsharing.region.repository.RegionMembershipRepository memberships;
 
     public RegionService(RegionRepository regions, RegionClosureRepository closure, AppProperties properties,
                          network.foodsharing.region.repository.RegionFunctionRepository functions,
-                         network.foodsharing.region.repository.RegionAdminRepository admins) {
+                         network.foodsharing.region.repository.RegionAdminRepository admins,
+                         network.foodsharing.region.repository.RegionMembershipRepository memberships) {
+        this.memberships = memberships;
         this.regions = regions;
         this.closure = closure;
         this.properties = properties;
@@ -88,6 +91,18 @@ public class RegionService {
     @Transactional(readOnly = true)
     public List<UUID> subtreeIds(UUID regionId) {
         return closure.subtree(regionId);
+    }
+
+    /** Regions / groups the user is admin (ambassador) of. */
+    @Transactional(readOnly = true)
+    public java.util.Set<UUID> adminRegionIds(UUID userId) {
+        return admins.findRegionIds(userId);
+    }
+
+    /** Active members of the region and every region / group below it (newsletter recipients, N7). */
+    @Transactional(readOnly = true)
+    public List<UUID> memberIdsOfSubtree(UUID regionId) {
+        return memberships.findActiveUserIdsIn(subtreeIds(regionId));
     }
 
     /** Direct children, regions before working groups, by sort order and name. */

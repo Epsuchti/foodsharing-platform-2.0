@@ -1,0 +1,8 @@
+Hello [(${displayName})],
+
+[(${subject})]
+
+[(${body})]
+
+You receive this newsletter because you subscribed to it in your settings. Unsubscribe:
+[(${unsubscribeUrl})]

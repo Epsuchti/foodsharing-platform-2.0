@@ -1,0 +1,8 @@
+Ciao [(${displayName})],
+
+[(${subject})]
+
+[(${body})]
+
+Ricevi questa newsletter perché ti sei iscritto/a nelle impostazioni. Disiscriviti:
+[(${unsubscribeUrl})]

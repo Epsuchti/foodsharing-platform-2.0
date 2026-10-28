@@ -1,0 +1,13 @@
+id,version,created_at,updated_at,created_by,updated_by,region_id,subject,body_markdown,status,queued_at,sent_at,recipient_count,sent_count,failed_count
+00000004-0006-4000-8000-000000000001,0,2026-10-20T08:00:00Z,2026-10-20T09:05:00Z,00000001-0001-4000-8000-000000000014,00000001-0001-4000-8000-000000000014,NULL,foodsharing im Oktober,"Liebe Foodsaver*innen,
+
+im Oktober habt ihr gemeinsam über 12 Tonnen Lebensmittel gerettet. Danke!
+
+Neu: Abholungen können jetzt automatisch bestätigt werden.
+
+Euer foodsharing-Team",SENT,2026-10-20T09:00:00Z,2026-10-20T09:05:00Z,8,8,0
+00000004-0006-4000-8000-000000000002,0,2026-10-28T08:00:00Z,2026-10-28T08:00:00Z,00000001-0001-4000-8000-000000000011,00000001-0001-4000-8000-000000000011,00000010-0001-4000-8000-000000000040,Herbsttreffen Zürich,"Hallo Zürich!
+
+Am 21. November findet unser Herbsttreffen im Quartierzentrum statt. Alle sind willkommen.
+
+Euer Botschafter*innen-Team",DRAFT,NULL,NULL,0,0,0
