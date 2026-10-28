@@ -1,6 +1,6 @@
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, PlatformLocation, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, InjectionToken, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { Language, UsersService } from '../../api';
@@ -17,13 +17,30 @@ import {
 import { MessageParams, formatMessage } from './message-format';
 
 export const LANGUAGE_STORAGE_KEY = 'fs.lang';
+/** Mirrors the chosen language for the server, which picks the prerendered landing page by it (D11.5.3). */
+export const LANGUAGE_COOKIE = 'fs.lang';
 
-type Catalog = Readonly<Record<string, string>>;
+export type Catalog = Readonly<Record<string, string>>;
 
 /**
- * Translations from the merged catalogs in /i18n/<lang>.json (built by scripts/build-i18n.mjs).
- * Initial language: localStorage['fs.lang'] → navigator.languages → de. Missing keys fall back to German,
- * then to the key itself. Usage: `i18n.t('common.save')`, `i18n.t('x.items', { count: 3 })`, `{{ 'key' | t }}`.
+ * Loads one merged catalog. Default: GET /i18n/<lang>.json; the prerender (app.config.server.ts) reads the
+ * build output instead.
+ */
+export const CATALOG_LOADER = new InjectionToken<(language: UiLanguage) => Promise<Catalog>>(
+  'CATALOG_LOADER',
+);
+
+/** `/en`, `/fr`, … are the landing page in that language (hreflang alternates, prerendered). */
+export function languageFromPath(path: string): UiLanguage | null {
+  const segment = path.replace(/^\/+|\/+$/g, '');
+  return isUiLanguage(segment) ? segment : null;
+}
+
+/**
+ * Translations from the merged catalogs in /i18n/<lang>.json (built by scripts/build-i18n.mjs, which fills keys
+ * missing in a language from German, so only the active catalog is ever loaded).
+ * Initial language: URL `/<lang>` → localStorage['fs.lang'] → navigator.languages → de. Unknown keys render as
+ * the key itself. Usage: `i18n.t('common.save')`, `i18n.t('x.items', { count: 3 })`, `{{ 'key' | t }}`.
  */
 @Injectable({ providedIn: 'root' })
 export class I18nService {
@@ -31,6 +48,9 @@ export class I18nService {
   private readonly document = inject(DOCUMENT);
   private readonly session = inject(SessionService);
   private readonly usersApi = inject(UsersService);
+  private readonly location = inject(PlatformLocation);
+  private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly loader = inject(CATALOG_LOADER, { optional: true });
 
   private readonly catalogs = new Map<UiLanguage, Promise<Catalog>>();
   private readonly current = signal<Catalog>({});
@@ -48,14 +68,24 @@ export class I18nService {
       writeStorage(LANGUAGE_STORAGE_KEY, preferred);
     }
     const language = this.language();
-    const [current, fallback] = await Promise.all([
-      this.load(language),
-      language === DEFAULT_LANGUAGE ? null : this.load(DEFAULT_LANGUAGE),
-    ]);
-    this.current.set(current);
-    this.fallback.set(fallback ?? current);
+    const catalog = await this.load(language);
+    this.current.set(catalog);
+    this.fallback.set(catalog);
     this.applyDocumentLanguage(language);
+    if (!languageFromPath(this.location.pathname)) {
+      this.writeCookie(language);
+    }
     this.ready.set(true);
+  }
+
+  /**
+   * Starts loading the catalog of a language chosen on this device (URL `/<lang>` or stored) while the session
+   * loads; `initialize()` reuses it. A mere browser-language guess is not preloaded: for a logged-in user the
+   * account language decides, and a wrong guess would download a second catalog.
+   */
+  preload(): Promise<unknown> {
+    const chosen = languageFromPath(this.location.pathname) ?? readStorage(LANGUAGE_STORAGE_KEY);
+    return isUiLanguage(chosen) ? this.load(chosen) : Promise.resolve();
   }
 
   /**
@@ -68,17 +98,14 @@ export class I18nService {
   ): Promise<void> {
     const { persist = true, remember = true } = options;
     const catalog = await this.load(language);
-    if (language === DEFAULT_LANGUAGE) {
-      this.fallback.set(catalog);
-    } else if (!Object.keys(this.fallback()).length) {
-      this.fallback.set(await this.load(DEFAULT_LANGUAGE));
-    }
     this.current.set(catalog);
+    this.fallback.set(catalog);
     this.language.set(language);
     this.ready.set(true);
     this.applyDocumentLanguage(language);
     if (remember) {
       writeStorage(LANGUAGE_STORAGE_KEY, language);
+      this.writeCookie(language);
     }
     const user = this.session.user();
     if (persist && user && user.language !== (language as string)) {
@@ -126,13 +153,14 @@ export class I18nService {
   private load(language: UiLanguage): Promise<Catalog> {
     let catalog = this.catalogs.get(language);
     if (!catalog) {
-      catalog = firstValueFrom(this.http.get<Catalog>(`/i18n/${language}.json`)).catch(
-        (error: unknown) => {
-          this.catalogs.delete(language);
-          console.error(`Could not load the ${language} translations`, error);
-          return {};
-        },
-      );
+      const request = this.loader
+        ? this.loader(language)
+        : firstValueFrom(this.http.get<Catalog>(`/i18n/${language}.json`));
+      catalog = request.catch((error: unknown) => {
+        this.catalogs.delete(language);
+        console.error(`Could not load the ${language} translations`, error);
+        return {};
+      });
       this.catalogs.set(language, catalog);
     }
     return catalog;
@@ -141,10 +169,23 @@ export class I18nService {
   private applyDocumentLanguage(language: UiLanguage): void {
     const root = this.document.documentElement;
     root.lang = htmlLang(language);
-    root.dataset['language'] = language;
+    root.setAttribute('data-language', language);
+  }
+
+  private writeCookie(language: UiLanguage): void {
+    if (this.browser) {
+      this.document.cookie = `${LANGUAGE_COOKIE}=${language}; path=/; max-age=31536000; samesite=lax`;
+    }
   }
 
   private initialLanguage(): UiLanguage {
+    const fromPath = languageFromPath(this.location.pathname);
+    if (fromPath) {
+      return fromPath;
+    }
+    if (!this.browser) {
+      return DEFAULT_LANGUAGE;
+    }
     const stored = readStorage(LANGUAGE_STORAGE_KEY);
     if (isUiLanguage(stored)) {
       return stored;

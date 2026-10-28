@@ -46,6 +46,32 @@ export async function sessionCookie(baseURL, role) {
   }
 }
 
+/**
+ * Puts the page's session into Chrome's cookie jar. An `extraHeaders` Cookie header is not enough: as soon as the
+ * page itself has cookies (XSRF-TOKEN, fs.lang), Chrome's own Cookie header wins and the session is lost
+ * (`/onboarding` then measured the login page with the session-expired dialog).
+ */
+async function useCookies(port, baseURL, cookie) {
+  const { default: puppeteer } = await import('puppeteer-core');
+  const browser = await puppeteer.connect({ browserURL: `http://127.0.0.1:${port}` });
+  try {
+    const session = await browser.target().createCDPSession();
+    await session.send('Storage.clearCookies');
+    const cookies = (cookie ?? '')
+      .split('; ')
+      .filter(Boolean)
+      .map((pair) => {
+        const index = pair.indexOf('=');
+        return { name: pair.slice(0, index), value: pair.slice(index + 1), url: baseURL };
+      });
+    if (cookies.length) {
+      await session.send('Storage.setCookies', { cookies });
+    }
+  } finally {
+    await browser.disconnect();
+  }
+}
+
 /** Runs Lighthouse (mobile) for each page; returns `[{ path, performance, accessibility }]` (scores 0–100). */
 export async function runLighthouse(baseURL, pages) {
   const { default: lighthouse } = await import('lighthouse');
@@ -57,6 +83,7 @@ export async function runLighthouse(baseURL, pages) {
   try {
     const results = [];
     for (const { path, cookie } of pages) {
+      await useCookies(chrome.port, baseURL, cookie);
       const run = await lighthouse(
         new URL(path, baseURL).toString(),
         {
@@ -64,7 +91,8 @@ export async function runLighthouse(baseURL, pages) {
           output: 'json',
           logLevel: 'error',
           onlyCategories: ['performance', 'accessibility'],
-          extraHeaders: cookie ? { Cookie: cookie } : undefined,
+          // everything but cookies, which useCookies() just set
+          clearStorageTypes: ['file_systems', 'shader_cache', 'service_workers', 'cache_storage', 'indexeddb', 'local_storage', 'websql'],
         },
       );
       const { categories } = run.lhr;

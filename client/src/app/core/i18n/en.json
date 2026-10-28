@@ -387,5 +387,6 @@
   "errors.OAUTH_CLIENT_PUBLIC": "Public applications have no secret.",
   "nav.stores": "Stores",
   "nav.storeChains": "Store chains",
-  "nav.storeCategories": "Store categories"
+  "nav.storeCategories": "Store categories",
+  "common.metaDescription": "foodsharing – saving food, together. Pick up food from businesses, share it and become a foodsaver in your region."
 }
