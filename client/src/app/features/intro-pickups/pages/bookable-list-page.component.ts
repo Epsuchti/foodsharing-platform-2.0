@@ -132,6 +132,7 @@ interface Filters {
               <li>
                 <fs-einab-card
                   [einab]="einab"
+                  [attr.data-id]="einab.id"
                   [attr.data-category]="einab.category"
                   [attr.data-bookable]="einab.bookable"
                   data-testid="introPickups.bookable.card"

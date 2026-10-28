@@ -86,7 +86,8 @@ const AFTER_FIRST_PAGE_MS = 1500;
     }
     <!-- overlays load after the first page has rendered: not part of the start-up bundle (D11.5.3) -->
     @defer (when firstPageShown()) {
-      <p-toast position="top-center" [breakpoints]="toastBreakpoints" data-testid="shell.toast" />
+      <!-- autoZIndex off: a toast must not become the topmost overlay, or open dialogs ignore Escape -->
+      <p-toast position="top-center" [breakpoints]="toastBreakpoints" [autoZIndex]="false" style="z-index: 2000" data-testid="shell.toast" />
       <p-confirmdialog
         [style]="{ width: 'min(30rem, calc(100vw - 2rem))' }"
         data-testid="shell.confirm"

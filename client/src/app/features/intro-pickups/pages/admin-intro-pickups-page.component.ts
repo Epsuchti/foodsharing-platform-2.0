@@ -19,6 +19,7 @@ import {
   IntroPickupCategory,
   IntroPickupDetail,
   IntroPickupDetailPage,
+  Role,
   UserSummary,
 } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
@@ -26,6 +27,7 @@ import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { SessionService } from '../../../core/auth/session.service';
 import { RegionContextService } from '../../../core/region/region-context.service';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
@@ -167,24 +169,43 @@ type Tab = 'einabs' | 'bookings' | 'guides';
           <ng-template [fsData]="guides" let-page>
             <ul class="list">
               @for (guide of page.items; track guide.user.id) {
-                <li class="fs-card guide" [attr.data-active]="guide.active" data-testid="introPickups.admin.guide">
+                <li class="fs-card guide" [attr.data-active]="guide.active" [attr.data-status]="guide.status" [attr.data-admin]="guide.canManageUsers" data-testid="introPickups.admin.guide">
                   <fs-user-chip [name]="guide.user.displayName" [avatarUrl]="guide.user.avatarUrl" [subtitle]="'introPickups.admin.guideStats' | t: { count: guide.introPickupCount }" />
                   <span class="tags">
                     @if (guide.canManageUsers) {
-                      <span class="tag">{{ 'introPickups.admin.manager' | t }}</span>
+                      <span class="tag" data-testid="introPickups.admin.managerTag">{{ 'introPickups.admin.manager' | t }}</span>
                     }
-                    <span class="tag" [class.tag--ok]="guide.active" [class.tag--danger]="!guide.active" data-testid="introPickups.admin.guideStatus">
-                      {{ (guide.active ? 'introPickups.admin.active' : 'introPickups.admin.inactive') | t }}
+                    <span
+                      class="tag"
+                      [class.tag--ok]="guide.status === 'ACTIVE'"
+                      [class.tag--warn]="guide.status === 'PAUSED'"
+                      [class.tag--danger]="guide.status === 'DISABLED'"
+                      data-testid="introPickups.admin.guideStatus"
+                    >
+                      {{ 'introPickups.admin.status.' + guide.status | t }}
                     </span>
                   </span>
-                  <p-button
-                    [label]="(guide.active ? 'introPickups.admin.disable' : 'introPickups.admin.enable') | t"
-                    size="small"
-                    [outlined]="true"
-                    [severity]="guide.active ? 'danger' : 'primary'"
-                    (onClick)="askEnable(guide)"
-                    data-testid="introPickups.admin.toggleGuide"
-                  />
+                  <span class="guide__actions">
+                    @if (mayAdministrate()) {
+                      <p-button
+                        [label]="(guide.canManageUsers ? 'introPickups.admin.revokeAdmin' : 'introPickups.admin.grantAdmin') | t"
+                        icon="pi pi-shield"
+                        size="small"
+                        [text]="true"
+                        [loading]="setAdmin.busy() && adminTarget() === guide.user.id"
+                        (onClick)="setAdmin.run(guide)"
+                        data-testid="introPickups.admin.toggleAdmin"
+                      />
+                    }
+                    <p-button
+                      [label]="(guide.status === 'DISABLED' ? 'introPickups.admin.enable' : 'introPickups.admin.disable') | t"
+                      size="small"
+                      [outlined]="true"
+                      [severity]="guide.status === 'DISABLED' ? 'primary' : 'danger'"
+                      (onClick)="askEnable(guide)"
+                      data-testid="introPickups.admin.toggleGuide"
+                    />
+                  </span>
                 </li>
               }
             </ul>
@@ -282,6 +303,11 @@ type Tab = 'einabs' | 'bookings' | 'guides';
       gap: 0.5rem;
       padding: 0.75rem 1rem;
     }
+    .guide__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
     .count {
       align-self: center;
       color: var(--fs-text-muted);
@@ -297,6 +323,7 @@ export class AdminIntroPickupsPageComponent {
   private readonly api = inject(IntroPickupAdminService);
   private readonly i18n = inject(I18nService);
   private readonly context = inject(RegionContextService);
+  private readonly session = inject(SessionService);
 
   readonly regionId = input.required<string>();
   protected readonly tabs: readonly Tab[] = ['einabs', 'bookings', 'guides'];
@@ -354,6 +381,24 @@ export class AdminIntroPickupsPageComponent {
     this.guidePickOpen.set(false);
     this.toggling.set({ user, active: false, status: GuideStatus.Disabled, canManageUsers: false, introPickupCount: 0 });
   }
+  /** Region administrators (and ORGA) grant or revoke a guide's user-management right (EA17, `setGuideAdmin`). */
+  protected readonly mayAdministrate = computed(
+    () =>
+      this.session.user()?.role === Role.Orga ||
+      this.context.regions().some((region) => region.id === this.regionId() && region.admin),
+  );
+  protected readonly adminTarget = signal<string | null>(null);
+  protected readonly setAdmin = runMutation(
+    (guide: GuideSummary) => {
+      this.adminTarget.set(guide.user.id);
+      return this.api.setGuideAdmin({
+        regionId: this.regionId(),
+        userId: guide.user.id,
+        guideAdminUpdate: { admin: !guide.canManageUsers },
+      });
+    },
+    { successToastKey: 'introPickups.admin.adminSaved', onSuccess: () => this.guides.reload() },
+  );
   protected askEnable(guide: GuideSummary): void {
     this.toggling.set(guide);
   }
@@ -363,7 +408,7 @@ export class AdminIntroPickupsPageComponent {
       return this.api.setGuideEnabled({
         regionId: this.regionId(),
         userId: guide.user.id,
-        guideEnabledUpdate: { enabled: !guide.active, reason },
+        guideEnabledUpdate: { enabled: guide.status === GuideStatus.Disabled, reason },
       });
     },
     {
