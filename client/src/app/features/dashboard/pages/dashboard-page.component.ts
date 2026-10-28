@@ -40,11 +40,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
 /** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
 @Component({
   selector: 'fs-dashboard-page',
-<<<<<<< HEAD
-  imports: [...DATA_STATE_IMPORTS, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent],
-=======
-  imports: [RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent],
->>>>>>> dd427dc
+  imports: [...DATA_STATE_IMPORTS, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
@@ -76,7 +72,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       </section>
 
       <div class="grid">
-<<<<<<< HEAD
+        <fs-my-next-pickups-card />
         @if (onboarding()) {
           <fs-data-state [state]="journey" skeleton="card" [skeletonRows]="1" [compact]="true" class="card--next" data-testid="dashboard.page.journeyState">
             <ng-template [fsData]="journey" let-j>
@@ -102,24 +98,6 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
             class="card card--next"
             data-testid="dashboard.page.nextStep"
             [attr.data-step]="step.id"
-=======
-        <fs-my-next-pickups-card />
-        @let step = nextStep();
-        <section
-          class="card card--next"
-          data-testid="dashboard.page.nextStep"
-          [attr.data-step]="step.id"
-        >
-          <div class="card__icon"><i [class]="step.icon" aria-hidden="true"></i></div>
-          <p class="card__eyebrow">{{ 'dashboard.page.nextStepTitle' | t }}</p>
-          <h2>{{ 'dashboard.page.step.' + step.id + '.title' | t }}</h2>
-          <p>{{ 'dashboard.page.step.' + step.id + '.text' | t }}</p>
-          <a
-            class="fs-btn card__action"
-            [routerLink]="step.link"
-            [queryParams]="step.query"
-            data-testid="dashboard.page.nextStepAction"
->>>>>>> dd427dc
           >
             <div class="card__icon"><i [class]="step.icon" aria-hidden="true"></i></div>
             <p class="card__eyebrow">{{ 'dashboard.page.nextStepTitle' | t }}</p>
