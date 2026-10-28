@@ -31,7 +31,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     <div class="hdr">
       <fs-brand [link]="session.isAuthenticated() ? '/dashboard' : '/'" />
       @if (chrome() === 'full') {
-        <nav class="hdr__nav" [attr.aria-label]="'layout.header.mainNav' | t">
+        <nav class="hdr__nav" [class.hdr__nav--compact]="nav.main().length > 5" [attr.aria-label]="'layout.header.mainNav' | t">
           @for (item of nav.main(); track item.id) {
             <a
               class="hdr__link"
@@ -39,6 +39,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
               routerLinkActive="hdr__link--active"
               [routerLinkActiveOptions]="{ exact: !!item.exact }"
               [attr.data-testid]="'nav.' + item.id"
+              [attr.title]="item.labelKey | t"
             >
               <i [class]="item.icon" aria-hidden="true"></i>
               <span>{{ item.labelKey | t }}</span>
@@ -114,6 +115,32 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     }
     .hdr__link .pi {
       font-size: 0.95rem;
+    }
+    .hdr__link span {
+      white-space: nowrap;
+    }
+    /*
+     * Icons only (the label stays the link name and the tooltip) on tablets / small laptops and whenever a role has
+     * more than five main items (ORGA, ambassadors), so labels never wrap and links never shrink below 24px.
+     */
+    .hdr__nav--compact .hdr__link {
+      padding: 0.5rem 0.65rem;
+    }
+    .hdr__nav--compact .hdr__link span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    @media (min-width: 48rem) and (max-width: 74.99rem) {
+      .hdr__link span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
     }
     .hdr__link:hover {
       background: var(--fs-surface-muted);
