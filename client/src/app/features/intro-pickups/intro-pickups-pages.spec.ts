@@ -10,6 +10,7 @@ import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { isOnline, isoToZonedLocal, zonedLocalToIso } from './intro-category';
 import { BookableListPageComponent } from './pages/bookable-list-page.component';
 import { GuideDashboardPageComponent } from './pages/guide-dashboard-page.component';
+import { NewcomerFunnelPageComponent } from './pages/newcomer-funnel-page.component';
 import { MyBookingsPageComponent } from './pages/my-bookings-page.component';
 import { UnsubscribePageComponent } from './pages/unsubscribe-page.component';
 
@@ -197,5 +198,51 @@ describe('intro pickup pages', () => {
     expect(q('[data-testid="introPickups.slot.bookFor"]')).not.toBeNull();
     expect(q('[data-testid="introPickups.slot.commentCount"]')?.textContent?.trim()).toBe('2');
     expect(q('[data-testid="introPickups.guide.ical"]')).toBeNull();
+  });
+
+  it('funnel: steps, names and gap severities; 403 → forbidden', async () => {
+    const fixture = TestBed.createComponent(NewcomerFunnelPageComponent);
+    fixture.componentRef.setInput('regionId', REGION);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    http
+      .expectOne((req) => req.url === `/api/regions/${REGION}/newcomer-funnel`)
+      .flush({
+        targetIntroPickups: 3,
+        fairteilerRequired: true,
+        days: 180,
+        totalUsers: 2,
+        inTrainingUsers: 1,
+        stalledUsers: 1,
+        introPickupsStillNeeded: 4,
+        openSlots: 2,
+        fairteilerVisitsStillNeeded: 1,
+        openFairteilerSlots: 0,
+        gapHorizonDays: 28,
+        steps: [
+          { stage: 'REGISTERED', userCount: 1, reachedCount: 2, stalledCount: 1, users: [{ stage: 'REGISTERED', counted: 0, upcoming: 0, target: 3, stalled: true, nextStep: 'BOOK_EINAB', user: { id: 'u', displayName: 'Luca', role: Role.Foodsharer, verified: false } }] },
+          { stage: 'IN_PROGRESS', userCount: 1, reachedCount: 1, stalledCount: 0, users: [] },
+        ],
+        gaps: [
+          { category: 'BAKERY', withFairteiler: false, students: 2, openSlots: 0, severity: 'MISSING' },
+          { category: 'SUPERMARKET', withFairteiler: false, students: 1, openSlots: 3, severity: 'OK' },
+        ],
+      });
+    await fixture.whenStable();
+    expect(el.querySelectorAll('[data-testid="introPickups.funnel.step"]').length).toBe(2);
+    expect(el.querySelectorAll('[data-testid="introPickups.funnel.names"]').length).toBe(1);
+    expect(el.querySelector('[data-severity="MISSING"]')).not.toBeNull();
+  });
+
+  it('funnel: plain members see the forbidden state', async () => {
+    const fixture = TestBed.createComponent(NewcomerFunnelPageComponent);
+    fixture.componentRef.setInput('regionId', REGION);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    http.expectOne((req) => req.url.endsWith('/newcomer-funnel')).flush(problem('FORBIDDEN', 403), { status: 403, statusText: 'Forbidden' });
+    await fixture.whenStable();
+    const state = (fixture.nativeElement as HTMLElement).querySelector('[data-testid="introPickups.funnel.state"]');
+    expect(state?.getAttribute('data-state')).toBe('forbidden');
   });
 });

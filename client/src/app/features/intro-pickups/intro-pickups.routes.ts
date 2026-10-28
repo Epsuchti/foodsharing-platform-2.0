@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '../../core/auth/auth.guard';
+import { homeRegionGuard } from '../../core/region/home-region.guard';
 
 /**
  * Mounted at '' in app.routes.ts; paths inside are relative to that mount.
@@ -45,5 +46,25 @@ export const INTRO_PICKUPS_ROUTES: Routes = [
     title: 'introPickups.settings.pageTitle',
     loadComponent: () =>
       import('./pages/guide-settings-page.component').then((m) => m.GuideSettingsPageComponent),
+  },
+  {
+    path: 'regions/:regionId/newcomers',
+    canActivate: [authGuard, homeRegionGuard],
+    title: 'introPickups.funnel.pageTitle',
+    loadComponent: () =>
+      import('./pages/newcomer-funnel-page.component').then((m) => m.NewcomerFunnelPageComponent),
+  },
+  {
+    path: 'regions/:regionId/intro-pickups/admin',
+    canActivate: [authGuard, homeRegionGuard],
+    title: 'introPickups.admin.pageTitle',
+    loadComponent: () =>
+      import('./pages/admin-intro-pickups-page.component').then((m) => m.AdminIntroPickupsPageComponent),
+  },
+  {
+    path: 'regions/:regionId/intro-pickups/import',
+    canActivate: [authGuard, homeRegionGuard],
+    title: 'introPickups.import.pageTitle',
+    loadComponent: () => import('./pages/past-import-page.component').then((m) => m.PastImportPageComponent),
   },
 ];

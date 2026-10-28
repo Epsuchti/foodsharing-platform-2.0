@@ -70,6 +70,9 @@ import { introPickupIcs } from '../intro-pickups.resource';
             <p-button [label]="'introPickups.guide.past' | t" size="small" [outlined]="!past()" (onClick)="past.set(true)" data-testid="introPickups.guide.showPast" />
           </div>
           <span class="spacer"></span>
+          @if (regionId(); as rid) {
+            <a [routerLink]="['/regions', rid, 'newcomers']" class="fs-btn fs-btn--outlined fs-btn--sm" data-testid="introPickups.guide.funnel"><i class="pi pi-filter" aria-hidden="true"></i>{{ 'introPickups.guide.funnelLink' | t }}</a>
+          }
           <a routerLink="/guide/settings" class="fs-btn fs-btn--outlined fs-btn--sm" data-testid="introPickups.guide.settings"><i class="pi pi-cog" aria-hidden="true"></i>{{ 'introPickups.guide.settingsLink' | t }}</a>
           <p-button [label]="'introPickups.guide.create' | t" icon="pi pi-plus" (onClick)="openCreate()" data-testid="introPickups.guide.create" />
         </div>

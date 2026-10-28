@@ -63,6 +63,8 @@ export class MemberPickDialogComponent {
   readonly regionId = input<string | null>(null);
   readonly title = input('');
   readonly busy = input(false);
+  /** false: newcomers (default), true: verified foodsavers (e.g. new guides). */
+  readonly verified = input(false);
   readonly picked = output<UserSummary>();
 
   protected readonly input = signal('');
@@ -75,7 +77,7 @@ export class MemberPickDialogComponent {
       return this.visible() && regionId ? { regionId, search: this.search() } : undefined;
     },
     loader: (params) =>
-      this.api.listRegionMembers({ regionId: params!.regionId, search: params!.search || undefined, verified: false, size: 20 }),
+      this.api.listRegionMembers({ regionId: params!.regionId, search: params!.search || undefined, verified: this.verified(), size: 20 }),
   });
 
   protected onInput(value: string): void {
