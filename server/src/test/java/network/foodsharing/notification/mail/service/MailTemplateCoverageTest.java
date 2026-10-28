@@ -26,7 +26,8 @@ class MailTemplateCoverageTest {
             NotificationType.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE, NotificationType.STORE_REQUEST_AUTO_DECLINED,
             NotificationType.STORE_REQUEST_AUTO_ACCEPTED, NotificationType.PICKUP_LATE_CANCELLATION,
             NotificationType.PICKUP_SIGNOUT_NOT_REPLACED, NotificationType.INTEGRATION_DOWN,
-            NotificationType.NEWSLETTER, NotificationType.FORUM_POST, NotificationType.FORUM_THREAD_TO_ACTIVATE);
+            NotificationType.NEWSLETTER, NotificationType.FORUM_POST, NotificationType.FORUM_THREAD_TO_ACTIVATE,
+            NotificationType.FSP_NEW_POST);
 
     @Test
     void everyMailedTypeHasTenFilesAndFiveSubjects() throws IOException {

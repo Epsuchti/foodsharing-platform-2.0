@@ -13,13 +13,7 @@ import static network.foodsharing.notification.domain.NotificationCategory.SYSTE
 /**
  * What a notification is about (bell type, mail choice, channel settings via {@link #category()}). M4 declares every
  * type up front, including the M5/M6 ones (upstream bell list,
-    // M6 additions (docs/plan-m6.md B1)
-    FSP_NEW_POST(REGION, "map-pin"),
-    MEDIATION_REQUEST(REGION, "scale"),
-    ACHIEVEMENT_AWARDED(SYSTEM, "award"),
-    EMAIL_CHANGE_REQUESTED(SYSTEM, "mail"),
-    SUPPORT_TICKET(SYSTEM, "life-buoy"),
-    BASKET_REQUEST_ANSWERED(MESSAGES, "shopping-basket"); texts exist, emitted later). A task that needs another
+ * texts exist, emitted later). A task that needs another
  * one uses {@link #GENERIC} with a {@code titleKey} parameter. {@link #icon()} is the default bell icon (Lucide name).
  */
 public enum NotificationType {
@@ -108,7 +102,13 @@ public enum NotificationType {
     EVENT_INVITATION(REGION, "calendar"),
     EVENT_UPDATED(REGION, "calendar"),
     POLL_CANCELLED(REGION, "vote"),
-    SURVEY_SHARED(REGION, "clipboard-list");
+    SURVEY_SHARED(REGION, "clipboard-list"),
+    // M6 additions (docs/plan-m6.md B1; BASKET_REQUEST_ANSWERED is listed with BASKET_REQUEST above)
+    FSP_NEW_POST(REGION, "map-pin"),
+    MEDIATION_REQUEST(REGION, "scale"),
+    ACHIEVEMENT_AWARDED(SYSTEM, "award"),
+    EMAIL_CHANGE_REQUESTED(SYSTEM, "mail"),
+    SUPPORT_TICKET(SYSTEM, "life-buoy");
 
     private final NotificationCategory category;
     private final String icon;

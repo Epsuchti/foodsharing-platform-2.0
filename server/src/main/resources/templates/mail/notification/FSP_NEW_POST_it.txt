@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+[(${author})] ha scritto al punto di condivisione «[(${name})]»:
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

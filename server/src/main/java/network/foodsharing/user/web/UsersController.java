@@ -134,7 +134,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<ActivityFilters> getActivityFilters() {
-        throw ApiException.notImplemented("getActivityFilters");
+        return ResponseEntity.ok(new ActivityFilters().excluded(userService.activityFilters().stream()
+                .map(network.foodsharing.api.model.ActivityType::fromValue).toList()));
     }
 
     @Override
@@ -178,7 +179,11 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<ActivityFilters> updateActivityFilters(ActivityFilters activityFilters) {
-        throw ApiException.notImplemented("updateActivityFilters");
+        List<String> saved = userService.updateActivityFilters(activityFilters.getExcluded() == null ? List.of()
+                : activityFilters.getExcluded().stream().map(network.foodsharing.api.model.ActivityType::getValue)
+                .toList());
+        return ResponseEntity.ok(new ActivityFilters().excluded(saved.stream()
+                .map(network.foodsharing.api.model.ActivityType::fromValue).toList()));
     }
 
     @Override

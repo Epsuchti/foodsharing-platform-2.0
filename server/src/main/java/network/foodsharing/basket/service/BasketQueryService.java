@@ -133,8 +133,23 @@ public class BasketQueryService {
                 .map(basket -> summary(basket, me, null)).toList();
     }
 
+    /**
+     * Map layer (M1): every open basket; HOME locations are rounded (~100 m) for everybody, also anonymous viewers.
+     */
+    public List<BasketView> openForMap() {
+        Instant now = clock.instant();
+        return baskets.findByStatusAndExpiresAtAfter(BasketStatus.ACTIVE, now).stream()
+                .map(basket -> summary(basket, null, null)).toList();
+    }
+
+    /** An open basket for a map bubble (rounded like {@link #openForMap()}). */
+    public java.util.Optional<BasketView> openForMap(UUID basketId) {
+        Instant now = clock.instant();
+        return baskets.findById(basketId).filter(b -> BasketRules.isOpen(b, now)).map(b -> summary(b, null, null));
+    }
+
     private BasketView summary(Basket basket, UUID me, Double distanceKm) {
-        boolean owner = basket.getOwnerId().equals(me);
+        boolean owner = me != null && basket.getOwnerId().equals(me);
         return new BasketView(basket, BasketRules.publicCoordinate(basket, basket.getLat(), owner),
                 BasketRules.publicCoordinate(basket, basket.getLon(), owner),
                 distanceKm == null ? null : Math.round(distanceKm * 10) / 10.0, List.of(), List.of(), List.of(), null,
