@@ -33,11 +33,23 @@ public class UsersController implements UsersApi {
     private final UserMapper mapper;
     private final network.foodsharing.user.service.UserSearchService userSearch;
     private final network.foodsharing.user.service.UserAccountService account;
+    private final network.foodsharing.user.service.EmailChangePort emailChange;
+    private final network.foodsharing.user.service.AccountDeletionService deletion;
+    private final network.foodsharing.user.service.DataExportService export;
+    private final network.foodsharing.user.service.BusinessCardPort businessCards;
 
     public UsersController(UserService userService, UserMapper mapper,
                            network.foodsharing.user.service.UserSearchService userSearch,
-                           network.foodsharing.user.service.UserAccountService account) {
+                           network.foodsharing.user.service.UserAccountService account,
+                           network.foodsharing.user.service.EmailChangePort emailChange,
+                           network.foodsharing.user.service.AccountDeletionService deletion,
+                           network.foodsharing.user.service.DataExportService export,
+                           network.foodsharing.user.service.BusinessCardPort businessCards) {
+        this.deletion = deletion;
+        this.export = export;
+        this.businessCards = businessCards;
         this.account = account;
+        this.emailChange = emailChange;
         this.userService = userService;
         this.mapper = mapper;
         this.userSearch = userSearch;
@@ -83,7 +95,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<Void> abortEmailChange() {
-        throw ApiException.notImplemented("abortEmailChange");
+        emailChange.abort();
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -94,12 +107,16 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<UserSummary> confirmEmailChange(TokenBody tokenBody) {
-        throw ApiException.notImplemented("confirmEmailChange");
+        User user = emailChange.confirm(tokenBody.getToken());
+        return ResponseEntity.ok(mapper.toSummary(user, true));
     }
 
     @Override
     public ResponseEntity<Void> deleteMyAccount(AccountDeletion accountDeletion) {
-        throw ApiException.notImplemented("deleteMyAccount");
+        deletion.deleteSelf(accountDeletion == null ? null : accountDeletion.getReason());
+        return ResponseEntity.noContent()
+                .header(org.springframework.http.HttpHeaders.SET_COOKIE, "fs_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax")
+                .build();
     }
 
     @Override
@@ -110,7 +127,9 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<JobRef> exportMyData() {
-        throw ApiException.notImplemented("exportMyData");
+        JobRef ref = new JobRef();
+        ref.setJobId(export.exportMine());
+        return ResponseEntity.status(org.springframework.http.HttpStatus.ACCEPTED).body(ref);
     }
 
     @Override
@@ -120,12 +139,19 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<org.springframework.core.io.Resource> getBusinessCard(String role, UUID regionId) {
-        throw ApiException.notImplemented("getBusinessCard");
+        byte[] pdf = businessCards.render(role, regionId);
+        return ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"foodsharing-visitenkarte.pdf\"")
+                .body(new org.springframework.core.io.ByteArrayResource(pdf));
     }
 
     @Override
     public ResponseEntity<EmailChangeStatus> getEmailChange() {
-        throw ApiException.notImplemented("getEmailChange");
+        return ResponseEntity.ok(emailChange.pending()
+                .map(p -> new EmailChangeStatus().pendingEmail(p.newEmail())
+                        .requestedAt(network.foodsharing.common.mapper.TimeMapper.toOffset(p.requestedAt())))
+                .orElseGet(EmailChangeStatus::new));
     }
 
     @Override
@@ -135,7 +161,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<Void> requestEmailChange(EmailChangeRequest emailChangeRequest) {
-        throw ApiException.notImplemented("requestEmailChange");
+        emailChange.request(userService.getCurrent().getId(), emailChangeRequest.getNewEmail());
+        return ResponseEntity.accepted().build();
     }
 
     @Override

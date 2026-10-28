@@ -12,6 +12,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmailIgnoreCase(String email);
 
+    /** Info mail recipients (A20): active, not deleted, info mails switched on. */
+    java.util.List<User> findByActiveTrueAndInfoMailMessageTrueAndDeletedAtIsNull();
+
     List<User> findByIdIn(Collection<UUID> ids);
 
     org.springframework.data.domain.Page<User> findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(

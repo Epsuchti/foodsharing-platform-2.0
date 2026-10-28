@@ -1,0 +1,9 @@
+Bonjour [(${displayName})],
+
+tu souhaites remplacer ton adresse e-mail foodsharing par [(${newEmail})]. Confirme le changement avec ce lien (connecté·e, valable [(${validityHours})] heures) :
+
+[(${link})]
+
+Tu n'as demandé aucun changement ? Ignore simplement cet e-mail.
+
+Ton équipe foodsharing

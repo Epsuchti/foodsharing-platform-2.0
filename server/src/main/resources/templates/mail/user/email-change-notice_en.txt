@@ -1,0 +1,9 @@
+Hello [(${displayName})],
+
+a change of the email address of your foodsharing account to [(${newEmail})] was requested. Was it not you? Then abort the change with this link:
+
+[(${link})]
+
+If you requested the change yourself, there is nothing to do.
+
+Your foodsharing team

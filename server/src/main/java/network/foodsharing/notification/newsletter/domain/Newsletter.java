@@ -22,6 +22,11 @@ public class Newsletter extends BaseEntity {
     @Column(name = "region_id")
     private UUID regionId;
 
+    /** NEWSLETTER or INFO_MAIL (A20). */
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    @Column(name = "kind", nullable = false, length = 20)
+    private NewsletterKind kind = NewsletterKind.NEWSLETTER;
+
     @Column(name = "subject", nullable = false, length = 200)
     private String subject;
 

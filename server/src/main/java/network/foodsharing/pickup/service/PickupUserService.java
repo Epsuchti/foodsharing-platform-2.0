@@ -107,6 +107,23 @@ public class PickupUserService {
         return page(slots, page, size);
     }
 
+    /** A pickup sign-up for the personal calendar feed (A11). */
+    public record CalendarPickup(UUID storeId, String storeName, String address, Instant pickupAt, boolean confirmed) {
+    }
+
+    /** Sign-ups of {@code userId} from {@code from} on, for the calendar feed (the caller checked the feed token). */
+    @Transactional(readOnly = true)
+    public List<CalendarPickup> calendarPickups(UUID userId, Instant from) {
+        return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAt(userId, from)).stream()
+                .map(view -> new CalendarPickup(view.store().getId(), view.store().getName(),
+                        java.util.stream.Stream.of(view.store().getStreet(), java.util.stream.Stream.of(
+                                        view.store().getPostcode(), view.store().getCity())
+                                        .filter(java.util.Objects::nonNull).collect(Collectors.joining(" ")))
+                                .filter(part -> part != null && !part.isBlank()).collect(Collectors.joining(", ")),
+                        view.slot().pickupAt(), Boolean.TRUE.equals(view.confirmed())))
+                .toList();
+    }
+
     /** Upcoming pickups of the current user. */
     @Transactional(readOnly = true)
     public List<UserPickupView> myPickups() {

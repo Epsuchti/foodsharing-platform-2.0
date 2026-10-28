@@ -120,6 +120,11 @@ public class UserService {
 
     /** Active users who opted in to newsletters (N7). */
     @Transactional(readOnly = true)
+    public List<User> findActiveInfoMailRecipients() {
+        return repository.findByActiveTrueAndInfoMailMessageTrueAndDeletedAtIsNull();
+    }
+
+    @Transactional(readOnly = true)
     public List<User> findActiveNewsletterRecipients() {
         return repository.findByActiveTrueAndNewsletterOptInTrue();
     }
@@ -381,6 +386,17 @@ public class UserService {
             user.setEmailBouncedAt(at);
             return user.getId();
         });
+    }
+
+    /** Completes an email change (A5): new address, verified now, bounce flag cleared. */
+    @Transactional
+    @NoHistory(reason = "the auth module's EmailChangeService records UserAction.EMAIL_CHANGE_COMPLETED")
+    public User changeEmail(UUID userId, String newEmail, java.time.Instant verifiedAt) {
+        User user = repository.findById(userId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+        user.setEmail(normalizeEmail(newEmail));
+        user.setEmailVerifiedAt(verifiedAt);
+        user.setEmailBouncedAt(null);
+        return user;
     }
 
     /** Links or unlinks the personal mailbox (MB6); the mailbox module records MAILBOX_CREATED / MAILBOX_DELETED. */

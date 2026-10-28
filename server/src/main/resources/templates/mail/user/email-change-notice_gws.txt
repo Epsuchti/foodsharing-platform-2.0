@@ -1,0 +1,9 @@
+Hoi [(${displayName})],
+
+für dis foodsharing-Konto isch e Änderig vo de E-Mail-Adrässe uf [(${newEmail})] aagfordered worde. Bisch das nöd du gsi? Dänn bräch d Änderig mit däm Link ab:
+
+[(${link})]
+
+Wänn du d Änderig sälber aagfordered häsch, muesch nüt mache.
+
+Dis foodsharing-Team

@@ -1,0 +1,9 @@
+Hoi [(${displayName})],
+
+du wotsch dini E-Mail-Adrässe bi foodsharing uf [(${newEmail})] ändere. Bitte bestätig d Änderig mit däm Link (aagmäldet, [(${validityHours})] Stund gültig):
+
+[(${link})]
+
+Häsch kei Änderig aagfordered? Dänn ignorier die E-Mail eifach.
+
+Dis foodsharing-Team

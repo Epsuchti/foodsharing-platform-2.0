@@ -17,7 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-/** Minimal uploads (A34). */
+import network.foodsharing.common.error.ApiException;
+
+/** Uploads (A34) with image variants and public reads (A41). */
 @RestController
 public class UploadsController implements UploadsApi {
 
@@ -44,15 +46,23 @@ public class UploadsController implements UploadsApi {
 
     @Override
     public ResponseEntity<Resource> downloadUpload(UUID uploadId, String size) {
-        UUID userId = currentActor.requireUserId();
-        Upload upload = uploads.requireReadable(userId, currentActor.isOrga(), uploadId);
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(upload.getMimeType()))
-                .contentLength(upload.getSize())
+        UUID userId = currentActor.currentUserId().orElse(null);
+        if (userId == null && !uploads.find(uploadId).isPublicReadable()) {
+            throw ApiException.unauthenticated();
+        }
+        Upload upload = uploads.requireReadable(userId, userId != null && currentActor.isOrga(), uploadId);
+        UploadService.Download download = uploads.open(upload, size);
+        var response = ResponseEntity.ok();
+        if (upload.isPublicReadable()) {
+            response.header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400");
+        }
+        return response
+                .contentType(MediaType.parseMediaType(download.mimeType()))
+                .contentLength(download.size())
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                         .filename(upload.getFileName(), java.nio.charset.StandardCharsets.UTF_8).build().toString())
                 .header("X-Content-Type-Options", "nosniff")
-                .body(new InputStreamResource(uploads.open(upload)));
+                .body(new InputStreamResource(download.stream()));
     }
 
     @Override
@@ -63,6 +73,8 @@ public class UploadsController implements UploadsApi {
 
     static network.foodsharing.api.model.Upload toApi(Upload upload) {
         return new network.foodsharing.api.model.Upload().id(upload.getId()).fileName(upload.getFileName())
-                .mimeType(upload.getMimeType()).size(upload.getSize()).url("/api/uploads/" + upload.getId());
+                .mimeType(upload.getMimeType()).size(upload.getSize()).url("/api/uploads/" + upload.getId())
+                .width(upload.getWidth()).height(upload.getHeight())
+                .publicUrl(upload.isPublicReadable() ? "/api/uploads/" + upload.getId() : null);
     }
 }

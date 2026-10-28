@@ -24,6 +24,12 @@ public final class IcsWriter {
     }
 
     public static String calendar(String productId, String calendarName, List<IcsEvent> events) {
+        return calendar(productId, calendarName, events, List.of());
+    }
+
+    /** With one {@code VALARM} (display) per entry of {@code alarmMinutesBefore} on every event (A11 reminders). */
+    public static String calendar(String productId, String calendarName, List<IcsEvent> events,
+                                  List<Integer> alarmMinutesBefore) {
         StringBuilder out = new StringBuilder();
         line(out, "BEGIN:VCALENDAR");
         line(out, "VERSION:2.0");
@@ -48,6 +54,13 @@ public final class IcsWriter {
             }
             if (event.url() != null && !event.url().isBlank()) {
                 line(out, "URL:" + event.url());
+            }
+            for (Integer minutes : alarmMinutesBefore) {
+                line(out, "BEGIN:VALARM");
+                line(out, "ACTION:DISPLAY");
+                line(out, "DESCRIPTION:" + escape(event.summary()));
+                line(out, "TRIGGER:-PT" + minutes + "M");
+                line(out, "END:VALARM");
             }
             line(out, "END:VEVENT");
         }

@@ -53,8 +53,15 @@ public class UploadService {
     private final Clock clock;
     private final Map<String, UploadAccessRule> rules;
 
+    /** Usages whose uploads are readable by everybody, also without login (A41). */
+    public static final java.util.Set<String> PUBLIC_MODULES = java.util.Set.of("USER_PHOTO", "FSP_PHOTO",
+            "BASKET_PHOTO", "BLOG_PICTURE", "CONTENT_IMAGE", "RESOURCE_IMAGE");
+
+    private final ImageVariants images;
+
     public UploadService(UploadRepository repository, UploadStorage storage, HistoryService history,
                          AppProperties properties, Clock clock, List<UploadAccessRule> rules) {
+        this.images = new ImageVariants(properties);
         this.repository = repository;
         this.storage = storage;
         this.history = history;
@@ -89,8 +96,13 @@ public class UploadService {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        writeVariants(upload, file.bytes());
         Upload saved = repository.save(upload);
         deleteBytesOnRollback(saved.getStorageKey());
+        if (saved.isVariants()) {
+            images.sizeNames().forEach(size ->
+                    deleteBytesOnRollback(ImageVariants.variantKey(saved.getStorageKey(), size)));
+        }
         history.record(history.event(UploadAction.UPLOADED, saved.getId())
                 .metadata(Map.of("mimeType", mimeType, "size", saved.getSize())).build());
         return saved;
@@ -104,9 +116,16 @@ public class UploadService {
         upload.setUsageModule(usage.module());
         upload.setUsageOwnerId(usage.ownerId());
         upload.setExpiresAt(null);
+        upload.setPublicReadable(upload.isPublicReadable() || PUBLIC_MODULES.contains(usage.module()));
         history.record(history.event(UploadAction.CLAIMED, upload.getId())
                 .metadata(Map.of("module", usage.module(), "ownerId", String.valueOf(usage.ownerId()))).build());
         return upload;
+    }
+
+    /** Uploads owned by a user, oldest first (GDPR export, A21). */
+    @Transactional(readOnly = true)
+    public List<Upload> ownedBy(UUID ownerUserId) {
+        return repository.findByOwnerUserIdOrderByCreatedAt(ownerUserId);
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +135,9 @@ public class UploadService {
 
     /** Owner always; a claimed upload also through the claiming module's {@link UploadAccessRule}. */
     public boolean mayRead(UUID userId, Upload upload) {
+        if (upload.isPublicReadable()) {
+            return true;
+        }
         if (userId != null && userId.equals(upload.getOwnerUserId())) {
             return true;
         }
@@ -134,6 +156,62 @@ public class UploadService {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         return upload;
+    }
+
+    /** A variant ({@code sm|md|lg}) when rendered, else the original. @throws ApiException 400 unknown size */
+    public Download open(Upload upload, String size) {
+        if (size != null && !images.isSize(size)) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
+        }
+        if (size != null && upload.isVariants()) {
+            try (InputStream in = storage.open(ImageVariants.variantKey(upload.getStorageKey(), size))) {
+                byte[] bytes = in.readAllBytes();
+                return new Download(ImageVariants.VARIANT_MIME_TYPE, bytes.length,
+                        new java.io.ByteArrayInputStream(bytes));
+            } catch (IOException missingVariant) {
+                LOG.warn("Variant {} of upload {} is missing; serving the original", size, upload.getId());
+            }
+        }
+        return new Download(upload.getMimeType(), upload.getSize(), open(upload));
+    }
+
+    /** Bytes to send: content type, length and stream. */
+    public record Download(String mimeType, long size, InputStream stream) {
+    }
+
+    /**
+     * Renders missing variants of image uploads whose bytes exist (seeded uploads, uploads from before A41); called by
+     * {@link UploadSeedFiles} at startup.
+     */
+    @Transactional
+    @NoHistory(reason = "derived files of existing uploads; nothing user-visible changes")
+    public int renderMissingVariants() {
+        int rendered = 0;
+        for (Upload upload : repository.findByVariantsFalseAndMimeTypeIn(ImageVariants.IMAGE_TYPES)) {
+            try (InputStream in = storage.open(upload.getStorageKey())) {
+                writeVariants(upload, in.readAllBytes());
+                rendered += upload.isVariants() ? 1 : 0;
+            } catch (IOException missing) {
+                LOG.debug("Upload {} has no bytes yet", upload.getId());
+            }
+        }
+        return rendered;
+    }
+
+    private void writeVariants(Upload upload, byte[] bytes) {
+        images.render(upload.getMimeType(), bytes).ifPresent(rendered -> {
+            try {
+                for (Map.Entry<String, byte[]> variant : rendered.variants().entrySet()) {
+                    storage.write(ImageVariants.variantKey(upload.getStorageKey(), variant.getKey()),
+                            variant.getValue());
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            upload.setWidth(rendered.width());
+            upload.setHeight(rendered.height());
+            upload.setVariants(true);
+        });
     }
 
     public InputStream open(Upload upload) {
@@ -162,6 +240,10 @@ public class UploadService {
     public void delete(Upload upload) {
         repository.delete(upload);
         deleteBytesAfterCommit(upload.getStorageKey());
+        if (upload.isVariants()) {
+            images.sizeNames().forEach(size ->
+                    deleteBytesAfterCommit(ImageVariants.variantKey(upload.getStorageKey(), size)));
+        }
         history.record(history.event(UploadAction.DELETED, upload.getId()).build());
     }
 

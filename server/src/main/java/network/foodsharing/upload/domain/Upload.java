@@ -51,4 +51,19 @@ public class Upload extends BaseEntity {
     /** Unclaimed uploads are deleted after this instant; {@code null} once claimed. */
     @Column(name = "expires_at")
     private Instant expiresAt;
+
+    /** Pixel size of images (A41); null for other files. */
+    @Column(name = "width")
+    private Integer width;
+
+    @Column(name = "height")
+    private Integer height;
+
+    /** Whether the sm/md/lg variants exist in the store as {@code <storage_key>_<size>}. */
+    @Column(name = "variants", nullable = false)
+    private boolean variants;
+
+    /** Claimed by a public usage (USER_PHOTO, FSP_PHOTO, …): readable without login. */
+    @Column(name = "is_public", nullable = false)
+    private boolean publicReadable;
 }

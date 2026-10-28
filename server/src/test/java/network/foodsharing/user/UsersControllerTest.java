@@ -54,6 +54,18 @@ class UsersControllerTest {
     private network.foodsharing.user.service.UserAccountService accountService;
 
     @MockitoBean
+    private network.foodsharing.user.service.EmailChangePort emailChangePort;
+
+    @MockitoBean
+    private network.foodsharing.user.service.AccountDeletionService accountDeletionService;
+
+    @MockitoBean
+    private network.foodsharing.user.service.DataExportService dataExportService;
+
+    @MockitoBean
+    private network.foodsharing.user.service.BusinessCardPort businessCardPort;
+
+    @MockitoBean
     private UserService userService;
 
     @MockitoBean

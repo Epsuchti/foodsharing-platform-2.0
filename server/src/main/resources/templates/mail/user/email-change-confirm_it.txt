@@ -1,0 +1,9 @@
+Ciao [(${displayName})],
+
+vuoi cambiare il tuo indirizzo e-mail foodsharing in [(${newEmail})]. Conferma la modifica con questo link (con accesso, valido [(${validityHours})] ore):
+
+[(${link})]
+
+Non hai richiesto nessuna modifica? Ignora semplicemente questa e-mail.
+
+Il tuo team foodsharing

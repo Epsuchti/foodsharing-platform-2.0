@@ -37,6 +37,13 @@ public class EventIcsService {
         return write("foodsharing", events.listMineAttending());
     }
 
+    /** Calendar entries of the personal feed (A11): invitations of {@code userId} with the given statuses. */
+    public List<IcsWriter.IcsEvent> calendarEvents(UUID userId,
+                                                   java.util.Set<network.foodsharing.event.domain.InvitationStatus> statuses,
+                                                   java.time.Instant endsAfter) {
+        return events.listForCalendar(userId, statuses, endsAfter).stream().map(this::toIcs).toList();
+    }
+
     String write(String calendarName, List<EventItem> items) {
         return IcsWriter.calendar(PRODUCT_ID, calendarName, items.stream().map(this::toIcs).toList());
     }

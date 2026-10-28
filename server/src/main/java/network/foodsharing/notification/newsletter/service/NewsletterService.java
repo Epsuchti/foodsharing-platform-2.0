@@ -100,15 +100,25 @@ public class NewsletterService {
     }
 
     /** @throws ApiException 400 VALIDATION_FAILED, 403 (global: ORGA only), 404 REGION_NOT_FOUND */
-    @Transactional
     public Newsletter create(UUID regionId, String subject, String bodyMarkdown) {
+        return create(network.foodsharing.notification.newsletter.domain.NewsletterKind.NEWSLETTER, regionId, subject, bodyMarkdown);
+    }
+
+    /** Info mails (A20) are global and ORGA only. @throws ApiException 400 VALIDATION_FAILED, 403, 404 */
+    @Transactional
+    public Newsletter create(network.foodsharing.notification.newsletter.domain.NewsletterKind kind, UUID regionId, String subject,
+                             String bodyMarkdown) {
         SessionPrincipal actor = currentActor.requirePrincipal();
+        if (kind == network.foodsharing.notification.newsletter.domain.NewsletterKind.INFO_MAIL && regionId != null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "regionId");
+        }
         if (regionId != null) {
             regions.find(regionId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.REGION_NOT_FOUND));
         }
         requireRegion(actor, regionId);
         Newsletter newsletter = new Newsletter();
         newsletter.setRegionId(regionId);
+        newsletter.setKind(kind == null ? network.foodsharing.notification.newsletter.domain.NewsletterKind.NEWSLETTER : kind);
         newsletter.setSubject(text(subject, SUBJECT_MAX, "subject"));
         newsletter.setBodyMarkdown(text(bodyMarkdown, BODY_MAX, "bodyMarkdown"));
         newsletter = newsletters.saveAndFlush(newsletter);
@@ -196,6 +206,9 @@ public class NewsletterService {
 
     /** Recipients of the newsletter right now (active, opted in, members of the region subtree). */
     List<UUID> recipientsOf(Newsletter newsletter) {
+        if (newsletter.getKind() == network.foodsharing.notification.newsletter.domain.NewsletterKind.INFO_MAIL) {
+            return users.findActiveInfoMailRecipients().stream().map(User::getId).toList();
+        }
         List<User> optedIn = users.findActiveNewsletterRecipients();
         if (newsletter.getRegionId() == null) {
             return optedIn.stream().map(User::getId).toList();
