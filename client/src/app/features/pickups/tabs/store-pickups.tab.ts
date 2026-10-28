@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
@@ -18,6 +19,7 @@ import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.com
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-dialog.component';
+import { ServerClock } from '../pickups.resource';
 import { addDays, dayOf, groupByDay, zonedToUtc } from '../pickups.util';
 import { StorePageContext } from '../../stores/store-page.context';
 
@@ -45,6 +47,7 @@ interface SlotTarget {
     PickupSignupDialogComponent,
     PickupSlotComponent,
     RequiredMessageDialogComponent,
+    RouterLink,
     TPipe,
     WeekdayTimePickerComponent,
   ],
@@ -65,8 +68,19 @@ interface SlotTarget {
           </button>
         }
       </div>
-      @if (ctx.may('mayEditPickups')) {
-        <div class="actions">
+      <div class="actions">
+        @if (ctx.may('maySeePickupHistory')) {
+          <p-button
+            [label]="'pickups.history.link' | t"
+            icon="pi pi-history"
+            severity="secondary"
+            [text]="true"
+            size="small"
+            routerLink="history"
+            data-testid="stores.pickups.history"
+          />
+        }
+        @if (ctx.may('mayEditPickups')) {
           <p-button
             [label]="'pickups.tab.regular' | t"
             icon="pi pi-replay"
@@ -83,8 +97,8 @@ interface SlotTarget {
             (onClick)="openAdd()"
             data-testid="stores.pickups.add"
           />
-        </div>
-      }
+        }
+      </div>
     </div>
 
     <fs-data-state
@@ -314,6 +328,7 @@ export class StorePickupsTab {
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
   private readonly messages = inject(MessageService);
+  private readonly clock = inject(ServerClock);
 
   protected readonly ranges: Range[] = ['twoWeeks', 'all'];
   protected readonly range = signal<Range>('all');
@@ -326,11 +341,11 @@ export class StorePickupsTab {
     isEmpty: (list) => list.length === 0,
   });
 
-  /** Day groups; "next 2 weeks" counts from the first listed day (the server decides what "now" is). */
+  /** Day groups; "next 2 weeks" counts from the server's today in the store's time zone. */
   protected readonly days = computed(() => {
     const groups = groupByDay(this.pickups.data() ?? [], this.tz());
     if (this.range() === 'all' || !groups.length) return groups;
-    const until = addDays(groups[0].day, 14);
+    const until = addDays(dayOf(this.clock.now(), this.tz()), 14);
     return groups.filter((group) => group.day < until);
   });
 
@@ -455,8 +470,7 @@ export class StorePickupsTab {
     this.editAt.set(null);
     this.editSlots = 2;
     this.editDescription = '';
-    const first = this.pickups.data()?.[0]?.pickupAt;
-    this.newDate = first ? dayOf(first, this.tz()) : '';
+    this.newDate = addDays(dayOf(this.clock.now(), this.tz()), 1);
     this.newTime = '18:00';
     this.editOpen.set(true);
   }

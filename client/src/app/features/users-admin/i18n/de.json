@@ -61,5 +61,6 @@
   "usersAdmin.user.reason": "Begründung",
   "usersAdmin.user.history": "Änderungsverlauf",
   "usersAdmin.user.noHistory": "Noch keine Änderungen",
-  "usersAdmin.user.quizHistory": "Quiz-Versuche"
+  "usersAdmin.user.quizHistory": "Quiz-Versuche",
+  "usersAdmin.user.pickups": "Abholungen"
 }

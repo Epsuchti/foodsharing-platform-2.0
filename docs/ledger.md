@@ -51,10 +51,10 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | S8 | Move to/from standby, remove member (required message), appoint/remove store manager | done | StoreTeamService | store team tab | tests/stores @S8 | stores-team.screen.ts (baseline pending) |  |
 | S9 | Team list: phone buttons (permission-dependent), last pickup, pickup count, distance to store, sleep mode | in-progress | team list | team tab | s9-team-list @S9 | | phone buttons need TeamMember phone (backend) |
 | S10 | Team chat and jumper (standby) chat, auto-membership | todo | | | | | |
-| S11 | Store wall / notes with milestones (cooperation start, status changes) and delete rules per permission table | todo | | | | | |
-| S12 | Store log (§10.2) with date range and action filter | todo | | | | | |
-| S13 | Delete/archive store | todo | | | | | |
-| S14 | Store statistics: pickups, kg saved per pickup weight category, per month | todo | | | | | |
+| S11 | Store wall / notes with milestones (cooperation start, status changes) and delete rules per permission table | done | StoreWallService | store wall tab (composer, milestones, delete per mayDelete) | tests/stores/s11-wall @S11 | stores-wall-log.screen.ts (baseline pending) |  |
+| S12 | Store log (§10.2) with date range and action filter | done | StoreLogService | store log tab (fs-history-timeline, action groups, date range, ORGA CSV) | tests/stores/s12-store-log @S12 | stores-wall-log.screen.ts (baseline pending) |  |
+| S13 | Delete/archive store | done | StoreService.delete | delete section in store edit page (coordinators, 409 explained) | tests/stores/s13-delete @S13 | stores-wall-log.screen.ts (baseline pending) |  |
+| S14 | Store statistics: pickups, kg saved per pickup weight category, per month | done | StoreStatisticsService | store statistics tab (month bar chart pickups/kg, per member) | tests/stores/s14-statistics @S14 | stores-wall-log.screen.ts (baseline pending) |  |
 | S15 | Navigation buttons and map position | done | store coordinates | overview map + navigation buttons | s15 @S15 | |  |
 | S16 | Region of the store shown, store moved between regions by admins | done | region move guard | edit page | s16 @S16 | |  |
 | PU1 | Regular pickups (weekday, time, max slots, description), interval settings | done | pickup module | pickups tab, /pickups | tests/pickups @PU1 | pickups.screen.ts (baseline pending) |  |
@@ -62,7 +62,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | PU3 | Sign up / sign out; store managers remove others; slot confirmation (unconfirmed → confirmed); prefetch time (how far ahead sign-up opens) | done | pickup module | pickups tab, /pickups | tests/pickups @PU3 | pickups.screen.ts (baseline pending) |  |
 | PU4 | Eligibility check before sign-up (verified, hygiene certificate, phone, region pickup rule, team status, sleep mode) with a clear reason | done | pickup module | pickups tab, /pickups | tests/pickups @PU4 | pickups.screen.ts (baseline pending) | jumper/unverified get 403 instead of reasons — backend change pending |
 | PU5 | Region pickup rule enforcement (max pickups in timespan, per day, ignored N hours before pickup) | done | pickup module | pickups tab, /pickups | tests/pickups @PU5 | pickups.screen.ts (baseline pending) |  |
-| PU6 | Pickup history per store (date range) and per user; delete all future pickups of a user (when leaving) | todo | | | | | |
+| PU6 | Pickup history per store (date range) and per user; delete all future pickups of a user (when leaving) | done | PickupHistoryService | store pickups/history, /me/pickups/history, /users/:id/pickups | tests/pickups/pu6-history @PU6 | stores-wall-log.screen.ts (baseline pending) |  |
 | PU7 | Pickup options for user ("where can I help?", free slots in my stores) | done | pickup module | pickups tab, /pickups | tests/pickups @PU7 | pickups.screen.ts (baseline pending) |  |
 | PU8 | User agenda for a date | done | pickup module | pickups tab, /pickups | tests/pickups @PU8 | pickups.screen.ts (baseline pending) |  |
 | PU9 | Pickup reminders (disable per user) | todo | | | | | |
