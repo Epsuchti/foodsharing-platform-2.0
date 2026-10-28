@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+[(${author})] ha aperto la discussione «[(${title})]». È in attesa della tua approvazione.
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

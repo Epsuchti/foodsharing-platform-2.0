@@ -1,0 +1,71 @@
+# Milestone 5 (B6): forum reactions and follows (upstream fs_post_reaction, fs_theme_follower).
+databaseChangeLog:
+  - changeSet:
+      id: 136-1
+      author: platform
+      comment: 'Emoji reactions on forum posts (upstream fs_post_reaction), one per user, post and key.'
+      changes:
+        - createTable:
+            tableName: forum_post_reaction
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_forum_post_reaction, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: post_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_forum_post_reaction_post_id, references: forum_post(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_forum_post_reaction_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: reaction_key, type: VARCHAR(40), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: forum_post_reaction
+            columnNames: post_id, user_id, reaction_key
+            constraintName: uq_forum_post_reaction
+  - changeSet:
+      id: 136-2
+      author: platform
+      comment: 'Thread followers (upstream fs_theme_follower) by bell and/or mail.'
+      changes:
+        - createTable:
+            tableName: forum_thread_follow
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_forum_thread_follow, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: thread_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_forum_thread_follow_thread_id, references: forum_thread(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_forum_thread_follow_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: bell, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: mail, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: forum_thread_follow
+            columnNames: thread_id, user_id
+            constraintName: uq_forum_thread_follow
+        - createIndex:
+            tableName: forum_thread_follow
+            indexName: ix_forum_thread_follow_user_id
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 136-3
+      author: platform
+      comment: 'Whole-forum followers: a FORUM_NEW_THREAD bell for every new active thread.'
+      changes:
+        - createTable:
+            tableName: forum_follow
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_forum_follow, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_forum_follow_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: ambassador_forum, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_forum_follow_user_id, references: user_account(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: forum_follow
+            columnNames: region_id, ambassador_forum, user_id
+            constraintName: uq_forum_follow

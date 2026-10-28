@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+[(${author})] het s Thema «[(${title})]» eröffnet. Es wartet uf dini Freischaltig.
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

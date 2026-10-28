@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+[(${author})] replied in the forum thread "[(${title})]":
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

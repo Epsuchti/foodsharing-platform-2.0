@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+[(${author})] hat das Thema «[(${title})]» eröffnet. Es wartet auf deine Freischaltung.
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dein foodsharing-Team

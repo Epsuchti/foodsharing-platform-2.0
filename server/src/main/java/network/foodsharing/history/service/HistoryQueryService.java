@@ -1,6 +1,7 @@
 package network.foodsharing.history.service;
 
 import jakarta.persistence.criteria.Predicate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -67,6 +68,19 @@ public class HistoryQueryService {
     public Page<HistoryEntry> listForSubject(SubjectType subjectType, UUID subjectId, Collection<String> actions,
                                              int page, int size) {
         return list(HistoryFilter.forSubject(subjectType, subjectId, List.copyOf(actions), page, size));
+    }
+
+    /**
+     * Entries of one subject type and region (e.g. the forum moderation log, A37). The caller checks access: there is
+     * no single subject the history policy could judge.
+     */
+    public Page<HistoryEntry> listForRegion(SubjectType subjectType, UUID regionId, Collection<String> actions,
+                                            Instant from, Instant to, int page, int size) {
+        HistoryFilter filter = new HistoryFilter(subjectType, null, null, null, List.copyOf(actions), from, to, page,
+                size);
+        Specification<HistoryEntry> byRegion = (root, query, cb) -> cb.equal(root.get("regionId"), regionId);
+        return repository.findAll(specification(filter).and(byRegion),
+                PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
     }
 
     /** CSV export rows (ORGA only, at most {@code app.history.export-max-rows}). */

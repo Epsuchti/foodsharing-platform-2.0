@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+[(${author})] het im Forum uf «[(${title})]» gantwortet:
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

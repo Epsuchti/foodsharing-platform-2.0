@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+[(${author})] a répondu dans le sujet du forum « [(${title})] » :
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

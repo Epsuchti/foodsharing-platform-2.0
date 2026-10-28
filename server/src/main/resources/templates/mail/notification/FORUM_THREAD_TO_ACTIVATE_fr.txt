@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+[(${author})] a ouvert le sujet « [(${title})] ». Il attend ton approbation.
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

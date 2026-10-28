@@ -1,0 +1,7 @@
+Hello [(${displayName})],
+
+[(${author})] started the thread "[(${title})]". It is waiting for your approval.
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

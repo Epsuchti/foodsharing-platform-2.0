@@ -312,6 +312,24 @@ Implemented with Angular `resource()`/`rxResource` + `httpResource` is not used 
 
 **A37. Moderation log.** Every moderation action is a `history_entry` with `subject_type = THREAD`, action from `forum.domain.ForumAction` (`THREAD_ACTIVATED, THREAD_CLOSED, THREAD_OPENED, THREAD_STICKY_CHANGED, THREAD_DELETED, POST_HIDDEN, POST_UNHIDDEN, POST_DELETED`), `region_id` = forum region, `reason` for hide/delete, `metadata.postId`. `GET /api/regions/{regionId}/moderation-log` = `HistoryQueryService` filtered to those actions + region (`ForumHistoryAccessRule` = moderators of the region); rendered with `fs-history-timeline` (D10.3 "Moderation log" row).
 
+**A37a. Forum implementation notes (B6).** Rules are pure functions in `forum.service.ForumRules` (facts resolved by
+`ForumPermissionService`). A MODERATION group **without admins** counts as absent (ambassadors moderate). Moderation
+bells go to the MODERATION group admins, else the region's ambassadors, else the nearest ancestor's. Threads a user may
+not see (inactive and neither author nor moderator) answer 404 `THREAD_NOT_FOUND`; posting to a closed / inactive
+thread answers 409 `THREAD_CLOSED` / `THREAD_NOT_ACTIVE`; hiding without the region option answers 403
+`HIDING_NOT_ALLOWED`. Hidden post bodies are returned to moderators and the author only (`body: null` otherwise).
+Deleting the last post deletes the thread. `PATCH active=false` is rejected (400). Mentions in post bodies are the token
+`@[Display Name](user:<uuid>)` (client renders it as a profile chip); mentioned users who may read the forum get
+`FORUM_MENTION`. Bells (identifiers): `FORUM_THREAD_TO_ACTIVATE-<thread>` (+ mail `notification/FORUM_THREAD_TO_ACTIVATE`
+per FORUM mail settings), `FORUM_NEW_THREAD-<thread>`, `FORUM_POST-<thread>` (replaced on every post, so one per
+thread), `FORUM_MENTION-<post>`, `POST_HIDDEN-<post>`; params `title`, `author` (`reason` for POST_HIDDEN); links
+`/forum/threads/<id>[#post-<postId>]`. Thread mail followers get `notification/FORUM_POST` (params `title`, `author`,
+`body` ≤ 2000, `link`) directly through the outbox — following by mail is an explicit opt-in, independent of the FORUM
+category mail switch. Realtime `FORUM_POST` to thread followers (+ the poster): `{threadId, regionId, postId?, change}`
+with change `CREATED | EDITED | DELETED | HIDDEN | UNHIDDEN | REACTION | THREAD`. Moderation log entries come from
+`HistoryQueryService.listForRegion` (access checked by `ModerationLogService`: moderators and ORGA);
+`ForumHistoryAccessRule` lets everyone who may see a thread read its history.
+
 ---
 
 **M5 contract notes (B1).** Generated API model names avoid clashes with `java.lang`/entities: `ChatMessage`
