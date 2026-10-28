@@ -447,4 +447,28 @@ public class UserService {
             setter.accept(requested);
         }
     }
+
+    /** User whose private Telegram chat is {@code chatId} (A28). */
+    @Transactional(readOnly = true)
+    public Optional<User> findByTelegramChatId(String chatId) {
+        return repository.findByTelegramChatId(chatId);
+    }
+
+    /**
+     * Links ({@code chatId}) or unlinks (null) the private Telegram chat; a chat linked to another user is moved.
+     * The notification module records TELEGRAM_LINKED / TELEGRAM_UNLINKED.
+     */
+    @Transactional
+    @NoHistory(reason = "the caller records NotificationAction.TELEGRAM_LINKED / TELEGRAM_UNLINKED")
+    public User setTelegramChatId(UUID userId, String chatId) {
+        if (chatId != null) {
+            repository.findByTelegramChatId(chatId).filter(other -> !other.getId().equals(userId)).ifPresent(other -> {
+                other.setTelegramChatId(null);
+                repository.saveAndFlush(other);
+            });
+        }
+        User user = require(userId);
+        user.setTelegramChatId(chatId);
+        return user;
+    }
 }

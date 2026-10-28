@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+nessuno si è iscritto al ritiro presso [(${storeName})] il [(${when})] dopo una cancellazione.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

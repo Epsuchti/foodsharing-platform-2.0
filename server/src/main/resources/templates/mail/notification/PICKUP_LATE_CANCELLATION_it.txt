@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+[(${userName})] si è cancellato/a all’ultimo momento dal ritiro presso [(${storeName})] il [(${when})].
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

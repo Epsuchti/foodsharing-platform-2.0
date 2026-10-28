@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+[(${userName})] cancelled the pickup at [(${storeName})] on [(${when})] at short notice.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

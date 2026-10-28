@@ -108,6 +108,14 @@ public class IntegrationRegistry {
         });
     }
 
+    /** Dev only: opens the breaker as if an outage had been detected and publishes {@link IntegrationDownEvent}. */
+    public void simulateOutage(Integration integration) {
+        CircuitBreaker breaker = breakers.get(integration);
+        if (breaker.forceOpen("dev", "simulated outage")) {
+            events.publishEvent(new IntegrationDownEvent(integration, breaker.snapshot().lastError()));
+        }
+    }
+
     public List<CircuitBreaker.Snapshot> snapshots() {
         return breakers.values().stream().map(CircuitBreaker::snapshot).toList();
     }

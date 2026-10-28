@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+[(${userName})] hat sich kurzfristig von der Abholung bei [(${storeName})] am [(${when})] ausgetragen.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dein foodsharing-Team

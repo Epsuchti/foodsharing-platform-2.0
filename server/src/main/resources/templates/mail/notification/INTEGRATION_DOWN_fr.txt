@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+le service externe [(${integration})] est indisponible. La plateforme réessaie régulièrement.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

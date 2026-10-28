@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Abholig bi [(${storeName})] am [(${when})] isch automatisch bestätigt worde. Bitte lies de folgendi Hiwiis.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

@@ -144,7 +144,8 @@ public class ProgressTracker {
         }
     }
 
-    private void evictExpired() {
+    /** Drops finished jobs whose result expired (also called by the cleanup job). */
+    public void evictExpired() {
         Instant limit = clock.instant().minus(ttl);
         jobs.values().removeIf(job -> job.finishedAt() != null && job.finishedAt().isBefore(limit));
     }

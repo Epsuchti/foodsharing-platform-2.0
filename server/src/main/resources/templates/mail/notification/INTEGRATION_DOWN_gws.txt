@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+de extern Dienst [(${integration})] isch nöd erreichbar. D Plattform probiert’s regelmässig wieder.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

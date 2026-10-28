@@ -93,6 +93,24 @@ public class CircuitBreaker {
         return true;
     }
 
+    /**
+     * Opens the breaker without asking the probe (dev {@code POST /api/dev/integrations/{name}/fail}).
+     *
+     * @return true when it was closed before
+     */
+    public synchronized boolean forceOpen(String where, String error) {
+        Instant now = clock.instant();
+        failureCount++;
+        lastFailureAt = now;
+        lastError = where + ": " + error;
+        if (downSince != null) {
+            return false;
+        }
+        downSince = now;
+        nextProbeAt = now.plus(probeInterval);
+        return true;
+    }
+
     /** True while the breaker is open and the next probe is not due (or the due probe failed). */
     public synchronized boolean shouldSkip() {
         if (downSince == null) {

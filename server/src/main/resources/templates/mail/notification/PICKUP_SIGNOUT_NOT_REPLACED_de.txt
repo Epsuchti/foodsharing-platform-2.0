@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+für die Abholung bei [(${storeName})] am [(${when})] hat sich nach einer Austragung noch niemand eingetragen.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dein foodsharing-Team

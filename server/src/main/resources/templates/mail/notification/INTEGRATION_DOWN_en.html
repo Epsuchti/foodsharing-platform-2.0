@@ -1,0 +1,5 @@
+<p style="margin:0 0 12px;" th:text="'Hello ' + ${displayName} + ','">Hello,</p>
+<p style="margin:0 0 12px;">the external service <strong th:text="${integration}">integration</strong> is unavailable. The platform keeps retrying.</p>
+<p th:if="${message != null}" style="margin:0 0 12px;padding:12px;background:#f4f6f4;border-radius:6px;white-space:pre-line;" th:text="${message}">message</p>
+<p th:if="${link != null}" style="margin:0 0 20px;"><a th:href="${link}" href="#" style="display:inline-block;padding:10px 18px;background:#25834a;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">Open</a></p>
+<p style="margin:0 0 12px;">Your foodsharing team</p>

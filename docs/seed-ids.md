@@ -21,7 +21,7 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | notification | 0004 | `bell` | 0002 | `notification/bell.csv` (`changes/101-notification-seed.yaml`, M4 B2) |
 | notification | 0004 | `push_subscription` | 0003 | `notification/push_subscription.csv` (M4 B2) |
 | notification | 0004 | `user_notification_setting` | 0004 | `notification/user_notification_setting.csv` (M4 B2) |
-| notification | 0004 | `telegram_chat` | 0005 | `notification/telegram_chat.csv` (M4 B3) |
+| notification | 0004 | `telegram_chat` | 0005 | `notification/telegram_chat.csv` (`changes/102-telegram-seed.yaml`, M4 B3): `…-01` zuerich-stadt "Zürich Notfallchat" (`-1001`), `…-02` S-01 (`-1002`); bieb's `user_account.telegram_chat_id` = `100000001` |
 | notification | 0004 | `newsletter`, `newsletter_recipient` | 0006, 0007 | M4 B5 |
 | jobs (common) | 0005 | `job_run` | 0001 | reserved (rows are written by `JobRunner`) |
 | region | 0010 | `region` (regions) | 0001 | `region/region.csv` (`changes/020-region-seed.yaml`) |

@@ -49,4 +49,9 @@ public interface BellRepository extends JpaRepository<Bell, UUID> {
     @Query("update Bell b set b.deletedAt = :now where b.userId = :userId and b.deletedAt is null "
             + "and (:readOnly = false or b.readAt is not null)")
     int deleteAll(@Param("userId") UUID userId, @Param("readOnly") boolean readOnly, @Param("now") Instant now);
+
+    /** Cleanup (§6.3): bells read before {@code readBefore} or deleted before {@code deletedBefore}. */
+    @Modifying
+    @Query("delete from Bell b where b.readAt < :readBefore or b.deletedAt < :deletedBefore")
+    int purge(@Param("readBefore") Instant readBefore, @Param("deletedBefore") Instant deletedBefore);
 }

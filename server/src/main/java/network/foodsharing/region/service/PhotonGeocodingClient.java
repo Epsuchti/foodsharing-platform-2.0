@@ -1,5 +1,9 @@
 package network.foodsharing.region.service;
 
+import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.integration.Integration;
+import network.foodsharing.common.integration.IntegrationRegistry;
+
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -21,8 +25,8 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Postcode geocoding with Photon (komoot, OSM based): timeouts, a 24 h cache and a simple circuit breaker (after
- * {@code failure-threshold} consecutive failures no calls for {@code open-seconds}), plan §6.2 external calls.
+ * Postcode geocoding with Photon (komoot, OSM based): timeouts and a 24 h cache; failures go to the GEOCODING breaker
+ * of the {@link IntegrationRegistry} (A26), which fails fast while open. {@link #probe()} is the registry's probe.
  */
 @Component
 @ConditionalOnProperty(name = "app.geocoding.provider", havingValue = "photon", matchIfMissing = true)
@@ -38,10 +42,11 @@ public class PhotonGeocodingClient implements GeocodingClient {
     private final Clock clock;
     private final HttpClient http;
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
-    private int consecutiveFailures;
-    private Instant openUntil = Instant.EPOCH;
+    private final IntegrationRegistry integrations;
 
-    public PhotonGeocodingClient(AppProperties properties, ObjectMapper objectMapper, Clock clock) {
+    public PhotonGeocodingClient(AppProperties properties, ObjectMapper objectMapper, Clock clock,
+                                 IntegrationRegistry integrations) {
+        this.integrations = integrations;
         this.settings = properties.getGeocoding();
         this.objectMapper = objectMapper;
         this.clock = clock;
@@ -60,28 +65,40 @@ public class PhotonGeocodingClient implements GeocodingClient {
         if (cached != null && cached.expiresAt().isAfter(now)) {
             return cached.point();
         }
-        synchronized (this) {
-            if (openUntil.isAfter(now)) {
-                throw new GeocodingUnavailableException("geocoding circuit open", null);
-            }
-        }
+        Optional<GeoPoint> point;
         try {
-            Optional<GeoPoint> point = fetch(country == null ? "CH" : country, postcode.strip());
-            synchronized (this) {
-                consecutiveFailures = 0;
-            }
-            cache.put(key, new CacheEntry(point, now.plus(Duration.ofHours(settings.getCacheHours()))));
-            return point;
-        } catch (Exception e) {
-            synchronized (this) {
-                consecutiveFailures++;
-                if (consecutiveFailures >= settings.getFailureThreshold()) {
-                    openUntil = now.plusSeconds(settings.getOpenSeconds());
-                    consecutiveFailures = 0;
-                }
-            }
+            point = integrations.call(Integration.GEOCODING, "photon", () -> fetchUnchecked(country, postcode.strip()));
+        } catch (ApiException e) {
+            throw new GeocodingUnavailableException("geocoding circuit open", e);
+        } catch (RuntimeException e) {
             log.warn("Photon geocoding failed for {}: {}", key, e.toString());
-            throw new GeocodingUnavailableException("geocoding failed", e);
+            throw new GeocodingUnavailableException("geocoding failed", e.getCause() == null ? e : e.getCause());
+        }
+        cache.put(key, new CacheEntry(point, now.plus(Duration.ofHours(settings.getCacheHours()))));
+        return point;
+    }
+
+    /** A26 probe: "8001" (Zürich) resolves, called directly (not through the breaker). */
+    public boolean probe() {
+        try {
+            return fetch("CH", "8001").isPresent();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private Optional<GeoPoint> fetchUnchecked(String country, String postcode) {
+        try {
+            return fetch(country == null ? "CH" : country, postcode);
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 

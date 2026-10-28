@@ -1,0 +1,42 @@
+# Seed (M4 B3): bieb has Telegram linked (chat 100000001); alert chats for zuerich-stadt ("Zürich Notfallchat", -1001)
+# and S-01 Coop Bahnhofbrücke (-1002). Ids: docs/seed-ids.md module 0004 table 0005.
+databaseChangeLog:
+  - changeSet:
+      id: seed-102-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'bieb: linked Telegram chat.'
+      changes:
+        - update:
+            tableName: user_account
+            columns:
+              - column: {name: telegram_chat_id, value: '100000001'}
+            where: "id = '00000001-0001-4000-8000-000000000009'"
+  - changeSet:
+      id: seed-102-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Region and store alert chats.'
+      changes:
+        - loadUpdateData:
+            tableName: telegram_chat
+            file: ../notification/telegram_chat.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_type, type: STRING}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: chat_id, type: STRING}
+              - column: {name: title, type: STRING}
+              - column: {name: enabled, type: BOOLEAN}

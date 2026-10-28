@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+la tua iscrizione al ritiro presso [(${storeName})] il [(${when})] non è stata confermata dall’automazione.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

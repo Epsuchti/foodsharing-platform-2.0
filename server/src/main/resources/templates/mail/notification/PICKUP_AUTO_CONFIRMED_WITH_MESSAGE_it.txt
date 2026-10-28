@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+il tuo ritiro presso [(${storeName})] il [(${when})] è stato confermato automaticamente. Leggi la nota seguente.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Il tuo team foodsharing

@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+nobody has signed up for the pickup at [(${storeName})] on [(${when})] since someone cancelled.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

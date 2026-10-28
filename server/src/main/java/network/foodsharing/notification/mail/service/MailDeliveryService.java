@@ -1,5 +1,8 @@
 package network.foodsharing.notification.mail.service;
 
+import network.foodsharing.common.integration.Integration;
+import network.foodsharing.common.integration.IntegrationRegistry;
+
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,9 +37,12 @@ public class MailDeliveryService {
     private final HistoryService history;
     private final AppProperties properties;
     private final Clock clock;
+    private final IntegrationRegistry integrations;
 
     public MailDeliveryService(MailOutboxRepository repository, ObjectProvider<MailTransport> transport,
-                               HistoryService history, AppProperties properties, Clock clock) {
+                               HistoryService history, AppProperties properties, Clock clock,
+                               IntegrationRegistry integrations) {
+        this.integrations = integrations;
         this.repository = repository;
         this.transport = transport;
         this.history = history;
@@ -83,6 +89,17 @@ public class MailDeliveryService {
                         message.getNextAttemptAt(), ex.getMessage());
             }
         }
+    }
+
+    /** Admin integration test: one plain mail straight through the transport and the SMTP breaker (A26). */
+    public void sendTest(String to) {
+        MailTransport active = transport.getIfAvailable();
+        if (active == null) {
+            throw new IllegalStateException("No MailTransport for app.mail.transport=" + properties.getMail().getTransport());
+        }
+        integrations.run(Integration.SMTP, "smtp-test", () -> active.send(new OutgoingMail(to,
+                properties.getMail().getFrom(), "foodsharing: SMTP test",
+                "Test message from foodsharing: mail delivery works.", null)));
     }
 
     /** Delay before the next attempt after {@code attempts} failed ones: base × 2^(attempts − 1). */

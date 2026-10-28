@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+personne ne s’est inscrit à la collecte chez [(${storeName})] le [(${when})] depuis une désinscription.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

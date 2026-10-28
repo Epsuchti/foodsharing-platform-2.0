@@ -79,6 +79,8 @@ tags:
     description: 'Global and region newsletters (ORGA, ambassadors).'
   - name: public-newsletter
     description: 'One-click newsletter unsubscribe (logged out).'
+  - name: public-telegram
+    description: 'Telegram Bot API webhook (secret path).'
   - name: automation
     description: 'Store and region automations: pickup and request policies, open-slot adverts, sign-out alerts, extra slot, audits.'
   - name: admin-integrations
@@ -171,6 +173,8 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1telegram~1incoming'
   /api/dev/jobs/{name}/run:
     $ref: './paths/dev.yaml#/~1api~1dev~1jobs~1{name}~1run'
+  /api/dev/integrations/{integration}/fail:
+    $ref: './paths/dev.yaml#/~1api~1dev~1integrations~1{integration}~1fail'
   /api/dev/fixtures/ical:
     $ref: './paths/dev.yaml#/~1api~1dev~1fixtures~1ical'
   # --- onboarding ---
@@ -582,6 +586,9 @@ paths:
   # --- public-newsletter ---
   /api/public/newsletter/unsubscribe/{token}:
     $ref: './paths/public-newsletter.yaml#/~1api~1public~1newsletter~1unsubscribe~1{token}'
+  # --- public-telegram ---
+  /api/public/telegram/webhook/{secret}:
+    $ref: './paths/public-telegram.yaml#/~1api~1public~1telegram~1webhook~1{secret}'
   # --- automation ---
   /api/stores/{storeId}/automation:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation'

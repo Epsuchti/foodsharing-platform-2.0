@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+your sign-up for the pickup at [(${storeName})] on [(${when})] was not confirmed by the automation.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

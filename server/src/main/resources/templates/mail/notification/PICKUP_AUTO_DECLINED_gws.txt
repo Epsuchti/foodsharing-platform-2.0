@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Iitragig für d Abholig bi [(${storeName})] am [(${when})] isch vo de Automatisierig nöd bestätigt worde.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dis foodsharing-Team

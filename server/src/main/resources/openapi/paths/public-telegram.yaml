@@ -1,0 +1,26 @@
+/api/public/telegram/webhook/{secret}:
+  post:
+    tags: [public-telegram]
+    operationId: receiveTelegramWebhook
+    summary: 'Telegram Bot API webhook (live mode with a configured webhook secret, A28). Answers 204 for every accepted update.'
+    security: []
+    x-permission: 'public (secret path = app.telegram.webhook-secret)'
+    x-history: NotificationAction.TELEGRAM_LINKED
+    parameters:
+      - name: secret
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 200
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    responses:
+      '204':
+        description: Accepted
+      '404': {description: 'RESOURCE_NOT_FOUND (wrong secret or webhook disabled)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

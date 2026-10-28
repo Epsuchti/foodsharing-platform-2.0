@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "app.geocoding.provider", havingValue = "photon", matchIfMissing = true)
 public class GeocodingProbe {
 
-    public GeocodingProbe(GeocodingClient client, IntegrationRegistry integrations) {
-        integrations.registerProbe(Integration.GEOCODING, () -> client.geocodePostcode("CH", "8001").isPresent());
+    public GeocodingProbe(PhotonGeocodingClient client, IntegrationRegistry integrations) {
+        integrations.registerProbe(Integration.GEOCODING, client::probe);
     }
 }

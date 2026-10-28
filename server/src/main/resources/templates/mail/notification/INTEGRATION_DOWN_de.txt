@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+der externe Dienst [(${integration})] ist nicht erreichbar. Die Plattform versucht es regelmässig erneut.
+[# th:if="${message != null}"]
+[(${message})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dein foodsharing-Team

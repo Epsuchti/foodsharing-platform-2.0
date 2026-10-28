@@ -100,7 +100,7 @@ class DevNotificationsControllerTest {
 
     @Test
     void theRealFixtureIsAValidCalendar() {
-        String ics = new DevNotificationService(null, List.of(), null, null).icalFixture();
+        String ics = new DevNotificationService(null, List.of(), null, null, null, null).icalFixture();
         org.assertj.core.api.Assertions.assertThat(ics).startsWith("BEGIN:VCALENDAR").contains("BEGIN:VEVENT")
                 .contains("END:VCALENDAR");
     }
