@@ -57,6 +57,7 @@ final class ContentModels {
         summary.setSortOrder(texts.page().getSortOrder());
         summary.setEstimatedMinutes(texts.page().getEstimatedMinutes());
         summary.setUpdatedAt(TimeMapper.toOffset(texts.page().getUpdatedAt()));
+        summary.setEditorFunction(texts.page().getEditorFunction());
         return summary;
     }
 
@@ -68,6 +69,8 @@ final class ContentModels {
         update.setSortOrder(texts.page().getSortOrder());
         update.setEstimatedMinutes(texts.page().getEstimatedMinutes());
         update.setPublished(texts.page().isPublished());
+        update.setEditorFunction(texts.page().getEditorFunction());
+        update.setImageUploadIds(network.foodsharing.content.service.ContentService.imageUploadIds(texts.page()));
         return update;
     }
 

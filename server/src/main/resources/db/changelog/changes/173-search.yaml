@@ -1,0 +1,46 @@
+# Milestone 6 (B12): global search index (C5, A45). Plain LIKE on a normalised text column works on H2 and PostgreSQL;
+# PostgreSQL additionally gets a pg_trgm GIN index so '%term%' stays fast.
+databaseChangeLog:
+  - changeSet:
+      id: 173-1
+      author: platform
+      comment: 'Search index: one row per searchable entity, rebuilt nightly and refreshed incrementally.'
+      changes:
+        - createTable:
+            tableName: search_index
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_search_index, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: kind, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: entity_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: title, type: VARCHAR(300), constraints: {nullable: false}}
+              - column: {name: subtitle, type: VARCHAR(300)}
+              - column: {name: search_text, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: region_id, type: UUID}
+              - column: {name: visibility, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: link, type: VARCHAR(300), constraints: {nullable: false}}
+              - column: {name: image_url, type: VARCHAR(500)}
+        - addUniqueConstraint:
+            tableName: search_index
+            columnNames: kind, entity_id
+            constraintName: uq_search_index_kind_entity
+        - createIndex:
+            tableName: search_index
+            indexName: ix_search_index_kind_region
+            columns:
+              - column: {name: kind}
+              - column: {name: region_id}
+  - changeSet:
+      id: 173-2
+      author: platform
+      dbms: postgresql
+      comment: 'Trigram index for infix search (PostgreSQL only).'
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS pg_trgm
+        - sql:
+            sql: CREATE INDEX ix_search_index_text_trgm ON search_index USING gin (search_text gin_trgm_ops)

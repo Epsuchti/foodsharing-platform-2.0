@@ -1,0 +1,24 @@
+# Milestone 6 (B12): daily platform totals for the public statistics page (C3).
+databaseChangeLog:
+  - changeSet:
+      id: 172-1
+      author: platform
+      comment: 'One row of platform totals per (Zurich) day, written by the statistics-aggregation job.'
+      changes:
+        - createTable:
+            tableName: statistics_daily
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_statistics_daily, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: stat_day, type: DATE, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_statistics_daily_day}}
+              - column: {name: kg_saved, type: DOUBLE, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: pickups, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: foodsavers, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stores, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: cooperations, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: food_share_points, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: baskets, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}

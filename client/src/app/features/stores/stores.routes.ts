@@ -52,6 +52,7 @@ export const STORES_ROUTES: Routes = [
       tab('wall', () => import('./tabs/store-wall.tab').then((m) => m.StoreWallTab)),
       tab('statistics', () => import('./tabs/store-statistics.tab').then((m) => m.StoreStatisticsTab)),
       tab('log', () => import('./tabs/store-log.tab').then((m) => m.StoreLogTab)),
+      tab('chat', () => import('./tabs/store-chat.tab').then((m) => m.StoreChatTab)),
     ],
   },
   {

@@ -346,6 +346,33 @@ public class UserService {
         });
     }
 
+    /** Figures of the profile statistics computed by the statistics module (B12). */
+    public record StatisticFigures(int pickups, double kgSaved, int posts, int basketsShared) {
+    }
+
+    /**
+     * Refreshes {@code stat_*} (pickups, kg, forum posts, shared baskets) of every active account; accounts missing in
+     * the map are reset to zero. Banana and buddy counters stay with {@link #setCommunityCounts}.
+     *
+     * @return number of updated accounts
+     */
+    @Transactional
+    @NoHistory(reason = "derived counters; recorded once per run as STATISTICS_USER_STATS_REFRESHED by the job")
+    public int refreshStatistics(java.util.Map<UUID, StatisticFigures> figures, Instant at) {
+        StatisticFigures none = new StatisticFigures(0, 0, 0, 0);
+        int updated = 0;
+        for (User user : repository.findByActiveTrue()) {
+            StatisticFigures f = figures.getOrDefault(user.getId(), none);
+            user.setStatPickupCount(f.pickups());
+            user.setStatKgSaved(f.kgSaved());
+            user.setStatPostCount(f.posts());
+            user.setStatBasketsShared(f.basketsShared());
+            user.setStatUpdatedAt(at);
+            updated++;
+        }
+        return updated;
+    }
+
     /** May the current user see this user's phone numbers (PUBLIC visibility, self, or administrators)? */
     @Transactional(readOnly = true)
     public boolean mayCurrentUserSeeContact(User user) {

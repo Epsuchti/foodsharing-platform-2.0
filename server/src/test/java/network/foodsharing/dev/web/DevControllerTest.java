@@ -65,6 +65,9 @@ class DevControllerTest {
     @MockitoBean
     private DevNotificationService notificationService;
 
+    @MockitoBean
+    private network.foodsharing.oauthserver.service.AuthorizationService oauthAuthorization;
+
     @Test
     void realtimeSessionsAndPing() throws Exception {
         when(realtimePublisher.connectedUsers()).thenReturn(java.util.Set.of(SeedUsers.GUIDE.id()));

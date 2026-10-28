@@ -47,6 +47,7 @@ public class DevController implements DevApi {
     private final DevNotificationService notificationService;
     private final network.foodsharing.common.realtime.RealtimePublisher realtime;
     private final java.time.Clock clock;
+    private final network.foodsharing.oauthserver.service.AuthorizationService oauth;
     private final org.springframework.beans.factory.ObjectProvider<
             network.foodsharing.common.integration.InboundMailHandler> incomingMail;
 
@@ -54,7 +55,9 @@ public class DevController implements DevApi {
                          PermissionService permissionService, DevNotificationService notificationService,
                          network.foodsharing.common.realtime.RealtimePublisher realtime, java.time.Clock clock,
                          org.springframework.beans.factory.ObjectProvider<
-                                 network.foodsharing.common.integration.InboundMailHandler> incomingMail) {
+                                 network.foodsharing.common.integration.InboundMailHandler> incomingMail,
+                         network.foodsharing.oauthserver.service.AuthorizationService oauth) {
+        this.oauth = oauth;
         this.incomingMail = incomingMail;
         this.devService = devService;
         this.mapper = mapper;
@@ -196,16 +199,23 @@ public class DevController implements DevApi {
 
     @Override
     public ResponseEntity<Void> devAggregateStatistics() {
-        throw ApiException.notImplemented("devAggregateStatistics");
+        notificationService.runJob("statistics-aggregation");
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<DevOAuthCode> devGetLastOAuthCode() {
-        throw ApiException.notImplemented("devGetLastOAuthCode");
+        var last = oauth.lastIssuedCode();
+        if (last == null) {
+            throw ApiException.notFound(network.foodsharing.api.model.ApiErrorCode.OAUTH_REQUEST_EXPIRED);
+        }
+        return ResponseEntity.ok(new DevOAuthCode().code(last.code()).clientId(last.clientId())
+                .redirectUri(last.redirectUri()).state(last.state()));
     }
 
     @Override
     public ResponseEntity<Void> devReindexSearch() {
-        throw ApiException.notImplemented("devReindexSearch");
+        notificationService.runJob("search-reindex");
+        return ResponseEntity.noContent().build();
     }
 }

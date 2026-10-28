@@ -75,6 +75,8 @@ ContentPageSummary:
     updatedAt:
       type: string
       format: date-time
+    editorFunction:
+      type: string
 
 ContentPageUpdate:
   type: object
@@ -103,6 +105,17 @@ ContentPageUpdate:
     reason:
       type: string
       maxLength: 500
+    editorFunction:
+      type: string
+      maxLength: 40
+      description: Working-group function whose group admins may edit this page (default PR); only ORGA changes it.
+    imageUploadIds:
+      type: array
+      maxItems: 20
+      items:
+        type: string
+        format: uuid
+      description: Images used in the bodies (claimed as CONTENT_IMAGE, public).
 
 BlogPostSummary:
   type: object
@@ -126,6 +139,9 @@ BlogPostSummary:
       $ref: './regions.yaml#/RegionRef'
     published:
       type: boolean
+    awaitingCheck:
+      type: boolean
+      description: An ambassador asked to publish; an editor has to check and publish it.
 
 BlogPostPage:
   type: object
@@ -165,6 +181,14 @@ BlogPost:
       type: boolean
     mayEdit:
       type: boolean
+    mayPublish:
+      type: boolean
+      description: Editors publish directly; region ambassadors only request a check (awaitingCheck).
+    awaitingCheck:
+      type: boolean
+    pictureUploadId:
+      type: string
+      format: uuid
 
 BlogPostCreate:
   type: object

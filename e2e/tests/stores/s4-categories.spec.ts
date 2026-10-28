@@ -23,7 +23,7 @@ async function chooseTarget(page: Page, name: string): Promise<void> {
 test.describe('orga', () => {
   test.use({ role: 'orga', seedReset: 'test' });
 
-  test('S4 orga merges two categories and groceries, stores move @S4', async ({ page, api }) => {
+  test('S4 orga merges two categories and groceries, stores move @S4 @page', async ({ page, api }) => {
     const categories = await api.getJson<Item[]>('/api/store-categories');
     const groceries = await api.getJson<Item[]>('/api/groceries');
     const [catSource, catTarget] = [...categories].filter((c) => (c.storeCount ?? 0) > 0).slice(0, 2);
@@ -76,9 +76,7 @@ test.describe('orga', () => {
     // settle (no toasts or closing dialogs) for the a11y check of @page
     await page.reload();
     await expectDataState(page, 'storeCategories.category.state', 'success');
-    // a11y of the page content; not @page: ORGA's 15 header nav items squeeze the last (active) one below 24 px
-    // (target-size in layout/header, reported to the layout owner)
-    await expectNoSeriousViolations(page, { include: ['main'] });
+    await expectNoSeriousViolations(page);
   });
 
   test('S4 categories admin is ORGA only @S4', async ({ as }) => {

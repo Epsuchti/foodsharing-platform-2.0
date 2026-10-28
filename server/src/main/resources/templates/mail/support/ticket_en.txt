@@ -1,0 +1,12 @@
+New support request ([(${ticketId})])
+
+Subject: [(${subject})]
+From: [(${firstName})] <[(${email})]>
+Logged in: [(${loggedIn} ? 'yes' : 'no')] ([(${userId})])
+Page: [(${page})]
+Browser: [(${userAgent})]
+Attachments:
+[(${attachments})]
+
+Message:
+[(${body})]

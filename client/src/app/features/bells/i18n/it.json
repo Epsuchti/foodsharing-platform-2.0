@@ -87,7 +87,7 @@
   "bell.MEDIATION_REQUEST": "Nuova richiesta di mediazione",
   "bell.ACHIEVEMENT_AWARDED": "Hai ricevuto un riconoscimento",
   "bell.EMAIL_CHANGE_REQUESTED": "Modifica del tuo indirizzo e-mail richiesta",
-  "bell.SUPPORT_TICKET": "La tua richiesta di supporto è stata ricevuta",
+  "bell.SUPPORT_TICKET": "Nuove richieste di supporto",
   "bell.BASKET_REQUEST_ANSWERED": "La tua richiesta di cesto ha ricevuto una risposta",
   "bell.ui.button.label": "Notifiche",
   "bell.ui.button.unread": "Notifiche, {count} non lette",

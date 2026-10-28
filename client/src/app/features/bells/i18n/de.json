@@ -87,7 +87,7 @@
   "bell.MEDIATION_REQUEST": "Neue Mediationsanfrage",
   "bell.ACHIEVEMENT_AWARDED": "Du hast eine Auszeichnung erhalten",
   "bell.EMAIL_CHANGE_REQUESTED": "Änderung deiner E-Mail-Adresse angefragt",
-  "bell.SUPPORT_TICKET": "Deine Support-Anfrage ist eingegangen",
+  "bell.SUPPORT_TICKET": "Neue Support-Anfragen",
   "bell.BASKET_REQUEST_ANSWERED": "Deine Essenskorb-Anfrage wurde beantwortet",
   "bell.ui.button.label": "Benachrichtigungen",
   "bell.ui.button.unread": "Benachrichtigungen, {count} ungelesen",

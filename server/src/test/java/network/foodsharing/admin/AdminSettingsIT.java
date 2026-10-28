@@ -83,7 +83,7 @@ class AdminSettingsIT {
                 "{\"value\":\"x@local.test\"}")).andExpect(status().isForbidden());
         mvc.perform(get("/api/admin/donations").cookie(orga)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.showCampaignCard").value(true))
-                .andExpect(jsonPath("$.campaignPageSlugs[0]").value("spenden"));
+                .andExpect(jsonPath("$.campaignPageSlugs[0]").value("donation-campaign-1"));
         mvc.perform(json(put("/api/admin/donations"), orga, "{\"showCampaignCard\":false,\"showModal\":true,"
                         + "\"modalHoursLoggedIn\":12,\"modalHoursLoggedOut\":6,\"infoUrl\":\"https://x.local.test\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.showModal").value(true))

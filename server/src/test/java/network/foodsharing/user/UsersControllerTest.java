@@ -66,6 +66,9 @@ class UsersControllerTest {
     private network.foodsharing.user.service.BusinessCardPort businessCardPort;
 
     @MockitoBean
+    private network.foodsharing.user.service.ConnectionsPort connectionsPort;
+
+    @MockitoBean
     private UserService userService;
 
     @MockitoBean

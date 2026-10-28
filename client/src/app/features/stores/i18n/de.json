@@ -253,5 +253,10 @@
   "stores.delete.confirmTitle": "{name} löschen?",
   "stores.delete.confirmText": "Der Betrieb und seine Pinnwand verschwinden für alle. Das Betriebsprotokoll bleibt erhalten.",
   "stores.delete.reason": "Grund (geht ans Team)",
-  "stores.delete.done": "Betrieb gelöscht."
+  "stores.delete.done": "Betrieb gelöscht.",
+  "stores.tab.chat": "Chat",
+  "stores.chat.none": "Du hast keinen Zugang zu den Chats dieses Betriebs.",
+  "stores.chat.channel": "Chat auswählen",
+  "stores.chat.team": "Team",
+  "stores.chat.jumper": "Springer:innen"
 }

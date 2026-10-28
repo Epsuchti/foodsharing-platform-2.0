@@ -23,6 +23,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByIdIn(Collection<UUID> ids);
 
+    List<User> findByActiveTrue();
+
     org.springframework.data.domain.Page<User> findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(
             org.springframework.data.domain.Pageable pageable);
 

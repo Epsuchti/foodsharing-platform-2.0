@@ -389,5 +389,7 @@
   "nav.storeChains": "Betriebsketten",
   "nav.storeCategories": "Betriebskategorien",
   "common.metaDescription": "foodsharing – Lebensmittel retten, gemeinsam. Hol Lebensmittel bei Betrieben ab, teile sie und werde Foodsaver in deiner Region.",
-  "nav.notifications": "Benachrichtigungen"
+  "nav.notifications": "Benachrichtigungen",
+  "common.realtime.reconnecting": "Verbindung wird wiederhergestellt …",
+  "nav.mailboxes": "Postfächer"
 }

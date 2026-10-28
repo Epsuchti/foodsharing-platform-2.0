@@ -253,5 +253,10 @@
   "stores.delete.confirmTitle": "Supprimer {name} ?",
   "stores.delete.confirmText": "L'entreprise et son mur disparaissent pour tout le monde. Le journal est conservé.",
   "stores.delete.reason": "Motif (envoyé à l'équipe)",
-  "stores.delete.done": "Entreprise supprimée."
+  "stores.delete.done": "Entreprise supprimée.",
+  "stores.tab.chat": "Discussion",
+  "stores.chat.none": "Tu n’as pas accès aux discussions de ce commerce.",
+  "stores.chat.channel": "Choisir la discussion",
+  "stores.chat.team": "Équipe",
+  "stores.chat.jumper": "Remplaçant·es"
 }

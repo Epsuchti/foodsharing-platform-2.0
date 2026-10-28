@@ -1,0 +1,12 @@
+Neue Support-Anfrage ([(${ticketId})])
+
+Betreff: [(${subject})]
+Von: [(${firstName})] <[(${email})]>
+Angemeldet: [(${loggedIn} ? 'ja' : 'nein')] ([(${userId})])
+Seite: [(${page})]
+Browser: [(${userAgent})]
+Anhänge:
+[(${attachments})]
+
+Nachricht:
+[(${body})]

@@ -31,4 +31,12 @@ public class ContentPage extends BaseEntity {
 
     @Column(name = "published", nullable = false)
     private boolean published;
+
+    /** Working-group function whose group admins may edit the page (decision 38 generalised); null = PR. */
+    @Column(name = "editor_function", length = 40)
+    private String editorFunction = "PR";
+
+    /** Comma-separated upload ids of images used in the bodies (claimed as CONTENT_IMAGE). */
+    @Column(name = "image_upload_ids", length = 2000)
+    private String imageUploadIds;
 }
