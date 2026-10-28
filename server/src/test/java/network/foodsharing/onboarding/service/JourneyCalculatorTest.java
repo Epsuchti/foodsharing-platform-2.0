@@ -148,6 +148,8 @@ class JourneyCalculatorTest {
         expectCurrent(partial, "LEARN", JourneyStepStatus.IN_PROGRESS);
         assertThat(step(partial, "LEARN").progress().done()).isEqualTo(1);
         assertThat(step(partial, "LEARN").nextAction().route()).isEqualTo("/learn/hygiene");
+        assertThat(step(partial, "LEARN").details()).containsEntry("readChapters", java.util.List.of("rules"));
+        assertThat(step(journey, "LEARN").details()).containsEntry("readChapters", java.util.List.of());
         Case optional = new Case().profile();
         optional.mandatory = false;
         JourneyView skipped = optional.compute();

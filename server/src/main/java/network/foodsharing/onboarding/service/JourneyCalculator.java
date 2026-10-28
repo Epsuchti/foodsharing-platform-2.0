@@ -194,7 +194,8 @@ public final class JourneyCalculator {
                         read > 0 ? JourneyStepStatus.IN_PROGRESS : JourneyStepStatus.AVAILABLE,
                         new Action("onboarding.action.readChapter", firstUnread == null ? "/learn"
                                 : "/learn/" + firstUnread), "PT20M")
-                .progress(new Progress(read, 0, chapters.size(), null));
+                .progress(new Progress(read, 0, chapters.size(), null))
+                .details(Map.of("readChapters", chapters.stream().filter(in.readChapters()::contains).toList()));
         return draft.optional(!in.learningMandatory());
     }
 
