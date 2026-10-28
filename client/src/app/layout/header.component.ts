@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { SessionService } from '../core/auth/session.service';
+import { I18nService } from '../core/i18n/i18n.service';
 import { TPipe } from '../core/i18n/t.pipe';
 import { BrandComponent } from './brand.component';
 import { LanguageMenuComponent } from './language-menu.component';
@@ -31,7 +32,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     <div class="hdr">
       <fs-brand [link]="session.isAuthenticated() ? '/dashboard' : '/'" />
       @if (chrome() === 'full') {
-        <nav class="hdr__nav" [class.hdr__nav--compact]="nav.main().length > 5" [attr.aria-label]="'layout.header.mainNav' | t">
+        <nav class="hdr__nav" [class.hdr__nav--compact]="compactNav()" [attr.aria-label]="'layout.header.mainNav' | t">
           @for (item of nav.main(); track item.id) {
             <a
               class="hdr__link"
@@ -121,7 +122,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     }
     /*
      * Icons only (the label stays the link name and the tooltip) on tablets / small laptops and whenever a role has
-     * more than five main items (ORGA, ambassadors), so labels never wrap and links never shrink below 24px.
+     * more than five main items (ORGA, ambassadors) or long labels, so labels never wrap and links never shrink below 24px.
      */
     .hdr__nav--compact .hdr__link {
       padding: 0.5rem 0.65rem;
@@ -178,5 +179,12 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
 export class HeaderComponent {
   protected readonly session = inject(SessionService);
   protected readonly nav = inject(NavContextService);
+  private readonly i18n = inject(I18nService);
+  /** Icons only with more than five items or when five long labels (fr/it/de) would collide with the region switcher. */
+  protected readonly compactNav = computed(() => {
+    const items = this.nav.main();
+    const chars = items.reduce((sum, item) => sum + this.i18n.t(item.labelKey).length, 0);
+    return items.length > 5 || chars > 56;
+  });
   readonly chrome = input<ChromeMode>('full');
 }

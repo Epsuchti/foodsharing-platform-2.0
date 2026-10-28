@@ -1,0 +1,154 @@
+import { HttpTestingController } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { provideOptimus } from '@openng/optimus-ui/config';
+import { afterEach } from 'vitest';
+
+import { BookableIntroPickup, IntroPickupCategory, Role, SessionInfo } from '../../api';
+import { SessionService } from '../../core/auth/session.service';
+import { provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { isOnline, isoToZonedLocal, zonedLocalToIso } from './intro-category';
+import { BookableListPageComponent } from './pages/bookable-list-page.component';
+import { MyBookingsPageComponent } from './pages/my-bookings-page.component';
+import { UnsubscribePageComponent } from './pages/unsubscribe-page.component';
+
+const REGION = 'r-zh';
+const SESSION: SessionInfo = {
+  authenticated: true,
+  permissions: [],
+  user: {
+    id: 'u1',
+    email: 'einab1@local',
+    displayName: 'Luca',
+    role: Role.Foodsharer,
+    language: 'de',
+    theme: 'system',
+    verified: false,
+    homeRegionId: REGION,
+    foodsaverNumber: 100004,
+  } as unknown as SessionInfo['user'],
+  units: [{ id: REGION, name: 'Zürich Stadt', slug: 'zuerich-stadt', type: 'REGION', member: true, admin: false, homeRegion: true }] as unknown as SessionInfo['units'],
+};
+
+const problem = (code: string, status: number) => ({ status, code, message: code, retryable: false, traceId: 't' });
+
+function einab(id: string, bookable: boolean, reason?: string): BookableIntroPickup {
+  return {
+    id,
+    category: IntroPickupCategory.Supermarket,
+    startAt: '2026-11-04T17:00:00Z',
+    guide: { id: 'g', displayName: 'Julien', role: Role.Foodsaver, verified: true },
+    visitFairteiler: false,
+    freeSlots: 2,
+    slotId: 's-' + id,
+    bookable,
+    notBookableReason: reason as BookableIntroPickup['notBookableReason'],
+  };
+}
+
+describe('intro pickup helpers', () => {
+  it('converts wall time in the region zone to an instant and back (summer and winter time)', () => {
+    expect(zonedLocalToIso('2026-11-04T18:00', 'Europe/Zurich')).toBe('2026-11-04T17:00:00.000Z');
+    expect(zonedLocalToIso('2026-07-01T18:00', 'Europe/Zurich')).toBe('2026-07-01T16:00:00.000Z');
+    expect(isoToZonedLocal('2026-11-04T17:00:00Z', 'Europe/Zurich')).toBe('2026-11-04T18:00');
+    expect(zonedLocalToIso('nope', 'Europe/Zurich')).toBe('');
+    expect(isoToZonedLocal(undefined, 'Europe/Zurich')).toBe('');
+  });
+
+  it('knows the online category', () => {
+    expect(isOnline(IntroPickupCategory.Online)).toBe(true);
+    expect(isOnline(IntroPickupCategory.Bakery)).toBe(false);
+  });
+});
+
+describe('intro pickup pages', () => {
+  let http: HttpTestingController;
+  let harness: RouterTestingHarness;
+  const q = (selector: string) => harness.routeNativeElement!.querySelector(selector);
+  const qa = (selector: string) => harness.routeNativeElement!.querySelectorAll(selector);
+  const settle = () => harness.fixture.whenStable();
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting({
+          routes: [
+            { path: 'intro-pickups', component: BookableListPageComponent },
+            { path: 'intro-pickups/unsubscribe', component: UnsubscribePageComponent },
+            { path: 'me/intro-pickups', component: MyBookingsPageComponent },
+          ],
+        }),
+        provideOptimus(),
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+    harness = await RouterTestingHarness.create();
+  });
+
+  afterEach(() => http.verify({ ignoreCancelled: true }));
+
+  it('bookable: without a region the region picker is shown and nothing is loaded', async () => {
+    await harness.navigateByUrl('/intro-pickups');
+    expect(q('[data-testid="introPickups.bookable.noRegion"]')).not.toBeNull();
+    http.expectNone((req) => req.url.includes('/intro-pickups/bookable'));
+  });
+
+  it('bookable: loading, then bookable cards and translated reasons', async () => {
+    TestBed.inject(SessionService).applySession(SESSION);
+    await harness.navigateByUrl('/intro-pickups');
+    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('loading');
+    http
+      .expectOne((req) => req.url === `/api/regions/${REGION}/intro-pickups/bookable`)
+      .flush({ items: [einab('a', true), einab('b', false, 'USER_ALREADY_BOOKED_WITH_GUIDE')], page: { page: 0, size: 100, totalItems: 2, totalPages: 1 } });
+    await settle();
+    expect(qa('[data-testid="introPickups.bookable.card"]').length).toBe(2);
+    expect(qa('[data-testid="introPickups.bookable.book"]').length).toBe(1);
+    expect(q('[data-testid="introPickups.bookable.reason"]')?.getAttribute('data-reason')).toBe('USER_ALREADY_BOOKED_WITH_GUIDE');
+  });
+
+  it('bookable: empty list offers notifications, errors offer a retry', async () => {
+    TestBed.inject(SessionService).applySession(SESSION);
+    await harness.navigateByUrl('/intro-pickups');
+    http
+      .expectOne((req) => req.url.endsWith('/intro-pickups/bookable'))
+      .flush(problem('INTERNAL_ERROR', 500), { status: 500, statusText: 'Server Error' });
+    await settle();
+    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('error');
+    (q('[data-testid="introPickups.bookable.state.retry"] button') as HTMLButtonElement).click();
+    await settle();
+    http.expectOne((req) => req.url.endsWith('/intro-pickups/bookable')).flush({ items: [], page: { page: 0, size: 100, totalItems: 0, totalPages: 0 } });
+    await settle();
+    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('empty');
+  });
+
+  it('my bookings: empty state and the subscription card for newcomers', async () => {
+    TestBed.inject(SessionService).applySession(SESSION);
+    await harness.navigateByUrl('/me/intro-pickups');
+    http.expectOne((req) => req.url === '/api/users/me/intro-pickups' && req.params.get('past') === 'false').flush([]);
+    http.expectOne((req) => req.url === '/api/users/me/intro-pickups' && req.params.get('past') === 'true').flush([]);
+    http.expectOne('/api/onboarding/journey').flush({ complete: false, steps: [], extraSteps: [] });
+    http.expectOne('/api/users/me/intro-pickup-subscription').flush(problem('RESOURCE_NOT_FOUND', 404), { status: 404, statusText: 'Not Found' });
+    await settle();
+    expect(q('[data-testid="introPickups.my.state"]')?.getAttribute('data-state')).toBe('empty');
+    expect(q('[data-testid="introPickups.subscription.subscribe"]')).not.toBeNull();
+    expect(q('[data-testid="introPickups.my.foodsaverNumber"]')?.textContent).toContain('100004');
+  });
+
+  it('unsubscribe: without a token explains the problem', async () => {
+    await harness.navigateByUrl('/intro-pickups/unsubscribe');
+    expect(q('[data-testid="introPickups.unsubscribe.missing"]')).not.toBeNull();
+  });
+
+  it('unsubscribe: with a token unsubscribes', async () => {
+    TestBed.inject(SessionService).applySession({ authenticated: false, permissions: [] });
+    const fixture = TestBed.createComponent(UnsubscribePageComponent);
+    fixture.componentRef.setInput('token', 'abc');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const req = http.expectOne('/api/public/intro-pickups/unsubscribe');
+    expect(req.request.body).toEqual({ token: 'abc' });
+    req.flush({ message: 'ok' });
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="introPickups.unsubscribe.done"]')).not.toBeNull();
+  });
+});

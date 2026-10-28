@@ -22,7 +22,7 @@
         @if (user.foodsaverNumber) {
           <div>
             <dt>{{ 'account.profile.foodsaverNumber' | t }}</dt>
-            <dd class="number">{{ user.foodsaverNumber }}</dd>
+            <dd class="number" data-testid="account.profile.foodsaverNumber">{{ user.foodsaverNumber }} <fs-foodsaver-id-help [number]="user.foodsaverNumber" /></dd>
           </div>
         }
         <div>

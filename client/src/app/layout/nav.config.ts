@@ -42,7 +42,7 @@ export const M2_PAGES_READY = {
   regions: true,
   onboarding: false,
   quizzes: true,
-  introPickups: false,
+  introPickups: true,
   passport: false,
   guide: false,
   newcomers: false,
@@ -168,7 +168,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.introPickups',
     icon: 'pi pi-users',
     route: '/me/intro-pickups',
-    visible: when('introPickups', loggedIn),
+    // newcomers only: verified foodsavers are done with intro pickups (guides have their own item)
+    visible: when('introPickups', (ctx) => ctx.isAuthenticated && ctx.session?.user?.verified === false),
   },
   {
     id: 'guide',
