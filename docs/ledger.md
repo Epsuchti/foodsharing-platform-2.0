@@ -68,7 +68,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | PU9 | Pickup reminders (disable per user) | done | PickupReminderJob | account settings: pickup reminder card | tests/pickups/pu9-reminders @PU9 | store-chains.screen.ts (baseline pending) |  |
 | N1 | Conversations 1:1 and group, store team & jumper chats, region conversation, lookup/create, rename, read status, unread counts, mentions | todo | | | | | |
 | N2 | Realtime delivery (WebSocket) | todo | | | | | |
-| N3 | Bells with read/unread, delete, all bell types (forum thread to activate, WG application, new member for welcome team, store requests, slot confirmations, …) | todo | | | | | |
+| N3 | Bells with read/unread, delete, all bell types (forum thread to activate, WG application, new member for welcome team, store requests, slot confirmations, …) | done | BellService + realtime | header bell, /bells | n3-bells @N3 | notifications.screen.ts (baseline pending) |  |
 | N4 | Web push notifications, subscriptions per device, opt-in prompt | todo | | | | | |
 | N5 | **Telegram**: link account via bot (`/start <token>`), per-user Telegram notifications, region/store Telegram chats for alerts, test message (from reference) | todo | | | | | |
 | N6 | Mail notifications with rate limiting, outbox and templates in five languages | in-progress | mail outbox, templates x5 | | | | outbox + magic-link templates done; per-type rate limits + other templates M4 |

@@ -111,6 +111,11 @@ const MODULE_ROUTES: Routes = [
         (m) => m.STORE_CATEGORIES_ROUTES,
       ),
   },
+  // --- M4 automations & notifications ---
+  {
+    path: 'bells',
+    loadChildren: () => import('./features/bells/bells.routes').then((m) => m.BELLS_ROUTES),
+  },
   {
     path: 'messages',
     loadChildren: () => import('./features/messaging/messaging.routes').then((m) => m.MESSAGING_ROUTES),

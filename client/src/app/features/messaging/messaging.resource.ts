@@ -30,7 +30,7 @@ export class MessagingStore {
   constructor() {
     effect(() => {
       const authenticated = this.session.isAuthenticated();
-      this.realtime.connection();
+      this.realtime.connectCount();
       untracked(() => (authenticated ? this.refreshUnread() : this.unreadConversations.set(0)));
     });
     this.realtime

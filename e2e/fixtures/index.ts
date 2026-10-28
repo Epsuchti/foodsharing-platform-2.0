@@ -6,6 +6,7 @@ import { ClockControl } from './clock';
 import { errors, type ErrorHelpers } from './errors';
 import { i18n, type I18nHelpers } from './i18n';
 import { MailBox } from './mails';
+import { NotificationHelpers } from './notifications';
 import { pdf, type PdfHelpers } from './pdf';
 import { RegionHelpers } from './regions';
 import { StoreHelpers } from './stores';
@@ -50,6 +51,8 @@ export interface Fixtures {
   store: StoreHelpers;
   /** PDF text assertions: `expectPdfContains(responseOrDownload, ['text'])`. */
   pdf: PdfHelpers;
+  /** M4 bells/pushes/Telegram captured by the dev endpoints, `runJob(name)`, `simulateTelegramStart(token)`. */
+  notifications: NotificationHelpers;
   /** internal: performs the automatic seed reset according to `seedReset`. */
   _seed: void;
 }
@@ -172,12 +175,16 @@ export const test = base.extend<Options & Fixtures>({
   store: async ({ baseURL }, use) => {
     await use(new StoreHelpers(baseURL!));
   },
+  notifications: async ({ api, dev }, use) => {
+    await use(new NotificationHelpers(api, dev));
+  },
 });
 
 export { expect };
 export { ApiClient, DevApi, CSRF_COOKIE, CSRF_HEADER, acceptPendingConsents, expectStatus } from './api';
 export { ClockControl } from './clock';
 export { MailBox, type WaitForMailOptions } from './mails';
+export { NotificationHelpers, type BellDto, type DevNotification } from './notifications';
 export { expectNoSeriousViolations } from './a11y';
 export * from './errors';
 export { LANGUAGES, setLanguage, expectNoMissingKeys } from './i18n';
