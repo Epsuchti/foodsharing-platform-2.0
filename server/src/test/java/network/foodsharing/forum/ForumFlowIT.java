@@ -176,8 +176,9 @@ class ForumFlowIT {
         mvc.perform(delete("/api/forum/posts/" + WELCOME_POST_BOT + "/reactions/100").with(csrf()).cookie(foodsaver))
                 .andExpect(status().isNoContent());
 
-        mvc.perform(json(patch("/api/forum/posts/" + WELCOME_POST_FOODSAVER), "{\"body\":\"Danke! Wo sind die Fairteiler?\"}")
+        mvc.perform(json(patch("/api/forum/posts/" + WELCOME_POST_FOODSAVER), "{\"body\":\"Danke! Wo sind die Fairteiler, @[Julien Favre](user:" + SeedUsers.GUIDE.id() + ")?\"}")
                 .cookie(foodsaver)).andExpect(jsonPath("$.editedAt").exists());
+        assertThat(bellTypes(login(SeedUsers.GUIDE))).contains("FORUM_MENTION");
         mvc.perform(json(patch("/api/forum/posts/" + WELCOME_POST_BOT), "{\"body\":\"gehackt\"}").cookie(foodsaver))
                 .andExpect(status().isForbidden());
         mvc.perform(json(post("/api/forum/threads/" + CLOSED_THREAD + "/posts"), "{\"body\":\"Noch Platz?\"}")

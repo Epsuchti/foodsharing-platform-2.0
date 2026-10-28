@@ -140,15 +140,7 @@ public class ForumNotifier {
         if (!mail.isEmpty()) {
             mailFollowers(thread, post, authorName, mail);
         }
-        Set<UUID> mentioned = mentionedUserIds(post.getBody());
-        mentioned.remove(post.getAuthorId());
-        mentioned.retainAll(mayRead);
-        if (!mentioned.isEmpty()) {
-            notifications.notify(NotificationRequest.to(mentioned, NotificationType.FORUM_MENTION)
-                    .param("title", thread.getTitle()).param("author", authorName)
-                    .link(threadLink(thread.getId()) + "#post-" + post.getId())
-                    .identifier("FORUM_MENTION-" + post.getId()).build());
-        }
+        mentioned(thread, post, authorName, mentionedUserIds(post.getBody()), mayRead);
         Set<UUID> live = new LinkedHashSet<>(bell);
         live.addAll(mail);
         live.add(post.getAuthorId());
@@ -169,6 +161,19 @@ public class ForumNotifier {
             variables.put("link", link);
             mails.enqueue(new MailDraft(user.getEmail(), MAIL_FORUM_POST, user.getPreferredLanguage(), variables,
                     user.getId(), "FORUM", "FORUM_POST-" + thread.getId()));
+        }
+    }
+
+    /** {@code FORUM_MENTION} to the given users who may read the forum, never to the post's author. */
+    void mentioned(ForumThread thread, ForumPost post, String authorName, Set<UUID> userIds, Set<UUID> mayRead) {
+        Set<UUID> mentioned = new LinkedHashSet<>(userIds);
+        mentioned.remove(post.getAuthorId());
+        mentioned.retainAll(mayRead);
+        if (!mentioned.isEmpty()) {
+            notifications.notify(NotificationRequest.to(mentioned, NotificationType.FORUM_MENTION)
+                    .param("title", thread.getTitle()).param("author", authorName)
+                    .link(threadLink(thread.getId()) + "#post-" + post.getId())
+                    .identifier("FORUM_MENTION-" + post.getId()).build());
         }
     }
 

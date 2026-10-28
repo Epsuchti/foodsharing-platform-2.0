@@ -78,10 +78,16 @@ public class PostService {
         ThreadContext context = access.visibleThread(post.getThreadId());
         ForumPermissionService.require(ForumRules.mayEditPost(context.actor(), context.forum(), post.getAuthorId()));
         if (!body.equals(post.getBody())) {
+            Set<UUID> added = ForumNotifier.mentionedUserIds(body);
+            added.removeAll(ForumNotifier.mentionedUserIds(post.getBody()));
             post.setBody(body);
             post.setEditedAt(clock.instant());
             post.setEditedBy(context.actor().userId());
             history.record(event(ForumAction.POST_EDITED, context.thread(), post).build());
+            if (context.thread().isActive() && !post.isHidden() && !added.isEmpty()) {
+                notifier.mentioned(context.thread(), post, threads.displayName(post.getAuthorId()), added,
+                        access.withAccess(added, context.thread().getRegionId(), context.forum()));
+            }
             notifier.publish(context.thread(), post.getId(), "EDITED", Set.of());
         }
         return details(context, post);
