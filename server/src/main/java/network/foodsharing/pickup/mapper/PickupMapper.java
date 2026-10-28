@@ -70,7 +70,23 @@ public class PickupMapper {
 
     public List<Pickup> toModels(List<PickupScheduleService.PickupView> views) {
         Map<UUID, User> byId = usersOf(views.stream().map(PickupScheduleService.PickupView::slot).toList());
-        return views.stream().map(v -> toModel(v.slot(), v.available(), v.eligibility(), byId)).toList();
+        List<UUID> extraUsers = views.stream().filter(v -> v.extraSlot() != null)
+                .map(v -> v.extraSlot().getUserId()).filter(id -> !byId.containsKey(id)).distinct().toList();
+        Map<UUID, User> all = new java.util.HashMap<>(byId);
+        if (!extraUsers.isEmpty()) {
+            users.findAll(extraUsers).forEach(u -> all.put(u.getId(), u));
+        }
+        return views.stream().map(v -> {
+            Pickup model = toModel(v.slot(), v.available(), v.eligibility(), all);
+            model.setMayAddExtraSlot(v.mayAddExtraSlot());
+            if (v.extraSlot() != null && all.containsKey(v.extraSlot().getUserId())) {
+                network.foodsharing.api.model.PickupExtraSlot extra = new network.foodsharing.api.model.PickupExtraSlot();
+                extra.setByUser(userMapper.toSummary(all.get(v.extraSlot().getUserId())));
+                extra.setAddedAt(time(v.extraSlot().getCreatedAt()));
+                model.setExtraSlot(extra);
+            }
+            return model;
+        }).toList();
     }
 
     public Pickup toModel(PickupSchedule.Slot slot, boolean available) {

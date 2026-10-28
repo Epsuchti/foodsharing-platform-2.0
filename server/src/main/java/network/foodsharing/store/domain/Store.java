@@ -103,6 +103,9 @@ public class Store extends BaseEntity implements HistorySubject {
     @Column(name = "public_pickup_time", nullable = false, length = 20)
     private PublicPickupTime publicPickupTime = PublicPickupTime.NOT_SET;
 
+    @Column(name = "extra_slot_allowed", nullable = false)
+    private boolean extraSlotAllowed;
+
     @Tracked
     @Column(name = "weight_category", nullable = false, length = 20)
     private String weightCategory = "NOT_SET";

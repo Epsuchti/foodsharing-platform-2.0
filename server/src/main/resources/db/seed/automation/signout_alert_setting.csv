@@ -1,0 +1,2 @@
+id,version,created_at,updated_at,created_by,updated_by,store_id,enabled,cutoff_enabled,maximum_hours_before_pickup,channels,telegram_chat_ids,active_since,last_checked_at
+00000022-0011-4000-8000-000000000001,0,2026-10-01T10:00:00Z,2026-10-01T10:00:00Z,NULL,NULL,00000020-0001-4000-8000-000000000006,true,true,72,"BELL,TELEGRAM",NULL,2026-10-01T10:00:00Z,2026-11-02T03:00:00Z

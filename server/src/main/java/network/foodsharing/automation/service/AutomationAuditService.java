@@ -39,8 +39,9 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Automation decisions of a store or a region (default: the last 7 days). Region scope: ambassadors and
- * CAN_SEE_ALL_AUTOMATION_DECISIONS holders see all, everyone else only the decisions about themselves. Kinds PICKUP
- * and REQUEST are stored here; ADVERT, CANCELLATION and EXTRA_SLOT come with B5.
+ * CAN_SEE_ALL_AUTOMATION_DECISIONS holders see all, everyone else only the decisions about themselves. Kinds: PICKUP,
+ * REQUEST, ADVERT (open-slot adverts), CANCELLATION (sign-out alerts) and EXTRA_SLOT; "excludeConfirmed" hides
+ * confirmations, sent adverts, replaced/rejoined cancellations and extra slots.
  */
 @Service
 public class AutomationAuditService {
@@ -61,8 +62,17 @@ public class AutomationAuditService {
                         Integer size) {
     }
 
+    private static final List<network.foodsharing.automation.domain.AdvertStatus> CONFIRMED_ADVERT = List.of(
+            network.foodsharing.automation.domain.AdvertStatus.SENT);
+    private static final List<network.foodsharing.automation.domain.CancellationStatus> CONFIRMED_CANCELLATION =
+            List.of(network.foodsharing.automation.domain.CancellationStatus.REPLACED,
+                    network.foodsharing.automation.domain.CancellationStatus.REJOINED);
+
     private final PickupPolicyAuditRepository pickupAudits;
     private final RequestPolicyAuditRepository requestAudits;
+    private final network.foodsharing.automation.repository.OpenSlotAdvertAuditRepository advertAudits;
+    private final network.foodsharing.automation.repository.SignoutCancellationRepository cancellations;
+    private final network.foodsharing.pickup.service.PickupAutomationQueries pickupQueries;
     private final PickupPolicyService pickupPolicies;
     private final StoreService stores;
     private final RegionService regions;
@@ -72,12 +82,18 @@ public class AutomationAuditService {
     private final Clock clock;
 
     public AutomationAuditService(PickupPolicyAuditRepository pickupAudits, RequestPolicyAuditRepository requestAudits,
+                                  network.foodsharing.automation.repository.OpenSlotAdvertAuditRepository advertAudits,
+                                  network.foodsharing.automation.repository.SignoutCancellationRepository cancellations,
+                                  network.foodsharing.pickup.service.PickupAutomationQueries pickupQueries,
                                   PickupPolicyService pickupPolicies, StoreService stores, RegionService regions,
                                   PermissionService permissions, CurrentActorService currentActor, ObjectMapper json,
                                   Clock clock) {
         this.clock = clock;
         this.pickupAudits = pickupAudits;
         this.requestAudits = requestAudits;
+        this.advertAudits = advertAudits;
+        this.cancellations = cancellations;
+        this.pickupQueries = pickupQueries;
         this.pickupPolicies = pickupPolicies;
         this.stores = stores;
         this.regions = regions;
@@ -139,6 +155,25 @@ public class AutomationAuditService {
             rows.forEach(row -> merged.add(view(row)));
             total += rows.getTotalElements();
         }
+        if (!storeIds.isEmpty() && (query.kind() == null || query.kind() == AuditKind.ADVERT)) {
+            var rows = advertAudits.search(storeIds, allUsers, user, query.excludeConfirmed(), CONFIRMED_ADVERT, from,
+                    to, window);
+            rows.forEach(row -> merged.add(view(row)));
+            total += rows.getTotalElements();
+        }
+        if (!storeIds.isEmpty() && (query.kind() == null || query.kind() == AuditKind.CANCELLATION)) {
+            var rows = cancellations.search(storeIds, allUsers, user, query.excludeConfirmed(),
+                    CONFIRMED_CANCELLATION, from, to, window);
+            rows.forEach(row -> merged.add(view(row)));
+            total += rows.getTotalElements();
+        }
+        if (!storeIds.isEmpty() && !query.excludeConfirmed()
+                && (query.kind() == null || query.kind() == AuditKind.EXTRA_SLOT)) {
+            var rows = pickupQueries.extraSlotsOfStores(storeIds, from, to).stream()
+                    .filter(row -> allUsers || row.getUserId().equals(user)).toList();
+            rows.stream().limit(window.getPageSize()).forEach(row -> merged.add(view(row)));
+            total += rows.size();
+        }
         merged.sort(Comparator.comparing(AuditView::createdAt).reversed().thenComparing(AuditView::id));
         List<AuditView> content = merged.stream().skip((long) page * size).limit(size).toList();
         return new PageImpl<>(content, PageRequest.of(page, size), total);
@@ -157,6 +192,24 @@ public class AutomationAuditService {
                 : row.getMessage()));
         return new AuditView(row.getId(), AuditKind.REQUEST, row.getStoreId(), null, row.getUserId(),
                 row.getStatus().name(), row.isDryRun(), reasons, row.getMessage(), row.getError(),
+                row.getCreatedAt());
+    }
+
+    private AuditView view(network.foodsharing.automation.domain.OpenSlotAdvertAudit row) {
+        return new AuditView(row.getId(), AuditKind.ADVERT, row.getStoreId(), row.getPickupAt(), row.getUserId(),
+                row.getStatus().name(), row.isDryRun(), List.of(), row.getMessage() != null ? row.getMessage()
+                : row.getReason(), row.getError(), row.getCreatedAt());
+    }
+
+    private AuditView view(network.foodsharing.automation.domain.SignoutCancellation row) {
+        return new AuditView(row.getId(), AuditKind.CANCELLATION, row.getStoreId(), row.getPickupAt(),
+                row.getUserId(), row.getStatus().name(), row.isDryRun(), List.of(), row.getMessage(), row.getError(),
+                row.getCreatedAt());
+    }
+
+    private AuditView view(network.foodsharing.pickup.domain.PickupExtraSlot row) {
+        return new AuditView(row.getId(), AuditKind.EXTRA_SLOT, row.getStoreId(), row.getPickupAt(), row.getUserId(),
+                "ADDED", false, List.of(), row.getPreviousTotalSlots() + " → " + row.getNewTotalSlots(), null,
                 row.getCreatedAt());
     }
 

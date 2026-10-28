@@ -376,6 +376,8 @@ public class AppProperties {
         private int batchSize = 50;
         private int mailsPerMinute = 100;
         private String sendCron = "0 * * * * *";
+        /** HMAC key of the unsubscribe tokens (env NEWSLETTER_SECRET in prod). */
+        private String secret = "local-newsletter-secret";
     }
 
     /** Circuit breakers of external integrations (A26). */

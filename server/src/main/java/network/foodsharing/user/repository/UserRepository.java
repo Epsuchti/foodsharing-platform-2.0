@@ -24,6 +24,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByRoleAndActiveTrue(network.foodsharing.api.model.Role role);
 
+    List<User> findByActiveTrueAndNewsletterOptInTrue();
+
     @Query(value = "select nextval('foodsaver_number_seq')", nativeQuery = true)
     long nextFoodsaverNumber();
 

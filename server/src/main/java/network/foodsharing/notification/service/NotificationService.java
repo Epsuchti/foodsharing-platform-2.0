@@ -61,6 +61,33 @@ public class NotificationService {
         return created;
     }
 
+    /**
+     * Sends the notification through the PUSH channel only (no bell, no mail; open-slot adverts with channel PUSH,
+     * AU4). Respects the recipients' PUSH settings.
+     *
+     * @return how many recipients got a push
+     */
+    @Transactional
+    public int pushOnly(NotificationRequest request) {
+        int pushed = 0;
+        for (UUID recipientId : request.recipientIds()) {
+            Optional<User> recipient = users.findActive(recipientId);
+            if (recipient.isEmpty()) {
+                continue;
+            }
+            Bell transientBell = new Bell();
+            transientBell.setUserId(recipientId);
+            transientBell.setType(request.type());
+            transientBell.setTitleKey(request.type().defaultTitleKey());
+            if (channels.dispatchOnly(recipient.get(), transientBell, request, NotificationChannelType.PUSH)) {
+                pushed++;
+            }
+        }
+        history.record(history.event(NotificationAction.SENT, HistoryService.SYSTEM_SUBJECT_ID)
+                .metadata(Map.of("type", request.type().name(), "recipients", pushed, "channel", "PUSH")).build());
+        return pushed;
+    }
+
     /** Removes bells created with this identifier. */
     @Transactional
     @NoHistory(reason = "bells are transient hints; the action that resolves them records its own history")

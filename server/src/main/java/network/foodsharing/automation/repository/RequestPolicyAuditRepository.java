@@ -3,6 +3,7 @@ package network.foodsharing.automation.repository;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 import network.foodsharing.automation.domain.RequestDecision;
 import network.foodsharing.automation.domain.RequestPolicyAudit;
@@ -23,4 +24,9 @@ public interface RequestPolicyAuditRepository extends JpaRepository<RequestPolic
                                     @Param("excludeConfirmed") boolean excludeConfirmed,
                                     @Param("confirmed") Collection<RequestDecision> confirmed,
                                     @Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
+
+    List<RequestPolicyAudit> findByCreatedAtBefore(java.time.Instant before);
+
+    List<RequestPolicyAudit> findByRegionIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(java.util.Collection<java.util.UUID> regionIds,
+            java.time.Instant from, java.time.Instant to);
 }

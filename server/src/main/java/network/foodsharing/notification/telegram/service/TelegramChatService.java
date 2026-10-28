@@ -135,6 +135,50 @@ public class TelegramChatService {
         return sent;
     }
 
+    /**
+     * Sends a text to one chat of the owner (open-slot adverts, sign-out alerts). The chat must be configured and
+     * enabled for the owner; {@code chatIds} empty = every enabled chat of the owner.
+     *
+     * @return the sent messages (chat id, message id)
+     */
+    public List<SentMessage> sendToChats(OwnerType ownerType, UUID ownerId, java.util.Collection<String> chatIds,
+                                         String text, String type) {
+        List<SentMessage> sent = new java.util.ArrayList<>();
+        for (TelegramAlertChat chat : chats.findByOwnerTypeAndOwnerIdAndEnabledTrue(ownerType, ownerId)) {
+            if (chatIds.isEmpty() || chatIds.contains(chat.getChatId())) {
+                sent.add(new SentMessage(chat.getChatId(), delivery.sendText(chat.getChatId(), text, null, type)));
+            }
+        }
+        return sent;
+    }
+
+    /**
+     * Automation messages of a store (adverts, sign-out alerts): to the store's enabled chats with these ids, and to
+     * the region's enabled chats for ids the store does not have ({@code chatIds} empty = every enabled store chat).
+     */
+    public List<SentMessage> sendForStore(UUID storeId, UUID regionId, java.util.Collection<String> chatIds,
+                                          String text, String type) {
+        List<SentMessage> sent = new java.util.ArrayList<>(sendToChats(OwnerType.STORE, storeId, chatIds, text,
+                type));
+        if (!chatIds.isEmpty() && regionId != null) {
+            java.util.Set<String> missing = new java.util.HashSet<>(chatIds);
+            sent.forEach(m -> missing.remove(m.chatId()));
+            if (!missing.isEmpty()) {
+                sent.addAll(sendToChats(OwnerType.REGION, regionId, missing, text, type));
+            }
+        }
+        return sent;
+    }
+
+    /** Deletes an earlier message; failures are only logged by the client breaker. */
+    public void deleteMessage(String chatId, long messageId) {
+        delivery.deleteText(chatId, messageId);
+    }
+
+    /** One message sent to a chat. */
+    public record SentMessage(String chatId, long messageId) {
+    }
+
     private void requireAccess(SessionPrincipal actor, OwnerType ownerType, UUID ownerId) {
         if (ownerType == OwnerType.REGION) {
             permissions.requireMayAdministrateRegion(actor, ownerId);

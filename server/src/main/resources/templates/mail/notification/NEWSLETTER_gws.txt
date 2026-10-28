@@ -1,0 +1,8 @@
+Hoi [(${displayName})],
+
+[(${subject})]
+
+[(${body})]
+
+Du überchunsch dä Newsletter, will du ihn i dine Iistellige abonniert häsch. Abmälde:
+[(${unsubscribeUrl})]

@@ -1,0 +1,71 @@
+# Seed (M4 B5): newsletter opt-in for 8 users (not foodsaver), a sent global newsletter (orga) with its recipients and
+# a Zürich draft (bot). Ids: docs/seed-ids.md module 0004 tables 0006/0007.
+databaseChangeLog:
+  - changeSet:
+      id: seed-104-1
+      author: platform
+      context: seed
+      comment: 'Newsletter opt-in of 8 seed users.'
+      changes:
+        - update:
+            tableName: user_account
+            columns:
+              - column: {name: newsletter_opt_in, valueBoolean: true}
+            where: "id in ('00000001-0001-4000-8000-000000000007', '00000001-0001-4000-8000-000000000008', '00000001-0001-4000-8000-000000000009', '00000001-0001-4000-8000-000000000010', '00000001-0001-4000-8000-000000000011', '00000001-0001-4000-8000-000000000012', '00000001-0001-4000-8000-000000000013', '00000001-0001-4000-8000-000000000014')"
+  - changeSet:
+      id: seed-104-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Newsletters.'
+      changes:
+        - loadUpdateData:
+            tableName: newsletter
+            file: ../notification/newsletter.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID}
+              - column: {name: subject, type: STRING}
+              - column: {name: body_markdown, type: STRING}
+              - column: {name: status, type: STRING}
+              - column: {name: queued_at, type: STRING}
+              - column: {name: sent_at, type: STRING}
+              - column: {name: recipient_count, type: NUMERIC}
+              - column: {name: sent_count, type: NUMERIC}
+              - column: {name: failed_count, type: NUMERIC}
+  - changeSet:
+      id: seed-104-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Recipients of the sent newsletter.'
+      changes:
+        - loadUpdateData:
+            tableName: newsletter_recipient
+            file: ../notification/newsletter_recipient.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: newsletter_id, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: mail_outbox_id, type: UUID}
+              - column: {name: status, type: STRING}

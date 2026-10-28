@@ -1,0 +1,78 @@
+# Milestone 4 (B5): open-slot adverts (AU4) and their sent audit.
+databaseChangeLog:
+  - changeSet:
+      id: 107-1
+      author: platform
+      comment: 'Open-slot adverts per store and their audit.'
+      changes:
+        - createTable:
+            tableName: open_slot_advert
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_open_slot_advert, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_open_slot_advert_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: advert_number, type: INT, constraints: {nullable: false}}
+              - column: {name: enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: dry_run, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: trigger_hours_before, type: INT, defaultValueNumeric: 24, constraints: {nullable: false}}
+              - column: {name: channels, type: VARCHAR(100), defaultValue: '', constraints: {nullable: false}}
+              - column: {name: telegram_chat_id, type: VARCHAR(40)}
+              - column: {name: store_messages, type: VARCHAR(32600)}
+              - column: {name: push_messages, type: VARCHAR(32600)}
+              - column: {name: telegram_messages, type: VARCHAR(32600)}
+              - column: {name: send_late_cancellation_message, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: late_cancellation_message, type: VARCHAR(2000), defaultValue: 'Du hast gerade den Slot {{datetimeDe}} freigegeben. Du bist trotzdem verantwortlich für diesen Slot! Bitte sorge für Ersatz und notifiziere sowohl das Team als auch den Notfallchat.', constraints: {nullable: false}}
+              - column: {name: late_cancellation_max_hours, type: INT, defaultValueNumeric: 72, constraints: {nullable: false}}
+              - column: {name: resend_latest_advert_after_late_cancellation, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: open_slot_advert
+            columnNames: store_id, advert_number
+            constraintName: uq_open_slot_advert_store_number
+        - createTable:
+            tableName: open_slot_advert_audit
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_open_slot_advert_audit, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: advert_id, type: UUID}
+              - column: {name: advert_number, type: INT}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: pickup_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: trigger_hours_before, type: INT}
+              - column: {name: user_id, type: UUID}
+              - column: {name: telegram_chat_id, type: VARCHAR(40)}
+              - column: {name: telegram_message_id, type: BIGINT}
+              - column: {name: telegram_deleted_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: status, type: VARCHAR(60), constraints: {nullable: false}}
+              - column: {name: dry_run, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: message, type: VARCHAR(4000)}
+              - column: {name: reason, type: VARCHAR(1000)}
+              - column: {name: error, type: VARCHAR(2000)}
+              - column: {name: sent_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: filled_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: open_slot_advert_audit
+            indexName: ix_open_slot_advert_audit_store_created
+            columns:
+              - column: {name: store_id}
+              - column: {name: created_at}
+        - createIndex:
+            tableName: open_slot_advert_audit
+            indexName: ix_open_slot_advert_audit_region_created
+            columns:
+              - column: {name: region_id}
+              - column: {name: created_at}
+        - createIndex:
+            tableName: open_slot_advert_audit
+            indexName: ix_open_slot_advert_audit_advert_pickup
+            columns:
+              - column: {name: advert_id}
+              - column: {name: pickup_at}

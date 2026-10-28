@@ -1,0 +1,8 @@
+Hallo [(${displayName})],
+
+[(${subject})]
+
+[(${body})]
+
+Du erhältst diesen Newsletter, weil du ihn in deinen Einstellungen abonniert hast. Abmelden:
+[(${unsubscribeUrl})]

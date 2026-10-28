@@ -101,6 +101,24 @@ public class UserService {
         return regionIds.isEmpty() ? List.of() : repository.findByHomeRegionIdInAndActiveTrue(regionIds);
     }
 
+    /** One-click unsubscribe (N7, no session); @return whether the user was opted in. */
+    @Transactional
+    @network.foodsharing.history.NoHistory(reason = "recorded as NEWSLETTER_OPT_OUT by the newsletter module")
+    public boolean optOutOfNewsletter(UUID userId) {
+        User user = repository.findById(userId).orElse(null);
+        if (user == null || !user.isNewsletterOptIn()) {
+            return false;
+        }
+        user.setNewsletterOptIn(false);
+        return true;
+    }
+
+    /** Active users who opted in to newsletters (N7). */
+    @Transactional(readOnly = true)
+    public List<User> findActiveNewsletterRecipients() {
+        return repository.findByActiveTrueAndNewsletterOptInTrue();
+    }
+
     /** Active users with exactly this role (e.g. ORGA as the last bell fallback). */
     @Transactional(readOnly = true)
     public List<User> findActiveByRole(Role role) {

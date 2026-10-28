@@ -19,6 +19,8 @@ import network.foodsharing.pickup.domain.PickupEvents;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.repository.PickupDateRepository;
 import network.foodsharing.pickup.repository.PickupSignupRepository;
+import network.foodsharing.pickup.repository.PickupExtraSlotRepository;
+import network.foodsharing.pickup.domain.PickupExtraSlot;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
@@ -44,6 +46,7 @@ public class PickupSignupService {
     private final PickupScheduleService schedule;
     private final PickupDateRepository dates;
     private final PickupSignupRepository signups;
+    private final PickupExtraSlotRepository extraSlots;
     private final StoreService stores;
     private final StorePermissionService rights;
     private final UserService users;
@@ -54,12 +57,13 @@ public class PickupSignupService {
     private final Clock clock;
 
     public PickupSignupService(PickupScheduleService schedule, PickupDateRepository dates,
-                               PickupSignupRepository signups, StoreService stores, StorePermissionService rights,
-                               UserService users, CurrentActorService currentActor, HistoryService history,
+                               PickupSignupRepository signups, PickupExtraSlotRepository extraSlots, StoreService stores,
+                               StorePermissionService rights, UserService users, CurrentActorService currentActor, HistoryService history,
                                ApplicationEventPublisher events, AppProperties properties, Clock clock) {
         this.schedule = schedule;
         this.dates = dates;
         this.signups = signups;
+        this.extraSlots = extraSlots;
         this.stores = stores;
         this.rights = rights;
         this.users = users;
@@ -293,6 +297,83 @@ public class PickupSignupService {
         }
         return schedule.find(store, pickupAt).orElseGet(() -> new PickupSchedule.Slot(storeId, pickupAt, 0, text,
                 current != null && current.regular(), List.of()));
+    }
+
+    /**
+     * AU6: the earliest sign-up of a future pickup adds one extra slot (store switch {@code extra_slot_allowed}, once
+     * per pickup). Store log UPDATE_SLOT_COUNT + {@link PickupAction#EXTRA_SLOT_ADDED}; bell PICKUP_EXTRA_SLOT_ADDED to
+     * the managers.
+     *
+     * @throws ApiException 404, 400 PICKUP_IN_PAST, 403 NOT_FIRST_SIGNUP, 409 EXTRA_SLOT_NOT_ALLOWED /
+     *                      EXTRA_SLOT_ALREADY_ADDED, 400 SLOT_COUNT_OUT_OF_RANGE
+     */
+    @Transactional
+    public PickupSchedule.Slot addExtraSlot(UUID storeId, Instant pickupAt) {
+        stores.require(storeId);
+        Store store = stores.lock(storeId);
+        UUID actorId = currentActor.requirePrincipal().userId();
+        if (!store.isExtraSlotAllowed()) {
+            throw ApiException.conflict(ApiErrorCode.EXTRA_SLOT_NOT_ALLOWED);
+        }
+        if (!pickupAt.isAfter(clock.instant())) {
+            throw ApiException.badRequest(ApiErrorCode.PICKUP_IN_PAST);
+        }
+        PickupSchedule.Slot current = schedule.find(store, pickupAt).orElse(null);
+        if (current == null || !isFirstSignup(current, actorId)) {
+            throw ApiException.forbidden(ApiErrorCode.NOT_FIRST_SIGNUP);
+        }
+        if (extraSlots.findByStoreIdAndPickupAt(storeId, pickupAt).isPresent()) {
+            throw ApiException.conflict(ApiErrorCode.EXTRA_SLOT_ALREADY_ADDED);
+        }
+        int previousCount = current.slotCount();
+        int newCount = previousCount + 1;
+        if (newCount > properties.getStore().getMaxSlotsPerPickup()) {
+            throw ApiException.badRequest(ApiErrorCode.SLOT_COUNT_OUT_OF_RANGE);
+        }
+        PickupDate date = dates.findByStoreIdAndPickupAt(storeId, pickupAt).orElseGet(() -> {
+            PickupDate d = new PickupDate();
+            d.setStoreId(storeId);
+            d.setPickupAt(pickupAt);
+            d.setDescription(current.description());
+            return d;
+        });
+        date.setSlotCount(newCount);
+        dates.save(date);
+        PickupExtraSlot extra = new PickupExtraSlot();
+        extra.setStoreId(storeId);
+        extra.setRegionId(store.getRegionId());
+        extra.setPickupAt(pickupAt);
+        extra.setUserId(actorId);
+        extra.setPreviousTotalSlots(previousCount);
+        extra.setNewTotalSlots(newCount);
+        extraSlots.save(extra);
+        log(StoreLogAction.UPDATE_SLOT_COUNT, store, actorId, pickupAt, null,
+                Map.of("previousCount", previousCount, "newCount", newCount, "extraSlot", true));
+        history.record(history.event(PickupAction.EXTRA_SLOT_ADDED, storeId).secondarySubject(actorId)
+                .region(store.getRegionId()).metadata("pickupAt", pickupAt.toString())
+                .metadata("previousCount", previousCount).metadata("newCount", newCount).build());
+        List<UUID> managers = stores.managerIds(storeId).stream().filter(id -> !id.equals(actorId)).toList();
+        StoreNotifications.send(events, request(managers, NotificationType.PICKUP_EXTRA_SLOT_ADDED, store, pickupAt)
+                .param("userName", users.findActive(actorId).map(User::getDisplayName).orElse(""))
+                .param("slotCount", String.valueOf(newCount)).build());
+        return schedule.find(store, pickupAt).orElseThrow();
+    }
+
+    /** Is the user the earliest sign-up of this pickup (AU6)? */
+    public static boolean isFirstSignup(PickupSchedule.Slot slot, UUID userId) {
+        return slot.signups().stream().min(java.util.Comparator.comparing(PickupSignup::getCreatedAt)
+                        .thenComparing(PickupSignup::getId))
+                .map(s -> s.getUserId().equals(userId)).orElse(false);
+    }
+
+    /** Extra slots added to these pickups of a store (by pickup time). */
+    @Transactional(readOnly = true)
+    public Map<Instant, PickupExtraSlot> extraSlots(UUID storeId, java.util.Collection<Instant> pickupAts) {
+        if (pickupAts.isEmpty()) {
+            return Map.of();
+        }
+        return extraSlots.findByStoreIdAndPickupAtIn(storeId, pickupAts).stream()
+                .collect(java.util.stream.Collectors.toMap(PickupExtraSlot::getPickupAt, e -> e, (a, b) -> a));
     }
 
     private NotificationRequest.Builder request(List<UUID> recipients, NotificationType type, Store store,

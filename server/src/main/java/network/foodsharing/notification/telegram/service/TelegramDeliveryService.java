@@ -95,6 +95,11 @@ public class TelegramDeliveryService {
                 type, Map.of(), null, null, null));
     }
 
+    /** Deletes a message sent earlier (open-slot adverts that are no longer needed). */
+    public void deleteText(String chatId, long messageId) {
+        client.deleteMessage(chatId, messageId);
+    }
+
     public void requireConfigured() {
         if (!configured()) {
             throw ApiException.conflict(ApiErrorCode.TELEGRAM_NOT_CONFIGURED);

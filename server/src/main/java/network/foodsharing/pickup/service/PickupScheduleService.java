@@ -41,12 +41,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class PickupScheduleService {
 
     /** A pickup with the caller's eligibility (null when not computed, e.g. for past pickups). */
-    public record PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility) {
+    public record PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
+                             network.foodsharing.pickup.domain.PickupExtraSlot extraSlot, boolean mayAddExtraSlot) {
+
+        public PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility) {
+            this(slot, available, eligibility, null, false);
+        }
     }
 
     private final RegularPickupRepository regular;
     private final PickupDateRepository dates;
     private final PickupSignupRepository signups;
+    private final network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots;
     private final StoreService stores;
     private final StorePermissionService rights;
     private final RegionService regions;
@@ -57,13 +63,16 @@ public class PickupScheduleService {
     private final java.time.Clock clock;
 
     public PickupScheduleService(RegularPickupRepository regular, PickupDateRepository dates,
-                                 PickupSignupRepository signups, StoreService stores, StorePermissionService rights,
+                                 PickupSignupRepository signups,
+                                 network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots,
+                                 StoreService stores, StorePermissionService rights,
                                  RegionService regions, RegionOptionsService regionOptions,
                                  QuizSessionService quizzes, UserService users, CurrentActorService currentActor,
                                  java.time.Clock clock) {
         this.regular = regular;
         this.dates = dates;
         this.signups = signups;
+        this.extraSlots = extraSlots;
         this.stores = stores;
         this.rights = rights;
         this.regions = regions;
@@ -145,8 +154,16 @@ public class PickupScheduleService {
             }
         }
         EligibilityContext context = context(store, actor.userId());
-        return slots.stream().map(s -> new PickupView(s, s.isAvailable(now),
-                s.pickupAt().isBefore(now) ? null : context.evaluate(s.pickupAt(), s))).toList();
+        Map<Instant, network.foodsharing.pickup.domain.PickupExtraSlot> extras = slots.isEmpty() ? Map.of()
+                : extraSlots.findByStoreIdAndPickupAtIn(storeId, slots.stream().map(PickupSchedule.Slot::pickupAt)
+                        .toList()).stream().collect(Collectors.toMap(e -> e.getPickupAt(), e -> e, (a, b) -> a));
+        return slots.stream().map(s -> {
+            var extra = extras.get(s.pickupAt());
+            boolean mayAdd = store.isExtraSlotAllowed() && extra == null && s.pickupAt().isAfter(now)
+                    && PickupSignupService.isFirstSignup(s, actor.userId());
+            return new PickupView(s, s.isAvailable(now),
+                    s.pickupAt().isBefore(now) ? null : context.evaluate(s.pickupAt(), s), extra, mayAdd);
+        }).toList();
     }
 
     /** All failing reasons for the current user plus the rule counters. */
