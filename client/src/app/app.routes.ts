@@ -117,17 +117,17 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/bells/bells.routes').then((m) => m.BELLS_ROUTES),
   },
   {
-    path: 'account/notifications',
-    loadChildren: () =>
-      import('./features/notifications/notifications.routes').then((m) => m.NOTIFICATIONS_ROUTES),
-  },
-  {
     path: 'messages',
     loadChildren: () => import('./features/messaging/messaging.routes').then((m) => m.MESSAGING_ROUTES),
   },
   {
     path: 'mailboxes',
     loadChildren: () => import('./features/mailboxes/mailboxes.routes').then((m) => m.MAILBOXES_ROUTES),
+  },
+  {
+    path: 'account/notifications',
+    loadChildren: () =>
+      import('./features/notifications/notifications.routes').then((m) => m.NOTIFICATIONS_ROUTES),
   },
   {
     path: 'admin',

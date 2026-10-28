@@ -15,7 +15,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | A7 | Internal notes on users ("about me internal" + user notes wall for ambassadors) | todo | | | | | |
 | A8 | Profile change history, quiz session history, passport history, verification history (§10) | done | history views | user history, quiz/verification/passport history | q2-session, ve2-verify, ve3-passport @A8 | quiz.screen.ts |  |
 | A9 | Sleep mode: none / temporary (from–until) / full, with message; shown everywhere the user appears | todo | | | | | |
-| A10 | Notification settings: per region forum (new threads / all), per thread (bell/mail), per FSP (bell/mail), newsletter, pickup reminders on/off, mention notifications on/off, activity feed filters; channels bell / email / push / Telegram | todo | | | | | |
+| A10 | Notification settings: per region forum (new threads / all), per thread (bell/mail), per FSP (bell/mail), newsletter, pickup reminders on/off, mention notifications on/off, activity feed filters; channels bell / email / push / Telegram | done | notification settings | /account/notifications | n5-telegram-link, n4-push @A10 | |  |
 | A11 | Calendar token: personal ICS feed of pickups, EinAbs, events, with reminders; regenerate / delete token | todo | | | | | |
 | A12 | Language selection (de, en, gws, fr, it) | done | UserService.updateSettings | I18nService + settings page | tests/account/a12-language @A12 | auth.screen.ts |  |
 | A13 | Delete account with reason (anonymise content, archive record as `fs_foodsaver_archive`), no-automatic-delete flag for admins | todo | | | | | |
@@ -69,9 +69,9 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | N1 | Conversations 1:1 and group, store team & jumper chats, region conversation, lookup/create, rename, read status, unread counts, mentions | done | messaging + realtime | /messages, store chat tab | tests/messaging @N1 | messaging.screen.ts (baseline pending) |  |
 | N2 | Realtime delivery (WebSocket) | done | messaging + realtime | /messages, store chat tab | tests/messaging @N2 | messaging.screen.ts (baseline pending) |  |
 | N3 | Bells with read/unread, delete, all bell types (forum thread to activate, WG application, new member for welcome team, store requests, slot confirmations, …) | done | BellService + realtime | header bell, /bells | n3-bells @N3 | notifications.screen.ts (baseline pending) |  |
-| N4 | Web push notifications, subscriptions per device, opt-in prompt | todo | | | | | |
-| N5 | **Telegram**: link account via bot (`/start <token>`), per-user Telegram notifications, region/store Telegram chats for alerts, test message (from reference) | todo | | | | | |
-| N6 | Mail notifications with rate limiting, outbox and templates in five languages | in-progress | mail outbox, templates x5 | | | | outbox + magic-link templates done; per-type rate limits + other templates M4 |
+| N4 | Web push notifications, subscriptions per device, opt-in prompt | done | web push (VAPID) | /account/notifications push, dashboard opt-in | n4-push @N4 | notifications.screen.ts (baseline pending) | browser push service faked in e2e; server real (LOG) |
+| N5 | **Telegram**: link account via bot (`/start <token>`), per-user Telegram notifications, region/store Telegram chats for alerts, test message (from reference) | done | Telegram | /account/notifications Telegram | n5-telegram-link @N5 | | region/store chats UI in automation pages |
+| N6 | Mail notifications with rate limiting, outbox and templates in five languages | done | mail outbox, templates, rate limits | /admin/mail-outbox | n6-mail @N6 | | retry path untested until e2e seeds outbox rows |
 | N7 | Newsletter: opt-in, compose per region/global, send via built-in queue (or Listmonk), unsubscribe | todo | | | | | |
 | MB1 | Every region and working group can get an address `<email_name>@<domain>`; mailbox members configured by ambassadors / group admins | done | mailbox module | /mailboxes | tests/mailboxes @MB1 | mailboxes.screen.ts (baseline pending) |  |
 | MB2 | Inbox, sent, trash folders; read/unread, answered flag; unread count in navigation | done | mailbox module | /mailboxes | tests/mailboxes @MB2 | mailboxes.screen.ts (baseline pending) |  |
@@ -152,7 +152,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | AU9 | Metrics tab: daily anonymous counts archived from audits, filled-after-advert, EinAb and extra slots, scoped to region | todo | | | | | |
 | AU10 | Telegram: bot token, list chats, test message, forwarding of messages sent to self | todo | | | | | |
 | AU11 | Region message account connections (send messages as a region account) | todo | | | | | |
-| AU12 | Foodsharing outage circuit breaker + offline banner | in-progress | | shared/offline-banner, OnlineStatusService | au12-offline, au12-pwa @AU12 | pages.screen offline | offline banner + PWA done; integration status page + circuit breakers in M4 |
+| AU12 | Foodsharing outage circuit breaker + offline banner | done | IntegrationRegistry, breakers | offline banner, /admin/integrations | au12-offline, au12-pwa, au12-integrations @AU12 | pages.screen offline | integrations-down chip in banner not built |
 | AU13 | Audit retention cleanup | todo | | | | | |
 | SV1 | Surveys (§14.3): create/edit/delete, co-authors, question types TEXT/SINGLE/MULTIPLE/BOOLEAN/STORE, one response per user, results, fill page without menu, login link returns | todo | | | | | |
 | AD1 | Admin & operations (§14.4): user management per region, admins list, permission matrix, last login, verified filter, version health, Prometheus, loading bar, i18n check, SMTP defaults, Mailpit | in-progress | actuator version group, prometheus | + /regions/:id/users, /users/:id | + ad1-users @AD1 | gallery.screen | ops + user management done; admins list/permission matrix pending check at M2 review |

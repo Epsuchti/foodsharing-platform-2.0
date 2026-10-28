@@ -389,9 +389,9 @@
   "nav.storeChains": "Store chains",
   "nav.storeCategories": "Store categories",
   "common.metaDescription": "foodsharing – saving food, together. Pick up food from businesses, share it and become a foodsaver in your region.",
-  "nav.notifications": "Notifications",
   "common.realtime.reconnecting": "Reconnecting …",
   "nav.mailboxes": "Mailboxes",
+  "nav.notifications": "Notifications",
   "nav.adminIntegrations": "Integrations",
   "nav.adminJobs": "Background jobs",
   "nav.adminMailOutbox": "Mail outbox"
