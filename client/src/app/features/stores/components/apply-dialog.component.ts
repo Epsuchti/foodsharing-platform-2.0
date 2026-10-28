@@ -32,6 +32,7 @@ export interface ApplyTarget {
       (visibleChange)="visible.set($event)"
       [modal]="true"
       [draggable]="false"
+      [closeAriaLabel]="'common.close' | t"
       [header]="'stores.apply.title' | t: { name: store()?.name ?? '' }"
       [style]="{ width: 'min(36rem, 94vw)' }"
       data-testid="stores.apply.dialog"

@@ -29,6 +29,7 @@ interface InviteQuery {
       (visibleChange)="visible.set($event)"
       [modal]="true"
       [draggable]="false"
+      [closeAriaLabel]="'common.close' | t"
       [header]="'stores.invite.title' | t"
       [style]="{ width: 'min(34rem, 94vw)' }"
       data-testid="stores.invite.dialog"

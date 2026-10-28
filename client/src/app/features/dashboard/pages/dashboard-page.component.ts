@@ -5,6 +5,7 @@ import { Role } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
+import { MyNextPickupsCardComponent } from '../../pickups/components/my-next-pickups-card.component';
 
 /** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
 export interface DashboardNextStep {
@@ -35,7 +36,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
 /** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
 @Component({
   selector: 'fs-dashboard-page',
-  imports: [RouterLink, TPipe, UserAvatarComponent],
+  imports: [RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
@@ -67,6 +68,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       </section>
 
       <div class="grid">
+        <fs-my-next-pickups-card />
         @let step = nextStep();
         <section
           class="card card--next"
