@@ -113,7 +113,7 @@ interface UsersQuery {
                   </td>
                   <td>{{ 'common.role.' + member.user.role | t }}</td>
                   <td>
-                    <i class="pi" [class.pi-check-circle]="member.verified" [class.pi-minus-circle]="!member.verified" [attr.aria-label]="(member.verified ? 'usersAdmin.list.isVerified' : 'usersAdmin.list.notVerified') | t"></i>
+                    <i class="pi" role="img" [class.pi-check-circle]="member.verified" [class.pi-minus-circle]="!member.verified" [attr.aria-label]="(member.verified ? 'usersAdmin.list.isVerified' : 'usersAdmin.list.notVerified') | t"></i>
                   </td>
                   <td class="number">{{ member.lastPickupAt ? (member.lastPickupAt | fsDate: 'date') : '–' }}</td>
                   <td class="actions">

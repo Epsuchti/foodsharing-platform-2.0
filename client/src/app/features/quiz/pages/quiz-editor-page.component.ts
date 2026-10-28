@@ -161,52 +161,52 @@ import { QUIZ_ICONS, localized, quizKindOf } from '../quiz-kind';
             </ng-template>
           </fs-data-state>
         </section>
-
-        <fs-quiz-question-dialog
-          [kind]="q.kind"
-          [question]="editing()"
-          [(visible)]="dialogOpen"
-          (changed)="onQuestionChanged($event)"
-        />
-
-        <p-drawer
-          [(visible)]="commentsOpen"
-          position="right"
-          [header]="'quiz.editor.comments' | t"
-          [style]="{ width: 'min(28rem, 100vw)' }"
-          data-testid="quiz.editor.commentsDrawer"
-        >
-          @if (commentQuestion(); as cq) {
-            <p class="muted drawer-question">{{ text(cq.texts) }}</p>
-            <fs-data-state [state]="comments" skeleton="list" [compact]="true" [emptyTitle]="'quiz.editor.noComments' | t" data-testid="quiz.editor.comments">
-              <ng-template [fsData]="comments">
-                <ul class="comments">
-                  @for (comment of comments.data(); track comment.id) {
-                    <li class="comment" data-testid="quiz.editor.comment">
-                      <fs-user-chip [name]="comment.author.displayName" [userId]="comment.author.id" [avatarUrl]="comment.author.avatarUrl" [role]="comment.author.role" [subtitle]="comment.createdAt | fsDate: 'dateTime'" />
-                      <p>{{ comment.text }}</p>
-                    </li>
-                  }
-                </ul>
-              </ng-template>
-            </fs-data-state>
-            <div class="comment-form">
-              <label for="qe-comment" class="fs-visually-hidden">{{ 'quiz.editor.newComment' | t }}</label>
-              <textarea pTextarea id="qe-comment" rows="3" [(ngModel)]="commentText" maxlength="4000" [placeholder]="'quiz.editor.newComment' | t" data-testid="quiz.editor.commentText"></textarea>
-              <p-button
-                [label]="'quiz.editor.addComment' | t"
-                icon="pi pi-send"
-                [disabled]="!commentText().trim()"
-                [loading]="addComment.busy()"
-                (onClick)="addComment.run()"
-                data-testid="quiz.editor.addComment"
-              />
-            </div>
-          }
-        </p-drawer>
       </div>
 </ng-template>
     </fs-data-state>
+
+    <fs-quiz-question-dialog
+      [kind]="quizKind()"
+      [question]="editing()"
+      [(visible)]="dialogOpen"
+      (changed)="onQuestionChanged($event)"
+    />
+
+    <p-drawer
+      [(visible)]="commentsOpen"
+      position="right"
+      [header]="'quiz.editor.comments' | t"
+      [style]="{ width: 'min(28rem, 100vw)' }"
+      data-testid="quiz.editor.commentsDrawer"
+    >
+      @if (commentQuestion(); as cq) {
+        <p class="muted drawer-question">{{ text(cq.texts) }}</p>
+        <fs-data-state [state]="comments" skeleton="list" [compact]="true" [emptyTitle]="'quiz.editor.noComments' | t" data-testid="quiz.editor.comments">
+          <ng-template [fsData]="comments">
+            <ul class="comments">
+              @for (comment of comments.data(); track comment.id) {
+                <li class="comment" data-testid="quiz.editor.comment">
+                  <fs-user-chip [name]="comment.author.displayName" [userId]="comment.author.id" [avatarUrl]="comment.author.avatarUrl" [role]="comment.author.role" [subtitle]="comment.createdAt | fsDate: 'dateTime'" />
+                  <p>{{ comment.text }}</p>
+                </li>
+              }
+            </ul>
+          </ng-template>
+        </fs-data-state>
+        <div class="comment-form">
+          <label for="qe-comment" class="fs-visually-hidden">{{ 'quiz.editor.newComment' | t }}</label>
+          <textarea pTextarea id="qe-comment" rows="3" [(ngModel)]="commentText" maxlength="4000" [placeholder]="'quiz.editor.newComment' | t" data-testid="quiz.editor.commentText"></textarea>
+          <p-button
+            [label]="'quiz.editor.addComment' | t"
+            icon="pi pi-send"
+            [disabled]="!commentText().trim()"
+            [loading]="addComment.busy()"
+            (onClick)="addComment.run()"
+            data-testid="quiz.editor.addComment"
+          />
+        </div>
+      }
+    </p-drawer>
   `,
   styleUrl: '../quiz.scss',
   styles: `
