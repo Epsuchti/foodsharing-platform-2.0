@@ -6,6 +6,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
+import { StoreMembershipActionsComponent } from '../components/membership-actions.component';
 import { StorePageContext } from '../store-page.context';
 
 interface Requirement {
@@ -19,7 +20,7 @@ interface Requirement {
  */
 @Component({
   selector: 'fs-store-overview-tab',
-  imports: [DateTimePipe, MapViewComponent, RouterLink, TPipe, UserChipComponent],
+  imports: [DateTimePipe, MapViewComponent, RouterLink, StoreMembershipActionsComponent, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ctx.data(); as store) {
@@ -115,6 +116,7 @@ interface Requirement {
             } @else {
               <p class="muted">{{ 'stores.overview.noRequirements' | t }}</p>
             }
+            <fs-store-membership-actions />
           </section>
 
           <section class="fs-card card" data-testid="stores.overview.managers">

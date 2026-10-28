@@ -4,10 +4,11 @@ import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
-import { StoreListItem, StoresService, UserTeamStatus } from '../../../api';
+import { StoreListItem, StoreTeamService, StoresService, UserTeamStatus } from '../../../api';
 import { homeRegion } from '../../../core/auth/permission.util';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
+import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
@@ -114,6 +115,40 @@ const GROUPS: { id: GroupId; icon: string }[] = [
                         }
                       </span>
                     </a>
+                    @if (group.id === 'invited') {
+                      <div class="invite-actions" data-testid="stores.mine.invitation" [attr.data-store]="store.name">
+                        <p-button
+                          [label]="'stores.membership.acceptInvitation' | t"
+                          icon="pi pi-check"
+                          size="small"
+                          [loading]="answer.busy()"
+                          (onClick)="answer.run(store.id, true)"
+                          data-testid="stores.mine.acceptInvitation"
+                        />
+                        <p-button
+                          [label]="'stores.membership.declineInvitation' | t"
+                          size="small"
+                          severity="secondary"
+                          [outlined]="true"
+                          [disabled]="answer.busy()"
+                          (onClick)="answer.run(store.id, false)"
+                          data-testid="stores.mine.declineInvitation"
+                        />
+                      </div>
+                    } @else if (group.id === 'applied') {
+                      <div class="invite-actions" data-testid="stores.mine.application" [attr.data-store]="store.name">
+                        <p-button
+                          [label]="'stores.membership.cancelApplication' | t"
+                          icon="pi pi-undo"
+                          size="small"
+                          severity="secondary"
+                          [outlined]="true"
+                          [loading]="cancelApplication.busy()"
+                          (onClick)="cancelApplication.run(store.id)"
+                          data-testid="stores.mine.cancelApplication"
+                        />
+                      </div>
+                    }
                   </li>
                 }
               </ul>
@@ -134,6 +169,7 @@ const GROUPS: { id: GroupId; icon: string }[] = [
       display: grid; gap: 0.3rem; padding: 0.7rem 0.8rem; border-radius: var(--fs-radius-md, 0.6rem);
       color: inherit; text-decoration: none; border: 1px solid var(--fs-border);
     }
+    .invite-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.4rem 0.8rem 0; }
     .store:hover { background: var(--fs-surface-muted); }
     .store__name { font-weight: 650; }
     .store__meta { color: var(--fs-text-muted); font-size: 0.85rem; }
@@ -156,6 +192,21 @@ export class MyStoresPageComponent {
   protected readonly stores = loadResource<StoreListItem[]>({
     loader: () => this.api.listMyStores({ excludeInactive: false }),
   });
+
+  private readonly teamApi = inject(StoreTeamService);
+
+  /** Accept or decline an invitation right from the list (S7). */
+  protected readonly answer = runMutation(
+    (storeId: string, accept: boolean) =>
+      accept ? this.teamApi.acceptInvitation({ storeId }) : this.teamApi.declineInvitation({ storeId }),
+    { successToastKey: 'stores.membership.invitationAnswered', onSuccess: () => this.stores.reload() },
+  );
+
+  /** Withdraw an own application (S6). */
+  protected readonly cancelApplication = runMutation(
+    (storeId: string) => this.teamApi.cancelMyStoreApplication({ storeId }),
+    { successToastKey: 'stores.membership.applicationCancelled', onSuccess: () => this.stores.reload() },
+  );
 
   protected readonly groups = computed<StoreGroup[]>(() => {
     const showInactive = this.showInactive();

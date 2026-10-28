@@ -8,7 +8,7 @@ import { MultiSelect } from '@openng/optimus-ui/multiselect';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import { debounceTime, map } from 'rxjs';
 
-import { CooperationStatus, Role, StoreListPage, StoresService, TeamSearchStatus } from '../../../api';
+import { CooperationStatus, Role, StoreListItem, StoreListPage, StoresService, TeamSearchStatus } from '../../../api';
 import { isMemberOf, isOrga } from '../../../core/auth/permission.util';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
@@ -18,6 +18,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { STORE_BADGES } from '../../../shared/store-badges/store-badges.component';
+import { ApplyTarget, StoreApplyDialogComponent } from '../components/apply-dialog.component';
 import { COOPERATION_STATUSES, DEFAULT_COOPERATION_FILTER, TEAM_STATUSES } from '../stores.util';
 
 interface Params {
@@ -44,6 +45,7 @@ interface Params {
     MultiSelect,
     PageHeaderComponent,
     RouterLink,
+    StoreApplyDialogComponent,
     ToggleSwitch,
     TPipe,
   ],
@@ -141,6 +143,15 @@ interface Params {
                     <a [routerLink]="['/stores', store.id]" (click)="$event.stopPropagation()" class="name">{{ store.name }}</a>
                     @if (store.membership !== 'NO_MEMBER') {
                       <fs-membership-badge [status]="store.membership" />
+                    } @else if (store.teamStatus !== 'CLOSED') {
+                      <p-button
+                        [label]="'stores.apply.open' | t"
+                        icon="pi pi-user-plus"
+                        size="small"
+                        [text]="true"
+                        (onClick)="openApply($event, store)"
+                        data-testid="stores.region.apply"
+                      />
                     }
                   </td>
                   <td class="muted">{{ store.address.street }}, {{ store.address.postcode }} {{ store.address.city }}</td>
@@ -154,6 +165,7 @@ interface Params {
         <p class="muted total" data-testid="stores.region.total">{{ 'stores.region.total' | t: { count: page.page.totalItems } }}</p>
       </ng-template>
     </fs-data-state>
+    <fs-store-apply-dialog [(visible)]="applyOpen" [store]="applyTarget()" (applied)="stores.reload()" />
   `,
   styleUrl: '../stores.scss',
   styles: `
@@ -239,6 +251,16 @@ export class RegionStoresPageComponent {
       .filter((store) => store.latitude != null && store.longitude != null)
       .map((store) => ({ id: store.id, kind: 'store', lat: store.latitude!, lon: store.longitude!, label: store.name })),
   );
+
+  protected readonly applyOpen = signal(false);
+  protected readonly applyTarget = signal<ApplyTarget | null>(null);
+
+  /** Apply straight from the list (S6), e.g. when the store page is not readable for non-members. */
+  protected openApply(event: Event, store: StoreListItem): void {
+    event.stopPropagation();
+    this.applyTarget.set({ id: store.id, name: store.name });
+    this.applyOpen.set(true);
+  }
 
   protected open(storeId: string): void {
     void this.router.navigate(['/stores', storeId]);

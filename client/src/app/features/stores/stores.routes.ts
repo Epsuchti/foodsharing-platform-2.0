@@ -41,6 +41,7 @@ export const STORES_ROUTES: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'overview' },
       tab('overview', () => import('./tabs/store-overview.tab').then((m) => m.StoreOverviewTab)),
+      tab('team', () => import('./tabs/store-team.tab').then((m) => m.StoreTeamTab)),
     ],
   },
   {

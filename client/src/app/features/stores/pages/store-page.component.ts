@@ -21,7 +21,7 @@ interface StoreTab {
 }
 
 /** Tabs whose page exists (F2 overview; F3 team; F4 pickups; F5 wall, log, statistics). */
-export const STORE_TABS_READY = new Set<string>(['overview']);
+export const STORE_TABS_READY = new Set<string>(['overview', 'team']);
 
 /**
  * /stores/:storeId (S1, S15, S16): header with name, region, badges, navigation and contact buttons, the tab
