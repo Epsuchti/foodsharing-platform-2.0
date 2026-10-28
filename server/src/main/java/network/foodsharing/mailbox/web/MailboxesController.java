@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import network.foodsharing.api.MailboxesApi;
+import network.foodsharing.api.model.AdminMailboxPage;
 import network.foodsharing.api.model.Mail;
 import network.foodsharing.api.model.MailCompose;
 import network.foodsharing.api.model.MailFolder;
@@ -13,6 +14,7 @@ import network.foodsharing.api.model.MailSummary;
 import network.foodsharing.api.model.MailUpdate;
 import network.foodsharing.api.model.Mailbox;
 import network.foodsharing.api.model.MailboxCreate;
+import network.foodsharing.api.model.MailboxOwnerType;
 import network.foodsharing.api.model.MailboxMembersUpdate;
 import network.foodsharing.api.model.MailboxUnreadCount;
 import network.foodsharing.api.model.MailboxUpdate;
@@ -70,6 +72,17 @@ public class MailboxesController implements MailboxesApi {
         List<network.foodsharing.mailbox.domain.Mailbox> visible = access.visibleMailboxes(me);
         Map<UUID, Integer> unread = mails.unreadCounts(visible.stream().map(m -> m.getId()).toList());
         return ResponseEntity.ok(visible.stream().map(m -> toApi(me, m, unread.getOrDefault(m.getId(), 0))).toList());
+    }
+
+    @Override
+    public ResponseEntity<AdminMailboxPage> listAdminMailboxes(MailboxOwnerType ownerType, String q, Integer page,
+                                                               Integer size) {
+        Page<MailboxService.AdminMailboxRow> rows = mailboxes.adminList(currentActor.requirePrincipal(),
+                ownerType == null ? null : network.foodsharing.mailbox.domain.MailboxOwnerType.valueOf(ownerType.name()),
+                q, page == null ? 0 : page, size == null ? 20 : size);
+        return ResponseEntity.ok(new AdminMailboxPage()
+                .items(rows.getContent().stream().map(mapper::toAdmin).toList())
+                .page(PageMapper.toPageMeta(rows)));
     }
 
     @Override

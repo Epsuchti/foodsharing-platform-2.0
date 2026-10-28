@@ -16,6 +16,13 @@ public interface RegionDirectory {
 
     Optional<RegionInfo> find(UUID regionId);
 
+    /**
+     * Loads several regions in one query and keeps them for the rest of the current request, so that the following
+     * {@link #find} calls of a list mapping cost nothing (N+1 guard, QueryCountIT).
+     */
+    default void prefetch(java.util.Collection<UUID> regionIds) {
+    }
+
     /** Active member of the region. */
     boolean isActiveMember(UUID userId, UUID regionId);
 

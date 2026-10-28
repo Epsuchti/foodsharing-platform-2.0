@@ -54,6 +54,50 @@ Mailbox:
     mayManage:
       type: boolean
 
+AdminMailbox:
+  type: object
+  required:
+    - id
+    - name
+    - emailName
+    - address
+    - ownerType
+    - ownerId
+    - mailCount
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    emailName:
+      type: string
+    address:
+      type: string
+    ownerType:
+      $ref: ./mailboxes.yaml#/MailboxOwnerType
+    ownerId:
+      type: string
+      format: uuid
+    ownerName:
+      description: Display name of the user or name of the region/working group.
+      type: string
+    mailCount:
+      description: All mails in all folders (delete needs force when > 0).
+      type: integer
+      format: int64
+
+AdminMailboxPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: ./mailboxes.yaml#/AdminMailbox
+    page:
+      $ref: ./common.yaml#/PageMeta
+
 MailboxUnreadCount:
   type: object
   required:

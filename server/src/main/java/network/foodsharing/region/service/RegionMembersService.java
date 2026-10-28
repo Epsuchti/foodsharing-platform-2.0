@@ -104,11 +104,14 @@ public class RegionMembersService {
         Map<UUID, User> byId = users.findActive(result.getContent().stream().map(RegionMembership::getUserId).toList())
                 .stream().collect(Collectors.toMap(User::getId, Function.identity()));
         Set<UUID> adminIds = admins.findUserIds(regionId);
+        // batch lookups instead of one permission/contact query per member (N+1, QueryCountIT)
+        Map<UUID, Set<Permission>> grants = resolver.permissionsInRegion(regionId, byId.keySet());
+        Set<UUID> contactVisible = users.contactVisibleUserIds(byId.values());
         return result.map(membership -> {
             User user = byId.get(membership.getUserId());
             return new MemberView(user, membership, adminIds.contains(user.getId()),
-                    resolver.permissionsByRegion(user.getId()).getOrDefault(regionId, Set.of()),
-                    regionId.equals(user.getHomeRegionId()), users.mayCurrentUserSeeContact(user));
+                    grants.getOrDefault(user.getId(), Set.of()), regionId.equals(user.getHomeRegionId()),
+                    contactVisible.contains(user.getId()));
         });
     }
 

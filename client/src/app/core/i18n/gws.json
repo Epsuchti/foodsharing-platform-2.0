@@ -390,5 +390,8 @@
   "nav.storeCategories": "Betriibskategorie",
   "common.metaDescription": "foodsharing – Läbesmittel rette, zäme. Hol Läbesmittel bi Betriebe ab, teil si und wird Foodsaver i dinere Region.",
   "common.realtime.reconnecting": "Verbindig wird widerhergstellt …",
-  "nav.mailboxes": "Postfächer"
+  "nav.mailboxes": "Postfächer",
+  "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Nume Betriebsverantwortlichi und höcheri Rolle chönd Postfach-Mitglieder si.",
+  "errors.MESSAGE_RATE_LIMITED": "Du schicksch z vill Nachrichte. Bitte wart en Momänt.",
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Du hesch i de letschte Stund z vill Ässenschörb aagfragt. Bitte probier s spöter nomal."
 }

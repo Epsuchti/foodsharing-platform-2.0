@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import network.foodsharing.api.model.AgeBand;
 import network.foodsharing.api.model.GroupRef;
@@ -181,13 +183,26 @@ public class RegionMapper {
         return statistics;
     }
 
+    /** A page of members with one batch query for the last pickups (no per-member query). */
+    public List<RegionMember> toMembers(List<RegionMembersService.MemberView> views) {
+        users.prefetchHomeRegions(views.stream().map(RegionMembersService.MemberView::user).toList());
+        java.util.Map<UUID, java.time.Instant> lastPickups = memberPickupStats == null ? java.util.Map.of()
+                : memberPickupStats.lastPickupAt(views.stream().map(view -> view.user().getId()).toList());
+        return views.stream().map(view -> toMember(view, Optional.ofNullable(lastPickups.get(view.user().getId()))))
+                .toList();
+    }
+
     public RegionMember toMember(RegionMembersService.MemberView view) {
+        return toMember(view, memberPickupStats == null ? Optional.empty()
+                : memberPickupStats.lastPickupAt(view.user().getId()));
+    }
+
+    private RegionMember toMember(RegionMembersService.MemberView view, Optional<java.time.Instant> lastPickupAt) {
         RegionMember member = new RegionMember();
         member.setUser(users.toSummary(view.user(), view.showPhone()));
         member.setAdmin(view.admin());
         member.setJoinedAt(TimeMapper.toOffset(view.membership().getJoinedAt()));
-        member.setLastPickupAt(memberPickupStats == null ? null : memberPickupStats.lastPickupAt(view.user().getId())
-                .map(TimeMapper::toOffset).orElse(null));
+        member.setLastPickupAt(lastPickupAt.map(TimeMapper::toOffset).orElse(null));
         member.setPermissions(view.permissions().stream().sorted()
                 .map(permission -> Permission.fromValue(permission.name())).toList());
         member.setVerified(view.user().isVerified());

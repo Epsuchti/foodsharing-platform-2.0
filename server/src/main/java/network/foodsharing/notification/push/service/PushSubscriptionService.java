@@ -80,6 +80,20 @@ public class PushSubscriptionService {
         });
     }
 
+    /**
+     * Removes one of my subscriptions by id.
+     *
+     * @throws ApiException 404 RESOURCE_NOT_FOUND (unknown or foreign)
+     */
+    @Transactional
+    public void remove(UUID userId, UUID subscriptionId) {
+        PushSubscription row = repository.findById(subscriptionId).filter(r -> r.getUserId().equals(userId))
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.RESOURCE_NOT_FOUND));
+        repository.delete(row);
+        history.record(history.event(NotificationAction.PUSH_UNSUBSCRIBED, HistoryService.SYSTEM_SUBJECT_ID)
+                .secondarySubject(userId).metadata(Map.of("subscriptionId", row.getId().toString())).build());
+    }
+
     @Transactional(readOnly = true)
     public List<PushSubscription> subscriptions(UUID userId) {
         return repository.findByUserIdOrderByCreatedAtAsc(userId);

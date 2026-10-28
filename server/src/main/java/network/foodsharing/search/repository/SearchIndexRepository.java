@@ -44,7 +44,7 @@ public class SearchIndexRepository {
                     UUID id = rs.getObject(1, UUID.class);
                     String name = (nz(rs.getString(2)) + " " + nz(rs.getString(3))).trim();
                     out.add(new Source(SearchKind.USER, id, name.isEmpty() ? nz(rs.getString(4)) : name,
-                            null, rs.getString(4), rs.getObject(5, UUID.class), "REGION_MEMBERS", "/users/" + id,
+                            null, rs.getString(4), rs.getObject(5, UUID.class), "REGION_MEMBERS", "/profile/" + id,
                             rs.getString(6), rs.getBoolean(7) && rs.getTimestamp(8) == null));
                 });
         jdbc.query("select t.id, t.name, t.type, t.active, p.name from region t left join region p on p.id = t.parent_id"

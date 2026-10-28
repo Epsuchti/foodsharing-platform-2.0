@@ -44,3 +44,25 @@ PushSubscriptionRemove:
     endpoint:
       type: string
       maxLength: 2000
+
+PushDevice:
+  type: object
+  required: [id, endpoint, createdAt, failureCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+    endpoint:
+      type: string
+    userAgent:
+      description: 'User agent sent when subscribing (device label)'
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    lastSuccessAt:
+      type: string
+      format: date-time
+    failureCount:
+      type: integer
+      format: int32

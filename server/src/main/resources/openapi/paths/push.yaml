@@ -15,6 +15,21 @@
       '409': {description: 'PUSH_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/push/subscriptions:
+  get:
+    tags: [push]
+    operationId: listPushSubscriptions
+    summary: 'My push subscriptions (devices), oldest first; endpoint lets the client mark the current browser.'
+    x-permission: 'authenticated'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/push.yaml#/PushDevice'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   post:
     tags: [push]
     operationId: subscribePush
@@ -50,6 +65,26 @@
         description: Done
       '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/push/subscriptions/{subscriptionId}:
+  delete:
+    tags: [push]
+    operationId: removePushSubscription
+    summary: 'Remove one of my push subscriptions (e.g. a lost device).'
+    x-permission: 'authenticated (own subscription)'
+    x-history: NotificationAction.PUSH_UNSUBSCRIBED
+    parameters:
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'RESOURCE_NOT_FOUND (unknown or foreign subscription)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/push/test:
   post:

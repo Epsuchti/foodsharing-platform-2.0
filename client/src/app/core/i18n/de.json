@@ -390,5 +390,8 @@
   "nav.storeCategories": "Betriebskategorien",
   "common.metaDescription": "foodsharing – Lebensmittel retten, gemeinsam. Hol Lebensmittel bei Betrieben ab, teile sie und werde Foodsaver in deiner Region.",
   "common.realtime.reconnecting": "Verbindung wird wiederhergestellt …",
-  "nav.mailboxes": "Postfächer"
+  "nav.mailboxes": "Postfächer",
+  "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Nur Betriebsverantwortliche und höhere Rollen können Postfach-Mitglieder sein.",
+  "errors.MESSAGE_RATE_LIMITED": "Du sendest zu viele Nachrichten. Bitte warte einen Moment.",
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Du hast in der letzten Stunde zu viele Essenskörbe angefragt. Bitte versuche es später wieder."
 }

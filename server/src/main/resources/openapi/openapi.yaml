@@ -615,6 +615,8 @@ paths:
     $ref: './paths/push.yaml#/~1api~1push~1vapid-public-key'
   /api/push/subscriptions:
     $ref: './paths/push.yaml#/~1api~1push~1subscriptions'
+  /api/push/subscriptions/{subscriptionId}:
+    $ref: './paths/push.yaml#/~1api~1push~1subscriptions~1{subscriptionId}'
   /api/push/test:
     $ref: './paths/push.yaml#/~1api~1push~1test'
   # --- telegram ---
@@ -742,6 +744,8 @@ paths:
   # --- mailboxes ---
   /api/mailboxes:
     $ref: './paths/mailboxes.yaml#/~1api~1mailboxes'
+  /api/admin/mailboxes:
+    $ref: './paths/mailboxes.yaml#/~1api~1admin~1mailboxes'
   /api/mailboxes/unread-count:
     $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1unread-count'
   /api/regions/{regionId}/mailbox:

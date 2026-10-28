@@ -86,6 +86,14 @@ public class UserMapper {
     }
 
     /** User card without contact data. */
+    /** Loads the home regions of a list of users in one query before their summaries are mapped. */
+    public void prefetchHomeRegions(java.util.Collection<User> users) {
+        RegionDirectory directory = regionDirectory.getIfAvailable();
+        if (directory != null && !users.isEmpty()) {
+            directory.prefetch(users.stream().map(User::getHomeRegionId).filter(java.util.Objects::nonNull).toList());
+        }
+    }
+
     public UserSummary toSummary(User user) {
         return toSummary(user, false);
     }

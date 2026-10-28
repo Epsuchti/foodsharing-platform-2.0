@@ -51,6 +51,33 @@ class PushDeliveryServiceTest {
         assertThat(message.json()).contains("\"tag\":\"tag-1\"").contains("\"link\":\"/stores/1\"");
     }
 
+    @Test
+    void payloadHasTheShapeAngularsServiceWorkerDisplays() throws Exception {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setPreferredLanguage(Language.EN);
+        messages.addMessage("bell.PICKUP_CONFIRMED", java.util.Locale.ENGLISH, "Pickup at {storeName} confirmed");
+        PushClient.PushMessage message = service.message(user, NotificationType.PICKUP_CONFIRMED,
+                "bell.PICKUP_CONFIRMED", Map.of("storeName", "Coop"), "/stores/1", "calendar", "tag-1");
+        var root = new tools.jackson.databind.ObjectMapper().readTree(message.json());
+        assertThat(root.propertyNames()).containsExactly("notification");
+        var notification = root.get("notification");
+        assertThat(notification.get("title").asString()).isEqualTo("Pickup at Coop confirmed");
+        assertThat(notification.get("body").asString()).isEqualTo("Coop");
+        assertThat(notification.get("icon").asString()).isEqualTo("/icons/icon.svg");
+        assertThat(notification.get("tag").asString()).isEqualTo("tag-1");
+        var action = notification.get("data").get("onActionClick").get("default");
+        assertThat(action.get("operation").asString()).isEqualTo("navigateLastFocusedOrOpen");
+        assertThat(action.get("url").asString()).isEqualTo("/stores/1");
+        assertThat(notification.get("data").get("iconName").asString()).isEqualTo("calendar");
+
+        PushClient.PushMessage noLink = service.message(user, NotificationType.GENERIC, "bell.GENERIC", Map.of(),
+                null, "bell", null);
+        var defaultAction = new tools.jackson.databind.ObjectMapper().readTree(noLink.json())
+                .get("notification").get("data").get("onActionClick").get("default");
+        assertThat(defaultAction.get("url").asString()).isEqualTo("/");
+    }
+
     private static PushSubscription subscription(User user) {
         PushSubscription subscription = new PushSubscription();
         subscription.setId(UUID.randomUUID());

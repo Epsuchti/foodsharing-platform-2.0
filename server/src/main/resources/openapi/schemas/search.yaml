@@ -18,6 +18,7 @@ SearchHit:
     subtitle:
       type: string
     link:
+      description: "Client route: /profile/<id>, /regions/<id>, /groups/<id>, /stores/<id>, /forum/threads/<id>, /food-share-points/<id>, /events/<id>, /polls/<id> (index data: /messages/<conversationId>); docs/conventions.md 'Search links'."
       type: string
     imageUrl:
       type: string

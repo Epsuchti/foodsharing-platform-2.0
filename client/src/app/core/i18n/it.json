@@ -390,5 +390,8 @@
   "nav.storeCategories": "Categorie di negozi",
   "common.metaDescription": "foodsharing – salvare cibo, insieme. Ritira cibo nei negozi, condividilo e diventa foodsaver nella tua regione.",
   "common.realtime.reconnecting": "Riconnessione in corso …",
-  "nav.mailboxes": "Caselle di posta"
+  "nav.mailboxes": "Caselle di posta",
+  "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Solo i responsabili del negozio e i ruoli superiori possono essere membri della casella di posta.",
+  "errors.MESSAGE_RATE_LIMITED": "Stai inviando troppi messaggi. Attendi un momento.",
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Hai richiesto troppi cesti alimentari nell'ultima ora. Riprova più tardi."
 }

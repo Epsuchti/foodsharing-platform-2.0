@@ -300,6 +300,12 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+      "429":
+        description: BASKET_REQUEST_RATE_LIMITED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
       "401":
         description: AUTHENTICATION_REQUIRED
         content:

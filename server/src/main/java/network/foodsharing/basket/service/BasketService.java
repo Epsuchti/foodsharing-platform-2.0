@@ -25,6 +25,8 @@ import network.foodsharing.basket.repository.BasketKindEntryRepository;
 import network.foodsharing.basket.repository.BasketRepository;
 import network.foodsharing.basket.repository.BasketRequestEntryRepository;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.web.SlidingWindowRateLimiter;
+import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.HistoryEvent;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationType;
@@ -72,13 +74,16 @@ public class BasketService {
     private final Clock clock;
 
     private final FeatureToggleService toggles;
+    private final SlidingWindowRateLimiter requestLimiter;
 
     public BasketService(BasketRepository baskets, BasketGroceryRepository groceries, BasketKindEntryRepository kinds,
                          BasketRequestEntryRepository requests, CurrentActorService actors,
                          PermissionService permissions, StoreCategoryService groceryCatalog, UploadService uploads,
                          NotificationService notifications, TeamChatPort chat, HistoryService history, Clock clock,
-            FeatureToggleService toggles) {
+            FeatureToggleService toggles, AppProperties properties) {
         this.toggles = toggles;
+        this.requestLimiter = new SlidingWindowRateLimiter(clock,
+                Math.max(1, properties.getBaskets().getMaxRequestsPerHour()), Duration.ofHours(1));
         this.baskets = baskets;
         this.groceries = groceries;
         this.kinds = kinds;
@@ -214,7 +219,8 @@ public class BasketService {
 
     /**
      * Requests a basket; the owner gets a bell and, when the basket allows messages and a text was given, a direct
-     * chat message. @throws ApiException 404, 400 BASKET_OWN, 409 BASKET_NOT_ACTIVE / BASKET_ALREADY_REQUESTED
+     * chat message. @throws ApiException 404, 400 BASKET_OWN, 409 BASKET_NOT_ACTIVE / BASKET_ALREADY_REQUESTED,
+     * 429 BASKET_REQUEST_RATE_LIMITED
      */
     @Transactional
     public BasketRequestEntry request(UUID basketId, String rawMessage) {
@@ -230,6 +236,9 @@ public class BasketService {
         String message = strip(rawMessage);
         if (message != null && message.length() > 2000) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "message");
+        }
+        if (!requestLimiter.tryAcquire(requester.getId().toString())) {
+            throw ApiException.tooManyRequests(ApiErrorCode.BASKET_REQUEST_RATE_LIMITED, requestLimiter.window());
         }
         BasketRequestEntry request = requests.findByBasketIdAndRequesterId(basketId, requester.getId())
                 .orElse(null);

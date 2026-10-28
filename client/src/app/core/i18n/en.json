@@ -390,5 +390,8 @@
   "nav.storeCategories": "Store categories",
   "common.metaDescription": "foodsharing – saving food, together. Pick up food from businesses, share it and become a foodsaver in your region.",
   "common.realtime.reconnecting": "Reconnecting …",
-  "nav.mailboxes": "Mailboxes"
+  "nav.mailboxes": "Mailboxes",
+  "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Only store managers and higher roles can be mailbox members.",
+  "errors.MESSAGE_RATE_LIMITED": "You are sending too many messages. Please wait a moment.",
+  "errors.BASKET_REQUEST_RATE_LIMITED": "You have requested too many food baskets in the last hour. Please try again later."
 }

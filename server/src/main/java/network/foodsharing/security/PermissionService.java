@@ -118,6 +118,17 @@ public class PermissionService {
         return isOrga(principal) || resolver().mayAdministrateUser(principal.userId(), userId);
     }
 
+    /** Batch form of {@link #mayAdministrateUser} for lists (ORGA: all). */
+    public Set<UUID> administrableUsers(SessionPrincipal principal, java.util.Collection<UUID> userIds) {
+        if (principal == null || userIds == null || userIds.isEmpty()) {
+            return Set.of();
+        }
+        if (isOrga(principal)) {
+            return new java.util.HashSet<>(userIds);
+        }
+        return resolver().administrableUsers(principal.userId(), userIds);
+    }
+
     // ---------------------------------------------------------------------- layer 3: region permissions
 
     /** Region-scoped permission: ORGA everywhere; else a direct grant or a grant through a function. */

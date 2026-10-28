@@ -184,7 +184,9 @@ public class ForumMapper {
         if (ids.isEmpty()) {
             return Map.of();
         }
-        return users.findAll(ids).stream().collect(Collectors.toMap(User::getId, userMapper::toSummary,
+        List<User> found = users.findAll(ids);
+        userMapper.prefetchHomeRegions(found);
+        return found.stream().collect(Collectors.toMap(User::getId, userMapper::toSummary,
                 (a, b) -> a, LinkedHashMap::new));
     }
 }

@@ -20,6 +20,7 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimeEvent;
 import network.foodsharing.common.realtime.RealtimeEventType;
 import network.foodsharing.common.realtime.RealtimePublisher;
+import network.foodsharing.common.web.SlidingWindowRateLimiter;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.service.HistoryService;
@@ -58,6 +59,7 @@ public class MessagingService {
     private final HistoryService history;
     private final AppProperties properties;
     private final Clock clock;
+    private final SlidingWindowRateLimiter sendLimiter;
 
     public MessagingService(ConversationRepository conversations, ConversationMemberRepository members,
                             ConversationMessageRepository messages, UserService users,
@@ -72,6 +74,8 @@ public class MessagingService {
         this.history = history;
         this.properties = properties;
         this.clock = clock;
+        this.sendLimiter = new SlidingWindowRateLimiter(clock,
+                Math.max(1, properties.getMessaging().getMaxMessagesPerMinute()), Duration.ofMinutes(1));
     }
 
     // ------------------------------------------------------------------------------------------- access
@@ -181,7 +185,8 @@ public class MessagingService {
     /**
      * Sends a message; resending the same {@code clientKey} returns the stored message.
      *
-     * @throws ApiException 400 MESSAGE_EMPTY / MESSAGE_TOO_LONG, 403 NOT_CONVERSATION_MEMBER, 404 CONVERSATION_NOT_FOUND
+     * @throws ApiException 400 MESSAGE_EMPTY / MESSAGE_TOO_LONG, 403 NOT_CONVERSATION_MEMBER, 404 CONVERSATION_NOT_FOUND,
+     *                      429 MESSAGE_RATE_LIMITED (more than {@code app.messaging.max-messages-per-minute})
      */
     @Transactional
     @NoHistory(reason = "chat messages are content, not actions (A33)")
@@ -201,6 +206,9 @@ public class MessagingService {
             if (stored.isPresent()) {
                 return stored.get();
             }
+        }
+        if (!sendLimiter.tryAcquire(senderId.toString())) {
+            throw ApiException.tooManyRequests(ApiErrorCode.MESSAGE_RATE_LIMITED, sendLimiter.window());
         }
         return append(conversationId, senderId, text, key);
     }

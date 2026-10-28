@@ -12,6 +12,8 @@ public interface QuizSessionRepository extends JpaRepository<QuizSession, UUID> 
 
     List<QuizSession> findByUserIdAndQuizIdOrderByStartedAtAsc(UUID userId, UUID quizId);
 
+    List<QuizSession> findByUserIdInAndQuizIdOrderByStartedAtAsc(java.util.Collection<UUID> userIds, UUID quizId);
+
     List<QuizSession> findByUserIdOrderByStartedAtDesc(UUID userId);
 
     Optional<QuizSession> findFirstByUserIdAndQuizIdAndTestAndStatus(UUID userId, UUID quizId, boolean test,

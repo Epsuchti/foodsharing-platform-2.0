@@ -28,6 +28,10 @@ public interface MailMessageRepository extends JpaRepository<MailMessage, UUID> 
 
     long countByMailboxId(UUID mailboxId);
 
+    /** Rows of {@code [mailboxId, count]}: all mails per mailbox. */
+    @Query("select m.mailboxId, count(m) from MailMessage m where m.mailboxId in :mailboxIds group by m.mailboxId")
+    List<Object[]> mailCounts(@Param("mailboxIds") Collection<UUID> mailboxIds);
+
     long countBySentByUserIdAndFolderAndReceivedAtAfter(UUID userId, MailFolder folder, Instant after);
 
     List<MailMessage> findByMessageIdIn(Collection<String> messageIds);

@@ -46,4 +46,10 @@ public interface ScopedPermissionResolver {
      * (upstream {@code CommonPermissions::mayAdministrateRegion} over the user's regions).
      */
     boolean mayAdministrateUser(UUID actorId, UUID userId);
+
+    /** The users of {@code userIds} the actor may administrate (batch form of {@link #mayAdministrateUser}). */
+    default Set<UUID> administrableUsers(UUID actorId, java.util.Collection<UUID> userIds) {
+        return userIds.stream().filter(userId -> mayAdministrateUser(actorId, userId))
+                .collect(java.util.stream.Collectors.toSet());
+    }
 }

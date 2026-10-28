@@ -165,7 +165,7 @@ public class RegionsController implements RegionsApi {
         Page<RegionMembersService.MemberView> members = membersService.members(regionId, search, verified, role, admin,
                 page == null ? 0 : page, size == null ? 20 : size);
         RegionMemberPage result = new RegionMemberPage();
-        result.setItems(members.getContent().stream().map(mapper::toMember).toList());
+        result.setItems(mapper.toMembers(members.getContent()));
         result.setPage(PageMapper.toPageMeta(members));
         return ResponseEntity.ok(result);
     }

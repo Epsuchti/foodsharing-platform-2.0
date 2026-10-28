@@ -21,10 +21,15 @@ import tools.jackson.databind.ObjectMapper;
  * Builds and sends web push messages (A23). The title is the bell title {@code bell.<TYPE>} in the recipient's
  * language (server copy {@code i18n/bells/messages_<lang>.properties}, synced from the client catalog by
  * {@code scripts/sync-bell-messages.mjs}) with {@code {param}} placeholders filled; payload
- * {@code {title, body, link, icon, tag}} with tag = bell identifier (the service worker replaces older messages).
+ * in the shape Angular's service worker (ngsw) displays natively:
+ * {@code {notification: {title, body, icon, tag, data: {type, link, iconName, onActionClick: {default:
+ * {operation: navigateLastFocusedOrOpen, url}}}}}} with tag = bell identifier (replaces older messages).
  */
 @Service
 public class PushDeliveryService {
+
+    /** App icon shown by the browser (the bell's lucide icon name travels as {@code data.iconName}). */
+    static final String APP_ICON = "/icons/icon.svg";
 
     private final PushSubscriptionService subscriptions;
     private final PushClient client;
@@ -84,13 +89,21 @@ public class PushDeliveryService {
         String title = interpolate(messages.getMessage(titleKey, null,
                 messages.getMessage(type.defaultTitleKey(), null, type.name(), locale), locale), params);
         String body = body(params);
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("title", title);
-        payload.put("body", body);
-        payload.put("link", link);
-        payload.put("icon", icon);
-        payload.put("tag", tag == null ? type.name() + "-" + UUID.randomUUID() : tag);
-        return new PushClient.PushMessage(type.name(), title, body, link, icon, (String) payload.get("tag"), params,
+        String effectiveTag = tag == null ? type.name() + "-" + UUID.randomUUID() : tag;
+        String url = link == null || link.isBlank() ? "/" : link;
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("type", type.name());
+        data.put("link", url);
+        data.put("iconName", icon);
+        data.put("onActionClick", Map.of("default", Map.of("operation", "navigateLastFocusedOrOpen", "url", url)));
+        Map<String, Object> notification = new LinkedHashMap<>();
+        notification.put("title", title);
+        notification.put("body", body);
+        notification.put("icon", APP_ICON);
+        notification.put("tag", effectiveTag);
+        notification.put("data", data);
+        Map<String, Object> payload = Map.of("notification", notification);
+        return new PushClient.PushMessage(type.name(), title, body, link, icon, effectiveTag, params,
                 objectMapper.writeValueAsString(payload));
     }
 

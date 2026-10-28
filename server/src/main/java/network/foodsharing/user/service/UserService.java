@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import network.foodsharing.api.model.ApiErrorCode;
@@ -383,6 +384,25 @@ public class UserService {
         return user.getContactVisibility() == ContactVisibility.PUBLIC
                 || principal.get().userId().equals(user.getId())
                 || permissionService.mayAdministrateUser(principal.get(), user.getId());
+    }
+
+    /** Batch form of {@link #mayCurrentUserSeeContact(User)}: the ids of the users whose contact data I may see. */
+    public Set<UUID> contactVisibleUserIds(Collection<User> users) {
+        Optional<SessionPrincipal> principal = currentActorService.principal();
+        if (principal.isEmpty() || users.isEmpty()) {
+            return Set.of();
+        }
+        Set<UUID> result = new java.util.HashSet<>();
+        List<UUID> others = new java.util.ArrayList<>();
+        for (User user : users) {
+            if (user.getContactVisibility() == ContactVisibility.PUBLIC || principal.get().userId().equals(user.getId())) {
+                result.add(user.getId());
+            } else {
+                others.add(user.getId());
+            }
+        }
+        result.addAll(permissionService.administrableUsers(principal.get(), others));
+        return result;
     }
 
     /**
