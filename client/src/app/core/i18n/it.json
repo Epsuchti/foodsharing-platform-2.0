@@ -387,5 +387,6 @@
   "errors.OAUTH_CLIENT_PUBLIC": "Le applicazioni pubbliche non hanno un segreto.",
   "nav.stores": "Negozi",
   "nav.storeChains": "Catene di negozi",
-  "nav.storeCategories": "Categorie di negozi"
+  "nav.storeCategories": "Categorie di negozi",
+  "common.metaDescription": "foodsharing – salvare cibo, insieme. Ritira cibo nei negozi, condividilo e diventa foodsaver nella tua regione."
 }

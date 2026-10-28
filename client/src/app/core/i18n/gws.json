@@ -387,5 +387,6 @@
   "errors.OAUTH_CLIENT_PUBLIC": "Öffentlichi Aawändige händ kei Gheimnis.",
   "nav.stores": "Betriib",
   "nav.storeChains": "Betriibschette",
-  "nav.storeCategories": "Betriibskategorie"
+  "nav.storeCategories": "Betriibskategorie",
+  "common.metaDescription": "foodsharing – Läbesmittel rette, zäme. Hol Läbesmittel bi Betriebe ab, teil si und wird Foodsaver i dinere Region."
 }

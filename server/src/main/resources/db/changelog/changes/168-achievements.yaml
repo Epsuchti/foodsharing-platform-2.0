@@ -1,0 +1,84 @@
+# Milestone 6 (B9): achievements, their translations and awards (AC1; upstream fs_achievement).
+databaseChangeLog:
+  - changeSet:
+      id: 168-1
+      author: platform
+      comment: 'Achievement definitions, regional (region_id) or global (region_id NULL).'
+      changes:
+        - createTable:
+            tableName: achievement
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_achievement, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {foreignKeyName: fk_achievement_region_id, references: region(id)}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(4000)}
+              - column: {name: icon, type: VARCHAR(100), constraints: {nullable: false}}
+              - column: {name: validity_days, type: INT}
+              - column: {name: visibility, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: duplicate_mode, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: system_key, type: VARCHAR(40), constraints: {unique: true, uniqueConstraintName: uq_achievement_system_key}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: achievement
+            indexName: ix_achievement_region
+            columns:
+              - column: {name: region_id}
+  - changeSet:
+      id: 168-2
+      author: platform
+      comment: 'Translations of achievement name and description (A14).'
+      changes:
+        - createTable:
+            tableName: achievement_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_achievement_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_achievement_i18n_owner, references: achievement(id)}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(4000)}
+        - addUniqueConstraint:
+            tableName: achievement_i18n
+            columnNames: owner_id, language
+            constraintName: uq_achievement_i18n_owner_language
+  - changeSet:
+      id: 168-3
+      author: platform
+      comment: 'Awarded achievements; revoked awards are kept (revoked_at).'
+      changes:
+        - createTable:
+            tableName: awarded_achievement
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_awarded_achievement, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: achievement_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_awarded_achievement_achievement, references: achievement(id)}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_awarded_achievement_user, references: user_account(id)}}
+              - column: {name: awarded_by, type: UUID, constraints: {foreignKeyName: fk_awarded_achievement_awarded_by, references: user_account(id)}}
+              - column: {name: awarded_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: valid_until, type: DATE}
+              - column: {name: notice, type: VARCHAR(1000)}
+              - column: {name: revoked_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: revoked_by, type: UUID}
+        - createIndex:
+            tableName: awarded_achievement
+            indexName: ix_awarded_achievement_user
+            columns:
+              - column: {name: user_id}
+        - createIndex:
+            tableName: awarded_achievement
+            indexName: ix_awarded_achievement_achievement
+            columns:
+              - column: {name: achievement_id}

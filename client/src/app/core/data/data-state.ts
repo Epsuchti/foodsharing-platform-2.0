@@ -1,6 +1,8 @@
+import { isPlatformServer } from '@angular/common';
 import {
   DestroyRef,
   Injector,
+  PLATFORM_ID,
   Signal,
   assertInInjectionContext,
   computed,
@@ -104,6 +106,9 @@ export function loadResource<T, P = undefined>(options: LoadResourceOptions<T, P
   }
   const injector = options.injector ?? inject(Injector);
   const online = injector.get(OnlineStatusService);
+  // Prerendering (SSG, D11.5.3) has no backend: data-loading elements render their skeleton and the browser
+  // loads the data after hydration, so the hydrated DOM matches the prerendered one.
+  const onServer = isPlatformServer(injector.get(PLATFORM_ID));
   const isEmpty = options.isEmpty ?? defaultIsEmpty;
   const keepDataOnError = options.keepDataOnError ?? true;
 
@@ -142,6 +147,9 @@ export function loadResource<T, P = undefined>(options: LoadResourceOptions<T, P
       isStale.set(false);
     }
     status.set(data() === undefined ? 'loading' : 'refreshing');
+    if (onServer) {
+      return;
+    }
     const controller = new AbortController();
     abort = controller;
     let source: Observable<T>;

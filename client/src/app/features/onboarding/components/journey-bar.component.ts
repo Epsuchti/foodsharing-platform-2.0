@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, skip } from 'rxjs';
 
 import { Journey, OnboardingService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
@@ -22,10 +22,21 @@ import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey
   template: `
     @if (visible()) {
       <div class="bar" data-testid="onboarding.bar">
-        <fs-data-state [state]="journey" skeleton="list" [skeletonRows]="1" [compact]="true" data-testid="onboarding.bar.state">
+        <fs-data-state
+          [state]="journey"
+          skeleton="list"
+          [skeletonRows]="1"
+          [compact]="true"
+          data-testid="onboarding.bar.state"
+        >
           <ng-template [fsData]="journey" let-j>
             @if (!j.complete) {
-              <fs-journey-stepper mode="compact" [journey]="j" testId="onboarding.bar.stepper" [attr.data-current]="j.currentStep" />
+              <fs-journey-stepper
+                mode="compact"
+                [journey]="j"
+                testId="onboarding.bar.stepper"
+                [attr.data-current]="j.currentStep"
+              />
             }
           </ng-template>
         </fs-data-state>
@@ -69,7 +80,11 @@ export class JourneyBarComponent {
 
   constructor() {
     const subscription = inject(Router)
-      .events.pipe(filter((event) => event instanceof NavigationEnd))
+      // the first navigation end is the page the bar was just loaded on: no second request
+      .events.pipe(
+        filter((event) => event instanceof NavigationEnd),
+        skip(1),
+      )
       .subscribe(() => {
         if (this.visible()) {
           this.journey.reload();

@@ -387,5 +387,6 @@
   "errors.OAUTH_CLIENT_PUBLIC": "Öffentliche Anwendungen haben kein Geheimnis.",
   "nav.stores": "Betriebe",
   "nav.storeChains": "Betriebsketten",
-  "nav.storeCategories": "Betriebskategorien"
+  "nav.storeCategories": "Betriebskategorien",
+  "common.metaDescription": "foodsharing – Lebensmittel retten, gemeinsam. Hol Lebensmittel bei Betrieben ab, teile sie und werde Foodsaver in deiner Region."
 }

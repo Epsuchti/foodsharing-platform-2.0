@@ -54,6 +54,42 @@ class IpBlockServiceTest {
     }
 
     @Test
+    void contextBlocksOnlyTheirContextAllBlocksBoth() {
+        IpBlockRepository repository = mock(IpBlockRepository.class);
+        IpBlock login = new IpBlock();
+        login.setCidr("198.51.100.0/24");
+        login.setContext(network.foodsharing.auth.domain.IpBlockContext.LOGIN);
+        IpBlock all = new IpBlock();
+        all.setCidr("203.0.113.5");
+        when(repository.findActive(FixedClockConfig.SEED_NOW)).thenReturn(List.of(login, all));
+        IpBlockService service = new IpBlockService(repository, new FixedClockConfig().clock());
+        var loginCtx = network.foodsharing.auth.domain.IpBlockContext.LOGIN;
+        var registration = network.foodsharing.auth.domain.IpBlockContext.REGISTRATION;
+        assertThat(service.isBlocked("198.51.100.9", loginCtx)).isTrue();
+        assertThat(service.isBlocked("198.51.100.9", registration)).isFalse();
+        assertThat(service.isBlocked("203.0.113.5", registration)).isTrue();
+        assertThat(service.isBlocked("203.0.113.5", loginCtx)).isTrue();
+    }
+
+    @Test
+    void addValidatesAddressesAndSetsTheEnd() {
+        IpBlockRepository repository = mock(IpBlockRepository.class);
+        when(repository.save(org.mockito.ArgumentMatchers.any(IpBlock.class))).thenAnswer(inv -> inv.getArgument(0));
+        IpBlockService service = new IpBlockService(repository, new FixedClockConfig().clock());
+        var ctx = network.foodsharing.auth.domain.IpBlockContext.ALL;
+        assertThatThrownBy(() -> service.add(new IpBlockService.NewBlock("not an ip", ctx, null)))
+                .isInstanceOfSatisfying(ApiException.class,
+                        ex -> assertThat(ex.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED));
+        IpBlock block = service.add(new IpBlockService.NewBlock(" 2001:db8::/32 ", ctx, 60));
+        assertThat(block.getCidr()).isEqualTo("2001:db8::/32");
+        assertThat(block.getUntilAt()).isEqualTo(FixedClockConfig.SEED_NOW.plusSeconds(3600));
+        assertThat(service.add(new IpBlockService.NewBlock("192.0.2.1", ctx, null)).getUntilAt()).isNull();
+        assertThatThrownBy(() -> service.remove(java.util.UUID.randomUUID()))
+                .isInstanceOfSatisfying(ApiException.class,
+                        ex -> assertThat(ex.getCode()).isEqualTo(ApiErrorCode.IP_BLOCK_NOT_FOUND));
+    }
+
+    @Test
     void blockExpiry() {
         IpBlock block = new IpBlock();
         assertThat(block.isActiveAt(FixedClockConfig.SEED_NOW)).isTrue();

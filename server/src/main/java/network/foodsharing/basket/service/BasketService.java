@@ -1,5 +1,7 @@
 package network.foodsharing.basket.service;
 
+import network.foodsharing.admin.domain.FeatureToggle;
+import network.foodsharing.admin.service.FeatureToggleService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -69,10 +71,14 @@ public class BasketService {
     private final HistoryService history;
     private final Clock clock;
 
+    private final FeatureToggleService toggles;
+
     public BasketService(BasketRepository baskets, BasketGroceryRepository groceries, BasketKindEntryRepository kinds,
                          BasketRequestEntryRepository requests, CurrentActorService actors,
                          PermissionService permissions, StoreCategoryService groceryCatalog, UploadService uploads,
-                         NotificationService notifications, TeamChatPort chat, HistoryService history, Clock clock) {
+                         NotificationService notifications, TeamChatPort chat, HistoryService history, Clock clock,
+            FeatureToggleService toggles) {
+        this.toggles = toggles;
         this.baskets = baskets;
         this.groceries = groceries;
         this.kinds = kinds;
@@ -102,6 +108,7 @@ public class BasketService {
     /** @throws ApiException 400 validation (see {@link BasketRules#validate}) */
     @Transactional
     public Basket create(BasketInput in) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         User owner = actors.requireUser();
         Basket basket = new Basket();
         basket.setOwnerId(owner.getId());
@@ -134,6 +141,7 @@ public class BasketService {
     /** Owner only, while ACTIVE. @throws ApiException 404, 403 ACCESS_DENIED, 409 BASKET_NOT_ACTIVE, 400 */
     @Transactional
     public Basket update(UUID basketId, BasketInput in) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         User owner = actors.requireUser();
         Basket basket = require(basketId);
         if (!basket.getOwnerId().equals(owner.getId())) {
@@ -193,6 +201,7 @@ public class BasketService {
     /** Owner or ORGA. @throws ApiException 404, 403 ACCESS_DENIED */
     @Transactional
     public void delete(UUID basketId) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         SessionPrincipal actor = actors.requirePrincipal();
         Basket basket = require(basketId);
         if (!BasketRules.mayDelete(basket, actor.userId(), permissions.isOrga(actor))) {
@@ -209,6 +218,7 @@ public class BasketService {
      */
     @Transactional
     public BasketRequestEntry request(UUID basketId, String rawMessage) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         User requester = actors.requireUser();
         Basket basket = require(basketId);
         if (basket.getOwnerId().equals(requester.getId())) {
@@ -252,6 +262,7 @@ public class BasketService {
     /** The requester withdraws an open request. @throws ApiException 404 BASKET_NOT_FOUND */
     @Transactional
     public void withdraw(UUID basketId) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID requesterId = actors.requireUserId();
         BasketRequestEntry request = requests.findByBasketIdAndRequesterId(basketId, requesterId)
                 .filter(r -> r.getStatus() == BasketRequestStatus.REQUESTED
@@ -270,6 +281,7 @@ public class BasketService {
      */
     @Transactional
     public BasketRequestEntry answer(UUID basketId, UUID requesterId, BasketRequestStatus status) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID ownerId = actors.requireUserId();
         Basket basket = require(basketId);
         if (!basket.getOwnerId().equals(ownerId)) {

@@ -53,6 +53,31 @@ class EmailBlocklistServiceTest {
         assertThat(service.isBlocked(null)).isFalse();
     }
 
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+            "' Spam.Example ' | spam.example",
+            "@trash.org | trash.org",
+            "Bad@Example.ORG | bad@example.org",
+            "*.tempmail.test | *.tempmail.test",
+            "localhost | ",
+            "a b.org | ",
+            "x@ | "})
+    void adminPatternsAreDomainsOrAddressesLowerCased(String raw, String expected) {
+        assertThat(EmailBlocklistService.normalize(raw)).isEqualTo(expected);
+    }
+
+    @Test
+    void duplicatesAreRejected() {
+        EmailBlocklistRepository repository = mock(EmailBlocklistRepository.class);
+        EmailBlocklistEntry existing = entry("spam.example");
+        existing.setId(java.util.UUID.randomUUID());
+        when(repository.findByPatternIgnoreCase("spam.example")).thenReturn(java.util.Optional.of(existing));
+        EmailBlocklistService service = new EmailBlocklistService(repository);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.add("SPAM.example", null))
+                .isInstanceOfSatisfying(network.foodsharing.common.error.ApiException.class, ex -> assertThat(
+                        ex.getCode()).isEqualTo(network.foodsharing.api.model.ApiErrorCode.BLOCKLIST_DUPLICATE));
+    }
+
     private static EmailBlocklistEntry entry(String pattern) {
         EmailBlocklistEntry entry = new EmailBlocklistEntry();
         entry.setPattern(pattern);

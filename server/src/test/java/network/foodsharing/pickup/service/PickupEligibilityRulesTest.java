@@ -159,4 +159,14 @@ class PickupEligibilityRulesTest {
                 SIGNUP_NOT_YET_OPEN, NO_FREE_SLOT, REGION_RULE_DAY_LIMIT);
         assertThat(result.reasons().getFirst()).isEqualTo(PickupEligibilityReason.JUMPER_CANNOT_PICKUP);
     }
+
+    @org.junit.jupiter.api.Test
+    void everyTeamRelationMayCheckEligibilityOutsidersOnlyWithPickupRights() {
+        for (UserTeamStatus status : UserTeamStatus.values()) {
+            assertThat(PickupEligibilityRules.mayCheckEligibility(false, status))
+                    .as(status.name()).isEqualTo(status != UserTeamStatus.NO_MEMBER);
+            assertThat(PickupEligibilityRules.mayCheckEligibility(true, status)).isTrue();
+        }
+        assertThat(PickupEligibilityRules.mayCheckEligibility(false, null)).isFalse();
+    }
 }

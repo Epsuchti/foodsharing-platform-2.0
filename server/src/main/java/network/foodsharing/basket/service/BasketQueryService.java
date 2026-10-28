@@ -1,5 +1,7 @@
 package network.foodsharing.basket.service;
 
+import network.foodsharing.admin.domain.FeatureToggle;
+import network.foodsharing.admin.service.FeatureToggleService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Comparator;
@@ -51,10 +53,14 @@ public class BasketQueryService {
     private final StoreCategoryService groceryCatalog;
     private final Clock clock;
 
+    private final FeatureToggleService toggles;
+
     public BasketQueryService(BasketRepository baskets, BasketGroceryRepository groceries,
                               BasketKindEntryRepository kinds, BasketRequestEntryRepository requests,
                               CurrentActorService actors, PermissionService permissions,
-                              StoreCategoryService groceryCatalog, Clock clock) {
+                              StoreCategoryService groceryCatalog, Clock clock,
+            FeatureToggleService toggles) {
+        this.toggles = toggles;
         this.baskets = baskets;
         this.groceries = groceries;
         this.kinds = kinds;
@@ -67,6 +73,7 @@ public class BasketQueryService {
 
     /** @throws ApiException 404 BASKET_NOT_FOUND (also DELETED) */
     public BasketView get(UUID basketId) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         SessionPrincipal actor = actors.requirePrincipal();
         Basket basket = baskets.findById(basketId).filter(b -> b.getStatus() != BasketStatus.DELETED)
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.BASKET_NOT_FOUND));
@@ -95,6 +102,7 @@ public class BasketQueryService {
 
     /** Open baskets within {@code distanceKm} (1–50, default 30), nearest first. */
     public List<BasketView> nearby(double lat, double lon, Integer distanceKm) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
         if (!BasketRules.validCoordinates(lat, lon)) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "lat");
@@ -109,6 +117,7 @@ public class BasketQueryService {
 
     /** The current user's baskets (not DELETED), newest first. */
     public List<BasketView> mine() {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
         return baskets.findByOwnerIdAndStatusNotOrderByCreatedAtDesc(me, BasketStatus.DELETED).stream()
                 .map(basket -> summary(basket, me, null)).toList();
@@ -116,6 +125,7 @@ public class BasketQueryService {
 
     /** Baskets the current user has a live request for, newest request first. */
     public List<BasketView> requested() {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
         return requests.findByRequesterIdOrderByRequestedAtDesc(me).stream()
                 .filter(r -> BasketRules.isLive(r.getStatus()))
@@ -126,6 +136,7 @@ public class BasketQueryService {
 
     /** Open baskets of a user (profile). */
     public List<BasketView> ofUser(UUID userId) {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
         Instant now = clock.instant();
         return baskets.findByOwnerIdAndStatusOrderByCreatedAtDesc(userId, BasketStatus.ACTIVE).stream()

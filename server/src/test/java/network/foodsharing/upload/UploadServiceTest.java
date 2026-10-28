@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Import;
 class UploadServiceTest {
 
     static final UUID READABLE_OWNER = UUID.fromString("00000000-0000-0000-0000-00000000abcd");
+    static final UUID GONE_OWNER = UUID.fromString("00000000-0000-0000-0000-00000000dead");
 
     @TestConfiguration(proxyBeanMethods = false)
     static class Rules {
@@ -46,6 +47,11 @@ class UploadServiceTest {
                 @Override
                 public boolean mayRead(UUID userId, UUID usageOwnerId) {
                     return READABLE_OWNER.equals(usageOwnerId);
+                }
+
+                @Override
+                public boolean exists(UUID usageOwnerId) {
+                    return !GONE_OWNER.equals(usageOwnerId);
                 }
             };
         }
@@ -100,6 +106,23 @@ class UploadServiceTest {
                 .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.UPLOAD_TOO_LARGE);
         assertThatThrownBy(() -> uploads.store(me, new UploadService.NewFile("a.exe", "application/x-msdownload", new byte[1])))
                 .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.UPLOAD_TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void adminListingSummaryAndOwnerlessCleanup() {
+        Upload unclaimed = pdf(me);
+        Upload kept = uploads.claim(pdf(me).getId(), new UploadUsage("test", READABLE_OWNER));
+        Upload orphan = uploads.claim(pdf(other).getId(), new UploadUsage("test", GONE_OWNER));
+        assertThat(uploads.adminPage(true, null, 0, 50).getContent()).extracting(Upload::getId)
+                .contains(unclaimed.getId()).doesNotContain(kept.getId());
+        assertThat(uploads.adminPage(null, "test", 0, 50).getContent()).extracting(Upload::getId)
+                .contains(kept.getId(), orphan.getId()).doesNotContain(unclaimed.getId());
+        var summary = uploads.summary();
+        assertThat(summary.unclaimedCount()).isGreaterThanOrEqualTo(1);
+        assertThat(summary.byModule()).anyMatch(m -> m.module().equals("test") && m.count() >= 2);
+        assertThat(uploads.deleteOwnerless()).isEqualTo(1);
+        assertThat(repository.findById(orphan.getId())).isEmpty();
+        assertThat(repository.findById(kept.getId())).isPresent();
     }
 
     @Test

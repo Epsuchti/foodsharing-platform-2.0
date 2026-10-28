@@ -82,7 +82,7 @@ class LiquibasePostgresIT {
             assertThat(jdbc.queryForObject("select count(*) from auth_identity", Integer.class)).isEqualTo(16);
         }
         if (tables.contains("email_blocklist")) {
-            assertThat(jdbc.queryForObject("select count(*) from email_blocklist", Integer.class)).isEqualTo(2);
+            assertThat(jdbc.queryForObject("select count(*) from email_blocklist", Integer.class)).isEqualTo(3);
         }
     }
 }

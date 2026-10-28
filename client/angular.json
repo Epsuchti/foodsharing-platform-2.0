@@ -26,15 +26,27 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "index": "src/index.html",
+            "index": {
+              "input": "src/index.html",
+              "preloadInitial": true
+            },
             "assets": [
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "inter-latin{,-ext}-wght-normal.woff2",
+                "input": "node_modules/@fontsource-variable/inter/files",
+                "output": "fonts"
+              },
+              {
+                "glob": "openng-icons.woff2",
+                "input": "node_modules/@openng/icons/fonts",
+                "output": "fonts"
               }
             ],
             "styles": [
-              "node_modules/@fontsource-variable/inter/index.css",
               "node_modules/@openng/icons/openng-icons.css",
               "node_modules/leaflet/dist/leaflet.css",
               "src/styles.scss"
@@ -55,7 +67,9 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": "ngsw-config.json",
+              "server": "src/main.server.ts",
+              "outputMode": "static"
             },
             "development": {
               "optimization": false,

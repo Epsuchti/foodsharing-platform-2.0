@@ -12,4 +12,9 @@ public interface UploadAccessRule {
     String module();
 
     boolean mayRead(UUID userId, UUID usageOwnerId);
+
+    /** Whether the owning object still exists (UploadCleanup removes uploads of vanished owners); default yes. */
+    default boolean exists(UUID usageOwnerId) {
+        return true;
+    }
 }

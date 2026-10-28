@@ -37,6 +37,15 @@ public final class PickupEligibilityRules {
     private PickupEligibilityRules() {
     }
 
+    /**
+     * PU4 (upstream eligibility endpoint): who may ask for the eligibility result — everybody who may see the
+     * pickups, plus every user with any relation to the team (jumper, applicant, invited, unverified member), who
+     * then gets the reasons instead of a 403. Users without relation get 403.
+     */
+    public static boolean mayCheckEligibility(boolean maySeePickups, UserTeamStatus teamStatus) {
+        return maySeePickups || teamStatus != null && teamStatus != UserTeamStatus.NO_MEMBER;
+    }
+
     /** Team membership (jumpers and outsiders cannot pick up), verification, hygiene at pickup time, phone. */
     public static List<PickupEligibilityReason> personal(Person p, Instant pickupAt) {
         List<PickupEligibilityReason> reasons = new ArrayList<>();

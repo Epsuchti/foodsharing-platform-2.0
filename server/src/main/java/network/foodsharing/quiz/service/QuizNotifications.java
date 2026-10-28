@@ -2,6 +2,8 @@ package network.foodsharing.quiz.service;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import network.foodsharing.quiz.domain.QuizSessionStatus;
 import network.foodsharing.quiz.repository.QuizRepository;
 import network.foodsharing.quiz.repository.QuizSessionRepository;
 import network.foodsharing.config.AppProperties;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +38,12 @@ public class QuizNotifications {
     private final QuizSessionRepository sessions;
     private final AppProperties properties;
     private final Clock clock;
+    private final ObjectProvider<HygieneCertificates> certificates;
 
     public QuizNotifications(NotificationService notifications, QuizRepository quizzes,
-                             QuizSessionRepository sessions, AppProperties properties, Clock clock) {
+                             QuizSessionRepository sessions, AppProperties properties, Clock clock,
+                             ObjectProvider<HygieneCertificates> certificates) {
+        this.certificates = certificates;
         this.notifications = notifications;
         this.quizzes = quizzes;
         this.sessions = sessions;
@@ -71,7 +77,7 @@ public class QuizNotifications {
         }
         int sent = 0;
         for (QuizSession pass : latestPass.values()) {
-            var expiry = pass.getEndedAt().plus(validity);
+            var expiry = certificateExpiry(pass.getUserId()).orElse(pass.getEndedAt().plus(validity));
             if (expiry.isBefore(now) || expiry.minus(warning).isAfter(now)) {
                 continue;
             }
@@ -85,5 +91,15 @@ public class QuizNotifications {
             sent++;
         }
         return sent;
+    }
+
+    /** B9: the HYGIENE_CERTIFICATE award's end (end of its last valid day in Zurich) wins over the quiz pass. */
+    private java.util.Optional<Instant> certificateExpiry(UUID userId) {
+        HygieneCertificates source = certificates.getIfAvailable();
+        if (source == null) {
+            return java.util.Optional.empty();
+        }
+        return source.validUntil(userId)
+                .map(day -> day.plusDays(1).atStartOfDay(ZoneId.of("Europe/Zurich")).toInstant());
     }
 }

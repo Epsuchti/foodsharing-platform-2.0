@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, DeferBlockState, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { provideOptimus } from '@openng/optimus-ui/config';
 
@@ -72,6 +72,14 @@ describe('ShellComponent', () => {
     });
   }
 
+  it('loads toast and confirm dialog only after the first page (deferred, D11.5.3)', async () => {
+    expect(host.querySelector('p-toast')).toBeNull();
+    const [overlays] = await fixture.getDeferBlocks();
+    await overlays.render(DeferBlockState.Complete);
+    expect(host.querySelector('p-toast')).not.toBeNull();
+    expect(host.querySelector('p-confirmdialog')).not.toBeNull();
+  });
+
   it('renders header, page, footer and the login button when logged out', () => {
     expect(byTestId('shell.brand')).not.toBeNull();
     expect(byTestId('shell.languageMenu')).not.toBeNull();
@@ -82,8 +90,6 @@ describe('ShellComponent', () => {
     expect(byTestId('shell.tabBar')).toBeNull();
     expect(host.querySelector('.page')).not.toBeNull();
     expect(host.querySelector('fs-footer')).not.toBeNull();
-    expect(host.querySelector('p-toast')).not.toBeNull();
-    expect(host.querySelector('p-confirmdialog')).not.toBeNull();
   });
 
   it('shows the user menu, main navigation and mobile tab bar when logged in', async () => {

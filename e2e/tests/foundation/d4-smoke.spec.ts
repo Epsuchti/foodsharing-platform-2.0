@@ -37,14 +37,18 @@ test('D4.1 packaged jar is healthy and reports its version @D4.1', async ({ api 
 });
 
 test('D4.3 deep link serves the app @D4.3', async ({ page, api }) => {
+  // `/` is the prerendered landing page (D11.5.3); every other route gets the client-rendered shell
   const root = await api.get('/');
   expect(root.status()).toBe(200);
   expect(root.headers()['content-type']).toContain('text/html');
+  expect(await root.text()).toContain('data-testid="public.landing.hero"');
+  const shell = await api.get('/index.csr.html');
+  expect(shell.status()).toBe(200);
 
   const response = await page.goto('/some/deep/link');
   expect(response?.status()).toBe(200);
   expect(response?.headers()['content-type']).toContain('text/html');
-  expect(await response?.text()).toBe(await root.text());
+  expect(await response?.text()).toBe(await shell.text());
   expect(new URL(page.url()).pathname).toBe('/some/deep/link');
   // Angular bootstrapped (the root component carries ng-version in every build).
   await expect(page.locator('[ng-version]')).toBeAttached();

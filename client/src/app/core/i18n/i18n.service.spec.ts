@@ -6,7 +6,7 @@ import { TestBed } from '@angular/core/testing';
 import { Language, Role, Theme } from '../../api';
 import { provideApi } from '../../api/provide-api';
 import { SessionService } from '../auth/session.service';
-import { I18nService, LANGUAGE_STORAGE_KEY } from './i18n.service';
+import { I18nService, LANGUAGE_STORAGE_KEY, languageFromPath } from './i18n.service';
 import { matchBrowserLanguage } from './languages';
 import { formatMessage } from './message-format';
 
@@ -76,22 +76,29 @@ describe('I18nService', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => backend.verify());
 
-  it('loads the stored language with German as fallback and sets <html lang>', async () => {
+  it('loads only the stored language, sets <html lang> and mirrors the language into a cookie', async () => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, 'fr');
     const i18n = setup();
     const ready = i18n.initialize();
+    // German gaps are filled by build-i18n.mjs, so the German catalog is never requested (D11.5.3)
     backend.expectOne('/i18n/fr.json').flush({ 'x.hello': 'Bonjour {name}' });
-    backend
-      .expectOne('/i18n/de.json')
-      .flush({ 'x.hello': 'Hallo {name}', 'x.onlyGerman': 'Nur deutsch' });
     await ready;
+    backend.expectNone('/i18n/de.json');
 
     expect(i18n.language()).toBe('fr');
     expect(i18n.locale()).toBe('fr-CH');
     expect(i18n.t('x.hello', { name: 'Chloé' })).toBe('Bonjour Chloé');
-    expect(i18n.t('x.onlyGerman')).toBe('Nur deutsch');
     expect(i18n.t('x.missing')).toBe('x.missing');
     expect(document.documentElement.lang).toBe('fr');
+    expect(document.cookie).toContain('fs.lang=fr');
+  });
+
+  it('reads the language of the /<lang> landing URLs', () => {
+    expect(languageFromPath('/en')).toBe('en');
+    expect(languageFromPath('/gws/')).toBe('gws');
+    expect(languageFromPath('/')).toBeNull();
+    expect(languageFromPath('/items')).toBeNull();
+    expect(languageFromPath('/en/stores')).toBeNull();
   });
 
   it('maps gws to de-CH for <html lang> and Intl', async () => {
@@ -99,7 +106,6 @@ describe('I18nService', () => {
     const i18n = setup();
     const ready = i18n.initialize();
     backend.expectOne('/i18n/gws.json').flush({});
-    backend.expectOne('/i18n/de.json').flush({});
     await ready;
     expect(document.documentElement.lang).toBe('de-CH');
     expect(document.documentElement.dataset['language']).toBe('gws');

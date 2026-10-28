@@ -632,6 +632,9 @@ TeamMember:
       format: double
     sleeping:
       type: boolean
+    phone:
+      description: 'Mobile number in E.164; only when the viewer may see the member''s contact details (S9).'
+      type: string
 
 StoreApplication:
   type: object

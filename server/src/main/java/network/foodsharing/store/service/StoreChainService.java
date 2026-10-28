@@ -29,6 +29,7 @@ import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +47,10 @@ public class StoreChainService {
                              String commonStoreInformation, Integer estimatedStoreCount, List<UUID> kamIds) {
     }
 
+    /** Published when a member becomes key account manager of a chain (B9: KAM certificate). */
+    public record KamAppointedEvent(UUID userId, UUID chainId) {
+    }
+
     public record ChainView(StoreChain chain, List<User> kams, int storeCount, boolean showNotes) {
     }
 
@@ -56,10 +61,12 @@ public class StoreChainService {
     private final UserService users;
     private final CurrentActorService currentActor;
     private final HistoryService history;
+    private final ApplicationEventPublisher events;
 
     public StoreChainService(StoreChainRepository chains, StoreChainKamRepository kams, StoreRepository stores,
                              StoreChainAccess access, UserService users, CurrentActorService currentActor,
-                             HistoryService history) {
+                             HistoryService history, ApplicationEventPublisher events) {
+        this.events = events;
         this.chains = chains;
         this.kams = kams;
         this.stores = stores;
@@ -185,6 +192,7 @@ public class StoreChainService {
                 k.setUserId(id);
                 kams.save(k);
                 history.record(history.event(StoreChainAction.KAM_ADDED, chain.getId()).secondarySubject(id).build());
+                events.publishEvent(new KamAppointedEvent(id, chain.getId()));
             }
         }
     }

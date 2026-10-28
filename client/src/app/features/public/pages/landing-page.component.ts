@@ -1,8 +1,18 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Explainer, PublicOnboardingService, RegionRef } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
+import { isUiLanguage } from '../../../core/i18n/languages';
+import { SeoService } from '../../../core/i18n/seo.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { GoogleLogoComponent } from '../../../shared/google-logo/google-logo.component';
@@ -99,21 +109,50 @@ export const EXPLAINER_FAQ = ['what', 'cost', 'time', 'who', 'safe'] as const;
         <p>{{ 'public.landing.value3Text' | t }}</p>
       </article>
     </section>
-    <fs-data-state [state]="explainer" skeleton="card" [skeletonRows]="2" data-testid="public.explainer.state">
+    <fs-data-state
+      [state]="explainer"
+      skeleton="card"
+      [skeletonRows]="2"
+      data-testid="public.explainer.state"
+    >
       <ng-template [fsData]="explainer" let-e>
         <section class="block" data-testid="public.explainer.counters" aria-labelledby="ex-impact">
           <h2 id="ex-impact" class="block__title">{{ 'public.explainer.impactTitle' | t }}</h2>
           <ul class="counters">
-            <li class="counter"><fs-count-up [value]="e.counters.foodsavers" testId="public.explainer.counter.foodsavers" /><span>{{ 'public.explainer.counter.foodsavers' | t }}</span></li>
-            <li class="counter"><fs-count-up [value]="e.counters.regions" testId="public.explainer.counter.regions" /><span>{{ 'public.explainer.counter.regions' | t }}</span></li>
-            <li class="counter"><fs-count-up [value]="e.counters.stores" testId="public.explainer.counter.stores" /><span>{{ 'public.explainer.counter.stores' | t }}</span></li>
-            <li class="counter"><fs-count-up [value]="e.counters.kgSaved" testId="public.explainer.counter.kgSaved" /><span>{{ 'public.explainer.counter.kgSaved' | t }}</span></li>
+            <li class="counter">
+              <fs-count-up
+                [value]="e.counters.foodsavers"
+                testId="public.explainer.counter.foodsavers"
+              /><span>{{ 'public.explainer.counter.foodsavers' | t }}</span>
+            </li>
+            <li class="counter">
+              <fs-count-up
+                [value]="e.counters.regions"
+                testId="public.explainer.counter.regions"
+              /><span>{{ 'public.explainer.counter.regions' | t }}</span>
+            </li>
+            <li class="counter">
+              <fs-count-up
+                [value]="e.counters.stores"
+                testId="public.explainer.counter.stores"
+              /><span>{{ 'public.explainer.counter.stores' | t }}</span>
+            </li>
+            <li class="counter">
+              <fs-count-up
+                [value]="e.counters.kgSaved"
+                testId="public.explainer.counter.kgSaved"
+              /><span>{{ 'public.explainer.counter.kgSaved' | t }}</span>
+            </li>
           </ul>
         </section>
         <section class="block" data-testid="public.explainer.journey" aria-labelledby="ex-journey">
           <h2 id="ex-journey" class="block__title">{{ 'public.explainer.journeyTitle' | t }}</h2>
           <p class="block__lead">{{ 'public.explainer.journeyLead' | t }}</p>
-          <fs-journey-stepper mode="preview" [preview]="e.journeyPreview" testId="public.explainer.preview" />
+          <fs-journey-stepper
+            mode="preview"
+            [preview]="e.journeyPreview"
+            testId="public.explainer.preview"
+          />
         </section>
       </ng-template>
     </fs-data-state>
@@ -123,7 +162,10 @@ export const EXPLAINER_FAQ = ['what', 'cost', 'time', 'who', 'safe'] as const;
       <p class="block__lead">{{ 'public.explainer.regionLead' | t }}</p>
       @defer (on viewport) {
         <div class="region">
-          <fs-region-picker (regionSelected)="region.set($event)" testId="public.explainer.picker" />
+          <fs-region-picker
+            (regionSelected)="region.set($event)"
+            testId="public.explainer.picker"
+          />
           @if (region(); as r) {
             <fs-region-card [regionId]="r.id" testId="public.explainer.regionCard" />
           }
@@ -145,10 +187,18 @@ export const EXPLAINER_FAQ = ['what', 'cost', 'time', 'who', 'safe'] as const;
       </div>
     </section>
 
-    <section class="block block--contact" data-testid="public.explainer.business" aria-labelledby="ex-business">
+    <section
+      class="block block--contact"
+      data-testid="public.explainer.business"
+      aria-labelledby="ex-business"
+    >
       <h2 id="ex-business" class="block__title">{{ 'public.explainer.businessTitle' | t }}</h2>
       <p class="block__lead">{{ 'public.explainer.businessText' | t }}</p>
-      <a class="fs-btn fs-btn--outlined" [href]="'mailto:' + businessMail" data-testid="public.explainer.businessMail">
+      <a
+        class="fs-btn fs-btn--outlined"
+        [href]="'mailto:' + businessMail"
+        data-testid="public.explainer.businessMail"
+      >
         <i class="pi pi-envelope" aria-hidden="true"></i>{{ 'public.explainer.businessCta' | t }}
       </a>
     </section>
@@ -417,6 +467,9 @@ export const EXPLAINER_FAQ = ['what', 'cost', 'time', 'who', 'safe'] as const;
 export class LandingPageComponent {
   private readonly api = inject(PublicOnboardingService);
 
+  /** Route param of `/de`, `/en`, … (unset on `/`). */
+  readonly lang = input<string>();
+
   protected readonly googleUrl = GOOGLE_JOIN_URL;
   protected readonly faq = EXPLAINER_FAQ;
   protected readonly businessMail = 'info@foodsharing.ch';
@@ -426,4 +479,13 @@ export class LandingPageComponent {
     loader: () => this.api.getExplainer({}),
     isEmpty: () => false,
   });
+
+  constructor() {
+    const seo = inject(SeoService);
+    effect(() => {
+      const lang = this.lang();
+      seo.setLandingAlternates(isUiLanguage(lang) ? lang : null);
+    });
+    inject(DestroyRef).onDestroy(() => seo.clearLandingAlternates());
+  }
 }
