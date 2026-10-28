@@ -109,6 +109,12 @@ class PickupsApiIT {
                 .andExpect(jsonPath("$.reasons", Matchers.hasItem("SIGNUP_NOT_YET_OPEN")));
         Cookie jumper = login(SeedUsers.JUMPER);
         mvc.perform(get(S + "01/pickups").cookie(jumper)).andExpect(status().isForbidden());
+        // PU4: a jumper gets the reasons instead of 403; users without relation to the team still get 403
+        mvc.perform(get(S + "01/pickups/2026-11-09T18:00:00Z/eligibility").cookie(jumper))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.eligible").value(false))
+                .andExpect(jsonPath("$.reasons", Matchers.hasItem("JUMPER_CANNOT_PICKUP")));
+        mvc.perform(get(S + "01/pickups/2026-11-09T18:00:00Z/eligibility").cookie(login(SeedUsers.NEWBIE)))
+                .andExpect(status().isForbidden());
         mvc.perform(get(S + "01/regular-pickups").cookie(foodsaver)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2)).andExpect(jsonPath("$[0].weekday").value("MONDAY"))
                 .andExpect(jsonPath("$[0].startTime").value("19:00"));

@@ -247,6 +247,7 @@ public class StoreMapper {
         model.setAddedAt(toOffset(m.membership().getAddedAt()));
         model.setDistanceKm(m.distanceKm());
         model.setSleeping(users.isSleeping(m.user()));
+        model.setPhone(m.withPhone() ? m.user().getMobilePhone() : null);
         return model;
     }
 
