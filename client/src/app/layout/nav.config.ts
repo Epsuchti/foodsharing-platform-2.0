@@ -324,6 +324,28 @@ export const NAV_ITEMS: readonly NavItem[] = [
     visible: loggedIn,
     area: 'user',
   },
+  // --- M4 F6: operations (ORGA) ---
+  {
+    id: 'adminIntegrations',
+    labelKey: 'nav.adminIntegrations',
+    icon: 'pi pi-sitemap',
+    route: '/admin/integrations',
+    visible: isOrga,
+  },
+  {
+    id: 'adminJobs',
+    labelKey: 'nav.adminJobs',
+    icon: 'pi pi-clock',
+    route: '/admin/jobs',
+    visible: isOrga,
+  },
+  {
+    id: 'adminMailOutbox',
+    labelKey: 'nav.adminMailOutbox',
+    icon: 'pi pi-envelope',
+    route: '/admin/mail-outbox',
+    visible: isOrga,
+  },
 ];
 
 export function visibleNavItems(

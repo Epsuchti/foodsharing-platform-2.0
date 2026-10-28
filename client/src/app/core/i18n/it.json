@@ -391,5 +391,8 @@
   "common.metaDescription": "foodsharing – salvare cibo, insieme. Ritira cibo nei negozi, condividilo e diventa foodsaver nella tua regione.",
   "common.realtime.reconnecting": "Riconnessione in corso …",
   "nav.mailboxes": "Caselle di posta",
-  "nav.notifications": "Notifiche"
+  "nav.notifications": "Notifiche",
+  "nav.adminIntegrations": "Integrazioni",
+  "nav.adminJobs": "Processi in background",
+  "nav.adminMailOutbox": "Posta in uscita"
 }

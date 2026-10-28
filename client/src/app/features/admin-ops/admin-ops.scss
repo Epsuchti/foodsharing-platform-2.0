@@ -1,0 +1,157 @@
+// Shared look of the admin operation pages (integrations, jobs, mail outbox; M4 F6).
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+
+  h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.05rem;
+  }
+}
+
+.chip {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--fs-surface-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--fs-surface-muted);
+}
+
+.badge--CLOSED,
+.badge--OK,
+.badge--SENT {
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.badge--OPEN,
+.badge--FAILED {
+  background: var(--fs-danger-soft);
+  color: var(--fs-danger);
+}
+
+.badge--HALF_OPEN,
+.badge--RUNNING,
+.badge--PENDING {
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.875rem;
+
+  dt {
+    color: var(--fs-text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.error pre {
+  max-height: 12rem;
+  margin: 0.5rem 0 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 0.8125rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.target {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th,
+  td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--fs-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .num {
+    text-align: end;
+  }
+}
+
+.muted {
+  display: block;
+  color: var(--fs-text-muted);
+}
+
+.message {
+  max-width: 24rem;
+  overflow-wrap: anywhere;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}

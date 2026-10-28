@@ -391,5 +391,8 @@
   "common.metaDescription": "foodsharing – sauver des aliments, ensemble. Récupère des aliments auprès des commerces, partage-les et deviens foodsaver dans ta région.",
   "common.realtime.reconnecting": "Reconnexion en cours …",
   "nav.mailboxes": "Boîtes mail",
-  "nav.notifications": "Notifications"
+  "nav.notifications": "Notifications",
+  "nav.adminIntegrations": "Intégrations",
+  "nav.adminJobs": "Tâches de fond",
+  "nav.adminMailOutbox": "Boîte d'envoi"
 }
