@@ -1,0 +1,105 @@
+# Milestone 5 (B7): events in regions and working groups (upstream fs_event, fs_location, fs_foodsaver_has_event,
+# event wall; A36).
+databaseChangeLog:
+  - changeSet:
+      id: 137-1
+      author: platform
+      comment: 'Event locations (upstream fs_location). lat/lon geocoded from the postcode when absent.'
+      changes:
+        - createTable:
+            tableName: event_location
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_event_location, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: street, type: VARCHAR(200)}
+              - column: {name: zip, type: VARCHAR(20)}
+              - column: {name: city, type: VARCHAR(100)}
+              - column: {name: lat, type: DOUBLE}
+              - column: {name: lon, type: DOUBLE}
+  - changeSet:
+      id: 137-2
+      author: platform
+      comment: 'Events (upstream fs_event). type OFFLINE needs a location, ONLINE an https link; soft deleted.'
+      changes:
+        - createTable:
+            tableName: event
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_event, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_event_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_event_author_id, references: user_account(id)}}
+              - column: {name: type, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(32600)}
+              - column: {name: starts_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: ends_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: is_public, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: location_id, type: UUID, constraints: {foreignKeyName: fk_event_location_id, references: event_location(id)}}
+              - column: {name: online_link, type: VARCHAR(500)}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: event
+            indexName: ix_event_region_starts
+            columns:
+              - column: {name: region_id}
+              - column: {name: starts_at}
+  - changeSet:
+      id: 137-3
+      author: platform
+      comment: 'Invitations and RSVPs (upstream fs_foodsaver_has_event).'
+      changes:
+        - createTable:
+            tableName: event_invitation
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_event_invitation, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: event_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_event_invitation_event_id, references: event(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_event_invitation_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: status, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: responded_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: event_invitation
+            columnNames: event_id, user_id
+            constraintName: uq_event_invitation_event_user
+        - createIndex:
+            tableName: event_invitation
+            indexName: ix_event_invitation_user
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 137-4
+      author: platform
+      comment: 'Event wall comments (upstream event wall).'
+      changes:
+        - createTable:
+            tableName: event_wall_post
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_event_wall_post, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: event_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_event_wall_post_event_id, references: event(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_event_wall_post_author_id, references: user_account(id)}}
+              - column: {name: body, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: event_wall_post
+            indexName: ix_event_wall_post_event
+            columns:
+              - column: {name: event_id}
+              - column: {name: created_at}
