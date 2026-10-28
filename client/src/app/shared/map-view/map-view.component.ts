@@ -119,17 +119,31 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       font-size: 0.88rem;
       font-weight: 600;
     }
+    /* the Leaflet marker element is an unrotated 32px hit box (axe target-size ≥ 24 px in every engine);
+       the visible pin is drawn by the rotated inner span */
     :host ::ng-deep .fs-map-marker {
       display: grid;
       place-items: center;
+      box-sizing: border-box;
+      min-width: 32px;
+      min-height: 32px;
+      background: transparent;
+    }
+    :host ::ng-deep .fs-map-marker__pin {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      box-sizing: border-box;
       border: 2px solid #fff;
       border-radius: 50% 50% 50% 0;
       background: #25834a;
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
       color: #fff;
       transform: rotate(-45deg);
+      pointer-events: none;
     }
-    :host ::ng-deep .fs-map-marker i {
+    :host ::ng-deep .fs-map-marker__pin i {
       font-size: 0.85rem;
       transform: rotate(45deg);
     }
@@ -147,13 +161,15 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       color: var(--fs-text);
     }
     :host ::ng-deep .fs-map-marker--edit {
-      background: #b5532d;
       cursor: grab;
     }
-    :host ::ng-deep .fs-map-marker[data-kind='store'] {
+    :host ::ng-deep .fs-map-marker--edit .fs-map-marker__pin {
+      background: #b5532d;
+    }
+    :host ::ng-deep .fs-map-marker[data-kind='store'] .fs-map-marker__pin {
       background: #1c6f91;
     }
-    :host ::ng-deep .fs-map-marker[data-kind='home'] {
+    :host ::ng-deep .fs-map-marker[data-kind='home'] .fs-map-marker__pin {
       background: #b5532d;
     }
   `,
@@ -251,9 +267,9 @@ export class MapViewComponent {
     if (!this.positionMarker) {
       const icon = L.divIcon({
         className: 'fs-map-marker fs-map-marker--edit',
-        html: '<i class="pi pi-map-marker" aria-hidden="true"></i>',
+        html: '<span class="fs-map-marker__pin"><i class="pi pi-map-marker" aria-hidden="true"></i></span>',
         iconSize: [32, 32],
-        iconAnchor: [16, 38],
+        iconAnchor: [16, 36],
       });
       this.positionMarker = L.marker(position, { icon, draggable: this.editable(), keyboard: true })
         .on('dragend', () => {
@@ -279,10 +295,10 @@ export class MapViewComponent {
     for (const marker of markers) {
       const icon = L.divIcon({
         className: 'fs-map-marker',
-        html: `<i class="pi ${KIND_ICON[marker.kind]}" aria-hidden="true"></i>`,
+        html: `<span class="fs-map-marker__pin"><i class="pi ${KIND_ICON[marker.kind]}" aria-hidden="true"></i></span>`,
         iconSize: [32, 32],
-        // the pin's tip (bottom left corner of the rotated square) is the position
-        iconAnchor: [16, 38],
+        // the pin's tip (bottom corner of the rotated inner square) is the position
+        iconAnchor: [16, 36],
       });
       L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true })
         .on('click', () => this.markerClick.emit(marker))
