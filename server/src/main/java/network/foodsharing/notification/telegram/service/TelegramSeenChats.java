@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * selectable through their stored id and title, so losing this list on restart only hides new candidates.
  */
 @Component
-public class TelegramSeenChats {
+public class TelegramSeenChats implements network.foodsharing.common.seed.InMemoryState {
 
     private static final Duration KEEP = Duration.ofDays(30);
     private static final int MAX = 500;
@@ -51,6 +51,12 @@ public class TelegramSeenChats {
     }
 
     public void clear() {
+        chats.clear();
+    }
+
+    /** Dev seed reset: forget the seen group chats. */
+    @Override
+    public void resetInMemoryState() {
         chats.clear();
     }
 }

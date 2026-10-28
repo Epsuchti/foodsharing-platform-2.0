@@ -14,8 +14,10 @@ import network.foodsharing.config.AppProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Stateless one-click unsubscribe tokens (N7): {@code base64url(userId) + "." + base64url(HMAC-SHA256(secret,
- * userId)[0..16])}. They never expire; changing {@code app.newsletter.secret} invalidates all of them.
+ * Stateless one-click unsubscribe tokens (N7): {@code base64url(userId ‖ HMAC-SHA256(secret, userId)[0..16])}, 43
+ * characters without a dot, so the link {@code /newsletter/unsubscribe/<token>} is an SPA route (paths with dots are
+ * treated as files). Tokens of the first format {@code base64url(userId) + "." + base64url(mac)} still verify. They
+ * never expire; changing {@code app.newsletter.secret} invalidates all of them.
  */
 @Component
 public class NewsletterTokenService {
@@ -31,7 +33,7 @@ public class NewsletterTokenService {
 
     public String token(UUID userId) {
         byte[] id = bytes(userId);
-        return ENCODER.encodeToString(id) + "." + ENCODER.encodeToString(mac(id));
+        return ENCODER.encodeToString(ByteBuffer.allocate(32).put(id).put(mac(id)).array());
     }
 
     /** The user of a valid token. */
@@ -40,12 +42,23 @@ public class NewsletterTokenService {
             return Optional.empty();
         }
         int dot = token.indexOf('.');
-        if (dot <= 0) {
-            return Optional.empty();
-        }
         try {
-            byte[] id = DECODER.decode(token.substring(0, dot));
-            byte[] signature = DECODER.decode(token.substring(dot + 1));
+            byte[] id;
+            byte[] signature;
+            if (dot < 0) {
+                byte[] raw = DECODER.decode(token);
+                if (raw.length != 32) {
+                    return Optional.empty();
+                }
+                id = Arrays.copyOf(raw, 16);
+                signature = Arrays.copyOfRange(raw, 16, 32);
+            } else if (dot > 0) {
+                // legacy format (links in newsletters sent before the dot-free tokens)
+                id = DECODER.decode(token.substring(0, dot));
+                signature = DECODER.decode(token.substring(dot + 1));
+            } else {
+                return Optional.empty();
+            }
             if (id.length != 16 || !MessageDigest.isEqual(mac(id), signature)) {
                 return Optional.empty();
             }

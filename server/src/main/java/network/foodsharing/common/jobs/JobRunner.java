@@ -111,6 +111,12 @@ public class JobRunner {
     }
 
     /** Last run of a job: newest of the recorded row and the in-memory one. */
+    /** Run history of a job, newest first. */
+    public org.springframework.data.domain.Page<JobRun> runs(String jobName, int page, int size) {
+        return runs.findByJobNameOrderByStartedAtDesc(jobName,
+                org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100)));
+    }
+
     public Optional<JobRun> lastRun(String jobName) {
         Optional<JobRun> stored = runs.findFirstByJobNameOrderByStartedAtDesc(jobName);
         JobRun memory = lastInMemory.get(jobName);

@@ -1,0 +1,44 @@
+# Seed (hardening): one outbox mail per state for the ORGA outbox page (SENT, PENDING after a failed attempt,
+# FAILED, rate-limit DEFERRED). Recipients are non-user @local.test addresses, PENDING rows are due only a week after
+# the seed date, so tests counting mails of seed users or processing due mails are unaffected.
+# Ids: docs/seed-ids.md module 0004 table 0001.
+databaseChangeLog:
+  - changeSet:
+      id: seed-178-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Outbox mails in every state.'
+      changes:
+        - loadUpdateData:
+            tableName: mail_outbox
+            file: ../notification/mail_outbox.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: to_address, type: STRING}
+              - column: {name: subject, type: STRING}
+              - column: {name: text_body, type: STRING}
+              - column: {name: html_body, type: STRING}
+              - column: {name: language, type: STRING}
+              - column: {name: status, type: STRING}
+              - column: {name: attempts, type: NUMERIC}
+              - column: {name: next_attempt_at, type: STRING}
+              - column: {name: last_error, type: STRING}
+              - column: {name: sent_at, type: STRING}
+              - column: {name: template, type: STRING}
+              - column: {name: user_id, type: UUID}
+              - column: {name: category, type: STRING}
+              - column: {name: priority, type: NUMERIC}
+              - column: {name: rate_limited_until, type: STRING}
+              - column: {name: identifier, type: STRING}
+              - column: {name: headers, type: STRING}

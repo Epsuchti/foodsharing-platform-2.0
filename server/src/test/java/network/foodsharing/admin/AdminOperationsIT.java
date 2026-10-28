@@ -60,6 +60,14 @@ class AdminOperationsIT {
                 .andExpect(jsonPath("$[?(@.name == 'region-statistics')].lastRun.outcome").value(Matchers.contains("OK")));
         mvc.perform(post("/api/admin/jobs/nope/run").cookie(orga).with(csrf())).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("JOB_UNKNOWN"));
+        mvc.perform(get("/api/admin/jobs/region-statistics/runs").param("size", "5").cookie(orga))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].trigger").value("MANUAL"))
+                .andExpect(jsonPath("$.items[0].jobName").value("region-statistics"))
+                .andExpect(jsonPath("$.page.size").value(5));
+        mvc.perform(get("/api/admin/jobs/nope/runs").cookie(orga)).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("JOB_UNKNOWN"));
+        mvc.perform(get("/api/admin/jobs/region-statistics/runs").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isForbidden());
     }
 
     @Test

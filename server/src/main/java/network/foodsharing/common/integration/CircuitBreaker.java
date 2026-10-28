@@ -146,6 +146,18 @@ public class CircuitBreaker {
         return false;
     }
 
+    /** Back to the start state (dev seed reset): closed, no failures, no outage history; the probe stays. */
+    public synchronized void reset() {
+        lastOkAt = null;
+        lastSuccessAt = null;
+        lastFailureAt = null;
+        downSince = null;
+        nextProbeAt = null;
+        failureCount = 0;
+        lastError = null;
+        finishedOutages.clear();
+    }
+
     /** Records a successful call; narrows down when the integration was last known to be up. */
     public synchronized void markSucceeded() {
         Instant now = clock.instant();

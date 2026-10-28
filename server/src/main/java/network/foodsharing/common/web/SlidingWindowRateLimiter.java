@@ -19,10 +19,27 @@ public class SlidingWindowRateLimiter {
     private final Duration window;
     private final Map<String, Deque<Instant>> requestsByKey = new ConcurrentHashMap<>();
 
+    /** All limiters of the application (weakly held) so the dev seed reset can clear them. */
+    private static final java.util.Set<SlidingWindowRateLimiter> INSTANCES =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+
     public SlidingWindowRateLimiter(Clock clock, int limit, Duration window) {
         this.clock = clock;
         this.limit = limit;
         this.window = window;
+        INSTANCES.add(this);
+    }
+
+    /** Forgets all recorded attempts of this limiter. */
+    public void clear() {
+        requestsByKey.clear();
+    }
+
+    /** Dev seed reset: clears every limiter. */
+    public static void clearAll() {
+        synchronized (INSTANCES) {
+            INSTANCES.forEach(SlidingWindowRateLimiter::clear);
+        }
     }
 
     /** Records an attempt; returns false when the key is over the limit. */

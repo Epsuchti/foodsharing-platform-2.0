@@ -17,7 +17,7 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | history | 0003 | `history_entry` | 0001 | `history/history_entry.csv` (`changes/004-history-seed.yaml`) |
 | user | 0001 | `user_note` | 0002 | `user/user_note.csv` (`changes/023-user-note-seed.yaml`) |
 | user | 0001 | `user_account` profile columns | (0001) | `user/user_profile.csv` (`changes/021-user-seed-profile.yaml`, updates existing rows) |
-| notification | 0004 | `mail_outbox` | 0001 | reserved |
+| notification | 0004 | `mail_outbox` | 0001 | `notification/mail_outbox.csv` (`seed/changes/178-notification-outbox-seed.yaml`, hardening): `…01` SENT, `…02` PENDING after a failed attempt, `…03` FAILED (8 attempts), `…04` PENDING deferred by the mail rate limit (`rate_limited_until`); recipients `outbox-*@local.test` (no user), due only 2026-11-09 |
 | notification | 0004 | `bell` | 0002 | `notification/bell.csv` (`changes/101-notification-seed.yaml`, M4 B2) |
 | notification | 0004 | `push_subscription` | 0003 | `notification/push_subscription.csv` (M4 B2) |
 | notification | 0004 | `user_notification_setting` | 0004 | `notification/user_notification_setting.csv` (M4 B2) |
