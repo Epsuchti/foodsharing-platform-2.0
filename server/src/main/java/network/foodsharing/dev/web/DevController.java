@@ -22,6 +22,8 @@ import network.foodsharing.dev.mapper.DevMapper;
 import network.foodsharing.dev.service.DevNotificationService;
 import network.foodsharing.dev.service.DevService;
 import network.foodsharing.dev.service.DevService.DevLogin;
+import network.foodsharing.notification.domain.NotificationChannelType;
+import network.foodsharing.notification.service.CapturedMessages;
 import network.foodsharing.security.PermissionService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
@@ -91,14 +93,35 @@ public class DevController implements DevApi {
     @Override
     public ResponseEntity<List<DevNotification>> listDevNotifications(UUID userId, String type,
             DevNotificationChannel channel) {
-        return ResponseEntity.ok(notificationService.notifications(userId, type).stream()
-                .flatMap(bell -> mapper.toDevNotifications(bell).stream())
-                .filter(notification -> channel == null || channel == notification.getChannel())
-                .toList());
+        List<DevNotification> result = new java.util.ArrayList<>();
+        if (channel == null || channel == DevNotificationChannel.BELL || channel == DevNotificationChannel.MAIL) {
+            notificationService.notifications(userId, type).stream()
+                    .flatMap(bell -> mapper.toDevNotifications(bell).stream())
+                    .filter(notification -> channel == null || channel == notification.getChannel())
+                    .forEach(result::add);
+        }
+        NotificationChannelType capturedChannel = channel == null || channel == DevNotificationChannel.BELL
+                || channel == DevNotificationChannel.MAIL ? null : NotificationChannelType.valueOf(channel.name());
+        if (channel == null || capturedChannel != null) {
+            notificationService.captured(userId, type, capturedChannel).stream().map(DevController::toApi)
+                    .forEach(result::add);
+        }
+        result.sort(java.util.Comparator.comparing(DevNotification::getCreatedAt).reversed());
+        return ResponseEntity.ok(result);
+    }
+
+    private static DevNotification toApi(CapturedMessages.Captured captured) {
+        return new DevNotification().id(captured.id()).userId(captured.userId()).type(captured.type())
+                .channel(DevNotificationChannel.valueOf(captured.channel().name()))
+                .params(new java.util.LinkedHashMap<>(captured.params())).link(captured.link())
+                .identifier(captured.identifier()).body(captured.title() + (captured.body() == null
+                        || captured.body().isBlank() ? "" : "\n" + captured.body()))
+                .target(captured.target()).createdAt(TimeMapper.toOffset(captured.createdAt()));
     }
 
     @Override
     public ResponseEntity<Void> clearDevNotifications() {
+        notificationService.clearCaptured();
         return ResponseEntity.noContent().build();
     }
 

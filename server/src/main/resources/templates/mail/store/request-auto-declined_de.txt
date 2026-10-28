@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+deine Anfrage für das Team von [(${storeName})] wurde automatisch abgelehnt.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

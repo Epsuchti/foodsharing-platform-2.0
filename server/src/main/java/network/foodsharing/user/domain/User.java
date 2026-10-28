@@ -168,6 +168,10 @@ public class User extends BaseEntity implements HistorySubject {
     @Column(name = "pickup_reminders_enabled", nullable = false)
     private boolean pickupRemindersEnabled = true;
 
+    /** Linked private Telegram chat (M4 A28); null = not linked. */
+    @Column(name = "telegram_chat_id", length = 40, unique = true)
+    private String telegramChatId;
+
     @Column(name = "no_automatic_delete", nullable = false)
     private boolean noAutomaticDelete;
 

@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+your sign-up for the pickup at [(${storeName})] on [(${when})] was removed automatically.
+[# th:if="${reason != null}"]
+Message: [(${reason})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

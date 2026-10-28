@@ -1,0 +1,94 @@
+# Seed (M4 B2): bells of foodsaver (one per category, 4 unread, one read 40 days ago) and bieb, a fake push
+# subscription of foodsaver, sleepy with mail off everywhere. Ids: docs/seed-ids.md module 0004 (tables 0002-0004).
+# Bell types avoid the ones the M2/M3 ITs count on the seed.
+databaseChangeLog:
+  - changeSet:
+      id: seed-101-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Bells of foodsaver (one per category, 4 unread, one 40 days old) and bieb.'
+      changes:
+        - loadUpdateData:
+            tableName: bell
+            file: ../notification/bell.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: type, type: STRING}
+              - column: {name: title_key, type: STRING}
+              - column: {name: params, type: STRING}
+              - column: {name: link, type: STRING}
+              - column: {name: icon, type: STRING}
+              - column: {name: identifier, type: STRING}
+              - column: {name: mail_outbox_id, type: UUID}
+              - column: {name: read_at, type: STRING}
+              - column: {name: deleted_at, type: STRING}
+              - column: {name: pushed_at, type: STRING}
+  - changeSet:
+      id: seed-101-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'A (fake) push subscription of foodsaver.'
+      changes:
+        - loadUpdateData:
+            tableName: push_subscription
+            file: ../notification/push_subscription.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: endpoint, type: STRING}
+              - column: {name: endpoint_hash, type: STRING}
+              - column: {name: p256dh, type: STRING}
+              - column: {name: auth, type: STRING}
+              - column: {name: user_agent, type: STRING}
+              - column: {name: last_success_at, type: STRING}
+              - column: {name: failure_count, type: NUMERIC}
+  - changeSet:
+      id: seed-101-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'sleepy: mail off in every switchable category.'
+      changes:
+        - loadUpdateData:
+            tableName: user_notification_setting
+            file: ../notification/user_notification_setting.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: category, type: STRING}
+              - column: {name: mail, type: BOOLEAN}
+              - column: {name: push, type: BOOLEAN}
+              - column: {name: telegram, type: BOOLEAN}

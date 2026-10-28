@@ -91,8 +91,11 @@ class StoreTeamFlowIT {
                         + "subject_type = 'STORE' order by occurred_at", String.class, SeedUsers.SLEEPY.id()))
                 .contains("REQUEST_TO_JOIN", "REQUEST_APPROVED", "MOVED_TO_JUMPER", "MOVED_TO_TEAM",
                         "REMOVED_FROM_STORE");
+        // A23: sleepy switched mails off in every category (seed 101), so the removal is a bell without mail.
         assertThat(jdbc.queryForObject("select count(*) from mail_outbox where template = 'store/member-removed'",
-                Integer.class)).isEqualTo(1);
+                Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from bell where user_id = ? and type = 'STORE_MEMBER_REMOVED' "
+                + "and mail_outbox_id is null", Integer.class, SeedUsers.SLEEPY.id())).isEqualTo(1);
     }
 
     @Test

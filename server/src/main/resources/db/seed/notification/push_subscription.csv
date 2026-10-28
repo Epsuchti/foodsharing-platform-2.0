@@ -1,0 +1,2 @@
+id,version,created_at,updated_at,created_by,updated_by,user_id,endpoint,endpoint_hash,p256dh,auth,user_agent,last_success_at,failure_count
+00000004-0003-4000-8000-000000000001,0,2026-10-01T09:00:00Z,2026-11-02T07:00:00Z,NULL,NULL,00000001-0001-4000-8000-000000000006,https://push.local/seed/foodsaver-1,dca05bcc680ca096ad83d1dd2f54862dc6d12a65f780be4675b37d600eaa4121,BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM,tBHItJI5svbpez7KI4CCXg,Mozilla/5.0 (seed),2026-11-02T07:00:00Z,0

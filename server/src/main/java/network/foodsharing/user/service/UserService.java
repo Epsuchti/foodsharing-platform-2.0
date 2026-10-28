@@ -148,6 +148,18 @@ public class UserService {
         return user;
     }
 
+    /** Newsletter opt-in of the current user (N7); one SETTINGS_CHANGED entry when it changes. */
+    @Transactional
+    public User setNewsletterOptIn(boolean optIn) {
+        User user = getCurrentForUpdate();
+        if (user.isNewsletterOptIn() != optIn) {
+            history.record(history.event(UserAction.SETTINGS_CHANGED, user.getId())
+                    .change("newsletterOptIn", user.isNewsletterOptIn(), optIn).build());
+            user.setNewsletterOptIn(optIn);
+        }
+        return user;
+    }
+
     /**
      * Changes the current user's own profile (plan §8.3). One PROFILE_UPDATED entry per changed field
      * (PHONE_CHANGED for the mobile phone, HOME_REGION_CHANGED for the home region; phone numbers and the date of

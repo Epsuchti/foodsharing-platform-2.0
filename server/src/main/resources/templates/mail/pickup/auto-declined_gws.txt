@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Iitragig für d Abholig bi [(${storeName})] am [(${when})] isch automatisch entfernt worde.
+[# th:if="${reason != null}"]
+Nachricht: [(${reason})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

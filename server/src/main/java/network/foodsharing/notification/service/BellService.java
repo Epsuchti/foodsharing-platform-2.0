@@ -1,15 +1,20 @@
 package network.foodsharing.notification.service;
 
 import java.time.Clock;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import network.foodsharing.api.model.ApiErrorCode;
+import network.foodsharing.common.error.ApiException;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.Bell;
 import network.foodsharing.notification.domain.NotificationAction;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.repository.BellRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
@@ -68,6 +73,63 @@ public class BellService {
         List<Bell> bells = repository.findByIdentifierAndDeletedAtIsNull(identifier);
         bells.forEach(bell -> bell.setDeletedAt(clock.instant()));
         return bells.size();
+    }
+
+    /** My visible bells, unread first, newest first (N3). */
+    @Transactional(readOnly = true)
+    public Page<Bell> page(UUID userId, boolean unreadOnly, int page, int size) {
+        return repository.page(userId, unreadOnly, PageRequest.of(Math.max(0, page), Math.clamp(size, 1, 100)));
+    }
+
+    @Transactional(readOnly = true)
+    public long unreadCount(UUID userId) {
+        return repository.countByUserIdAndReadAtIsNullAndDeletedAtIsNull(userId);
+    }
+
+    /** Marks own bells read; unknown or foreign ids are ignored. */
+    @Transactional
+    public int markRead(UUID userId, Collection<UUID> ids) {
+        int changed = ids.isEmpty() ? 0 : repository.markRead(userId, ids, clock.instant());
+        recordBulk(NotificationAction.BELL_READ, userId, changed);
+        return changed;
+    }
+
+    @Transactional
+    public int markAllRead(UUID userId) {
+        int changed = repository.markAllRead(userId, clock.instant());
+        recordBulk(NotificationAction.BELL_READ, userId, changed);
+        return changed;
+    }
+
+    /** Soft-deletes one own bell. @throws ApiException 404 BELL_NOT_FOUND */
+    @Transactional
+    public void delete(UUID userId, UUID bellId) {
+        Bell bell = repository.findByIdAndUserIdAndDeletedAtIsNull(bellId, userId)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.BELL_NOT_FOUND));
+        bell.setDeletedAt(clock.instant());
+        recordBulk(NotificationAction.BELL_DELETED, userId, 1);
+    }
+
+    /** Soft-deletes all own bells, or only the read ones. */
+    @Transactional
+    public int deleteAll(UUID userId, boolean readOnly) {
+        int changed = repository.deleteAll(userId, readOnly, clock.instant());
+        recordBulk(NotificationAction.BELL_DELETED, userId, changed);
+        return changed;
+    }
+
+    /** Marks a bell as pushed (web push channel). */
+    @Transactional
+    @NoHistory(reason = "delivery marker; the notification itself is recorded as NOTIFICATION_SENT")
+    public void markPushed(UUID bellId) {
+        repository.findById(bellId).ifPresent(bell -> bell.setPushedAt(clock.instant()));
+    }
+
+    private void recordBulk(NotificationAction action, UUID userId, int count) {
+        if (count > 0) {
+            history.record(history.event(action, HistoryService.SYSTEM_SUBJECT_ID).secondarySubject(userId)
+                    .metadata(Map.of("count", count)).build());
+        }
     }
 
     @Transactional(readOnly = true)

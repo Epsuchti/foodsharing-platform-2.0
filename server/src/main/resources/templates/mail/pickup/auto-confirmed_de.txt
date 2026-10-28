@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+deine Abholung bei [(${storeName})] am [(${when})] wurde automatisch bestätigt.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+dini Aafrog für s Team vo [(${storeName})] isch automatisch abglehnt worde.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

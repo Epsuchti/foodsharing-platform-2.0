@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+your request to join the team of [(${storeName})] was declined automatically.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

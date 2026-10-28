@@ -20,6 +20,7 @@ import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.NotificationRequest;
+import network.foodsharing.store.domain.StoreApplicationReceivedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.service.MembershipService;
@@ -209,6 +210,52 @@ public class StoreTeamService {
         }
         notify(recipients, NotificationType.STORE_NEW_REQUEST, store, null, user.getDisplayName(),
                 BellService.identifier(NotificationType.STORE_NEW_REQUEST, storeId), null);
+        events.publishEvent(new StoreApplicationReceivedEvent(storeId, user.getId()));
+    }
+
+    /**
+     * A24: the request policy accepts an application onto the team (no permission check; actor AUTOMATION
+     * {@code policyName}); bell STORE_REQUEST_AUTO_ACCEPTED.
+     *
+     * @return false when there is no open application (nothing happens)
+     */
+    @Transactional
+    public boolean acceptByAutomation(UUID storeId, UUID userId, String policyName) {
+        Store store = stores.require(storeId);
+        StoreMembership m = memberships.findByStoreIdAndUserId(storeId, userId)
+                .filter(membership -> membership.getStatus() == StoreMembershipStatus.APPLIED).orElse(null);
+        if (m == null) {
+            return false;
+        }
+        m.setStatus(StoreMembershipStatus.MEMBER);
+        m.setAddedAt(clock.instant());
+        regionMemberships.addByMaintenance(userId, store.getRegionId());
+        history.record(history.event(StoreLogAction.REQUEST_APPROVED, store.getId()).actorAutomation(policyName)
+                .secondarySubject(userId).region(store.getRegionId()).build());
+        notify(List.of(userId), NotificationType.STORE_REQUEST_AUTO_ACCEPTED, store, null, null, null, null);
+        return true;
+    }
+
+    /**
+     * A24: the request policy declines an application with a message; bell + mail STORE_REQUEST_AUTO_DECLINED.
+     *
+     * @return false when there is no open application (nothing happens)
+     */
+    @Transactional
+    public boolean declineByAutomation(UUID storeId, UUID userId, String policyName, String message) {
+        Store store = stores.require(storeId);
+        StoreMembership m = memberships.findByStoreIdAndUserId(storeId, userId)
+                .filter(membership -> membership.getStatus() == StoreMembershipStatus.APPLIED).orElse(null);
+        if (m == null) {
+            return false;
+        }
+        memberships.delete(m);
+        String text = blank(message) ? null : message.strip();
+        history.record(history.event(StoreLogAction.REQUEST_DECLINED, store.getId()).actorAutomation(policyName)
+                .secondarySubject(userId).region(store.getRegionId()).reason(text).build());
+        notify(List.of(userId), NotificationType.STORE_REQUEST_AUTO_DECLINED, store, text, null, null,
+                "store/request-auto-declined");
+        return true;
     }
 
     /** @throws ApiException 404, 409 NOT_APPLIED */

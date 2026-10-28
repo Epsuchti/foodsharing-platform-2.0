@@ -185,7 +185,7 @@ class QuizApiIT {
     void hygieneExpiryRemindsOncePer30Days() throws Exception {
         mvc.perform(post("/api/dev/jobs/hygiene-expiry/run")).andExpect(status().isNoContent());
         mvc.perform(post("/api/dev/jobs/hygiene-expiry/run")).andExpect(status().isNoContent());
-        mvc.perform(get("/api/dev/notifications").param("type", "HYGIENE_EXPIRING"))
+        mvc.perform(get("/api/dev/notifications").param("type", "HYGIENE_EXPIRING").param("channel", "BELL"))
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].userId").value(SeedUsers.FOODSAVER.id().toString()))
                 .andExpect(jsonPath("$[0].params.days").value("65"));

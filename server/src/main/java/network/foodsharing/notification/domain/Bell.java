@@ -51,6 +51,10 @@ public class Bell extends BaseEntity {
     @Column(name = "read_at")
     private Instant readAt;
 
+    /** Set when at least one web push went out for this bell (M4). */
+    @Column(name = "pushed_at")
+    private Instant pushedAt;
+
     @Column(name = "deleted_at")
     private Instant deletedAt;
 }

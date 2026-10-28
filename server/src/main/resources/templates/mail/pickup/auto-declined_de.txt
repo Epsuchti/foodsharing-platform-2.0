@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+deine Eintragung für die Abholung bei [(${storeName})] am [(${when})] wurde automatisch entfernt.
+[# th:if="${reason != null}"]
+Nachricht: [(${reason})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

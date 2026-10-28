@@ -13,7 +13,9 @@ import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.NotificationRequest;
+import network.foodsharing.pickup.domain.PickupAction;
 import network.foodsharing.pickup.domain.PickupDate;
+import network.foodsharing.pickup.domain.PickupEvents;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.repository.PickupDateRepository;
 import network.foodsharing.pickup.repository.PickupSignupRepository;
@@ -107,6 +109,8 @@ public class PickupSignupService {
         }
         signups.save(signup);
         log(StoreLogAction.SIGN_UP_SLOT, store, actor.userId(), pickupAt, null, Map.of());
+        events.publishEvent(new PickupEvents.PickupSignedUpEvent(storeId, pickupAt, actor.userId(), confirmed,
+                clock.instant()));
         if (!confirmed) {
             List<UUID> managers = stores.managerIds(storeId).stream().filter(id -> !id.equals(actor.userId())).toList();
             StoreNotifications.send(events, request(managers, NotificationType.PICKUP_SIGNUP_UNCONFIRMED, store,
@@ -138,6 +142,8 @@ public class PickupSignupService {
         String text = message == null || message.isBlank() ? null : message.strip();
         log(self ? StoreLogAction.SIGN_OUT_SLOT : StoreLogAction.REMOVED_FROM_SLOT, store, userId, pickupAt,
                 self ? null : text, Map.of());
+        events.publishEvent(new PickupEvents.PickupSignedOutEvent(storeId, pickupAt, userId, actor.userId(),
+                clock.instant()));
         if (!self) {
             NotificationRequest.Builder bell = request(List.of(userId), NotificationType.PICKUP_REMOVED, store,
                     pickupAt).param("message", sendMessage ? text : null);
@@ -162,11 +168,82 @@ public class PickupSignupService {
         log(StoreLogAction.SLOT_CONFIRMED, store, userId, pickupAt, null, Map.of());
         StoreNotifications.send(events, request(List.of(userId), NotificationType.PICKUP_CONFIRMED, store, pickupAt)
                 .build());
+        events.publishEvent(new PickupEvents.PickupConfirmedEvent(storeId, pickupAt, userId, actor.userId()));
+        removeUnconfirmedBellWhenDone(storeId);
+    }
+
+    /**
+     * A24: the pickup policy confirms a sign-up (no permission check; actor AUTOMATION {@code policyName}). Store log
+     * SLOT_CONFIRMED + {@link PickupAction#AUTO_CONFIRMED}; bell PICKUP_CONFIRMED, or bell + mail
+     * PICKUP_AUTO_CONFIRMED_WITH_MESSAGE when a message is given (e.g. the cleaning reminder).
+     *
+     * @return false when the sign-up is gone or already confirmed (nothing happens)
+     */
+    @Transactional
+    public boolean confirmByAutomation(UUID storeId, Instant pickupAt, UUID userId, String policyName,
+                                       String message) {
+        Store store = stores.require(storeId);
+        PickupSignup signup = signups.findByStoreIdAndUserIdAndPickupAt(storeId, userId, pickupAt).orElse(null);
+        if (signup == null || signup.isConfirmed()) {
+            return false;
+        }
+        signup.setConfirmed(true);
+        signup.setConfirmedBy(null);
+        signup.setConfirmedAt(clock.instant());
+        String text = message == null || message.isBlank() ? null : message.strip();
+        logAutomation(StoreLogAction.SLOT_CONFIRMED, store, userId, pickupAt, null, policyName);
+        history.record(history.event(PickupAction.AUTO_CONFIRMED, userId).actorAutomation(policyName)
+                .region(store.getRegionId()).metadata("storeId", storeId.toString())
+                .metadata("pickupAt", pickupAt.toString()).build());
+        NotificationRequest.Builder bell = text == null
+                ? request(List.of(userId), NotificationType.PICKUP_CONFIRMED, store, pickupAt)
+                : request(List.of(userId), NotificationType.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE, store, pickupAt)
+                        .param("message", text).mail("pickup/auto-confirmed");
+        StoreNotifications.send(events, bell.build());
+        events.publishEvent(new PickupEvents.PickupConfirmedEvent(storeId, pickupAt, userId, null));
+        removeUnconfirmedBellWhenDone(storeId);
+        return true;
+    }
+
+    /**
+     * A24: the pickup policy removes a sign-up (no permission check, also within the pickup's last hours). Store log
+     * REMOVED_FROM_SLOT (reason = message) + {@link PickupAction#AUTO_DECLINED}; bell + mail PICKUP_AUTO_DECLINED.
+     *
+     * @return false when the sign-up is gone
+     */
+    @Transactional
+    public boolean removeByAutomation(UUID storeId, Instant pickupAt, UUID userId, String policyName,
+                                      String message) {
+        Store store = stores.require(storeId);
+        PickupSignup signup = signups.findByStoreIdAndUserIdAndPickupAt(storeId, userId, pickupAt).orElse(null);
+        if (signup == null) {
+            return false;
+        }
+        signups.delete(signup);
+        String text = message == null || message.isBlank() ? null : message.strip();
+        logAutomation(StoreLogAction.REMOVED_FROM_SLOT, store, userId, pickupAt, text, policyName);
+        history.record(history.event(PickupAction.AUTO_DECLINED, userId).actorAutomation(policyName)
+                .region(store.getRegionId()).metadata("storeId", storeId.toString())
+                .metadata("pickupAt", pickupAt.toString()).reason(text).build());
+        StoreNotifications.send(events, request(List.of(userId), NotificationType.PICKUP_AUTO_DECLINED, store,
+                pickupAt).param("reason", text).mail("pickup/auto-declined").build());
+        events.publishEvent(new PickupEvents.PickupSignedOutEvent(storeId, pickupAt, userId, null, clock.instant()));
+        removeUnconfirmedBellWhenDone(storeId);
+        return true;
+    }
+
+    private void removeUnconfirmedBellWhenDone(UUID storeId) {
         signups.flush();
         if (!signups.existsByStoreIdAndConfirmedFalseAndPickupAtAfter(storeId, clock.instant())) {
             StoreNotifications.removeBells(events,
                     BellService.identifier(NotificationType.PICKUP_SIGNUP_UNCONFIRMED, storeId));
         }
+    }
+
+    private void logAutomation(StoreLogAction action, Store store, UUID userId, Instant pickupAt, String reason,
+                               String policyName) {
+        history.record(history.event(action, store.getId()).actorAutomation(policyName).secondarySubject(userId)
+                .region(store.getRegionId()).metadata("pickupAt", pickupAt.toString()).reason(reason).build());
     }
 
     /**

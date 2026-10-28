@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+ta demande pour rejoindre l’équipe de [(${storeName})] a été refusée automatiquement.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

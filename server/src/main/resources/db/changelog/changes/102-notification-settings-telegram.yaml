@@ -1,0 +1,76 @@
+# Milestone 4 (B2): notification channel settings per category (A23) and the Telegram tables (A28, used from B3).
+databaseChangeLog:
+  - changeSet:
+      id: 102-1
+      author: platform
+      comment: 'Channel switches per user and NotificationCategory; no row = defaults.'
+      changes:
+        - createTable:
+            tableName: user_notification_setting
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_user_notification_setting, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_user_notification_setting_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: category, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: mail, type: BOOLEAN, constraints: {nullable: false}}
+              - column: {name: push, type: BOOLEAN, constraints: {nullable: false}}
+              - column: {name: telegram, type: BOOLEAN, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: user_notification_setting
+            columnNames: user_id, category
+            constraintName: uq_user_notification_setting_user_id_category
+  - changeSet:
+      id: 102-2
+      author: platform
+      comment: 'Linked Telegram chat of a user (A28).'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: telegram_chat_id, type: VARCHAR(40), constraints: {unique: true, uniqueConstraintName: uq_user_account_telegram_chat_id}}
+  - changeSet:
+      id: 102-3
+      author: platform
+      comment: 'One-time Telegram link tokens (15 min), region/store alert chats and the getUpdates offset (A28).'
+      changes:
+        - createTable:
+            tableName: telegram_link_token
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_telegram_link_token, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: token, type: VARCHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_telegram_link_token_token}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_telegram_link_token_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: used_at, type: TIMESTAMP WITH TIME ZONE}
+        - createTable:
+            tableName: telegram_chat
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_telegram_chat, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_type, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: chat_id, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: title, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: enabled, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: telegram_chat
+            columnNames: owner_type, owner_id, chat_id
+            constraintName: uq_telegram_chat_owner_type_owner_id_chat_id
+        - createTable:
+            tableName: telegram_offset
+            columns:
+              - column: {name: id, type: INT, constraints: {primaryKey: true, primaryKeyName: pk_telegram_offset, nullable: false}}
+              - column: {name: last_update_id, type: BIGINT, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}

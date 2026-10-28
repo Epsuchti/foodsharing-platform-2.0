@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+your pickup at [(${storeName})] on [(${when})] was confirmed automatically.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team

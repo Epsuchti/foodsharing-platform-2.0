@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+la tua iscrizione al ritiro presso [(${storeName})] il [(${when})] è stata rimossa automaticamente.
+[# th:if="${reason != null}"]
+Messaggio: [(${reason})]
+[/]
+
+[(${link})]
+
+Il tuo team foodsharing

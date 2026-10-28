@@ -9,8 +9,10 @@ import network.foodsharing.common.jobs.JobRun;
 import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.common.jobs.RunnableJob;
 import network.foodsharing.notification.domain.Bell;
+import network.foodsharing.notification.domain.NotificationChannelType;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.BellService;
+import network.foodsharing.notification.service.CapturedMessages;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -27,9 +29,12 @@ public class DevNotificationService {
     private final BellService bells;
     private final List<RunnableJob> jobs;
     private final JobRunner jobRunner;
+    private final CapturedMessages captured;
 
-    public DevNotificationService(BellService bells, List<RunnableJob> jobs, JobRunner jobRunner) {
+    public DevNotificationService(BellService bells, List<RunnableJob> jobs, JobRunner jobRunner,
+                                  CapturedMessages captured) {
         this.jobRunner = jobRunner;
+        this.captured = captured;
         this.bells = bells;
         this.jobs = jobs;
     }
@@ -53,6 +58,15 @@ public class DevNotificationService {
         RunnableJob job = jobs.stream().filter(candidate -> candidate.jobName().equals(name)).findFirst()
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.DEV_JOB_NOT_FOUND));
         jobRunner.run(job, JobRun.Trigger.MANUAL, null);
+    }
+
+    /** Push / Telegram messages captured by the log-only clients (A23). */
+    public List<CapturedMessages.Captured> captured(UUID userId, String type, NotificationChannelType channel) {
+        return captured.list(userId, type, channel);
+    }
+
+    public void clearCaptured() {
+        captured.clear();
     }
 
     public List<String> jobNames() {

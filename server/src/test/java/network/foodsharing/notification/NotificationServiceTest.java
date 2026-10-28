@@ -17,8 +17,11 @@ import network.foodsharing.notification.mail.service.MailDraft;
 import network.foodsharing.notification.mail.service.MailOutboxService;
 import network.foodsharing.notification.repository.BellRepository;
 import network.foodsharing.notification.service.BellService;
+import network.foodsharing.notification.service.ChannelDispatcher;
+import network.foodsharing.notification.service.MailChannel;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
+import network.foodsharing.notification.service.NotificationSettingsService;
 import network.foodsharing.testsupport.JpaSliceTest;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
@@ -33,7 +36,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** A12: a bell row per active recipient, a queued mail unless bell-only, history, removal by identifier. */
 @JpaSliceTest
-@Import({NotificationService.class, BellService.class, UserService.class})
+@Import({NotificationService.class, BellService.class, UserService.class, ChannelDispatcher.class,
+        NotificationSettingsService.class, MailChannel.class})
 class NotificationServiceTest {
 
     @Autowired
