@@ -139,6 +139,13 @@ welcome). Resulting journeys: newbie / profile PROFILE_REGION, quiz QUIZ or AGRE
 verified users complete or PASSPORT.
 
 
+### Store chain administration (B7)
+
+Loaded by the store seed (`060-store-seed.yaml` changeset `seed-060-8`, CSVs in `db/seed/store/`), ids in the region
+block: `region_function` `00000010-0007-…-20` = Europa → STORE_CHAINS → global group "Betriebsketten CH"
+(`00000011-0001-…-06`); `region_admin` `00000010-0003-…-10` = reports@local administrates that group (chain admin
+without being ORGA). KAMs stay as in B2 (bieb → Coop, bot → Migros).
+
 ### Store wall (B6, module 0020 table 0008)
 
 `store_wall_post` `00000020-0008-…-01`–`84` (`db/seed/store/store_wall_post.csv`, local profile date-shifted by
