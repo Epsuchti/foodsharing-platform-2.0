@@ -164,6 +164,10 @@ public class User extends BaseEntity implements HistorySubject {
     @Column(name = "info_mail_message", nullable = false)
     private boolean infoMailMessage = true;
 
+    /** Reminder bell + mail before own pickups (B5). */
+    @Column(name = "pickup_reminders_enabled", nullable = false)
+    private boolean pickupRemindersEnabled = true;
+
     @Column(name = "no_automatic_delete", nullable = false)
     private boolean noAutomaticDelete;
 

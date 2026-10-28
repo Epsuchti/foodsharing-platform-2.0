@@ -4,5 +4,9 @@ import network.foodsharing.api.model.Language;
 import network.foodsharing.api.model.Theme;
 
 /** Settings the user changes; null = unchanged. */
-public record SettingsChange(Language language, Theme theme) {
+public record SettingsChange(Language language, Theme theme, Boolean pickupRemindersEnabled) {
+
+    public SettingsChange(Language language, Theme theme) {
+        this(language, theme, null);
+    }
 }

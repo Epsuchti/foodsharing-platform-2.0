@@ -33,7 +33,8 @@ public class UsersController implements UsersApi {
     @Override
     public ResponseEntity<UserProfile> updateMySettings(UserSettingsUpdate update) {
         var user = HistoryContext.withReason(update.getReason(),
-                () -> userService.updateSettings(new SettingsChange(update.getLanguage(), update.getTheme())));
+                () -> userService.updateSettings(new SettingsChange(update.getLanguage(), update.getTheme(),
+                        update.getPickupRemindersEnabled())));
         return ResponseEntity.ok(mapper.toProfile(user));
     }
 

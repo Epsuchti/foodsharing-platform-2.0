@@ -91,12 +91,7 @@ public class PickupMapper {
         model.setPickupAt(time(slot.pickupAt()));
         model.setSlotCount(slot.slotCount());
         model.setDescription(slot.description());
-        model.setOccupiedSlots(slot.signups().stream().filter(s -> byId.containsKey(s.getUserId())).map(s -> {
-            PickupSlot ps = new PickupSlot();
-            ps.setUser(userMapper.toSummary(byId.get(s.getUserId())));
-            ps.setConfirmed(s.isConfirmed());
-            return ps;
-        }).toList());
+        model.setOccupiedSlots(slots(slot, byId));
         model.setIsAvailable(available);
         model.setIsRegular(slot.regular());
         model.setEligibility(eligibility == null ? null : toModel(eligibility));
@@ -123,5 +118,60 @@ public class PickupMapper {
             model.setRegionRule(state);
         }
         return model;
+    }
+
+    public network.foodsharing.api.model.StoreRef toStoreRef(network.foodsharing.store.domain.Store store,
+                                                            java.time.ZoneId zone) {
+        network.foodsharing.api.model.StoreRef ref = new network.foodsharing.api.model.StoreRef();
+        ref.setId(store.getId());
+        ref.setName(store.getName());
+        ref.setRegionId(store.getRegionId());
+        ref.setTimeZone(zone.getId());
+        return ref;
+    }
+
+    public List<network.foodsharing.api.model.UserPickup> toUserPickups(
+            List<network.foodsharing.pickup.service.PickupUserService.UserPickupView> views) {
+        Map<UUID, User> byId = usersOf(views.stream().map(v -> v.slot()).toList());
+        return views.stream().map(v -> {
+            network.foodsharing.api.model.UserPickup model = new network.foodsharing.api.model.UserPickup();
+            model.setStore(toStoreRef(v.store(), v.zone()));
+            model.setPickupAt(time(v.slot().pickupAt()));
+            model.setConfirmed(Boolean.TRUE.equals(v.confirmed()));
+            model.setSlotCount(v.slot().slotCount());
+            model.setDescription(v.slot().description());
+            model.setOccupiedSlots(slots(v.slot(), byId));
+            return model;
+        }).toList();
+    }
+
+    public List<network.foodsharing.api.model.PickupOption> toOptions(
+            List<network.foodsharing.pickup.service.PickupUserService.UserPickupView> views) {
+        Map<UUID, User> byId = usersOf(views.stream().map(v -> v.slot()).toList());
+        return views.stream().map(v -> {
+            network.foodsharing.api.model.PickupOption model = new network.foodsharing.api.model.PickupOption();
+            model.setStore(toStoreRef(v.store(), v.zone()));
+            model.setPickupAt(time(v.slot().pickupAt()));
+            model.setSlotCount(v.slot().slotCount());
+            model.setDescription(v.slot().description());
+            model.setOccupiedSlots(v.slot().signups().stream().filter(s -> byId.containsKey(s.getUserId()))
+                    .map(s -> userMapper.toSummary(byId.get(s.getUserId()))).toList());
+            model.setIsConfirmed(v.confirmed());
+            return model;
+        }).toList();
+    }
+
+    public List<Pickup> toPastModels(List<PickupSchedule.Slot> slots) {
+        Map<UUID, User> byId = usersOf(slots);
+        return slots.stream().map(s -> toModel(s, false, null, byId)).toList();
+    }
+
+    private List<PickupSlot> slots(PickupSchedule.Slot slot, Map<UUID, User> byId) {
+        return slot.signups().stream().filter(s -> byId.containsKey(s.getUserId())).map(s -> {
+            PickupSlot ps = new PickupSlot();
+            ps.setUser(userMapper.toSummary(byId.get(s.getUserId())));
+            ps.setConfirmed(s.isConfirmed());
+            return ps;
+        }).toList();
     }
 }

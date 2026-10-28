@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+Erinnerung: du holst am [(${when})] bei [(${storeName})] ab.
+
+[(${link})]
+
+Dein foodsharing-Team

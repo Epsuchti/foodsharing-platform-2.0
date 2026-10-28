@@ -64,8 +64,15 @@ public class RegionMapper {
 
     private network.foodsharing.region.service.RegionStoreStats storeStats = regionId -> 0;
 
+    private network.foodsharing.region.service.MemberPickupStats memberPickupStats;
+
     public RegionMapper(UserMapper users) {
         this.users = users;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMemberPickupStats(network.foodsharing.region.service.MemberPickupStats memberPickupStats) {
+        this.memberPickupStats = memberPickupStats;
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -179,7 +186,8 @@ public class RegionMapper {
         member.setUser(users.toSummary(view.user(), view.showPhone()));
         member.setAdmin(view.admin());
         member.setJoinedAt(TimeMapper.toOffset(view.membership().getJoinedAt()));
-        member.setLastPickupAt(null);
+        member.setLastPickupAt(memberPickupStats == null ? null : memberPickupStats.lastPickupAt(view.user().getId())
+                .map(TimeMapper::toOffset).orElse(null));
         member.setPermissions(view.permissions().stream().sorted()
                 .map(permission -> Permission.fromValue(permission.name())).toList());
         member.setVerified(view.user().isVerified());

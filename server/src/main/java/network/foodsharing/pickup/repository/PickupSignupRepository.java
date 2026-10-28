@@ -50,4 +50,27 @@ public interface PickupSignupRepository extends JpaRepository<PickupSignup, UUID
             + "max(s.pickupAt) as lastPickupAt from PickupSignup s where s.storeId = :storeId and s.confirmed = true "
             + "and s.pickupAt < :now group by s.userId")
     List<MemberStatsRow> memberStats(@Param("storeId") UUID storeId, @Param("now") Instant now);
+
+    List<PickupSignup> findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAt(UUID userId, Instant from);
+
+    List<PickupSignup> findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAt(UUID userId,
+                                                                                               Instant from,
+                                                                                               Instant to);
+
+    org.springframework.data.domain.Page<PickupSignup> findByUserIdAndPickupAtLessThanOrderByPickupAtDesc(
+            UUID userId, Instant before, org.springframework.data.domain.Pageable pageable);
+
+    /** Past confirmed sign-ups of a user (member statistics). */
+    long countByUserIdAndConfirmedTrueAndPickupAtLessThan(UUID userId, Instant now);
+
+    Optional<PickupSignup> findFirstByUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(UUID userId,
+                                                                                                  Instant now);
+
+    @Query("select s from PickupSignup s where s.confirmed = true and s.pickupAt >= :from and s.pickupAt < :to "
+            + "and s.storeId in :storeIds")
+    List<PickupSignup> findConfirmedInStores(@Param("storeIds") Collection<UUID> storeIds, @Param("from") Instant from,
+                                             @Param("to") Instant to);
+
+    @Query("select s from PickupSignup s where s.remindedAt is null and s.pickupAt > :from and s.pickupAt <= :to")
+    List<PickupSignup> findToRemind(@Param("from") Instant from, @Param("to") Instant to);
 }

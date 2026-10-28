@@ -11,6 +11,7 @@ import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.service.StorePermissionService;
 import network.foodsharing.store.service.StoreService;
 import network.foodsharing.verification.service.UnverifyGuard;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,9 +29,10 @@ public class PickupIntegrations {
         };
     }
 
-    /** PICKUP history (subject = store id): the same readers as the store log (maySeeStoreLog). */
+    /** PICKUP history (subject = store id): the same readers as the store log (lazy: history ← store cycle). */
     @Bean
-    HistoryAccessRule pickupHistoryAccessRule(StoreService stores, StorePermissionService rights) {
+    HistoryAccessRule pickupHistoryAccessRule(ObjectProvider<StoreService> stores,
+                                              ObjectProvider<StorePermissionService> rights) {
         return new HistoryAccessRule() {
             @Override
             public SubjectType subjectType() {
@@ -39,8 +41,8 @@ public class PickupIntegrations {
 
             @Override
             public boolean canRead(SessionPrincipal actor, UUID subjectId) {
-                return actor != null && stores.liveStores(java.util.List.of(subjectId)).stream()
-                        .anyMatch(store -> rights.rights(actor, store).maySeeStoreLog());
+                return actor != null && stores.getObject().liveStores(java.util.List.of(subjectId)).stream()
+                        .anyMatch(store -> rights.getObject().rights(actor, store).maySeeStoreLog());
             }
         };
     }

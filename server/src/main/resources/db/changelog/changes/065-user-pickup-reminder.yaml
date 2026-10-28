@@ -1,0 +1,11 @@
+# Milestone 3 (B5): per-user switch for pickup reminders (PU9).
+databaseChangeLog:
+  - changeSet:
+      id: 065-1
+      author: platform
+      comment: 'Reminder bell + mail before own pickups (default on).'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: pickup_reminders_enabled, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}

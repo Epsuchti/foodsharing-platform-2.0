@@ -190,6 +190,16 @@ public class IntroPickupBookingService {
         return slot;
     }
 
+    /** Booked EinAbs of a user starting in [from, to) (pickup agenda, B5; the caller checks access). */
+    @Transactional(readOnly = true)
+    public List<BookingView> bookingsOf(UUID userId, Instant from, Instant to) {
+        return views.bookings(slots.findBookingsOfUser(userId)).stream()
+                .filter(b -> b.slot().slot().getStatus() == SlotStatus.BOOKED)
+                .filter(b -> !b.pickup().pickup().getStartAt().isBefore(from)
+                        && b.pickup().pickup().getStartAt().isBefore(to))
+                .sorted(Comparator.comparing((BookingView b) -> b.pickup().pickup().getStartAt())).toList();
+    }
+
     /** Own bookings of the current user (upcoming or past), all regions. */
     @Transactional(readOnly = true)
     public List<BookingView> myBookings(boolean past) {

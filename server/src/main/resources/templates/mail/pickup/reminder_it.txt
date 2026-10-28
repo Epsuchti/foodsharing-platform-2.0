@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+promemoria: hai un ritiro presso [(${storeName})] il [(${when})].
+
+[(${link})]
+
+Il tuo team foodsharing

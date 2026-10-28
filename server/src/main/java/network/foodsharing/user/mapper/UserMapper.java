@@ -36,6 +36,7 @@ public class UserMapper {
         profile.setLastName(user.getLastName());
         profile.setLanguage(user.getPreferredLanguage());
         profile.setTheme(user.getTheme());
+        profile.setPickupRemindersEnabled(user.isPickupRemindersEnabled());
         profile.setRole(user.getRole());
         profile.setVerified(user.isVerified());
         profile.setAvatarUrl(user.getAvatarUrl());

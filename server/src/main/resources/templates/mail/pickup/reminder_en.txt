@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+reminder: you are picking up at [(${storeName})] on [(${when})].
+
+[(${link})]
+
+Your foodsharing team

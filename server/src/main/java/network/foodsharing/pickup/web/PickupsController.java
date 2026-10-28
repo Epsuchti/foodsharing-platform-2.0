@@ -18,17 +18,18 @@ import network.foodsharing.api.model.RegularPickup;
 import network.foodsharing.api.model.SignupResult;
 import network.foodsharing.api.model.UserPickup;
 import network.foodsharing.api.model.UserPickupPage;
-import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.mapper.PageMapper;
+import network.foodsharing.intropickup.mapper.IntroPickupMapper;
 import network.foodsharing.pickup.mapper.PickupMapper;
 import network.foodsharing.pickup.service.PickupScheduleService;
 import network.foodsharing.pickup.service.PickupSignupService;
+import network.foodsharing.pickup.service.PickupUserService;
 import network.foodsharing.pickup.service.RegularPickupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Pickup API: schedules, sign-ups, confirmation (B4); user views, history, options, agenda answer 501
- * NOT_IMPLEMENTED until B5.
+ * Pickup API: schedules, sign-ups, confirmation (B4); user views, history, options, agenda (B5).
  */
 @RestController
 public class PickupsController implements PickupsApi {
@@ -37,10 +38,15 @@ public class PickupsController implements PickupsApi {
     private final PickupSignupService signups;
     private final RegularPickupService regular;
     private final PickupMapper mapper;
+    private final PickupUserService users;
+    private final IntroPickupMapper introMapper;
     private final Clock clock;
 
     public PickupsController(PickupScheduleService schedule, PickupSignupService signups,
-                             RegularPickupService regular, PickupMapper mapper, Clock clock) {
+                             RegularPickupService regular, PickupUserService users, PickupMapper mapper,
+                             IntroPickupMapper introMapper, Clock clock) {
+        this.users = users;
+        this.introMapper = introMapper;
         this.schedule = schedule;
         this.signups = signups;
         this.regular = regular;
@@ -61,7 +67,8 @@ public class PickupsController implements PickupsApi {
 
     @Override
     public ResponseEntity<Void> deleteAllFuturePickups(UUID userId, ReasonBody reasonBody) {
-        throw ApiException.notImplemented("deleteAllFuturePickups");
+        users.deleteAllFuture(userId, reasonBody == null ? null : reasonBody.getReason());
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -73,7 +80,12 @@ public class PickupsController implements PickupsApi {
 
     @Override
     public ResponseEntity<AgendaDay> getAgenda(UUID userId, LocalDate date) {
-        throw ApiException.notImplemented("getAgenda");
+        var view = users.agenda(userId, date);
+        AgendaDay day = new AgendaDay();
+        day.setDate(view.date());
+        day.setPickups(mapper.toUserPickups(view.pickups()));
+        day.setIntroPickups(view.introPickups().stream().map(introMapper::toMyBooking).toList());
+        return ResponseEntity.ok(day);
     }
 
     @Override
@@ -83,22 +95,30 @@ public class PickupsController implements PickupsApi {
 
     @Override
     public ResponseEntity<PickupHistoryPage> getStorePickupHistory(UUID storeId, OffsetDateTime from, OffsetDateTime to, Integer page, Integer size) {
-        throw ApiException.notImplemented("getStorePickupHistory");
+        var result = users.storeHistory(storeId, PickupMapper.instant(from), PickupMapper.instant(to), page, size);
+        PickupHistoryPage body = new PickupHistoryPage();
+        body.setItems(mapper.toPastModels(result.getContent()));
+        body.setPage(PageMapper.toPageMeta(result));
+        return ResponseEntity.ok(body);
     }
 
     @Override
     public ResponseEntity<List<UserPickup>> listMyPickups() {
-        throw ApiException.notImplemented("listMyPickups");
+        return ResponseEntity.ok(mapper.toUserPickups(users.myPickups()));
     }
 
     @Override
     public ResponseEntity<UserPickupPage> listPastPickups(UUID userId, Integer page, Integer size) {
-        throw ApiException.notImplemented("listPastPickups");
+        var result = users.pastPickups(userId, page, size);
+        UserPickupPage body = new UserPickupPage();
+        body.setItems(mapper.toUserPickups(result.getContent()));
+        body.setPage(PageMapper.toPageMeta(result));
+        return ResponseEntity.ok(body);
     }
 
     @Override
     public ResponseEntity<List<PickupOption>> listPickupOptions() {
-        throw ApiException.notImplemented("listPickupOptions");
+        return ResponseEntity.ok(mapper.toOptions(users.options()));
     }
 
     @Override

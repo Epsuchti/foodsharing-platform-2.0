@@ -132,6 +132,13 @@ public class UserService {
                     .change("theme", user.getTheme(), change.theme()).build());
             user.setTheme(change.theme());
         }
+        if (change.pickupRemindersEnabled() != null
+                && change.pickupRemindersEnabled() != user.isPickupRemindersEnabled()) {
+            history.record(history.event(UserAction.PICKUP_REMINDERS_CHANGED, user.getId())
+                    .change("pickupRemindersEnabled", user.isPickupRemindersEnabled(), change.pickupRemindersEnabled())
+                    .build());
+            user.setPickupRemindersEnabled(change.pickupRemindersEnabled());
+        }
         return user;
     }
 

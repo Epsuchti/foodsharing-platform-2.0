@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+Erinnerig: du holsch am [(${when})] bi [(${storeName})] ab.
+
+[(${link})]
+
+Dis foodsharing-Team

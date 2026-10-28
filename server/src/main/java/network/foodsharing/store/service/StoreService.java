@@ -439,4 +439,31 @@ public class StoreService {
     public List<Store> liveStores(java.util.Collection<UUID> storeIds) {
         return storeIds.isEmpty() ? List.of() : stores.findLiveIn(storeIds);
     }
+
+    /** Live stores in which the user is a regular team member (pickup options, B5). */
+    @Transactional(readOnly = true)
+    public List<Store> teamStoresOf(UUID userId) {
+        List<UUID> ids = memberships.findByUserId(userId).stream()
+                .filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER).map(StoreMembership::getStoreId).toList();
+        return ids.isEmpty() ? List.of() : stores.findLiveIn(ids);
+    }
+
+    /** Live stores of the given regions (region statistics, B5). */
+    @Transactional(readOnly = true)
+    public List<Store> liveStoresInRegions(java.util.Collection<UUID> regionIds) {
+        return regionIds.isEmpty() ? List.of() : stores.findLiveInRegions(regionIds);
+    }
+
+    /** Stores by id including deleted ones (history lists). */
+    @Transactional(readOnly = true)
+    public List<Store> storesById(java.util.Collection<UUID> storeIds) {
+        return storeIds.isEmpty() ? List.of() : stores.findAllById(storeIds);
+    }
+
+    /** Average kg per pickup of a weight category code (0 when unknown). */
+    @Transactional(readOnly = true)
+    public double averageKg(String weightCategory) {
+        return weightCategory == null ? 0 : weights.findByCode(weightCategory)
+                .map(w -> w.getAverageKg() == null ? 0.0 : w.getAverageKg().doubleValue()).orElse(0.0);
+    }
 }

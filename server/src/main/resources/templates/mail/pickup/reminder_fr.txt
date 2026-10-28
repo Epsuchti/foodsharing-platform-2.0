@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+rappel : tu fais une collecte chez [(${storeName})] le [(${when})].
+
+[(${link})]
+
+Ton équipe foodsharing
