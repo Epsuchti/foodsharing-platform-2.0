@@ -36,16 +36,16 @@ public interface BellRepository extends JpaRepository<Bell, UUID> {
 
     Optional<Bell> findByIdAndUserIdAndDeletedAtIsNull(UUID id, UUID userId);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update Bell b set b.readAt = :now where b.userId = :userId and b.readAt is null and b.deletedAt is null "
             + "and b.id in :ids")
     int markRead(@Param("userId") UUID userId, @Param("ids") Collection<UUID> ids, @Param("now") Instant now);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update Bell b set b.readAt = :now where b.userId = :userId and b.readAt is null and b.deletedAt is null")
     int markAllRead(@Param("userId") UUID userId, @Param("now") Instant now);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update Bell b set b.deletedAt = :now where b.userId = :userId and b.deletedAt is null "
             + "and (:readOnly = false or b.readAt is not null)")
     int deleteAll(@Param("userId") UUID userId, @Param("readOnly") boolean readOnly, @Param("now") Instant now);

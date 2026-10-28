@@ -200,5 +200,31 @@ class NotificationFlowIT {
         // no open application → the store-team entry points do nothing
         assertThat(team.acceptByAutomation(S07_ID, SeedUsers.FOODSAVER.id(), "request-policy")).isFalse();
         assertThat(team.declineByAutomation(S07_ID, SeedUsers.FOODSAVER.id(), "request-policy", "zu weit")).isFalse();
+
+        // open applications → accepted onto the team / declined with bell + mail, actor AUTOMATION
+        apply(SeedUsers.GUIDE);
+        apply(SeedUsers.JUMPER);
+        assertThat(team.acceptByAutomation(S07_ID, SeedUsers.GUIDE.id(), "request-policy")).isTrue();
+        assertThat(count("select count(*) from store_membership where store_id = ? and user_id = ? and status = 'MEMBER'",
+                S07_ID, SeedUsers.GUIDE.id())).isEqualTo(1);
+        assertThat(count("select count(*) from bell where user_id = ? and type = 'STORE_REQUEST_AUTO_ACCEPTED'",
+                SeedUsers.GUIDE.id())).isEqualTo(1);
+        assertThat(count("select count(*) from history_entry where action = 'REQUEST_APPROVED' and actor_type = "
+                + "'AUTOMATION' and secondary_subject_id = ?", SeedUsers.GUIDE.id())).isEqualTo(1);
+        assertThat(team.declineByAutomation(S07_ID, SeedUsers.JUMPER.id(), "request-policy", "Wohnort zu weit weg"))
+                .isTrue();
+        assertThat(count("select count(*) from store_membership where store_id = ? and user_id = ?", S07_ID,
+                SeedUsers.JUMPER.id())).isZero();
+        assertThat(count("select count(*) from bell where user_id = ? and type = 'STORE_REQUEST_AUTO_DECLINED' "
+                + "and mail_outbox_id is not null", SeedUsers.JUMPER.id())).isEqualTo(1);
+        assertThat(count("select count(*) from mail_outbox where template = 'store/request-auto-declined'"))
+                .isEqualTo(1);
+    }
+
+    private void apply(SeedUsers user) {
+        jdbc.update("delete from store_membership where store_id = ? and user_id = ?", S07_ID, user.id());
+        jdbc.update("insert into store_membership (id, version, created_at, updated_at, store_id, user_id, status, "
+                + "manager) values (?, 0, current_timestamp, current_timestamp, ?, ?, 'APPLIED', false)",
+                UUID.randomUUID(), S07_ID, user.id());
     }
 }
