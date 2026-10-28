@@ -108,6 +108,16 @@ public class StorePermissionService {
                 && kams.existsByChainIdAndUserId(store.getChainId(), actor.userId());
     }
 
+    /**
+     * Public store page for non-members (upstream store view for foodsavers of the region): foodsavers who are
+     * active members of the store's region see name, address, category, statuses, public info and requirements so
+     * they can apply; ambassadors/coordinators already have full access.
+     */
+    public boolean mayViewPublic(SessionPrincipal actor, Store store) {
+        return actor != null && PermissionService.isAtLeast(actor.role(), Role.FOODSAVER)
+                && permissions.isMemberOf(actor, store.getRegionId());
+    }
+
     public Rights rights(SessionPrincipal actor, Store store) {
         boolean orga = actor != null && permissions.isOrga(actor);
         UserTeamStatus status = teamStatus(actor == null ? null : actor.userId(), store.getId());

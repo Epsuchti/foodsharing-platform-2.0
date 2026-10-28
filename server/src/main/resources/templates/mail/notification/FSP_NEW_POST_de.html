@@ -1,0 +1,5 @@
+<p style="margin:0 0 12px;" th:text="'Hallo ' + ${displayName} + ','">Hallo,</p>
+<p style="margin:0 0 12px;"><strong th:text="${author}">author</strong> hat am Fairteiler «<span th:text="${name}">name</span>»geschrieben:</p>
+<p th:if="${body != null}" style="margin:0 0 12px;padding:12px;background:#f4f6f4;border-radius:6px;white-space:pre-line;" th:text="${body}">body</p>
+<p th:if="${link != null}" style="margin:0 0 20px;"><a th:href="${link}" href="#" style="display:inline-block;padding:10px 18px;background:#25834a;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">Öffnen</a></p>
+<p style="margin:0 0 12px;">Dein foodsharing-Team</p>

@@ -117,6 +117,17 @@ public class EventService {
         return items(events.listInvited(me, ATTENDING, clock.instant().minus(90, ChronoUnit.DAYS)), me);
     }
 
+    /** Map layer (M1): upcoming OFFLINE events with a location the current user may see (EventRules.maySee). */
+    @Transactional(readOnly = true)
+    public List<EventItem> listForMap(Instant from) {
+        network.foodsharing.security.SessionPrincipal principal = currentActor.requirePrincipal();
+        java.util.Map<UUID, EventRules.Actor> actors = new java.util.HashMap<>();
+        List<Event> visible = events.listWithLocation(from == null ? clock.instant() : from).stream()
+                .filter(e -> EventRules.maySee(actors.computeIfAbsent(e.getRegionId(),
+                        r -> access.actor(principal, r)), e.isPublicEvent())).toList();
+        return items(visible, principal.userId());
+    }
+
     /** Events {@code userId} is invited to with one of {@code statuses}, ending after {@code endsAfter} (A11 feed). */
     @Transactional(readOnly = true)
     public List<EventItem> listForCalendar(UUID userId, Set<InvitationStatus> statuses, Instant endsAfter) {

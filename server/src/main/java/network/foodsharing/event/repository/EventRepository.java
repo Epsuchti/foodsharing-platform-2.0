@@ -29,4 +29,11 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             order by e.startsAt, e.id""")
     List<Event> listInvited(@Param("userId") UUID userId, @Param("statuses") Collection<InvitationStatus> statuses,
                             @Param("endsAfter") Instant endsAfter);
+
+    /** Map layer (M1): events with a location that end at or after {@code endsAfter}. */
+    @Query("""
+            select e from Event e where e.deletedAt is null and e.locationId is not null
+              and e.type = network.foodsharing.event.domain.EventType.OFFLINE and e.endsAt >= :endsAfter
+            order by e.startsAt, e.id""")
+    List<Event> listWithLocation(@Param("endsAfter") Instant endsAfter);
 }

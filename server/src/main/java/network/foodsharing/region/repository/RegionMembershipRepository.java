@@ -38,6 +38,11 @@ public interface RegionMembershipRepository extends JpaRepository<RegionMembersh
     @Query("select distinct m.userId from RegionMembership m where m.regionId in :regionIds and m.active = true")
     List<UUID> findActiveUserIdsIn(@Param("regionIds") Collection<UUID> regionIds);
 
+    @Query("select distinct m.userId from RegionMembership m where m.regionId in :regionIds and m.active = true "
+            + "and m.userId in :userIds")
+    Set<UUID> findActiveUserIdsAmong(@Param("regionIds") Collection<UUID> regionIds,
+                                     @Param("userIds") Collection<UUID> userIds);
+
     /** Active members of a region filtered by user fields (the user table is joined by id, read only). */
     @Query(value = "select m from RegionMembership m, User u where u.id = m.userId and m.regionId = :regionId "
             + "and m.active = true and u.active = true "

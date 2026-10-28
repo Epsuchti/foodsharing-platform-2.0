@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+[(${author})] hat am Fairteiler «[(${name})]»geschrieben:
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Dein foodsharing-Team

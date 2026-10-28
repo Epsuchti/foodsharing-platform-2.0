@@ -1,0 +1,10 @@
+Hello [(${displayName})],
+
+[(${author})] wrote on the food share point «[(${name})]»:
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Your foodsharing team

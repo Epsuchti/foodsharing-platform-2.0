@@ -170,4 +170,24 @@ public class StoreWallService {
         post.setMilestone(milestone);
         return posts.save(post);
     }
+
+    /** A wall post for the activity feed (A19). */
+    public record FeedPost(UUID id, UUID storeId, String storeName, UUID authorId, String text,
+                           java.time.Instant createdAt) {
+    }
+
+    /** Activity feed (A19): newest wall posts of the stores whose team the user is in (member or jumper). */
+    @Transactional(readOnly = true)
+    public List<FeedPost> latestOfMyStores(UUID userId, java.time.Instant before, int limit) {
+        List<UUID> ids = storeService.teamStoreIds(userId);
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        java.util.Map<UUID, String> names = new java.util.HashMap<>();
+        stores.findLiveIn(ids).forEach(st -> names.put(st.getId(), st.getName()));
+        return posts.findByStoreIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(names.keySet(), before,
+                        org.springframework.data.domain.PageRequest.of(0, limit)).stream()
+                .map(p -> new FeedPost(p.getId(), p.getStoreId(), names.get(p.getStoreId()), p.getAuthorId(),
+                        p.getText(), p.getCreatedAt())).toList();
+    }
 }

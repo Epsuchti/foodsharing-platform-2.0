@@ -131,14 +131,36 @@ public class StoreQueryService {
         return new PageImpl<>(items, PageRequest.of(p, sz), list.size());
     }
 
-    /** Stores the current user is in (any status); excludeInactive drops applications and invitations. */
+    /**
+     * Stores the current user is in (any membership status, incl. applications and invitations); excludeInactive
+     * drops stores whose cooperation is permanently closed (deleted stores are never listed).
+     */
     public List<ListItem> myStores(boolean excludeInactive) {
         SessionPrincipal actor = currentActor.requirePrincipal();
         List<UUID> ids = memberships.findByUserId(actor.userId()).stream()
-                .filter(m -> !excludeInactive || m.getStatus() == StoreMembershipStatus.MEMBER
-                        || m.getStatus() == StoreMembershipStatus.JUMPER)
                 .map(StoreMembership::getStoreId).toList();
-        return ids.isEmpty() ? List.of() : items(stores.findLiveIn(ids), actor);
+        return ids.isEmpty() ? List.of() : items(stores.findLiveIn(ids).stream()
+                .filter(s -> !excludeInactive || s.getCooperationStatus() != CooperationStatus.PERMANENTLY_CLOSED)
+                .toList(), actor);
+    }
+
+    /** Map layer (M1): live stores with coordinates (permanently closed ones are left out). */
+    public List<Store> mapStores() {
+        return stores.findAllLive().stream().filter(s -> s.getLatitude() != null && s.getLongitude() != null
+                && s.getCooperationStatus() != CooperationStatus.PERMANENTLY_CLOSED).toList();
+    }
+
+    /** Ids of the stores whose team (member, coordinator or jumper) the user is in. */
+    public java.util.Set<UUID> teamStoreIds(UUID userId) {
+        return memberships.findByUserId(userId).stream()
+                .filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER
+                        || m.getStatus() == StoreMembershipStatus.JUMPER)
+                .map(StoreMembership::getStoreId).collect(Collectors.toSet());
+    }
+
+    /** A live store by id (map bubble). */
+    public java.util.Optional<Store> findLive(UUID storeId) {
+        return stores.findLiveIn(List.of(storeId)).stream().findFirst();
     }
 
     /** Stores of a chain (no permission check; the chain service checks). */
@@ -173,7 +195,10 @@ public class StoreQueryService {
     /** @throws ApiException 404 STORE_NOT_FOUND / STORE_DELETED, 403 ACCESS_DENIED */
     public Detail detail(UUID storeId) {
         Store store = storeService.require(storeId);
-        StorePermissionService.Rights r = storeService.requireAccess(store);
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        StorePermissionService.Rights r = rights.rights(actor, store);
+        // Non-members of the store's region get the limited public view (sensitive fields hidden by the mapper).
+        StorePermissionService.require(r.mayAccess() || rights.mayViewPublic(actor, store));
         return detail(store, r);
     }
 
