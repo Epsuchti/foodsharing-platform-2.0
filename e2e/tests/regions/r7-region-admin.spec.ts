@@ -50,6 +50,8 @@ test.describe('orga', () => {
     await page.getByRole('option', { name: 'Öffentlichkeitsarbeit' }).click();
     await page.getByTestId('regionAdmin.newGroup').click();
     await page.getByRole('option', { name: 'Öffentlichkeitsarbeit Zürich' }).click();
+    // wait for the select overlay to close: on touch devices the next tap would only dismiss it
+    await expect(page.getByRole('listbox')).toBeHidden();
     await page.getByTestId('regionAdmin.assign').click();
     await expect(dialog.locator('[data-function="PR"]')).toBeVisible();
   });

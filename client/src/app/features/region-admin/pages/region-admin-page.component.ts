@@ -199,8 +199,13 @@ export class RegionAdminPageComponent {
     }));
   });
 
+  /** Region whose groups the function dialog offers (a computed, so refreshing the target does not reload them). */
+  private readonly functionsRegionId = computed(() =>
+    this.functionsOpen() ? this.functionsTarget()?.region.id : undefined,
+  );
+
   protected readonly groups = loadResource<WorkingGroupSummary[], string>({
-    params: () => (this.functionsOpen() ? this.functionsTarget()?.region.id : undefined),
+    params: () => this.functionsRegionId(),
     loader: (regionId) => this.groupsApi.listGroupsInRegion({ regionId }),
   });
 

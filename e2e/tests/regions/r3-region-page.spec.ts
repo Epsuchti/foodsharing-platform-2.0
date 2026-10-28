@@ -75,7 +75,10 @@ test.describe('ambassador', () => {
     const before = await page.getByTestId('regions.pin.coordinates').textContent();
     const map = page.getByTestId('regions.pin.map');
     const box = (await map.boundingBox())!;
-    await page.mouse.click(box.x + box.width * 0.25, box.y + box.height * 0.25);
+    const at = { x: Math.round(box.width * 0.25), y: Math.round(box.height * 0.25) };
+    // touch devices tap the map, desktops click it
+    if (test.info().project.use.hasTouch) await map.tap({ position: at });
+    else await map.click({ position: at });
     await expect(page.getByTestId('regions.pin.coordinates')).not.toHaveText(before ?? '');
     await page.getByTestId('regions.pin.active').click();
     await page.getByTestId('regions.pin.save').click();
