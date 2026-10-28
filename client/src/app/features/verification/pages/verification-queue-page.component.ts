@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { SelectButton } from '@openng/optimus-ui/selectbutton';
 
@@ -14,13 +13,12 @@ import {
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
-import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
-import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
+import { VerificationCandidateCardComponent } from '../components/verification-candidate-card.component';
 
 /**
  * `/regions/:regionId/verification` (Ve2): newcomers of the region waiting for verification. Filter READY (EinAbs
@@ -32,8 +30,6 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
   selector: 'fs-verification-queue-page',
   imports: [
     ...DATA_STATE_IMPORTS,
-    Button,
-    DateTimePipe,
     FormsModule,
     InputText,
     PageHeaderComponent,
@@ -41,7 +37,7 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
     RouterLink,
     SelectButton,
     TPipe,
-    UserChipComponent,
+    VerificationCandidateCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -90,84 +86,15 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
         <ul class="grid">
           @for (c of page.items; track c.user.id) {
             <li class="fs-card card" data-testid="verification.queue.card" [attr.data-user]="c.user.id" [attr.data-verified]="isVerified(c)">
-              <div class="head">
-                <fs-user-chip [name]="c.user.displayName" [userId]="c.user.id" [avatarUrl]="c.user.avatarUrl" [foodsaverNumber]="c.user.foodsaverNumber" [verified]="isVerified(c)" size="md" />
-                <span class="tags">
-                  @if (isVerified(c)) {
-                    <span class="tag tag--ok" data-testid="verification.queue.verifiedTag"><i class="pi pi-verified" aria-hidden="true"></i>{{ 'verification.queue.verified' | t }}</span>
-                  }
-                  @if (identityConfirmed(c)) {
-                    <span class="tag tag--ok" data-testid="verification.queue.identityTag"><i class="pi pi-id-card" aria-hidden="true"></i>{{ 'verification.queue.identityConfirmed' | t }}</span>
-                  } @else {
-                    <span class="tag tag--warn" data-testid="verification.queue.identityOpen">{{ 'verification.queue.identityOpen' | t }}</span>
-                  }
-                </span>
-              </div>
-
-              <dl class="facts" data-testid="verification.queue.journey">
-                <dt>{{ 'verification.queue.introPickups' | t }}</dt>
-                <dd data-testid="verification.queue.introPickups">{{ c.journey.introPickupsDone }} / {{ c.journey.introPickupsRequired }}</dd>
-                <dt>{{ 'verification.queue.fairteiler' | t }}</dt>
-                <dd>{{ (c.journey.fairteilerDone ? 'verification.yes' : 'verification.no') | t }}</dd>
-                <dt>{{ 'verification.queue.learning' | t }}</dt>
-                <dd>{{ (c.journey.learningDone ? 'verification.yes' : 'verification.no') | t }}</dd>
-                <dt>{{ 'verification.queue.quiz' | t }}</dt>
-                <dd>{{ c.journey.quizPassedAt ? (c.journey.quizPassedAt | fsDate: 'date') : ('verification.queue.notYet' | t) }}</dd>
-                <dt>{{ 'verification.queue.agreement' | t }}</dt>
-                <dd>{{ c.journey.agreementAcceptedAt ? (c.journey.agreementAcceptedAt | fsDate: 'date') : ('verification.queue.notYet' | t) }}</dd>
-                @if (c.lastIntroPickupAt) {
-                  <dt>{{ 'verification.queue.lastIntroPickup' | t }}</dt>
-                  <dd>{{ c.lastIntroPickupAt | fsDate: 'date' }}</dd>
-                }
-                @if (c.phone) {
-                  <dt>{{ 'verification.queue.phone' | t }}</dt>
-                  <dd><a [href]="'tel:' + c.phone">{{ c.phone }}</a></dd>
-                }
-                @if (c.registeredAt) {
-                  <dt>{{ 'verification.queue.registered' | t }}</dt>
-                  <dd>{{ c.registeredAt | fsDate: 'date' }}</dd>
-                }
-              </dl>
-
-              @if (c.guideComments.length) {
-                <details class="comments" data-testid="verification.queue.comments">
-                  <summary>{{ 'verification.queue.comments' | t: { count: c.guideComments.length } }}</summary>
-                  <ul>
-                    @for (comment of c.guideComments; track comment.id) {
-                      <li data-testid="verification.queue.comment">
-                        <strong>{{ comment.author.displayName }}</strong>
-                        <span class="muted">{{ comment.createdAt | fsDate: 'date' }}</span>
-                        <p>{{ comment.text }}</p>
-                      </li>
-                    }
-                  </ul>
-                </details>
-              } @else {
-                <p class="muted">{{ 'verification.queue.noComments' | t }}</p>
-              }
-
-              <div class="actions">
-                @if (!isVerified(c)) {
-                  <p-button [label]="'verification.queue.verify' | t" icon="pi pi-verified" size="small" (onClick)="openVerify(c)" data-testid="verification.queue.verify" />
-                } @else {
-                  <p-button [label]="'verification.queue.unverify' | t" icon="pi pi-undo" severity="danger" [outlined]="true" size="small" (onClick)="openUnverify(c)" data-testid="verification.queue.unverify" />
-                }
-                @if (!identityConfirmed(c) && c.user.id !== viewerId()) {
-                  <p-button
-                    [label]="'verification.queue.confirmIdentity' | t"
-                    icon="pi pi-id-card"
-                    severity="secondary"
-                    [outlined]="true"
-                    size="small"
-                    [loading]="confirmIdentity.busy()"
-                    (onClick)="confirmIdentity.run(c.user.id)"
-                    data-testid="verification.queue.confirmIdentity"
-                  />
-                }
-                <a [routerLink]="['/users', c.user.id, 'verification-history']" class="fs-btn fs-btn--text fs-btn--sm" data-testid="verification.queue.history">
-                  <i class="pi pi-history" aria-hidden="true"></i>{{ 'verification.queue.history' | t }}
-                </a>
-              </div>
+              <fs-verification-candidate-card
+                [candidate]="c"
+                [verified]="isVerified(c)"
+                [canConfirmIdentity]="c.user.id !== viewerId()"
+                [confirmBusy]="confirmIdentity.busy()"
+                (verify)="openVerify(c)"
+                (unverify)="openUnverify(c)"
+                (confirmIdentity)="confirmIdentity.run(c.user.id)"
+              />
             </li>
           }
         </ul>
@@ -197,35 +124,6 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
     />
   `,
   styleUrl: '../verification.scss',
-  styles: `
-    .head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .comments summary {
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .comments ul {
-      display: grid;
-      gap: 0.5rem;
-      margin: 0.5rem 0 0;
-      padding: 0;
-      list-style: none;
-    }
-    .comments li {
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
-      background: var(--fs-surface-muted);
-    }
-    .comments p {
-      margin: 0.25rem 0 0;
-      white-space: pre-line;
-    }
-  `,
 })
 export class VerificationQueuePageComponent {
   private readonly api = inject(VerificationService);
@@ -289,10 +187,6 @@ export class VerificationQueuePageComponent {
 
   protected isVerified(candidate: VerificationCandidate): boolean {
     return this.verifiedOverride().get(candidate.user.id) ?? candidate.user.verified;
-  }
-
-  protected identityConfirmed(candidate: VerificationCandidate): boolean {
-    return !!candidate.identityConfirmedAt;
   }
 
   protected openVerify(candidate: VerificationCandidate): void {
