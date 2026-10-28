@@ -50,7 +50,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | S7 | Invitations (store managers invite; user accepts/declines; withdraw) | done | StoreTeamService | store team tab | tests/stores @S7 | stores-team.screen.ts (baseline pending) |  |
 | S8 | Move to/from standby, remove member (required message), appoint/remove store manager | done | StoreTeamService | store team tab | tests/stores @S8 | stores-team.screen.ts (baseline pending) |  |
 | S9 | Team list: phone buttons (permission-dependent), last pickup, pickup count, distance to store, sleep mode | done | TeamMember.phone | team tab | s9-team-list @S9 | | phone buttons need frontend update for TeamMember.phone |
-| S10 | Team chat and jumper (standby) chat, auto-membership | todo | | | | | |
+| S10 | Team chat and jumper (standby) chat, auto-membership | done | messaging + realtime | /messages, store chat tab | tests/messaging @S10 | messaging.screen.ts (baseline pending) |  |
 | S11 | Store wall / notes with milestones (cooperation start, status changes) and delete rules per permission table | done | StoreWallService | store wall tab (composer, milestones, delete per mayDelete) | tests/stores/s11-wall @S11 | stores-wall-log.screen.ts (baseline pending) |  |
 | S12 | Store log (§10.2) with date range and action filter | done | StoreLogService | store log tab (fs-history-timeline, action groups, date range, ORGA CSV) | tests/stores/s12-store-log @S12 | stores-wall-log.screen.ts (baseline pending) |  |
 | S13 | Delete/archive store | done | StoreService.delete | delete section in store edit page (coordinators, 409 explained) | tests/stores/s13-delete @S13 | stores-wall-log.screen.ts (baseline pending) |  |
@@ -66,19 +66,19 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | PU7 | Pickup options for user ("where can I help?", free slots in my stores) | done | pickup module | pickups tab, /pickups | tests/pickups @PU7 | pickups.screen.ts (baseline pending) |  |
 | PU8 | User agenda for a date | done | pickup module | pickups tab, /pickups | tests/pickups @PU8 | pickups.screen.ts (baseline pending) |  |
 | PU9 | Pickup reminders (disable per user) | done | PickupReminderJob | account settings: pickup reminder card | tests/pickups/pu9-reminders @PU9 | store-chains.screen.ts (baseline pending) |  |
-| N1 | Conversations 1:1 and group, store team & jumper chats, region conversation, lookup/create, rename, read status, unread counts, mentions | todo | | | | | |
-| N2 | Realtime delivery (WebSocket) | todo | | | | | |
+| N1 | Conversations 1:1 and group, store team & jumper chats, region conversation, lookup/create, rename, read status, unread counts, mentions | done | messaging + realtime | /messages, store chat tab | tests/messaging @N1 | messaging.screen.ts (baseline pending) |  |
+| N2 | Realtime delivery (WebSocket) | done | messaging + realtime | /messages, store chat tab | tests/messaging @N2 | messaging.screen.ts (baseline pending) |  |
 | N3 | Bells with read/unread, delete, all bell types (forum thread to activate, WG application, new member for welcome team, store requests, slot confirmations, …) | done | BellService + realtime | header bell, /bells | n3-bells @N3 | notifications.screen.ts (baseline pending) |  |
 | N4 | Web push notifications, subscriptions per device, opt-in prompt | todo | | | | | |
 | N5 | **Telegram**: link account via bot (`/start <token>`), per-user Telegram notifications, region/store Telegram chats for alerts, test message (from reference) | todo | | | | | |
 | N6 | Mail notifications with rate limiting, outbox and templates in five languages | in-progress | mail outbox, templates x5 | | | | outbox + magic-link templates done; per-type rate limits + other templates M4 |
 | N7 | Newsletter: opt-in, compose per region/global, send via built-in queue (or Listmonk), unsubscribe | todo | | | | | |
-| MB1 | Every region and working group can get an address `<email_name>@<domain>`; mailbox members configured by ambassadors / group admins | todo | | | | | |
-| MB2 | Inbox, sent, trash folders; read/unread, answered flag; unread count in navigation | todo | | | | | |
-| MB3 | Read HTML/plain mails safely (sanitised), attachments download | todo | | | | | |
-| MB4 | Compose, reply, forward with attachments, sent from the mailbox address | todo | | | | | |
-| MB5 | Incoming mail via IMAP polling or provider webhook; bounce processing; attachment storage | todo | | | | | |
-| MB6 | Personal mailbox for ambassadors/admins if configured | todo | | | | | |
+| MB1 | Every region and working group can get an address `<email_name>@<domain>`; mailbox members configured by ambassadors / group admins | done | mailbox module | /mailboxes | tests/mailboxes @MB1 | mailboxes.screen.ts (baseline pending) |  |
+| MB2 | Inbox, sent, trash folders; read/unread, answered flag; unread count in navigation | done | mailbox module | /mailboxes | tests/mailboxes @MB2 | mailboxes.screen.ts (baseline pending) |  |
+| MB3 | Read HTML/plain mails safely (sanitised), attachments download | done | mailbox module | /mailboxes | tests/mailboxes @MB3 | mailboxes.screen.ts (baseline pending) |  |
+| MB4 | Compose, reply, forward with attachments, sent from the mailbox address | done | mailbox module | /mailboxes | tests/mailboxes @MB4 | mailboxes.screen.ts (baseline pending) |  |
+| MB5 | Incoming mail via IMAP polling or provider webhook; bounce processing; attachment storage | done | mailbox module | /mailboxes | tests/mailboxes @MB5 | mailboxes.screen.ts (baseline pending) |  |
+| MB6 | Personal mailbox for ambassadors/admins if configured | done | mailbox module | /mailboxes | tests/mailboxes @MB6 | mailboxes.screen.ts (baseline pending) |  |
 | F1 | Forum per region & group, separate ambassador forum | todo | | | | | |
 | F2 | Threads: create, edit, delete, sticky, close/open, activation by moderators (moderated regions) | todo | | | | | |
 | F3 | Posts: create, edit (with edit marker), delete, reply with quote header, emoji reactions with user list, hide/unhide (moderation, with reason) | todo | | | | | |
