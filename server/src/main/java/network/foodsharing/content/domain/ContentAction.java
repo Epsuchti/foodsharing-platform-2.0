@@ -9,7 +9,16 @@ public enum ContentAction implements HistoryAction {
     PAGE_CREATED,
     PAGE_UPDATED,
     PAGE_PUBLISHED,
-    LEGAL_VERSION_PUBLISHED;
+    LEGAL_VERSION_PUBLISHED,
+    // M6 additions (docs/plan-m6.md B1)
+    BLOG_CREATED,
+    BLOG_UPDATED,
+    BLOG_PUBLISHED,
+    BLOG_UNPUBLISHED,
+    BLOG_DELETED,
+    RELEASE_NOTE_CREATED,
+    RELEASE_NOTE_UPDATED,
+    RELEASE_NOTE_DELETED;
 
     @Override
     public String code() {

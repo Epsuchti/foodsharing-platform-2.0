@@ -1,0 +1,425 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/achievements:
+  get:
+    tags: [achievements]
+    operationId: listAchievements
+    summary: Achievements of a region (global without regionId).
+    x-permission: region member / admin
+    parameters:
+      - name: regionId
+        in: query
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/achievements.yaml#/Achievement'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  post:
+    tags: [achievements]
+    operationId: createAchievement
+    summary: Define an achievement.
+    x-permission: 'region admin (global: ORGA)'
+    x-history: AchievementAction.DEFINED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/achievements.yaml#/AchievementCreate'
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/achievements.yaml#/Achievement'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/achievements/{achievementId}:
+  get:
+    tags: [achievements]
+    operationId: getAchievement
+    summary: Achievement detail.
+    x-permission: region member
+    parameters:
+      - name: achievementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/achievements.yaml#/Achievement'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: ACHIEVEMENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  patch:
+    tags: [achievements]
+    operationId: updateAchievement
+    summary: Edit an achievement.
+    x-permission: mayAdminister
+    x-history: AchievementAction.UPDATED
+    parameters:
+      - name: achievementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/achievements.yaml#/AchievementUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/achievements.yaml#/Achievement'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: ACHIEVEMENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [achievements]
+    operationId: deleteAchievement
+    summary: Delete an achievement.
+    x-permission: mayAdminister
+    x-history: AchievementAction.DELETED
+    parameters:
+      - name: achievementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: ACHIEVEMENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "409":
+        description: ACHIEVEMENT_SYSTEM_PROTECTED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/achievements/{achievementId}/awards:
+  get:
+    tags: [achievements]
+    operationId: listAwards
+    summary: Awards of an achievement.
+    x-permission: mayAdminister
+    parameters:
+      - name: achievementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/achievements.yaml#/Award'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: ACHIEVEMENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  post:
+    tags: [achievements]
+    operationId: awardAchievement
+    summary: Award an achievement to a user.
+    x-permission: mayAdminister
+    x-history: AchievementAction.AWARDED
+    parameters:
+      - name: achievementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/achievements.yaml#/AwardCreate'
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/achievements.yaml#/Award'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACHIEVEMENT_RECIPIENT_NOT_MEMBER or ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: ACHIEVEMENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "409":
+        description: ACHIEVEMENT_ALREADY_AWARDED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/achievements/awards/{awardId}:
+  patch:
+    tags: [achievements]
+    operationId: updateAward
+    summary: Edit an award.
+    x-permission: mayAdminister
+    x-history: AchievementAction.AWARD_EDITED
+    parameters:
+      - name: awardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/achievements.yaml#/AwardUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/achievements.yaml#/Award'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: AWARD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [achievements]
+    operationId: revokeAward
+    summary: Revoke an award.
+    x-permission: mayAdminister
+    x-history: AchievementAction.REVOKED
+    parameters:
+      - name: awardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: AWARD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/{userId}/achievements:
+  get:
+    tags: [achievements]
+    operationId: listUserAchievements
+    summary: Awards of a user (visibility-filtered).
+    x-permission: authenticated
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/achievements.yaml#/Award'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: USER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

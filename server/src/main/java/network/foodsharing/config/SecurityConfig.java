@@ -41,6 +41,8 @@ public class SecurityConfig {
 
     /** Login endpoints of the frameworks (Google OAuth2, passkey login). */
     public static final String[] FRAMEWORK_ENDPOINTS = {"/oauth2/**", "/login/oauth2/**", "/login/webauthn",
+            // A44: OAuth provider (token/userinfo authenticate by client secret or bearer token; authorize checks the cookie itself)
+            "/oauth/authorize", "/oauth/token", "/oauth/userinfo", "/.well-known/**",
             "/webauthn/authenticate/options"};
 
     /** Passkey registration (options + finish) needs a session. */
@@ -70,7 +72,9 @@ public class SecurityConfig {
                         .csrfTokenRepository(csrfRepository)
                         .csrfTokenRequestHandler(csrfHandler)
                         // Telegram and the mail provider call their webhooks server-to-server (secret path, no session, no cookies).
-                        .ignoringRequestMatchers("/api/public/telegram/webhook/**", "/api/public/mailbox/inbound/**"))
+                        .ignoringRequestMatchers("/api/public/telegram/webhook/**", "/api/public/mailbox/inbound/**",
+                                // A44: OAuth clients post form-encoded without cookies
+                                "/oauth/token", "/oauth/userinfo"))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -82,6 +86,8 @@ public class SecurityConfig {
                                 "/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ORGA")
                         .requestMatchers(PUBLIC_API).permitAll()
+                        // A41: public images (user photos, FSP/basket/blog pictures); UploadService decides per upload
+                        .requestMatchers(HttpMethod.GET, "/api/uploads/*").permitAll()
                         // Passkeys are deleted via DELETE /api/auth/passkeys/{id} (last-method guard + history).
                         .requestMatchers(HttpMethod.DELETE, "/webauthn/register/**").denyAll()
                         .requestMatchers(AUTHENTICATED_FRAMEWORK_ENDPOINTS).authenticated()

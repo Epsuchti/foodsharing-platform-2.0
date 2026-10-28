@@ -82,5 +82,11 @@
   "bell.EVENT_INVITATION": "Iiladig zunere Veranstaltig",
   "bell.EVENT_UPDATED": "E Veranstaltig isch gänderet worde",
   "bell.POLL_CANCELLED": "E Abstimmig isch abbroche worde",
-  "bell.SURVEY_SHARED": "E Umfrag isch mit dir teilt worde"
+  "bell.SURVEY_SHARED": "E Umfrag isch mit dir teilt worde",
+  "bell.FSP_NEW_POST": "Neue Biitrag amne Fairteiler",
+  "bell.MEDIATION_REQUEST": "Neui Mediationsaafrog",
+  "bell.ACHIEVEMENT_AWARDED": "Du häsch e Uuszeichnig übercho",
+  "bell.EMAIL_CHANGE_REQUESTED": "Änderig vo dinere E-Mail-Adrässe aagfrögt",
+  "bell.SUPPORT_TICKET": "Dini Support-Aafrog isch iitroffe",
+  "bell.BASKET_REQUEST_ANSWERED": "Dini Ässechorb-Aafrog isch beantwortet worde"
 }

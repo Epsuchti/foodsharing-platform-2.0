@@ -1,0 +1,58 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/public/calendar/{token}.ics:
+  get:
+    tags: [public-calendar]
+    operationId: getCalendarFeed
+    summary: 'iCal feed of pickups, intro pickups and events.'
+    x-permission: public (token)
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: events
+        in: query
+        schema:
+          type: string
+          enum: [every, invitations, maybe, accepted, none]
+      - name: pickups
+        in: query
+        schema:
+          type: boolean
+          default: true
+      - name: introPickups
+        in: query
+        schema:
+          type: boolean
+          default: true
+      - name: history
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: reminders
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+    responses:
+      "200":
+        description: OK
+        content:
+          text/calendar:
+            schema:
+              type: string
+      "400":
+        description: INVALID_REMINDER or VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: CALENDAR_TOKEN_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

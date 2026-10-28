@@ -57,6 +57,18 @@ public class AppProperties {
     private final Mailbox mailbox = new Mailbox();
     private final Forum forum = new Forum();
     private final Polls polls = new Polls();
+    // --- milestone 6 ---
+    private final Calendar calendar = new Calendar();
+    private final Baskets baskets = new Baskets();
+    private final Fsp fsp = new Fsp();
+    private final Reports reports = new Reports();
+    private final Achievements achievements = new Achievements();
+    private final Statistics statistics = new Statistics();
+    private final Search search = new Search();
+    private final Resources resources = new Resources();
+    private final Support support = new Support();
+    private final OAuth oauth = new OAuth();
+    private final Activity activity = new Activity();
 
     @Getter
     @Setter
@@ -422,6 +434,9 @@ public class AppProperties {
         private int maxSizeMb = 20;
         private List<String> allowedTypes = new ArrayList<>();
         private int unclaimedTtlHours = 24;
+        /** Image variants (A41): size name → longest edge in px. */
+        private java.util.Map<String, Integer> imageSizes = new java.util.LinkedHashMap<>(
+                java.util.Map.of("sm", 96, "md", 320, "lg", 1280));
     }
 
     /** Mailboxes (A35). */
@@ -466,5 +481,89 @@ public class AppProperties {
         private String minLeadTime = "PT1H";
         private int endNotificationMinHours = 30;
         private String notifyCron = "0 */15 * * * *";
+    }
+
+    /** Calendar feed (A11). */
+    @Getter
+    @Setter
+    public static class Calendar {
+        private int maxReminders = 5;
+    }
+
+    /** Food baskets (B1/B2 ledger). */
+    @Getter
+    @Setter
+    public static class Baskets {
+        private int maxDistanceKm = 50;
+        private int defaultLifetimeDays = 7;
+        private String expiryCron = "0 10 3 * * *";
+    }
+
+    /** Food share points (FS1). */
+    @Getter
+    @Setter
+    public static class Fsp {
+        private boolean enabled = true;
+    }
+
+    /** Reports (G1). */
+    @Getter
+    @Setter
+    public static class Reports {
+        private String reminderCron = "0 0 8 * * *";
+    }
+
+    /** Achievements (AC1). */
+    @Getter
+    @Setter
+    public static class Achievements {
+        private int hygieneValidityDays = 365;
+    }
+
+    /** Statistics (C4, R3). */
+    @Getter
+    @Setter
+    public static class Statistics {
+        private String cron = "0 30 2 * * *";
+    }
+
+    /** Search (A45). */
+    @Getter
+    @Setter
+    public static class Search {
+        private String reindexCron = "0 45 2 * * *";
+        private int minLength = 2;
+    }
+
+    /** Resource mosaic (C9). */
+    @Getter
+    @Setter
+    public static class Resources {
+        private int maxPerUser = 10;
+    }
+
+    /** Support form (C8). */
+    @Getter
+    @Setter
+    public static class Support {
+        private int rateLimitPerHour = 5;
+    }
+
+    /** OAuth2/OIDC provider (A44). */
+    @Getter
+    @Setter
+    public static class OAuth {
+        /** PKCS#8 PEM of the RS256 signing key (env OAUTH_SIGNING_KEY); empty = generated per start (dev only). */
+        private String signingKeyPem = "";
+        private int accessTokenMinutes = 60;
+        private int refreshTokenDays = 30;
+        private int codeMinutes = 10;
+    }
+
+    /** Dashboard activity feed (A19). */
+    @Getter
+    @Setter
+    public static class Activity {
+        private int pageSize = 20;
     }
 }

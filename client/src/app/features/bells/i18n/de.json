@@ -82,5 +82,11 @@
   "bell.EVENT_INVITATION": "Einladung zu einer Veranstaltung",
   "bell.EVENT_UPDATED": "Eine Veranstaltung wurde geändert",
   "bell.POLL_CANCELLED": "Eine Abstimmung wurde abgebrochen",
-  "bell.SURVEY_SHARED": "Eine Umfrage wurde mit dir geteilt"
+  "bell.SURVEY_SHARED": "Eine Umfrage wurde mit dir geteilt",
+  "bell.FSP_NEW_POST": "Neuer Beitrag an einem Fairteiler",
+  "bell.MEDIATION_REQUEST": "Neue Mediationsanfrage",
+  "bell.ACHIEVEMENT_AWARDED": "Du hast eine Auszeichnung erhalten",
+  "bell.EMAIL_CHANGE_REQUESTED": "Änderung deiner E-Mail-Adresse angefragt",
+  "bell.SUPPORT_TICKET": "Deine Support-Anfrage ist eingegangen",
+  "bell.BASKET_REQUEST_ANSWERED": "Deine Essenskorb-Anfrage wurde beantwortet"
 }

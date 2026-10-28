@@ -1,0 +1,264 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+BasketStatus:
+  type: string
+  enum: [ACTIVE, TAKEN, EXPIRED, DELETED]
+
+BasketLocationType:
+  type: string
+  enum: [HOME, CUSTOM]
+
+BasketKind:
+  type: string
+  enum: [FRUIT_VEGETABLES, BAKED_GOODS, DAIRY, MEAT_FISH, COOKED, DRINKS, CANNED, SWEETS, FROZEN, OTHER]
+
+BasketRequestStatus:
+  type: string
+  enum: [REQUESTED, READ, PICKED_UP, DENIED, NOT_PICKED_UP, WITHDRAWN]
+
+BasketSummary:
+  type: object
+  required: [id, description, lat, lon, createdAt, expiresAt, owner, status]
+  properties:
+    id:
+      type: string
+      format: uuid
+    description:
+      type: string
+      description: Max. 200 characters in lists.
+    photoUrl:
+      type: string
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    distanceKm:
+      type: number
+      format: double
+    createdAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+    owner:
+      $ref: './users.yaml#/UserSummary'
+    status:
+      $ref: './baskets.yaml#/BasketStatus'
+    requestCount:
+      type: integer
+      format: int32
+
+BasketGrocery:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
+BasketContact:
+  type: object
+  required: [message]
+  properties:
+    message:
+      type: boolean
+    phone:
+      type: string
+    mobile:
+      type: string
+
+BasketRequest:
+  type: object
+  required: [requester, status, requestedAt]
+  properties:
+    requester:
+      $ref: './users.yaml#/UserSummary'
+    status:
+      $ref: './baskets.yaml#/BasketRequestStatus'
+    requestedAt:
+      type: string
+      format: date-time
+    answeredAt:
+      type: string
+      format: date-time
+    message:
+      type: string
+
+BasketPermissions:
+  type: object
+  required: [mayEdit, mayDelete, mayRequest]
+  properties:
+    mayEdit:
+      type: boolean
+    mayDelete:
+      type: boolean
+    mayRequest:
+      type: boolean
+
+Basket:
+  type: object
+  required: [id, description, lat, lon, locationType, groceries, kinds, contact, status, createdAt, expiresAt, owner, permissions]
+  properties:
+    id:
+      type: string
+      format: uuid
+    description:
+      type: string
+    photoUrl:
+      type: string
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    weightGrams:
+      type: integer
+      format: int32
+    locationType:
+      $ref: './baskets.yaml#/BasketLocationType'
+    groceries:
+      type: array
+      items:
+        $ref: './baskets.yaml#/BasketGrocery'
+    kinds:
+      type: array
+      items:
+        $ref: './baskets.yaml#/BasketKind'
+    contact:
+      $ref: './baskets.yaml#/BasketContact'
+    status:
+      $ref: './baskets.yaml#/BasketStatus'
+    createdAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+    owner:
+      $ref: './users.yaml#/UserSummary'
+    requests:
+      type: array
+      items:
+        $ref: './baskets.yaml#/BasketRequest'
+      description: Only for the owner.
+    myRequest:
+      $ref: './baskets.yaml#/BasketRequest'
+    permissions:
+      $ref: './baskets.yaml#/BasketPermissions'
+
+BasketCreate:
+  type: object
+  required: [description, locationType, contactMessage, contactPhone, contactMobile]
+  properties:
+    description:
+      type: string
+      minLength: 1
+      maxLength: 4000
+    locationType:
+      $ref: './baskets.yaml#/BasketLocationType'
+    contactMessage:
+      type: boolean
+    contactPhone:
+      type: boolean
+    contactMobile:
+      type: boolean
+    lifetimeDays:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 21
+    weightGrams:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 100000
+    groceryIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    kinds:
+      type: array
+      items:
+        $ref: './baskets.yaml#/BasketKind'
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    phone:
+      type: string
+      maxLength: 40
+    mobile:
+      type: string
+      maxLength: 40
+    photoUploadId:
+      type: string
+      format: uuid
+
+BasketUpdate:
+  type: object
+  properties:
+    description:
+      type: string
+      minLength: 1
+      maxLength: 4000
+    locationType:
+      $ref: './baskets.yaml#/BasketLocationType'
+    contactMessage:
+      type: boolean
+    contactPhone:
+      type: boolean
+    contactMobile:
+      type: boolean
+    weightGrams:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 100000
+    groceryIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    kinds:
+      type: array
+      items:
+        $ref: './baskets.yaml#/BasketKind'
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    phone:
+      type: string
+      maxLength: 40
+    mobile:
+      type: string
+      maxLength: 40
+    photoUploadId:
+      type: string
+      format: uuid
+
+BasketRequestCreate:
+  type: object
+  properties:
+    message:
+      type: string
+      maxLength: 2000
+
+BasketRequestAnswer:
+  type: object
+  required: [status]
+  properties:
+    status:
+      type: string
+      enum: [PICKED_UP, DENIED, NOT_PICKED_UP]

@@ -23,3 +23,13 @@ Upload:
     url:
       type: string
       description: Relative download URL.
+    width:
+      type: integer
+      format: int32
+      description: 'Pixel width (images only).'
+    height:
+      type: integer
+      format: int32
+    publicUrl:
+      type: string
+      description: 'Set when the upload is public (A41), readable without login.'

@@ -1,0 +1,202 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+FspStatus:
+  type: string
+  enum: [INACTIVE, ACTIVE]
+
+FspSummary:
+  type: object
+  required: [id, name, city, status, followerCount, following]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    photoUrl:
+      type: string
+    city:
+      type: string
+    status:
+      $ref: './food-share-points.yaml#/FspStatus'
+    followerCount:
+      type: integer
+      format: int32
+    following:
+      type: boolean
+
+FspAddress:
+  type: object
+  required: [street, postcode, city]
+  properties:
+    street:
+      type: string
+    postcode:
+      type: string
+    city:
+      type: string
+
+FspFollowing:
+  type: object
+  required: [following, bell, mail]
+  properties:
+    following:
+      type: boolean
+    bell:
+      type: boolean
+    mail:
+      type: boolean
+
+FspPermissions:
+  type: object
+  required: [mayEdit, mayDelete, mayActivate, mayPost, mayFollow]
+  properties:
+    mayEdit:
+      type: boolean
+    mayDelete:
+      type: boolean
+    mayActivate:
+      type: boolean
+    mayPost:
+      type: boolean
+    mayFollow:
+      type: boolean
+
+Fsp:
+  type: object
+  required: [id, name, region, address, status, managers, createdAt, followerCount, following, permissions]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    description:
+      type: string
+    photoUrl:
+      type: string
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    address:
+      $ref: './food-share-points.yaml#/FspAddress'
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    status:
+      $ref: './food-share-points.yaml#/FspStatus'
+    managers:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    creator:
+      $ref: './users.yaml#/UserSummary'
+    createdAt:
+      type: string
+      format: date-time
+    followerCount:
+      type: integer
+      format: int32
+    following:
+      $ref: './food-share-points.yaml#/FspFollowing'
+    permissions:
+      $ref: './food-share-points.yaml#/FspPermissions'
+
+FspCreate:
+  type: object
+  required: [name, street, postcode, city]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    street:
+      type: string
+      minLength: 1
+      maxLength: 200
+    postcode:
+      type: string
+      minLength: 1
+      maxLength: 20
+    city:
+      type: string
+      minLength: 1
+      maxLength: 200
+    managerIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    description:
+      type: string
+      maxLength: 32600
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    photoUploadId:
+      type: string
+      format: uuid
+
+FspUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    street:
+      type: string
+      minLength: 1
+      maxLength: 200
+    postcode:
+      type: string
+      minLength: 1
+      maxLength: 20
+    city:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      maxLength: 32600
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    photoUploadId:
+      type: string
+      format: uuid
+
+FspStatusUpdate:
+  type: object
+  required: [status]
+  properties:
+    status:
+      $ref: './food-share-points.yaml#/FspStatus'
+
+FspFollowUpdate:
+  type: object
+  required: [bell, mail]
+  properties:
+    bell:
+      type: boolean
+    mail:
+      type: boolean
+
+FspManagersUpdate:
+  type: object
+  required: [userIds]
+  properties:
+    userIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      maxItems: 20

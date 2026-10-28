@@ -1,5 +1,16 @@
 package network.foodsharing.user.web;
 
+import network.foodsharing.api.model.AccountDeletion;
+import network.foodsharing.api.model.ActivityFilters;
+import network.foodsharing.api.model.EmailChangeRequest;
+import network.foodsharing.api.model.EmailChangeStatus;
+import network.foodsharing.api.model.JobRef;
+import network.foodsharing.api.model.OAuthConsent;
+import network.foodsharing.api.model.PhotoResult;
+import network.foodsharing.api.model.PhotoUpdate;
+import network.foodsharing.api.model.SleepModeUpdate;
+import network.foodsharing.api.model.TokenBody;
+import network.foodsharing.common.error.ApiException;
 import java.util.List;
 import java.util.UUID;
 import network.foodsharing.api.UsersApi;
@@ -59,5 +70,82 @@ public class UsersController implements UsersApi {
     public ResponseEntity<List<UserSummary>> searchUsers(String q, UUID regionId, Integer limit) {
         return ResponseEntity.ok(userSearch.search(q, regionId, limit == null ? 10 : limit).stream()
                 .map(mapper::toSummary).toList());
+    }
+
+    // --- M6 contract stubs (docs/plan-m6.md B1) ---
+
+    @Override
+    public ResponseEntity<Void> abortEmailChange() {
+        throw ApiException.notImplemented("abortEmailChange");
+    }
+
+    @Override
+    public ResponseEntity<Void> clearEmailBounce(UUID userId) {
+        throw ApiException.notImplemented("clearEmailBounce");
+    }
+
+    @Override
+    public ResponseEntity<UserSummary> confirmEmailChange(TokenBody tokenBody) {
+        throw ApiException.notImplemented("confirmEmailChange");
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteMyAccount(AccountDeletion accountDeletion) {
+        throw ApiException.notImplemented("deleteMyAccount");
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteMyPhoto() {
+        throw ApiException.notImplemented("deleteMyPhoto");
+    }
+
+    @Override
+    public ResponseEntity<JobRef> exportMyData() {
+        throw ApiException.notImplemented("exportMyData");
+    }
+
+    @Override
+    public ResponseEntity<ActivityFilters> getActivityFilters() {
+        throw ApiException.notImplemented("getActivityFilters");
+    }
+
+    @Override
+    public ResponseEntity<org.springframework.core.io.Resource> getBusinessCard(String role, UUID regionId) {
+        throw ApiException.notImplemented("getBusinessCard");
+    }
+
+    @Override
+    public ResponseEntity<EmailChangeStatus> getEmailChange() {
+        throw ApiException.notImplemented("getEmailChange");
+    }
+
+    @Override
+    public ResponseEntity<List<OAuthConsent>> listMyConnections() {
+        throw ApiException.notImplemented("listMyConnections");
+    }
+
+    @Override
+    public ResponseEntity<Void> requestEmailChange(EmailChangeRequest emailChangeRequest) {
+        throw ApiException.notImplemented("requestEmailChange");
+    }
+
+    @Override
+    public ResponseEntity<Void> revokeMyConnection(String clientId) {
+        throw ApiException.notImplemented("revokeMyConnection");
+    }
+
+    @Override
+    public ResponseEntity<PhotoResult> setMyPhoto(PhotoUpdate photoUpdate) {
+        throw ApiException.notImplemented("setMyPhoto");
+    }
+
+    @Override
+    public ResponseEntity<ActivityFilters> updateActivityFilters(ActivityFilters activityFilters) {
+        throw ApiException.notImplemented("updateActivityFilters");
+    }
+
+    @Override
+    public ResponseEntity<UserSummary> updateSleepMode(SleepModeUpdate sleepModeUpdate) {
+        throw ApiException.notImplemented("updateSleepMode");
     }
 }

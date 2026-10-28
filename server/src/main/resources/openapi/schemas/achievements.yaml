@@ -1,0 +1,176 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+AchievementVisibility:
+  type: string
+  enum: [HIDDEN, PRIVATE, STORE_MANAGERS, SCOPE, GLOBAL]
+
+DuplicateMode:
+  type: string
+  enum: [OVERRIDE, MULTIPLE]
+
+AchievementSystemKey:
+  type: string
+  enum: [HYGIENE_CERTIFICATE, KAM_CERTIFICATE]
+
+AchievementTranslation:
+  type: object
+  required: [name]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      maxLength: 4000
+
+Achievement:
+  type: object
+  required: [id, name, icon, visibility, duplicateMode, awardedCount, mayAdminister]
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    description:
+      type: string
+    icon:
+      type: string
+    validityDays:
+      type: integer
+      format: int32
+    visibility:
+      $ref: './achievements.yaml#/AchievementVisibility'
+    duplicateMode:
+      $ref: './achievements.yaml#/DuplicateMode'
+    systemKey:
+      $ref: './achievements.yaml#/AchievementSystemKey'
+    awardedCount:
+      type: integer
+      format: int32
+    mayAdminister:
+      type: boolean
+    translations:
+      type: object
+      additionalProperties:
+        $ref: './achievements.yaml#/AchievementTranslation'
+
+AchievementCreate:
+  type: object
+  required: [name, icon, visibility, duplicateMode]
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    icon:
+      type: string
+      minLength: 1
+      maxLength: 100
+    visibility:
+      $ref: './achievements.yaml#/AchievementVisibility'
+    duplicateMode:
+      $ref: './achievements.yaml#/DuplicateMode'
+    description:
+      type: string
+      maxLength: 4000
+    validityDays:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 3650
+    translations:
+      type: object
+      additionalProperties:
+        $ref: './achievements.yaml#/AchievementTranslation'
+
+AchievementUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    icon:
+      type: string
+      minLength: 1
+      maxLength: 100
+    visibility:
+      $ref: './achievements.yaml#/AchievementVisibility'
+    duplicateMode:
+      $ref: './achievements.yaml#/DuplicateMode'
+    description:
+      type: string
+      maxLength: 4000
+    validityDays:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 3650
+    translations:
+      type: object
+      additionalProperties:
+        $ref: './achievements.yaml#/AchievementTranslation'
+
+Award:
+  type: object
+  required: [id, achievementId, achievementName, icon, user, awardedAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    achievementId:
+      type: string
+      format: uuid
+    achievementName:
+      type: string
+    icon:
+      type: string
+    user:
+      $ref: './users.yaml#/UserSummary'
+    awardedBy:
+      $ref: './users.yaml#/UserSummary'
+    awardedAt:
+      type: string
+      format: date-time
+    validUntil:
+      type: string
+      format: date
+    notice:
+      type: string
+    revokedAt:
+      type: string
+      format: date-time
+    regionName:
+      type: string
+
+AwardCreate:
+  type: object
+  required: [userId]
+  properties:
+    userId:
+      type: string
+      format: uuid
+    validUntil:
+      type: string
+      format: date
+    notice:
+      type: string
+      maxLength: 1000
+
+AwardUpdate:
+  type: object
+  properties:
+    validUntil:
+      type: string
+      format: date
+    notice:
+      type: string
+      maxLength: 1000

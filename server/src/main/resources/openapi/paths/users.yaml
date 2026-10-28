@@ -13,6 +13,33 @@
               $ref: '../schemas/users.yaml#/UserProfile'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [users]
+    operationId: deleteMyAccount
+    summary: 'Delete (anonymise) the own account; the session ends.'
+    x-permission: authenticated
+    x-history: UserAction.ACCOUNT_DELETED
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/users.yaml#/AccountDeletion'
+    responses:
+      "204":
+        description: No Content
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
 
 /api/users/me/settings:
   patch:
@@ -135,3 +162,403 @@
           application/json:
             schema:
               $ref: ../schemas/common.yaml#/ApiError
+
+/api/users/me/sleep-mode:
+  put:
+    tags: [users]
+    operationId: updateSleepMode
+    summary: Set the own sleep mode.
+    x-permission: authenticated
+    x-history: UserAction.SLEEP_MODE_CHANGED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/users.yaml#/SleepModeUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserSummary'
+      "400":
+        description: SLEEP_DATES_INVALID or VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/photo:
+  put:
+    tags: [users]
+    operationId: setMyPhoto
+    summary: Use an uploaded (cropped) image as profile photo.
+    x-permission: authenticated
+    x-history: UserAction.PHOTO_CHANGED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/users.yaml#/PhotoUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/PhotoResult'
+      "400":
+        description: UPLOAD_NOT_IMAGE
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: UPLOAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [users]
+    operationId: deleteMyPhoto
+    summary: Remove the own profile photo.
+    x-permission: authenticated
+    x-history: UserAction.PHOTO_CHANGED
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/email:
+  get:
+    tags: [users]
+    operationId: getEmailChange
+    summary: Pending email change of the current user.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/EmailChangeStatus'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  post:
+    tags: [users]
+    operationId: requestEmailChange
+    summary: Request an email change (confirmation mail to the new address).
+    x-permission: authenticated
+    x-history: UserAction.EMAIL_CHANGE_REQUESTED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/users.yaml#/EmailChangeRequest'
+    responses:
+      "202":
+        description: Accepted
+      "400":
+        description: EMAIL_INVALID or EMAIL_BLOCKED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "409":
+        description: EMAIL_TAKEN or EMAIL_CHANGE_PENDING
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [users]
+    operationId: abortEmailChange
+    summary: Abort the pending email change.
+    x-permission: authenticated
+    x-history: UserAction.EMAIL_CHANGE_ABORTED
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/email/confirm:
+  post:
+    tags: [users]
+    operationId: confirmEmailChange
+    summary: Confirm the email change with the mailed token.
+    x-permission: authenticated (self)
+    x-history: UserAction.EMAIL_CHANGE_COMPLETED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/TokenBody'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/users.yaml#/UserSummary'
+      "400":
+        description: EMAIL_CHANGE_TOKEN_INVALID
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/activity-filters:
+  get:
+    tags: [users]
+    operationId: getActivityFilters
+    summary: Dashboard activity filters.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/activity.yaml#/ActivityFilters'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  put:
+    tags: [users]
+    operationId: updateActivityFilters
+    summary: Replace the dashboard activity filters.
+    x-permission: authenticated
+    x-history: UserAction.ACTIVITY_FILTERS_CHANGED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/activity.yaml#/ActivityFilters'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/activity.yaml#/ActivityFilters'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/business-card:
+  get:
+    tags: [users]
+    operationId: getBusinessCard
+    summary: Business card PDF (85 x 55 mm).
+    x-permission: 'verified, role <= own role'
+    x-history: UserAction.BUSINESS_CARD_CREATED
+    parameters:
+      - name: role
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [FOODSAVER, STORE_MANAGER, AMBASSADOR]
+      - name: regionId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      "400":
+        description: NOT_REGION_MEMBER or VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: BUSINESS_CARD_NOT_ALLOWED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/export:
+  post:
+    tags: [users]
+    operationId: exportMyData
+    summary: Start the GDPR data export (zip via jobs).
+    x-permission: authenticated
+    x-history: UserAction.DATA_EXPORTED
+    responses:
+      "202":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/JobRef'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "429":
+        description: TOO_MANY_REQUESTS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/{userId}/email-bounce:
+  delete:
+    tags: [users]
+    operationId: clearEmailBounce
+    summary: Clear the bounce flag of an email address.
+    x-permission: 'self, ORGA or mayAdministrateUser'
+    x-history: UserAction.BOUNCE_CLEARED
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: USER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/connections:
+  get:
+    tags: [users]
+    operationId: listMyConnections
+    summary: OAuth clients the user granted access.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/users.yaml#/OAuthConsent'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/users/me/connections/{clientId}:
+  delete:
+    tags: [users]
+    operationId: revokeMyConnection
+    summary: Revoke an OAuth consent and its tokens.
+    x-permission: authenticated
+    x-history: OAuthAction.CONSENT_REVOKED
+    parameters:
+      - name: clientId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: OAUTH_CLIENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

@@ -51,10 +51,41 @@ class ModulesTest {
         });
         for (String communication : new String[] {"messaging", "mailbox", "forum", "event", "poll", "survey"}) {
             ApplicationModule target = modules.getModuleByName(communication).orElseThrow();
-            modules.stream().filter(module -> !module.equals(target)).forEach(module ->
+            // M6 readers (A38): calendar, map, activity and search may read events/forum/polls/mailboxes; never messaging.
+            java.util.Set<String> readers = "messaging".equals(communication) ? java.util.Set.of()
+                    : java.util.Set.of("calendar", "map", "activity", "search");
+            modules.stream().filter(module -> !module.equals(target))
+                    .filter(module -> !readers.contains(module.getName())).forEach(module ->
                     assertThat(module.getDirectDependencies(modules).contains(target)).as(module.getName() + " → " + communication)
                             .isFalse());
         }
+    }
+
+    @Test
+    void m6ModulesHaveOnlyTheirAllowedDependencies() {
+        java.util.Map<String, java.util.Set<String>> allowed = java.util.Map.ofEntries(
+                java.util.Map.entry("calendar", java.util.Set.of("user", "region", "event", "pickup", "intropickup", "history")),
+                java.util.Map.entry("basket", java.util.Set.of("user", "region", "store", "notification", "history", "upload", "admin")),
+                java.util.Map.entry("fsp", java.util.Set.of("user", "region", "notification", "history", "upload", "admin")),
+                java.util.Map.entry("map", java.util.Set.of("region", "store", "fsp", "basket", "event", "user", "pickup", "admin")),
+                java.util.Map.entry("activity", java.util.Set.of("forum", "store", "mailbox", "event", "fsp", "user", "region")),
+                java.util.Map.entry("report", java.util.Set.of("user", "region", "store", "forum", "notification", "history")),
+                java.util.Map.entry("achievement", java.util.Set.of("user", "region", "store", "quiz", "notification", "history")),
+                java.util.Map.entry("statistics", java.util.Set.of("user", "region", "store", "pickup", "fsp", "basket", "history")),
+                java.util.Map.entry("search", java.util.Set.of("user", "region", "store", "forum", "fsp", "event", "poll", "mailbox", "history", "admin")),
+                java.util.Map.entry("resource", java.util.Set.of("user", "region", "notification", "history", "upload", "admin")),
+                java.util.Map.entry("support", java.util.Set.of("user", "notification", "upload", "history", "admin")),
+                java.util.Map.entry("oauthserver", java.util.Set.of("user", "region", "auth", "history", "admin")));
+        java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
+        allowed.forEach((name, permitted) -> {
+            ApplicationModule module = modules.getModuleByName(name).orElseThrow();
+            assertThat(module.getDirectDependencies(modules).uniqueModules().map(ApplicationModule::getName)
+                    .filter(dependency -> !shared.contains(dependency)).toList())
+                    .as(name).allMatch(permitted::contains);
+        });
+        ApplicationModule activity = modules.getModuleByName("activity").orElseThrow();
+        modules.stream().forEach(module -> assertThat(module.getDirectDependencies(modules).contains(activity))
+                .as(module.getName() + " → activity").isFalse());
     }
 
     @Test

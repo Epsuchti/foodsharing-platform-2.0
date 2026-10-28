@@ -1,0 +1,58 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+ActivityType:
+  type: string
+  enum: [FORUM, STORE_WALL, MAILBOX, EVENT_WALL, FSP_WALL, BUDDY_WALL]
+
+ActivityFilters:
+  type: object
+  required: [excluded]
+  properties:
+    excluded:
+      type: array
+      items:
+        $ref: './activity.yaml#/ActivityType'
+
+ActivitySource:
+  type: object
+  required: [name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
+ActivityItem:
+  type: object
+  required: [type, at, title, link, source]
+  properties:
+    type:
+      $ref: './activity.yaml#/ActivityType'
+    at:
+      type: string
+      format: date-time
+    title:
+      type: string
+    excerpt:
+      type: string
+      maxLength: 300
+    link:
+      type: string
+    author:
+      $ref: './users.yaml#/UserSummary'
+    imageUrl:
+      type: string
+    source:
+      $ref: './activity.yaml#/ActivitySource'
+
+ActivityPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './activity.yaml#/ActivityItem'
+    page:
+      $ref: './common.yaml#/PageMeta'

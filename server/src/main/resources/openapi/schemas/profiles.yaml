@@ -1,0 +1,235 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+BuddyRelation:
+  type: string
+  enum: [NONE, REQUESTED_BY_ME, REQUESTED_BY_THEM, CONFIRMED]
+
+ProfileRegion:
+  type: object
+  required: [id, name, type, admin]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    type:
+      type: string
+    admin:
+      type: boolean
+
+ProfileStore:
+  type: object
+  required: [id, name, manager]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    manager:
+      type: boolean
+
+ProfileStats:
+  type: object
+  required: [pickupCount, kgSaved, postCount, bananaCount, buddyCount, basketsSharedCount]
+  properties:
+    pickupCount:
+      type: integer
+      format: int32
+    kgSaved:
+      type: number
+      format: double
+    postCount:
+      type: integer
+      format: int32
+    bananaCount:
+      type: integer
+      format: int32
+    buddyCount:
+      type: integer
+      format: int32
+    basketsSharedCount:
+      type: integer
+      format: int32
+
+ProfileBanana:
+  type: object
+  required: [count, givenByMe, mayGive]
+  properties:
+    count:
+      type: integer
+      format: int32
+    givenByMe:
+      type: boolean
+    mayGive:
+      type: boolean
+
+ProfileBuddy:
+  type: object
+  required: [status]
+  properties:
+    status:
+      $ref: './profiles.yaml#/BuddyRelation'
+
+ProfileAchievement:
+  type: object
+  required: [id, name, icon, awardedAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    icon:
+      type: string
+    awardedAt:
+      type: string
+      format: date-time
+    validUntil:
+      type: string
+      format: date
+    regionName:
+      type: string
+
+ProfileChain:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
+ProfilePermissions:
+  type: object
+  required: [mayEditProfile, maySeeNotes, mayReport, mayGiveBanana, maySeeHistory, maySeeCommitments, mayAdminister, maySeePickups]
+  properties:
+    mayEditProfile:
+      type: boolean
+    maySeeNotes:
+      type: boolean
+    mayReport:
+      type: boolean
+    mayGiveBanana:
+      type: boolean
+    maySeeHistory:
+      type: boolean
+    maySeeCommitments:
+      type: boolean
+    mayAdminister:
+      type: boolean
+    maySeePickups:
+      type: boolean
+
+PublicProfile:
+  type: object
+  required: [user, regions, groups, stats, banana, buddy, achievements, kamChains, permissions]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    photoUrl:
+      type: string
+    aboutMe:
+      type: string
+    aboutMeInternal:
+      type: string
+      description: Only for mayAdministrateUser.
+    regions:
+      type: array
+      items:
+        $ref: './profiles.yaml#/ProfileRegion'
+    groups:
+      type: array
+      items:
+        $ref: './profiles.yaml#/ProfileRegion'
+    stores:
+      type: array
+      items:
+        $ref: './profiles.yaml#/ProfileStore'
+      description: Only when the viewer may see stores.
+    stats:
+      $ref: './profiles.yaml#/ProfileStats'
+    banana:
+      $ref: './profiles.yaml#/ProfileBanana'
+    buddy:
+      $ref: './profiles.yaml#/ProfileBuddy'
+    achievements:
+      type: array
+      items:
+        $ref: './profiles.yaml#/ProfileAchievement'
+    kamChains:
+      type: array
+      items:
+        $ref: './profiles.yaml#/ProfileChain'
+    violationCount:
+      type: integer
+      format: int32
+    notesCount:
+      type: integer
+      format: int32
+    registeredAt:
+      type: string
+      format: date-time
+    permissions:
+      $ref: './profiles.yaml#/ProfilePermissions'
+
+CommitmentWeek:
+  type: object
+  required: [weekStart, pickups, basketsOffered, basketsShared, eventsCreated, eventsParticipated]
+  properties:
+    weekStart:
+      type: string
+      format: date
+    pickups:
+      type: integer
+      format: int32
+    basketsOffered:
+      type: integer
+      format: int32
+    basketsShared:
+      type: integer
+      format: int32
+    eventsCreated:
+      type: integer
+      format: int32
+    eventsParticipated:
+      type: integer
+      format: int32
+
+Commitments:
+  type: object
+  required: [weeks, responsibleStores]
+  properties:
+    weeks:
+      type: array
+      items:
+        $ref: './profiles.yaml#/CommitmentWeek'
+    responsibleStores:
+      type: integer
+      format: int32
+
+Banana:
+  type: object
+  description: A trust banana (upstream fs_rating).
+  required: [sender, recipient, message, givenAt]
+  properties:
+    sender:
+      $ref: './users.yaml#/UserSummary'
+    recipient:
+      $ref: './users.yaml#/UserSummary'
+    message:
+      type: string
+    givenAt:
+      type: string
+      format: date-time
+
+BananaCreate:
+  type: object
+  required: [message]
+  properties:
+    message:
+      type: string
+      minLength: 100
+      maxLength: 5000

@@ -1,5 +1,12 @@
 package network.foodsharing.user.web;
 
+import network.foodsharing.api.model.AccountDeletion;
+import network.foodsharing.api.model.BooleanValue;
+import network.foodsharing.api.model.BouncedUserPage;
+import network.foodsharing.api.model.EmailChangeRequest;
+import network.foodsharing.api.model.UserNote;
+import network.foodsharing.api.model.UserNoteCreate;
+import network.foodsharing.common.error.ApiException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -71,5 +78,42 @@ public class UserAdminController implements AdminUsersApi {
                 TimeMapper.toInstant(from), TimeMapper.toInstant(to), page == null ? 0 : page,
                 size == null ? 20 : size);
         return ResponseEntity.ok(historyMapper.toPage(historyQueryService.list(filter)));
+    }
+
+    // --- M6 contract stubs (docs/plan-m6.md B1) ---
+
+    @Override
+    public ResponseEntity<UserNote> addUserNote(UUID userId, UserNoteCreate userNoteCreate) {
+        throw ApiException.notImplemented("addUserNote");
+    }
+
+    @Override
+    public ResponseEntity<Void> adminDeleteUser(UUID userId, AccountDeletion accountDeletion) {
+        throw ApiException.notImplemented("adminDeleteUser");
+    }
+
+    @Override
+    public ResponseEntity<Void> adminRequestEmailChange(UUID userId, EmailChangeRequest emailChangeRequest) {
+        throw ApiException.notImplemented("adminRequestEmailChange");
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteUserNote(UUID userId, UUID noteId) {
+        throw ApiException.notImplemented("deleteUserNote");
+    }
+
+    @Override
+    public ResponseEntity<BouncedUserPage> listBouncedUsers(UUID regionId, Integer page, Integer size) {
+        throw ApiException.notImplemented("listBouncedUsers");
+    }
+
+    @Override
+    public ResponseEntity<List<UserNote>> listUserNotes(UUID userId) {
+        throw ApiException.notImplemented("listUserNotes");
+    }
+
+    @Override
+    public ResponseEntity<Void> setNoAutomaticDelete(UUID userId, BooleanValue booleanValue) {
+        throw ApiException.notImplemented("setNoAutomaticDelete");
     }
 }

@@ -91,6 +91,12 @@ UserProfile:
     lastPassportAt:
       type: string
       format: date-time
+    infoMailMessage:
+      type: boolean
+      description: 'Receive info mails from the orga team (A20).'
+    mentionNotifications:
+      type: boolean
+      description: 'Bell on @mentions in the forum.'
 
 UserSettingsUpdate:
   type: object
@@ -109,6 +115,12 @@ UserSettingsUpdate:
       type: string
       maxLength: 500
       description: Optional reason stored in the action history.
+    infoMailMessage:
+      type: boolean
+      description: 'Receive info mails from the orga team (A20).'
+    mentionNotifications:
+      type: boolean
+      description: 'Bell on @mentions in the forum.'
 
 Gender:
   type: string
@@ -142,8 +154,11 @@ UserSummary:
     homeRegion:
       $ref: './regions.yaml#/RegionRef'
     sleepMode:
-      description: 'Null until sleep mode exists (milestone 6).'
+      description: 'True while the user is sleeping (A39: FULL, or TEMPORARY within from..until). Null until M6 B2.'
       type: boolean
+    sleepMessage:
+      description: 'Sleep message; only for viewers who may see contact details.'
+      type: string
     phone:
       description: 'Only when the viewer may see contact details.'
       type: string
@@ -210,3 +225,127 @@ UserProfileUpdate:
     reason:
       type: string
       maxLength: 500
+
+SleepStatus:
+  type: string
+  description: Sleep mode (A39).
+  enum: [NONE, TEMPORARY, FULL]
+
+SleepModeUpdate:
+  type: object
+  required: [status]
+  properties:
+    status:
+      $ref: './users.yaml#/SleepStatus'
+    from:
+      type: string
+      format: date
+    until:
+      type: string
+      format: date
+    message:
+      type: string
+      maxLength: 1000
+
+PhotoUpdate:
+  type: object
+  required: [uploadId]
+  properties:
+    uploadId:
+      type: string
+      format: uuid
+
+PhotoResult:
+  type: object
+  required: [photoUrl]
+  properties:
+    photoUrl:
+      type: string
+
+EmailChangeRequest:
+  type: object
+  required: [newEmail]
+  properties:
+    newEmail:
+      type: string
+      minLength: 3
+      maxLength: 320
+
+EmailChangeStatus:
+  type: object
+  properties:
+    pendingEmail:
+      type: string
+    requestedAt:
+      type: string
+      format: date-time
+
+AccountDeletion:
+  type: object
+  properties:
+    reason:
+      type: string
+      maxLength: 1000
+
+OAuthConsent:
+  type: object
+  required: [clientId, clientName, scopes, grantedAt]
+  properties:
+    clientId:
+      type: string
+    clientName:
+      type: string
+    scopes:
+      type: array
+      items:
+        type: string
+    grantedAt:
+      type: string
+      format: date-time
+
+UserNote:
+  type: object
+  required: [id, body, createdAt, mayDelete]
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: './users.yaml#/UserSummary'
+    body:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    mayDelete:
+      type: boolean
+
+UserNoteCreate:
+  type: object
+  required: [body]
+  properties:
+    body:
+      type: string
+      minLength: 1
+      maxLength: 4000
+
+BouncedUser:
+  type: object
+  required: [user, bouncedAt]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    bouncedAt:
+      type: string
+      format: date-time
+
+BouncedUserPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './users.yaml#/BouncedUser'
+    page:
+      $ref: './common.yaml#/PageMeta'

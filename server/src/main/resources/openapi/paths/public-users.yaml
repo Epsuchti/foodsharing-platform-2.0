@@ -1,0 +1,24 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/public/users/email-change/abort:
+  post:
+    tags: [public-users]
+    operationId: abortEmailChangeByToken
+    summary: Abort an email change with the link sent to the old address.
+    x-permission: public (token)
+    x-history: UserAction.EMAIL_CHANGE_ABORTED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/TokenBody'
+    responses:
+      "204":
+        description: No Content
+      "400":
+        description: EMAIL_CHANGE_TOKEN_INVALID
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

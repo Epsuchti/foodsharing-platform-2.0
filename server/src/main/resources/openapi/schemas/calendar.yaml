@@ -1,0 +1,10 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+CalendarToken:
+  type: object
+  required: [token, url]
+  properties:
+    token:
+      type: string
+    url:
+      type: string

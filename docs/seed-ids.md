@@ -53,6 +53,20 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | event | 0044 | `event_location`, `event`, `event_invitation`, `event_wall_post` | 0001–0004 | M5 B7 (`137`) |
 | poll | 0045 | `poll`, `poll_option`, `poll_option_value`, `poll_vote` | 0001–0004 | M5 B7 (`138`) |
 | survey | 0046 | `survey`, `survey_coauthor`, `survey_question`, `survey_response`, `survey_answer` | 0001–0005 | M5 B8 (`139`) |
+| user | 0001 | `rating` (bananas), `buddy`, `user_wall_post`, `email_change`, `user_archive` | 0003–0007 | M6 B2–B4 (`160`, `161`) |
+| calendar | 0047 | `calendar_token` | 0001 | M6 B4 (`176`) |
+| basket | 0048 | `basket`, `basket_grocery`, `basket_kind`, `basket_request` | 0001–0004 | M6 B5 (`163`) |
+| fsp | 0049 | `food_share_point`, `fsp_follower`, `fsp_wall_post` | 0001–0003 | M6 B6 (`164`) |
+| report | 0050 | `report`, `report_wall_post`, `mediation_request` | 0001–0003 | M6 B8 (`167`) |
+| achievement | 0051 | `achievement`, `achievement_i18n`, `awarded_achievement` | 0001–0003 | M6 B9 (`168`) |
+| admin | 0052 | `feature_toggle`, `configuration`, `ip_block` (seed rows) | 0001–0003 | M6 B10 (`169`) |
+| content | 0012 | `blog_post`, `release_note`, `release_note_i18n` | 0006–0008 | M6 B11 (`170`) |
+| support | 0053 | `support_ticket` | 0001 | M6 B11 (`171`) |
+| statistics | 0054 | `statistics_daily` | 0001 | M6 B12 (`172`) |
+| search | 0055 | `search_index` | 0001 | M6 B12 (`173`; rebuilt by the `search-reindex` job, no CSV) |
+| resource | 0056 | `resource_category` (+`_i18n`), `resource`, `resource_category_link`, `resource_image`, `resource_favorite` | 0001–0006 | M6 B13 (`174`) |
+| oauthserver | 0057 | `oauth_client`, `oauth_consent` | 0001–0002 | M6 B14 (`175`) |
+| upload | 0040 | `upload` image rows (avatars, FSP/basket/blog photos) | (0001) | M6 B3 (`162`; bytes in `db/seed/upload/files/`) |
 
 Seed changelog numbers: M1 uses `001`–`004`; later milestones follow the same ranges as the schema changelogs
 (M2: `020`–`023` T11, `030` T13, `035` T14, `040` T22, `045` T15, `050` T16).

@@ -43,7 +43,7 @@ public class UploadsController implements UploadsApi {
     }
 
     @Override
-    public ResponseEntity<Resource> downloadUpload(UUID uploadId) {
+    public ResponseEntity<Resource> downloadUpload(UUID uploadId, String size) {
         UUID userId = currentActor.requireUserId();
         Upload upload = uploads.requireReadable(userId, currentActor.isOrga(), uploadId);
         return ResponseEntity.ok()

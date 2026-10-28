@@ -82,5 +82,11 @@
   "bell.EVENT_INVITATION": "Invitation to an event",
   "bell.EVENT_UPDATED": "An event was changed",
   "bell.POLL_CANCELLED": "A poll was cancelled",
-  "bell.SURVEY_SHARED": "A survey was shared with you"
+  "bell.SURVEY_SHARED": "A survey was shared with you",
+  "bell.FSP_NEW_POST": "New post at a food share point",
+  "bell.MEDIATION_REQUEST": "New mediation request",
+  "bell.ACHIEVEMENT_AWARDED": "You received an achievement",
+  "bell.EMAIL_CHANGE_REQUESTED": "Change of your email address requested",
+  "bell.SUPPORT_TICKET": "Your support request was received",
+  "bell.BASKET_REQUEST_ANSWERED": "Your food basket request was answered"
 }

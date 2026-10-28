@@ -1,0 +1,65 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+StoreMarkerStatus:
+  type: string
+  enum: [ALL, COOPERATING, NOT_COOPERATING]
+
+StoreMarkerHelp:
+  type: string
+  enum: [ALL, OPEN, SEARCHING]
+
+StoreMarkerScope:
+  type: string
+  enum: [ALL, REGION, MEMBER]
+
+UserMarkerRole:
+  type: string
+  enum: [ALL, FOODSAVER, STORE_MANAGER]
+
+UserMarkerActivity:
+  type: string
+  enum: [ALL, WEEK, MONTH, THREE_MONTHS, SIX_MONTHS]
+
+UserMarkerMember:
+  type: string
+  enum: [ALL, HOMEREGION, OTHER]
+
+StoreMarker:
+  type: object
+  required: [id, lat, lon, name, cooperationStatus, teamStatus]
+  properties:
+    id:
+      type: string
+      format: uuid
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    name:
+      type: string
+    cooperationStatus:
+      type: string
+    teamStatus:
+      type: string
+    categoryId:
+      type: string
+      format: uuid
+
+MapBubble:
+  type: object
+  required: [title, link, lines]
+  properties:
+    title:
+      type: string
+    subtitle:
+      type: string
+    imageUrl:
+      type: string
+    link:
+      type: string
+    lines:
+      type: array
+      items:
+        type: string

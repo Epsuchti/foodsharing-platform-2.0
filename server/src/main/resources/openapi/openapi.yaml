@@ -105,6 +105,30 @@ tags:
     description: 'Polls (votings) of regions and working groups.'
   - name: surveys
     description: 'Surveys: editor, fill form, results.'
+  - name: public-users
+    description: Logged-out user account actions (email change abort link).
+  - name: profiles
+    description: 'Public profiles: profile page, commitments, wall, bananas, buddies.'
+  - name: calendar
+    description: Personal calendar feed token (iCal subscription).
+  - name: public-calendar
+    description: iCal feed by token (no login).
+  - name: admin-uploads
+    description: Upload administration (ORGA).
+  - name: baskets
+    description: Food baskets.
+  - name: food-share-points
+    description: Food share points (Fairteiler).
+  - name: map
+    description: Map layers for logged-in users.
+  - name: public-map
+    description: Public map layers (logged out).
+  - name: activity
+    description: Dashboard activity feed.
+  - name: reports
+    description: 'Reports (Meldungen), mediation, report log.'
+  - name: achievements
+    description: Achievements (badges) and awards.
 x-framework-endpoints:
   - /ws
   - /oauth2/authorization/google
@@ -796,3 +820,159 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1realtime~1ping'
   /api/dev/mailbox/incoming:
     $ref: './paths/dev.yaml#/~1api~1dev~1mailbox~1incoming'
+  # --- users (M6) ---
+  /api/users/me/sleep-mode:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1sleep-mode'
+  /api/users/me/photo:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1photo'
+  /api/users/me/email:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1email'
+  /api/users/me/email/confirm:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1email~1confirm'
+  /api/users/me/activity-filters:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1activity-filters'
+  /api/users/me/business-card:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1business-card'
+  /api/users/me/export:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1export'
+  /api/users/{userId}/email-bounce:
+    $ref: './paths/users.yaml#/~1api~1users~1{userId}~1email-bounce'
+  /api/users/me/connections:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1connections'
+  /api/users/me/connections/{clientId}:
+    $ref: './paths/users.yaml#/~1api~1users~1me~1connections~1{clientId}'
+  # --- public-users (M6) ---
+  /api/public/users/email-change/abort:
+    $ref: './paths/public-users.yaml#/~1api~1public~1users~1email-change~1abort'
+  # --- admin-users (M6) ---
+  /api/admin/users/{userId}/email:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1email'
+  /api/admin/users/{userId}/no-automatic-delete:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1no-automatic-delete'
+  /api/admin/users/{userId}:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}'
+  /api/admin/users/bounced:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1bounced'
+  /api/admin/users/{userId}/notes:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1notes'
+  /api/admin/users/{userId}/notes/{noteId}:
+    $ref: './paths/admin-users.yaml#/~1api~1admin~1users~1{userId}~1notes~1{noteId}'
+  # --- profiles (M6) ---
+  /api/users/{userId}/profile:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1profile'
+  /api/users/{userId}/commitments:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1commitments'
+  /api/users/{userId}/wall:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1wall'
+  /api/users/{userId}/wall/{postId}:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1wall~1{postId}'
+  /api/users/{userId}/bananas:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1bananas'
+  /api/users/{userId}/bananas/{senderId}:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1bananas~1{senderId}'
+  /api/users/me/buddies:
+    $ref: './paths/profiles.yaml#/~1api~1users~1me~1buddies'
+  /api/users/me/buddies/requests:
+    $ref: './paths/profiles.yaml#/~1api~1users~1me~1buddies~1requests'
+  /api/users/{userId}/buddies:
+    $ref: './paths/profiles.yaml#/~1api~1users~1{userId}~1buddies'
+  # --- calendar (M6) ---
+  /api/calendar/token:
+    $ref: './paths/calendar.yaml#/~1api~1calendar~1token'
+  # --- public-calendar (M6) ---
+  /api/public/calendar/{token}.ics:
+    $ref: './paths/public-calendar.yaml#/~1api~1public~1calendar~1{token}.ics'
+  # --- admin-uploads (M6) ---
+  /api/admin/uploads:
+    $ref: './paths/admin-uploads.yaml#/~1api~1admin~1uploads'
+  /api/admin/uploads/summary:
+    $ref: './paths/admin-uploads.yaml#/~1api~1admin~1uploads~1summary'
+  /api/admin/uploads/{uploadId}:
+    $ref: './paths/admin-uploads.yaml#/~1api~1admin~1uploads~1{uploadId}'
+  # --- baskets (M6) ---
+  /api/baskets/nearby:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1nearby'
+  /api/baskets/mine:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1mine'
+  /api/baskets/requested:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1requested'
+  /api/baskets:
+    $ref: './paths/baskets.yaml#/~1api~1baskets'
+  /api/baskets/{basketId}:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1{basketId}'
+  /api/baskets/{basketId}/requests:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1{basketId}~1requests'
+  /api/baskets/{basketId}/requests/{requesterId}:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1{basketId}~1requests~1{requesterId}'
+  /api/users/{userId}/baskets:
+    $ref: './paths/baskets.yaml#/~1api~1users~1{userId}~1baskets'
+  # --- food-share-points (M6) ---
+  /api/regions/{regionId}/food-share-points:
+    $ref: './paths/food-share-points.yaml#/~1api~1regions~1{regionId}~1food-share-points'
+  /api/food-share-points/mine:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1mine'
+  /api/food-share-points/{fspId}:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}'
+  /api/food-share-points/{fspId}/status:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1status'
+  /api/food-share-points/{fspId}/follow:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1follow'
+  /api/food-share-points/{fspId}/managers:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1managers'
+  /api/food-share-points/{fspId}/wall:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall'
+  /api/food-share-points/{fspId}/wall/{postId}:
+    $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall~1{postId}'
+  # --- map (M6) ---
+  /api/map/markers/stores:
+    $ref: './paths/map.yaml#/~1api~1map~1markers~1stores'
+  /api/map/markers/events:
+    $ref: './paths/map.yaml#/~1api~1map~1markers~1events'
+  /api/map/markers/users:
+    $ref: './paths/map.yaml#/~1api~1map~1markers~1users'
+  /api/map/markers/baskets:
+    $ref: './paths/map.yaml#/~1api~1map~1markers~1baskets'
+  /api/map/bubbles/{kind}/{id}:
+    $ref: './paths/map.yaml#/~1api~1map~1bubbles~1{kind}~1{id}'
+  /api/map/search:
+    $ref: './paths/map.yaml#/~1api~1map~1search'
+  # --- public-map (M6) ---
+  /api/public/map/markers/food-share-points:
+    $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1food-share-points'
+  /api/public/map/markers/regions:
+    $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1regions'
+  /api/public/map/markers/baskets:
+    $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1baskets'
+  /api/public/map/bubbles/{kind}/{id}:
+    $ref: './paths/public-map.yaml#/~1api~1public~1map~1bubbles~1{kind}~1{id}'
+  # --- activity (M6) ---
+  /api/activity:
+    $ref: './paths/activity.yaml#/~1api~1activity'
+  # --- reports (M6) ---
+  /api/regions/{regionId}/reports:
+    $ref: './paths/reports.yaml#/~1api~1regions~1{regionId}~1reports'
+  /api/users/{userId}/reports:
+    $ref: './paths/reports.yaml#/~1api~1users~1{userId}~1reports'
+  /api/reports/{reportId}:
+    $ref: './paths/reports.yaml#/~1api~1reports~1{reportId}'
+  /api/reports/{reportId}/wall:
+    $ref: './paths/reports.yaml#/~1api~1reports~1{reportId}~1wall'
+  /api/reports/{reportId}/wall/{postId}:
+    $ref: './paths/reports.yaml#/~1api~1reports~1{reportId}~1wall~1{postId}'
+  /api/regions/{regionId}/report-log:
+    $ref: './paths/reports.yaml#/~1api~1regions~1{regionId}~1report-log'
+  /api/regions/{regionId}/mediation:
+    $ref: './paths/reports.yaml#/~1api~1regions~1{regionId}~1mediation'
+  /api/regions/{regionId}/mediation-requests:
+    $ref: './paths/reports.yaml#/~1api~1regions~1{regionId}~1mediation-requests'
+  # --- achievements (M6) ---
+  /api/achievements:
+    $ref: './paths/achievements.yaml#/~1api~1achievements'
+  /api/achievements/{achievementId}:
+    $ref: './paths/achievements.yaml#/~1api~1achievements~1{achievementId}'
+  /api/achievements/{achievementId}/awards:
+    $ref: './paths/achievements.yaml#/~1api~1achievements~1{achievementId}~1awards'
+  /api/achievements/awards/{awardId}:
+    $ref: './paths/achievements.yaml#/~1api~1achievements~1awards~1{awardId}'
+  /api/users/{userId}/achievements:
+    $ref: './paths/achievements.yaml#/~1api~1users~1{userId}~1achievements'

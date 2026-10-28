@@ -1,0 +1,61 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/calendar/token:
+  get:
+    tags: [calendar]
+    operationId: getCalendarToken
+    summary: The own calendar token.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/calendar.yaml#/CalendarToken'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: CALENDAR_TOKEN_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  put:
+    tags: [calendar]
+    operationId: regenerateCalendarToken
+    summary: Create or regenerate the calendar token.
+    x-permission: authenticated
+    x-history: CalendarAction.TOKEN_CREATED
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/calendar.yaml#/CalendarToken'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [calendar]
+    operationId: deleteCalendarToken
+    summary: Delete the calendar token.
+    x-permission: authenticated
+    x-history: CalendarAction.TOKEN_DELETED
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

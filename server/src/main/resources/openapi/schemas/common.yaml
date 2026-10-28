@@ -273,6 +273,43 @@ ApiErrorCode:
     - SURVEY_QUESTION_REQUIRED
     - SURVEY_ANSWER_INVALID
     - STORE_ANSWER_LINK_ONLY
+    - SLEEP_DATES_INVALID
+    - UPLOAD_NOT_IMAGE
+    - EMAIL_INVALID
+    - EMAIL_BLOCKED
+    - EMAIL_TAKEN
+    - EMAIL_CHANGE_PENDING
+    - EMAIL_CHANGE_TOKEN_INVALID
+    - BUSINESS_CARD_NOT_ALLOWED
+    - OAUTH_CLIENT_NOT_FOUND
+    - NOTE_NOT_FOUND
+    - WALL_NOT_ACCESSIBLE
+    - BANANA_MESSAGE_TOO_SHORT
+    - BANANA_NOT_ALLOWED
+    - BANANA_ALREADY_GIVEN
+    - BANANA_NOT_FOUND
+    - BUDDY_SELF
+    - CALENDAR_TOKEN_NOT_FOUND
+    - INVALID_REMINDER
+    - FEATURE_DISABLED
+    - BASKET_LOCATION_REQUIRED
+    - BASKET_CONTACT_REQUIRED
+    - BASKET_NOT_FOUND
+    - BASKET_OWN
+    - BASKET_ALREADY_REQUESTED
+    - BASKET_NOT_ACTIVE
+    - FSP_NOT_FOUND
+    - MARKER_NOT_FOUND
+    - REPORTS_NOT_ACCESSIBLE
+    - REPORT_BUTTON_DISABLED
+    - REPORT_SELF
+    - REPORT_NOT_FOUND
+    - MEDIATION_DISABLED
+    - ACHIEVEMENT_NOT_FOUND
+    - ACHIEVEMENT_SYSTEM_PROTECTED
+    - ACHIEVEMENT_RECIPIENT_NOT_MEMBER
+    - ACHIEVEMENT_ALREADY_AWARDED
+    - AWARD_NOT_FOUND
 
 ApiError:
   type: object
@@ -392,3 +429,93 @@ JobRef:
     jobId:
       type: string
       format: uuid
+
+WallPost:
+  type: object
+  description: 'A post on a profile, FSP or report wall (A42).'
+  required: [id, author, body, createdAt, mayDelete]
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: './users.yaml#/UserSummary'
+    body:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    mayDelete:
+      type: boolean
+
+WallPostPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './common.yaml#/WallPost'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+WallPostCreate:
+  type: object
+  required: [body]
+  properties:
+    body:
+      type: string
+      minLength: 1
+      maxLength: 4000
+
+MapMarkerKind:
+  type: string
+  enum: [STORE, FSP, BASKET, REGION, REGION_PIN, EVENT, USER]
+
+MapMarker:
+  type: object
+  description: 'One map marker; positions of HOME baskets and users are rounded to 3 decimals.'
+  required: [id, kind, lat, lon]
+  properties:
+    id:
+      type: string
+      format: uuid
+    kind:
+      $ref: './common.yaml#/MapMarkerKind'
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+    status:
+      type: string
+
+GeoResult:
+  type: object
+  required: [label, lat, lon]
+  properties:
+    label:
+      type: string
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+
+BooleanValue:
+  type: object
+  required: [value]
+  properties:
+    value:
+      type: boolean
+
+TokenBody:
+  type: object
+  required: [token]
+  properties:
+    token:
+      type: string
+      minLength: 1
+      maxLength: 200

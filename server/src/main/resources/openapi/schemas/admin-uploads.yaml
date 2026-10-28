@@ -1,0 +1,71 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+UploadAdminItem:
+  type: object
+  required: [id, fileName, mimeType, size, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    fileName:
+      type: string
+    mimeType:
+      type: string
+    size:
+      type: integer
+      format: int64
+    owner:
+      $ref: './users.yaml#/UserSummary'
+    usageModule:
+      type: string
+    usageOwnerId:
+      type: string
+      format: uuid
+    createdAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+
+UploadAdminPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './admin-uploads.yaml#/UploadAdminItem'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+UploadModuleCount:
+  type: object
+  required: [module, count, bytes]
+  properties:
+    module:
+      type: string
+    count:
+      type: integer
+      format: int64
+    bytes:
+      type: integer
+      format: int64
+
+UploadAdminSummary:
+  type: object
+  required: [count, bytes, unclaimedCount, byModule]
+  properties:
+    count:
+      type: integer
+      format: int64
+    bytes:
+      type: integer
+      format: int64
+    unclaimedCount:
+      type: integer
+      format: int64
+    byModule:
+      type: array
+      items:
+        $ref: './admin-uploads.yaml#/UploadModuleCount'

@@ -57,7 +57,7 @@
       - uploads
     operationId: downloadUpload
     summary: Download a file.
-    x-permission: owner, or the owning module access rule
+    x-permission: owner, the owning module access rule, or public (A41)
     parameters:
       - name: uploadId
         in: path
@@ -65,6 +65,12 @@
         schema:
           type: string
           format: uuid
+      - name: size
+        in: query
+        description: 'Image variant (A41); default = original.'
+        schema:
+          type: string
+          enum: [sm, md, lg]
     responses:
       "200":
         description: File

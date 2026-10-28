@@ -1,0 +1,176 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+ReportReason:
+  type: string
+  enum: [LATE, NO_SHOW, CANCELLATION, SELLS, VIOLATED_B1_0, VIOLATED_B1_1, VIOLATED_B1_2, VIOLATED_B1_3, VIOLATED_B1_4, VIOLATED_B2, VIOLATED_B3_0, VIOLATED_B3_1, VIOLATED_B4_0, VIOLATED_B4_1, VIOLATED_B5, VIOLATED_B6_0, VIOLATED_B6_1, VIOLATED_B7, VIOLATED_B8, VIOLATED_B9, VIOLATED_B10, VIOLATED_B11, VIOLATED_B12, VIOLATED_B13, OTHER]
+
+ReportStatus:
+  type: string
+  enum: [TO_DO, IN_PROGRESS, FOLLOW_UP_USER, HANDED_OVER, MEDIATION, REMINDER, COMPLETED, DELETED]
+
+ReportStoreRef:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
+ReportSummary:
+  type: object
+  required: [id, regionId, reason, reportedUser, status, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    reason:
+      $ref: './reports.yaml#/ReportReason'
+    reasonOther:
+      type: string
+    reportedUser:
+      $ref: './users.yaml#/UserSummary'
+    reporter:
+      $ref: './users.yaml#/UserSummary'
+    store:
+      $ref: './reports.yaml#/ReportStoreRef'
+    forumThreadId:
+      type: string
+      format: uuid
+    status:
+      $ref: './reports.yaml#/ReportStatus'
+    reminderAt:
+      type: string
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+
+ReportPermissions:
+  type: object
+  required: [mayEdit, mayDelete, mayPost]
+  properties:
+    mayEdit:
+      type: boolean
+    mayDelete:
+      type: boolean
+    mayPost:
+      type: boolean
+
+Report:
+  type: object
+  required: [id, regionId, reason, reportedUser, status, createdAt, message, wall, permissions]
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    reason:
+      $ref: './reports.yaml#/ReportReason'
+    reasonOther:
+      type: string
+    reportedUser:
+      $ref: './users.yaml#/UserSummary'
+    reporter:
+      $ref: './users.yaml#/UserSummary'
+    store:
+      $ref: './reports.yaml#/ReportStoreRef'
+    forumThreadId:
+      type: string
+      format: uuid
+    status:
+      $ref: './reports.yaml#/ReportStatus'
+    reminderAt:
+      type: string
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+    message:
+      type: string
+    consequence:
+      type: string
+    wall:
+      type: array
+      items:
+        $ref: './common.yaml#/WallPost'
+    permissions:
+      $ref: './reports.yaml#/ReportPermissions'
+
+ReportPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './reports.yaml#/ReportSummary'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+ReportCreate:
+  type: object
+  required: [reason, message, sendConfirmationMail]
+  properties:
+    reason:
+      $ref: './reports.yaml#/ReportReason'
+    reasonText:
+      type: string
+      maxLength: 500
+      description: Required for OTHER.
+    message:
+      type: string
+      minLength: 10
+      maxLength: 32600
+    storeId:
+      type: string
+      format: uuid
+    sendConfirmationMail:
+      type: boolean
+      default: false
+
+ReportUpdate:
+  type: object
+  properties:
+    status:
+      $ref: './reports.yaml#/ReportStatus'
+    consequence:
+      type: string
+      maxLength: 4000
+    reminderAt:
+      type: string
+      format: date-time
+    forumThreadId:
+      type: string
+      format: uuid
+
+MediationInfo:
+  type: object
+  required: [enabled, team]
+  properties:
+    enabled:
+      type: boolean
+    team:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
+    mailboxAddress:
+      type: string
+
+MediationRequestCreate:
+  type: object
+  required: [message]
+  properties:
+    message:
+      type: string
+      minLength: 10
+      maxLength: 4000
+    counterpartUserId:
+      type: string
+      format: uuid
