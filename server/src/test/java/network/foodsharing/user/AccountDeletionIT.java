@@ -14,10 +14,14 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import network.foodsharing.testsupport.SeedUsers;
+import network.foodsharing.user.service.AccountDeletionContributor;
+import network.foodsharing.user.service.DataExportContributor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,6 +44,12 @@ class AccountDeletionIT {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private List<AccountDeletionContributor> deletionContributors;
+
+    @Autowired
+    private List<DataExportContributor> exportContributors;
 
     private Cookie login(SeedUsers user) throws Exception {
         var result = mvc.perform(post("/api/dev/login-as").contentType(MediaType.APPLICATION_JSON)
@@ -64,9 +74,26 @@ class AccountDeletionIT {
         }
         assertThat(names).contains("profile.json", "settings.json", "history.json", "sessions.json",
                 "notifications.json", "regions.json", "stores.json", "pickups.json", "community.json",
-                "calendar.json", "events.json", "mailboxes.json")
+                "calendar.json", "events.json", "mailboxes.json", "messages.json", "forum.json", "polls.json",
+                "surveys.json", "quiz.json", "onboarding.json", "verification.json", "intropickups.json",
+                "automation.json")
                 .anyMatch(name -> name.startsWith("uploads/") && name.endsWith("avatar-bieb.png"));
         mvc.perform(post("/api/users/me/export").with(csrf()).cookie(bieb)).andExpect(status().isTooManyRequests());
+    }
+
+    /** Every module that holds personal data takes part in both the deletion and the export (A40). */
+    @Test
+    void everyPersonalDataModuleContributes() {
+        Set<String> expected = Set.of("auth", "notification", "region", "store", "pickup", "mailbox", "event",
+                "calendar", "profile", "messaging", "forum", "poll", "survey", "quiz", "onboarding", "verification",
+                "intropickup", "automation");
+        assertThat(modules(deletionContributors)).containsAll(expected);
+        assertThat(modules(exportContributors)).containsAll(expected);
+    }
+
+    private static Set<String> modules(List<?> beans) {
+        return beans.stream().map(bean -> org.springframework.aop.support.AopUtils.getTargetClass(bean).getPackageName()
+                .split("\\.")[2]).collect(Collectors.toSet());
     }
 
     @Test
@@ -106,6 +133,11 @@ class AccountDeletionIT {
                 SeedUsers.FOODSAVER.id())).isZero();
         assertThat(jdbc.queryForObject("select count(*) from calendar_token where user_id = ?", Integer.class,
                 SeedUsers.FOODSAVER.id())).isZero();
+        for (String table : List.of("forum_follow", "forum_thread_follow", "forum_post_reaction", "poll_vote", "quiz_session",
+                "learning_progress", "user_onboarding_step_done", "passport_issue", "guide_profile")) {
+            assertThat(jdbc.queryForObject("select count(*) from " + table + " where user_id = ?", Integer.class,
+                    SeedUsers.FOODSAVER.id())).as(table).isZero();
+        }
         assertThat(jdbc.queryForObject("select author_id from forum_post where id = '00000043-0002-4000-8000-000000000002'",
                 String.class)).isEqualTo(id);
         assertThat(jdbc.queryForObject("select snapshot_json from user_archive where user_id = ?", String.class,
