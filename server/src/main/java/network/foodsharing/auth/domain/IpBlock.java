@@ -24,6 +24,10 @@ public class IpBlock extends BaseEntity {
     @Column(name = "until_at")
     private Instant untilAt;
 
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    @Column(name = "context", nullable = false, length = 20)
+    private IpBlockContext context = IpBlockContext.ALL;
+
     public boolean isActiveAt(Instant now) {
         return untilAt == null || untilAt.isAfter(now);
     }

@@ -138,7 +138,7 @@
     tags: [pickups]
     operationId: checkEligibility
     summary: 'Whether the current user may sign up, with all failing reasons.'
-    x-permission: 'maySeePickups'
+    x-permission: 'maySeePickups, or any team relation (jumper, applicant, invited, unverified member: reasons instead of 403)'
     parameters:
       - name: storeId
         in: path
@@ -160,7 +160,7 @@
             schema:
               $ref: '../schemas/pickups.yaml#/PickupEligibility'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED (no relation to the store team)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/stores/{storeId}/pickups/{pickupAt}/signups:

@@ -143,10 +143,12 @@ class StoreTeamFlowIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members[0].isManager").value(true))
                 .andExpect(jsonPath("$.members[0].user.phone").isNotEmpty())
+                .andExpect(jsonPath("$.members[0].phone").value(org.hamcrest.Matchers.startsWith("+")))
                 .andExpect(jsonPath("$.jumpers[0].user.id").value(SeedUsers.JUMPER.id().toString()))
                 .andExpect(jsonPath("$.applications").isEmpty());
         mvc.perform(get(S + "01/team").cookie(login(SeedUsers.JUMPER)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.members[0].user.phone").doesNotExist());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.members[0].user.phone").doesNotExist())
+                .andExpect(jsonPath("$.members[0].phone").doesNotExist());
         mvc.perform(get(S + "01/team").cookie(login(SeedUsers.BIEB)))
                 .andExpect(jsonPath("$.applications").isArray()).andExpect(jsonPath("$.members[0].distanceKm").exists());
     }

@@ -1,5 +1,7 @@
 package network.foodsharing.map.service;
 
+import network.foodsharing.admin.domain.FeatureToggle;
+import network.foodsharing.admin.service.FeatureToggleService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -58,9 +60,13 @@ public class MarkerService {
     private final PermissionService permissions;
     private final Clock clock;
 
+    private final FeatureToggleService toggles;
+
     public MarkerService(StoreQueryService stores, FspQueryService fsps, BasketQueryService baskets,
                          EventService events, RegionService regions, UserService users, CurrentActorService actors,
-                         PermissionService permissions, Clock clock) {
+                         PermissionService permissions, Clock clock,
+            FeatureToggleService toggles) {
+        this.toggles = toggles;
         this.stores = stores;
         this.fsps = fsps;
         this.baskets = baskets;
@@ -104,11 +110,17 @@ public class MarkerService {
     }
 
     public List<Marker> fsps() {
+        if (!toggles.isEnabled(FeatureToggle.FOOD_SHARE_POINTS)) {
+            return List.of();
+        }
         return fsps.activeWithCoordinates().stream()
                 .map(f -> new Marker(f.getId(), MapMarkerKind.FSP, f.getLat(), f.getLon(), null)).toList();
     }
 
     public List<Marker> baskets() {
+        if (!toggles.isEnabled(FeatureToggle.BASKETS)) {
+            return List.of();
+        }
         return baskets.openForMap().stream()
                 .map(v -> new Marker(v.basket().getId(), MapMarkerKind.BASKET, v.lat(), v.lon(), null)).toList();
     }
@@ -135,6 +147,7 @@ public class MarkerService {
      */
     public List<Marker> users(UUID regionId, UserMarkerRole role, UserMarkerActivity activity,
                               UserMarkerMember member) {
+        toggles.requireEnabled(FeatureToggle.MAP_USERS);
         SessionPrincipal actor = actors.requirePrincipal();
         regions.require(regionId);
         permissions.requireMayAdministrateRegion(actor, regionId);

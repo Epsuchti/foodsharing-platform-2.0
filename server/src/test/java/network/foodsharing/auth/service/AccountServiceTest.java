@@ -135,7 +135,7 @@ class AccountServiceTest {
 
     @Test
     void blockedIpCannotRegister() {
-        when(ipBlocks.isBlocked(IP)).thenReturn(true);
+        when(ipBlocks.isBlocked(IP, network.foodsharing.auth.domain.IpBlockContext.REGISTRATION)).thenReturn(true);
 
         assertThatThrownBy(() -> service.findOrCreateByVerifiedEmail(google("sub-5", "y@example.org"), IP))
                 .isInstanceOfSatisfying(ApiException.class, ex ->

@@ -8,6 +8,7 @@ import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Language;
 import network.foodsharing.auth.domain.AuthAction;
 import network.foodsharing.auth.domain.AuthIdentity;
+import network.foodsharing.auth.domain.IpBlockContext;
 import network.foodsharing.auth.domain.IdentityProvider;
 import network.foodsharing.auth.domain.RegistrationOutcome;
 import network.foodsharing.auth.repository.AuthIdentityRepository;
@@ -88,7 +89,7 @@ public class AccountService {
                     ApiErrorCode.EMAIL_DOMAIN_BLOCKED);
             throw ApiException.forbidden(ApiErrorCode.EMAIL_DOMAIN_BLOCKED);
         }
-        if (ipBlocks.isBlocked(clientIp)) {
+        if (ipBlocks.isBlocked(clientIp, IpBlockContext.REGISTRATION)) {
             registrationAttempts.recordBlocked(email, clientIp, identity.provider(), RegistrationOutcome.BLOCKED_IP,
                     ApiErrorCode.IP_BLOCKED);
             throw ApiException.forbidden(ApiErrorCode.IP_BLOCKED);

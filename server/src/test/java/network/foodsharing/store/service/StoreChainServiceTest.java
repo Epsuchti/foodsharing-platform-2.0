@@ -40,8 +40,10 @@ class StoreChainServiceTest {
     UserService users = mock(UserService.class);
     CurrentActorService currentActor = mock(CurrentActorService.class);
     HistoryService history = mock(HistoryService.class, RETURNS_DEEP_STUBS);
+    org.springframework.context.ApplicationEventPublisher events =
+            mock(org.springframework.context.ApplicationEventPublisher.class);
     StoreChainService service = new StoreChainService(chains, kams, mock(StoreRepository.class), access, users,
-            currentActor, history);
+            currentActor, history, events);
     StoreChain chain = new StoreChain();
     SessionPrincipal actor;
 
@@ -119,6 +121,7 @@ class StoreChainServiceTest {
         service.update(CHAIN, input(null, List.of(manager.getId())));
         verify(kams).save(any(StoreChainKam.class));
         verify(history).event(StoreChainAction.KAM_ADDED, CHAIN);
+        verify(events).publishEvent(new StoreChainService.KamAppointedEvent(manager.getId(), CHAIN));
     }
 
     @Test

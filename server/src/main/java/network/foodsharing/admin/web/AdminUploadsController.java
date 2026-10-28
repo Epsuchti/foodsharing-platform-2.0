@@ -1,29 +1,40 @@
 package network.foodsharing.admin.web;
 
 import java.util.UUID;
+import network.foodsharing.admin.mapper.AdminSettingsMapper;
+import network.foodsharing.admin.service.UploadAdminService;
 import network.foodsharing.api.AdminUploadsApi;
 import network.foodsharing.api.model.UploadAdminPage;
 import network.foodsharing.api.model.UploadAdminSummary;
-import network.foodsharing.common.error.ApiException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Contract stub (docs/plan-m6.md B1): every operation answers 501 until implemented. */
+/** Upload administration (C10, ORGA). */
 @RestController
 public class AdminUploadsController implements AdminUploadsApi {
 
+    private final UploadAdminService uploads;
+    private final AdminSettingsMapper mapper;
+
+    public AdminUploadsController(UploadAdminService uploads, AdminSettingsMapper mapper) {
+        this.uploads = uploads;
+        this.mapper = mapper;
+    }
+
     @Override
-    public ResponseEntity<Void> deleteAdminUpload(UUID uploadId) {
-        throw ApiException.notImplemented("deleteAdminUpload");
+    public ResponseEntity<UploadAdminPage> listAdminUploads(Boolean unclaimed, String module, Integer page,
+                                                            Integer size) {
+        return ResponseEntity.ok(mapper.toUploadPage(uploads.list(unclaimed, module, page, size)));
     }
 
     @Override
     public ResponseEntity<UploadAdminSummary> getUploadSummary() {
-        throw ApiException.notImplemented("getUploadSummary");
+        return ResponseEntity.ok(mapper.toUploadSummary(uploads.summary()));
     }
 
     @Override
-    public ResponseEntity<UploadAdminPage> listAdminUploads(Boolean unclaimed, String module, Integer page, Integer size) {
-        throw ApiException.notImplemented("listAdminUploads");
+    public ResponseEntity<Void> deleteAdminUpload(UUID uploadId) {
+        uploads.delete(uploadId);
+        return ResponseEntity.noContent().build();
     }
 }

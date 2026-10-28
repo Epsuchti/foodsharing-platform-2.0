@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.auth.domain.AuthAction;
+import network.foodsharing.auth.domain.IpBlockContext;
 import network.foodsharing.auth.domain.LoginMethod;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.web.HttpExchange;
@@ -41,7 +42,7 @@ public class LoginService {
     @Transactional
     public CreatedSession login(UUID userId, LoginMethod method, HttpServletRequest request,
                                 HttpServletResponse response) {
-        if (ipBlocks.isBlocked(HttpExchange.clientIp(request))) {
+        if (ipBlocks.isBlocked(HttpExchange.clientIp(request), IpBlockContext.LOGIN)) {
             fail(userId, method, ApiErrorCode.IP_BLOCKED);
             throw ApiException.forbidden(ApiErrorCode.IP_BLOCKED);
         }
