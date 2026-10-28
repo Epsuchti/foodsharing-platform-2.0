@@ -170,6 +170,11 @@ public class ForumNotifier {
         mentioned.remove(post.getAuthorId());
         mentioned.retainAll(mayRead);
         if (!mentioned.isEmpty()) {
+            // A20: users who switched mention bells off are skipped.
+            users.findAll(mentioned).stream().filter(u -> !u.isMentionNotifications())
+                    .forEach(u -> mentioned.remove(u.getId()));
+        }
+        if (!mentioned.isEmpty()) {
             notifications.notify(NotificationRequest.to(mentioned, NotificationType.FORUM_MENTION)
                     .param("title", thread.getTitle()).param("author", authorName)
                     .link(threadLink(thread.getId()) + "#post-" + post.getId())

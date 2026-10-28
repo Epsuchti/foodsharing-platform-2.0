@@ -41,9 +41,12 @@ public class UserAdminController implements AdminUsersApi {
     private final UserMapper mapper;
     private final HistoryQueryService historyQueryService;
     private final HistoryMapper historyMapper;
+    private final network.foodsharing.user.service.UserAccountService account;
 
     public UserAdminController(UserService userService, UserAdminService adminService, UserMapper mapper,
-                               HistoryQueryService historyQueryService, HistoryMapper historyMapper) {
+                               HistoryQueryService historyQueryService, HistoryMapper historyMapper,
+                               network.foodsharing.user.service.UserAccountService account) {
+        this.account = account;
         this.userService = userService;
         this.adminService = adminService;
         this.mapper = mapper;
@@ -84,7 +87,10 @@ public class UserAdminController implements AdminUsersApi {
 
     @Override
     public ResponseEntity<UserNote> addUserNote(UUID userId, UserNoteCreate userNoteCreate) {
-        throw ApiException.notImplemented("addUserNote");
+        var view = account.addNote(userId, userNoteCreate.getBody());
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(mapper.toNote(view.note(),
+                view.mayDelete(), userService.findAll(java.util.List.of(view.note().getAuthorId())).stream()
+                        .findFirst().orElse(null)));
     }
 
     @Override
@@ -99,17 +105,28 @@ public class UserAdminController implements AdminUsersApi {
 
     @Override
     public ResponseEntity<Void> deleteUserNote(UUID userId, UUID noteId) {
-        throw ApiException.notImplemented("deleteUserNote");
+        account.deleteNote(userId, noteId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<BouncedUserPage> listBouncedUsers(UUID regionId, Integer page, Integer size) {
-        throw ApiException.notImplemented("listBouncedUsers");
+        var result = account.listBounced(regionId, page == null ? 0 : page, size == null ? 20 : size);
+        return ResponseEntity.ok(new BouncedUserPage()
+                .items(result.getContent().stream().map(u -> new network.foodsharing.api.model.BouncedUser()
+                        .user(mapper.toSummary(u)).bouncedAt(network.foodsharing.common.mapper.TimeMapper
+                                .toOffset(u.getEmailBouncedAt()))).toList())
+                .page(network.foodsharing.common.mapper.PageMapper.toPageMeta(result)));
     }
 
     @Override
     public ResponseEntity<List<UserNote>> listUserNotes(UUID userId) {
-        throw ApiException.notImplemented("listUserNotes");
+        var views = account.listNotes(userId);
+        var authors = new java.util.HashMap<UUID, network.foodsharing.user.domain.User>();
+        userService.findAll(views.stream().map(v -> v.note().getAuthorId()).filter(java.util.Objects::nonNull)
+                .distinct().toList()).forEach(u -> authors.put(u.getId(), u));
+        return ResponseEntity.ok(views.stream().map(v -> mapper.toNote(v.note(), v.mayDelete(),
+                authors.get(v.note().getAuthorId()))).toList());
     }
 
     @Override

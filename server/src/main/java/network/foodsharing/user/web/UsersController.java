@@ -32,9 +32,12 @@ public class UsersController implements UsersApi {
     private final UserService userService;
     private final UserMapper mapper;
     private final network.foodsharing.user.service.UserSearchService userSearch;
+    private final network.foodsharing.user.service.UserAccountService account;
 
     public UsersController(UserService userService, UserMapper mapper,
-                           network.foodsharing.user.service.UserSearchService userSearch) {
+                           network.foodsharing.user.service.UserSearchService userSearch,
+                           network.foodsharing.user.service.UserAccountService account) {
+        this.account = account;
         this.userService = userService;
         this.mapper = mapper;
         this.userSearch = userSearch;
@@ -50,6 +53,10 @@ public class UsersController implements UsersApi {
         var user = HistoryContext.withReason(update.getReason(),
                 () -> userService.updateSettings(new SettingsChange(update.getLanguage(), update.getTheme(),
                         update.getPickupRemindersEnabled())));
+        if (update.getInfoMailMessage() != null || update.getMentionNotifications() != null) {
+            user = HistoryContext.withReason(update.getReason(),
+                    () -> account.updateMailSettings(update.getInfoMailMessage(), update.getMentionNotifications()));
+        }
         return ResponseEntity.ok(mapper.toProfile(user));
     }
 
@@ -81,7 +88,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<Void> clearEmailBounce(UUID userId) {
-        throw ApiException.notImplemented("clearEmailBounce");
+        account.clearBounce(userId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -96,7 +104,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<Void> deleteMyPhoto() {
-        throw ApiException.notImplemented("deleteMyPhoto");
+        account.deletePhoto();
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -136,7 +145,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<PhotoResult> setMyPhoto(PhotoUpdate photoUpdate) {
-        throw ApiException.notImplemented("setMyPhoto");
+        User user = account.setPhoto(photoUpdate.getUploadId());
+        return ResponseEntity.ok(new network.foodsharing.api.model.PhotoResult().photoUrl(user.getAvatarUrl()));
     }
 
     @Override

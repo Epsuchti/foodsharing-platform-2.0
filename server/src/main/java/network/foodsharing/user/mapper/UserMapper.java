@@ -112,6 +112,14 @@ public class UserMapper {
         return summary;
     }
 
+    /** Admin note (A7); {@code author} may be null (system notes). */
+    public network.foodsharing.api.model.UserNote toNote(network.foodsharing.user.domain.UserNote note,
+                                                         boolean mayDelete, User author) {
+        return new network.foodsharing.api.model.UserNote().id(note.getId()).body(note.getText())
+                .author(author == null ? null : toSummary(author))
+                .createdAt(TimeMapper.toOffset(note.getCreatedAt())).mayDelete(mayDelete);
+    }
+
     public RegionRef regionRef(UUID regionId) {
         if (regionId == null) {
             return null;

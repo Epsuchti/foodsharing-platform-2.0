@@ -14,6 +14,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByIdIn(Collection<UUID> ids);
 
+    org.springframework.data.domain.Page<User> findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(
+            org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<User> findByHomeRegionIdAndEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(
+            UUID homeRegionId, org.springframework.data.domain.Pageable pageable);
+
     List<User> findBySleepStatus(network.foodsharing.user.domain.SleepStatus status);
 
     List<User> findByFoodsaverNumberIn(Collection<Long> numbers);

@@ -38,6 +38,14 @@ public class MailOutboxService {
     private final Clock clock;
     private final MailRateLimiter rateLimiter;
 
+    /** Bounce suppression (A18); optional so slice tests can build the service by hand. */
+    private org.springframework.beans.factory.ObjectProvider<network.foodsharing.user.service.UserService> users;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setUsers(org.springframework.beans.factory.ObjectProvider<network.foodsharing.user.service.UserService> users) {
+        this.users = users;
+    }
+
     public MailOutboxService(MailOutboxRepository repository, MailTemplateService templates,
                              MailDeliveryService delivery, HistoryService history, AppProperties properties,
                              Clock clock, MailRateLimiter rateLimiter) {
@@ -63,6 +71,11 @@ public class MailOutboxService {
         if (decision.outcome() == MailRateLimiter.Outcome.SUPPRESS) {
             history.record(history.event(NotificationAction.MAIL_SUPPRESSED, HistoryService.SYSTEM_SUBJECT_ID)
                     .metadata(Map.of("template", draft.template(), "identifier", draft.identifier())).build());
+            return null;
+        }
+        if (bounced(draft)) {
+            history.record(history.event(NotificationAction.MAIL_SUPPRESSED, HistoryService.SYSTEM_SUBJECT_ID)
+                    .metadata(Map.of("template", draft.template(), "reason", "BOUNCED")).build());
             return null;
         }
         RenderedMail rendered = templates.render(draft.template(), draft.language(), draft.variables());
@@ -184,5 +197,15 @@ public class MailOutboxService {
     @NoHistory(reason = "retention housekeeping of delivered mails (cleanup job)")
     public int purgeSentBefore(Instant before) {
         return repository.deleteByStatusAndSentAtBefore(MailStatus.SENT, before);
+    }
+
+    /** A18: non-AUTH mails to a user whose current address hard-bounced are not sent. */
+    private boolean bounced(MailDraft draft) {
+        if (users == null || draft.userId() == null || MailDraft.AUTH.equals(draft.category())) {
+            return false;
+        }
+        network.foodsharing.user.service.UserService service = users.getIfAvailable();
+        return service != null && service.findAll(java.util.List.of(draft.userId())).stream()
+                .anyMatch(u -> u.getEmailBouncedAt() != null && u.getEmail().equalsIgnoreCase(draft.to()));
     }
 }

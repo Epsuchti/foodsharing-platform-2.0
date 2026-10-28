@@ -54,6 +54,9 @@ class UserAdminControllerTest {
     private MockMvc mvc;
 
     @MockitoBean
+    private network.foodsharing.user.service.UserAccountService accountService;
+
+    @MockitoBean
     private UserService userService;
 
     @MockitoBean
