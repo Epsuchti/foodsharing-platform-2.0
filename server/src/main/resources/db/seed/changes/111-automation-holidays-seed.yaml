@@ -1,0 +1,28 @@
+# Seed (M4 B4): Swiss public holidays 2026-2028, national (canton NULL) and canton ZH (static provider).
+databaseChangeLog:
+  - changeSet:
+      id: seed-111-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Public holidays.'
+      changes:
+        - loadUpdateData:
+            tableName: holiday_calendar
+            file: ../automation/holiday_calendar.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: country, type: STRING}
+              - column: {name: canton, type: STRING}
+              - column: {name: holiday_date, type: DATE}
+              - column: {name: name, type: STRING}

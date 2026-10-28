@@ -7,6 +7,7 @@ import java.util.UUID;
 import network.foodsharing.api.AutomationApi;
 import network.foodsharing.api.model.AuditKind;
 import network.foodsharing.api.model.AutomationAuditPage;
+import network.foodsharing.api.model.AutomationPermissions;
 import network.foodsharing.api.model.AutomationRunResult;
 import network.foodsharing.api.model.Cancellation;
 import network.foodsharing.api.model.CleaningExemption;
@@ -25,20 +26,54 @@ import network.foodsharing.api.model.RegionAutomationOverview;
 import network.foodsharing.api.model.RequestPolicy;
 import network.foodsharing.api.model.SignoutAlertSetting;
 import network.foodsharing.api.model.StoreAutomation;
+import network.foodsharing.automation.mapper.AutomationMapper;
+import network.foodsharing.automation.service.AutomationAuditService;
+import network.foodsharing.automation.service.AutomationOverviewService;
+import network.foodsharing.automation.service.AutomationRunService;
+import network.foodsharing.automation.service.CleaningExemptionService;
+import network.foodsharing.automation.service.PickupPolicyService;
+import network.foodsharing.automation.service.RequestPolicyService;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.mapper.PageMapper;
+import network.foodsharing.store.domain.Store;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Store and region automations (M4 B4/B5).
- * Operations answer 501 NOT_IMPLEMENTED until their task implements them (docs/plan-m4.md).
+ * Store and region automations (M4 B4/B5). B4: pickup and request policies, audits, cleaning exemptions, holidays.
+ * Operations of B5 answer 501 NOT_IMPLEMENTED until their task implements them (docs/plan-m4.md).
  */
 @RestController
 public class AutomationController implements AutomationApi {
 
+    private final PickupPolicyService pickupPolicies;
+    private final RequestPolicyService requestPolicies;
+    private final AutomationRunService runs;
+    private final AutomationAuditService audits;
+    private final CleaningExemptionService exemptions;
+    private final AutomationOverviewService overview;
+    private final AutomationMapper mapper;
+    private final java.time.Clock clock;
+
+    public AutomationController(PickupPolicyService pickupPolicies, RequestPolicyService requestPolicies,
+                                AutomationRunService runs, AutomationAuditService audits,
+                                CleaningExemptionService exemptions, AutomationOverviewService overview,
+                                AutomationMapper mapper, java.time.Clock clock) {
+        this.pickupPolicies = pickupPolicies;
+        this.requestPolicies = requestPolicies;
+        this.runs = runs;
+        this.audits = audits;
+        this.exemptions = exemptions;
+        this.overview = overview;
+        this.mapper = mapper;
+        this.clock = clock;
+    }
+
     @Override
     public ResponseEntity<CleaningExemption> addCleaningExemption(UUID regionId, CleaningExemptionCreate cleaningExemptionCreate) {
-        throw ApiException.notImplemented("addCleaningExemption");
+        var created = exemptions.add(regionId, cleaningExemptionCreate.getUserId(), cleaningExemptionCreate.getReason());
+        return ResponseEntity.status(201).body(mapper.toExemptions(List.of(created)).getFirst());
     }
 
     @Override
@@ -53,12 +88,14 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<Void> deletePickupPolicy(UUID storeId) {
-        throw ApiException.notImplemented("deletePickupPolicy");
+        pickupPolicies.delete(storeId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteRequestPolicy(UUID storeId) {
-        throw ApiException.notImplemented("deleteRequestPolicy");
+        requestPolicies.delete(storeId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -78,7 +115,9 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<RegionAutomationOverview> getRegionAutomation(UUID regionId) {
-        throw ApiException.notImplemented("getRegionAutomation");
+        RegionAutomationOverview model = new RegionAutomationOverview();
+        model.setStores(overview.region(regionId).stream().map(mapper::toModel).toList());
+        return ResponseEntity.ok(model);
     }
 
     @Override
@@ -88,7 +127,17 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<StoreAutomation> getStoreAutomation(UUID storeId) {
-        throw ApiException.notImplemented("getStoreAutomation");
+        pickupPolicies.requireAutomationStore(storeId);
+        StoreAutomation model = new StoreAutomation();
+        pickupPolicies.find(storeId).ifPresent(view -> model.setPickupPolicy(mapper.toModel(view)));
+        requestPolicies.find(storeId).ifPresent(policy -> model.setRequestPolicy(mapper.toModel(policy)));
+        model.setAdverts(List.of());
+        model.setExtraSlotAllowed(false);
+        AutomationPermissions permissions = new AutomationPermissions();
+        permissions.setMayEdit(true);
+        permissions.setMaySeeAudits(true);
+        model.setPermissions(permissions);
+        return ResponseEntity.ok(model);
     }
 
     @Override
@@ -98,7 +147,7 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<List<CleaningExemption>> listCleaningExemptions(UUID regionId) {
-        throw ApiException.notImplemented("listCleaningExemptions");
+        return ResponseEntity.ok(mapper.toExemptions(exemptions.list(regionId)));
     }
 
     @Override
@@ -108,22 +157,40 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<AutomationAuditPage> listRegionAutomationAudits(UUID regionId, Boolean onlyMine, AuditKind kind, Boolean excludeConfirmed, LocalDate from, LocalDate to, Integer page, Integer size) {
-        throw ApiException.notImplemented("listRegionAutomationAudits");
+        return ResponseEntity.ok(page(audits.regionAudits(regionId, Boolean.TRUE.equals(onlyMine),
+                query(kind, excludeConfirmed, from, to, page, size))));
     }
 
     @Override
     public ResponseEntity<List<Holiday>> listRegionHolidays(UUID regionId, Integer year) {
-        throw ApiException.notImplemented("listRegionHolidays");
+        int wanted = year == null ? LocalDate.now(clock).getYear() : year;
+        return ResponseEntity.ok(mapper.toHolidays(overview.holidays(regionId, wanted)));
     }
 
     @Override
     public ResponseEntity<AutomationAuditPage> listStoreAutomationAudits(UUID storeId, AuditKind kind, Boolean excludeConfirmed, LocalDate from, LocalDate to, Integer page, Integer size) {
-        throw ApiException.notImplemented("listStoreAutomationAudits");
+        return ResponseEntity.ok(page(audits.storeAudits(storeId, query(kind, excludeConfirmed, from, to, page, size))));
+    }
+
+    private static AutomationAuditService.Query query(AuditKind kind, Boolean excludeConfirmed, LocalDate from,
+                                                      LocalDate to, Integer page, Integer size) {
+        return new AutomationAuditService.Query(kind == null ? null
+                : network.foodsharing.automation.domain.AuditKind.valueOf(kind.name()),
+                Boolean.TRUE.equals(excludeConfirmed), from, to, page, size);
+    }
+
+    private AutomationAuditPage page(Page<AutomationAuditService.AuditView> result) {
+        java.util.Map<UUID, Store> stores = audits.storesOf(result.getContent());
+        AutomationAuditPage model = new AutomationAuditPage();
+        model.setItems(mapper.toAudits(result.getContent(), stores));
+        model.setPage(PageMapper.toPageMeta(result));
+        return model;
     }
 
     @Override
     public ResponseEntity<PolicyDecisionPreview> previewPickupPolicy(UUID storeId, PolicyPreviewRequest policyPreviewRequest) {
-        throw ApiException.notImplemented("previewPickupPolicy");
+        return ResponseEntity.ok(mapper.toModel(runs.preview(storeId, policyPreviewRequest.getPickupAt().toInstant(),
+                policyPreviewRequest.getUserId())));
     }
 
     @Override
@@ -133,12 +200,12 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<PickupPolicy> putPickupPolicy(UUID storeId, PickupPolicy pickupPolicy) {
-        throw ApiException.notImplemented("putPickupPolicy");
+        return ResponseEntity.ok(mapper.toModel(pickupPolicies.put(storeId, mapper.toInput(pickupPolicy))));
     }
 
     @Override
     public ResponseEntity<RequestPolicy> putRequestPolicy(UUID storeId, RequestPolicy requestPolicy) {
-        throw ApiException.notImplemented("putRequestPolicy");
+        return ResponseEntity.ok(mapper.toModel(requestPolicies.put(storeId, mapper.toInput(requestPolicy))));
     }
 
     @Override
@@ -148,7 +215,8 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<Void> removeCleaningExemption(UUID regionId, UUID exemptionId) {
-        throw ApiException.notImplemented("removeCleaningExemption");
+        exemptions.remove(regionId, exemptionId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -158,12 +226,12 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<AutomationRunResult> runPickupPolicy(UUID storeId, Boolean dryRun) {
-        throw ApiException.notImplemented("runPickupPolicy");
+        return ResponseEntity.ok(mapper.toModel(runs.runPickupPolicy(storeId, Boolean.TRUE.equals(dryRun))));
     }
 
     @Override
     public ResponseEntity<AutomationRunResult> runRequestPolicy(UUID storeId, Boolean dryRun) {
-        throw ApiException.notImplemented("runRequestPolicy");
+        return ResponseEntity.ok(mapper.toModel(runs.runRequestPolicy(storeId, Boolean.TRUE.equals(dryRun))));
     }
 
     @Override

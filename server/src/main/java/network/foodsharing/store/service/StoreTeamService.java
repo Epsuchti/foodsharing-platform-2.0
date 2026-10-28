@@ -258,6 +258,16 @@ public class StoreTeamService {
         return true;
     }
 
+    /** A24: open applications of a store, oldest first (no permission check; request policy). */
+    @Transactional(readOnly = true)
+    public List<UUID> applicantIds(UUID storeId) {
+        return memberships.findByStoreId(storeId).stream()
+                .filter(membership -> membership.getStatus() == StoreMembershipStatus.APPLIED)
+                .sorted(java.util.Comparator.comparing(StoreMembership::getCreatedAt,
+                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+                .map(StoreMembership::getUserId).toList();
+    }
+
     /** @throws ApiException 404, 409 NOT_APPLIED */
     @Transactional
     public void cancelApplication(UUID storeId) {

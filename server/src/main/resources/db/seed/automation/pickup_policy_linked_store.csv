@@ -1,0 +1,2 @@
+id,version,created_at,updated_at,created_by,updated_by,policy_id,bidirectional,window_mode,window_days_before,window_days_after,grace_minutes,message,mirror_of
+00000022-0003-4000-8000-000000000001,0,2026-10-01T10:00:00Z,2026-10-01T10:00:00Z,NULL,NULL,00000022-0001-4000-8000-000000000003,false,SAME_DAY,0,0,30,NULL,NULL

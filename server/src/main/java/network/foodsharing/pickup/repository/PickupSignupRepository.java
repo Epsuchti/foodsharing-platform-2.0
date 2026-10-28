@@ -60,6 +60,14 @@ public interface PickupSignupRepository extends JpaRepository<PickupSignup, UUID
     org.springframework.data.domain.Page<PickupSignup> findByUserIdAndPickupAtLessThanOrderByPickupAtDesc(
             UUID userId, Instant before, org.springframework.data.domain.Pageable pageable);
 
+    /** Latest confirmed sign-up of a user in a store before {@code before} (automation rules). */
+    Optional<PickupSignup> findFirstByStoreIdAndUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(
+            UUID storeId, UUID userId, Instant before);
+
+    /** Unconfirmed future sign-ups of the given stores (automation job). */
+    List<PickupSignup> findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAt(Collection<UUID> storeIds,
+                                                                                       Instant now);
+
     /** Past confirmed sign-ups of a user (member statistics). */
     long countByUserIdAndConfirmedTrueAndPickupAtLessThan(UUID userId, Instant now);
 

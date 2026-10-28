@@ -1,0 +1,139 @@
+# Milestone 4 (B4): pickup policies (AU1), linked stores, cleaning exemptions and decision audits (A24).
+databaseChangeLog:
+  - changeSet:
+      id: 105-1
+      author: platform
+      comment: 'Pickup policy per store; evaluated on sign-up (A24).'
+      changes:
+        - createTable:
+            tableName: pickup_policy
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_policy, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_policy_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: dry_run, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: gap_rule_enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: minimum_gap_days, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: cleaning_rule_enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: experience_rule_enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: public_holiday_rule_enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: pickup_policy
+            columnNames: store_id
+            constraintName: uq_pickup_policy_store_id
+        - createTable:
+            tableName: pickup_policy_excluded_date
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_policy_excluded_date, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: policy_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_policy_excluded_date_policy_id, references: pickup_policy(id), deleteCascade: true}}
+              - column: {name: excluded_date, type: DATE, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: pickup_policy_excluded_date
+            columnNames: policy_id, excluded_date
+            constraintName: uq_pickup_policy_excluded_date_policy_id_date
+        - createTable:
+            tableName: pickup_policy_linked_store
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_policy_linked_store, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: policy_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_policy_linked_store_policy_id, references: pickup_policy(id), deleteCascade: true}}
+              - column: {name: bidirectional, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: window_mode, type: VARCHAR(20), defaultValue: SAME_DAY, constraints: {nullable: false}}
+              - column: {name: window_days_before, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: window_days_after, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: grace_minutes, type: INT, defaultValueNumeric: 20, constraints: {nullable: false}}
+              - column: {name: message, type: VARCHAR(2000)}
+              - column: {name: mirror_of, type: UUID}
+        - createIndex:
+            tableName: pickup_policy_linked_store
+            indexName: ix_pickup_policy_linked_store_mirror_of
+            columns:
+              - column: {name: mirror_of}
+        - createTable:
+            tableName: pickup_policy_linked_store_member
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_policy_linked_store_member, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: link_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_policy_linked_store_member_link_id, references: pickup_policy_linked_store(id), deleteCascade: true}}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_policy_linked_store_member_store_id, references: store(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: pickup_policy_linked_store_member
+            columnNames: link_id, store_id
+            constraintName: uq_pickup_policy_linked_store_member_link_store
+        - createIndex:
+            tableName: pickup_policy_linked_store_member
+            indexName: ix_pickup_policy_linked_store_member_store_id
+            columns:
+              - column: {name: store_id}
+        - createTable:
+            tableName: cleaning_rule_exemption
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_cleaning_rule_exemption, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_cleaning_rule_exemption_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_cleaning_rule_exemption_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: reason, type: VARCHAR(500)}
+        - addUniqueConstraint:
+            tableName: cleaning_rule_exemption
+            columnNames: region_id, user_id
+            constraintName: uq_cleaning_rule_exemption_region_user
+        - createTable:
+            tableName: pickup_policy_audit
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_policy_audit, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: policy_id, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: user_id, type: UUID}
+              - column: {name: pickup_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: dry_run, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: decision, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: reasons, type: VARCHAR(32600)}
+              - column: {name: user_message, type: VARCHAR(4000)}
+              - column: {name: error, type: VARCHAR(2000)}
+        - createIndex:
+            tableName: pickup_policy_audit
+            indexName: ix_pickup_policy_audit_store_created
+            columns:
+              - column: {name: store_id}
+              - column: {name: created_at, descending: true}
+        - createIndex:
+            tableName: pickup_policy_audit
+            indexName: ix_pickup_policy_audit_region_created
+            columns:
+              - column: {name: region_id}
+              - column: {name: created_at, descending: true}
+        - createIndex:
+            tableName: pickup_policy_audit
+            indexName: ix_pickup_policy_audit_store_user_pickup
+            columns:
+              - column: {name: store_id}
+              - column: {name: user_id}
+              - column: {name: pickup_at}

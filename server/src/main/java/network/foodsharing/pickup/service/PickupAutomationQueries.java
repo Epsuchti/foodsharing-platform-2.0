@@ -1,0 +1,49 @@
+package network.foodsharing.pickup.service;
+
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import network.foodsharing.pickup.domain.PickupSignup;
+import network.foodsharing.pickup.repository.PickupSignupRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Read-only sign-up queries for the automation module (A24; no permission checks). */
+@Service
+@Transactional(readOnly = true)
+public class PickupAutomationQueries {
+
+    private final PickupSignupRepository signups;
+
+    public PickupAutomationQueries(PickupSignupRepository signups) {
+        this.signups = signups;
+    }
+
+    /** All sign-ups of the stores with {@code from <= pickupAt < to}. */
+    public List<PickupSignup> signups(Collection<UUID> storeIds, Instant from, Instant to) {
+        return storeIds.isEmpty() ? List.of() : signups.findInRange(storeIds, from, to);
+    }
+
+    /** The user's sign-ups in the stores with {@code from <= pickupAt < to}. */
+    public List<PickupSignup> signupsOfUser(UUID userId, Collection<UUID> storeIds, Instant from, Instant to) {
+        return storeIds.isEmpty() ? List.of() : signups.findOfUserInStores(userId, storeIds, from, to);
+    }
+
+    public Optional<PickupSignup> signup(UUID storeId, UUID userId, Instant pickupAt) {
+        return signups.findByStoreIdAndUserIdAndPickupAt(storeId, userId, pickupAt);
+    }
+
+    /** Pickup time of the user's latest confirmed sign-up in the store before {@code before}. */
+    public Optional<Instant> lastConfirmedPickup(UUID storeId, UUID userId, Instant before) {
+        return signups.findFirstByStoreIdAndUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(storeId,
+                userId, before).map(PickupSignup::getPickupAt);
+    }
+
+    /** Unconfirmed sign-ups after {@code now}, by pickup time. */
+    public List<PickupSignup> unconfirmedFuture(Collection<UUID> storeIds, Instant now) {
+        return storeIds.isEmpty() ? List.of()
+                : signups.findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAt(storeIds, now);
+    }
+}
