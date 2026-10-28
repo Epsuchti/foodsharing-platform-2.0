@@ -13,7 +13,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | A5 | Profile photo upload with crop | todo | | | | | |
 | A6 | Public profile: photo, name, regions & groups, stores, pickup count, kg saved, posts, bananas, buddies count, wall, achievements, KAM roles, commitments statistics | todo | | | | | |
 | A7 | Internal notes on users ("about me internal" + user notes wall for ambassadors) | todo | | | | | |
-| A8 | Profile change history, quiz session history, passport history, verification history (§10) | in-progress | history views | /quizzes/history | q2-session @A8 | quiz.screen.ts | quiz session history done; profile/verification/passport history with T23 |
+| A8 | Profile change history, quiz session history, passport history, verification history (§10) | done | history views | user history, quiz/verification/passport history | q2-session, ve2-verify, ve3-passport @A8 | quiz.screen.ts |  |
 | A9 | Sleep mode: none / temporary (from–until) / full, with message; shown everywhere the user appears | todo | | | | | |
 | A10 | Notification settings: per region forum (new threads / all), per thread (bell/mail), per FSP (bell/mail), newsletter, pickup reminders on/off, mention notifications on/off, activity feed filters; channels bell / email / push / Telegram | todo | | | | | |
 | A11 | Calendar token: personal ICS feed of pickups, EinAbs, events, with reminders; regenerate / delete token | todo | | | | | |
@@ -96,8 +96,8 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | Q2 | Quiz sessions: timed & untimed questions, mandatory questions, failure points, results with explanations and wiki links, confirmation; wait/disqualification rules; hygiene expiry; practice/test mode | done | QuizSessionService rules | /quizzes/:kind/session, results | q2-session @Q2 | quiz.screen.ts | wait/disqualify/hygiene expiry/practice covered |
 | Q3 | Quiz editor for quiz AG: quiz settings (max failure points, question counts), questions (duration, wiki link, mandatory), answers with rating and explanation, question comments | done | quiz editor API | /quizzes/edit | q3-editor @Q3 | quiz.screen.ts |  |
 | Ve1 | Legal agreement and privacy policy (versioned, re-consent on change), store manager confidentiality agreement | done | legal module (T14) | /legal/:kind, /admin/legal, /consent | ve1-consent @Ve1 | legal.screen.ts |  |
-| Ve2 | Verify / unverify users with required message, verification history, identity confirmation | todo | | | | | |
-| Ve3 | Passport: PDF (single and batch per region), pass requests, pass history, last pass date, Apple/Google Wallet, bell/mail on creation optional; layout approved by our admins | todo | | | | | |
+| Ve2 | Verify / unverify users with required message, verification history, identity confirmation | done | VerificationService (T16) | /regions/:id/verification | ve2-verify @Ve2 | verification.screen.ts (baseline pending) |  |
+| Ve3 | Passport: PDF (single and batch per region), pass requests, pass history, last pass date, Apple/Google Wallet, bell/mail on creation optional; layout approved by our admins | done | PassportService (T16) | /me/passport, /regions/:id/passports | ve3-passport @Ve3 | verification.screen.ts (baseline pending) | wallets show 'not available' until signing keys exist |
 | AC1 | Achievements: region and global, name, description, icon, validity in days, visibility (hidden / private / store managers / scope / global), duplicate mode; award/revoke; hygiene certificate auto-awarded; KAM certificate | todo | | | | | |
 | G1 | Rule-violation reports: report a user (optionally store-related) with reason from region options, to region report team; list per region and per user; edit, status, wall for discussion; arbitration access | todo | | | | | |
 | G2 | Mediation requests (shows mediation team contact) | todo | | | | | |
