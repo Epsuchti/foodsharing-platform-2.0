@@ -1,0 +1,67 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/search:
+  get:
+    tags: [search]
+    operationId: search
+    summary: Search everything the user may see (max. 8 per kind).
+    x-permission: authenticated
+    parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 100
+      - name: kinds
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: '../schemas/search.yaml#/SearchKind'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/search.yaml#/SearchResults'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: FEATURE_DISABLED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/search/index:
+  get:
+    tags: [search]
+    operationId: getSearchIndex
+    summary: 'The user''s own entities for instant client-side search.'
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/search.yaml#/SearchIndexData'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

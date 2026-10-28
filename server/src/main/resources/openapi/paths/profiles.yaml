@@ -120,7 +120,7 @@
         content:
           application/json:
             schema:
-              $ref: '../schemas/common.yaml#/WallPostPage'
+              $ref: '../schemas/common.yaml#/WallEntryPage'
       "400":
         description: VALIDATION_FAILED
         content:
@@ -163,14 +163,14 @@
       content:
         application/json:
           schema:
-            $ref: '../schemas/common.yaml#/WallPostCreate'
+            $ref: '../schemas/common.yaml#/WallEntryCreate'
     responses:
       "201":
         description: OK
         content:
           application/json:
             schema:
-              $ref: '../schemas/common.yaml#/WallPost'
+              $ref: '../schemas/common.yaml#/WallEntry'
       "400":
         description: VALIDATION_FAILED
         content:

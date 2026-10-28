@@ -11,9 +11,9 @@ import network.foodsharing.api.model.FspManagersUpdate;
 import network.foodsharing.api.model.FspStatusUpdate;
 import network.foodsharing.api.model.FspSummary;
 import network.foodsharing.api.model.FspUpdate;
-import network.foodsharing.api.model.WallPost1;
-import network.foodsharing.api.model.WallPostCreate1;
-import network.foodsharing.api.model.WallPostPage1;
+import network.foodsharing.api.model.WallEntry;
+import network.foodsharing.api.model.WallEntryCreate;
+import network.foodsharing.api.model.WallEntryPage;
 import network.foodsharing.common.error.ApiException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +28,7 @@ public class FoodSharePointsController implements FoodSharePointsApi {
     }
 
     @Override
-    public ResponseEntity<WallPost1> createFoodSharePointWallPost(UUID fspId, WallPostCreate1 wallPostCreate1) {
+    public ResponseEntity<WallEntry> createFoodSharePointWallPost(UUID fspId, WallEntryCreate wallEntryCreate) {
         throw ApiException.notImplemented("createFoodSharePointWallPost");
     }
 
@@ -53,7 +53,7 @@ public class FoodSharePointsController implements FoodSharePointsApi {
     }
 
     @Override
-    public ResponseEntity<WallPostPage1> listFoodSharePointWall(UUID fspId, Integer page, Integer size) {
+    public ResponseEntity<WallEntryPage> listFoodSharePointWall(UUID fspId, Integer page, Integer size) {
         throw ApiException.notImplemented("listFoodSharePointWall");
     }
 

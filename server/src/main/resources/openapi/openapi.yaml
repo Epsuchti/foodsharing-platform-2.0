@@ -129,8 +129,31 @@ tags:
     description: 'Reports (Meldungen), mediation, report log.'
   - name: achievements
     description: Achievements (badges) and awards.
+  - name: admin-settings
+    description: 'Feature toggles, configuration, email blocklist, IP blocks, donation settings (ORGA).'
+  - name: public-settings
+    description: Public feature toggles (client bootstrap).
+  - name: support
+    description: Support form (logged in).
+  - name: public-support
+    description: Support form (logged out).
+  - name: statistics
+    description: 'Region statistics (gender, age bands, pickups).'
+  - name: search
+    description: Global search.
+  - name: resources
+    description: Resource mosaic (lending library).
+  - name: oauth
+    description: OAuth consent flow (JSON side of /oauth/authorize).
+  - name: admin-oauth
+    description: OAuth client administration (ORGA).
 x-framework-endpoints:
   - /ws
+  - /oauth/authorize
+  - /oauth/token
+  - /oauth/userinfo
+  - /.well-known/openid-configuration
+  - /.well-known/jwks.json
   - /oauth2/authorization/google
   - /login/oauth2/code/google
   - /webauthn/register/options
@@ -976,3 +999,107 @@ paths:
     $ref: './paths/achievements.yaml#/~1api~1achievements~1awards~1{awardId}'
   /api/users/{userId}/achievements:
     $ref: './paths/achievements.yaml#/~1api~1users~1{userId}~1achievements'
+  # --- admin-settings (M6) ---
+  /api/admin/feature-toggles:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1feature-toggles'
+  /api/admin/feature-toggles/{key}:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1feature-toggles~1{key}'
+  /api/admin/configuration:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1configuration'
+  /api/admin/configuration/{key}:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1configuration~1{key}'
+  /api/admin/email-blocklist:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1email-blocklist'
+  /api/admin/email-blocklist/{entryId}:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1email-blocklist~1{entryId}'
+  /api/admin/ip-blocks:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1ip-blocks'
+  /api/admin/ip-blocks/{blockId}:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1ip-blocks~1{blockId}'
+  /api/admin/donations:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1donations'
+  # --- public-settings (M6) ---
+  /api/public/feature-toggles:
+    $ref: './paths/public-settings.yaml#/~1api~1public~1feature-toggles'
+  # --- public-content (M6) ---
+  /api/public/blog:
+    $ref: './paths/public-content.yaml#/~1api~1public~1blog'
+  /api/public/blog/{blogPostId}:
+    $ref: './paths/public-content.yaml#/~1api~1public~1blog~1{blogPostId}'
+  /api/public/statistics:
+    $ref: './paths/public-content.yaml#/~1api~1public~1statistics'
+  /api/public/team:
+    $ref: './paths/public-content.yaml#/~1api~1public~1team'
+  /api/public/petition:
+    $ref: './paths/public-content.yaml#/~1api~1public~1petition'
+  /api/public/donations:
+    $ref: './paths/public-content.yaml#/~1api~1public~1donations'
+  /api/public/release-notes:
+    $ref: './paths/public-content.yaml#/~1api~1public~1release-notes'
+  /api/public/faq:
+    $ref: './paths/public-content.yaml#/~1api~1public~1faq'
+  # --- content (M6) ---
+  /api/blog:
+    $ref: './paths/content.yaml#/~1api~1blog'
+  /api/blog/{blogPostId}:
+    $ref: './paths/content.yaml#/~1api~1blog~1{blogPostId}'
+  /api/blog/{blogPostId}/published:
+    $ref: './paths/content.yaml#/~1api~1blog~1{blogPostId}~1published'
+  /api/release-notes:
+    $ref: './paths/content.yaml#/~1api~1release-notes'
+  /api/release-notes/{releaseNoteId}:
+    $ref: './paths/content.yaml#/~1api~1release-notes~1{releaseNoteId}'
+  # --- support (M6) ---
+  /api/support/tickets:
+    $ref: './paths/support.yaml#/~1api~1support~1tickets'
+  # --- public-support (M6) ---
+  /api/public/support/tickets:
+    $ref: './paths/public-support.yaml#/~1api~1public~1support~1tickets'
+  # --- statistics (M6) ---
+  /api/regions/{regionId}/statistics/gender:
+    $ref: './paths/statistics.yaml#/~1api~1regions~1{regionId}~1statistics~1gender'
+  /api/regions/{regionId}/statistics/age-bands:
+    $ref: './paths/statistics.yaml#/~1api~1regions~1{regionId}~1statistics~1age-bands'
+  /api/regions/{regionId}/statistics/pickups:
+    $ref: './paths/statistics.yaml#/~1api~1regions~1{regionId}~1statistics~1pickups'
+  # --- search (M6) ---
+  /api/search:
+    $ref: './paths/search.yaml#/~1api~1search'
+  /api/search/index:
+    $ref: './paths/search.yaml#/~1api~1search~1index'
+  # --- resources (M6) ---
+  /api/resources/categories:
+    $ref: './paths/resources.yaml#/~1api~1resources~1categories'
+  /api/regions/{regionId}/resources:
+    $ref: './paths/resources.yaml#/~1api~1regions~1{regionId}~1resources'
+  /api/regions/{regionId}/resources/permissions:
+    $ref: './paths/resources.yaml#/~1api~1regions~1{regionId}~1resources~1permissions'
+  /api/resources/mine:
+    $ref: './paths/resources.yaml#/~1api~1resources~1mine'
+  /api/resources/favourites:
+    $ref: './paths/resources.yaml#/~1api~1resources~1favourites'
+  /api/resources:
+    $ref: './paths/resources.yaml#/~1api~1resources'
+  /api/resources/{resourceId}:
+    $ref: './paths/resources.yaml#/~1api~1resources~1{resourceId}'
+  /api/resources/{resourceId}/favourite:
+    $ref: './paths/resources.yaml#/~1api~1resources~1{resourceId}~1favourite'
+  # --- oauth (M6) ---
+  /api/oauth/authorize-requests/{requestId}:
+    $ref: './paths/oauth.yaml#/~1api~1oauth~1authorize-requests~1{requestId}'
+  /api/oauth/authorize-requests/{requestId}/decision:
+    $ref: './paths/oauth.yaml#/~1api~1oauth~1authorize-requests~1{requestId}~1decision'
+  # --- admin-oauth (M6) ---
+  /api/admin/oauth-clients:
+    $ref: './paths/admin-oauth.yaml#/~1api~1admin~1oauth-clients'
+  /api/admin/oauth-clients/{clientId}:
+    $ref: './paths/admin-oauth.yaml#/~1api~1admin~1oauth-clients~1{clientId}'
+  /api/admin/oauth-clients/{clientId}/secret:
+    $ref: './paths/admin-oauth.yaml#/~1api~1admin~1oauth-clients~1{clientId}~1secret'
+  # --- dev (M6) ---
+  /api/dev/search/reindex:
+    $ref: './paths/dev.yaml#/~1api~1dev~1search~1reindex'
+  /api/dev/statistics/aggregate:
+    $ref: './paths/dev.yaml#/~1api~1dev~1statistics~1aggregate'
+  /api/dev/oauth/last-code:
+    $ref: './paths/dev.yaml#/~1api~1dev~1oauth~1last-code'

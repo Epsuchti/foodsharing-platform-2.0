@@ -1,0 +1,23 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/public/feature-toggles:
+  get:
+    tags: [public-settings]
+    operationId: getPublicFeatureToggles
+    summary: Enabled state of every feature toggle.
+    x-permission: public
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: boolean
+      "429":
+        description: TOO_MANY_REQUESTS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

@@ -72,3 +72,213 @@
             schema:
               $ref: '../schemas/content.yaml#/ContentPage'
       '404': {description: 'CONTENT_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/public/blog:
+  get:
+    tags: [public-content]
+    operationId: listPublicBlogPosts
+    summary: Published blog posts.
+    x-permission: public
+    parameters:
+      - name: regionId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPostPage'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: FEATURE_DISABLED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/blog/{blogPostId}:
+  get:
+    tags: [public-content]
+    operationId: getPublicBlogPost
+    summary: A published blog post.
+    x-permission: public
+    parameters:
+      - name: blogPostId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPost'
+      "404":
+        description: BLOG_POST_NOT_FOUND or FEATURE_DISABLED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/statistics:
+  get:
+    tags: [public-content]
+    operationId: getPublicStatistics
+    summary: Platform statistics (cached).
+    x-permission: public
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/PublicStatistics'
+      "429":
+        description: TOO_MANY_REQUESTS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/team:
+  get:
+    tags: [public-content]
+    operationId: getPublicTeam
+    summary: Team page (groups with team_page flag).
+    x-permission: public
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/content.yaml#/TeamGroup'
+      "429":
+        description: TOO_MANY_REQUESTS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/petition:
+  get:
+    tags: [public-content]
+    operationId: getPetition
+    summary: Current petition banner.
+    x-permission: public
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/Petition'
+      "503":
+        description: PETITION_INACTIVE
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/donations:
+  get:
+    tags: [public-content]
+    operationId: getDonationPage
+    summary: Donation page configuration.
+    x-permission: public
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/DonationPage'
+      "429":
+        description: TOO_MANY_REQUESTS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/release-notes:
+  get:
+    tags: [public-content]
+    operationId: listReleaseNotes
+    summary: Release notes (newest first).
+    x-permission: public
+    parameters:
+      - name: lang
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/Language'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/content.yaml#/ReleaseNote'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/public/faq:
+  get:
+    tags: [public-content]
+    operationId: listFaq
+    summary: Published FAQ entries.
+    x-permission: public
+    parameters:
+      - name: lang
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/Language'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/content.yaml#/FaqEntry'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

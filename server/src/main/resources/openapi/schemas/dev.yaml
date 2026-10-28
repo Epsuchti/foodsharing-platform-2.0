@@ -158,3 +158,16 @@ DevIncomingMail:
     rawMime:
       type: string
       description: Raw RFC 822 message (plain text).
+
+DevOAuthCode:
+  type: object
+  required: [code, clientId, redirectUri]
+  properties:
+    code:
+      type: string
+    clientId:
+      type: string
+    redirectUri:
+      type: string
+    state:
+      type: string

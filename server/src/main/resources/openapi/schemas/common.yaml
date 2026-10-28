@@ -310,6 +310,25 @@ ApiErrorCode:
     - ACHIEVEMENT_RECIPIENT_NOT_MEMBER
     - ACHIEVEMENT_ALREADY_AWARDED
     - AWARD_NOT_FOUND
+    - FEATURE_TOGGLE_NOT_FOUND
+    - CONFIGURATION_VALUE_INVALID
+    - CONFIGURATION_KEY_NOT_FOUND
+    - BLOCKLIST_DUPLICATE
+    - BLOCKLIST_ENTRY_NOT_FOUND
+    - IP_BLOCK_NOT_FOUND
+    - BLOG_POST_NOT_FOUND
+    - PETITION_INACTIVE
+    - RELEASE_NOTE_NOT_FOUND
+    - CONTENT_PAGE_EXISTS
+    - SUPPORT_RATE_LIMITED
+    - RESOURCES_NOT_AVAILABLE
+    - COMMONS_NOT_ALLOWED
+    - RESOURCE_LIMIT_REACHED
+    - OAUTH_REGION_REQUIRED
+    - OAUTH_REQUEST_EXPIRED
+    - OAUTH_REDIRECT_URI_INVALID
+    - OAUTH_CLIENT_EXISTS
+    - OAUTH_CLIENT_PUBLIC
 
 ApiError:
   type: object
@@ -430,7 +449,7 @@ JobRef:
       type: string
       format: uuid
 
-WallPost:
+WallEntry:
   type: object
   description: 'A post on a profile, FSP or report wall (A42).'
   required: [id, author, body, createdAt, mayDelete]
@@ -448,18 +467,18 @@ WallPost:
     mayDelete:
       type: boolean
 
-WallPostPage:
+WallEntryPage:
   type: object
   required: [items, page]
   properties:
     items:
       type: array
       items:
-        $ref: './common.yaml#/WallPost'
+        $ref: './common.yaml#/WallEntry'
     page:
       $ref: './common.yaml#/PageMeta'
 
-WallPostCreate:
+WallEntryCreate:
   type: object
   required: [body]
   properties:

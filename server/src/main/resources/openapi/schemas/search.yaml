@@ -1,0 +1,99 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+SearchKind:
+  type: string
+  enum: [USER, REGION, GROUP, STORE, THREAD, FSP, EVENT, POLL]
+
+SearchHit:
+  type: object
+  required: [id, kind, title, link]
+  properties:
+    id:
+      type: string
+      format: uuid
+    kind:
+      $ref: './search.yaml#/SearchKind'
+    title:
+      type: string
+    subtitle:
+      type: string
+    link:
+      type: string
+    imageUrl:
+      type: string
+
+SearchResults:
+  type: object
+  required: [users, regions, groups, stores, threads, foodSharePoints, events, polls]
+  properties:
+    users:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    regions:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    groups:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    stores:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    threads:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    foodSharePoints:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    events:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+    polls:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchHit'
+
+SearchIndexEntry:
+  type: object
+  required: [id, name, link]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    subtitle:
+      type: string
+    link:
+      type: string
+
+SearchIndexData:
+  type: object
+  required: [regions, groups, stores, foodSharePoints, conversations]
+  properties:
+    regions:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchIndexEntry'
+    groups:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchIndexEntry'
+    stores:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchIndexEntry'
+    foodSharePoints:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchIndexEntry'
+    conversations:
+      type: array
+      items:
+        $ref: './search.yaml#/SearchIndexEntry'

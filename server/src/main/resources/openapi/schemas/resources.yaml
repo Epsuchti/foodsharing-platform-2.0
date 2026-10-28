@@ -1,0 +1,139 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+ResourceOpenness:
+  type: string
+  enum: [ASK_FIRST, FREE_TO_BORROW, GIVE_AWAY]
+
+ResourceCategory:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    icon:
+      type: string
+    parentId:
+      type: string
+      format: uuid
+
+ResourceImage:
+  type: object
+  required: [uploadId, url]
+  properties:
+    uploadId:
+      type: string
+      format: uuid
+    url:
+      type: string
+
+Resource:
+  type: object
+  required: [id, name, categories, private, openness, images, favourite, mayEdit, mayDelete]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    description:
+      type: string
+    categories:
+      type: array
+      items:
+        $ref: './resources.yaml#/ResourceCategory'
+    owner:
+      description: 'Null = commons of the region.'
+      allOf:
+        - $ref: './users.yaml#/UserSummary'
+    regionId:
+      type: string
+      format: uuid
+    private:
+      type: boolean
+    openness:
+      $ref: './resources.yaml#/ResourceOpenness'
+    images:
+      type: array
+      items:
+        $ref: './resources.yaml#/ResourceImage'
+    favourite:
+      type: boolean
+    mayEdit:
+      type: boolean
+    mayDelete:
+      type: boolean
+
+ResourceCreate:
+  type: object
+  required: [name, categoryIds, private, openness, commons]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      maxLength: 4000
+    categoryIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      maxItems: 5
+    private:
+      type: boolean
+    openness:
+      $ref: './resources.yaml#/ResourceOpenness'
+    regionId:
+      type: string
+      format: uuid
+    imageUploadIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      maxItems: 5
+    commons:
+      type: boolean
+      default: false
+
+ResourceUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      maxLength: 4000
+    categoryIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      maxItems: 5
+    private:
+      type: boolean
+    openness:
+      $ref: './resources.yaml#/ResourceOpenness'
+    imageUploadIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      maxItems: 5
+
+ResourcePermissions:
+  type: object
+  required: [mayAdd, mayEditCommons]
+  properties:
+    mayAdd:
+      type: boolean
+    mayEditCommons:
+      type: boolean

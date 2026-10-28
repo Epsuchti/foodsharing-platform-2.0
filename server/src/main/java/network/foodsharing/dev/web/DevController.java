@@ -1,5 +1,6 @@
 package network.foodsharing.dev.web;
 
+import network.foodsharing.api.model.DevOAuthCode;
 import network.foodsharing.api.model.DevIncomingMail;
 import network.foodsharing.api.model.DevRealtimePing;
 import network.foodsharing.api.model.DevRealtimeSessions;
@@ -189,5 +190,22 @@ public class DevController implements DevApi {
             throw ApiException.badRequest(network.foodsharing.api.model.ApiErrorCode.VALIDATION_FAILED);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    // --- M6 contract stubs (docs/plan-m6.md B1) ---
+
+    @Override
+    public ResponseEntity<Void> devAggregateStatistics() {
+        throw ApiException.notImplemented("devAggregateStatistics");
+    }
+
+    @Override
+    public ResponseEntity<DevOAuthCode> devGetLastOAuthCode() {
+        throw ApiException.notImplemented("devGetLastOAuthCode");
+    }
+
+    @Override
+    public ResponseEntity<Void> devReindexSearch() {
+        throw ApiException.notImplemented("devReindexSearch");
     }
 }

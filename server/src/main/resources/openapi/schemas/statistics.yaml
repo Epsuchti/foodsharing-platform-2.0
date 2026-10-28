@@ -1,0 +1,26 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+GenderCount:
+  type: object
+  required: [gender, count]
+  properties:
+    gender:
+      type: string
+    count:
+      type: integer
+      format: int32
+
+
+MonthlyPickups:
+  type: object
+  required: [month, pickups, kg]
+  properties:
+    month:
+      type: string
+      description: yyyy-MM
+    pickups:
+      type: integer
+      format: int32
+    kg:
+      type: number
+      format: double

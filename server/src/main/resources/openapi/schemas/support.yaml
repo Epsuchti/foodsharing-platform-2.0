@@ -1,0 +1,61 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+SupportTicketCreate:
+  type: object
+  required: [subject, body]
+  properties:
+    subject:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    page:
+      type: string
+      maxLength: 500
+    userAgent:
+      type: string
+      maxLength: 500
+    attachmentUploadIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      maxItems: 5
+
+PublicSupportTicketCreate:
+  type: object
+  required: [subject, body, email, firstName]
+  properties:
+    subject:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    page:
+      type: string
+      maxLength: 500
+    userAgent:
+      type: string
+      maxLength: 500
+    email:
+      type: string
+      minLength: 3
+      maxLength: 320
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 100
+
+SupportTicketCreated:
+  type: object
+  required: [ticketId]
+  properties:
+    ticketId:
+      type: string
+      format: uuid

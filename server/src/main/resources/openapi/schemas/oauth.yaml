@@ -1,0 +1,45 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+OAuthClientRef:
+  type: object
+  required: [clientId, name]
+  properties:
+    clientId:
+      type: string
+    name:
+      type: string
+
+ConsentRequest:
+  type: object
+  required: [client, scopes, alreadyRemembered, regionAllowed, expiresAt]
+  properties:
+    client:
+      $ref: './oauth.yaml#/OAuthClientRef'
+    scopes:
+      type: array
+      items:
+        type: string
+    alreadyRemembered:
+      type: boolean
+    regionAllowed:
+      type: boolean
+    expiresAt:
+      type: string
+      format: date-time
+
+ConsentDecision:
+  type: object
+  required: [approve, remember]
+  properties:
+    approve:
+      type: boolean
+    remember:
+      type: boolean
+      default: false
+
+ConsentRedirect:
+  type: object
+  required: [redirectUri]
+  properties:
+    redirectUri:
+      type: string

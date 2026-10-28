@@ -1,0 +1,90 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/oauth/authorize-requests/{requestId}:
+  get:
+    tags: [oauth]
+    operationId: getConsentRequest
+    summary: A pending authorization request.
+    x-permission: authenticated (the requesting user)
+    parameters:
+      - name: requestId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/oauth.yaml#/ConsentRequest'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: OAUTH_REGION_REQUIRED or ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: OAUTH_REQUEST_EXPIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/oauth/authorize-requests/{requestId}/decision:
+  post:
+    tags: [oauth]
+    operationId: decideConsentRequest
+    summary: Approve or deny the request.
+    x-permission: authenticated (the requesting user)
+    x-history: OAuthAction.CONSENT_GRANTED
+    parameters:
+      - name: requestId
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/oauth.yaml#/ConsentDecision'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/oauth.yaml#/ConsentRedirect'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: OAUTH_REGION_REQUIRED or ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: OAUTH_REQUEST_EXPIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

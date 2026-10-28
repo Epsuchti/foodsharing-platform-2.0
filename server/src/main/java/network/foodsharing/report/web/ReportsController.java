@@ -13,9 +13,9 @@ import network.foodsharing.api.model.ReportPage;
 import network.foodsharing.api.model.ReportStatus;
 import network.foodsharing.api.model.ReportSummary;
 import network.foodsharing.api.model.ReportUpdate;
-import network.foodsharing.api.model.WallPost1;
-import network.foodsharing.api.model.WallPostCreate1;
-import network.foodsharing.api.model.WallPostPage1;
+import network.foodsharing.api.model.WallEntry;
+import network.foodsharing.api.model.WallEntryCreate;
+import network.foodsharing.api.model.WallEntryPage;
 import network.foodsharing.common.error.ApiException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +30,7 @@ public class ReportsController implements ReportsApi {
     }
 
     @Override
-    public ResponseEntity<WallPost1> createReportWallPost(UUID reportId, WallPostCreate1 wallPostCreate1) {
+    public ResponseEntity<WallEntry> createReportWallPost(UUID reportId, WallEntryCreate wallEntryCreate) {
         throw ApiException.notImplemented("createReportWallPost");
     }
 
@@ -65,7 +65,7 @@ public class ReportsController implements ReportsApi {
     }
 
     @Override
-    public ResponseEntity<WallPostPage1> listReportWall(UUID reportId, Integer page, Integer size) {
+    public ResponseEntity<WallEntryPage> listReportWall(UUID reportId, Integer page, Integer size) {
         throw ApiException.notImplemented("listReportWall");
     }
 

@@ -20,6 +20,49 @@
                 $ref: '../schemas/content.yaml#/ContentPageSummary'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [content]
+    operationId: createContentPage
+    summary: Create a content page.
+    x-permission: ORGA
+    x-history: ContentAction.PAGE_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/content.yaml#/ContentPageCreate'
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/ContentPage'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "409":
+        description: CONTENT_PAGE_EXISTS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
 
 /api/content/pages/{slug}:
   get:
@@ -72,3 +115,414 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/blog:
+  get:
+    tags: [content]
+    operationId: listBlogPosts
+    summary: Blog posts incl. unpublished (editors).
+    x-permission: ORGA or PR group admin
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPostPage'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  post:
+    tags: [content]
+    operationId: createBlogPost
+    summary: Write a blog post (unpublished).
+    x-permission: ORGA or PR group admin
+    x-history: ContentAction.BLOG_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/content.yaml#/BlogPostCreate'
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPost'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/blog/{blogPostId}:
+  get:
+    tags: [content]
+    operationId: getBlogPost
+    summary: Blog post for editing.
+    x-permission: ORGA or PR group admin
+    parameters:
+      - name: blogPostId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPost'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: BLOG_POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  patch:
+    tags: [content]
+    operationId: updateBlogPost
+    summary: Edit a blog post.
+    x-permission: ORGA or author
+    x-history: ContentAction.BLOG_UPDATED
+    parameters:
+      - name: blogPostId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/content.yaml#/BlogPostUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPost'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: BLOG_POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [content]
+    operationId: deleteBlogPost
+    summary: Delete a blog post.
+    x-permission: ORGA or author
+    x-history: ContentAction.BLOG_DELETED
+    parameters:
+      - name: blogPostId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: BLOG_POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/blog/{blogPostId}/published:
+  put:
+    tags: [content]
+    operationId: setBlogPostPublished
+    summary: Publish or unpublish.
+    x-permission: ORGA or PR group admin
+    x-history: ContentAction.BLOG_PUBLISHED
+    parameters:
+      - name: blogPostId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/content.yaml#/PublishedUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/BlogPost'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: BLOG_POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/release-notes:
+  get:
+    tags: [content]
+    operationId: listReleaseNotesForEdit
+    summary: Release notes with translations.
+    x-permission: ORGA
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/content.yaml#/ReleaseNote'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  post:
+    tags: [content]
+    operationId: createReleaseNote
+    summary: Add a release note.
+    x-permission: ORGA
+    x-history: ContentAction.RELEASE_NOTE_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/content.yaml#/ReleaseNoteCreate'
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/ReleaseNote'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
+/api/release-notes/{releaseNoteId}:
+  patch:
+    tags: [content]
+    operationId: updateReleaseNote
+    summary: Edit a release note.
+    x-permission: ORGA
+    x-history: ContentAction.RELEASE_NOTE_UPDATED
+    parameters:
+      - name: releaseNoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/content.yaml#/ReleaseNoteUpdate'
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/content.yaml#/ReleaseNote'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: RELEASE_NOTE_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+  delete:
+    tags: [content]
+    operationId: deleteReleaseNote
+    summary: Delete a release note.
+    x-permission: ORGA
+    x-history: ContentAction.RELEASE_NOTE_DELETED
+    parameters:
+      - name: releaseNoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: No Content
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: RELEASE_NOTE_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

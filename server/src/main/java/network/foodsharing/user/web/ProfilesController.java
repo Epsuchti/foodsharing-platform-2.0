@@ -9,9 +9,9 @@ import network.foodsharing.api.model.Commitments;
 import network.foodsharing.api.model.ProfileBuddy;
 import network.foodsharing.api.model.PublicProfile;
 import network.foodsharing.api.model.UserSummary;
-import network.foodsharing.api.model.WallPost1;
-import network.foodsharing.api.model.WallPostCreate1;
-import network.foodsharing.api.model.WallPostPage1;
+import network.foodsharing.api.model.WallEntry;
+import network.foodsharing.api.model.WallEntryCreate;
+import network.foodsharing.api.model.WallEntryPage;
 import network.foodsharing.common.error.ApiException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfilesController implements ProfilesApi {
 
     @Override
-    public ResponseEntity<WallPost1> createUserWallPost(UUID userId, WallPostCreate1 wallPostCreate1) {
+    public ResponseEntity<WallEntry> createUserWallPost(UUID userId, WallEntryCreate wallEntryCreate) {
         throw ApiException.notImplemented("createUserWallPost");
     }
 
@@ -66,7 +66,7 @@ public class ProfilesController implements ProfilesApi {
     }
 
     @Override
-    public ResponseEntity<WallPostPage1> listUserWallPosts(UUID userId, Integer page, Integer size) {
+    public ResponseEntity<WallEntryPage> listUserWallPosts(UUID userId, Integer page, Integer size) {
         throw ApiException.notImplemented("listUserWallPosts");
     }
 

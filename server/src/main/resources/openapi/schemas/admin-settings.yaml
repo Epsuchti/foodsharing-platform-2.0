@@ -1,0 +1,171 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+FeatureToggleKey:
+  type: string
+  enum: [BASKETS, FOOD_SHARE_POINTS, MAP_USERS, RESOURCES, BLOG, DONATION_MODAL, PETITION_BANNER, OAUTH_PROVIDER, SUPPORT_FORM, GLOBAL_SEARCH]
+
+FeatureToggleState:
+  type: object
+  required: [key, enabled, defaultEnabled]
+  properties:
+    key:
+      $ref: './admin-settings.yaml#/FeatureToggleKey'
+    enabled:
+      type: boolean
+    defaultEnabled:
+      type: boolean
+    description:
+      type: string
+    updatedAt:
+      type: string
+      format: date-time
+
+FeatureToggleUpdate:
+  type: object
+  required: [enabled]
+  properties:
+    enabled:
+      type: boolean
+
+ConfigurationEntry:
+  type: object
+  required: [key, value, defaultValue]
+  properties:
+    key:
+      type: string
+    value:
+      type: string
+    defaultValue:
+      type: string
+    description:
+      type: string
+    updatedAt:
+      type: string
+      format: date-time
+    updatedBy:
+      $ref: './users.yaml#/UserSummary'
+
+ConfigurationUpdate:
+  type: object
+  required: [value]
+  properties:
+    value:
+      type: string
+      maxLength: 4000
+
+EmailBlocklistEntry:
+  type: object
+  required: [id, pattern, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    pattern:
+      type: string
+    reason:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    createdBy:
+      $ref: './users.yaml#/UserSummary'
+
+EmailBlocklistCreate:
+  type: object
+  required: [pattern]
+  properties:
+    pattern:
+      type: string
+      minLength: 3
+      maxLength: 320
+      description: Domain (example.org) or full address.
+    reason:
+      type: string
+      maxLength: 500
+
+EmailBlocklistUpdate:
+  type: object
+  properties:
+    pattern:
+      type: string
+      minLength: 3
+      maxLength: 320
+    reason:
+      type: string
+      maxLength: 500
+
+IpBlockContext:
+  type: string
+  enum: [LOGIN, REGISTRATION, ALL]
+
+IpBlockEntry:
+  type: object
+  required: [id, ip, context, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    ip:
+      type: string
+    context:
+      $ref: './admin-settings.yaml#/IpBlockContext'
+    createdAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+    createdBy:
+      $ref: './users.yaml#/UserSummary'
+
+IpBlockCreate:
+  type: object
+  required: [ip, context]
+  properties:
+    ip:
+      type: string
+      minLength: 3
+      maxLength: 64
+    context:
+      $ref: './admin-settings.yaml#/IpBlockContext'
+    durationMinutes:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 5256000
+
+DonationSettings:
+  type: object
+  required: [showCampaignCard, showModal, modalHoursLoggedIn, modalHoursLoggedOut]
+  properties:
+    showCampaignCard:
+      type: boolean
+    showModal:
+      type: boolean
+    modalHoursLoggedIn:
+      type: integer
+      format: int32
+      minimum: 0
+    modalHoursLoggedOut:
+      type: integer
+      format: int32
+      minimum: 0
+    infoUrl:
+      type: string
+      maxLength: 2000
+    iframeOneTimeUrl:
+      type: string
+      maxLength: 2000
+    iframeCampaignUrl:
+      type: string
+      maxLength: 2000
+    iframeFriendshipCircleUrl:
+      type: string
+      maxLength: 2000
+    iframeSelfServiceUrl:
+      type: string
+      maxLength: 2000
+    campaignPageSlugs:
+      type: array
+      items:
+        type: string

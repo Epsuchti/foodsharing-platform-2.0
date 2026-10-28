@@ -1,0 +1,46 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+/api/support/tickets:
+  post:
+    tags: [support]
+    operationId: createSupportTicket
+    summary: Send a support request.
+    x-permission: authenticated
+    x-history: SupportAction.TICKET_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/support.yaml#/SupportTicketCreate'
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/support.yaml#/SupportTicketCreated'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: FEATURE_DISABLED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "429":
+        description: SUPPORT_RATE_LIMITED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

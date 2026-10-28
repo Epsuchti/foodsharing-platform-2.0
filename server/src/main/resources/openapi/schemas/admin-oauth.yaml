@@ -1,0 +1,129 @@
+# milestone 6 (docs/plan-m6.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+
+OAuthGrantType:
+  type: string
+  enum: [authorization_code, refresh_token]
+
+OAuthClient:
+  type: object
+  required: [clientId, name, confidential, redirectUris, scopes, grantTypes, requiredRegionIds, enabled, createdAt, consentCount]
+  properties:
+    clientId:
+      type: string
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    confidential:
+      type: boolean
+    redirectUris:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 10
+    scopes:
+      type: array
+      items:
+        type: string
+    grantTypes:
+      type: array
+      items:
+        $ref: './admin-oauth.yaml#/OAuthGrantType'
+    requiredRegionIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    enabled:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    consentCount:
+      type: integer
+      format: int32
+
+OAuthClientCreate:
+  type: object
+  required: [clientId, name, confidential, redirectUris, scopes, grantTypes, requiredRegionIds, enabled]
+  properties:
+    clientId:
+      type: string
+      minLength: 3
+      maxLength: 60
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    confidential:
+      type: boolean
+    redirectUris:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 10
+    scopes:
+      type: array
+      items:
+        type: string
+    grantTypes:
+      type: array
+      items:
+        $ref: './admin-oauth.yaml#/OAuthGrantType'
+    requiredRegionIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    enabled:
+      type: boolean
+
+OAuthClientUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    confidential:
+      type: boolean
+    redirectUris:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 10
+    scopes:
+      type: array
+      items:
+        type: string
+    grantTypes:
+      type: array
+      items:
+        $ref: './admin-oauth.yaml#/OAuthGrantType'
+    requiredRegionIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    enabled:
+      type: boolean
+
+OAuthClientCreated:
+  type: object
+  required: [client]
+  properties:
+    client:
+      $ref: './admin-oauth.yaml#/OAuthClient'
+    clientSecret:
+      type: string
+      description: 'Shown once; null for public clients.'
+
+OAuthClientSecret:
+  type: object
+  required: [clientSecret]
+  properties:
+    clientSecret:
+      type: string

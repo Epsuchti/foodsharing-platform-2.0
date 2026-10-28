@@ -99,7 +99,7 @@ Report:
     wall:
       type: array
       items:
-        $ref: './common.yaml#/WallPost'
+        $ref: './common.yaml#/WallEntry'
     permissions:
       $ref: './reports.yaml#/ReportPermissions'
 

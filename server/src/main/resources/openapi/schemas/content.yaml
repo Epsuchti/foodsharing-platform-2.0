@@ -103,3 +103,333 @@ ContentPageUpdate:
     reason:
       type: string
       maxLength: 500
+
+BlogPostSummary:
+  type: object
+  required: [id, title, teaser, published]
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    teaser:
+      type: string
+    pictureUrl:
+      type: string
+    publishedAt:
+      type: string
+      format: date-time
+    author:
+      $ref: './users.yaml#/UserSummary'
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    published:
+      type: boolean
+
+BlogPostPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './content.yaml#/BlogPostSummary'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+BlogPost:
+  type: object
+  required: [id, title, teaser, body, published]
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    teaser:
+      type: string
+    body:
+      type: string
+      description: Markdown.
+    pictureUrl:
+      type: string
+    publishedAt:
+      type: string
+      format: date-time
+    author:
+      $ref: './users.yaml#/UserSummary'
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    published:
+      type: boolean
+    mayEdit:
+      type: boolean
+
+BlogPostCreate:
+  type: object
+  required: [title, teaser, body]
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    teaser:
+      type: string
+      maxLength: 1000
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    regionId:
+      type: string
+      format: uuid
+    pictureUploadId:
+      type: string
+      format: uuid
+
+BlogPostUpdate:
+  type: object
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    teaser:
+      type: string
+      maxLength: 1000
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    regionId:
+      type: string
+      format: uuid
+    pictureUploadId:
+      type: string
+      format: uuid
+
+PublishedUpdate:
+  type: object
+  required: [published]
+  properties:
+    published:
+      type: boolean
+
+PublicStatistics:
+  type: object
+  required: [kgSaved, pickups, foodsavers, stores, cooperations, foodSharePoints, baskets, asOf]
+  properties:
+    kgSaved:
+      type: number
+      format: double
+    pickups:
+      type: integer
+      format: int64
+    foodsavers:
+      type: integer
+      format: int64
+    stores:
+      type: integer
+      format: int64
+    cooperations:
+      type: integer
+      format: int64
+    foodSharePoints:
+      type: integer
+      format: int64
+    baskets:
+      type: integer
+      format: int64
+    asOf:
+      type: string
+      format: date-time
+
+TeamPageMember:
+  type: object
+  required: [displayName]
+  properties:
+    displayName:
+      type: string
+    avatarUrl:
+      type: string
+    roleDescription:
+      type: string
+
+TeamGroup:
+  type: object
+  required: [id, name, members]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    teaser:
+      type: string
+    photoUrl:
+      type: string
+    members:
+      type: array
+      items:
+        $ref: './content.yaml#/TeamPageMember'
+
+Petition:
+  type: object
+  required: [href, signatures, daysLeft]
+  properties:
+    href:
+      type: string
+    signatures:
+      type: integer
+      format: int64
+    daysLeft:
+      type: integer
+      format: int32
+
+DonationPage:
+  type: object
+  required: [showCampaignCard, showModal, modalHoursLoggedIn, modalHoursLoggedOut, campaignPages]
+  properties:
+    showCampaignCard:
+      type: boolean
+    showModal:
+      type: boolean
+    modalHoursLoggedIn:
+      type: integer
+      format: int32
+    modalHoursLoggedOut:
+      type: integer
+      format: int32
+    infoUrl:
+      type: string
+    iframeOneTimeUrl:
+      type: string
+    iframeCampaignUrl:
+      type: string
+    iframeFriendshipCircleUrl:
+      type: string
+    iframeSelfServiceUrl:
+      type: string
+    campaignPages:
+      type: array
+      items:
+        $ref: './content.yaml#/ContentPage'
+
+ReleaseNote:
+  type: object
+  required: [id, version, releasedAt, title, body]
+  properties:
+    id:
+      type: string
+      format: uuid
+    version:
+      type: string
+    releasedAt:
+      type: string
+      format: date
+    title:
+      type: string
+    body:
+      type: string
+      description: Markdown.
+
+ReleaseNoteTranslation:
+  type: object
+  required: [title, body]
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+
+ReleaseNoteCreate:
+  type: object
+  required: [version, releasedAt, title, body]
+  properties:
+    version:
+      type: string
+      minLength: 1
+      maxLength: 40
+    releasedAt:
+      type: string
+      format: date
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    translations:
+      type: object
+      additionalProperties:
+        $ref: './content.yaml#/ReleaseNoteTranslation'
+
+ReleaseNoteUpdate:
+  type: object
+  properties:
+    version:
+      type: string
+      minLength: 1
+      maxLength: 40
+    releasedAt:
+      type: string
+      format: date
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    translations:
+      type: object
+      additionalProperties:
+        $ref: './content.yaml#/ReleaseNoteTranslation'
+
+FaqEntry:
+  type: object
+  required: [slug, question, answer]
+  properties:
+    slug:
+      type: string
+    question:
+      type: string
+    answer:
+      type: string
+      description: Markdown.
+
+ContentPageCreate:
+  type: object
+  required: [slug, kind, title, body]
+  properties:
+    slug:
+      type: string
+      minLength: 1
+      maxLength: 100
+    kind:
+      type: string
+      enum: [PAGE, FAQ, LEARNING_CHAPTER]
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      maxLength: 32600
+    editorFunction:
+      type: string
+      maxLength: 40
+    imageUploadIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      maxItems: 20
