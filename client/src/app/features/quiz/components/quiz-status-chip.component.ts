@@ -35,8 +35,8 @@ import { PHASE_TONE, quizPhase } from '../quiz-kind';
       color: var(--fs-text-muted);
     }
     :host(.chip--info) {
-      background: color-mix(in srgb, #2563eb 14%, transparent);
-      color: color-mix(in srgb, #2563eb 80%, var(--fs-text));
+      background: color-mix(in srgb, #2563eb 16%, var(--fs-surface));
+      color: var(--fs-text);
     }
     :host(.chip--success) {
       background: var(--fs-primary-soft);
