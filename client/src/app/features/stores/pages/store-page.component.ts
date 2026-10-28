@@ -18,10 +18,12 @@ interface StoreTab {
   id: string;
   icon: string;
   visible: boolean;
+  /** Route relative to the store page (default: the id). */
+  link?: string;
 }
 
 /** Tabs whose page exists (F2 overview; F3 team; F4 pickups; F5 wall, log, statistics). */
-export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups']);
+export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 'wall', 'statistics', 'log']);
 
 /**
  * /stores/:storeId (S1, S15, S16): header with name, region, badges, navigation and contact buttons, the tab
@@ -122,10 +124,9 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups'])
           @for (tab of tabs(); track tab.id) {
             <a
               class="tabs__tab"
-              [routerLink]="tab.id"
+              [routerLink]="tab.link ?? tab.id"
               routerLinkActive="tabs__tab--active"
-              #active="routerLinkActive"
-              [attr.aria-current]="active.isActive ? 'page' : null"
+              ariaCurrentWhenActive="page"
               [attr.data-testid]="'stores.page.tab.' + tab.id"
             >
               <i [class]="tab.icon" aria-hidden="true"></i>
@@ -171,7 +172,13 @@ export class StorePageComponent {
     const tabs: StoreTab[] = [
       { id: 'overview', icon: 'pi pi-info-circle', visible: true },
       { id: 'team', icon: 'pi pi-users', visible: teamVisible },
-      { id: 'pickups', icon: 'pi pi-calendar', visible: p.maySeePickups || p.maySeePickupHistory },
+      {
+        id: 'pickups',
+        icon: 'pi pi-calendar',
+        visible: p.maySeePickups || p.maySeePickupHistory,
+        // KAMs and coordinators outside the team only see the pickup history (PU6)
+        link: p.maySeePickups ? 'pickups' : 'pickups/history',
+      },
       { id: 'wall', icon: 'pi pi-comments', visible: p.mayReadWall },
       { id: 'statistics', icon: 'pi pi-chart-bar', visible: p.mayAccess },
       { id: 'log', icon: 'pi pi-history', visible: p.maySeeStoreLog },

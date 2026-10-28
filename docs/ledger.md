@@ -43,18 +43,18 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | R13 | Region statistics cache (active home-region foodsavers, active cooperations, pickups last month, kg last month, active FSPs, baskets last month) | in-progress | region statistics job | statistics tab | r3-region-page @R13 | | store/basket figures fill in M3/M6 |
 | S1 | Store list per region and "my stores" with team status, cooperation status, next pickup, free slots | done | StoreQueryService | /stores/mine, /regions/:id/stores | s1-* @S1 | stores.screen.ts (baseline pending) | unverified-user case not seeded |
 | S2 | Create store, edit all store fields from §15.2 | done | StoreService | /stores/new, /stores/:id/edit | s2-* @S2 | stores.screen.ts (baseline pending) |  |
-| S3 | Store chains: name, headquarters (address, country), status, press allowed, forum thread, notes, common store information, estimated store count; KAMs; chain list | todo | | | | | |
-| S4 | Categories admin (store categories, grocery types) with merge | todo | | | | | |
+| S3 | Store chains: name, headquarters (address, country), status, press allowed, forum thread, notes, common store information, estimated store count; KAMs; chain list | done | StoreChainService | /store-chains list + chain page (KAM picker, markdown info, notes) | tests/stores/s3-chains @S3 | store-chains.screen.ts (baseline pending) |  |
+| S4 | Categories admin (store categories, grocery types) with merge | done | StoreCategoryService, GroceryService | /admin/store-categories (rename, merge, delete) | tests/stores/s4-categories @S4 | store-chains.screen.ts (baseline pending) | a11y on main only: ORGA header nav target-size (layout) |
 | S5 | Team: members, jumpers (standby), invited, applied; team status (closed / open / searching); per-member stats (pickup count, first/last pickup, added date) | done | StoreTeamService | store team tab | tests/stores @S5 | stores-team.screen.ts (baseline pending) |  |
 | S6 | Apply to team (with text if required), accept/decline with required message, cancel request | done | StoreTeamService | store team tab | tests/stores @S6 | stores-team.screen.ts (baseline pending) |  |
 | S7 | Invitations (store managers invite; user accepts/declines; withdraw) | done | StoreTeamService | store team tab | tests/stores @S7 | stores-team.screen.ts (baseline pending) |  |
 | S8 | Move to/from standby, remove member (required message), appoint/remove store manager | done | StoreTeamService | store team tab | tests/stores @S8 | stores-team.screen.ts (baseline pending) |  |
 | S9 | Team list: phone buttons (permission-dependent), last pickup, pickup count, distance to store, sleep mode | done | TeamMember.phone | team tab | s9-team-list @S9 | | phone buttons need frontend update for TeamMember.phone |
 | S10 | Team chat and jumper (standby) chat, auto-membership | todo | | | | | |
-| S11 | Store wall / notes with milestones (cooperation start, status changes) and delete rules per permission table | todo | | | | | |
-| S12 | Store log (§10.2) with date range and action filter | todo | | | | | |
-| S13 | Delete/archive store | todo | | | | | |
-| S14 | Store statistics: pickups, kg saved per pickup weight category, per month | todo | | | | | |
+| S11 | Store wall / notes with milestones (cooperation start, status changes) and delete rules per permission table | done | StoreWallService | store wall tab (composer, milestones, delete per mayDelete) | tests/stores/s11-wall @S11 | stores-wall-log.screen.ts (baseline pending) |  |
+| S12 | Store log (§10.2) with date range and action filter | done | StoreLogService | store log tab (fs-history-timeline, action groups, date range, ORGA CSV) | tests/stores/s12-store-log @S12 | stores-wall-log.screen.ts (baseline pending) |  |
+| S13 | Delete/archive store | done | StoreService.delete | delete section in store edit page (coordinators, 409 explained) | tests/stores/s13-delete @S13 | stores-wall-log.screen.ts (baseline pending) |  |
+| S14 | Store statistics: pickups, kg saved per pickup weight category, per month | done | StoreStatisticsService | store statistics tab (month bar chart pickups/kg, per member) | tests/stores/s14-statistics @S14 | stores-wall-log.screen.ts (baseline pending) |  |
 | S15 | Navigation buttons and map position | done | store coordinates | overview map + navigation buttons | s15 @S15 | |  |
 | S16 | Region of the store shown, store moved between regions by admins | done | region move guard | edit page | s16 @S16 | |  |
 | PU1 | Regular pickups (weekday, time, max slots, description), interval settings | done | pickup module | pickups tab, /pickups | tests/pickups @PU1 | pickups.screen.ts (baseline pending) |  |
@@ -62,10 +62,10 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | PU3 | Sign up / sign out; store managers remove others; slot confirmation (unconfirmed → confirmed); prefetch time (how far ahead sign-up opens) | done | pickup module | pickups tab, /pickups | tests/pickups @PU3 | pickups.screen.ts (baseline pending) |  |
 | PU4 | Eligibility check before sign-up (verified, hygiene certificate, phone, region pickup rule, team status, sleep mode) with a clear reason | done | pickup module | pickups tab, /pickups | tests/pickups @PU4 | pickups.screen.ts (baseline pending) | jumper/unverified get 403 instead of reasons — backend change pending |
 | PU5 | Region pickup rule enforcement (max pickups in timespan, per day, ignored N hours before pickup) | done | pickup module | pickups tab, /pickups | tests/pickups @PU5 | pickups.screen.ts (baseline pending) |  |
-| PU6 | Pickup history per store (date range) and per user; delete all future pickups of a user (when leaving) | todo | | | | | |
+| PU6 | Pickup history per store (date range) and per user; delete all future pickups of a user (when leaving) | done | PickupHistoryService | store pickups/history, /me/pickups/history, /users/:id/pickups | tests/pickups/pu6-history @PU6 | stores-wall-log.screen.ts (baseline pending) |  |
 | PU7 | Pickup options for user ("where can I help?", free slots in my stores) | done | pickup module | pickups tab, /pickups | tests/pickups @PU7 | pickups.screen.ts (baseline pending) |  |
 | PU8 | User agenda for a date | done | pickup module | pickups tab, /pickups | tests/pickups @PU8 | pickups.screen.ts (baseline pending) |  |
-| PU9 | Pickup reminders (disable per user) | todo | | | | | |
+| PU9 | Pickup reminders (disable per user) | done | PickupReminderJob | account settings: pickup reminder card | tests/pickups/pu9-reminders @PU9 | store-chains.screen.ts (baseline pending) |  |
 | N1 | Conversations 1:1 and group, store team & jumper chats, region conversation, lookup/create, rename, read status, unread counts, mentions | todo | | | | | |
 | N2 | Realtime delivery (WebSocket) | todo | | | | | |
 | N3 | Bells with read/unread, delete, all bell types (forum thread to activate, WG application, new member for welcome team, store requests, slot confirmations, …) | todo | | | | | |

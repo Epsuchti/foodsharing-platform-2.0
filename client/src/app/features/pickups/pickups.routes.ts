@@ -30,4 +30,18 @@ export const PICKUPS_ROUTES: Routes = [
     title: 'pickups.agenda.title',
     loadComponent: () => import('./pages/agenda-page.component').then((m) => m.AgendaPageComponent),
   },
+  {
+    path: 'me/pickups/history',
+    canActivate: [authGuard],
+    data: { roles: [Role.Foodsaver] },
+    title: 'pickups.past.title',
+    loadComponent: () => import('./pages/pickup-history-page.component').then((m) => m.PickupHistoryPageComponent),
+  },
+  {
+    // access is decided by the server (mayAdministrateUser); a 403 shows the forbidden state
+    path: 'users/:userId/pickups',
+    canActivate: [authGuard],
+    title: 'pickups.past.adminTitle',
+    loadComponent: () => import('./pages/pickup-history-page.component').then((m) => m.PickupHistoryPageComponent),
+  },
 ];

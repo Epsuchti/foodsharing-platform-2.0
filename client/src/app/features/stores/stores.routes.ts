@@ -43,6 +43,15 @@ export const STORES_ROUTES: Routes = [
       tab('overview', () => import('./tabs/store-overview.tab').then((m) => m.StoreOverviewTab)),
       tab('team', () => import('./tabs/store-team.tab').then((m) => m.StoreTeamTab)),
       tab('pickups', () => import('../pickups/tabs/store-pickups.tab').then((m) => m.StorePickupsTab)),
+      {
+        path: 'pickups/history',
+        title: 'stores.tab.pickupHistory',
+        loadComponent: () =>
+          import('../pickups/tabs/store-pickup-history.tab').then((m) => m.StorePickupHistoryTab),
+      },
+      tab('wall', () => import('./tabs/store-wall.tab').then((m) => m.StoreWallTab)),
+      tab('statistics', () => import('./tabs/store-statistics.tab').then((m) => m.StoreStatisticsTab)),
+      tab('log', () => import('./tabs/store-log.tab').then((m) => m.StoreLogTab)),
     ],
   },
   {

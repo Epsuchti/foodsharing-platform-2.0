@@ -34,6 +34,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { AddressFormComponent, addressFormGroup } from '../../../shared/address-form/address-form.component';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { COOPERATION_STATUSES, TEAM_STATUSES } from '../stores.util';
 
@@ -60,6 +61,7 @@ const optional = () => new FormControl<string | null>(null);
     MultiSelect,
     PageHeaderComponent,
     ReactiveFormsModule,
+    RequiredMessageDialogComponent,
     RouterLink,
     Select,
     Textarea,
@@ -257,6 +259,43 @@ const optional = () => new FormControl<string | null>(null);
             />
           </div>
         </form>
+
+        @if (loaded.store?.permissions?.mayDelete) {
+          <section class="fs-card danger" data-testid="stores.form.danger">
+            <h2 class="danger__title">{{ 'stores.delete.title' | t }}</h2>
+            <p class="danger__text">{{ 'stores.delete.text' | t }}</p>
+            @if (remove.error(); as error) {
+              <p class="error" role="alert" data-testid="stores.delete.error">
+                {{ errorText(error) }}
+                @if (error.code === 'STORE_HAS_PICKUPS') {
+                  {{ 'stores.delete.hasPickupsHint' | t }}
+                }
+              </p>
+            }
+            <div>
+              <p-button
+                [label]="'stores.delete.button' | t"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="deleteOpen.set(true)"
+                data-testid="stores.delete.open"
+              />
+            </div>
+          </section>
+          <fs-required-message-dialog
+            [(visible)]="deleteOpen"
+            [title]="'stores.delete.confirmTitle' | t: { name: loaded.store.name }"
+            [text]="'stores.delete.confirmText' | t"
+            [label]="'stores.delete.reason' | t"
+            [confirmLabel]="'stores.delete.button' | t"
+            severity="danger"
+            [minLength]="3"
+            [busy]="remove.busy()"
+            (confirm)="remove.run($event)"
+            testId="stores.delete.dialog"
+          />
+        }
       </ng-template>
     </fs-data-state>
   `,
@@ -268,6 +307,9 @@ const optional = () => new FormControl<string | null>(null);
     .radios { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; }
     .radio { display: inline-flex; gap: 0.4rem; align-items: center; }
     .actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+    .danger { display: grid; gap: 0.6rem; margin-top: 2rem; padding: 1rem; border: 1px solid var(--fs-danger); }
+    .danger__title { margin: 0; font-size: 1.05rem; color: var(--fs-danger); }
+    .danger__text { margin: 0; }
   `,
 })
 export class StoreFormPageComponent {
@@ -413,6 +455,22 @@ export class StoreFormPageComponent {
     }
     void this.save.run();
   }
+
+  protected readonly deleteOpen = signal(false);
+
+  /** Delete (S13, coordinators): soft delete; 409 STORE_HAS_PICKUPS when the store ever had a sign-up. */
+  protected readonly remove = runMutation(
+    (reason: string) => this.api.deleteStore({ storeId: this.storeId()!, reasonBody: { reason } }),
+    {
+      successToastKey: 'stores.delete.done',
+      onSuccess: () => {
+        this.deleteOpen.set(false);
+        const regionId = this.data.data()?.store?.region.id;
+        void this.router.navigate(regionId ? ['/regions', regionId, 'stores'] : ['/stores/mine']);
+      },
+      onError: () => this.deleteOpen.set(false),
+    },
+  );
 
   protected errorText(error: { code: string; args?: Record<string, string> }): string {
     return this.i18n.error(error.code, { ...(error.args ?? {}) });

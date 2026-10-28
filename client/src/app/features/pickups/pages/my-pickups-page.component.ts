@@ -23,6 +23,7 @@ import { dayOf } from '../pickups.util';
     <fs-page-header [title]="'pickups.mine.title' | t" [subtitle]="'pickups.mine.subtitle' | t" icon="pi pi-calendar" />
     <div class="toolbar">
       <p-button [label]="'pickups.options.title' | t" icon="pi pi-calendar-plus" severity="secondary" [outlined]="true" routerLink="/pickups" data-testid="pickups.mine.options" />
+      <p-button [label]="'pickups.past.title' | t" icon="pi pi-history" severity="secondary" [text]="true" routerLink="/me/pickups/history" data-testid="pickups.mine.history" />
       @if (today(); as day) {
         <p-button [label]="'pickups.agenda.title' | t" icon="pi pi-list" severity="secondary" [text]="true" [routerLink]="['/pickups/agenda', day]" data-testid="pickups.mine.agenda" />
       }

@@ -61,5 +61,6 @@
   "usersAdmin.user.reason": "Motif",
   "usersAdmin.user.history": "Historique des modifications",
   "usersAdmin.user.noHistory": "Aucune modification",
-  "usersAdmin.user.quizHistory": "Tentatives de quiz"
+  "usersAdmin.user.quizHistory": "Tentatives de quiz",
+  "usersAdmin.user.pickups": "Collectes"
 }
