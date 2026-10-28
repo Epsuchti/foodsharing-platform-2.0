@@ -1,0 +1,61 @@
+/api/admin/mail-outbox:
+  get:
+    tags: [admin-mail]
+    operationId: listMailOutbox
+    summary: 'Outgoing mails, newest first.'
+    x-permission: 'ORGA'
+    parameters:
+      - name: status
+        in: query
+        schema:
+          $ref: '../schemas/admin.yaml#/MailOutboxStatus'
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/admin.yaml#/MailOutboxPage'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/mail-outbox/{mailId}/retry:
+  post:
+    tags: [admin-mail]
+    operationId: retryMail
+    summary: 'Send a failed mail again.'
+    x-permission: 'ORGA'
+    x-history: NotificationAction.MAIL_RETRIED
+    parameters:
+      - name: mailId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/admin.yaml#/MailOutboxItem'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'MAIL_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'MAIL_NOT_RETRYABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

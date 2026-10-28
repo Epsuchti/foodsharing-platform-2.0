@@ -9,12 +9,15 @@ import network.foodsharing.api.model.DevClockRequest;
 import network.foodsharing.api.model.DevClockState;
 import network.foodsharing.api.model.DevLoginRequest;
 import network.foodsharing.api.model.DevNotification;
+import network.foodsharing.api.model.DevNotificationChannel;
+import network.foodsharing.api.model.DevTelegramUpdate;
 import network.foodsharing.api.model.DevRoleRequest;
 import network.foodsharing.api.model.DevUser;
 import network.foodsharing.api.model.SessionInfo;
 import network.foodsharing.auth.mapper.AuthMapper;
 import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.common.web.HttpExchange;
+import network.foodsharing.common.error.ApiException;
 import network.foodsharing.dev.mapper.DevMapper;
 import network.foodsharing.dev.service.DevNotificationService;
 import network.foodsharing.dev.service.DevService;
@@ -86,9 +89,22 @@ public class DevController implements DevApi {
     }
 
     @Override
-    public ResponseEntity<List<DevNotification>> listDevNotifications(UUID userId, String type) {
+    public ResponseEntity<List<DevNotification>> listDevNotifications(UUID userId, String type,
+            DevNotificationChannel channel) {
         return ResponseEntity.ok(notificationService.notifications(userId, type).stream()
-                .flatMap(bell -> mapper.toDevNotifications(bell).stream()).toList());
+                .flatMap(bell -> mapper.toDevNotifications(bell).stream())
+                .filter(notification -> channel == null || channel == notification.getChannel())
+                .toList());
+    }
+
+    @Override
+    public ResponseEntity<Void> clearDevNotifications() {
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> simulateTelegramUpdate(DevTelegramUpdate devTelegramUpdate) {
+        throw ApiException.notImplemented("simulateTelegramUpdate");
     }
 
     @Override

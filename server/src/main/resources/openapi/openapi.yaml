@@ -71,6 +71,22 @@ tags:
     description: 'Foodsaver passports (PDF, requests, batch generation) and wallets.'
   - name: jobs
     description: 'Progress and results of long-running jobs.'
+  - name: push
+    description: 'Web push subscriptions (milestone 4).'
+  - name: telegram
+    description: 'Telegram linking and region/store alert chats (milestone 4).'
+  - name: newsletters
+    description: 'Global and region newsletters (ORGA, ambassadors).'
+  - name: public-newsletter
+    description: 'One-click newsletter unsubscribe (logged out).'
+  - name: automation
+    description: 'Store and region automations: pickup and request policies, open-slot adverts, sign-out alerts, extra slot, audits.'
+  - name: admin-integrations
+    description: 'External integrations and circuit breakers (ORGA).'
+  - name: admin-jobs
+    description: 'Scheduled jobs: last runs, run now (ORGA).'
+  - name: admin-mail
+    description: 'Mail outbox: status, search, retry (ORGA).'
 x-framework-endpoints:
   - /oauth2/authorization/google
   - /login/oauth2/code/google
@@ -151,6 +167,8 @@ paths:
   # --- dev (M2) ---
   /api/dev/notifications:
     $ref: './paths/dev.yaml#/~1api~1dev~1notifications'
+  /api/dev/telegram/incoming:
+    $ref: './paths/dev.yaml#/~1api~1dev~1telegram~1incoming'
   /api/dev/jobs/{name}/run:
     $ref: './paths/dev.yaml#/~1api~1dev~1jobs~1{name}~1run'
   /api/dev/fixtures/ical:
@@ -522,3 +540,105 @@ paths:
     $ref: './paths/bells.yaml#/~1api~1bells~1{bellId}'
   /api/users/me/notification-settings:
     $ref: './paths/bells.yaml#/~1api~1users~1me~1notification-settings'
+  # --- push ---
+  /api/push/vapid-public-key:
+    $ref: './paths/push.yaml#/~1api~1push~1vapid-public-key'
+  /api/push/subscriptions:
+    $ref: './paths/push.yaml#/~1api~1push~1subscriptions'
+  /api/push/test:
+    $ref: './paths/push.yaml#/~1api~1push~1test'
+  # --- telegram ---
+  /api/telegram/link-token:
+    $ref: './paths/telegram.yaml#/~1api~1telegram~1link-token'
+  /api/telegram/link:
+    $ref: './paths/telegram.yaml#/~1api~1telegram~1link'
+  /api/telegram/test:
+    $ref: './paths/telegram.yaml#/~1api~1telegram~1test'
+  /api/telegram/chats:
+    $ref: './paths/telegram.yaml#/~1api~1telegram~1chats'
+  /api/regions/{regionId}/telegram-chats:
+    $ref: './paths/telegram.yaml#/~1api~1regions~1{regionId}~1telegram-chats'
+  /api/regions/{regionId}/telegram-chats/test:
+    $ref: './paths/telegram.yaml#/~1api~1regions~1{regionId}~1telegram-chats~1test'
+  /api/stores/{storeId}/telegram-chats:
+    $ref: './paths/telegram.yaml#/~1api~1stores~1{storeId}~1telegram-chats'
+  /api/stores/{storeId}/telegram-chats/test:
+    $ref: './paths/telegram.yaml#/~1api~1stores~1{storeId}~1telegram-chats~1test'
+  # --- newsletters ---
+  /api/newsletters:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters'
+  /api/newsletters/{newsletterId}:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters~1{newsletterId}'
+  /api/newsletters/{newsletterId}/recipient-count:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters~1{newsletterId}~1recipient-count'
+  /api/newsletters/{newsletterId}/test:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters~1{newsletterId}~1test'
+  /api/newsletters/{newsletterId}/queue:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters~1{newsletterId}~1queue'
+  /api/newsletters/{newsletterId}/cancel:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters~1{newsletterId}~1cancel'
+  /api/newsletters/{newsletterId}/progress:
+    $ref: './paths/newsletters.yaml#/~1api~1newsletters~1{newsletterId}~1progress'
+  # --- public-newsletter ---
+  /api/public/newsletter/unsubscribe/{token}:
+    $ref: './paths/public-newsletter.yaml#/~1api~1public~1newsletter~1unsubscribe~1{token}'
+  # --- automation ---
+  /api/stores/{storeId}/automation:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation'
+  /api/stores/{storeId}/automation/pickup-policy:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy'
+  /api/stores/{storeId}/automation/pickup-policy/run:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy~1run'
+  /api/stores/{storeId}/automation/pickup-policy/preview:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy~1preview'
+  /api/stores/{storeId}/automation/request-policy:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1request-policy'
+  /api/stores/{storeId}/automation/request-policy/run:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1request-policy~1run'
+  /api/stores/{storeId}/automation/adverts/planned:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1adverts~1planned'
+  /api/stores/{storeId}/automation/adverts/run:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1adverts~1run'
+  /api/stores/{storeId}/automation/adverts/{advertNumber}:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1adverts~1{advertNumber}'
+  /api/stores/{storeId}/automation/signout-alert:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1signout-alert'
+  /api/stores/{storeId}/automation/signout-alert/cancellations:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1signout-alert~1cancellations'
+  /api/stores/{storeId}/automation/extra-slot:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1extra-slot'
+  /api/stores/{storeId}/pickups/{pickupAt}/extra-slot:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1extra-slot'
+  /api/stores/{storeId}/automation/audits:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1audits'
+  /api/regions/{regionId}/automation:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1automation'
+  /api/regions/{regionId}/automation/audits:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1automation~1audits'
+  /api/regions/{regionId}/automation/cleaning-exemptions:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1automation~1cleaning-exemptions'
+  /api/regions/{regionId}/automation/cleaning-exemptions/{exemptionId}:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1automation~1cleaning-exemptions~1{exemptionId}'
+  /api/regions/{regionId}/automation/pickup-count-grouping:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1automation~1pickup-count-grouping'
+  /api/regions/{regionId}/automation/metrics:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1automation~1metrics'
+  /api/regions/{regionId}/holidays:
+    $ref: './paths/automation.yaml#/~1api~1regions~1{regionId}~1holidays'
+  # --- admin-integrations ---
+  /api/admin/integrations:
+    $ref: './paths/admin-integrations.yaml#/~1api~1admin~1integrations'
+  /api/admin/integrations/{integration}/probe:
+    $ref: './paths/admin-integrations.yaml#/~1api~1admin~1integrations~1{integration}~1probe'
+  /api/admin/integrations/{integration}/test:
+    $ref: './paths/admin-integrations.yaml#/~1api~1admin~1integrations~1{integration}~1test'
+  # --- admin-jobs ---
+  /api/admin/jobs:
+    $ref: './paths/admin-jobs.yaml#/~1api~1admin~1jobs'
+  /api/admin/jobs/{name}/run:
+    $ref: './paths/admin-jobs.yaml#/~1api~1admin~1jobs~1{name}~1run'
+  # --- admin-mail ---
+  /api/admin/mail-outbox:
+    $ref: './paths/admin-mail.yaml#/~1api~1admin~1mail-outbox'
+  /api/admin/mail-outbox/{mailId}/retry:
+    $ref: './paths/admin-mail.yaml#/~1api~1admin~1mail-outbox~1{mailId}~1retry'

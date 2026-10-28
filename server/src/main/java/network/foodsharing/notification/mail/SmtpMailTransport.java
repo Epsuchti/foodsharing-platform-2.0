@@ -2,10 +2,13 @@ package network.foodsharing.notification.mail;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import network.foodsharing.common.integration.Integration;
+import network.foodsharing.common.integration.IntegrationRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
@@ -15,13 +18,33 @@ import org.springframework.stereotype.Component;
 public class SmtpMailTransport implements MailTransport {
 
     private final ObjectProvider<JavaMailSender> mailSender;
+    private final IntegrationRegistry integrations;
 
-    public SmtpMailTransport(ObjectProvider<JavaMailSender> mailSender) {
+    public SmtpMailTransport(ObjectProvider<JavaMailSender> mailSender, IntegrationRegistry integrations) {
         this.mailSender = mailSender;
+        this.integrations = integrations;
+        integrations.registerProbe(Integration.SMTP, this::probe);
     }
 
     @Override
     public void send(OutgoingMail mail) {
+        integrations.run(Integration.SMTP, "smtp-send", () -> doSend(mail));
+    }
+
+    /** A26 probe: SMTP connect + login. */
+    private boolean probe() {
+        if (mailSender.getIfAvailable() instanceof JavaMailSenderImpl impl) {
+            try {
+                impl.testConnection();
+                return true;
+            } catch (MessagingException ex) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private void doSend(OutgoingMail mail) {
         JavaMailSender sender = mailSender.getIfAvailable();
         if (sender == null) {
             throw new IllegalStateException("No JavaMailSender configured (spring.mail.host)");

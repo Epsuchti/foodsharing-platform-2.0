@@ -1,0 +1,72 @@
+/api/admin/integrations:
+  get:
+    tags: [admin-integrations]
+    operationId: listIntegrations
+    summary: 'Status of all external integrations.'
+    x-permission: 'ORGA'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/admin.yaml#/IntegrationStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/integrations/{integration}/probe:
+  post:
+    tags: [admin-integrations]
+    operationId: probeIntegration
+    summary: 'Probe an integration now.'
+    x-permission: 'ORGA'
+    x-history: AdminAction.INTEGRATION_PROBED
+    parameters:
+      - name: integration
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/admin.yaml#/Integration'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/admin.yaml#/IntegrationStatus'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/integrations/{integration}/test:
+  post:
+    tags: [admin-integrations]
+    operationId: testIntegration
+    summary: 'Send a test message (SMTP: mail to me, TELEGRAM: chat, WEB_PUSH: me).'
+    x-permission: 'ORGA'
+    x-history: AdminAction.INTEGRATION_TEST_SENT
+    parameters:
+      - name: integration
+        in: path
+        required: true
+        schema:
+          $ref: '../schemas/admin.yaml#/Integration'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/admin.yaml#/IntegrationTest'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/admin.yaml#/IntegrationStatus'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NO_PUSH_SUBSCRIPTION or TELEGRAM_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'INTEGRATION_UNAVAILABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

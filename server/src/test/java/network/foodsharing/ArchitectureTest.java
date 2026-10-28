@@ -1,10 +1,19 @@
 package network.foodsharing;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import network.foodsharing.common.jobs.RunnableJob;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /** docs/conventions.md A4 on the production classes (incl. generated code). */
 class ArchitectureTest {
@@ -59,6 +68,31 @@ class ArchitectureTest {
     @Test
     void rule8ScheduledOnlyInJobs() {
         ArchitectureRules.SCHEDULED_ONLY_IN_JOBS.check(classes);
+    }
+
+    @Test
+    void rule9ScheduledJobsAreLocked() {
+        ArchitectureRules.SCHEDULED_JOBS_ARE_LOCKED.check(classes);
+    }
+
+    @Test
+    void rule9SchedulerLockNamesMatchJobNames() throws Exception {
+        List<String> problems = new ArrayList<>();
+        for (JavaClass javaClass : classes) {
+            if (!javaClass.isAssignableTo(RunnableJob.class) || javaClass.isInterface()) {
+                continue;
+            }
+            Class<?> type = javaClass.reflect();
+            Method run = type.getMethod("run");
+            SchedulerLock lock = run.getAnnotation(SchedulerLock.class);
+            // jobName() returns a constant, so a mock calling the real method answers it without dependencies.
+            RunnableJob job = (RunnableJob) Mockito.mock(type, Mockito.CALLS_REAL_METHODS);
+            if (lock == null || !lock.name().equals(job.jobName())) {
+                problems.add(type.getSimpleName() + ": @SchedulerLock " + (lock == null ? "missing" : lock.name())
+                        + " != jobName() " + job.jobName());
+            }
+        }
+        assertThat(problems).isEmpty();
     }
 
     @Test

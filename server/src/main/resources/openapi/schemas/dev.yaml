@@ -72,7 +72,7 @@ CapturedMail:
 
 DevNotificationChannel:
   type: string
-  enum: [BELL, MAIL]
+  enum: [BELL, MAIL, PUSH, TELEGRAM]
 
 DevNotification:
   type: object
@@ -97,6 +97,27 @@ DevNotification:
       type: string
     identifier:
       type: string
+    body:
+      description: 'PUSH/TELEGRAM: rendered text'
+      type: string
+    target:
+      description: 'PUSH: subscription endpoint; TELEGRAM: chat id'
+      type: string
     createdAt:
       type: string
       format: date-time
+
+DevTelegramUpdate:
+  type: object
+  required: [chatId, text]
+  properties:
+    chatId:
+      type: string
+      maxLength: 40
+    text:
+      type: string
+      maxLength: 4000
+    title:
+      description: 'Group title; absent = private chat'
+      type: string
+      maxLength: 200

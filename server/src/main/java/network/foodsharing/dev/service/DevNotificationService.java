@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.jobs.JobRun;
+import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.common.jobs.RunnableJob;
 import network.foodsharing.notification.domain.Bell;
 import network.foodsharing.notification.domain.NotificationType;
@@ -24,8 +26,10 @@ public class DevNotificationService {
 
     private final BellService bells;
     private final List<RunnableJob> jobs;
+    private final JobRunner jobRunner;
 
-    public DevNotificationService(BellService bells, List<RunnableJob> jobs) {
+    public DevNotificationService(BellService bells, List<RunnableJob> jobs, JobRunner jobRunner) {
+        this.jobRunner = jobRunner;
         this.bells = bells;
         this.jobs = jobs;
     }
@@ -46,9 +50,9 @@ public class DevNotificationService {
 
     /** @throws ApiException 404 DEV_JOB_NOT_FOUND */
     public void runJob(String name) {
-        jobs.stream().filter(job -> job.jobName().equals(name)).findFirst()
-                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.DEV_JOB_NOT_FOUND))
-                .runNow();
+        RunnableJob job = jobs.stream().filter(candidate -> candidate.jobName().equals(name)).findFirst()
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.DEV_JOB_NOT_FOUND));
+        jobRunner.run(job, JobRun.Trigger.MANUAL, null);
     }
 
     public List<String> jobNames() {

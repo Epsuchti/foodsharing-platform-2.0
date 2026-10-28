@@ -1,0 +1,59 @@
+# Telegram linking and alert chats (milestone 4, A28).
+TelegramLinkToken:
+  type: object
+  required: [token, deepLink, expiresAt]
+  properties:
+    token:
+      type: string
+    deepLink:
+      description: 'https://t.me/<bot>?start=<token>'
+      type: string
+    expiresAt:
+      type: string
+      format: date-time
+
+TelegramChatType:
+  type: string
+  enum: [PRIVATE, GROUP, SUPERGROUP, CHANNEL]
+
+TelegramChat:
+  type: object
+  required: [chatId, title, type]
+  properties:
+    chatId:
+      type: string
+    title:
+      type: string
+    type:
+      $ref: './telegram.yaml#/TelegramChatType'
+
+TelegramChatConfig:
+  type: object
+  required: [chatId, title, enabled]
+  properties:
+    chatId:
+      type: string
+      maxLength: 40
+    title:
+      type: string
+      maxLength: 200
+    enabled:
+      type: boolean
+
+TelegramChatConfigList:
+  type: object
+  required: [chats]
+  properties:
+    chats:
+      type: array
+      maxItems: 20
+      items:
+        $ref: './telegram.yaml#/TelegramChatConfig'
+
+TelegramChatTest:
+  type: object
+  required: [chatId]
+  properties:
+    chatId:
+      type: string
+      maxLength: 40

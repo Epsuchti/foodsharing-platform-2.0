@@ -1,0 +1,135 @@
+# ORGA administration of jobs, integrations and the mail outbox (milestone 4, A25-A27).
+JobOutcome:
+  type: string
+  enum: [RUNNING, OK, FAILED]
+
+JobTrigger:
+  type: string
+  enum: [SCHEDULE, MANUAL]
+
+JobRun:
+  type: object
+  required: [jobName, startedAt, outcome, trigger]
+  properties:
+    jobName:
+      type: string
+    startedAt:
+      type: string
+      format: date-time
+    finishedAt:
+      type: string
+      format: date-time
+    outcome:
+      $ref: './admin.yaml#/JobOutcome'
+    message:
+      type: string
+    trigger:
+      $ref: './admin.yaml#/JobTrigger'
+
+JobInfo:
+  type: object
+  required: [name, locked]
+  properties:
+    name:
+      type: string
+    cron:
+      type: string
+    lastRun:
+      $ref: './admin.yaml#/JobRun'
+    locked:
+      description: 'A ShedLock lock is currently held'
+      type: boolean
+
+Integration:
+  type: string
+  enum: [SMTP, WEB_PUSH, TELEGRAM, GEOCODING, HOLIDAY_CALENDAR, WALLET_APPLE, WALLET_GOOGLE, IMAP]
+
+IntegrationMode:
+  type: string
+  enum: [LIVE, LOG]
+
+CircuitState:
+  type: string
+  enum: [CLOSED, OPEN, HALF_OPEN]
+
+IntegrationStatus:
+  type: object
+  required: [integration, mode, state, failureCount]
+  properties:
+    integration:
+      $ref: './admin.yaml#/Integration'
+    mode:
+      $ref: './admin.yaml#/IntegrationMode'
+    state:
+      $ref: './admin.yaml#/CircuitState'
+    lastSuccessAt:
+      type: string
+      format: date-time
+    lastFailureAt:
+      type: string
+      format: date-time
+    downSince:
+      type: string
+      format: date-time
+    nextProbeAt:
+      type: string
+      format: date-time
+    failureCount:
+      type: integer
+      format: int32
+    lastError:
+      type: string
+
+IntegrationTest:
+  type: object
+  properties:
+    target:
+      description: 'TELEGRAM: chat id; SMTP and WEB_PUSH: ignored (sent to the caller)'
+      type: string
+      maxLength: 200
+
+MailOutboxStatus:
+  type: string
+  enum: [PENDING, SENT, FAILED]
+
+MailOutboxItem:
+  type: object
+  required: [id, to, subject, status, attempts, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    to:
+      description: 'Recipient (masked unless ORGA)'
+      type: string
+    subject:
+      type: string
+    template:
+      type: string
+    status:
+      $ref: './admin.yaml#/MailOutboxStatus'
+    attempts:
+      type: integer
+      format: int32
+    nextAttemptAt:
+      type: string
+      format: date-time
+    lastError:
+      type: string
+    sentAt:
+      type: string
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+
+MailOutboxPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './admin.yaml#/MailOutboxItem'
+    page:
+      $ref: './common.yaml#/PageMeta'

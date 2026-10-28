@@ -1,5 +1,8 @@
 package network.foodsharing.region.service;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import network.foodsharing.common.jobs.JobRun;
+import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.common.jobs.RunnableJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,17 +17,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class RegionMaintenanceJob implements RunnableJob {
 
+    private final JobRunner jobRunner;
+
     private static final Logger log = LoggerFactory.getLogger(RegionMaintenanceJob.class);
 
     private final MembershipService memberships;
 
-    public RegionMaintenanceJob(MembershipService memberships) {
+    public RegionMaintenanceJob(JobRunner jobRunner, MembershipService memberships) {
+        this.jobRunner = jobRunner;
         this.memberships = memberships;
     }
 
     @Scheduled(cron = "${app.region.maintenance-cron}", zone = "Europe/Zurich")
+    @SchedulerLock(name = "region-maintenance", lockAtLeastFor = "PT5S")
     public void run() {
-        runNow();
+        jobRunner.run(this, JobRun.Trigger.SCHEDULE, null);
     }
 
     @Override

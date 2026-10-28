@@ -1,0 +1,228 @@
+/api/telegram/link-token:
+  post:
+    tags: [telegram]
+    operationId: createTelegramLinkToken
+    summary: 'Create a 15-minute link token and the bot deep link.'
+    x-permission: 'authenticated'
+    x-history: NONE
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/telegram.yaml#/TelegramLinkToken'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TELEGRAM_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/telegram/link:
+  delete:
+    tags: [telegram]
+    operationId: unlinkTelegram
+    summary: 'Unlink my Telegram chat.'
+    x-permission: 'authenticated'
+    x-history: NotificationAction.TELEGRAM_UNLINKED
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/telegram/test:
+  post:
+    tags: [telegram]
+    operationId: sendTelegramTest
+    summary: 'Send a test message to my linked Telegram chat.'
+    x-permission: 'authenticated'
+    x-history: NotificationAction.TELEGRAM_SENT
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TELEGRAM_NOT_LINKED or TELEGRAM_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'INTEGRATION_UNAVAILABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/telegram/chats:
+  get:
+    tags: [telegram]
+    operationId: listTelegramChats
+    summary: 'Group chats the bot has seen recently.'
+    x-permission: 'ORGA, ambassador or store manager'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/telegram.yaml#/TelegramChat'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/telegram-chats:
+  get:
+    tags: [telegram]
+    operationId: getRegionTelegramChats
+    summary: 'Alert chats of a region.'
+    x-permission: 'mayAdministrateRegion'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/telegram.yaml#/TelegramChatConfigList'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  put:
+    tags: [telegram]
+    operationId: putRegionTelegramChats
+    summary: 'Replace the alert chats of a region.'
+    x-permission: 'mayAdministrateRegion'
+    x-history: NotificationAction.TELEGRAM_CHAT_ADDED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/telegram.yaml#/TelegramChatConfigList'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/telegram.yaml#/TelegramChatConfigList'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/telegram-chats/test:
+  post:
+    tags: [telegram]
+    operationId: testRegionTelegramChat
+    summary: 'Send a test message to a region chat.'
+    x-permission: 'mayAdministrateRegion'
+    x-history: NotificationAction.TELEGRAM_SENT
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/telegram.yaml#/TelegramChatTest'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TELEGRAM_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'INTEGRATION_UNAVAILABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/telegram-chats:
+  get:
+    tags: [telegram]
+    operationId: getStoreTelegramChats
+    summary: 'Alert chats of a store.'
+    x-permission: 'mayUseAutomations(store)'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/telegram.yaml#/TelegramChatConfigList'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  put:
+    tags: [telegram]
+    operationId: putStoreTelegramChats
+    summary: 'Replace the alert chats of a store.'
+    x-permission: 'mayUseAutomations(store)'
+    x-history: NotificationAction.TELEGRAM_CHAT_ADDED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/telegram.yaml#/TelegramChatConfigList'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/telegram.yaml#/TelegramChatConfigList'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/telegram-chats/test:
+  post:
+    tags: [telegram]
+    operationId: testStoreTelegramChat
+    summary: 'Send a test message to a store chat.'
+    x-permission: 'mayUseAutomations(store)'
+    x-history: NotificationAction.TELEGRAM_SENT
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/telegram.yaml#/TelegramChatTest'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TELEGRAM_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'INTEGRATION_UNAVAILABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

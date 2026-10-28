@@ -1,0 +1,528 @@
+# Store and region automations (milestone 4, A24, plan §14.2).
+LinkedStoreWindowMode:
+  type: string
+  enum: [SAME_DAY, LAST_DAYS]
+
+PickupPolicyDecision:
+  type: string
+  enum: [CONFIRMED, DECLINED, WOULD_CONFIRM, WOULD_DECLINE, SKIPPED, DEFERRED, FAILED]
+
+RequestDecision:
+  type: string
+  enum: [APPROVED, DECLINED, WOULD_APPROVE, WOULD_DECLINE, SKIPPED, FAILED]
+
+PolicyRule:
+  type: string
+  enum: [MANUAL_DATE, PUBLIC_HOLIDAY, HOLIDAY_CALENDAR_UNAVAILABLE, RULES_SKIPPED_NEAR_PICKUP, GAP, EXPERIENCE,
+    NO_CLEANING_STORE, CLEANING_REQUIRED, CLEANING_REMINDER, CLEANING_NEW_USER, LINKED_STORE, ALL_RULES_PASSED,
+    DISTANCE, NO_ADDRESS]
+
+AdvertChannel:
+  type: string
+  enum: [STORE_CHAT, PUSH, TELEGRAM]
+
+AdvertStatus:
+  type: string
+  enum: [SENT, OCCUPIED_AT_TRIGGER, LATE_CANCELLATION_REMINDER_SENT, LATE_CANCELLATION_ADVERTISEMENT_SENT,
+    LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT, LATE_CANCELLATION_NO_ACTION, DRY_RUN_SUMMARY, FAILED]
+
+SignoutAlertChannel:
+  type: string
+  enum: [BELL, PUSH, TELEGRAM]
+
+CancellationStatus:
+  type: string
+  enum: [OPEN, REPLACED, NOT_REPLACED, REJOINED, UNKNOWN]
+
+AuditKind:
+  type: string
+  enum: [PICKUP, REQUEST, ADVERT, CANCELLATION, EXTRA_SLOT]
+
+HolidayScope:
+  type: string
+  enum: [NATIONAL, CANTON]
+
+LinkedStoreRule:
+  type: object
+  required: [storeIds, bidirectional, windowMode, windowDaysBefore, windowDaysAfter, graceMinutes]
+  properties:
+    id:
+      type: string
+      format: uuid
+    storeIds:
+      type: array
+      minItems: 1
+      maxItems: 5
+      items:
+        type: string
+        format: uuid
+    stores:
+      description: 'Read only: names of storeIds'
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+    bidirectional:
+      type: boolean
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    windowDaysBefore:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 30
+    windowDaysAfter:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 30
+    graceMinutes:
+      type: integer
+      format: int32
+      minimum: 20
+    message:
+      description: 'Decline message; placeholders {{name}}, {{storeName}}, {{linkedStoreName}}, {{pickupDate}}'
+      type: string
+      maxLength: 2000
+    mirrorOf:
+      description: 'Read only: the rule on the other store this one mirrors (bidirectional links)'
+      type: string
+      format: uuid
+
+PickupPolicy:
+  type: object
+  required: [enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
+    publicHolidayRuleEnabled, linkedStores, excludedDates]
+  properties:
+    enabled:
+      type: boolean
+    dryRun:
+      type: boolean
+    gapRuleEnabled:
+      type: boolean
+    minimumGapDays:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 60
+    cleaningRuleEnabled:
+      type: boolean
+    experienceRuleEnabled:
+      type: boolean
+    publicHolidayRuleEnabled:
+      type: boolean
+    linkedStores:
+      type: array
+      maxItems: 5
+      items:
+        $ref: './automation.yaml#/LinkedStoreRule'
+    excludedDates:
+      type: array
+      maxItems: 366
+      items:
+        type: string
+        format: date
+    version:
+      type: integer
+      format: int64
+
+RequestPolicy:
+  type: object
+  required: [enabled, dryRun, distanceRuleEnabled, maximumDistanceKm]
+  properties:
+    enabled:
+      type: boolean
+    dryRun:
+      type: boolean
+    distanceRuleEnabled:
+      type: boolean
+    maximumDistanceKm:
+      type: number
+      format: double
+      minimum: 0
+      maximum: 200
+    version:
+      type: integer
+      format: int64
+
+AdvertMessages:
+  type: array
+  maxItems: 10
+  items:
+    type: string
+    maxLength: 1000
+
+OpenSlotAdvert:
+  type: object
+  required: [enabled, dryRun, triggerHoursBefore, channels, storeMessages, pushMessages, telegramMessages,
+    sendLateCancellationMessage, lateCancellationMaxHoursBefore, resendLatestAdvertAfterLateCancellation]
+  properties:
+    advertNumber:
+      description: 'Read only (path parameter)'
+      type: integer
+      format: int32
+    enabled:
+      type: boolean
+    dryRun:
+      type: boolean
+    triggerHoursBefore:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 168
+    channels:
+      type: array
+      maxItems: 3
+      items:
+        $ref: './automation.yaml#/AdvertChannel'
+    telegramChatId:
+      type: string
+      maxLength: 40
+    storeMessages:
+      $ref: './automation.yaml#/AdvertMessages'
+    pushMessages:
+      $ref: './automation.yaml#/AdvertMessages'
+    telegramMessages:
+      $ref: './automation.yaml#/AdvertMessages'
+    sendLateCancellationMessage:
+      type: boolean
+    lateCancellationMessage:
+      type: string
+      maxLength: 2000
+    lateCancellationMaxHoursBefore:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 168
+    resendLatestAdvertAfterLateCancellation:
+      type: boolean
+
+PlannedAdvert:
+  type: object
+  required: [pickupAt, advertNumber, triggerAt, channels, freeSlots]
+  properties:
+    pickupAt:
+      type: string
+      format: date-time
+    advertNumber:
+      type: integer
+      format: int32
+    triggerAt:
+      type: string
+      format: date-time
+    channels:
+      type: array
+      items:
+        $ref: './automation.yaml#/AdvertChannel'
+    freeSlots:
+      type: integer
+      format: int32
+
+SignoutAlertSetting:
+  type: object
+  required: [enabled, cutoffEnabled, maximumHoursBeforePickup, channels, telegramChatIds]
+  properties:
+    enabled:
+      type: boolean
+    cutoffEnabled:
+      type: boolean
+    maximumHoursBeforePickup:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 336
+    channels:
+      type: array
+      maxItems: 3
+      items:
+        $ref: './automation.yaml#/SignoutAlertChannel'
+    telegramChatIds:
+      type: array
+      maxItems: 10
+      items:
+        type: string
+        maxLength: 40
+    activeSince:
+      description: 'Read only'
+      type: string
+      format: date-time
+
+Cancellation:
+  type: object
+  required: [id, pickupAt, user, cancelledAt, status]
+  properties:
+    id:
+      type: string
+      format: uuid
+    pickupAt:
+      type: string
+      format: date-time
+    user:
+      $ref: './users.yaml#/UserSummary'
+    cancelledAt:
+      type: string
+      format: date-time
+    status:
+      $ref: './automation.yaml#/CancellationStatus'
+    totalSlots:
+      type: integer
+      format: int32
+    occupiedSlots:
+      type: integer
+      format: int32
+    notifiedAt:
+      type: string
+      format: date-time
+
+ExtraSlotSetting:
+  type: object
+  required: [allowed]
+  properties:
+    allowed:
+      type: boolean
+
+AutomationPermissions:
+  type: object
+  required: [mayEdit, maySeeAudits]
+  properties:
+    mayEdit:
+      type: boolean
+    maySeeAudits:
+      type: boolean
+
+StoreAutomation:
+  type: object
+  required: [adverts, extraSlotAllowed, permissions]
+  properties:
+    pickupPolicy:
+      $ref: './automation.yaml#/PickupPolicy'
+    requestPolicy:
+      $ref: './automation.yaml#/RequestPolicy'
+    adverts:
+      type: array
+      items:
+        $ref: './automation.yaml#/OpenSlotAdvert'
+    signoutAlert:
+      $ref: './automation.yaml#/SignoutAlertSetting'
+    extraSlotAllowed:
+      type: boolean
+    permissions:
+      $ref: './automation.yaml#/AutomationPermissions'
+
+AutomationRunResult:
+  type: object
+  required: [evaluated, confirmed, declined, skipped, deferred, failed, dryRun, messages]
+  properties:
+    evaluated:
+      type: integer
+      format: int32
+    confirmed:
+      description: 'Pickup policy: confirmed; request policy: approved; adverts: sent'
+      type: integer
+      format: int32
+    declined:
+      type: integer
+      format: int32
+    skipped:
+      type: integer
+      format: int32
+    deferred:
+      type: integer
+      format: int32
+    failed:
+      type: integer
+      format: int32
+    dryRun:
+      type: boolean
+    messages:
+      type: array
+      items:
+        type: string
+
+PolicyPreviewRequest:
+  type: object
+  required: [pickupAt, userId]
+  properties:
+    pickupAt:
+      type: string
+      format: date-time
+    userId:
+      type: string
+      format: uuid
+
+PolicyReason:
+  type: object
+  required: [rule, text]
+  properties:
+    rule:
+      $ref: './automation.yaml#/PolicyRule'
+    text:
+      description: 'Rendered in the store language'
+      type: string
+
+PolicyDecisionPreview:
+  type: object
+  required: [decision, reasons]
+  properties:
+    decision:
+      $ref: './automation.yaml#/PickupPolicyDecision'
+    reasons:
+      type: array
+      items:
+        $ref: './automation.yaml#/PolicyReason'
+    userMessage:
+      type: string
+
+AutomationAudit:
+  type: object
+  required: [id, kind, storeId, storeName, status, dryRun, reasons, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    kind:
+      $ref: './automation.yaml#/AuditKind'
+    storeId:
+      type: string
+      format: uuid
+    storeName:
+      type: string
+    pickupAt:
+      type: string
+      format: date-time
+    user:
+      $ref: './users.yaml#/UserSummary'
+    status:
+      description: 'PickupPolicyDecision, RequestDecision, AdvertStatus or CancellationStatus name (by kind)'
+      type: string
+    dryRun:
+      type: boolean
+    reasons:
+      type: array
+      items:
+        $ref: './automation.yaml#/PolicyReason'
+    userMessage:
+      type: string
+    error:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+
+AutomationAuditPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './automation.yaml#/AutomationAudit'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+RegionAutomationStore:
+  type: object
+  required: [store, pickupPolicyEnabled, dryRun, requestPolicyEnabled, advertCount, signoutAlertEnabled]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupPolicyEnabled:
+      type: boolean
+    dryRun:
+      type: boolean
+    requestPolicyEnabled:
+      type: boolean
+    advertCount:
+      description: 'Enabled open-slot adverts'
+      type: integer
+      format: int32
+    signoutAlertEnabled:
+      type: boolean
+
+RegionAutomationOverview:
+  type: object
+  required: [stores]
+  properties:
+    stores:
+      type: array
+      items:
+        $ref: './automation.yaml#/RegionAutomationStore'
+
+CleaningExemption:
+  type: object
+  required: [id, user]
+  properties:
+    id:
+      type: string
+      format: uuid
+    user:
+      $ref: './users.yaml#/UserSummary'
+    reason:
+      type: string
+
+CleaningExemptionCreate:
+  type: object
+  required: [userId]
+  properties:
+    userId:
+      type: string
+      format: uuid
+    reason:
+      type: string
+      maxLength: 500
+
+PickupCountUser:
+  type: object
+  required: [user, stores]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+
+PickupCountGroup:
+  type: object
+  required: [pickupCount, users]
+  properties:
+    pickupCount:
+      type: integer
+      format: int32
+    users:
+      type: array
+      items:
+        $ref: './automation.yaml#/PickupCountUser'
+
+MetricPoint:
+  type: object
+  required: [day, value]
+  properties:
+    day:
+      type: string
+      format: date
+    value:
+      type: integer
+      format: int64
+
+MetricSeries:
+  type: object
+  required: [key, points]
+  properties:
+    key:
+      type: string
+    points:
+      type: array
+      items:
+        $ref: './automation.yaml#/MetricPoint'
+
+Holiday:
+  type: object
+  required: [date, name, scope]
+  properties:
+    date:
+      type: string
+      format: date
+    name:
+      type: string
+    scope:
+      $ref: './automation.yaml#/HolidayScope'

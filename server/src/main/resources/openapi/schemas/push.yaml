@@ -1,0 +1,46 @@
+# Web push (milestone 4, A23).
+PushMode:
+  type: string
+  enum: [LOG, WEBPUSH]
+
+VapidPublicKey:
+  type: object
+  required: [publicKey, mode]
+  properties:
+    publicKey:
+      description: 'VAPID application server key (base64url)'
+      type: string
+    mode:
+      $ref: './push.yaml#/PushMode'
+
+PushSubscriptionKeys:
+  type: object
+  required: [p256dh, auth]
+  properties:
+    p256dh:
+      type: string
+      maxLength: 200
+    auth:
+      type: string
+      maxLength: 100
+
+PushSubscriptionCreate:
+  type: object
+  required: [endpoint, keys]
+  properties:
+    endpoint:
+      type: string
+      maxLength: 2000
+    keys:
+      $ref: './push.yaml#/PushSubscriptionKeys'
+    userAgent:
+      type: string
+      maxLength: 300
+
+PushSubscriptionRemove:
+  type: object
+  required: [endpoint]
+  properties:
+    endpoint:
+      type: string
+      maxLength: 2000

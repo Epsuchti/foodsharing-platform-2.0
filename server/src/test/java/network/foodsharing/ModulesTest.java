@@ -30,4 +30,13 @@ class ModulesTest {
                     .get().extracting(ApplicationModule::isOpen).isEqualTo(true);
         }
     }
+
+    @Test
+    void automationIsNeverADependencyOfPickupOrStore() {
+        ApplicationModule automation = modules.getModuleByName("automation").orElseThrow();
+        for (String feature : new String[] {"pickup", "store", "region", "user", "notification"}) {
+            ApplicationModule module = modules.getModuleByName(feature).orElseThrow();
+            assertThat(module.getDirectDependencies(modules).contains(automation)).as(feature).isFalse();
+        }
+    }
 }

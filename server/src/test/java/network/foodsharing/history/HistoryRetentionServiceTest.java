@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import network.foodsharing.auth.domain.AuthAction;
+import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.domain.HistoryEntry;
 import network.foodsharing.history.repository.HistoryEntryRepository;
@@ -80,14 +81,14 @@ class HistoryRetentionServiceTest {
     void theJobOnlyRunsWhenRetentionIsEnabled() {
         HistoryRetentionService retention = mock(HistoryRetentionService.class);
         AppProperties properties = new AppProperties();
-        HistoryRetentionJob job = new HistoryRetentionJob(retention, properties);
+        HistoryRetentionJob job = new HistoryRetentionJob(mock(JobRunner.class), retention, properties);
 
         properties.getHistory().setRetentionEnabled(false);
-        job.run();
+        job.runNow();
         verify(retention, never()).purgeExpired();
 
         properties.getHistory().setRetentionEnabled(true);
-        job.run();
+        job.runNow();
         verify(retention).purgeExpired();
     }
 

@@ -1,7 +1,7 @@
 HistorySubjectType:
   type: string
   description: Mirrors the Java enum network.foodsharing.history.SubjectType (extended per milestone).
-  enum: [USER, REGION, GROUP, STORE, PICKUP, INTRO_PICKUP, CONVERSATION, THREAD, EVENT, POLL, SURVEY, BASKET, FSP, REPORT, SYSTEM, QUIZ, CONTENT, STORE_CHAIN]
+  enum: [USER, REGION, GROUP, STORE, PICKUP, INTRO_PICKUP, CONVERSATION, THREAD, EVENT, POLL, SURVEY, BASKET, FSP, REPORT, SYSTEM, QUIZ, CONTENT, STORE_CHAIN, AUTOMATION]
 
 HistoryActorType:
   type: string

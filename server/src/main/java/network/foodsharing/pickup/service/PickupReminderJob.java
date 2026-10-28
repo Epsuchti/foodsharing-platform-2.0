@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import network.foodsharing.common.jobs.JobRun;
+import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.common.jobs.RunnableJob;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.service.HistoryService;
@@ -36,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class PickupReminderJob implements RunnableJob {
 
+    private final JobRunner jobRunner;
+
     static final String NAME = "pickup-reminder";
 
     private final PickupSignupRepository signups;
@@ -47,9 +52,10 @@ public class PickupReminderJob implements RunnableJob {
     private final AppProperties properties;
     private final Clock clock;
 
-    public PickupReminderJob(PickupSignupRepository signups, StoreService stores, UserService users,
+    public PickupReminderJob(JobRunner jobRunner, PickupSignupRepository signups, StoreService stores, UserService users,
                              PickupScheduleService schedule, HistoryService history, ApplicationEventPublisher events,
                              AppProperties properties, Clock clock) {
+        this.jobRunner = jobRunner;
         this.signups = signups;
         this.stores = stores;
         this.users = users;
@@ -61,8 +67,9 @@ public class PickupReminderJob implements RunnableJob {
     }
 
     @Scheduled(cron = "${app.pickup.reminder-cron}", zone = "Europe/Zurich")
+    @SchedulerLock(name = "pickup-reminder", lockAtLeastFor = "PT5S")
     public void run() {
-        runNow();
+        jobRunner.run(this, JobRun.Trigger.SCHEDULE, null);
     }
 
     @Override

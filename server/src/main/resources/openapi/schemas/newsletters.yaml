@@ -1,0 +1,112 @@
+# Newsletters and one-click unsubscribe (milestone 4, N7).
+NewsletterStatus:
+  type: string
+  enum: [DRAFT, QUEUED, SENDING, SENT, CANCELLED]
+
+Newsletter:
+  type: object
+  required: [id, subject, bodyMarkdown, status, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    region:
+      $ref: './regions.yaml#/RegionRef'
+    subject:
+      type: string
+    bodyMarkdown:
+      type: string
+    status:
+      $ref: './newsletters.yaml#/NewsletterStatus'
+    recipientCount:
+      type: integer
+      format: int32
+    sentCount:
+      type: integer
+      format: int32
+    failedCount:
+      type: integer
+      format: int32
+    createdBy:
+      $ref: './users.yaml#/UserSummary'
+    createdAt:
+      type: string
+      format: date-time
+    queuedAt:
+      type: string
+      format: date-time
+    sentAt:
+      type: string
+      format: date-time
+
+NewsletterPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './newsletters.yaml#/Newsletter'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+NewsletterCreate:
+  type: object
+  required: [subject, bodyMarkdown]
+  properties:
+    regionId:
+      description: 'Null = global newsletter (ORGA only, else 403)'
+      type: string
+      format: uuid
+    subject:
+      type: string
+      minLength: 1
+      maxLength: 200
+    bodyMarkdown:
+      type: string
+      minLength: 1
+      maxLength: 32600
+
+NewsletterPatch:
+  type: object
+  properties:
+    subject:
+      type: string
+      minLength: 1
+      maxLength: 200
+    bodyMarkdown:
+      type: string
+      minLength: 1
+      maxLength: 32600
+
+RecipientCount:
+  type: object
+  required: [count]
+  properties:
+    count:
+      type: integer
+      format: int32
+
+NewsletterProgress:
+  type: object
+  required: [total, sent, failed, status]
+  properties:
+    total:
+      type: integer
+      format: int32
+    sent:
+      type: integer
+      format: int32
+    failed:
+      type: integer
+      format: int32
+    status:
+      $ref: './newsletters.yaml#/NewsletterStatus'
+
+NewsletterUnsubscribeInfo:
+  type: object
+  required: [email]
+  properties:
+    email:
+      description: 'Masked address, e.g. f***@example.org'
+      type: string

@@ -1,0 +1,7 @@
+package network.foodsharing.automation.domain;
+
+/** Status of an open-slot advert audit row. */
+public enum AdvertStatus {
+    SENT, OCCUPIED_AT_TRIGGER, LATE_CANCELLATION_REMINDER_SENT, LATE_CANCELLATION_ADVERTISEMENT_SENT,
+    LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT, LATE_CANCELLATION_NO_ACTION, DRY_RUN_SUMMARY, FAILED
+}

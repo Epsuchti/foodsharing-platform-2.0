@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.api.model.Language;
+import network.foodsharing.common.integration.IntegrationRegistry;
+import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.MutableClock;
 import network.foodsharing.history.HistoryEvent;
@@ -128,7 +130,7 @@ class MailOutboxJobTest {
         MailOutboxService outbox = new MailOutboxService(repository, mock(MailTemplateService.class), deliveryMock,
                 history, properties, clock);
 
-        new MailOutboxJob(outbox).run();
+        new MailOutboxJob(mock(JobRunner.class), outbox, mock(IntegrationRegistry.class)).runNow();
 
         verify(deliveryMock).deliver(message.getId());
         verify(deliveryMock).deliver(other);

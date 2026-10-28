@@ -1,0 +1,38 @@
+/api/public/newsletter/unsubscribe/{token}:
+  get:
+    tags: [public-newsletter]
+    operationId: getNewsletterUnsubscribe
+    summary: 'Who the one-click unsubscribe link belongs to (masked).'
+    security: []
+    x-permission: 'public'
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/NewsletterUnsubscribeInfo'
+      '404': {description: 'INVALID_UNSUBSCRIBE_TOKEN', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [public-newsletter]
+    operationId: confirmNewsletterUnsubscribe
+    summary: 'Unsubscribe from newsletters (also the List-Unsubscribe-Post target).'
+    security: []
+    x-permission: 'public'
+    x-history: NotificationAction.NEWSLETTER_OPT_OUT
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Done
+      '404': {description: 'INVALID_UNSUBSCRIBE_TOKEN', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

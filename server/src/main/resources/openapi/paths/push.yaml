@@ -1,0 +1,66 @@
+/api/push/vapid-public-key:
+  get:
+    tags: [push]
+    operationId: getVapidPublicKey
+    summary: 'VAPID public key and push mode.'
+    x-permission: 'authenticated'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/push.yaml#/VapidPublicKey'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PUSH_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/push/subscriptions:
+  post:
+    tags: [push]
+    operationId: subscribePush
+    summary: 'Register (upsert by endpoint) a push subscription of this browser.'
+    x-permission: 'authenticated'
+    x-history: NotificationAction.PUSH_SUBSCRIBED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/push.yaml#/PushSubscriptionCreate'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'TOO_MANY_PUSH_SUBSCRIPTIONS or PUSH_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [push]
+    operationId: unsubscribePush
+    summary: 'Remove a push subscription of mine (unknown endpoints are ignored).'
+    x-permission: 'authenticated'
+    x-history: NotificationAction.PUSH_UNSUBSCRIBED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/push.yaml#/PushSubscriptionRemove'
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/push/test:
+  post:
+    tags: [push]
+    operationId: sendTestPush
+    summary: 'Send a test push to all my subscriptions.'
+    x-permission: 'authenticated'
+    x-history: NotificationAction.PUSH_SENT
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NO_PUSH_SUBSCRIPTION or PUSH_NOT_CONFIGURED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '503': {description: 'INTEGRATION_UNAVAILABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

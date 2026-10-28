@@ -14,6 +14,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationType;
@@ -43,7 +44,7 @@ class PickupReminderJobTest {
 
     @BeforeEach
     void setUp() {
-        job = new PickupReminderJob(signups, stores, users, schedule, history, published::add, new AppProperties(),
+        job = new PickupReminderJob(mock(JobRunner.class), signups, stores, users, schedule, history, published::add, new AppProperties(),
                 Clock.fixed(NOW, ZoneOffset.UTC));
         store.setId(UUID.randomUUID());
         store.setName("Coop");

@@ -1,0 +1,41 @@
+# Milestone 4 (B1): ShedLock table (one instance runs a scheduled job at a time) and the job_run log (A25).
+databaseChangeLog:
+  - changeSet:
+      id: 100-1
+      author: platform
+      comment: 'ShedLock locks (net.javacrumbs.shedlock JdbcTemplateLockProvider default layout).'
+      changes:
+        - createTable:
+            tableName: shedlock
+            columns:
+              - column: {name: name, type: VARCHAR(64), constraints: {primaryKey: true, primaryKeyName: pk_shedlock, nullable: false}}
+              - column: {name: lock_until, type: TIMESTAMP, constraints: {nullable: false}}
+              - column: {name: locked_at, type: TIMESTAMP, constraints: {nullable: false}}
+              - column: {name: locked_by, type: VARCHAR(255), constraints: {nullable: false}}
+  - changeSet:
+      id: 100-2
+      author: platform
+      comment: 'One row per job run (scheduled or manual); RUNNING until finished.'
+      changes:
+        - createTable:
+            tableName: job_run
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_job_run, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: job_name, type: VARCHAR(64), constraints: {nullable: false}}
+              - column: {name: started_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: finished_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: outcome, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: message, type: VARCHAR(2000)}
+              - column: {name: run_trigger, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: actor_id, type: UUID}
+        - createIndex:
+            tableName: job_run
+            indexName: ix_job_run_job_name_started_at
+            columns:
+              - column: {name: job_name}
+              - column: {name: started_at, descending: true}

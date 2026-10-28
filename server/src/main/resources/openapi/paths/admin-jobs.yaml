@@ -1,0 +1,41 @@
+/api/admin/jobs:
+  get:
+    tags: [admin-jobs]
+    operationId: listAdminJobs
+    summary: 'Scheduled jobs with their last run.'
+    x-permission: 'ORGA'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/admin.yaml#/JobInfo'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/admin/jobs/{name}/run:
+  post:
+    tags: [admin-jobs]
+    operationId: runAdminJob
+    summary: 'Run a job now (bypasses the lock).'
+    x-permission: 'ORGA'
+    x-history: AdminAction.JOB_RUN_MANUAL
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/admin.yaml#/JobRun'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'JOB_UNKNOWN', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

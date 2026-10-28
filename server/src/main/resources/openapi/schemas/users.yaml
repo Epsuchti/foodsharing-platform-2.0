@@ -102,6 +102,9 @@ UserSettingsUpdate:
     pickupRemindersEnabled:
       type: boolean
       description: Reminder bell + mail before own pickups (milestone 3).
+    newsletterOptIn:
+      type: boolean
+      description: Receive newsletters (milestone 4, NotificationAction.NEWSLETTER_OPT_IN/OUT).
     reason:
       type: string
       maxLength: 500

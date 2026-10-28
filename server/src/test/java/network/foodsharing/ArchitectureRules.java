@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import network.foodsharing.common.jobs.RunnableJob;
 import network.foodsharing.common.persistence.BaseEntity;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.service.HistoryService;
@@ -126,6 +128,14 @@ final class ArchitectureRules {
             .that().areAnnotatedWith(Scheduled.class)
             .should().beDeclaredInClassesThat().haveSimpleNameEndingWith("Job");
 
+    // 9. (A25) Every scheduled method is RunnableJob.run() and holds a ShedLock lock (name == jobName(), checked in
+    // ArchitectureTest.rule9SchedulerLockNamesMatchJobNames).
+    static final ArchRule SCHEDULED_JOBS_ARE_LOCKED = methods()
+            .that().areAnnotatedWith(Scheduled.class)
+            .should().beAnnotatedWith(SchedulerLock.class)
+            .andShould().haveName("run")
+            .andShould().beDeclaredInClassesThat().implement(RunnableJob.class);
+
     // A1. A module never uses another module's repositories.
     static final ArchRule NO_FOREIGN_REPOSITORIES = classes()
             .that().resideInAPackage("network.foodsharing..")
@@ -135,7 +145,7 @@ final class ArchitectureRules {
         return List.of(CONTROLLERS_IMPLEMENT_ONE_GENERATED_API, WEB_DOES_NOT_ACCESS_REPOSITORIES, WEB_DOES_NOT_USE_JPA,
                 GENERATED_MODELS_ONLY_AT_THE_EDGE, MUTATING_SERVICES_RECORD_HISTORY, NO_SYSTEM_CLOCK,
                 DEV_CLASSES_ONLY_IN_DEV_PROFILES, ENTITIES_EXTEND_BASE_ENTITY, ENTITY_FIELDS_ARE_PORTABLE,
-                SCHEDULED_ONLY_IN_JOBS, NO_FOREIGN_REPOSITORIES);
+                SCHEDULED_ONLY_IN_JOBS, SCHEDULED_JOBS_ARE_LOCKED, NO_FOREIGN_REPOSITORIES);
     }
 
     // ---------------------------------------------------------------------------------------------------------

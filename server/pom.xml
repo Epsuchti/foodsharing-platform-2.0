@@ -32,6 +32,8 @@
         <pdfbox.version>3.0.5</pdfbox.version>
         <google-auth.version>1.33.0</google-auth.version>
         <bouncycastle.version>1.80</bouncycastle.version>
+        <shedlock.version>7.10.1</shedlock.version>
+        <web-push.version>5.1.2</web-push.version>
         <!-- set to true with -Pskip-client -->
         <skip.client>false</skip.client>
         <skipTests>false</skipTests>
@@ -51,6 +53,34 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- jobs (M4, A25): one instance runs a scheduled job at a time -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <!-- web push (M4, A23) -->
+        <dependency>
+            <groupId>nl.martijndwars</groupId>
+            <artifactId>web-push</artifactId>
+            <version>${web-push.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
         <!-- web, security, auth -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

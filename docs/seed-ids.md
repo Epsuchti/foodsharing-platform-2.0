@@ -18,7 +18,12 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | user | 0001 | `user_note` | 0002 | `user/user_note.csv` (`changes/023-user-note-seed.yaml`) |
 | user | 0001 | `user_account` profile columns | (0001) | `user/user_profile.csv` (`changes/021-user-seed-profile.yaml`, updates existing rows) |
 | notification | 0004 | `mail_outbox` | 0001 | reserved |
-| notification | 0004 | `bell` | 0002 | reserved (bells are created by actions) |
+| notification | 0004 | `bell` | 0002 | `notification/bell.csv` (`changes/101-notification-seed.yaml`, M4 B2) |
+| notification | 0004 | `push_subscription` | 0003 | `notification/push_subscription.csv` (M4 B2) |
+| notification | 0004 | `user_notification_setting` | 0004 | `notification/user_notification_setting.csv` (M4 B2) |
+| notification | 0004 | `telegram_chat` | 0005 | `notification/telegram_chat.csv` (M4 B3) |
+| notification | 0004 | `newsletter`, `newsletter_recipient` | 0006, 0007 | M4 B5 |
+| jobs (common) | 0005 | `job_run` | 0001 | reserved (rows are written by `JobRunner`) |
 | region | 0010 | `region` (regions) | 0001 | `region/region.csv` (`changes/020-region-seed.yaml`) |
 | region | 0010 | `region_membership` | 0002 | `region/region_membership.csv` |
 | region | 0010 | `region_admin` | 0003 | `region/region_admin.csv` |
@@ -39,6 +44,7 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | onboarding | 0015 | `learning_progress`, `user_onboarding_step_done`, `onboarding_nudge` | 0001–0003 | T22 |
 | store | 0020 | `store`, `store_category`, `store_chain`, `store_chain_kam`, `grocery`, `store_grocery`, `store_membership`, `store_wall_post` | 0001–0008 | M3 (B2, B3, B6) |
 | pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category` | 0001–0004 | M3 (B2, B4) |
+| automation | 0022 | `pickup_policy`, `pickup_policy_excluded_date`, `pickup_policy_linked_store`, `pickup_policy_linked_store_member`, `cleaning_rule_exemption`, `pickup_policy_audit`, `request_policy`, `request_policy_audit`, `open_slot_advert`, `open_slot_advert_audit`, `signout_alert_setting`, `signout_cancellation`, `pickup_extra_slot`, `metric_daily_count`, `holiday_calendar` | 0001–0015 | M4 (B4, B5; seed files `changes/105…111-automation-*.yaml`) |
 | intropickup | 0030 | `intro_pickup`, `intro_pickup_slot`, `intro_pickup_comment`, `guide_profile`, `private_info_template`, `intro_pickup_subscription`, `intro_pickup_store_alias` | 0001–0007 | T15 |
 
 Seed changelog numbers: M1 uses `001`–`004`; later milestones follow the same ranges as the schema changelogs

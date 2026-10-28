@@ -44,6 +44,13 @@ public class AppProperties {
     private final Wallet wallet = new Wallet();
     private final Onboarding onboarding = new Onboarding();
     private final Jobs jobs = new Jobs();
+    // --- milestone 4 ---
+    private final Notifications notifications = new Notifications();
+    private final Push push = new Push();
+    private final Telegram telegram = new Telegram();
+    private final Automation automation = new Automation();
+    private final Newsletter newsletter = new Newsletter();
+    private final Integrations integrations = new Integrations();
 
     @Getter
     @Setter
@@ -107,6 +114,17 @@ public class AppProperties {
         private int outboxMaxAttempts = 8;
         /** Retry delay = base × 2^(attempts − 1). */
         private int outboxBackoffBaseMinutes = 1;
+        /** M4 A27: per-recipient limits; mails beyond them are deferred, never dropped. */
+        private final RateLimit rateLimit = new RateLimit();
+
+        @Getter
+        @Setter
+        public static class RateLimit {
+            private int perUserPerHour = 20;
+            private int perTemplatePerUserPerDay = 5;
+            /** Same template + identifier within this window is skipped (MAIL_SUPPRESSED). */
+            private int duplicateWindowMinutes = 10;
+        }
     }
 
     @Getter
@@ -271,5 +289,102 @@ public class AppProperties {
     public static class Jobs {
         /** How long finished job results stay available (ProgressTracker). */
         private int resultTtlMinutes = 60;
+        /** ShedLock upper bound for a running job (A25). */
+        private String defaultLockAtMostFor = "PT30M";
+        private String storeMaintenanceCron = "0 30 2 * * *";
+        private String cleanupCron = "0 0 4 * * *";
+        private String auditRetentionCron = "0 15 3 * * *";
+        /** job_run rows older than this are deleted by the cleanup job. */
+        private int runRetentionDays = 90;
+    }
+
+    /** Bells and channel fan-out (A23). */
+    @Getter
+    @Setter
+    public static class Notifications {
+        /** How often the client polls the unread count. */
+        private int pollSeconds = 60;
+    }
+
+    /** Web push (A23). */
+    @Getter
+    @Setter
+    public static class Push {
+        /** log (local/e2e/test: pushes are captured for /api/dev/notifications) or webpush (prod). */
+        private String mode = "webpush";
+        private int maxSubscriptionsPerUser = 10;
+        /** Subscriptions with this many consecutive failures are removed by the cleanup job. */
+        private int maxFailures = 5;
+        private final Vapid vapid = new Vapid();
+
+        @Getter
+        @Setter
+        public static class Vapid {
+            /** Base64url public key (env PUSH_VAPID_PUBLIC). */
+            private String publicKey = "";
+            /** Base64url private key (env PUSH_VAPID_PRIVATE). */
+            private String privateKey = "";
+            /** mailto: or https: contact (env PUSH_VAPID_SUBJECT). */
+            private String subject = "mailto:it@foodsharing.network";
+        }
+    }
+
+    /** Telegram bot (A28). */
+    @Getter
+    @Setter
+    public static class Telegram {
+        /** log (local/e2e/test: messages are captured) or live. */
+        private String mode = "live";
+        /** Bot token (env TELEGRAM_BOT_TOKEN); empty in live mode = Telegram not configured. */
+        private String botToken = "";
+        private String botName = "foodsharing_bot";
+        /** Path secret of POST /api/public/telegram/webhook/{secret}; empty = webhook off (polling). */
+        private String webhookSecret = "";
+        private String apiUrl = "https://api.telegram.org";
+        private String pollInterval = "PT30S";
+        private int linkTokenMinutes = 15;
+        private int timeoutSeconds = 10;
+    }
+
+    /** Store and region automations (A24). */
+    @Getter
+    @Setter
+    public static class Automation {
+        private boolean enabled = true;
+        /** Global override: every automation runs as dry run. */
+        private boolean dryRun = false;
+        private int cleaningBackCheckMonths = 12;
+        private int minimumFreeCleaningSlots = 4;
+        private int maxRequestApprovalsPerRun = 50;
+        private int maxAdvertisementsPerRun = 50;
+        private String evaluateCron = "0 */5 * * * *";
+        private String advertsCron = "0 */5 * * * *";
+        private String signoutCron = "0 0 * * * *";
+        /** Local time after which the daily sign-out check runs (store time zone). */
+        private String signoutDailyTime = "03:00";
+        private int signoutRetentionDays = 180;
+        private int auditRetentionDays = 7;
+        /** static (built-in Swiss table) or nager (date.nager.at with static fallback). */
+        private String holidayProvider = "static";
+        private String nagerUrl = "https://date.nager.at";
+    }
+
+    /** Newsletters (N7). */
+    @Getter
+    @Setter
+    public static class Newsletter {
+        private int batchSize = 50;
+        private int mailsPerMinute = 100;
+        private String sendCron = "0 * * * * *";
+    }
+
+    /** Circuit breakers of external integrations (A26). */
+    @Getter
+    @Setter
+    public static class Integrations {
+        /** While a breaker is open, the next probe is attempted after this interval. */
+        private String probeInterval = "PT5M";
+        /** How long outages are remembered (linked-store grace extension). */
+        private int outageHistoryDays = 3;
     }
 }

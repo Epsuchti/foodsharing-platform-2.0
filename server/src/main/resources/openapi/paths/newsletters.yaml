@@ -1,0 +1,255 @@
+/api/newsletters:
+  get:
+    tags: [newsletters]
+    operationId: listNewsletters
+    summary: 'Newsletters (ORGA all, ambassadors their regions), newest first.'
+    x-permission: 'ORGA or ambassador'
+    parameters:
+      - name: regionId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        schema:
+          $ref: '../schemas/newsletters.yaml#/NewsletterStatus'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/NewsletterPage'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  post:
+    tags: [newsletters]
+    operationId: createNewsletter
+    summary: 'Create a draft (regionId null = global, ORGA only).'
+    x-permission: 'ORGA or ambassador of regionId'
+    x-history: NotificationAction.NEWSLETTER_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/newsletters.yaml#/NewsletterCreate'
+    responses:
+      '201':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/Newsletter'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/newsletters/{newsletterId}:
+  get:
+    tags: [newsletters]
+    operationId: getNewsletter
+    summary: 'One newsletter.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/Newsletter'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  patch:
+    tags: [newsletters]
+    operationId: updateNewsletter
+    summary: 'Edit a draft.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    x-history: NotificationAction.NEWSLETTER_UPDATED
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/newsletters.yaml#/NewsletterPatch'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/Newsletter'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NEWSLETTER_NOT_DRAFT', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  delete:
+    tags: [newsletters]
+    operationId: deleteNewsletter
+    summary: 'Delete a draft.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    x-history: NotificationAction.NEWSLETTER_CANCELLED
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NEWSLETTER_NOT_DRAFT', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/newsletters/{newsletterId}/recipient-count:
+  get:
+    tags: [newsletters]
+    operationId: countNewsletterRecipients
+    summary: 'Opted-in recipients the newsletter would reach now.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/RecipientCount'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/newsletters/{newsletterId}/test:
+  post:
+    tags: [newsletters]
+    operationId: sendNewsletterTest
+    summary: 'Send the newsletter to myself.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    x-history: NONE
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/newsletters/{newsletterId}/queue:
+  post:
+    tags: [newsletters]
+    operationId: queueNewsletter
+    summary: 'Queue the draft for sending.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    x-history: NotificationAction.NEWSLETTER_QUEUED
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/Newsletter'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NEWSLETTER_NOT_DRAFT or NEWSLETTER_NO_RECIPIENTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/newsletters/{newsletterId}/cancel:
+  post:
+    tags: [newsletters]
+    operationId: cancelNewsletter
+    summary: 'Stop a queued or sending newsletter.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    x-history: NotificationAction.NEWSLETTER_CANCELLED
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/Newsletter'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NEWSLETTER_NOT_CANCELLABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/newsletters/{newsletterId}/progress:
+  get:
+    tags: [newsletters]
+    operationId: getNewsletterProgress
+    summary: 'Sending progress.'
+    x-permission: 'ORGA (all) or ambassador of the newsletter region'
+    parameters:
+      - name: newsletterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/newsletters.yaml#/NewsletterProgress'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'NEWSLETTER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
