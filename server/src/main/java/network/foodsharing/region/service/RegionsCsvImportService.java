@@ -33,7 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
  * empty slug = generated from the name, empty parent = root). A dry run only returns the preview; otherwise valid rows
  * are created / updated (rows with errors are skipped) and REGIONS_IMPORTED is recorded. Parents may be earlier rows of
  * the same file. Error keys: MISSING_NAME, INVALID_TYPE, INVALID_TIME_ZONE, UNKNOWN_PARENT, DUPLICATE_SLUG,
- * WORKING_GROUP_NOT_IMPORTABLE.
+ * WORKING_GROUP_NOT_IMPORTABLE. Lines whose first cell starts with {@code #} are comments (e.g. "model pending
+ * ambassador confirmation" in {@code docs/data/zuerich/regions.csv}).
  */
 @Service
 public class RegionsCsvImportService {
@@ -90,8 +91,15 @@ public class RegionsCsvImportService {
 
     List<Row> analyse(String csv) {
         List<List<String>> lines = CsvParser.parse(csv);
-        int first = !lines.isEmpty() && lines.get(0).get(0).strip().toLowerCase(Locale.ROOT).startsWith("parent") ? 1 : 0;
-        if (lines.size() - first > properties.getIntropickup().getImportMaxRows()) {
+        int first = 0;
+        while (first < lines.size() && CsvParser.isComment(lines.get(first))) {
+            first++;
+        }
+        if (first < lines.size() && lines.get(first).get(0).strip().toLowerCase(Locale.ROOT).startsWith("parent")) {
+            first++;
+        }
+        long dataLines = lines.subList(first, lines.size()).stream().filter(line -> !CsvParser.isComment(line)).count();
+        if (dataLines > properties.getIntropickup().getImportMaxRows()) {
             throw ApiException.badRequest(ApiErrorCode.IMPORT_TOO_LARGE)
                     .withArg("max", String.valueOf(properties.getIntropickup().getImportMaxRows()));
         }
@@ -99,6 +107,9 @@ public class RegionsCsvImportService {
         List<Row> rows = new ArrayList<>();
         for (int i = first; i < lines.size(); i++) {
             List<String> cells = lines.get(i);
+            if (CsvParser.isComment(cells)) {
+                continue;
+            }
             String parentSlug = cell(cells, 0);
             String name = cell(cells, 2);
             String slug = cell(cells, 1).isEmpty() ? Slugs.slugify(name) : Slugs.slugify(cell(cells, 1));
