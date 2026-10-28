@@ -60,5 +60,6 @@
   "usersAdmin.user.newHome": "New home region: {name}",
   "usersAdmin.user.reason": "Reason",
   "usersAdmin.user.history": "Change history",
-  "usersAdmin.user.noHistory": "No changes yet"
+  "usersAdmin.user.noHistory": "No changes yet",
+  "usersAdmin.user.quizHistory": "Quiz attempts"
 }

@@ -41,7 +41,7 @@ const notYet = () => false;
 export const M2_PAGES_READY = {
   regions: true,
   onboarding: false,
-  quizzes: false,
+  quizzes: true,
   introPickups: false,
   passport: false,
   guide: false,
@@ -49,7 +49,7 @@ export const M2_PAGES_READY = {
   verification: false,
   users: true,
   adminRegions: true,
-  adminQuizzes: false,
+  adminQuizzes: true,
   adminContent: false,
 };
 type M2Page = keyof typeof M2_PAGES_READY;

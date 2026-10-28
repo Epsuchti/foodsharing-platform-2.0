@@ -60,5 +60,6 @@
   "usersAdmin.user.newHome": "Neuer Stammbezirk: {name}",
   "usersAdmin.user.reason": "Begründung",
   "usersAdmin.user.history": "Änderungsverlauf",
-  "usersAdmin.user.noHistory": "Noch keine Änderungen"
+  "usersAdmin.user.noHistory": "Noch keine Änderungen",
+  "usersAdmin.user.quizHistory": "Quiz-Versuche"
 }
