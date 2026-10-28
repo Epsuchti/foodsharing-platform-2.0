@@ -55,7 +55,7 @@ class LiquibasePostgresIT {
         // M2 region seed and the closure table on PostgreSQL
         assertThat(jdbc.queryForObject("select count(*) from region", Integer.class)).isEqualTo(68);
         assertThat(jdbc.queryForObject("select count(*) from region_closure", Integer.class)).isEqualTo(225);
-        assertThat(jdbc.queryForObject("select count(*) from region_membership", Integer.class)).isEqualTo(62);
+        assertThat(jdbc.queryForObject("select count(*) from region_membership", Integer.class)).isEqualTo(63);
         assertThat(jdbc.queryForObject("select count(*) from user_account where home_region_id is not null",
                 Integer.class)).isEqualTo(12);
         assertThat(jdbc.queryForObject("select count(*) from group_application", Integer.class)).isEqualTo(2);

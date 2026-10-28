@@ -1,0 +1,8 @@
+Bonjour [(${displayName})],
+
+ton signalement concernant [(${reportedName})] a été transmis à l'équipe de signalement, qui le traite de manière confidentielle.
+
+Ton message :
+[(${message})]
+
+Ton équipe foodsharing

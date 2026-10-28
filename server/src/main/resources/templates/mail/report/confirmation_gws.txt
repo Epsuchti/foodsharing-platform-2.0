@@ -1,0 +1,8 @@
+Hallo [(${displayName})],
+
+dini Mäldig über [(${reportedName})] isch bim Mäldeteam aacho. S Team bearbeitet si vertraulich.
+
+Dini Nachricht:
+[(${message})]
+
+Dis foodsharing-Team

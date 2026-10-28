@@ -1,0 +1,8 @@
+Ciao [(${displayName})],
+
+la tua segnalazione su [(${reportedName})] è arrivata al team segnalazioni, che la tratterà in modo confidenziale.
+
+Il tuo messaggio:
+[(${message})]
+
+Il tuo team foodsharing

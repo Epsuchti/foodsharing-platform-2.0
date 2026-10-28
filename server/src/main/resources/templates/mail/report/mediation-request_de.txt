@@ -1,0 +1,11 @@
+Hallo [(${displayName})],
+
+[(${requesterName})] bittet das Mediationsteam von [(${regionName})] um Unterstützung.
+[# th:if="${counterpartName != null}"]Betroffen: [(${counterpartName})]
+[/]
+Nachricht:
+[(${message})]
+
+[(${link})]
+
+Dein foodsharing-Team
