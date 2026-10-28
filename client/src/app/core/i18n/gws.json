@@ -238,5 +238,6 @@
   "errors.KAM_CANNOT_EDIT_KAMS": "Chettebetreuer chönd d Betreuerlischte nöd ändere.",
   "errors.NAME_TAKEN": "De Name gits scho.",
   "errors.CATEGORY_IN_USE": "Wird no bruucht – bitte zämefüehre statt lösche.",
-  "errors.GROCERY_NOT_FOUND": "Läbensmittel nöd gfunde."
+  "errors.GROCERY_NOT_FOUND": "Läbensmittel nöd gfunde.",
+  "errors.BELL_NOT_FOUND": "Die Benachrichtigung gits nümme."
 }

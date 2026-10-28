@@ -238,5 +238,6 @@
   "errors.KAM_CANNOT_EDIT_KAMS": "Betriebskettenbetreuer können die Betreuerliste nicht ändern.",
   "errors.NAME_TAKEN": "Dieser Name existiert bereits.",
   "errors.CATEGORY_IN_USE": "Wird noch verwendet – bitte zusammenführen statt löschen.",
-  "errors.GROCERY_NOT_FOUND": "Lebensmittel nicht gefunden."
+  "errors.GROCERY_NOT_FOUND": "Lebensmittel nicht gefunden.",
+  "errors.BELL_NOT_FOUND": "Diese Benachrichtigung gibt es nicht mehr."
 }

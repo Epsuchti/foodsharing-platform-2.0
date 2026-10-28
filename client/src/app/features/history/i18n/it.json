@@ -177,5 +177,8 @@
   "history.action.SYSTEM.GROCERY_MERGED": "Alimenti uniti",
   "history.action.SYSTEM.GROCERY_DELETED": "Alimento eliminato",
   "history.action.PICKUP.REMINDER_SENT": "Promemoria del ritiro inviato",
-  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Promemoria dei ritiri modificati"
+  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Promemoria dei ritiri modificati",
+  "history.action.SYSTEM.NOTIFICATION_BELL_READ": "Notifiche lette",
+  "history.action.SYSTEM.NOTIFICATION_BELL_DELETED": "Notifiche eliminate",
+  "history.action.SYSTEM.NOTIFICATION_SETTINGS_CHANGED": "Impostazioni delle notifiche modificate"
 }

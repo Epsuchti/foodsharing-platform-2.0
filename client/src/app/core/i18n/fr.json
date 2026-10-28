@@ -238,5 +238,6 @@
   "errors.KAM_CANNOT_EDIT_KAMS": "Les responsables grands comptes ne peuvent pas modifier leur liste.",
   "errors.NAME_TAKEN": "Ce nom existe déjà.",
   "errors.CATEGORY_IN_USE": "Encore utilisé – fusionne au lieu de supprimer.",
-  "errors.GROCERY_NOT_FOUND": "Aliment introuvable."
+  "errors.GROCERY_NOT_FOUND": "Aliment introuvable.",
+  "errors.BELL_NOT_FOUND": "Cette notification n'existe plus."
 }

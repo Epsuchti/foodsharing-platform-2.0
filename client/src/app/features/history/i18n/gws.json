@@ -177,5 +177,8 @@
   "history.action.SYSTEM.GROCERY_MERGED": "Läbensmittel zämegfüehrt",
   "history.action.SYSTEM.GROCERY_DELETED": "Läbensmittel glöscht",
   "history.action.PICKUP.REMINDER_SENT": "Abholerinnerig gschickt",
-  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Abholerinnerige gänderet"
+  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Abholerinnerige gänderet",
+  "history.action.SYSTEM.NOTIFICATION_BELL_READ": "Benachrichtigunge gläse",
+  "history.action.SYSTEM.NOTIFICATION_BELL_DELETED": "Benachrichtigunge glöscht",
+  "history.action.SYSTEM.NOTIFICATION_SETTINGS_CHANGED": "Benachrichtigungsiistellige gänderet"
 }

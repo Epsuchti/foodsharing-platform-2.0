@@ -238,5 +238,6 @@
   "errors.KAM_CANNOT_EDIT_KAMS": "Key account managers cannot change the list of key account managers.",
   "errors.NAME_TAKEN": "This name already exists.",
   "errors.CATEGORY_IN_USE": "Still in use – merge it instead of deleting.",
-  "errors.GROCERY_NOT_FOUND": "Grocery not found."
+  "errors.GROCERY_NOT_FOUND": "Grocery not found.",
+  "errors.BELL_NOT_FOUND": "This notification no longer exists."
 }

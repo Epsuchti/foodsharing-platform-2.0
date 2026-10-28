@@ -177,5 +177,8 @@
   "history.action.SYSTEM.GROCERY_MERGED": "Lebensmittel zusammengeführt",
   "history.action.SYSTEM.GROCERY_DELETED": "Lebensmittel gelöscht",
   "history.action.PICKUP.REMINDER_SENT": "Abholerinnerung gesendet",
-  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Abholerinnerungen geändert"
+  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Abholerinnerungen geändert",
+  "history.action.SYSTEM.NOTIFICATION_BELL_READ": "Benachrichtigungen gelesen",
+  "history.action.SYSTEM.NOTIFICATION_BELL_DELETED": "Benachrichtigungen gelöscht",
+  "history.action.SYSTEM.NOTIFICATION_SETTINGS_CHANGED": "Benachrichtigungseinstellungen geändert"
 }

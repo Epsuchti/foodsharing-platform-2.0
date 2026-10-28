@@ -180,6 +180,8 @@ ApiErrorCode:
     - SIGNUP_NOT_FOUND
     - ALREADY_CONFIRMED
     - RANGE_TOO_LARGE
+    # --- notifications ---
+    - BELL_NOT_FOUND
 
 ApiError:
   type: object

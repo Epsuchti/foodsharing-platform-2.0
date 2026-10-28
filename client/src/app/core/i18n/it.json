@@ -238,5 +238,6 @@
   "errors.KAM_CANNOT_EDIT_KAMS": "I key account manager non possono modificare l'elenco.",
   "errors.NAME_TAKEN": "Questo nome esiste già.",
   "errors.CATEGORY_IN_USE": "Ancora in uso: unisci invece di eliminare.",
-  "errors.GROCERY_NOT_FOUND": "Alimento non trovato."
+  "errors.GROCERY_NOT_FOUND": "Alimento non trovato.",
+  "errors.BELL_NOT_FOUND": "Questa notifica non esiste più."
 }

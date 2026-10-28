@@ -177,5 +177,8 @@
   "history.action.SYSTEM.GROCERY_MERGED": "Aliments fusionnés",
   "history.action.SYSTEM.GROCERY_DELETED": "Aliment supprimé",
   "history.action.PICKUP.REMINDER_SENT": "Rappel de collecte envoyé",
-  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Rappels de collecte modifiés"
+  "history.action.USER.PICKUP_REMINDERS_CHANGED": "Rappels de collecte modifiés",
+  "history.action.SYSTEM.NOTIFICATION_BELL_READ": "Notifications lues",
+  "history.action.SYSTEM.NOTIFICATION_BELL_DELETED": "Notifications supprimées",
+  "history.action.SYSTEM.NOTIFICATION_SETTINGS_CHANGED": "Paramètres de notification modifiés"
 }

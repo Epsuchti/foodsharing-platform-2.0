@@ -63,6 +63,8 @@ tags:
     description: 'Store chains and key account managers.'
   - name: store-categories
     description: 'Store categories and groceries (ORGA).'
+  - name: bells
+    description: 'Bells (in-app notifications) and notification channel settings.'
   - name: verification
     description: 'Verification queue, verify/unverify, identity confirmation.'
   - name: passports
@@ -507,3 +509,16 @@ paths:
     $ref: './paths/store-categories.yaml#/~1api~1groceries~1{id}'
   /api/groceries/{id}/merge:
     $ref: './paths/store-categories.yaml#/~1api~1groceries~1{id}~1merge'
+  # --- bells ---
+  /api/bells:
+    $ref: './paths/bells.yaml#/~1api~1bells'
+  /api/bells/unread-count:
+    $ref: './paths/bells.yaml#/~1api~1bells~1unread-count'
+  /api/bells/read:
+    $ref: './paths/bells.yaml#/~1api~1bells~1read'
+  /api/bells/read-all:
+    $ref: './paths/bells.yaml#/~1api~1bells~1read-all'
+  /api/bells/{bellId}:
+    $ref: './paths/bells.yaml#/~1api~1bells~1{bellId}'
+  /api/users/me/notification-settings:
+    $ref: './paths/bells.yaml#/~1api~1users~1me~1notification-settings'

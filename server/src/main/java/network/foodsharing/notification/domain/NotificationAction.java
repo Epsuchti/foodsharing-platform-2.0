@@ -7,7 +7,10 @@ import network.foodsharing.history.SubjectType;
 /** Notification history (subject SYSTEM; metadata type + recipient id). Codes are prefixed (MailAction uses MAIL_). */
 public enum NotificationAction implements HistoryAction {
     SENT,
-    BELL_CREATED;
+    BELL_CREATED,
+    BELL_READ,
+    BELL_DELETED,
+    SETTINGS_CHANGED;
 
     @Override
     public String code() {

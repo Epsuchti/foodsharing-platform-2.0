@@ -1,0 +1,110 @@
+# Bells and notification settings (milestone 4, A23).
+NotificationCategory:
+  type: string
+  enum: [STORE_TEAM, PICKUPS, PICKUP_REMINDER, AUTOMATION, INTRO_PICKUPS, REGION, ONBOARDING, FORUM, MESSAGES, SYSTEM]
+
+Bell:
+  type: object
+  required: [id, type, titleKey, params, createdAt, mailed, pushed]
+  properties:
+    id:
+      type: string
+      format: uuid
+    type:
+      description: 'NotificationType name; the title is the i18n key titleKey (bell.<TYPE>) with params'
+      type: string
+    titleKey:
+      type: string
+    params:
+      type: object
+      additionalProperties:
+        type: string
+    link:
+      type: string
+    icon:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    readAt:
+      type: string
+      format: date-time
+    mailed:
+      type: boolean
+    pushed:
+      type: boolean
+
+BellPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './notifications.yaml#/Bell'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+BellCount:
+  type: object
+  required: [count]
+  properties:
+    count:
+      type: integer
+      format: int32
+
+BellIds:
+  type: object
+  required: [ids]
+  properties:
+    ids:
+      type: array
+      maxItems: 200
+      items:
+        type: string
+        format: uuid
+
+CategorySetting:
+  type: object
+  required: [category, bell, mail, push, telegram]
+  properties:
+    category:
+      $ref: './notifications.yaml#/NotificationCategory'
+    bell:
+      description: 'Always true (bells cannot be switched off)'
+      type: boolean
+    mail:
+      type: boolean
+    push:
+      type: boolean
+    telegram:
+      type: boolean
+
+NotificationSettings:
+  type: object
+  required: [categories, pushAvailable, telegramLinked, newsletterOptIn]
+  properties:
+    categories:
+      type: array
+      items:
+        $ref: './notifications.yaml#/CategorySetting'
+    pushAvailable:
+      description: 'The user has at least one push subscription'
+      type: boolean
+    telegramLinked:
+      type: boolean
+    telegramBotName:
+      type: string
+    newsletterOptIn:
+      type: boolean
+
+NotificationSettingsUpdate:
+  type: object
+  required: [categories]
+  properties:
+    categories:
+      type: array
+      items:
+        $ref: './notifications.yaml#/CategorySetting'
+    newsletterOptIn:
+      type: boolean
