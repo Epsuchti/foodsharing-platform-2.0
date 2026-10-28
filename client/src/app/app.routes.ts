@@ -134,6 +134,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/admin-ops/admin-ops.routes').then((m) => m.ADMIN_OPS_ROUTES),
   },
   {
+    path: '',
+    loadChildren: () => import('./features/newsletters/newsletters.routes').then((m) => m.NEWSLETTERS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

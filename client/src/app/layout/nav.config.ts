@@ -346,6 +346,16 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/admin/mail-outbox',
     visible: isOrga,
   },
+  // --- M4 F5: newsletters (ORGA or any region admin; the API checks the scope) ---
+  {
+    id: 'newsletters',
+    labelKey: 'nav.newsletters',
+    icon: 'pi pi-megaphone',
+    route: '/newsletters',
+    visible: (ctx) =>
+      ctx.isAuthenticated &&
+      (ctx.hasRole(Role.Orga) || (ctx.session?.units ?? []).some((unit) => unit.admin)),
+  },
 ];
 
 export function visibleNavItems(

@@ -394,5 +394,6 @@
   "nav.notifications": "Benachrichtigunge",
   "nav.adminIntegrations": "Integratione",
   "nav.adminJobs": "Hintergrundjobs",
-  "nav.adminMailOutbox": "Mail-Usgang"
+  "nav.adminMailOutbox": "Mail-Usgang",
+  "nav.newsletters": "Newsletter"
 }

@@ -394,5 +394,6 @@
   "nav.notifications": "Notifiche",
   "nav.adminIntegrations": "Integrazioni",
   "nav.adminJobs": "Processi in background",
-  "nav.adminMailOutbox": "Posta in uscita"
+  "nav.adminMailOutbox": "Posta in uscita",
+  "nav.newsletters": "Newsletter"
 }

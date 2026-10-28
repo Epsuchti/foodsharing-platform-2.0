@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { Select } from '@openng/optimus-ui/select';
-import { SelectButton } from '@openng/optimus-ui/selectbutton';
 
 import { NewsletterPage, NewsletterStatus, NewslettersService, Role } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
@@ -25,7 +24,7 @@ export const GLOBAL_SCOPE = 'GLOBAL';
  */
 @Component({
   selector: 'fs-newsletter-list-page',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, PageHeaderComponent, RouterLink, Select, SelectButton, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, PageHeaderComponent, RouterLink, Select, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'newsletters.list.title' | t" [subtitle]="'newsletters.list.subtitle' | t" icon="pi pi-megaphone">
@@ -53,15 +52,14 @@ export const GLOBAL_SCOPE = 'GLOBAL';
         />
       </div>
       <div class="field">
-        <span id="nl-status">{{ 'newsletters.list.status' | t }}</span>
-        <p-selectbutton
+        <label for="nl-status">{{ 'newsletters.list.status' | t }}</label>
+        <p-select
+          inputId="nl-status"
           [options]="statuses()"
           optionLabel="label"
           optionValue="value"
-          [allowEmpty]="false"
           [ngModel]="status()"
           (ngModelChange)="status.set($event)"
-          ariaLabelledBy="nl-status"
           data-testid="newsletters.list.filter"
         />
       </div>
@@ -150,7 +148,7 @@ export class NewsletterListPageComponent {
         newsletterCreate: {
           regionId: this.scope() === GLOBAL_SCOPE ? undefined : this.scope(),
           subject: this.i18n.t('newsletters.list.newSubject'),
-          bodyMarkdown: '',
+          bodyMarkdown: this.i18n.t('newsletters.list.newBody'),
         },
       }),
     { onSuccess: (created) => void this.router.navigate(['/newsletters', created.id]) },

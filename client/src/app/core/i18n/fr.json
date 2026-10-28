@@ -394,5 +394,6 @@
   "nav.notifications": "Notifications",
   "nav.adminIntegrations": "Intégrations",
   "nav.adminJobs": "Tâches de fond",
-  "nav.adminMailOutbox": "Boîte d'envoi"
+  "nav.adminMailOutbox": "Boîte d'envoi",
+  "nav.newsletters": "Newsletters"
 }
