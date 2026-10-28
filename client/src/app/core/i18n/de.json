@@ -266,5 +266,14 @@
   "errors.JOB_UNKNOWN": "Diesen Job gibt es nicht.",
   "errors.MAIL_NOT_FOUND": "Diese E-Mail gibt es nicht.",
   "errors.MAIL_NOT_RETRYABLE": "Nur fehlgeschlagene E-Mails können erneut gesendet werden.",
-  "errors.INTEGRATION_UNAVAILABLE": "Ein externer Dienst ist gerade nicht erreichbar. Bitte versuche es später nochmals."
+  "errors.INTEGRATION_UNAVAILABLE": "Ein externer Dienst ist gerade nicht erreichbar. Bitte versuche es später nochmals.",
+  "common.introCategory.SUPERMARKET": "Supermarkt",
+  "common.introCategory.TAKEOUT": "Take-away",
+  "common.introCategory.MARKET": "Markt",
+  "common.introCategory.BAKERY": "Bäckerei",
+  "common.introCategory.RESTAURANT": "Restaurant",
+  "common.introCategory.FAIRTEILER_CLEANING": "Fairteiler-Reinigung",
+  "common.introCategory.MESSE": "Messe",
+  "common.introCategory.GROSSABHOLUNG": "Großabholung",
+  "common.introCategory.ONLINE": "Online"
 }

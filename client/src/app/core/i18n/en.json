@@ -266,5 +266,14 @@
   "errors.JOB_UNKNOWN": "This job does not exist.",
   "errors.MAIL_NOT_FOUND": "This e-mail does not exist.",
   "errors.MAIL_NOT_RETRYABLE": "Only failed e-mails can be sent again.",
-  "errors.INTEGRATION_UNAVAILABLE": "An external service is currently unavailable. Please try again later."
+  "errors.INTEGRATION_UNAVAILABLE": "An external service is currently unavailable. Please try again later.",
+  "common.introCategory.SUPERMARKET": "Supermarket",
+  "common.introCategory.TAKEOUT": "Takeout",
+  "common.introCategory.MARKET": "Market",
+  "common.introCategory.BAKERY": "Bakery",
+  "common.introCategory.RESTAURANT": "Restaurant",
+  "common.introCategory.FAIRTEILER_CLEANING": "Food-share point cleaning",
+  "common.introCategory.MESSE": "Trade fair",
+  "common.introCategory.GROSSABHOLUNG": "Large pickup",
+  "common.introCategory.ONLINE": "Online"
 }

@@ -146,6 +146,10 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       background: var(--fs-surface);
       color: var(--fs-text);
     }
+    :host ::ng-deep .fs-map-marker--edit {
+      background: #b5532d;
+      cursor: grab;
+    }
     :host ::ng-deep .fs-map-marker[data-kind='store'] {
       background: #1c6f91;
     }
@@ -168,16 +172,25 @@ export class MapViewComponent {
   /** Tile URL template (default: `window.__fsTileUrl` in tests, else OSM). */
   readonly tileUrl = input<string | undefined>(undefined);
   readonly markerClick = output<MapMarker>();
+  /** Editable position (pin editor): a draggable marker; a click on the map moves it too. */
+  readonly position = input<[number, number] | null | undefined>(undefined);
+  readonly editable = input(false);
+  readonly positionChange = output<[number, number]>();
 
   protected readonly tileState = signal<'loading' | 'ok' | 'error'>('loading');
   private readonly mapEl = viewChild.required<ElementRef<HTMLElement>>('mapEl');
   private map: Leaflet.Map | null = null;
   private tiles: Leaflet.TileLayer | null = null;
   private layer: Leaflet.LayerGroup | null = null;
+  private positionMarker: Leaflet.Marker | null = null;
   private leaflet: typeof Leaflet | null = null;
 
   constructor() {
     afterNextRender(() => void this.init());
+    effect(() => {
+      const position = this.position();
+      untracked(() => this.drawPosition(position));
+    });
     effect(() => {
       const markers = this.markers();
       this.center();
@@ -216,7 +229,43 @@ export class MapViewComponent {
       })
       .addTo(this.map);
     this.layer = L.layerGroup().addTo(this.map);
+    this.map.on('click', (event: Leaflet.LeafletMouseEvent) => {
+      if (this.editable()) {
+        this.positionChange.emit([event.latlng.lat, event.latlng.lng]);
+      }
+    });
     this.drawMarkers(this.markers());
+    this.drawPosition(this.position());
+  }
+
+  private drawPosition(position: [number, number] | null | undefined): void {
+    const L = this.leaflet;
+    if (!L || !this.map) {
+      return;
+    }
+    if (!position) {
+      this.positionMarker?.remove();
+      this.positionMarker = null;
+      return;
+    }
+    if (!this.positionMarker) {
+      const icon = L.divIcon({
+        className: 'fs-map-marker fs-map-marker--edit',
+        html: '<i class="pi pi-map-marker" aria-hidden="true"></i>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 38],
+      });
+      this.positionMarker = L.marker(position, { icon, draggable: this.editable(), keyboard: true })
+        .on('dragend', () => {
+          const latLng = this.positionMarker!.getLatLng();
+          this.positionChange.emit([latLng.lat, latLng.lng]);
+        })
+        .addTo(this.map);
+      this.positionMarker.getElement()?.setAttribute('data-kind', 'position');
+      this.map.setView(position, Math.max(this.map.getZoom(), this.zoom()));
+    } else {
+      this.positionMarker.setLatLng(position);
+    }
   }
 
   private drawMarkers(markers: readonly MapMarker[]): void {

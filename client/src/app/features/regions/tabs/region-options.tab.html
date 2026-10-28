@@ -1,0 +1,102 @@
+<fs-data-state [state]="data" skeleton="form" testId="regions.options.state" data-testid="regions.options.state">
+  <ng-template [fsData]="data" let-d>
+    <div class="cols">
+      <div class="stack">
+        <section class="fs-card card" data-testid="regions.options.report" [formGroup]="report">
+          <h2 class="card__title"><i class="pi pi-flag" aria-hidden="true"></i>{{ 'regions.options.reportTitle' | t }}</h2>
+          @if (!d.permissions.mayEditReportButtons) {
+            <p class="locked"><i class="pi pi-lock" aria-hidden="true"></i>{{ 'regions.options.reportWho' | t }}</p>
+          }
+          <div class="switch-row">
+            <span class="switch-row__text">
+              <label class="switch-row__label" for="opt-report">{{ 'regions.options.enableReportButton' | t }}</label>
+              <span class="muted">{{ 'regions.options.enableReportButtonHint' | t }}</span>
+            </span>
+            <p-toggleswitch inputId="opt-report" formControlName="enableReportButton" data-testid="regions.options.enableReportButton" />
+          </div>
+          <div class="switch-row">
+            <span class="switch-row__text">
+              <label class="switch-row__label" for="opt-mediation">{{ 'regions.options.enableMediationButton' | t }}</label>
+            </span>
+            <p-toggleswitch inputId="opt-mediation" formControlName="enableMediationButton" data-testid="regions.options.enableMediationButton" />
+          </div>
+          <div class="switch-row">
+            <span class="switch-row__text">
+              <label class="switch-row__label" for="opt-other">{{ 'regions.options.reportReasonOther' | t }}</label>
+            </span>
+            <p-toggleswitch inputId="opt-other" formControlName="reportReasonOther" />
+          </div>
+          @if (d.permissions.mayEditReportButtons) {
+            <div class="actions">
+              <p-button [label]="'common.save' | t" icon="pi pi-check" [loading]="save.busy()" (onClick)="save.run('report')" data-testid="regions.options.saveReport" />
+            </div>
+          }
+        </section>
+
+        <section class="fs-card card" data-testid="regions.options.member" [formGroup]="member">
+          <h2 class="card__title"><i class="pi pi-users" aria-hidden="true"></i>{{ 'regions.options.memberTitle' | t }}</h2>
+          @if (!d.permissions.mayEditUserRelated) {
+            <p class="locked"><i class="pi pi-lock" aria-hidden="true"></i>{{ 'regions.options.memberWho' | t }}</p>
+          }
+          <div class="switch-row">
+            <span class="switch-row__text">
+              <label class="switch-row__label" for="opt-hiding">{{ 'regions.options.allowHidingInForum' | t }}</label>
+              <span class="muted">{{ 'regions.options.allowHidingInForumHint' | t }}</span>
+            </span>
+            <p-toggleswitch inputId="opt-hiding" formControlName="allowHidingInForum" data-testid="regions.options.allowHidingInForum" />
+          </div>
+          <div class="switch-row">
+            <span class="switch-row__text">
+              <label class="switch-row__label" for="opt-address">{{ 'regions.options.notifyAddressChange' | t }}</label>
+              <span class="muted">{{ 'regions.options.notifyAddressChangeHint' | t }}</span>
+            </span>
+            <p-toggleswitch inputId="opt-address" formControlName="notifyAddressChange" data-testid="regions.options.notifyAddressChange" />
+          </div>
+          @if (d.permissions.mayEditUserRelated) {
+            <div class="actions">
+              <p-button [label]="'common.save' | t" icon="pi pi-check" [loading]="save.busy()" (onClick)="save.run('member')" data-testid="regions.options.saveMember" />
+            </div>
+          }
+        </section>
+      </div>
+
+      <section class="fs-card card" data-testid="regions.options.pickupRule" [formGroup]="pickupRule">
+        <h2 class="card__title"><i class="pi pi-calendar-clock" aria-hidden="true"></i>{{ 'regions.options.pickupRuleTitle' | t }}</h2>
+        <p class="muted">{{ 'regions.options.pickupRuleText' | t }}</p>
+        @if (!d.permissions.mayEditPickupRule) {
+          <p class="locked" data-testid="regions.options.pickupRuleLocked"><i class="pi pi-lock" aria-hidden="true"></i>{{ 'regions.options.pickupRuleWho' | t }}</p>
+        }
+        <div class="switch-row">
+          <span class="switch-row__text">
+            <label class="switch-row__label" for="opt-rule">{{ 'regions.options.pickupRuleActive' | t }}</label>
+          </span>
+          <p-toggleswitch inputId="opt-rule" formControlName="active" data-testid="regions.options.pickupRuleActive" />
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="opt-timespan">{{ 'regions.options.timespanDays' | t }}</label>
+            <p-inputnumber inputId="opt-timespan" formControlName="timespanDays" [min]="1" [max]="60" [showButtons]="true" />
+          </div>
+          <div class="field">
+            <label for="opt-limit">{{ 'regions.options.limitNumber' | t }}</label>
+            <p-inputnumber inputId="opt-limit" formControlName="limitNumber" [min]="1" [max]="50" [showButtons]="true" />
+          </div>
+          <div class="field">
+            <label for="opt-day">{{ 'regions.options.limitDayNumber' | t }}</label>
+            <p-inputnumber inputId="opt-day" formControlName="limitDayNumber" [min]="1" [max]="10" [showButtons]="true" />
+          </div>
+          <div class="field">
+            <label for="opt-inactive">{{ 'regions.options.inactiveHours' | t }}</label>
+            <p-inputnumber inputId="opt-inactive" formControlName="inactiveHours" [min]="0" [max]="168" [showButtons]="true" />
+            <span class="field__hint">{{ 'regions.options.inactiveHoursHint' | t }}</span>
+          </div>
+        </div>
+        @if (d.permissions.mayEditPickupRule) {
+          <div class="actions">
+            <p-button [label]="'common.save' | t" icon="pi pi-check" [loading]="save.busy()" (onClick)="save.run('pickupRule')" data-testid="regions.options.savePickupRule" />
+          </div>
+        }
+      </section>
+    </div>
+  </ng-template>
+</fs-data-state>

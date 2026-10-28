@@ -266,5 +266,14 @@
   "errors.JOB_UNKNOWN": "Dä Job gits nöd.",
   "errors.MAIL_NOT_FOUND": "Die E-Mail gits nöd.",
   "errors.MAIL_NOT_RETRYABLE": "Nume fählgschlagni E-Mails chönd nomal gschickt werde.",
-  "errors.INTEGRATION_UNAVAILABLE": "En externe Dienscht isch grad nöd erreichbar. Probier s bitte spöter nomal."
+  "errors.INTEGRATION_UNAVAILABLE": "En externe Dienscht isch grad nöd erreichbar. Probier s bitte spöter nomal.",
+  "common.introCategory.SUPERMARKET": "Supermarkt",
+  "common.introCategory.TAKEOUT": "Take-away",
+  "common.introCategory.MARKET": "Märt",
+  "common.introCategory.BAKERY": "Beckerei",
+  "common.introCategory.RESTAURANT": "Beiz",
+  "common.introCategory.FAIRTEILER_CLEANING": "Fairteiler-Putze",
+  "common.introCategory.MESSE": "Mäss",
+  "common.introCategory.GROSSABHOLUNG": "Grossabholig",
+  "common.introCategory.ONLINE": "Online"
 }

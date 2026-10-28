@@ -1,0 +1,211 @@
+<fs-data-state [state]="group" skeleton="card" testId="regions.group.state" data-testid="regions.group.state" backLink="/regions/mine">
+  <ng-template [fsData]="group" let-g>
+    <header class="head fs-card" data-testid="regions.group.head">
+      <div class="head__body">
+        @if (g.parent; as parent) {
+          <a class="head__parent" [routerLink]="['/regions', parent.id, 'groups']" data-testid="regions.group.parent">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i>{{ parent.name }}
+          </a>
+        }
+        <h1 class="head__name" data-testid="regions.group.name">{{ g.name }}</h1>
+        @if (g.teaser) {
+          <p class="muted">{{ g.teaser }}</p>
+        }
+        <div class="tags">
+          <span class="tag">{{ 'regions.category.' + g.category | t }}</span>
+          <span class="tag">{{ 'regions.applyType.' + g.applyType | t }}</span>
+          @if (g.function) {
+            <span class="tag tag--function">{{ 'regions.function.' + g.function | t }}</span>
+          }
+          <span class="tag">{{ 'regions.groups.members' | t: { count: g.memberCount } }}</span>
+          @if (g.membership.member) {
+            <span class="tag tag--member" data-testid="regions.group.memberTag">{{ (g.membership.admin ? 'regions.groups.admin' : 'regions.groups.member') | t }}</span>
+          } @else if (g.membership.applied) {
+            <span class="tag tag--applied" data-testid="regions.group.appliedTag">{{ 'regions.groups.applied' | t }}</span>
+          }
+        </div>
+      </div>
+      <div class="head__actions">
+        @if (!g.membership.member) {
+          @if (g.mayJoin) {
+            <p-button [label]="'regions.groups.join' | t" icon="pi pi-sign-in" [loading]="join.busy()" (onClick)="join.run()" data-testid="regions.group.join" />
+          } @else if (g.membership.applied) {
+            <p-button [label]="'regions.group.cancelApplication' | t" icon="pi pi-times" severity="secondary" [outlined]="true" [loading]="cancelApplication.busy()" (onClick)="cancelApplication.run()" data-testid="regions.group.cancelApplication" />
+          } @else if (g.mayApply && !requirementsMissing()) {
+            <p-button [label]="'regions.groups.apply' | t" icon="pi pi-send" (onClick)="applyOpen.set(true)" data-testid="regions.group.apply" />
+          }
+        }
+        @if (g.mayEdit) {
+          <p-button [label]="'regions.group.edit' | t" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="editOpen.set(true)" data-testid="regions.group.edit" />
+          <p-button [label]="'regions.group.mail' | t" icon="pi pi-envelope" severity="secondary" [outlined]="true" (onClick)="openMail()" data-testid="regions.group.mail" />
+          @if (g.category !== 'ARCHIVED') {
+            <p-button [label]="'regions.group.archive' | t" icon="pi pi-inbox" severity="danger" [text]="true" (onClick)="confirmArchive(g)" data-testid="regions.group.archive" />
+          }
+        }
+      </div>
+    </header>
+
+    <div class="cols">
+      <div class="stack">
+        <section class="fs-card card" data-testid="regions.group.about">
+          <h2 class="card__title"><i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'regions.overview.about' | t }}</h2>
+          @if (g.description) {
+            <fs-markdown [markdown]="g.description" />
+          } @else {
+            <p class="muted">{{ 'regions.overview.noDescription' | t }}</p>
+          }
+        </section>
+
+        @if (mayManage()) {
+          <section class="fs-card card" data-testid="regions.group.applications">
+            <h2 class="card__title"><i class="pi pi-inbox" aria-hidden="true"></i>{{ 'regions.group.applications' | t }}</h2>
+            <fs-data-state [state]="applications" skeleton="list" [skeletonRows]="2" [compact]="true" [emptyTitle]="'regions.group.noApplications' | t" testId="regions.group.applicationsState">
+              <ng-template [fsData]="applications" let-list>
+                <ul class="people">
+                  @for (application of list; track application.id) {
+                    <li class="row" data-testid="regions.group.application">
+                      <div class="row__main">
+                        <fs-user-chip [name]="application.user.displayName" [userId]="application.user.id" [avatarUrl]="application.user.avatarUrl" [role]="application.user.role" [verified]="application.user.verified" [subtitle]="application.createdAt | fsDate: 'date'" />
+                        @if (application.text) {
+                          <p class="row__text">{{ application.text }}</p>
+                        }
+                      </div>
+                      <div class="row__actions">
+                        <p-button [label]="'regions.group.accept' | t" icon="pi pi-check" size="small" [loading]="decide.busy()" (onClick)="decide.run(application, true)" data-testid="regions.group.accept" />
+                        <p-button [label]="'regions.group.decline' | t" icon="pi pi-times" size="small" severity="danger" [outlined]="true" (onClick)="askDecline(application)" data-testid="regions.group.decline" />
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </ng-template>
+            </fs-data-state>
+          </section>
+        }
+
+        @if (seesMembers()) {
+          <section class="fs-card card" data-testid="regions.group.members">
+            <h2 class="card__title"><i class="pi pi-users" aria-hidden="true"></i>{{ 'regions.group.members' | t }}</h2>
+            <fs-data-state [state]="members" skeleton="list" [skeletonRows]="4" [compact]="true" testId="regions.group.membersState">
+              <ng-template [fsData]="members" let-list>
+                <ul class="people">
+                  @for (member of list; track member.user.id) {
+                    <li class="row" data-testid="regions.group.member">
+                      <fs-user-chip [name]="member.user.displayName" [userId]="member.user.id" [avatarUrl]="member.user.avatarUrl" [role]="member.user.role" [verified]="member.user.verified" [subtitle]="member.admin ? ('regions.groups.admin' | t) : undefined" />
+                      @if (mayManage()) {
+                        <div class="row__actions">
+                          <p-button [icon]="member.admin ? 'pi pi-star-fill' : 'pi pi-star'" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="(member.admin ? 'regions.group.removeAdmin' : 'regions.group.makeAdmin') | t: { name: member.user.displayName }" [loading]="toggleAdmin.busy()" (onClick)="toggleAdmin.run(member)" data-testid="regions.group.toggleAdmin" />
+                          <p-button icon="pi pi-user-minus" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'regions.members.remove' | t: { name: member.user.displayName }" (onClick)="askRemove(member)" data-testid="regions.group.removeMember" />
+                        </div>
+                      }
+                    </li>
+                  }
+                </ul>
+              </ng-template>
+            </fs-data-state>
+          </section>
+        }
+      </div>
+
+      <div class="stack">
+        @if (requirementRows().length) {
+          <section class="fs-card card" data-testid="regions.group.requirements">
+            <h2 class="card__title"><i class="pi pi-list-check" aria-hidden="true"></i>{{ 'regions.group.requirements' | t }}</h2>
+            <ul class="checklist">
+              @for (row of requirementRows(); track row.key) {
+                <li [class.ok]="row.ok === true" [class.missing]="row.ok === false" [attr.data-requirement]="row.key">
+                  <i class="pi" [class.pi-check-circle]="row.ok === true" [class.pi-times-circle]="row.ok === false" [class.pi-circle]="row.ok === undefined" aria-hidden="true"></i>
+                  <span>{{ 'regions.group.req.' + row.key | t: { min: row.min } }}</span>
+                  @if (row.have !== undefined) {
+                    <span class="muted number">{{ 'regions.group.reqHave' | t: { count: row.have } }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+        <section class="fs-card card" data-testid="regions.group.admins">
+          <h2 class="card__title"><i class="pi pi-star" aria-hidden="true"></i>{{ 'regions.group.admins' | t }}</h2>
+          @if (g.admins.length) {
+            <ul class="people">
+              @for (admin of g.admins; track admin.id) {
+                <li><fs-user-chip [name]="admin.displayName" [userId]="admin.id" [avatarUrl]="admin.avatarUrl" [role]="admin.role" [verified]="admin.verified" /></li>
+              }
+            </ul>
+          } @else {
+            <p class="muted">{{ 'regions.group.noAdmins' | t }}</p>
+          }
+        </section>
+        @if (g.subGroups.length) {
+          <section class="fs-card card">
+            <h2 class="card__title"><i class="pi pi-sitemap" aria-hidden="true"></i>{{ 'regions.group.subGroups' | t }}</h2>
+            <ul class="people">
+              @for (sub of g.subGroups; track sub.id) {
+                <li><a [routerLink]="['/groups', sub.id]">{{ sub.name }}</a></li>
+              }
+            </ul>
+          </section>
+        }
+        @if (g.conferenceUrl && g.membership.member) {
+          <section class="fs-card card">
+            <h2 class="card__title"><i class="pi pi-video" aria-hidden="true"></i>{{ 'regions.overview.conference' | t }}</h2>
+            <a class="fs-btn fs-btn--outlined" [href]="g.conferenceUrl" target="_blank" rel="noopener" data-testid="regions.group.conference">
+              <i class="pi pi-external-link" aria-hidden="true"></i>{{ 'regions.overview.conferenceOpen' | t }}
+            </a>
+          </section>
+        }
+      </div>
+    </div>
+
+    <fs-apply-dialog [(visible)]="applyOpen" [group]="g" (applied)="group.reload()" />
+    <fs-group-form-dialog [(visible)]="editOpen" [group]="g" [allowRestricted]="isOrga()" [busy]="update.busy()" (save)="update.run($event)" />
+  </ng-template>
+</fs-data-state>
+
+<fs-required-message-dialog
+  [(visible)]="removeOpen"
+  [title]="'regions.members.removeTitle' | t: { name: removeTarget()?.user?.displayName ?? '' }"
+  [text]="'regions.group.removeText' | t"
+  [confirmLabel]="'regions.members.removeConfirm' | t"
+  severity="danger"
+  [busy]="removeMember.busy()"
+  (confirm)="removeMember.run($event)"
+  testId="regions.group.removeDialog"
+/>
+
+<fs-required-message-dialog
+  [(visible)]="declineOpen"
+  [title]="'regions.group.declineTitle' | t: { name: declineTarget()?.user?.displayName ?? '' }"
+  [text]="'regions.group.declineText' | t"
+  [confirmLabel]="'regions.group.decline' | t"
+  severity="danger"
+  [minLength]="1"
+  [busy]="decide.busy()"
+  (confirm)="decide.run(declineTarget()!, false, $event)"
+  testId="regions.group.declineDialog"
+/>
+
+<p-dialog
+  [visible]="mailOpen()"
+  (visibleChange)="mailOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'regions.group.mailTitle' | t"
+  [style]="{ width: 'min(40rem, 94vw)' }"
+  data-testid="regions.group.mailDialog"
+>
+  <form class="mail" [formGroup]="mailForm" (ngSubmit)="sendMail.run()">
+    <p class="muted">{{ 'regions.group.mailText' | t }}</p>
+    <div class="field">
+      <label for="mail-subject">{{ 'regions.group.mailSubject' | t }}</label>
+      <input pInputText id="mail-subject" formControlName="subject" maxlength="200" data-testid="regions.group.mailSubject" />
+    </div>
+    <div class="field">
+      <label for="mail-body">{{ 'regions.group.mailBody' | t }}</label>
+      <textarea pTextarea id="mail-body" rows="8" formControlName="body" data-testid="regions.group.mailBody"></textarea>
+    </div>
+    <div class="actions">
+      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="mailOpen.set(false)" />
+      <p-button type="submit" [label]="'regions.group.mailSend' | t" icon="pi pi-send" [disabled]="mailForm.invalid" [loading]="sendMail.busy()" data-testid="regions.group.mailSend" />
+    </div>
+  </form>
+</p-dialog>

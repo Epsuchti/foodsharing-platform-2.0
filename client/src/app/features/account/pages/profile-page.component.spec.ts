@@ -71,4 +71,31 @@ describe('ProfilePageComponent', () => {
     await fixture.whenStable();
     expect(state().getAttribute('data-state')).toBe('notFound');
   });
+  it('saves edited fields; cleared fields are sent empty, the birthday omitted when empty', async () => {
+    http.expectOne('/api/users/me').flush({ ...PROFILE, city: 'Zürich', mobilePhone: '+41791234567' });
+    await fixture.whenStable();
+    const save = () => host.querySelector('[data-testid="account.profile.save"] button') as HTMLButtonElement;
+    expect(save().disabled).toBe(true);
+
+    const city = host.querySelector('[data-testid="account.profile.city"]') as HTMLInputElement;
+    city.value = '';
+    city.dispatchEvent(new Event('input'));
+    const street = host.querySelector('[data-testid="account.profile.street"]') as HTMLInputElement;
+    street.value = 'Langstrasse 1';
+    street.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    save().click();
+
+    const request = http.expectOne('/api/users/me/profile');
+    expect(request.request.body).toMatchObject({
+      displayName: 'Sarah Müller',
+      street: 'Langstrasse 1',
+      city: '',
+      mobilePhone: '+41791234567',
+    });
+    expect(request.request.body.dateOfBirth).toBeUndefined();
+    request.flush({ ...PROFILE, street: 'Langstrasse 1' });
+    await fixture.whenStable();
+    expect(save().disabled).toBe(true);
+  });
 });

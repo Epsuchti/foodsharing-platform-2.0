@@ -1,136 +1,143 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Button } from '@openng/optimus-ui/button';
+import { InputText } from '@openng/optimus-ui/inputtext';
+import { Select } from '@openng/optimus-ui/select';
+import { Textarea } from '@openng/optimus-ui/textarea';
+import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
-import { UsersService } from '../../../api';
+import { ContactVisibility, Gender, UserProfile, UserProfileUpdate, UsersService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
+import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { PhoneInputComponent } from '../../../shared/phone/phone-input.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 
+const text = (max: number) => new FormControl('', { nonNullable: true, validators: [Validators.maxLength(max)] });
+
 /**
- * /account/profile — placeholder until profile editing (A4–A6) arrives in M6: shows the account basics
- * (GET /api/users/me) and links to the settings.
+ * /account/profile (A4, plan §8.3): the own profile with all fields the user edits (name, gender, birthday,
+ * phones, homepage, contact visibility, address, about me, newsletter). The home region changes on the region
+ * page; fields admins correct (address, birthday) are recorded in the history like the user's own changes.
  */
 @Component({
   selector: 'fs-profile-page',
   imports: [
     ...DATA_STATE_IMPORTS,
+    Button,
     DateTimePipe,
+    InputText,
     PageHeaderComponent,
+    PhoneInputComponent,
+    ReactiveFormsModule,
     RouterLink,
+    Select,
     TPipe,
+    Textarea,
+    ToggleSwitch,
     UserAvatarComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <fs-page-header [title]="'account.profile.title' | t" icon="pi pi-user" />
-    <fs-data-state [state]="profile" skeleton="detail" data-testid="account.profile.state">
-      <ng-template [fsData]="profile" let-user>
-        <section class="fs-card profile">
-          <fs-user-avatar
-            [name]="user.displayName"
-            [avatarUrl]="user.avatarUrl"
-            [role]="user.role"
-            [colorSeed]="user.id"
-            size="xl"
-          />
-          <div class="profile__who">
-            <h2 class="profile__name" data-testid="account.profile.name">{{ user.displayName }}</h2>
-            <p class="profile__email">{{ user.email }}</p>
-            <span class="profile__role">{{ 'common.role.' + user.role | t }}</span>
-          </div>
-          <dl class="profile__facts">
-            <div>
-              <dt>{{ 'account.profile.memberSince' | t }}</dt>
-              <dd>{{ user.registeredAt | fsDate: 'dateLong' }}</dd>
-            </div>
-            @if (user.lastLoginAt) {
-              <div>
-                <dt>{{ 'account.profile.lastLogin' | t }}</dt>
-                <dd>{{ user.lastLoginAt | fsDate: 'dateTime' }}</dd>
-              </div>
-            }
-          </dl>
-        </section>
-        <p class="soon">
-          <i class="pi pi-sparkles" aria-hidden="true"></i>
-          <span>
-            {{ 'account.profile.comingSoon' | t }}
-            <a routerLink="/account/settings" data-testid="account.profile.settingsLink">{{
-              'account.profile.toSettings' | t
-            }}</a>
-          </span>
-        </p>
-      </ng-template>
-    </fs-data-state>
-  `,
-  styles: `
-    :host {
-      display: block;
-      width: min(100%, 48rem);
-      margin: 0 auto;
-    }
-    .profile {
-      display: grid;
-      justify-items: center;
-      gap: 1rem;
-      text-align: center;
-    }
-    .profile__who {
-      display: grid;
-      gap: 0.2rem;
-    }
-    .profile__name {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    .profile__email {
-      margin: 0;
-      color: var(--fs-text-muted);
-      overflow-wrap: anywhere;
-    }
-    .profile__role {
-      color: var(--fs-primary-strong);
-      font-weight: 700;
-    }
-    .profile__facts {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.75rem 2rem;
-      margin: 0;
-      padding-top: 1rem;
-      border-top: 1px solid var(--fs-border);
-      width: 100%;
-    }
-    .profile__facts dt {
-      color: var(--fs-text-muted);
-      font-size: 0.82rem;
-      font-weight: 650;
-    }
-    .profile__facts dd {
-      margin: 0;
-      font-weight: 650;
-    }
-    .soon {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.6rem;
-      margin: 1.25rem 0 0;
-      padding: 0.9rem 1rem;
-      border-radius: var(--fs-radius-md);
-      background: var(--fs-surface-muted);
-      color: var(--fs-text-muted);
-    }
-    .soon .pi {
-      margin-top: 0.25rem;
-      color: var(--fs-primary);
-    }
-  `,
+  templateUrl: './profile-page.component.html',
+  styleUrl: './profile-page.component.scss',
 })
 export class ProfilePageComponent {
   private readonly usersApi = inject(UsersService);
-  protected readonly profile = loadResource({ loader: () => this.usersApi.getCurrentUser() });
+  private readonly i18n = inject(I18nService);
+
+  protected readonly profile = loadResource<UserProfile>({ loader: () => this.usersApi.getCurrentUser() });
+
+  protected readonly genders = computed(() => {
+    this.i18n.language();
+    return Object.values(Gender).map((value) => ({ value, label: this.i18n.t(`account.profile.gender.${value}`) }));
+  });
+  protected readonly visibilities = computed(() => {
+    this.i18n.language();
+    return Object.values(ContactVisibility).map((value) => ({
+      value,
+      label: this.i18n.t(`account.profile.visibility.${value}`),
+    }));
+  });
+
+  protected readonly form = new FormGroup({
+    firstName: text(100),
+    lastName: text(100),
+    displayName: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(100)] }),
+    gender: new FormControl<Gender>(Gender.NotSelected, { nonNullable: true }),
+    dateOfBirth: new FormControl('', { nonNullable: true }),
+    mobilePhone: new FormControl<string | null>(null),
+    landlinePhone: new FormControl<string | null>(null),
+    homepage: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^(https?:\/\/\S+)?$/)] }),
+    contactVisibility: new FormControl<ContactVisibility>(ContactVisibility.Team, { nonNullable: true }),
+    street: text(200),
+    postcode: text(20),
+    city: text(100),
+    country: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^([A-Za-z]{2})?$/)] }),
+    aboutMePublic: text(32600),
+    aboutMeInternal: text(32600),
+    positionDescription: text(500),
+    newsletterOptIn: new FormControl(false, { nonNullable: true }),
+  });
+
+  constructor() {
+    effect(() => {
+      const user = this.profile.data();
+      if (user) {
+        this.fill(user);
+      }
+    });
+  }
+
+  private fill(user: UserProfile): void {
+    this.form.reset({
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      displayName: user.displayName,
+      gender: user.gender ?? Gender.NotSelected,
+      dateOfBirth: user.dateOfBirth ?? '',
+      mobilePhone: user.mobilePhone ?? null,
+      landlinePhone: user.landlinePhone ?? null,
+      homepage: user.homepage ?? '',
+      contactVisibility: user.contactVisibility ?? ContactVisibility.Team,
+      street: user.street ?? '',
+      postcode: user.postcode ?? '',
+      city: user.city ?? '',
+      country: user.country ?? '',
+      aboutMePublic: user.aboutMePublic ?? '',
+      aboutMeInternal: user.aboutMeInternal ?? '',
+      positionDescription: user.positionDescription ?? '',
+      newsletterOptIn: user.newsletterOptIn ?? false,
+    });
+  }
+
+  /** Empty text clears a field (PATCH: absent = unchanged, so cleared fields are sent as empty strings). */
+  private patch(): UserProfileUpdate {
+    const value = this.form.getRawValue();
+    return {
+      ...value,
+      displayName: value.displayName.trim(),
+      dateOfBirth: value.dateOfBirth || undefined,
+      mobilePhone: value.mobilePhone ?? '',
+      landlinePhone: value.landlinePhone ?? '',
+      country: value.country.toUpperCase(),
+    };
+  }
+
+  protected reset(): void {
+    const user = this.profile.data();
+    if (user) {
+      this.fill(user);
+    }
+  }
+
+  protected readonly save = runMutation(() => this.usersApi.updateMyProfile({ userProfileUpdate: this.patch() }), {
+    form: this.form,
+    successToastKey: 'account.profile.saved',
+    onSuccess: (user) => this.profile.set(user),
+  });
 }

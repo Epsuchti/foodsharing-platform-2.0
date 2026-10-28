@@ -114,14 +114,20 @@ describe('ProgressJobComponent', () => {
     fixture.componentInstance.finished.subscribe((job) => finished.push(job));
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 0));
+    // under load the 10 ms timer may tick more than once before we look; switchMap cancels all but the latest poll
+    const latestPoll = () => {
+      const open = http.match((r) => r.url.endsWith('/api/jobs/job-1')).filter((r) => !r.cancelled);
+      expect(open).toHaveLength(1);
+      return open[0];
+    };
 
-    http.expectOne((r) => r.url.endsWith('/api/jobs/job-1')).flush({ id: 'job-1', status: JobStatus.Running, total: 4, done: 1, resultAvailable: false });
+    latestPoll().flush({ id: 'job-1', status: JobStatus.Running, total: 4, done: 1, resultAvailable: false });
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')).toBe('25');
 
     await new Promise((resolve) => setTimeout(resolve, 20));
-    http.expectOne((r) => r.url.endsWith('/api/jobs/job-1')).flush({ id: 'job-1', status: JobStatus.Done, total: 4, done: 4, resultAvailable: true });
+    latestPoll().flush({ id: 'job-1', status: JobStatus.Done, total: 4, done: 4, resultAvailable: true });
     await fixture.whenStable();
     expect(finished.map((job) => job.status)).toEqual([JobStatus.Done]);
     expect(el.getAttribute('data-status')).toBe('DONE');

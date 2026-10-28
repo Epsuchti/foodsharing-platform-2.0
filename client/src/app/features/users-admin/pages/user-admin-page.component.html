@@ -1,0 +1,166 @@
+<fs-page-header [title]="user.data()?.displayName ?? ('usersAdmin.user.pageTitle' | t)" [subtitle]="'usersAdmin.user.subtitle' | t" icon="pi pi-id-card" />
+
+<fs-data-state [state]="user" skeleton="detail" testId="usersAdmin.user.state" data-testid="usersAdmin.user.state">
+  <ng-template [fsData]="user" let-u>
+    <section class="fs-card summary">
+      <fs-user-avatar [name]="u.displayName" [avatarUrl]="u.avatarUrl" [role]="u.role" [colorSeed]="u.id" size="lg" />
+      <div class="summary__who">
+        <h2 class="summary__name" data-testid="usersAdmin.user.name">{{ u.displayName }}</h2>
+        <p class="muted">{{ u.email }}</p>
+        <div class="tags">
+          <span class="tag">{{ 'common.role.' + u.role | t }}</span>
+          @if (u.verified) {
+            <span class="tag tag--ok">{{ 'usersAdmin.user.verified' | t }}</span>
+          }
+          @if (u.active === false) {
+            <span class="tag tag--off" data-testid="usersAdmin.user.inactive">{{ 'usersAdmin.user.inactive' | t }}</span>
+          }
+        </div>
+      </div>
+      <div class="summary__actions">
+        <p-button [label]="'usersAdmin.user.edit' | t" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="openEdit(u)" data-testid="usersAdmin.user.edit" />
+        <p-button
+          [label]="(u.active === false ? 'usersAdmin.user.enable' : 'usersAdmin.user.disable') | t"
+          [icon]="u.active === false ? 'pi pi-check-circle' : 'pi pi-ban'"
+          [severity]="u.active === false ? 'primary' : 'danger'"
+          [outlined]="u.active !== false"
+          (onClick)="activeOpen.set(true)"
+          data-testid="usersAdmin.user.toggleActive"
+        />
+      </div>
+    </section>
+
+    <section class="fs-card card">
+      <h2 class="card__title">{{ 'usersAdmin.user.facts' | t }}</h2>
+      <dl class="facts">
+        <div>
+          <dt>{{ 'usersAdmin.user.foodsaverNumber' | t }}</dt>
+          <dd class="number">{{ u.foodsaverNumber ?? '–' }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.homeRegion' | t }}</dt>
+          <dd>
+            @if (u.homeRegion; as home) {
+              <a [routerLink]="['/regions', home.id]">{{ home.name }}</a>
+            } @else {
+              –
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.registeredAt' | t }}</dt>
+          <dd>{{ u.registeredAt | fsDate: 'date' }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.lastLogin' | t }}</dt>
+          <dd>{{ u.lastLoginAt ? (u.lastLoginAt | fsDate: 'dateTime') : '–' }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.name' | t }}</dt>
+          <dd>{{ u.firstName }} {{ u.lastName }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.address' | t }}</dt>
+          <dd>
+            @if (u.street || u.city) {
+              {{ u.street }}<br />{{ u.postcode }} {{ u.city }}
+            } @else {
+              –
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.phone' | t }}</dt>
+          <dd>{{ u.mobilePhone ?? '–' }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'usersAdmin.user.dateOfBirth' | t }}</dt>
+          <dd>{{ u.dateOfBirth ? (u.dateOfBirth | fsDate: 'date') : '–' }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="history">
+      <h2 class="card__title">{{ 'usersAdmin.user.history' | t }}</h2>
+      @if (history(); as source) {
+        <fs-history-timeline [source]="source" [subjectType]="subjectType" [viewerId]="viewerId()" [emptyTitle]="'usersAdmin.user.noHistory' | t" testId="usersAdmin.user.history" />
+      }
+    </section>
+  </ng-template>
+</fs-data-state>
+
+<fs-required-message-dialog
+  [(visible)]="activeOpen"
+  [title]="(user.data()?.active === false ? 'usersAdmin.user.enableTitle' : 'usersAdmin.user.disableTitle') | t: { name: user.data()?.displayName ?? '' }"
+  [text]="(user.data()?.active === false ? 'usersAdmin.user.enableText' : 'usersAdmin.user.disableText') | t"
+  [confirmLabel]="(user.data()?.active === false ? 'usersAdmin.user.enable' : 'usersAdmin.user.disable') | t"
+  [severity]="user.data()?.active === false ? 'primary' : 'danger'"
+  [minLength]="3"
+  [busy]="setActive.busy()"
+  (confirm)="setActive.run($event)"
+  testId="usersAdmin.user.activeDialog"
+/>
+
+<p-dialog
+  [visible]="editOpen()"
+  (visibleChange)="editOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'usersAdmin.user.editTitle' | t: { name: user.data()?.displayName ?? '' }"
+  [style]="{ width: 'min(44rem, 94vw)' }"
+  data-testid="usersAdmin.user.editDialog"
+>
+  <form class="form" [formGroup]="form" (ngSubmit)="save.run()">
+    <div class="grid">
+      <div class="field">
+        <label for="ue-first">{{ 'usersAdmin.user.firstName' | t }}</label>
+        <input pInputText id="ue-first" formControlName="firstName" data-testid="usersAdmin.user.firstName" />
+      </div>
+      <div class="field">
+        <label for="ue-last">{{ 'usersAdmin.user.lastName' | t }}</label>
+        <input pInputText id="ue-last" formControlName="lastName" />
+      </div>
+      <div class="field">
+        <label for="ue-street">{{ 'usersAdmin.user.street' | t }}</label>
+        <input pInputText id="ue-street" formControlName="street" data-testid="usersAdmin.user.street" />
+      </div>
+      <div class="field">
+        <label for="ue-postcode">{{ 'usersAdmin.user.postcode' | t }}</label>
+        <input pInputText id="ue-postcode" formControlName="postcode" />
+      </div>
+      <div class="field">
+        <label for="ue-city">{{ 'usersAdmin.user.city' | t }}</label>
+        <input pInputText id="ue-city" formControlName="city" />
+      </div>
+      <div class="field">
+        <label for="ue-mobile">{{ 'usersAdmin.user.phone' | t }}</label>
+        <fs-phone-input inputId="ue-mobile" formControlName="mobilePhone" [mobile]="true" />
+      </div>
+      <div class="field">
+        <label for="ue-birth">{{ 'usersAdmin.user.dateOfBirth' | t }}</label>
+        <input pInputText id="ue-birth" type="date" formControlName="dateOfBirth" />
+      </div>
+      <div class="field">
+        <label for="ue-gender">{{ 'usersAdmin.user.gender' | t }}</label>
+        <p-select inputId="ue-gender" formControlName="gender" [options]="genders()" optionLabel="label" optionValue="value" appendTo="body" [style]="{ width: '100%' }" />
+      </div>
+    </div>
+    <details class="move">
+      <summary>{{ 'usersAdmin.user.moveHome' | t }}</summary>
+      @if (editOpen()) {
+        <fs-region-picker initialMode="tree" (regionSelected)="newHome.set($event)" testId="usersAdmin.user.homePicker" />
+      }
+    </details>
+    @if (newHome(); as home) {
+      <p data-testid="usersAdmin.user.newHome">{{ 'usersAdmin.user.newHome' | t: { name: home.name } }}</p>
+    }
+    <div class="field">
+      <label for="ue-reason">{{ 'usersAdmin.user.reason' | t }}</label>
+      <input pInputText id="ue-reason" formControlName="reason" maxlength="500" data-testid="usersAdmin.user.reason" />
+    </div>
+    <div class="actions">
+      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="editOpen.set(false)" />
+      <p-button type="submit" [label]="'common.save' | t" icon="pi pi-check" [disabled]="form.invalid" [loading]="save.busy()" data-testid="usersAdmin.user.save" />
+    </div>
+  </form>
+</p-dialog>

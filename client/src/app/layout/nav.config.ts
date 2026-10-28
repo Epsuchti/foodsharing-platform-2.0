@@ -39,7 +39,7 @@ const notYet = () => false;
  * declared with its real visibility rule but hidden.
  */
 export const M2_PAGES_READY = {
-  regions: false,
+  regions: true,
   onboarding: false,
   quizzes: false,
   introPickups: false,
@@ -47,8 +47,8 @@ export const M2_PAGES_READY = {
   guide: false,
   newcomers: false,
   verification: false,
-  users: false,
-  adminRegions: false,
+  users: true,
+  adminRegions: true,
   adminQuizzes: false,
   adminContent: false,
 };

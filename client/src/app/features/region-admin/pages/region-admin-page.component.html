@@ -1,0 +1,211 @@
+<fs-page-header [title]="'regionAdmin.title' | t" [subtitle]="'regionAdmin.subtitle' | t" icon="pi pi-sitemap" />
+
+<div class="toolbar">
+  <nav class="crumbs" [attr.aria-label]="'regionAdmin.path' | t" data-testid="regionAdmin.path">
+    <button type="button" class="crumb" (click)="goTo(0)" data-testid="regionAdmin.path.root">{{ 'regionAdmin.root' | t }}</button>
+    @for (step of path(); track step.id; let i = $index) {
+      <i class="pi pi-angle-right" aria-hidden="true"></i>
+      <button type="button" class="crumb" [disabled]="i === path().length - 1" (click)="goTo(i + 1)">{{ step.name }}</button>
+    }
+  </nav>
+  <span class="search">
+    <label class="sr-only" for="ra-search">{{ 'regionAdmin.search' | t }}</label>
+    <input pInputText id="ra-search" type="search" [placeholder]="'regionAdmin.search' | t" (input)="onSearch($any($event.target).value)" data-testid="regionAdmin.search" />
+  </span>
+  <span class="toolbar__actions">
+    <p-button [label]="'regionAdmin.import' | t" icon="pi pi-upload" severity="secondary" [outlined]="true" (onClick)="openImport()" data-testid="regionAdmin.import" />
+    @if (parent()) {
+      <p-button [label]="'regionAdmin.create' | t" icon="pi pi-plus" (onClick)="openCreate()" data-testid="regionAdmin.create" />
+    }
+  </span>
+</div>
+
+<fs-data-state [state]="regions" skeleton="table" [emptyTitle]="'regionAdmin.empty' | t" testId="regionAdmin.list" data-testid="regionAdmin.list">
+  <ng-template [fsData]="regions" let-result>
+    <ul class="rows">
+      @for (item of result.items; track item.region.id) {
+        <li class="fs-card row" [attr.data-region]="item.region.slug" data-testid="regionAdmin.row">
+          <div class="row__main">
+            @if (item.childCount > 0) {
+              <button type="button" class="row__name row__name--link" (click)="open(item)" [attr.data-testid]="'regionAdmin.open.' + item.region.slug">
+                {{ item.region.name }} <i class="pi pi-angle-right" aria-hidden="true"></i>
+              </button>
+            } @else {
+              <span class="row__name">{{ item.region.name }}</span>
+            }
+            <span class="row__meta">
+              {{ 'regionAdmin.type.' + item.region.type | t }} · {{ 'regionAdmin.members' | t: { count: item.memberCount } }}
+              @if (item.childCount > 0) {
+                · {{ 'regionAdmin.children' | t: { count: item.childCount } }}
+              }
+            </span>
+            @if (item.ambassadors.length) {
+              <span class="row__meta">{{ 'regionAdmin.ambassadors' | t }}: {{ ambassadorNames(item) }}</span>
+            }
+            @if (item.functions.length) {
+              <span class="chips">
+                @for (assignment of item.functions; track assignment.function) {
+                  <span class="chip">{{ 'regionAdmin.function.' + assignment.function | t }}</span>
+                }
+              </span>
+            }
+          </div>
+          <div class="row__actions">
+            <p-button icon="pi pi-pencil" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'regionAdmin.edit' | t: { name: item.region.name }" (onClick)="openEdit(item)" data-testid="regionAdmin.edit" />
+            <p-button icon="pi pi-bolt" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'regionAdmin.functions' | t: { name: item.region.name }" (onClick)="openFunctions(item)" data-testid="regionAdmin.functions" />
+            <p-button icon="pi pi-arrows-alt" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'regionAdmin.move' | t: { name: item.region.name }" (onClick)="openMove(item)" data-testid="regionAdmin.move" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'regionAdmin.delete' | t: { name: item.region.name }" (onClick)="openDelete(item)" data-testid="regionAdmin.delete" />
+          </div>
+        </li>
+      }
+    </ul>
+    @if (result.page.totalPages > 1) {
+      <p-paginator [rows]="pageSize" [totalRecords]="result.page.totalItems" [first]="page() * pageSize" (onPageChange)="onPage($event)" />
+    }
+  </ng-template>
+</fs-data-state>
+
+<fs-region-form-dialog [(visible)]="formOpen" [region]="editing()" [parentName]="parent()?.name ?? null" [busy]="save.busy()" (save)="save.run($event)" />
+
+<fs-required-message-dialog
+  [(visible)]="deleteOpen"
+  [title]="'regionAdmin.deleteTitle' | t: { name: deleteTarget()?.region?.name ?? '' }"
+  [text]="'regionAdmin.deleteText' | t"
+  [confirmLabel]="'regionAdmin.deleteConfirm' | t"
+  severity="danger"
+  [minLength]="3"
+  [busy]="remove.busy()"
+  (confirm)="remove.run($event)"
+  testId="regionAdmin.deleteDialog"
+/>
+
+<p-dialog
+  [visible]="moveOpen()"
+  (visibleChange)="moveOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'regionAdmin.moveTitle' | t: { name: moveTarget()?.region?.name ?? '' }"
+  [style]="{ width: 'min(40rem, 94vw)' }"
+  data-testid="regionAdmin.moveDialog"
+>
+  <div class="dialog">
+    @if (moveOpen()) {
+      <fs-region-picker initialMode="tree" (regionSelected)="moveParent.set($event)" testId="regionAdmin.movePicker" />
+    }
+    @if (moveParent(); as target) {
+      <p data-testid="regionAdmin.moveTarget">{{ 'regionAdmin.moveTo' | t: { name: target.name } }}</p>
+    }
+    <div class="field">
+      <label for="ra-move-reason">{{ 'regionAdmin.form.reason' | t }}</label>
+      <input pInputText id="ra-move-reason" [ngModel]="moveReason()" (ngModelChange)="moveReason.set($event)" maxlength="500" />
+    </div>
+    <div class="actions">
+      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="moveOpen.set(false)" />
+      <p-button [label]="'regionAdmin.moveConfirm' | t" icon="pi pi-check" [disabled]="!moveParent()" [loading]="move.busy()" (onClick)="move.run()" data-testid="regionAdmin.moveConfirm" />
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog
+  [visible]="functionsOpen()"
+  (visibleChange)="functionsOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'regionAdmin.functionsTitle' | t: { name: functionsTarget()?.region?.name ?? '' }"
+  [style]="{ width: 'min(40rem, 94vw)' }"
+  data-testid="regionAdmin.functionsDialog"
+>
+  @if (functionsTarget(); as target) {
+    <div class="dialog">
+      @if (target.functions.length) {
+        <ul class="assignments">
+          @for (assignment of target.functions; track assignment.function) {
+            <li [attr.data-function]="assignment.function">
+              <span>
+                <strong>{{ 'regionAdmin.function.' + assignment.function | t }}</strong>
+                <span class="row__meta">{{ assignment.group.name }}</span>
+              </span>
+              <p-button icon="pi pi-times" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'regionAdmin.removeFunction' | t" [loading]="removeFunction.busy()" (onClick)="removeFunction.run(assignment.function)" data-testid="regionAdmin.removeFunction" />
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="muted">{{ 'regionAdmin.noFunctions' | t }}</p>
+      }
+      <div class="add">
+        <div class="field">
+          <label for="ra-fn">{{ 'regionAdmin.functionLabel' | t }}</label>
+          <p-select inputId="ra-fn" [options]="functionOptions()" optionLabel="label" optionValue="value" [ngModel]="newFunction()" (ngModelChange)="newFunction.set($event)" appendTo="body" [style]="{ width: '100%' }" data-testid="regionAdmin.newFunction" />
+        </div>
+        <div class="field">
+          <label for="ra-group">{{ 'regionAdmin.groupLabel' | t }}</label>
+          <p-select inputId="ra-group" [options]="groupOptions()" optionLabel="label" optionValue="value" [ngModel]="newGroupId()" (ngModelChange)="newGroupId.set($event)" [loading]="groups.status() === 'loading'" [emptyMessage]="'regionAdmin.noGroups' | t" appendTo="body" [style]="{ width: '100%' }" data-testid="regionAdmin.newGroup" />
+        </div>
+        <p-button [label]="'regionAdmin.assign' | t" icon="pi pi-check" [disabled]="!newFunction() || !newGroupId()" [loading]="setFunction.busy()" (onClick)="setFunction.run()" data-testid="regionAdmin.assign" />
+      </div>
+    </div>
+  }
+</p-dialog>
+
+<p-dialog
+  [visible]="importOpen()"
+  (visibleChange)="importOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'regionAdmin.importTitle' | t"
+  [style]="{ width: 'min(56rem, 96vw)' }"
+  data-testid="regionAdmin.importDialog"
+>
+  <div class="dialog">
+    <p class="muted">{{ 'regionAdmin.importText' | t }}</p>
+    <code class="columns">parent_slug;slug;name;type;time_zone;country;postcodes</code>
+    <fs-csv-dropzone (fileChange)="onCsv($event)" testId="regionAdmin.csv" />
+    @if (preview(); as result) {
+      <p class="summary" data-testid="regionAdmin.importSummary">
+        {{ 'regionAdmin.importSummary' | t: { created: result.created, updated: result.updated, errors: result.errors } }}
+      </p>
+      <div class="table-wrap">
+        <table class="preview">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">{{ 'regionAdmin.form.name' | t }}</th>
+              <th scope="col">{{ 'regionAdmin.form.slug' | t }}</th>
+              <th scope="col">{{ 'regionAdmin.parent' | t }}</th>
+              <th scope="col">{{ 'regionAdmin.form.type' | t }}</th>
+              <th scope="col">{{ 'regionAdmin.status' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of result.rows; track row.line) {
+              <tr [class.error]="row.status === 'ERROR'" data-testid="regionAdmin.importRow">
+                <td class="number">{{ row.line }}</td>
+                <td>{{ row.name }}</td>
+                <td><code>{{ row.slug }}</code></td>
+                <td><code>{{ row.parentSlug }}</code></td>
+                <td>{{ row.type ? ('regionAdmin.type.' + row.type | t) : '' }}</td>
+                <td>
+                  {{ 'regionAdmin.importStatus.' + row.status | t }}
+                  @for (error of row.errors; track error) {
+                    <span class="error-text">{{ 'regionAdmin.importError.' + error | t }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <div class="actions">
+      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="importOpen.set(false)" />
+      <p-button
+        [label]="'regionAdmin.importConfirm' | t"
+        icon="pi pi-check"
+        [disabled]="!preview() || preview()!.errors > 0 || !preview()!.dryRun"
+        [loading]="runImport.busy()"
+        (onClick)="runImport.run(false)"
+        data-testid="regionAdmin.importConfirm"
+      />
+    </div>
+  </div>
+</p-dialog>

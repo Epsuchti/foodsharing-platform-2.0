@@ -1,0 +1,139 @@
+<fs-page-header [title]="'account.profile.title' | t" icon="pi pi-user" />
+<fs-data-state [state]="profile" skeleton="detail" testId="account.profile.state" data-testid="account.profile.state">
+  <ng-template [fsData]="profile" let-user>
+    <section class="fs-card profile">
+      <fs-user-avatar [name]="user.displayName" [avatarUrl]="user.avatarUrl" [role]="user.role" [colorSeed]="user.id" size="xl" />
+      <div class="profile__who">
+        <h2 class="profile__name" data-testid="account.profile.name">{{ user.displayName }}</h2>
+        <p class="profile__email">{{ user.email }}</p>
+        <span class="profile__role">{{ 'common.role.' + user.role | t }}</span>
+      </div>
+      <dl class="profile__facts">
+        <div>
+          <dt>{{ 'account.profile.memberSince' | t }}</dt>
+          <dd>{{ user.registeredAt | fsDate: 'dateLong' }}</dd>
+        </div>
+        @if (user.lastLoginAt) {
+          <div>
+            <dt>{{ 'account.profile.lastLogin' | t }}</dt>
+            <dd>{{ user.lastLoginAt | fsDate: 'dateTime' }}</dd>
+          </div>
+        }
+        @if (user.foodsaverNumber) {
+          <div>
+            <dt>{{ 'account.profile.foodsaverNumber' | t }}</dt>
+            <dd class="number">{{ user.foodsaverNumber }}</dd>
+          </div>
+        }
+        <div>
+          <dt>{{ 'account.profile.homeRegion' | t }}</dt>
+          <dd>
+            @if (user.homeRegion; as home) {
+              <a [routerLink]="['/regions', home.id]" data-testid="account.profile.homeRegion">{{ home.name }}</a>
+            } @else {
+              <a routerLink="/find-region" data-testid="account.profile.findRegion">{{ 'account.profile.findRegion' | t }}</a>
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <form class="form" [formGroup]="form" (ngSubmit)="save.run()" data-testid="account.profile.form">
+      <section class="fs-card card">
+        <h2 class="card__title">{{ 'account.profile.personal' | t }}</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="pf-first">{{ 'account.profile.firstName' | t }}</label>
+            <input pInputText id="pf-first" formControlName="firstName" autocomplete="given-name" data-testid="account.profile.firstName" />
+          </div>
+          <div class="field">
+            <label for="pf-last">{{ 'account.profile.lastName' | t }}</label>
+            <input pInputText id="pf-last" formControlName="lastName" autocomplete="family-name" data-testid="account.profile.lastName" />
+          </div>
+          <div class="field">
+            <label for="pf-display">{{ 'account.profile.displayName' | t }}</label>
+            <input pInputText id="pf-display" formControlName="displayName" autocomplete="nickname" data-testid="account.profile.displayName" />
+          </div>
+          <div class="field">
+            <label for="pf-gender">{{ 'account.profile.genderLabel' | t }}</label>
+            <p-select inputId="pf-gender" formControlName="gender" [options]="genders()" optionLabel="label" optionValue="value" appendTo="body" [style]="{ width: '100%' }" data-testid="account.profile.gender" />
+          </div>
+          <div class="field">
+            <label for="pf-birth">{{ 'account.profile.dateOfBirth' | t }}</label>
+            <input pInputText id="pf-birth" type="date" formControlName="dateOfBirth" autocomplete="bday" data-testid="account.profile.dateOfBirth" />
+          </div>
+        </div>
+      </section>
+
+      <section class="fs-card card">
+        <h2 class="card__title">{{ 'account.profile.contact' | t }}</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="pf-mobile">{{ 'account.profile.mobilePhone' | t }}</label>
+            <fs-phone-input inputId="pf-mobile" formControlName="mobilePhone" [mobile]="true" testId="account.profile.mobilePhone" />
+          </div>
+          <div class="field">
+            <label for="pf-landline">{{ 'account.profile.landlinePhone' | t }}</label>
+            <fs-phone-input inputId="pf-landline" formControlName="landlinePhone" testId="account.profile.landlinePhone" />
+          </div>
+          <div class="field">
+            <label for="pf-homepage">{{ 'account.profile.homepage' | t }}</label>
+            <input pInputText id="pf-homepage" type="url" formControlName="homepage" placeholder="https://" data-testid="account.profile.homepage" />
+          </div>
+          <div class="field">
+            <label for="pf-visibility">{{ 'account.profile.contactVisibility' | t }}</label>
+            <p-select inputId="pf-visibility" formControlName="contactVisibility" [options]="visibilities()" optionLabel="label" optionValue="value" appendTo="body" [style]="{ width: '100%' }" data-testid="account.profile.contactVisibility" />
+          </div>
+        </div>
+      </section>
+
+      <section class="fs-card card">
+        <h2 class="card__title">{{ 'account.profile.address' | t }}</h2>
+        <p class="muted">{{ 'account.profile.addressHint' | t }}</p>
+        <div class="grid">
+          <div class="field field--wide">
+            <label for="pf-street">{{ 'account.profile.street' | t }}</label>
+            <input pInputText id="pf-street" formControlName="street" autocomplete="street-address" data-testid="account.profile.street" />
+          </div>
+          <div class="field">
+            <label for="pf-postcode">{{ 'account.profile.postcode' | t }}</label>
+            <input pInputText id="pf-postcode" formControlName="postcode" autocomplete="postal-code" inputmode="numeric" data-testid="account.profile.postcode" />
+          </div>
+          <div class="field">
+            <label for="pf-city">{{ 'account.profile.city' | t }}</label>
+            <input pInputText id="pf-city" formControlName="city" autocomplete="address-level2" data-testid="account.profile.city" />
+          </div>
+          <div class="field">
+            <label for="pf-country">{{ 'account.profile.country' | t }}</label>
+            <input pInputText id="pf-country" formControlName="country" maxlength="2" placeholder="CH" autocomplete="country" />
+          </div>
+        </div>
+      </section>
+
+      <section class="fs-card card">
+        <h2 class="card__title">{{ 'account.profile.about' | t }}</h2>
+        <div class="field">
+          <label for="pf-public">{{ 'account.profile.aboutMePublic' | t }}</label>
+          <textarea pTextarea id="pf-public" rows="3" formControlName="aboutMePublic" data-testid="account.profile.aboutMePublic"></textarea>
+        </div>
+        <div class="field">
+          <label for="pf-internal">{{ 'account.profile.aboutMeInternal' | t }}</label>
+          <textarea pTextarea id="pf-internal" rows="3" formControlName="aboutMeInternal"></textarea>
+        </div>
+        <div class="field">
+          <label for="pf-position">{{ 'account.profile.positionDescription' | t }}</label>
+          <input pInputText id="pf-position" formControlName="positionDescription" />
+        </div>
+        <div class="switch-row">
+          <label for="pf-newsletter">{{ 'account.profile.newsletter' | t }}</label>
+          <p-toggleswitch inputId="pf-newsletter" formControlName="newsletterOptIn" />
+        </div>
+      </section>
+
+      <div class="actions">
+        <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" [disabled]="form.pristine" (onClick)="reset()" data-testid="account.profile.reset" />
+        <p-button type="submit" [label]="'common.save' | t" icon="pi pi-check" [disabled]="form.invalid || form.pristine" [loading]="save.busy()" data-testid="account.profile.save" />
+      </div>
+    </form>
+  </ng-template>
+</fs-data-state>

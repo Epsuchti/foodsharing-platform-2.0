@@ -266,5 +266,14 @@
   "errors.JOB_UNKNOWN": "Cette tâche n’existe pas.",
   "errors.MAIL_NOT_FOUND": "Cet e-mail n’existe pas.",
   "errors.MAIL_NOT_RETRYABLE": "Seuls les e-mails en échec peuvent être renvoyés.",
-  "errors.INTEGRATION_UNAVAILABLE": "Un service externe est momentanément indisponible. Réessaie plus tard."
+  "errors.INTEGRATION_UNAVAILABLE": "Un service externe est momentanément indisponible. Réessaie plus tard.",
+  "common.introCategory.SUPERMARKET": "Supermarché",
+  "common.introCategory.TAKEOUT": "Vente à emporter",
+  "common.introCategory.MARKET": "Marché",
+  "common.introCategory.BAKERY": "Boulangerie",
+  "common.introCategory.RESTAURANT": "Restaurant",
+  "common.introCategory.FAIRTEILER_CLEANING": "Nettoyage du point de partage",
+  "common.introCategory.MESSE": "Salon",
+  "common.introCategory.GROSSABHOLUNG": "Grande collecte",
+  "common.introCategory.ONLINE": "En ligne"
 }

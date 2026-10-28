@@ -1,0 +1,88 @@
+<fs-data-state [state]="settings" skeleton="form" testId="regions.settings.state" data-testid="regions.settings.state">
+  <ng-template [fsData]="settings">
+    <form [formGroup]="form" (ngSubmit)="save.run()" class="stack">
+      <div class="cols">
+        <section class="fs-card card" formGroupName="introPickups" data-testid="regions.settings.introPickups">
+          <h2 class="card__title"><i class="pi pi-users" aria-hidden="true"></i>{{ 'regions.settings.introTitle' | t }}</h2>
+          <div class="field">
+            <label for="set-max">{{ 'regions.settings.maxActiveBookings' | t }}</label>
+            <p-inputnumber inputId="set-max" formControlName="maxActiveBookingsPerUser" [min]="1" [max]="10" [showButtons]="true" data-testid="regions.settings.maxActiveBookings" />
+          </div>
+          <div class="switch-row">
+            <label class="switch-row__label" for="set-guide">{{ 'regions.settings.preventDuplicateGuide' | t }}</label>
+            <p-toggleswitch inputId="set-guide" formControlName="preventDuplicateGuideBookings" />
+          </div>
+          <div class="switch-row">
+            <label class="switch-row__label" for="set-category">{{ 'regions.settings.preventDuplicateCategory' | t }}</label>
+            <p-toggleswitch inputId="set-category" formControlName="preventDuplicateCategoryBookings" />
+          </div>
+          <div class="switch-row">
+            <label class="switch-row__label" for="set-fairteiler">{{ 'regions.settings.requireFairteiler' | t }}</label>
+            <p-toggleswitch inputId="set-fairteiler" formControlName="requireFairteilerVisitByThirdIntroPickup" data-testid="regions.settings.requireFairteiler" />
+          </div>
+          <div class="field">
+            <label for="set-ignored">{{ 'regions.settings.ignoredCategories' | t }}</label>
+            <p-multiselect inputId="set-ignored" formControlName="ignoredCategories" [options]="categories()" optionLabel="label" optionValue="value" [showToggleAll]="false" appendTo="body" [placeholder]="'regions.settings.noIgnored' | t" [style]="{ width: '100%' }" />
+            <span class="field__hint">{{ 'regions.settings.ignoredHint' | t }}</span>
+          </div>
+        </section>
+
+        <section class="fs-card card" data-testid="regions.settings.general">
+          <h2 class="card__title"><i class="pi pi-cog" aria-hidden="true"></i>{{ 'regions.settings.generalTitle' | t }}</h2>
+          <div class="field">
+            <label for="set-join">{{ 'regions.settings.joinMode' | t }}</label>
+            <p-select inputId="set-join" formControlName="joinMode" [options]="joinModes()" optionLabel="label" optionValue="value" appendTo="body" [style]="{ width: '100%' }" data-testid="regions.settings.joinMode" />
+          </div>
+          <div class="field">
+            <label for="set-zone">{{ 'regions.settings.timeZone' | t }}</label>
+            <p-select inputId="set-zone" formControlName="timeZone" [options]="timeZones" optionLabel="label" optionValue="value" [editable]="true" appendTo="body" [style]="{ width: '100%' }" data-testid="regions.settings.timeZone" />
+            <span class="field__hint">{{ 'regions.settings.timeZoneHint' | t }}</span>
+          </div>
+          <div class="field">
+            <label for="set-conference">{{ 'regions.settings.conferenceUrl' | t }}</label>
+            <input pInputText id="set-conference" type="url" formControlName="conferenceUrl" placeholder="https://meet.jit.si/…" data-testid="regions.settings.conferenceUrl" />
+            @if (form.controls.conferenceUrl.invalid) {
+              <small class="field__hint" style="color: var(--fs-danger)">{{ 'regions.settings.conferenceInvalid' | t }}</small>
+            }
+          </div>
+          <div class="switch-row">
+            <span class="switch-row__text">
+              <label class="switch-row__label" for="set-learning">{{ 'regions.settings.learningMandatory' | t }}</label>
+              <span class="muted">{{ 'regions.settings.learningMandatoryHint' | t }}</span>
+            </span>
+            <p-toggleswitch inputId="set-learning" formControlName="learningPagesMandatory" />
+          </div>
+        </section>
+      </div>
+
+      <section class="fs-card card" data-testid="regions.settings.steps">
+        <h2 class="card__title"><i class="pi pi-list-check" aria-hidden="true"></i>{{ 'regions.settings.stepsTitle' | t }}</h2>
+        <p class="muted">{{ 'regions.settings.stepsText' | t }}</p>
+        <div class="stack" formArrayName="steps">
+          @for (step of form.controls.steps.controls; track step; let i = $index) {
+            <div class="step" [formGroupName]="i" data-testid="regions.settings.step">
+              <div class="step__head">
+                <div class="field">
+                  <label [for]="'step-key-' + i">{{ 'regions.settings.stepKey' | t }}</label>
+                  <input pInputText [id]="'step-key-' + i" formControlName="key" placeholder="NEWCOMER_MEETING" [attr.data-testid]="'regions.settings.stepKey.' + i" />
+                </div>
+                <p-button icon="pi pi-arrow-up" severity="secondary" [text]="true" [rounded]="true" [disabled]="i === 0" [ariaLabel]="'regions.settings.stepUp' | t" (onClick)="moveStep(i, -1)" />
+                <p-button icon="pi pi-arrow-down" severity="secondary" [text]="true" [rounded]="true" [disabled]="i === form.controls.steps.length - 1" [ariaLabel]="'regions.settings.stepDown' | t" (onClick)="moveStep(i, 1)" />
+                <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'regions.settings.stepRemove' | t" (onClick)="removeStep(i)" />
+              </div>
+              <fs-language-tabs-editor formControlName="titles" [label]="'regions.settings.stepTitle' | t" [testId]="'regions.settings.stepTitles.' + i" />
+              <fs-language-tabs-editor formControlName="descriptions" [label]="'regions.settings.stepDescription' | t" [multiline]="true" [rows]="3" [requiredLanguages]="[]" [testId]="'regions.settings.stepDescriptions.' + i" />
+            </div>
+          }
+        </div>
+        <div>
+          <p-button [label]="'regions.settings.addStep' | t" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="addStep()" data-testid="regions.settings.addStep" />
+        </div>
+      </section>
+
+      <div class="actions">
+        <p-button type="submit" [label]="'common.save' | t" icon="pi pi-check" [loading]="save.busy()" [disabled]="form.invalid || form.pristine" data-testid="regions.settings.save" />
+      </div>
+    </form>
+  </ng-template>
+</fs-data-state>

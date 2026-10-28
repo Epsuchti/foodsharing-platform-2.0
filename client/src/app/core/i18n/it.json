@@ -266,5 +266,14 @@
   "errors.JOB_UNKNOWN": "Questo job non esiste.",
   "errors.MAIL_NOT_FOUND": "Questa e-mail non esiste.",
   "errors.MAIL_NOT_RETRYABLE": "Solo le e-mail non riuscite possono essere reinviate.",
-  "errors.INTEGRATION_UNAVAILABLE": "Un servizio esterno non è al momento raggiungibile. Riprova più tardi."
+  "errors.INTEGRATION_UNAVAILABLE": "Un servizio esterno non è al momento raggiungibile. Riprova più tardi.",
+  "common.introCategory.SUPERMARKET": "Supermercato",
+  "common.introCategory.TAKEOUT": "Take-away",
+  "common.introCategory.MARKET": "Mercato",
+  "common.introCategory.BAKERY": "Panetteria",
+  "common.introCategory.RESTAURANT": "Ristorante",
+  "common.introCategory.FAIRTEILER_CLEANING": "Pulizia del punto di condivisione",
+  "common.introCategory.MESSE": "Fiera",
+  "common.introCategory.GROSSABHOLUNG": "Grande ritiro",
+  "common.introCategory.ONLINE": "Online"
 }

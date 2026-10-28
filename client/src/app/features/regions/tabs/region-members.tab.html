@@ -1,0 +1,190 @@
+<section class="fs-card card">
+  <div class="filters">
+    <div class="field">
+      <label for="members-search">{{ 'regions.members.search' | t }}</label>
+      <input
+        pInputText
+        id="members-search"
+        type="search"
+        [ngModel]="search()"
+        (ngModelChange)="onSearch($event)"
+        [placeholder]="'regions.members.searchPlaceholder' | t"
+        data-testid="regions.members.search"
+      />
+    </div>
+    <div class="field">
+      <label for="members-verified">{{ 'regions.members.verifiedFilter' | t }}</label>
+      <p-select
+        inputId="members-verified"
+        [options]="verifiedOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="verified()"
+        (ngModelChange)="setVerified($event)"
+        appendTo="body"
+        [style]="{ width: '100%' }"
+        data-testid="regions.members.verified"
+      />
+    </div>
+    <div class="field">
+      <label for="members-role">{{ 'regions.members.roleFilter' | t }}</label>
+      <p-select
+        inputId="members-role"
+        [options]="roleOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="role()"
+        (ngModelChange)="setRole($event)"
+        [showClear]="true"
+        [placeholder]="'regions.members.allRoles' | t"
+        appendTo="body"
+        [style]="{ width: '100%' }"
+        data-testid="regions.members.role"
+      />
+    </div>
+  </div>
+
+  <fs-data-state
+    [state]="members"
+    skeleton="list"
+    [skeletonRows]="6"
+    emptyIcon="pi pi-users"
+    emptyIllustration="search"
+    [emptyTitle]="'regions.members.empty' | t"
+    [askWho]="'regions.members.askWho' | t"
+    testId="regions.members.list"
+    data-testid="regions.members.list"
+  >
+    <ng-template [fsData]="members" let-result>
+      <p class="muted" data-testid="regions.members.count">
+        {{ 'regions.members.count' | t: { count: result.page.totalItems } }}
+      </p>
+      <ul class="list">
+        @for (member of result.items; track member.user.id) {
+          <li class="member" [attr.data-user]="member.user.id" data-testid="regions.members.member">
+            <fs-user-chip
+              [name]="member.user.displayName"
+              [userId]="member.user.id"
+              [avatarUrl]="member.user.avatarUrl"
+              [role]="member.user.role"
+              [verified]="member.verified"
+              [foodsaverNumber]="ctx.manageUsers() ? member.user.foodsaverNumber : undefined"
+              [showRole]="!ctx.manageUsers()"
+              [link]="ctx.manageUsers() ? ['/users', member.user.id] : undefined"
+            />
+            <div class="member__meta">
+              <span>{{ 'common.role.' + member.user.role | t }}</span>
+              @if (member.admin) {
+                <span class="tag tag--admin" data-testid="regions.members.adminTag">{{ 'regions.members.ambassador' | t }}</span>
+              }
+              @if (member.homeRegion) {
+                <span class="tag">{{ 'regions.members.home' | t }}</span>
+              }
+              @for (permission of member.permissions; track permission) {
+                <span class="tag tag--perm">{{ 'regions.permission.' + permission + '.short' | t }}</span>
+              }
+              @if (member.joinedAt) {
+                <span>{{ 'regions.members.since' | t: { date: (member.joinedAt | fsDate: 'date') } }}</span>
+              }
+            </div>
+            <div class="member__actions">
+              @if (member.user.phone) {
+                <fs-phone-button [phone]="member.user.phone" [label]="member.user.displayName" />
+              }
+              @if (ctx.manageUsers()) {
+                <p-button
+                  icon="pi pi-key"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  [ariaLabel]="'regions.members.permissions' | t: { name: member.user.displayName }"
+                  (onClick)="openPermissions(member)"
+                  data-testid="regions.members.permissionsButton"
+                />
+              }
+              @if (ctx.isOrga()) {
+                <p-button
+                  [icon]="member.admin ? 'pi pi-star-fill' : 'pi pi-star'"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  [ariaLabel]="(member.admin ? 'regions.members.removeAdmin' : 'regions.members.makeAdmin') | t"
+                  (onClick)="confirmAdmin(member, !member.admin)"
+                  data-testid="regions.members.adminButton"
+                />
+              }
+              @if (ctx.isAdmin() && !member.admin) {
+                <p-button
+                  icon="pi pi-user-minus"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  [ariaLabel]="'regions.members.remove' | t: { name: member.user.displayName }"
+                  (onClick)="openRemove(member)"
+                  data-testid="regions.members.removeButton"
+                />
+              }
+            </div>
+          </li>
+        }
+      </ul>
+      @if (result.page.totalPages > 1) {
+        <p-paginator
+          [first]="result.page.page * result.page.size"
+          [rows]="result.page.size"
+          [totalRecords]="result.page.totalItems"
+          [pageLinkSize]="3"
+          (onPageChange)="onPage($event)"
+          data-testid="regions.members.paginator"
+        />
+      }
+    </ng-template>
+  </fs-data-state>
+</section>
+
+<fs-required-message-dialog
+  [(visible)]="removeOpen"
+  [title]="'regions.members.removeTitle' | t: { name: removeTarget()?.user?.displayName ?? '' }"
+  [text]="'regions.members.removeText' | t"
+  [confirmLabel]="'regions.members.removeConfirm' | t"
+  severity="danger"
+  [busy]="remove.busy()"
+  (confirm)="remove.run($event)"
+  testId="regions.members.removeDialog"
+/>
+
+<p-dialog
+  [visible]="permissionOpen()"
+  (visibleChange)="permissionOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'regions.members.permissionsTitle' | t: { name: permissionTarget()?.user?.displayName ?? '' }"
+  [style]="{ width: 'min(36rem, 94vw)' }"
+  data-testid="regions.members.permissionsDialog"
+>
+  @if (permissionTarget(); as member) {
+    <fs-data-state [state]="grants" skeleton="list" [skeletonRows]="3" [compact]="true" testId="regions.members.grants">
+      <ng-template [fsData]="grants">
+        <div class="matrix">
+          @for (permission of permissions; track permission) {
+            @let grant = grantOf(member.user.id, permission);
+            <div class="matrix__row" [attr.data-permission]="permission">
+              <span class="matrix__text">
+                <label [for]="'perm-' + permission">{{ 'regions.permission.' + permission + '.label' | t }}</label>
+                <span class="matrix__source">{{ sourceText(grant) }}</span>
+              </span>
+              <p-toggleswitch
+                [inputId]="'perm-' + permission"
+                [ngModel]="!!grant"
+                [disabled]="togglePermission.busy() || (!!grant && grant.source !== 'DIRECT')"
+                (ngModelChange)="togglePermission.run(member.user.id, permission, $event)"
+                [attr.data-testid]="'regions.members.permission.' + permission"
+              />
+            </div>
+          }
+        </div>
+        <p class="muted">{{ 'regions.members.permissionHint' | t }}</p>
+      </ng-template>
+    </fs-data-state>
+  }
+</p-dialog>

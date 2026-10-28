@@ -170,6 +170,7 @@ describe('nav.config', () => {
     expect(visibleNavItems(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'activity',
+      'regions',
     ]);
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
