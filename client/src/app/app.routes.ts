@@ -128,3 +128,16 @@ export const routes: Routes = [
     children: MODULE_ROUTES,
   },
 ];
+
+/**
+ * Starts downloading the lazy module of the URL the app is opened on while the session and translations load
+ * (start-up runs before the first navigation, so the router would only request it afterwards). The router's own
+ * `import()` later resolves from the module cache. Only modules mounted at their own prefix are warmed. D11.5.3.
+ */
+export function warmInitialRoute(url: string): void {
+  const path = url.split(/[?#]/)[0].replace(/^\/+/, '');
+  const match = MODULE_ROUTES.find(
+    (route) => route.path && (path === route.path || path.startsWith(`${route.path}/`)),
+  );
+  void match?.loadChildren?.();
+}

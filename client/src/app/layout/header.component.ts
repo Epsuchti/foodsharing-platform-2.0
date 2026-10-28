@@ -32,7 +32,11 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     <div class="hdr">
       <fs-brand [link]="session.isAuthenticated() ? '/dashboard' : '/'" />
       @if (chrome() === 'full') {
-        <nav class="hdr__nav" [class.hdr__nav--compact]="compactNav()" [attr.aria-label]="'layout.header.mainNav' | t">
+        <nav
+          class="hdr__nav"
+          [class.hdr__nav--compact]="compactNav()"
+          [attr.aria-label]="'layout.header.mainNav' | t"
+        >
           @for (item of nav.main(); track item.id) {
             <a
               class="hdr__link"
@@ -89,11 +93,17 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       margin: 0 auto;
       padding: 0 var(--fs-gutter);
     }
+    /*
+     * Links never shrink below a 40px target (axe target-size, D11.5.3): with many items (ORGA) the nav scrolls
+     * horizontally instead of squeezing them.
+     */
     .hdr__nav {
       display: none;
       align-items: center;
       gap: 0.25rem;
       min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
     @media (min-width: 48rem) {
       .hdr__nav {
@@ -102,8 +112,12 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     }
     .hdr__link {
       display: inline-flex;
+      flex: none;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
+      min-width: 2.5rem;
+      min-height: 2.5rem;
       padding: 0.5rem 0.8rem;
       border-radius: var(--fs-radius-sm);
       color: var(--fs-text-muted);

@@ -8,9 +8,18 @@
     <meta name="description" content="foodsharing – Lebensmittel retten, gemeinsam." />
     <meta name="theme-color" content="#25834a" />
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
-    <link rel="alternate icon" type="image/x-icon" href="favicon.ico" />
     <link rel="apple-touch-icon" href="icons/icon.svg" />
     <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="preload" href="fonts/openng-icons.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- start-up requests (app.config.ts initializeApp) begin while the scripts download; HttpClient (fetch) reuses them -->
+    <link rel="preload" href="api/auth/session" as="fetch" crossorigin />
+    <link rel="preload" href="api/public/app-info" as="fetch" crossorigin />
+    <!-- Inter is used once it was downloaded on an earlier visit (core/theme/web-font.ts). -->
+    <script>
+      try {
+        if (localStorage.getItem('fs.font') === 'inter') document.documentElement.classList.add('fs-inter');
+      } catch (e) {}
+    </script>
     <!-- Boot spinner: inline styles so it paints before the Angular bundle and the global styles load. -->
     <style>
       html {

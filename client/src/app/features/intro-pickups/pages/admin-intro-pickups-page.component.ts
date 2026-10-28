@@ -12,6 +12,7 @@ import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import {
   GuideBooking,
   GuideBookingPage,
+  GuideStatus,
   GuideSummary,
   GuideSummaryPage,
   IntroPickupAdminService,
@@ -351,7 +352,13 @@ export class AdminIntroPickupsPageComponent {
   protected readonly guidePickOpen = signal(false);
   protected addGuide(user: UserSummary): void {
     this.guidePickOpen.set(false);
-    this.toggling.set({ user, active: false, canManageUsers: false, introPickupCount: 0 });
+    this.toggling.set({
+      user,
+      active: false,
+      status: GuideStatus.Disabled,
+      canManageUsers: false,
+      introPickupCount: 0,
+    });
   }
   protected askEnable(guide: GuideSummary): void {
     this.toggling.set(guide);

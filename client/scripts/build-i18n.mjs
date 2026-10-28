@@ -35,8 +35,10 @@ if (errors.length > 0) {
 
 await mkdir('public/i18n', { recursive: true });
 for (const lang of LANGUAGES) {
+  // Keys missing in a language fall back to German at build time, so the client loads exactly one catalog
+  // (D11.5.3). check-i18n.mjs still fails the build on missing translations.
   const sorted = Object.fromEntries(
-    Object.entries(merged[lang]).sort(([a], [b]) => a.localeCompare(b)),
+    Object.entries({ ...merged.de, ...merged[lang] }).sort(([a], [b]) => a.localeCompare(b)),
   );
   await writeFile(`public/i18n/${lang}.json`, `${JSON.stringify(sorted, null, 2)}\n`);
 }

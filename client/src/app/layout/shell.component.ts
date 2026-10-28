@@ -1,11 +1,23 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  Injector,
+  PLATFORM_ID,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { ConfirmDialog } from '@openng/optimus-ui/confirmdialog';
 import { Toast } from '@openng/optimus-ui/toast';
-import { filter, map } from 'rxjs';
+import { filter, map, take } from 'rxjs';
 
 import { SessionService } from '../core/auth/session.service';
+import { warmWebFont, whenIdle } from '../core/theme/web-font';
 import { JourneyBarComponent } from '../features/onboarding/components/journey-bar.component';
 import { TPipe } from '../core/i18n/t.pipe';
 import { OfflineBannerComponent } from '../shared/offline-banner/offline-banner.component';
@@ -30,6 +42,9 @@ export function chromeOf(root: ActivatedRouteSnapshot | null): ChromeMode {
 }
 
 /** Application frame: request bar, header, offline banner, page, footer, mobile tab bar, toasts, dialogs. */
+/** Delay after the first page rendered (and the browser went idle) before overlays and the web font load. */
+const AFTER_FIRST_PAGE_MS = 1500;
+
 @Component({
   selector: 'fs-shell',
   imports: [
@@ -69,12 +84,15 @@ export function chromeOf(root: ActivatedRouteSnapshot | null): ChromeMode {
     @if (showTabBar()) {
       <fs-mobile-tab-bar />
     }
-    <p-toast position="top-center" [breakpoints]="toastBreakpoints" data-testid="shell.toast" />
-    <p-confirmdialog
-      [style]="{ width: 'min(30rem, calc(100vw - 2rem))' }"
-      data-testid="shell.confirm"
-    />
-    <fs-session-expired-dialog />
+    <!-- overlays load after the first page has rendered: not part of the start-up bundle (D11.5.3) -->
+    @defer (when firstPageShown()) {
+      <p-toast position="top-center" [breakpoints]="toastBreakpoints" data-testid="shell.toast" />
+      <p-confirmdialog
+        [style]="{ width: 'min(30rem, calc(100vw - 2rem))' }"
+        data-testid="shell.confirm"
+      />
+      <fs-session-expired-dialog />
+    }
   `,
   styles: `
     :host {
@@ -85,6 +103,8 @@ export function chromeOf(root: ActivatedRouteSnapshot | null): ChromeMode {
     }
     .shell__main {
       flex: 1 0 auto;
+      /* the footer starts below the fold, so content arriving later never pushes it around (CLS, D11.5.3) */
+      min-height: 100vh;
       width: min(100%, var(--fs-page-max));
       margin: 0 auto;
       padding: clamp(1.25rem, 1rem + 1.5vw, 2.5rem) var(--fs-gutter) 2rem;
@@ -130,4 +150,38 @@ export class ShellComponent {
 
   readonly chrome = computed<ChromeMode>(() => this.navigationEnd());
   readonly showTabBar = computed(() => this.chrome() === 'full' && this.session.isAuthenticated());
+
+  /**
+   * True once the first page has rendered and the browser is idle: the overlays and the web font load then, after
+   * the content the visitor came for (D11.5.3 — they would otherwise share the start-up bandwidth).
+   */
+  protected readonly firstPageShown = signal(false);
+
+  constructor() {
+    const document = inject(DOCUMENT);
+    const injector = inject(Injector);
+    const view = document.defaultView;
+    if (!isPlatformBrowser(inject(PLATFORM_ID)) || !view) {
+      return;
+    }
+    const subscription = this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        take(1),
+      )
+      .subscribe(() =>
+        afterNextRender(
+          () =>
+            // the page's own data usually arrives right after its first render: leave it the bandwidth
+            whenIdle(view, () =>
+              setTimeout(() => {
+                this.firstPageShown.set(true);
+                warmWebFont(document);
+              }, AFTER_FIRST_PAGE_MS),
+            ),
+          { injector },
+        ),
+      );
+    inject(DestroyRef).onDestroy(() => subscription.unsubscribe());
+  }
 }
