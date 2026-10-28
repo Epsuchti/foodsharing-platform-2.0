@@ -253,5 +253,10 @@
   "stores.delete.confirmTitle": "{name} lösche?",
   "stores.delete.confirmText": "De Betrieb und sini Pinnwand verschwinded für alli. S Betriebsprotokoll bliibt.",
   "stores.delete.reason": "Grund (gaht as Team)",
-  "stores.delete.done": "Betrieb glöscht."
+  "stores.delete.done": "Betrieb glöscht.",
+  "stores.tab.chat": "Chat",
+  "stores.chat.none": "Du hesch kei Zuegang zu de Chats vo däm Betrieb.",
+  "stores.chat.channel": "Chat uswähle",
+  "stores.chat.team": "Team",
+  "stores.chat.jumper": "Springer:inne"
 }

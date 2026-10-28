@@ -221,5 +221,9 @@
   "shared.weekday.THURSDAY": "Dunschtig",
   "shared.weekday.FRIDAY": "Friitig",
   "shared.weekday.SATURDAY": "Samschtig",
-  "shared.weekday.SUNDAY": "Sunntig"
+  "shared.weekday.SUNDAY": "Sunntig",
+  "shared.userPicker.label": "Person sueche",
+  "shared.userPicker.placeholder": "Mindestens 2 Buechstabe vom Name",
+  "shared.userPicker.noMatch": "Niemer gfunde",
+  "shared.userPicker.add": "Hinzuefüege"
 }

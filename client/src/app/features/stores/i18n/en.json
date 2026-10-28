@@ -253,5 +253,10 @@
   "stores.delete.confirmTitle": "Delete {name}?",
   "stores.delete.confirmText": "The store and its wall disappear for everyone. The store log is kept.",
   "stores.delete.reason": "Reason (sent to the team)",
-  "stores.delete.done": "Store deleted."
+  "stores.delete.done": "Store deleted.",
+  "stores.tab.chat": "Chat",
+  "stores.chat.none": "You have no access to this store's chats.",
+  "stores.chat.channel": "Choose chat",
+  "stores.chat.team": "Team",
+  "stores.chat.jumper": "Jumpers"
 }

@@ -105,8 +105,8 @@ describe('ShellComponent', () => {
     expect(byTestId('nav.tab.menu')).not.toBeNull();
     // M3: pickups tab for verified foodsavers
     expect(byTestId('nav.tab.pickups')).not.toBeNull();
-    // later milestones: declared but hidden
-    expect(byTestId('nav.tab.messages')).toBeNull();
+    // M5: messages
+    expect(byTestId('nav.tab.messages')).not.toBeNull();
   });
 
   it('hides navigation, footer and tab bar on minimal-chrome routes', async () => {
@@ -176,6 +176,7 @@ describe('nav.config', () => {
     expect(visibleNavItems(context()).map((item) => item.id)).toEqual(['home']);
     expect(visibleNavItems(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
+      'messages',
       'activity',
       'regions',
       'quizzes',
@@ -185,6 +186,7 @@ describe('nav.config', () => {
     ).toEqual(['account']);
     expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
+      'messages',
       'activity',
       'account',
     ]);

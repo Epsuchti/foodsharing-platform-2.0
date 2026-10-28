@@ -20,6 +20,8 @@ import { SessionService } from '../core/auth/session.service';
 import { warmWebFont, whenIdle } from '../core/theme/web-font';
 import { JourneyBarComponent } from '../features/onboarding/components/journey-bar.component';
 import { TPipe } from '../core/i18n/t.pipe';
+import { RealtimeService } from '../core/realtime/realtime.service';
+import { RealtimeStatusComponent } from '../core/realtime/realtime-status.component';
 import { OfflineBannerComponent } from '../shared/offline-banner/offline-banner.component';
 import { SessionExpiredDialogComponent } from '../shared/session-expired-dialog/session-expired-dialog.component';
 import { FooterComponent } from './footer.component';
@@ -59,6 +61,7 @@ const AFTER_FIRST_PAGE_MS = 1500;
     SessionExpiredDialogComponent,
     TPipe,
     Toast,
+    RealtimeStatusComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -75,6 +78,7 @@ const AFTER_FIRST_PAGE_MS = 1500;
       <fs-header [chrome]="chrome()"><fs-journey-bar fsJourneyBar /></fs-header>
     }
     <fs-offline-banner />
+    <fs-realtime-status />
     <main id="main-content" class="shell__main" tabindex="-1">
       <router-outlet />
     </main>
@@ -158,6 +162,8 @@ export class ShellComponent {
   protected readonly firstPageShown = signal(false);
 
   constructor() {
+    // the realtime connection follows the session (connects on login, closes on logout; A32)
+    inject(RealtimeService);
     const document = inject(DOCUMENT);
     const injector = inject(Injector);
     const view = document.defaultView;

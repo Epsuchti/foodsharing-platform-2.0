@@ -125,9 +125,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.messages',
     icon: 'pi pi-comments',
     route: '/messages',
-    visible: notYet,
+    visible: loggedIn,
     mobileTab: true,
-  }, // M4
+  }, // M5
   {
     id: 'bells',
     labelKey: 'nav.bells',

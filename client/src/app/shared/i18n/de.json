@@ -221,5 +221,9 @@
   "shared.weekday.THURSDAY": "Donnerstag",
   "shared.weekday.FRIDAY": "Freitag",
   "shared.weekday.SATURDAY": "Samstag",
-  "shared.weekday.SUNDAY": "Sonntag"
+  "shared.weekday.SUNDAY": "Sonntag",
+  "shared.userPicker.label": "Person suchen",
+  "shared.userPicker.placeholder": "Mindestens 2 Buchstaben des Namens",
+  "shared.userPicker.noMatch": "Niemand gefunden",
+  "shared.userPicker.add": "Hinzufügen"
 }

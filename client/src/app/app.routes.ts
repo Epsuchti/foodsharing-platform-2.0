@@ -112,6 +112,10 @@ const MODULE_ROUTES: Routes = [
       ),
   },
   {
+    path: 'messages',
+    loadChildren: () => import('./features/messaging/messaging.routes').then((m) => m.MESSAGING_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

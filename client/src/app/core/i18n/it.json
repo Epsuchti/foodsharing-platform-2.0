@@ -388,5 +388,6 @@
   "nav.stores": "Negozi",
   "nav.storeChains": "Catene di negozi",
   "nav.storeCategories": "Categorie di negozi",
-  "common.metaDescription": "foodsharing – salvare cibo, insieme. Ritira cibo nei negozi, condividilo e diventa foodsaver nella tua regione."
+  "common.metaDescription": "foodsharing – salvare cibo, insieme. Ritira cibo nei negozi, condividilo e diventa foodsaver nella tua regione.",
+  "common.realtime.reconnecting": "Riconnessione in corso …"
 }

@@ -198,3 +198,15 @@ export {
   type SeedPickup,
   type SeedStore,
 } from './stores';
+export {
+  CONVERSATIONS,
+  bubbles,
+  getConversation,
+  listItem,
+  lookupConversation,
+  realtimeEventTypes,
+  sendMessage,
+  waitForRealtime,
+  type ChatMessage,
+  type ConversationSummary,
+} from './messaging';

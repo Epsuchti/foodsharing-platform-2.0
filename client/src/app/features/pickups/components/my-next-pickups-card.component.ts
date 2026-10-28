@@ -34,7 +34,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
                   <a [routerLink]="['/stores', pickup.store.id, 'pickups']">{{ pickup.store.name }}</a>
                   <span class="when">{{ pickup.pickupAt | fsDate: 'dateTime' }}</span>
                   @if (!pickup.confirmed) {
-                    <i class="pi pi-hourglass wait" [attr.aria-label]="'pickups.tab.waiting' | t"></i>
+                    <i class="pi pi-hourglass wait" role="img" [attr.aria-label]="'pickups.tab.waiting' | t"></i>
                   }
                 </li>
               }

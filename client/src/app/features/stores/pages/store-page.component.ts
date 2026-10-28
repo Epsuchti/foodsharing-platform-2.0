@@ -23,7 +23,7 @@ interface StoreTab {
 }
 
 /** Tabs whose page exists (F2 overview; F3 team; F4 pickups; F5 wall, log, statistics). */
-export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 'wall', 'statistics', 'log']);
+export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 'wall', 'statistics', 'log', 'chat']);
 
 /**
  * /stores/:storeId (S1, S15, S16): header with name, region, badges, navigation and contact buttons, the tab
@@ -182,6 +182,8 @@ export class StorePageComponent {
       { id: 'wall', icon: 'pi pi-comments', visible: p.mayReadWall },
       { id: 'statistics', icon: 'pi pi-chart-bar', visible: p.mayAccess },
       { id: 'log', icon: 'pi pi-history', visible: p.maySeeStoreLog },
+      // M5 S10: locked team / jumper chat
+      { id: 'chat', icon: 'pi pi-comment', visible: p.mayChatTeam || p.mayChatJumper },
     ];
     return tabs.filter((tab) => tab.visible && STORE_TABS_READY.has(tab.id));
   });

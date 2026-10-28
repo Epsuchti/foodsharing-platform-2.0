@@ -30,9 +30,9 @@ test.describe('logged in', () => {
     // The dev gallery lives in the footer, not in the main navigation.
     await expect(page.getByTestId('nav.gallery')).toHaveCount(0);
     await expect(page.getByTestId('nav.footer.gallery')).toBeVisible();
-    // M3: pickups for verified foodsavers; features of later milestones stay hidden.
+    // M3: pickups for verified foodsavers; M5: messages.
     await expect(page.getByTestId('nav.pickups')).toBeVisible();
-    await expect(page.getByTestId('nav.messages')).toHaveCount(0);
+    await expect(page.getByTestId('nav.messages')).toHaveAttribute('href', '/messages');
     // Desktop has no tab bar; the user menu sits in the header.
     await expect(page.getByTestId('shell.tabBar')).toBeHidden();
     await expect(page.getByTestId('shell.userMenu')).toBeVisible();
@@ -101,9 +101,10 @@ test.describe('logged in', () => {
     await expect(drawer).toBeHidden();
     await expect.poll(() => path(page)).toBe('/me/activity');
     await expect(dashboardTab).not.toHaveAttribute('aria-current', 'page');
-    // Activity and the account are tabs of their own (M1 has no pickups/messages yet).
+    // Four tabs (dashboard, pickups, messages, activity); the account moved into the menu drawer (M5).
     await expect(page.getByTestId('nav.tab.activity')).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByTestId('nav.tab.account')).toHaveAttribute('href', '/account');
+    await expect(page.getByTestId('nav.tab.messages')).toHaveAttribute('href', '/messages');
+    await expect(page.getByTestId('nav.tab.account')).toHaveCount(0);
     // No horizontal overflow on a phone (it would widen the layout viewport and move the fixed tab bar).
     await expect(page.getByTestId('history.myActivity.list')).toHaveAttribute('data-state', 'success');
     await expect
