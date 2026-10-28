@@ -19,6 +19,10 @@ public interface StorePickupInfo {
     record MemberStats(int pickupCount, Instant firstPickupAt, Instant lastPickupAt) {
     }
 
+    /** A confirmed sign-up (store statistics). */
+    record PastSignup(UUID userId, Instant pickupAt) {
+    }
+
     Map<UUID, SlotInfo> slotInfo(Collection<UUID> storeIds);
 
     Map<UUID, MemberStats> memberStats(UUID storeId);
@@ -28,4 +32,9 @@ public interface StorePickupInfo {
 
     /** Did the store ever have a sign-up (delete guard)? */
     boolean hasSignups(UUID storeId);
+
+    /** Confirmed sign-ups of the store with {@code from <= pickupAt < to}. */
+    default java.util.List<PastSignup> confirmedSignups(UUID storeId, Instant from, Instant to) {
+        return java.util.List.of();
+    }
 }

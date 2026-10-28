@@ -101,6 +101,12 @@ public class UserService {
         return regionIds.isEmpty() ? List.of() : repository.findByHomeRegionIdInAndActiveTrue(regionIds);
     }
 
+    /** Active users with exactly this role (e.g. ORGA as the last bell fallback). */
+    @Transactional(readOnly = true)
+    public List<User> findActiveByRole(Role role) {
+        return repository.findByRoleAndActiveTrue(role);
+    }
+
     /** @throws ApiException 404 USER_NOT_FOUND (also returns inactive users; callers check permissions) */
     @Transactional(readOnly = true)
     public User require(UUID userId) {

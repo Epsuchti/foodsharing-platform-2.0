@@ -286,4 +286,39 @@ public class StoreMapper {
                 convert(p.getTeamStatus(), network.foodsharing.store.domain.TeamSearchStatus.class),
                 p.getSpecialNotes(), p.getDescription(), p.getRegionId(), null, p.getReason());
     }
+
+    public network.foodsharing.api.model.WallPost toWallPost(network.foodsharing.store.service.StoreWallService.PostView v) {
+        network.foodsharing.api.model.WallPost model = new network.foodsharing.api.model.WallPost();
+        model.setId(v.post().getId());
+        model.setAuthor(v.author() == null ? null : users.toSummary(v.author()));
+        model.setText(v.post().getText());
+        model.setMilestone(network.foodsharing.api.model.WallMilestone.valueOf(v.post().getMilestone().name()));
+        model.setCreatedAt(network.foodsharing.common.mapper.TimeMapper.toOffset(v.post().getCreatedAt()));
+        model.setMayDelete(v.mayDelete());
+        return model;
+    }
+
+    public network.foodsharing.api.model.StoreStatistics toStatistics(
+            network.foodsharing.store.service.StoreStatisticsService.Statistics s) {
+        network.foodsharing.api.model.StoreStatistics model = new network.foodsharing.api.model.StoreStatistics();
+        model.setTotalPickups(s.totalPickups());
+        model.setTotalKg(s.totalKg());
+        model.setWeightCategory(weight(s.weightCategory()));
+        model.setMonths(s.months().stream().map(m -> {
+            network.foodsharing.api.model.StoreStatisticsMonth month = new network.foodsharing.api.model.StoreStatisticsMonth();
+            month.setMonth(m.month().toString());
+            month.setPickups(m.pickups());
+            month.setKg(m.kg());
+            return month;
+        }).toList());
+        if (s.perMember() != null) {
+            model.setPerMember(s.perMember().stream().map(m -> {
+                network.foodsharing.api.model.StoreMemberPickups row = new network.foodsharing.api.model.StoreMemberPickups();
+                row.setUser(users.toSummary(m.user()));
+                row.setPickups(m.pickups());
+                return row;
+            }).toList());
+        }
+        return model;
+    }
 }

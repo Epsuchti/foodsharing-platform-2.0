@@ -113,4 +113,10 @@ public class StorePickupInfoImpl implements StorePickupInfo {
     public boolean hasSignups(UUID storeId) {
         return signups.existsByStoreId(storeId);
     }
+
+    @Override
+    public List<PastSignup> confirmedSignups(UUID storeId, Instant from, Instant to) {
+        return signups.findConfirmedInStores(List.of(storeId), from, to).stream()
+                .map(s -> new PastSignup(s.getUserId(), s.getPickupAt())).toList();
+    }
 }

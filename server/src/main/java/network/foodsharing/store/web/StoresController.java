@@ -25,13 +25,16 @@ import network.foodsharing.api.model.TeamSearchStatus;
 import network.foodsharing.api.model.WallPost;
 import network.foodsharing.api.model.WallPostCreate;
 import network.foodsharing.api.model.WallPostPage;
-import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.mapper.TimeMapper;
+import network.foodsharing.history.mapper.HistoryMapper;
+import network.foodsharing.store.service.StoreLogService;
+import network.foodsharing.store.service.StoreStatisticsService;
+import network.foodsharing.store.service.StoreWallService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Store API (B2, B6).
- * Operations answer 501 NOT_IMPLEMENTED until their task implements them (docs/plan-m3.md).
  */
 @RestController
 public class StoresController implements StoresApi {
@@ -39,16 +42,26 @@ public class StoresController implements StoresApi {
     private final StoreService stores;
     private final StoreQueryService queries;
     private final StoreMapper mapper;
+    private final StoreWallService wall;
+    private final StoreLogService log;
+    private final StoreStatisticsService statistics;
+    private final HistoryMapper historyMapper;
 
-    public StoresController(StoreService stores, StoreQueryService queries, StoreMapper mapper) {
+    public StoresController(StoreService stores, StoreQueryService queries, StoreMapper mapper, StoreWallService wall,
+                            StoreLogService log, StoreStatisticsService statistics, HistoryMapper historyMapper) {
         this.stores = stores;
         this.queries = queries;
         this.mapper = mapper;
+        this.wall = wall;
+        this.log = log;
+        this.statistics = statistics;
+        this.historyMapper = historyMapper;
     }
 
     @Override
     public ResponseEntity<WallPost> addWallPost(UUID storeId, WallPostCreate wallPostCreate) {
-        throw ApiException.notImplemented("addWallPost");
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toWallPost(wall.post(storeId,
+                wallPostCreate == null ? null : wallPostCreate.getText())));
     }
 
     @Override
@@ -59,12 +72,14 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<Void> deleteStore(UUID storeId, ReasonBody reasonBody) {
-        throw ApiException.notImplemented("deleteStore");
+        stores.delete(storeId, reasonBody == null ? null : reasonBody.getReason());
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteWallPost(UUID postId, UUID storeId) {
-        throw ApiException.notImplemented("deleteWallPost");
+        wall.delete(storeId, postId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -74,7 +89,8 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<HistoryEntryPage> getStoreLog(UUID storeId, OffsetDateTime from, OffsetDateTime to, List<String> actions, Integer page, Integer size) {
-        throw ApiException.notImplemented("getStoreLog");
+        return ResponseEntity.ok(historyMapper.toPage(log.list(storeId, TimeMapper.toInstant(from),
+                TimeMapper.toInstant(to), actions, page, size)));
     }
 
     @Override
@@ -89,7 +105,7 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<StoreStatistics> getStoreStatistics(UUID storeId, LocalDate from, LocalDate to) {
-        throw ApiException.notImplemented("getStoreStatistics");
+        return ResponseEntity.ok(mapper.toStatistics(statistics.statistics(storeId, from, to)));
     }
 
     @Override
@@ -111,7 +127,11 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<WallPostPage> listWallPosts(UUID storeId, Integer page, Integer size) {
-        throw ApiException.notImplemented("listWallPosts");
+        var result = wall.list(storeId, page, size);
+        WallPostPage model = new WallPostPage();
+        model.setItems(result.getContent().stream().map(mapper::toWallPost).toList());
+        model.setPage(PageMapper.toPageMeta(result));
+        return ResponseEntity.ok(model);
     }
 
     @Override

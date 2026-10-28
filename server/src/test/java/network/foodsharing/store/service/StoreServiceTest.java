@@ -65,6 +65,8 @@ class StoreServiceTest {
     CurrentActorService currentActor = mock(CurrentActorService.class);
     HistoryService history = mock(HistoryService.class, RETURNS_DEEP_STUBS);
     List<Object> published = new ArrayList<>();
+    StorePickupInfo pickupInfo = mock(StorePickupInfo.class);
+    StoreWallService wall = mock(StoreWallService.class);
     StoreService service;
     Store store;
 
@@ -73,7 +75,8 @@ class StoreServiceTest {
         service = new StoreService(stores, memberships, mock(StoreCategoryRepository.class),
                 mock(StoreChainRepository.class), mock(GroceryRepository.class), mock(StoreGroceryRepository.class),
                 mock(PickupWeightCategoryRepository.class), rights, regions, resolver, users, currentActor, history,
-                published::add, new AppProperties(), Clock.fixed(NOW, ZoneOffset.UTC));
+                published::add, new AppProperties(), Clock.fixed(NOW, ZoneOffset.UTC), provider(pickupInfo),
+                provider(wall));
         store = new Store();
         store.setId(STORE);
         store.setName("Coop");
@@ -214,6 +217,59 @@ class StoreServiceTest {
                 null, (CooperationStatus) v.get("cooperationStatus"), null, null, null, null, null, null, null, null,
                 null, null, null, (Integer) v.get("prefetchDays"), (Boolean) v.get("useRegionPickupRule"), null, null,
                 null, null, (TeamSearchStatus) v.get("teamStatus"), null, null, (UUID) v.get("regionId"), null, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> org.springframework.beans.factory.ObjectProvider<T> provider(T bean) {
+        org.springframework.beans.factory.ObjectProvider<T> p = mock(org.springframework.beans.factory.ObjectProvider.class);
+        when(p.getObject()).thenReturn(bean);
+        return p;
+    }
+
+    static StorePermissionService.Rights deleteRights(boolean mayDelete) {
+        return new StorePermissionService.Rights(true, true, true, false, true, true, true, true, true, true, true,
+                true, true, mayDelete, false, true, true, false, false, false, mayDelete, UserTeamStatus.NO_MEMBER);
+    }
+
+    @Test
+    void deleteNeedsCoordination() {
+        when(rights.rights(any(), any())).thenReturn(deleteRights(false));
+        assertThat(codeOf(() -> service.delete(STORE, null))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(store.getDeletedAt()).isNull();
+    }
+
+    @Test
+    void deleteRefusedWhenTheStoreEverHadSignups() {
+        when(rights.rights(any(), any())).thenReturn(deleteRights(true));
+        when(pickupInfo.hasSignups(STORE)).thenReturn(true);
+        assertThat(codeOf(() -> service.delete(STORE, null))).isEqualTo(ApiErrorCode.STORE_HAS_PICKUPS);
+        assertThat(store.getDeletedAt()).isNull();
+        verify(wall, never()).deleteAllOf(any(), any());
+    }
+
+    @Test
+    void deleteArchivesStoreLogsAndNotifiesTeamJumpersApplicants() {
+        when(rights.rights(any(), any())).thenReturn(deleteRights(true));
+        User member = user("m");
+        User jumper = user("j");
+        User applicant = user("a");
+        User invited = user("i");
+        StoreMembership mj = membership(jumper);
+        mj.setStatus(StoreMembershipStatus.JUMPER);
+        StoreMembership ma = membership(applicant);
+        ma.setStatus(StoreMembershipStatus.APPLIED);
+        StoreMembership mi = membership(invited);
+        mi.setStatus(StoreMembershipStatus.INVITED);
+        when(memberships.findByStoreId(STORE)).thenReturn(List.of(membership(member), mj, ma, mi));
+        service.delete(STORE, " closed ");
+        assertThat(store.getDeletedAt()).isEqualTo(NOW);
+        verify(wall).deleteAllOf(any(), any());
+        verify(history).event(StoreLogAction.DELETE_STORE, STORE);
+        var send = published.stream().filter(StoreNotifications.Send.class::isInstance)
+                .map(StoreNotifications.Send.class::cast).findFirst().orElseThrow();
+        assertThat(send.request().type()).isEqualTo(network.foodsharing.notification.domain.NotificationType.STORE_DELETED);
+        assertThat(send.request().recipientIds()).containsExactlyInAnyOrder(member.getId(), jumper.getId(),
+                applicant.getId());
     }
 
     static StorePermissionService.Rights rights(boolean edit) {
