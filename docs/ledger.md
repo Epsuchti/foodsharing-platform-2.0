@@ -95,7 +95,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | Q1 | Quizzes: Foodsaver, Store manager, Ambassador, Hygiene, Foodsharer, Saving food, Reports (and French foodsaver quiz variant → all quizzes in all five languages) | done | quiz module (T13) | /quizzes | q1-quizzes @Q1 | quiz.screen.ts |  |
 | Q2 | Quiz sessions: timed & untimed questions, mandatory questions, failure points, results with explanations and wiki links, confirmation; wait/disqualification rules; hygiene expiry; practice/test mode | done | QuizSessionService rules | /quizzes/:kind/session, results | q2-session @Q2 | quiz.screen.ts | wait/disqualify/hygiene expiry/practice covered |
 | Q3 | Quiz editor for quiz AG: quiz settings (max failure points, question counts), questions (duration, wiki link, mandatory), answers with rating and explanation, question comments | done | quiz editor API | /quizzes/edit | q3-editor @Q3 | quiz.screen.ts |  |
-| Ve1 | Legal agreement and privacy policy (versioned, re-consent on change), store manager confidentiality agreement | todo | | | | | |
+| Ve1 | Legal agreement and privacy policy (versioned, re-consent on change), store manager confidentiality agreement | done | legal module (T14) | /legal/:kind, /admin/legal, /consent | ve1-consent @Ve1 | legal.screen.ts |  |
 | Ve2 | Verify / unverify users with required message, verification history, identity confirmation | todo | | | | | |
 | Ve3 | Passport: PDF (single and batch per region), pass requests, pass history, last pass date, Apple/Google Wallet, bell/mail on creation optional; layout approved by our admins | todo | | | | | |
 | AC1 | Achievements: region and global, name, description, icon, validity in days, visibility (hidden / private / store managers / scope / global), duplicate mode; award/revoke; hygiene certificate auto-awarded; KAM certificate | todo | | | | | |
@@ -103,7 +103,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | G2 | Mediation requests (shows mediation team contact) | todo | | | | | |
 | G3 | Moderation: thread activation, hidden posts, moderation log | todo | | | | | |
 | G4 | User ratings / feedback | todo | | | | | |
-| C1 | CMS content pages in five languages (vision, team, partners, press, foodsharing cities, demands, transparency, education, communities, FAQ, privacy, imprint, learning pages) | todo | | | | | |
+| C1 | CMS content pages in five languages (vision, team, partners, press, foodsharing cities, demands, transparency, education, communities, FAQ, privacy, imprint, learning pages) | in-progress | content module (T14) | /pages/:slug, /learn, /admin/content | c1-content @C1 | content.screen.ts | learning + editor done; all public CMS pages in M6 B11 |
 | C2 | Blog: create, edit, publish/unpublish, delete, per region, teaser, picture | todo | | | | | |
 | C3 | Public statistics (kg saved, pickups, foodsavers, stores, cooperations, FSPs, baskets) with animated counter | todo | | | | | |
 | C4 | Release notes / "what's new" | todo | | | | | |
@@ -122,7 +122,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | EA1 | Region landing page with region picker; landing guard sends logged-in users to their home region | todo | | | | | |
 | EA2 | Public page of available EinAb slots per region (public location only), notification subscription widget | todo | | | | | |
 | EA3 | "What is my Foodsharing ID" help page with screenshot | todo | | | | | |
-| EA4 | Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | in-progress | magic link + consent API (M2 contract) | features/legal consent page | a2-login, ea4-consent @EA4 | legal.screen.ts | login + consent done; phone prompt in M2 T18/T22 |
+| EA4 | Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | done | magic link + consent API | login, /consent with phone prompt | a2-login, ea4-consent @EA4 | legal.screen.ts |  |
 | EA5 | Booking rules per region: max active bookings (default 3), no duplicate guide, no duplicate category, Fairteiler visit required by 3rd EinAb, ignored categories | todo | | | | | |
 | EA6 | EinAb categories: supermarket, takeout, market, bakery, restaurant, Fairteiler cleaning, Messe, Grossabholung, online | todo | | | | | |
 | EA7 | My bookings, cancel booking | todo | | | | | |
