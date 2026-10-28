@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import network.foodsharing.activity.domain.ActivityType;
 import network.foodsharing.security.CurrentActorService;
+import network.foodsharing.user.service.ActivityContribution;
 import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -46,9 +47,11 @@ public class ActivityFeedService {
     private final UserService users;
     private final Clock clock;
 
-    public ActivityFeedService(List<ActivitySource> sources, CurrentActorService actors, UserService users,
-                               Clock clock) {
-        this.sources = sources;
+    public ActivityFeedService(List<ActivitySource> sources, List<ActivityContribution> contributions,
+                               CurrentActorService actors, UserService users, Clock clock) {
+        List<ActivitySource> all = new ArrayList<>(sources);
+        contributions.forEach(c -> all.add(adapt(c)));
+        this.sources = List.copyOf(all);
         this.actors = actors;
         this.users = users;
         this.clock = clock;
@@ -67,6 +70,23 @@ public class ActivityFeedService {
             }
         });
         return merge(sources, excluded, userId, clock.instant(), p, s);
+    }
+
+    /** Wraps a contribution of a module the activity module may not depend on (A38) as a source. */
+    static ActivitySource adapt(ActivityContribution contribution) {
+        ActivityType type = ActivityType.valueOf(contribution.type());
+        return new ActivitySource() {
+            @Override
+            public ActivityType type() {
+                return type;
+            }
+
+            @Override
+            public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
+                return contribution.latest(userId, before, limit).stream().map(i -> new ActivityItem(type, i.at(),
+                        i.title(), excerpt(i.text()), i.link(), i.authorId(), i.sourceId(), i.sourceName())).toList();
+            }
+        };
     }
 
     /** Merges the sources newest first and slices one page. */

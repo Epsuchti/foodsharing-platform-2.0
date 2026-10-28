@@ -655,14 +655,22 @@ BookingCountedUpdate:
       type: string
       maxLength: 500
 
+GuideStatus:
+  type: string
+  description: 'ACTIVE = may give EinAbs; PAUSED = may give EinAbs but is in sleep mode; DISABLED = guide right revoked or account inactive.'
+  enum: [ACTIVE, PAUSED, DISABLED]
+
 GuideSummary:
   type: object
-  required: [user, active, canManageUsers, introPickupCount]
+  required: [user, active, status, canManageUsers, introPickupCount]
   properties:
     user:
       $ref: './users.yaml#/UserSummary'
     active:
       type: boolean
+      description: 'Holds CAN_GIVE_INTRO_PICKUPS and the account is active (also true while PAUSED).'
+    status:
+      $ref: './intro-pickups.yaml#/GuideStatus'
     canManageUsers:
       type: boolean
     introPickupCount:
@@ -695,6 +703,14 @@ GuideEnabledUpdate:
     reason:
       type: string
       maxLength: 500
+
+GuideAdminUpdate:
+  type: object
+  required: [admin]
+  properties:
+    admin:
+      type: boolean
+      description: 'true grants CAN_MANAGE_USERS in the region, false revokes it.'
 
 PastImportRequest:
   type: object

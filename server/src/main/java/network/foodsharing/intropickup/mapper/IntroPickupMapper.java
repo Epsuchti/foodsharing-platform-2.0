@@ -314,6 +314,7 @@ public class IntroPickupMapper {
         GuideSummary model = new GuideSummary();
         model.setUser(users.toSummary(view.user()));
         model.setActive(view.active());
+        model.setStatus(network.foodsharing.api.model.GuideStatus.valueOf(view.status().name()));
         model.setCanManageUsers(view.canManageUsers());
         model.setIntroPickupCount(view.introPickupCount());
         model.setLastIntroPickupAt(toOffset(view.lastIntroPickupAt()));

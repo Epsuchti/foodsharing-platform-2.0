@@ -27,7 +27,8 @@ import org.springframework.stereotype.Service;
 /**
  * Reads the guide's own foodsharing calendar (reference {@code IcalImportService}) to offer pickups as EinAb
  * candidates. SSRF-safe: https only, allowed hosts (and their subdomains) only, no user info, port 443, redirects are
- * not followed, 2 MB cap. Failures yield an empty list.
+ * not followed, 2 MB cap. Failures yield an empty list. In local/e2e the app's own base URL is allowed as well
+ * ({@code app.intropickup.ical-allow-own-base-url}, EA16); production keeps the https/443 host list only.
  */
 @Service
 public class IcalImportService {
@@ -61,7 +62,36 @@ public class IcalImportService {
     }
 
     public boolean isAllowedLink(String link) {
-        return isAllowedLink(link, properties.getIntropickup().getIcalAllowedHosts());
+        return isAllowedLink(link, properties.getIntropickup().getIcalAllowedHosts())
+                || (properties.getIntropickup().isIcalAllowOwnBaseUrl()
+                    && isOwnOrigin(link, properties.getBaseUrl()));
+    }
+
+    /**
+     * local/e2e only ({@code app.intropickup.ical-allow-own-base-url}): same scheme, host and port as the app's own
+     * base URL and no user info, so the dev iCal fixture can be imported end to end (EA16).
+     */
+    public static boolean isOwnOrigin(String link, String baseUrl) {
+        if (link == null || link.isBlank() || baseUrl == null || baseUrl.isBlank()) {
+            return false;
+        }
+        try {
+            URI uri = new URI(link.trim());
+            URI base = new URI(baseUrl.trim());
+            return uri.getHost() != null && uri.getUserInfo() == null && base.getScheme() != null
+                    && ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
+                    && uri.getScheme().equalsIgnoreCase(base.getScheme())
+                    && uri.getHost().equalsIgnoreCase(base.getHost()) && port(uri) == port(base);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static int port(URI uri) {
+        if (uri.getPort() != -1) {
+            return uri.getPort();
+        }
+        return "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
     }
 
     /** https, an allowed host or a subdomain of one, no user info, default port. */

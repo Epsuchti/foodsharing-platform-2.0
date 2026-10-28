@@ -1,0 +1,8 @@
+Hello [(${displayName})],
+
+your report about [(${reportedName})] has reached the report team. The team handles it confidentially.
+
+Your message:
+[(${message})]
+
+Your foodsharing team

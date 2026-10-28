@@ -26,6 +26,8 @@ public enum IntroPickupAction implements HistoryAction {
     GUIDE_PROFILE_UPDATED,
     GUIDE_ENABLED,
     GUIDE_DISABLED,
+    GUIDE_ADMIN_GRANTED,
+    GUIDE_ADMIN_REVOKED,
     SUBSCRIBED,
     UNSUBSCRIBED,
     STORE_ALIAS_CHANGED;

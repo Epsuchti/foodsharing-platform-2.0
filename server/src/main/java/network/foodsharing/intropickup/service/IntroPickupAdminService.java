@@ -12,6 +12,7 @@ import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.history.service.HistoryService;
+import network.foodsharing.intropickup.domain.GuideStatus;
 import network.foodsharing.intropickup.domain.IntroPickup;
 import network.foodsharing.intropickup.domain.IntroPickupAction;
 import network.foodsharing.intropickup.domain.IntroPickupCategory;
@@ -47,8 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class IntroPickupAdminService {
 
-    public record GuideSummaryView(User user, boolean active, boolean canManageUsers, int introPickupCount,
-                                   Instant lastIntroPickupAt, Instant nextIntroPickupAt) {
+    public record GuideSummaryView(User user, boolean active, GuideStatus status, boolean canManageUsers,
+                                   int introPickupCount, Instant lastIntroPickupAt, Instant nextIntroPickupAt) {
     }
 
     public record HistoricalInput(IntroPickupCategory category, Instant startAt, String businessName,
@@ -260,7 +261,10 @@ public class IntroPickupAdminService {
         return new CommentView(comment, currentActor.requireUser());
     }
 
-    /** Guides of the region: current holders of CAN_GIVE_INTRO_PICKUPS and everybody who gave EinAbs here. */
+    /**
+     * Guides of the region: current holders of CAN_GIVE_INTRO_PICKUPS, everybody who gave EinAbs here and guides that
+     * were disabled here (status ACTIVE / PAUSED / DISABLED, EA17).
+     */
     @Transactional(readOnly = true)
     public Page<GuideSummaryView> guides(UUID regionId, Integer page, Integer size) {
         requireAdmin(regionId);
@@ -269,6 +273,7 @@ public class IntroPickupAdminService {
         List<IntroPickup> all = pickups.findByRegion(regionId);
         Set<UUID> ids = new HashSet<>(active);
         all.forEach(p -> ids.add(p.getGuideId()));
+        ids.addAll(history.subjectsWithAction(IntroPickupAction.GUIDE_DISABLED, regionId));
         Map<UUID, List<IntroPickup>> byGuide = new HashMap<>();
         all.forEach(p -> byGuide.computeIfAbsent(p.getGuideId(), id -> new ArrayList<>()).add(p));
         Instant now = views.now();
@@ -278,9 +283,11 @@ public class IntroPickupAdminService {
                     .max(Comparator.naturalOrder()).orElse(null);
             Instant next = own.stream().map(IntroPickup::getStartAt).filter(t -> !t.isBefore(now))
                     .min(Comparator.naturalOrder()).orElse(null);
-            return new GuideSummaryView(user, user.isActive() && active.contains(user.getId()),
+            boolean guide = user.isActive() && active.contains(user.getId());
+            return new GuideSummaryView(user, guide,
+                    GuideStatus.of(user.isActive(), active.contains(user.getId()), users.isSleeping(user)),
                     managers.contains(user.getId()), own.size(), last, next);
-        }).sorted(Comparator.comparing(GuideSummaryView::active).reversed()
+        }).sorted(Comparator.comparing(GuideSummaryView::status)
                 .thenComparing(v -> v.user().getDisplayName(), String.CASE_INSENSITIVE_ORDER)).toList();
         return IntroPickupViews.page(result, page, size);
     }
@@ -305,11 +312,45 @@ public class IntroPickupAdminService {
         history.record(history.event(enabled ? IntroPickupAction.GUIDE_ENABLED : IntroPickupAction.GUIDE_DISABLED,
                         userId).secondarySubject(userId).region(regionId)
                 .reason(reason == null || reason.isBlank() ? null : reason.strip()).build());
+        return summary(regionId, user);
+    }
+
+    /**
+     * Grants / revokes admin rights (CAN_MANAGE_USERS) of a guide in the region, as the reference app does for
+     * teachers. Only region administrators (ambassadors, ORGA) may change it (the region grant rule).
+     *
+     * @throws ApiException 404 REGION_NOT_FOUND / USER_NOT_FOUND, 403 ACCESS_DENIED, 409 NOT_REGION_MEMBER
+     */
+    @Transactional
+    public GuideSummaryView setGuideAdmin(UUID regionId, UUID userId, boolean admin) {
+        regions.require(regionId);
+        permissions.requireMayAdministrateRegion(currentActor.requirePrincipal(), regionId);
+        User user = users.require(userId);
+        if (admin && !resolver.isMember(userId, regionId)) {
+            throw ApiException.conflict(ApiErrorCode.NOT_REGION_MEMBER);
+        }
+        boolean had = resolver.hasRegionPermission(userId, Permission.CAN_MANAGE_USERS, regionId);
+        if (admin) {
+            members.grant(regionId, userId, Permission.CAN_MANAGE_USERS);
+        } else {
+            members.revoke(regionId, userId, Permission.CAN_MANAGE_USERS);
+        }
+        if (had != admin) {
+            history.record(history.event(admin ? IntroPickupAction.GUIDE_ADMIN_GRANTED
+                    : IntroPickupAction.GUIDE_ADMIN_REVOKED, userId).secondarySubject(userId).region(regionId)
+                    .build());
+        }
+        return summary(regionId, user);
+    }
+
+    private GuideSummaryView summary(UUID regionId, User user) {
+        UUID userId = user.getId();
         List<IntroPickup> own = pickups.findByRegion(regionId).stream()
                 .filter(p -> p.getGuideId().equals(userId)).toList();
         Instant now = views.now();
-        return new GuideSummaryView(user,
-                user.isActive() && resolver.hasRegionPermission(userId, Permission.CAN_GIVE_INTRO_PICKUPS, regionId),
+        boolean mayGive = resolver.hasRegionPermission(userId, Permission.CAN_GIVE_INTRO_PICKUPS, regionId);
+        return new GuideSummaryView(user, user.isActive() && mayGive,
+                GuideStatus.of(user.isActive(), mayGive, users.isSleeping(user)),
                 resolver.hasRegionPermission(userId, Permission.CAN_MANAGE_USERS, regionId), own.size(),
                 own.stream().map(IntroPickup::getStartAt).filter(t -> t.isBefore(now)).max(Comparator.naturalOrder())
                         .orElse(null),

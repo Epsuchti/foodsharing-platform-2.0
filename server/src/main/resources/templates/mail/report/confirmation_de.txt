@@ -1,0 +1,8 @@
+Hallo [(${displayName})],
+
+deine Meldung über [(${reportedName})] ist beim Meldeteam eingegangen. Das Team bearbeitet sie vertraulich.
+
+Deine Nachricht:
+[(${message})]
+
+Dein foodsharing-Team

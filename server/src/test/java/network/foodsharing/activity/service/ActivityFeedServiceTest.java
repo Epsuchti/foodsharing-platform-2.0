@@ -46,6 +46,33 @@ class ActivityFeedServiceTest {
     }
 
     @Test
+    void contributionsOfOtherModulesBecomeSourcesOfTheirType() {
+        UUID owner = UUID.randomUUID();
+        var contribution = new network.foodsharing.user.service.ActivityContribution() {
+            @Override
+            public String type() {
+                return "BUDDY_WALL";
+            }
+
+            @Override
+            public List<Item> latest(UUID userId, Instant before, int limit) {
+                return List.of(new Item(Instant.parse("2026-10-22T10:00:00Z"), "Buddy", " hi\n there ",
+                        "/profile/" + owner, owner, owner, "Buddy"));
+            }
+        };
+        ActivitySource source = ActivityFeedService.adapt(contribution);
+        assertThat(source.type()).isEqualTo(ActivityType.BUDDY_WALL);
+        var page = ActivityFeedService.merge(List.of(source), Set.of(), UUID.randomUUID(),
+                Instant.parse("2026-10-28T00:00:00Z"), 0, 10);
+        assertThat(page.getContent()).singleElement().satisfies(item -> {
+            assertThat(item.excerpt()).isEqualTo("hi there");
+            assertThat(item.link()).isEqualTo("/profile/" + owner);
+        });
+        assertThat(ActivityFeedService.merge(List.of(source), Set.of(ActivityType.BUDDY_WALL), UUID.randomUUID(),
+                Instant.parse("2026-10-28T00:00:00Z"), 0, 10).getContent()).isEmpty();
+    }
+
+    @Test
     void excerptsAreFlattenedAndCut() {
         assertThat(ActivityFeedService.excerpt(" a\n\n b ")).isEqualTo("a b");
         assertThat(ActivityFeedService.excerpt("x".repeat(400))).hasSize(300);

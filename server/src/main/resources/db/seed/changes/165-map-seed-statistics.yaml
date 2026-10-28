@@ -1,0 +1,19 @@
+# Milestone 6 (B7): region statistics of Zürich Stadt recomputed with the store, FSP and basket contributors (R13).
+databaseChangeLog:
+  - changeSet:
+      id: seed-165-1
+      author: platform
+      context: seed
+      comment: 'Zürich Stadt statistics as RegionStatisticsService.refresh computes them on the seed.'
+      changes:
+        - update:
+            tableName: region_statistics
+            columns:
+              - column: {name: active_home_region_foodsavers, valueNumeric: 8}
+              - column: {name: active_cooperations, valueNumeric: 16}
+              - column: {name: pickups_last_month, valueNumeric: 28}
+              - column: {name: saved_food_weight_last_month, valueNumeric: 356}
+              - column: {name: active_food_share_points, valueNumeric: 4}
+              - column: {name: food_baskets_last_month, valueNumeric: 12}
+              - column: {name: member_count, valueNumeric: 12}
+            where: "region_id = '00000010-0001-4000-8000-000000000040'"
