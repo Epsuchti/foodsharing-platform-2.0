@@ -1,6 +1,7 @@
 package network.foodsharing.user.service;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +22,8 @@ import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.domain.ContactVisibility;
+import network.foodsharing.user.domain.SleepRules;
+import network.foodsharing.user.domain.SleepStatus;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.domain.UserAction;
 import network.foodsharing.user.repository.UserRepository;
@@ -32,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 /** The user module's API for other modules. */
 @Service
 public class UserService {
+
+    private static final java.time.ZoneId ZURICH = java.time.ZoneId.of("Europe/Zurich");
 
     private static final String REDACTED = "***";
 
@@ -245,6 +250,79 @@ public class UserService {
             user.setHomeRegionId(regionId);
         }
         return user;
+    }
+
+    /** Is the user sleeping today (A39, Europe/Zurich calendar day)? */
+    public boolean isSleeping(User user) {
+        return user.isSleeping(today());
+    }
+
+    /** Today in Europe/Zurich (sleep mode, statistics). */
+    public LocalDate today() {
+        return LocalDate.ofInstant(clock.instant(), ZURICH);
+    }
+
+    /**
+     * Sets the current user's sleep mode (A39). NONE and FULL clear the dates; TEMPORARY needs
+     * {@code from ≤ until} and {@code until ≥ today}. Records SLEEP_MODE_CHANGED when something changed.
+     *
+     * @throws ApiException 400 SLEEP_DATES_INVALID
+     */
+    @Transactional
+    public User updateSleepMode(SleepStatus status, LocalDate from, LocalDate until, String message) {
+        User user = getCurrentForUpdate();
+        if (!SleepRules.validDates(status, from, until, today())) {
+            throw ApiException.badRequest(ApiErrorCode.SLEEP_DATES_INVALID);
+        }
+        LocalDate newFrom = status == SleepStatus.TEMPORARY ? from : null;
+        LocalDate newUntil = status == SleepStatus.TEMPORARY ? until : null;
+        String newMessage = message == null || message.isBlank() ? null : message.strip();
+        if (user.getSleepStatus() == status && Objects.equals(user.getSleepFrom(), newFrom)
+                && Objects.equals(user.getSleepUntil(), newUntil) && Objects.equals(user.getSleepMessage(), newMessage)) {
+            return user;
+        }
+        history.record(history.event(UserAction.SLEEP_MODE_CHANGED, user.getId())
+                .change("sleepStatus", user.getSleepStatus(), status)
+                .change("sleepFrom", user.getSleepFrom(), newFrom)
+                .change("sleepUntil", user.getSleepUntil(), newUntil).build());
+        user.setSleepStatus(status);
+        user.setSleepFrom(newFrom);
+        user.setSleepUntil(newUntil);
+        user.setSleepMessage(newMessage);
+        return user;
+    }
+
+    /** Maintenance (A39): TEMPORARY sleep modes whose period ended go back to NONE (actor SYSTEM). */
+    @Transactional
+    public int wakeUpExpiredSleepers() {
+        LocalDate today = today();
+        int woken = 0;
+        for (User user : repository.findBySleepStatus(SleepStatus.TEMPORARY)) {
+            if (SleepRules.expired(user.getSleepStatus(), user.getSleepUntil(), today)) {
+                history.record(history.event(UserAction.SLEEP_MODE_CHANGED, user.getId())
+                        .change("sleepStatus", user.getSleepStatus(), SleepStatus.NONE).reason("sleep period ended")
+                        .build());
+                user.setSleepStatus(SleepStatus.NONE);
+                user.setSleepFrom(null);
+                user.setSleepUntil(null);
+                woken++;
+            }
+        }
+        return woken;
+    }
+
+    /** Keeps the banana and buddy counters of the profile statistics in sync (profile module). */
+    @Transactional
+    @NoHistory(reason = "derived counters; the profile module records BANANA_* / BUDDY_* for the change itself")
+    public void setCommunityCounts(UUID userId, Integer bananaCount, Integer buddyCount) {
+        repository.findById(userId).ifPresent(user -> {
+            if (bananaCount != null) {
+                user.setStatBananaCount(bananaCount);
+            }
+            if (buddyCount != null) {
+                user.setStatBuddyCount(buddyCount);
+            }
+        });
     }
 
     /** May the current user see this user's phone numbers (PUBLIC visibility, self, or administrators)? */

@@ -47,6 +47,17 @@ public class PickupStatsIntegrations {
         };
     }
 
+    /** Confirmed pickup sign-ups for the profile commitments (A6). */
+    @Bean
+    network.foodsharing.user.service.CommitmentSource pickupCommitments(PickupSignupRepository signups) {
+        return (userId, from, to) -> signups
+                .findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAt(userId, from, to).stream()
+                .filter(PickupSignup::isConfirmed)
+                .map(s -> new network.foodsharing.user.service.CommitmentSource.Commitment(
+                        network.foodsharing.user.service.CommitmentSource.Kind.PICKUP, s.getPickupAt()))
+                .toList();
+    }
+
     @Bean
     GroupRequirementContributor pickupGroupRequirements(MemberPickupStats stats) {
         return new GroupRequirementContributor() {

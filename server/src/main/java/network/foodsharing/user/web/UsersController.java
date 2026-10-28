@@ -146,6 +146,9 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<UserSummary> updateSleepMode(SleepModeUpdate sleepModeUpdate) {
-        throw ApiException.notImplemented("updateSleepMode");
+        User user = userService.updateSleepMode(
+                network.foodsharing.user.domain.SleepStatus.valueOf(sleepModeUpdate.getStatus().name()),
+                sleepModeUpdate.getFrom(), sleepModeUpdate.getUntil(), sleepModeUpdate.getMessage());
+        return ResponseEntity.ok(mapper.toSummary(user, true));
     }
 }

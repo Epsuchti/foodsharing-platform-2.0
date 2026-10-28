@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByIdIn(Collection<UUID> ids);
 
+    List<User> findBySleepStatus(network.foodsharing.user.domain.SleepStatus status);
+
     List<User> findByFoodsaverNumberIn(Collection<Long> numbers);
 
     long countByVerifiedTrueAndActiveTrue();

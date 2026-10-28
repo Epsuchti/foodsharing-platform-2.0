@@ -20,10 +20,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    private final ObjectProvider<RegionDirectory> regionDirectory;
+    private static final java.time.ZoneId ZURICH = java.time.ZoneId.of("Europe/Zurich");
 
-    public UserMapper(ObjectProvider<RegionDirectory> regionDirectory) {
+    private final ObjectProvider<RegionDirectory> regionDirectory;
+    private final java.time.Clock clock;
+
+    public UserMapper(ObjectProvider<RegionDirectory> regionDirectory, java.time.Clock clock) {
         this.regionDirectory = regionDirectory;
+        this.clock = clock;
+    }
+
+    /** Sleeping today (A39, Europe/Zurich). */
+    public boolean isSleeping(User user) {
+        return user.isSleeping(java.time.LocalDate.ofInstant(clock.instant(), ZURICH));
     }
 
     public UserProfile toProfile(User user) {
@@ -67,6 +76,12 @@ public class UserMapper {
         profile.setNewsletterOptIn(user.isNewsletterOptIn());
         profile.setIdentityConfirmedAt(TimeMapper.toOffset(user.getIdentityConfirmedAt()));
         profile.setLastPassportAt(TimeMapper.toOffset(user.getLastPassportAt()));
+        profile.setInfoMailMessage(user.isInfoMailMessage());
+        profile.setMentionNotifications(user.isMentionNotifications());
+        profile.setSleepStatus(network.foodsharing.api.model.SleepStatus.fromValue(user.getSleepStatus().name()));
+        profile.setSleepFrom(user.getSleepFrom());
+        profile.setSleepUntil(user.getSleepUntil());
+        profile.setSleepMessage(user.getSleepMessage());
         return profile;
     }
 
@@ -86,8 +101,13 @@ public class UserMapper {
         summary.setVerified(user.isVerified());
         summary.setFoodsaverNumber(user.getFoodsaverNumber());
         summary.setHomeRegion(regionRef(user.getHomeRegionId()));
+        boolean sleeping = isSleeping(user);
+        summary.setSleepMode(sleeping);
         if (withPhone) {
             summary.setPhone(user.getMobilePhone());
+            if (sleeping) {
+                summary.setSleepMessage(user.getSleepMessage());
+            }
         }
         return summary;
     }

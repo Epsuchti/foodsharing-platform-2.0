@@ -75,7 +75,9 @@ class ModulesTest {
                 java.util.Map.entry("search", java.util.Set.of("user", "region", "store", "forum", "fsp", "event", "poll", "mailbox", "history", "admin")),
                 java.util.Map.entry("resource", java.util.Set.of("user", "region", "notification", "history", "upload", "admin")),
                 java.util.Map.entry("support", java.util.Set.of("user", "notification", "upload", "history", "admin")),
-                java.util.Map.entry("oauthserver", java.util.Set.of("user", "region", "auth", "history", "admin")));
+                java.util.Map.entry("oauthserver", java.util.Set.of("user", "region", "auth", "history", "admin")),
+                java.util.Map.entry("profile", java.util.Set.of("user", "region", "store", "pickup", "notification",
+                        "history")));
         java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
         allowed.forEach((name, permitted) -> {
             ApplicationModule module = modules.getModuleByName(name).orElseThrow();
@@ -83,9 +85,11 @@ class ModulesTest {
                     .filter(dependency -> !shared.contains(dependency)).toList())
                     .as(name).allMatch(permitted::contains);
         });
-        ApplicationModule activity = modules.getModuleByName("activity").orElseThrow();
-        modules.stream().forEach(module -> assertThat(module.getDirectDependencies(modules).contains(activity))
-                .as(module.getName() + " → activity").isFalse());
+        for (String leaf : new String[] {"activity", "profile"}) {
+            ApplicationModule leafModule = modules.getModuleByName(leaf).orElseThrow();
+            modules.stream().forEach(module -> assertThat(module.getDirectDependencies(modules).contains(leafModule))
+                    .as(module.getName() + " → " + leaf).isFalse());
+        }
     }
 
     @Test

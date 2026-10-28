@@ -186,6 +186,57 @@ public class User extends BaseEntity implements HistorySubject {
     @Column(name = "beta_tester", nullable = false)
     private boolean betaTester;
 
+    /** Sleep mode (A39). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sleep_status", nullable = false, length = 40)
+    private SleepStatus sleepStatus = SleepStatus.NONE;
+
+    @Column(name = "sleep_from")
+    private LocalDate sleepFrom;
+
+    @Column(name = "sleep_until")
+    private LocalDate sleepUntil;
+
+    @Column(name = "sleep_message", length = 1000)
+    private String sleepMessage;
+
+    /** Profile photo upload (B3); {@link #avatarUrl} points at its md variant. */
+    @Column(name = "photo_upload_id")
+    private UUID photoUploadId;
+
+    /** Dashboard activity filters (A19), comma separated; null = defaults. */
+    @Column(name = "activity_filters", length = 400)
+    private String activityFilters;
+
+    @Column(name = "mention_notifications", nullable = false)
+    private boolean mentionNotifications = true;
+
+    @Column(name = "stat_pickup_count", nullable = false)
+    private int statPickupCount;
+
+    @Column(name = "stat_kg_saved", nullable = false)
+    private double statKgSaved;
+
+    @Column(name = "stat_post_count", nullable = false)
+    private int statPostCount;
+
+    @Column(name = "stat_banana_count", nullable = false)
+    private int statBananaCount;
+
+    @Column(name = "stat_buddy_count", nullable = false)
+    private int statBuddyCount;
+
+    @Column(name = "stat_baskets_shared", nullable = false)
+    private int statBasketsShared;
+
+    @Column(name = "stat_updated_at")
+    private Instant statUpdatedAt;
+
+    /** Sleeping today (A39): FULL, or TEMPORARY with from ≤ today ≤ until (open ends allowed). */
+    public boolean isSleeping(LocalDate today) {
+        return SleepRules.isSleeping(sleepStatus, sleepFrom, sleepUntil, today);
+    }
+
     @Override
     public SubjectType historySubjectType() {
         return SubjectType.USER;

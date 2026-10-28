@@ -23,9 +23,13 @@ public class RegionMaintenanceJob implements RunnableJob {
 
     private final MembershipService memberships;
 
-    public RegionMaintenanceJob(JobRunner jobRunner, MembershipService memberships) {
+    private final network.foodsharing.user.service.UserService users;
+
+    public RegionMaintenanceJob(JobRunner jobRunner, MembershipService memberships,
+                                network.foodsharing.user.service.UserService users) {
         this.jobRunner = jobRunner;
         this.memberships = memberships;
+        this.users = users;
     }
 
     @Scheduled(cron = "${app.region.maintenance-cron}", zone = "Europe/Zurich")
@@ -44,6 +48,10 @@ public class RegionMaintenanceJob implements RunnableJob {
         int added = memberships.addMissingAncestorMemberships();
         if (added > 0) {
             log.info("Region maintenance added {} parent memberships", added);
+        }
+        int woken = users.wakeUpExpiredSleepers();
+        if (woken > 0) {
+            log.info("Region maintenance ended {} temporary sleep modes", woken);
         }
     }
 }

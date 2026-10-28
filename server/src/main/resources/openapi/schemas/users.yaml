@@ -97,6 +97,16 @@ UserProfile:
     mentionNotifications:
       type: boolean
       description: 'Bell on @mentions in the forum.'
+    sleepStatus:
+      $ref: './users.yaml#/SleepStatus'
+    sleepFrom:
+      type: string
+      format: date
+    sleepUntil:
+      type: string
+      format: date
+    sleepMessage:
+      type: string
 
 UserSettingsUpdate:
   type: object
@@ -154,7 +164,7 @@ UserSummary:
     homeRegion:
       $ref: './regions.yaml#/RegionRef'
     sleepMode:
-      description: 'True while the user is sleeping (A39: FULL, or TEMPORARY within from..until). Null until M6 B2.'
+      description: 'True while the user is sleeping (A39: FULL, or TEMPORARY within from..until).'
       type: boolean
     sleepMessage:
       description: 'Sleep message; only for viewers who may see contact details.'

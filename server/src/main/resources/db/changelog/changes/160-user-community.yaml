@@ -1,0 +1,101 @@
+# Milestone 6 (B2): sleep mode, profile statistics, bananas (upstream fs_rating), buddies (fs_buddy) and the
+# profile wall (fs_profile_has_wallpost); A39, A42, G4.
+databaseChangeLog:
+  - changeSet:
+      id: 160-1
+      author: platform
+      comment: 'Sleep mode (A39), photo, activity filters, mention toggle and profile statistics on user_account.'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: sleep_status, type: VARCHAR(40), defaultValue: NONE, constraints: {nullable: false}}
+              - column: {name: sleep_from, type: DATE}
+              - column: {name: sleep_until, type: DATE}
+              - column: {name: sleep_message, type: VARCHAR(1000)}
+              - column: {name: photo_upload_id, type: UUID}
+              - column: {name: activity_filters, type: VARCHAR(400)}
+              - column: {name: mention_notifications, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: stat_pickup_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stat_kg_saved, type: DOUBLE, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stat_post_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stat_banana_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stat_buddy_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stat_baskets_shared, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stat_updated_at, type: TIMESTAMP WITH TIME ZONE}
+  - changeSet:
+      id: 160-2
+      author: platform
+      comment: 'Trust bananas (upstream fs_rating); one per sender and recipient.'
+      changes:
+        - createTable:
+            tableName: rating
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_rating, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: recipient_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_rating_recipient_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: sender_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_rating_sender_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: message, type: VARCHAR(5000), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: rating
+            columnNames: recipient_id, sender_id
+            constraintName: uq_rating_recipient_sender
+        - createIndex:
+            tableName: rating
+            indexName: ix_rating_sender
+            columns:
+              - column: {name: sender_id}
+  - changeSet:
+      id: 160-3
+      author: platform
+      comment: 'Buddies (upstream fs_buddy): one row per direction; CONFIRMED in both directions once accepted.'
+      changes:
+        - createTable:
+            tableName: buddy
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_buddy, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_buddy_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: buddy_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_buddy_buddy_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: status, type: VARCHAR(40), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: buddy
+            columnNames: user_id, buddy_id
+            constraintName: uq_buddy_user_buddy
+        - createIndex:
+            tableName: buddy
+            indexName: ix_buddy_buddy
+            columns:
+              - column: {name: buddy_id}
+  - changeSet:
+      id: 160-4
+      author: platform
+      comment: 'Profile wall (upstream fs_profile_has_wallpost, A42).'
+      changes:
+        - createTable:
+            tableName: user_wall_post
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_user_wall_post, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_user_wall_post_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_user_wall_post_author_id, references: user_account(id)}}
+              - column: {name: body, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: user_wall_post
+            indexName: ix_user_wall_post_user
+            columns:
+              - column: {name: user_id}
+              - column: {name: created_at}

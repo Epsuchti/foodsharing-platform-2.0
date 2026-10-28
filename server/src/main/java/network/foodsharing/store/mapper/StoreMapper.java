@@ -246,7 +246,7 @@ public class StoreMapper {
         model.setLastPickupAt(toOffset(m.stats().lastPickupAt()));
         model.setAddedAt(toOffset(m.membership().getAddedAt()));
         model.setDistanceKm(m.distanceKm());
-        model.setSleeping(false);
+        model.setSleeping(users.isSleeping(m.user()));
         return model;
     }
 
