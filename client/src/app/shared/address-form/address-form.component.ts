@@ -92,8 +92,9 @@ export function addressFormGroup(): AddressFormGroup {
   `,
   styles: `
     :host { display: grid; gap: 1rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem 1rem; }
-    .field { display: grid; gap: 0.35rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); gap: 0.75rem 1rem; }
+    .field { display: grid; gap: 0.35rem; min-width: 0; }
+    .field input { width: 100%; min-width: 0; }
     .field--wide { grid-column: 1 / -1; }
     .field > label { font-weight: 600; font-size: 0.9rem; }
     .position { display: grid; gap: 0.5rem; }
