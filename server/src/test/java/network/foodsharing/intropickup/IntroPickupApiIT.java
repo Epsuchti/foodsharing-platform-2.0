@@ -196,7 +196,27 @@ class IntroPickupApiIT {
         mvc.perform(get("/api/guide/regions").cookie(foodsaver)).andExpect(jsonPath("$[0].id").value(ZURICH));
         mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.FOODSAVER.id() + "/enabled")
                         .cookie(bot), "{\"enabled\":false,\"reason\":\"Pause\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(false));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(false))
+                .andExpect(jsonPath("$.status").value("DISABLED"));
+        // EA17: disabled guides stay in the list with their status
+        mvc.perform(get("/api/regions/" + ZURICH + "/admin/guides").cookie(bot))
+                .andExpect(jsonPath("$.items[?(@.user.id == '" + SeedUsers.FOODSAVER.id() + "')].status")
+                        .value("DISABLED"))
+                .andExpect(jsonPath("$.items[?(@.user.id == '" + SeedUsers.GUIDE.id() + "')].status")
+                        .value("ACTIVE"));
+        // EA17: region administrators grant / revoke admin rights (CAN_MANAGE_USERS) of a guide
+        String guideAdmin = "/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.GUIDE.id() + "/admin";
+        mvc.perform(json(put(guideAdmin).cookie(foodsaver), "{\"admin\":true}")).andExpect(status().isForbidden());
+        mvc.perform(json(put(guideAdmin).cookie(bot), "{\"admin\":true}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.canManageUsers").value(true));
+        mvc.perform(get("/api/regions/" + ZURICH + "/admin/guides").cookie(guide)).andExpect(status().isOk());
+        mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.FOODSAVER.id() + "/admin")
+                .cookie(guide), "{\"admin\":true}")).andExpect(status().isForbidden());
+        mvc.perform(json(put(guideAdmin).cookie(bot), "{\"admin\":false}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.canManageUsers").value(false));
+        mvc.perform(get("/api/regions/" + ZURICH + "/admin/guides").cookie(guide)).andExpect(status().isForbidden());
+        mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + java.util.UUID.randomUUID() + "/admin")
+                .cookie(bot), "{\"admin\":true}")).andExpect(status().isNotFound());
 
         String csv = "﻿ID;Datum;No.;Betrieb;Kategorie;EinAb-Geber;FT-Besuch;Feedback\n"
                 + "100004;01.09.2026;1;babus;Bäckerei;Anna;nein;\"Gut\ngemacht\"\n"

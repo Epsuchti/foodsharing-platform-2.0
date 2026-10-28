@@ -47,6 +47,12 @@ public class HistoryService {
         this.objectMapper = objectMapper;
     }
 
+    /** Distinct subject ids that ever got {@code action} in the region (lookup for the owning module). */
+    @Transactional(readOnly = true)
+    public java.util.Set<UUID> subjectsWithAction(HistoryAction action, UUID regionId) {
+        return new java.util.LinkedHashSet<>(repository.subjectIds(action.subjectType(), action.code(), regionId));
+    }
+
     /** Starts an event; actor = signed-in user, or SYSTEM when there is none. */
     public HistoryEvent.Builder event(HistoryAction action, UUID subjectId) {
         HistoryEvent.Builder builder = HistoryEvent.builder(action, subjectId);

@@ -458,6 +458,8 @@ paths:
     $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1guides'
   /api/regions/{regionId}/admin/guides/{userId}/enabled:
     $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1guides~1{userId}~1enabled'
+  /api/regions/{regionId}/admin/guides/{userId}/admin:
+    $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1guides~1{userId}~1admin'
   /api/regions/{regionId}/admin/past-import/preview:
     $ref: './paths/intro-pickup-admin.yaml#/~1api~1regions~1{regionId}~1admin~1past-import~1preview'
   /api/regions/{regionId}/admin/past-import/confirm:

@@ -36,6 +36,29 @@ class IcalServicesTest {
     }
 
     @Test
+    void ownBaseUrlOnlyWhenEnabledForLocalAndE2e() {
+        network.foodsharing.config.AppProperties props = new network.foodsharing.config.AppProperties();
+        props.setBaseUrl("http://localhost:8081");
+        props.getIntropickup().setIcalAllowedHosts(new java.util.ArrayList<>(List.of("foodsharing.network",
+                "foodsharing.de", "localhost")));
+        IcalImportService service = new IcalImportService(props, java.time.Clock.fixed(NOW, java.time.ZoneOffset.UTC));
+        String fixture = "http://localhost:8081/api/dev/fixtures/ical";
+        // prod default: the SSRF rules are unchanged (https, port 443, allowed hosts only)
+        assertThat(service.isAllowedLink(fixture)).isFalse();
+        assertThat(service.isAllowedLink("https://foodsharing.network/api/ical/x")).isTrue();
+        props.getIntropickup().setIcalAllowOwnBaseUrl(true);
+        assertThat(service.isAllowedLink(fixture)).isTrue();
+        assertThat(service.isAllowedLink("http://localhost:8080/api/dev/fixtures/ical")).isFalse();
+        assertThat(service.isAllowedLink("https://localhost:8081/x")).isFalse();
+        assertThat(service.isAllowedLink("http://user@localhost:8081/x")).isFalse();
+        assertThat(service.isAllowedLink("http://127.0.0.1:8081/x")).isFalse();
+        assertThat(service.isAllowedLink("http://localhost.evil.com:8081/x")).isFalse();
+        assertThat(IcalImportService.isOwnOrigin("https://app.example/x.ics", "https://app.example")).isTrue();
+        assertThat(IcalImportService.isOwnOrigin("file://app.example/x", "https://app.example")).isFalse();
+        assertThat(IcalImportService.isOwnOrigin("http://app.example/x", null)).isFalse();
+    }
+
+    @Test
     void parsesFutureEventsWithFoldedLinesAndEscapes() throws IOException {
         String feed = "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20261105T170000Z\r\nDTEND:20261105T180000Z\r\n"
                 + "SUMMARY:Abholung Coop\\, Stauffacher\r\nLOCATION;LANGUAGE=de:Badener\r\n strasse 1\r\nEND:VEVENT\r\n"

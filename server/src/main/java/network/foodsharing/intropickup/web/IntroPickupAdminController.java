@@ -130,6 +130,13 @@ public class IntroPickupAdminController implements IntroPickupAdminApi {
     }
 
     @Override
+    public ResponseEntity<GuideSummary> setGuideAdmin(UUID regionId, UUID userId,
+                                                      network.foodsharing.api.model.GuideAdminUpdate update) {
+        return ResponseEntity.ok(mapper.toGuideSummary(admin.setGuideAdmin(regionId, userId,
+                Boolean.TRUE.equals(update.getAdmin()))));
+    }
+
+    @Override
     public ResponseEntity<GuideSummary> setGuideEnabled(UUID regionId, UUID userId, GuideEnabledUpdate update) {
         return ResponseEntity.ok(mapper.toGuideSummary(admin.setGuideEnabled(regionId, userId,
                 Boolean.TRUE.equals(update.getEnabled()), update.getReason())));
