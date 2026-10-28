@@ -23,5 +23,8 @@
   "dashboard.page.roleHint.AMBASSADOR": "As an ambassador you look after your region and help new foodsavers get started.",
   "dashboard.page.roleHint.ORGA": "As part of the orga team you have access to all regions and the platform administration.",
   "dashboard.page.admin.title": "Administration",
-  "dashboard.page.admin.text": "Soon you’ll manage your region’s members, verification and newcomers right here."
+  "dashboard.page.admin.text": "Soon you’ll manage your region’s members, verification and newcomers right here.",
+  "dashboard.page.journey.eyebrow": "Your next step",
+  "dashboard.page.journey.title": "Your journey",
+  "dashboard.page.journey.open": "See the whole journey"
 }

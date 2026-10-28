@@ -40,7 +40,7 @@ const notYet = () => false;
  */
 export const M2_PAGES_READY = {
   regions: true,
-  onboarding: false,
+  onboarding: true,
   quizzes: true,
   introPickups: true,
   passport: true,

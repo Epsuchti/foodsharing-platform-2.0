@@ -25,12 +25,13 @@ describe('learning progress (C1, journey step LEARN)', () => {
     expect(learningProgress({ complete: true, steps: [], extraSteps: [] }, KEYS)).toBeUndefined();
   });
 
-  it('takes the next chapter from the next action and treats earlier chapters as read', () => {
+  it('takes the next chapter from the next action and the read ones from details.readChapters', () => {
     const progress = learningProgress(
       journey({
         status: JourneyStepStatus.InProgress,
         progress: { done: 2, booked: 0, required: 4 },
         nextAction: { labelKey: 'x', route: '/learn/pickup' },
+        details: { readChapters: ['rules', 'hygiene'] },
       }),
       KEYS,
     )!;
@@ -45,7 +46,7 @@ describe('learning progress (C1, journey step LEARN)', () => {
     ]);
   });
 
-  it('uses the listed read chapters when the server sends them', () => {
+  it('does not assume in-order reading: only listed chapters are read', () => {
     const progress = learningProgress(
       journey({
         progress: { done: 1, booked: 0, required: 4 },
@@ -69,12 +70,16 @@ describe('learning progress (C1, journey step LEARN)', () => {
     )!;
     expect(locked.nextKey).toBe('rules');
     const lockedRead = learningProgress(
-      journey({ status: JourneyStepStatus.Locked, progress: { done: 1, booked: 0, required: 4 } }),
+      journey({
+        status: JourneyStepStatus.Locked,
+        progress: { done: 1, booked: 0, required: 4 },
+        details: { readChapters: ['hygiene'] },
+      }),
       KEYS,
     )!;
     expect(KEYS.map((key) => chapterState(lockedRead, key))).toEqual([
-      'read',
       'next',
+      'read',
       'open',
       'open',
     ]);

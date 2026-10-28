@@ -8,7 +8,7 @@ export interface LearningProgress {
   optional: boolean;
   /** Key of the first unread chapter (from the step's next action `/learn/<key>`). */
   nextKey?: string;
-  /** Keys of read chapters when the server lists them (`details.readChapters`), otherwise derived where certain. */
+  /** Keys of read chapters as listed by the server (`details.readChapters`); all of them once the step is done. */
   readKeys: ReadonlySet<string>;
 }
 
@@ -28,23 +28,14 @@ export function learningProgress(
   const nextKey = route.startsWith('/learn/')
     ? decodeURIComponent(route.slice('/learn/'.length))
     : undefined;
+  // the server lists the read chapters (details.readChapters); chapters can be read in any order
   const listed = step.details?.['readChapters'];
-  let readKeys: Set<string>;
-  if (Array.isArray(listed)) {
-    readKeys = new Set(listed.filter((key): key is string => typeof key === 'string'));
-  } else if (read >= total && total > 0) {
-    readKeys = new Set(chapterKeys);
-  } else if (nextKey ? read === chapterKeys.indexOf(nextKey) : read > 0) {
-    // chapters are read in order ("mark as read" continues with the next one): the first `read` ones are read.
-    // Without a next action (LOCKED step) this is the best guess until the server lists them (details.readChapters).
-    readKeys = new Set(chapterKeys.slice(0, read));
-  } else {
-    readKeys = new Set();
-  }
   const done = read >= total && total > 0;
-  // a LOCKED step has no next action: continue with the first chapter not known to be read
-  const fallbackNext =
-    readKeys.size === read ? chapterKeys.find((key) => !readKeys.has(key)) : undefined;
+  const readKeys = Array.isArray(listed)
+    ? new Set(listed.filter((key): key is string => typeof key === 'string'))
+    : new Set(done ? chapterKeys : []);
+  // a LOCKED step has no next action: continue with the first unread chapter
+  const fallbackNext = chapterKeys.find((key) => !readKeys.has(key));
   return {
     read,
     total,

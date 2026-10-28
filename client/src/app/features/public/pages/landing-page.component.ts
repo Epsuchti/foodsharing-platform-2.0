@@ -1,13 +1,38 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { GoogleLogoComponent } from '../../../shared/google-logo/google-logo.component';
+import { Explainer, PublicOnboardingService, RegionRef } from '../../../api';
+import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { GoogleLogoComponent } from '../../../shared/google-logo/google-logo.component';
+import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey-stepper.component';
+import { RegionPickerComponent } from '../../../shared/region-picker/region-picker.component';
+import { RegionCardComponent } from '../../onboarding/components/region-card.component';
+import { CountUpComponent } from '../components/count-up.component';
 
-/** M1 placeholder for the public explainer (M2 replaces it): hero + join buttons + three values. */
+/** Google sign-up straight from the landing page: CTA → (fake) Google consent → account (D11.5.1, ≤ 2 clicks). */
+export const GOOGLE_JOIN_URL = '/oauth2/authorization/google?returnUrl=/onboarding';
+
+/** FAQ entries of the explainer (keys `public.explainer.faq.<id>.q/a`). */
+export const EXPLAINER_FAQ = ['what', 'cost', 'time', 'who', 'safe'] as const;
+
+/**
+ * Public explainer (`/`, §11.2): hero with "join with Google", three values, live impact counters, the journey
+ * preview, "find your region" with the region card (ambassadors, next EinAb dates), FAQ and business contact.
+ */
 @Component({
   selector: 'fs-landing-page',
-  imports: [GoogleLogoComponent, RouterLink, TPipe],
+  imports: [
+    ...DATA_STATE_IMPORTS,
+    CountUpComponent,
+    GoogleLogoComponent,
+    JourneyStepperComponent,
+    RegionCardComponent,
+    RegionPickerComponent,
+    RouterLink,
+    TPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="hero" data-testid="public.landing.hero">
@@ -18,8 +43,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         <div class="hero__actions">
           <a
             class="fs-btn fs-btn--lg fs-btn--google hero__btn"
-            routerLink="/login"
-            [queryParams]="{ method: 'google' }"
+            [href]="googleUrl"
             data-testid="public.landing.joinGoogle"
           >
             <fs-google-logo />
@@ -74,6 +98,59 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         <h2>{{ 'public.landing.value3Title' | t }}</h2>
         <p>{{ 'public.landing.value3Text' | t }}</p>
       </article>
+    </section>
+    <fs-data-state [state]="explainer" skeleton="card" [skeletonRows]="2" data-testid="public.explainer.state">
+      <ng-template [fsData]="explainer" let-e>
+        <section class="block" data-testid="public.explainer.counters" aria-labelledby="ex-impact">
+          <h2 id="ex-impact" class="block__title">{{ 'public.explainer.impactTitle' | t }}</h2>
+          <ul class="counters">
+            <li class="counter"><fs-count-up [value]="e.counters.foodsavers" testId="public.explainer.counter.foodsavers" /><span>{{ 'public.explainer.counter.foodsavers' | t }}</span></li>
+            <li class="counter"><fs-count-up [value]="e.counters.regions" testId="public.explainer.counter.regions" /><span>{{ 'public.explainer.counter.regions' | t }}</span></li>
+            <li class="counter"><fs-count-up [value]="e.counters.stores" testId="public.explainer.counter.stores" /><span>{{ 'public.explainer.counter.stores' | t }}</span></li>
+            <li class="counter"><fs-count-up [value]="e.counters.kgSaved" testId="public.explainer.counter.kgSaved" /><span>{{ 'public.explainer.counter.kgSaved' | t }}</span></li>
+          </ul>
+        </section>
+        <section class="block" data-testid="public.explainer.journey" aria-labelledby="ex-journey">
+          <h2 id="ex-journey" class="block__title">{{ 'public.explainer.journeyTitle' | t }}</h2>
+          <p class="block__lead">{{ 'public.explainer.journeyLead' | t }}</p>
+          <fs-journey-stepper mode="preview" [preview]="e.journeyPreview" testId="public.explainer.preview" />
+        </section>
+      </ng-template>
+    </fs-data-state>
+
+    <section class="block" data-testid="public.explainer.region" aria-labelledby="ex-region">
+      <h2 id="ex-region" class="block__title">{{ 'public.explainer.regionTitle' | t }}</h2>
+      <p class="block__lead">{{ 'public.explainer.regionLead' | t }}</p>
+      @defer (on viewport) {
+        <div class="region">
+          <fs-region-picker (regionSelected)="region.set($event)" testId="public.explainer.picker" />
+          @if (region(); as r) {
+            <fs-region-card [regionId]="r.id" testId="public.explainer.regionCard" />
+          }
+        </div>
+      } @placeholder {
+        <div class="region region--placeholder"></div>
+      }
+    </section>
+
+    <section class="block" data-testid="public.explainer.faq" aria-labelledby="ex-faq">
+      <h2 id="ex-faq" class="block__title">{{ 'public.explainer.faqTitle' | t }}</h2>
+      <div class="faq">
+        @for (id of faq; track id) {
+          <details class="faq__item" [attr.data-testid]="'public.explainer.faq.' + id">
+            <summary>{{ 'public.explainer.faq.' + id + '.q' | t }}</summary>
+            <p>{{ 'public.explainer.faq.' + id + '.a' | t }}</p>
+          </details>
+        }
+      </div>
+    </section>
+
+    <section class="block block--contact" data-testid="public.explainer.business" aria-labelledby="ex-business">
+      <h2 id="ex-business" class="block__title">{{ 'public.explainer.businessTitle' | t }}</h2>
+      <p class="block__lead">{{ 'public.explainer.businessText' | t }}</p>
+      <a class="fs-btn fs-btn--outlined" [href]="'mailto:' + businessMail" data-testid="public.explainer.businessMail">
+        <i class="pi pi-envelope" aria-hidden="true"></i>{{ 'public.explainer.businessCta' | t }}
+      </a>
     </section>
   `,
   styles: `
@@ -263,6 +340,90 @@ import { TPipe } from '../../../core/i18n/t.pipe';
       color: var(--fs-primary-strong);
       font-size: 1.2rem;
     }
+    .block {
+      display: grid;
+      gap: 1rem;
+    }
+    .block__title {
+      margin: 0;
+      font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+    }
+    .block__lead {
+      margin: 0;
+      max-width: 46rem;
+      color: var(--fs-text-muted);
+    }
+    .counters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+      gap: 1rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .counter {
+      display: grid;
+      gap: 0.25rem;
+      padding: 1.25rem;
+      border-radius: 1rem;
+      background: var(--fs-primary-soft);
+      color: var(--fs-text);
+    }
+    .counter fs-count-up {
+      color: var(--fs-primary-strong);
+      font-size: clamp(1.8rem, 1.4rem + 1.5vw, 2.6rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .region {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 56rem) {
+      .region {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+    .region--placeholder {
+      min-height: 12rem;
+    }
+    .faq {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .faq__item {
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--fs-border);
+      border-radius: 0.75rem;
+      background: var(--fs-surface);
+    }
+    .faq__item summary {
+      cursor: pointer;
+      font-weight: 650;
+    }
+    .faq__item p {
+      margin: 0.6rem 0 0;
+      color: var(--fs-text-muted);
+    }
+    .block--contact {
+      justify-items: start;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      background: var(--fs-surface-muted);
+    }
   `,
 })
-export class LandingPageComponent {}
+export class LandingPageComponent {
+  private readonly api = inject(PublicOnboardingService);
+
+  protected readonly googleUrl = GOOGLE_JOIN_URL;
+  protected readonly faq = EXPLAINER_FAQ;
+  protected readonly businessMail = 'info@foodsharing.ch';
+  protected readonly region = signal<RegionRef | undefined>(undefined);
+
+  protected readonly explainer = loadResource<Explainer>({
+    loader: () => this.api.getExplainer({}),
+    isEmpty: () => false,
+  });
+}

@@ -6,6 +6,7 @@ import { Toast } from '@openng/optimus-ui/toast';
 import { filter, map } from 'rxjs';
 
 import { SessionService } from '../core/auth/session.service';
+import { JourneyBarComponent } from '../features/onboarding/components/journey-bar.component';
 import { TPipe } from '../core/i18n/t.pipe';
 import { OfflineBannerComponent } from '../shared/offline-banner/offline-banner.component';
 import { SessionExpiredDialogComponent } from '../shared/session-expired-dialog/session-expired-dialog.component';
@@ -35,6 +36,7 @@ export function chromeOf(root: ActivatedRouteSnapshot | null): ChromeMode {
     ConfirmDialog,
     FooterComponent,
     HeaderComponent,
+    JourneyBarComponent,
     MobileTabBarComponent,
     OfflineBannerComponent,
     RequestBarComponent,
@@ -55,7 +57,7 @@ export function chromeOf(root: ActivatedRouteSnapshot | null): ChromeMode {
     }}</a>
     <fs-request-bar />
     @if (chrome() !== 'none') {
-      <fs-header [chrome]="chrome()" />
+      <fs-header [chrome]="chrome()"><fs-journey-bar fsJourneyBar /></fs-header>
     }
     <fs-offline-banner />
     <main id="main-content" class="shell__main" tabindex="-1">
