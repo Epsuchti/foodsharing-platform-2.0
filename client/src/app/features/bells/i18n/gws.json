@@ -77,5 +77,10 @@
   "bell.NEW_RESOURCE": "Neui Ressource verfüegbar",
   "bell.QUIZ_COMMENT": "Neue Kommentar zunere Quizfrog",
   "bell.ADDRESS_CHANGED": "Dini Adrässe isch gänderet worde",
-  "bell.NEW_MESSAGE": "Neui Nachricht"
+  "bell.NEW_MESSAGE": "Neui Nachricht",
+  "bell.MAILBOX_NEW_MAIL": "Neui E-Mail im Postfach",
+  "bell.EVENT_INVITATION": "Iiladig zunere Veranstaltig",
+  "bell.EVENT_UPDATED": "E Veranstaltig isch gänderet worde",
+  "bell.POLL_CANCELLED": "E Abstimmig isch abbroche worde",
+  "bell.SURVEY_SHARED": "E Umfrag isch mit dir teilt worde"
 }

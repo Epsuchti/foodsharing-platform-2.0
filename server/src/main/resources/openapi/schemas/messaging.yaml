@@ -1,0 +1,329 @@
+# messaging (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+ConversationKind:
+  type: string
+  enum:
+    - DIRECT
+    - GROUP
+    - STORE_TEAM
+    - STORE_JUMPER
+    - REGION
+
+RealtimeEventType:
+  type: string
+  description: Realtime envelope types sent to /user/queue/events (docs/conventions.md A32).
+  enum:
+    - CONVERSATION_MESSAGE
+    - CONVERSATION_READ
+    - CONVERSATION_UPDATED
+    - BELL
+    - MAILBOX_MAIL
+    - FORUM_POST
+    - POLL_STATE
+    - PING
+
+RealtimeEvent:
+  type: object
+  description: Envelope of every realtime event (A32).
+  required:
+    - type
+    - at
+  properties:
+    type:
+      $ref: ./messaging.yaml#/RealtimeEventType
+    at:
+      type: string
+      format: date-time
+    payload:
+      type: object
+      additionalProperties: true
+      description: "Type-specific payload (e.g. CONVERSATION_MESSAGE: {conversationId, message: ChatMessage})."
+
+MessagePreview:
+  type: object
+  required:
+    - seq
+    - body
+    - at
+  properties:
+    seq:
+      type: integer
+      format: int64
+    body:
+      type: string
+      maxLength: 300
+    senderId:
+      type: string
+      format: uuid
+      description: Absent = system message ("foodsharing").
+    at:
+      type: string
+      format: date-time
+
+ChatMessage:
+  type: object
+  required:
+    - id
+    - seq
+    - body
+    - sentAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    seq:
+      type: integer
+      format: int64
+    senderId:
+      type: string
+      format: uuid
+      description: Absent = system message ("foodsharing").
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    sentAt:
+      type: string
+      format: date-time
+    clientKey:
+      type: string
+      maxLength: 64
+
+Conversation:
+  type: object
+  required:
+    - id
+    - kind
+    - name
+    - locked
+    - members
+    - memberCount
+    - unreadCount
+    - lastReadSeq
+    - lastSeq
+  properties:
+    id:
+      type: string
+      format: uuid
+    kind:
+      $ref: ./messaging.yaml#/ConversationKind
+    name:
+      type: string
+      description: "Resolved: own name, member names, or store/region chat name."
+    customName:
+      type: string
+      description: Own name of a GROUP conversation, if set.
+    locked:
+      type: boolean
+    members:
+      type: array
+      items:
+        $ref: ./users.yaml#/UserSummary
+      maxItems: 50
+    memberCount:
+      type: integer
+      format: int32
+    lastMessage:
+      $ref: ./messaging.yaml#/MessagePreview
+    lastMessageAt:
+      type: string
+      format: date-time
+    unreadCount:
+      type: integer
+      format: int32
+    lastReadSeq:
+      type: integer
+      format: int64
+    lastSeq:
+      type: integer
+      format: int64
+    storeId:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+
+ConversationDetail:
+  type: object
+  required:
+    - id
+    - kind
+    - name
+    - locked
+    - members
+    - memberCount
+    - unreadCount
+    - lastReadSeq
+    - lastSeq
+    - messages
+  properties:
+    id:
+      type: string
+      format: uuid
+    kind:
+      $ref: ./messaging.yaml#/ConversationKind
+    name:
+      type: string
+      description: "Resolved: own name, member names, or store/region chat name."
+    customName:
+      type: string
+      description: Own name of a GROUP conversation, if set.
+    locked:
+      type: boolean
+    members:
+      type: array
+      items:
+        $ref: ./users.yaml#/UserSummary
+      maxItems: 50
+    memberCount:
+      type: integer
+      format: int32
+    lastMessage:
+      $ref: ./messaging.yaml#/MessagePreview
+    lastMessageAt:
+      type: string
+      format: date-time
+    unreadCount:
+      type: integer
+      format: int32
+    lastReadSeq:
+      type: integer
+      format: int64
+    lastSeq:
+      type: integer
+      format: int64
+    storeId:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    messages:
+      type: array
+      items:
+        $ref: ./messaging.yaml#/ChatMessage
+      description: Latest 30 messages, ascending by seq.
+
+ConversationPage:
+  type: object
+  required:
+    - items
+    - page
+  properties:
+    items:
+      type: array
+      items:
+        $ref: ./messaging.yaml#/Conversation
+    page:
+      $ref: ./common.yaml#/PageMeta
+
+ConversationUnreadCount:
+  type: object
+  required:
+    - conversations
+    - messages
+  properties:
+    conversations:
+      type: integer
+      format: int32
+    messages:
+      type: integer
+      format: int32
+
+ConversationLookup:
+  type: object
+  required:
+    - memberIds
+  properties:
+    memberIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      maxItems: 99
+      description: Other members (the caller is added).
+
+ConversationCreate:
+  type: object
+  required:
+    - memberIds
+  properties:
+    memberIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      maxItems: 99
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+
+ConversationRename:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      minLength: 0
+      maxLength: 200
+      description: Empty = remove the name.
+
+MessageCreate:
+  type: object
+  required:
+    - body
+  properties:
+    body:
+      type: string
+      minLength: 1
+      maxLength: 10000
+    clientKey:
+      type: string
+      minLength: 1
+      maxLength: 64
+      description: "Idempotency key: resending returns the stored message."
+
+ConversationReadUpdate:
+  type: object
+  properties:
+    lastReadSeq:
+      type: integer
+      format: int64
+      description: Absent = everything read.
+
+StoreConversations:
+  type: object
+  description: Ids only when the caller may chat in the team/jumper chat.
+  properties:
+    teamConversationId:
+      type: string
+      format: uuid
+    jumperConversationId:
+      type: string
+      format: uuid
+
+RegionConversation:
+  type: object
+  required:
+    - enabled
+    - mayToggle
+  properties:
+    conversationId:
+      type: string
+      format: uuid
+    enabled:
+      type: boolean
+    mayToggle:
+      type: boolean
+
+RegionConversationUpdate:
+  type: object
+  required:
+    - enabled
+  properties:
+    enabled:
+      type: boolean

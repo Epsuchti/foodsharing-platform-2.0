@@ -1,0 +1,537 @@
+# events (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+/api/regions/{regionId}/events:
+  get:
+    tags:
+      - events
+    operationId: listRegionEvents
+    summary: Events of a region.
+    x-permission: "region member (public events: authenticated)"
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: includePast
+        in: query
+        schema:
+          type: boolean
+          default: false
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ../schemas/events.yaml#/EventSummary
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/mine:
+  get:
+    tags:
+      - events
+    operationId: listMyEvents
+    summary: Events I am invited to or attend.
+    x-permission: authenticated
+    parameters:
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ../schemas/events.yaml#/EventSummary
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/mine/ics:
+  get:
+    tags:
+      - events
+    operationId: getMyEventsIcs
+    summary: My accepted/maybe events as iCalendar.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: File
+        content:
+          text/calendar:
+            schema:
+              type: string
+              format: binary
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events:
+  post:
+    tags:
+      - events
+    operationId: createEvent
+    summary: Create an event.
+    x-permission: region member
+    x-history: EventAction.CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/events.yaml#/EventCreate
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/events.yaml#/Event
+      "400":
+        description: EVENT_DATES_INVALID, LOCATION_REQUIRED, ONLINE_LINK_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/{eventId}:
+  get:
+    tags:
+      - events
+    operationId: getEvent
+    summary: Event with participants and wall.
+    x-permission: public event or region member
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/events.yaml#/Event
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  patch:
+    tags:
+      - events
+    operationId: updateEvent
+    summary: Change an event (EVENT_UPDATED bell to accepted/maybe).
+    x-permission: ORGA, region admin, author
+    x-history: EventAction.UPDATED
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/events.yaml#/EventUpdate
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/events.yaml#/Event
+      "400":
+        description: EVENT_DATES_INVALID, LOCATION_REQUIRED, ONLINE_LINK_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - events
+    operationId: deleteEvent
+    summary: Delete an event.
+    x-permission: ORGA, region admin, author
+    x-history: EventAction.DELETED
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/{eventId}/ics:
+  get:
+    tags:
+      - events
+    operationId: getEventIcs
+    summary: One event as iCalendar.
+    x-permission: public event or region member
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: File
+        content:
+          text/calendar:
+            schema:
+              type: string
+              format: binary
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/{eventId}/invitation:
+  put:
+    tags:
+      - events
+    operationId: respondToEvent
+    summary: Accept, maybe or decline.
+    x-permission: may see the event; until ends_at + 24 h
+    x-history: EventAction.RSVP_CHANGED
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/events.yaml#/EventRsvp
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/events.yaml#/Event
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: EVENT_RSVP_CLOSED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/{eventId}/invitations:
+  post:
+    tags:
+      - events
+    operationId: inviteToEvent
+    summary: Invite users (EVENT_INVITATION bells).
+    x-permission: event editor
+    x-history: EventAction.INVITATIONS_SENT
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/events.yaml#/EventInvite
+    responses:
+      "204":
+        description: Done
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND, USER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/{eventId}/wall:
+  post:
+    tags:
+      - events
+    operationId: createEventWallPost
+    summary: Comment on the event wall.
+    x-permission: may see the event
+    x-history: EventAction.WALL_POST_CREATED
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/events.yaml#/EventWallPostCreate
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/events.yaml#/EventWallPost
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/events/{eventId}/wall/{postId}:
+  delete:
+    tags:
+      - events
+    operationId: deleteEventWallPost
+    summary: Delete a wall comment.
+    x-permission: author or event editor
+    x-history: EventAction.WALL_POST_DELETED
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: EVENT_NOT_FOUND, WALL_POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

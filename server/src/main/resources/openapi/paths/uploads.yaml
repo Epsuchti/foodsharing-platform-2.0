@@ -1,0 +1,134 @@
+# uploads (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+/api/uploads:
+  post:
+    tags:
+      - uploads
+    operationId: createUpload
+    summary: Upload a file (owner-only until claimed; expires after 24 h unclaimed).
+    x-permission: authenticated
+    x-history: UploadAction.UPLOADED
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/uploads.yaml#/Upload
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "413":
+        description: UPLOAD_TOO_LARGE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "415":
+        description: UPLOAD_TYPE_NOT_ALLOWED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/uploads/{uploadId}:
+  get:
+    tags:
+      - uploads
+    operationId: downloadUpload
+    summary: Download a file.
+    x-permission: owner, or the owning module access rule
+    parameters:
+      - name: uploadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: File
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: UPLOAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - uploads
+    operationId: deleteUpload
+    summary: Delete an unclaimed upload.
+    x-permission: owner, unclaimed only
+    x-history: UploadAction.DELETED
+    parameters:
+      - name: uploadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: UPLOAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: UPLOAD_IN_USE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

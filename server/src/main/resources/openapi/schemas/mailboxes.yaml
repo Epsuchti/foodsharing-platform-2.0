@@ -1,0 +1,339 @@
+# mailboxes (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+MailFolder:
+  type: string
+  enum:
+    - INBOX
+    - SENT
+    - TRASH
+
+MailboxOwnerType:
+  type: string
+  enum:
+    - REGION
+    - USER
+
+MailAddress:
+  type: object
+  required:
+    - address
+  properties:
+    address:
+      type: string
+    name:
+      type: string
+
+Mailbox:
+  type: object
+  required:
+    - id
+    - name
+    - emailName
+    - address
+    - ownerType
+    - ownerId
+    - unreadCount
+    - mayManage
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    emailName:
+      type: string
+    address:
+      type: string
+    ownerType:
+      $ref: ./mailboxes.yaml#/MailboxOwnerType
+    ownerId:
+      type: string
+      format: uuid
+    unreadCount:
+      type: integer
+      format: int32
+    mayManage:
+      type: boolean
+
+MailboxUnreadCount:
+  type: object
+  required:
+    - count
+  properties:
+    count:
+      type: integer
+      format: int32
+
+MailboxCreate:
+  type: object
+  required:
+    - emailName
+  properties:
+    emailName:
+      type: string
+      minLength: 2
+      maxLength: 63
+      pattern: ^[a-z0-9][a-z0-9.-]{1,62}$
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+
+MailboxUpdate:
+  type: object
+  properties:
+    emailName:
+      type: string
+      minLength: 2
+      maxLength: 63
+      pattern: ^[a-z0-9][a-z0-9.-]{1,62}$
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+
+MailboxMembersUpdate:
+  type: object
+  required:
+    - userIds
+  properties:
+    userIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 0
+      maxItems: 200
+
+MailSummary:
+  type: object
+  required:
+    - id
+    - mailboxId
+    - folder
+    - from
+    - to
+    - subject
+    - read
+    - answered
+    - bounce
+    - hasAttachments
+    - attachmentCount
+  properties:
+    id:
+      type: string
+      format: uuid
+    mailboxId:
+      type: string
+      format: uuid
+    folder:
+      $ref: ./mailboxes.yaml#/MailFolder
+    from:
+      $ref: ./mailboxes.yaml#/MailAddress
+    to:
+      type: array
+      items:
+        $ref: ./mailboxes.yaml#/MailAddress
+    subject:
+      type: string
+    receivedAt:
+      type: string
+      format: date-time
+    read:
+      type: boolean
+    answered:
+      type: boolean
+    bounce:
+      type: boolean
+    hasAttachments:
+      type: boolean
+    attachmentCount:
+      type: integer
+      format: int32
+
+MailPage:
+  type: object
+  required:
+    - items
+    - page
+  properties:
+    items:
+      type: array
+      items:
+        $ref: ./mailboxes.yaml#/MailSummary
+    page:
+      $ref: ./common.yaml#/PageMeta
+
+MailAttachment:
+  type: object
+  required:
+    - id
+    - fileName
+    - mimeType
+    - size
+    - url
+  properties:
+    id:
+      type: string
+      format: uuid
+    fileName:
+      type: string
+    mimeType:
+      type: string
+    size:
+      type: integer
+      format: int64
+    url:
+      type: string
+
+Mail:
+  type: object
+  required:
+    - id
+    - mailboxId
+    - folder
+    - from
+    - to
+    - cc
+    - subject
+    - read
+    - answered
+    - bounce
+    - hasAttachments
+    - attachmentCount
+    - attachments
+  properties:
+    id:
+      type: string
+      format: uuid
+    mailboxId:
+      type: string
+      format: uuid
+    folder:
+      $ref: ./mailboxes.yaml#/MailFolder
+    from:
+      $ref: ./mailboxes.yaml#/MailAddress
+    to:
+      type: array
+      items:
+        $ref: ./mailboxes.yaml#/MailAddress
+    subject:
+      type: string
+    receivedAt:
+      type: string
+      format: date-time
+    read:
+      type: boolean
+    answered:
+      type: boolean
+    bounce:
+      type: boolean
+    hasAttachments:
+      type: boolean
+    attachmentCount:
+      type: integer
+      format: int32
+    cc:
+      type: array
+      items:
+        $ref: ./mailboxes.yaml#/MailAddress
+    replyTo:
+      $ref: ./mailboxes.yaml#/MailAddress
+    bodyText:
+      type: string
+    bodyHtml:
+      type: string
+      description: Sanitised on the server (A35).
+    attachments:
+      type: array
+      items:
+        $ref: ./mailboxes.yaml#/MailAttachment
+    inReplyTo:
+      type: string
+    messageId:
+      type: string
+
+MailUpdate:
+  type: object
+  properties:
+    read:
+      type: boolean
+    folder:
+      $ref: ./mailboxes.yaml#/MailFolder
+
+MailCompose:
+  type: object
+  required:
+    - to
+    - subject
+    - bodyHtml
+  properties:
+    to:
+      type: array
+      items:
+        type: string
+        minLength: 3
+        maxLength: 320
+      minItems: 1
+      maxItems: 100
+    cc:
+      type: array
+      items:
+        type: string
+        minLength: 3
+        maxLength: 320
+      minItems: 0
+      maxItems: 100
+    bcc:
+      type: array
+      items:
+        type: string
+        minLength: 3
+        maxLength: 320
+      minItems: 0
+      maxItems: 100
+    subject:
+      type: string
+      minLength: 0
+      maxLength: 998
+    bodyHtml:
+      type: string
+      minLength: 0
+      maxLength: 32600
+    attachmentUploadIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 0
+      maxItems: 10
+    inReplyToMailId:
+      type: string
+      format: uuid
+    forwardOfMailId:
+      type: string
+      format: uuid
+
+RegionMailbox:
+  type: object
+  required:
+    - regionId
+    - regionName
+    - address
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    regionName:
+      type: string
+    address:
+      type: string
+
+InboundMail:
+  type: object
+  required:
+    - rawMime
+  properties:
+    rawMime:
+      type: string
+      format: byte
+      description: Raw RFC 822 message, base64.

@@ -31,6 +31,32 @@ class ModulesTest {
         }
     }
 
+    /** M5 modules only depend on what docs/plan-m5.md B1 allows (shared packages aside); nobody depends on them. */
+    @Test
+    void communicationModulesHaveOnlyTheirAllowedDependencies() {
+        java.util.Map<String, java.util.Set<String>> allowed = java.util.Map.of(
+                "messaging", java.util.Set.of("user", "region", "store", "notification", "history", "upload"),
+                "mailbox", java.util.Set.of("user", "region", "notification", "history", "upload"),
+                "forum", java.util.Set.of("region", "user", "notification", "history"),
+                "event", java.util.Set.of("region", "user", "notification", "history"),
+                "poll", java.util.Set.of("region", "user", "notification", "history"),
+                "survey", java.util.Set.of("user", "store", "region", "history"),
+                "upload", java.util.Set.of("user", "history"));
+        java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
+        allowed.forEach((name, permitted) -> {
+            ApplicationModule module = modules.getModuleByName(name).orElseThrow();
+            assertThat(module.getDirectDependencies(modules).uniqueModules().map(ApplicationModule::getName)
+                    .filter(dependency -> !shared.contains(dependency)).toList())
+                    .as(name).allMatch(permitted::contains);
+        });
+        for (String communication : new String[] {"messaging", "mailbox", "forum", "event", "poll", "survey"}) {
+            ApplicationModule target = modules.getModuleByName(communication).orElseThrow();
+            modules.stream().filter(module -> !module.equals(target)).forEach(module ->
+                    assertThat(module.getDirectDependencies(modules).contains(target)).as(module.getName() + " → " + communication)
+                            .isFalse());
+        }
+    }
+
     @Test
     void automationIsNeverADependencyOfPickupOrStore() {
         ApplicationModule automation = modules.getModuleByName("automation").orElseThrow();

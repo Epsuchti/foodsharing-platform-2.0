@@ -1,0 +1,36 @@
+# Milestone 5 (B1): minimal uploads (docs/conventions.md A34).
+databaseChangeLog:
+  - changeSet:
+      id: 130-1
+      author: platform
+      comment: 'Uploaded files; bytes under app.uploads.dir/<storage_key>. Unclaimed uploads expire (expires_at).'
+      changes:
+        - createTable:
+            tableName: upload
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_upload, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_user_id, type: UUID, constraints: {foreignKeyName: fk_upload_owner_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: file_name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: mime_type, type: VARCHAR(120), constraints: {nullable: false}}
+              - column: {name: size, type: BIGINT, constraints: {nullable: false}}
+              - column: {name: sha256, type: VARCHAR(64), constraints: {nullable: false}}
+              - column: {name: storage_key, type: VARCHAR(200), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_upload_storage_key}}
+              - column: {name: usage_count, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: usage_module, type: VARCHAR(40)}
+              - column: {name: usage_owner_id, type: UUID}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: upload
+            indexName: ix_upload_owner_user_id
+            columns:
+              - column: {name: owner_user_id}
+        - createIndex:
+            tableName: upload
+            indexName: ix_upload_expires_at
+            columns:
+              - column: {name: expires_at}

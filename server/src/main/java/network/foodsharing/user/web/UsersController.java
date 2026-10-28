@@ -1,5 +1,7 @@
 package network.foodsharing.user.web;
 
+import java.util.List;
+import network.foodsharing.common.error.ApiException;
 import java.util.UUID;
 import network.foodsharing.api.UsersApi;
 import network.foodsharing.api.model.UserProfile;
@@ -49,5 +51,10 @@ public class UsersController implements UsersApi {
     public ResponseEntity<UserSummary> getUserSummary(UUID userId) {
         User user = userService.requireActive(userId);
         return ResponseEntity.ok(mapper.toSummary(user, userService.mayCurrentUserSeeContact(user)));
+    }
+
+    @Override
+    public ResponseEntity<List<UserSummary>> searchUsers(String q, UUID regionId, Integer limit) {
+        throw ApiException.notImplemented("searchUsers");
     }
 }

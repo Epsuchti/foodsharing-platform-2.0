@@ -1,0 +1,636 @@
+# messaging (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+/api/conversations:
+  get:
+    tags:
+      - messaging
+    operationId: listConversations
+    summary: My conversations, latest message first.
+    x-permission: authenticated
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/ConversationPage
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  post:
+    tags:
+      - messaging
+    operationId: createConversation
+    summary: Create a group conversation.
+    x-permission: authenticated
+    x-history: MessagingAction.CONVERSATION_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/ConversationCreate
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/Conversation
+      "400":
+        description: TOO_MANY_MEMBERS
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: MEMBER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/conversations/unread-count:
+  get:
+    tags:
+      - messaging
+    operationId: getConversationUnreadCount
+    summary: Unread conversations and messages.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/ConversationUnreadCount
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/conversations/lookup:
+  post:
+    tags:
+      - messaging
+    operationId: lookupConversation
+    summary: Find or create the conversation with exactly these members (no name).
+    x-permission: authenticated
+    x-history: MessagingAction.CONVERSATION_CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/ConversationLookup
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/Conversation
+      "400":
+        description: TOO_MANY_MEMBERS
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: MEMBER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/conversations/{conversationId}:
+  get:
+    tags:
+      - messaging
+    operationId: getConversation
+    summary: Conversation with the latest 30 messages.
+    x-permission: conversation member
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/ConversationDetail
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  patch:
+    tags:
+      - messaging
+    operationId: renameConversation
+    summary: Rename a group conversation.
+    x-permission: conversation member
+    x-history: MessagingAction.RENAMED
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/ConversationRename
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/Conversation
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: CONVERSATION_LOCKED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/conversations/{conversationId}/messages:
+  get:
+    tags:
+      - messaging
+    operationId: listMessages
+    summary: Messages before or after a seq (ascending).
+    x-permission: conversation member
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: beforeSeq
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: afterSeq
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 30
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ../schemas/messaging.yaml#/ChatMessage
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  post:
+    tags:
+      - messaging
+    operationId: sendMessage
+    summary: Send a message (idempotent on clientKey).
+    x-permission: conversation member
+    x-history: NONE
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/MessageCreate
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/ChatMessage
+      "400":
+        description: MESSAGE_EMPTY, MESSAGE_TOO_LONG
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/conversations/{conversationId}/read:
+  put:
+    tags:
+      - messaging
+    operationId: markConversationRead
+    summary: "Mark messages read up to lastReadSeq (default: all)."
+    x-permission: conversation member
+    x-history: NONE
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/ConversationReadUpdate
+    responses:
+      "204":
+        description: Done
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/conversations/{conversationId}/members/{userId}:
+  post:
+    tags:
+      - messaging
+    operationId: addConversationMember
+    summary: Add a member to a group conversation.
+    x-permission: conversation member (GROUP only)
+    x-history: MessagingAction.MEMBER_ADDED
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/Conversation
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND, MEMBER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: CONVERSATION_LOCKED, CONVERSATION_NOT_GROUP
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - messaging
+    operationId: removeConversationMember
+    summary: Remove a member (or leave).
+    x-permission: conversation member (GROUP only); self = leave
+    x-history: MessagingAction.MEMBER_REMOVED
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND, MEMBER_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: CONVERSATION_LOCKED, CONVERSATION_NOT_GROUP
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/stores/{storeId}/conversations:
+  get:
+    tags:
+      - messaging
+    operationId: getStoreConversations
+    summary: Team and jumper chat ids of a store.
+    x-permission: mayChatTeam / mayChatJumper
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/StoreConversations
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: STORE_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/regions/{regionId}/conversation:
+  get:
+    tags:
+      - messaging
+    operationId: getRegionConversation
+    summary: Region/working group conversation.
+    x-permission: region member
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/RegionConversation
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  put:
+    tags:
+      - messaging
+    operationId: setRegionConversationEnabled
+    summary: Enable or disable the region conversation.
+    x-permission: mayAdministrateRegion
+    x-history: RegionAction.SETTINGS_CHANGED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/RegionConversationUpdate
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/RegionConversation
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

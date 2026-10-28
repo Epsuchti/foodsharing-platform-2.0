@@ -77,5 +77,10 @@
   "bell.NEW_RESOURCE": "Neue Ressource verfügbar",
   "bell.QUIZ_COMMENT": "Neuer Kommentar zu einer Quizfrage",
   "bell.ADDRESS_CHANGED": "Deine Adresse wurde geändert",
-  "bell.NEW_MESSAGE": "Neue Nachricht"
+  "bell.NEW_MESSAGE": "Neue Nachricht",
+  "bell.MAILBOX_NEW_MAIL": "Neue E-Mail im Postfach",
+  "bell.EVENT_INVITATION": "Einladung zu einer Veranstaltung",
+  "bell.EVENT_UPDATED": "Eine Veranstaltung wurde geändert",
+  "bell.POLL_CANCELLED": "Eine Abstimmung wurde abgebrochen",
+  "bell.SURVEY_SHARED": "Eine Umfrage wurde mit dir geteilt"
 }

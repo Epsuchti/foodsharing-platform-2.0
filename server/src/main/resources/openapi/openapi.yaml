@@ -89,6 +89,22 @@ tags:
     description: 'Scheduled jobs: last runs, run now (ORGA).'
   - name: admin-mail
     description: 'Mail outbox: status, search, retry (ORGA).'
+  - name: messaging
+    description: 'Conversations: direct, group, store team/jumper and region chats, read state (milestone 5).'
+  - name: uploads
+    description: 'File uploads (minimal, milestone 5).'
+  - name: mailboxes
+    description: 'Region and personal mailboxes: folders, read, compose, reply, forward (milestone 5).'
+  - name: public-mailbox
+    description: 'Inbound mail webhook (secret path).'
+  - name: forum
+    description: 'Region and ambassador forums: threads, posts, reactions, moderation, follow, search.'
+  - name: events
+    description: 'Region events, invitations, wall, iCalendar.'
+  - name: polls
+    description: 'Polls (votings) of regions and working groups.'
+  - name: surveys
+    description: 'Surveys: editor, fill form, results.'
 x-framework-endpoints:
   - /oauth2/authorization/google
   - /login/oauth2/code/google
@@ -649,3 +665,133 @@ paths:
     $ref: './paths/admin-mail.yaml#/~1api~1admin~1mail-outbox'
   /api/admin/mail-outbox/{mailId}/retry:
     $ref: './paths/admin-mail.yaml#/~1api~1admin~1mail-outbox~1{mailId}~1retry'
+  # --- messaging ---
+  /api/conversations:
+    $ref: './paths/messaging.yaml#/~1api~1conversations'
+  /api/conversations/unread-count:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1unread-count'
+  /api/conversations/lookup:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1lookup'
+  /api/conversations/{conversationId}:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}'
+  /api/conversations/{conversationId}/messages:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages'
+  /api/conversations/{conversationId}/read:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1read'
+  /api/conversations/{conversationId}/members/{userId}:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1members~1{userId}'
+  /api/stores/{storeId}/conversations:
+    $ref: './paths/messaging.yaml#/~1api~1stores~1{storeId}~1conversations'
+  /api/regions/{regionId}/conversation:
+    $ref: './paths/messaging.yaml#/~1api~1regions~1{regionId}~1conversation'
+  # --- uploads ---
+  /api/uploads:
+    $ref: './paths/uploads.yaml#/~1api~1uploads'
+  /api/uploads/{uploadId}:
+    $ref: './paths/uploads.yaml#/~1api~1uploads~1{uploadId}'
+  # --- mailboxes ---
+  /api/mailboxes:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes'
+  /api/mailboxes/unread-count:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1unread-count'
+  /api/regions/{regionId}/mailbox:
+    $ref: './paths/mailboxes.yaml#/~1api~1regions~1{regionId}~1mailbox'
+  /api/regions/mailboxes:
+    $ref: './paths/mailboxes.yaml#/~1api~1regions~1mailboxes'
+  /api/users/{userId}/mailbox:
+    $ref: './paths/mailboxes.yaml#/~1api~1users~1{userId}~1mailbox'
+  /api/mailboxes/{mailboxId}:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1{mailboxId}'
+  /api/mailboxes/{mailboxId}/members:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1{mailboxId}~1members'
+  /api/mailboxes/{mailboxId}/folders/{folder}/mails:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1{mailboxId}~1folders~1{folder}~1mails'
+  /api/mailboxes/{mailboxId}/mails:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1{mailboxId}~1mails'
+  /api/mailboxes/mails/{mailId}:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1mails~1{mailId}'
+  /api/mailboxes/mails/{mailId}/attachments/{attachmentId}:
+    $ref: './paths/mailboxes.yaml#/~1api~1mailboxes~1mails~1{mailId}~1attachments~1{attachmentId}'
+  # --- public-mailbox ---
+  /api/public/mailbox/inbound/{secret}:
+    $ref: './paths/public-mailbox.yaml#/~1api~1public~1mailbox~1inbound~1{secret}'
+  # --- forum ---
+  /api/regions/{regionId}/forum/threads:
+    $ref: './paths/forum.yaml#/~1api~1regions~1{regionId}~1forum~1threads'
+  /api/regions/{regionId}/forum/follow:
+    $ref: './paths/forum.yaml#/~1api~1regions~1{regionId}~1forum~1follow'
+  /api/regions/{regionId}/forum/search:
+    $ref: './paths/forum.yaml#/~1api~1regions~1{regionId}~1forum~1search'
+  /api/forum/search:
+    $ref: './paths/forum.yaml#/~1api~1forum~1search'
+  /api/regions/{regionId}/moderation-log:
+    $ref: './paths/forum.yaml#/~1api~1regions~1{regionId}~1moderation-log'
+  /api/forum/threads/{threadId}:
+    $ref: './paths/forum.yaml#/~1api~1forum~1threads~1{threadId}'
+  /api/forum/threads/{threadId}/follow:
+    $ref: './paths/forum.yaml#/~1api~1forum~1threads~1{threadId}~1follow'
+  /api/forum/threads/{threadId}/posts:
+    $ref: './paths/forum.yaml#/~1api~1forum~1threads~1{threadId}~1posts'
+  /api/forum/posts/{postId}:
+    $ref: './paths/forum.yaml#/~1api~1forum~1posts~1{postId}'
+  /api/forum/posts/{postId}/hide:
+    $ref: './paths/forum.yaml#/~1api~1forum~1posts~1{postId}~1hide'
+  /api/forum/posts/{postId}/reactions/{key}:
+    $ref: './paths/forum.yaml#/~1api~1forum~1posts~1{postId}~1reactions~1{key}'
+  # --- events ---
+  /api/regions/{regionId}/events:
+    $ref: './paths/events.yaml#/~1api~1regions~1{regionId}~1events'
+  /api/events/mine:
+    $ref: './paths/events.yaml#/~1api~1events~1mine'
+  /api/events/mine/ics:
+    $ref: './paths/events.yaml#/~1api~1events~1mine~1ics'
+  /api/events:
+    $ref: './paths/events.yaml#/~1api~1events'
+  /api/events/{eventId}:
+    $ref: './paths/events.yaml#/~1api~1events~1{eventId}'
+  /api/events/{eventId}/ics:
+    $ref: './paths/events.yaml#/~1api~1events~1{eventId}~1ics'
+  /api/events/{eventId}/invitation:
+    $ref: './paths/events.yaml#/~1api~1events~1{eventId}~1invitation'
+  /api/events/{eventId}/invitations:
+    $ref: './paths/events.yaml#/~1api~1events~1{eventId}~1invitations'
+  /api/events/{eventId}/wall:
+    $ref: './paths/events.yaml#/~1api~1events~1{eventId}~1wall'
+  /api/events/{eventId}/wall/{postId}:
+    $ref: './paths/events.yaml#/~1api~1events~1{eventId}~1wall~1{postId}'
+  # --- polls ---
+  /api/regions/{regionId}/polls:
+    $ref: './paths/polls.yaml#/~1api~1regions~1{regionId}~1polls'
+  /api/regions/{regionId}/polls/scope-counts:
+    $ref: './paths/polls.yaml#/~1api~1regions~1{regionId}~1polls~1scope-counts'
+  /api/polls/mine:
+    $ref: './paths/polls.yaml#/~1api~1polls~1mine'
+  /api/polls:
+    $ref: './paths/polls.yaml#/~1api~1polls'
+  /api/polls/{pollId}:
+    $ref: './paths/polls.yaml#/~1api~1polls~1{pollId}'
+  /api/polls/{pollId}/vote:
+    $ref: './paths/polls.yaml#/~1api~1polls~1{pollId}~1vote'
+  # --- surveys ---
+  /api/surveys:
+    $ref: './paths/surveys.yaml#/~1api~1surveys'
+  /api/surveys/coauthor-candidates:
+    $ref: './paths/surveys.yaml#/~1api~1surveys~1coauthor-candidates'
+  /api/surveys/{surveyId}:
+    $ref: './paths/surveys.yaml#/~1api~1surveys~1{surveyId}'
+  /api/surveys/{surveyId}/results:
+    $ref: './paths/surveys.yaml#/~1api~1surveys~1{surveyId}~1results'
+  /api/surveys/{surveyId}/form:
+    $ref: './paths/surveys.yaml#/~1api~1surveys~1{surveyId}~1form'
+  /api/surveys/{surveyId}/responses:
+    $ref: './paths/surveys.yaml#/~1api~1surveys~1{surveyId}~1responses'
+  # --- users (M5) ---
+  /api/users/search:
+    $ref: './paths/users.yaml#/~1api~1users~1search'
+  # --- dev (M5) ---
+  /api/dev/realtime/sessions:
+    $ref: './paths/dev.yaml#/~1api~1dev~1realtime~1sessions'
+  /api/dev/realtime/ping:
+    $ref: './paths/dev.yaml#/~1api~1dev~1realtime~1ping'
+  /api/dev/mailbox/incoming:
+    $ref: './paths/dev.yaml#/~1api~1dev~1mailbox~1incoming'

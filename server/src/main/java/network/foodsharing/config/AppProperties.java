@@ -51,6 +51,12 @@ public class AppProperties {
     private final Automation automation = new Automation();
     private final Newsletter newsletter = new Newsletter();
     private final Integrations integrations = new Integrations();
+    private final Realtime realtime = new Realtime();
+    private final Messaging messaging = new Messaging();
+    private final Uploads uploads = new Uploads();
+    private final Mailbox mailbox = new Mailbox();
+    private final Forum forum = new Forum();
+    private final Polls polls = new Polls();
 
     @Getter
     @Setter
@@ -388,5 +394,77 @@ public class AppProperties {
         private String probeInterval = "PT5M";
         /** How long outages are remembered (linked-store grace extension). */
         private int outageHistoryDays = 3;
+    }
+
+    /** Realtime STOMP endpoint /ws (A32). */
+    @Getter
+    @Setter
+    public static class Realtime {
+        private boolean enabled = true;
+        private long heartbeatMs = 10000;
+    }
+
+    /** Conversations (A33). */
+    @Getter
+    @Setter
+    public static class Messaging {
+        private int maxMessageLength = 10000;
+        /** At most one NEW_MESSAGE mail per conversation and member within this many minutes while unread. */
+        private int mailDigestMinutes = 30;
+        private String syncCron = "0 15 * * * *";
+    }
+
+    /** Minimal uploads (A34). */
+    @Getter
+    @Setter
+    public static class Uploads {
+        private String dir = "./data/uploads";
+        private int maxSizeMb = 20;
+        private List<String> allowedTypes = new ArrayList<>();
+        private int unclaimedTtlHours = 24;
+    }
+
+    /** Mailboxes (A35). */
+    @Getter
+    @Setter
+    public static class Mailbox {
+        /** Mail domain of mailbox addresses (env MAILBOX_DOMAIN); empty = compose answers 503. */
+        private String domain = "";
+        /** log (fetches nothing) or imap. */
+        private String inbound = "log";
+        private final Imap imap = new Imap();
+        /** Path secret of POST /api/public/mailbox/inbound/{secret}; empty = webhook off. */
+        private String webhookSecret = "";
+        private String fetchCron = "0 * * * * *";
+        private List<String> reservedNames = new ArrayList<>();
+        private int maxMailsPerHourPerUser = 50;
+        private int maxAttachmentTotalMb = 20;
+
+        @Getter
+        @Setter
+        public static class Imap {
+            private String host = "";
+            private int port = 993;
+            private String user = "";
+            private String password = "";
+            private String folder = "INBOX";
+            private boolean ssl = true;
+        }
+    }
+
+    /** Forum (A36). */
+    @Getter
+    @Setter
+    public static class Forum {
+        private int searchMinLength = 2;
+    }
+
+    /** Polls (A36). */
+    @Getter
+    @Setter
+    public static class Polls {
+        private String minLeadTime = "PT1H";
+        private int endNotificationMinHours = 30;
+        private String notifyCron = "0 */15 * * * *";
     }
 }

@@ -1,5 +1,10 @@
 package network.foodsharing.dev.web;
 
+import network.foodsharing.api.model.DevIncomingMail;
+import network.foodsharing.api.model.DevRealtimePing;
+import network.foodsharing.api.model.DevRealtimeSessions;
+import network.foodsharing.api.model.RealtimeEvent;
+import network.foodsharing.common.error.ApiException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -148,5 +153,20 @@ public class DevController implements DevApi {
     public ResponseEntity<String> getDevIcalFixture() {
         return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/calendar;charset=UTF-8"))
                 .body(notificationService.icalFixture());
+    }
+
+    @Override
+    public ResponseEntity<DevRealtimeSessions> getRealtimeSessions() {
+        throw ApiException.notImplemented("getRealtimeSessions");
+    }
+
+    @Override
+    public ResponseEntity<RealtimeEvent> pingRealtime(DevRealtimePing devRealtimePing) {
+        throw ApiException.notImplemented("pingRealtime");
+    }
+
+    @Override
+    public ResponseEntity<Void> simulateIncomingMail(DevIncomingMail devIncomingMail) {
+        throw ApiException.notImplemented("simulateIncomingMail");
     }
 }

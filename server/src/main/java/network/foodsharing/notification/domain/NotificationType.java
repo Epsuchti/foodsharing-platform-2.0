@@ -94,7 +94,13 @@ public enum NotificationType {
     NEW_RESOURCE(REGION, "book-open"),
     QUIZ_COMMENT(ONBOARDING, "graduation-cap"),
     ADDRESS_CHANGED(SYSTEM, "map-pin"),
-    NEW_MESSAGE(MESSAGES, "mail");
+    NEW_MESSAGE(MESSAGES, "mail"),
+    // M5 additions (docs/plan-m5.md B1)
+    MAILBOX_NEW_MAIL(NotificationCategory.MAILBOX, "mail"),
+    EVENT_INVITATION(REGION, "calendar"),
+    EVENT_UPDATED(REGION, "calendar"),
+    POLL_CANCELLED(REGION, "vote"),
+    SURVEY_SHARED(REGION, "clipboard-list");
 
     private final NotificationCategory category;
     private final String icon;

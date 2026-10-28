@@ -1,0 +1,963 @@
+# forum (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+/api/regions/{regionId}/forum/threads:
+  get:
+    tags:
+      - forum
+    operationId: listForumThreads
+    summary: "Threads: sticky first, then latest post."
+    x-permission: mayAccessForum
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: ambassadorForum
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumThreadPage
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  post:
+    tags:
+      - forum
+    operationId: createForumThread
+    summary: Start a thread.
+    x-permission: mayAccessForum (verified); inactive unless mayStartUnmoderatedThread
+    x-history: ForumAction.THREAD_CREATED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: ambassadorForum
+        in: query
+        schema:
+          type: boolean
+          default: false
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumThreadCreate
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumThread
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/regions/{regionId}/forum/follow:
+  get:
+    tags:
+      - forum
+    operationId: getForumFollow
+    summary: Whether I follow the whole forum.
+    x-permission: mayAccessForum
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: ambassadorForum
+        in: query
+        schema:
+          type: boolean
+          default: false
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumFollowState
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  put:
+    tags:
+      - forum
+    operationId: setForumFollow
+    summary: Follow or unfollow the whole forum (new threads).
+    x-permission: mayAccessForum
+    x-history: NONE
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: ambassadorForum
+        in: query
+        schema:
+          type: boolean
+          default: false
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumFollowState
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumFollowState
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/regions/{regionId}/forum/search:
+  get:
+    tags:
+      - forum
+    operationId: searchRegionForum
+    summary: Search thread titles (and optionally posts).
+    x-permission: mayAccessForum
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 100
+      - name: searchBody
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: ambassadorForum
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumSearchPage
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/search:
+  get:
+    tags:
+      - forum
+    operationId: searchAllForums
+    summary: Search every forum.
+    x-permission: ORGA
+    parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 100
+      - name: searchBody
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumSearchPage
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/regions/{regionId}/moderation-log:
+  get:
+    tags:
+      - forum
+    operationId: getModerationLog
+    summary: Moderation actions in the region forums (A37).
+    x-permission: forum moderator of the region
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/history.yaml#/HistoryEntryPage
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/threads/{threadId}:
+  get:
+    tags:
+      - forum
+    operationId: getForumThread
+    summary: Thread with posts and permissions.
+    x-permission: mayAccessForum
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumThread
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: THREAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  patch:
+    tags:
+      - forum
+    operationId: updateForumThread
+    summary: Rename, close/open, sticky, activate.
+    x-permission: "per field: rename = moderator or creator; status/sticky/active = moderator"
+    x-history: ForumAction.THREAD_RENAMED
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumThreadUpdate
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumThread
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED, FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: THREAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - forum
+    operationId: deleteForumThread
+    summary: Delete a thread.
+    x-permission: moderator (inactive thread) or ORGA
+    x-history: ForumAction.THREAD_DELETED
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: THREAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/threads/{threadId}/follow:
+  put:
+    tags:
+      - forum
+    operationId: followForumThread
+    summary: Follow a thread by bell and/or mail (both false = unfollow).
+    x-permission: mayAccessForum
+    x-history: NONE
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumFollow
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumFollow
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: THREAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/threads/{threadId}/posts:
+  post:
+    tags:
+      - forum
+    operationId: createForumPost
+    summary: Reply to a thread.
+    x-permission: mayPostToThread
+    x-history: ForumAction.POST_CREATED
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumPostWrite
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumPost
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: THREAD_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: THREAD_CLOSED, THREAD_NOT_ACTIVE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/posts/{postId}:
+  patch:
+    tags:
+      - forum
+    operationId: editForumPost
+    summary: Edit a post.
+    x-permission: author or ORGA
+    x-history: ForumAction.POST_EDITED
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumPostWrite
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumPost
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - forum
+    operationId: deleteForumPost
+    summary: Delete a post.
+    x-permission: author or ORGA
+    x-history: ForumAction.POST_DELETED
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/posts/{postId}/hide:
+  post:
+    tags:
+      - forum
+    operationId: hideForumPost
+    summary: Hide a post with a reason.
+    x-permission: moderator and region option ALLOW_HIDING_IN_FORUM
+    x-history: ForumAction.POST_HIDDEN
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/forum.yaml#/ForumHideRequest
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumPost
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: HIDING_NOT_ALLOWED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: POST_ALREADY_HIDDEN
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - forum
+    operationId: unhideForumPost
+    summary: Unhide a post.
+    x-permission: moderator
+    x-history: ForumAction.POST_UNHIDDEN
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/forum.yaml#/ForumPost
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: POST_NOT_HIDDEN
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/forum/posts/{postId}/reactions/{key}:
+  put:
+    tags:
+      - forum
+    operationId: addForumReaction
+    summary: Add my reaction.
+    x-permission: mayAccessForum
+    x-history: NONE
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: key
+        in: path
+        required: true
+        schema:
+          $ref: ../schemas/forum.yaml#/ReactionKey
+    responses:
+      "204":
+        description: Done
+      "400":
+        description: REACTION_UNKNOWN
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - forum
+    operationId: removeForumReaction
+    summary: Remove my reaction.
+    x-permission: mayAccessForum
+    x-history: NONE
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: key
+        in: path
+        required: true
+        schema:
+          $ref: ../schemas/forum.yaml#/ReactionKey
+    responses:
+      "204":
+        description: Done
+      "400":
+        description: REACTION_UNKNOWN
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: FORUM_NOT_ACCESSIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POST_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

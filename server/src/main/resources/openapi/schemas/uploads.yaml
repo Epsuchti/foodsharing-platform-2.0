@@ -1,0 +1,25 @@
+# uploads (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+Upload:
+  type: object
+  required:
+    - id
+    - fileName
+    - mimeType
+    - size
+    - url
+  properties:
+    id:
+      type: string
+      format: uuid
+    fileName:
+      type: string
+      maxLength: 255
+    mimeType:
+      type: string
+      maxLength: 120
+    size:
+      type: integer
+      format: int64
+    url:
+      type: string
+      description: Relative download URL.

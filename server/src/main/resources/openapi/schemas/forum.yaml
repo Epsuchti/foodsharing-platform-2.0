@@ -1,0 +1,325 @@
+# forum (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+ThreadStatus:
+  type: string
+  enum:
+    - OPEN
+    - CLOSED
+
+ReactionKey:
+  type: string
+  enum:
+    - thumbsup
+    - thumbsdown
+    - heart
+    - laughing
+    - open_mouth
+    - cry
+    - angry
+    - tada
+    - pray
+    - eyes
+    - rocket
+    - "100"
+
+ForumLastPost:
+  type: object
+  required:
+    - at
+  properties:
+    at:
+      type: string
+      format: date-time
+    author:
+      $ref: ./users.yaml#/UserSummary
+
+ForumFollow:
+  type: object
+  required:
+    - bell
+    - mail
+  properties:
+    bell:
+      type: boolean
+    mail:
+      type: boolean
+
+ForumFollowState:
+  type: object
+  required:
+    - following
+  properties:
+    following:
+      type: boolean
+
+ForumThreadSummary:
+  type: object
+  required:
+    - id
+    - regionId
+    - ambassadorForum
+    - title
+    - author
+    - createdAt
+    - status
+    - sticky
+    - active
+    - postCount
+    - following
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    ambassadorForum:
+      type: boolean
+    title:
+      type: string
+    author:
+      $ref: ./users.yaml#/UserSummary
+    createdAt:
+      type: string
+      format: date-time
+    status:
+      $ref: ./forum.yaml#/ThreadStatus
+    sticky:
+      type: boolean
+    active:
+      type: boolean
+    postCount:
+      type: integer
+      format: int32
+    lastPost:
+      $ref: ./forum.yaml#/ForumLastPost
+    following:
+      $ref: ./forum.yaml#/ForumFollow
+
+ForumThreadPage:
+  type: object
+  required:
+    - items
+    - page
+  properties:
+    items:
+      type: array
+      items:
+        $ref: ./forum.yaml#/ForumThreadSummary
+    page:
+      $ref: ./common.yaml#/PageMeta
+
+ForumPostHidden:
+  type: object
+  required:
+    - at
+  properties:
+    at:
+      type: string
+      format: date-time
+    by:
+      $ref: ./users.yaml#/UserSummary
+    reason:
+      type: string
+
+ForumReaction:
+  type: object
+  required:
+    - key
+    - users
+  properties:
+    key:
+      $ref: ./forum.yaml#/ReactionKey
+    users:
+      type: array
+      items:
+        $ref: ./users.yaml#/UserSummary
+
+ForumPost:
+  type: object
+  required:
+    - id
+    - author
+    - createdAt
+    - reactions
+    - mayEdit
+    - mayDelete
+    - mayHide
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: ./users.yaml#/UserSummary
+    body:
+      type: string
+      description: Omitted for hidden posts unless the caller moderates.
+    createdAt:
+      type: string
+      format: date-time
+    editedAt:
+      type: string
+      format: date-time
+    hidden:
+      $ref: ./forum.yaml#/ForumPostHidden
+    reactions:
+      type: array
+      items:
+        $ref: ./forum.yaml#/ForumReaction
+    mayEdit:
+      type: boolean
+    mayDelete:
+      type: boolean
+    mayHide:
+      type: boolean
+
+ForumThreadPermissions:
+  type: object
+  required:
+    - mayPost
+    - mayModerate
+    - mayHide
+    - mayRename
+    - mayDelete
+    - mayChangeSticky
+  properties:
+    mayPost:
+      type: boolean
+    mayModerate:
+      type: boolean
+    mayHide:
+      type: boolean
+    mayRename:
+      type: boolean
+    mayDelete:
+      type: boolean
+    mayChangeSticky:
+      type: boolean
+
+ForumThread:
+  type: object
+  required:
+    - id
+    - regionId
+    - ambassadorForum
+    - title
+    - author
+    - createdAt
+    - status
+    - sticky
+    - active
+    - postCount
+    - following
+    - posts
+    - permissions
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    ambassadorForum:
+      type: boolean
+    title:
+      type: string
+    author:
+      $ref: ./users.yaml#/UserSummary
+    createdAt:
+      type: string
+      format: date-time
+    status:
+      $ref: ./forum.yaml#/ThreadStatus
+    sticky:
+      type: boolean
+    active:
+      type: boolean
+    postCount:
+      type: integer
+      format: int32
+    lastPost:
+      $ref: ./forum.yaml#/ForumLastPost
+    following:
+      $ref: ./forum.yaml#/ForumFollow
+    posts:
+      type: array
+      items:
+        $ref: ./forum.yaml#/ForumPost
+    permissions:
+      $ref: ./forum.yaml#/ForumThreadPermissions
+
+ForumThreadCreate:
+  type: object
+  required:
+    - title
+    - body
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+    followBell:
+      type: boolean
+    followMail:
+      type: boolean
+
+ForumThreadUpdate:
+  type: object
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    status:
+      $ref: ./forum.yaml#/ThreadStatus
+    sticky:
+      type: boolean
+    active:
+      type: boolean
+      description: true = activate a moderated thread.
+
+ForumPostWrite:
+  type: object
+  required:
+    - body
+  properties:
+    body:
+      type: string
+      minLength: 1
+      maxLength: 32600
+
+ForumHideRequest:
+  type: object
+  required:
+    - reason
+  properties:
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 500
+
+ForumSearchHit:
+  type: object
+  required:
+    - thread
+  properties:
+    thread:
+      $ref: ./forum.yaml#/ForumThreadSummary
+    snippet:
+      type: string
+
+ForumSearchPage:
+  type: object
+  required:
+    - items
+    - page
+  properties:
+    items:
+      type: array
+      items:
+        $ref: ./forum.yaml#/ForumSearchHit
+    page:
+      $ref: ./common.yaml#/PageMeta

@@ -1,0 +1,235 @@
+# surveys (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+SurveyQuestionType:
+  type: string
+  enum:
+    - TEXT
+    - SINGLE_CHOICE
+    - MULTIPLE_CHOICE
+    - BOOLEAN
+    - STORE
+
+SurveyQuestion:
+  type: object
+  required:
+    - type
+    - label
+    - required
+    - options
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Absent for new questions.
+    type:
+      $ref: ./surveys.yaml#/SurveyQuestionType
+    label:
+      type: string
+      minLength: 1
+      maxLength: 500
+    required:
+      type: boolean
+    options:
+      type: array
+      items:
+        type: string
+        minLength: 1
+        maxLength: 200
+      minItems: 0
+      maxItems: 20
+
+SurveySummary:
+  type: object
+  required:
+    - id
+    - title
+    - owner
+    - createdAt
+    - responseCount
+    - questionCount
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    owner:
+      $ref: ./users.yaml#/UserSummary
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+    responseCount:
+      type: integer
+      format: int32
+    questionCount:
+      type: integer
+      format: int32
+
+Survey:
+  type: object
+  required:
+    - id
+    - title
+    - owner
+    - createdAt
+    - responseCount
+    - questions
+    - coauthors
+    - mayDelete
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    description:
+      type: string
+    owner:
+      $ref: ./users.yaml#/UserSummary
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+    responseCount:
+      type: integer
+      format: int32
+    questions:
+      type: array
+      items:
+        $ref: ./surveys.yaml#/SurveyQuestion
+    coauthors:
+      type: array
+      items:
+        $ref: ./users.yaml#/UserSummary
+    mayDelete:
+      type: boolean
+
+SurveyWrite:
+  type: object
+  required:
+    - title
+    - questions
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 0
+      maxLength: 32600
+    questions:
+      type: array
+      items:
+        $ref: ./surveys.yaml#/SurveyQuestion
+      minItems: 1
+      maxItems: 100
+    coauthorIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 0
+      maxItems: 50
+
+SurveyResultRow:
+  type: object
+  required:
+    - user
+    - submittedAt
+    - answers
+  properties:
+    user:
+      $ref: ./users.yaml#/UserSummary
+    submittedAt:
+      type: string
+      format: date-time
+    store:
+      $ref: ./stores.yaml#/StoreRef
+    answers:
+      type: object
+      description: questionId → values
+      additionalProperties:
+        type: array
+        items:
+          type: string
+
+SurveyResults:
+  type: object
+  required:
+    - questions
+    - rows
+    - responseCount
+  properties:
+    questions:
+      type: array
+      items:
+        $ref: ./surveys.yaml#/SurveyQuestion
+    rows:
+      type: array
+      items:
+        $ref: ./surveys.yaml#/SurveyResultRow
+    responseCount:
+      type: integer
+      format: int32
+
+SurveyForm:
+  type: object
+  required:
+    - id
+    - title
+    - questions
+    - alreadySubmitted
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    description:
+      type: string
+    questions:
+      type: array
+      items:
+        $ref: ./surveys.yaml#/SurveyQuestion
+    alreadySubmitted:
+      type: boolean
+    store:
+      $ref: ./stores.yaml#/StoreRef
+
+SurveyAnswer:
+  type: object
+  required:
+    - questionId
+    - values
+  properties:
+    questionId:
+      type: string
+      format: uuid
+    values:
+      type: array
+      items:
+        type: string
+        minLength: 0
+        maxLength: 32600
+      minItems: 0
+      maxItems: 50
+
+SurveyResponseCreate:
+  type: object
+  required:
+    - answers
+  properties:
+    storeId:
+      type: string
+      format: uuid
+    answers:
+      type: array
+      items:
+        $ref: ./surveys.yaml#/SurveyAnswer
+      minItems: 0
+      maxItems: 100

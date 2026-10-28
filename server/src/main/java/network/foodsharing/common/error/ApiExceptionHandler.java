@@ -114,6 +114,11 @@ public class ApiExceptionHandler {
         return respond(status, ApiErrorCode.MALFORMED_REQUEST, exception.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleUploadTooLarge(Exception exception) {
+        return respond(HttpStatus.CONTENT_TOO_LARGE, ApiErrorCode.UPLOAD_TOO_LARGE, exception.getMessage());
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException exception) {
         return respond(HttpStatus.FORBIDDEN, ApiErrorCode.ACCESS_DENIED, "Access denied");

@@ -121,3 +121,32 @@ DevTelegramUpdate:
       description: 'Group title; absent = private chat'
       type: string
       maxLength: 200
+
+DevRealtimeSessions:
+  type: object
+  required:
+    - userIds
+  properties:
+    userIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+
+DevRealtimePing:
+  type: object
+  required:
+    - userId
+  properties:
+    userId:
+      type: string
+      format: uuid
+
+DevIncomingMail:
+  type: object
+  required:
+    - rawMime
+  properties:
+    rawMime:
+      type: string
+      description: Raw RFC 822 message (plain text).

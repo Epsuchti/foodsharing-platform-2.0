@@ -1,0 +1,261 @@
+# polls (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+PollType:
+  type: string
+  enum:
+    - SELECT_ONE
+    - SELECT_MULTIPLE
+    - THUMBS
+    - SCORE
+
+PollScope:
+  type: string
+  enum:
+    - FOODSAVERS
+    - VERIFIED_FOODSAVERS
+    - STORE_MANAGERS
+    - AMBASSADORS
+    - VERIFIED_FOODSAVERS_HOME_REGION
+
+PollStatus:
+  type: string
+  enum:
+    - UPCOMING
+    - RUNNING
+    - ENDED
+    - CANCELLED
+
+PollSummary:
+  type: object
+  required:
+    - id
+    - regionId
+    - name
+    - type
+    - scope
+    - startsAt
+    - endsAt
+    - status
+    - voted
+    - voteCount
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    type:
+      $ref: ./polls.yaml#/PollType
+    scope:
+      $ref: ./polls.yaml#/PollScope
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    status:
+      $ref: ./polls.yaml#/PollStatus
+    voted:
+      type: boolean
+    eligibleCount:
+      type: integer
+      format: int32
+    voteCount:
+      type: integer
+      format: int32
+
+PollOptionValue:
+  type: object
+  required:
+    - value
+    - votes
+  properties:
+    value:
+      type: integer
+      format: int32
+    votes:
+      type: integer
+      format: int32
+
+PollOption:
+  type: object
+  required:
+    - index
+    - text
+  properties:
+    index:
+      type: integer
+      format: int32
+    text:
+      type: string
+    values:
+      type: array
+      items:
+        $ref: ./polls.yaml#/PollOptionValue
+      description: Results, only once the poll ended.
+
+Poll:
+  type: object
+  required:
+    - id
+    - regionId
+    - name
+    - type
+    - scope
+    - startsAt
+    - endsAt
+    - status
+    - voted
+    - voteCount
+    - author
+    - shuffleOptions
+    - options
+    - mayVote
+    - mayEdit
+    - mayCancel
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    type:
+      $ref: ./polls.yaml#/PollType
+    scope:
+      $ref: ./polls.yaml#/PollScope
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    status:
+      $ref: ./polls.yaml#/PollStatus
+    voted:
+      type: boolean
+    eligibleCount:
+      type: integer
+      format: int32
+    voteCount:
+      type: integer
+      format: int32
+    description:
+      type: string
+    author:
+      $ref: ./users.yaml#/UserSummary
+    shuffleOptions:
+      type: boolean
+    cancelledAt:
+      type: string
+      format: date-time
+    cancelledBy:
+      $ref: ./users.yaml#/UserSummary
+    options:
+      type: array
+      items:
+        $ref: ./polls.yaml#/PollOption
+    mayVote:
+      type: boolean
+    mayEdit:
+      type: boolean
+    mayCancel:
+      type: boolean
+
+PollCreate:
+  type: object
+  required:
+    - regionId
+    - name
+    - type
+    - scope
+    - startsAt
+    - endsAt
+    - options
+    - shuffleOptions
+    - notifyVoters
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 0
+      maxLength: 32600
+    type:
+      $ref: ./polls.yaml#/PollType
+    scope:
+      $ref: ./polls.yaml#/PollScope
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    options:
+      type: array
+      items:
+        type: string
+        minLength: 1
+        maxLength: 500
+      minItems: 2
+      maxItems: 50
+    shuffleOptions:
+      type: boolean
+    notifyVoters:
+      type: boolean
+
+PollUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 0
+      maxLength: 32600
+    options:
+      type: array
+      items:
+        type: string
+        minLength: 1
+        maxLength: 500
+      minItems: 2
+      maxItems: 50
+    shuffleOptions:
+      type: boolean
+
+PollVote:
+  type: object
+  required:
+    - values
+  properties:
+    values:
+      type: object
+      description: optionIndex → value (see A36 / plan V1).
+      additionalProperties:
+        type: integer
+        format: int32
+
+PollScopeCount:
+  type: object
+  required:
+    - scope
+    - count
+  properties:
+    scope:
+      $ref: ./polls.yaml#/PollScope
+    count:
+      type: integer
+      format: int32

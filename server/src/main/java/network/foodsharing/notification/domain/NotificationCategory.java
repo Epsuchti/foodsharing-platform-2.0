@@ -14,6 +14,7 @@ public enum NotificationCategory {
     ONBOARDING,
     FORUM,
     MESSAGES,
+    MAILBOX,
     SYSTEM;
 
     public boolean switchable() {

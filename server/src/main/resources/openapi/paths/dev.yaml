@@ -271,3 +271,94 @@
             schema:
               type: string
       '404': {description: 'Not available outside local/e2e', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/dev/realtime/sessions:
+  get:
+    tags:
+      - dev
+    operationId: getRealtimeSessions
+    summary: User ids with an open realtime connection.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/dev.yaml#/DevRealtimeSessions
+      "404":
+        description: Not available outside local/e2e
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/dev/realtime/ping:
+  post:
+    tags:
+      - dev
+    operationId: pingRealtime
+    summary: Send a PING realtime event to a user.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: NONE
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/dev.yaml#/DevRealtimePing
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/RealtimeEvent
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: Not available outside local/e2e
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/dev/mailbox/incoming:
+  post:
+    tags:
+      - dev
+    operationId: simulateIncomingMail
+    summary: Process a raw MIME message as inbound mail.
+    security: []
+    x-dev-only: true
+    x-permission: DEV_PROFILE
+    x-history: NONE
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/dev.yaml#/DevIncomingMail
+    responses:
+      "204":
+        description: Done
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: Not available outside local/e2e
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

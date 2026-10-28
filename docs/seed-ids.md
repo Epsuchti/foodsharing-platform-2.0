@@ -46,6 +46,13 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category` | 0001–0004 | M3 (B2, B4) |
 | automation | 0022 | `pickup_policy`, `pickup_policy_excluded_date`, `pickup_policy_linked_store`, `pickup_policy_linked_store_member`, `cleaning_rule_exemption`, `pickup_policy_audit`, `request_policy`, `request_policy_audit`, `open_slot_advert`, `open_slot_advert_audit`, `signout_alert_setting`, `signout_cancellation`, `pickup_extra_slot`, `metric_daily_count`, `holiday_calendar` | 0001–0015 | M4 (B4, B5; seed files `changes/105…111-automation-*.yaml`) |
 | intropickup | 0030 | `intro_pickup`, `intro_pickup_slot`, `intro_pickup_comment`, `guide_profile`, `private_info_template`, `intro_pickup_subscription`, `intro_pickup_store_alias` | 0001–0007 | T15 |
+| upload | 0040 | `upload` | 0001 | M5 B1 (`130`; no seed rows yet) |
+| messaging | 0041 | `conversation`, `conversation_member`, `message`, `store_conversation` (+ `region_conversation` 0005) | 0001–0005 | M5 B2 (`131`/`132`) |
+| mailbox | 0042 | `mailbox`, `mailbox_member`, `mail_message`, `mail_attachment` | 0001–0004 | M5 B4/B5 (`133`/`134`) |
+| forum | 0043 | `forum_thread`, `forum_post`, `forum_post_reaction`, `forum_thread_follow`, `forum_follow` | 0001–0005 | M5 B6 (`135`/`136`) |
+| event | 0044 | `event_location`, `event`, `event_invitation`, `event_wall_post` | 0001–0004 | M5 B7 (`137`) |
+| poll | 0045 | `poll`, `poll_option`, `poll_option_value`, `poll_vote` | 0001–0004 | M5 B7 (`138`) |
+| survey | 0046 | `survey`, `survey_coauthor`, `survey_question`, `survey_response`, `survey_answer` | 0001–0005 | M5 B8 (`139`) |
 
 Seed changelog numbers: M1 uses `001`–`004`; later milestones follow the same ranges as the schema changelogs
 (M2: `020`–`023` T11, `030` T13, `035` T14, `040` T22, `045` T15, `050` T16).

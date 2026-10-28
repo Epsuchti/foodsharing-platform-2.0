@@ -1,0 +1,350 @@
+# polls (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+/api/regions/{regionId}/polls:
+  get:
+    tags:
+      - polls
+    operationId: listRegionPolls
+    summary: Polls of a region or group.
+    x-permission: region member
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ../schemas/polls.yaml#/PollSummary
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/regions/{regionId}/polls/scope-counts:
+  get:
+    tags:
+      - polls
+    operationId: getPollScopeCounts
+    summary: Eligible voters per scope.
+    x-permission: poll creator of the region
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ../schemas/polls.yaml#/PollScopeCount
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/polls/mine:
+  get:
+    tags:
+      - polls
+    operationId: listMyOpenPolls
+    summary: Running polls I may vote in and have not voted.
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ../schemas/polls.yaml#/PollSummary
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/polls:
+  post:
+    tags:
+      - polls
+    operationId: createPoll
+    summary: Create a poll.
+    x-permission: verified member; group admin or VOTING group admin
+    x-history: PollAction.CREATED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/polls.yaml#/PollCreate
+    responses:
+      "201":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/polls.yaml#/Poll
+      "400":
+        description: POLL_DATES_INVALID, POLL_OPTIONS_INVALID
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: REGION_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/polls/{pollId}:
+  get:
+    tags:
+      - polls
+    operationId: getPoll
+    summary: Poll with options (results once ended).
+    x-permission: region member
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/polls.yaml#/Poll
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POLL_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  patch:
+    tags:
+      - polls
+    operationId: updatePoll
+    summary: Edit a poll before it starts.
+    x-permission: author before start
+    x-history: PollAction.UPDATED
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/polls.yaml#/PollUpdate
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/polls.yaml#/Poll
+      "400":
+        description: POLL_OPTIONS_INVALID
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POLL_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: POLL_NOT_EDITABLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - polls
+    operationId: cancelPoll
+    summary: Cancel a poll.
+    x-permission: author before end, or ORGA
+    x-history: PollAction.CANCELLED
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "204":
+        description: Done
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: ACCESS_DENIED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POLL_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: POLL_NOT_CANCELLABLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
+/api/polls/{pollId}/vote:
+  post:
+    tags:
+      - polls
+    operationId: votePoll
+    summary: Vote.
+    x-permission: eligible member while running, once
+    x-history: PollAction.VOTE_CAST
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/polls.yaml#/PollVote
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/polls.yaml#/Poll
+      "400":
+        description: INVALID_VOTE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_ELIGIBLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: POLL_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: POLL_NOT_OPEN, ALREADY_VOTED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

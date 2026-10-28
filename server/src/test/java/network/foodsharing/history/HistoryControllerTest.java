@@ -177,7 +177,7 @@ class HistoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.action == 'FIELD_CHANGED')].subjectType")
                         .value(org.hamcrest.Matchers.containsInAnyOrder("USER", "REGION", "GROUP", "STORE",
-                                "STORE_CHAIN", "AUTOMATION")));
+                                "STORE_CHAIN", "AUTOMATION", "MAILBOX", "EVENT")));
     }
 
     @Test

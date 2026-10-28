@@ -1,0 +1,37 @@
+# public-mailbox (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+/api/public/mailbox/inbound/{secret}:
+  post:
+    tags:
+      - public-mailbox
+    operationId: receiveInboundMail
+    summary: Inbound mail webhook (raw MIME, base64).
+    security: []
+    x-permission: public (secret path)
+    x-history: MailboxAction.MAIL_RECEIVED
+    parameters:
+      - name: secret
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/mailboxes.yaml#/InboundMail
+    responses:
+      "202":
+        description: Done
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: RESOURCE_NOT_FOUND (wrong secret)
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError

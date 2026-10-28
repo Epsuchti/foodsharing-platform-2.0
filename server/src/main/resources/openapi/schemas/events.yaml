@@ -1,0 +1,309 @@
+# events (milestone 5, docs/plan-m5.md B1). Operations without an implementation answer 501 NOT_IMPLEMENTED.
+EventType:
+  type: string
+  enum:
+    - OFFLINE
+    - ONLINE
+    - OTHER
+
+InvitationStatus:
+  type: string
+  enum:
+    - INVITED
+    - ACCEPTED
+    - MAYBE
+    - WONT_JOIN
+
+EventLocation:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    street:
+      type: string
+      minLength: 0
+      maxLength: 200
+    zip:
+      type: string
+      minLength: 0
+      maxLength: 20
+    city:
+      type: string
+      minLength: 0
+      maxLength: 100
+    lat:
+      type: number
+      format: double
+    lon:
+      type: number
+      format: double
+
+EventSummary:
+  type: object
+  required:
+    - id
+    - regionId
+    - name
+    - type
+    - startsAt
+    - endsAt
+    - public
+    - acceptedCount
+    - maybeCount
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    type:
+      $ref: ./events.yaml#/EventType
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    public:
+      type: boolean
+    location:
+      $ref: ./events.yaml#/EventLocation
+    onlineLink:
+      type: string
+    myStatus:
+      $ref: ./events.yaml#/InvitationStatus
+    acceptedCount:
+      type: integer
+      format: int32
+    maybeCount:
+      type: integer
+      format: int32
+
+EventParticipants:
+  type: object
+  required:
+    - accepted
+    - maybe
+    - invitedCount
+  properties:
+    accepted:
+      type: array
+      items:
+        $ref: ./users.yaml#/UserSummary
+    maybe:
+      type: array
+      items:
+        $ref: ./users.yaml#/UserSummary
+    invitedCount:
+      type: integer
+      format: int32
+
+EventWallPost:
+  type: object
+  required:
+    - id
+    - author
+    - body
+    - createdAt
+    - mayDelete
+  properties:
+    id:
+      type: string
+      format: uuid
+    author:
+      $ref: ./users.yaml#/UserSummary
+    body:
+      type: string
+      minLength: 1
+      maxLength: 4000
+    createdAt:
+      type: string
+      format: date-time
+    mayDelete:
+      type: boolean
+
+EventPermissions:
+  type: object
+  required:
+    - mayEdit
+    - mayRsvp
+    - mayComment
+  properties:
+    mayEdit:
+      type: boolean
+    mayRsvp:
+      type: boolean
+    mayComment:
+      type: boolean
+
+Event:
+  type: object
+  required:
+    - id
+    - regionId
+    - name
+    - type
+    - startsAt
+    - endsAt
+    - public
+    - acceptedCount
+    - maybeCount
+    - description
+    - author
+    - region
+    - participants
+    - wallPosts
+    - permissions
+  properties:
+    id:
+      type: string
+      format: uuid
+    regionId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    type:
+      $ref: ./events.yaml#/EventType
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    public:
+      type: boolean
+    location:
+      $ref: ./events.yaml#/EventLocation
+    onlineLink:
+      type: string
+    myStatus:
+      $ref: ./events.yaml#/InvitationStatus
+    acceptedCount:
+      type: integer
+      format: int32
+    maybeCount:
+      type: integer
+      format: int32
+    description:
+      type: string
+    author:
+      $ref: ./users.yaml#/UserSummary
+    region:
+      $ref: ./regions.yaml#/RegionRef
+    participants:
+      $ref: ./events.yaml#/EventParticipants
+    wallPosts:
+      type: array
+      items:
+        $ref: ./events.yaml#/EventWallPost
+    permissions:
+      $ref: ./events.yaml#/EventPermissions
+
+EventCreate:
+  type: object
+  required:
+    - regionId
+    - type
+    - name
+    - startsAt
+    - endsAt
+    - public
+    - inviteAllMembers
+  properties:
+    regionId:
+      type: string
+      format: uuid
+    type:
+      $ref: ./events.yaml#/EventType
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 0
+      maxLength: 32600
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    public:
+      type: boolean
+    location:
+      $ref: ./events.yaml#/EventLocation
+    onlineLink:
+      type: string
+      minLength: 8
+      maxLength: 500
+      pattern: ^https://
+    inviteAllMembers:
+      type: boolean
+
+EventUpdate:
+  type: object
+  properties:
+    type:
+      $ref: ./events.yaml#/EventType
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 0
+      maxLength: 32600
+    startsAt:
+      type: string
+      format: date-time
+    endsAt:
+      type: string
+      format: date-time
+    public:
+      type: boolean
+    location:
+      $ref: ./events.yaml#/EventLocation
+    onlineLink:
+      type: string
+      minLength: 0
+      maxLength: 500
+
+EventRsvp:
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      $ref: ./events.yaml#/InvitationStatus
+
+EventInvite:
+  type: object
+  required:
+    - userIds
+  properties:
+    userIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      maxItems: 500
+
+EventWallPostCreate:
+  type: object
+  required:
+    - body
+  properties:
+    body:
+      type: string
+      minLength: 1
+      maxLength: 4000
