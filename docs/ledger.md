@@ -179,10 +179,10 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | done | history module, TrackedFieldListener | shared/history-timeline | d10-history @D10.1 | history.screen.ts (no baseline yet) |  |
 | D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | done | ArchitectureTest rule 4 + fixture test | | | | proved by ArchitectureRuleFixtureTest |
 | D10.3 | All views from the table above. | in-progress | | fs-history-timeline (my activity, security log) | d10-history @D10.3, a22-sessions @A22 | history.screen.ts, auth.screen.ts | security log + my activity done; store log (M3), profile/verification/passport/quiz history (M2), EinAb (M2), automation audit (M4), region admin (M2), moderation (M5), report (M6) pending |
-| D11.5.1 | New user goes from landing page to "account created" in **≤ 2 clicks** with Google. | todo | | | | | |
-| D11.5.2 | At any time the user sees which step they are on and the single next action. | todo | | | | | |
-| D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | todo | | | | | |
-| D11.5.4 | Every step works on a 360 px wide screen and in all five languages. | todo | | | | | |
+| D11.5.1 | New user goes from landing page to "account created" in **≤ 2 clicks** with Google. | done | | explainer Google CTA | d11-journey @D11.5.1 | |  |
+| D11.5.2 | At any time the user sees which step they are on and the single next action. | done | | journey bar + /onboarding | d11-journey @D11.5.2 | |  |
+| D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | in-progress | | lighthouse script | | | perf 68 (/) / 75 (/onboarding), a11y 96: needs prerender/i18n split/chunking |
+| D11.5.4 | Every step works on a 360 px wide screen and in all five languages. | done | | 360px layouts | d11-journey @D11.5.4 | |  |
 | D11.5.5 | Usability test with 5 real newcomers from Zürich before launch. | todo | | | | | |
 | D15.1 | ER diagram generated from Liquibase via SchemaSpy in CI, kept in `docs/`. | done | scripts/er-diagram.sh (SchemaSpy, Postgres 17) | | | | proved by docs/er/diagrams/summary (regenerated per milestone; full HTML via npm run er-diagram) |
 
