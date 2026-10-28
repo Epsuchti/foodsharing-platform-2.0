@@ -54,6 +54,9 @@ class DevNotificationsControllerTest {
     @MockitoBean
     private DevNotificationService notificationService;
 
+    @MockitoBean
+    private network.foodsharing.oauthserver.service.AuthorizationService oauthAuthorization;
+
     @Test
     void notificationsListBellsAndTheirMails() throws Exception {
         Bell bell = new Bell();

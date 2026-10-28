@@ -1,0 +1,94 @@
+# Milestone 6 (B13): OAuth2/OIDC provider for partner apps (C13, A44). Secrets, codes and refresh tokens are stored
+# as SHA-256 hex only.
+databaseChangeLog:
+  - changeSet:
+      id: 175-1
+      author: platform
+      comment: 'OAuth clients, authorization requests, codes, refresh tokens and remembered consents.'
+      changes:
+        - createTable:
+            tableName: oauth_client
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_oauth_client, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: client_id, type: VARCHAR(60), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_oauth_client_client_id}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: secret_hash, type: VARCHAR(64)}
+              - column: {name: confidential, type: BOOLEAN, constraints: {nullable: false}}
+              - column: {name: redirect_uris, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: scopes, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: grant_types, type: VARCHAR(100), constraints: {nullable: false}}
+              - column: {name: required_region_ids, type: VARCHAR(4000)}
+              - column: {name: enabled, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createTable:
+            tableName: oauth_authorization_request
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_oauth_authorization_request, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: client_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_request_client, references: oauth_client(id)}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_request_user, references: user_account(id)}}
+              - column: {name: scopes, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: redirect_uri, type: VARCHAR(1000), constraints: {nullable: false}}
+              - column: {name: state, type: VARCHAR(500)}
+              - column: {name: nonce, type: VARCHAR(200)}
+              - column: {name: code_challenge, type: VARCHAR(128)}
+              - column: {name: code_challenge_method, type: VARCHAR(10)}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+        - createTable:
+            tableName: oauth_code
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_oauth_code, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: request_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_code_request, references: oauth_authorization_request(id)}}
+              - column: {name: code_hash, type: VARCHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_oauth_code_hash}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: used_at, type: TIMESTAMP WITH TIME ZONE}
+        - createTable:
+            tableName: oauth_refresh_token
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_oauth_refresh_token, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: client_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_refresh_client, references: oauth_client(id)}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_refresh_user, references: user_account(id)}}
+              - column: {name: scopes, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: token_hash, type: VARCHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_oauth_refresh_token_hash}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: revoked_at, type: TIMESTAMP WITH TIME ZONE}
+        - createTable:
+            tableName: oauth_consent
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_oauth_consent, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: client_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_consent_client, references: oauth_client(id)}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_oauth_consent_user, references: user_account(id)}}
+              - column: {name: scopes, type: VARCHAR(200), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: oauth_consent
+            columnNames: client_id, user_id
+            constraintName: uq_oauth_consent_client_user
+        - createIndex:
+            tableName: oauth_refresh_token
+            indexName: ix_oauth_refresh_token_user
+            columns:
+              - column: {name: user_id}

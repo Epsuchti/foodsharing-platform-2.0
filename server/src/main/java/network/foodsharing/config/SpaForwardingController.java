@@ -46,7 +46,7 @@ public class SpaForwardingController {
             "^(?!api$|actuator$|error$|assets$|media$|fonts$|images$|i18n$|h2-console$|oauth2$|webauthn$|ws$)[^.]*$";
 
     private static final List<String> BACKEND_PREFIXES = List.of(
-            "/dev/oidc", "/login/oauth2", "/login/webauthn",
+            "/dev/oidc", "/dev/oauth-callback", "/login/oauth2", "/login/webauthn",
             // A44: OAuth provider endpoints (/oauth/consent stays an Angular route)
             "/oauth/authorize", "/oauth/token", "/oauth/userinfo");
 

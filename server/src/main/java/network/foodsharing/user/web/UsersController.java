@@ -10,7 +10,6 @@ import network.foodsharing.api.model.PhotoResult;
 import network.foodsharing.api.model.PhotoUpdate;
 import network.foodsharing.api.model.SleepModeUpdate;
 import network.foodsharing.api.model.TokenBody;
-import network.foodsharing.common.error.ApiException;
 import java.util.List;
 import java.util.UUID;
 import network.foodsharing.api.UsersApi;
@@ -37,6 +36,7 @@ public class UsersController implements UsersApi {
     private final network.foodsharing.user.service.AccountDeletionService deletion;
     private final network.foodsharing.user.service.DataExportService export;
     private final network.foodsharing.user.service.BusinessCardPort businessCards;
+    private final network.foodsharing.user.service.ConnectionsPort connections;
 
     public UsersController(UserService userService, UserMapper mapper,
                            network.foodsharing.user.service.UserSearchService userSearch,
@@ -44,7 +44,9 @@ public class UsersController implements UsersApi {
                            network.foodsharing.user.service.EmailChangePort emailChange,
                            network.foodsharing.user.service.AccountDeletionService deletion,
                            network.foodsharing.user.service.DataExportService export,
-                           network.foodsharing.user.service.BusinessCardPort businessCards) {
+                           network.foodsharing.user.service.BusinessCardPort businessCards,
+                           network.foodsharing.user.service.ConnectionsPort connections) {
+        this.connections = connections;
         this.deletion = deletion;
         this.export = export;
         this.businessCards = businessCards;
@@ -157,7 +159,11 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<List<OAuthConsent>> listMyConnections() {
-        throw ApiException.notImplemented("listMyConnections");
+        return ResponseEntity.ok(connections.list(userService.getCurrent().getId()).stream()
+                .map(c -> new OAuthConsent().clientId(c.clientId()).clientName(c.clientName())
+                        .scopes(List.copyOf(c.scopes()))
+                        .grantedAt(network.foodsharing.common.mapper.TimeMapper.toOffset(c.grantedAt())))
+                .toList());
     }
 
     @Override
@@ -168,7 +174,8 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<Void> revokeMyConnection(String clientId) {
-        throw ApiException.notImplemented("revokeMyConnection");
+        connections.revoke(userService.getCurrent().getId(), clientId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
