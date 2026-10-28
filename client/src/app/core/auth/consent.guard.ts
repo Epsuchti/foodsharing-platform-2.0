@@ -12,6 +12,8 @@ export const CONSENT_EXEMPT_PREFIXES: readonly string[] = [
   '/pages',
   '/forbidden',
   '/dev',
+  // Ve1: the legal agreement is accepted in the foodsaver quiz confirmation, so its results page stays reachable
+  '/quizzes/foodsaver/results',
 ];
 
 export function isConsentExempt(url: string): boolean {

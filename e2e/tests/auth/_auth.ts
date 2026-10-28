@@ -120,6 +120,9 @@ export async function acceptConsentPage(page: Page, expectedPath: RegExp): Promi
   const count = await checks.count();
   expect(count).toBeGreaterThan(0);
   for (let i = 0; i < count; i++) await checks.nth(i).check();
+  // EA4 phone prompt: accounts without a valid mobile number add one together with the consents
+  const phone = page.getByTestId('legal.consent.phoneInput');
+  if (await phone.isVisible()) await phone.fill('079 123 45 99');
   await page.getByTestId('legal.consent.submit').click();
   await expect(page).toHaveURL(expectedPath);
 }
