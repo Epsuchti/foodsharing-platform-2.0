@@ -6,6 +6,8 @@ import java.util.UUID;
 import network.foodsharing.basket.domain.Basket;
 import network.foodsharing.basket.domain.BasketStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BasketRepository extends JpaRepository<Basket, UUID> {
 
@@ -20,4 +22,8 @@ public interface BasketRepository extends JpaRepository<Basket, UUID> {
     List<Basket> findByOwnerId(UUID ownerId);
 
     List<Basket> findByOwnerIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(UUID ownerId, Instant from, Instant to);
+
+    /** One owner id per basket created in {@code [from, to)} (region statistics). */
+    @Query("select b.ownerId from Basket b where b.createdAt >= :from and b.createdAt < :to")
+    List<UUID> findOwnerIdsCreatedBetween(@Param("from") Instant from, @Param("to") Instant to);
 }

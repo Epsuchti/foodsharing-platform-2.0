@@ -119,28 +119,28 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | C14 | Configuration admin (key/value settings) | todo | | | | | |
 | C15 | Maintenance jobs (§6.3) | todo | | | | | |
 | C16 | Team page (public, from working groups) | todo | | | | | |
-| EA1 | Region landing page with region picker; landing guard sends logged-in users to their home region | todo | | | | | |
-| EA2 | Public page of available EinAb slots per region (public location only), notification subscription widget | todo | | | | | |
-| EA3 | "What is my Foodsharing ID" help page with screenshot | todo | | | | | |
+| EA1 | Region landing page with region picker; landing guard sends logged-in users to their home region | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA1 | intro-pickups.screen.ts (baseline pending) |  |
+| EA2 | Public page of available EinAb slots per region (public location only), notification subscription widget | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA2 | intro-pickups.screen.ts (baseline pending) |  |
+| EA3 | "What is my Foodsharing ID" help page with screenshot | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA3 | intro-pickups.screen.ts (baseline pending) |  |
 | EA4 | Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | done | magic link + consent API | login, /consent with phone prompt | a2-login, ea4-consent @EA4 | legal.screen.ts |  |
-| EA5 | Booking rules per region: max active bookings (default 3), no duplicate guide, no duplicate category, Fairteiler visit required by 3rd EinAb, ignored categories | todo | | | | | |
-| EA6 | EinAb categories: supermarket, takeout, market, bakery, restaurant, Fairteiler cleaning, Messe, Grossabholung, online | todo | | | | | |
-| EA7 | My bookings, cancel booking | todo | | | | | |
-| EA8 | Newcomer progress (stages, next step) | todo | | | | | |
-| EA9 | Notifications about new bookable EinAbs (message or email channel), unsubscribe, auto-switch-off once verified | todo | | | | | |
-| EA10 | Guide dashboard: create/edit/delete EinAbs (category, start, slot count, minimum pickup count, location, business name, private address, public location & general area, online call link, private/public info), Fairteiler visit flag | todo | | | | | |
-| EA11 | Private info templates | todo | | | | | |
-| EA12 | Assign another guide, assignable guides list; book or cancel on behalf of a newcomer | todo | | | | | |
-| EA13 | Slot comments (guide feedback per newcomer), admin comments | todo | | | | | |
-| EA14 | Mark EinAb done | todo | | | | | |
-| EA15 | ICS per EinAb, personal guide ICS feed with token | todo | | | | | |
-| EA16 | iCal import candidates (guide's foodsharing calendar link) | todo | | | | | |
-| EA17 | Guide profile, guide regions, enable/disable guides, grant admin | todo | | | | | |
-| EA18 | Admin: list EinAbs, delete unbooked with reason, historical EinAb creation, adjust booking count | todo | | | | | |
-| EA19 | Past EinAb CSV import with preview/confirm, dedupe by user + day + store, store-name aliases, needs-attention rows | todo | | | | | |
-| EA20 | User data refresh queue with progress bar | todo | | | | | |
-| EA21 | Newcomer funnel with names, stalled users, gap analysis | todo | | | | | |
-| EA22 | Bezirk settings (slug, name, sort order, active, cleaning store, booking rules, user info API) | todo | | | | | |
+| EA5 | Booking rules per region: max active bookings (default 3), no duplicate guide, no duplicate category, Fairteiler visit required by 3rd EinAb, ignored categories | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA5 | intro-pickups.screen.ts (baseline pending) |  |
+| EA6 | EinAb categories: supermarket, takeout, market, bakery, restaurant, Fairteiler cleaning, Messe, Grossabholung, online | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA6 | intro-pickups.screen.ts (baseline pending) |  |
+| EA7 | My bookings, cancel booking | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA7 | intro-pickups.screen.ts (baseline pending) |  |
+| EA8 | Newcomer progress (stages, next step) | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA8 | intro-pickups.screen.ts (baseline pending) |  |
+| EA9 | Notifications about new bookable EinAbs (message or email channel), unsubscribe, auto-switch-off once verified | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA9 | intro-pickups.screen.ts (baseline pending) |  |
+| EA10 | Guide dashboard: create/edit/delete EinAbs (category, start, slot count, minimum pickup count, location, business name, private address, public location & general area, online call link, private/public info), Fairteiler visit flag | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA10 | intro-pickups.screen.ts (baseline pending) |  |
+| EA11 | Private info templates | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA11 | intro-pickups.screen.ts (baseline pending) |  |
+| EA12 | Assign another guide, assignable guides list; book or cancel on behalf of a newcomer | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA12 | intro-pickups.screen.ts (baseline pending) |  |
+| EA13 | Slot comments (guide feedback per newcomer), admin comments | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA13 | intro-pickups.screen.ts (baseline pending) |  |
+| EA14 | Mark EinAb done | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA14 | intro-pickups.screen.ts (baseline pending) |  |
+| EA15 | ICS per EinAb, personal guide ICS feed with token | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA15 | intro-pickups.screen.ts (baseline pending) |  |
+| EA16 | iCal import candidates (guide's foodsharing calendar link) | in-progress | IcalImportService | guide iCal candidates | ea16 @EA16 (candidates stubbed in browser) | | needs e2e fetch via dev iCal fixture |
+| EA17 | Guide profile, guide regions, enable/disable guides, grant admin | in-progress | guide enable/disable | guide admin | ea17 @EA17 | | grant admin op missing; paused guides vanish from listGuides |
+| EA18 | Admin: list EinAbs, delete unbooked with reason, historical EinAb creation, adjust booking count | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA18 | intro-pickups.screen.ts (baseline pending) |  |
+| EA19 | Past EinAb CSV import with preview/confirm, dedupe by user + day + store, store-name aliases, needs-attention rows | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA19 | intro-pickups.screen.ts (baseline pending) |  |
+| EA20 | User data refresh queue with progress bar | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA20 | intro-pickups.screen.ts (baseline pending) |  |
+| EA21 | Newcomer funnel with names, stalled users, gap analysis | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA21 | intro-pickups.screen.ts (baseline pending) |  |
+| EA22 | Bezirk settings (slug, name, sort order, active, cleaning store, booking rules, user info API) | done | intropickup module (T15) | features/intro-pickups | e2e/tests/intro-pickups @EA22 | intro-pickups.screen.ts (baseline pending) |  |
 | AU1 | Pickup sign-up automation per store: auto confirm/decline sign-ups with rules: minimum gap days between a user's pickups, cleaning rule (Fairteiler cleaning in last 12 months; exemptions; minimum free cleaning slots), experience rule, public-holiday rule, linked-store rules (pickup in X requires a pickup in Y/Z within a window before/after, grace minutes, bidirectional, custom message), excluded dates (manual + holidays); dry-run; run now; audit with decision & reasons; message to user on decline | todo | | | | | |
 | AU2 | Ownership of automations (owner name/email, editable flag, bot account) | todo | | | | | |
 | AU3 | Team request automation: auto-accept store applications, distance rule (max km from home) | todo | | | | | |

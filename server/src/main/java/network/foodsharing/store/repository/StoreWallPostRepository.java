@@ -1,5 +1,7 @@
 package network.foodsharing.store.repository;
 
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,4 +17,8 @@ public interface StoreWallPostRepository extends JpaRepository<StoreWallPost, UU
     Optional<StoreWallPost> findByIdAndStoreIdAndDeletedAtIsNull(UUID id, UUID storeId);
 
     List<StoreWallPost> findByStoreIdAndDeletedAtIsNull(UUID storeId);
+
+    /** Activity feed (A19): newest live posts of the given owners before a cursor. */
+    List<StoreWallPost> findByStoreIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(
+            Collection<UUID> ids, Instant before, Pageable pageable);
 }

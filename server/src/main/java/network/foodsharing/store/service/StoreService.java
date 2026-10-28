@@ -141,6 +141,14 @@ public class StoreService {
         return storeGroceries.findByStoreId(storeId).stream().map(StoreGrocery::getGroceryId).toList();
     }
 
+    /** Stores whose team (member or jumper) the user is in (activity feed, map scope). */
+    @Transactional(readOnly = true)
+    public List<UUID> teamStoreIds(UUID userId) {
+        return memberships.findByUserId(userId).stream()
+                .filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER || m.getStatus() == StoreMembershipStatus.JUMPER)
+                .map(m -> m.getStoreId()).toList();
+    }
+
     @Transactional(readOnly = true)
     public List<User> managers(UUID storeId) {
         return users.findAll(memberships.findByStoreId(storeId).stream()

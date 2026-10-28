@@ -618,4 +618,31 @@ public class UserService {
         user.setTelegramChatId(chatId);
         return user;
     }
+
+    /** Activity feed types the user hides on the dashboard (A19), stored comma separated. */
+    @Transactional(readOnly = true)
+    public List<String> activityFilters() {
+        return activityFilters(currentActorService.requireUserId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> activityFilters(UUID userId) {
+        String raw = require(userId).getActivityFilters();
+        return raw == null || raw.isBlank() ? List.of() : List.of(raw.split(","));
+    }
+
+    /** Replaces the hidden activity types of the current user. */
+    @Transactional
+    public List<String> updateActivityFilters(java.util.Collection<String> excluded) {
+        User user = currentActorService.requireUser();
+        User managed = repository.findById(user.getId()).orElseThrow();
+        String value = excluded == null || excluded.isEmpty() ? null
+                : String.join(",", new java.util.TreeSet<>(excluded));
+        if (!java.util.Objects.equals(managed.getActivityFilters(), value)) {
+            history.record(history.event(UserAction.ACTIVITY_FILTERS_CHANGED, managed.getId())
+                    .change("activityFilters", managed.getActivityFilters(), value).build());
+            managed.setActivityFilters(value);
+        }
+        return activityFilters(managed.getId());
+    }
 }

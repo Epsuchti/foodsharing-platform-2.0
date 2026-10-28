@@ -101,6 +101,11 @@ class StoreApiIT {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.contact").doesNotExist())
                 .andExpect(jsonPath("$.specialNotes").doesNotExist());
         mvc.perform(get("/api/stores/" + S01).cookie(login(SeedUsers.NEWBIE))).andExpect(status().isForbidden());
+        // A foodsaver of the region who is not in the team sees the public store page and may apply.
+        mvc.perform(get("/api/stores/00000020-0001-4000-8000-000000000005").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.contact").doesNotExist())
+                .andExpect(jsonPath("$.specialNotes").doesNotExist())
+                .andExpect(jsonPath("$.permissions.mayAccess").value(false));
         mvc.perform(get("/api/stores/00000020-0001-4000-8000-000000000999").cookie(login(SeedUsers.ORGA)))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
     }
@@ -123,8 +128,17 @@ class StoreApiIT {
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/users/me/stores").cookie(login(SeedUsers.JUMPER)))
                 .andExpect(jsonPath("$.length()").value(4));
+        // excludeInactive keeps applications/invitations (jumper is INVITED to S08) and drops closed stores only.
         mvc.perform(get("/api/users/me/stores").param("excludeInactive", "true").cookie(login(SeedUsers.JUMPER)))
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(4));
+        jdbc.update("insert into store_membership (id, version, created_at, updated_at, store_id, user_id, status, "
+                + "manager, added_at) values (?, 0, current_timestamp, current_timestamp, ?, ?, 'MEMBER', false, "
+                + "current_timestamp)", java.util.UUID.randomUUID(),
+                java.util.UUID.fromString("00000020-0001-4000-8000-000000000024"), SeedUsers.JUMPER.id());
+        mvc.perform(get("/api/users/me/stores").cookie(login(SeedUsers.JUMPER)))
+                .andExpect(jsonPath("$.length()").value(5));
+        mvc.perform(get("/api/users/me/stores").param("excludeInactive", "true").cookie(login(SeedUsers.JUMPER)))
+                .andExpect(jsonPath("$.length()").value(4));
         mvc.perform(get("/api/store-metadata").cookie(foodsaver))
                 .andExpect(jsonPath("$.categories.length()").value(8))
                 .andExpect(jsonPath("$.weightCategories[4].averageKg").value(15.0))

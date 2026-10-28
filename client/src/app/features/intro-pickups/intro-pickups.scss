@@ -1,0 +1,308 @@
+// Shared layout of the intro pickup pages (T21).
+:host {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 72rem);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.narrow {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 46rem);
+  margin: 0 auto;
+}
+
+.stack {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.card {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.card__title .pi {
+  color: var(--fs-primary-strong);
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-text-muted);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.filters > * {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.field > label,
+.field__label {
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.field--inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.einab {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.einab__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.einab__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.einab__title {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.einab__title strong {
+  overflow-wrap: anywhere;
+}
+
+.einab__meta {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.einab__meta > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.einab__meta .pi {
+  margin-top: 0.2rem;
+  color: var(--fs-text-muted);
+  font-size: 0.85rem;
+}
+
+.einab__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: var(--fs-surface-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.tag--ok,
+.tag--DONE,
+.tag--OK {
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.tag--warn,
+.tag--BOOKED,
+.tag--LOW {
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+}
+
+.tag--danger,
+.tag--CANCELLED,
+.tag--MISSING {
+  background: var(--fs-danger-soft);
+  color: var(--fs-danger);
+}
+
+.reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--fs-warning-text);
+  font-size: 0.85rem;
+}
+
+.private {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--fs-border-strong);
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-surface-muted);
+  font-size: 0.9rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  font-size: 1.1rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--fs-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--fs-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.form__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.9rem;
+}
+
+.form input[type='datetime-local'],
+.native {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-surface);
+  color: var(--fs-text);
+  font: inherit;
+}
+
+.error-text {
+  margin: 0;
+  color: var(--fs-danger);
+  font-size: 0.85rem;
+}

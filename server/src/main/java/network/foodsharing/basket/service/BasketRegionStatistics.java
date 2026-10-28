@@ -1,46 +1,43 @@
 package network.foodsharing.basket.service;
 
-import jakarta.persistence.EntityManager;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import network.foodsharing.basket.repository.BasketRepository;
 import network.foodsharing.region.domain.RegionStatistics;
+import network.foodsharing.region.service.RegionService;
 import network.foodsharing.region.service.RegionStatisticsContributor;
 import org.springframework.stereotype.Component;
 
 /**
- * Region statistics (R13): baskets created in the previous calendar month (Europe/Zurich) by members of the region
- * subtree. Counted with SQL over {@code basket} and {@code region_membership}.
+ * Region statistics (R13): baskets created in the previous calendar month (Europe/Zurich) by active members of the
+ * region subtree. Membership is asked from the region module ({@link RegionService#activeMembersAmong}).
  */
 @Component
 public class BasketRegionStatistics implements RegionStatisticsContributor {
 
     private static final ZoneId ZONE = ZoneId.of("Europe/Zurich");
 
-    private final EntityManager em;
+    private final BasketRepository baskets;
+    private final RegionService regions;
     private final Clock clock;
 
-    public BasketRegionStatistics(EntityManager em, Clock clock) {
-        this.em = em;
+    public BasketRegionStatistics(BasketRepository baskets, RegionService regions, Clock clock) {
+        this.baskets = baskets;
+        this.regions = regions;
         this.clock = clock;
     }
 
     @Override
     public void contribute(UUID regionId, Set<UUID> subtreeIds, RegionStatistics statistics) {
-        if (subtreeIds.isEmpty()) {
-            statistics.setFoodBasketsLastMonth(0);
-            return;
-        }
         LocalDate firstOfMonth = clock.instant().atZone(ZONE).toLocalDate().with(TemporalAdjusters.firstDayOfMonth());
-        Number count = (Number) em.createNativeQuery("select count(*) from basket b where b.created_at >= ?1 "
-                        + "and b.created_at < ?2 and exists (select 1 from region_membership m "
-                        + "where m.user_id = b.owner_id and m.region_id in (?3))")
-                .setParameter(1, firstOfMonth.minusMonths(1).atStartOfDay(ZONE).toOffsetDateTime())
-                .setParameter(2, firstOfMonth.atStartOfDay(ZONE).toOffsetDateTime())
-                .setParameter(3, subtreeIds).getSingleResult();
-        statistics.setFoodBasketsLastMonth(count.intValue());
+        List<UUID> owners = subtreeIds.isEmpty() ? List.of() : baskets.findOwnerIdsCreatedBetween(
+                firstOfMonth.minusMonths(1).atStartOfDay(ZONE).toInstant(), firstOfMonth.atStartOfDay(ZONE).toInstant());
+        Set<UUID> members = owners.isEmpty() ? Set.of() : regions.activeMembersAmong(subtreeIds, owners);
+        statistics.setFoodBasketsLastMonth((int) owners.stream().filter(members::contains).count());
     }
 }

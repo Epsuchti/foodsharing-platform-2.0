@@ -123,15 +123,19 @@ class StoreListServiceTest {
     }
 
     @Test
-    void myStoresExcludesApplicationsWhenAsked() {
+    void myStoresKeepsApplicationsAndDropsClosedStoresWhenAsked() {
         Store applied = inRegion.get(0);
         Store member = inRegion.get(1);
+        Store closed = inRegion.get(2);
+        closed.setCooperationStatus(CooperationStatus.PERMANENTLY_CLOSED);
         when(memberships.findByUserId(actor.userId())).thenReturn(List.of(membership(applied,
-                StoreMembershipStatus.APPLIED), membership(member, StoreMembershipStatus.MEMBER)));
-        when(stores.findLiveIn(List.of(member.getId()))).thenReturn(List.of(member));
-        when(stores.findLiveIn(List.of(applied.getId(), member.getId()))).thenReturn(List.of(applied, member));
-        assertThat(service.myStores(true)).hasSize(1);
-        assertThat(service.myStores(false)).hasSize(2);
+                StoreMembershipStatus.APPLIED), membership(member, StoreMembershipStatus.MEMBER),
+                membership(closed, StoreMembershipStatus.MEMBER)));
+        when(stores.findLiveIn(List.of(applied.getId(), member.getId(), closed.getId())))
+                .thenReturn(List.of(applied, member, closed));
+        assertThat(service.myStores(true)).extracting(item -> item.store().getId())
+                .containsExactly(applied.getId(), member.getId());
+        assertThat(service.myStores(false)).hasSize(3);
     }
 
     private StoreMembership membership(Store store, StoreMembershipStatus status) {

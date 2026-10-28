@@ -77,4 +77,24 @@ public class EventWallService {
         history.record(history.event(EventAction.WALL_POST_DELETED, eventId).region(context.event().getRegionId())
                 .metadata("postId", postId.toString()).build());
     }
+
+    /** A wall post for the activity feed (A19). */
+    public record FeedPost(UUID id, UUID eventId, String eventName, UUID authorId, String body,
+                           java.time.Instant createdAt) {
+    }
+
+    /** Activity feed (A19): newest wall posts of the events the user accepted. */
+    @Transactional(readOnly = true)
+    public java.util.List<FeedPost> latestOfAcceptedEvents(UUID userId, java.time.Instant before, int limit) {
+        java.util.Map<UUID, String> names = new java.util.HashMap<>();
+        events.listForCalendar(userId, java.util.Set.of(network.foodsharing.event.domain.InvitationStatus.ACCEPTED),
+                java.time.Instant.EPOCH).forEach(i -> names.put(i.event().getId(), i.event().getName()));
+        if (names.isEmpty()) {
+            return java.util.List.of();
+        }
+        return posts.findByEventIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(names.keySet(), before,
+                        org.springframework.data.domain.PageRequest.of(0, limit)).stream()
+                .map(p -> new FeedPost(p.getId(), p.getEventId(), names.get(p.getEventId()), p.getAuthorId(),
+                        p.getBody(), p.getCreatedAt())).toList();
+    }
 }

@@ -25,12 +25,15 @@ public class RegionService {
     private final network.foodsharing.region.repository.RegionFunctionRepository functions;
     private final network.foodsharing.region.repository.RegionAdminRepository admins;
     private final network.foodsharing.region.repository.RegionMembershipRepository memberships;
+    private final network.foodsharing.region.repository.RegionPinRepository pins;
 
     public RegionService(RegionRepository regions, RegionClosureRepository closure, AppProperties properties,
                          network.foodsharing.region.repository.RegionFunctionRepository functions,
                          network.foodsharing.region.repository.RegionAdminRepository admins,
-                         network.foodsharing.region.repository.RegionMembershipRepository memberships) {
+                         network.foodsharing.region.repository.RegionMembershipRepository memberships,
+                         network.foodsharing.region.repository.RegionPinRepository pins) {
         this.memberships = memberships;
+        this.pins = pins;
         this.regions = regions;
         this.closure = closure;
         this.properties = properties;
@@ -121,6 +124,44 @@ public class RegionService {
     @Transactional(readOnly = true)
     public List<UUID> memberIdsOfSubtree(UUID regionId) {
         return memberships.findActiveUserIdsIn(subtreeIds(regionId));
+    }
+
+    /**
+     * The given users that are active members of at least one of the regions (region statistics contributors count
+     * their rows per member without reading {@code region_membership} themselves).
+     */
+    @Transactional(readOnly = true)
+    public java.util.Set<UUID> activeMembersAmong(Collection<UUID> regionIds, Collection<UUID> userIds) {
+        if (regionIds.isEmpty() || userIds.isEmpty()) {
+            return java.util.Set.of();
+        }
+        java.util.Set<UUID> result = new java.util.HashSet<>();
+        List<UUID> users = List.copyOf(new java.util.LinkedHashSet<>(userIds));
+        for (int from = 0; from < users.size(); from += 1000) {
+            result.addAll(memberships.findActiveUserIdsAmong(regionIds,
+                    users.subList(from, Math.min(users.size(), from + 1000))));
+        }
+        return result;
+    }
+
+    /** Map layer (M1): active, non-group regions with coordinates. */
+    @Transactional(readOnly = true)
+    public List<Region> regionsWithCoordinates() {
+        return regions.findAll().stream().filter(r -> r.isActive() && r.getLatitude() != null
+                && r.getLongitude() != null && r.getType() != network.foodsharing.region.domain.UnitType.WORKING_GROUP)
+                .toList();
+    }
+
+    /** Map layer (M1): active region pins. */
+    @Transactional(readOnly = true)
+    public List<network.foodsharing.region.domain.RegionPin> activePins() {
+        return pins.findAll().stream()
+                .filter(p -> p.getStatus() == network.foodsharing.region.domain.RegionPinStatus.ACTIVE).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public long activeMemberCount(UUID regionId) {
+        return memberships.countByRegionIdAndActiveTrue(regionId);
     }
 
     /** Direct children, regions before working groups, by sort order and name. */

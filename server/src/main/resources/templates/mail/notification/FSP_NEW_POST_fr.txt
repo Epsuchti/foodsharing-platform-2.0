@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+[(${author})] a écrit sur le point de partage «[(${name})]» :
+[# th:if="${body != null}"]
+[(${body})]
+[/]
+[# th:if="${link != null}"]
+[(${link})]
+[/]
+Ton équipe foodsharing

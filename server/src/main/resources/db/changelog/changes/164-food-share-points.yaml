@@ -1,0 +1,86 @@
+# Milestone 6 (B6): food share points (FS1; upstream fs_fairteiler, fs_fairteiler_follower, fs_fairteiler_has_wallpost).
+databaseChangeLog:
+  - changeSet:
+      id: 164-1
+      author: platform
+      comment: 'Food share points (Fairteiler) of a region.'
+      changes:
+        - createTable:
+            tableName: food_share_point
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_food_share_point, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_food_share_point_region_id, references: region(id)}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(32600)}
+              - column: {name: street, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: postcode, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: city, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: lat, type: DOUBLE}
+              - column: {name: lon, type: DOUBLE}
+              - column: {name: status, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: photo_upload_id, type: UUID}
+              - column: {name: created_by_user_id, type: UUID, constraints: {foreignKeyName: fk_food_share_point_creator, references: user_account(id)}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: food_share_point
+            indexName: ix_food_share_point_region_status
+            columns:
+              - column: {name: region_id}
+              - column: {name: status}
+  - changeSet:
+      id: 164-2
+      author: platform
+      comment: 'Followers and managers of a food share point.'
+      changes:
+        - createTable:
+            tableName: fsp_follower
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_fsp_follower, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_follower_fsp_id, references: food_share_point(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_follower_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: role, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: bell, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: mail, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: fsp_follower
+            columnNames: fsp_id, user_id
+            constraintName: uq_fsp_follower_fsp_user
+        - createIndex:
+            tableName: fsp_follower
+            indexName: ix_fsp_follower_user_id
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 164-3
+      author: platform
+      comment: 'Wall posts of a food share point (A42).'
+      changes:
+        - createTable:
+            tableName: fsp_wall_post
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_fsp_wall_post, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_wall_post_fsp_id, references: food_share_point(id), deleteCascade: true}}
+              - column: {name: author_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_wall_post_author_id, references: user_account(id)}}
+              - column: {name: body, type: VARCHAR(4000), constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: fsp_wall_post
+            indexName: ix_fsp_wall_post_fsp_created
+            columns:
+              - column: {name: fsp_id}
+              - column: {name: created_at}
