@@ -207,8 +207,10 @@ class NewsletterServiceTest {
         UUID id = UUID.randomUUID();
         String token = tokens.token(id);
         assertThat(tokens.verify(token)).contains(id);
-        char last = token.charAt(token.length() - 1);
-        String tampered = token.substring(0, token.length() - 1) + (last == 'A' ? 'B' : 'A'); // always differs
+        // change a middle character: all its bits are significant (the last base64 char may only carry padding bits)
+        int middle = token.length() / 2;
+        char replacement = token.charAt(middle) == 'A' ? 'B' : 'A';
+        String tampered = token.substring(0, middle) + replacement + token.substring(middle + 1);
         assertThat(tokens.verify(tampered)).isEmpty();
         assertThat(tokens.verify("garbage")).isEmpty();
         properties.getNewsletter().setSecret("other");
