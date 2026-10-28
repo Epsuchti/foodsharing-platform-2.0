@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SessionService } from '../core/auth/session.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TPipe } from '../core/i18n/t.pipe';
+import { BellButtonComponent } from '../features/bells/components/bell-button.component';
 import { BrandComponent } from './brand.component';
 import { LanguageMenuComponent } from './language-menu.component';
 import { NavContextService } from './nav-context.service';
@@ -17,6 +18,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
 @Component({
   selector: 'fs-header',
   imports: [
+    BellButtonComponent,
     RegionSwitcherComponent,
     BrandComponent,
     LanguageMenuComponent,
@@ -60,6 +62,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
         <fs-theme-menu />
         @if (chrome() === 'full') {
           @if (session.isAuthenticated()) {
+            <fs-bell-button />
             <fs-user-menu />
           } @else {
             <a class="fs-btn fs-btn--sm hdr__login" routerLink="/login" data-testid="shell.login">
@@ -176,6 +179,12 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       gap: 0.5rem;
       margin-left: 0.35rem;
       text-decoration: none;
+    }
+    @media (max-width: 47.99rem) {
+      /* the mobile tab bar shows the bell badge on "Menu" and the drawer links /bells (N3) */
+      fs-bell-button {
+        display: none;
+      }
     }
     @media (max-width: 30rem) {
       /* icon only on narrow phones; the label stays for screen readers (link name) */
