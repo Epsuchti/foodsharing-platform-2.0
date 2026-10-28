@@ -115,12 +115,13 @@ public class StoreTeamService {
         List<TeamMemberView> jumpers = new ArrayList<>();
         List<TeamMemberView> applications = new ArrayList<>();
         List<TeamMemberView> invitations = new ArrayList<>();
+        Map<UUID, Instant> hygiene = quizzes.hygieneValidUntil(all.stream().map(StoreMembership::getUserId).toList());
         for (StoreMembership m : all) {
             User user = byId.get(m.getUserId());
             if (user == null) {
                 continue;
             }
-            TeamMemberView view = new TeamMemberView(user, m, quizzes.hygieneValidUntil(user.getId()).orElse(null),
+            TeamMemberView view = new TeamMemberView(user, m, hygiene.get(user.getId()),
                     stats.getOrDefault(user.getId(), new StorePickupInfo.MemberStats(0, null, null)),
                     r.maySeeMemberDistance() ? distance(user, store) : null, r.maySeePhoneNumbers());
             switch (m.getStatus()) {

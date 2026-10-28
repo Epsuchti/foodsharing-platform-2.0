@@ -92,7 +92,14 @@ class StoreTeamServiceTest {
         user.setVerified(true);
         user.setMobilePhone("+41790000000");
         when(resolver.isMember(user.getId(), REGION)).thenReturn(true);
-        when(quizzes.hygieneValidUntil(any())).thenReturn(Optional.of(NOW.plus(30, ChronoUnit.DAYS)));
+        when(quizzes.hygieneValidUntil(any(UUID.class))).thenReturn(Optional.of(NOW.plus(30, ChronoUnit.DAYS)));
+        when(quizzes.hygieneValidUntil(org.mockito.ArgumentMatchers.<java.util.Collection<UUID>>any()))
+                .thenAnswer(i -> {
+                    java.util.Map<UUID, java.time.Instant> valid = new java.util.HashMap<>();
+                    ((java.util.Collection<UUID>) i.getArgument(0)).forEach(id -> valid.put(id,
+                            NOW.plus(30, ChronoUnit.DAYS)));
+                    return valid;
+                });
         when(memberships.findByStoreId(STORE)).thenReturn(team);
         when(currentActor.requireUser()).thenReturn(user);
         when(currentActor.requirePrincipal())

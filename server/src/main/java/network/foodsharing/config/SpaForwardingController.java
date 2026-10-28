@@ -41,6 +41,8 @@ public class SpaForwardingController {
     static final String LANGUAGE_COOKIE = "fs.lang";
     /** Placeholder the prerender writes into absolute URLs (canonical, hreflang); replaced with app.base-url. */
     static final String ORIGIN_PLACEHOLDER = "https://origin.invalid";
+    /** Angular route of the newsletter one-click unsubscribe link. */
+    static final String UNSUBSCRIBE_PREFIX = "/newsletter/unsubscribe/";
 
     private static final String FIRST_SEGMENT =
             "^(?!api$|actuator$|error$|assets$|media$|fonts$|images$|i18n$|h2-console$|oauth2$|webauthn$|ws$)[^.]*$";
@@ -76,7 +78,9 @@ public class SpaForwardingController {
             // /<lang>: the landing page in that language (hreflang alternates)
             return hasSession(request) ? shell : landing(lang);
         }
-        if (uri.contains(".") || BACKEND_PREFIXES.stream().anyMatch(prefix -> uri.equals(prefix) || uri.startsWith(prefix + "/"))) {
+        // dots mark static files, except in tokens of mail links (legacy newsletter unsubscribe tokens contain one)
+        boolean tokenRoute = uri.startsWith(UNSUBSCRIBE_PREFIX) && uri.indexOf('/', UNSUBSCRIBE_PREFIX.length()) < 0;
+        if ((uri.contains(".") && !tokenRoute) || BACKEND_PREFIXES.stream().anyMatch(prefix -> uri.equals(prefix) || uri.startsWith(prefix + "/"))) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return shell;

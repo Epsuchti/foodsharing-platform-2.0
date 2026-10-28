@@ -1,12 +1,16 @@
 package network.foodsharing.notification.push.web;
 
+import java.util.List;
+import java.util.UUID;
 import network.foodsharing.api.PushApi;
 import network.foodsharing.api.model.ApiErrorCode;
+import network.foodsharing.api.model.PushDevice;
 import network.foodsharing.api.model.PushMode;
 import network.foodsharing.api.model.PushSubscriptionCreate;
 import network.foodsharing.api.model.PushSubscriptionRemove;
 import network.foodsharing.api.model.VapidPublicKey;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.notification.push.service.PushClient;
 import network.foodsharing.notification.push.service.PushDeliveryService;
@@ -46,6 +50,22 @@ public class PushController implements PushApi {
         requireKey();
         subscriptions.subscribe(currentActor.requireUserId(), new PushSubscriptionService.NewSubscription(
                 create.getEndpoint(), create.getKeys().getP256dh(), create.getKeys().getAuth(), create.getUserAgent()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<PushDevice>> listPushSubscriptions() {
+        return ResponseEntity.ok(subscriptions.subscriptions(currentActor.requireUserId()).stream()
+                .map(s -> new PushDevice().id(s.getId()).endpoint(s.getEndpoint()).userAgent(s.getUserAgent())
+                        .createdAt(TimeMapper.toOffset(s.getCreatedAt()))
+                        .lastSuccessAt(TimeMapper.toOffset(s.getLastSuccessAt()))
+                        .failureCount(s.getFailureCount()))
+                .toList());
+    }
+
+    @Override
+    public ResponseEntity<Void> removePushSubscription(UUID subscriptionId) {
+        subscriptions.remove(currentActor.requireUserId(), subscriptionId);
         return ResponseEntity.noContent().build();
     }
 

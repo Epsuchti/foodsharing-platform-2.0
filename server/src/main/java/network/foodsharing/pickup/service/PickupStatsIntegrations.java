@@ -44,6 +44,17 @@ public class PickupStatsIntegrations {
             public int pickupCount(UUID userId) {
                 return (int) signups.countByUserIdAndConfirmedTrueAndPickupAtLessThan(userId, clock.instant());
             }
+
+            @Override
+            public java.util.Map<UUID, Instant> lastPickupAt(java.util.Collection<UUID> userIds) {
+                java.util.Map<UUID, Instant> result = new java.util.HashMap<>();
+                if (!userIds.isEmpty()) {
+                    for (Object[] row : signups.lastConfirmedPickupAt(userIds, clock.instant())) {
+                        result.put((UUID) row[0], (Instant) row[1]);
+                    }
+                }
+                return result;
+            }
         };
     }
 

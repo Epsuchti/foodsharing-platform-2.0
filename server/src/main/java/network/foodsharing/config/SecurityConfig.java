@@ -31,6 +31,9 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 @Configuration
 public class SecurityConfig {
 
+    /** A58: browser features the app does not use are switched off; geolocation for "near me" on the map. */
+    static final String PERMISSIONS_POLICY = "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)";
+
     public static final String[] PUBLIC_API = {
             "/api/public/**",
             "/api/auth/session",
@@ -101,12 +104,34 @@ public class SecurityConfig {
                                 ApiErrorCode.AUTHENTICATION_REQUIRED, "Authentication required"))
                         .accessDeniedHandler((request, response, exception) -> errorWriter.write(response, 403,
                                 ApiErrorCode.ACCESS_DENIED, "Access denied")))
-                .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())
-                        .contentTypeOptions(contentType -> { })
-                        .referrerPolicy(referrer -> referrer.policy(
-                                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
-                                        .ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)))
+                .headers(headers -> {
+                    headers
+                            .frameOptions(frame -> frame.sameOrigin())
+                            .contentTypeOptions(contentType -> { })
+                            .referrerPolicy(referrer -> referrer.policy(
+                                    org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+                                            .ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                            .addHeaderWriter(new org.springframework.security.web.header.writers.StaticHeadersWriter(
+                                    "Permissions-Policy", PERMISSIONS_POLICY));
+                    // null only with a mocked AppProperties (web slice tests)
+                    AppProperties.Security security = properties.getSecurity() == null
+                            ? new AppProperties.Security() : properties.getSecurity();
+                    long hsts = security.getHstsMaxAgeSeconds();
+                    if (hsts > 0) {
+                        // A58: only on HTTPS requests (X-Forwarded-Proto via server.forward-headers-strategy)
+                        headers.httpStrictTransportSecurity(sts -> sts.includeSubDomains(true).maxAgeInSeconds(hsts));
+                    } else {
+                        headers.httpStrictTransportSecurity(sts -> sts.disable());
+                    }
+                    if (security.getCsp().isEnabled()) {
+                        String policy = ContentSecurityPolicy.build(security.getCsp());
+                        // the dev-only fake OIDC/OAuth pages (local/e2e) are left out
+                        headers.addHeaderWriter(new org.springframework.security.web.header.writers
+                                .DelegatingRequestMatcherHeaderWriter(request -> !request.getRequestURI().startsWith("/dev/"),
+                                new org.springframework.security.web.header.writers.StaticHeadersWriter(
+                                        "Content-Security-Policy", policy)));
+                    }
+                })
                 .addFilterBefore(new SessionCookieAuthenticationFilter(sessionAuthenticator, sessionCookieWriter),
                         AnonymousAuthenticationFilter.class);
         for (HttpSecurityCustomizer customizer : customizers.orderedStream().toList()) {

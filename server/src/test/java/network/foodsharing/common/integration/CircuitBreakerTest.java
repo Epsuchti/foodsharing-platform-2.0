@@ -37,6 +37,20 @@ class CircuitBreakerTest {
     }
 
     @Test
+    void resetClosesTheBreakerAndForgetsOutages() {
+        breaker.forceOpen("dev", "simulated outage");
+        assertThat(breaker.shouldSkip()).isTrue();
+
+        breaker.reset();
+
+        assertThat(breaker.state()).isEqualTo(CircuitState.CLOSED);
+        assertThat(breaker.shouldSkip()).isFalse();
+        assertThat(breaker.snapshot().failureCount()).isZero();
+        assertThat(breaker.snapshot().lastError()).isNull();
+        assertThat(breaker.outageOverlap(T0.minus(Duration.ofDays(1)), T0.plus(Duration.ofDays(1)))).isZero();
+    }
+
+    @Test
     void onlyOutagesConfirmedByAProbeOpenTheBreaker() {
         assertThat(breaker.reportFailure("send", new HttpClientErrorException(HttpStatus.BAD_REQUEST))).isFalse();
         assertThat(probes).hasValue(0); // a 4xx is our fault, not an outage

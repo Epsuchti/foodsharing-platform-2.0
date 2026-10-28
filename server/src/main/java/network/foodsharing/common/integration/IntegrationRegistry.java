@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * {@link IntegrationDownEvent} is published (ORGA bell, M4 B3). Clients register their mode and a cheap probe.
  */
 @Component
-public class IntegrationRegistry {
+public class IntegrationRegistry implements network.foodsharing.common.seed.InMemoryState {
 
     /** live = real calls, log = captured only (local/e2e/test). */
     public enum Mode { LIVE, LOG }
@@ -114,6 +114,12 @@ public class IntegrationRegistry {
         if (breaker.forceOpen("dev", "simulated outage")) {
             events.publishEvent(new IntegrationDownEvent(integration, breaker.snapshot().lastError()));
         }
+    }
+
+    /** Dev seed reset: every breaker closed, no outage history. */
+    @Override
+    public void resetInMemoryState() {
+        breakers.values().forEach(CircuitBreaker::reset);
     }
 
     public List<CircuitBreaker.Snapshot> snapshots() {

@@ -123,6 +123,7 @@ public class BellsController implements BellsApi {
         return new network.foodsharing.api.model.Bell()
                 .id(bell.getId())
                 .type(bell.getType().name())
+                .typeEnum(network.foodsharing.api.model.NotificationType.valueOf(bell.getType().name()))
                 .titleKey(bell.getTitleKey()).identifier(bell.getIdentifier())
                 .params(new java.util.LinkedHashMap<>(bells.params(bell)))
                 .link(bell.getLink())

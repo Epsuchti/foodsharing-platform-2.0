@@ -36,10 +36,18 @@ public class OAuthKeys {
     public OAuthKeys(AppProperties properties, ConfigurationService configuration) {
         this.properties = properties;
         this.configuration = configuration;
-        this.key = load(properties.getOauth().getSigningKeyPem());
+        this.key = load(properties.getOauth().getSigningKeyPem(), properties.getOauth().isAllowGeneratedKey());
     }
 
     static RsaJsonWebKey load(String pem) {
+        return load(pem, true);
+    }
+
+    /** Fails fast when no key is configured and generated keys are not allowed (prod). */
+    static RsaJsonWebKey load(String pem, boolean allowGenerated) {
+        if ((pem == null || pem.isBlank()) && !allowGenerated) {
+            throw new IllegalStateException("app.oauth.signing-key-pem (OAUTH_SIGNING_KEY) must be configured");
+        }
         try {
             RsaJsonWebKey jwk;
             if (pem == null || pem.isBlank()) {

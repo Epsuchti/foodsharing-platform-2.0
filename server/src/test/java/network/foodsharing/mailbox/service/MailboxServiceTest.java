@@ -130,15 +130,49 @@ class MailboxServiceTest {
     }
 
     @Test
+    void orgaListsPersonalMailboxesWithOwnerNamesAndMailCounts() {
+        SessionPrincipal orga = TestUsers.principal(storeManager);
+        when(permissions.isOrga(orga)).thenReturn(true);
+        Region region = new Region();
+        region.setName("Testregion");
+        region.setId(regionId);
+        when(regions.findAll(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(List.of(region));
+        service.createForRegion(admin, regionId, "team-list", null);
+        Mailbox personal = service.createForUser(orga, ambassador.getId(), "anna-list", null);
+
+        var users = service.adminList(orga,
+                network.foodsharing.mailbox.domain.MailboxOwnerType.USER, "LIST", 0, 20);
+        assertThat(users.getContent()).singleElement().satisfies(row -> {
+            assertThat(row.mailbox().getId()).isEqualTo(personal.getId());
+            assertThat(row.ownerName()).isEqualTo(ambassador.getDisplayName());
+            assertThat(row.mailCount()).isZero();
+        });
+        assertThat(service.adminList(orga, null, "list", 0, 20).getTotalElements()).isEqualTo(2);
+        assertThat(service.adminList(orga, null, "team-l", 0, 20).getContent())
+                .singleElement().satisfies(row -> assertThat(row.ownerName()).isEqualTo("Testregion"));
+
+        org.mockito.Mockito.doThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED))
+                .when(permissions).requireOrga(admin);
+        assertThatThrownBy(() -> service.adminList(admin, null, null, 0, 20))
+                .isInstanceOfSatisfying(ApiException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
+    }
+
+    @Test
     void membersAreManagedByAdminsAndNeedAMailboxRole() {
         Mailbox mailbox = service.createForRegion(admin, regionId, "members", null);
         SessionPrincipal outsider = TestUsers.principal(foodsaver);
         assertThatThrownBy(() -> service.setMembers(outsider, mailbox.getId(), List.of(storeManager.getId())))
                 .isInstanceOfSatisfying(ApiException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
-        assertThatThrownBy(() -> service.setMembers(admin, mailbox.getId(), List.of(foodsaver.getId())))
-                .isInstanceOfSatisfying(ApiException.class,
-                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED));
+        assertThatThrownBy(() -> service.setMembers(admin, mailbox.getId(),
+                        List.of(storeManager.getId(), foodsaver.getId())))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo(ApiErrorCode.MAILBOX_MEMBER_NOT_ELIGIBLE);
+                    assertThat(e.getStatus().value()).isEqualTo(400);
+                    assertThat(e.getArgs()).containsEntry("userIds", foodsaver.getId().toString());
+                });
+        assertThat(members.findByMailboxId(mailbox.getId())).isEmpty();
         assertThatThrownBy(() -> service.setMembers(admin, mailbox.getId(), List.of(UUID.randomUUID())))
                 .isInstanceOfSatisfying(ApiException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.USER_NOT_FOUND));

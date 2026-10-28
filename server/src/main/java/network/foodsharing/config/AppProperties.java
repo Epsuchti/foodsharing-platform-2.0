@@ -68,6 +68,7 @@ public class AppProperties {
     private final Resources resources = new Resources();
     private final Support support = new Support();
     private final OAuth oauth = new OAuth();
+    private final Security security = new Security();
     private final Activity activity = new Activity();
 
     @Getter
@@ -428,6 +429,8 @@ public class AppProperties {
         /** At most one NEW_MESSAGE mail per conversation and member within this many minutes while unread. */
         private int mailDigestMinutes = 30;
         private String syncCron = "0 15 * * * *";
+        /** Messages a user may send per minute (429 MESSAGE_RATE_LIMITED). */
+        private int maxMessagesPerMinute = 30;
     }
 
     /** Minimal uploads (A34). */
@@ -501,6 +504,8 @@ public class AppProperties {
         private int maxDistanceKm = 50;
         private int defaultLifetimeDays = 7;
         private String expiryCron = "0 10 3 * * *";
+        /** Basket requests a user may send per hour (429 BASKET_REQUEST_RATE_LIMITED). */
+        private int maxRequestsPerHour = 20;
     }
 
     /** Food share points (FS1). */
@@ -561,6 +566,8 @@ public class AppProperties {
     public static class OAuth {
         /** PKCS#8 PEM of the RS256 signing key (env OAUTH_SIGNING_KEY); empty = generated per start (dev only). */
         private String signingKeyPem = "";
+        /** Whether an empty {@link #signingKeyPem} may fall back to a generated key; {@code false} in prod (fail fast). */
+        private boolean allowGeneratedKey = true;
         private int accessTokenMinutes = 60;
         private int refreshTokenDays = 30;
         private int codeMinutes = 10;
@@ -571,5 +578,25 @@ public class AppProperties {
     @Setter
     public static class Activity {
         private int pageSize = 20;
+    }
+
+    /** HTTP security headers (A58). */
+    @Getter
+    public static class Security {
+        private final Csp csp = new Csp();
+        /** HSTS max age in seconds (sent on HTTPS requests only; 0 disables). */
+        @Setter
+        private long hstsMaxAgeSeconds = 31_536_000;
+
+        /** Content-Security-Policy; script hashes are computed from the SPA HTML at startup. */
+        @Getter
+        @Setter
+        public static class Csp {
+            private boolean enabled = true;
+            /** Extra img-src sources (map tiles). */
+            private String imgSrc = "https://tile.openstreetmap.org";
+            /** Extra connect-src sources. */
+            private String connectSrc = "";
+        }
     }
 }

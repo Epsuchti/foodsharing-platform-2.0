@@ -33,6 +33,26 @@ class PushSubscriptionServiceTest {
             new PushSubscriptionService.NewSubscription("https://push.local/a", "key", "auth", "Firefox");
 
     @Test
+    void onlyOwnSubscriptionsCanBeRemovedById() {
+        PushSubscription own = new PushSubscription();
+        own.setId(UUID.randomUUID());
+        own.setUserId(userId);
+        PushSubscription foreign = new PushSubscription();
+        foreign.setId(UUID.randomUUID());
+        foreign.setUserId(UUID.randomUUID());
+        when(repository.findById(own.getId())).thenReturn(Optional.of(own));
+        when(repository.findById(foreign.getId())).thenReturn(Optional.of(foreign));
+
+        service.remove(userId, own.getId());
+        org.mockito.Mockito.verify(repository).delete(own);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.remove(userId, foreign.getId()))
+                .isInstanceOfSatisfying(network.foodsharing.common.error.ApiException.class, e ->
+                        org.assertj.core.api.Assertions.assertThat(e.getCode())
+                                .isEqualTo(network.foodsharing.api.model.ApiErrorCode.RESOURCE_NOT_FOUND));
+        org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).delete(foreign);
+    }
+
+    @Test
     void theEleventhBrowserIsRejected() {
         when(repository.findByEndpointHash(any())).thenReturn(Optional.empty());
         when(repository.countByUserId(userId)).thenReturn(10L);

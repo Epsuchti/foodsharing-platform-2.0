@@ -30,6 +30,9 @@ import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -204,6 +207,44 @@ public class MailboxService {
         mailboxes.delete(mailbox);
     }
 
+    /** One row of the ORGA mailbox listing. */
+    public record AdminMailboxRow(Mailbox mailbox, String address, String ownerName, long mailCount) {
+    }
+
+    /**
+     * ORGA lists all mailboxes (optionally by owner type / name), with owner names and mail counts in batch queries.
+     *
+     * @throws ApiException 403 ACCESS_DENIED
+     */
+    @Transactional(readOnly = true)
+    public Page<AdminMailboxRow> adminList(SessionPrincipal actor, MailboxOwnerType ownerType, String query,
+                                          int page, int size) {
+        permissions.requireOrga(actor);
+        String pattern = query == null || query.isBlank() ? null
+                : "%" + query.strip().toLowerCase(java.util.Locale.ROOT).replace("%", "").replace("_", "") + "%";
+        Page<Mailbox> found = mailboxes.adminSearch(ownerType, pattern, PageRequest.of(page, size));
+        List<UUID> ids = found.getContent().stream().map(Mailbox::getId).toList();
+        Map<UUID, Long> counts = new java.util.HashMap<>();
+        if (!ids.isEmpty()) {
+            for (Object[] row : mails.mailCounts(ids)) {
+                counts.put((UUID) row[0], ((Number) row[1]).longValue());
+            }
+        }
+        Map<UUID, String> names = new java.util.HashMap<>();
+        List<UUID> userIds = found.getContent().stream().filter(m -> m.getOwnerType() == MailboxOwnerType.USER)
+                .map(Mailbox::getOwnerId).toList();
+        List<UUID> regionIds = found.getContent().stream().filter(m -> m.getOwnerType() == MailboxOwnerType.REGION)
+                .map(Mailbox::getOwnerId).toList();
+        if (!userIds.isEmpty()) {
+            users.findAll(userIds).forEach(u -> names.put(u.getId(), u.getDisplayName()));
+        }
+        if (!regionIds.isEmpty()) {
+            regions.findAll(regionIds).forEach(r -> names.put(r.getId(), r.getName()));
+        }
+        return found.map(m -> new AdminMailboxRow(m, address(m), names.get(m.getOwnerId()),
+                counts.getOrDefault(m.getId(), 0L)));
+    }
+
     /** Configured members (readers besides the ambassadors); readers and managers may list them. */
     @Transactional(readOnly = true)
     public List<User> members(SessionPrincipal actor, UUID mailboxId) {
@@ -218,7 +259,7 @@ public class MailboxService {
      * Replaces the member list (managers). Members must be active and may have a mailbox (role at least
      * STORE_MANAGER, upstream {@code mayHaveMailbox}).
      *
-     * @throws ApiException 400 VALIDATION_FAILED, 403 ACCESS_DENIED, 404 MAILBOX_NOT_FOUND / USER_NOT_FOUND
+     * @throws ApiException 400 MAILBOX_MEMBER_NOT_ELIGIBLE, 403 ACCESS_DENIED, 404 MAILBOX_NOT_FOUND / USER_NOT_FOUND
      */
     @Transactional
     public List<User> setMembers(SessionPrincipal actor, UUID mailboxId, List<UUID> userIds) {
@@ -228,8 +269,11 @@ public class MailboxService {
         if (found.size() != wanted.size()) {
             throw ApiException.notFound(ApiErrorCode.USER_NOT_FOUND);
         }
-        if (found.stream().anyMatch(u -> !MailboxAccessService.mayHaveMailbox(u.getRole()))) {
-            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
+        List<String> notEligible = found.stream().filter(u -> !MailboxAccessService.mayHaveMailbox(u.getRole()))
+                .map(u -> u.getId().toString()).sorted().toList();
+        if (!notEligible.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.MAILBOX_MEMBER_NOT_ELIGIBLE, List.of(),
+                    Map.of("userIds", String.join(",", notEligible)));
         }
         List<MailboxMember> current = members.findByMailboxId(mailboxId);
         Set<UUID> existing = current.stream().map(MailboxMember::getUserId).collect(Collectors.toSet());

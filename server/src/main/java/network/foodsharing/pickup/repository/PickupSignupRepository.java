@@ -81,4 +81,10 @@ public interface PickupSignupRepository extends JpaRepository<PickupSignup, UUID
 
     @Query("select s from PickupSignup s where s.remindedAt is null and s.pickupAt > :from and s.pickupAt <= :to")
     List<PickupSignup> findToRemind(@Param("from") Instant from, @Param("to") Instant to);
+
+    /** Rows of {@code [userId, max(pickupAt)]}: last confirmed past pickup per user (region member lists). */
+    @Query("select s.userId, max(s.pickupAt) from PickupSignup s where s.userId in :userIds and s.confirmed = true "
+            + "and s.pickupAt < :now group by s.userId")
+    List<Object[]> lastConfirmedPickupAt(@Param("userIds") java.util.Collection<UUID> userIds,
+                                         @Param("now") Instant now);
 }

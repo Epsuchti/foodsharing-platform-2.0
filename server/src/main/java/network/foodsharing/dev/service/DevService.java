@@ -40,9 +40,13 @@ public class DevService {
     private final MutableClock clock;
     private final AppProperties properties;
 
+    private final ObjectProvider<network.foodsharing.common.seed.InMemoryState> inMemoryStates;
+
     public DevService(DevUserCatalog catalog, UserService userService, AuthSessionService sessionService,
                       SeedResetService seedResetService, ObjectProvider<CapturingMailTransport> capturingTransport,
-                      MutableClock clock, AppProperties properties) {
+                      MutableClock clock, AppProperties properties,
+                      ObjectProvider<network.foodsharing.common.seed.InMemoryState> inMemoryStates) {
+        this.inMemoryStates = inMemoryStates;
         this.catalog = catalog;
         this.userService = userService;
         this.sessionService = sessionService;
@@ -119,7 +123,8 @@ public class DevService {
     }
 
     /**
-     * Back to the start state of a test: seed database, no captured mails, clock as configured
+     * Back to the start state of a test: seed database, no captured mails, in-memory state (breakers, rate limits,
+     * seen chats) cleared, clock as configured
      * ({@code app.clock.fixed}, the system clock when unset).
      *
      * @throws ApiException 409 when the database is not H2
@@ -127,6 +132,9 @@ public class DevService {
     public void resetAll() {
         seedResetService.reset();
         clearCapturedMails();
+        // in-memory state: circuit breakers, seen Telegram chats, rate limiters (login, messages, baskets, …)
+        inMemoryStates.orderedStream().forEach(network.foodsharing.common.seed.InMemoryState::resetInMemoryState);
+        network.foodsharing.common.web.SlidingWindowRateLimiter.clearAll();
         setClock(properties.getClock().getFixed());
     }
 

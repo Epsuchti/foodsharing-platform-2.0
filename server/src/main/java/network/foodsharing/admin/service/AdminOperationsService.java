@@ -47,6 +47,12 @@ public class AdminOperationsService {
                 jobs.lastRun(job.jobName()), jobs.isLocked(job.jobName()))).toList();
     }
 
+    /** @throws ApiException 404 JOB_UNKNOWN */
+    public org.springframework.data.domain.Page<JobRun> runs(String name, int page, int size) {
+        jobs.find(name).orElseThrow(() -> ApiException.notFound(ApiErrorCode.JOB_UNKNOWN));
+        return jobs.runs(name, page, size);
+    }
+
     /** @throws ApiException 404 JOB_UNKNOWN; a failing job rethrows (500) after its FAILED row is written */
     public JobRun runNow(String name, UUID actorId) {
         RunnableJob job = jobs.find(name).orElseThrow(() -> ApiException.notFound(ApiErrorCode.JOB_UNKNOWN));

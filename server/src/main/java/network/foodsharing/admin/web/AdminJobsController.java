@@ -39,6 +39,16 @@ public class AdminJobsController implements AdminJobsApi {
         return ResponseEntity.ok(toApi(operations.runNow(name, principal.userId())));
     }
 
+    @Override
+    public ResponseEntity<network.foodsharing.api.model.JobRunPage> listAdminJobRuns(String name, Integer page,
+                                                                                     Integer size) {
+        currentActor.requireRole(Role.ORGA);
+        var runs = operations.runs(name, page == null ? 0 : page, size == null ? 20 : size);
+        return ResponseEntity.ok(new network.foodsharing.api.model.JobRunPage()
+                .items(runs.getContent().stream().map(AdminJobsController::toApi).toList())
+                .page(network.foodsharing.common.mapper.PageMapper.toPageMeta(runs)));
+    }
+
     static JobRun toApi(network.foodsharing.common.jobs.JobRun run) {
         return new JobRun().jobName(run.getJobName()).startedAt(TimeMapper.toOffset(run.getStartedAt()))
                 .finishedAt(run.getFinishedAt() == null ? null : TimeMapper.toOffset(run.getFinishedAt()))

@@ -26,6 +26,17 @@ JobRun:
     trigger:
       $ref: './admin.yaml#/JobTrigger'
 
+JobRunPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './admin.yaml#/JobRun'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
 JobInfo:
   type: object
   required: [name, locked]

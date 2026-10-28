@@ -239,13 +239,24 @@ public class PickupUserService {
         Map<UUID, Store> byId = stores.storesById(rows.stream().map(PickupSignup::getStoreId).distinct().toList())
                 .stream().collect(Collectors.toMap(Store::getId, Function.identity()));
         Map<String, UserPickupView> result = new LinkedHashMap<>();
+        // one batch schedule over the rows' time span instead of one schedule lookup per row (N+1, QueryCountIT)
+        Map<String, PickupSchedule.Slot> slots = new java.util.HashMap<>();
+        if (!rows.isEmpty() && !byId.isEmpty()) {
+            java.time.Instant from = rows.stream().map(PickupSignup::getPickupAt).min(java.time.Instant::compareTo)
+                    .orElseThrow();
+            java.time.Instant to = rows.stream().map(PickupSignup::getPickupAt).max(java.time.Instant::compareTo)
+                    .orElseThrow().plusMillis(1);
+            schedule.schedules(byId.values(), from, to).values().forEach(list -> list
+                    .forEach(slot -> slots.put(slot.storeId() + "@" + slot.pickupAt(), slot)));
+        }
         for (PickupSignup row : rows) {
             Store store = byId.get(row.getStoreId());
             if (store == null) {
                 continue;
             }
-            PickupSchedule.Slot slot = schedule.find(store, row.getPickupAt()).orElseGet(() ->
-                    new PickupSchedule.Slot(store.getId(), row.getPickupAt(), 1, null, false, List.of(row)));
+            PickupSchedule.Slot found = slots.get(store.getId() + "@" + row.getPickupAt());
+            PickupSchedule.Slot slot = found != null ? found
+                    : new PickupSchedule.Slot(store.getId(), row.getPickupAt(), 1, null, false, List.of(row));
             result.putIfAbsent(store.getId() + "@" + row.getPickupAt(),
                     new UserPickupView(store, schedule.zoneOf(store), slot, row.isConfirmed()));
         }

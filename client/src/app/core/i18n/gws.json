@@ -395,5 +395,8 @@
   "nav.adminIntegrations": "Integratione",
   "nav.adminJobs": "Hintergrundjobs",
   "nav.adminMailOutbox": "Mail-Usgang",
-  "nav.newsletters": "Newsletter"
+  "nav.newsletters": "Newsletter",
+  "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Nume Betriebsverantwortlichi und höcheri Rolle chönd Postfach-Mitglieder si.",
+  "errors.MESSAGE_RATE_LIMITED": "Du schicksch z vill Nachrichte. Bitte wart en Momänt.",
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Du hesch i de letschte Stund z vill Ässenschörb aagfragt. Bitte probier s spöter nomal."
 }

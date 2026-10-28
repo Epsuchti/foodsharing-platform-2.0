@@ -35,6 +35,11 @@ class SpaForwardingControllerTest {
         mvc.perform(get("/login")).andExpect(forwardedUrl("/index.csr.html"));
         mvc.perform(get("/login/verify")).andExpect(forwardedUrl("/index.csr.html"));
         mvc.perform(get("/dev/gallery")).andExpect(forwardedUrl("/index.csr.html"));
+        // mail links: dot-free and legacy (with a dot) newsletter unsubscribe tokens are Angular routes
+        mvc.perform(get("/newsletter/unsubscribe/AbC-_123")).andExpect(forwardedUrl("/index.csr.html"));
+        mvc.perform(get("/newsletter/unsubscribe/AbC.xyz-_")).andExpect(forwardedUrl("/index.csr.html"));
+        mvc.perform(get("/newsletter/unsubscribe/a/b.js")).andExpect(status().isNotFound());
+        mvc.perform(get("/assets/main.js")).andExpect(status().isNotFound());
     }
 
     @Test

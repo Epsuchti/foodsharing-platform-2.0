@@ -175,6 +175,32 @@ public class QuizSessionService {
         });
     }
 
+    /** Batch form of {@link #hygieneValidUntil(UUID)} for team lists (users without a valid pass are missing). */
+    @Transactional(readOnly = true)
+    public java.util.Map<UUID, Instant> hygieneValidUntil(java.util.Collection<UUID> userIds) {
+        java.util.Map<UUID, Instant> result = new java.util.HashMap<>();
+        if (userIds.isEmpty()) {
+            return result;
+        }
+        quizzes.findByKind(QuizKind.HYGIENE).ifPresent(quiz -> {
+            java.util.Map<UUID, List<QuizRuleService.Attempt>> byUser = new java.util.HashMap<>();
+            for (QuizSession session : sessions.findByUserIdInAndQuizIdOrderByStartedAtAsc(userIds, quiz.getId())) {
+                if (!session.isTest()) {
+                    byUser.computeIfAbsent(session.getUserId(), id -> new java.util.ArrayList<>())
+                            .add(new QuizRuleService.Attempt(session.getStatus(), session.getEndedAt()));
+                }
+            }
+            Instant now = clock.instant();
+            byUser.forEach((userId, attempts) -> {
+                QuizRuleService.TryState state = rules.tryState(QuizKind.HYGIENE, attempts, now);
+                if (state.passValid()) {
+                    result.put(userId, state.passedAt().plus(Duration.ofDays(365)));
+                }
+            });
+        });
+        return result;
+    }
+
     /** Attempt state of a user for a quiz kind (onboarding journey), if the quiz exists. */
     @Transactional(readOnly = true)
     public Optional<QuizRuleService.TryState> tryStateOf(UUID userId, QuizKind kind) {

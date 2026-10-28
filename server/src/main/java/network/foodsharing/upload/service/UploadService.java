@@ -79,7 +79,7 @@ public class UploadService {
                     .withArg("maxMb", String.valueOf(properties.getUploads().getMaxSizeMb()));
         }
         String mimeType = normaliseMimeType(file.mimeType());
-        if (ownerUserId != null && !isAllowed(mimeType)) {
+        if (ownerUserId != null && (!isAllowed(mimeType) || !contentMatches(mimeType, file.bytes()))) {
             throw new ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ApiErrorCode.UPLOAD_TYPE_NOT_ALLOWED);
         }
         Instant now = clock.instant();
@@ -340,6 +340,34 @@ public class UploadService {
     public boolean isAllowed(String mimeType) {
         return properties.getUploads().getAllowedTypes().stream()
                 .anyMatch(allowed -> allowed.trim().equalsIgnoreCase(mimeType));
+    }
+
+    /**
+     * The declared type must match the file's magic bytes for images and PDFs (images are served publicly and
+     * rendered into variants; a renamed HTML/SVG/script must not pass as one). Other allowed types are not sniffed.
+     */
+    public static boolean contentMatches(String mimeType, byte[] bytes) {
+        return switch (mimeType) {
+            case "image/jpeg" -> startsWith(bytes, 0xFF, 0xD8, 0xFF);
+            case "image/png" -> startsWith(bytes, 0x89, 'P', 'N', 'G');
+            case "image/gif" -> startsWith(bytes, 'G', 'I', 'F', '8');
+            case "image/webp" -> startsWith(bytes, 'R', 'I', 'F', 'F') && bytes.length >= 12 && bytes[8] == 'W'
+                    && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P';
+            case "application/pdf" -> startsWith(bytes, '%', 'P', 'D', 'F');
+            default -> true;
+        };
+    }
+
+    private static boolean startsWith(byte[] bytes, int... prefix) {
+        if (bytes.length < prefix.length) {
+            return false;
+        }
+        for (int i = 0; i < prefix.length; i++) {
+            if ((bytes[i] & 0xFF) != prefix[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static String normaliseMimeType(String mimeType) {

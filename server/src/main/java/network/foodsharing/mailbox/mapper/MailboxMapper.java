@@ -24,6 +24,15 @@ public class MailboxMapper {
                 .ownerId(mailbox.getOwnerId()).unreadCount(unreadCount).mayManage(mayManage);
     }
 
+    public network.foodsharing.api.model.AdminMailbox toAdmin(
+            network.foodsharing.mailbox.service.MailboxService.AdminMailboxRow row) {
+        var mailbox = row.mailbox();
+        return new network.foodsharing.api.model.AdminMailbox().id(mailbox.getId()).name(mailbox.getName())
+                .emailName(mailbox.getEmailName()).address(row.address())
+                .ownerType(MailboxOwnerType.valueOf(mailbox.getOwnerType().name())).ownerId(mailbox.getOwnerId())
+                .ownerName(row.ownerName()).mailCount(row.mailCount());
+    }
+
     public MailSummary toSummary(MailMessage mail) {
         return new MailSummary().id(mail.getId()).mailboxId(mail.getMailboxId())
                 .folder(MailFolder.valueOf(mail.getFolder().name()))

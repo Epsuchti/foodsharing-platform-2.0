@@ -106,6 +106,22 @@ class UploadServiceTest {
                 .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.UPLOAD_TOO_LARGE);
         assertThatThrownBy(() -> uploads.store(me, new UploadService.NewFile("a.exe", "application/x-msdownload", new byte[1])))
                 .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.UPLOAD_TYPE_NOT_ALLOWED);
+        // declared image/PDF types must match the magic bytes (renamed HTML/SVG is rejected)
+        byte[] html = "<html><script>alert(1)</script></html>".getBytes();
+        assertThatThrownBy(() -> uploads.store(me, new UploadService.NewFile("a.png", "image/png", html)))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.UPLOAD_TYPE_NOT_ALLOWED);
+        assertThatThrownBy(() -> uploads.store(me, new UploadService.NewFile("a.pdf", "application/pdf", html)))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.UPLOAD_TYPE_NOT_ALLOWED);
+    }
+
+    @Test
+    void magicBytesPerType() {
+        assertThat(UploadService.contentMatches("image/jpeg", new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0})).isTrue();
+        assertThat(UploadService.contentMatches("image/gif", "GIF89a".getBytes())).isTrue();
+        assertThat(UploadService.contentMatches("image/webp", "RIFF0000WEBPVP8 ".getBytes())).isTrue();
+        assertThat(UploadService.contentMatches("image/webp", "RIFF0000WAVE".getBytes())).isFalse();
+        assertThat(UploadService.contentMatches("image/png", new byte[] {(byte) 0x89, 'P'})).isFalse();
+        assertThat(UploadService.contentMatches("text/plain", "anything".getBytes())).isTrue();
     }
 
     @Test

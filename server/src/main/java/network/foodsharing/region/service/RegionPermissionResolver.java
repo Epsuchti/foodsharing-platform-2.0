@@ -1,5 +1,6 @@
 package network.foodsharing.region.service;
 
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -144,6 +145,46 @@ public class RegionPermissionResolver implements ScopedPermissionResolver {
         for (RegionFunction assignment : functions.findByRegionId(regionId)) {
             if (grants.getOrDefault(assignment.getFunction(), List.of()).contains(permission)) {
                 result.addAll(memberships.findActiveUserIds(assignment.getGroupId()));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Set<UUID> administrableUsers(UUID actorId, Collection<UUID> userIds) {
+        Set<UUID> scopes = administratedScopes(actorId);
+        if (scopes.isEmpty() || userIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<UUID> subtrees = new HashSet<>();
+        scopes.forEach(scope -> subtrees.addAll(closure.subtree(scope)));
+        return memberships.findActiveUserIdsAmong(subtrees, userIds);
+    }
+
+    /**
+     * The region permissions of several users in one region (batch form of {@link #permissionsByRegion} for member
+     * lists): direct grants plus grants through function groups assigned to that region.
+     */
+    public Map<UUID, Set<Permission>> permissionsInRegion(UUID regionId, Collection<UUID> userIds) {
+        Map<UUID, Set<Permission>> result = new HashMap<>();
+        if (userIds.isEmpty()) {
+            return result;
+        }
+        Set<UUID> wanted = new HashSet<>(userIds);
+        for (RegionPermission grant : permissions.findByRegionId(regionId)) {
+            if (wanted.contains(grant.getUserId())) {
+                result.computeIfAbsent(grant.getUserId(), id -> EnumSet.noneOf(Permission.class))
+                        .add(grant.getPermission());
+            }
+        }
+        Map<WorkingGroupFunction, List<Permission>> grants = properties.getPermissions().getFunctionGrants();
+        for (RegionFunction assignment : functions.findByRegionId(regionId)) {
+            List<Permission> granted = grants.getOrDefault(assignment.getFunction(), List.of());
+            if (granted.isEmpty()) {
+                continue;
+            }
+            for (UUID member : memberships.findActiveUserIdsAmong(List.of(assignment.getGroupId()), wanted)) {
+                result.computeIfAbsent(member, id -> EnumSet.noneOf(Permission.class)).addAll(granted);
             }
         }
         return result;

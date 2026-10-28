@@ -223,6 +223,12 @@ class NewsletterServiceTest {
         UUID id = UUID.randomUUID();
         String token = tokens.token(id);
         assertThat(tokens.verify(token)).contains(id);
+        // dot-free (the SPA treats paths with dots as files) and URL-safe
+        assertThat(token).hasSize(43).matches("[A-Za-z0-9_-]+");
+        // legacy format base64url(id) + "." + base64url(mac) still verifies
+        String legacy = token.substring(0, 22) + "." + java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(java.util.Arrays.copyOfRange(java.util.Base64.getUrlDecoder().decode(token), 16, 32));
+        assertThat(tokens.verify(legacy)).contains(id);
         // change a middle character: all its bits are significant (the last base64 char may only carry padding bits)
         int middle = token.length() / 2;
         char replacement = token.charAt(middle) == 'A' ? 'B' : 'A';
