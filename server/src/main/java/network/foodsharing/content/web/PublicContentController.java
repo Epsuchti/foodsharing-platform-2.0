@@ -9,7 +9,6 @@ import network.foodsharing.api.model.PublicStatistics;
 import network.foodsharing.api.model.ReleaseNote;
 import network.foodsharing.api.model.TeamGroup;
 import java.util.UUID;
-import network.foodsharing.common.error.ApiException;
 import java.util.List;
 import network.foodsharing.api.PublicContentApi;
 import network.foodsharing.api.model.ContentPage;
@@ -21,6 +20,7 @@ import network.foodsharing.content.service.CampaignService;
 import network.foodsharing.content.service.ContentService;
 import network.foodsharing.content.service.ReleaseNoteService;
 import network.foodsharing.content.service.TeamPageService;
+import network.foodsharing.statistics.service.PublicStatisticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,9 +34,12 @@ public class PublicContentController implements PublicContentApi {
     private final TeamPageService team;
     private final CampaignService campaigns;
     private final ContentMapper mapper;
+    private final PublicStatisticsService statistics;
 
     public PublicContentController(ContentService content, BlogService blog, ReleaseNoteService releaseNotes,
-                                   TeamPageService team, CampaignService campaigns, ContentMapper mapper) {
+                                   TeamPageService team, CampaignService campaigns, ContentMapper mapper,
+                                   PublicStatisticsService statistics) {
+        this.statistics = statistics;
         this.content = content;
         this.blog = blog;
         this.releaseNotes = releaseNotes;
@@ -78,10 +81,13 @@ public class PublicContentController implements PublicContentApi {
         return ResponseEntity.ok(mapper.toPost(blog.publishedPost(blogPostId)));
     }
 
-    /** B12 (statistics module). */
     @Override
     public ResponseEntity<PublicStatistics> getPublicStatistics() {
-        throw ApiException.notImplemented("getPublicStatistics");
+        PublicStatisticsService.PublicTotals totals = statistics.current();
+        return ResponseEntity.ok(new PublicStatistics().kgSaved(totals.kgSaved()).pickups(totals.pickups())
+                .foodsavers(totals.foodsavers()).stores(totals.stores()).cooperations(totals.cooperations())
+                .foodSharePoints(totals.foodSharePoints()).baskets(totals.baskets())
+                .asOf(totals.asOf().atOffset(java.time.ZoneOffset.UTC)));
     }
 
     @Override

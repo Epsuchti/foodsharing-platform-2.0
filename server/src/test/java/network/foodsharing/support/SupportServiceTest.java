@@ -59,7 +59,7 @@ class SupportServiceTest {
     @BeforeEach
     void setUp() {
         AppProperties properties = new AppProperties();
-        properties.getSupport().setRateLimitPerHour(2);
+        properties.getSupport().setMaxPerHour(2);
         service = new SupportService(tickets, users, actors, uploads, mails, notifications, toggles, configuration,
                 mock(HistoryService.class, Answers.RETURNS_DEEP_STUBS), properties,
                 Clock.fixed(Instant.parse("2026-10-28T10:00:00Z"), ZoneOffset.UTC));

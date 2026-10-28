@@ -196,7 +196,8 @@ public class DevController implements DevApi {
 
     @Override
     public ResponseEntity<Void> devAggregateStatistics() {
-        throw ApiException.notImplemented("devAggregateStatistics");
+        notificationService.runJob("statistics-aggregation");
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -206,6 +207,7 @@ public class DevController implements DevApi {
 
     @Override
     public ResponseEntity<Void> devReindexSearch() {
-        throw ApiException.notImplemented("devReindexSearch");
+        notificationService.runJob("search-reindex");
+        return ResponseEntity.noContent().build();
     }
 }

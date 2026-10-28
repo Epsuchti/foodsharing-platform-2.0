@@ -1,0 +1,107 @@
+# Milestone 6 (B12): resource mosaic (C6) - lendable things of members and commons of a region.
+databaseChangeLog:
+  - changeSet:
+      id: 174-1
+      author: platform
+      comment: 'Resource categories with translated names.'
+      changes:
+        - createTable:
+            tableName: resource_category
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_resource_category, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: icon, type: VARCHAR(40)}
+              - column: {name: sort_order, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - createTable:
+            tableName: resource_category_i18n
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_resource_category_i18n, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: category_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_resource_category_i18n_category, references: resource_category(id)}}
+              - column: {name: language, type: VARCHAR(5), constraints: {nullable: false}}
+              - column: {name: name, type: VARCHAR(100), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: resource_category_i18n
+            columnNames: category_id, language
+            constraintName: uq_resource_category_i18n
+  - changeSet:
+      id: 174-2
+      author: platform
+      comment: 'Resources (owner null = commons of region_id), categories, images, favourites.'
+      changes:
+        - createTable:
+            tableName: resource
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_resource, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {foreignKeyName: fk_resource_owner, references: user_account(id)}}
+              - column: {name: region_id, type: UUID, constraints: {foreignKeyName: fk_resource_region, references: region(id)}}
+              - column: {name: name, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(4000)}
+              - column: {name: is_private, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: openness, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: resource
+            indexName: ix_resource_owner
+            columns:
+              - column: {name: owner_id}
+        - createIndex:
+            tableName: resource
+            indexName: ix_resource_region
+            columns:
+              - column: {name: region_id}
+        - createTable:
+            tableName: resource_category_link
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_resource_category_link, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: resource_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_resource_category_link_resource, references: resource(id)}}
+              - column: {name: category_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_resource_category_link_category, references: resource_category(id)}}
+        - addUniqueConstraint:
+            tableName: resource_category_link
+            columnNames: resource_id, category_id
+            constraintName: uq_resource_category_link
+        - createTable:
+            tableName: resource_image
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_resource_image, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: resource_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_resource_image_resource, references: resource(id)}}
+              - column: {name: upload_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: sort_order, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - createTable:
+            tableName: resource_favorite
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_resource_favorite, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_resource_favorite_user, references: user_account(id)}}
+              - column: {name: resource_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_resource_favorite_resource, references: resource(id)}}
+        - addUniqueConstraint:
+            tableName: resource_favorite
+            columnNames: user_id, resource_id
+            constraintName: uq_resource_favorite
