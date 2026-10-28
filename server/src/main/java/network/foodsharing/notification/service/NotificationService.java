@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.service.HistoryService;
@@ -86,6 +87,33 @@ public class NotificationService {
         history.record(history.event(NotificationAction.SENT, HistoryService.SYSTEM_SUBJECT_ID)
                 .metadata(Map.of("type", request.type().name(), "recipients", pushed, "channel", "PUSH")).build());
         return pushed;
+    }
+
+    /**
+     * Sends the notification by MAIL only (no bell, no push; digest mails of new chat messages, A33). Respects the
+     * recipients' MAIL settings; the request must name a mail template.
+     *
+     * @return the recipients that got a mail
+     */
+    @Transactional
+    public Set<UUID> mailOnly(NotificationRequest request) {
+        Set<UUID> mailed = new java.util.LinkedHashSet<>();
+        for (UUID recipientId : request.recipientIds()) {
+            Optional<User> recipient = users.findActive(recipientId);
+            if (recipient.isEmpty()) {
+                continue;
+            }
+            Bell transientBell = new Bell();
+            transientBell.setUserId(recipientId);
+            transientBell.setType(request.type());
+            transientBell.setTitleKey(request.type().defaultTitleKey());
+            if (channels.dispatchOnly(recipient.get(), transientBell, request, NotificationChannelType.MAIL)) {
+                mailed.add(recipientId);
+            }
+        }
+        history.record(history.event(NotificationAction.SENT, HistoryService.SYSTEM_SUBJECT_ID)
+                .metadata(Map.of("type", request.type().name(), "recipients", mailed.size(), "channel", "MAIL")).build());
+        return mailed;
     }
 
     /** Removes bells created with this identifier. */

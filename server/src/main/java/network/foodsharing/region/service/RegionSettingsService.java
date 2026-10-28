@@ -65,16 +65,19 @@ public class RegionSettingsService {
     private final CurrentActorService currentActor;
     private final PermissionService permissions;
     private final HistoryService history;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     public RegionSettingsService(RegionService regionService, RegionOnboardingStepRepository steps,
                                  RegionOnboardingStepI18nRepository stepTexts, CurrentActorService currentActor,
-                                 PermissionService permissions, HistoryService history) {
+                                 PermissionService permissions, HistoryService history,
+                                 org.springframework.context.ApplicationEventPublisher events) {
         this.regionService = regionService;
         this.steps = steps;
         this.stepTexts = stepTexts;
         this.currentActor = currentActor;
         this.permissions = permissions;
         this.history = history;
+        this.events = events;
     }
 
     /** @throws ApiException 404 REGION_NOT_FOUND, 403 ACCESS_DENIED */
@@ -224,6 +227,34 @@ public class RegionSettingsService {
                 stepTexts.save(text);
             }
         }
+    }
+
+    /** Published after the region conversation was switched on or off (messaging creates/locks the chat). */
+    public record RegionConversationToggled(UUID regionId, boolean enabled) {
+    }
+
+    /**
+     * A33: switches the region/group conversation (mayAdministrateRegion).
+     *
+     * @throws ApiException 404 REGION_NOT_FOUND, 403 ACCESS_DENIED
+     */
+    @Transactional
+    public boolean setConversationEnabled(UUID regionId, boolean enabled) {
+        Region region = regionService.require(regionId);
+        permissions.requireMayAdministrateRegion(currentActor.requirePrincipal(), regionId);
+        HistoryAction action = region.isGroup() ? GroupAction.UPDATED : RegionAction.SETTINGS_CHANGED;
+        record(action, region, "conversationEnabled", region.isConversationEnabled(), enabled, null);
+        if (region.isConversationEnabled() != enabled) {
+            region.setConversationEnabled(enabled);
+            events.publishEvent(new RegionConversationToggled(regionId, enabled));
+        }
+        return enabled;
+    }
+
+    /** A33: whether the region conversation is enabled. */
+    @Transactional(readOnly = true)
+    public boolean conversationEnabled(UUID regionId) {
+        return regionService.require(regionId).isConversationEnabled();
     }
 
     private void record(HistoryAction action, Region region, String field, Object oldValue, Object newValue,

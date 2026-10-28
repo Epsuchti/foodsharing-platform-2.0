@@ -1,0 +1,48 @@
+# Milestone 5 (B2): store team/jumper chats and region conversations (A33).
+databaseChangeLog:
+  - changeSet:
+      id: 132-1
+      author: platform
+      comment: 'Team (TEAM) and jumper (JUMPER) chat of a store.'
+      changes:
+        - createTable:
+            tableName: store_conversation
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_store_conversation, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_store_conversation_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: kind, type: VARCHAR(20), constraints: {nullable: false}}
+              - column: {name: conversation_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_store_conversation_conversation_id, foreignKeyName: fk_store_conversation_conversation_id, references: conversation(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: store_conversation
+            columnNames: store_id, kind
+            constraintName: uq_store_conversation_store_kind
+  - changeSet:
+      id: 132-2
+      author: platform
+      comment: 'Region/working group conversation; enabled by default for working groups.'
+      changes:
+        - addColumn:
+            tableName: region
+            columns:
+              - column: {name: conversation_enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - update:
+            tableName: region
+            columns:
+              - column: {name: conversation_enabled, valueBoolean: true}
+            where: "type = 'WORKING_GROUP'"
+        - createTable:
+            tableName: region_conversation
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_conversation, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_region_conversation_region_id, foreignKeyName: fk_region_conversation_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: conversation_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_region_conversation_conversation_id, foreignKeyName: fk_region_conversation_conversation_id, references: conversation(id), deleteCascade: true}}

@@ -33,6 +33,7 @@ import network.foodsharing.pickup.service.PickupSchedule;
 import network.foodsharing.pickup.service.PickupScheduleService;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreService;
+import network.foodsharing.store.service.TeamChatPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -72,12 +73,13 @@ public class OpenSlotAdvertRunner {
     private final AppProperties properties;
     private final Clock clock;
     private final TransactionTemplate tx;
+    private final TeamChatPort teamChat;
 
     public OpenSlotAdvertRunner(OpenSlotAdvertRepository adverts, OpenSlotAdvertAuditRepository audits,
                                 OpenSlotAdvertService service, PickupScheduleService schedule, StoreService stores,
                                 NotificationService notifications, TelegramChatService telegram,
                                 HistoryService history, AppProperties properties, Clock clock,
-                                PlatformTransactionManager transactionManager) {
+                                PlatformTransactionManager transactionManager, TeamChatPort teamChat) {
         this.adverts = adverts;
         this.audits = audits;
         this.service = service;
@@ -89,6 +91,7 @@ public class OpenSlotAdvertRunner {
         this.properties = properties;
         this.clock = clock;
         this.tx = new TransactionTemplate(transactionManager);
+        this.teamChat = teamChat;
         this.tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
@@ -324,14 +327,15 @@ public class OpenSlotAdvertRunner {
         String chatId = null;
         Long messageId = null;
         String identifier = "PICKUP_OPEN_SLOT-" + store.getId() + "-" + values.pickupAt();
-        List<UUID> recipients = view.channels().contains(AdvertChannel.STORE_CHAT)
-                || view.channels().contains(AdvertChannel.PUSH) ? stores.memberAndJumperIds(store.getId()) : List.of();
+        List<UUID> recipients = view.channels().contains(AdvertChannel.PUSH)
+                ? stores.memberAndJumperIds(store.getId()) : List.of();
         if (view.channels().contains(AdvertChannel.STORE_CHAT)) {
+            // M5 (A33): a system message in the team and jumper chats replaces the grouped M4 bell (decision 61).
             String text = AdvertTemplates.render(random(view.storeMessages()), values);
             texts.add(text);
             if (!dryRun) {
-                notifications.removeBells(identifier);
-                notifications.notify(request(recipients, store, values, text, identifier).build());
+                teamChat.postToTeamChat(store.getId(), TeamChatPort.StoreChat.TEAM, text);
+                teamChat.postToTeamChat(store.getId(), TeamChatPort.StoreChat.JUMPER, text);
             }
         }
         if (view.channels().contains(AdvertChannel.PUSH)) {

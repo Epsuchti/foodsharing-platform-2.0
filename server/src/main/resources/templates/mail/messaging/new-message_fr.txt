@@ -1,0 +1,11 @@
+Bonjour [(${displayName})],
+
+tu as un nouveau message de [(${userName})]:
+
+[(${message})]
+
+[(${link})]
+
+Pour les messages suivants de cette conversation, nous t'écrivons au plus toutes les 30 minutes.
+
+Ton équipe foodsharing

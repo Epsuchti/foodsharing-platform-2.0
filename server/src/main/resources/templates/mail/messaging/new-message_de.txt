@@ -1,0 +1,11 @@
+Hallo [(${displayName})],
+
+du hast eine neue Nachricht von [(${userName})]:
+
+[(${message})]
+
+[(${link})]
+
+Weitere Nachrichten in dieser Unterhaltung melden wir dir höchstens alle 30 Minuten per E-Mail.
+
+Dein foodsharing-Team

@@ -47,6 +47,10 @@ public class MembershipService {
     public record RegionMemberJoined(UUID regionId, UUID userId) {
     }
 
+    /** Published after a user left a region or group themselves (A33: region conversation). */
+    public record RegionMemberLeft(UUID regionId, UUID userId) {
+    }
+
     private final RegionRepository regions;
     private final RegionMembershipRepository memberships;
     private final RegionAdminRepository admins;
@@ -142,6 +146,7 @@ public class MembershipService {
                 .secondarySubject(userId).region(region.isGroup() ? region.getParentId() : regionId)
                 .metadata(Map.of("self", true, "wasAdmin", wasAdmin)).build());
         newHome.ifPresent(home -> users.changeHomeRegion(userId, home));
+        events.publishEvent(new RegionMemberLeft(regionId, userId));
     }
 
     /**

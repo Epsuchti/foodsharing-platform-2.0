@@ -31,6 +31,7 @@ import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.domain.StoreLogAction;
+import network.foodsharing.store.domain.StoreTeamChangedEvent;
 import network.foodsharing.store.domain.StoreMembership;
 import network.foodsharing.store.domain.StoreMembershipStatus;
 import network.foodsharing.store.domain.TeamSearchStatus;
@@ -72,13 +73,14 @@ public class StoreTeamService {
     private final HistoryService history;
     private final AppProperties properties;
     private final Clock clock;
+    private final TeamChatPort teamChat;
 
     public StoreTeamService(StoreService stores, StoreMembershipRepository memberships, StorePermissionService rights,
                             StorePickupInfo pickupInfo, UserService users, QuizSessionService quizzes,
                             MembershipService regionMemberships, RegionPermissionResolver resolver,
                             RegionReadService regionReads, ApplicationEventPublisher events,
                             CurrentActorService currentActor, HistoryService history, AppProperties properties,
-                            Clock clock) {
+                            Clock clock, TeamChatPort teamChat) {
         this.stores = stores;
         this.memberships = memberships;
         this.rights = rights;
@@ -93,6 +95,7 @@ public class StoreTeamService {
         this.history = history;
         this.properties = properties;
         this.clock = clock;
+        this.teamChat = teamChat;
     }
 
     // --------------------------------------------------------------------------------------------- read
@@ -230,6 +233,7 @@ public class StoreTeamService {
         m.setStatus(StoreMembershipStatus.MEMBER);
         m.setAddedAt(clock.instant());
         regionMemberships.addByMaintenance(userId, store.getRegionId());
+        changed(storeId, userId, StoreMembershipStatus.APPLIED, m);
         history.record(history.event(StoreLogAction.REQUEST_APPROVED, store.getId()).actorAutomation(policyName)
                 .secondarySubject(userId).region(store.getRegionId()).build());
         notify(List.of(userId), NotificationType.STORE_REQUEST_AUTO_ACCEPTED, store, null, null, null, null);
@@ -287,6 +291,7 @@ public class StoreTeamService {
         m.setStatus(standby ? StoreMembershipStatus.JUMPER : StoreMembershipStatus.MEMBER);
         m.setAddedAt(clock.instant());
         regionMemberships.addByMaintenance(userId, store.getRegionId());
+        changed(storeId, userId, StoreMembershipStatus.APPLIED, m);
         log(StoreLogAction.REQUEST_APPROVED, store, userId, null);
         if (standby) {
             log(StoreLogAction.MOVED_TO_JUMPER, store, userId, null);
@@ -303,6 +308,7 @@ public class StoreTeamService {
         log(StoreLogAction.REQUEST_DECLINED, store, userId, text);
         notify(List.of(userId), NotificationType.STORE_REQUEST_DECLINED, store, text, null, null,
                 "store/request-declined");
+        direct(userId, text);
     }
 
     // ------------------------------------------------------------------------------------- invitations
@@ -345,6 +351,7 @@ public class StoreTeamService {
         checkRequirements(store, user, null, false, false);
         m.setStatus(StoreMembershipStatus.MEMBER);
         m.setAddedAt(clock.instant());
+        changed(storeId, user.getId(), StoreMembershipStatus.INVITED, m);
         StoreNotifications.removeBells(events, BellService.identifier(NotificationType.STORE_INVITATION, storeId, user.getId()));
         log(StoreLogAction.INVITATION_ACCEPTED, store, user.getId(), null);
         notify(managerIds(storeId), NotificationType.STORE_INVITATION_ACCEPTED, store, null, user.getDisplayName(),
@@ -382,11 +389,14 @@ public class StoreTeamService {
         }
         String text = self ? (blank(message) ? null : message.strip()) : requireMessage(message);
         pickupInfo.deleteFutureSignups(storeId, userId);
+        StoreMembershipStatus oldStatus = m.getStatus();
         memberships.delete(m);
+        events.publishEvent(new StoreTeamChangedEvent(storeId, userId, oldStatus, null, false));
         log(self ? StoreLogAction.LEFT_STORE : StoreLogAction.REMOVED_FROM_STORE, store, userId, text);
         if (!self) {
             notify(List.of(userId), NotificationType.STORE_MEMBER_REMOVED, store, text, null, null,
                     "store/member-removed");
+            direct(userId, text);
         }
     }
 
@@ -407,6 +417,7 @@ public class StoreTeamService {
         m.setAddedAt(clock.instant());
         memberships.save(m);
         regionMemberships.addByMaintenance(userId, store.getRegionId());
+        changed(storeId, userId, null, m);
         log(StoreLogAction.ADDED_WITHOUT_REQUEST, store, userId, null);
         notify(List.of(userId), NotificationType.STORE_REQUEST_ACCEPTED, store, null, null, null, null);
     }
@@ -421,9 +432,11 @@ public class StoreTeamService {
         }
         m.setStatus(StoreMembershipStatus.JUMPER);
         pickupInfo.deleteFutureSignups(storeId, userId);
+        changed(storeId, userId, StoreMembershipStatus.MEMBER, m);
         log(StoreLogAction.MOVED_TO_JUMPER, store, userId, text);
         notify(List.of(userId), NotificationType.STORE_MOVED_TO_STANDBY, store, text, null, null,
                 "store/moved-to-standby");
+        direct(userId, text);
     }
 
     @Transactional
@@ -431,6 +444,7 @@ public class StoreTeamService {
         Store store = requireEditTeam(storeId);
         StoreMembership m = require(storeId, userId, StoreMembershipStatus.JUMPER, ApiErrorCode.NOT_TEAM_MEMBER);
         m.setStatus(StoreMembershipStatus.MEMBER);
+        changed(storeId, userId, StoreMembershipStatus.JUMPER, m);
         log(StoreLogAction.MOVED_TO_TEAM, store, userId, null);
     }
 
@@ -452,8 +466,10 @@ public class StoreTeamService {
         if (!coordinator && managerIds(storeId).size() >= properties.getStore().getMaxManagers()) {
             throw ApiException.conflict(ApiErrorCode.TOO_MANY_MANAGERS);
         }
+        StoreMembershipStatus before = m.getStatus();
         m.setStatus(StoreMembershipStatus.MEMBER);
         m.setManager(true);
+        changed(storeId, userId, before, m);
         log(StoreLogAction.APPOINT_STORE_MANAGER, store, userId, null);
         notify(List.of(userId), NotificationType.STORE_MANAGER_APPOINTED, store, null, null, null, null);
     }
@@ -469,12 +485,27 @@ public class StoreTeamService {
             throw ApiException.conflict(ApiErrorCode.LAST_MANAGER);
         }
         m.setManager(false);
+        changed(storeId, userId, m.getStatus(), m);
         log(StoreLogAction.REMOVED_AS_STORE_MANAGER, store, userId, text);
         notify(List.of(userId), NotificationType.STORE_MANAGER_REMOVED, store, text, null, null,
                 "store/manager-removed");
+        direct(userId, text);
     }
 
     // ------------------------------------------------------------------------------------- helpers
+
+    /** A33: store chats follow the team (synchronous listener in the messaging module). */
+    private void changed(UUID storeId, UUID userId, StoreMembershipStatus oldStatus, StoreMembership m) {
+        events.publishEvent(new StoreTeamChangedEvent(storeId, userId, oldStatus, m.getStatus(), m.isManager()));
+    }
+
+    /** A33: required messages also reach the user as a direct chat message from the acting manager. */
+    private void direct(UUID userId, String text) {
+        UUID actorId = currentActor.currentUserId().orElse(null);
+        if (actorId != null && !actorId.equals(userId) && text != null && !text.isBlank()) {
+            teamChat.sendDirect(actorId, userId, text);
+        }
+    }
 
     private Store requireEditTeam(UUID storeId) {
         Store store = stores.require(storeId);

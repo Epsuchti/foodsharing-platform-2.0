@@ -56,6 +56,21 @@ class UsersControllerTest {
     @MockitoBean
     private SessionAuthenticator sessionAuthenticator;
 
+    @MockitoBean
+    private network.foodsharing.user.service.UserSearchService userSearch;
+
+    @Test
+    @WithSeedUser("foodsaver")
+    void searchUsersValidatesTheQueryAndMapsSummaries() throws Exception {
+        network.foodsharing.user.domain.User found = network.foodsharing.testsupport.TestUsers.user("nina@test.local",
+                network.foodsharing.api.model.Role.STORE_MANAGER);
+        found.setId(java.util.UUID.randomUUID());
+        org.mockito.Mockito.when(userSearch.search("ni", null, 10)).thenReturn(java.util.List.of(found));
+        mvc.perform(get("/api/users/search").param("q", "ni")).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].displayName").value("nina"));
+        mvc.perform(get("/api/users/search").param("q", "n")).andExpect(status().isBadRequest());
+    }
+
     @Test
     void anonymousCallsNeedAuthentication() throws Exception {
         mvc.perform(get("/api/users/me"))

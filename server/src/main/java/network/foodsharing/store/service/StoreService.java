@@ -180,6 +180,8 @@ public class StoreService {
         creator.setManager(true);
         creator.setAddedAt(clock.instant());
         memberships.save(creator);
+        events.publishEvent(new network.foodsharing.store.domain.StoreTeamChangedEvent(store.getId(), creator.getUserId(),
+                null, StoreMembershipStatus.MEMBER, true));
         history.record(history.event(StoreLogAction.STORE_CREATED, store.getId()).region(regionId)
                 .metadata("name", store.getName()).build());
         events.publishEvent(new StoreChanged(store.getId(), WallMilestone.STORE_CREATED, null, actor.userId()));
@@ -466,6 +468,14 @@ public class StoreService {
     public List<UUID> teamIds(UUID storeId) {
         return memberships.findByStoreId(storeId).stream().filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER)
                 .map(StoreMembership::getUserId).toList();
+    }
+
+    /** MEMBER and JUMPER memberships with the manager flag (store chats, A33). */
+    @Transactional(readOnly = true)
+    public List<StoreMembership> teamMemberships(UUID storeId) {
+        return memberships.findByStoreId(storeId).stream()
+                .filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER || m.getStatus() == StoreMembershipStatus.JUMPER)
+                .toList();
     }
 
     /** Every live store (nightly store maintenance, §6.3). */

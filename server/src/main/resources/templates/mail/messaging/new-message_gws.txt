@@ -1,0 +1,11 @@
+Hoi [(${displayName})],
+
+du häsch e neui Nachricht vo [(${userName})]:
+
+[(${message})]
+
+[(${link})]
+
+Wiiteri Nachrichte i dere Unterhaltig mälded mir dir höchschtens all 30 Minute per E-Mail.
+
+Dis foodsharing-Team

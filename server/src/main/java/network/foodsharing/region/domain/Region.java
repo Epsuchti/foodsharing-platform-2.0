@@ -67,6 +67,10 @@ public class Region extends BaseEntity implements HistorySubject {
     @Column(name = "moderated", nullable = false)
     private boolean moderated;
 
+    /** A33: members of the region/group share a conversation (default on for working groups). */
+    @Column(name = "conversation_enabled", nullable = false)
+    private boolean conversationEnabled;
+
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 

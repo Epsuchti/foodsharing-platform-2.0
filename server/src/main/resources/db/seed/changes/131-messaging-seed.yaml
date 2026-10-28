@@ -1,0 +1,632 @@
+# Seed (M5 B2): conversations and messages (docs/seed-ids.md module 0041). Other store chats are created on first
+# access and kept in sync by StoreConversationSync / the conversation-sync job.
+databaseChangeLog:
+  - changeSet:
+      id: seed-131-1
+      author: platform
+      context: seed
+      comment: 'Conversations: DIRECT foodsaver-bieb (2 unread), DIRECT foodsaver-bot, GROUP Kochgruppe Planung (1 unread), S-01 team/jumper chats, kochgruppe region chat.'
+      changes:
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-30T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-30T08:55:00'}
+              - column: {name: kind, value: 'DIRECT'}
+              - column: {name: locked, valueBoolean: false}
+              - column: {name: last_seq, valueNumeric: 12}
+              - column: {name: last_message_at, valueDate: '2026-11-01T21:30:00'}
+              - column: {name: last_message_preview, value: 'Denk bitte an den Hygienenachweis.'}
+              - column: {name: last_sender_id, value: '00000001-0001-4000-8000-000000000009'}
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000002'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-28T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-28T08:55:00'}
+              - column: {name: kind, value: 'DIRECT'}
+              - column: {name: locked, valueBoolean: false}
+              - column: {name: last_seq, valueNumeric: 3}
+              - column: {name: last_message_at, valueDate: '2026-10-28T12:00:00'}
+              - column: {name: last_message_preview, value: 'Gern geschehen.'}
+              - column: {name: last_sender_id, value: '00000001-0001-4000-8000-000000000011'}
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: kind, value: 'GROUP'}
+              - column: {name: locked, valueBoolean: false}
+              - column: {name: name, value: 'Kochgruppe Planung'}
+              - column: {name: last_seq, valueNumeric: 8}
+              - column: {name: last_message_at, valueDate: '2026-10-31T23:00:00'}
+              - column: {name: last_message_preview, value: 'Ich mache ihn heute Abend.'}
+              - column: {name: last_sender_id, value: '00000001-0001-4000-8000-000000000007'}
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T08:55:00'}
+              - column: {name: kind, value: 'STORE_TEAM'}
+              - column: {name: locked, valueBoolean: true}
+              - column: {name: last_seq, valueNumeric: 6}
+              - column: {name: last_message_at, valueDate: '2026-11-01T14:00:00'}
+              - column: {name: last_message_preview, value: 'Danke!'}
+              - column: {name: last_sender_id, value: '00000001-0001-4000-8000-000000000009'}
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000005'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: kind, value: 'STORE_JUMPER'}
+              - column: {name: locked, valueBoolean: true}
+              - column: {name: last_seq, valueNumeric: 0}
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000006'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-29T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-29T08:55:00'}
+              - column: {name: kind, value: 'REGION'}
+              - column: {name: locked, valueBoolean: true}
+              - column: {name: last_seq, valueNumeric: 2}
+              - column: {name: last_message_at, valueDate: '2026-10-29T13:00:00'}
+              - column: {name: last_message_preview, value: 'Danke, ich freue mich.'}
+              - column: {name: last_sender_id, value: '00000001-0001-4000-8000-000000000006'}
+  - changeSet:
+      id: seed-131-2
+      author: platform
+      context: seed
+      comment: 'Members of the direct and group conversations.'
+      changes:
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-30T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-30T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: last_read_seq, valueNumeric: 10}
+              - column: {name: joined_at, valueDate: '2026-10-30T08:55:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000002'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-30T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-30T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: last_read_seq, valueNumeric: 12}
+              - column: {name: joined_at, valueDate: '2026-10-30T08:55:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000003'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-28T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-28T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000002'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: last_read_seq, valueNumeric: 3}
+              - column: {name: joined_at, valueDate: '2026-10-28T08:55:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000004'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-28T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-28T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000002'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000011'}
+              - column: {name: last_read_seq, valueNumeric: 3}
+              - column: {name: joined_at, valueDate: '2026-10-28T08:55:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000005'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: last_read_seq, valueNumeric: 7}
+              - column: {name: joined_at, valueDate: '2026-10-31T08:55:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000006'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000007'}
+              - column: {name: last_read_seq, valueNumeric: 8}
+              - column: {name: joined_at, valueDate: '2026-10-31T08:55:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000007'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T08:55:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: last_read_seq, valueNumeric: 7}
+              - column: {name: joined_at, valueDate: '2026-10-31T08:55:00'}
+  - changeSet:
+      id: seed-131-3
+      author: platform
+      context: seed
+      comment: 'Messages (sender NULL = system message).'
+      changes:
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-30T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-30T09:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 1}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Hallo Sarah, kannst du am Donnerstag bei Coop Bahnhofbrücke einspringen?'}
+              - column: {name: sent_at, valueDate: '2026-10-30T09:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000002'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-30T14:30:00'}
+              - column: {name: updated_at, valueDate: '2026-10-30T14:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 2}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Hoi Nina, ja, das passt mir.'}
+              - column: {name: sent_at, valueDate: '2026-10-30T14:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000003'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-30T20:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-30T20:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 3}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Super, danke! Abholung ist um 19:00.'}
+              - column: {name: sent_at, valueDate: '2026-10-30T20:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000004'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T01:30:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T01:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 4}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Brauche ich eigene Taschen?'}
+              - column: {name: sent_at, valueDate: '2026-10-31T01:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000005'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T07:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T07:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 5}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Ja, bitte zwei grosse Taschen mitnehmen.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T07:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000006'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T12:30:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T12:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 6}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Alles klar.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T12:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000007'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T18:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T18:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 7}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Ich habe dich eingetragen.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T18:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000008'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T23:30:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T23:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 8}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Danke dir!'}
+              - column: {name: sent_at, valueDate: '2026-10-31T23:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000009'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T05:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T05:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 9}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Kurze Frage: Hast du nächste Woche auch Zeit?'}
+              - column: {name: sent_at, valueDate: '2026-11-01T05:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000010'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T10:30:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T10:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 10}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Montag ginge, sonst eher nicht.'}
+              - column: {name: sent_at, valueDate: '2026-11-01T10:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000011'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T16:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T16:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 11}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Montag ist perfekt, ich trage dich ein.'}
+              - column: {name: sent_at, valueDate: '2026-11-01T16:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000012'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T21:30:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T21:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000001'}
+              - column: {name: seq, valueNumeric: 12}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Denk bitte an den Hygienenachweis.'}
+              - column: {name: sent_at, valueDate: '2026-11-01T21:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000013'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-28T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-28T09:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000002'}
+              - column: {name: seq, valueNumeric: 1}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000011'}
+              - column: {name: body, value: 'Willkommen in Zürich! Melde dich, wenn du Fragen hast.'}
+              - column: {name: sent_at, valueDate: '2026-10-28T09:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000014'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-28T10:30:00'}
+              - column: {name: updated_at, valueDate: '2026-10-28T10:30:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000002'}
+              - column: {name: seq, valueNumeric: 2}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Danke, Reto!'}
+              - column: {name: sent_at, valueDate: '2026-10-28T10:30:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000015'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-28T12:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-28T12:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000002'}
+              - column: {name: seq, valueNumeric: 3}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000011'}
+              - column: {name: body, value: 'Gern geschehen.'}
+              - column: {name: sent_at, valueDate: '2026-10-28T12:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000016'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T09:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 1}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: body, value: 'Salut! Wann kochen wir das nächste Mal?'}
+              - column: {name: sent_at, valueDate: '2026-10-31T09:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000017'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T11:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T11:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 2}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000007'}
+              - column: {name: body, value: 'Am Samstag hätte ich Zeit.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T11:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000018'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T13:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T13:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 3}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Samstag passt mir auch.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T13:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000019'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T15:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T15:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 4}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: body, value: 'Parfait, dann Samstag um 17 Uhr.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T15:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000020'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T17:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T17:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 5}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000007'}
+              - column: {name: body, value: 'Ich bringe Gemüse von der Abholung mit.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T17:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000021'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T19:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T19:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 6}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Ich kümmere mich ums Brot.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T19:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000022'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T21:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T21:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 7}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: body, value: 'Wer macht den Einkaufszettel?'}
+              - column: {name: sent_at, valueDate: '2026-10-31T21:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000023'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T23:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T23:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: seq, valueNumeric: 8}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000007'}
+              - column: {name: body, value: 'Ich mache ihn heute Abend.'}
+              - column: {name: sent_at, valueDate: '2026-10-31T23:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000024'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T09:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: seq, valueNumeric: 1}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Hallo Team, ab nächster Woche ändern sich die Abholzeiten am Donnerstag.'}
+              - column: {name: sent_at, valueDate: '2026-11-01T09:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000025'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T10:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T10:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: seq, valueNumeric: 2}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Danke für die Info!'}
+              - column: {name: sent_at, valueDate: '2026-11-01T10:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000026'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T11:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T11:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: seq, valueNumeric: 3}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Bitte tragt euch rechtzeitig ein.'}
+              - column: {name: sent_at, valueDate: '2026-11-01T11:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000027'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T12:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T12:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: seq, valueNumeric: 4}
+              - column: {name: body, value: 'Für die Abholung morgen um 19:00 ist noch ein Platz frei. Wer kann?'}
+              - column: {name: sent_at, valueDate: '2026-11-01T12:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000028'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T13:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T13:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: seq, valueNumeric: 5}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Ich schaue, ob ich kann.'}
+              - column: {name: sent_at, valueDate: '2026-11-01T13:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000029'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T14:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T14:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: seq, valueNumeric: 6}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: body, value: 'Danke!'}
+              - column: {name: sent_at, valueDate: '2026-11-01T14:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000030'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-29T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-29T09:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000006'}
+              - column: {name: seq, valueNumeric: 1}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000007'}
+              - column: {name: body, value: 'Willkommen in der Kochgruppe!'}
+              - column: {name: sent_at, valueDate: '2026-10-29T09:00:00'}
+        - insert:
+            tableName: message
+            columns:
+              - column: {name: id, value: '00000041-0003-4000-8000-000000000031'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-29T13:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-29T13:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000006'}
+              - column: {name: seq, valueNumeric: 2}
+              - column: {name: sender_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: body, value: 'Danke, ich freue mich.'}
+              - column: {name: sent_at, valueDate: '2026-10-29T13:00:00'}
+  - changeSet:
+      id: seed-131-4
+      author: platform
+      context: seed
+      comment: 'Store and region conversation links.'
+      changes:
+        - insert:
+            tableName: store_conversation
+            columns:
+              - column: {name: id, value: '00000041-0004-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: store_id, value: '00000020-0001-4000-8000-000000000001'}
+              - column: {name: kind, value: 'TEAM'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000004'}
+        - insert:
+            tableName: store_conversation
+            columns:
+              - column: {name: id, value: '00000041-0004-4000-8000-000000000002'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: store_id, value: '00000020-0001-4000-8000-000000000001'}
+              - column: {name: kind, value: 'JUMPER'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000005'}
+        - insert:
+            tableName: region_conversation
+            columns:
+              - column: {name: id, value: '00000041-0005-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: updated_at, valueDate: '2026-10-26T09:00:00'}
+              - column: {name: region_id, value: '00000011-0001-4000-8000-000000000033'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000006'}
+  - changeSet:
+      id: seed-131-5
+      author: platform
+      context: seed
+      comment: 'Region conversations enabled for the Zürich Stadt working groups 20-35.'
+      changes:
+        - sql:
+            sql: "update region set conversation_enabled = true where id in ('00000011-0001-4000-8000-000000000020', '00000011-0001-4000-8000-000000000021', '00000011-0001-4000-8000-000000000022', '00000011-0001-4000-8000-000000000023', '00000011-0001-4000-8000-000000000024', '00000011-0001-4000-8000-000000000025', '00000011-0001-4000-8000-000000000026', '00000011-0001-4000-8000-000000000027', '00000011-0001-4000-8000-000000000028', '00000011-0001-4000-8000-000000000029', '00000011-0001-4000-8000-000000000030', '00000011-0001-4000-8000-000000000031', '00000011-0001-4000-8000-000000000032', '00000011-0001-4000-8000-000000000033', '00000011-0001-4000-8000-000000000034', '00000011-0001-4000-8000-000000000035')"
+  - changeSet:
+      id: seed-131-6
+      author: platform
+      context: seed
+      dbms: postgresql
+      comment: 'Store/region chat members from the seeded memberships (PostgreSQL).'
+      changes:
+        - sql:
+            sql: >-
+              insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id, last_read_seq, joined_at)
+              select gen_random_uuid(), 0, timestamp '2026-10-26 09:00:00', timestamp '2026-10-26 09:00:00', '00000041-0001-4000-8000-000000000004', m.user_id, 6, timestamp '2026-10-26 09:00:00'
+              from store_membership m where m.store_id = '00000020-0001-4000-8000-000000000001' and m.status = 'MEMBER'
+        - sql:
+            sql: >-
+              insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id, last_read_seq, joined_at)
+              select gen_random_uuid(), 0, timestamp '2026-10-26 09:00:00', timestamp '2026-10-26 09:00:00', '00000041-0001-4000-8000-000000000005', m.user_id, 0, timestamp '2026-10-26 09:00:00'
+              from store_membership m where m.store_id = '00000020-0001-4000-8000-000000000001' and (m.status = 'JUMPER' or (m.status = 'MEMBER' and m.manager = true))
+        - sql:
+            sql: >-
+              insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id, last_read_seq, joined_at)
+              select gen_random_uuid(), 0, timestamp '2026-10-26 09:00:00', timestamp '2026-10-26 09:00:00', '00000041-0001-4000-8000-000000000006', m.user_id, 2, timestamp '2026-10-26 09:00:00'
+              from region_membership m where m.region_id = '00000011-0001-4000-8000-000000000033' and m.active = true
+  - changeSet:
+      id: seed-131-7
+      author: platform
+      context: seed
+      dbms: h2
+      comment: 'Store/region chat members from the seeded memberships (H2).'
+      changes:
+        - sql:
+            sql: >-
+              insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id, last_read_seq, joined_at)
+              select random_uuid(), 0, timestamp '2026-10-26 09:00:00', timestamp '2026-10-26 09:00:00', '00000041-0001-4000-8000-000000000004', m.user_id, 6, timestamp '2026-10-26 09:00:00'
+              from store_membership m where m.store_id = '00000020-0001-4000-8000-000000000001' and m.status = 'MEMBER'
+        - sql:
+            sql: >-
+              insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id, last_read_seq, joined_at)
+              select random_uuid(), 0, timestamp '2026-10-26 09:00:00', timestamp '2026-10-26 09:00:00', '00000041-0001-4000-8000-000000000005', m.user_id, 0, timestamp '2026-10-26 09:00:00'
+              from store_membership m where m.store_id = '00000020-0001-4000-8000-000000000001' and (m.status = 'JUMPER' or (m.status = 'MEMBER' and m.manager = true))
+        - sql:
+            sql: >-
+              insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id, last_read_seq, joined_at)
+              select random_uuid(), 0, timestamp '2026-10-26 09:00:00', timestamp '2026-10-26 09:00:00', '00000041-0001-4000-8000-000000000006', m.user_id, 2, timestamp '2026-10-26 09:00:00'
+              from region_membership m where m.region_id = '00000011-0001-4000-8000-000000000033' and m.active = true

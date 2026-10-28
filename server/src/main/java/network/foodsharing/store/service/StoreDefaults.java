@@ -11,6 +11,19 @@ import org.springframework.context.annotation.Configuration;
 public class StoreDefaults {
 
     @Bean
+    TeamChatPort noTeamChatPort() {
+        return new TeamChatPort() {
+            @Override
+            public void postToTeamChat(java.util.UUID storeId, StoreChat chat, String text) {
+            }
+
+            @Override
+            public void sendDirect(java.util.UUID fromUserId, java.util.UUID toUserId, String text) {
+            }
+        };
+    }
+
+    @Bean
     StorePickupInfo noStorePickupInfo() {
         return new StorePickupInfo() {
             @Override

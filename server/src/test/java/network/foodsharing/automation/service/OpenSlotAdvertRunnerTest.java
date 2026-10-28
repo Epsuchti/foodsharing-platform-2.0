@@ -39,6 +39,7 @@ import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import network.foodsharing.store.service.TeamChatPort;
 import org.mockito.ArgumentCaptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.json.JsonMapper;
@@ -63,15 +64,17 @@ class OpenSlotAdvertRunnerTest {
     List<OpenSlotAdvertAudit> existing = new ArrayList<>();
     List<OpenSlotAdvertAudit> saved = new ArrayList<>();
     OpenSlotAdvertRunner runner;
+    TeamChatPort teamChat;
     JsonMapper json = JsonMapper.builder().build();
 
     @BeforeEach
     void setUp() {
         OpenSlotAdvertService service = new OpenSlotAdvertService(adverts, audits, mock(PickupPolicyService.class),
                 schedule, mock(HistoryService.class, RETURNS_DEEP_STUBS), json, Clock.fixed(NOW, ZoneOffset.UTC));
+        teamChat = mock(TeamChatPort.class);
         runner = new OpenSlotAdvertRunner(adverts, audits, service, schedule, stores, notifications, telegram,
                 mock(HistoryService.class, RETURNS_DEEP_STUBS), properties, Clock.fixed(NOW, ZoneOffset.UTC),
-                mock(PlatformTransactionManager.class));
+                mock(PlatformTransactionManager.class), teamChat);
         store.setId(STORE);
         store.setRegionId(UUID.randomUUID());
         store.setName("Bäckerei");
@@ -145,12 +148,12 @@ class OpenSlotAdvertRunnerTest {
         slots(slot(PICKUP, 2, USER));
         var result = runner.run(List.of(advert), false);
         assertThat(result.confirmed()).isEqualTo(1);
-        ArgumentCaptor<NotificationRequest> request = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notifications).notify(request.capture());
-        assertThat(request.getValue().type()).isEqualTo(NotificationType.PICKUP_OPEN_SLOT);
-        assertThat(request.getValue().params().get("message")).contains("Bäckerei").doesNotContain("{{");
-        assertThat(request.getValue().identifier()).isEqualTo("PICKUP_OPEN_SLOT-" + STORE + "-" + PICKUP);
-        verify(notifications).removeBells(request.getValue().identifier());
+        ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
+        verify(teamChat).postToTeamChat(org.mockito.ArgumentMatchers.eq(STORE),
+                org.mockito.ArgumentMatchers.eq(TeamChatPort.StoreChat.TEAM), text.capture());
+        assertThat(text.getValue()).contains("Bäckerei").doesNotContain("{{");
+        verify(teamChat).postToTeamChat(STORE, TeamChatPort.StoreChat.JUMPER, text.getValue());
+        verify(notifications, never()).notify(any());
         assertThat(saved).singleElement().satisfies(a -> {
             assertThat(a.getStatus()).isEqualTo(AdvertStatus.SENT);
             assertThat(a.getSentAt()).isEqualTo(NOW);
@@ -197,12 +200,13 @@ class OpenSlotAdvertRunnerTest {
         runner.run(List.of(advert), false);
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT);
         ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(notifications, times(2)).notify(requests.capture());
+        verify(notifications, times(1)).notify(requests.capture());
         NotificationRequest late = requests.getAllValues().getFirst();
         assertThat(late.type()).isEqualTo(NotificationType.PICKUP_LATE_CANCELLATION);
         assertThat(late.recipientIds()).containsExactly(USER);
         assertThat(late.mailTemplate()).isEqualTo("notification/PICKUP_LATE_CANCELLATION");
-        assertThat(requests.getAllValues().get(1).type()).isEqualTo(NotificationType.PICKUP_OPEN_SLOT);
+        verify(teamChat).postToTeamChat(org.mockito.ArgumentMatchers.eq(STORE),
+                org.mockito.ArgumentMatchers.eq(TeamChatPort.StoreChat.TEAM), anyString());
     }
 
     @Test
@@ -275,7 +279,8 @@ class OpenSlotAdvertRunnerTest {
         properties.getAutomation().setMaxAdvertisementsPerRun(1);
         slots(slot(PICKUP, 1), slot(PICKUP.plus(Duration.ofHours(1)), 1));
         runner.run(List.of(advert), false);
-        verify(notifications, times(1)).notify(any());
+        verify(teamChat, times(1)).postToTeamChat(org.mockito.ArgumentMatchers.eq(STORE),
+                org.mockito.ArgumentMatchers.eq(TeamChatPort.StoreChat.TEAM), anyString());
     }
 
     @Test

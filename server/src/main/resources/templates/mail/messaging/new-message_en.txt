@@ -1,0 +1,11 @@
+Hi [(${displayName})],
+
+you have a new message from [(${userName})]:
+
+[(${message})]
+
+[(${link})]
+
+We e-mail you about further messages in this conversation at most every 30 minutes.
+
+Your foodsharing team

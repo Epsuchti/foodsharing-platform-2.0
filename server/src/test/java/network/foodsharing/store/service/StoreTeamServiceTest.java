@@ -60,6 +60,7 @@ class StoreTeamServiceTest {
     RegionReadService regionReads = mock(RegionReadService.class);
     CurrentActorService currentActor = mock(CurrentActorService.class);
     HistoryService history = mock(HistoryService.class, RETURNS_DEEP_STUBS);
+    TeamChatPort teamChat = mock(TeamChatPort.class);
     List<Object> published = new ArrayList<>();
     ApplicationEventPublisher events = published::add;
     AppProperties properties = new AppProperties();
@@ -71,7 +72,7 @@ class StoreTeamServiceTest {
     @BeforeEach
     void setUp() {
         service = new StoreTeamService(stores, memberships, rights, pickupInfo, users, quizzes, regionMemberships,
-                resolver, regionReads, events, currentActor, history, properties, Clock.fixed(NOW, ZoneOffset.UTC));
+                resolver, regionReads, events, currentActor, history, properties, Clock.fixed(NOW, ZoneOffset.UTC), teamChat);
         store = new Store();
         store.setId(STORE);
         store.setName("Coop");
@@ -239,7 +240,8 @@ class StoreTeamServiceTest {
         service.remove(STORE, self.getUserId(), null);
         verify(pickupInfo).deleteFutureSignups(STORE, self.getUserId());
         verify(memberships).delete(self);
-        assertThat(published).isEmpty(); // leaving sends no bell
+        assertThat(published).noneMatch(StoreNotifications.Send.class::isInstance); // leaving sends no bell
+        assertThat(published).allMatch(network.foodsharing.store.domain.StoreTeamChangedEvent.class::isInstance);
     }
 
     @Test
@@ -252,6 +254,22 @@ class StoreTeamServiceTest {
         when(rights.rights(any(), any())).thenReturn(noRights());
         UUID another = member(StoreMembershipStatus.MEMBER, false).getUserId();
         assertThatThrownBy(() -> service.remove(STORE, another, "x")).isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void teamChangesPublishEventsAndRequiredMessagesGoToTheChat() {
+        when(currentActor.currentUserId()).thenReturn(Optional.of(user.getId()));
+        StoreMembership m = member(StoreMembershipStatus.MEMBER, false);
+        service.moveToStandby(STORE, m.getUserId(), "Bitte pausieren");
+        assertThat(published).filteredOn(network.foodsharing.store.domain.StoreTeamChangedEvent.class::isInstance)
+                .containsExactly(new network.foodsharing.store.domain.StoreTeamChangedEvent(STORE, m.getUserId(),
+                        StoreMembershipStatus.MEMBER, StoreMembershipStatus.JUMPER, false));
+        verify(teamChat).sendDirect(user.getId(), m.getUserId(), "Bitte pausieren");
+        service.moveToTeam(STORE, m.getUserId());
+        service.remove(STORE, m.getUserId(), "Tschüss");
+        assertThat(published).filteredOn(network.foodsharing.store.domain.StoreTeamChangedEvent.class::isInstance)
+                .extracting("newStatus").containsExactly(StoreMembershipStatus.JUMPER, StoreMembershipStatus.MEMBER, null);
+        verify(teamChat).sendDirect(user.getId(), m.getUserId(), "Tschüss");
     }
 
     @Test

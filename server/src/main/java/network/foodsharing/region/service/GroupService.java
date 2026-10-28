@@ -221,6 +221,7 @@ public class GroupService {
         }
         Region group = new Region();
         group.setType(UnitType.WORKING_GROUP);
+        group.setConversationEnabled(true);
         group.setParentId(region.getId());
         group.setName(input.name().strip());
         group.setSlug(Slugs.unique(Slugs.slugify(input.name()), regions::existsBySlug));

@@ -1,7 +1,6 @@
 package network.foodsharing.user.web;
 
 import java.util.List;
-import network.foodsharing.common.error.ApiException;
 import java.util.UUID;
 import network.foodsharing.api.UsersApi;
 import network.foodsharing.api.model.UserProfile;
@@ -21,10 +20,13 @@ public class UsersController implements UsersApi {
 
     private final UserService userService;
     private final UserMapper mapper;
+    private final network.foodsharing.user.service.UserSearchService userSearch;
 
-    public UsersController(UserService userService, UserMapper mapper) {
+    public UsersController(UserService userService, UserMapper mapper,
+                           network.foodsharing.user.service.UserSearchService userSearch) {
         this.userService = userService;
         this.mapper = mapper;
+        this.userSearch = userSearch;
     }
 
     @Override
@@ -55,6 +57,7 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<List<UserSummary>> searchUsers(String q, UUID regionId, Integer limit) {
-        throw ApiException.notImplemented("searchUsers");
+        return ResponseEntity.ok(userSearch.search(q, regionId, limit == null ? 10 : limit).stream()
+                .map(mapper::toSummary).toList());
     }
 }

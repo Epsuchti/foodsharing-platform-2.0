@@ -213,3 +213,15 @@ extra slots `0013-…01`/`02` by bieb (3 and 10 days ago, 2 → 3). Metrics `001
 zuerich-stadt, keys SLOT_APPROVAL.CONFIRMED/DECLINED, SLOT_DECLINE_RULE.GAP, REQUEST.APPROVED, ADVERT.SENT,
 ADVERT.FILLED_AFTER_ADVERT, CANCELLATION.NOT_REPLACED, EXTRA_SLOT.ADDED. `AutomationSeedDateShift` moves all of them
 (metric days by whole days).
+
+## Messaging (M5 B2, `seed/changes/131-messaging-seed.yaml`)
+
+Conversations `00000041-0001-4000-8000-0000000000NN`: `01` DIRECT foodsaver ↔ bieb (12 messages over 3 days, foodsaver
+read up to 10 → 2 unread), `02` DIRECT foodsaver ↔ bot (3 messages, read), `03` GROUP "Kochgruppe Planung" (foodsaver,
+jumper, guide; 8 messages, foodsaver and guide 1 unread), `04` STORE_TEAM and `05` STORE_JUMPER of S-01 (team chat: 6
+messages incl. 1 system advert; members inserted from the seeded `store_membership`, random member ids), `06` REGION
+chat of kochgruppe (2 messages, members from `region_membership`). Members `0002-…01`–`07` (direct/group), messages
+`0003-…01`–`31`, links `0004-…01`/`02` (S-01 TEAM/JUMPER), `0005-…01` (kochgruppe). `region.conversation_enabled` is
+true for the Zürich Stadt groups `20`–`35` (and every new working group). Other store chats are created on first
+access (`GET /api/stores/{id}/conversations`, team changes, adverts) and reconciled hourly by `conversation-sync`.
+`MessagingSeedDateShift` moves seeded message/conversation times in `local`.

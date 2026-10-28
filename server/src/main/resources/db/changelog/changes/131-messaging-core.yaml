@@ -1,0 +1,84 @@
+# Milestone 5 (B2): conversations, members with read state, messages with a per-conversation seq (A33).
+databaseChangeLog:
+  - changeSet:
+      id: 131-1
+      author: platform
+      comment: 'Conversations (upstream fs_conversation). last_seq is incremented under a row lock per message.'
+      changes:
+        - createTable:
+            tableName: conversation
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_conversation, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: kind, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: locked, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: name, type: VARCHAR(200)}
+              - column: {name: last_seq, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: last_message_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: last_message_preview, type: VARCHAR(300)}
+              - column: {name: last_sender_id, type: UUID}
+        - createIndex:
+            tableName: conversation
+            indexName: ix_conversation_last_message_at
+            columns:
+              - column: {name: last_message_at, descending: true}
+  - changeSet:
+      id: 131-2
+      author: platform
+      comment: 'Conversation members (upstream fs_foodsaver_has_conversation) with read state and digest-mail marker.'
+      changes:
+        - createTable:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_conversation_member, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: conversation_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_conversation_member_conversation_id, references: conversation(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_conversation_member_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: last_read_seq, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: last_mailed_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: joined_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: conversation_member
+            columnNames: conversation_id, user_id
+            constraintName: uq_conversation_member_conversation_user
+        - createIndex:
+            tableName: conversation_member
+            indexName: ix_conversation_member_user_id
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 131-3
+      author: platform
+      comment: 'Messages (upstream fs_msg). sender_id NULL = system message; client_key makes sending idempotent.'
+      changes:
+        - createTable:
+            tableName: message
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_message, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: conversation_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_message_conversation_id, references: conversation(id), deleteCascade: true}}
+              - column: {name: seq, type: BIGINT, constraints: {nullable: false}}
+              - column: {name: sender_id, type: UUID}
+              - column: {name: body, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: client_key, type: VARCHAR(64)}
+              - column: {name: sent_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: message
+            columnNames: conversation_id, seq
+            constraintName: uq_message_conversation_seq
+        - addUniqueConstraint:
+            tableName: message
+            columnNames: conversation_id, sender_id, client_key
+            constraintName: uq_message_conversation_sender_client_key
