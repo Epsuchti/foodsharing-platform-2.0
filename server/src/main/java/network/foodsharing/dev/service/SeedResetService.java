@@ -26,8 +26,11 @@ public class SeedResetService {
 
     private final DataSource dataSource;
     private final SpringLiquibase liquibase;
+    private final network.foodsharing.config.RenewableLockProvider lockProvider;
 
-    public SeedResetService(DataSource dataSource, SpringLiquibase liquibase) {
+    public SeedResetService(DataSource dataSource, SpringLiquibase liquibase,
+                            network.foodsharing.config.RenewableLockProvider lockProvider) {
+        this.lockProvider = lockProvider;
         this.dataSource = dataSource;
         this.liquibase = liquibase;
     }
@@ -51,6 +54,7 @@ public class SeedResetService {
         }
         try {
             liquibase.afterPropertiesSet();
+            lockProvider.renew(); // the shedlock table was recreated: forget cached lock rows
         } catch (LiquibaseException e) {
             throw new IllegalStateException("Liquibase failed while restoring the seed state", e);
         }

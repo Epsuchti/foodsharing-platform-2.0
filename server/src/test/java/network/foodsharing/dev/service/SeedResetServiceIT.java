@@ -39,6 +39,19 @@ class SeedResetServiceIT {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private network.foodsharing.config.RenewableLockProvider lockProvider;
+
+    @Test
+    void scheduledJobLocksStillWorkAfterAReset() {
+        var config = new net.javacrumbs.shedlock.core.LockConfiguration(Instant.now(), "seed-reset-lock-test",
+                java.time.Duration.ofMillis(10), java.time.Duration.ZERO);
+        lockProvider.lock(config).orElseThrow().unlock();
+        seedResetService.reset();
+        // without renewing the provider's row cache the update hits the recreated, empty table and returns empty
+        assertThat(lockProvider.lock(config)).isPresent();
+    }
+
     @Test
     void resetRestoresTheSeedStateAndIsRepeatable() {
         assertThat(seedResetService.isH2()).isTrue();
