@@ -1,0 +1,9 @@
+Bonjour [(${displayName})],
+
+un changement de l'adresse e-mail de ton compte foodsharing vers [(${newEmail})] a été demandé. Ce n'était pas toi ? Annule le changement avec ce lien :
+
+[(${link})]
+
+Si tu as demandé le changement toi-même, tu n'as rien à faire.
+
+Ton équipe foodsharing

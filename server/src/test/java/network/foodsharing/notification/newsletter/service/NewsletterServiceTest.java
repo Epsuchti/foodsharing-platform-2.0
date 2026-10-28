@@ -112,6 +112,22 @@ class NewsletterServiceTest {
         assertThat(code(() -> service.create(REGION, " ", "B"))).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
     }
 
+    /** A20: info mails are global, ORGA only and reach every active user with info mails on, opted in or not. */
+    @Test
+    void infoMailRecipientsIgnoreTheNewsletterOptIn() {
+        var infoMail = network.foodsharing.notification.newsletter.domain.NewsletterKind.INFO_MAIL;
+        assertThat(code(() -> service.create(infoMail, null, "S", "B"))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        when(permissions.isOrga(any())).thenReturn(true);
+        assertThat(code(() -> service.create(infoMail, REGION, "S", "B"))).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        Newsletter created = service.create(infoMail, null, "S", "B");
+        assertThat(created.getKind()).isEqualTo(infoMail);
+        User notOptedIn = user(false);
+        optedIn.add(user(true));
+        when(users.findActiveInfoMailRecipients()).thenReturn(List.of(notOptedIn));
+        assertThat(service.recipientsOf(created)).containsExactly(notOptedIn.getId());
+        assertThat(service.recipientsOf(draft)).doesNotContain(notOptedIn.getId());
+    }
+
     @Test
     void listScopes() {
         when(newsletters.search(anyBoolean(), anyCollection(), anyBoolean(), any(), any(Pageable.class)))

@@ -1,0 +1,62 @@
+# Milestone 6 (B3/B4): email change (upstream fs_mailchange), account deletion (upstream fs_foodsaver_archive); A13, A40.
+databaseChangeLog:
+  - changeSet:
+      id: 161-1
+      author: platform
+      comment: 'Pending email changes: token to the new address, abort token to the old one (hashes only).'
+      changes:
+        - createTable:
+            tableName: email_change
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_email_change, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_email_change_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: old_email, type: VARCHAR(320), constraints: {nullable: false}}
+              - column: {name: new_email, type: VARCHAR(320), constraints: {nullable: false}}
+              - column: {name: token_hash, type: VARCHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_email_change_token_hash}}
+              - column: {name: abort_token_hash, type: VARCHAR(64), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_email_change_abort_token_hash}}
+              - column: {name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: completed_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: aborted_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: email_change
+            indexName: ix_email_change_user
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 161-2
+      author: platform
+      comment: 'Account deletion (A40): anonymised user rows keep deleted_at/by and the reason; snapshot in user_archive.'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: deleted_by, type: UUID}
+              - column: {name: delete_reason, type: VARCHAR(1000)}
+        - createTable:
+            tableName: user_archive
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_user_archive, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_user_archive_user_id}}
+              - column: {name: snapshot_json, type: VARCHAR(32600), constraints: {nullable: false}}
+              - column: {name: reason, type: VARCHAR(1000)}
+              - column: {name: deleted_by, type: UUID}
+  - changeSet:
+      id: 161-3
+      author: platform
+      comment: 'Info mail (A20): newsletter kind NEWSLETTER | INFO_MAIL.'
+      changes:
+        - addColumn:
+            tableName: newsletter
+            columns:
+              - column: {name: kind, type: VARCHAR(20), defaultValue: NEWSLETTER, constraints: {nullable: false}}

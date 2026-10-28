@@ -24,8 +24,11 @@ public class UploadSeedFiles {
 
     private final UploadStorage storage;
 
-    public UploadSeedFiles(UploadStorage storage) {
+    private final UploadService uploads;
+
+    public UploadSeedFiles(UploadStorage storage, UploadService uploads) {
         this.storage = storage;
+        this.uploads = uploads;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -41,6 +44,7 @@ public class UploadSeedFiles {
                     storage.write(key, in.readAllBytes());
                 }
             }
+            uploads.renderMissingVariants();
         } catch (IOException ex) {
             log.warn("Could not write seeded upload files: {}", ex.getMessage());
         }

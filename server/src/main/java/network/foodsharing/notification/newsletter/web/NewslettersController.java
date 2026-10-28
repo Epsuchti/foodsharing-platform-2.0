@@ -58,7 +58,8 @@ public class NewslettersController implements NewslettersApi {
 
     @Override
     public ResponseEntity<Newsletter> createNewsletter(NewsletterCreate body) {
-        return ResponseEntity.status(201).body(toModel(newsletters.create(body.getRegionId(), body.getSubject(),
+        return ResponseEntity.status(201).body(toModel(newsletters.create(body.getKind() == null ? null
+                : network.foodsharing.notification.newsletter.domain.NewsletterKind.valueOf(body.getKind().name()), body.getRegionId(), body.getSubject(),
                 body.getBodyMarkdown())));
     }
 
@@ -124,6 +125,7 @@ public class NewslettersController implements NewslettersApi {
         return list.stream().map(n -> {
             Newsletter model = new Newsletter();
             model.setId(n.getId());
+            model.setKind(network.foodsharing.api.model.NewsletterKind.valueOf(n.getKind().name()));
             if (n.getRegionId() != null) {
                 regions.find(n.getRegionId()).ifPresent(r -> {
                     RegionRef ref = new RegionRef();

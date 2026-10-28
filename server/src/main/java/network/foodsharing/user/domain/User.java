@@ -232,6 +232,16 @@ public class User extends BaseEntity implements HistorySubject {
     @Column(name = "stat_updated_at")
     private Instant statUpdatedAt;
 
+    /** Account deletion (A40): set when the row was anonymised. */
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "deleted_by")
+    private UUID deletedBy;
+
+    @Column(name = "delete_reason", length = 1000)
+    private String deleteReason;
+
     /** Sleeping today (A39): FULL, or TEMPORARY with from ≤ today ≤ until (open ends allowed). */
     public boolean isSleeping(LocalDate today) {
         return SleepRules.isSleeping(sleepStatus, sleepFrom, sleepUntil, today);

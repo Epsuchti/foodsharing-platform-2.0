@@ -1,0 +1,9 @@
+Hallo [(${displayName})],
+
+für dein foodsharing-Konto wurde eine Änderung der E-Mail-Adresse auf [(${newEmail})] angefordert. Warst du das nicht? Dann brich die Änderung mit diesem Link ab:
+
+[(${link})]
+
+Wenn du die Änderung selbst angefordert hast, musst du nichts tun.
+
+Dein foodsharing-Team

@@ -1,0 +1,9 @@
+Hello [(${displayName})],
+
+you would like to change your foodsharing email address to [(${newEmail})]. Please confirm the change with this link (signed in, valid for [(${validityHours})] hours):
+
+[(${link})]
+
+You did not request a change? Then simply ignore this email.
+
+Your foodsharing team

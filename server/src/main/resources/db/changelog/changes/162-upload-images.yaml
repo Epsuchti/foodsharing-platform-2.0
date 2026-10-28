@@ -1,0 +1,14 @@
+# Milestone 6 (B3): image variants and public uploads (A41, C10).
+databaseChangeLog:
+  - changeSet:
+      id: 162-1
+      author: platform
+      comment: 'Image dimensions, rendered variants (sm/md/lg) and public readability of uploads.'
+      changes:
+        - addColumn:
+            tableName: upload
+            columns:
+              - column: {name: width, type: INT}
+              - column: {name: height, type: INT}
+              - column: {name: variants, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: is_public, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}

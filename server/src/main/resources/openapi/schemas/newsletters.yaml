@@ -3,6 +3,12 @@ NewsletterStatus:
   type: string
   enum: [DRAFT, QUEUED, SENDING, SENT, CANCELLED]
 
+NewsletterKind:
+  type: string
+  description: 'NEWSLETTER = opted-in members (region or global); INFO_MAIL = global info mail of the orga team to every
+    active user with infoMailMessage=true regardless of the newsletter opt-in (A20, ORGA only).'
+  enum: [NEWSLETTER, INFO_MAIL]
+
 Newsletter:
   type: object
   required: [id, subject, bodyMarkdown, status, createdAt]
@@ -10,6 +16,8 @@ Newsletter:
     id:
       type: string
       format: uuid
+    kind:
+      $ref: './newsletters.yaml#/NewsletterKind'
     region:
       $ref: './regions.yaml#/RegionRef'
     subject:
@@ -54,6 +62,8 @@ NewsletterCreate:
   type: object
   required: [subject, bodyMarkdown]
   properties:
+    kind:
+      $ref: './newsletters.yaml#/NewsletterKind'
     regionId:
       description: 'Null = global newsletter (ORGA only, else 403)'
       type: string

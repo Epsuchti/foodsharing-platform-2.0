@@ -190,6 +190,19 @@ public class AuthSessionService implements SessionAuthenticator {
         }
     }
 
+    /**
+     * Revokes every active session of {@code userId} except {@code keepSessionId} (may be null) inside the caller's
+     * transaction; the caller records the history entry of the triggering change (email change, account deletion).
+     */
+    public int revokeAllExcept(UUID userId, UUID keepSessionId, SessionRevokeReason reason) {
+        Instant now = clock.instant();
+        List<AuthSession> sessions = repository.findActiveByUserId(userId, now).stream()
+                .filter(session -> !session.getId().equals(keepSessionId))
+                .toList();
+        sessions.forEach(session -> revokeEntity(session, reason, now));
+        return sessions.size();
+    }
+
     private static void revokeEntity(AuthSession session, SessionRevokeReason reason, Instant now) {
         if (session.getRevokedAt() == null) {
             session.setRevokedAt(now);

@@ -70,7 +70,7 @@ class LocalProfileSmokeIT {
             assertThat(row).as(seed.name()).isNotNull();
             assertThat(row.get("EMAIL")).isEqualTo(seed.email());
             assertThat(row.get("ROLE")).isEqualTo(seed.role().name());
-            assertThat(row.get("AVATAR_URL")).isEqualTo("/images/avatars/" + seed.name().toLowerCase() + ".svg");
+            assertThat(row.get("AVATAR_URL")).isEqualTo(String.format("/api/uploads/00000040-0001-4000-8000-%012d?size=md", 101 + seed.ordinal()));
         }
         Set<Object> languages = users.values().stream().map(row -> row.get("PREFERRED_LANGUAGE")).collect(Collectors.toSet());
         assertThat(languages).containsExactlyInAnyOrder("DE", "EN", "GWS", "FR", "IT");
