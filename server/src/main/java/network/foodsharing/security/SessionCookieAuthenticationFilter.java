@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Optional;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -18,6 +20,7 @@ public class SessionCookieAuthenticationFilter extends OncePerRequestFilter {
 
     private final SessionAuthenticator authenticator;
     private final SessionCookieWriter cookieWriter;
+    private final SecurityContextRepository contextRepository = new RequestAttributeSecurityContextRepository();
 
     public SessionCookieAuthenticationFilter(SessionAuthenticator authenticator, SessionCookieWriter cookieWriter) {
         this.authenticator = authenticator;
@@ -34,6 +37,9 @@ public class SessionCookieAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(SessionAuthenticationToken.of(principal.get()));
                 SecurityContextHolder.setContext(context);
+                // Also store it where SessionManagementFilter looks: otherwise it treats every cookie-restored session
+                // as a fresh login and runs the session strategies, which rotate the CSRF token on every request.
+                contextRepository.saveContext(context, request, response);
             } else {
                 cookieWriter.clear(response);
             }

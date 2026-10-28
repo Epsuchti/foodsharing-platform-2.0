@@ -22,3 +22,21 @@ test('D8.4 unsafe API calls need the XSRF-TOKEN cookie echoed as header @D8.4', 
   const withHeader = await api.post('/api/public/client-errors', REPORT);
   expect(withHeader.status()).toBe(202);
 });
+
+test('D8.4 the CSRF token stays stable across requests of a signed-in session @D8.4', async ({ api }) => {
+  await api.loginAs('foodsaver');
+  await api.get('/api/auth/session');
+  const before = await api.cookie(CSRF_COOKIE);
+  expect(before).toBeTruthy();
+  for (const path of ['/api/auth/session', '/api/users/me', '/']) {
+    const response = await api.get(path);
+    const setCookies = response.headersArray().filter((header) => header.name.toLowerCase() === 'set-cookie');
+    expect(setCookies.map((header) => header.value).join('\n')).not.toContain(`${CSRF_COOKIE}=`);
+  }
+  expect(await api.cookie(CSRF_COOKIE)).toBe(before);
+  // Two mutations in a row with the same token both pass.
+  for (let i = 0; i < 2; i++) {
+    const response = await api.post('/api/public/client-errors', REPORT);
+    expect(response.status()).toBe(202);
+  }
+});
