@@ -46,10 +46,15 @@ public class DevController implements DevApi {
     private final DevNotificationService notificationService;
     private final network.foodsharing.common.realtime.RealtimePublisher realtime;
     private final java.time.Clock clock;
+    private final org.springframework.beans.factory.ObjectProvider<
+            network.foodsharing.common.integration.InboundMailHandler> incomingMail;
 
     public DevController(DevService devService, DevMapper mapper, AuthMapper authMapper,
                          PermissionService permissionService, DevNotificationService notificationService,
-                         network.foodsharing.common.realtime.RealtimePublisher realtime, java.time.Clock clock) {
+                         network.foodsharing.common.realtime.RealtimePublisher realtime, java.time.Clock clock,
+                         org.springframework.beans.factory.ObjectProvider<
+                                 network.foodsharing.common.integration.InboundMailHandler> incomingMail) {
+        this.incomingMail = incomingMail;
         this.devService = devService;
         this.mapper = mapper;
         this.authMapper = authMapper;
@@ -177,6 +182,12 @@ public class DevController implements DevApi {
 
     @Override
     public ResponseEntity<Void> simulateIncomingMail(DevIncomingMail devIncomingMail) {
-        throw ApiException.notImplemented("simulateIncomingMail");
+        try {
+            incomingMail.getObject().accept(devIncomingMail.getRawMime()
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException ex) {
+            throw ApiException.badRequest(network.foodsharing.api.model.ApiErrorCode.VALIDATION_FAILED);
+        }
+        return ResponseEntity.noContent().build();
     }
 }

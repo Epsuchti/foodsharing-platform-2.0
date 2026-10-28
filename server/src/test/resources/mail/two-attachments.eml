@@ -1,0 +1,23 @@
+From: Lukas Meier <lukas.meier@example.ch>
+To: zuerich@local.test
+Subject: Unterlagen
+Message-ID: <att-1@example.ch>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="MIX"
+
+--MIX
+Content-Type: text/plain; charset=UTF-8
+
+Anbei zwei Dateien.
+--MIX
+Content-Type: application/pdf; name="plan.pdf"
+Content-Disposition: attachment; filename="plan.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJSVFT0YK
+--MIX
+Content-Type: text/plain; name="liste.txt"
+Content-Disposition: attachment; filename="liste.txt"
+
+Brot, Gemuese
+--MIX--

@@ -273,6 +273,13 @@
             <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- In-memory IMAPS server for ImapMailSourceIT (A35). -->
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-junit5</artifactId>
+            <version>2.1.3</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-starter-test</artifactId>

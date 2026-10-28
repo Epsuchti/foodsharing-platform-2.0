@@ -33,4 +33,8 @@ public interface MailMessageRepository extends JpaRepository<MailMessage, UUID> 
     List<MailMessage> findByMessageIdIn(Collection<String> messageIds);
 
     List<MailMessage> findByMailboxId(UUID mailboxId);
+
+    boolean existsByMailboxIdAndRawHash(UUID mailboxId, String rawHash);
+
+    List<MailMessage> findByFolderAndMessageIdIn(MailFolder folder, Collection<String> messageIds);
 }

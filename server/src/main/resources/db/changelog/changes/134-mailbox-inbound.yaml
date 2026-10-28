@@ -1,0 +1,47 @@
+# Milestone 5 (B5): inbound mail state (IMAP UIDs), webhook dedupe hash, bounced user addresses (A35).
+databaseChangeLog:
+  - changeSet:
+      id: 134-1
+      author: platform
+      comment: 'Fetch state per inbound source (IMAP: last UID per UIDVALIDITY).'
+      changes:
+        - createTable:
+            tableName: mailbox_fetch_state
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_mailbox_fetch_state, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: source, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: last_uid, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: uid_validity, type: BIGINT}
+              - column: {name: last_fetch_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: last_error, type: VARCHAR(2000)}
+        - addUniqueConstraint:
+            tableName: mailbox_fetch_state
+            columnNames: source
+            constraintName: uq_mailbox_fetch_state_source
+  - changeSet:
+      id: 134-2
+      author: platform
+      comment: 'SHA-256 of the raw MIME per stored copy (webhook/IMAP retries are idempotent per mailbox).'
+      changes:
+        - addColumn:
+            tableName: mail_message
+            columns:
+              - column: {name: raw_hash, type: VARCHAR(64)}
+        - addUniqueConstraint:
+            tableName: mail_message
+            columnNames: mailbox_id, raw_hash
+            constraintName: uq_mail_message_mailbox_raw_hash
+  - changeSet:
+      id: 134-3
+      author: platform
+      comment: 'Last hard bounce for the user address (bounce processing flags invalid addresses).'
+      changes:
+        - addColumn:
+            tableName: user_account
+            columns:
+              - column: {name: email_bounced_at, type: TIMESTAMP WITH TIME ZONE}

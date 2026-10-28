@@ -91,4 +91,8 @@ public class MailMessage extends BaseEntity {
 
     @Column(name = "attachment_count", nullable = false)
     private int attachmentCount;
+
+    /** SHA-256 of the raw MIME of an incoming mail (dedupe per mailbox). */
+    @Column(name = "raw_hash", length = 64)
+    private String rawHash;
 }

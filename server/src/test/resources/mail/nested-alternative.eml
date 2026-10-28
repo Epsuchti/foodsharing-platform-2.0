@@ -1,0 +1,26 @@
+From: Verein <verein@example.ch>
+To: zuerich@local.test
+Subject: Einladung
+Message-ID: <nested-1@example.ch>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="OUT"
+
+--OUT
+Content-Type: multipart/alternative; boundary="ALT"
+
+--ALT
+Content-Type: text/plain; charset=UTF-8
+
+Einladung zum Fest
+--ALT
+Content-Type: text/html; charset=UTF-8
+
+<p style="color:red">Einladung zum <b>Fest</b></p>
+--ALT--
+--OUT
+Content-Type: text/calendar; name="fest.ics"
+Content-Disposition: attachment; filename="fest.ics"
+
+BEGIN:VCALENDAR
+END:VCALENDAR
+--OUT--

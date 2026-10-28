@@ -158,6 +158,38 @@ class MailboxApiIT {
     }
 
     @Test
+    @Order(Integer.MAX_VALUE - 1)
+    void injectedIncomingMailLandsInTheInboxAndBouncesFlagTheSentMail() throws Exception {
+        Cookie bot = login(SeedUsers.BOT);
+        String raw = "From: Anna <anna@example.ch>\nTo: zuerich@local.test\nSubject: Inbound-Test\n"
+                + "Message-ID: <inbound-1@example.ch>\n\nHallo Postfach\n";
+        mvc.perform(json(post("/api/dev/mailbox/incoming"), "{\"rawMime\":" + quote(raw) + "}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/mailboxes/" + ZUERICH + "/folders/INBOX/mails?q=Inbound-Test").cookie(bot))
+                .andExpect(jsonPath("$.items.length()").value(1)).andExpect(jsonPath("$.items[0].read").value(false));
+        mvc.perform(get("/api/dev/notifications").param("userId", SeedUsers.REPORTS.id().toString())
+                .param("type", "MAILBOX_NEW_MAIL")).andExpect(jsonPath("$.length()").value(org.hamcrest.Matchers
+                .greaterThanOrEqualTo(1)));
+
+        String dsn = "From: MAILER-DAEMON@mx.example.ch\nTo: zuerich@local.test\nSubject: Undelivered\n"
+                + "Content-Type: multipart/report; report-type=delivery-status; boundary=\"B\"\n\n--B\n"
+                + "Content-Type: text/plain\n\nfailed\n--B\nContent-Type: message/delivery-status\n\n"
+                + "Final-Recipient: rfc822; x@example.ch\nAction: failed\n--B\nContent-Type: text/rfc822-headers\n\n"
+                + "Message-ID: <seed-sent-027@local.test>\n--B--\n";
+        mvc.perform(json(post("/api/dev/mailbox/incoming"), "{\"rawMime\":" + quote(dsn) + "}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/mailboxes/mails/00000042-0003-4000-8000-000000000027").cookie(bot))
+                .andExpect(jsonPath("$.bounce").value(true));
+        mvc.perform(post("/api/dev/jobs/mailbox-fetcher/run").with(csrf())).andExpect(status().is2xxSuccessful());
+        mvc.perform(json(post("/api/public/mailbox/inbound/wrong"), "{\"rawMime\":\"eA==\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    private static String quote(String value) {
+        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\"";
+    }
+
+    @Test
     @Order(Integer.MAX_VALUE)
     void ambassadorsCreateMailboxesAndManageMembers() throws Exception {
         Cookie welcome = login(SeedUsers.WELCOME);
