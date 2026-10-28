@@ -81,7 +81,7 @@ public class IntroPickupNotifications {
         pickups.findById(event.introPickupId()).ifPresent(pickup -> {
             String userName = users.findActive(event.userId()).map(User::getDisplayName).orElse("");
             notifications.notify(base(List.of(event.userId()), NotificationType.INTRO_PICKUP_BOOKED, pickup)
-                    .link("/intro-pickups/my").mail("intropickup/booked").icon("calendar-check")
+                    .link("/me/intro-pickups").mail("intropickup/booked").icon("calendar-check")
                     .param("calendarLink", properties.getBaseUrl() + "/api/intro-pickups/" + pickup.getId()
                             + "/calendar.ics").build());
             notifications.notify(base(List.of(event.guideId()), NotificationType.INTRO_PICKUP_BOOKED_GUIDE, pickup)
@@ -122,7 +122,7 @@ public class IntroPickupNotifications {
             }
             if (!booked.isEmpty()) {
                 notifications.notify(base(booked, NotificationType.INTRO_PICKUP_UPDATED, pickup)
-                        .link("/intro-pickups/my").mail("intropickup/updated").icon("calendar").build());
+                        .link("/me/intro-pickups").mail("intropickup/updated").icon("calendar").build());
             }
         });
     }

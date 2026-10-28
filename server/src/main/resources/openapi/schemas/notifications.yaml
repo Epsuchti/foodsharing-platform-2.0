@@ -23,6 +23,9 @@ Bell:
       type: string
     icon:
       type: string
+    identifier:
+      description: 'Grouping key of the bell (e.g. REPORT_NEW-<reportId>); bells with the same identifier replace each other.'
+      type: string
     createdAt:
       type: string
       format: date-time

@@ -201,7 +201,7 @@ class JourneyCalculatorTest {
         assertThat(step(some, "INTRO_PICKUPS").progress().booked()).isEqualTo(1);
         JourneyView allBooked = base.einabs(Stage.IN_PROGRESS, NextStep.ATTEND_BOOKED, 1, 2).compute();
         expectCurrent(allBooked, "INTRO_PICKUPS", JourneyStepStatus.WAITING_FOR_OTHERS);
-        assertThat(step(allBooked, "INTRO_PICKUPS").nextAction().route()).isEqualTo("/intro-pickups/my");
+        assertThat(step(allBooked, "INTRO_PICKUPS").nextAction().route()).isEqualTo("/me/intro-pickups");
     }
 
     @Test

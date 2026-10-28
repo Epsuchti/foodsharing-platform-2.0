@@ -243,7 +243,7 @@ public final class JourneyCalculator {
         }
         Draft draft = Draft.of(JourneyStepKey.INTRO_PICKUPS, done, active,
                         active == JourneyStepStatus.WAITING_FOR_OTHERS
-                                ? new Action("onboarding.action.myIntroPickups", "/intro-pickups/my") : book, "P21D")
+                                ? new Action("onboarding.action.myIntroPickups", "/me/intro-pickups") : book, "P21D")
                 .progress(new Progress(s.counted(), s.upcoming(), s.target(), s.fairteilerDone()));
         if (active == JourneyStepStatus.WAITING_FOR_OTHERS) {
             draft = draft.waiting(new WaitingFor("onboarding.waiting.introPickupDates", List.of(), null));

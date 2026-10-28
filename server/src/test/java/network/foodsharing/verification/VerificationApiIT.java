@@ -73,7 +73,8 @@ class VerificationApiIT {
                 .andExpect(status().isForbidden());
         mvc.perform(json(post(url).cookie(bot), "{\"message\":\"kurz\"}")).andExpect(status().isBadRequest());
         mvc.perform(json(post(url).cookie(bot), "{\"message\":\"Drei EinAbs, Ausweis geprüft\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(SeedUsers.PENDING.id().toString()));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(SeedUsers.PENDING.id().toString()))
+                .andExpect(jsonPath("$.verified").value(true));
         mvc.perform(json(post(url).cookie(bot), "{\"message\":\"Drei EinAbs, Ausweis geprüft\"}"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("ALREADY_VERIFIED"));
         assertThat(jdbc.queryForObject("select verified from user_account where id = ?", Boolean.class,
@@ -87,7 +88,7 @@ class VerificationApiIT {
                 .andExpect(jsonPath("$.items[0].reason").value("Drei EinAbs, Ausweis geprüft"));
 
         mvc.perform(json(delete(url).cookie(bot), "{\"message\":\"Versehentlich verifiziert\"}"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.verified").value(false));
         mvc.perform(json(delete("/api/users/" + SeedUsers.EINAB1.id() + "/verification").cookie(bot),
                         "{\"message\":\"Ist gar nicht verifiziert\"}"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NOT_VERIFIED"));

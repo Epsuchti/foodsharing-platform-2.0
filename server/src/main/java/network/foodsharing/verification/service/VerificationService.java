@@ -69,12 +69,12 @@ public class VerificationService {
         if (user.isVerified()) {
             throw ApiException.conflict(ApiErrorCode.ALREADY_VERIFIED);
         }
-        users.setVerified(userId, true, clock.instant());
+        User updated = users.setVerified(userId, true, clock.instant());
         notes.add(userId, UserNoteKind.VERIFICATION_MESSAGE, text);
         history.record(history.event(VerificationAction.VERIFIED, userId).reason(text).build());
         notifications.removeBells(BellService.identifier(NotificationType.REGION_NEW_MEMBER, userId));
         events.publishEvent(new UserVerifiedEvent(userId, currentActor.requireUserId()));
-        return user;
+        return updated;
     }
 
     /** @throws ApiException 404, 403, 400 VALIDATION_FAILED, 409 NOT_VERIFIED / guard codes (HAS_FUTURE_PICKUPS) */
@@ -86,10 +86,10 @@ public class VerificationService {
             throw ApiException.conflict(ApiErrorCode.NOT_VERIFIED);
         }
         guards.forEach(guard -> guard.check(userId));
-        users.setVerified(userId, false, null);
+        User updated = users.setVerified(userId, false, null);
         notes.add(userId, UserNoteKind.VERIFICATION_MESSAGE, text);
         history.record(history.event(VerificationAction.UNVERIFIED, userId).reason(text).build());
-        return user;
+        return updated;
     }
 
     /** The user themself or an administrator of the user. @throws ApiException 404, 403 */

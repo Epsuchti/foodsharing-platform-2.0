@@ -119,6 +119,10 @@ class ReportFlowIT {
                 SeedUsers.REPORTS.id(), "REPORT_NEW-" + id)).isEqualTo(1);
         assertThat(count("select count(*) from bell where user_id = ? and type = 'REPORT_NEW'",
                 SeedUsers.FOODSAVER.id())).isZero();
+        // the Bell model exposes the identifier so clients can match a specific bell
+        mvc.perform(get("/api/bells").param("size", "50").cookie(login(SeedUsers.REPORTS)))
+                .andExpect(jsonPath("$.items[?(@.type == 'REPORT_NEW')].identifier")
+                        .value(org.hamcrest.Matchers.hasItem("REPORT_NEW-" + id)));
         assertThat(count("select count(*) from mail_outbox where to_address = 'foodsaver@local' "
                 + "and subject like '%Meldung%'")).isEqualTo(1);
 
