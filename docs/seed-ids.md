@@ -197,7 +197,7 @@ Arbeit, Pfingstmontag, Stephanstag) for 2026–2028.
 
 **B5** (`server/scripts/gen-automation-b5-seed.py`, changelogs `seed/changes/107…110-automation-*-seed.yaml`; decision 60:
 live only on S-06). Adverts on S-01, both enabled **dry run**: `0009-…01` #1 24 h PUSH+STORE_CHAT (3 rotating de
-messages, late-cancellation message on), `0009-…02` #2 6 h TELEGRAM to `-1002`. Advert audits `0010-…01`–`06` (S-01,
+messages, late-cancellation message on), `0009-…02` #2 6 h TELEGRAM to `-1002`. Live advert `0009-…03` S-06 #1 24 h TELEGRAM only, to the zuerich-stadt alert chat `-1001` (no bells to seeded users). Advert audits `0010-…01`–`06` (S-01,
 1–6 days back): SENT filled, SENT, SENT with Telegram message 4711 (deleted), OCCUPIED_AT_TRIGGER foodsaver,
 LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT jumper, LATE_CANCELLATION_NO_ACTION sleepy. Sign-out alert
 `0011-…01` S-06 (enabled, live, BELL+TELEGRAM, cutoff 72 h) with cancellations `0012-…01`–`05`: OPEN sleepy (in 2 days),

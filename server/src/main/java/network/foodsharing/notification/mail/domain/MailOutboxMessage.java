@@ -52,6 +52,10 @@ public class MailOutboxMessage extends BaseEntity {
     @Column(name = "sent_at")
     private Instant sentAt;
 
+    /** Extra MIME headers, one {@code Name: value} per line (List-Unsubscribe). */
+    @Column(name = "headers", length = 2000)
+    private String headers;
+
     @Column(name = "template", nullable = false, length = 100)
     private String template;
 

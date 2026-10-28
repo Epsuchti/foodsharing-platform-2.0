@@ -468,6 +468,12 @@ public class StoreService {
                 .map(StoreMembership::getUserId).toList();
     }
 
+    /** Every live store (nightly store maintenance, §6.3). */
+    @Transactional(readOnly = true)
+    public List<Store> allLiveStores() {
+        return stores.findAllLive();
+    }
+
     /** Team members and jumpers (open-slot adverts, AU4). */
     @Transactional(readOnly = true)
     public List<UUID> memberAndJumperIds(UUID storeId) {

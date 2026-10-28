@@ -17,6 +17,9 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
     @Query("select s from Store s where s.id = :id and s.deletedAt is null")
     Optional<Store> findLive(@Param("id") UUID id);
 
+    @Query("select s from Store s where s.deletedAt is null")
+    List<Store> findAllLive();
+
     @Query("select s from Store s where s.regionId in :regionIds and s.deletedAt is null order by s.name")
     List<Store> findLiveInRegions(@Param("regionIds") Collection<UUID> regionIds);
 
