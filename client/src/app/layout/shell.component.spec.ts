@@ -97,8 +97,9 @@ describe('ShellComponent', () => {
     expect(byTestId('shell.tabBar')).not.toBeNull();
     expect(byTestId('nav.tab.dashboard')).not.toBeNull();
     expect(byTestId('nav.tab.menu')).not.toBeNull();
+    // M3: pickups tab for verified foodsavers
+    expect(byTestId('nav.tab.pickups')).not.toBeNull();
     // later milestones: declared but hidden
-    expect(byTestId('nav.tab.pickups')).toBeNull();
     expect(byTestId('nav.tab.messages')).toBeNull();
   });
 

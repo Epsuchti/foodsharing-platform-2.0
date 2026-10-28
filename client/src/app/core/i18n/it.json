@@ -384,5 +384,8 @@
   "errors.OAUTH_REQUEST_EXPIRED": "La richiesta di accesso è scaduta. Ricomincia.",
   "errors.OAUTH_REDIRECT_URI_INVALID": "Gli URI di reindirizzamento devono usare https (o http://localhost).",
   "errors.OAUTH_CLIENT_EXISTS": "Esiste già un'applicazione con questo ID.",
-  "errors.OAUTH_CLIENT_PUBLIC": "Le applicazioni pubbliche non hanno un segreto."
+  "errors.OAUTH_CLIENT_PUBLIC": "Le applicazioni pubbliche non hanno un segreto.",
+  "nav.stores": "Negozi",
+  "nav.storeChains": "Catene di negozi",
+  "nav.storeCategories": "Categorie di negozi"
 }

@@ -30,8 +30,9 @@ test.describe('logged in', () => {
     // The dev gallery lives in the footer, not in the main navigation.
     await expect(page.getByTestId('nav.gallery')).toHaveCount(0);
     await expect(page.getByTestId('nav.footer.gallery')).toBeVisible();
-    // Features of later milestones stay hidden.
-    await expect(page.getByTestId('nav.pickups')).toHaveCount(0);
+    // M3: pickups for verified foodsavers; features of later milestones stay hidden.
+    await expect(page.getByTestId('nav.pickups')).toBeVisible();
+    await expect(page.getByTestId('nav.messages')).toHaveCount(0);
     // Desktop has no tab bar; the user menu sits in the header.
     await expect(page.getByTestId('shell.tabBar')).toBeHidden();
     await expect(page.getByTestId('shell.userMenu')).toBeVisible();
