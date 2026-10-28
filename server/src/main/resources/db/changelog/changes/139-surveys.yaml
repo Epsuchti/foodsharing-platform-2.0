@@ -1,0 +1,103 @@
+# Milestone 5 (B8): surveys (port of the reference einab-tabelle surveys; A36). Deleting a survey cascades.
+databaseChangeLog:
+  - changeSet:
+      id: 139-1
+      author: platform
+      comment: 'Surveys, co-authors and questions. options_json = JSON array of option texts (choice types).'
+      changes:
+        - createTable:
+            tableName: survey
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_survey, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_owner_id, references: user_account(id)}}
+              - column: {name: title, type: VARCHAR(200), constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(32600)}
+        - createIndex:
+            tableName: survey
+            indexName: ix_survey_owner
+            columns:
+              - column: {name: owner_id}
+        - createTable:
+            tableName: survey_coauthor
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_survey_coauthor, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: survey_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_coauthor_survey_id, references: survey(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_coauthor_user_id, references: user_account(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: survey_coauthor
+            columnNames: survey_id, user_id
+            constraintName: uq_survey_coauthor
+        - createIndex:
+            tableName: survey_coauthor
+            indexName: ix_survey_coauthor_user
+            columns:
+              - column: {name: user_id}
+        - createTable:
+            tableName: survey_question
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_survey_question, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: survey_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_question_survey_id, references: survey(id), deleteCascade: true}}
+              - column: {name: sort_order, type: INT, constraints: {nullable: false}}
+              - column: {name: type, type: VARCHAR(40), constraints: {nullable: false}}
+              - column: {name: label, type: VARCHAR(500), constraints: {nullable: false}}
+              - column: {name: required, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: options_json, type: VARCHAR(32600), constraints: {nullable: false}}
+        - createIndex:
+            tableName: survey_question
+            indexName: ix_survey_question_survey
+            columns:
+              - column: {name: survey_id}
+              - column: {name: sort_order}
+  - changeSet:
+      id: 139-2
+      author: platform
+      comment: 'One response per user and survey; store_id only for surveys with a STORE question (from the link).'
+      changes:
+        - createTable:
+            tableName: survey_response
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_survey_response, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: survey_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_response_survey_id, references: survey(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_response_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: store_id, type: UUID}
+        - addUniqueConstraint:
+            tableName: survey_response
+            columnNames: survey_id, user_id
+            constraintName: uq_survey_response_user
+        - createTable:
+            tableName: survey_answer
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_survey_answer, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: response_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_answer_response_id, references: survey_response(id), deleteCascade: true}}
+              - column: {name: question_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_survey_answer_question_id, references: survey_question(id), deleteCascade: true}}
+              - column: {name: values_json, type: VARCHAR(32600), constraints: {nullable: false}}
+        - createIndex:
+            tableName: survey_answer
+            indexName: ix_survey_answer_response
+            columns:
+              - column: {name: response_id}

@@ -364,6 +364,20 @@ Bells: `POLL_NEW-<poll>` (creation, eligible), `POLL_STARTED-<poll>` and `POLL_E
 `{pollId, voteCount}` to the author after each vote. `PollHistoryAccessRule`: region members; `VOTE_CAST` has no
 metadata.
 
+**A37d. Survey implementation notes (B8).** Port of the reference `SurveyService`. Managing (list, get, edit, results,
+co-author candidates) needs `CAN_MANAGE_SURVEYS` somewhere (403 `ACCESS_DENIED`) and ownership or co-authorship; other
+surveys answer 404 `SURVEY_NOT_FOUND`. Delete = owner only, hard delete cascading to questions, co-authors, responses.
+Co-authors: active users holding `CAN_MANAGE_SURVEYS` (unknown 404 `USER_NOT_FOUND`, without the permission 400
+`VALIDATION_FAILED`); changed only by the owner (`coauthorIds` absent = unchanged); newly added ones get
+`SURVEY_SHARED` (identifier `SURVEY_SHARED-<survey>`, params `title`, `owner`, link `/surveys/<id>`). Definition: title
+1–200, 1–100 questions, at most one STORE question (always required), choice questions ≥ 2 distinct options. Update
+keeps question ids given; answers of removed questions or questions whose type changed are deleted. Fill: any
+logged-in user, once (409 `SURVEY_ALREADY_SUBMITTED`); a survey with a STORE question needs the link's `storeId`
+(409 `STORE_ANSWER_LINK_ONLY` without it or when the STORE answer names another store; 404 `STORE_NOT_FOUND`), the
+answer is set from the link and `survey_response.store_id` is stored. Answers: required missing → 400
+`SURVEY_QUESTION_REQUIRED`; TEXT ≤ 4000, BOOLEAN `true|false`, SINGLE exactly one option, MULTIPLE distinct subset,
+unknown/duplicate question → 400 `SURVEY_ANSWER_INVALID`. `SurveyHistoryAccessRule`: owner and co-authors.
+
 ---
 
 **M5 contract notes (B1).** Generated API model names avoid clashes with `java.lang`/entities: `ChatMessage`

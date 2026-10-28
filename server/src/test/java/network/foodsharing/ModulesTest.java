@@ -40,7 +40,7 @@ class ModulesTest {
                 "forum", java.util.Set.of("region", "user", "notification", "history"),
                 "event", java.util.Set.of("region", "user", "notification", "history"),
                 "poll", java.util.Set.of("region", "user", "notification", "history"),
-                "survey", java.util.Set.of("user", "store", "region", "history"),
+                "survey", java.util.Set.of("user", "store", "region", "notification", "history"),
                 "upload", java.util.Set.of("user", "history"));
         java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
         allowed.forEach((name, permitted) -> {
