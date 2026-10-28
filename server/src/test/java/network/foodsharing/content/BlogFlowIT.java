@@ -26,6 +26,8 @@ import org.springframework.test.web.servlet.MockMvc;
 /** B11: public CMS endpoints on seed data, blog check/publish flow, content page creation, support form. */
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:blog-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+        // the e2e profile lifts the support limit (one shared localhost IP); this test checks the production default
+        "app.support.max-per-hour=5",
         "app.scheduling.enabled=false"})
 @AutoConfigureMockMvc
 @ActiveProfiles("e2e")

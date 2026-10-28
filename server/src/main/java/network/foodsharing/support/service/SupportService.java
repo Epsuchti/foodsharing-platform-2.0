@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Support form (C9, upstream {@code SupportController}): the ticket is stored, mailed to {@code support.email} with
  * page, user agent and attachment links, and ORGA gets one {@code SUPPORT_TICKET} bell per day (count updated).
- * At most {@code app.support.rate-limit-per-hour} tickets per user and per IP (429 SUPPORT_RATE_LIMITED).
+ * At most {@code app.support.max-per-hour} tickets per user and per IP (429 SUPPORT_RATE_LIMITED).
  * Needs the SUPPORT_FORM feature toggle.
  */
 @Service
@@ -87,7 +87,7 @@ public class SupportService {
         this.history = history;
         this.properties = properties;
         this.clock = clock;
-        this.limiter = new SlidingWindowRateLimiter(clock, Math.max(1, properties.getSupport().getRateLimitPerHour()),
+        this.limiter = new SlidingWindowRateLimiter(clock, Math.max(1, properties.getSupport().getMaxPerHour()),
                 Duration.ofHours(1));
     }
 

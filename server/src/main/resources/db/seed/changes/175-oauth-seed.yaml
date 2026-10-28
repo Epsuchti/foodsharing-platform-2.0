@@ -1,0 +1,55 @@
+# Seed (M6 B13): OAuth clients and a remembered consent. Ids: docs/seed-ids.md module 0057.
+# Dev-only secret of "wiki": wiki-local-secret (stored as SHA-256 only).
+databaseChangeLog:
+  - changeSet:
+      id: seed-175-1
+      author: platform
+      context: seed
+      comment: 'Confidential client wiki (zuerich-stadt only) and public PKCE client mobile-dev.'
+      changes:
+        - insert:
+            tableName: oauth_client
+            columns:
+              - column: {name: id, value: "00000057-0001-4000-8000-000000000001"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: "2026-09-15T08:00:00"}
+              - column: {name: updated_at, valueDate: "2026-09-15T08:00:00"}
+              - column: {name: client_id, value: "wiki"}
+              - column: {name: name, value: "Foodsharing Wiki Zürich"}
+              - column: {name: secret_hash, value: "b5d6010658224b136654a145064e91c9497cec8141815232671abcd2c4deb3e2"}
+              - column: {name: confidential, valueBoolean: true}
+              - column: {name: redirect_uris, value: "http://localhost:8080/dev/oauth-callback http://localhost:4200/dev/oauth-callback"}
+              - column: {name: scopes, value: "openid profile email regions"}
+              - column: {name: grant_types, value: "authorization_code refresh_token"}
+              - column: {name: required_region_ids, value: "00000010-0001-4000-8000-000000000040"}
+              - column: {name: enabled, valueBoolean: true}
+        - insert:
+            tableName: oauth_client
+            columns:
+              - column: {name: id, value: "00000057-0001-4000-8000-000000000002"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: "2026-09-20T08:00:00"}
+              - column: {name: updated_at, valueDate: "2026-09-20T08:00:00"}
+              - column: {name: client_id, value: "mobile-dev"}
+              - column: {name: name, value: "Foodsharing Mobile (Dev)"}
+              - column: {name: confidential, valueBoolean: false}
+              - column: {name: redirect_uris, value: "http://localhost:8080/dev/oauth-callback http://localhost:4200/dev/oauth-callback"}
+              - column: {name: scopes, value: "openid profile email"}
+              - column: {name: grant_types, value: "authorization_code refresh_token"}
+              - column: {name: enabled, valueBoolean: true}
+  - changeSet:
+      id: seed-175-2
+      author: platform
+      context: seed
+      comment: 'foodsaver@local remembered the consent for wiki.'
+      changes:
+        - insert:
+            tableName: oauth_consent
+            columns:
+              - column: {name: id, value: "00000057-0002-4000-8000-000000000001"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: "2026-10-01T18:00:00"}
+              - column: {name: updated_at, valueDate: "2026-10-01T18:00:00"}
+              - column: {name: client_id, value: "00000057-0001-4000-8000-000000000001"}
+              - column: {name: user_id, value: "00000001-0001-4000-8000-000000000006"}
+              - column: {name: scopes, value: "openid profile email regions"}

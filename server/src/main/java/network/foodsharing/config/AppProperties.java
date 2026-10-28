@@ -537,6 +537,8 @@ public class AppProperties {
     public static class Search {
         private String reindexCron = "0 45 2 * * *";
         private int minLength = 2;
+        /** Incremental index refresh interval (B12). */
+        private int refreshSeconds = 120;
     }
 
     /** Resource mosaic (C9). */
@@ -550,7 +552,7 @@ public class AppProperties {
     @Getter
     @Setter
     public static class Support {
-        private int rateLimitPerHour = 5;
+        private int maxPerHour = 5;
     }
 
     /** OAuth2/OIDC provider (A44). */

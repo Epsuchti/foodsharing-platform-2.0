@@ -71,7 +71,7 @@ class ModulesTest {
                 java.util.Map.entry("activity", java.util.Set.of("forum", "store", "mailbox", "event", "fsp", "user", "region")),
                 java.util.Map.entry("report", java.util.Set.of("user", "region", "store", "forum", "notification", "history")),
                 java.util.Map.entry("achievement", java.util.Set.of("user", "region", "store", "quiz", "notification", "history")),
-                java.util.Map.entry("statistics", java.util.Set.of("user", "region", "store", "pickup", "fsp", "basket", "history")),
+                java.util.Map.entry("statistics", java.util.Set.of("user", "region", "store", "pickup", "fsp", "basket", "history", "admin")),
                 java.util.Map.entry("search", java.util.Set.of("user", "region", "store", "forum", "fsp", "event", "poll", "mailbox", "history", "admin")),
                 java.util.Map.entry("resource", java.util.Set.of("user", "region", "notification", "history", "upload", "admin")),
                 java.util.Map.entry("support", java.util.Set.of("user", "notification", "upload", "history", "admin")),
