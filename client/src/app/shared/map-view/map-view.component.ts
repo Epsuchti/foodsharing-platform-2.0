@@ -262,6 +262,8 @@ export class MapViewComponent {
         })
         .addTo(this.map);
       this.positionMarker.getElement()?.setAttribute('data-kind', 'position');
+      // keyboard markers are buttons: give the position pin the map's accessible name (axe aria-command-name)
+      this.positionMarker.getElement()?.setAttribute('aria-label', this.ariaLabel() ?? 'Position');
       this.map.setView(position, Math.max(this.map.getZoom(), this.zoom()));
     } else {
       this.positionMarker.setLatLng(position);

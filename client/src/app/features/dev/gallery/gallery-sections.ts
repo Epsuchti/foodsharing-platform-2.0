@@ -11,6 +11,7 @@ import { LEGAL_GALLERY_SECTIONS } from './sections/legal.section';
 import { ONBOARDING_GALLERY_SECTIONS } from './sections/onboarding.section';
 import { QUIZ_GALLERY_SECTIONS } from './sections/quiz.section';
 import { REGIONS_GALLERY_SECTIONS } from './sections/regions.section';
+import { STORES_GALLERY_SECTIONS } from './sections/stores.section';
 import { VERIFICATION_GALLERY_SECTIONS } from './sections/verification.section';
 
 /**
@@ -31,4 +32,5 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   ...QUIZ_GALLERY_SECTIONS,
   ...REGIONS_GALLERY_SECTIONS,
   ...VERIFICATION_GALLERY_SECTIONS,
+  ...STORES_GALLERY_SECTIONS,
 ];

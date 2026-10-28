@@ -90,6 +90,27 @@ const MODULE_ROUTES: Routes = [
     path: '',
     loadChildren: () => import('./features/content/content.routes').then((m) => m.CONTENT_ROUTES),
   },
+  // --- M3 stores & pickups ---
+  {
+    path: '',
+    loadChildren: () => import('./features/stores/stores.routes').then((m) => m.STORES_ROUTES),
+  },
+  {
+    path: '',
+    loadChildren: () => import('./features/pickups/pickups.routes').then((m) => m.PICKUPS_ROUTES),
+  },
+  {
+    path: 'store-chains',
+    loadChildren: () =>
+      import('./features/store-chains/store-chains.routes').then((m) => m.STORE_CHAINS_ROUTES),
+  },
+  {
+    path: 'admin/store-categories',
+    loadChildren: () =>
+      import('./features/store-categories/store-categories.routes').then(
+        (m) => m.STORE_CATEGORIES_ROUTES,
+      ),
+  },
   {
     path: '**',
     title: 'common.pageTitle.notFound',

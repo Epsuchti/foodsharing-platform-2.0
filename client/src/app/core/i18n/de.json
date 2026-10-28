@@ -384,5 +384,8 @@
   "errors.OAUTH_REQUEST_EXPIRED": "Die Anmeldeanfrage ist abgelaufen. Starte die Anmeldung erneut.",
   "errors.OAUTH_REDIRECT_URI_INVALID": "Weiterleitungsadressen müssen https (oder http://localhost) verwenden.",
   "errors.OAUTH_CLIENT_EXISTS": "Eine Anwendung mit dieser ID gibt es bereits.",
-  "errors.OAUTH_CLIENT_PUBLIC": "Öffentliche Anwendungen haben kein Geheimnis."
+  "errors.OAUTH_CLIENT_PUBLIC": "Öffentliche Anwendungen haben kein Geheimnis.",
+  "nav.stores": "Betriebe",
+  "nav.storeChains": "Betriebsketten",
+  "nav.storeCategories": "Betriebskategorien"
 }

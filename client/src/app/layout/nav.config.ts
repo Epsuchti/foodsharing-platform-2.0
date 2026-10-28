@@ -85,6 +85,9 @@ const editsContent = (ctx: NavContext) =>
   ctx.isAuthenticated &&
   (ctx.hasRole(Role.Orga) ||
     (ctx.session?.units ?? []).some((unit) => unit.admin && unit.function === 'PR'));
+/** M3: pickups for verified foodsavers and above (unverified users cannot sign up, A19). */
+const pickupsVisible = (ctx: NavContext) =>
+  ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver) && !!ctx.session?.user?.verified;
 
 /**
  * The declarative navigation (docs/conventions.md A7). Extended once per milestone in one commit.
@@ -114,7 +117,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.pickups',
     icon: 'pi pi-calendar',
     route: '/pickups',
-    visible: notYet,
+    visible: (ctx) => pickupsVisible(ctx),
     mobileTab: true,
   }, // M3
   {
@@ -156,6 +159,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/regions/mine',
     visible: when('regions', loggedIn),
   },
+  {
+    id: 'stores',
+    labelKey: 'nav.stores',
+    icon: 'pi pi-shopping-bag',
+    route: '/stores/mine',
+    visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver),
+  }, // M3
   {
     id: 'quizzes',
     labelKey: 'nav.quizzes',
@@ -220,6 +230,20 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/admin/content',
     visible: when('adminContent', editsContent),
   },
+  {
+    id: 'storeChains',
+    labelKey: 'nav.storeChains',
+    icon: 'pi pi-link',
+    route: '/store-chains',
+    visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver),
+  }, // M3
+  {
+    id: 'storeCategories',
+    labelKey: 'nav.storeCategories',
+    icon: 'pi pi-tags',
+    route: '/admin/store-categories',
+    visible: isOrga,
+  }, // M3
   // --- user menu ---
   {
     // One entry for all account pages (settings, devices, security log, profile have their own tabs).

@@ -25,6 +25,8 @@ export const FEATURE_PREFIX_OVERRIDES = {
   'region-admin': 'regionAdmin.',
   'users-admin': 'usersAdmin.',
   'intro-pickups': 'introPickups.',
+  'store-chains': 'storeChains.',
+  'store-categories': 'storeCategories.',
 };
 
 /** Returns the module id ("core", "shared", "layout", "features/<m>") of a path below src/app, or null. */

@@ -8,6 +8,7 @@ import { i18n, type I18nHelpers } from './i18n';
 import { MailBox } from './mails';
 import { pdf, type PdfHelpers } from './pdf';
 import { RegionHelpers } from './regions';
+import { StoreHelpers } from './stores';
 import { webauthn, type WebAuthnHelpers } from './webauthn';
 
 export type SeedResetMode = 'file' | 'test' | 'off';
@@ -45,6 +46,8 @@ export interface Fixtures {
   webauthn: WebAuthnHelpers;
   /** Seed regions by slug and `joinRegion(role, slugOrId)` through the real API (M2). */
   region: RegionHelpers;
+  /** Seed stores by code/name (`S-01`), pickups of a store and `signUp(role, store, pickupAt)` (M3). */
+  store: StoreHelpers;
   /** PDF text assertions: `expectPdfContains(responseOrDownload, ['text'])`. */
   pdf: PdfHelpers;
   /** internal: performs the automatic seed reset according to `seedReset`. */
@@ -166,6 +169,9 @@ export const test = base.extend<Options & Fixtures>({
   pdf: async ({}, use) => {
     await use(pdf);
   },
+  store: async ({ baseURL }, use) => {
+    await use(new StoreHelpers(baseURL!));
+  },
 });
 
 export { expect };
@@ -180,3 +186,15 @@ export { expectPdfContains, pdfText, type PdfSource, type PdfText } from './pdf'
 export { RegionHelpers, regionId, seedRegion, seedRegions, type SeedRegion } from './regions';
 export { ROLES, SEED_NOW, authFile, roleEmail, type Role } from '../support/env';
 export type * from './types';
+export {
+  StoreHelpers,
+  seedStore,
+  seedStores,
+  zurichPickupAt,
+  S01_THURSDAY,
+  S02_SATURDAY,
+  S04_WEDNESDAY,
+  S07_WEDNESDAY,
+  type SeedPickup,
+  type SeedStore,
+} from './stores';
