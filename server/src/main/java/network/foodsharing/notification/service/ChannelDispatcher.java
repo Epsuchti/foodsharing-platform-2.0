@@ -50,4 +50,21 @@ public class ChannelDispatcher {
         }
         return delivered;
     }
+
+    /** Delivers through one channel only (settings and availability apply); @return whether it delivered. */
+    public boolean dispatchOnly(User recipient, Bell bell, NotificationRequest request, NotificationChannelType type) {
+        for (NotificationChannel channel : channels) {
+            if (channel.type() != type || !channel.applies(request)
+                    || !settings.isEnabled(recipient.getId(), request.type(), type) || !channel.available(recipient)) {
+                continue;
+            }
+            try {
+                channel.deliver(recipient, bell, request);
+                return true;
+            } catch (RuntimeException ex) {
+                log.warn("{} notification {} to {} failed: {}", type, request.type(), recipient.getId(), ex.toString());
+            }
+        }
+        return false;
+    }
 }

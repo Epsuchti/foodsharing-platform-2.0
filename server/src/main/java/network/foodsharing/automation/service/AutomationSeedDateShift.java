@@ -33,6 +33,31 @@ public class AutomationSeedDateShift implements SeedDateShiftContributor {
         }
         shiftTimestamp("request_policy_audit", "created_at", delta);
         shiftTimestamp("request_policy_audit", "updated_at", delta);
+        for (String column : List.of("created_at", "updated_at", "pickup_at", "telegram_deleted_at", "sent_at",
+                "filled_at")) {
+            shiftTimestamp("open_slot_advert_audit", column, delta);
+        }
+        for (String column : List.of("created_at", "updated_at", "pickup_at", "cancelled_at", "immediate_notified_at",
+                "final_checked_at", "final_notified_at")) {
+            shiftTimestamp("signout_cancellation", column, delta);
+        }
+        shiftTimestamp("signout_alert_setting", "last_checked_at", delta);
+        for (String column : List.of("created_at", "updated_at", "pickup_at")) {
+            shiftTimestamp("pickup_extra_slot", column, delta);
+        }
+        long days = delta.toDays();
+        if (days != 0) {
+            // Row by row, latest first when moving forward, so (region, day, key) stays unique on Postgres.
+            List<Object[]> metricRows = jdbc.query("select id, metric_day from metric_daily_count order by metric_day "
+                    + (days > 0 ? "desc" : "asc"), (rs, n) -> new Object[] {rs.getObject(1, UUID.class),
+                    rs.getDate(2)});
+            for (Object[] row : metricRows) {
+                if (row[0].toString().startsWith(SEED_PREFIX)) {
+                    jdbc.update("update metric_daily_count set metric_day = ? where id = ?",
+                            Date.valueOf(((Date) row[1]).toLocalDate().plusDays(days)), row[0]);
+                }
+            }
+        }
         // The excluded date follows the seeded one-time pickup on that day (10:00 Zurich), which moves by delta.
         java.time.ZoneId zurich = java.time.ZoneId.of("Europe/Zurich");
         List<Object[]> rows = jdbc.query("select id, excluded_date from pickup_policy_excluded_date",

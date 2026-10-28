@@ -30,6 +30,12 @@ import network.foodsharing.automation.mapper.AutomationMapper;
 import network.foodsharing.automation.service.AutomationAuditService;
 import network.foodsharing.automation.service.AutomationOverviewService;
 import network.foodsharing.automation.service.AutomationRunService;
+import network.foodsharing.automation.service.ExtraSlotService;
+import network.foodsharing.automation.service.MetricArchiveService;
+import network.foodsharing.automation.service.OpenSlotAdvertRunner;
+import network.foodsharing.automation.service.OpenSlotAdvertService;
+import network.foodsharing.automation.service.PickupCountGroupingService;
+import network.foodsharing.automation.service.SignoutAlertService;
 import network.foodsharing.automation.service.CleaningExemptionService;
 import network.foodsharing.automation.service.PickupPolicyService;
 import network.foodsharing.automation.service.RequestPolicyService;
@@ -41,8 +47,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Store and region automations (M4 B4/B5). B4: pickup and request policies, audits, cleaning exemptions, holidays.
- * Operations of B5 answer 501 NOT_IMPLEMENTED until their task implements them (docs/plan-m4.md).
+ * Store and region automations (M4 B4/B5): pickup and request policies, audits, cleaning exemptions, holidays,
+ * open-slot adverts, sign-out alerts, extra slot, pickup-count grouping and metrics.
  */
 @RestController
 public class AutomationController implements AutomationApi {
@@ -55,11 +61,28 @@ public class AutomationController implements AutomationApi {
     private final AutomationOverviewService overview;
     private final AutomationMapper mapper;
     private final java.time.Clock clock;
+    private final OpenSlotAdvertService adverts;
+    private final OpenSlotAdvertRunner advertRunner;
+    private final SignoutAlertService signoutAlerts;
+    private final ExtraSlotService extraSlots;
+    private final PickupCountGroupingService grouping;
+    private final MetricArchiveService metrics;
+    private final network.foodsharing.pickup.mapper.PickupMapper pickupMapper;
 
     public AutomationController(PickupPolicyService pickupPolicies, RequestPolicyService requestPolicies,
                                 AutomationRunService runs, AutomationAuditService audits,
                                 CleaningExemptionService exemptions, AutomationOverviewService overview,
-                                AutomationMapper mapper, java.time.Clock clock) {
+                                AutomationMapper mapper, java.time.Clock clock, OpenSlotAdvertService adverts,
+                                OpenSlotAdvertRunner advertRunner, SignoutAlertService signoutAlerts,
+                                ExtraSlotService extraSlots, PickupCountGroupingService grouping,
+                                MetricArchiveService metrics, network.foodsharing.pickup.mapper.PickupMapper pickupMapper) {
+        this.adverts = adverts;
+        this.advertRunner = advertRunner;
+        this.signoutAlerts = signoutAlerts;
+        this.extraSlots = extraSlots;
+        this.grouping = grouping;
+        this.metrics = metrics;
+        this.pickupMapper = pickupMapper;
         this.pickupPolicies = pickupPolicies;
         this.requestPolicies = requestPolicies;
         this.runs = runs;
@@ -78,12 +101,14 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<Pickup> addExtraSlot(UUID storeId, OffsetDateTime pickupAt) {
-        throw ApiException.notImplemented("addExtraSlot");
+        var added = extraSlots.add(storeId, network.foodsharing.pickup.mapper.PickupMapper.instant(pickupAt));
+        return ResponseEntity.ok(pickupMapper.toModels(List.of(added.pickup())).getFirst());
     }
 
     @Override
     public ResponseEntity<Void> deleteOpenSlotAdvert(UUID storeId, Integer advertNumber) {
-        throw ApiException.notImplemented("deleteOpenSlotAdvert");
+        adverts.delete(storeId, advertNumber);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -100,17 +125,17 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<List<MetricSeries>> getAutomationMetrics(UUID regionId, LocalDate from, LocalDate to) {
-        throw ApiException.notImplemented("getAutomationMetrics");
+        return ResponseEntity.ok(mapper.toSeries(metrics.series(regionId, from, to)));
     }
 
     @Override
     public ResponseEntity<OpenSlotAdvert> getOpenSlotAdvert(UUID storeId, Integer advertNumber) {
-        throw ApiException.notImplemented("getOpenSlotAdvert");
+        return ResponseEntity.ok(mapper.toModel(adverts.get(storeId, advertNumber)));
     }
 
     @Override
     public ResponseEntity<List<PickupCountGroup>> getPickupCountGrouping(UUID regionId, Integer days) {
-        throw ApiException.notImplemented("getPickupCountGrouping");
+        return ResponseEntity.ok(mapper.toGroups(grouping.groups(regionId, days)));
     }
 
     @Override
@@ -122,17 +147,18 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<SignoutAlertSetting> getSignoutAlert(UUID storeId) {
-        throw ApiException.notImplemented("getSignoutAlert");
+        return ResponseEntity.ok(mapper.toModel(signoutAlerts.get(storeId)));
     }
 
     @Override
     public ResponseEntity<StoreAutomation> getStoreAutomation(UUID storeId) {
-        pickupPolicies.requireAutomationStore(storeId);
+        Store store = pickupPolicies.requireAutomationStore(storeId);
         StoreAutomation model = new StoreAutomation();
         pickupPolicies.find(storeId).ifPresent(view -> model.setPickupPolicy(mapper.toModel(view)));
         requestPolicies.find(storeId).ifPresent(policy -> model.setRequestPolicy(mapper.toModel(policy)));
-        model.setAdverts(List.of());
-        model.setExtraSlotAllowed(false);
+        model.setAdverts(adverts.list(storeId).stream().map(mapper::toModel).toList());
+        signoutAlerts.find(storeId).ifPresent(view -> model.setSignoutAlert(mapper.toModel(view)));
+        model.setExtraSlotAllowed(store.isExtraSlotAllowed());
         AutomationPermissions permissions = new AutomationPermissions();
         permissions.setMayEdit(true);
         permissions.setMaySeeAudits(true);
@@ -142,7 +168,7 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<List<Cancellation>> listCancellations(UUID storeId, LocalDate from, LocalDate to) {
-        throw ApiException.notImplemented("listCancellations");
+        return ResponseEntity.ok(mapper.toCancellations(signoutAlerts.list(storeId, from, to)));
     }
 
     @Override
@@ -152,7 +178,7 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<List<PlannedAdvert>> listPlannedAdverts(UUID storeId, Integer days) {
-        throw ApiException.notImplemented("listPlannedAdverts");
+        return ResponseEntity.ok(mapper.toPlanned(adverts.planned(storeId, days)));
     }
 
     @Override
@@ -195,7 +221,7 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<OpenSlotAdvert> putOpenSlotAdvert(UUID storeId, Integer advertNumber, OpenSlotAdvert openSlotAdvert) {
-        throw ApiException.notImplemented("putOpenSlotAdvert");
+        return ResponseEntity.ok(mapper.toModel(adverts.put(storeId, advertNumber, mapper.toInput(openSlotAdvert))));
     }
 
     @Override
@@ -210,7 +236,7 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<SignoutAlertSetting> putSignoutAlert(UUID storeId, SignoutAlertSetting signoutAlertSetting) {
-        throw ApiException.notImplemented("putSignoutAlert");
+        return ResponseEntity.ok(mapper.toModel(signoutAlerts.put(storeId, mapper.toInput(signoutAlertSetting))));
     }
 
     @Override
@@ -221,7 +247,8 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<AutomationRunResult> runAdverts(UUID storeId, Boolean dryRun) {
-        throw ApiException.notImplemented("runAdverts");
+        pickupPolicies.requireAutomationStore(storeId);
+        return ResponseEntity.ok(mapper.toModel(advertRunner.runStore(storeId, Boolean.TRUE.equals(dryRun))));
     }
 
     @Override
@@ -236,6 +263,8 @@ public class AutomationController implements AutomationApi {
 
     @Override
     public ResponseEntity<ExtraSlotSetting> setExtraSlotAllowed(UUID storeId, ExtraSlotSetting extraSlotSetting) {
-        throw ApiException.notImplemented("setExtraSlotAllowed");
+        ExtraSlotSetting body = new ExtraSlotSetting();
+        body.setAllowed(extraSlots.setAllowed(storeId, Boolean.TRUE.equals(extraSlotSetting.getAllowed())));
+        return ResponseEntity.ok(body);
     }
 }

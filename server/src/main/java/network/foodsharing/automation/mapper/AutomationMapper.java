@@ -205,8 +205,8 @@ public class AutomationMapper {
         model.setPickupPolicyEnabled(overview.pickupPolicy() != null && overview.pickupPolicy().isEnabled());
         model.setDryRun(overview.pickupPolicy() != null && overview.pickupPolicy().isDryRun());
         model.setRequestPolicyEnabled(overview.requestPolicy() != null && overview.requestPolicy().isEnabled());
-        model.setAdvertCount(0);
-        model.setSignoutAlertEnabled(false);
+        model.setAdvertCount(overview.advertCount());
+        model.setSignoutAlertEnabled(overview.signoutAlertEnabled());
         return model;
     }
 
@@ -216,5 +216,132 @@ public class AutomationMapper {
         ref.setName(store.getName());
         ref.setRegionId(store.getRegionId());
         return ref;
+    }
+
+    public network.foodsharing.api.model.OpenSlotAdvert toModel(
+            network.foodsharing.automation.service.OpenSlotAdvertService.AdvertView view) {
+        var model = new network.foodsharing.api.model.OpenSlotAdvert();
+        model.setAdvertNumber(view.advertNumber());
+        model.setEnabled(view.enabled());
+        model.setDryRun(view.dryRun());
+        model.setTriggerHoursBefore(view.triggerHoursBefore());
+        model.setChannels(view.channels().stream()
+                .map(c -> network.foodsharing.api.model.AdvertChannel.valueOf(c.name())).toList());
+        model.setTelegramChatId(view.telegramChatId());
+        model.setStoreMessages(new java.util.ArrayList<>(view.storeMessages()));
+        model.setPushMessages(new java.util.ArrayList<>(view.pushMessages()));
+        model.setTelegramMessages(new java.util.ArrayList<>(view.telegramMessages()));
+        model.setSendLateCancellationMessage(view.sendLateCancellationMessage());
+        model.setLateCancellationMessage(view.lateCancellationMessage());
+        model.setLateCancellationMaxHoursBefore(view.lateCancellationMaxHours());
+        model.setResendLatestAdvertAfterLateCancellation(view.resendLatestAdvertAfterLateCancellation());
+        return model;
+    }
+
+    public network.foodsharing.automation.service.OpenSlotAdvertService.AdvertInput toInput(
+            network.foodsharing.api.model.OpenSlotAdvert model) {
+        java.util.Set<network.foodsharing.automation.domain.AdvertChannel> channels =
+                java.util.EnumSet.noneOf(network.foodsharing.automation.domain.AdvertChannel.class);
+        if (model.getChannels() != null) {
+            model.getChannels().forEach(c -> channels.add(
+                    network.foodsharing.automation.domain.AdvertChannel.valueOf(c.name())));
+        }
+        return new network.foodsharing.automation.service.OpenSlotAdvertService.AdvertInput(
+                Boolean.TRUE.equals(model.getEnabled()), Boolean.TRUE.equals(model.getDryRun()),
+                model.getTriggerHoursBefore() == null ? 0 : model.getTriggerHoursBefore(), channels,
+                model.getTelegramChatId(), model.getStoreMessages(), model.getPushMessages(),
+                model.getTelegramMessages(), Boolean.TRUE.equals(model.getSendLateCancellationMessage()),
+                model.getLateCancellationMessage(),
+                model.getLateCancellationMaxHoursBefore() == null ? 0 : model.getLateCancellationMaxHoursBefore(),
+                Boolean.TRUE.equals(model.getResendLatestAdvertAfterLateCancellation()));
+    }
+
+    public List<network.foodsharing.api.model.PlannedAdvert> toPlanned(
+            List<network.foodsharing.automation.service.OpenSlotAdvertService.Planned> planned) {
+        return planned.stream().map(p -> {
+            var model = new network.foodsharing.api.model.PlannedAdvert();
+            model.setPickupAt(toOffset(p.pickupAt()));
+            model.setAdvertNumber(p.advertNumber());
+            model.setTriggerAt(toOffset(p.triggerAt()));
+            model.setChannels(p.channels().stream()
+                    .map(c -> network.foodsharing.api.model.AdvertChannel.valueOf(c.name())).toList());
+            model.setFreeSlots(p.freeSlots());
+            return model;
+        }).toList();
+    }
+
+    public network.foodsharing.api.model.SignoutAlertSetting toModel(
+            network.foodsharing.automation.service.SignoutAlertService.SettingView view) {
+        var model = new network.foodsharing.api.model.SignoutAlertSetting();
+        model.setEnabled(view.enabled());
+        model.setCutoffEnabled(view.cutoffEnabled());
+        model.setMaximumHoursBeforePickup(view.maximumHoursBeforePickup());
+        model.setChannels(view.channels().stream()
+                .map(c -> network.foodsharing.api.model.SignoutAlertChannel.valueOf(c.name())).toList());
+        model.setTelegramChatIds(view.telegramChatIds());
+        model.setActiveSince(toOffset(view.activeSince()));
+        return model;
+    }
+
+    public network.foodsharing.automation.service.SignoutAlertService.SettingInput toInput(
+            network.foodsharing.api.model.SignoutAlertSetting model) {
+        java.util.Set<network.foodsharing.automation.domain.SignoutAlertChannel> channels =
+                java.util.EnumSet.noneOf(network.foodsharing.automation.domain.SignoutAlertChannel.class);
+        if (model.getChannels() != null) {
+            model.getChannels().forEach(c -> channels.add(
+                    network.foodsharing.automation.domain.SignoutAlertChannel.valueOf(c.name())));
+        }
+        return new network.foodsharing.automation.service.SignoutAlertService.SettingInput(
+                Boolean.TRUE.equals(model.getEnabled()), Boolean.TRUE.equals(model.getCutoffEnabled()),
+                model.getMaximumHoursBeforePickup() == null ? 0 : model.getMaximumHoursBeforePickup(), channels,
+                model.getTelegramChatIds());
+    }
+
+    public List<network.foodsharing.api.model.Cancellation> toCancellations(
+            List<network.foodsharing.automation.domain.SignoutCancellation> rows) {
+        Map<UUID, User> byId = users.findAll(rows.stream().map(r -> r.getUserId()).distinct().toList()).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+        return rows.stream().filter(r -> byId.containsKey(r.getUserId())).map(r -> {
+            var model = new network.foodsharing.api.model.Cancellation();
+            model.setId(r.getId());
+            model.setPickupAt(toOffset(r.getPickupAt()));
+            model.setUser(userMapper.toSummary(byId.get(r.getUserId())));
+            model.setCancelledAt(toOffset(r.getCancelledAt()));
+            model.setStatus(network.foodsharing.api.model.CancellationStatus.valueOf(r.getStatus().name()));
+            model.setTotalSlots(r.getTotalSlots());
+            model.setOccupiedSlots(r.getOccupiedSlots());
+            model.setNotifiedAt(toOffset(r.getFinalNotifiedAt() != null ? r.getFinalNotifiedAt()
+                    : r.getImmediateNotifiedAt()));
+            return model;
+        }).toList();
+    }
+
+    public List<network.foodsharing.api.model.PickupCountGroup> toGroups(
+            List<network.foodsharing.automation.service.PickupCountGroupingService.Group> groups) {
+        return groups.stream().map(g -> {
+            var model = new network.foodsharing.api.model.PickupCountGroup();
+            model.setPickupCount(g.pickupCount());
+            model.setUsers(g.users().stream().map(u -> {
+                var user = new network.foodsharing.api.model.PickupCountUser();
+                user.setUser(userMapper.toSummary(u.user()));
+                user.setStores(u.stores().stream().map(AutomationMapper::toStoreRef).toList());
+                return user;
+            }).toList());
+            return model;
+        }).toList();
+    }
+
+    public List<network.foodsharing.api.model.MetricSeries> toSeries(Map<String, Map<java.time.LocalDate, Long>> series) {
+        return series.entrySet().stream().map(e -> {
+            var model = new network.foodsharing.api.model.MetricSeries();
+            model.setKey(e.getKey());
+            model.setPoints(e.getValue().entrySet().stream().map(p -> {
+                var point = new network.foodsharing.api.model.MetricPoint();
+                point.setDay(p.getKey());
+                point.setValue(p.getValue());
+                return point;
+            }).toList());
+            return model;
+        }).toList();
     }
 }

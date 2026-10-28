@@ -3,6 +3,7 @@ package network.foodsharing.automation.repository;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 import network.foodsharing.automation.domain.PickupPolicyAudit;
 import network.foodsharing.automation.domain.PickupPolicyDecision;
@@ -24,4 +25,9 @@ public interface PickupPolicyAuditRepository extends JpaRepository<PickupPolicyA
                                    @Param("excludeConfirmed") boolean excludeConfirmed,
                                    @Param("confirmed") Collection<PickupPolicyDecision> confirmed,
                                    @Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
+
+    List<PickupPolicyAudit> findByCreatedAtBefore(java.time.Instant before);
+
+    List<PickupPolicyAudit> findByRegionIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(java.util.Collection<java.util.UUID> regionIds,
+            java.time.Instant from, java.time.Instant to);
 }

@@ -16,9 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class PickupAutomationQueries {
 
     private final PickupSignupRepository signups;
+    private final network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots;
 
-    public PickupAutomationQueries(PickupSignupRepository signups) {
+    public PickupAutomationQueries(PickupSignupRepository signups,
+                                   network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots) {
         this.signups = signups;
+        this.extraSlots = extraSlots;
     }
 
     /** All sign-ups of the stores with {@code from <= pickupAt < to}. */
@@ -45,5 +48,29 @@ public class PickupAutomationQueries {
     public List<PickupSignup> unconfirmedFuture(Collection<UUID> storeIds, Instant now) {
         return storeIds.isEmpty() ? List.of()
                 : signups.findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAt(storeIds, now);
+    }
+
+    /** Extra slots (AU6) added to pickups of these stores with {@code from <= createdAt < to}, newest first. */
+    public List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlotsOfStores(Collection<UUID> storeIds,
+                                                                                      Instant from, Instant to) {
+        return storeIds.isEmpty() ? List.of() : extraSlots
+                .findByStoreIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(storeIds, from, to);
+    }
+
+    public List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlotsInRegions(Collection<UUID> regionIds,
+                                                                                       Instant from, Instant to) {
+        return regionIds.isEmpty() ? List.of() : extraSlots
+                .findByRegionIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(regionIds, from, to);
+    }
+
+    public List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlotsCreatedBefore(Instant before) {
+        return extraSlots.findByCreatedAtBefore(before);
+    }
+
+    /** Retention of extra-slot records (the automation archives them as metrics first). */
+    @Transactional
+    @network.foodsharing.history.NoHistory(reason = "anonymised into automation metrics (AUDITS_ARCHIVED)")
+    public void deleteExtraSlots(Collection<network.foodsharing.pickup.domain.PickupExtraSlot> rows) {
+        extraSlots.deleteAll(rows);
     }
 }

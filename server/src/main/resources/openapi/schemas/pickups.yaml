@@ -98,6 +98,22 @@ Pickup:
       type: boolean
     eligibility:
       $ref: './pickups.yaml#/PickupEligibility'
+    extraSlot:
+      $ref: './pickups.yaml#/PickupExtraSlot'
+    mayAddExtraSlot:
+      type: boolean
+      description: 'The caller is the earliest sign-up of this future pickup, the store allows an extra slot and none was added yet (AU6).'
+
+PickupExtraSlot:
+  type: object
+  description: 'The extra slot the earliest sign-up added (AU6).'
+  required: [byUser, addedAt]
+  properties:
+    byUser:
+      $ref: './users.yaml#/UserSummary'
+    addedAt:
+      type: string
+      format: date-time
 
 PickupEdit:
   type: object

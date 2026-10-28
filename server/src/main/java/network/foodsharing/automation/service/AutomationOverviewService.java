@@ -23,11 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AutomationOverviewService {
 
-    public record StoreOverview(Store store, PickupPolicy pickupPolicy, RequestPolicy requestPolicy) {
+    public record StoreOverview(Store store, PickupPolicy pickupPolicy, RequestPolicy requestPolicy, int advertCount,
+                                boolean signoutAlertEnabled) {
     }
 
     private final PickupPolicyRepository pickupPolicies;
     private final RequestPolicyRepository requestPolicies;
+    private final network.foodsharing.automation.repository.OpenSlotAdvertRepository adverts;
+    private final network.foodsharing.automation.repository.SignoutAlertSettingRepository signoutAlerts;
     private final StoreService stores;
     private final RegionService regions;
     private final CleaningExemptionService exemptions;
@@ -36,11 +39,15 @@ public class AutomationOverviewService {
     private final CurrentActorService currentActor;
 
     public AutomationOverviewService(PickupPolicyRepository pickupPolicies, RequestPolicyRepository requestPolicies,
+                                     network.foodsharing.automation.repository.OpenSlotAdvertRepository adverts,
+                                     network.foodsharing.automation.repository.SignoutAlertSettingRepository signoutAlerts,
                                      StoreService stores, RegionService regions, CleaningExemptionService exemptions,
                                      HolidayCalendarService holidays, PermissionService permissions,
                                      CurrentActorService currentActor) {
         this.pickupPolicies = pickupPolicies;
         this.requestPolicies = requestPolicies;
+        this.adverts = adverts;
+        this.signoutAlerts = signoutAlerts;
         this.stores = stores;
         this.regions = regions;
         this.exemptions = exemptions;
@@ -59,8 +66,13 @@ public class AutomationOverviewService {
                 .collect(Collectors.toMap(PickupPolicy::getStoreId, Function.identity()));
         Map<UUID, RequestPolicy> request = requestPolicies.findByStoreIdIn(ids).stream()
                 .collect(Collectors.toMap(RequestPolicy::getStoreId, Function.identity()));
+        Map<UUID, Long> advertCounts = adverts.findByStoreIdIn(ids).stream().filter(a -> a.isEnabled())
+                .collect(Collectors.groupingBy(a -> a.getStoreId(), Collectors.counting()));
+        java.util.Set<UUID> alerts = signoutAlerts.findByStoreIdIn(ids).stream().filter(a -> a.isEnabled())
+                .map(a -> a.getStoreId()).collect(Collectors.toSet());
         return list.stream().sorted(java.util.Comparator.comparing(Store::getName, String.CASE_INSENSITIVE_ORDER))
-                .map(s -> new StoreOverview(s, pickup.get(s.getId()), request.get(s.getId()))).toList();
+                .map(s -> new StoreOverview(s, pickup.get(s.getId()), request.get(s.getId()),
+                        advertCounts.getOrDefault(s.getId(), 0L).intValue(), alerts.contains(s.getId()))).toList();
     }
 
     /**

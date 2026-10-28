@@ -1,0 +1,36 @@
+# Milestone 4 (B5): extra slot for the first sign-up (AU6).
+databaseChangeLog:
+  - changeSet:
+      id: 109-1
+      author: platform
+      comment: 'Store switch and added extra slots.'
+      changes:
+        - addColumn:
+            tableName: store
+            columns:
+              - column: {name: extra_slot_allowed, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+        - createTable:
+            tableName: pickup_extra_slot
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_extra_slot, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_extra_slot_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: pickup_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: previous_total_slots, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: new_total_slots, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: pickup_extra_slot
+            columnNames: store_id, pickup_at
+            constraintName: uq_pickup_extra_slot_pickup
+        - createIndex:
+            tableName: pickup_extra_slot
+            indexName: ix_pickup_extra_slot_region_created
+            columns:
+              - column: {name: region_id}
+              - column: {name: created_at}

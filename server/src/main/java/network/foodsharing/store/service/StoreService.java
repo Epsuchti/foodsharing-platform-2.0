@@ -468,6 +468,25 @@ public class StoreService {
                 .map(StoreMembership::getUserId).toList();
     }
 
+    /** Team members and jumpers (open-slot adverts, AU4). */
+    @Transactional(readOnly = true)
+    public List<UUID> memberAndJumperIds(UUID storeId) {
+        return memberships.findByStoreId(storeId).stream()
+                .filter(m -> m.getStatus() == StoreMembershipStatus.MEMBER
+                        || m.getStatus() == StoreMembershipStatus.JUMPER)
+                .map(StoreMembership::getUserId).toList();
+    }
+
+    /** AU6 store switch; the automation module checks the permission and records the history. */
+    @Transactional
+    @network.foodsharing.history.NoHistory(reason = "recorded by the automation module as AutomationAction.FIELD_CHANGED")
+    public boolean setExtraSlotAllowed(UUID storeId, boolean allowed) {
+        Store store = lock(storeId);
+        boolean previous = store.isExtraSlotAllowed();
+        store.setExtraSlotAllowed(allowed);
+        return previous;
+    }
+
     /** Live stores with these ids (pickup slot info). */
     @Transactional(readOnly = true)
     public List<Store> liveStores(java.util.Collection<UUID> storeIds) {

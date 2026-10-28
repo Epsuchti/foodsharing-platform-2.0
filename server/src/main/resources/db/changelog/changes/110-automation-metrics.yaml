@@ -1,0 +1,24 @@
+# Milestone 4 (B5): anonymous daily automation metrics (archive of deleted audits, AU7).
+databaseChangeLog:
+  - changeSet:
+      id: 110-1
+      author: platform
+      comment: 'Daily metric counts per region.'
+      changes:
+        - createTable:
+            tableName: metric_daily_count
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_metric_daily_count, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: metric_day, type: DATE, constraints: {nullable: false}}
+              - column: {name: metric_key, type: VARCHAR(80), constraints: {nullable: false}}
+              - column: {name: metric_value, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: metric_daily_count
+            columnNames: region_id, metric_day, metric_key
+            constraintName: uq_metric_daily_count
