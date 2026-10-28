@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""Generates the event seed (docs/seed-ids.md module 0044) deterministically.
+
+Writes src/main/resources/db/seed/changes/137-event-seed.yaml. Re-run after editing:
+python3 server/scripts/gen-event-seed.py
+"""
+import json
+import os
+from datetime import datetime, timedelta, timezone
+
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "main", "resources", "db", "seed")
+SEED_NOW = datetime(2026, 11, 2, 9, 0, tzinfo=timezone.utc)
+
+
+def user(n):
+    return "00000001-0001-4000-8000-%012d" % n
+
+
+QUIZ, EINAB, PENDING, FOODSAVER, JUMPER, SLEEPY, BIEB, GUIDE, BOT, WELCOME, REPORTS, ORGA = (
+    user(3), user(4), user(5), user(6), user(7), user(8), user(9), user(10), user(11), user(12), user(13), user(14))
+ZUERICH = "00000010-0001-4000-8000-000000000040"
+KOCH = "00000011-0001-4000-8000-000000000033"
+MEMBERS = {ZUERICH: [user(n) for n in range(3, 15)], KOCH: [FOODSAVER, JUMPER]}
+
+
+def mid(table, n):
+    return "00000044-%04d-4000-8000-%012d" % (table, n)
+
+
+def ts(dt):
+    return dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def q(value):
+    return json.dumps(str(value), ensure_ascii=False)
+
+
+def column(name, value, kind="value"):
+    if value is None:
+        return None
+    if kind == "bool":
+        return "              - column: {name: %s, valueBoolean: %s}" % (name, "true" if value else "false")
+    if kind == "num":
+        return "              - column: {name: %s, valueNumeric: %s}" % (name, value)
+    if kind == "date":
+        return "              - column: {name: %s, valueDate: '%s'}" % (name, ts(value))
+    return "              - column: {name: %s, value: %s}" % (name, q(value))
+
+
+def insert(table, cols):
+    lines = ["        - insert:", "            tableName: " + table, "            columns:"]
+    lines += [c for c in cols if c]
+    return "\n".join(lines)
+
+
+def base(id_, created, by=None):
+    return [column("id", id_), column("version", 0, "num"), column("created_at", created, "date"),
+            column("updated_at", created, "date"), column("created_by", by)]
+
+
+def changeset(n, comment, inserts):
+    return "\n".join(["  - changeSet:", "      id: seed-137-%d" % n, "      author: platform", "      context: seed",
+                      "      comment: %s" % q(comment), "      changes:"] + inserts)
+
+
+def utc(y, mo, d, h, mi=0):
+    return datetime(y, mo, d, h, mi, tzinfo=timezone.utc)
+
+
+# (region, author, type, name, description, start, hours, public, location (name, street, zip, city, lat, lon), link)
+EVENTS = [
+    (ZUERICH, BOT, "OFFLINE", "Foodsharing-Brunch am Fairteiler Wiedikon",
+     "Wir brunchen mit geretteten Lebensmitteln. **Alle sind willkommen** – bringt Geschirr mit!",
+     utc(2026, 11, 5, 9), 3, True,
+     ("Fairteiler Wiedikon", "Schlossgasse 10", "8003", "Zürich", 47.3721, 8.5172), None),
+    (ZUERICH, WELCOME, "ONLINE", "Online-Infoabend für neue Foodsaver",
+     "Wie funktionieren Abholungen, Fairteiler und das Quiz? Fragen sind ausdrücklich erwünscht.",
+     utc(2026, 11, 4, 17), 1.5, False, None, "https://meet.jit.si/foodsharing-zuerich-infoabend"),
+    (ZUERICH, BOT, "OFFLINE", "Stammtisch November", "Gemütliches Zusammensitzen, Austausch über Betriebe.",
+     utc(2026, 11, 20, 17), 3, False,
+     ("Quartierzentrum Kreis 4", "Kanzleistrasse 56", "8004", "Zürich", 47.3765, 8.5243), None),
+    (ZUERICH, WELCOME, "OTHER", "Aufbau Weihnachtsmarkt-Stand", "Treffpunkt wird im Chat bekanntgegeben.",
+     utc(2026, 12, 5, 7), 8, False, None, None),
+    (ZUERICH, REPORTS, "ONLINE", "Hygieneschulung", "Pflichtschulung für neue Betriebsverantwortliche.",
+     utc(2026, 12, 10, 17), 2, False, None, "https://meet.jit.si/foodsharing-zuerich-hygiene"),
+    (ZUERICH, BOT, "OFFLINE", "Herbstputz Fairteiler", "Wir putzen gemeinsam den Kühlschrank und die Regale.",
+     utc(2026, 10, 17, 8), 3, False,
+     ("Fairteiler Wiedikon", "Schlossgasse 10", "8003", "Zürich", 47.3721, 8.5172), None),
+    (ZUERICH, GUIDE, "ONLINE", "Austausch Einführungsabholungen", "Rückblick und Planung der Einführungen.",
+     utc(2026, 10, 28, 17), 1, False, None, "https://meet.jit.si/foodsharing-zuerich-einfuehrungen"),
+    (ZUERICH, ORGA, "OFFLINE", "Neujahrsapéro 2027", "Wir stossen auf ein Jahr voller geretteter Lebensmittel an.",
+     utc(2027, 1, 8, 17), 4, False,
+     ("Quartierzentrum Kreis 4", "Kanzleistrasse 56", "8004", "Zürich", 47.3765, 8.5243), None),
+    (KOCH, FOODSAVER, "OFFLINE", "Gemeinsames Kochen: Resteküche", "Wir kochen aus dem, was übrig bleibt.",
+     utc(2026, 11, 14, 16), 4, False,
+     ("Gemeinschaftsküche Altstetten", "Altstetterstrasse 120", "8048", "Zürich", 47.3884, 8.4881), None),
+    (KOCH, JUMPER, "OTHER", "Einmach-Workshop", "Gläser bitte selbst mitbringen.",
+     utc(2026, 12, 1, 17), 3, False, None, None),
+]
+STATUSES = ["ACCEPTED", "MAYBE", "WONT_JOIN", "INVITED"]
+INVITED_ONLY = {(0, FOODSAVER), (2, FOODSAVER)}  # foodsaver still has to answer (E2 e2e)
+
+created = datetime(2026, 10, 1, 8, 0, tzinfo=timezone.utc)
+out = ["# Generated by server/scripts/gen-event-seed.py (edit the script, then re-run it). Events, locations,",
+       "# invitations and wall posts (docs/seed-ids.md module 0044).",
+       "databaseChangeLog:"]
+
+locations, events, invitations = [], [], []
+ln, inv = 0, 0
+for i, (region, author, type_, name, desc, start, hours, public, loc, link) in enumerate(EVENTS, start=1):
+    loc_id = None
+    if loc:
+        ln += 1
+        loc_id = mid(1, ln)
+        locations.append(insert("event_location", base(loc_id, created, author) + [
+            column("name", loc[0]), column("street", loc[1]), column("zip", loc[2]), column("city", loc[3]),
+            column("lat", loc[4], "num"), column("lon", loc[5], "num")]))
+    events.append(insert("event", base(mid(2, i), created + timedelta(days=i), author) + [
+        column("region_id", region), column("author_id", author), column("type", type_), column("name", name),
+        column("description", desc), column("starts_at", start, "date"),
+        column("ends_at", start + timedelta(hours=hours), "date"), column("is_public", public, "bool"),
+        column("location_id", loc_id), column("online_link", link)]))
+    for k, uid in enumerate(MEMBERS[region]):
+        inv += 1
+        if uid == author:
+            status = "ACCEPTED"
+        elif (i - 1, uid) in INVITED_ONLY:
+            status = "INVITED"
+        else:
+            status = STATUSES[(i + k) % 4]
+        responded = created + timedelta(days=i, hours=k + 1) if status != "INVITED" else None
+        invitations.append(insert("event_invitation", base(mid(3, inv), created + timedelta(days=i), author) + [
+            column("event_id", mid(2, i)), column("user_id", uid), column("status", status),
+            column("responded_at", responded, "date")]))
+out.append(changeset(1, "%d locations and %d events (zuerich-stadt 8 incl. 1 public and 2 past; kochgruppe 2)."
+                     % (ln, len(EVENTS)), locations + events))
+out.append(changeset(2, "%d invitations (every region member, mixed answers; authors accepted)." % inv, invitations))
+
+walls = []
+for n, (author, body, hours) in enumerate([
+        (BIEB, "Ich bringe frisches Brot vom Freitag mit.", 2),
+        (JUMPER, "Kann jemand Teller und Tassen mitbringen?", 5)], start=1):
+    at = created + timedelta(days=20, hours=hours)
+    walls.append(insert("event_wall_post", base(mid(4, n), at, author) + [
+        column("event_id", mid(2, 1)), column("author_id", author), column("body", body)]))
+out.append(changeset(3, "2 wall posts on the brunch.", walls))
+
+with open(os.path.join(ROOT, "changes", "137-event-seed.yaml"), "w", encoding="utf-8") as fh:
+    fh.write("\n".join(out) + "\n")
+print("events:", len(EVENTS), "invitations:", inv)

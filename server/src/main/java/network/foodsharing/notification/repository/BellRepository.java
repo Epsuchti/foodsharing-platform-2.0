@@ -18,6 +18,8 @@ public interface BellRepository extends JpaRepository<Bell, UUID> {
 
     List<Bell> findByIdentifierAndDeletedAtIsNull(String identifier);
 
+    List<Bell> findByIdentifierAndUserIdAndDeletedAtIsNull(String identifier, UUID userId);
+
     boolean existsByIdentifierAndCreatedAtAfter(String identifier, Instant since);
 
     @Query("select b from Bell b where (:userId is null or b.userId = :userId) and (:type is null or b.type = :type) "

@@ -330,6 +330,40 @@ with change `CREATED | EDITED | DELETED | HIDDEN | UNHIDDEN | REACTION | THREAD`
 `HistoryQueryService.listForRegion` (access checked by `ModerationLogService`: moderators and ORGA);
 `ForumHistoryAccessRule` lets everyone who may see a thread read its history.
 
+**A37b. Event implementation notes (B7).** Rules are pure functions in `event.service.EventRules` (facts from
+`EventPermissionService`; ORGA sees every event). Events a user may not see answer 403 `ACCESS_DENIED`, deleted ones
+404 `EVENT_NOT_FOUND`. Region listings show non-members public events only; default = not yet ended, `includePast`
+adds ended ones, `from`/`to` bound the start. The author is ACCEPTED on creation; `inviteAllMembers` invites the
+region's active direct members. Invitees of private events must be region members (400 `VALIDATION_FAILED`). RSVP
+creates the invitation when missing (public events); status `INVITED` is rejected (400). OFFLINE needs a location name,
+ONLINE an `https://` link (any given link must be https); location lat/lon are geocoded from the postcode (CH) when
+absent. PATCH: absent = unchanged, `onlineLink: ""` clears, `location` replaces. Bells (bell + push, no mail template):
+`EVENT_INVITATION-<event>`, `EVENT_UPDATED-<event>` (to ACCEPTED/MAYBE except the editor; replaced per change),
+`EVENT_POST-<event>` (author + ACCEPTED/MAYBE except the poster; replaced per post); params `name`, `startsAt` (+
+`author` for EVENT_POST); link `/events/<id>`; deleting an event removes all three. ICS: `/api/events/{id}/ics` and
+`/api/events/mine/ics` (ACCEPTED/MAYBE, last 90 days and future). No personal calendar feed exists yet (A11 in M6),
+so events are not merged into one. `EventHistoryAccessRule`: region members and event editors.
+
+**A37c. Poll implementation notes (B7).** Rules are pure functions in `poll.service.PollRules` (facts from
+`PollPermissionService`). Status: CANCELLED (cancelled_at) > UPCOMING (now < start) > RUNNING (now < end) > ENDED.
+Non-members get 403 `ACCESS_DENIED` (ORGA may read). Create: 403 unless `mayCreate`; 400 `POLL_DATES_INVALID` (start <
+now + 1 h or start ≥ end), `POLL_OPTIONS_INVALID` (2–50, non-blank, unique ignoring case), `VALIDATION_FAILED` for a
+scope not offered (working groups: FOODSAVERS / VERIFIED_FOODSAVERS only, upstream scope counts). Scope counts: poll
+creators and ORGA. Eligibility (`PollEligibilityService`) is evaluated live at vote time; `eligible_count` is frozen at
+creation and shown to the author/ORGA always, to others once ENDED. `voteCount` is always visible; option `values`
+only once ENDED (cancelled polls never). Update: non-author 403, started/cancelled 409 `POLL_NOT_EDITABLE`; options
+replaced as a whole. Cancel: author or ORGA (else 403), ended/cancelled 409 `POLL_NOT_CANCELLABLE`; sets
+`ends_at = cancelled_at = now`. Vote order of checks: 409 `POLL_NOT_OPEN`, 409 `ALREADY_VOTED`, 403 `NOT_ELIGIBLE`,
+400 `INVALID_VOTE` (keys = option indices as strings; SELECT_ONE exactly one option with 1, SELECT_MULTIPLE any subset
+with 1, THUMBS every option 1/0/−1, SCORE every option −3…3); aggregates are incremented under a `PESSIMISTIC_WRITE`
+lock on the poll row. `notifyVoters=false` marks start/end as announced at creation, so no poll bells are ever sent.
+Bells: `POLL_NEW-<poll>` (creation, eligible), `POLL_STARTED-<poll>` and `POLL_ENDING_SOON-<poll>` (job
+`poll-notifications`, every 15 min; ending soon = ends within 24 h and ran ≥ 30 h; both skip those who voted),
+`POLL_CANCELLED-<poll>` (to the eligible except the canceller, only when voters had been notified); params `name`,
+`endsAt`; link `/polls/<id>`; voting removes the voter's open poll bells, cancelling everyone's. Realtime `POLL_STATE`
+`{pollId, voteCount}` to the author after each vote. `PollHistoryAccessRule`: region members; `VOTE_CAST` has no
+metadata.
+
 ---
 
 **M5 contract notes (B1).** Generated API model names avoid clashes with `java.lang`/entities: `ChatMessage`
