@@ -146,23 +146,31 @@
 
 .he__facts li {
   display: inline-flex;
+  align-items: baseline;
   gap: 0.35rem;
   max-width: 100%;
-  padding: 0.15rem 0.55rem;
+  padding: 0.2rem 0.6rem;
   border: 1px solid var(--fs-border);
-  border-radius: 999px;
+  border-radius: var(--fs-radius-sm);
   font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .he__fact-label {
+  flex: 0 0 auto;
   color: var(--fs-text-muted);
 }
 
+/* long values (mail templates, passkey names) wrap to at most two lines instead of being cut off */
 .he__fact-value {
+  display: -webkit-box;
+  min-width: 0;
   overflow: hidden;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .he__toggle {

@@ -1,0 +1,18 @@
+{
+  "legal.consent.pageTitle": "Consentement",
+  "legal.consent.eyebrow": "Avant de continuer",
+  "legal.consent.title": "Merci de lire et de confirmer",
+  "legal.consent.subtitle": "Il y a des documents nouveaux ou modifiés que tu dois accepter pour continuer à utiliser foodsharing.",
+  "legal.consent.version": "Version {version} du {date}",
+  "legal.consent.summary": "L’essentiel en bref",
+  "legal.consent.fullText": "Lire le texte complet",
+  "legal.consent.accept": "J’ai lu « {document} » et je l’accepte.",
+  "legal.consent.submit": "Accepter et continuer",
+  "legal.consent.checkAll": "Confirme chaque document.",
+  "legal.consent.accepted": "Merci, ton consentement est enregistré.",
+  "legal.consent.nothingPending": "Tout est en ordre – rien à confirmer.",
+  "legal.consent.continue": "Continuer",
+  "legal.kind.PRIVACY_POLICY": "Déclaration de protection des données",
+  "legal.kind.LEGAL_AGREEMENT": "Accord juridique",
+  "legal.kind.CONFIDENTIALITY_NOTICE": "Déclaration de confidentialité"
+}

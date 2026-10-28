@@ -1,5 +1,5 @@
 import { ROLES, expect, roleEmail, test } from '../../fixtures';
-import { skipPasskeyNudge } from './_auth';
+import { acceptConsentPage, skipPasskeyNudge } from './_auth';
 
 /** D7.3: the dev user switcher on /login (local/e2e only) logs in as every seed user with one click. */
 
@@ -16,6 +16,11 @@ test('D7.3 dev switcher logs in as every seed user @D7.3', async ({ page, dev, a
     await expect(entry).toContainText(user.displayName);
     await entry.click();
 
+    // seed users with pending legal documents (e.g. newbie without privacy consent) pass the consent page (EA4)
+    await expect(page).toHaveURL(/\/(dashboard|consent\?)/);
+    if (new URL(page.url()).pathname === '/consent') {
+      await acceptConsentPage(page, /\/dashboard$/);
+    }
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByTestId('dashboard.page.name')).toHaveText(user.displayName);
     const session = await api.session();

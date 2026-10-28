@@ -20,7 +20,10 @@ interface DeviceView {
   name: string;
 }
 
-/** /account/sessions — signed-in devices (A22): current one marked, revoke others, log out everywhere. */
+/**
+ * /account/sessions — signed-in devices (A22): current one marked, revoke others, and "log out everywhere" as a
+ * secondary action below the list (it is rarely needed and should not compete with the page title).
+ */
 @Component({
   selector: 'fs-sessions-page',
   imports: [
@@ -37,19 +40,7 @@ interface DeviceView {
       [title]="'account.sessions.title' | t"
       [subtitle]="'account.sessions.subtitle' | t"
       icon="pi pi-desktop"
-    >
-      @if (otherCount() > 0) {
-        <p-button
-          [label]="'account.sessions.logoutEverywhere' | t"
-          icon="pi pi-sign-out"
-          severity="danger"
-          [outlined]="true"
-          [loading]="logoutEverywhere.busy()"
-          (onClick)="confirmLogoutEverywhere()"
-          data-testid="account.sessions.logoutEverywhere"
-        />
-      }
-    </fs-page-header>
+    />
     <fs-account-tabs />
 
     <section class="fs-card card" aria-labelledby="sessions-title">
@@ -59,6 +50,7 @@ interface DeviceView {
         skeleton="list"
         [skeletonRows]="3"
         emptyIcon="pi pi-desktop"
+        emptyIllustration="devices"
         [emptyTitle]="'account.sessions.empty' | t"
         data-testid="account.sessions.list"
       >
@@ -137,6 +129,21 @@ interface DeviceView {
               <span>{{ 'account.sessions.onlyThis' | t }}</span>
             </p>
           }
+          @if (otherCount() > 0) {
+            <div class="everywhere">
+              <p class="everywhere__text">{{ 'account.sessions.logoutEverywhereHint' | t }}</p>
+              <p-button
+                [label]="'account.sessions.logoutEverywhere' | t"
+                icon="pi pi-sign-out"
+                severity="danger"
+                [outlined]="true"
+                size="small"
+                [loading]="logoutEverywhere.busy()"
+                (onClick)="confirmLogoutEverywhere()"
+                data-testid="account.sessions.logoutEverywhere"
+              />
+            </div>
+          }
         </ng-template>
       </fs-data-state>
     </section>
@@ -150,6 +157,22 @@ interface DeviceView {
     .row--current .row__icon {
       background: var(--fs-primary-soft);
       color: var(--fs-primary-strong);
+    }
+    .everywhere {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem 1rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--fs-border);
+    }
+    .everywhere__text {
+      flex: 1 1 16rem;
+      margin: 0;
+      color: var(--fs-text-muted);
+      font-size: 0.88rem;
     }
     .row__ip {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

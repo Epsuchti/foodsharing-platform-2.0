@@ -107,3 +107,19 @@ export async function sessionIdOf(api: ApiClient): Promise<string> {
   if (!session.sessionId) throw new Error('No session id: the context is not logged in');
   return session.sessionId;
 }
+
+/**
+ * EA4: a user with pending legal consents (new accounts, newbie@local) lands on /consent first. Accepts every
+ * document there through the UI and waits until the app continues to `expectedPath`.
+ */
+export async function acceptConsentPage(page: Page, expectedPath: RegExp): Promise<void> {
+  await expect(page).toHaveURL(/\/consent(\?|$)/);
+  const documents = page.getByTestId('legal.consent.documents');
+  await expect(documents).toHaveAttribute('data-state', 'success');
+  const checks = page.locator('[data-testid^="legal.consent.check."] input');
+  const count = await checks.count();
+  expect(count).toBeGreaterThan(0);
+  for (let i = 0; i < count; i++) await checks.nth(i).check();
+  await page.getByTestId('legal.consent.submit').click();
+  await expect(page).toHaveURL(expectedPath);
+}

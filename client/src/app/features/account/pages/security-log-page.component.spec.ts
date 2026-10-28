@@ -6,7 +6,7 @@ import { afterEach } from 'vitest';
 import { HistoryActorType, HistoryEntry, HistoryEntryPage, HistorySubjectType } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { provideDataStateTesting } from '../../../core/testing/data-state-testing';
-import { sessionInfo, settle } from '../../auth/testing';
+import { sessionInfo } from '../../auth/testing';
 import { SecurityLogPageComponent } from './security-log-page.component';
 
 const USER_ID = '00000001-0001-4000-8000-000000000006';
@@ -40,10 +40,11 @@ describe('SecurityLogPageComponent', () => {
       providers: [
         ...provideDataStateTesting({
           translations: {
-            'account.securityLog.action.LOGIN': 'Angemeldet mit {method}',
-            'account.securityLog.action.PASSKEY_REGISTERED': 'Passkey «{label}» hinzugefügt',
-            'account.securityLog.action.other': 'Ereignis {action}',
-            'account.securityLog.method.GOOGLE': 'Google',
+            'history.action.USER.LOGIN':
+              '{method, select, GOOGLE {Mit Google angemeldet} other {Angemeldet}}',
+            'history.action.USER.PASSKEY_REGISTERED': 'Passkey hinzugefügt',
+            'shared.historyTimeline.unknownAction': 'Aktion „{action}“',
+            'shared.historyTimeline.meta.label': 'Name',
           },
         }),
         provideOptimus(),
@@ -59,12 +60,12 @@ describe('SecurityLogPageComponent', () => {
   afterEach(() => http.verify());
 
   const state = () => host.querySelector('[data-testid="account.securityLog.list"]')!;
-  const titles = () =>
-    [...host.querySelectorAll('[data-testid="account.securityLog.entry"] .entry__title')].map(
-      (node) => node.textContent?.trim(),
+  const labels = () =>
+    [...host.querySelectorAll('[data-testid="account.securityLog.entry.label"]')].map((node) =>
+      node.textContent?.trim(),
     );
 
-  it('shows a skeleton, then labelled entries', async () => {
+  it('shows the shared timeline with labelled entries and no filters', async () => {
     expect(state().getAttribute('data-state')).toBe('loading');
     http
       .expectOne(url(0))
@@ -81,12 +82,13 @@ describe('SecurityLogPageComponent', () => {
       );
     await fixture.whenStable();
     expect(state().getAttribute('data-state')).toBe('success');
-    expect(titles()).toEqual([
-      'Angemeldet mit Google',
-      'Passkey «Laptop» hinzugefügt',
-      'Ereignis SOMETHING_NEW',
+    expect(labels()).toEqual([
+      'Mit Google angemeldet',
+      'Passkey hinzugefügt',
+      'Aktion „Something new“',
     ]);
-    expect(host.querySelector('[data-testid="account.securityLog.more"]')).toBeNull();
+    expect(host.querySelector('[data-fact="label"]')?.textContent).toContain('Laptop');
+    expect(host.querySelector('[data-testid="account.securityLog.filter.actions"]')).toBeNull();
   });
 
   it('shows the empty state', async () => {
@@ -112,32 +114,17 @@ describe('SecurityLogPageComponent', () => {
     expect(state().getAttribute('data-state')).toBe('success');
   });
 
-  it('loads older entries and keeps them when the next page fails', async () => {
+  it('pages through older entries', async () => {
     http.expectOne(url(0)).flush(page([entry('1', 'LOGOUT')], 0, 3));
     await fixture.whenStable();
-    const more = () =>
-      host.querySelector('[data-testid="account.securityLog.more"] button') as HTMLElement;
-
-    more().click();
-    http.expectOne(url(1)).flush(page([entry('2', 'LOGOUT')], 1, 3));
-    await settle(fixture);
-    expect(titles()).toHaveLength(2);
-
-    more().click();
-    http
-      .expectOne(url(2))
-      .flush(
-        { code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true },
-        { status: 500, statusText: 'Error' },
-      );
-    await settle(fixture);
-    expect(titles()).toHaveLength(2);
-    expect(host.querySelector('[data-testid="account.securityLog.moreError"]')).not.toBeNull();
-
-    more().click();
-    http.expectOne(url(2)).flush(page([entry('3', 'LOGOUT')], 2, 3));
-    await settle(fixture);
-    expect(titles()).toHaveLength(3);
-    expect(host.querySelector('[data-testid="account.securityLog.more"]')).toBeNull();
+    const next = host.querySelector(
+      '[data-testid="account.securityLog.paginator"] .p-paginator-next',
+    ) as HTMLElement;
+    next.click();
+    await fixture.whenStable();
+    http.expectOne(url(1)).flush(page([entry('2', 'LOGIN')], 1, 3));
+    await fixture.whenStable();
+    expect(state().getAttribute('data-state')).toBe('success');
+    expect(labels()).toHaveLength(1);
   });
 });

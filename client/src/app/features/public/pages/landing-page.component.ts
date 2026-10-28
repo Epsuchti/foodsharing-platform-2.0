@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { GoogleLogoComponent } from '../../../shared/google-logo/google-logo.component';
 import { TPipe } from '../../../core/i18n/t.pipe';
 
 /** M1 placeholder for the public explainer (M2 replaces it): hero + join buttons + three values. */
 @Component({
   selector: 'fs-landing-page',
-  imports: [RouterLink, TPipe],
+  imports: [GoogleLogoComponent, RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="hero" data-testid="public.landing.hero">
@@ -16,21 +17,16 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         <p class="hero__lead">{{ 'public.landing.lead' | t }}</p>
         <div class="hero__actions">
           <a
-            class="fs-btn fs-btn--lg hero__btn"
+            class="fs-btn fs-btn--lg fs-btn--google hero__btn"
             routerLink="/login"
             [queryParams]="{ method: 'google' }"
             data-testid="public.landing.joinGoogle"
           >
-            <svg class="hero__google" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="#fff"
-                d="M21.35 11.1H12v2.98h5.35c-.23 1.4-1.66 4.1-5.35 4.1-3.22 0-5.85-2.67-5.85-5.96S8.78 6.26 12 6.26c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.7 3.72 14.56 2.8 12 2.8 6.93 2.8 2.84 6.9 2.84 12s4.09 9.2 9.16 9.2c5.29 0 8.8-3.72 8.8-8.95 0-.6-.07-1.06-.15-1.15z"
-              />
-            </svg>
+            <fs-google-logo />
             <span>{{ 'public.landing.joinGoogle' | t }}</span>
           </a>
           <a
-            class="fs-btn fs-btn--lg fs-btn--outlined hero__btn"
+            class="fs-btn fs-btn--lg hero__btn"
             routerLink="/login"
             [queryParams]="{ method: 'email' }"
             data-testid="public.landing.joinEmail"
@@ -50,6 +46,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         <div class="art__blob art__blob--a"></div>
         <div class="art__blob art__blob--b"></div>
         <div class="art__card art__card--main">
+          <span class="art__example">{{ 'public.landing.artExample' | t }}</span>
           <i class="pi pi-shopping-bag"></i>
           <strong>{{ 'public.landing.artPickup' | t }}</strong>
           <span>{{ 'public.landing.artPickupTime' | t }}</span>
@@ -142,10 +139,6 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         flex: 0 0 auto;
       }
     }
-    .hero__google {
-      width: 1.15rem;
-      height: 1.15rem;
-    }
     .hero__login {
       margin: 0;
       color: var(--fs-text-muted);
@@ -185,6 +178,8 @@ import { TPipe } from '../../../core/i18n/t.pipe';
     .art__card {
       position: absolute;
       display: grid;
+      pointer-events: none;
+      user-select: none;
       gap: 0.3rem;
       padding: 1.1rem 1.3rem;
       border: 1px solid var(--fs-border);
@@ -200,14 +195,28 @@ import { TPipe } from '../../../core/i18n/t.pipe';
       color: var(--fs-text-muted);
       font-size: 0.85rem;
     }
+    /* an illustration, not a control: tilted, labelled "example", no hover/pointer */
     .art__card--main {
       top: 24%;
       left: 18%;
       width: 15rem;
+      transform: rotate(-3deg);
+    }
+    .art__example {
+      justify-self: start;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      background: var(--fs-surface-muted);
+      color: var(--fs-text-muted);
+      font-size: 0.7rem !important;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
     .art__card--side {
       right: 10%;
       bottom: 18%;
+      transform: rotate(4deg);
       grid-auto-flow: column;
       align-items: center;
       gap: 0.6rem;

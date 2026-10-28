@@ -12,7 +12,7 @@ forEachVariant((variant) => {
   screenshotTest.describe(variant.name, () => {
     screenshotTest.use({ variant });
 
-    screenshotTest(`gallery sections ${variant.name} @screenshot`, async ({ page, visual }) => {
+    screenshotTest(`gallery sections ${variant.name} @gallery @screenshot`, async ({ page, visual }) => {
       await page.goto('/dev/gallery');
       await expect(page.locator('html')).toHaveAttribute('lang', variant.lang);
       await expect(page.getByTestId('gallery.live.state')).toHaveAttribute('data-state', 'success');
@@ -37,7 +37,7 @@ forEachVariant((variant) => {
       }
     });
 
-    screenshotTest(`gallery toast ${variant.name} @screenshot`, async ({ page, visual }) => {
+    screenshotTest(`gallery toast ${variant.name} @gallery @screenshot`, async ({ page, visual }) => {
       await page.goto('/dev/gallery');
       await page.getByTestId('gallery.toasts.success').click();
       const toast = page.locator('.p-toast-message').first();

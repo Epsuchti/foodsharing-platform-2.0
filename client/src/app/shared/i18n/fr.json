@@ -6,7 +6,7 @@
   "shared.errorState.title.forbidden": "Accès refusé",
   "shared.errorState.title.notFound": "Introuvable",
   "shared.errorState.title.offline": "Tu es hors ligne",
-  "shared.errorState.text.forbidden": "Cette zone n’est visible que pour certains rôles.",
+  "shared.errorState.text.forbidden": "Réservé à certains rôles.",
   "shared.errorState.text.notFound": "Cet élément n’existe pas (ou plus). Il a peut-être été supprimé ou le lien est obsolète.",
   "shared.errorState.text.offline": "Dès que tu seras de nouveau en ligne, nous chargerons les données automatiquement.",
   "shared.errorState.retry": "Réessayer",
@@ -83,5 +83,12 @@
   "shared.historyTimeline.method.EMAIL": "Lien par e-mail",
   "shared.historyTimeline.method.GOOGLE": "Google",
   "shared.historyTimeline.method.PASSKEY": "Clé d’accès",
-  "shared.historyTimeline.method.DEV": "Accès de test"
+  "shared.historyTimeline.method.DEV": "Accès de test",
+  "shared.historyTimeline.reason.LOGOUT": "Déconnexion",
+  "shared.historyTimeline.reason.REVOKED_BY_USER": "Fermée par toi",
+  "shared.historyTimeline.reason.LOGOUT_EVERYWHERE": "Déconnexion partout",
+  "shared.historyTimeline.reason.ACCOUNT_DISABLED": "Compte désactivé",
+  "shared.offline.short": "Rechargement dès le retour en ligne.",
+  "shared.historyTimeline.presets": "Filtres rapides",
+  "shared.historyTimeline.presetAll": "Tout"
 }

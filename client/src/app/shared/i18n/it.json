@@ -6,7 +6,7 @@
   "shared.errorState.title.forbidden": "Accesso negato",
   "shared.errorState.title.notFound": "Non trovato",
   "shared.errorState.title.offline": "Sei offline",
-  "shared.errorState.text.forbidden": "Questa area è visibile solo per determinati ruoli.",
+  "shared.errorState.text.forbidden": "Riservato a determinati ruoli.",
   "shared.errorState.text.notFound": "Questo elemento non esiste (più). Forse è stato eliminato o il link non è aggiornato.",
   "shared.errorState.text.offline": "Appena torni online caricheremo i dati automaticamente.",
   "shared.errorState.retry": "Riprova",
@@ -83,5 +83,12 @@
   "shared.historyTimeline.method.EMAIL": "Link via e-mail",
   "shared.historyTimeline.method.GOOGLE": "Google",
   "shared.historyTimeline.method.PASSKEY": "Passkey",
-  "shared.historyTimeline.method.DEV": "Accesso di prova"
+  "shared.historyTimeline.method.DEV": "Accesso di prova",
+  "shared.historyTimeline.reason.LOGOUT": "Disconnessione",
+  "shared.historyTimeline.reason.REVOKED_BY_USER": "Terminata da te",
+  "shared.historyTimeline.reason.LOGOUT_EVERYWHERE": "Disconnessione ovunque",
+  "shared.historyTimeline.reason.ACCOUNT_DISABLED": "Account disattivato",
+  "shared.offline.short": "Si ricarica appena torni online.",
+  "shared.historyTimeline.presets": "Filtri rapidi",
+  "shared.historyTimeline.presetAll": "Tutto"
 }

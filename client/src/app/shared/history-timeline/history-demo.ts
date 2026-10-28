@@ -90,11 +90,6 @@ export const DEMO_HISTORY: HistoryEntry[] = [
     actorType: HistoryActorType.System,
     metadata: { mailId: 'b2a7', template: 'magic-link' },
   }),
-  entry({
-    id: 'd0000000-0000-4000-8000-000000000008',
-    occurredAt: '2025-12-03T09:11:00Z',
-    action: 'SOME_FUTURE_ACTION',
-  }),
 ];
 
 export const DEMO_ACTIONS: HistoryActionInfo[] = [
@@ -119,13 +114,20 @@ export function demoPage(items: HistoryEntry[], page = 0, size = 20, total = ite
   };
 }
 
-/** Pages through DEMO_HISTORY (filters by action). */
-export const demoHistorySource: HistorySource = (filter, { page, size }) => {
-  const items = DEMO_HISTORY.filter(
-    (item) => filter.actions.length === 0 || filter.actions.includes(item.action),
-  );
-  return of(demoPage(items.slice(page * size, (page + 1) * size), page, size, items.length));
-};
+/**
+ * Pages through DEMO_HISTORY (filters by action). `reason` replaces the free-text reasons (user input, so the
+ * gallery passes one in the viewer's language).
+ */
+export function createDemoHistorySource(reason?: () => string): HistorySource {
+  return (filter, { page, size }) => {
+    const items = DEMO_HISTORY.filter(
+      (item) => filter.actions.length === 0 || filter.actions.includes(item.action),
+    ).map((item) => (item.reason && reason ? { ...item, reason: reason() } : item));
+    return of(demoPage(items.slice(page * size, (page + 1) * size), page, size, items.length));
+  };
+}
+
+export const demoHistorySource: HistorySource = createDemoHistorySource();
 
 export const emptyHistorySource: HistorySource = () => of(demoPage([]));
 

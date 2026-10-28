@@ -2,7 +2,14 @@
   "errorPages.notFound.title": "Diese Seite gibt es nicht",
   "errorPages.notFound.text": "Vielleicht hat sich ein Tippfehler eingeschlichen oder der Link ist veraltet.",
   "errorPages.forbidden.title": "Hier hast du keinen Zugriff",
-  "errorPages.forbidden.text": "Diese Seite ist nur für bestimmte Rollen sichtbar. Wende dich an deine Botschafter:innen, wenn du glaubst, dass das ein Fehler ist.",
   "errorPages.home": "Zur Startseite",
-  "errorPages.back": "Zurück"
+  "errorPages.back": "Zurück",
+  "errorPages.forbidden.loginTitle": "Bitte melde dich an",
+  "errorPages.forbidden.loginText": "Diese Seite siehst du, sobald du angemeldet bist.",
+  "errorPages.forbidden.login": "Anmelden",
+  "errorPages.forbidden.askWho.FOODSHARER": "Viele Bereiche öffnen sich, sobald du Foodsaver:in bist. Deine Botschafter:innen sagen dir, wie es weitergeht.",
+  "errorPages.forbidden.askWho.FOODSAVER": "Diese Seite ist nur für bestimmte Aufgaben sichtbar. Frag deine Botschafter:innen, wenn du Zugriff brauchst.",
+  "errorPages.forbidden.askWho.STORE_MANAGER": "Diese Seite ist nur für bestimmte Aufgaben sichtbar. Frag deine Botschafter:innen, wenn du Zugriff brauchst.",
+  "errorPages.forbidden.askWho.AMBASSADOR": "Diese Seite gehört zu einem anderen Bezirk oder ist dem Orga-Team vorbehalten. Das Orga-Team hilft dir weiter.",
+  "errorPages.forbidden.askWho.ORGA": "Selbst mit Orga-Rechten ist diese Seite gesperrt – vermutlich ein Fehler. Bitte melde ihn dem IT-Team."
 }

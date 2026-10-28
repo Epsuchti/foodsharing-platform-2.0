@@ -45,5 +45,9 @@
   "dev.users.orga": "Team orga, può fare tutto",
   "dev.users.other": "Altro utente",
   "dev.gallery.reload": "Ricarica",
-  "dev.gallery.liveLanguages": "Lingue del server"
+  "dev.gallery.liveLanguages": "Lingue del server",
+  "dev.gallery.freq.daily": "Ogni giorno",
+  "dev.gallery.freq.weekly": "Ogni settimana",
+  "dev.gallery.freq.never": "Mai",
+  "dev.gallery.historyReason": "Documento verificato dall’ambasciatrice"
 }

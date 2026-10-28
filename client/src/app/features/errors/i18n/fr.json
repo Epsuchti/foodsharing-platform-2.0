@@ -2,7 +2,14 @@
   "errorPages.notFound.title": "Cette page n’existe pas",
   "errorPages.notFound.text": "Il y a peut-être une faute de frappe ou le lien est obsolète.",
   "errorPages.forbidden.title": "Tu n’as pas accès à cette page",
-  "errorPages.forbidden.text": "Cette page n’est visible que pour certains rôles. Contacte tes ambassadeur·rices si tu penses qu’il s’agit d’une erreur.",
   "errorPages.home": "Aller à l’accueil",
-  "errorPages.back": "Retour"
+  "errorPages.back": "Retour",
+  "errorPages.forbidden.loginTitle": "Connecte-toi",
+  "errorPages.forbidden.loginText": "Tu verras cette page une fois connecté·e.",
+  "errorPages.forbidden.login": "Se connecter",
+  "errorPages.forbidden.askWho.FOODSHARER": "Beaucoup d’espaces s’ouvrent dès que tu es foodsaver. Tes ambassadeur·rices t’expliquent la suite.",
+  "errorPages.forbidden.askWho.FOODSAVER": "Cette page n’est visible que pour certaines tâches. Demande à tes ambassadeur·rices si tu as besoin d’y accéder.",
+  "errorPages.forbidden.askWho.STORE_MANAGER": "Cette page n’est visible que pour certaines tâches. Demande à tes ambassadeur·rices si tu as besoin d’y accéder.",
+  "errorPages.forbidden.askWho.AMBASSADOR": "Cette page appartient à une autre région ou est réservée à l’équipe orga. L’équipe orga peut t’aider.",
+  "errorPages.forbidden.askWho.ORGA": "Même avec les droits orga, cette page est bloquée – sans doute un bug. Signale-le à l’équipe IT."
 }

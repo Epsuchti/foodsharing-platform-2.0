@@ -9,6 +9,9 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 const LIST = 'history.myActivity.list';
 const MY_ACTIVITY = '/api/history/me';
 
+// Every test logs in (one more LOGIN entry each): start each one from the seed so the list is reproducible.
+screenshotTest.use({ seedReset: 'test' });
+
 forEachVariant((variant) => {
   screenshotTest.describe(`history ${variant.name}`, () => {
     screenshotTest.describe('foodsaver', () => {
@@ -21,9 +24,13 @@ forEachVariant((variant) => {
       });
 
       screenshotTest('my activity with details open @D10.3 @screenshot', async ({ page, visual }) => {
-        await page.goto('/me/activity');
+        await page.goto('/me/activity?preset=changes');
         await expect(page.getByTestId(LIST)).toHaveAttribute('data-state', 'success');
-        const field = page.locator('[data-testid="history.myActivity.entry"][data-action="USER.FIELD_CHANGED"]');
+        // the newest entry with a recorded change (field: old → new); seed data of later milestones shifts the list
+        const field = page
+          .getByTestId('history.myActivity.entry')
+          .filter({ has: page.getByTestId('history.myActivity.entry.change') })
+          .first();
         await field.getByTestId('history.myActivity.entry.details').click();
         await expect(field.getByTestId('history.myActivity.entry.detailsPanel')).toBeVisible();
         await visual.expectScreen(page, `my-activity-details-${variant.name}`);

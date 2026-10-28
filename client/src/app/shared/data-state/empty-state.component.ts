@@ -1,9 +1,14 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Button } from '@openng/optimus-ui/button';
 
+/** Illustrations in `public/images/empty/`. */
+export type EmptyIllustration = 'history' | 'search' | 'inbox' | 'devices';
+
 /**
  * Friendly empty state with explanation and the next action.
  * `<fs-empty-state icon="pi pi-calendar" [title]="'x.empty.title' | t" [text]="…" [actionLabel]="…" (action)="…" />`
+ * `illustration` shows `public/images/empty/<name>.svg` (history, search, inbox, devices) instead of the icon
+ * (not in compact mode).
  */
 @Component({
   selector: 'fs-empty-state',
@@ -11,7 +16,18 @@ import { Button } from '@openng/optimus-ui/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-empty-state', '[class.fs-empty-state--compact]': 'compact()' },
   template: `
-    <div class="empty__icon" aria-hidden="true"><i [class]="icon()"></i></div>
+    @if (illustration() && !compact()) {
+      <img
+        class="empty__art"
+        [src]="'/images/empty/' + illustration() + '.svg'"
+        alt=""
+        width="160"
+        height="120"
+        [attr.data-illustration]="illustration()"
+      />
+    } @else {
+      <div class="empty__icon" aria-hidden="true"><i [class]="icon()"></i></div>
+    }
     <div class="empty__body">
       @if (title()) {
         <h3 class="empty__title">{{ title() }}</h3>
@@ -50,6 +66,11 @@ import { Button } from '@openng/optimus-ui/button';
       padding: 0.85rem 1rem;
       text-align: left;
     }
+    .empty__art {
+      width: 10rem;
+      height: auto;
+      margin-bottom: -0.25rem;
+    }
     .empty__icon {
       display: grid;
       width: 4rem;
@@ -86,6 +107,7 @@ import { Button } from '@openng/optimus-ui/button';
 })
 export class EmptyStateComponent {
   readonly icon = input('pi pi-inbox');
+  readonly illustration = input<EmptyIllustration | undefined>(undefined);
   readonly title = input<string | undefined>(undefined);
   readonly text = input<string | undefined>(undefined);
   readonly actionLabel = input<string | undefined>(undefined);

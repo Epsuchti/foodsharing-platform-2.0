@@ -2,7 +2,14 @@
   "errorPages.notFound.title": "Questa pagina non esiste",
   "errorPages.notFound.text": "Forse c’è un errore di battitura o il link non è aggiornato.",
   "errorPages.forbidden.title": "Non hai accesso a questa pagina",
-  "errorPages.forbidden.text": "Questa pagina è visibile solo per determinati ruoli. Contatta i tuoi ambasciatori se pensi che sia un errore.",
   "errorPages.home": "Vai alla pagina iniziale",
-  "errorPages.back": "Indietro"
+  "errorPages.back": "Indietro",
+  "errorPages.forbidden.loginTitle": "Accedi",
+  "errorPages.forbidden.loginText": "Vedrai questa pagina dopo l’accesso.",
+  "errorPages.forbidden.login": "Accedi",
+  "errorPages.forbidden.askWho.FOODSHARER": "Molte aree si aprono quando diventi foodsaver. I tuoi ambasciatori ti spiegano come proseguire.",
+  "errorPages.forbidden.askWho.FOODSAVER": "Questa pagina è visibile solo per determinati compiti. Chiedi ai tuoi ambasciatori se ti serve l’accesso.",
+  "errorPages.forbidden.askWho.STORE_MANAGER": "Questa pagina è visibile solo per determinati compiti. Chiedi ai tuoi ambasciatori se ti serve l’accesso.",
+  "errorPages.forbidden.askWho.AMBASSADOR": "Questa pagina appartiene a un’altra regione o è riservata al team orga. Il team orga può aiutarti.",
+  "errorPages.forbidden.askWho.ORGA": "Anche con i diritti orga questa pagina è bloccata – probabilmente un errore. Segnalalo al team IT."
 }

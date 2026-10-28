@@ -188,30 +188,8 @@
 }
 
 .google {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
   width: 100%;
   min-height: 3.25rem;
-  padding: 0.7rem 1.2rem;
-  border: 1px solid var(--p-primary-color, var(--fs-primary));
-  border-radius: var(--fs-radius-md);
-  background: var(--p-primary-color, var(--fs-primary));
-  color: var(--p-primary-contrast-color, #fff);
-  font: inherit;
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    box-shadow 150ms ease;
-
-  &:hover:not(:disabled) {
-    border-color: var(--p-primary-hover-color, var(--fs-primary-strong));
-    background: var(--p-primary-hover-color, var(--fs-primary-strong));
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--fs-primary) 30%, transparent);
-  }
 
   &:disabled {
     cursor: progress;

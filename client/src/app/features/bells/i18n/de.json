@@ -18,5 +18,7 @@
   "bell.QUIZ_PASSED": "Quiz bestanden",
   "bell.ONBOARDING_STALLED": "Dein nächster Schritt wartet auf dich",
   "bell.ONBOARDING_STEP_UNBLOCKED": "Ein neuer Schritt ist frei",
-  "bell.HYGIENE_EXPIRING": "Dein Hygiene-Quiz läuft bald ab"
+  "bell.HYGIENE_EXPIRING": "Dein Hygiene-Quiz läuft bald ab",
+  "bell.regionMemberRemoved": "Du wurdest aus {regionName} entfernt",
+  "bell.passportRequested": "{userName} hat einen Ausweis beantragt"
 }

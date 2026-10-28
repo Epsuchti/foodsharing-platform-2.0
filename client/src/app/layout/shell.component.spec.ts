@@ -143,7 +143,8 @@ describe('ShellComponent', () => {
   it('shows dev navigation and the version from app info', async () => {
     TestBed.inject(AppInfoService).info.set(APP_INFO);
     await fixture.whenStable();
-    expect(byTestId('nav.gallery')).not.toBeNull();
+    expect(byTestId('nav.gallery')).toBeNull();
+    expect(byTestId('nav.footer.gallery')).not.toBeNull();
     expect(byTestId('shell.version')?.textContent).toContain('1.2.3');
   });
 });
@@ -172,9 +173,11 @@ describe('nav.config', () => {
     ]);
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
-    ).toEqual(['settings', 'sessions', 'securityLog']);
+    ).toEqual(['account']);
     expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
+      'activity',
+      'account',
     ]);
   });
 

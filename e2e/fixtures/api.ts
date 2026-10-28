@@ -178,3 +178,22 @@ async function safeText(response: APIResponse): Promise<string> {
 function hasHeader(headers: Record<string, string>, name: string): boolean {
   return Object.keys(headers).some((key) => key.toLowerCase() === name.toLowerCase());
 }
+
+interface ConsentStatus {
+  kind: string;
+  currentVersion: string;
+  pending: boolean;
+}
+
+/**
+ * Accepts every pending legal document of the client's user (EA4) through the API, so tests that are not about the
+ * consent step land on their page instead of `/consent`. Returns the accepted kinds.
+ */
+export async function acceptPendingConsents(api: ApiClient): Promise<string[]> {
+  const consents = await api.getJson<ConsentStatus[]>('/api/legal/consents');
+  const pending = consents.filter((consent) => consent.pending);
+  for (const consent of pending) {
+    await api.postJson('/api/legal/consents', { kind: consent.kind, version: consent.currentVersion });
+  }
+  return pending.map((consent) => consent.kind);
+}

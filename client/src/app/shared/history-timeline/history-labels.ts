@@ -185,9 +185,12 @@ export class HistoryLabeler {
       case 'provider':
         lookup = `shared.historyTimeline.method.${value}`;
         break;
-      case 'reason':
-        lookup = `errors.${value}`;
+      case 'reason': {
+        // failure reasons are ApiErrorCodes, session-end reasons have their own labels
+        const own = `shared.historyTimeline.reason.${value}`;
+        lookup = this.i18n.has(own) ? own : `errors.${value}`;
         break;
+      }
       case 'language':
         lookup = `lang.${value.toLowerCase()}`;
         break;

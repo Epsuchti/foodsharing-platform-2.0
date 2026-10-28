@@ -1,0 +1,18 @@
+{
+  "legal.consent.pageTitle": "Zuestimmig",
+  "legal.consent.eyebrow": "Bevor’s wiitergaht",
+  "legal.consent.title": "Bitte lis und bestätig",
+  "legal.consent.subtitle": "Es git neui oder gänderti Dokumänt, wo du zuestimme muesch, zum foodsharing wiiter z bruuche.",
+  "legal.consent.version": "Version {version} vom {date}",
+  "legal.consent.summary": "S Wichtigschte in Chürzi",
+  "legal.consent.fullText": "Ganze Text läse",
+  "legal.consent.accept": "Ich ha «{document}» gläse und stimm zue.",
+  "legal.consent.submit": "Zuestimme und wiiter",
+  "legal.consent.checkAll": "Bitte bestätig jedes Dokumänt.",
+  "legal.consent.accepted": "Merci, dini Zuestimmig isch gspeicheret.",
+  "legal.consent.nothingPending": "Alles erledigt – es git nüt z bestätige.",
+  "legal.consent.continue": "Wiiter",
+  "legal.kind.PRIVACY_POLICY": "Dateschutzerklärig",
+  "legal.kind.LEGAL_AGREEMENT": "Rächtsvereinbarig",
+  "legal.kind.CONFIDENTIALITY_NOTICE": "Vertraulichkeitserklärig"
+}

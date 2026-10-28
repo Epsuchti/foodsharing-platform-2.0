@@ -1,5 +1,6 @@
 import { expect, test, type SessionInfo } from '../../fixtures';
 import {
+  acceptConsentPage,
   myActions,
   newEmail,
   randomClientIp,
@@ -26,7 +27,8 @@ test('A1 sign-up with Google creates an account @A1 @D8.1 @page', async ({ page,
   await page.getByTestId('dev.oidc.new-name').fill('Gina Neu');
   await page.getByTestId('dev.oidc.new-submit').click();
 
-  await expect(page).toHaveURL(/\/dashboard$/);
+  // a new account accepts the privacy policy first (EA4), then continues to the dashboard
+  await acceptConsentPage(page, /\/dashboard$/);
   await expect(page.getByTestId('dashboard.page.name')).toHaveText('Gina Neu');
 
   const api = apiOf(page);
@@ -45,8 +47,8 @@ test('A1 Google login links to existing email account @A1', async ({ page, apiOf
   await page.getByTestId('dev.oidc.new-name').fill('Lea B.');
   await page.getByTestId('dev.oidc.new-submit').click();
 
-  // back on the page the login started from
-  await expect(page).toHaveURL(/\/account\/settings$/);
+  // back on the page the login started from (after the pending privacy consent of the seed newbie)
+  await acceptConsentPage(page, /\/account\/settings$/);
   const api = apiOf(page);
   const session = await api.session();
   expect(session.user?.id).toBe(newbie.id);
@@ -78,7 +80,7 @@ test('A1 magic link sign-up for a new email @A1 @D8.2', async ({ page, mails, ap
   const mail = await mails.waitForMail({ to: email });
   await page.goto(mails.extractPath(mail, '/login/verify'));
 
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await acceptConsentPage(page, /\/dashboard$/);
   const api = apiOf(page);
   const session: SessionInfo = await api.session();
   expect(session.user?.email).toBe(email);

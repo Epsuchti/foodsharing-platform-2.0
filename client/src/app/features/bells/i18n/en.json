@@ -18,5 +18,7 @@
   "bell.QUIZ_PASSED": "Quiz passed",
   "bell.ONBOARDING_STALLED": "Your next step is waiting for you",
   "bell.ONBOARDING_STEP_UNBLOCKED": "A new step is unlocked",
-  "bell.HYGIENE_EXPIRING": "Your hygiene quiz expires soon"
+  "bell.HYGIENE_EXPIRING": "Your hygiene quiz expires soon",
+  "bell.regionMemberRemoved": "You were removed from {regionName}",
+  "bell.passportRequested": "{userName} requested an ID card"
 }

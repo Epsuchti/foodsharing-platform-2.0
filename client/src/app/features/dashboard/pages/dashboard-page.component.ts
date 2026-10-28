@@ -1,11 +1,38 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { Role } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 
-/** M1 dashboard: welcome, "next step" placeholder (the onboarding journey arrives in M2) and quick links. */
+/** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
+export interface DashboardNextStep {
+  id: 'passkey' | 'profile' | 'activity';
+  icon: string;
+  link: string;
+  query?: Record<string, string>;
+}
+
+export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
+  switch (role) {
+    case Role.Foodsaver:
+    case Role.StoreManager:
+      return { id: 'profile', icon: 'pi pi-user-edit', link: '/account/profile' };
+    case Role.Ambassador:
+    case Role.Orga:
+      return { id: 'activity', icon: 'pi pi-history', link: '/me/activity' };
+    default:
+      return {
+        id: 'passkey',
+        icon: 'pi pi-key',
+        link: '/account/settings',
+        query: { addPasskey: '1' },
+      };
+  }
+}
+
+/** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
 @Component({
   selector: 'fs-dashboard-page',
   imports: [RouterLink, TPipe, UserAvatarComponent],
@@ -23,23 +50,58 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
         <div class="welcome__text">
           <p class="welcome__greeting">{{ greetingKey() | t }}</p>
           <h1 class="welcome__name" data-testid="dashboard.page.name">{{ user.displayName }}</h1>
-          <span class="welcome__role">{{ 'common.role.' + user.role | t }}</span>
+          <div class="welcome__chips">
+            <span class="welcome__role" data-testid="dashboard.page.role">{{
+              'common.role.' + user.role | t
+            }}</span>
+            @if (homeRegion(); as region) {
+              <span class="welcome__region" data-testid="dashboard.page.homeRegion">
+                <i class="pi pi-map-marker" aria-hidden="true"></i>{{ region }}
+              </span>
+            }
+          </div>
+          <p class="welcome__hint" data-testid="dashboard.page.roleHint">
+            {{ 'dashboard.page.roleHint.' + user.role | t }}
+          </p>
         </div>
       </section>
 
       <div class="grid">
-        <section class="card card--next" data-testid="dashboard.page.nextStep">
-          <div class="card__icon"><i class="pi pi-compass" aria-hidden="true"></i></div>
-          <h2>{{ 'dashboard.page.nextStepTitle' | t }}</h2>
-          <p>{{ 'dashboard.page.nextStepText' | t }}</p>
-          <span class="card__badge">{{ 'dashboard.page.comingSoon' | t }}</span>
+        @let step = nextStep();
+        <section
+          class="card card--next"
+          data-testid="dashboard.page.nextStep"
+          [attr.data-step]="step.id"
+        >
+          <div class="card__icon"><i [class]="step.icon" aria-hidden="true"></i></div>
+          <p class="card__eyebrow">{{ 'dashboard.page.nextStepTitle' | t }}</p>
+          <h2>{{ 'dashboard.page.step.' + step.id + '.title' | t }}</h2>
+          <p>{{ 'dashboard.page.step.' + step.id + '.text' | t }}</p>
+          <a
+            class="fs-btn card__action"
+            [routerLink]="step.link"
+            [queryParams]="step.query"
+            data-testid="dashboard.page.nextStepAction"
+          >
+            <span>{{ 'dashboard.page.step.' + step.id + '.action' | t }}</span>
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
         </section>
 
+        @if (isAdmin()) {
+          <section class="card card--admin" data-testid="dashboard.page.adminCard">
+            <div class="card__icon card__icon--muted">
+              <i class="pi pi-sitemap" aria-hidden="true"></i>
+            </div>
+            <h2>{{ 'dashboard.page.admin.title' | t }}</h2>
+            <p>{{ 'dashboard.page.admin.text' | t }}</p>
+          </section>
+        }
         <nav class="links" [attr.aria-label]="'dashboard.page.quickLinks' | t">
           <a class="link" routerLink="/account/sessions" data-testid="dashboard.page.sessionsLink">
             <i class="pi pi-desktop" aria-hidden="true"></i>
             <span class="link__text">
-              <strong>{{ 'dashboard.page.sessionsTitle' | t }}</strong>
+              <strong>{{ 'nav.sessions' | t }}</strong>
               <span>{{ 'dashboard.page.sessionsText' | t }}</span>
             </span>
             <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
@@ -47,7 +109,7 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
           <a class="link" routerLink="/me/activity" data-testid="dashboard.page.activityLink">
             <i class="pi pi-history" aria-hidden="true"></i>
             <span class="link__text">
-              <strong>{{ 'dashboard.page.activityTitle' | t }}</strong>
+              <strong>{{ 'nav.activity' | t }}</strong>
               <span>{{ 'dashboard.page.activityText' | t }}</span>
             </span>
             <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
@@ -55,7 +117,7 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
           <a class="link" routerLink="/account/settings" data-testid="dashboard.page.settingsLink">
             <i class="pi pi-cog" aria-hidden="true"></i>
             <span class="link__text">
-              <strong>{{ 'dashboard.page.settingsTitle' | t }}</strong>
+              <strong>{{ 'nav.settings' | t }}</strong>
               <span>{{ 'dashboard.page.settingsText' | t }}</span>
             </span>
             <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
@@ -102,12 +164,50 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
       letter-spacing: -0.03em;
       text-overflow: ellipsis;
     }
-    .welcome__role {
-      justify-self: start;
+    .welcome__chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.5rem;
       margin-top: 0.35rem;
+    }
+    .welcome__region {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
       padding: 0.2rem 0.65rem;
+      border: 1px solid var(--fs-border);
       border-radius: 999px;
       background: var(--fs-surface);
+      color: var(--fs-text);
+      font-size: 0.8rem;
+      font-weight: 650;
+    }
+    .welcome__region .pi {
+      color: var(--fs-primary-strong);
+      font-size: 0.75rem;
+    }
+    .welcome__hint {
+      max-width: 34rem;
+      margin: 0.35rem 0 0;
+      color: var(--fs-text-muted);
+      font-size: 0.9rem;
+    }
+    .card--admin {
+      border-style: dashed;
+      background: var(--fs-surface-muted);
+      box-shadow: none;
+    }
+    .card__icon--muted {
+      background: var(--fs-surface);
+      color: var(--fs-text-muted);
+    }
+    .welcome__role {
+      justify-self: start;
+      padding: 0.2rem 0.65rem;
+      border: 1px solid color-mix(in srgb, var(--fs-primary) 30%, transparent);
+      border-radius: 999px;
+      background: var(--fs-primary-soft);
       color: var(--fs-primary-strong);
       font-size: 0.8rem;
       font-weight: 700;
@@ -116,10 +216,32 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
       display: grid;
       gap: 1.25rem;
     }
+    /* Desktop: greeting and next step on the left, quick links beside them (no empty half-width hero). */
     @media (min-width: 56rem) {
-      .grid {
-        grid-template-columns: 1.2fr 1fr;
+      :host {
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+        grid-template-areas:
+          'welcome links'
+          'next links'
+          'admin links';
         align-items: start;
+        column-gap: 1.5rem;
+        row-gap: 1.25rem;
+      }
+      .grid {
+        display: contents;
+      }
+      .welcome {
+        grid-area: welcome;
+      }
+      .card--next {
+        grid-area: next;
+      }
+      .card--admin {
+        grid-area: admin;
+      }
+      .links {
+        grid-area: links;
       }
     }
     .card {
@@ -150,16 +272,20 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
       color: #fff;
       font-size: 1.3rem;
     }
-    .card__badge {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.25rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 999px;
-      background: var(--fs-surface-muted);
-      color: var(--fs-text-muted);
-      font-size: 0.75rem;
+    .card__eyebrow {
+      margin: 0.5rem 0 -0.35rem;
+      color: var(--fs-primary-strong);
+      font-size: 0.78rem;
       font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .card .card__eyebrow {
+      color: var(--fs-primary-strong);
+    }
+    .card__action {
+      justify-self: start;
+      margin-top: 0.75rem;
     }
     .links {
       display: grid;
@@ -210,6 +336,13 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
 })
 export class DashboardPageComponent {
   protected readonly session = inject(SessionService);
+  protected readonly nextStep = computed(() => nextStepFor(this.session.role()));
+  /** Name of the home region (session units, M2); hidden until the user has one. */
+  protected readonly homeRegion = computed(
+    () => this.session.session().units?.find((unit) => unit.homeRegion)?.name ?? null,
+  );
+  /** Ambassadors and orga: a muted card announcing the admin tools (they arrive with M2's pages). */
+  protected readonly isAdmin = computed(() => this.session.hasRole(Role.Ambassador));
 
   protected readonly greetingKey = computed(() => {
     const hour = Number(

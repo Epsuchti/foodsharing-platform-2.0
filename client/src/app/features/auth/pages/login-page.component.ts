@@ -27,7 +27,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { ErrorStateComponent } from '../../../shared/data-state/error-state.component';
 import { DevUserSwitcherComponent } from '../components/dev-user-switcher.component';
-import { GoogleLogoComponent } from '../components/google-logo.component';
+import { GoogleLogoComponent } from '../../../shared/google-logo/google-logo.component';
 import { LoginFlowService } from '../login-flow.service';
 import { passkeyLoginWithSession } from '../passkey-login.resource';
 

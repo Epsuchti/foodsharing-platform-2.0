@@ -1,4 +1,4 @@
-import { expect, expectNoSeriousViolations, test, type Role } from '../../fixtures';
+import { acceptPendingConsents, expect, expectNoSeriousViolations, test, type Role } from '../../fixtures';
 import type { Page } from '@playwright/test';
 import { animationsDone } from './animations';
 import { THEME_STORAGE_KEY } from '../../fixtures/i18n';
@@ -16,6 +16,8 @@ interface RouteCase {
   role: Role | null;
   /** Something that proves the page rendered (beyond the shell). */
   ready?: string;
+  /** Accept pending legal consents first (newbie@local has none yet), so the page itself is swept. */
+  consent?: boolean;
 }
 
 const ROUTES: RouteCase[] = [
@@ -27,7 +29,8 @@ const ROUTES: RouteCase[] = [
   { path: '/forbidden', role: null },
   { path: '/does-not-exist', role: null },
   { path: '/dev/gallery', role: null, ready: 'gallery.dataState.live' },
-  { path: '/dashboard', role: 'newbie', ready: 'dashboard.page.welcome' },
+  { path: '/consent', role: 'newbie', ready: 'legal.consent.documents' },
+  { path: '/dashboard', role: 'newbie', ready: 'dashboard.page.welcome', consent: true },
   { path: '/dashboard', role: 'orga', ready: 'dashboard.page.welcome' },
   { path: '/account/settings', role: 'foodsaver' },
   { path: '/account/sessions', role: 'foodsaver' },
@@ -70,8 +73,9 @@ for (const theme of ['light', 'dark'] as const) {
     test.use({ colorScheme: theme });
 
     for (const route of ROUTES) {
-      test(`AD1 axe ${route.path} as ${route.role ?? 'visitor'} (${theme}) @AD1`, async ({ as }) => {
+      test(`AD1 axe ${route.path} as ${route.role ?? 'visitor'} (${theme}) @AD1`, async ({ as, apiOf }) => {
         const page = await as(route.role);
+        if (route.consent) await acceptPendingConsents(apiOf(page));
         await page.addInitScript(
           ([key, value]) => window.localStorage.setItem(key, value),
           [THEME_STORAGE_KEY, theme] as const,
@@ -109,7 +113,7 @@ for (const theme of ['light', 'dark'] as const) {
       await animationsDone(page);
       await expectNoSeriousViolations(page);
       await page.getByTestId('nav.tab.menu').click();
-      await expect(page.getByTestId('nav.drawer.gallery')).toBeVisible();
+      await expect(page.getByTestId('nav.drawer.activity')).toBeVisible();
       await animationsDone(page);
       await expectNoSeriousViolations(page);
     });

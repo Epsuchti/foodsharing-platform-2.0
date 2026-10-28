@@ -59,6 +59,13 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `dashboard-${variant.name}`);
       });
 
+      screenshotTest(`forbidden page signed in ${variant.name} @D4.3 @screenshot`, async ({ page, visual }) => {
+        await page.goto('/forbidden');
+        await expect(page.getByTestId('errorPages.forbidden.primary')).toHaveAttribute('href', '/dashboard');
+        await tabBarInFlow(page);
+        await visual.expectScreen(page, `forbidden-signed-in-${variant.name}`);
+      });
+
       screenshotTest(`offline shell ${variant.name} @AU12 @screenshot`, async ({ page, context, visual }) => {
         await page.goto('/dashboard');
         await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();

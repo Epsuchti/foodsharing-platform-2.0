@@ -77,6 +77,15 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   );
 }
 
+/**
+ * Masked regions (version, trace ids) are painted in the page's muted surface colour instead of Playwright's
+ * magenta, so the screenshots stay readable in reviews (review-m1 round 2 #4).
+ */
+async function maskColor(page: Page): Promise<string> {
+  const dark = await page.evaluate(() => document.documentElement.classList.contains('fs-dark'));
+  return dark ? '#212821' : '#f3f6f1';
+}
+
 const screen: ScreenHelpers = {
   settle,
   async expectScreen(page, name, options = {}) {
@@ -84,6 +93,7 @@ const screen: ScreenHelpers = {
     await expect(page).toHaveScreenshot(`${name}.png`, {
       fullPage: options.fullPage ?? true,
       mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
+      maskColor: await maskColor(page),
       ...(options.clip ? { clip: options.clip } : {}),
     });
   },
@@ -91,6 +101,7 @@ const screen: ScreenHelpers = {
     await settle(locator.page(), options);
     await expect(locator).toHaveScreenshot(`${name}.png`, {
       mask: [locator.page().locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
+      maskColor: await maskColor(locator.page()),
     });
   },
 };

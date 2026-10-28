@@ -83,5 +83,12 @@
   "shared.historyTimeline.method.EMAIL": "E-Mail-Link",
   "shared.historyTimeline.method.GOOGLE": "Google",
   "shared.historyTimeline.method.PASSKEY": "Passkey",
-  "shared.historyTimeline.method.DEV": "Testzugang"
+  "shared.historyTimeline.method.DEV": "Testzugang",
+  "shared.historyTimeline.reason.LOGOUT": "Abgemeldet",
+  "shared.historyTimeline.reason.REVOKED_BY_USER": "Von dir beendet",
+  "shared.historyTimeline.reason.LOGOUT_EVERYWHERE": "Überall abgemeldet",
+  "shared.historyTimeline.reason.ACCOUNT_DISABLED": "Konto deaktiviert",
+  "shared.offline.short": "Lädt neu, sobald du wieder online bist.",
+  "shared.historyTimeline.presets": "Schnellfilter",
+  "shared.historyTimeline.presetAll": "Alle"
 }

@@ -30,6 +30,7 @@
         [emptyTitle]="'dev.gallery.emptyTitle' | t"
         [emptyText]="'dev.gallery.emptyText' | t"
         emptyIcon="pi pi-users"
+        emptyIllustration="inbox"
         [askWho]="'dev.gallery.askWho' | t"
         backLink="/dev/gallery"
       >
@@ -104,6 +105,7 @@
     <header class="specimen__head"><code>default</code></header>
     <fs-empty-state
       icon="pi pi-calendar"
+      illustration="search"
       [title]="'dev.gallery.emptyTitle' | t"
       [text]="'dev.gallery.emptyText' | t"
       [actionLabel]="'dev.gallery.emptyAction' | t"
@@ -335,7 +337,7 @@
         <span id="frequency-label">{{ 'dev.gallery.fieldFrequency' | t }}</span>
         <p-selectbutton
           name="frequency"
-          [options]="frequencies"
+          [options]="frequencies()"
           optionLabel="label"
           optionValue="value"
           [ngModel]="frequency()"

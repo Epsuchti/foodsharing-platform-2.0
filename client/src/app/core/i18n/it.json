@@ -201,6 +201,7 @@
   "common.optimus.removeLabel": "Rimuovi",
   "common.optimus.selectAll": "Tutti selezionati",
   "common.optimus.unselectAll": "Nessuno selezionato",
+  "nav.account": "Account",
   "errors.STORE_NOT_FOUND": "Negozio non trovato.",
   "errors.CHAIN_NOT_FOUND": "Catena non trovata.",
   "errors.CATEGORY_NOT_FOUND": "Categoria non trovata.",

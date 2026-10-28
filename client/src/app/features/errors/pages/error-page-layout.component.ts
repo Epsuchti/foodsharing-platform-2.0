@@ -1,8 +1,25 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Location } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
-/** Centered full-page message used by the forbidden and not-found pages. */
+import { SessionService } from '../../../core/auth/session.service';
+import { TPipe } from '../../../core/i18n/t.pipe';
+
+/** Primary action of an error page; default: home (dashboard when logged in). */
+export interface ErrorPageAction {
+  labelKey: string;
+  icon: string;
+  link: string;
+  queryParams?: Record<string, string>;
+}
+
+/**
+ * Centered full-page message used by the forbidden and not-found pages, always with the same two buttons:
+ * primary (home, or e.g. login) and secondary "back". Test ids: `<testId>.primary`, `<testId>.back`.
+ */
 @Component({
   selector: 'fs-error-page-layout',
+  imports: [RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ep">
@@ -12,7 +29,26 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       </div>
       <h1 class="ep__title">{{ title() }}</h1>
       <p class="ep__text">{{ text() }}</p>
-      <div class="ep__actions"><ng-content /></div>
+      <div class="ep__actions">
+        <a
+          class="fs-btn"
+          [routerLink]="primaryAction().link"
+          [queryParams]="primaryAction().queryParams"
+          [attr.data-testid]="testId() + '.primary'"
+        >
+          <i [class]="primaryAction().icon" aria-hidden="true"></i>
+          <span>{{ primaryAction().labelKey | t }}</span>
+        </a>
+        <button
+          type="button"
+          class="fs-btn fs-btn--outlined"
+          (click)="location.back()"
+          [attr.data-testid]="testId() + '.back'"
+        >
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          <span>{{ 'errorPages.back' | t }}</span>
+        </button>
+      </div>
     </div>
   `,
   styles: `
@@ -74,4 +110,18 @@ export class ErrorPageLayoutComponent {
   readonly icon = input.required<string>();
   readonly title = input.required<string>();
   readonly text = input.required<string>();
+  readonly testId = input.required<string>();
+  /** Overrides the home button (e.g. "log in" for anonymous visitors of a protected page). */
+  readonly primary = input<ErrorPageAction | undefined>(undefined);
+
+  private readonly session = inject(SessionService);
+  protected readonly location = inject(Location);
+  protected readonly primaryAction = computed<ErrorPageAction>(
+    () =>
+      this.primary() ?? {
+        labelKey: 'errorPages.home',
+        icon: 'pi pi-home',
+        link: this.session.isAuthenticated() ? '/dashboard' : '/',
+      },
+  );
 }

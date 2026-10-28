@@ -27,7 +27,9 @@ test.describe('logged in', () => {
     await expect(nav).toBeVisible();
     await expect(page.getByTestId('nav.dashboard')).toHaveClass(/hdr__link--active/);
     await expect(page.getByTestId('nav.activity')).toHaveAttribute('href', '/me/activity');
-    await expect(page.getByTestId('nav.gallery')).toBeVisible();
+    // The dev gallery lives in the footer, not in the main navigation.
+    await expect(page.getByTestId('nav.gallery')).toHaveCount(0);
+    await expect(page.getByTestId('nav.footer.gallery')).toBeVisible();
     // Features of later milestones stay hidden.
     await expect(page.getByTestId('nav.pickups')).toHaveCount(0);
     // Desktop has no tab bar; the user menu sits in the header.
@@ -35,9 +37,9 @@ test.describe('logged in', () => {
     await expect(page.getByTestId('shell.userMenu')).toBeVisible();
     await expect(page.getByTestId('shell.login')).toHaveCount(0);
 
-    await page.getByTestId('nav.gallery').click();
-    await expect.poll(() => path(page)).toBe('/dev/gallery');
-    await expect(page.getByTestId('nav.gallery')).toHaveClass(/hdr__link--active/);
+    await page.getByTestId('nav.activity').click();
+    await expect.poll(() => path(page)).toBe('/me/activity');
+    await expect(page.getByTestId('nav.activity')).toHaveClass(/hdr__link--active/);
     await expect(page.getByTestId('nav.dashboard')).not.toHaveClass(/hdr__link--active/);
 
     await page.getByTestId('shell.brand').click();
@@ -74,15 +76,15 @@ test.describe('logged in', () => {
     await expect(drawer).toBeVisible();
     // The drawer sits above its modal mask (not dimmed by it).
     await animationsDone(page);
-    const galleryLink = drawer.getByTestId('nav.drawer.gallery');
-    const linkBox = (await galleryLink.boundingBox())!;
+    const activityLink = drawer.getByTestId('nav.drawer.activity');
+    const linkBox = (await activityLink.boundingBox())!;
     const onTop = await page.evaluate(
       ([x, y]) => !!document.elementFromPoint(x, y)?.closest('.fs-mobile-menu'),
       [linkBox.x + linkBox.width / 2, linkBox.y + linkBox.height / 2] as const,
     );
     expect(onTop, 'drawer is the top-most element at its links').toBe(true);
     await expect(drawer.getByTestId('nav.drawer.activity')).toHaveAttribute('href', '/me/activity');
-    await expect(drawer.getByTestId('nav.drawer.settings')).toHaveAttribute('href', '/account/settings');
+    await expect(drawer.getByTestId('nav.drawer.account')).toHaveAttribute('href', '/account');
 
     // Language chips switch the UI language immediately.
     await drawer.getByTestId('shell.drawer.language.fr').click();
@@ -94,12 +96,15 @@ test.describe('logged in', () => {
     await drawer.getByTestId('shell.drawer.theme.light').click();
     await expect(page.locator('html')).not.toHaveClass(/fs-dark/);
 
-    await drawer.getByTestId('nav.drawer.gallery').click();
+    await drawer.getByTestId('nav.drawer.activity').click();
     await expect(drawer).toBeHidden();
-    await expect.poll(() => path(page)).toBe('/dev/gallery');
+    await expect.poll(() => path(page)).toBe('/me/activity');
     await expect(dashboardTab).not.toHaveAttribute('aria-current', 'page');
+    // Activity and the account are tabs of their own (M1 has no pickups/messages yet).
+    await expect(page.getByTestId('nav.tab.activity')).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByTestId('nav.tab.account')).toHaveAttribute('href', '/account');
     // No horizontal overflow on a phone (it would widen the layout viewport and move the fixed tab bar).
-    await expect(page.getByTestId('gallery.dataState.live')).toBeVisible();
+    await expect(page.getByTestId('history.myActivity.list')).toHaveAttribute('data-state', 'success');
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
       .toBeLessThanOrEqual(0);

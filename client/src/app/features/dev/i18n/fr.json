@@ -8,7 +8,7 @@
   "dev.gallery.emptyTitle": "Pas encore de collectes",
   "dev.gallery.emptyText": "Trouve des commerces avec des places libres et inscris-toi.",
   "dev.gallery.emptyAction": "Trouver des commerces",
-  "dev.gallery.askWho": "Demande au ou à la responsable du commerce.",
+  "dev.gallery.askWho": "Demande à la personne responsable du magasin.",
   "dev.gallery.chipSubtitle": "Collecte aujourd’hui, 18:30",
   "dev.gallery.headerEyebrow": "Commerce",
   "dev.gallery.headerTitle": "Boulangerie Exemple",
@@ -45,5 +45,9 @@
   "dev.users.orga": "Équipe orga, peut tout faire",
   "dev.users.other": "Autre utilisateur",
   "dev.gallery.reload": "Recharger",
-  "dev.gallery.liveLanguages": "Langues du serveur"
+  "dev.gallery.liveLanguages": "Langues du serveur",
+  "dev.gallery.freq.daily": "Chaque jour",
+  "dev.gallery.freq.weekly": "Chaque semaine",
+  "dev.gallery.freq.never": "Jamais",
+  "dev.gallery.historyReason": "Pièce d’identité vérifiée par l’ambassadrice"
 }

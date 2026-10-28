@@ -46,7 +46,9 @@ const ICONS: Record<ErrorKind, string> = {
       <h3 class="err__title">{{ title() }}</h3>
       <p class="err__text">{{ text() }}</p>
       @if (askWho() && kindValue() === 'forbidden') {
-        <p class="err__ask"><i class="pi pi-user" aria-hidden="true"></i> {{ askWho() }}</p>
+        <p class="err__ask">
+          <i class="pi pi-user" aria-hidden="true"></i><span>{{ askWho() }}</span>
+        </p>
       }
       <div class="err__actions">
         @if (showRetry()) {
@@ -182,10 +184,21 @@ const ICONS: Record<ErrorKind, string> = {
     }
     .err__ask {
       display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-weight: 600;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--fs-radius-sm);
+      background: var(--fs-surface);
       color: var(--fs-text);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+    .err__ask i {
+      flex: 0 0 auto;
+      margin-top: 0.2rem;
+      color: var(--fs-primary-strong);
+      font-size: 0.85rem;
     }
     .err__actions {
       display: flex;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
@@ -30,7 +30,7 @@ import { SkeletonPreset } from '../../../shared/data-state/skeleton-presets.comp
 import {
   DEMO_USER_ID,
   demoActionsSource,
-  demoHistorySource,
+  createDemoHistorySource,
   emptyHistorySource,
   failingHistorySource,
   loadingHistorySource,
@@ -175,7 +175,7 @@ export class GalleryPageComponent implements OnInit {
   protected readonly history = {
     viewerId: DEMO_USER_ID,
     actions: demoActionsSource,
-    filled: demoHistorySource,
+    filled: createDemoHistorySource(() => this.i18n.t('dev.gallery.historyReason')),
     empty: emptyHistorySource,
     loading: loadingHistorySource,
     error: failingHistorySource(demoError(500, ApiErrorCode.UnexpectedError, true)),
@@ -195,11 +195,13 @@ export class GalleryPageComponent implements OnInit {
   protected readonly agree = signal(true);
   protected readonly notify = signal(false);
   protected readonly frequency = signal('weekly');
-  protected readonly frequencies = [
-    { label: 'Daily', value: 'daily' },
-    { label: 'Weekly', value: 'weekly' },
-    { label: 'Never', value: 'never' },
-  ];
+  protected readonly frequencies = computed(() => {
+    this.i18n.language();
+    return ['daily', 'weekly', 'never'].map((value) => ({
+      label: this.i18n.t(`dev.gallery.freq.${value}`),
+      value,
+    }));
+  });
 
   ngOnInit(): void {
     const theme = this.theme();

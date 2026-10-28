@@ -22,6 +22,7 @@ const TARGETS: Target[] = [
   { tag: '@A22', path: '/account/sessions', api: '/api/auth/sessions', testId: 'account.sessions.list' },
   { tag: '@A22', path: '/account/security-log', api: '/api/auth/security-log', testId: 'account.securityLog.list' },
   { tag: '@A2', path: '/account/settings', api: '/api/auth/methods', testId: 'account.settings.methods' },
+  { tag: '@A2', path: '/account/profile', api: '/api/users/me', testId: 'account.profile.state' },
 ];
 
 const STATUSES = [
@@ -68,6 +69,13 @@ test.describe('logged in', () => {
     });
   }
 
+  test('D4.3 dashboard still works when app info cannot be loaded @D4.3', async ({ page }) => {
+    await injectApiError(page, { url: '/api/public/app-info', status: 500 });
+    await page.goto('/dashboard');
+    await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+    await expect(page.getByTestId('dashboard.page.nextStepAction')).toBeVisible();
+  });
+
   test('A2 session bootstrap failure falls back to the login and recovers on reload @A2', async ({ page }) => {
     const injection = await injectApiError(page, { url: '/api/auth/session', status: 500 });
     await page.goto('/account/sessions');
@@ -77,6 +85,20 @@ test.describe('logged in', () => {
     await expect(page).toHaveURL(/\/account\/sessions$/);
     await expect(page.getByTestId('account.sessions.list')).toHaveAttribute('data-state', 'success');
   });
+});
+
+test('A2 login page still offers every login method when app info cannot be loaded @A2', async ({ page }) => {
+  const inject = [
+    () => injectApiError(page, { url: '/api/public/app-info', status: 500 }),
+    () => injectNetworkFailure(page, { url: '/api/public/app-info' }),
+  ];
+  for (const start of inject) {
+    const injection = await start();
+    await page.goto('/login');
+    await expect(page.getByTestId('auth.login.email')).toBeVisible();
+    await expect(page.getByTestId('auth.login.google')).toBeVisible();
+    await injection.remove();
+  }
 });
 
 test('D7.3 dev user list shows skeleton, errors and recovers @D7.3', async ({ page }) => {

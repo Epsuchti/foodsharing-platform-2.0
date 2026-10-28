@@ -201,6 +201,7 @@
   "common.optimus.removeLabel": "Entfernen",
   "common.optimus.selectAll": "Alle ausgewählt",
   "common.optimus.unselectAll": "Keine ausgewählt",
+  "nav.account": "Konto",
   "errors.STORE_NOT_FOUND": "Betrieb nicht gefunden.",
   "errors.CHAIN_NOT_FOUND": "Kette nicht gefunden.",
   "errors.CATEGORY_NOT_FOUND": "Kategorie nicht gefunden.",

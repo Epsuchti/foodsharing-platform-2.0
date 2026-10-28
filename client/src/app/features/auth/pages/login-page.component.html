@@ -53,7 +53,7 @@
     @if (loginMethods().google) {
       <button
         type="button"
-        class="google"
+        class="fs-btn fs-btn--lg fs-btn--google google"
         [disabled]="redirectingToGoogle()"
         (click)="continueWithGoogle()"
         data-testid="auth.login.google"
@@ -113,7 +113,7 @@
           type="submit"
           [label]="'auth.login.sendLink' | t"
           icon="pi pi-envelope"
-          [outlined]="loginMethods().google"
+          [outlined]="false"
           [loading]="requestLink.busy()"
           styleClass="email__submit"
           [fluid]="true"

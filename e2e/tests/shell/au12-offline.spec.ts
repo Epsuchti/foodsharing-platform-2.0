@@ -1,3 +1,4 @@
+import { animationsDone } from '../a11y/animations';
 import { expect, goOffline, goOnline, injectNetworkFailure, test } from '../../fixtures';
 import type { Page } from '@playwright/test';
 
@@ -49,6 +50,8 @@ test('AU12 offline banner appears on network loss and data reloads when back onl
   await expect(banner).toBeHidden();
   await expect(live).toHaveAttribute('data-state', 'success');
   await expect(live.getByRole('alert')).toHaveCount(0);
+  // the stale content fades back to full opacity (200 ms); the automatic axe check must see the final colours
+  await animationsDone(page);
 });
 
 test('AU12 banner reports an unreachable server and recovers via its retry button @AU12', async ({ page }) => {

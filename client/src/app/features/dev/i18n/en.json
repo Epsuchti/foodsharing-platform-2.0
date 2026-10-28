@@ -45,5 +45,9 @@
   "dev.users.orga": "Orga team, can do everything",
   "dev.users.other": "Other user",
   "dev.gallery.reload": "Reload",
-  "dev.gallery.liveLanguages": "Server languages"
+  "dev.gallery.liveLanguages": "Server languages",
+  "dev.gallery.freq.daily": "Daily",
+  "dev.gallery.freq.weekly": "Weekly",
+  "dev.gallery.freq.never": "Never",
+  "dev.gallery.historyReason": "ID checked by the ambassador"
 }

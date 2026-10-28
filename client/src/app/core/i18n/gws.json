@@ -201,6 +201,7 @@
   "common.optimus.removeLabel": "Entferne",
   "common.optimus.selectAll": "Alli usgwählt",
   "common.optimus.unselectAll": "Keini usgwählt",
+  "nav.account": "Konto",
   "errors.STORE_NOT_FOUND": "Betrieb nöd gfunde.",
   "errors.CHAIN_NOT_FOUND": "Chetti nöd gfunde.",
   "errors.CATEGORY_NOT_FOUND": "Kategorie nöd gfunde.",

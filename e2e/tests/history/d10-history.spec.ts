@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {
+  acceptPendingConsents,
   SEED_NOW,
   expect,
   expectDataState,
@@ -166,6 +167,8 @@ test.describe('as foodsaver', () => {
 
     // ROLE_CHANGED through the dev role switch, SETTINGS_CHANGED (tracked language field) through the settings API
     await dev.setRole('foodsaver', 'STORE_MANAGER');
+    // store managers must accept the confidentiality notice (EA4) before any other page
+    expect(await acceptPendingConsents(api)).toContain('CONFIDENTIALITY_NOTICE');
     const settings = await api.patch('/api/users/me/settings', { language: 'it' });
     expect(settings.ok(), await settings.text()).toBeTruthy();
 
@@ -260,6 +263,23 @@ test.describe('as foodsaver', () => {
     const texts = await catalog(page);
     await expect(page.getByRole('option', { name: genericLabel(texts['history.action.USER.LOGIN']), exact: true })).toBeVisible();
     await closeOverlay(page);
+  });
+
+  test('D10.3 security log links to my activity filtered to logins @D10.3 @A22', async ({ page }) => {
+    await page.goto('/account/security-log');
+    await expectDataState(page, 'account.securityLog.list', 'success');
+    await page.getByTestId('account.securityLog.allActivity').click();
+    await expect(page).toHaveURL(/\/me\/activity\?preset=logins$/);
+    await expectDataState(page, LIST, 'success');
+    await expect(page.getByTestId('history.myActivity.preset.logins')).toHaveAttribute('aria-pressed', 'true');
+    const actions = await entries(page).evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-action')));
+    expect(actions.length).toBeGreaterThan(0);
+    expect(actions.every((action) => /^USER\.(LOGIN|LOGOUT|LOGIN_FAILED|SESSION_REVOKED|SESSIONS_REVOKED_ALL|MAGIC_LINK_REQUESTED)$/.test(action ?? ''))).toBe(true);
+
+    // "all" clears the preset again
+    await page.getByTestId('history.myActivity.preset.all').click();
+    await expect(page.getByTestId('history.myActivity.preset.all')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator(`[data-testid="${ENTRY}"][data-action="USER.ROLE_CHANGED"]`).first()).toBeAttached();
   });
 
   test('D10.3 every history action has a label in all five languages @D10.3', async ({ api }) => {

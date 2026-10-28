@@ -16,6 +16,7 @@ SERVER_DIR="${REPO_DIR}/server"
 IMAGE="${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.64.1-noble}"
 STARTUP_TIMEOUT="${E2E_STARTUP_TIMEOUT:-120}"
 APP_PID=""
+PROXY_TARGET=""
 
 cleanup() {
   if [[ -n "${APP_PID}" ]] && kill -0 "${APP_PID}" 2>/dev/null; then
@@ -90,7 +91,15 @@ if [[ -z "${BASE_URL}" ]]; then
     tail -n 60 "${LOG}" >&2
     exit 1
   fi
-  BASE_URL="http://${APP_HOST}:${PORT}"
+  if [[ "${APP_HOST}" == "localhost" ]]; then
+    BASE_URL="http://localhost:${PORT}"
+  else
+    # Docker Desktop: the browser must see the app as http://localhost (a secure context, so WebAuthn and other
+    # secure-only APIs exist, and the same origin as app.base-url). A tiny TCP proxy inside the container forwards
+    # localhost:PORT to the host.
+    PROXY_TARGET="${APP_HOST}:${PORT}"
+    BASE_URL="http://localhost:${PORT}"
+  fi
 fi
 
 echo "[screenshots] running in ${IMAGE} against ${BASE_URL}"
@@ -102,8 +111,12 @@ docker run --rm --ipc=host --init \
   -w /work/e2e \
   -e CI="${CI:-}" \
   -e E2E_BASE_URL="${BASE_URL}" \
+  -e E2E_PROXY_TARGET="${PROXY_TARGET:-}" \
   -e E2E_SCREENSHOTS=1 \
   -e npm_config_cache=/tmp/.npm \
   "${IMAGE}" \
-  bash -c 'npm ci --no-audit --no-fund --loglevel=error && npx playwright test --project=screenshots-desktop --project=screenshots-mobile "$@"' \
+  bash -c 'if [[ -n "${E2E_PROXY_TARGET}" ]]; then
+      node -e "const net=require(\"net\");const [h,p]=process.env.E2E_PROXY_TARGET.split(\":\");net.createServer((c)=>{const s=net.connect(+p,h);c.pipe(s);s.pipe(c);c.on(\"error\",()=>s.destroy());s.on(\"error\",()=>c.destroy());}).listen(+p,\"127.0.0.1\");" &
+    fi
+    npm ci --no-audit --no-fund --loglevel=error && npx playwright test --project=screenshots-desktop --project=screenshots-mobile "$@"' \
   screenshots "$@"

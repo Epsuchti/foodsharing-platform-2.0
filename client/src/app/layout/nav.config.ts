@@ -139,6 +139,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-history',
     route: '/me/activity',
     visible: loggedIn,
+    mobileTab: true,
   },
   // --- M2: regions & onboarding ---
   {
@@ -219,30 +220,16 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/admin/content',
     visible: when('adminContent', editsContent),
   },
-  // --- dev (local/e2e profile) ---
-  {
-    id: 'gallery',
-    labelKey: 'nav.gallery',
-    icon: 'pi pi-palette',
-    route: '/dev/gallery',
-    visible: (ctx) => ctx.devMode,
-  },
   // --- user menu ---
   {
-    id: 'settings',
-    labelKey: 'nav.settings',
-    icon: 'pi pi-cog',
-    route: '/account/settings',
+    // One entry for all account pages (settings, devices, security log, profile have their own tabs).
+    id: 'account',
+    labelKey: 'nav.account',
+    icon: 'pi pi-user',
+    route: '/account',
     visible: loggedIn,
     area: 'user',
-  },
-  {
-    id: 'sessions',
-    labelKey: 'nav.sessions',
-    icon: 'pi pi-desktop',
-    route: '/account/sessions',
-    visible: loggedIn,
-    area: 'user',
+    mobileTab: true,
   },
   {
     id: 'passport',
@@ -250,14 +237,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-id-card',
     route: '/me/passport',
     visible: when('passport', (ctx) => ctx.isAuthenticated && !!ctx.session?.user?.verified),
-    area: 'user',
-  },
-  {
-    id: 'securityLog',
-    labelKey: 'nav.securityLog',
-    icon: 'pi pi-shield',
-    route: '/account/security-log',
-    visible: loggedIn,
     area: 'user',
   },
   // --- footer (CMS pages arrive in M6) ---
@@ -292,6 +271,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-file',
     route: '/imprint',
     visible: () => true,
+    area: 'footer',
+  },
+  // --- dev (local/e2e profile): component gallery, out of the main navigation ---
+  {
+    id: 'gallery',
+    labelKey: 'nav.gallery',
+    icon: 'pi pi-palette',
+    route: '/dev/gallery',
+    visible: (ctx) => ctx.devMode,
     area: 'footer',
   },
 ];

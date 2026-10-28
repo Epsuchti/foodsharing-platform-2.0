@@ -201,6 +201,7 @@
   "common.optimus.removeLabel": "Supprimer",
   "common.optimus.selectAll": "Tout sélectionné",
   "common.optimus.unselectAll": "Rien sélectionné",
+  "nav.account": "Compte",
   "errors.STORE_NOT_FOUND": "Commerce introuvable.",
   "errors.CHAIN_NOT_FOUND": "Chaîne introuvable.",
   "errors.CATEGORY_NOT_FOUND": "Catégorie introuvable.",

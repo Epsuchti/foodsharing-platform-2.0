@@ -4,7 +4,7 @@ import {
   computed,
   inject,
   input,
-  signal,
+  model,
 } from '@angular/core';
 
 import { HistoryActorType, HistoryEntry } from '../../api';
@@ -183,7 +183,8 @@ export class HistoryEntryComponent {
   readonly testId = input('shared.historyTimeline.entry');
 
   protected readonly detailsId = `fs-history-details-${HistoryEntryComponent.nextId++}`;
-  protected readonly open = signal(false);
+  /** Details expanded (two-way: the timeline keeps it across re-renders, e.g. a language switch). */
+  readonly open = model(false);
 
   protected readonly visual = computed(() => historyVisual(this.entry().action));
   protected readonly label = computed(() => {

@@ -2,7 +2,14 @@
   "errorPages.notFound.title": "Die Siite gits nöd",
   "errorPages.notFound.text": "Vilicht häts en Tippfähler oder de Link isch veraltet.",
   "errorPages.forbidden.title": "Da häsch kei Zuegriff",
-  "errorPages.forbidden.text": "Die Siite isch nume für bestimmti Rolle sichtbar. Mäld di bi dine Botschafter:inne, wänn d meinsch, das seig en Fähler.",
   "errorPages.home": "Zur Startsiite",
-  "errorPages.back": "Zrugg"
+  "errorPages.back": "Zrugg",
+  "errorPages.forbidden.loginTitle": "Bitte mäld di aa",
+  "errorPages.forbidden.loginText": "Die Siite gsehsch, sobald du aagmäldet bisch.",
+  "errorPages.forbidden.login": "Aamälde",
+  "errorPages.forbidden.askWho.FOODSHARER": "Vill Bereich gönd uf, sobald du Foodsaver:in bisch. Dini Botschafter:inne säged dir, wie’s wiitergaht.",
+  "errorPages.forbidden.askWho.FOODSAVER": "Die Siite isch nume für bestimmti Ufgabe sichtbar. Frag dini Botschafter:inne, wenn du Zuegriff bruuchsch.",
+  "errorPages.forbidden.askWho.STORE_MANAGER": "Die Siite isch nume für bestimmti Ufgabe sichtbar. Frag dini Botschafter:inne, wenn du Zuegriff bruuchsch.",
+  "errorPages.forbidden.askWho.AMBASSADOR": "Die Siite ghört zumene andere Bezirk oder isch em Orga-Team vorbhalte. S Orga-Team hilft dir wiiter.",
+  "errorPages.forbidden.askWho.ORGA": "Sogar mit Orga-Rächt isch die Siite gsperrt – vermuetlich en Fähler. Bitte mäld en em IT-Team."
 }

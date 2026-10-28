@@ -8,6 +8,43 @@
   gap: 0.75rem;
 }
 
+/* --- presets ------------------------------------------------------------------------------------ */
+.ht__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ht__preset {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: 999px;
+  background: var(--fs-surface);
+  color: var(--fs-text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ht__preset:hover {
+  border-color: var(--fs-primary);
+  color: var(--fs-primary-strong);
+}
+
+.ht__preset--active,
+.ht__preset--active:hover {
+  border-color: var(--fs-primary);
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.ht__preset:focus-visible {
+  outline: 2px solid var(--fs-primary);
+  outline-offset: 2px;
+}
+
 /* --- toolbar: filters + export ------------------------------------------------------------------ */
 .ht__toolbar {
   display: grid;

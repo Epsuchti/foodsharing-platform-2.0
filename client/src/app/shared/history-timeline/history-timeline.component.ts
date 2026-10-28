@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OnInit,
   computed,
   inject,
   input,
@@ -38,6 +39,7 @@ import { HistoryLabeler } from './history-labels';
 import {
   HistoryActionsSource,
   HistoryCsvExport,
+  HistoryFilterPreset,
   HistoryFilterValue,
   HistorySource,
   HistoryTimelineFilters,
@@ -129,7 +131,7 @@ export function rangeToFilter(range: (Date | null)[] | null | undefined): {
   templateUrl: './history-timeline.component.html',
   styleUrl: './history-timeline.component.scss',
 })
-export class HistoryTimelineComponent {
+export class HistoryTimelineComponent implements OnInit {
   private readonly historyApi = inject(HistoryService);
   private readonly labeler = inject(HistoryLabeler);
   private readonly i18n = inject(I18nService);
@@ -147,9 +149,15 @@ export class HistoryTimelineComponent {
   readonly actionCodes = input<readonly string[] | undefined>(undefined);
   /** Overrides where the action filter gets its options from. */
   readonly actionsSource = input<HistoryActionsSource | undefined>(undefined);
+  /** One-click filters shown as chips ("all" + these). */
+  readonly presets = input<readonly HistoryFilterPreset[]>([]);
+  /** Preset applied on the first load (e.g. from `?preset=logins`). */
+  readonly initialPreset = input<string | null | undefined>(undefined);
   /** Shows the CSV export button (pass it only for roles that may export, i.e. ORGA). */
   readonly csvExport = input<HistoryCsvExport | undefined>(undefined);
   readonly exportFileName = input('history.csv');
+  /** `false` hides the toolbar export button when the page offers its own (it calls `exportCsv()`). */
+  readonly showExportButton = input(true);
   readonly compact = input(false);
   readonly layout = input<HistoryTimelineLayout>('auto');
   readonly pageSize = input(20);
@@ -170,6 +178,9 @@ export class HistoryTimelineComponent {
 
   protected readonly uid = `fs-history-${HistoryTimelineComponent.nextId++}`;
   protected readonly filter = signal<HistoryFilterValue>({ actions: [] });
+  private readonly initialized = signal(false);
+  /** Ids of entries with open details (survives re-rendering of the list). */
+  protected readonly expanded = signal<ReadonlySet<string>>(new Set());
   protected readonly page = signal(0);
   protected readonly skeletonRows = [0, 1, 2, 3];
 
@@ -182,12 +193,16 @@ export class HistoryTimelineComponent {
     HistoryEntryPage,
     { source: HistorySource; filter: HistoryFilterValue; page: number; size: number }
   >({
-    params: () => ({
-      source: this.source(),
-      filter: this.filter(),
-      page: this.page(),
-      size: this.pageSize(),
-    }),
+    // nothing loads before ngOnInit applied the initial preset (no unfiltered first load)
+    params: () =>
+      this.initialized()
+        ? {
+            source: this.source(),
+            filter: this.filter(),
+            page: this.page(),
+            size: this.pageSize(),
+          }
+        : undefined,
     loader: ({ source, filter, page, size }) => source(filter, { page, size }),
   });
 
@@ -229,6 +244,14 @@ export class HistoryTimelineComponent {
   protected readonly actorOptions = computed(() =>
     (this.filters().actor ?? []).map((actor) => ({ label: actor.name, value: actor.id })),
   );
+
+  /** The preset whose actions equal the current action filter (null = "all" or a manual selection). */
+  protected readonly activePreset = computed(() => {
+    const actions = [...this.filter().actions].sort().join(',');
+    return (
+      this.presets().find((preset) => [...preset.actions].sort().join(',') === actions)?.id ?? null
+    );
+  });
 
   protected readonly activeFilterCount = computed(() => {
     const filter = this.filter();
@@ -296,6 +319,39 @@ export class HistoryTimelineComponent {
     }
   }
 
+  ngOnInit(): void {
+    const preset = this.presets().find((candidate) => candidate.id === this.initialPreset());
+    if (preset) {
+      this.applyPreset(preset);
+    }
+    this.initialized.set(true);
+  }
+
+  /** Selects a preset (or "all" with `null`): sets the action filter to its actions. */
+  protected applyPreset(preset: HistoryFilterPreset | null): void {
+    this.onActionsChange(preset ? [...preset.actions] : []);
+  }
+
+  protected setExpanded(id: string, open: boolean): void {
+    const next = new Set(this.expanded());
+    if (open) {
+      next.add(id);
+    } else {
+      next.delete(id);
+    }
+    this.expanded.set(next);
+  }
+
+  /** Downloads the CSV of the current filter (for an export button outside the timeline). */
+  exportCsv(): void {
+    if (this.csvExport()) {
+      void this.exporter.run(this.filter());
+    }
+  }
+
+  /** True while an export runs. */
+  readonly exporting = computed(() => this.exporter.busy());
+
   protected onRangeChange(range: Date[] | null): void {
     this.range.set(range);
     const [start, end] = range ?? [];
@@ -340,7 +396,8 @@ export class HistoryTimelineComponent {
   }
 
   private apply(next: HistoryFilterValue): void {
-    const clean: HistoryFilterValue = { actions: next.actions };
+    // sorted, so the same selection in another order (the multiselect echoes it in option order) is no change
+    const clean: HistoryFilterValue = { actions: [...new Set(next.actions)].sort() };
     if (next.from) clean.from = next.from;
     if (next.to) clean.to = next.to;
     if (next.actorId) clean.actorId = next.actorId;

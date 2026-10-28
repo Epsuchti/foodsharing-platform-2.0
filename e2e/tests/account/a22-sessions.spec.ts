@@ -75,8 +75,8 @@ test('A22 security log lists logins and revocations @A22 @page', async ({ page, 
   await page.goto('/account/security-log');
   const list = page.getByTestId('account.securityLog.list');
   await expect(list).toHaveAttribute('data-state', 'success');
-  await expect(list.locator('[data-action="LOGIN"]').first()).toBeVisible();
-  await expect(list.locator('[data-action="SESSION_REVOKED"]').first()).toBeVisible();
+  await expect(list.locator('[data-action="USER.LOGIN"]').first()).toBeVisible();
+  await expect(list.locator('[data-action="USER.SESSION_REVOKED"]').first()).toBeVisible();
 
   const log = await apiOf(page).getJson<HistoryEntryPage>('/api/auth/security-log');
   const actions = log.items.map((entry) => entry.action);

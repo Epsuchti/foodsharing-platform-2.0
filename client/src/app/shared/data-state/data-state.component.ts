@@ -19,7 +19,7 @@ import {
   ErrorTemplateDirective,
   SkeletonTemplateDirective,
 } from './data-state.directives';
-import { EmptyStateComponent } from './empty-state.component';
+import { EmptyIllustration, EmptyStateComponent } from './empty-state.component';
 import { ErrorStateComponent } from './error-state.component';
 import { SkeletonPreset, SkeletonPresetComponent } from './skeleton-presets.component';
 
@@ -68,6 +68,7 @@ import { SkeletonPreset, SkeletonPresetComponent } from './skeleton-presets.comp
         } @else {
           <fs-empty-state
             [icon]="emptyIcon()"
+            [illustration]="emptyIllustration()"
             [title]="emptyTitle() ?? ('shared.dataState.emptyTitle' | t)"
             [text]="emptyText()"
             [actionLabel]="emptyActionLabel()"
@@ -167,6 +168,7 @@ export class DataStateComponent {
   readonly emptyTitle = input<string | undefined>(undefined);
   readonly emptyText = input<string | undefined>(undefined);
   readonly emptyIcon = input('pi pi-inbox');
+  readonly emptyIllustration = input<EmptyIllustration | undefined>(undefined);
   readonly emptyActionLabel = input<string | undefined>(undefined);
   readonly emptyActionIcon = input<string | undefined>(undefined);
   /** Translated "who to ask" hint for 403. */
@@ -176,6 +178,8 @@ export class DataStateComponent {
   /** Small variant for table bodies, select overlays and cards. */
   readonly compact = input(false);
   readonly emptyAction = output<void>();
+  /** Prefix for the inner test ids (retry, empty action) when the host's `data-testid` is bound dynamically. */
+  readonly testId = input<string | undefined>(undefined);
 
   private readonly hostTestId = inject(new HostAttributeToken('data-testid'), { optional: true });
 
@@ -186,7 +190,7 @@ export class DataStateComponent {
 
   protected readonly status = computed(() => this.state().status());
   protected readonly hasData = computed(() => this.state().data() !== undefined);
-  protected readonly testIdBase = computed(() => this.hostTestId ?? undefined);
+  protected readonly testIdBase = computed(() => this.testId() ?? this.hostTestId ?? undefined);
 
   protected readonly skeletonTemplate = computed<TemplateRef<unknown> | null>(() => {
     const custom = this.skeletonTpl()?.template;

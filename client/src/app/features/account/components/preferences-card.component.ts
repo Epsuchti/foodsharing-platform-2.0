@@ -95,6 +95,10 @@ const THEME_ICONS: Record<ThemePreference, string> = {
             </button>
           }
         </div>
+        <p class="group__hint" data-testid="account.settings.themeHint">
+          <i class="pi pi-sync" aria-hidden="true"></i>
+          <span>{{ 'account.settings.themeHint' | t }}</span>
+        </p>
       </div>
     </section>
   `,
@@ -107,6 +111,18 @@ const THEME_ICONS: Record<ThemePreference, string> = {
     .group + .group {
       padding-top: 1.1rem;
       border-top: 1px solid var(--fs-border);
+    }
+    .group__hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      margin: 0;
+      color: var(--fs-text-muted);
+      font-size: 0.85rem;
+    }
+    .group__hint .pi {
+      margin-top: 0.2rem;
+      font-size: 0.78rem;
     }
     .group__label {
       display: flex;

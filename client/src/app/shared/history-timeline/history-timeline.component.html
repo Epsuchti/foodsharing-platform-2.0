@@ -1,4 +1,31 @@
-@if (showFilters() || csvExport()) {
+@if (presets().length > 0 && !compact()) {
+  <div class="ht__presets" role="group" [attr.aria-label]="'shared.historyTimeline.presets' | t">
+    <button
+      type="button"
+      class="ht__preset"
+      [class.ht__preset--active]="filter().actions.length === 0"
+      [attr.aria-pressed]="filter().actions.length === 0"
+      (click)="applyPreset(null)"
+      [attr.data-testid]="testId() + '.preset.all'"
+    >
+      {{ 'shared.historyTimeline.presetAll' | t }}
+    </button>
+    @for (preset of presets(); track preset.id) {
+      <button
+        type="button"
+        class="ht__preset"
+        [class.ht__preset--active]="activePreset() === preset.id"
+        [attr.aria-pressed]="activePreset() === preset.id"
+        (click)="applyPreset(preset)"
+        [attr.data-testid]="testId() + '.preset.' + preset.id"
+      >
+        {{ preset.labelKey | t }}
+      </button>
+    }
+  </div>
+}
+
+@if (showFilters() || (csvExport() && showExportButton())) {
   <div class="ht__toolbar" role="group" [attr.aria-label]="'shared.historyTimeline.filters' | t">
     @if (showFilters()) {
       <div class="ht__filters">
@@ -100,7 +127,7 @@
         }
       </div>
     }
-    @if (csvExport()) {
+    @if (csvExport() && showExportButton()) {
       <p-button
         class="ht__export"
         [label]="'shared.historyTimeline.export' | t"
@@ -119,6 +146,7 @@
   [state]="state"
   [skeleton]="skeletonTpl"
   emptyIcon="pi pi-history"
+  [emptyIllustration]="activeFilterCount() > 0 ? 'search' : 'history'"
   [emptyTitle]="
     activeFilterCount() > 0
       ? ('shared.historyTimeline.emptyFilteredTitle' | t)
@@ -133,6 +161,7 @@
   [askWho]="askWho()"
   [backLink]="backLink()"
   [compact]="compact()"
+  [testId]="testId() + '.list'"
   [attr.data-testid]="testId() + '.list'"
 >
   <ng-template [fsData]="state">
@@ -160,6 +189,8 @@
                 [entry]="entry"
                 [showTime]="false"
                 [viewerId]="viewerId()"
+                [open]="expanded().has(entry.id)"
+                (openChange)="setExpanded(entry.id, $event)"
                 [testId]="testId() + '.entry'"
                 [attr.data-testid]="testId() + '.entry'"
               />
@@ -174,6 +205,8 @@
                   [showMarker]="true"
                   [compact]="compact()"
                   [viewerId]="viewerId()"
+                  [open]="expanded().has(entry.id)"
+                  (openChange)="setExpanded(entry.id, $event)"
                   [testId]="testId() + '.entry'"
                   [attr.data-testid]="testId() + '.entry'"
                 />

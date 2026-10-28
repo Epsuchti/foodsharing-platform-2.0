@@ -16,7 +16,8 @@ import { OnlineStatusService } from '../../core/online/online-status.service';
           <strong>{{
             (online.serverUnreachable() ? 'shared.offline.serverTitle' : 'shared.offline.title') | t
           }}</strong>
-          <span>{{ 'shared.offline.text' | t }}</span>
+          <span class="offline__long">{{ 'shared.offline.text' | t }}</span>
+          <span class="offline__short">{{ 'shared.offline.short' | t }}</span>
         </span>
         <button
           type="button"
@@ -31,6 +32,17 @@ import { OnlineStatusService } from '../../core/online/online-status.service';
     }
   `,
   styles: `
+    .offline__short {
+      display: none;
+    }
+    @media (max-width: 40rem) {
+      .offline__long {
+        display: none;
+      }
+      .offline__short {
+        display: inline;
+      }
+    }
     .offline {
       display: flex;
       align-items: center;

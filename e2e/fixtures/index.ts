@@ -169,7 +169,7 @@ export const test = base.extend<Options & Fixtures>({
 });
 
 export { expect };
-export { ApiClient, DevApi, CSRF_COOKIE, CSRF_HEADER, expectStatus } from './api';
+export { ApiClient, DevApi, CSRF_COOKIE, CSRF_HEADER, acceptPendingConsents, expectStatus } from './api';
 export { ClockControl } from './clock';
 export { MailBox, type WaitForMailOptions } from './mails';
 export { expectNoSeriousViolations } from './a11y';

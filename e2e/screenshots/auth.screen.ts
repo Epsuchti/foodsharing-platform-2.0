@@ -63,6 +63,21 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `settings-${variant.name}`);
     });
 
+    test(`passkey nudge after login @A2 @screenshot`, async ({ page, visual }) => {
+      // what the user sees right after an email-link login on a device without a passkey
+      await page.addInitScript(() => {
+        try {
+          window.sessionStorage.setItem('fs.loginPending', 'EMAIL');
+          window.localStorage.removeItem('fs.passkeyNudge');
+        } catch {
+          /* storage disabled */
+        }
+      });
+      await page.goto('/dashboard');
+      await page.getByTestId('auth.passkeyNudge').waitFor();
+      await visual.expectScreen(page, `passkey-nudge-${variant.name}`, { fullPage: false });
+    });
+
     test(`sessions @A22 @screenshot`, async ({ page, visual }) => {
       await page.goto('/account/sessions');
       await page.locator('[data-testid="account.sessions.list"][data-state="success"]').waitFor();

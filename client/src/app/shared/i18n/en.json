@@ -83,5 +83,12 @@
   "shared.historyTimeline.method.EMAIL": "Email link",
   "shared.historyTimeline.method.GOOGLE": "Google",
   "shared.historyTimeline.method.PASSKEY": "Passkey",
-  "shared.historyTimeline.method.DEV": "Test access"
+  "shared.historyTimeline.method.DEV": "Test access",
+  "shared.historyTimeline.reason.LOGOUT": "Logged out",
+  "shared.historyTimeline.reason.REVOKED_BY_USER": "Ended by you",
+  "shared.historyTimeline.reason.LOGOUT_EVERYWHERE": "Logged out everywhere",
+  "shared.historyTimeline.reason.ACCOUNT_DISABLED": "Account disabled",
+  "shared.offline.short": "Reloads once you’re back online.",
+  "shared.historyTimeline.presets": "Quick filters",
+  "shared.historyTimeline.presetAll": "All"
 }

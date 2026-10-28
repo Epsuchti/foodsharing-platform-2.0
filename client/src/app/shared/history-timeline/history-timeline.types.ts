@@ -56,3 +56,11 @@ export interface HistoryVisual {
   icon: string;
   tone: HistoryTone;
 }
+
+/** A one-click filter shown as a chip above the timeline (e.g. "only logins"). */
+export interface HistoryFilterPreset {
+  id: string;
+  /** i18n key of the chip label (owned by the page that defines the preset). */
+  labelKey: string;
+  actions: readonly string[];
+}

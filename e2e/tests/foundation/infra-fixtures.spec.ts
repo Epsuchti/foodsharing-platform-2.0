@@ -11,7 +11,7 @@ interface UnitMembership {
   homeRegion: boolean;
 }
 
-test('D4.3 region fixture resolves seed slugs and joins a region through the API @D4.3', async ({ region, as, apiOf }) => {
+test('region fixture resolves seed slugs and joins a region through the API @infra', async ({ region, as, apiOf }) => {
   const zuerich = region.bySlug('zuerich-stadt');
   expect(zuerich.id).toMatch(/^00000010-/);
   expect(region.id('zuerich-stadt')).toBe(zuerich.id);
@@ -55,7 +55,7 @@ function minimalPdf(lines: string[]): Buffer {
   return Buffer.from(body, 'latin1');
 }
 
-test('D4.3 pdf fixture extracts and asserts PDF text @D4.3', async ({ pdf }) => {
+test('pdf fixture extracts and asserts PDF text @infra', async ({ pdf }) => {
   const file = minimalPdf(['foodsharing Ausweis', 'Sarah Mueller 100006']);
   const result = await pdf.expectPdfContains(file, ['foodsharing Ausweis', /Mueller\s+100006/], { pages: 1 });
   expect(result.pages).toHaveLength(1);

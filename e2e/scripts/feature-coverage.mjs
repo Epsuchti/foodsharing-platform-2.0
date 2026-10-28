@@ -22,7 +22,9 @@ const E2E_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const REPO_DIR = path.resolve(E2E_DIR, '..');
 
 /** Tags that are not ledger IDs. Keep in sync with docs/conventions.md A8 and playwright.config.ts. */
-export const META_TAGS = new Set(['page', 'screenshot', 'chromium-only', 'smoke', 'slow', 'journey']);
+export const META_TAGS = new Set(['page', 'screenshot', 'chromium-only', 'smoke', 'slow', 'journey', 'infra', 'gallery']);
+/** Meta tags that mark a test as deliberately feature-less (test infrastructure, component gallery). */
+const NON_FEATURE_TAGS = new Set(['infra', 'gallery']);
 const ID_PATTERN = /^[A-Z][A-Za-z]*\d+(?:\.\d+)*$/;
 
 function parseArgs(argv) {
@@ -129,7 +131,7 @@ export function evaluate(rows, tests, { strict, mode }) {
     if (test.project === 'setup') continue;
     const key = `${test.file} › ${test.title}`;
     const idTags = test.tags.filter((tag) => !META_TAGS.has(tag));
-    if (!idTags.length) untagged.add(key);
+    if (!idTags.length && !test.tags.some((tag) => NON_FEATURE_TAGS.has(tag))) untagged.add(key);
     for (const tag of idTags) {
       if (!ids.has(tag)) {
         if (!unknownTags.has(tag)) unknownTags.set(tag, new Set());

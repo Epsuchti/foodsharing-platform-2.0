@@ -45,5 +45,9 @@
   "dev.users.orga": "Orga-Team, darf alles",
   "dev.users.other": "Weitere Person",
   "dev.gallery.reload": "Neu laden",
-  "dev.gallery.liveLanguages": "Sprachen des Servers"
+  "dev.gallery.liveLanguages": "Sprachen des Servers",
+  "dev.gallery.freq.daily": "Täglich",
+  "dev.gallery.freq.weekly": "Wöchentlich",
+  "dev.gallery.freq.never": "Nie",
+  "dev.gallery.historyReason": "Ausweis von der Botschafterin geprüft"
 }

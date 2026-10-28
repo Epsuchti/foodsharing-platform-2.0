@@ -269,6 +269,30 @@ describe('HistoryTimelineComponent', () => {
     expect(emitted[2]).toEqual({ actions: [] });
   });
 
+  it('applies the initial preset before the first load and switches presets', async () => {
+    const manual = manualSource();
+    const presets = [
+      { id: 'logins', labelKey: 'x.logins', actions: ['LOGIN', 'LOGOUT'] },
+      { id: 'changes', labelKey: 'x.changes', actions: ['SETTINGS_CHANGED'] },
+    ];
+    const { fixture, el } = await create(manual.source, { presets, initialPreset: 'logins' });
+    // exactly one load, already filtered
+    expect(manual.calls.length).toBe(1);
+    expect(manual.last().filter).toEqual({ actions: ['LOGIN', 'LOGOUT'] });
+    manual.resolve(demoPage([]));
+    await fixture.whenStable();
+    const chip = (id: string) =>
+      el.querySelector(`[data-testid="test.history.preset.${id}"]`) as HTMLButtonElement;
+    expect(chip('logins').getAttribute('aria-pressed')).toBe('true');
+    chip('changes').click();
+    await fixture.whenStable();
+    expect(manual.last().filter).toEqual({ actions: ['SETTINGS_CHANGED'] });
+    chip('all').click();
+    await fixture.whenStable();
+    expect(manual.last().filter).toEqual({ actions: [] });
+    expect(chip('all').getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('shows the export button only with an export function and hides filters in compact mode', async () => {
     const { el, fixture } = await create(() => of(demoPage(DEMO_HISTORY)));
     expect(el.querySelector('[data-testid="test.history.export"]')).toBeNull();

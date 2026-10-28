@@ -7,7 +7,8 @@ import { defineConfig, devices, type PlaywrightTestConfig, type Project } from '
  *
  * Tags: every test carries the ledger ID(s) it proves (`@A2`, `@D4.3`), see docs/conventions.md A8 and
  * scripts/feature-coverage.mjs. Meta tags: `@page` (auto axe check), `@screenshot`, `@chromium-only`
- * (CDP features such as the virtual WebAuthn authenticator; filtered out of the other browser projects).
+ * (CDP features such as the virtual WebAuthn authenticator; filtered out of the other browser projects), `@infra`
+ * (tests of the test infrastructure itself) and `@gallery` (component gallery screenshots).
  */
 const CI = !!process.env.CI;
 const CHROMIUM_ONLY = /@chromium-only/;
@@ -50,6 +51,9 @@ export default defineConfig({
   fullyParallel: false,
   retries: 0,
   forbidOnly: CI,
+  // CI never writes baselines: a missing or changed screenshot fails the run (review-m1 §1.1).
+  // Locally Playwright's default ('missing') applies; deliberate updates go through screenshots.sh --update-snapshots.
+  ...(CI ? { updateSnapshots: 'none' as const } : {}),
   timeout: 60_000,
   expect: {
     timeout: 10_000,
@@ -91,7 +95,11 @@ function screenshotProjects(): Project[] {
       name: 'screenshots-desktop',
       testMatch: SCREENS,
       dependencies: ['setup'],
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        reducedMotion: 'reduce',
+      },
     },
     {
       name: 'screenshots-mobile',

@@ -179,6 +179,14 @@
     display: block;
   }
 
+  // A loading button is busy, not unavailable: it keeps its colour (Optimus renders it disabled at 0.6 opacity,
+  // which in dark mode looked like a dead button). review-m1 round 2 #7.
+  .p-button.p-button-loading:disabled,
+  .p-button.p-button-loading.p-disabled {
+    opacity: 1;
+    cursor: progress;
+  }
+
   // Header icon buttons (language/theme menus)
   .hdr-btn {
     display: inline-flex;
@@ -306,6 +314,21 @@
       background: var(--fs-primary-soft);
       color: var(--fs-primary-strong);
       box-shadow: none;
+    }
+  }
+
+  // "Continue with Google": neutral surface + the four-colour G (Google branding), same on landing and login.
+  .fs-btn--google {
+    border-color: var(--fs-border-strong);
+    background: var(--fs-surface);
+    color: var(--fs-text);
+    box-shadow: var(--fs-shadow-sm);
+
+    &:hover:not(:disabled) {
+      border-color: var(--fs-text-muted);
+      background: var(--fs-surface-muted);
+      color: var(--fs-text);
+      box-shadow: var(--fs-shadow-sm);
     }
   }
 
