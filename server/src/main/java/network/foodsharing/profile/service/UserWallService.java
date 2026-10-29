@@ -48,7 +48,7 @@ public class UserWallService {
     @Transactional
     public PostView create(UUID userId, String body) {
         ProfilePermissionService.Context context = access.basic(userId);
-        if (!ProfileRules.mayWriteWall(context.facts().self())) {
+        if (!context.permissions().mayPostWall()) {
             throw ApiException.forbidden(ApiErrorCode.WALL_NOT_ACCESSIBLE);
         }
         if (body == null || body.isBlank()) {

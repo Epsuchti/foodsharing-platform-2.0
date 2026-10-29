@@ -152,6 +152,7 @@ public class RegionMapper {
         membership.setJoinedAt(TimeMapper.toOffset(view.membership().joinedAt()));
         detail.setMembership(membership);
         detail.setStatistics(view.statistics() == null ? null : toStatistics(view.statistics()));
+        detail.setMayCoordinateStores(view.mayCoordinateStores());
         return detail;
     }
 

@@ -22,12 +22,14 @@ public class DonationSettingsService {
     private final ConfigurationService configuration;
     private final CurrentActorService actors;
     private final HistoryService history;
+    private final DonationFrameSources frameSources;
 
     public DonationSettingsService(ConfigurationService configuration, CurrentActorService actors,
-                                   HistoryService history) {
+                                   HistoryService history, DonationFrameSources frameSources) {
         this.configuration = configuration;
         this.actors = actors;
         this.history = history;
+        this.frameSources = frameSources;
     }
 
     /** Effective settings (also for public readers such as the donation modal). */
@@ -68,6 +70,7 @@ public class DonationSettingsService {
                 : String.join(",", in.campaignPageSlugs()));
         history.record(history.event(AdminAction.DONATION_SETTINGS_CHANGED, HistoryService.SYSTEM_SUBJECT_ID)
                 .build());
+        frameSources.invalidate();
         return current();
     }
 

@@ -25,6 +25,12 @@ class SecurityHeadersTest {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Autowired
+    private network.foodsharing.admin.service.DonationFrameSources frameSources;
+
     @Test
     void everyResponseCarriesTheSecurityHeaders() throws Exception {
         String csp = mvc.perform(get("/api/public/app-info"))
@@ -38,6 +44,23 @@ class SecurityHeadersTest {
         assertThat(scriptSrc).doesNotContain("unsafe-inline").doesNotContain("unsafe-eval");
 
         mvc.perform(get("/some/spa/route")).andExpect(header().exists("Content-Security-Policy"));
+    }
+
+    @Test
+    void frameSrcAllowsTheConfiguredDonationIframeHosts() throws Exception {
+        assertThat(mvc.perform(get("/api/public/app-info")).andReturn().getResponse()
+                .getHeader("Content-Security-Policy")).contains("; frame-src 'self';");
+        jdbc.update("insert into configuration (id, version, created_at, updated_at, config_key, config_value) "
+                + "values (?, 0, current_timestamp, current_timestamp, 'donation.iframe-one-time-url', "
+                + "'https://donate.example.org/form?x=1')", java.util.UUID.randomUUID());
+        try {
+            frameSources.invalidate();
+            assertThat(mvc.perform(get("/some/spa/route")).andReturn().getResponse()
+                    .getHeader("Content-Security-Policy")).contains("; frame-src 'self' https://donate.example.org;");
+        } finally {
+            jdbc.update("delete from configuration where config_key = 'donation.iframe-one-time-url'");
+            frameSources.invalidate();
+        }
     }
 
     @Test

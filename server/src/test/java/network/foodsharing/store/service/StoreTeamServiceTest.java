@@ -292,6 +292,28 @@ class StoreTeamServiceTest {
         assertThat(StoreTeamService.distance(u, s)).isNull();
     }
 
+    @Test
+    void automatedRequestDecisionsAreSentOnBehalfOfTheStoresRegion() {
+        StoreMembership accepted = member(StoreMembershipStatus.APPLIED, false);
+        StoreMembership declined = member(StoreMembershipStatus.APPLIED, false);
+
+        assertThat(service.acceptByAutomation(STORE, accepted.getUserId(), "request-policy")).isTrue();
+        assertThat(service.declineByAutomation(STORE, declined.getUserId(), "request-policy", " Team voll ")).isTrue();
+
+        var accept = sent(NotificationType.STORE_REQUEST_AUTO_ACCEPTED);
+        assertThat(accept.senderRegionId()).isEqualTo(REGION);
+        assertThat(accept.recipientIds()).containsExactly(accepted.getUserId());
+        var decline = sent(NotificationType.STORE_REQUEST_AUTO_DECLINED);
+        assertThat(decline.senderRegionId()).isEqualTo(REGION);
+        assertThat(decline.mailTemplate()).isEqualTo("store/request-auto-declined");
+        assertThat(decline.params()).containsEntry("message", "Team voll");
+
+        // decisions of a person are not region mails
+        StoreMembership manual = member(StoreMembershipStatus.APPLIED, false);
+        service.accept(STORE, manual.getUserId(), false);
+        assertThat(sent(NotificationType.STORE_REQUEST_ACCEPTED).senderRegionId()).isNull();
+    }
+
     private StoreMembership member(StoreMembershipStatus status, boolean manager) {
         StoreMembership m = new StoreMembership();
         m.setStoreId(STORE);

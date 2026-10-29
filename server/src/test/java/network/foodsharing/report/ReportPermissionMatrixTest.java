@@ -32,6 +32,21 @@ class ReportPermissionMatrixTest {
     }
 
     @Test
+    void reasonOptionSets() {
+        assertThat(ReportRules.reasonOptions(1)).containsExactly(ReportReason.LATE, ReportReason.NO_SHOW,
+                ReportReason.CANCELLATION, ReportReason.SELLS);
+        assertThat(ReportRules.reasonOptions(2)).hasSize(20).allMatch(r -> r.name().startsWith("VIOLATED_"))
+                .startsWith(ReportReason.VIOLATED_B1_0).endsWith(ReportReason.VIOLATED_B13);
+        assertThat(ReportRules.reasonOptions(3)).hasSize(24).startsWith(ReportReason.LATE)
+                .endsWith(ReportReason.VIOLATED_B13);
+        assertThat(ReportRules.reasonOptions(0)).isEqualTo(ReportRules.reasonOptions(1));
+        assertThat(ReportRules.reasonOptions(7)).isEqualTo(ReportRules.reasonOptions(1));
+        for (int set = 0; set <= 3; set++) {
+            assertThat(ReportRules.reasonOptions(set)).doesNotContain(ReportReason.OTHER);
+        }
+    }
+
+    @Test
     void otherNeedsAReasonText() {
         assertThat(ReportRules.reasonTextValid(ReportReason.OTHER, " ")).isFalse();
         assertThat(ReportRules.reasonTextValid(ReportReason.OTHER, null)).isFalse();

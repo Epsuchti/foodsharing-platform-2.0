@@ -82,6 +82,16 @@ public class UserMapper {
         profile.setSleepFrom(user.getSleepFrom());
         profile.setSleepUntil(user.getSleepUntil());
         profile.setSleepMessage(user.getSleepMessage());
+        profile.setEmailBouncedAt(TimeMapper.toOffset(user.getEmailBouncedAt()));
+        return profile;
+    }
+
+    /** Admin view of a profile (G2): adds the archive flag and the deletion data. */
+    public UserProfile toAdminProfile(User user) {
+        UserProfile profile = toProfile(user);
+        profile.setNoAutomaticDelete(user.isNoAutomaticDelete());
+        profile.setDeletedAt(TimeMapper.toOffset(user.getDeletedAt()));
+        profile.setDeleteReason(user.getDeleteReason());
         return profile;
     }
 

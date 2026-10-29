@@ -36,6 +36,12 @@ public class UserNoteService {
         return repository.save(note);
     }
 
+    /** Number of admin notes (A7) about a user; no permission check (the caller shows it to administrators only). */
+    @Transactional(readOnly = true)
+    public int countAdminNotes(UUID userId) {
+        return (int) repository.countByUserIdAndKind(userId, UserNoteKind.ADMIN_NOTE);
+    }
+
     @Transactional(readOnly = true)
     public List<UserNote> list(UUID userId, UserNoteKind kind) {
         return kind == null ? repository.findByUserIdOrderByCreatedAtDesc(userId)

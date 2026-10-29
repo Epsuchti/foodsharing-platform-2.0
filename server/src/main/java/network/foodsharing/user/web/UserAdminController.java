@@ -63,18 +63,18 @@ public class UserAdminController implements AdminUsersApi {
 
     @Override
     public ResponseEntity<UserProfile> getUserProfileAsAdmin(UUID userId) {
-        return ResponseEntity.ok(mapper.toProfile(adminService.getForAdmin(userId)));
+        return ResponseEntity.ok(mapper.toAdminProfile(adminService.getForAdmin(userId)));
     }
 
     @Override
     public ResponseEntity<UserProfile> updateUserProfileAsAdmin(UUID userId, AdminUserProfileUpdate update) {
-        return ResponseEntity.ok(mapper.toProfile(
+        return ResponseEntity.ok(mapper.toAdminProfile(
                 userService.updateProfileAsAdmin(userId, mapper.toChange(update), update.getReason())));
     }
 
     @Override
     public ResponseEntity<UserProfile> setUserActive(UUID userId, ActiveUpdate update) {
-        return ResponseEntity.ok(mapper.toProfile(
+        return ResponseEntity.ok(mapper.toAdminProfile(
                 userService.setActive(userId, Boolean.TRUE.equals(update.getActive()), update.getReason())));
     }
 

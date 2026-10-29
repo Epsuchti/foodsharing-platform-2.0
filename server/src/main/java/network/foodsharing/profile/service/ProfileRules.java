@@ -21,7 +21,7 @@ public final class ProfileRules {
 
     public record Permissions(boolean mayEditProfile, boolean maySeeNotes, boolean mayReport,
                               boolean maySeeHistory, boolean maySeeCommitments, boolean mayAdminister,
-                              boolean maySeePickups, boolean maySeeStores) {
+                              boolean maySeePickups, boolean maySeeStores, boolean mayPostWall) {
     }
 
     private ProfileRules() {
@@ -37,7 +37,8 @@ public final class ProfileRules {
                 f.self() || admin || f.managesStoreOfUser(),
                 admin,
                 f.self() || admin,
-                f.self() || admin || f.shareStoreTeam());
+                f.self() || admin || f.shareStoreTeam(),
+                mayWriteWall(f.self()));
     }
 
     /**

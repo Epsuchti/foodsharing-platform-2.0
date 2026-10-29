@@ -210,6 +210,9 @@ RegionDetail:
       $ref: './regions.yaml#/RegionMembershipState'
     statistics:
       $ref: './regions.yaml#/RegionStatistics'
+    mayCoordinateStores:
+      type: boolean
+      description: 'The actor coordinates the stores of this region (ORGA; else the admins of its STORES_COORDINATION group; else ambassadors of the region or an ancestor), the rule of the stores CSV import.'
 
 HomeRegionUpdate:
   type: object

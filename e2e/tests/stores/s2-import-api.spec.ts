@@ -67,6 +67,11 @@ test.describe('orga', () => {
     // only the store coordination of the region may import
     const denied = await store.withRole('foodsaver', (client) => client.post(url, { csv, dryRun: true }));
     expect(denied.status()).toBe(403);
+    // the region page exposes the same rule
+    expect((await api.getJson<{ mayCoordinateStores?: boolean }>(`/api/regions/${WINTERTHUR}`)).mayCoordinateStores).toBe(true);
+    const foodsaverRegion = await store.withRole('foodsaver', (client) =>
+      client.getJson<{ mayCoordinateStores?: boolean }>(`/api/regions/${WINTERTHUR}`));
+    expect(foodsaverRegion.mayCoordinateStores).toBe(false);
     expect((await api.post(url, { csv: '', dryRun: true })).status()).toBe(400);
   });
 

@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  * delete and the reminders. Every change records {@link ReportAction} history (the report log, D10.3).
  */
 @Service
-public class ReportService {
+public class ReportService implements network.foodsharing.user.service.UserViolationCounter {
 
     static final String MAIL_CONFIRMATION = "report/confirmation";
     public static final int MAX_PAGE_SIZE = 100;
@@ -163,6 +163,39 @@ public class ReportService {
         return saved;
     }
 
+    /** What the report dialog offers; {@code denial} = why {@link #create} would refuse (null = it would not). */
+    public record ReportOptionsView(UUID regionId, List<ReportReason> reasons, boolean otherAllowed,
+                                    ApiErrorCode denial) {
+    }
+
+    /**
+     * Reason options of the region a report about {@code userId} would go to (same resolution as {@link #create}; the
+     * actor need not be a member there) and whether the actor may file it.
+     *
+     * @throws ApiException 404 USER_NOT_FOUND / STORE_NOT_FOUND
+     */
+    @Transactional(readOnly = true)
+    public ReportOptionsView options(UUID userId, UUID storeId) {
+        SessionPrincipal actor = actors.requirePrincipal();
+        User reporter = users.requireActive(actor.userId());
+        User reported = users.findActive(userId)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
+        UUID storeRegion = null;
+        if (storeId != null) {
+            storeRegion = stores.findLive(storeId)
+                    .orElseThrow(() -> ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND)).getRegionId();
+        }
+        UUID regionId = ReportRules.reportRegion(storeRegion, reported.getHomeRegionId());
+        ApiErrorCode denial = ReportRules.reportDenial(access.reporterFacts(reporter, reported));
+        if (regionId == null) {
+            return new ReportOptionsView(null, ReportRules.reasonOptions(1), false,
+                    denial != null ? denial : ApiErrorCode.REPORT_BUTTON_DISABLED);
+        }
+        var regionOptions = access.regionOptions(regionId);
+        return new ReportOptionsView(regionId, ReportRules.reasonOptions(regionOptions.reportReasonOptions()),
+                regionOptions.reportReasonOther(), denial);
+    }
+
     // ------------------------------------------------------------------------------------------ handling
 
     /** @throws ApiException 404 REGION_NOT_FOUND, 403 REPORTS_NOT_ACCESSIBLE */
@@ -190,6 +223,23 @@ public class ReportService {
         return reports.findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId).stream()
                 .filter(r -> regionAccess.computeIfAbsent(r.getRegionId(), id -> access.mayHandle(actor, id)))
                 .toList();
+    }
+
+    /**
+     * Profile violation count: the reports about {@code userId} that {@link #listForUser} would show the actor, or
+     * empty when the actor may not see the user's reports at all.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.OptionalInt visibleReportCount(UUID userId) {
+        SessionPrincipal actor = actors.requirePrincipal();
+        if (!access.mayAccessReportsForUser(actor, userId)) {
+            return java.util.OptionalInt.empty();
+        }
+        Map<UUID, Boolean> regionAccess = new HashMap<>();
+        return java.util.OptionalInt.of((int) reports.findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId)
+                .stream().filter(r -> regionAccess.computeIfAbsent(r.getRegionId(), id -> access.mayHandle(actor, id)))
+                .count());
     }
 
     /** @throws ApiException 404 REPORT_NOT_FOUND, 403 REPORTS_NOT_ACCESSIBLE */

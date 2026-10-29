@@ -10,6 +10,7 @@ import network.foodsharing.region.domain.Region;
 import network.foodsharing.region.service.RegionPermissionResolver;
 import network.foodsharing.region.service.RegionReadService;
 import network.foodsharing.region.service.RegionService;
+import network.foodsharing.region.service.StoreCoordinationRule;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.security.WorkingGroupFunction;
@@ -90,16 +91,13 @@ public class StorePermissionService {
         if (actor == null) {
             return false;
         }
-        if (permissions.isOrga(actor)) {
-            return true;
-        }
-        Optional<RegionReadService.FunctionGroup> coordination = regionReads.functionGroups(regionId).stream()
-                .filter(g -> g.function() == WorkingGroupFunction.STORES_COORDINATION).findFirst();
-        if (coordination.isPresent()) {
-            return resolver.isAdmin(actor.userId(), coordination.get().group().getId());
-        }
-        return regions.ancestors(regionId).stream().map(Region::getId)
-                .anyMatch(id -> resolver.isAdmin(actor.userId(), id));
+        boolean orga = permissions.isOrga(actor);
+        UUID coordinationGroup = orga ? null : regionReads.functionGroups(regionId).stream()
+                .filter(g -> g.function() == WorkingGroupFunction.STORES_COORDINATION)
+                .map(g -> g.group().getId()).findFirst().orElse(null);
+        return StoreCoordinationRule.mayCoordinate(orga, coordinationGroup,
+                () -> regions.ancestors(regionId).stream().map(Region::getId).toList(),
+                id -> resolver.isAdmin(actor.userId(), id));
     }
 
     public boolean isKam(SessionPrincipal actor, Store store) {

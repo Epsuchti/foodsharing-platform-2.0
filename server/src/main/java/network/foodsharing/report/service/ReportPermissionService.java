@@ -99,6 +99,11 @@ public class ReportPermissionService {
                 !self && reportButtonInCommonRegion(reporter.getId(), reported.getId()));
     }
 
+    /** Options of the report's region (no membership check: the report dialog reads them, G3). */
+    public RegionOptionsService.Options regionOptions(UUID regionId) {
+        return options.read(regionId);
+    }
+
     private boolean reportButtonInCommonRegion(UUID reporterId, UUID reportedId) {
         Set<UUID> common = new HashSet<>();
         memberships.units(reporterId).stream().filter(MembershipService.Unit::member)

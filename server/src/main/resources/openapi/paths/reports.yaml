@@ -161,6 +161,45 @@
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
 
+/api/users/{userId}/report-options:
+  get:
+    tags: [reports]
+    operationId: getReportOptions
+    summary: 'Reason options of the region a report about this user would go to (the store''s region when storeId is given, else the user''s home region), and whether the actor may file it.'
+    description: 'The reporter need not be a member of that region. buttonEnabled follows the same rule as createReport; denialCode says why it is false.'
+    x-permission: signed in
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: query
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/reports.yaml#/ReportOptions'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: USER_NOT_FOUND or STORE_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
 /api/reports/{reportId}:
   get:
     tags: [reports]

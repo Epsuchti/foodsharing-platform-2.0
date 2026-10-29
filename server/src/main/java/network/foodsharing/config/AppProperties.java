@@ -603,6 +603,11 @@ public class AppProperties {
             private String imgSrc = "https://tile.openstreetmap.org";
             /** Extra connect-src sources. */
             private String connectSrc = "";
+            /**
+             * Extra frame-src sources (space separated https URLs or origins); the origins of the
+             * {@code donation.iframe-*} configuration are added at runtime (G4).
+             */
+            private String frameSrc = "";
         }
     }
 }
