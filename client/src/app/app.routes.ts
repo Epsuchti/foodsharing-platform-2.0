@@ -164,6 +164,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/profiles/profiles.routes').then((m) => m.PROFILES_ROUTES),
   },
   {
+    path: 'baskets',
+    loadChildren: () => import('./features/baskets/baskets.routes').then((m) => m.BASKETS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>
