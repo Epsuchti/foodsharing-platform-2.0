@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
-import { afterEach } from 'vitest';
+import { afterEach, beforeAll } from 'vitest';
 
 import { ApiErrorCode } from '../../api';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
@@ -57,6 +57,11 @@ describe('region automation page', () => {
   let harness: RouterTestingHarness;
   const q = (selector: string) => harness.routeNativeElement!.querySelector(selector);
   const settle = () => harness.fixture.whenStable();
+
+  // Warm the lazy route chunks once, so the first test does not pay the cold import on a loaded machine.
+  beforeAll(async () => {
+    await Promise.all([import('./pages/region-automation-page.component'), import('./pages/region-sections')]);
+  });
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
