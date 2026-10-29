@@ -398,5 +398,8 @@
   "nav.newsletters": "Newsletter",
   "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Solo i responsabili del negozio e i ruoli superiori possono essere membri della casella di posta.",
   "errors.MESSAGE_RATE_LIMITED": "Stai inviando troppi messaggi. Attendi un momento.",
-  "errors.BASKET_REQUEST_RATE_LIMITED": "Hai richiesto troppi cesti alimentari nell'ultima ora. Riprova più tardi."
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Hai richiesto troppi cesti alimentari nell'ultima ora. Riprova più tardi.",
+  "nav.events": "Eventi",
+  "nav.polls": "Votazioni",
+  "nav.surveys": "Sondaggi"
 }

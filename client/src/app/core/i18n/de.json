@@ -398,5 +398,8 @@
   "nav.newsletters": "Newsletter",
   "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Nur Betriebsverantwortliche und höhere Rollen können Postfach-Mitglieder sein.",
   "errors.MESSAGE_RATE_LIMITED": "Du sendest zu viele Nachrichten. Bitte warte einen Moment.",
-  "errors.BASKET_REQUEST_RATE_LIMITED": "Du hast in der letzten Stunde zu viele Essenskörbe angefragt. Bitte versuche es später wieder."
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Du hast in der letzten Stunde zu viele Essenskörbe angefragt. Bitte versuche es später wieder.",
+  "nav.events": "Termine",
+  "nav.polls": "Abstimmungen",
+  "nav.surveys": "Umfragen"
 }

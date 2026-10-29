@@ -398,5 +398,8 @@
   "nav.newsletters": "Newsletters",
   "errors.MAILBOX_MEMBER_NOT_ELIGIBLE": "Seuls les responsables de magasin et les rôles supérieurs peuvent être membres de la boîte mail.",
   "errors.MESSAGE_RATE_LIMITED": "Tu envoies trop de messages. Merci de patienter un instant.",
-  "errors.BASKET_REQUEST_RATE_LIMITED": "Tu as demandé trop de paniers au cours de la dernière heure. Merci de réessayer plus tard."
+  "errors.BASKET_REQUEST_RATE_LIMITED": "Tu as demandé trop de paniers au cours de la dernière heure. Merci de réessayer plus tard.",
+  "nav.events": "Événements",
+  "nav.polls": "Votes",
+  "nav.surveys": "Sondages"
 }

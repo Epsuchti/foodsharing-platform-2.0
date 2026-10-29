@@ -356,6 +356,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
       ctx.isAuthenticated &&
       (ctx.hasRole(Role.Orga) || (ctx.session?.units ?? []).some((unit) => unit.admin)),
   },
+  // --- M5 F5/F6: events, polls, surveys ---
+  {
+    id: 'events',
+    labelKey: 'nav.events',
+    icon: 'pi pi-calendar',
+    route: '/events/mine',
+    visible: loggedIn,
+  },
 ];
 
 export function visibleNavItems(

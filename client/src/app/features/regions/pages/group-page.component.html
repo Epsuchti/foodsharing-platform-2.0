@@ -44,6 +44,7 @@
         }
         @if (g.membership.member) {
           <a class="p-button p-button-outlined p-button-secondary" [routerLink]="['/regions', g.id, 'forum']" data-testid="regions.group.forum"><i class="pi pi-comments" aria-hidden="true"></i> {{ 'regions.later.forum' | t }}</a>
+          <a class="p-button p-button-outlined p-button-secondary" [routerLink]="['/regions', g.id, 'events']" data-testid="regions.group.events"><i class="pi pi-calendar" aria-hidden="true"></i> {{ 'regions.later.events' | t }}</a>
         }
       </div>
     </header>
