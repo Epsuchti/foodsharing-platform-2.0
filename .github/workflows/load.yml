@@ -1,0 +1,44 @@
+name: Load test
+
+# D17.1: e2e/load/run.sh (grafana/k6 in Docker against the jar on Postgres 17) on demand and weekly; off the
+# PR path because it takes ~8 minutes and the shared runners make the numbers noisy. The k6 summary and the
+# generated docs/load-test.md are uploaded as artifacts; a failed threshold fails the job.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: load-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  load:
+    name: k6 load test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      # the frontend-maven-plugin installs its own Node for the client build (as in ci.yml's build job)
+      - name: Build the jar with the client
+        working-directory: server
+        run: ./mvnw -B -ntp -q clean package -DskipTests
+      - name: Run the load test
+        run: e2e/load/run.sh
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test
+          path: |
+            e2e/load/results/
+            docs/load-test.md
+          retention-days: 30

@@ -58,6 +58,14 @@ class QueryCountIT {
         "BOT|/api/events/mine|6",
         "BIEB|/api/stores/" + STORE_S01 + "/team|19",
         "BIEB|/api/users/me/pickups|20",
+        // D17.1 load-test paths (per-kind loops of the journey/session are constant, not per row)
+        "FOODSAVER|/api/auth/session|50",
+        "FOODSAVER|/api/onboarding/journey|40",
+        "FOODSAVER|/api/activity|30",
+        "FOODSAVER|/api/users/me/stores|13",
+        "FOODSAVER|/api/map/markers/stores|3",
+        "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|26",
+        "FOODSAVER|/api/search?q=brot|4",
     })
     void listEndpointStaysWithinItsStatementBudget(SeedUsers user, String path, long budget) throws Exception {
         Cookie session = login(user);
