@@ -7,19 +7,24 @@ import network.foodsharing.user.service.AccountDeletionContributor;
 import network.foodsharing.user.service.DataExportContributor;
 import org.springframework.stereotype.Component;
 
-/** Account deletion / export of mailbox memberships (A40); the personal mailbox link is cleared on the user row. */
+/**
+ * Account deletion / export of mailbox memberships (A40); the personal mailbox is deleted with its mails (D17.3).
+ */
 @Component
 public class MailboxAccountData implements AccountDeletionContributor, DataExportContributor {
 
     private final EntityManager em;
+    private final MailboxService mailboxes;
 
-    public MailboxAccountData(EntityManager em) {
+    public MailboxAccountData(EntityManager em, MailboxService mailboxes) {
         this.em = em;
+        this.mailboxes = mailboxes;
     }
 
     @Override
     public void onAccountDeleted(UUID userId) {
         UserRows.delete(em, "MailboxMember", "userId", userId);
+        mailboxes.deletePersonalMailbox(userId);
     }
 
     @Override

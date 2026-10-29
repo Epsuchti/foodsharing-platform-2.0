@@ -22,4 +22,12 @@ public interface HistoryEntryRepository extends JpaRepository<HistoryEntry, UUID
     @Query("delete from HistoryEntry e where e.subjectType = :subjectType and e.action = :action and e.occurredAt < :before")
     int deleteOlderThan(@Param("subjectType") SubjectType subjectType, @Param("action") String action,
                         @Param("before") Instant before);
+
+    /** Clears the values of an action's entries about a user (account deletion, ACCOUNT_LIFETIME retention). */
+    @Modifying
+    @Query("update HistoryEntry e set e.oldValue = null, e.newValue = null, e.reason = null, e.metadata = null "
+            + "where e.subjectType = :subjectType and e.action = :action "
+            + "and (e.subjectId = :userId or e.secondarySubjectId = :userId)")
+    int anonymise(@Param("subjectType") SubjectType subjectType, @Param("action") String action,
+                  @Param("userId") java.util.UUID userId);
 }

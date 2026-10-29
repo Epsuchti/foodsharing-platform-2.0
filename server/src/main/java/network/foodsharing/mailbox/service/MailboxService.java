@@ -193,6 +193,33 @@ public class MailboxService {
         if (count > 0 && !force) {
             throw ApiException.conflict(ApiErrorCode.MAILBOX_NOT_EMPTY);
         }
+        remove(mailbox);
+        record(MailboxAction.MAILBOX_DELETED, mailbox)
+                .metadata(Map.of("emailName", mailbox.getEmailName(), "mails", count)).buildAndRecord();
+        mailboxes.delete(mailbox);
+    }
+
+    /**
+     * Account deletion (D17.3): the personal mailbox of the user goes with its mails and attachments (part of the
+     * account deletion, records MAILBOX_DELETED). @return whether there was one
+     */
+    @Transactional
+    public boolean deletePersonalMailbox(UUID userId) {
+        Mailbox mailbox = mailboxes.findByOwnerTypeAndOwnerId(MailboxOwnerType.USER, userId).orElse(null);
+        if (mailbox == null) {
+            return false;
+        }
+        long count = mails.countByMailboxId(mailbox.getId());
+        remove(mailbox);
+        record(MailboxAction.MAILBOX_DELETED, mailbox)
+                .metadata(Map.of("emailName", mailbox.getEmailName(), "mails", count, "accountDeleted", true))
+                .buildAndRecord();
+        mailboxes.delete(mailbox);
+        return true;
+    }
+
+    private void remove(Mailbox mailbox) {
+        UUID mailboxId = mailbox.getId();
         for (MailMessage mail : mails.findByMailboxId(mailboxId)) {
             List<MailAttachment> files = attachments.findByMailIdOrderByCreatedAtAsc(mail.getId());
             attachmentStore.deleteAll(files);
@@ -202,9 +229,6 @@ public class MailboxService {
         if (mailbox.getOwnerType() == MailboxOwnerType.USER) {
             users.setMailboxId(mailbox.getOwnerId(), null);
         }
-        record(MailboxAction.MAILBOX_DELETED, mailbox)
-                .metadata(Map.of("emailName", mailbox.getEmailName(), "mails", count)).buildAndRecord();
-        mailboxes.delete(mailbox);
     }
 
     /** One row of the ORGA mailbox listing. */

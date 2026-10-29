@@ -11,7 +11,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
 import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.List;
@@ -19,15 +25,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import network.foodsharing.testsupport.DataInventory;
+import network.foodsharing.testsupport.DataInventory.OnDeletion;
 import network.foodsharing.testsupport.SeedUsers;
 import network.foodsharing.user.service.AccountDeletionContributor;
 import network.foodsharing.user.service.DataExportContributor;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,6 +49,8 @@ import org.springframework.test.web.servlet.MockMvc;
         "app.scheduling.enabled=false"})
 @AutoConfigureMockMvc
 @ActiveProfiles("e2e")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AccountDeletionIT {
 
     @Autowired
@@ -78,6 +92,11 @@ class AccountDeletionIT {
                 "surveys.json", "quiz.json", "onboarding.json", "verification.json", "intropickups.json",
                 "automation.json", "baskets.json", "reports.json", "achievements.json")
                 .anyMatch(name -> name.startsWith("uploads/") && name.endsWith("avatar-bieb.png"));
+        // every personal-data module of the data inventory (D17.3) appears in the zip
+        Set<String> inventoryFiles = DataInventory.rows().stream().map(DataInventory.Row::export)
+                .filter(file -> file != null && file.endsWith(".json")).collect(Collectors.toCollection(java.util.TreeSet::new));
+        assertThat(inventoryFiles).hasSizeGreaterThan(20);
+        assertThat(names).containsAll(inventoryFiles);
         mvc.perform(post("/api/users/me/export").with(csrf()).cookie(bieb)).andExpect(status().isTooManyRequests());
     }
 
@@ -173,5 +192,102 @@ class AccountDeletionIT {
         mvc.perform(delete(url).with(csrf()).cookie(login(SeedUsers.ORGA))).andExpect(status().isNotFound());
         assertThat(jdbc.queryForObject("select deleted_by from user_archive where user_id = ?", String.class,
                 SeedUsers.SLEEPY.id())).isEqualTo(SeedUsers.ORGA.id().toString());
+    }
+
+    /**
+     * D17.3: deletes every seed account but ORGA and walks every column that references a user (foreign keys to
+     * {@code user_account} plus id columns by naming convention, {@link DataInventory#userReferences}). Each one is
+     * classified in {@code docs/privacy/data-inventory.md}; every row that pointed at a deleted account must end as
+     * documented: DELETED = row gone, ANONYMISED = row kept with another value, KEPT = row unchanged. A row removed
+     * because another of its columns is DELETED does not count against a KEPT column.
+     */
+    @Test
+    @Order(Integer.MAX_VALUE)
+    void deletionHandlesEveryUserReferenceAsDocumented() throws Exception {
+        Map<String, Set<OnDeletion>> documented = new TreeMap<>();
+        DataInventory.rows().stream().filter(row -> !row.onDeletion().isEmpty())
+                .forEach(row -> documented.put(row.key(), row.onDeletion()));
+        Set<String> references = DataInventory.userReferences(jdbc);
+        assertThat(documented.keySet()).as("user references classified in %s", DataInventory.FILE)
+                .containsAll(references);
+        Map<String, List<String>> byTable = new TreeMap<>();
+        references.forEach(ref -> byTable.computeIfAbsent(ref.substring(0, ref.indexOf('.')), t -> new ArrayList<>())
+                .add(ref.substring(ref.indexOf('.') + 1)));
+
+        List<UUID> victims = Arrays.stream(SeedUsers.values()).filter(user -> user != SeedUsers.ORGA)
+                .map(SeedUsers::id).filter(id -> jdbc.queryForObject("select deleted_at from user_account where id = ?",
+                        java.sql.Timestamp.class, id) == null).toList();
+        String in = victims.stream().map(id -> "'" + id + "'").collect(Collectors.joining(","));
+        // table -> pk -> column -> victim the column pointed at
+        Map<String, Map<Object, Map<String, String>>> before = new TreeMap<>();
+        Map<String, Integer> counts = new TreeMap<>();
+        for (var table : byTable.entrySet()) {
+            String pk = DataInventory.primaryKey(jdbc, table.getKey());
+            for (String column : table.getValue()) {
+                counts.put(table.getKey() + "." + column, jdbc.queryForObject("select count(*) from " + table.getKey()
+                        + " where " + column + " in (" + in + ")", Integer.class));
+                if (pk != null && !pk.equals(column)) {
+                    jdbc.queryForList("select " + pk + " p, " + column + " c from " + table.getKey() + " where "
+                            + column + " in (" + in + ")").forEach(row -> before.computeIfAbsent(table.getKey(),
+                            t -> new LinkedHashMap<>()).computeIfAbsent(row.get("p"), p -> new TreeMap<>())
+                            .put(column, String.valueOf(row.get("c"))));
+                }
+            }
+        }
+
+        Cookie orga = login(SeedUsers.ORGA);
+        for (UUID victim : victims) {
+            mvc.perform(delete("/api/admin/users/" + victim).with(csrf()).cookie(orga)).andExpect(status().isNoContent());
+        }
+
+        Map<String, Set<OnDeletion>> observed = new TreeMap<>();
+        references.forEach(ref -> observed.put(ref, new java.util.TreeSet<>()));
+        for (var table : byTable.entrySet()) {
+            String pk = DataInventory.primaryKey(jdbc, table.getKey());
+            for (var row : before.getOrDefault(table.getKey(), Map.of()).entrySet()) {
+                List<Map<String, Object>> now = jdbc.queryForList("select * from " + table.getKey() + " where " + pk
+                        + " = ?", row.getKey());
+                for (var ref : row.getValue().entrySet()) {
+                    String key = table.getKey() + "." + ref.getKey();
+                    if (now.isEmpty()) {
+                        boolean explained = row.getValue().keySet().stream().anyMatch(other -> !other.equals(ref.getKey())
+                                && documented.getOrDefault(table.getKey() + "." + other, Set.of())
+                                .contains(OnDeletion.DELETED));
+                        if (!explained || documented.getOrDefault(key, Set.of()).contains(OnDeletion.DELETED)) {
+                            observed.get(key).add(OnDeletion.DELETED);
+                        }
+                    } else {
+                        observed.get(key).add(ref.getValue().equals(String.valueOf(now.getFirst().get(ref.getKey())))
+                                ? OnDeletion.KEPT : OnDeletion.ANONYMISED);
+                    }
+                }
+            }
+            if (pk == null) {
+                for (String column : table.getValue()) {
+                    String key = table.getKey() + "." + column;
+                    int after = jdbc.queryForObject("select count(*) from " + table.getKey() + " where " + column
+                            + " in (" + in + ")", Integer.class);
+                    if (counts.get(key) > 0) {
+                        observed.get(key).add(after == 0 ? OnDeletion.DELETED : OnDeletion.KEPT);
+                    }
+                }
+            }
+        }
+        List<String> report = new ArrayList<>();
+        observed.forEach((ref, outcomes) -> report.add(ref + " documented=" + documented.get(ref) + " observed="
+                + outcomes + " rows=" + counts.get(ref)));
+        Files.createDirectories(Path.of("target", "privacy"));
+        Files.write(Path.of("target", "privacy", "deletion-walk.txt"), report);
+
+        observed.forEach((ref, outcomes) -> assertThat(documented.get(ref)).as(ref).containsAll(outcomes));
+        // the walk only means something with data: most references have rows of a deleted seed account
+        assertThat(counts.values().stream().filter(count -> count > 0).count()).isGreaterThan(references.size() / 2);
+        // baskets keep no contact data or text of a deleted owner
+        assertThat(jdbc.queryForObject("select count(*) from basket where owner_id in (" + in + ") and (phone is not null "
+                + "or mobile is not null or description <> '')", Integer.class)).isZero();
+        // ACCOUNT_LIFETIME history about a deleted account keeps no values (plan §10.1)
+        assertThat(jdbc.queryForObject("select count(*) from history_entry where subject_type = 'USER' and subject_id in ("
+                + in + ") and action = 'PHONE_CHANGED' and (old_value is not null or new_value is not null)",
+                Integer.class)).isZero();
     }
 }

@@ -94,4 +94,25 @@ final class ContentContributors {
                     "publishedAt", "createdAt", "deletedAt");
         }
     }
+
+    /** Consents to the legal documents (D17.3): kept on account deletion as proof, part of the export. */
+    @Component
+    static class LegalExport implements DataExportContributor {
+
+        private final EntityManager em;
+
+        LegalExport(EntityManager em) {
+            this.em = em;
+        }
+
+        @Override
+        public String section() {
+            return "legalConsents";
+        }
+
+        @Override
+        public Object export(UUID userId) {
+            return UserRows.read(em, "LegalAcceptance", "userId", userId, "kind", "documentVersion", "acceptedAt");
+        }
+    }
 }

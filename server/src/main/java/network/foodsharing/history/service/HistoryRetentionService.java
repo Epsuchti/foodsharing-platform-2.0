@@ -5,7 +5,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.UUID;
 import network.foodsharing.history.HistoryAction;
+import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.RetentionPolicy;
 import network.foodsharing.history.repository.HistoryEntryRepository;
 import org.slf4j.Logger;
@@ -15,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Deletes entries past their action's retention ({@link RetentionPolicy#DAYS_90}, {@link RetentionPolicy#YEARS_2}).
- * FOREVER and ACCOUNT_LIFETIME entries are never deleted here (account deletion anonymises them, milestone 6).
+ * FOREVER and ACCOUNT_LIFETIME entries are never deleted here; account deletion anonymises the ACCOUNT_LIFETIME
+ * entries about the user ({@link #anonymiseAccountLifetime}).
  */
 @Service
 public class HistoryRetentionService {
@@ -47,6 +50,22 @@ public class HistoryRetentionService {
             log.info("History retention deleted {} entries", deleted);
         }
         return deleted;
+    }
+
+    /**
+     * Account deletion: entries of {@link RetentionPolicy#ACCOUNT_LIFETIME} actions whose subject or secondary
+     * subject is the user lose their values, reason and metadata (action, time and actor stay). @return entries changed
+     */
+    @Transactional
+    @NoHistory(reason = "part of the account deletion, which records UserAction.ACCOUNT_DELETED")
+    public int anonymiseAccountLifetime(UUID userId) {
+        int changed = 0;
+        for (HistoryAction action : registry.all()) {
+            if (action.retention() == RetentionPolicy.ACCOUNT_LIFETIME) {
+                changed += repository.anonymise(action.subjectType(), action.code(), userId);
+            }
+        }
+        return changed;
     }
 
     static Optional<Duration> keepFor(RetentionPolicy policy) {
