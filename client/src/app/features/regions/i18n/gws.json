@@ -288,5 +288,17 @@
   "regions.public.map": "Charte",
   "regions.public.contact": "Kontakt",
   "regions.public.noContact": "No kei Kontaktaagabe.",
-  "regions.public.children": "Bezirk drin"
+  "regions.public.children": "Bezirk drin",
+  "regions.later.resources": "Ressource",
+  "regions.later.achievements": "Uuszeichnige",
+  "regions.statistics.monthly": "Abholige vo de letschte {months} Mönet",
+  "regions.statistics.metric": "Kennzahl",
+  "regions.statistics.metric.pickups": "Abholige",
+  "regions.statistics.metric.kg": "Kilo",
+  "regions.statistics.chart.pickups": "Abholige pro Monet",
+  "regions.statistics.chart.kg": "Gretteti Kilo pro Monet",
+  "regions.statistics.noPickups": "No kei Abholige erfasst",
+  "regions.statistics.onlyHomeRegion": "Nur Mitglieder mit däm Stammbezirk",
+  "regions.statistics.onlyHomeRegionHint": "Gilt für Gschlächt und Altersgruppe.",
+  "regions.statistics.noMembers": "Kei Mitglieder"
 }

@@ -26,5 +26,22 @@
   "dashboard.page.admin.text": "Bientôt, tu géreras ici les membres, la vérification et les nouveaux·elles de ta région.",
   "dashboard.page.journey.eyebrow": "Ta prochaine étape",
   "dashboard.page.journey.title": "Ton parcours",
-  "dashboard.page.journey.open": "Voir tout le parcours"
+  "dashboard.page.journey.open": "Voir tout le parcours",
+  "dashboard.activity.title": "Quoi de neuf",
+  "dashboard.activity.filterLabel": "Domaines affichés",
+  "dashboard.activity.empty": "Rien de neuf pour l'instant",
+  "dashboard.activity.emptyHint": "Les messages de tes forums, commerces, boîtes mail, événements et points de partage apparaissent ici.",
+  "dashboard.activity.loadMore": "Charger plus",
+  "dashboard.activity.type.FORUM": "Forum",
+  "dashboard.activity.type.STORE_WALL": "Commerces",
+  "dashboard.activity.type.MAILBOX": "Boîtes mail",
+  "dashboard.activity.type.EVENT_WALL": "Événements",
+  "dashboard.activity.type.FSP_WALL": "Points de partage",
+  "dashboard.activity.type.BUDDY_WALL": "Connaissances",
+  "dashboard.baskets.title": "Paniers près de chez toi",
+  "dashboard.baskets.empty": "Aucun panier dans un rayon de {km} km.",
+  "dashboard.baskets.noPosition": "Ton profil n'a pas encore d'adresse – ajoute-la pour voir les paniers près de chez toi.",
+  "dashboard.baskets.addAddress": "Ajouter ton adresse",
+  "dashboard.baskets.all": "Tous les paniers",
+  "dashboard.baskets.offer": "Proposer un panier"
 }

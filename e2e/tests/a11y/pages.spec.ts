@@ -65,6 +65,12 @@ const ROUTES: RouteCase[] = [
   { path: '/food-share-points/00000049-0001-4000-8000-000000000005', role: 'bot', ready: 'foodSharePoints.detail.activate', consent: true },
   { path: '/food-share-points/new?regionId=00000010-0001-4000-8000-000000000040', role: 'foodsaver', ready: 'foodSharePoints.form' },
   { path: '/food-share-points/mine', role: 'foodsaver', ready: 'foodSharePoints.mine.list' },
+  // M6 map, dashboard feed, region statistics (plan-m7 Q7)
+  { path: '/map', role: null, ready: 'map.page.layers' },
+  { path: '/map', role: 'foodsaver', ready: 'map.page.storeFilter' },
+  { path: '/dashboard', role: 'bot', ready: 'dashboard.activity.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/statistics', role: 'foodsaver', ready: 'regions.statistics.genderList' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/wall', role: 'foodsaver', ready: 'regions.later.empty' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

@@ -13,6 +13,8 @@ import { MyNextPickupsCardComponent } from '../../pickups/components/my-next-pic
 import { PushOptInCardComponent } from '../../notifications/components/push-opt-in-card.component';
 import { JourneyLoader } from '../../onboarding/onboarding.resource';
 import { BounceBannerComponent } from '../../account/components/bounce-banner.component';
+import { ActivityFeedCardComponent } from '../components/activity-feed-card.component';
+import { NearbyBasketsCardComponent } from '../components/nearby-baskets-card.component';
 
 /** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
 export interface DashboardNextStep {
@@ -40,13 +42,17 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
   }
 }
 
-/** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
+/**
+ * Dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2), quick links, the
+ * activity feed and the nearest food baskets (A19, plan-m7 Q7).
+ */
 @Component({
   selector: 'fs-dashboard-page',
-  imports: [...DATA_STATE_IMPORTS, BounceBannerComponent, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent, PushOptInCardComponent],
+  imports: [...DATA_STATE_IMPORTS, ActivityFeedCardComponent, BounceBannerComponent, NearbyBasketsCardComponent, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent, PushOptInCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
+      <div class="main">
       <section class="welcome" data-testid="dashboard.page.welcome">
         <fs-user-avatar
           [name]="user.displayName"
@@ -76,7 +82,6 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
         </div>
       </section>
 
-      <div class="grid">
         @defer (on idle) {
           <fs-push-opt-in-card />
         }
@@ -132,6 +137,10 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
             <p>{{ 'dashboard.page.admin.text' | t }}</p>
           </section>
         }
+        <!-- A19: activity of my forums, store walls, mailboxes, events, FSPs and buddies -->
+        <fs-activity-feed-card />
+      </div>
+      <div class="side">
         <nav class="links" [attr.aria-label]="'dashboard.page.quickLinks' | t">
           <a class="link" routerLink="/account/sessions" data-testid="dashboard.page.sessionsLink">
             <i class="pi pi-desktop" aria-hidden="true"></i>
@@ -158,6 +167,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
             <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
           </a>
         </nav>
+        <fs-nearby-baskets-card />
       </div>
     }
   `,
@@ -250,36 +260,19 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       font-size: 0.8rem;
       font-weight: 700;
     }
-    .grid {
+    .main,
+    .side {
       display: grid;
       gap: 1.25rem;
+      min-width: 0;
+      align-content: start;
     }
-    /* Desktop: greeting and next step on the left, quick links beside them (no empty half-width hero). */
+    /* Desktop: greeting, next step and the activity feed on the left; quick links and nearby baskets beside them. */
     @media (min-width: 56rem) {
       :host {
         grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-        grid-template-areas:
-          'welcome links'
-          'next links'
-          'admin links';
         align-items: start;
         column-gap: 1.5rem;
-        row-gap: 1.25rem;
-      }
-      .grid {
-        display: contents;
-      }
-      .welcome {
-        grid-area: welcome;
-      }
-      .card--next {
-        grid-area: next;
-      }
-      .card--admin {
-        grid-area: admin;
-      }
-      .links {
-        grid-area: links;
       }
     }
     .card {

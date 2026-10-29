@@ -288,5 +288,17 @@
   "regions.public.map": "Map",
   "regions.public.contact": "Contact",
   "regions.public.noContact": "No contact details yet.",
-  "regions.public.children": "Regions within"
+  "regions.public.children": "Regions within",
+  "regions.later.resources": "Resources",
+  "regions.later.achievements": "Achievements",
+  "regions.statistics.monthly": "Pickups of the last {months} months",
+  "regions.statistics.metric": "Measure",
+  "regions.statistics.metric.pickups": "Pickups",
+  "regions.statistics.metric.kg": "Kilograms",
+  "regions.statistics.chart.pickups": "Pickups per month",
+  "regions.statistics.chart.kg": "Kilograms saved per month",
+  "regions.statistics.noPickups": "No pickups recorded yet",
+  "regions.statistics.onlyHomeRegion": "Only members with this home region",
+  "regions.statistics.onlyHomeRegionHint": "Applies to gender and age groups.",
+  "regions.statistics.noMembers": "No members"
 }

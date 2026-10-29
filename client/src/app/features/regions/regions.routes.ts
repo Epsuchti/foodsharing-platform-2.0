@@ -58,6 +58,13 @@ export const REGIONS_ROUTES: Routes = [
         canActivate: [featureGuard(FeatureToggleKey.FoodSharePoints)],
         loadComponent: () => import('../food-share-points/tabs/region-fsps.tab').then((m) => m.RegionFspsTab),
       },
+      // placeholders until their features exist (plan-m7 Q7): wall, resources (Q12), achievements (Q9)
+      ...(['wall', 'resources', 'achievements'] as const).map((feature) => ({
+        path: feature,
+        title: 'regions.tab.later',
+        data: { feature },
+        loadComponent: () => import('./tabs/region-later.tab').then((m) => m.RegionLaterTab),
+      })),
       {
         path: 'later/:feature',
         title: 'regions.tab.later',

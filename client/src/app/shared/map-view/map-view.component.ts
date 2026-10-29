@@ -41,6 +41,13 @@ export interface MapMarker {
   label: string;
 }
 
+/** A point the map moves to (`focus` input); zoom defaults to at least 13. */
+export interface MapFocus {
+  lat: number;
+  lon: number;
+  zoom?: number;
+}
+
 /** Default OSM tiles; e2e and screenshots set `window.__fsTileUrl` to a local stub. */
 export const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ZURICH: [number, number] = [47.3769, 8.5417];
@@ -73,10 +80,11 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
     '[style.--map-height]': 'height()',
     '[attr.data-tiles]': 'tileState()',
     '[attr.data-testid]': 'testId()',
+    '[attr.data-center]': 'viewCenter()',
   },
   template: `
     @if (state(); as markerState) {
-      <fs-data-state [state]="markerState" skeleton="card" [compact]="true" [testId]="testId() + '.state'" />
+      <fs-data-state [state]="markerState" skeleton="card" [compact]="true" [testId]="testId() + '.state'" [attr.data-testid]="testId() + '.state'" />
     }
     <div class="frame">
       <div #mapEl class="map" role="region" [attr.aria-label]="ariaLabel() ?? ('shared.map.label' | t)"></div>
@@ -216,8 +224,12 @@ export class MapViewComponent {
   readonly position = input<[number, number] | null | undefined>(undefined);
   readonly editable = input(false);
   readonly positionChange = output<[number, number]>();
+  /** Moves the map here whenever it changes (search result, "near me"); markers are no longer fitted afterwards. */
+  readonly focus = input<MapFocus | null | undefined>(undefined);
 
   protected readonly tileState = signal<'loading' | 'ok' | 'error'>('loading');
+  /** Current centre as `lat,lon` (3 decimals), updated after every move (tests read it from `data-center`). */
+  protected readonly viewCenter = signal<string | null>(null);
   private readonly mapEl = viewChild.required<ElementRef<HTMLElement>>('mapEl');
   private map: Leaflet.Map | null = null;
   private tiles: Leaflet.TileLayer | null = null;
@@ -235,6 +247,10 @@ export class MapViewComponent {
       const markers = this.markers();
       this.center();
       untracked(() => this.drawMarkers(markers));
+    });
+    effect(() => {
+      const focus = this.focus();
+      untracked(() => this.applyFocus(focus));
     });
     inject(DestroyRef).onDestroy(() => this.map?.remove());
   }
@@ -282,8 +298,22 @@ export class MapViewComponent {
         this.positionChange.emit([event.latlng.lat, event.latlng.lng]);
       }
     });
+    this.map.on('moveend', () => this.updateViewCenter());
     this.drawMarkers(this.markers());
     this.drawPosition(this.position());
+    this.applyFocus(this.focus());
+    this.updateViewCenter();
+  }
+
+  private updateViewCenter(): void {
+    const center = this.map?.getCenter();
+    this.viewCenter.set(center ? `${center.lat.toFixed(3)},${center.lng.toFixed(3)}` : null);
+  }
+
+  private applyFocus(focus: MapFocus | null | undefined): void {
+    if (focus && this.map) {
+      this.map.setView([focus.lat, focus.lon], focus.zoom ?? Math.max(this.map.getZoom(), 13));
+    }
   }
 
   private drawPosition(position: [number, number] | null | undefined): void {
@@ -334,11 +364,21 @@ export class MapViewComponent {
       });
       L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true })
         .on('click', () => this.onMarkerClick(marker))
+        // Leaflet's own Enter handler only opens popups: keyboard users open the marker like a click
+        .on('keydown', (event: Leaflet.LeafletKeyboardEvent) => {
+          if (event.originalEvent.key === 'Enter' || event.originalEvent.key === ' ') {
+            event.originalEvent.preventDefault();
+            this.onMarkerClick(marker);
+          }
+        })
         .addTo(this.layer)
         .getElement()
         ?.setAttribute('data-kind', marker.kind);
     }
     const center = this.center();
+    if (this.focus()) {
+      return;
+    }
     if (this.fitMarkers() && markers.length > 1) {
       this.map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lon] as [number, number])), {
         padding: [48, 48],

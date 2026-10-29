@@ -288,5 +288,17 @@
   "regions.public.map": "Karte",
   "regions.public.contact": "Kontakt",
   "regions.public.noContact": "Noch keine Kontaktangaben.",
-  "regions.public.children": "Bezirke darin"
+  "regions.public.children": "Bezirke darin",
+  "regions.later.resources": "Ressourcen",
+  "regions.later.achievements": "Auszeichnungen",
+  "regions.statistics.monthly": "Abholungen der letzten {months} Monate",
+  "regions.statistics.metric": "Kennzahl",
+  "regions.statistics.metric.pickups": "Abholungen",
+  "regions.statistics.metric.kg": "Kilogramm",
+  "regions.statistics.chart.pickups": "Abholungen pro Monat",
+  "regions.statistics.chart.kg": "Gerettete Kilogramm pro Monat",
+  "regions.statistics.noPickups": "Noch keine Abholungen erfasst",
+  "regions.statistics.onlyHomeRegion": "Nur Mitglieder mit diesem Stammbezirk",
+  "regions.statistics.onlyHomeRegionHint": "Gilt für Geschlecht und Altersgruppen.",
+  "regions.statistics.noMembers": "Keine Mitglieder"
 }
