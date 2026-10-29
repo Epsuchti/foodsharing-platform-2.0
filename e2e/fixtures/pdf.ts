@@ -28,7 +28,9 @@ interface PdfJs {
 const importEsm = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<PdfJs>;
 let pdfjs: Promise<PdfJs> | undefined;
 /** Metrics of the 14 standard PDF fonts shipped with pdfjs-dist (needed for Helvetica & co. without embedding). */
-const STANDARD_FONTS = path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'standard_fonts') + path.sep;
+// pdf.js insists on a trailing '/' (not path.sep), so use forward slashes on Windows too; fs reads them fine.
+const STANDARD_FONTS =
+  path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'standard_fonts').split(path.sep).join('/') + '/';
 
 async function bytesOf(source: PdfSource): Promise<Uint8Array> {
   if (typeof source === 'string') return new Uint8Array(fs.readFileSync(source));
