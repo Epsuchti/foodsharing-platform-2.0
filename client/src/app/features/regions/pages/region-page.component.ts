@@ -4,10 +4,11 @@ import { Button } from '@openng/optimus-ui/button';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { switchMap } from 'rxjs';
 
-import { AuthService, RegionsService } from '../../../api';
+import { AuthService, FeatureToggleKey, RegionsService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { hasPermission } from '../../../core/auth/permission.util';
 import { runMutation } from '../../../core/data/mutation';
+import { FeatureToggleService } from '../../../core/feature-toggles/feature-toggle.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
@@ -25,7 +26,6 @@ interface RegionTab {
 /** Features of later milestones, shown as tabs with an "available in a later release" placeholder (R3 partial). */
 const LATER = [
   { id: 'stores', icon: 'pi pi-shopping-bag' },
-  { id: 'fsps', icon: 'pi pi-box' },
   { id: 'wall', icon: 'pi pi-megaphone' },
 ];
 
@@ -48,6 +48,7 @@ export class RegionPageComponent {
   private readonly session = inject(SessionService);
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
+  private readonly toggles = inject(FeatureToggleService);
 
   /** Automation permission holders of this region (M4 F4). */
   private readonly automation = computed(() =>
@@ -72,6 +73,14 @@ export class RegionPageComponent {
       { id: 'forum', route: 'forum', icon: 'pi pi-comments', labelKey: 'regions.later.forum', visible: member },
       { id: 'events', route: 'events', icon: 'pi pi-calendar', labelKey: 'regions.later.events', visible: member },
       { id: 'polls', route: 'polls', icon: 'pi pi-chart-bar', labelKey: 'regions.later.polls', visible: member },
+      // M6 Q6: /regions/:regionId/food-share-points (features/food-share-points), behind its feature toggle
+      {
+        id: 'foodSharePoints',
+        route: 'food-share-points',
+        icon: 'pi pi-box',
+        labelKey: 'regions.tab.foodSharePoints',
+        visible: this.toggles.isEnabled(FeatureToggleKey.FoodSharePoints),
+      },
       // M4 F4: /regions/:regionId/automation (features/automation)
       { id: 'automation', route: 'automation', icon: 'pi pi-bolt', labelKey: 'regions.tab.automation', visible: admin || this.automation() },
     ];

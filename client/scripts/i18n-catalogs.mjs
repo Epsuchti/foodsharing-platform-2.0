@@ -28,6 +28,7 @@ export const FEATURE_PREFIX_OVERRIDES = {
   'store-chains': 'storeChains.',
   'store-categories': 'storeCategories.',
   'admin-ops': 'adminOps.',
+  'food-share-points': 'foodSharePoints.',
 };
 
 /** Returns the module id ("core", "shared", "layout", "features/<m>") of a path below src/app, or null. */
