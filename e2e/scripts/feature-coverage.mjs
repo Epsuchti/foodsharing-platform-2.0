@@ -102,8 +102,9 @@ export function collectTests(report) {
 }
 
 function listTests() {
-  const bin = path.join(E2E_DIR, 'node_modules', '.bin', process.platform === 'win32' ? 'playwright.cmd' : 'playwright');
-  const result = spawnSync(bin, ['test', '--list', '--reporter=json'], {
+  // Run the CLI through node itself: Windows refuses to spawn the .cmd shim without a shell (EINVAL).
+  const cli = path.join(E2E_DIR, 'node_modules', '@playwright', 'test', 'cli.js');
+  const result = spawnSync(process.execPath, [cli, 'test', '--list', '--reporter=json'], {
     cwd: E2E_DIR,
     env: { ...process.env, E2E_SCREENSHOTS: '1', FORCE_COLOR: '0' },
     encoding: 'utf8',
