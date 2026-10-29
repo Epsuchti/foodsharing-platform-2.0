@@ -73,7 +73,8 @@ ok "readiness UP on :9090"
 ok "liveness UP on :9090"
 
 [[ "$(status_of "${BASE}/")" == "200" ]] || fail "/ is not 200"
-curl -s "${BASE}/" | grep -qi '<app-root\|<fs-root\|<html' || fail "/ does not serve the SPA"
+ROOT_HTML="$(curl -s "${BASE}/")"
+grep -qi '<app-root\|<fs-root\|<html' <<< "${ROOT_HTML}" || fail "/ does not serve the SPA"
 ok "/ 200 (SPA)"
 
 APP_INFO="$(curl -s "${BASE}/api/public/app-info")"

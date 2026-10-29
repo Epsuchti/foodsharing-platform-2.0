@@ -194,9 +194,9 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D18.1 | CI hardening (strict coverage, oasdiff, ER check, audits, shellcheck, release check). | todo | | | | | |
 | D18.2 | Screenshot baselines for every route + three design rounds. | todo | | | | | |
 | D18.3 | Final axe sweep, 5-language smoke, Lighthouse thresholds. | todo | | | | | |
-| D19.1 | Production profile, secrets inventory, container image, release script. | todo | | | | | |
-| D19.2 | Runbook, backups and restore (verified). | todo | | | | | |
-| D19.3 | Monitoring and alerting (Prometheus, alerts, Grafana dashboard). | todo | | | | | |
+| D19.1 | Production profile, secrets inventory, container image, release script. | done | application-prod.properties (mgmt port 9090, graceful shutdown, Hikari, JSON logs), DevPathsNotFoundFilter, Dockerfile, compose.yaml/compose.local.yaml, release.sh, smoke.sh, docs/secrets.md + .env.example | | ProdProfileTest, StructuredLoggingTest, ProdSecretsInventoryTest, DevPathsNotFoundFilterTest | | release.sh --build --check built linux/amd64+arm64 (no push); smoke.sh green against compose stack (prod profile, Postgres 17, Mailpit); output in runbook §2; shellcheck clean |
+| D19.2 | Runbook, backups and restore (verified). | done | docs/runbook.md complete, backup.sh/restore.sh/verify-backup.sh, lib/table-counts.sql, PITR documented | | BackupRestoreIT (Postgres dump A -> restore B, equal counts/checksums/sequences) | | backup -> verify-backup -> simulated loss -> restore rehearsed on the compose stack (marker row + upload restored), output in runbook §7.4; shellcheck clean |
+| D19.3 | Monitoring and alerting (Prometheus, alerts, Grafana dashboard). | done | common/metrics/OperationsMetrics + hooks (jobs, outbox, breakers, push/telegram/mail failures, rate limits, login failures, WebSocket, async jobs), monitoring/{prometheus,alerts,alertmanager}.yml, grafana-dashboard.json, compose.monitoring.yaml, docs/monitoring.md | | MetricsContractTest, OperationsMetricsTest | | promtool check rules: 15 rules OK; amtool check-config OK; smoke scrape shows 218 fs_* series on :9090 |
 
 ## Milestones
 

@@ -72,7 +72,7 @@ if [[ ${#JARS[@]} -ne 1 ]]; then
   exit 1
 fi
 JAR_REL="target/$(basename "${JARS[0]}")"
-if ! unzip -l "${JARS[0]}" | grep -q 'BOOT-INF/classes/static/index.html'; then
+if ! unzip -Z1 "${JARS[0]}" "BOOT-INF/classes/static/index.html" > /dev/null 2>&1; then
   echo "Warning: ${JAR_REL} contains no Angular client (built with -Pskip-client?)." >&2
 fi
 

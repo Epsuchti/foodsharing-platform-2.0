@@ -36,11 +36,34 @@ Release steps (maintainer machine, Docker with buildx):
 Verified output (2026-10-29, version 44):
 
 ```text
-RELEASE_CHECK_OUTPUT
+$ server/deploy/release.sh --build --check
+==> Checking ghcr.io/epsuchti/foodsharing-platform:44 for linux/amd64,linux/arm64 (nothing is pushed)
+#5 [linux/arm64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#6 [linux/amd64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#6 [linux/amd64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#11 [linux/arm64 5/5] COPY --chown=root:root deploy/version.txt /app/version.txt
+#6 [linux/amd64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#6 [linux/amd64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#6 [linux/amd64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#6 [linux/amd64 1/5] FROM docker.io/library/eclipse-temurin:21-jre@sha256:…
+#15 [linux/amd64 5/5] COPY --chown=root:root deploy/version.txt /app/version.txt
+OK: image builds for linux/amd64,linux/arm64 (version 44, jar target/foodsharing-platform-0.0.1-SNAPSHOT.jar)
 ```
 
 ```text
-SMOKE_OUTPUT
+$ server/deploy/release.sh --load && server/deploy/smoke.sh
+==> Starting ghcr.io/epsuchti/foodsharing-platform:local (prod profile) with postgres and mailpit
+==> Waiting for readiness on the management port
+ok   readiness UP on :9090
+ok   liveness UP on :9090
+ok   / 200 (SPA)
+ok   app-info version 44
+ok   dev endpoints 404
+ok   actuator not on the public port
+ok   prometheus on :9090 (218 fs_* series)
+ok   JSON log lines
+ok   runs as non-root (uid 10001)
+SMOKE OK (ghcr.io/epsuchti/foodsharing-platform:local, version 44)
 ```
 
 ## 3. Configuration
@@ -163,7 +186,37 @@ The daily dump loses at most 24 h. For PITR enable WAL archiving on the `postgre
 ### 7.4 Rehearsal (2026-10-29, local compose stack)
 
 ```text
-BACKUP_REHEARSAL_OUTPUT
+$ # COMPOSE_PROJECT_NAME=foodsharing-smoke COMPOSE_FILE=compose.yaml:compose.local.yaml COMPOSE_ENV_FILES=.env.local (stack from smoke.sh --keep)
+$ # marker row + upload before the backup
+$ ./backup.sh
+==> Dumping foodsharing to backups/foodsharing-20261029T102251Z.dump
+==> Archiving uploads
+OK: foodsharing-20261029T102251Z (396K dump, 158 tables, 149 rows)
+$ ./verify-backup.sh backups/foodsharing-20261029T102251Z.dump
+==> Checksums
+foodsharing-20261029T102251Z.dump: OK
+foodsharing-20261029T102251Z.counts: OK
+foodsharing-20261029T102251Z.uploads.tar.gz: OK
+==> Restoring into a throwaway postgres:17
+==> Comparing row counts
+uploads archive readable (1 files)
+VERIFIED: foodsharing-20261029T102251Z restores (158 tables, 149 rows, 145 changesets)
+$ # simulate data loss
+marker rows before restore: 0
+$ ./restore.sh backups/foodsharing-20261029T102251Z.dump --yes
+==> Checksums
+foodsharing-20261029T102251Z.dump: OK
+foodsharing-20261029T102251Z.counts: OK
+foodsharing-20261029T102251Z.uploads.tar.gz: OK
+==> Stopping app
+==> Recreating database foodsharing
+DROP DATABASE
+CREATE DATABASE
+==> Restoring uploads
+==> Starting app
+OK: restored foodsharing-20261029T102251Z; app ready
+marker rows after restore: 1
+upload after restore: hello
 ```
 
 ## 8. Monitoring and alerts
