@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 
+import { FeatureToggleKey } from '../../api';
 import { authGuard } from '../../core/auth/auth.guard';
+import { featureGuard } from '../../core/feature-toggles/feature.guard';
 import { homeRegionGuard } from '../../core/region/home-region.guard';
 
 const tab = (path: string, title: string, load: () => Promise<unknown>) => ({
@@ -49,6 +51,13 @@ export const REGIONS_ROUTES: Routes = [
       tab('history', 'regions.tab.history', () =>
         import('./tabs/region-history.tab').then((m) => m.RegionHistoryTab),
       ),
+      {
+        // FS1 (plan-m7 Q6): the tab lives in features/food-share-points, behind its feature toggle
+        path: 'food-share-points',
+        title: 'regions.tab.foodSharePoints',
+        canActivate: [featureGuard(FeatureToggleKey.FoodSharePoints)],
+        loadComponent: () => import('../food-share-points/tabs/region-fsps.tab').then((m) => m.RegionFspsTab),
+      },
       {
         path: 'later/:feature',
         title: 'regions.tab.later',
