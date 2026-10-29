@@ -168,6 +168,11 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/baskets/baskets.routes').then((m) => m.BASKETS_ROUTES),
   },
   {
+    path: 'food-share-points',
+    loadChildren: () =>
+      import('./features/food-share-points/food-share-points.routes').then((m) => m.FOOD_SHARE_POINTS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

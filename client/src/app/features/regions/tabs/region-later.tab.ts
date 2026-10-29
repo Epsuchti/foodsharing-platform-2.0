@@ -7,8 +7,8 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { EmptyStateComponent } from '../../../shared/data-state/empty-state.component';
 
-/** Region features of later milestones (forum, events, polls, stores, food-share points, wall). */
-export const LATER_FEATURES = ['forum', 'events', 'polls', 'stores', 'fsps', 'wall'] as const;
+/** Region features of later milestones (forum, events, polls, stores, wall). */
+export const LATER_FEATURES = ['forum', 'events', 'polls', 'stores', 'wall'] as const;
 
 /** Placeholder tab for region features that ship in a later release. */
 @Component({
