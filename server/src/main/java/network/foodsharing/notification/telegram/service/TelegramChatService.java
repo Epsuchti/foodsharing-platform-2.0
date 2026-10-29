@@ -12,12 +12,14 @@ import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationAction;
+import network.foodsharing.notification.service.RegionSenderNames;
 import network.foodsharing.notification.service.StoreAlertAccess;
 import network.foodsharing.notification.telegram.domain.TelegramAlertChat;
 import network.foodsharing.notification.telegram.domain.TelegramAlertChat.OwnerType;
 import network.foodsharing.notification.telegram.repository.TelegramAlertChatRepository;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +40,13 @@ public class TelegramChatService {
     private final PermissionService permissions;
     private final StoreAlertAccess storeAccess;
     private final HistoryService history;
+    private final ObjectProvider<RegionSenderNames> senderNames;
 
     public TelegramChatService(TelegramAlertChatRepository chats, TelegramSeenChats seenChats,
                                TelegramDeliveryService delivery, PermissionService permissions,
-                               StoreAlertAccess storeAccess, HistoryService history) {
+                               StoreAlertAccess storeAccess, HistoryService history,
+                               ObjectProvider<RegionSenderNames> senderNames) {
+        this.senderNames = senderNames;
         this.chats = chats;
         this.seenChats = seenChats;
         this.delivery = delivery;
@@ -155,9 +160,12 @@ public class TelegramChatService {
     /**
      * Automation messages of a store (adverts, sign-out alerts): to the store's enabled chats with these ids, and to
      * the region's enabled chats for ids the store does not have ({@code chatIds} empty = every enabled store chat).
+     * The message ends with the signature of the store's region (AU11 region system sender).
      */
     public List<SentMessage> sendForStore(UUID storeId, UUID regionId, java.util.Collection<String> chatIds,
-                                          String text, String type) {
+                                          String unsigned, String type) {
+        String text = RegionSenderNames.signed(unsigned,
+                RegionSenderNames.resolve(senderNames, regionId).orElse(null));
         List<SentMessage> sent = new java.util.ArrayList<>(sendToChats(OwnerType.STORE, storeId, chatIds, text,
                 type));
         if (!chatIds.isEmpty() && regionId != null) {

@@ -62,4 +62,6 @@ export interface CapturedMail {
   html?: string;
   links: string[];
   sentAt: string;
+  /** From header ("Name <address>"), e.g. the region system sender of automated mails (AU11). */
+  from?: string;
 }

@@ -67,9 +67,7 @@ public class OrgaAlerts {
             tx.executeWithoutResult(status -> {
                 List<UUID> recipients = orga();
                 if (!recipients.isEmpty()) {
-                    notifications.notify(new NotificationRequest(java.util.Set.copyOf(recipients), template.type(),
-                            template.params(), template.link(), template.mailTemplate(), template.bellOnly(),
-                            template.identifier(), template.icon()));
+                    notifications.notify(template.withRecipients(recipients));
                 }
             });
         } catch (RuntimeException ex) {

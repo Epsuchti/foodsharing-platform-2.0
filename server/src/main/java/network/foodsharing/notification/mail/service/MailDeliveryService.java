@@ -120,10 +120,22 @@ public class MailDeliveryService {
                 "attempts", message.getAttempts());
     }
 
-    /** The sender override of a mailbox mail ({@code "Name <address>"}), else {@code app.mail.from}. */
-    private String from(MailOutboxMessage message) {
+    /**
+     * The sender override of a mailbox mail ({@code "Name <address>"}), else {@code app.mail.from} — with the display
+     * name of a region system sender (AU11) when the message has a From name but no own address.
+     */
+    String from(MailOutboxMessage message) {
         if (message.getFromAddress() == null) {
-            return properties.getMail().getFrom();
+            String configured = properties.getMail().getFrom();
+            if (message.getFromName() == null || message.getFromName().isBlank()) {
+                return configured;
+            }
+            try {
+                String address = new jakarta.mail.internet.InternetAddress(configured).getAddress();
+                return new jakarta.mail.internet.InternetAddress(address, message.getFromName(), "UTF-8").toString();
+            } catch (jakarta.mail.internet.AddressException | java.io.UnsupportedEncodingException ex) {
+                return configured;
+            }
         }
         try {
             return new jakarta.mail.internet.InternetAddress(message.getFromAddress(), message.getFromName(), "UTF-8")

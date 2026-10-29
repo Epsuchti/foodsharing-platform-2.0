@@ -15,6 +15,7 @@
     <tr>
         <td style="padding:8px 28px 24px;font-size:12px;color:#56635a;border-top:1px solid #e3e8e4;">
             <p style="margin:12px 0 4px;">Tu reçois cet e-mail de foodsharing.</p>
+            <p th:if="${senderLine != null}" th:text="${senderLine}" style="margin:0 0 4px;" data-sender-region="true">Sent on behalf of a region.</p>
             <p style="margin:0 0 4px;"><a th:href="${baseUrl} + '/settings/notifications'" href="#" style="color:#25834a;">Paramètres de notification</a></p>
             <p th:if="${unsubscribeUrl != null}" style="margin:0;"><a th:href="${unsubscribeUrl}" href="#" style="color:#25834a;" data-unsubscribe="true">Se désabonner de la newsletter</a></p>
         </td>

@@ -1,0 +1,41 @@
+AdminUnitKind:
+  type: string
+  description: 'REGION = any non working-group unit, WORKING_GROUP = working groups.'
+  enum: [REGION, WORKING_GROUP]
+
+AdministeredUnit:
+  type: object
+  required: [region]
+  properties:
+    region:
+      $ref: './regions.yaml#/RegionRef'
+
+AdminListEntry:
+  type: object
+  required: [user, email, active, units]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    email:
+      type: string
+    active:
+      type: boolean
+    lastLoginAt:
+      type: string
+      format: date-time
+    units:
+      description: 'Regions and working groups the user administers, sorted by name.'
+      type: array
+      items:
+        $ref: './admin-admins.yaml#/AdministeredUnit'
+
+AdminListPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './admin-admins.yaml#/AdminListEntry'
+    page:
+      $ref: './common.yaml#/PageMeta'

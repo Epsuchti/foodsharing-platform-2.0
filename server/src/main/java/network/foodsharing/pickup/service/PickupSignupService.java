@@ -203,7 +203,7 @@ public class PickupSignupService {
                 ? request(List.of(userId), NotificationType.PICKUP_CONFIRMED, store, pickupAt)
                 : request(List.of(userId), NotificationType.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE, store, pickupAt)
                         .param("message", text).mail("pickup/auto-confirmed");
-        StoreNotifications.send(events, bell.build());
+        StoreNotifications.send(events, bell.senderRegion(store.getRegionId()).build());
         events.publishEvent(new PickupEvents.PickupConfirmedEvent(storeId, pickupAt, userId, null));
         removeUnconfirmedBellWhenDone(storeId);
         return true;
@@ -230,7 +230,7 @@ public class PickupSignupService {
                 .region(store.getRegionId()).metadata("storeId", storeId.toString())
                 .metadata("pickupAt", pickupAt.toString()).reason(text).build());
         StoreNotifications.send(events, request(List.of(userId), NotificationType.PICKUP_AUTO_DECLINED, store,
-                pickupAt).param("reason", text).mail("pickup/auto-declined").build());
+                pickupAt).param("reason", text).mail("pickup/auto-declined").senderRegion(store.getRegionId()).build());
         events.publishEvent(new PickupEvents.PickupSignedOutEvent(storeId, pickupAt, userId, null, clock.instant()));
         removeUnconfirmedBellWhenDone(storeId);
         return true;

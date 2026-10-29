@@ -62,13 +62,21 @@ test('N7 unsubscribe link opts out and stops future newsletters @N7', async ({ a
   const mail = await mails.waitForMail({ to: 'jumper@local', subjectContains: first });
   const link = mail.links.find((l) => l.includes('/newsletter/unsubscribe/'))!;
 
-  // public page without app menu. The token contains a dot, which the server's SPA forwarding does not serve yet
-  // (backend request); until then the app is entered at / and routes to the link client-side.
-  await guest.goto('/');
-  await guest.evaluate((path) => {
-    history.pushState({}, '', path);
-    dispatchEvent(new PopStateEvent('popstate'));
-  }, new URL(link).pathname);
+  // public page without app menu, opened directly from the mail link (the server forwards it to the SPA)
+  const path = new URL(link).pathname;
+  const token = path.split('/').pop()!;
+  expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  const direct = await guest.request.get(path);
+  expect(direct.status()).toBe(200);
+  expect(direct.headers()['content-type']).toContain('text/html');
+
+  // legacy links (base64url(id) + "." + base64url(mac), sent before the dot-free tokens) are served as well
+  const raw = Buffer.from(token, 'base64url');
+  const legacy = `${raw.subarray(0, 16).toString('base64url')}.${raw.subarray(16).toString('base64url')}`;
+  await guest.goto(`/newsletter/unsubscribe/${legacy}`);
+  await expect(guest.getByTestId('newsletters.unsubscribe.state')).toHaveAttribute('data-state', 'success');
+
+  await guest.goto(path);
   await expect(guest.getByTestId('newsletters.unsubscribe.state')).toHaveAttribute('data-state', 'success');
   await expect(guest.getByTestId('newsletters.unsubscribe.page')).toContainText('@');
   await guest.getByTestId('newsletters.unsubscribe.confirm').click();

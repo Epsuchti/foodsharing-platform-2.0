@@ -107,7 +107,8 @@ public class StoreMaintenanceJob implements RunnableJob {
             notifications.removeBells(identifier);
             notifications.notify(NotificationRequest.to(managers, NotificationType.PICKUP_UNCONFIRMED_REMINDER)
                     .param("storeId", store.getId().toString()).param("storeName", store.getName())
-                    .param("count", String.valueOf(unconfirmed)).link(link).identifier(identifier).build());
+                    .param("count", String.valueOf(unconfirmed)).link(link).identifier(identifier)
+                    .senderRegion(store.getRegionId()).build());
             sent++;
         }
         ZoneId zone = schedule.zoneOf(store);
@@ -119,7 +120,8 @@ public class StoreMaintenanceJob implements RunnableJob {
             notifications.notify(NotificationRequest.to(managers, NotificationType.PICKUP_EMPTY_TOMORROW)
                     .param("storeId", store.getId().toString()).param("storeName", store.getName())
                     .param("pickupAt", slot.pickupAt().toString()).link(link)
-                    .identifier("PICKUP_EMPTY_TOMORROW-" + store.getId() + "-" + slot.pickupAt()).build());
+                    .identifier("PICKUP_EMPTY_TOMORROW-" + store.getId() + "-" + slot.pickupAt())
+                    .senderRegion(store.getRegionId()).build());
             sent++;
         }
         Map<UUID, User> byId = users.findAll(managers).stream().collect(Collectors.toMap(User::getId, u -> u));
@@ -138,7 +140,7 @@ public class StoreMaintenanceJob implements RunnableJob {
             notifications.notify(NotificationRequest.to(others, NotificationType.STORE_MANAGER_INACTIVE)
                     .param("storeId", store.getId().toString()).param("storeName", store.getName())
                     .param("userName", manager.getDisplayName()).link("/stores/" + store.getId() + "/team")
-                    .identifier(identifier).build());
+                    .identifier(identifier).senderRegion(store.getRegionId()).build());
             sent++;
         }
         return sent;

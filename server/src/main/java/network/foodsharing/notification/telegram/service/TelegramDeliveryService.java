@@ -10,6 +10,7 @@ import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationAction;
 import network.foodsharing.notification.domain.NotificationType;
+import network.foodsharing.notification.service.RegionSenderNames;
 import network.foodsharing.user.domain.User;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,8 @@ public class TelegramDeliveryService {
         if (link != null) {
             text.append('\n').append(absolute(link));
         }
-        client.sendMessage(recipient.getTelegramChatId(), text.toString(), new TelegramClient.Context(
+        String signed = RegionSenderNames.signed(text.toString(), params.get(RegionSenderNames.MAIL_VARIABLE));
+        client.sendMessage(recipient.getTelegramChatId(), signed, new TelegramClient.Context(
                 recipient.getId(), type.name(), params, link, identifier, title));
         return true;
     }

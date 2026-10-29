@@ -149,6 +149,8 @@ tags:
     description: OAuth consent flow (JSON side of /oauth/authorize).
   - name: admin-oauth
     description: OAuth client administration (ORGA).
+  - name: admin-admins
+    description: 'Admins list of all regions and working groups (ORGA, AD1).'
 x-framework-endpoints:
   - /ws
   - /oauth/authorize
@@ -1116,3 +1118,6 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1statistics~1aggregate'
   /api/dev/oauth/last-code:
     $ref: './paths/dev.yaml#/~1api~1dev~1oauth~1last-code'
+  # --- admin-admins (AD1) ---
+  /api/admin/admins:
+    $ref: './paths/admin-admins.yaml#/~1api~1admin~1admins'

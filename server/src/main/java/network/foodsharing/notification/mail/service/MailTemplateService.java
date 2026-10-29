@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.Map;
 import network.foodsharing.api.model.Language;
 import network.foodsharing.config.AppProperties;
+import network.foodsharing.notification.service.RegionSenderNames;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.core.io.ClassPathResource;
@@ -49,12 +50,17 @@ public class MailTemplateService {
         String text = textEngine.process(name, context);
         String content = exists(name + ".html") ? htmlEngine.process(name, context) : textToHtml(text);
         String subject = interpolate(subject(template, language), variables);
+        String senderLine = senderLine(language, variables);
+        if (senderLine != null) {
+            text = text.stripTrailing() + "\n\n-- \n" + senderLine + "\n";
+        }
         return new RenderedMail(subject, text, layout(language, subject, content, variables), language);
     }
 
     /**
-     * Wraps a body in {@code layout_<lang>.html} (A27): header, the body, footer with the settings link and, only when
-     * the variables carry {@code unsubscribeUrl} (newsletters), the unsubscribe link.
+     * Wraps a body in {@code layout_<lang>.html} (A27): header, the body, footer with the settings link, the region
+     * system sender line when the variables carry {@code senderRegion} (AU11) and, only when the variables carry
+     * {@code unsubscribeUrl} (newsletters), the unsubscribe link.
      */
     String layout(Language language, String subject, String content, Map<String, Object> variables) {
         String name = exists(LAYOUT + "_" + language.getValue() + ".html") ? LAYOUT + "_" + language.getValue()
@@ -64,7 +70,18 @@ public class MailTemplateService {
         context.setVariable("subject", subject);
         context.setVariable("baseUrl", properties.getBaseUrl());
         context.setVariable("unsubscribeUrl", variables == null ? null : variables.get("unsubscribeUrl"));
+        context.setVariable("senderLine", senderLine(language, variables));
         return htmlEngine.process(name, context);
+    }
+
+    /** "Sent on behalf of foodsharing &lt;Region&gt;" ({@code mail.footer.senderRegion}), null without a sender region. */
+    String senderLine(Language language, Map<String, Object> variables) {
+        Object region = variables == null ? null : variables.get(RegionSenderNames.MAIL_VARIABLE);
+        if (region == null || region.toString().isBlank()) {
+            return null;
+        }
+        String sender = RegionSenderNames.fromName(region.toString());
+        return messageSource.getMessage("mail.footer.senderRegion", new Object[] {sender}, sender, locale(language));
     }
 
     /** Plain text → escaped HTML paragraphs (blank line = new paragraph, line break = {@code <br>}). */

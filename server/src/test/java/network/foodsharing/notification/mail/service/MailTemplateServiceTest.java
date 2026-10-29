@@ -43,6 +43,32 @@ class MailTemplateServiceTest {
         assertThat(mail.htmlBody()).contains("&lt;b&gt;Eve&lt;/b&gt;").doesNotContain("<b>Eve</b>");
     }
 
+    @ParameterizedTest
+    @EnumSource(Language.class)
+    void regionSenderAddsAFooterLineInEveryLanguage(Language language) {
+        Map<String, Object> variables = variables("Lea");
+        variables.put("senderRegion", "Stadt Zürich");
+        RenderedMail mail = service.render("magic-link", language, variables);
+        String expected = service.senderLine(language, variables);
+        assertThat(expected).contains("foodsharing Stadt Zürich").doesNotContain("{0}").doesNotContain("mail.footer");
+        assertThat(mail.htmlBody()).contains("data-sender-region=\"true\"").contains(expected);
+        assertThat(mail.textBody().stripTrailing()).endsWith("-- \n" + expected);
+    }
+
+    @Test
+    void withoutRegionSenderThereIsNoSenderLine() {
+        RenderedMail mail = service.render("magic-link", Language.DE, variables("Lea"));
+        assertThat(mail.htmlBody()).doesNotContain("data-sender-region").doesNotContain("Im Auftrag");
+        assertThat(mail.textBody()).doesNotContain("-- \n");
+        Map<String, Object> blank = variables("Lea");
+        blank.put("senderRegion", " ");
+        assertThat(service.senderLine(Language.DE, blank)).isNull();
+        assertThat(service.senderLine(Language.DE, Map.of("senderRegion", "Bern")))
+                .isEqualTo("Gesendet im Auftrag von foodsharing Bern.");
+        assertThat(service.senderLine(Language.EN, Map.of("senderRegion", "Bern")))
+                .isEqualTo("Sent on behalf of foodsharing Bern.");
+    }
+
     @Test
     void unknownTemplatesFail() {
         assertThatThrownBy(() -> service.render("nope", Language.DE, Map.of()))

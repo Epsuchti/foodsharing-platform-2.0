@@ -282,7 +282,7 @@ public class OpenSlotAdvertRunner {
                         .param("pickupAt", pickupAt.toString())
                         .param("when", network.foodsharing.pickup.service.PickupFormat.when(pickupAt, values.zone()))
                         .param("message", reminder).link("/stores/" + store.getId() + "/pickups")
-                        .mail("notification/PICKUP_LATE_CANCELLATION").build());
+                        .mail("notification/PICKUP_LATE_CANCELLATION").senderRegion(store.getRegionId()).build());
             }
             Sent sent = sendAdvert ? send(store, service.view(advert), values, false) : null;
             audit.setStatus(sendMessage && sendAdvert ? AdvertStatus.LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT
@@ -371,7 +371,8 @@ public class OpenSlotAdvertRunner {
                 .param("pickupAt", values.pickupAt().toString())
                 .param("when", network.foodsharing.pickup.service.PickupFormat.when(values.pickupAt(), values.zone()))
                 .param("freeSlots", String.valueOf(values.freeSlots())).param("message", text)
-                .link("/stores/" + store.getId() + "/pickups").identifier(identifier).icon("calendar");
+                .link("/stores/" + store.getId() + "/pickups").identifier(identifier).icon("calendar")
+                .senderRegion(store.getRegionId());
     }
 
     /** Deletes Telegram adverts of this pickup (except {@code keep}) and of passed pickups of the store. */
