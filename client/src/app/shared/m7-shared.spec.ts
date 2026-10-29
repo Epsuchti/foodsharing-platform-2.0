@@ -56,6 +56,14 @@ describe('UserChipComponent sleep badge', () => {
     fixture.componentRef.setInput('sleepMessage', undefined);
     await fixture.whenStable();
     expect(moon.getAttribute('aria-label')).toBe('Macht Pause');
+
+    // enum form of UserSummary.sleepMode
+    fixture.componentRef.setInput('sleepMode', 'NONE');
+    await fixture.whenStable();
+    expect(byTestId(el(fixture), 'shared.userChip.sleep')).toHaveLength(0);
+    fixture.componentRef.setInput('sleepMode', 'TEMPORARY');
+    await fixture.whenStable();
+    expect(byTestId(el(fixture), 'shared.userChip.sleep')).toHaveLength(1);
   });
 });
 

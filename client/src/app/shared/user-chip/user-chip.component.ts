@@ -144,10 +144,14 @@ export class UserChipComponent {
   /** Shown as "ID 100006" with a help tooltip (EA3: newcomers give it to their guide). */
   readonly foodsaverNumber = input<number | null | undefined>(undefined);
   /** Sleep mode (A39, `UserSummary.sleepMode`): moon badge with the sleep message as tooltip, grey avatar ring. */
-  readonly sleepMode = input<boolean | null | undefined>(undefined);
+  readonly sleepMode = input<boolean | string | null | undefined>(undefined);
   readonly sleepMessage = input<string | null | undefined>(undefined);
 
-  protected readonly sleeping = computed(() => this.sleepMode() === true);
+  /** `UserSummary.sleepMode` is a boolean today; an enum (`NONE | TEMPORARY | FULL`) counts unless `NONE`. */
+  protected readonly sleeping = computed(() => {
+    const mode = this.sleepMode();
+    return mode === true || (typeof mode === 'string' && mode !== 'NONE');
+  });
   protected readonly sleepLabel = computed(() =>
     this.sleepMessage()?.trim() ? 'shared.userChip.sleepingWithMessage' : 'shared.userChip.sleeping',
   );
