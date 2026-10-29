@@ -53,6 +53,7 @@ public enum UserAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return RetentionPolicy.ACCOUNT_LIFETIME;
+        // the deletion itself outlives the account: kept as long as the user archive (D17.3)
+        return this == ACCOUNT_DELETED ? RetentionPolicy.YEARS_2 : RetentionPolicy.ACCOUNT_LIFETIME;
     }
 }

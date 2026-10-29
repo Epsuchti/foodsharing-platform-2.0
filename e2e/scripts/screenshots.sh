@@ -31,8 +31,13 @@ find_jar() {
     printf '%s\n' "${E2E_JAR}"
     return
   fi
-  # newest foodsharing-platform-*.jar in server/target (not *.jar.original)
-  ls -t "${SERVER_DIR}"/target/foodsharing-platform-*.jar 2>/dev/null | grep -v -- '-plain\.jar$' | head -n 1 || true
+  # newest foodsharing-platform-*.jar in server/target (not *.jar.original, not -plain.jar)
+  local jar newest=""
+  for jar in "${SERVER_DIR}"/target/foodsharing-platform-*.jar; do
+    [[ -f "${jar}" && "${jar}" != *-plain.jar ]] || continue
+    if [[ -z "${newest}" || "${jar}" -nt "${newest}" ]]; then newest="${jar}"; fi
+  done
+  [[ -z "${newest}" ]] || printf '%s\n' "${newest}"
 }
 
 free_port() {

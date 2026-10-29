@@ -138,6 +138,21 @@ class BasketServiceTest {
         assertThat(withPhone.getLat()).isEqualTo(47.3891);
     }
 
+    /** D17.3: on account deletion the basket row stays without contact data, text and exact home location. */
+    @Test
+    void accountDeletionScrubsContactDataAndHomeLocation() {
+        TestAuth.login(TestUsers.principal(owner));
+        Basket withPhone = service.create(input(BasketLocationType.HOME, null, null, false, true, "044 123 45 67"));
+        assertThat(service.deleteAllOf(owner.getId())).isEqualTo(1);
+        Basket scrubbed = baskets.findById(withPhone.getId()).orElseThrow();
+        assertThat(scrubbed.getStatus()).isEqualTo(BasketStatus.DELETED);
+        assertThat(scrubbed.getPhone()).isNull();
+        assertThat(scrubbed.isContactPhone()).isFalse();
+        assertThat(scrubbed.getDescription()).isEmpty();
+        assertThat(scrubbed.getLat()).isEqualTo(47.39);
+        assertThat(scrubbed.getLon()).isEqualTo(8.55);
+    }
+
     @Test
     void requestNotifiesOwnerAndSendsTheMessageAsChat() {
         Basket basket = create(owner);

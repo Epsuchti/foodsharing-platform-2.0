@@ -24,6 +24,7 @@ public enum PollAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return RetentionPolicy.FOREVER;
+        // NOTIFIED is a delivery log of the system (D17.3)
+        return this == NOTIFIED ? RetentionPolicy.YEARS_2 : RetentionPolicy.FOREVER;
     }
 }

@@ -335,6 +335,7 @@ public class BasketService {
                 markDeleted(basket);
                 count++;
             }
+            scrubPersonalData(basket);
         }
         for (BasketRequestEntry request : requests.findByRequesterIdOrderByRequestedAtDesc(userId)) {
             notifications.removeBells(requestBell(request.getBasketId(), userId));
@@ -354,6 +355,22 @@ public class BasketService {
             basket.setStatus(BasketStatus.EXPIRED);
         }
         return due.size();
+    }
+
+    /**
+     * Account deletion (D17.3): the basket row stays for statistics, without contact data, text and with a home
+     * location rounded to about a kilometre.
+     */
+    private static void scrubPersonalData(Basket basket) {
+        basket.setPhone(null);
+        basket.setMobile(null);
+        basket.setContactPhone(false);
+        basket.setContactMobile(false);
+        basket.setDescription("");
+        if (basket.getLocationType() == BasketLocationType.HOME) {
+            basket.setLat(Math.round(basket.getLat() * 100) / 100.0);
+            basket.setLon(Math.round(basket.getLon() * 100) / 100.0);
+        }
     }
 
     private void markDeleted(Basket basket) {

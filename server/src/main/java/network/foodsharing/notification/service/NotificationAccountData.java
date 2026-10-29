@@ -28,6 +28,7 @@ public class NotificationAccountData implements AccountDeletionContributor, Data
         UserRows.delete(em, "UserNotificationSetting", "userId", userId);
         UserRows.delete(em, "PushSubscription", "userId", userId);
         UserRows.delete(em, "NewsletterRecipient", "userId", userId);
+        UserRows.delete(em, "TelegramLinkToken", "userId", userId);
     }
 
     @Override

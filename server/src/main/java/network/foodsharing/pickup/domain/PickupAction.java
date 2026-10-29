@@ -1,6 +1,5 @@
 package network.foodsharing.pickup.domain;
 
-import java.util.Set;
 import network.foodsharing.history.HistoryAction;
 import network.foodsharing.history.RetentionPolicy;
 import network.foodsharing.history.SubjectType;
@@ -15,8 +14,6 @@ public enum PickupAction implements HistoryAction {
     /** Sign-up removed by the pickup policy (actor AUTOMATION). */
     AUTO_DECLINED;
 
-    private static final Set<String> SHORT_LIVED = Set.of("REMINDER_SENT");
-
     @Override
     public String code() {
         return name();
@@ -29,6 +26,7 @@ public enum PickupAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return SHORT_LIVED.contains(name()) ? RetentionPolicy.YEARS_2 : RetentionPolicy.FOREVER;
+        // pickup sign-up events are kept 2 years (plan §10.1, D17.3)
+        return RetentionPolicy.YEARS_2;
     }
 }

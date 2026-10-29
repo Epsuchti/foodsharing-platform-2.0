@@ -20,6 +20,8 @@ public class StoreAccountData implements AccountDeletionContributor, DataExportC
     @Override
     public void onAccountDeleted(UUID userId) {
         UserRows.delete(em, "StoreMembership", "userId", userId);
+        // a key account manager role ends with the account (D17.3)
+        UserRows.delete(em, "StoreChainKam", "userId", userId);
     }
 
     @Override

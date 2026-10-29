@@ -11,6 +11,7 @@ import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.persistence.UserRows;
+import network.foodsharing.history.service.HistoryRetentionService;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
@@ -47,12 +48,14 @@ public class AccountDeletionService {
     private final CurrentActorService actors;
     private final PermissionService permissions;
     private final HistoryService history;
+    private final HistoryRetentionService historyRetention;
     private final EntityManager em;
     private final Clock clock;
 
     public AccountDeletionService(UserRepository users, UserArchiveRepository archives,
                                   List<AccountDeletionContributor> contributors, UploadService uploads,
                                   CurrentActorService actors, PermissionService permissions, HistoryService history,
+                                  HistoryRetentionService historyRetention,
                                   EntityManager em, Clock clock) {
         this.users = users;
         this.archives = archives;
@@ -61,6 +64,7 @@ public class AccountDeletionService {
         this.actors = actors;
         this.permissions = permissions;
         this.history = history;
+        this.historyRetention = historyRetention;
         this.em = em;
         this.clock = clock;
     }
@@ -112,6 +116,8 @@ public class AccountDeletionService {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "reason");
         }
         Instant now = clock.instant();
+        // personal-data changes are kept while the account exists (plan §10.1): values go before the deletion entry
+        historyRetention.anonymiseAccountLifetime(userId);
         history.record(history.event(UserAction.ACCOUNT_DELETED, userId).reason(reason)
                 .metadata("self", actor.userId().equals(userId)).build());
         String snapshot = snapshot(user);

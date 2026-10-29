@@ -26,6 +26,7 @@ public enum OAuthAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return RetentionPolicy.FOREVER;
+        // token issuance is a login-like event, kept like AuthAction.LOGIN (D17.3)
+        return this == TOKEN_ISSUED ? RetentionPolicy.YEARS_2 : RetentionPolicy.FOREVER;
     }
 }

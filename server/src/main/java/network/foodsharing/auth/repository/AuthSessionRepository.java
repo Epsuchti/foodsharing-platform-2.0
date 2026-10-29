@@ -26,4 +26,9 @@ public interface AuthSessionRepository extends JpaRepository<AuthSession, UUID> 
     @Modifying
     @Query("update AuthSession s set s.lastSeenAt = :now, s.expiresAt = :expiresAt where s.id = :id")
     int touch(@Param("id") UUID id, @Param("now") Instant now, @Param("expiresAt") Instant expiresAt);
+
+    /** Cleanup: sessions expired or revoked before {@code before}. */
+    @Modifying
+    @Query("delete from AuthSession s where s.expiresAt < :before or s.revokedAt < :before")
+    int deleteEndedBefore(@Param("before") Instant before);
 }

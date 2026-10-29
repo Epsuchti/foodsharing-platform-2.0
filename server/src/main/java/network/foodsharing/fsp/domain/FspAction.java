@@ -30,6 +30,7 @@ public enum FspAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return RetentionPolicy.FOREVER;
+        // following is a personal preference, not a governance trace (D17.3)
+        return this == FOLLOWED || this == UNFOLLOWED ? RetentionPolicy.YEARS_2 : RetentionPolicy.FOREVER;
     }
 }

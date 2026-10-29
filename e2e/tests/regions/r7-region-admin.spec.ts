@@ -7,7 +7,7 @@ test.use({ seedReset: 'test' });
 test.describe('orga', () => {
   test.use({ role: 'orga' });
 
-  test('R7 creates a region below Kanton Zürich, edits it and deletes it with a reason @R7', async ({ page }) => {
+  test('R7 creates a region below Kanton Zürich, edits it and deletes it with a reason @R7 @R1', async ({ page }) => {
     await page.goto('/admin/regions');
     await expectDataState(page, 'regionAdmin.list', 'success');
     await page.getByTestId('regionAdmin.open.europa').click();

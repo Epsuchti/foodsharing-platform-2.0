@@ -40,7 +40,7 @@ test('N5 link Telegram via /start token, receive test message, unlink @N5 @page'
   await expect(page.getByTestId('notifications.telegram.connect')).toBeVisible();
 });
 
-test('N5 notification settings turn mail off for pickups @N5 @N6', async ({ as, apiOf, store, notifications }) => {
+test('N5 notification settings turn mail off for pickups @N5 @N6 @A10', async ({ as, apiOf, store, notifications }) => {
   // welcome@local manages S-07: a sign-up there is a PICKUPS bell (+ mail by default) for the managers
   const page = await as('welcome');
   await acceptPendingConsents(apiOf(page));

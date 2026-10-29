@@ -33,6 +33,7 @@ public enum GroupAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return RetentionPolicy.FOREVER;
+        // group mails are communication logs, kept like mailbox mails (D17.3)
+        return this == MAIL_SENT ? RetentionPolicy.YEARS_2 : RetentionPolicy.FOREVER;
     }
 }
