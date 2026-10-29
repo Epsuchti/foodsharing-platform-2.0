@@ -43,5 +43,11 @@
   "newsletters.unsubscribe.confirm": "Unsubscribe",
   "newsletters.unsubscribe.done": "{email} will no longer receive newsletters.",
   "newsletters.unsubscribe.settings": "All notification settings",
-  "newsletters.list.newBody": "Dear foodsavers,"
+  "newsletters.list.newBody": "Dear foodsavers,",
+  "newsletters.list.kind": "Kind",
+  "newsletters.kind.NEWSLETTER": "Newsletter",
+  "newsletters.kind.INFO_MAIL": "Info mail",
+  "newsletters.editor.infoMailHint": "Info mail: goes to every active member who keeps info mails switched on, also without newsletter subscription.",
+  "newsletters.editor.queueTitleInfoMail": "Send info mail?",
+  "newsletters.editor.queueTextInfoMail": "The info mail goes to {count} members, including members without newsletter subscription. This cannot be undone."
 }

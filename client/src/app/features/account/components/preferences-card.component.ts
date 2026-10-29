@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
-import { Language, UserSettingsUpdate, UsersService } from '../../../api';
+import { Language, UserProfile, UserSettingsUpdate, UsersService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
+import { DataState } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { LANGUAGES, UiLanguage } from '../../../core/i18n/languages';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import {
   THEME_PREFERENCES,
   ThemePreference,
@@ -21,11 +25,12 @@ const THEME_ICONS: Record<ThemePreference, string> = {
 
 /**
  * Language (A12) and theme (A17), saved as account settings (PATCH /api/users/me/settings). The change applies
- * immediately and is rolled back when saving fails.
+ * immediately and is rolled back when saving fails. With `profile` (settings page) also the mail switches: info
+ * mails of the orga team (A20, `infoMailMessage`) and forum mention bells (`mentionNotifications`).
  */
 @Component({
   selector: 'fs-preferences-card',
-  imports: [TPipe],
+  imports: [...DATA_STATE_IMPORTS, FormsModule, TPipe, ToggleSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
@@ -100,6 +105,51 @@ const THEME_ICONS: Record<ThemePreference, string> = {
           <span>{{ 'account.settings.themeHint' | t }}</span>
         </p>
       </div>
+
+      @if (profile(); as state) {
+        <div class="group" data-testid="account.settings.mailSwitches">
+          <h3 class="group__label">
+            <i class="pi pi-envelope" aria-hidden="true"></i>
+            {{ 'account.settings.mailsTitle' | t }}
+          </h3>
+          <fs-data-state
+            [state]="state"
+            skeleton="list"
+            [skeletonRows]="2"
+            [compact]="true"
+            data-testid="account.settings.mailSwitches.state"
+          >
+            <ng-template [fsData]="state" let-user>
+              <div class="switch">
+                <p-toggleswitch
+                  inputId="pref-info-mail"
+                  [ngModel]="user.infoMailMessage ?? true"
+                  (ngModelChange)="toggle('infoMailMessage', $event)"
+                  [disabled]="toggleSave.busy()"
+                  data-testid="account.settings.infoMail"
+                />
+                <span class="switch__text">
+                  <label for="pref-info-mail">{{ 'account.settings.infoMail' | t }}</label>
+                  <small>{{ 'account.settings.infoMailHint' | t }}</small>
+                </span>
+              </div>
+              <div class="switch">
+                <p-toggleswitch
+                  inputId="pref-mentions"
+                  [ngModel]="user.mentionNotifications ?? true"
+                  (ngModelChange)="toggle('mentionNotifications', $event)"
+                  [disabled]="toggleSave.busy()"
+                  data-testid="account.settings.mentions"
+                />
+                <span class="switch__text">
+                  <label for="pref-mentions">{{ 'account.settings.mentions' | t }}</label>
+                  <small>{{ 'account.settings.mentionsHint' | t }}</small>
+                </span>
+              </div>
+            </ng-template>
+          </fs-data-state>
+        </div>
+      }
     </section>
   `,
   styleUrl: './account-card.scss',
@@ -111,6 +161,22 @@ const THEME_ICONS: Record<ThemePreference, string> = {
     .group + .group {
       padding-top: 1.1rem;
       border-top: 1px solid var(--fs-border);
+    }
+    .switch {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.35rem 0;
+    }
+    .switch__text {
+      display: grid;
+      gap: 0.1rem;
+    }
+    .switch__text label {
+      font-weight: 600;
+    }
+    .switch__text small {
+      color: var(--fs-text-muted);
     }
     .group__hint {
       display: flex;
@@ -249,6 +315,23 @@ export class PreferencesCardComponent {
   protected readonly languages = LANGUAGES;
   protected readonly themes = THEME_PREFERENCES;
   protected readonly themeIcons = THEME_ICONS;
+
+  /** Settings page: the own profile (current values of the mail switches). */
+  readonly profile = input<DataState<UserProfile> | undefined>(undefined);
+
+  /** A failed save reloads the profile, which puts the switch back. */
+  protected readonly toggleSave = runMutation(
+    (update: UserSettingsUpdate) => this.usersApi.updateMySettings({ userSettingsUpdate: update }),
+    {
+      successToastKey: 'account.settings.saved',
+      onSuccess: () => this.profile()?.reload(),
+      onError: () => this.profile()?.reload(),
+    },
+  );
+
+  protected toggle(field: 'infoMailMessage' | 'mentionNotifications', value: boolean): void {
+    void this.toggleSave.run({ [field]: value });
+  }
 
   protected readonly save = runMutation(
     (update: UserSettingsUpdate) => this.usersApi.updateMySettings({ userSettingsUpdate: update }),

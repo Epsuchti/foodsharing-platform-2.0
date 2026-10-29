@@ -8,7 +8,7 @@ import { ProgressBar } from '@openng/optimus-ui/progressbar';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { Subscription, interval } from 'rxjs';
 
-import { Newsletter, NewsletterProgress, NewsletterStatus, NewslettersService, RecipientCount } from '../../../api';
+import { Newsletter, NewsletterKind, NewsletterProgress, NewsletterStatus, NewslettersService, RecipientCount } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
@@ -28,7 +28,8 @@ export function progressPercent(progress: NewsletterProgress | undefined): numbe
 
 /**
  * `/newsletters/:newsletterId` (N7): subject + Markdown body with live preview, recipient count, "Send test to me",
- * "Queue" (confirm with the count), progress while QUEUED/SENDING (polled), cancel; read-only once sent.
+ * "Queue" (confirm with the count), progress while QUEUED/SENDING (polled), cancel; read-only once sent. The kind
+ * badge and, for info mails (A20), a hint and their own confirmation text tell who receives it.
  */
 @Component({
   selector: 'fs-newsletter-editor-page',
@@ -41,12 +42,20 @@ export function progressPercent(progress: NewsletterProgress | undefined): numbe
         <div class="editor" [attr.data-status]="nl.status" data-testid="newsletters.editor.root">
           <div class="meta">
             <span [class]="'badge badge--' + nl.status" data-testid="newsletters.editor.status">{{ 'newsletters.status.' + nl.status | t }}</span>
+            <span [class]="'badge badge--' + (nl.kind ?? 'NEWSLETTER')" data-testid="newsletters.editor.kind" [attr.data-kind]="nl.kind ?? 'NEWSLETTER'">{{
+              'newsletters.kind.' + (nl.kind ?? 'NEWSLETTER') | t
+            }}</span>
             <span class="muted">{{ nl.region?.name ?? ('newsletters.list.global' | t) }}</span>
             @if (count.data(); as c) {
               <span class="muted" data-testid="newsletters.editor.recipients" [attr.data-count]="c.count">{{ 'newsletters.list.recipients' | t: { count: c.count } }}</span>
             }
           </div>
 
+          @if (nl.kind === 'INFO_MAIL') {
+            <p class="kind-hint" data-testid="newsletters.editor.infoMailHint">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'newsletters.editor.infoMailHint' | t }}
+            </p>
+          }
           @if (editable()) {
             <div class="field">
               <label for="nl-subject">{{ 'newsletters.editor.subject' | t }}</label>
@@ -190,9 +199,10 @@ export class NewsletterEditorPageComponent {
 
   protected askQueue(): void {
     const count = this.count.data()?.count ?? 0;
+    const infoMail = this.newsletter.data()?.kind === NewsletterKind.InfoMail;
     this.confirm.confirm({
-      header: this.i18n.t('newsletters.editor.queueTitle'),
-      message: this.i18n.t('newsletters.editor.queueText', { count }),
+      header: this.i18n.t(infoMail ? 'newsletters.editor.queueTitleInfoMail' : 'newsletters.editor.queueTitle'),
+      message: this.i18n.t(infoMail ? 'newsletters.editor.queueTextInfoMail' : 'newsletters.editor.queueText', { count }),
       acceptLabel: this.i18n.t('newsletters.editor.queue'),
       rejectLabel: this.i18n.t('common.cancel'),
       rejectButtonStyleClass: 'p-button-text p-button-secondary',

@@ -68,6 +68,8 @@
               [avatarUrl]="member.user.avatarUrl"
               [role]="member.user.role"
               [verified]="member.verified"
+              [sleepMode]="member.user.sleepMode"
+              [sleepMessage]="member.user.sleepMessage"
               [foodsaverNumber]="ctx.manageUsers() ? member.user.foodsaverNumber : undefined"
               [showRole]="!ctx.manageUsers()"
               [link]="ctx.manageUsers() ? ['/users', member.user.id] : undefined"

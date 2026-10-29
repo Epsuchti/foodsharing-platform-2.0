@@ -43,5 +43,11 @@
   "newsletters.unsubscribe.confirm": "Abbestellen",
   "newsletters.unsubscribe.done": "{email} bekommt keine Newsletter mehr.",
   "newsletters.unsubscribe.settings": "Alle Benachrichtigungseinstellungen",
-  "newsletters.list.newBody": "Liebe Foodsaver*innen,"
+  "newsletters.list.newBody": "Liebe Foodsaver*innen,",
+  "newsletters.list.kind": "Art",
+  "newsletters.kind.NEWSLETTER": "Newsletter",
+  "newsletters.kind.INFO_MAIL": "Info-Mail",
+  "newsletters.editor.infoMailHint": "Info-Mail: geht an alle aktiven Mitglieder, die Info-Mails eingeschaltet lassen, auch ohne Newsletter-Abo.",
+  "newsletters.editor.queueTitleInfoMail": "Info-Mail senden?",
+  "newsletters.editor.queueTextInfoMail": "Die Info-Mail geht an {count} Mitglieder, auch an solche ohne Newsletter-Abo. Das lässt sich nicht rückgängig machen."
 }

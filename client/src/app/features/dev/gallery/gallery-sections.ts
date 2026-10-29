@@ -4,6 +4,8 @@ import { InputsGallerySection } from './sections/inputs.section';
 import { JourneyGallerySection } from './sections/journey.section';
 import { PeopleGallerySection } from './sections/people.section';
 import { RegionsMapGallerySection } from './sections/regions-map.section';
+import { ACCOUNT_GALLERY_SECTIONS } from './sections/account.section';
+import { BASKETS_GALLERY_SECTIONS } from './sections/baskets.section';
 import { CONTENT_GALLERY_SECTIONS } from './sections/content.section';
 import { GROUPS_GALLERY_SECTIONS } from './sections/groups.section';
 import { INTRO_PICKUPS_GALLERY_SECTIONS } from './sections/intro-pickups.section';
@@ -37,4 +39,6 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   ...VERIFICATION_GALLERY_SECTIONS,
   ...STORES_GALLERY_SECTIONS,
   ...PROFILES_GALLERY_SECTIONS,
+  ...ACCOUNT_GALLERY_SECTIONS,
+  ...BASKETS_GALLERY_SECTIONS,
 ];

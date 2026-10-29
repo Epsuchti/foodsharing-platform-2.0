@@ -2,8 +2,19 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from '../../core/auth/auth.guard';
 
-/** /account/* — own settings, signed-in devices, security log and the profile placeholder (A4 arrives in M6). */
+/**
+ * /account/* — own settings (photo, sleep mode, email, preferences, login methods), signed-in devices, security log,
+ * the own profile form and the email-change links (`email/confirm` logged in, `email/abort` public).
+ */
 export const ACCOUNT_ROUTES: Routes = [
+  // link in the notice to the old address (A3): works logged out, so it sits outside the guarded children
+  {
+    path: 'email/abort',
+    title: 'account.email.abort.pageTitle',
+    data: { chrome: 'minimal', emailToken: 'abort' },
+    loadComponent: () =>
+      import('./pages/email-token-page.component').then((m) => m.EmailTokenPageComponent),
+  },
   {
     path: '',
     canActivate: [authGuard],
@@ -26,6 +37,13 @@ export const ACCOUNT_ROUTES: Routes = [
         title: 'account.securityLog.pageTitle',
         loadComponent: () =>
           import('./pages/security-log-page.component').then((m) => m.SecurityLogPageComponent),
+      },
+      {
+        path: 'email/confirm',
+        title: 'account.email.confirm.pageTitle',
+        data: { emailToken: 'confirm' },
+        loadComponent: () =>
+          import('./pages/email-token-page.component').then((m) => m.EmailTokenPageComponent),
       },
       {
         path: 'profile',
