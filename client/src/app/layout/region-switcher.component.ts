@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { viewChild } from '@angular/core';
 import { Popover } from '@openng/optimus-ui/popover';
 
 import { TPipe } from '../core/i18n/t.pipe';
 import { RegionContextService } from '../core/region/region-context.service';
+import { LazyPopover, PopoverLike } from './lazy-popover';
 
 /**
  * Header region switcher (M2 T17): the user's regions from `SessionInfo.units` (home region first). The choice sets
@@ -18,7 +20,7 @@ import { RegionContextService } from '../core/region/region-context.service';
       <button
         type="button"
         class="hdr-btn hdr-btn--labelled region-btn"
-        (click)="op.toggle($event)"
+        (click)="menu.toggle($event)"
         aria-haspopup="true"
         [attr.aria-label]="'layout.header.region' | t: { name: context.activeRegion()?.name ?? '' }"
         data-testid="shell.regionSwitcher"
@@ -27,6 +29,8 @@ import { RegionContextService } from '../core/region/region-context.service';
         <span class="region-btn__name">{{ context.activeRegion()?.name }}</span>
         <i class="pi pi-chevron-down region-btn__chevron" aria-hidden="true"></i>
       </button>
+      <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
+      @defer (when menu.load()) {
       <p-popover #op>
         <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.regions' | t">
           @for (region of context.regions(); track region.id) {
@@ -54,6 +58,7 @@ import { RegionContextService } from '../core/region/region-context.service';
           }
         </ul>
       </p-popover>
+      }
     }
   `,
   styles: `
@@ -85,5 +90,7 @@ import { RegionContextService } from '../core/region/region-context.service';
   `,
 })
 export class RegionSwitcherComponent {
+  private readonly popover = viewChild<PopoverLike>('op');
+  protected readonly menu = new LazyPopover(this.popover);
   protected readonly context = inject(RegionContextService);
 }

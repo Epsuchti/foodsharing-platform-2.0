@@ -11,6 +11,7 @@ import { THEME_PREFERENCES, ThemePreference, ThemeService } from '../core/theme/
 import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
 import { BellStore } from '../features/bells/bells.resource';
 import { NavContextService } from './nav-context.service';
+import { StartupService } from '../core/startup/startup.service';
 
 /**
  * Mobile bottom tab bar (below 48rem, logged in): up to four tabs from nav.config.ts (`mobileTab`) plus
@@ -53,6 +54,8 @@ import { NavContextService } from './nav-context.service';
       </button>
     </nav>
 
+    <!-- the menu drawer is not part of the start-up bundle (D11.5.3): it loads after the first page or on the first tap -->
+    @defer (when startup.pageShown() || menuOpen()) {
     <p-drawer
       [visible]="menuOpen()"
       (visibleChange)="menuOpen.set($event)"
@@ -163,6 +166,7 @@ import { NavContextService } from './nav-context.service';
         <span>{{ 'nav.logout' | t }}</span>
       </button>
     </p-drawer>
+    }
   `,
   styles: `
     .mm__badge {
@@ -300,6 +304,7 @@ import { NavContextService } from './nav-context.service';
   `,
 })
 export class MobileTabBarComponent {
+  protected readonly startup = inject(StartupService);
   protected readonly nav = inject(NavContextService);
   protected readonly session = inject(SessionService);
   protected readonly i18n = inject(I18nService);

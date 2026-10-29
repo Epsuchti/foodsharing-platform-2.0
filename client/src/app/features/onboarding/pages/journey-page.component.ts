@@ -8,6 +8,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey-stepper.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { JourneyLoader } from '../onboarding.resource';
 
 /** The step the journey is on (main steps and region extra steps). */
 export function currentStepOf(journey: Journey): JourneyStep | undefined {
@@ -187,11 +188,12 @@ export function currentStepOf(journey: Journey): JourneyStep | undefined {
   `,
 })
 export class JourneyPageComponent {
+  private readonly journeyLoader = inject(JourneyLoader);
   private readonly api = inject(OnboardingService);
   private readonly i18n = inject(I18nService);
 
   protected readonly journey = loadResource<Journey>({
-    loader: () => this.api.getMyJourney(),
+    loader: () => this.journeyLoader.load(),
     isEmpty: () => false,
   });
 

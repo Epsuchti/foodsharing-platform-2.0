@@ -8,7 +8,6 @@ import {
   afterNextRender,
   computed,
   inject,
-  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -21,6 +20,8 @@ import { warmWebFont, whenIdle } from '../core/theme/web-font';
 import { JourneyBarComponent } from '../features/onboarding/components/journey-bar.component';
 import { TPipe } from '../core/i18n/t.pipe';
 import { RealtimeService } from '../core/realtime/realtime.service';
+import { StartupService } from '../core/startup/startup.service';
+import { I18nService } from '../core/i18n/i18n.service';
 import { RealtimeStatusComponent } from '../core/realtime/realtime-status.component';
 import { OfflineBannerComponent } from '../shared/offline-banner/offline-banner.component';
 import { SessionExpiredDialogComponent } from '../shared/session-expired-dialog/session-expired-dialog.component';
@@ -160,10 +161,12 @@ export class ShellComponent {
    * True once the first page has rendered and the browser is idle: the overlays and the web font load then, after
    * the content the visitor came for (D11.5.3 — they would otherwise share the start-up bandwidth).
    */
-  protected readonly firstPageShown = signal(false);
+  private readonly startup = inject(StartupService);
+  private readonly i18n = inject(I18nService);
+  protected readonly firstPageShown = this.startup.pageShown;
 
   constructor() {
-    // the realtime connection follows the session (connects on login, closes on logout; A32)
+    // the realtime connection follows the session (connects on login after the first page, closes on logout; A32)
     inject(RealtimeService);
     const document = inject(DOCUMENT);
     const injector = inject(Injector);
@@ -180,12 +183,14 @@ export class ShellComponent {
         afterNextRender(
           () =>
             // the page's own data usually arrives right after its first render: leave it the bandwidth
-            whenIdle(view, () =>
+            whenIdle(view, () => {
               setTimeout(() => {
-                this.firstPageShown.set(true);
+                // the rest of the translations (start-up loads only the start-up part, I18nService.ensureComplete)
+                void this.i18n.ensureComplete();
+                this.startup.markPageShown();
                 warmWebFont(document);
-              }, AFTER_FIRST_PAGE_MS),
-            ),
+              }, AFTER_FIRST_PAGE_MS);
+            }),
           { injector },
         ),
       );

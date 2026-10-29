@@ -3,6 +3,7 @@ import { Popover } from '@openng/optimus-ui/popover';
 
 import { TPipe } from '../core/i18n/t.pipe';
 import { THEME_PREFERENCES, ThemePreference, ThemeService } from '../core/theme/theme.service';
+import { LazyPopover, PopoverLike } from './lazy-popover';
 
 const ICONS: Record<ThemePreference, string> = {
   light: 'pi pi-sun',
@@ -19,13 +20,15 @@ const ICONS: Record<ThemePreference, string> = {
     <button
       type="button"
       class="hdr-btn"
-      (click)="op.toggle($event)"
+      (click)="menu.toggle($event)"
       [attr.aria-label]="'layout.header.theme' | t"
       aria-haspopup="true"
       data-testid="shell.themeMenu"
     >
       <i [class]="icon()" aria-hidden="true"></i>
     </button>
+    <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
+    @defer (when menu.load()) {
     <p-popover #op>
       <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.theme' | t">
         @for (mode of modes; track mode) {
@@ -49,17 +52,19 @@ const ICONS: Record<ThemePreference, string> = {
         }
       </ul>
     </p-popover>
+    }
   `,
 })
 export class ThemeMenuComponent {
   protected readonly theme = inject(ThemeService);
   protected readonly modes = THEME_PREFERENCES;
   protected readonly icons = ICONS;
-  protected readonly popover = viewChild.required<Popover>('op');
+  private readonly popover = viewChild<PopoverLike>('op');
+  protected readonly menu = new LazyPopover(this.popover);
   protected readonly icon = computed(() => (this.theme.isDark() ? ICONS.dark : ICONS.light));
 
   protected choose(mode: ThemePreference): void {
-    this.popover().hide();
+    this.menu.hide();
     this.theme.setPreference(mode);
   }
 }

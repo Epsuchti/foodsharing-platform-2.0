@@ -53,6 +53,9 @@ export class I18nService {
   private readonly loader = inject(CATALOG_LOADER, { optional: true });
 
   private readonly catalogs = new Map<UiLanguage, Promise<Catalog>>();
+  private readonly startCatalogs = new Map<UiLanguage, Promise<Catalog>>();
+  /** Languages whose complete catalog is in memory (not only the start-up part). */
+  private readonly complete = new Set<UiLanguage>();
   private readonly current = signal<Catalog>({});
   private readonly fallback = signal<Catalog>({});
 
@@ -68,7 +71,10 @@ export class I18nService {
       writeStorage(LANGUAGE_STORAGE_KEY, preferred);
     }
     const language = this.language();
-    const catalog = await this.load(language);
+    const catalog = this.split ? await this.loadStart(language) : await this.load(language);
+    if (!this.split) {
+      this.complete.add(language);
+    }
     this.current.set(catalog);
     this.fallback.set(catalog);
     this.applyDocumentLanguage(language);
@@ -85,7 +91,32 @@ export class I18nService {
    */
   preload(): Promise<unknown> {
     const chosen = languageFromPath(this.location.pathname) ?? readStorage(LANGUAGE_STORAGE_KEY);
-    return isUiLanguage(chosen) ? this.load(chosen) : Promise.resolve();
+    if (!isUiLanguage(chosen)) {
+      return Promise.resolve();
+    }
+    return this.split ? this.loadStart(chosen) : this.load(chosen);
+  }
+
+  /**
+   * Loads the complete catalog of the current language (D11.5.3): start-up loads only `<lang>.start.json` (shell,
+   * shared components and the start-up pages, see scripts/build-i18n.mjs START_MODULES); the rest follows once the
+   * first page is shown (ShellComponent) or before a route of another module activates (`catalogGuard`).
+   */
+  ensureComplete(): Promise<void> {
+    const language = this.language();
+    if (this.complete.has(language)) {
+      return Promise.resolve();
+    }
+    return this.load(language).then((catalog) => {
+      if (Object.keys(catalog).length === 0) {
+        return; // failed: the next guard or page retries
+      }
+      this.complete.add(language);
+      if (this.language() === language) {
+        this.current.set(catalog);
+        this.fallback.set(catalog);
+      }
+    });
   }
 
   /**
@@ -98,6 +129,7 @@ export class I18nService {
   ): Promise<void> {
     const { persist = true, remember = true } = options;
     const catalog = await this.load(language);
+    this.complete.add(language);
     this.current.set(catalog);
     this.fallback.set(catalog);
     this.language.set(language);
@@ -144,10 +176,29 @@ export class I18nService {
     fallback: Catalog = catalog,
   ): void {
     this.catalogs.set(language, Promise.resolve(catalog));
+    this.complete.add(language);
     this.current.set(catalog);
     this.fallback.set(fallback);
     this.language.set(language);
     this.ready.set(true);
+  }
+
+  /** Browser builds load the catalog in two parts; tests and the prerender (custom loader) load it at once. */
+  private get split(): boolean {
+    return this.browser && !this.loader;
+  }
+
+  private loadStart(language: UiLanguage): Promise<Catalog> {
+    let catalog = this.startCatalogs.get(language);
+    if (!catalog) {
+      catalog = firstValueFrom(this.http.get<Catalog>(`/i18n/${language}.start.json`)).catch((error: unknown) => {
+        this.startCatalogs.delete(language);
+        console.error(`Could not load the ${language} start-up translations`, error);
+        return this.load(language);
+      });
+      this.startCatalogs.set(language, catalog);
+    }
+    return catalog;
   }
 
   private load(language: UiLanguage): Promise<Catalog> {

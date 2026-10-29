@@ -11,6 +11,7 @@ import { currentStepOf } from '../../onboarding/pages/journey-page.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 import { MyNextPickupsCardComponent } from '../../pickups/components/my-next-pickups-card.component';
 import { PushOptInCardComponent } from '../../notifications/components/push-opt-in-card.component';
+import { JourneyLoader } from '../../onboarding/onboarding.resource';
 
 /** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
 export interface DashboardNextStep {
@@ -371,6 +372,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
   `,
 })
 export class DashboardPageComponent {
+  private readonly journeyLoader = inject(JourneyLoader);
   protected readonly session = inject(SessionService);
   private readonly onboardingApi = inject(OnboardingService);
   protected readonly nextStep = computed(() => nextStepFor(this.session.role()));
@@ -378,7 +380,7 @@ export class DashboardPageComponent {
   protected readonly onboarding = computed(() => this.session.session().onboarding?.complete === false);
   protected readonly journey = loadResource<Journey, true | undefined>({
     params: () => (this.onboarding() ? true : undefined),
-    loader: () => this.onboardingApi.getMyJourney(),
+    loader: () => this.journeyLoader.load(),
     isEmpty: () => false,
   });
   protected readonly currentStep = currentStepOf;

@@ -80,10 +80,13 @@ describe('I18nService', () => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, 'fr');
     const i18n = setup();
     const ready = i18n.initialize();
-    // German gaps are filled by build-i18n.mjs, so the German catalog is never requested (D11.5.3)
-    backend.expectOne('/i18n/fr.json').flush({ 'x.hello': 'Bonjour {name}' });
+    // German gaps are filled by build-i18n.mjs, so the German catalog is never requested; start-up loads only the
+    // start-up part of the catalog (D11.5.3)
+    backend.expectOne('/i18n/fr.start.json').flush({ 'x.hello': 'Bonjour {name}' });
     await ready;
     backend.expectNone('/i18n/de.json');
+    backend.expectNone('/i18n/de.start.json');
+    backend.expectNone('/i18n/fr.json');
 
     expect(i18n.language()).toBe('fr');
     expect(i18n.locale()).toBe('fr-CH');
@@ -91,6 +94,23 @@ describe('I18nService', () => {
     expect(i18n.t('x.missing')).toBe('x.missing');
     expect(document.documentElement.lang).toBe('fr');
     expect(document.cookie).toContain('fs.lang=fr');
+  });
+
+  it('loads the complete catalog once on demand after the start-up part', async () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'de');
+    const i18n = setup();
+    const ready = i18n.initialize();
+    backend.expectOne('/i18n/de.start.json').flush({ 'layout.x': 'Start' });
+    await ready;
+    expect(i18n.t('stores.x')).toBe('stores.x');
+
+    const complete = i18n.ensureComplete();
+    const again = i18n.ensureComplete();
+    backend.expectOne('/i18n/de.json').flush({ 'layout.x': 'Start', 'stores.x': 'Betrieb' });
+    await Promise.all([complete, again]);
+    expect(i18n.t('stores.x')).toBe('Betrieb');
+    await i18n.ensureComplete();
+    backend.expectNone('/i18n/de.json');
   });
 
   it('reads the language of the /<lang> landing URLs', () => {
@@ -105,7 +125,7 @@ describe('I18nService', () => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, 'gws');
     const i18n = setup();
     const ready = i18n.initialize();
-    backend.expectOne('/i18n/gws.json').flush({});
+    backend.expectOne('/i18n/gws.start.json').flush({});
     await ready;
     expect(document.documentElement.lang).toBe('de-CH');
     expect(document.documentElement.dataset['language']).toBe('gws');

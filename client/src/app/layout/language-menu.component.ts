@@ -11,6 +11,7 @@ import { Popover } from '@openng/optimus-ui/popover';
 import { I18nService } from '../core/i18n/i18n.service';
 import { LANGUAGES, UiLanguage } from '../core/i18n/languages';
 import { TPipe } from '../core/i18n/t.pipe';
+import { LazyPopover, PopoverLike } from './lazy-popover';
 
 /** Language switcher (5 languages, names in their own language). */
 @Component({
@@ -22,7 +23,7 @@ import { TPipe } from '../core/i18n/t.pipe';
       type="button"
       class="hdr-btn"
       [class.hdr-btn--labelled]="showLabel()"
-      (click)="op.toggle($event)"
+      (click)="menu.toggle($event)"
       aria-haspopup="true"
       data-testid="shell.languageMenu"
     >
@@ -30,6 +31,8 @@ import { TPipe } from '../core/i18n/t.pipe';
       <span class="fs-visually-hidden">{{ 'layout.header.language' | t }}</span>
       <span class="hdr-btn__code">{{ code() }}</span>
     </button>
+    <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
+    @defer (when menu.load()) {
     <p-popover #op>
       <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.language' | t">
         @for (language of languages; track language) {
@@ -53,12 +56,14 @@ import { TPipe } from '../core/i18n/t.pipe';
         }
       </ul>
     </p-popover>
+    }
   `,
 })
 export class LanguageMenuComponent {
   protected readonly i18n = inject(I18nService);
   protected readonly languages = LANGUAGES;
-  protected readonly popover = viewChild.required<Popover>('op');
+  private readonly popover = viewChild<PopoverLike>('op');
+  protected readonly menu = new LazyPopover(this.popover);
   readonly showLabel = input(true);
   /** Short code shown on the button (and part of its accessible name, WCAG 2.5.3). */
   protected readonly code = computed(() =>
@@ -66,7 +71,7 @@ export class LanguageMenuComponent {
   );
 
   protected choose(language: UiLanguage): void {
-    this.popover().hide();
+    this.menu.hide();
     void this.i18n.setLanguage(language);
   }
 }

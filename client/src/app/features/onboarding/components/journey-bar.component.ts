@@ -7,6 +7,7 @@ import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey-stepper.component';
+import { JourneyLoader } from '../onboarding.resource';
 
 /**
  * Journey bar in the header (§11, D11.5.2): newcomers always see which step they are on and the one next action.
@@ -64,6 +65,7 @@ import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey
   `,
 })
 export class JourneyBarComponent {
+  private readonly journeyLoader = inject(JourneyLoader);
   private readonly api = inject(OnboardingService);
   private readonly session = inject(SessionService);
 
@@ -73,7 +75,7 @@ export class JourneyBarComponent {
 
   protected readonly journey = loadResource<Journey, true | undefined>({
     params: () => (this.visible() ? true : undefined),
-    loader: () => this.api.getMyJourney(),
+    loader: () => this.journeyLoader.load(),
     isEmpty: () => false,
     keepDataOnError: true,
   });

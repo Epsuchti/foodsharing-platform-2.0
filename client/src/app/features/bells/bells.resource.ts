@@ -5,6 +5,7 @@ import { Subscription, interval } from 'rxjs';
 import { Bell, BellsService } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { RealtimeService } from '../../core/realtime/realtime.service';
+import { StartupService } from '../../core/startup/startup.service';
 
 /** Badge refresh interval without realtime events (N3). */
 export const BELL_POLL_MS = 60_000;
@@ -31,8 +32,10 @@ export class BellStore {
       return;
     }
     const document = inject(DOCUMENT);
+    const startup = inject(StartupService);
     effect(() => {
-      const authenticated = this.session.isAuthenticated();
+      // the badge is not part of the first page: count after it has rendered (D11.5.3)
+      const authenticated = this.session.isAuthenticated() && startup.pageShown();
       this.realtime.connectCount();
       untracked(() => (authenticated ? this.start() : this.stopPolling()));
     });

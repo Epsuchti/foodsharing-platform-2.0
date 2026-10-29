@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { consentGuard } from './core/auth/consent.guard';
+import { catalogGuard } from './core/i18n/catalog.guard';
 
 /**
  * One lazy entry per module (docs/conventions.md A7). Feature route files export `<MODULE>_ROUTES`.
@@ -154,7 +155,7 @@ const MODULE_ROUTES: Routes = [
 export const routes: Routes = [
   {
     path: '',
-    canActivateChild: [consentGuard],
+    canActivateChild: [consentGuard, catalogGuard],
     children: MODULE_ROUTES,
   },
 ];

@@ -4,10 +4,10 @@
   "scripts": {
     "ng": "ng",
     "start": "npm run i18n:build && npm run openapi:generate && ng serve --proxy-config proxy.conf.json",
-    "build": "npm run i18n:build && npm run openapi:generate && ng build && node scripts/precompress.mjs",
+    "build": "npm run i18n:build && npm run openapi:generate && ng build && node scripts/preload-initial.mjs && node scripts/precompress.mjs",
     "watch": "ng build --watch --configuration development",
     "openapi:generate": "openapi-generator-cli generate -i ../server/src/main/resources/openapi/openapi.yaml -g typescript-angular -o src/app/api -c openapi-generator.json && node scripts/mark-api-pure.mjs",
-    "lint": "eslint \"src/**/*.{ts,html}\" && node scripts/check-data-state.mjs",
+    "lint": "eslint \"src/**/*.{ts,html}\" && node scripts/check-data-state.mjs && node scripts/check-theme-tokens.mjs",
     "i18n:build": "node scripts/build-i18n.mjs",
     "i18n:check": "node scripts/build-i18n.mjs && node scripts/check-i18n.mjs",
     "pretest": "npm run i18n:build && npm run openapi:generate",

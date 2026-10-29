@@ -74,8 +74,10 @@ describe('ShellComponent', () => {
 
   it('loads toast and confirm dialog only after the first page (deferred, D11.5.3)', async () => {
     expect(host.querySelector('p-toast')).toBeNull();
-    const [overlays] = await fixture.getDeferBlocks();
-    await overlays.render(DeferBlockState.Complete);
+    // the header menus defer their popovers too: render every deferred block
+    for (const block of await fixture.getDeferBlocks()) {
+      await block.render(DeferBlockState.Complete);
+    }
     expect(host.querySelector('p-toast')).not.toBeNull();
     expect(host.querySelector('p-confirmdialog')).not.toBeNull();
   });

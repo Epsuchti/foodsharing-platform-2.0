@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Popover } from '@openng/optimus-ui/popover';
 
@@ -8,6 +9,7 @@ import { TPipe } from '../core/i18n/t.pipe';
 import { PasskeyNudgeComponent } from '../features/auth/components/passkey-nudge.component';
 import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
 import { NavContextService } from './nav-context.service';
+import { LazyPopover, PopoverLike } from './lazy-popover';
 
 /**
  * Avatar button with the user menu: profile (head), items with area 'user' from nav.config.ts, logout; plus the
@@ -22,7 +24,7 @@ import { NavContextService } from './nav-context.service';
       <button
         type="button"
         class="user-btn"
-        (click)="op.toggle($event)"
+        (click)="menu.toggle($event)"
         aria-haspopup="true"
         data-testid="shell.userMenu"
       >
@@ -39,6 +41,8 @@ import { NavContextService } from './nav-context.service';
         <span class="fs-visually-hidden">{{ 'layout.userMenu.open' | t }}</span>
         <i class="pi pi-chevron-down user-btn__chevron" aria-hidden="true"></i>
       </button>
+      <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
+      @defer (when menu.load()) {
       <p-popover #op>
         <div class="um">
           <a
@@ -94,6 +98,7 @@ import { NavContextService } from './nav-context.service';
           </ul>
         </div>
       </p-popover>
+      }
       <fs-passkey-nudge />
     }
   `,
@@ -181,11 +186,13 @@ import { NavContextService } from './nav-context.service';
   `,
 })
 export class UserMenuComponent {
+  private readonly popover = viewChild<PopoverLike>('op');
+  protected readonly menu = new LazyPopover(this.popover);
   protected readonly session = inject(SessionService);
   protected readonly nav = inject(NavContextService);
   private readonly auth = inject(AuthFacadeService);
 
-  protected logout(popover: Popover): void {
+  protected logout(popover: PopoverLike): void {
     popover.hide();
     this.auth.logout().subscribe({ error: () => undefined });
   }

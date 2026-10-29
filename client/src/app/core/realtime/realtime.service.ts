@@ -5,6 +5,7 @@ import { Observable, Subject, filter } from 'rxjs';
 import { RealtimeEvent, RealtimeEventType } from '../../api';
 import { AppInfoService } from '../app-info.service';
 import { SessionService } from '../auth/session.service';
+import { StartupService } from '../startup/startup.service';
 
 /** Minimal surface of `@stomp/stompjs` `Client` used here (the library is loaded lazily). */
 interface StompClientLike {
@@ -44,6 +45,7 @@ export interface RealtimeDevHook {
 export class RealtimeService {
   private readonly session = inject(SessionService);
   private readonly appInfo = inject(AppInfoService);
+  private readonly startup = inject(StartupService);
   private readonly document = inject(DOCUMENT);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly events = new Subject<RealtimeEvent>();
@@ -65,8 +67,9 @@ export class RealtimeService {
       return;
     }
     effect(() => {
+      // connect only after the first page has rendered (D11.5.3): the socket is not part of what the visitor came for
       if (this.session.isAuthenticated()) {
-        void this.start();
+        if (this.startup.pageShown()) void this.start();
       } else {
         void this.stop();
       }
@@ -109,7 +112,7 @@ export class RealtimeService {
     return this.events.pipe(filter((event) => (types as string[]).includes(event.type)));
   }
 
-  /** Runs `callback` after every reconnect (not the first connect); returns the unregister function. */
+  /** Runs `callback` after every (re)connect, the first one included; returns the unregister function. */
   onReconnect(callback: () => void): () => void {
     this.reconnectCallbacks.add(callback);
     return () => this.reconnectCallbacks.delete(callback);
@@ -133,17 +136,16 @@ export class RealtimeService {
       debug: () => undefined,
     });
     client.onConnect = () => {
-      const reconnect = this.connectCount() > 0;
       client.reconnectDelay = REALTIME_MIN_DELAY_MS;
       client.subscribe('/user/queue/events', (message) => this.dispatch(message.body));
       this.clearChip();
       this.reconnecting.set(false);
       this.connected.set(true);
       this.connectCount.update((count) => count + 1);
-      if (reconnect) {
-        for (const callback of [...this.reconnectCallbacks]) {
-          callback();
-        }
+      // also on the first connect: it starts only after the first page (D11.5.3), so pages opened before it
+      // may have missed events and refetch like after a reconnect
+      for (const callback of [...this.reconnectCallbacks]) {
+        callback();
       }
     };
     client.onWebSocketClose = () => {

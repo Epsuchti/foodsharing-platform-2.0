@@ -1,5 +1,5 @@
 import { definePreset } from '@openng/optimus-ui-themes';
-import Aura from '@openng/optimus-ui-themes/aura';
+import { LeanAura } from './aura-lean';
 
 /** foodsharing green (from foodsharing-einab-tabelle). */
 export const PRIMARY_PALETTE = {
@@ -93,7 +93,7 @@ function toastColors(shade: number) {
  * Optimus/Aura preset with the foodsharing palette. Dark mode is switched by the `.fs-dark` class on <html>
  * (ThemeService); see app.config.ts for the provideOptimus options.
  */
-export const FoodsharingPreset = definePreset(Aura, {
+export const FoodsharingPreset = definePreset(LeanAura, {
   semantic: {
     primary: PRIMARY_PALETTE,
     focusRing: {
