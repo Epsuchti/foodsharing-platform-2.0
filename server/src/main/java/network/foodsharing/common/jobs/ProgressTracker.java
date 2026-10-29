@@ -115,6 +115,11 @@ public class ProgressTracker {
         return Optional.ofNullable(jobs.get(id));
     }
 
+    /** Number of jobs currently {@link Status#RUNNING} (metric {@code fs_async_jobs_running}). */
+    public long running() {
+        return jobs.values().stream().filter(job -> job.status() == Status.RUNNING).count();
+    }
+
     private void runJob(UUID id, Work work) {
         Progress progress = new Progress() {
             @Override

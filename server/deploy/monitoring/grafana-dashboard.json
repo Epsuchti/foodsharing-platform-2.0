@@ -1,0 +1,75 @@
+{
+  "uid": "foodsharing-ops",
+  "title": "foodsharing platform — operations",
+  "tags": ["foodsharing"],
+  "timezone": "Europe/Zurich",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {"list": [
+    {"name": "datasource", "type": "datasource", "query": "prometheus", "current": {"text": "Prometheus", "value": "Prometheus"}}
+  ]},
+  "panels": [
+    {"id": 1, "type": "stat", "title": "App up", "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [{"refId": "A", "expr": "up{job=\"foodsharing\"}"}]},
+    {"id": 2, "type": "stat", "title": "Requests / s", "gridPos": {"x": 4, "y": 0, "w": 5, "h": 4},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [{"refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{job=\"foodsharing\"}[5m]))"}]},
+    {"id": 3, "type": "stat", "title": "5xx share", "gridPos": {"x": 9, "y": 0, "w": 5, "h": 4},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"}, "fieldConfig": {"defaults": {"unit": "percentunit"}},
+     "targets": [{"refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{job=\"foodsharing\",status=~\"5..\"}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{job=\"foodsharing\"}[5m])), 1)"}]},
+    {"id": 4, "type": "stat", "title": "WebSocket users", "gridPos": {"x": 14, "y": 0, "w": 5, "h": 4},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [{"refId": "A", "expr": "fs_websocket_connected_users{job=\"foodsharing\"}"}]},
+    {"id": 5, "type": "stat", "title": "Background jobs running", "gridPos": {"x": 19, "y": 0, "w": 5, "h": 4},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [{"refId": "A", "expr": "fs_async_jobs_running{job=\"foodsharing\"}"}]},
+    {"id": 6, "type": "timeseries", "title": "Latency p50 / p95 / p99", "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"}, "fieldConfig": {"defaults": {"unit": "s"}},
+     "targets": [
+       {"refId": "A", "legendFormat": "p50", "expr": "histogram_quantile(0.5, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"foodsharing\"}[5m])))"},
+       {"refId": "B", "legendFormat": "p95", "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"foodsharing\"}[5m])))"},
+       {"refId": "C", "legendFormat": "p99", "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"foodsharing\"}[5m])))"}
+     ]},
+    {"id": 7, "type": "timeseries", "title": "Mail outbox", "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [
+       {"refId": "A", "legendFormat": "pending", "expr": "fs_outbox_pending{job=\"foodsharing\"}"},
+       {"refId": "B", "legendFormat": "failed", "expr": "fs_outbox_failed{job=\"foodsharing\"}"},
+       {"refId": "C", "legendFormat": "oldest pending (s)", "expr": "fs_outbox_oldest_pending_age_seconds{job=\"foodsharing\"}"}
+     ]},
+    {"id": 8, "type": "state-timeline", "title": "Circuit breakers (0 closed, 1 half-open, 2 open)", "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [{"refId": "A", "legendFormat": "{{integration}}", "expr": "fs_circuit_breaker_state{job=\"foodsharing\"}"}]},
+    {"id": 9, "type": "timeseries", "title": "Delivery failures / 5 min", "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [{"refId": "A", "legendFormat": "{{channel}}", "expr": "sum by (channel) (increase(fs_notification_delivery_failures_total{job=\"foodsharing\"}[5m]))"}]},
+    {"id": 10, "type": "table", "title": "Jobs: hours since last success, consecutive failures", "gridPos": {"x": 0, "y": 20, "w": 12, "h": 9},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [
+       {"refId": "A", "format": "table", "instant": true, "expr": "(time() - fs_job_last_success_timestamp_seconds{job=\"foodsharing\"}) / 3600"},
+       {"refId": "B", "format": "table", "instant": true, "expr": "fs_job_consecutive_failures{job=\"foodsharing\"}"}
+     ]},
+    {"id": 11, "type": "timeseries", "title": "Job duration (max per run)", "gridPos": {"x": 12, "y": 20, "w": 12, "h": 9},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"}, "fieldConfig": {"defaults": {"unit": "s"}},
+     "targets": [
+       {"refId": "A", "legendFormat": "{{name}}", "expr": "fs_job_duration_seconds_max{job=\"foodsharing\"}"},
+       {"refId": "B", "legendFormat": "{{name}} avg", "expr": "rate(fs_job_duration_seconds_sum{job=\"foodsharing\"}[1h]) / clamp_min(rate(fs_job_duration_seconds_count{job=\"foodsharing\"}[1h]), 1e-9)"}
+     ]},
+    {"id": 12, "type": "timeseries", "title": "Login failures / rate-limit rejections (15 min)", "gridPos": {"x": 0, "y": 29, "w": 12, "h": 8},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [
+       {"refId": "A", "legendFormat": "login {{reason}}", "expr": "sum by (reason) (increase(fs_login_failures_total{job=\"foodsharing\"}[15m]))"},
+       {"refId": "B", "legendFormat": "limit {{limiter}}", "expr": "sum by (limiter) (increase(fs_rate_limit_rejections_total{job=\"foodsharing\"}[15m]))"}
+     ]},
+    {"id": 13, "type": "timeseries", "title": "JVM heap, DB pool", "gridPos": {"x": 12, "y": 29, "w": 12, "h": 8},
+     "datasource": {"type": "prometheus", "uid": "${datasource}"},
+     "targets": [
+       {"refId": "A", "legendFormat": "heap used", "expr": "sum(jvm_memory_used_bytes{job=\"foodsharing\",area=\"heap\"})"},
+       {"refId": "B", "legendFormat": "db active", "expr": "hikaricp_connections_active{job=\"foodsharing\"}"},
+       {"refId": "C", "legendFormat": "db pending", "expr": "hikaricp_connections_pending{job=\"foodsharing\"}"}
+     ]}
+  ]
+}

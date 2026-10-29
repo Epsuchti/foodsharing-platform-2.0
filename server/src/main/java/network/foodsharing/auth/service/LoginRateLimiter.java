@@ -1,5 +1,6 @@
 package network.foodsharing.auth.service;
 
+import network.foodsharing.common.metrics.OperationsMetrics;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,7 +28,7 @@ public class LoginRateLimiter {
         this.loginTokens = loginTokens;
         this.properties = properties;
         this.clock = clock;
-        this.ipLimiter = new SlidingWindowRateLimiter(clock, properties.getAuth().getMaxLoginRequestsPerIp(),
+        this.ipLimiter = new SlidingWindowRateLimiter("login-ip", clock, properties.getAuth().getMaxLoginRequestsPerIp(),
                 window(properties));
     }
 
@@ -43,6 +44,7 @@ public class LoginRateLimiter {
         Instant windowStart = clock.instant().minus(window);
         if (loginTokens.countByEmailAndCreatedAtAfter(email, windowStart)
                 >= properties.getAuth().getMaxLoginRequestsPerEmail()) {
+            OperationsMetrics.rateLimited("login-email");
             throw tooMany(window);
         }
     }

@@ -1,5 +1,6 @@
 package network.foodsharing.notification.mail.service;
 
+import network.foodsharing.common.metrics.OperationsMetrics;
 import network.foodsharing.common.integration.Integration;
 import network.foodsharing.common.integration.IntegrationRegistry;
 
@@ -79,6 +80,7 @@ public class MailDeliveryService {
             history.record(history.event(MailAction.SENT, HistoryService.SYSTEM_SUBJECT_ID).actorSystem()
                     .metadata(metadata(message)).build());
         } catch (RuntimeException ex) {
+            OperationsMetrics.deliveryFailed("mail");
             int attempts = message.getAttempts() + 1;
             message.setAttempts(attempts);
             message.setLastError(StringUtils.abbreviate(ex.getClass().getSimpleName() + ": " + ex.getMessage(), 2000));

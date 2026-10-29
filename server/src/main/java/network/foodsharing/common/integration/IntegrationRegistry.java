@@ -1,5 +1,6 @@
 package network.foodsharing.common.integration;
 
+import network.foodsharing.common.metrics.OperationsMetrics;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.EnumMap;
@@ -93,6 +94,9 @@ public class IntegrationRegistry implements network.foodsharing.common.seed.InMe
             breaker.markSucceeded();
             return result;
         } catch (RuntimeException ex) {
+            if (integration == Integration.TELEGRAM) {
+                OperationsMetrics.deliveryFailed("telegram");
+            }
             CircuitState before = breaker.state();
             if (breaker.reportFailure(where, ex) && before == CircuitState.CLOSED) {
                 events.publishEvent(new IntegrationDownEvent(integration, breaker.snapshot().lastError()));

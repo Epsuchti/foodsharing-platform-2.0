@@ -1,0 +1,110 @@
+# Alert rules (D19.3). Every metric used here must exist in /actuator/prometheus (MetricsContractTest).
+# Severity: page = act now (runbook §6/§9), ticket = look at it on the next working day.
+groups:
+  - name: foodsharing-availability
+    rules:
+      - alert: AppDown
+        expr: up{job="foodsharing"} == 0
+        for: 2m
+        labels: {severity: page}
+        annotations:
+          summary: "foodsharing app not scrapeable for 2 minutes"
+          runbook: "runbook §6.1 (health) and §5 (restart / rollback)"
+      - alert: HighServerErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="foodsharing",status=~"5.."}[5m]))
+            / clamp_min(sum(rate(http_server_requests_seconds_count{job="foodsharing"}[5m])), 1) > 0.02
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "More than 2 % of requests fail with 5xx"
+          runbook: "runbook §9.2 (log query by traceId)"
+      - alert: SlowRequests
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job="foodsharing",uri!~"/ws.*"}[10m]))) > 0.5
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "p95 request latency above 500 ms for 15 minutes"
+      - alert: DatabasePoolExhausted
+        expr: hikaricp_connections_pending{job="foodsharing"} > 5
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "Requests wait for database connections"
+          runbook: "runbook §6.5"
+      - alert: HeapAlmostFull
+        expr: |
+          sum(jvm_memory_used_bytes{job="foodsharing",area="heap"}) / sum(jvm_memory_max_bytes{job="foodsharing",area="heap"}) > 0.9
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "JVM heap above 90 % for 10 minutes"
+
+  - name: foodsharing-operations
+    rules:
+      - alert: MailOutboxStuck
+        expr: fs_outbox_oldest_pending_age_seconds{job="foodsharing"} > 1800
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "Oldest pending mail waits for more than 30 minutes"
+          runbook: "runbook §6.3 (outbox stuck)"
+      - alert: MailOutboxFailures
+        expr: increase(fs_outbox_failed{job="foodsharing"}[1h]) > 0
+        labels: {severity: ticket}
+        annotations:
+          summary: "Mails reached the FAILED state (max attempts) in the last hour"
+          runbook: "runbook §6.3"
+      - alert: CircuitBreakerOpen
+        expr: fs_circuit_breaker_state{job="foodsharing"} == 2
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Integration {{ $labels.integration }} breaker open for 15 minutes"
+          runbook: "runbook §6.4 (breakers)"
+      - alert: SmtpBreakerOpen
+        expr: fs_circuit_breaker_state{job="foodsharing",integration="SMTP"} == 2
+        for: 10m
+        labels: {severity: page}
+        annotations:
+          summary: "SMTP unreachable: no mails (magic links!) are sent"
+          runbook: "runbook §6.4"
+      - alert: JobFailing
+        expr: fs_job_consecutive_failures{job="foodsharing"} >= 2
+        labels: {severity: ticket}
+        annotations:
+          summary: "Job {{ $labels.name }} failed twice in a row"
+          runbook: "runbook §6.2 (jobs, ShedLock)"
+      - alert: JobNotSucceeding
+        expr: |
+          (time() - fs_job_last_success_timestamp_seconds{job="foodsharing"}) > 2 * 86400
+            and fs_job_last_success_timestamp_seconds{job="foodsharing"} > 0
+        for: 30m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Job {{ $labels.name }} has not succeeded for two days"
+          runbook: "runbook §6.2"
+      - alert: NotificationDeliveryFailures
+        expr: sum by (channel) (increase(fs_notification_delivery_failures_total{job="foodsharing"}[30m])) > 50
+        labels: {severity: ticket}
+        annotations:
+          summary: "Many {{ $labels.channel }} deliveries failed in 30 minutes"
+      - alert: LoginFailureSpike
+        expr: sum(increase(fs_login_failures_total{job="foodsharing"}[15m])) > 100
+        labels: {severity: ticket}
+        annotations:
+          summary: "More than 100 failed logins in 15 minutes (guessing / broken mail links?)"
+          runbook: "runbook §9.4 (IP blocks)"
+      - alert: RateLimitSpike
+        expr: sum by (limiter) (increase(fs_rate_limit_rejections_total{job="foodsharing"}[15m])) > 200
+        labels: {severity: ticket}
+        annotations:
+          summary: "Rate limiter {{ $labels.limiter }} rejected more than 200 requests in 15 minutes"
+          runbook: "runbook §9.4"
+      - alert: AsyncJobsPiling
+        expr: fs_async_jobs_running{job="foodsharing"} > 10
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "More than 10 background jobs (imports, exports) running for 15 minutes"

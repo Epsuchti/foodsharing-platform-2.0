@@ -93,8 +93,10 @@ for path in /actuator/health /actuator/prometheus; do
 done
 ok "actuator not on the public port"
 
-curl -s "${MGMT}/actuator/prometheus" | grep -q '^jvm_memory_used_bytes' || fail "prometheus scrape"
-ok "prometheus on :9090"
+SCRAPE="$(curl -s "${MGMT}/actuator/prometheus")"
+grep -q '^jvm_memory_used_bytes' <<< "${SCRAPE}" || fail "prometheus scrape"
+grep -q '^fs_outbox_pending' <<< "${SCRAPE}" || fail "operations metrics (fs_*) missing"
+ok "prometheus on :9090 ($(grep -c '^fs_' <<< "${SCRAPE}") fs_* series)"
 
 LINE="$("${COMPOSE[@]}" logs --no-color --no-log-prefix app | grep -m1 'Started FoodsharingApplication' || true)"
 echo "${LINE}" | grep -q '^{".*"level":"INFO".*"app":"foodsharing-platform"' || fail "log line is not JSON: ${LINE}"

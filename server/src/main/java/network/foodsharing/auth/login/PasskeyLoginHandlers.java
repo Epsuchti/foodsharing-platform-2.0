@@ -1,5 +1,6 @@
 package network.foodsharing.auth.login;
 
+import network.foodsharing.common.metrics.OperationsMetrics;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -80,6 +81,7 @@ public class PasskeyLoginHandlers {
     void onFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
             throws IOException {
         log.info("Passkey login failed: {}", exception.getMessage());
+        OperationsMetrics.loginFailed("passkey");
         errorWriter.write(response, 401, ApiErrorCode.AUTHENTICATION_REQUIRED, "Passkey authentication failed");
     }
 }

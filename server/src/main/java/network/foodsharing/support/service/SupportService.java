@@ -87,7 +87,7 @@ public class SupportService {
         this.history = history;
         this.properties = properties;
         this.clock = clock;
-        this.limiter = new SlidingWindowRateLimiter(clock, Math.max(1, properties.getSupport().getMaxPerHour()),
+        this.limiter = new SlidingWindowRateLimiter("support", clock, Math.max(1, properties.getSupport().getMaxPerHour()),
                 Duration.ofHours(1));
     }
 

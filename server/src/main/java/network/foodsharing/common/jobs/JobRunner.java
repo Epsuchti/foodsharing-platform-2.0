@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.javacrumbs.shedlock.core.ClockProvider;
 import network.foodsharing.common.jobs.repository.JobRunRepository;
+import network.foodsharing.common.metrics.OperationsMetrics;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -57,6 +61,12 @@ public class JobRunner {
         this.jobs = jobs;
     }
 
+    /** Every job gets its metrics ({@code fs_job_*}) at startup, before its first run (D19.3). */
+    @EventListener(ApplicationReadyEvent.class)
+    public void registerMetrics() {
+        jobs.forEach(job -> OperationsMetrics.registerJob(job.jobName()));
+    }
+
     /** All jobs, sorted by name. */
     public List<RunnableJob> jobs() {
         return jobs.stream().sorted(Comparator.comparing(RunnableJob::jobName)).toList();
@@ -71,6 +81,7 @@ public class JobRunner {
         boolean record = trigger == JobRun.Trigger.MANUAL || job.recordEveryRun();
         JobRun started = newRow(job, trigger, actorId);
         JobRun run = record ? tx.execute(status -> runs.save(started)) : started;
+        long startNanos = System.nanoTime();
         RuntimeException failure = null;
         try {
             job.runNow();
@@ -82,6 +93,8 @@ public class JobRunner {
             log.warn("Job {} ({}) failed", job.jobName(), trigger, ex);
         }
         run.setFinishedAt(clock.instant());
+        OperationsMetrics.jobFinished(job.jobName(), Duration.ofNanos(System.nanoTime() - startNanos),
+                failure == null, run.getFinishedAt());
         if (record || failure != null) {
             JobRun finished = run;
             run = tx.execute(status -> runs.save(record ? finished : copy(finished)));

@@ -1,5 +1,6 @@
 package network.foodsharing.notification.push.service;
 
+import network.foodsharing.common.metrics.OperationsMetrics;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -59,6 +60,9 @@ public class PushDeliveryService {
                 result = client.send(subscription, message);
             } catch (RuntimeException ex) {
                 result = PushClient.Result.FAILED;
+            }
+            if (result == PushClient.Result.FAILED) {
+                OperationsMetrics.deliveryFailed("push");
             }
             subscriptions.recordResult(subscription.getId(), result);
             delivered |= result == PushClient.Result.OK;

@@ -134,7 +134,7 @@ public class GroupService {
         this.history = history;
         this.events = events;
         this.clock = clock;
-        this.mailLimiter = new SlidingWindowRateLimiter(clock, properties.getRegion().getGroupMailsPerHour(),
+        this.mailLimiter = new SlidingWindowRateLimiter("group-mails", clock, properties.getRegion().getGroupMailsPerHour(),
                 Duration.ofHours(1));
     }
 

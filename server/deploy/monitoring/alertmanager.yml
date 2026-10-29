@@ -1,0 +1,20 @@
+# Alertmanager: page alerts every 30 min, tickets once a day, to the IT team mailbox (edit the addresses on the host).
+route:
+  receiver: it-team
+  group_by: [alertname]
+  group_wait: 1m
+  repeat_interval: 24h
+  routes:
+    - matchers: ['severity="page"']
+      receiver: it-team
+      repeat_interval: 30m
+
+receivers:
+  - name: it-team
+    email_configs:
+      - to: it@foodsharing.network
+        from: alerts@foodsharing.network
+        smarthost: smtp.protonmail.ch:587
+        auth_username: alerts@foodsharing.network
+        auth_password_file: /etc/alertmanager/smtp_password
+        send_resolved: true
