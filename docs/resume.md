@@ -19,6 +19,7 @@ Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–100), `docs/co
 - Merged on main: F1 stores import page, Q1 scaffolding, backend open rows (N7, EA16, AU5, AU13, C15 done; AU11 partial; AD1 admins API).
 - In flight: frontend worker on Q2 profiles (`build/m7-q2-profiles`); backend worker on `build/m7-b-gaps` (G1–G4, F1-R1 `RegionDetail.mayCoordinateStores`, F1-R2 import-csv.mjs on Windows, AU11 store-team request messages).
 - Frontend queue after Q2: Q3…Q14 (`docs/plan-m7-queue-f.md`); Q13 also builds `/admin/admins` (`listAdmins`) and an @AD1 permission-matrix UI test; F1 page switches to `RegionDetail.mayCoordinateStores` once merged.
+- Next backend task after the current batch (fresh worker): test-suite speed-up per decision 100 (parallel forks, fewer Spring contexts, shared ArchUnit/Modulith class import); same test count and results before/after.
 
 ## Team setup the owner asked for
 One frontend worker + one backend worker (+ Fable planner for plans/reviews). Workers run in their own worktree, never write to the main checkout; the integrator merges (check `git diff --name-only --diff-filter=U` before committing a merge; union-merge i18n JSON conflicts). Screenshots: write `*.screen.ts` specs only; baselines + design rounds in one batch at the end (decision 69).
