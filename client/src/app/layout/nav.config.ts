@@ -75,7 +75,7 @@ export const M6_PAGES_READY = {
   map: false,
   baskets: false,
   search: false,
-  profile: false,
+  profile: true,
   adminSettings: false,
   adminOauth: false,
   adminUploads: false,
@@ -93,6 +93,8 @@ export const M6_PAGES_READY = {
   support: false,
   releaseNotes: false,
   faq: false,
+  /** Report button on profiles (Q8); no nav item of its own. */
+  reports: false,
 };
 export type M6Page = keyof typeof M6_PAGES_READY;
 const whenM6 =

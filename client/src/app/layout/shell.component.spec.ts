@@ -187,7 +187,7 @@ describe('nav.config', () => {
     ]);
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
-    ).toEqual(['account', 'notifications']);
+    ).toEqual(['account', 'notifications', 'profile']);
     expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'messages',
@@ -199,13 +199,15 @@ describe('nav.config', () => {
   it('keeps the M6 items hidden until their page flag flips, then applies their own rule', () => {
     const orga = context({ isAuthenticated: true, hasRole: (role) => role === Role.Orga });
     const m6Ids = Object.keys(M6_PAGES_READY);
+    const notReady = m6Ids.filter((id) => !M6_PAGES_READY[id as keyof typeof M6_PAGES_READY]);
+    expect(visibleNavItems(orga, 'user').map((item) => item.id)).toContain('profile');
     const all = [
       ...visibleNavItems(orga),
       ...visibleNavItems(orga, 'user'),
       ...visibleNavItems(orga, 'footer'),
       ...visibleNavItems(context(), 'footer'),
     ].map((item) => item.id);
-    expect(all.filter((id) => m6Ids.includes(id))).toEqual([]);
+    expect(all.filter((id) => notReady.includes(id))).toEqual([]);
 
     const saved = { ...M6_PAGES_READY };
     try {

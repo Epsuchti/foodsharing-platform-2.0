@@ -1,0 +1,366 @@
+<fs-data-state [state]="profile" skeleton="detail" [backLink]="['/dashboard']" data-testid="profiles.page.state">
+  <ng-template [fsData]="profile" let-p>
+    <fs-profile-card [profile]="p">
+      @if (!self()) {
+        <p-button
+          icon="pi pi-envelope"
+          [label]="'profiles.action.message' | t"
+          [loading]="message.busy()"
+          (onClick)="message.run()"
+          data-testid="profiles.page.message"
+        />
+        @if (p.banana.givenByMe) {
+          <span class="given" data-testid="profiles.page.bananaGiven">
+            <i class="pi pi-check" aria-hidden="true"></i> {{ 'profiles.action.bananaGiven' | t }}
+          </span>
+        } @else if (p.banana.mayGive) {
+          <p-button
+            icon="pi pi-thumbs-up"
+            [label]="'profiles.action.banana' | t"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="bananaDialogOpen.set(true)"
+            data-testid="profiles.page.banana"
+          />
+        }
+        @for (action of buddy(); track action) {
+          @switch (action) {
+            @case ('request') {
+              <p-button
+                icon="pi pi-user-plus"
+                [label]="'profiles.buddy.request' | t"
+                severity="secondary"
+                [outlined]="true"
+                [loading]="requestBuddy.busy()"
+                (onClick)="requestBuddy.run()"
+                data-testid="profiles.page.buddyRequest"
+              />
+            }
+            @case ('withdraw') {
+              <p-button
+                icon="pi pi-times"
+                [label]="'profiles.buddy.withdraw' | t"
+                severity="secondary"
+                [outlined]="true"
+                [loading]="removeBuddy.busy()"
+                (onClick)="removeBuddy.run()"
+                data-testid="profiles.page.buddyWithdraw"
+              />
+            }
+            @case ('accept') {
+              <p-button
+                icon="pi pi-check"
+                [label]="'profiles.buddy.accept' | t"
+                [loading]="acceptBuddy.busy()"
+                (onClick)="acceptBuddy.run()"
+                data-testid="profiles.page.buddyAccept"
+              />
+            }
+            @case ('remove') {
+              @if (p.buddy.status === 'CONFIRMED') {
+                <span class="given" data-testid="profiles.page.buddyConfirmed">
+                  <i class="pi pi-users" aria-hidden="true"></i> {{ 'profiles.buddy.confirmed' | t }}
+                </span>
+                <p-button
+                  icon="pi pi-user-minus"
+                  [ariaLabel]="'profiles.buddy.remove' | t"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="confirmRemoveBuddy(p)"
+                  data-testid="profiles.page.buddyRemove"
+                />
+              } @else {
+                <p-button
+                  icon="pi pi-times"
+                  [label]="'profiles.buddy.decline' | t"
+                  severity="secondary"
+                  [text]="true"
+                  [loading]="removeBuddy.busy()"
+                  (onClick)="removeBuddy.run()"
+                  data-testid="profiles.page.buddyDecline"
+                />
+              }
+            }
+          }
+        }
+        @if (reportsReady && p.permissions.mayReport) {
+          <p-button
+            icon="pi pi-flag"
+            [label]="'profiles.action.report' | t"
+            severity="danger"
+            [text]="true"
+            [routerLink]="['/reports/new']"
+            [queryParams]="{ userId: p.user.id }"
+            data-testid="profiles.page.report"
+          />
+        }
+      } @else {
+        <p-button
+          icon="pi pi-users"
+          [label]="'profiles.action.myBuddies' | t"
+          severity="secondary"
+          [outlined]="true"
+          routerLink="/profile/me/buddies"
+          data-testid="profiles.page.myBuddies"
+        />
+      }
+      @if (p.permissions.mayEditProfile) {
+        <p-button
+          icon="pi pi-pencil"
+          [label]="(self() ? 'profiles.action.edit' : 'profiles.action.editAdmin') | t"
+          severity="secondary"
+          [text]="true"
+          [routerLink]="editLink(p)"
+          data-testid="profiles.page.edit"
+        />
+      }
+    </fs-profile-card>
+
+    <fs-profile-stats [stats]="p.stats" />
+
+    <div class="facts">
+      @if (p.regions.length || p.groups.length) {
+        <section class="fs-card block" data-testid="profiles.page.regions">
+          <h2>{{ 'profiles.regions' | t }}</h2>
+          <ul class="chips">
+            @for (r of p.regions; track r.id) {
+              <li>
+                <a class="chip" [routerLink]="['/regions', r.id]" data-testid="profiles.page.region">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i> {{ r.name }}
+                  @if (r.admin) {<span class="chip__badge">{{ 'profiles.ambassador' | t }}</span>}
+                </a>
+              </li>
+            }
+          </ul>
+          @if (p.groups.length) {
+            <h3>{{ 'profiles.groups' | t }}</h3>
+            <ul class="chips">
+              @for (g of p.groups; track g.id) {
+                <li>
+                  <a class="chip" [routerLink]="['/groups', g.id]" data-testid="profiles.page.group">
+                    <i class="pi pi-sitemap" aria-hidden="true"></i> {{ g.name }}
+                    @if (g.admin) {<span class="chip__badge">{{ 'profiles.groupAdmin' | t }}</span>}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+
+      @if (p.stores; as stores) {
+        <section class="fs-card block" data-testid="profiles.page.stores">
+          <h2>{{ 'profiles.stores' | t }}</h2>
+          @if (stores.length) {
+            <ul class="chips">
+              @for (s of stores; track s.id) {
+                <li>
+                  <a class="chip" [routerLink]="['/stores', s.id]" data-testid="profiles.page.store">
+                    <i class="pi pi-shop" aria-hidden="true"></i> {{ s.name }}
+                    @if (s.manager) {<span class="chip__badge">{{ 'profiles.storeManager' | t }}</span>}
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="muted">{{ 'profiles.storesEmpty' | t }}</p>
+          }
+        </section>
+      }
+
+      @if (p.kamChains.length) {
+        <section class="fs-card block" data-testid="profiles.page.kamChains">
+          <h2>{{ 'profiles.kamChains' | t }}</h2>
+          <ul class="chips">
+            @for (c of p.kamChains; track c.id) {
+              <li><a class="chip" [routerLink]="['/store-chains', c.id]"><i class="pi pi-link" aria-hidden="true"></i> {{ c.name }}</a></li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (p.achievements.length) {
+        <section class="fs-card block" data-testid="profiles.page.achievements">
+          <h2>{{ 'profiles.achievements' | t }}</h2>
+          <ul class="awards">
+            @for (a of p.achievements; track a.id) {
+              <li class="award" data-testid="profiles.page.achievement">
+                <i [class]="achievementIcon(a.icon) + ' award__icon'" aria-hidden="true"></i>
+                <div>
+                  <strong>{{ a.name }}</strong>
+                  <small class="muted">
+                    @if (a.regionName) {{{ a.regionName }} · }{{ a.awardedAt | fsDate: 'date' }}
+                    @if (a.validUntil) { · {{ 'profiles.validUntil' | t: { date: (a.validUntil | fsDate: 'date') } }}}
+                  </small>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (userBaskets.data()?.length) {
+        <section class="fs-card block" data-testid="profiles.page.baskets">
+          <h2>{{ 'profiles.baskets' | t }}</h2>
+          <ul class="chips">
+            @for (b of userBaskets.data(); track b.id) {
+              <li><a class="chip" [routerLink]="['/baskets', b.id]"><i class="pi pi-gift" aria-hidden="true"></i> {{ b.description }}</a></li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+
+    <nav class="tabs" [attr.aria-label]="'profiles.tabs' | t" data-testid="profiles.page.tabs">
+      @for (t of tabs(); track t) {
+        <a
+          class="tabs__tab"
+          [class.tabs__tab--active]="tab() === t"
+          [routerLink]="[]"
+          [queryParams]="{ tab: t === 'wall' ? null : t }"
+          queryParamsHandling="merge"
+          [attr.aria-current]="tab() === t ? 'page' : null"
+          [attr.data-testid]="'profiles.page.tab.' + t"
+        >
+          <i [class]="tabIcons[t]" aria-hidden="true"></i> {{ 'profiles.tab.' + t | t }}
+        </a>
+      }
+    </nav>
+
+    <div class="panel" data-testid="profiles.page.panel" [attr.data-tab]="tab()">
+      @switch (tab()) {
+        @case ('wall') {
+          <h2 class="fs-visually-hidden">{{ 'profiles.tab.wall' | t }}</h2>
+          <fs-wall
+            [posts]="wallPosts()"
+            [state]="wall"
+            [mayPost]="self()"
+            [posting]="postWall.busy()"
+            (post)="postWall.run($event)"
+            (delete)="deleteWall.run($event)"
+            testId="profiles.wall"
+          />
+        }
+        @case ('bananas') {
+          <h2 class="fs-visually-hidden">{{ 'profiles.tab.bananas' | t }}</h2>
+          <div class="toggle" role="group" [attr.aria-label]="'profiles.bananas.direction' | t">
+            <p-button
+              [label]="'profiles.bananas.received' | t"
+              size="small"
+              [outlined]="bananaDirection() !== 'received'"
+              [attr.aria-pressed]="bananaDirection() === 'received'"
+              (onClick)="setBananaDirection('received')"
+              data-testid="profiles.bananas.received"
+            />
+            <p-button
+              [label]="'profiles.bananas.sent' | t"
+              size="small"
+              [outlined]="bananaDirection() !== 'sent'"
+              [attr.aria-pressed]="bananaDirection() === 'sent'"
+              (onClick)="setBananaDirection('sent')"
+              data-testid="profiles.bananas.sent"
+            />
+          </div>
+          <fs-data-state
+            [state]="bananas"
+            skeleton="list"
+            emptyIcon="pi pi-thumbs-up"
+            [emptyTitle]="(bananaDirection() === 'sent' ? 'profiles.bananas.emptySent' : 'profiles.bananas.empty') | t"
+            data-testid="profiles.bananas.state"
+          >
+            <ng-template [fsData]="bananas" let-list>
+              <fs-banana-list
+                [bananas]="list"
+                [direction]="bananaDirection()"
+                [viewerId]="viewerId()"
+                [orga]="orga()"
+                (delete)="confirmDeleteBanana($event)"
+              />
+            </ng-template>
+          </fs-data-state>
+        }
+        @case ('commitments') {
+          <h2 class="fs-visually-hidden">{{ 'profiles.tab.commitments' | t }}</h2>
+          <fs-data-state
+            [state]="commitments"
+            skeleton="table"
+            emptyIcon="pi pi-calendar"
+            [emptyTitle]="'profiles.commitments.empty' | t"
+            data-testid="profiles.commitments.state"
+          >
+            <ng-template [fsData]="commitments" let-c>
+              <section class="fs-card block">
+                <p data-testid="profiles.commitments.stores">{{ 'profiles.commitments.responsibleStores' | t: { count: c.responsibleStores } }}</p>
+                <div class="table-wrap" tabindex="0" role="region" [attr.aria-label]="'profiles.tab.commitments' | t">
+                  <table class="table" data-testid="profiles.commitments.table">
+                    <thead>
+                      <tr>
+                        <th scope="col">{{ 'profiles.commitments.week' | t }}</th>
+                        <th scope="col">{{ 'profiles.commitments.pickups' | t }}</th>
+                        <th scope="col">{{ 'profiles.commitments.basketsOffered' | t }}</th>
+                        <th scope="col">{{ 'profiles.commitments.basketsShared' | t }}</th>
+                        <th scope="col">{{ 'profiles.commitments.eventsCreated' | t }}</th>
+                        <th scope="col">{{ 'profiles.commitments.eventsParticipated' | t }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (w of commitmentWeeks(); track w.weekStart) {
+                        <tr>
+                          <th scope="row">{{ w.weekStart | fsDate: 'date' }}</th>
+                          <td>{{ w.pickups }}</td>
+                          <td>{{ w.basketsOffered }}</td>
+                          <td>{{ w.basketsShared }}</td>
+                          <td>{{ w.eventsCreated }}</td>
+                          <td>{{ w.eventsParticipated }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </ng-template>
+          </fs-data-state>
+        }
+        @case ('notes') {
+          <h2 class="fs-visually-hidden">{{ 'profiles.tab.notes' | t }}</h2>
+          <p class="muted hint"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'profiles.notes.hint' | t }}</p>
+          <fs-wall
+            [posts]="notes.data() ?? []"
+            [state]="notes"
+            [mayPost]="true"
+            [posting]="addNote.busy()"
+            (post)="addNote.run($event)"
+            (delete)="deleteNote.run($event)"
+            testId="profiles.notes"
+          />
+        }
+        @case ('history') {
+          <h2 class="fs-visually-hidden">{{ 'profiles.tab.history' | t }}</h2>
+          @if (history(); as source) {
+            <fs-history-timeline
+              [source]="source"
+              [subjectType]="subjectType"
+              [viewerId]="viewerId()"
+              [emptyTitle]="'profiles.history.empty' | t"
+              testId="profiles.history"
+            />
+          }
+        }
+      }
+    </div>
+
+    <fs-required-message-dialog
+      [(visible)]="bananaDialogOpen"
+      [title]="'profiles.bananaDialog.title' | t: { name: p.user.displayName }"
+      [text]="'profiles.bananaDialog.text' | t"
+      [label]="'profiles.bananaDialog.label' | t: { name: p.user.firstName || p.user.displayName }"
+      [confirmLabel]="'profiles.action.banana' | t"
+      [minLength]="bananaMin"
+      [maxLength]="bananaMax"
+      [busy]="giveBanana.busy()"
+      (confirm)="giveBanana.run($event)"
+      testId="profiles.bananaDialog"
+    />
+  </ng-template>
+</fs-data-state>

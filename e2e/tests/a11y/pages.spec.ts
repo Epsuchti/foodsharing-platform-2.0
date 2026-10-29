@@ -37,6 +37,12 @@ const ROUTES: RouteCase[] = [
   { path: '/account/security-log', role: 'foodsaver' },
   { path: '/account/profile', role: 'foodsaver' },
   { path: '/me/activity', role: 'foodsaver' },
+  // M6 profiles (plan-m7 Q2)
+  { path: '/profile/me', role: 'foodsaver', ready: 'profiles.page.name' },
+  { path: '/profile/me?tab=bananas', role: 'foodsaver', ready: 'profiles.bananas.list' },
+  { path: '/profile/00000001-0001-4000-8000-000000000006?tab=notes', role: 'orga', ready: 'profiles.notes.composer' },
+  { path: '/profile/00000001-0001-4000-8000-000000000008', role: 'foodsaver', ready: 'profiles.page.sleep' },
+  { path: '/profile/me/buddies', role: 'foodsaver', ready: 'profiles.buddies.state' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
