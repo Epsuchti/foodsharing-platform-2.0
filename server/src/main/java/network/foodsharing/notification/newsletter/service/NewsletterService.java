@@ -135,7 +135,35 @@ public class NewsletterService {
     /** @throws ApiException 400, 403, 404, 409 NEWSLETTER_NOT_DRAFT */
     @Transactional
     public Newsletter update(UUID newsletterId, String subject, String bodyMarkdown) {
+        return update(newsletterId, null, subject, bodyMarkdown);
+    }
+
+    /**
+     * {@code kind} null = unchanged; a change is ORGA only and INFO_MAIL needs a global draft (create rules, A20).
+     *
+     * @throws ApiException 400, 403, 404, 409 NEWSLETTER_NOT_DRAFT
+     */
+    @Transactional
+    public Newsletter update(UUID newsletterId, network.foodsharing.notification.newsletter.domain.NewsletterKind kind,
+                             String subject, String bodyMarkdown) {
         Newsletter newsletter = requireDraft(newsletterId);
+        var oldKind = newsletter.getKind();
+        if (kind != null && kind != oldKind) {
+            if (!permissions.isOrga(currentActor.requirePrincipal())) {
+                throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+            }
+            if (kind == network.foodsharing.notification.newsletter.domain.NewsletterKind.INFO_MAIL
+                    && newsletter.getRegionId() != null) {
+                throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "kind");
+            }
+            newsletter.setKind(kind);
+            var event = history.event(NotificationAction.NEWSLETTER_UPDATED, newsletter.getId()).field("kind")
+                    .oldValue(oldKind.name()).newValue(kind.name());
+            if (newsletter.getRegionId() != null) {
+                event.region(newsletter.getRegionId());
+            }
+            history.record(event.metadata("status", newsletter.getStatus().name()).build());
+        }
         if (subject != null) {
             newsletter.setSubject(text(subject, SUBJECT_MAX, "subject"));
         }

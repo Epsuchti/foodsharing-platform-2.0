@@ -255,4 +255,65 @@ class BasketServiceTest {
         assertThat(BasketRules.mayDelete(basket, UUID.randomUUID(), false)).isFalse();
         assertThat(BasketRules.mayDelete(basket, basket.getOwnerId(), false)).isTrue();
     }
+
+    /** Q5: FOODSHARERs offer baskets too, so the grocery list is open to every signed-in user (BASKETS on). */
+    @Test
+    void groceriesForEverySignedInUserBehindTheToggle() {
+        UUID bread = UUID.randomUUID();
+        when(groceries.groceryCatalog()).thenReturn(Map.of(bread, "Brot"));
+        assertThatThrownBy(() -> queries.groceries()).isInstanceOf(RuntimeException.class); // anonymous
+        TestAuth.login(TestUsers.principal(other)); // FOODSHARER
+        assertThat(queries.groceries()).containsEntry(bread, "Brot");
+        verify(toggles, org.mockito.Mockito.atLeastOnce())
+                .requireEnabled(network.foodsharing.admin.domain.FeatureToggle.BASKETS);
+        org.mockito.Mockito.doThrow(ApiException.notFound(ApiErrorCode.FEATURE_DISABLED)).when(toggles)
+                .requireEnabled(network.foodsharing.admin.domain.FeatureToggle.BASKETS);
+        assertThatThrownBy(() -> queries.groceries()).isInstanceOfSatisfying(ApiException.class,
+                e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.FEATURE_DISABLED));
+    }
+
+    @Test
+    void removePhotoDeletesTheUploadAndRecordsTheChange() {
+        Basket basket = create(owner);
+        UUID photo = UUID.randomUUID();
+        basket.setPhotoUploadId(photo);
+        baskets.saveAndFlush(basket);
+        network.foodsharing.upload.domain.Upload upload = new network.foodsharing.upload.domain.Upload();
+        when(uploads.find(photo)).thenReturn(upload);
+
+        TestAuth.login(TestUsers.principal(other));
+        BasketInput nothing = new BasketInput(null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null);
+        assertThatThrownBy(() -> service.update(basket.getId(), nothing, true))
+                .isInstanceOfSatisfying(ApiException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
+
+        TestAuth.login(TestUsers.principal(owner));
+        service.update(basket.getId(), nothing, false);
+        assertThat(baskets.findById(basket.getId()).orElseThrow().getPhotoUploadId()).isEqualTo(photo);
+        service.update(basket.getId(), nothing, true);
+        assertThat(baskets.findById(basket.getId()).orElseThrow().getPhotoUploadId()).isNull();
+        verify(uploads).delete(upload);
+        service.update(basket.getId(), nothing, true); // nothing left to remove
+        verify(uploads, org.mockito.Mockito.times(1)).delete(any());
+    }
+
+    @Test
+    void theOwnerOpeningTheBasketMarksOpenRequestsRead() {
+        Basket basket = create(owner);
+        TestAuth.login(TestUsers.principal(other));
+        service.request(basket.getId(), null);
+        assertThat(service.markRequestsRead(basket.getId())).isZero(); // the requester: nothing
+        TestAuth.login(TestUsers.principal(orga));
+        assertThat(service.markRequestsRead(basket.getId())).isZero(); // not even ORGA
+
+        TestAuth.login(TestUsers.principal(owner));
+        assertThat(service.markRequestsRead(basket.getId())).isEqualTo(1);
+        assertThat(queries.get(basket.getId()).requests()).singleElement()
+                .satisfies(r -> assertThat(r.getStatus()).isEqualTo(BasketRequestStatus.READ));
+        assertThat(service.markRequestsRead(basket.getId())).isZero();
+        // READ is still open: the requester may withdraw, the owner may answer
+        service.answer(basket.getId(), other.getId(), BasketRequestStatus.DENIED);
+        assertThat(service.markRequestsRead(basket.getId())).isZero();
+    }
 }

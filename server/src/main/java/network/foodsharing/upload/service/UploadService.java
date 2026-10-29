@@ -188,6 +188,11 @@ public class UploadService {
     public int renderMissingVariants() {
         int rendered = 0;
         for (Upload upload : repository.findByVariantsFalseAndMimeTypeIn(ImageVariants.IMAGE_TYPES)) {
+            if (variantsStored(upload)) { // e.g. seeded rows re-inserted by a seed reset: the files are still there
+                upload.setVariants(true);
+                rendered++;
+                continue;
+            }
             try (InputStream in = storage.open(upload.getStorageKey())) {
                 writeVariants(upload, in.readAllBytes());
                 rendered += upload.isVariants() ? 1 : 0;
@@ -196,6 +201,22 @@ public class UploadService {
             }
         }
         return rendered;
+    }
+
+    /** Names of the image variants ({@code sm|md|lg}). */
+    public java.util.Set<String> variantSizes() {
+        return images.sizeNames();
+    }
+
+    private boolean variantsStored(Upload upload) {
+        for (String size : images.sizeNames()) {
+            try (InputStream ignored = storage.open(ImageVariants.variantKey(upload.getStorageKey(), size))) {
+                // present
+            } catch (IOException missing) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void writeVariants(Upload upload, byte[] bytes) {

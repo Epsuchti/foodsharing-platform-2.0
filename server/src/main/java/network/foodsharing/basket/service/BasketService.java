@@ -146,6 +146,16 @@ public class BasketService {
     /** Owner only, while ACTIVE. @throws ApiException 404, 403 ACCESS_DENIED, 409 BASKET_NOT_ACTIVE, 400 */
     @Transactional
     public Basket update(UUID basketId, BasketInput in) {
+        return update(basketId, in, false);
+    }
+
+    /**
+     * {@code removePhoto}: drop the photo and delete its upload as on replacement (ignored when a new photo is given).
+     *
+     * @throws ApiException 404, 403 ACCESS_DENIED, 409 BASKET_NOT_ACTIVE, 400
+     */
+    @Transactional
+    public Basket update(UUID basketId, BasketInput in, boolean removePhoto) {
         toggles.requireEnabled(FeatureToggle.BASKETS);
         User owner = actors.requireUser();
         Basket basket = require(basketId);
@@ -188,6 +198,13 @@ public class BasketService {
         if (in.kinds() != null) {
             replaceKinds(basketId, in.kinds());
             event.change("kinds", null, in.kinds().toString());
+            changed = true;
+        }
+        if (removePhoto && in.photoUploadId() == null && basket.getPhotoUploadId() != null) {
+            UUID previous = basket.getPhotoUploadId();
+            basket.setPhotoUploadId(null);
+            deletePhoto(previous);
+            event.change("photo", previous, null);
             changed = true;
         }
         if (in.photoUploadId() != null && !in.photoUploadId().equals(basket.getPhotoUploadId())) {
@@ -322,6 +339,32 @@ public class BasketService {
             basket.setTakenAt(now);
         }
         return request;
+    }
+
+    /**
+     * The owner opened the basket: open requests REQUESTED → READ (upstream "request message read"), each recorded as
+     * REQUEST_STATUS_CHANGED. Anyone else: nothing happens.
+     *
+     * @return the number of requests marked read
+     */
+    @Transactional
+    public int markRequestsRead(UUID basketId) {
+        UUID viewerId = actors.requireUserId();
+        Basket basket = baskets.findById(basketId).orElse(null);
+        if (basket == null || !basket.getOwnerId().equals(viewerId)) {
+            return 0;
+        }
+        int marked = 0;
+        for (BasketRequestEntry request : requests.findByBasketIdOrderByRequestedAt(basketId)) {
+            if (request.getStatus() == BasketRequestStatus.REQUESTED) {
+                history.record(history.event(BasketAction.REQUEST_STATUS_CHANGED, basketId)
+                        .change("status", BasketRequestStatus.REQUESTED, BasketRequestStatus.READ)
+                        .metadata("requesterId", request.getRequesterId().toString()).build());
+                request.setStatus(BasketRequestStatus.READ);
+                marked++;
+            }
+        }
+        return marked;
     }
 
     /** Account deletion (A40): the user's baskets become DELETED, their requests are removed. */
