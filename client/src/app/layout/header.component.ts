@@ -7,6 +7,7 @@ import { TPipe } from '../core/i18n/t.pipe';
 import { BellButtonComponent } from '../features/bells/components/bell-button.component';
 import { BrandComponent } from './brand.component';
 import { LanguageMenuComponent } from './language-menu.component';
+import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
 import { RegionSwitcherComponent } from './region-switcher.component';
 import { ThemeMenuComponent } from './theme-menu.component';
@@ -22,6 +23,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     RegionSwitcherComponent,
     BrandComponent,
     LanguageMenuComponent,
+    NavBadgeComponent,
     RouterLink,
     RouterLinkActive,
     TPipe,
@@ -50,6 +52,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
             >
               <i [class]="item.icon" aria-hidden="true"></i>
               <span>{{ item.labelKey | t }}</span>
+              <fs-nav-badge [item]="item" />
             </a>
           }
         </nav>

@@ -12,6 +12,7 @@ import {
   lookupConversation,
   sendMessage,
   test,
+  waitForRealtime,
 } from '../../fixtures';
 
 /**
@@ -123,6 +124,25 @@ test.describe('foodsaver', () => {
     await page.getByTestId('messaging.conversation.send').click();
     await expect(bubbles(page).last().getByTestId('messaging.conversation.mention')).toBeVisible();
     await expect(bubbles(page).last()).toContainText('bis bald');
+  });
+
+  test('N1 nav badge counts conversations with unread messages, updates live and clears on read @N1 @N2', async ({ page, api, as, apiOf }) => {
+    const unread = async () => (await api.getJson<{ conversations: number }>('/api/conversations/unread-count')).conversations;
+    const start = await unread();
+    expect(start).toBeGreaterThan(0);
+    await page.goto('/dashboard');
+    // desktop: main navigation; phones: the bottom tab bar (both carry the badge)
+    const badge = page.locator('[data-testid="nav.badge.messages"]:visible');
+    await expect(badge).toHaveAttribute('data-count', String(start));
+    await waitForRealtime(page);
+
+    // a new message in a read conversation arrives over the WebSocket
+    await sendMessage(apiOf(await as('bot')), CONVERSATIONS.foodsaverBot, 'Hast du am Freitag Zeit?');
+    await expect(badge).toHaveAttribute('data-count', String(start + 1));
+    await page.goto(`/messages/${CONVERSATIONS.foodsaverBot}`);
+    await expectDataState(page, 'messaging.conversation.state', 'success');
+    await expect(badge).toHaveAttribute('data-count', String(start));
+    await expectNoSeriousViolations(page);
   });
 
   test('N1 error states: list 500 with retry, send failure keeps a pending bubble with retry @N1', async ({ page }) => {

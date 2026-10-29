@@ -12,5 +12,6 @@
   "layout.shell.skip": "Zum Inhalt springe",
   "layout.header.region": "Bezirk: {name} – wächsle",
   "layout.header.regions": "Dini Bezirk",
-  "layout.header.homeRegion": "Stammbezirk"
+  "layout.header.homeRegion": "Stammbezirk",
+  "layout.nav.unread": "({count} ungläse)"
 }

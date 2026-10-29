@@ -12,5 +12,6 @@
   "layout.shell.skip": "Skip to content",
   "layout.header.region": "Region: {name} – switch",
   "layout.header.regions": "Your regions",
-  "layout.header.homeRegion": "Home region"
+  "layout.header.homeRegion": "Home region",
+  "layout.nav.unread": "({count} unread)"
 }

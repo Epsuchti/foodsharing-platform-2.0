@@ -1,8 +1,9 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import DOMPurify from 'dompurify';
 import { Observable } from 'rxjs';
 
-import { MailboxesService, RealtimeEventType, Upload, UploadsService } from '../../api';
+import { MailboxesService, RealtimeEventType, Role, Upload, UploadsService } from '../../api';
+import { SessionService } from '../../core/auth/session.service';
 import { RealtimeService } from '../../core/realtime/realtime.service';
 
 /** Shared mailbox state (A35): bumped on MAILBOX_MAIL events and reconnects so open lists refetch. */
@@ -12,11 +13,26 @@ export class MailboxStore {
   private readonly uploads = inject(UploadsService);
   /** Increments whenever mail may have arrived (realtime event or reconnect). */
   readonly version = signal(0);
+  /** Unread inbox mails over all readable mailboxes (nav badge; 0 below STORE_MANAGER, A35 mayHaveMailbox). */
+  readonly unreadMails = signal(0);
 
   constructor() {
     const realtime = inject(RealtimeService);
+    const session = inject(SessionService);
     realtime.on(RealtimeEventType.MailboxMail).subscribe(() => this.bump());
     realtime.onReconnect(() => this.bump());
+    effect(() => {
+      this.version();
+      const may = session.isAuthenticated() && session.hasRole(Role.StoreManager);
+      untracked(() => (may ? this.refreshUnread() : this.unreadMails.set(0)));
+    });
+  }
+
+  refreshUnread(): void {
+    this.api.listMailboxes().subscribe({
+      next: (list) => this.unreadMails.set(list.reduce((n, m) => n + m.unreadCount, 0)),
+      error: () => undefined,
+    });
   }
 
   bump(): void {

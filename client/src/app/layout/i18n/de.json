@@ -12,5 +12,6 @@
   "layout.shell.skip": "Zum Inhalt springen",
   "layout.header.region": "Bezirk: {name} – wechseln",
   "layout.header.regions": "Deine Bezirke",
-  "layout.header.homeRegion": "Stammbezirk"
+  "layout.header.homeRegion": "Stammbezirk",
+  "layout.nav.unread": "({count} ungelesen)"
 }

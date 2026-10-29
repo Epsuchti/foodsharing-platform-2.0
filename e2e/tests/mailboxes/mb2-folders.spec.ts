@@ -71,6 +71,17 @@ test('MB3 HTML mail is sanitised (script and remote image removed), attachments 
   await expect(page.getByTestId('mailboxes.mail.bounce')).toBeVisible();
 });
 
+test('MB2 nav badge counts unread inbox mails of every readable mailbox @MB2', async ({ page, api, isMobile }) => {
+  const mailboxes = await api.getJson<{ unreadCount: number }[]>('/api/mailboxes');
+  const total = mailboxes.reduce((n, m) => n + m.unreadCount, 0);
+  expect(total).toBeGreaterThan(0);
+  await page.goto('/dashboard');
+  // phones list the mailboxes in the "Menu" drawer
+  if (isMobile) await page.getByTestId('nav.tab.menu').click();
+  await expect(page.locator('[data-testid="nav.badge.mailboxes"]:visible')).toHaveAttribute('data-count', String(total));
+  await expectNoSeriousViolations(page);
+});
+
 test('MB2 error states: list 500 with retry, mail 404 @MB2', async ({ page }) => {
   const injection = await injectApiError(page, { url: /\/folders\/INBOX\/mails/, status: 500 });
   await page.goto(inbox);

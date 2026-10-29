@@ -27,7 +27,12 @@ export interface NavItem {
   mobileTab?: boolean;
   /** routerLinkActive exact matching. */
   exact?: boolean;
+  /** Unread count bubble (`NavBadgesService`, loaded after the first page). */
+  badge?: NavBadge;
 }
+
+/** Sources of nav badges: conversations with unread messages, unread inbox mails. */
+export type NavBadge = 'messages' | 'mailboxes';
 
 const loggedIn = (ctx: NavContext) => ctx.isAuthenticated;
 const loggedOut = (ctx: NavContext) => !ctx.isAuthenticated;
@@ -127,6 +132,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/messages',
     visible: loggedIn,
     mobileTab: true,
+    badge: 'messages',
   }, // M5
   {
     id: 'mailboxes',
@@ -135,6 +141,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/mailboxes',
     // A35 mayHaveMailbox; the page shows an empty state when the user reads no mailbox
     visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.StoreManager),
+    badge: 'mailboxes',
   }, // M5
   {
     id: 'bells',

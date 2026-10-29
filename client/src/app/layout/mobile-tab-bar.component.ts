@@ -10,6 +10,7 @@ import { TPipe } from '../core/i18n/t.pipe';
 import { THEME_PREFERENCES, ThemePreference, ThemeService } from '../core/theme/theme.service';
 import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
 import { BellStore } from '../features/bells/bells.resource';
+import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
 import { StartupService } from '../core/startup/startup.service';
 
@@ -19,7 +20,7 @@ import { StartupService } from '../core/startup/startup.service';
  */
 @Component({
   selector: 'fs-mobile-tab-bar',
-  imports: [Drawer, RouterLink, RouterLinkActive, TPipe, UserAvatarComponent],
+  imports: [Drawer, NavBadgeComponent, RouterLink, RouterLinkActive, TPipe, UserAvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <nav class="tabs" [attr.aria-label]="'layout.tabBar.label' | t" data-testid="shell.tabBar">
@@ -34,6 +35,7 @@ import { StartupService } from '../core/startup/startup.service';
         >
           <i [class]="item.icon" aria-hidden="true"></i>
           <span>{{ item.labelKey | t }}</span>
+          <fs-nav-badge [item]="item" [overlay]="true" />
         </a>
       }
       <button
@@ -100,6 +102,7 @@ import { StartupService } from '../core/startup/startup.service';
             >
               <i [class]="item.icon" aria-hidden="true"></i>
               <span>{{ item.labelKey | t }}</span>
+              <fs-nav-badge [item]="item" />
             </a>
           </li>
         }
@@ -217,6 +220,7 @@ import { StartupService } from '../core/startup/startup.service';
       -webkit-backdrop-filter: saturate(1.4) blur(14px);
     }
     .tabs__tab {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
