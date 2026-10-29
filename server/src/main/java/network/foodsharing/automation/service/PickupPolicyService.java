@@ -77,12 +77,14 @@ public class PickupPolicyService {
     private final StorePermissionService permissions;
     private final CurrentActorService currentActor;
     private final HistoryService history;
+    private final network.foodsharing.region.service.RegionService regions;
 
     public PickupPolicyService(PickupPolicyRepository policies, PickupPolicyLinkedStoreRepository links,
                                PickupPolicyLinkedStoreMemberRepository members,
                                PickupPolicyExcludedDateRepository excludedDates, StoreService stores,
                                StorePermissionService permissions, CurrentActorService currentActor,
-                               HistoryService history) {
+                               HistoryService history, network.foodsharing.region.service.RegionService regions) {
+        this.regions = regions;
         this.policies = policies;
         this.links = links;
         this.members = members;
@@ -91,6 +93,13 @@ public class PickupPolicyService {
         this.permissions = permissions;
         this.currentActor = currentActor;
         this.history = history;
+    }
+
+    /** The live cleaning store of the store's region (cleaning rule), empty when the region has none. */
+    @Transactional(readOnly = true)
+    public Optional<Store> cleaningStoreOf(Store store) {
+        return regions.find(store.getRegionId()).map(region -> region.getCleaningStoreId())
+                .flatMap(id -> stores.liveStores(List.of(id)).stream().findFirst());
     }
 
     /** The store, after checking mayUseAutomations. @throws ApiException 404, 403 */

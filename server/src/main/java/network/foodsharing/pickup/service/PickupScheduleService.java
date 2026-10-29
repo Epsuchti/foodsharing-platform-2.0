@@ -40,6 +40,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class PickupScheduleService {
 
+    /**
+     * Open end of "sign-ups after the range". Not {@link Instant#MAX}: PostgreSQL rejects it as a timestamptz
+     * parameter ("timestamp out of range", found by the load test, D17.1); H2 accepted it.
+     */
+    static final Instant OPEN_END = Instant.parse("9999-12-31T23:59:59Z");
+
     /** A pickup with the caller's eligibility (null when not computed, e.g. for past pickups). */
     public record PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
                              network.foodsharing.pickup.domain.PickupExtraSlot extraSlot, boolean mayAddExtraSlot) {
@@ -139,10 +145,10 @@ public class PickupScheduleService {
         }
         List<PickupSchedule.Slot> slots = new ArrayList<>(schedule(store, start, end));
         if (to == null) {
-            Map<Instant, List<PickupSignup>> later = signups.findInRange(List.of(storeId), end, Instant.MAX).stream()
+            Map<Instant, List<PickupSignup>> later = signups.findInRange(List.of(storeId), end, OPEN_END).stream()
                     .collect(Collectors.groupingBy(PickupSignup::getPickupAt));
             if (!later.isEmpty()) {
-                List<PickupDate> laterDates = dates.findInRange(List.of(storeId), end, Instant.MAX).stream()
+                List<PickupDate> laterDates = dates.findInRange(List.of(storeId), end, OPEN_END).stream()
                         .filter(d -> later.containsKey(d.getPickupAt())).toList();
                 List<PickupSchedule.Slot> laterRegular = new ArrayList<>();
                 for (Instant at : later.keySet()) {

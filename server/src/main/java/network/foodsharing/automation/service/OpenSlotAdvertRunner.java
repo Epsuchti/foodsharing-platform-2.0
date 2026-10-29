@@ -214,6 +214,10 @@ public class OpenSlotAdvertRunner {
                             counters);
                 } else {
                     counters.skipped++;
+                    // "Run now" feedback: one advert per pickup and trigger, so a re-run after a channel change
+                    // sends nothing new (it looked like a lost Telegram message, coordinator report M7)
+                    counters.messages.add("Advert " + advert.getAdvertNumber() + " of " + store.getName()
+                            + ": already sent for " + values.pickupAt() + " (one message per pickup).");
                 }
                 continue;
             }

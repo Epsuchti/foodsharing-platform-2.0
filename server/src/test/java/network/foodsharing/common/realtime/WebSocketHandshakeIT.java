@@ -106,6 +106,20 @@ class WebSocketHandshakeIT {
         assertThatThrownBy(() -> connect(null)).isInstanceOf(ExecutionException.class);
     }
 
+    /** D17.2 (cross-site WebSocket hijacking): a valid session cookie from a foreign origin is refused. */
+    @Test
+    void foreignOriginIsRejectedEvenWithASessionCookie() throws Exception {
+        String session = cookie(SeedUsers.FOODSAVER);
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+        headers.add("Cookie", session);
+        headers.add("Origin", "https://evil.example");
+        stomp.setMessageConverter(new JacksonJsonMessageConverter());
+        assertThatThrownBy(() -> stomp.connectAsync(URI.create("ws://localhost:" + port + "/ws"), headers,
+                new StompHeaders(), new StompSessionHandlerAdapter() { }).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThat(connect(session).isConnected()).as("same session without a foreign origin").isTrue();
+    }
+
     @Test
     void membersGetConversationMessagesNonMembersDoNot() throws Exception {
         StompSession guide = connect(cookie(SeedUsers.GUIDE));

@@ -30,3 +30,4 @@ server/deploy/.env.local
 server/deploy/backups/
 server/deploy/monitoring/smtp_password
 server/.idea/
+e2e/load/results/

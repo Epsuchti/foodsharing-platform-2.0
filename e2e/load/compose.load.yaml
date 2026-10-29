@@ -1,0 +1,10 @@
+# Load-test overlay for server/deploy/compose.yaml (D17.1): only the production `postgres` service is started
+# and published on 127.0.0.1 so the jar on the host (e2e profile: dev login, seed data) uses the same Postgres 17
+# as production. Started by e2e/load/run.sh:
+#   docker compose -p foodsharing-load -f server/deploy/compose.yaml -f e2e/load/compose.load.yaml up -d postgres
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:${LOAD_PG_PORT:-15433}:5432"
+    # production-like settings for a small host; fsync stays on
+    command: ["postgres", "-c", "shared_buffers=256MB", "-c", "max_connections=100"]

@@ -64,7 +64,7 @@ public final class ContentSecurityPolicy {
         String connect = ("'self' " + csp.getConnectSrc()).strip();
         return "default-src 'self'; script-src " + script + "; style-src 'self' 'unsafe-inline'; img-src " + img
                 + "; font-src 'self' data:; connect-src " + connect + "; worker-src 'self'; manifest-src 'self'"
-                + "; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
+                + "; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
     }
 
     /** Adds the hashes of the inline scripts and event handlers of one HTML document. */

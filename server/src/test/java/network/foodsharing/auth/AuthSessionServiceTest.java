@@ -122,7 +122,9 @@ class AuthSessionServiceTest {
         assertThat(SecurityContextHolder.getContext().getAuthentication())
                 .isInstanceOf(SessionAuthenticationToken.class)
                 .extracting(auth -> auth.getPrincipal()).isEqualTo(principal);
-        assertThat(user.getLastLoginAt()).isEqualTo(NOW);
+        // bulk update (no version bump, concurrent logins must not conflict): read it back from the database
+        assertThat(em.getEntityManager().createQuery("select u.lastLoginAt from User u where u.id = :id", Instant.class)
+                .setParameter("id", user.getId()).getSingleResult()).isEqualTo(NOW);
 
         HistoryEntry login = single("LOGIN");
         assertThat(login.getSubjectId()).isEqualTo(user.getId());

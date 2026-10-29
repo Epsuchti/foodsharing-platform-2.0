@@ -1,12 +1,15 @@
 package network.foodsharing.user.repository;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
@@ -66,4 +69,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                                   @org.springframework.data.repository.query.Param("regionId") UUID regionId,
                                   @org.springframework.data.repository.query.Param("sharedWith") UUID sharedWith,
                                   @org.springframework.data.repository.query.Param("limit") int limit);
+
+    /**
+     * Sets last_login_at without the optimistic lock: concurrent logins of one user (two devices, the load test)
+     * must not fail with 409 on the user row's version (D17.1).
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("update User u set u.lastLoginAt = :now where u.id = :id")
+    int markLoggedIn(@Param("id") UUID id, @Param("now") Instant now);
 }

@@ -509,11 +509,11 @@ public class UserService {
         return user;
     }
 
-    /** Sets last_login_at. */
+    /** Sets last_login_at (bulk update, no optimistic lock conflict between concurrent logins). */
     @Transactional
     @NoHistory(reason = "the login itself is recorded as AuthAction.LOGIN by AuthSessionService.create")
     public void markLoggedIn(UUID userId) {
-        repository.findById(userId).ifPresent(user -> user.setLastLoginAt(clock.instant()));
+        repository.markLoggedIn(userId, clock.instant());
     }
 
     public static String normalizeEmail(String email) {

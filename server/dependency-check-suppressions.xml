@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- D17.2: OWASP dependency-check suppressions. Every entry needs a reason, the reviewer and an expiry date
+     (until="YYYY-MM-DDZ"), so a suppression is re-checked instead of living forever (docs/security-review.md). -->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+</suppressions>

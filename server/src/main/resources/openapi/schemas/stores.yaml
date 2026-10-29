@@ -417,6 +417,9 @@ StorePermissions:
       type: boolean
     mayChatTeam:
       type: boolean
+    mayUseAutomations:
+      description: 'mayEditStore or CAN_USE_AUTOMATIONS in the store region (Automation tab, run now)'
+      type: boolean
     mayChatJumper:
       type: boolean
     isKam:

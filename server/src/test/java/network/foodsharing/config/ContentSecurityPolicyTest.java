@@ -38,6 +38,36 @@ class ContentSecurityPolicyTest {
                 .doesNotContain("unsafe-hashes").doesNotContain("unsafe-eval");
     }
 
+    /**
+     * D17.2 strictness: every directive that falls back to nothing must be set, no source list contains a wildcard,
+     * a plain scheme (http:, https:, ws:) or 'unsafe-eval', and only style-src may use 'unsafe-inline' (Angular's
+     * component styles, accepted in docs/security-review.md).
+     */
+    @Test
+    void policyIsStrict() {
+        AppProperties.Security.Csp csp = new AppProperties.Security.Csp();
+        String policy = ContentSecurityPolicy.policy(csp, Set.of("sha256-abc"), Set.of());
+        java.util.Map<String, String> directives = new java.util.LinkedHashMap<>();
+        for (String part : policy.split(";")) {
+            String[] tokens = part.strip().split("\\s+", 2);
+            assertThat(directives.put(tokens[0], tokens.length > 1 ? tokens[1] : "")).as("duplicate " + tokens[0])
+                    .isNull();
+        }
+        assertThat(directives).containsEntry("default-src", "'self'").containsEntry("object-src", "'none'")
+                .containsEntry("base-uri", "'self'").containsEntry("form-action", "'self'")
+                .containsEntry("frame-ancestors", "'self'").containsKeys("script-src", "connect-src", "worker-src");
+        directives.forEach((name, sources) -> {
+            for (String source : sources.split("\\s+")) {
+                assertThat(source).as(name).isNotIn("*", "http:", "https:", "ws:", "wss:", "'unsafe-eval'",
+                        "'strict-dynamic'");
+                if (!name.equals("style-src")) {
+                    assertThat(source).as(name).isNotEqualTo("'unsafe-inline'");
+                }
+                assertThat(source).as(name).doesNotStartWith("http://");
+            }
+        });
+    }
+
     @Test
     void sha256MatchesTheBrowserFormat() {
         // echo -n "alert(1)" | openssl dgst -sha256 -binary | base64
