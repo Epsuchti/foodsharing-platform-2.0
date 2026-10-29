@@ -57,8 +57,18 @@ class ReportFlowIT {
     private MutableClock clock;
 
     @AfterEach
-    void releaseClock() {
+    void releaseClockAndOptions() {
         clock.release();
+        jdbc.update("delete from region_option where region_id = ? and option_key in "
+                + "('REPORT_REASON_OPTIONS', 'REPORT_REASON_OTHER')", java.util.UUID.fromString(ZUERICH));
+    }
+
+    /** Sets a report option of Zürich (none are seeded; removed after each test). */
+    private void zuerichOption(String key, String value) {
+        jdbc.update("insert into region_option (id, version, created_at, updated_at, region_id, option_key, "
+                        + "option_value) values (?, 0, ?, ?, ?, ?, ?)", java.util.UUID.randomUUID(),
+                java.sql.Timestamp.from(SEED_NOW), java.sql.Timestamp.from(SEED_NOW),
+                java.util.UUID.fromString(ZUERICH), key, value);
     }
 
     private Cookie login(SeedUsers user) throws Exception {
@@ -115,21 +125,12 @@ class ReportFlowIT {
                 .andExpect(jsonPath("$.otherAllowed").value(false))
                 .andExpect(jsonPath("$.buttonEnabled").value(true))
                 .andExpect(jsonPath("$.denialCode").doesNotExist());
-        jdbc.update("insert into region_option (id, version, created_at, updated_at, region_id, option_key, "
-                + "option_value) values (?, 0, ?, ?, ?, 'REPORT_REASON_OPTIONS', '3'), "
-                + "(?, 0, ?, ?, ?, 'REPORT_REASON_OTHER', 'true')",
-                java.util.UUID.randomUUID(), java.sql.Timestamp.from(SEED_NOW), java.sql.Timestamp.from(SEED_NOW),
-                java.util.UUID.fromString(ZUERICH), java.util.UUID.randomUUID(), java.sql.Timestamp.from(SEED_NOW),
-                java.sql.Timestamp.from(SEED_NOW), java.util.UUID.fromString(ZUERICH));
-        try {
-            mvc.perform(get(jumper).param("storeId", STORE_S01).cookie(foodsaver)).andExpect(status().isOk())
-                    .andExpect(jsonPath("$.regionId").value(ZUERICH))
-                    .andExpect(jsonPath("$.reasons.length()").value(24))
-                    .andExpect(jsonPath("$.otherAllowed").value(true));
-        } finally {
-            jdbc.update("delete from region_option where region_id = ? and option_key in "
-                    + "('REPORT_REASON_OPTIONS', 'REPORT_REASON_OTHER')", java.util.UUID.fromString(ZUERICH));
-        }
+        zuerichOption("REPORT_REASON_OPTIONS", "3");
+        zuerichOption("REPORT_REASON_OTHER", "true");
+        mvc.perform(get(jumper).param("storeId", STORE_S01).cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.regionId").value(ZUERICH))
+                .andExpect(jsonPath("$.reasons.length()").value(24))
+                .andExpect(jsonPath("$.otherAllowed").value(true));
         mvc.perform(get("/api/users/" + SeedUsers.FOODSAVER.id() + "/report-options").cookie(foodsaver))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.buttonEnabled").value(false))
                 .andExpect(jsonPath("$.denialCode").value("REPORT_SELF"));
@@ -144,7 +145,36 @@ class ReportFlowIT {
     }
 
     @Test
+    void filingRejectsReasonsTheReportRegionDoesNotOffer() throws Exception {
+        Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        String jumper = "/api/users/" + SeedUsers.JUMPER.id() + "/reports";
+        String before = "select count(*) from report where reported_user_id = ?";
+        int reports = count(before, SeedUsers.JUMPER.id());
+        // Zürich defaults: set 1 (pickup reasons), OTHER off
+        mvc.perform(json(post(jumper), foodsaver, "{\"reason\":\"OTHER\",\"reasonText\":\"Ton\","
+                        + "\"message\":\"Unfreundlich bei der Übergabe.\",\"sendConfirmationMail\":false}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REPORT_REASON_NOT_ALLOWED"));
+        mvc.perform(json(post(jumper), foodsaver, "{\"reason\":\"VIOLATED_B2\",\"storeId\":\"" + STORE_S01
+                        + "\",\"message\":\"Regel B2 missachtet.\",\"sendConfirmationMail\":false}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REPORT_REASON_NOT_ALLOWED"));
+        assertThat(count(before, SeedUsers.JUMPER.id())).isEqualTo(reports);
+
+        // set 2 (rule book): the rule-book reason is accepted, a pickup reason is not
+        zuerichOption("REPORT_REASON_OPTIONS", "2");
+        mvc.perform(json(post(jumper), foodsaver, "{\"reason\":\"LATE\",\"message\":\"Wieder zu spät gekommen.\","
+                        + "\"sendConfirmationMail\":false}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REPORT_REASON_NOT_ALLOWED"));
+        assertThat(count(before, SeedUsers.JUMPER.id())).isEqualTo(reports);
+        // (filed about sleepy so the seed count of jumper's reports stays as other tests expect it)
+        mvc.perform(json(post("/api/users/" + SeedUsers.SLEEPY.id() + "/reports"), foodsaver,
+                        "{\"reason\":\"VIOLATED_B2\",\"storeId\":\"" + STORE_S01
+                                + "\",\"message\":\"Regel B2 missachtet.\",\"sendConfirmationMail\":false}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.reason").value("VIOLATED_B2"));
+    }
+
+    @Test
     void fileHandleRemindAndDelete() throws Exception {
+        zuerichOption("REPORT_REASON_OTHER", "true"); // the OTHER report below
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         String created = mvc.perform(json(post("/api/users/" + SeedUsers.JUMPER.id() + "/reports"), foodsaver,
                         "{\"reason\":\"LATE\",\"message\":\"Wieder eine Stunde zu spät gekommen.\",\"storeId\":\""

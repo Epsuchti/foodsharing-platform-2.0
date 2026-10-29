@@ -936,6 +936,8 @@ paths:
     $ref: './paths/baskets.yaml#/~1api~1baskets~1requested'
   /api/baskets:
     $ref: './paths/baskets.yaml#/~1api~1baskets'
+  /api/baskets/groceries:
+    $ref: './paths/baskets.yaml#/~1api~1baskets~1groceries'
   /api/baskets/{basketId}:
     $ref: './paths/baskets.yaml#/~1api~1baskets~1{basketId}'
   /api/baskets/{basketId}/requests:

@@ -359,6 +359,7 @@
   "errors.REPORTS_NOT_ACCESSIBLE": "You have no access to these reports.",
   "errors.REPORT_BUTTON_DISABLED": "Reports are not possible in your shared regions.",
   "errors.REPORT_SELF": "You cannot report yourself.",
+  "errors.REPORT_REASON_NOT_ALLOWED": "This report reason is not available in this region.",
   "errors.REPORT_NOT_FOUND": "This report does not exist.",
   "errors.MEDIATION_DISABLED": "Mediation is not available in this region.",
   "errors.ACHIEVEMENT_NOT_FOUND": "This achievement does not exist.",

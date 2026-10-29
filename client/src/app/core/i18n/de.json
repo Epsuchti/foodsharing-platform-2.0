@@ -359,6 +359,7 @@
   "errors.REPORTS_NOT_ACCESSIBLE": "Du hast keinen Zugriff auf diese Meldungen.",
   "errors.REPORT_BUTTON_DISABLED": "Meldungen sind in euren gemeinsamen Bezirken nicht möglich.",
   "errors.REPORT_SELF": "Du kannst dich nicht selbst melden.",
+  "errors.REPORT_REASON_NOT_ALLOWED": "Dieser Meldegrund ist in diesem Bezirk nicht vorgesehen.",
   "errors.REPORT_NOT_FOUND": "Diese Meldung gibt es nicht.",
   "errors.MEDIATION_DISABLED": "Mediation ist in diesem Bezirk nicht verfügbar.",
   "errors.ACHIEVEMENT_NOT_FOUND": "Diese Auszeichnung gibt es nicht.",

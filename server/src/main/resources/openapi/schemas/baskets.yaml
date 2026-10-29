@@ -247,6 +247,9 @@ BasketUpdate:
     photoUploadId:
       type: string
       format: uuid
+    removePhoto:
+      type: boolean
+      description: 'true removes the photo and deletes its upload (as when it is replaced); ignored with photoUploadId.'
 
 BasketRequestCreate:
   type: object

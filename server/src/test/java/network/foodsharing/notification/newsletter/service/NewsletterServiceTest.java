@@ -174,6 +174,39 @@ class NewsletterServiceTest {
         verify(recipients).deleteByNewsletterIdAndStatus(draft.getId(), NewsletterRecipient.Status.PENDING);
     }
 
+    /** Q3: the kind of a draft can be changed by ORGA only, with the create rules (INFO_MAIL is global). */
+    @Test
+    void changingTheKindIsOrgaOnlyAndInfoMailsStayGlobal() {
+        HistoryService history = mock(HistoryService.class, RETURNS_DEEP_STUBS);
+        service = new NewsletterService(newsletters, recipients, users, regions, permissions, actor, outbox, tokens,
+                history, Clock.fixed(NOW, ZoneOffset.UTC));
+        var infoMail = network.foodsharing.notification.newsletter.domain.NewsletterKind.INFO_MAIL;
+        var newsletter = network.foodsharing.notification.newsletter.domain.NewsletterKind.NEWSLETTER;
+
+        // an ambassador may edit the regional draft but not its kind; repeating the current kind is no change
+        assertThat(code(() -> service.update(draft.getId(), infoMail, null, null)))
+                .isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(service.update(draft.getId(), newsletter, "Neu", null).getSubject()).isEqualTo("Neu");
+        assertThat(draft.getKind()).isEqualTo(newsletter);
+
+        when(permissions.isOrga(any())).thenReturn(true);
+        assertThat(code(() -> service.update(draft.getId(), infoMail, null, null)))
+                .isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        assertThat(draft.getKind()).isEqualTo(newsletter);
+        verify(history.event(network.foodsharing.notification.domain.NotificationAction.NEWSLETTER_UPDATED,
+                draft.getId()), org.mockito.Mockito.never()).field("kind");
+
+        draft.setRegionId(null);
+        assertThat(service.update(draft.getId(), infoMail, null, null).getKind()).isEqualTo(infoMail);
+        verify(history.event(network.foodsharing.notification.domain.NotificationAction.NEWSLETTER_UPDATED,
+                draft.getId())).field("kind");
+        assertThat(service.update(draft.getId(), newsletter, null, null).getKind()).isEqualTo(newsletter);
+
+        draft.setStatus(NewsletterStatus.QUEUED);
+        assertThat(code(() -> service.update(draft.getId(), infoMail, null, null)))
+                .isEqualTo(ApiErrorCode.NEWSLETTER_NOT_DRAFT);
+    }
+
     @Test
     void foreignRegionIsForbidden() {
         when(permissions.mayAdministrateRegion(any(), eq(REGION))).thenReturn(false);

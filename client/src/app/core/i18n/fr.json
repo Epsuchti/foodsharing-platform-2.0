@@ -359,6 +359,7 @@
   "errors.REPORTS_NOT_ACCESSIBLE": "Tu n'as pas accès à ces signalements.",
   "errors.REPORT_BUTTON_DISABLED": "Les signalements ne sont pas possibles dans vos régions communes.",
   "errors.REPORT_SELF": "Tu ne peux pas te signaler toi-même.",
+  "errors.REPORT_REASON_NOT_ALLOWED": "Ce motif de signalement n’est pas prévu dans cette région.",
   "errors.REPORT_NOT_FOUND": "Ce signalement n'existe pas.",
   "errors.MEDIATION_DISABLED": "La médiation n'est pas disponible dans cette région.",
   "errors.ACHIEVEMENT_NOT_FOUND": "Cette distinction n'existe pas.",

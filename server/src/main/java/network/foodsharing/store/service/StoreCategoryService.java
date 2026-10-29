@@ -140,6 +140,17 @@ public class StoreCategoryService {
         return groceries.findAllById(ids).stream().collect(Collectors.toMap(Grocery::getId, Grocery::getName));
     }
 
+    /**
+     * All groceries (id → name, sorted by name) without a permission check: the basket form offers them to every
+     * signed-in user (B1); the caller checks access.
+     */
+    @Transactional(readOnly = true)
+    public Map<UUID, String> groceryCatalog() {
+        Map<UUID, String> catalog = new java.util.LinkedHashMap<>();
+        groceries.findAllByOrderByNameAsc().forEach(g -> catalog.put(g.getId(), g.getName()));
+        return catalog;
+    }
+
     @Transactional(readOnly = true)
     public List<Item<Grocery>> listGroceries() {
         currentActor.requireRole(Role.ORGA);
