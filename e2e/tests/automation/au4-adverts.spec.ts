@@ -1,5 +1,5 @@
-import { type ApiClient, type DevNotification, expect, expectDataState, test } from '../../fixtures';
-import { openAutomation, setSwitch, typeNumber } from './_automation';
+import { type ApiClient, type DevNotification, expect, expectDataState, seedRegion, test, zurichPickupAt } from '../../fixtures';
+import { S06, openAutomation, setSwitch, typeNumber } from './_automation';
 
 /**
  * AU4: open-slot adverts. Seed: S-06 has the live advert #1 (24 h, Telegram only, region chat -1001); its next
@@ -43,4 +43,72 @@ test('AU4 planned notifications preview @AU4', async ({ page }) => {
   await setSwitch(second.getByTestId('automation.adverts.enabled'), true);
   await second.getByTestId('automation.adverts.save').click();
   await expect(second.getByTestId('automation.adverts.save').locator('button')).toBeDisabled();
+});
+
+/** One-time S-06 pickups on Tuesday 3 Nov (inside the 24 h trigger window from Monday evening, under two days ahead). */
+const FILL_PICKUP = zurichPickupAt(1, '20:00');
+const LATE_PICKUP = zurichPickupAt(1, '21:00');
+const after = (iso: string, hours: number) => new Date(Date.parse(iso) + hours * 3_600_000).toISOString();
+
+async function onePlacePickup(bieb: ApiClient, pickupAt: string): Promise<void> {
+  const response = await bieb.put(`/api/stores/${S06.id}/pickups/${encodeURIComponent(pickupAt)}`, { slotCount: 1 });
+  expect(response.ok(), await response.text()).toBe(true);
+}
+
+async function hasAudit(api: ApiClient, pickupAt: string, status: string): Promise<boolean> {
+  const page = await api.getJson<{ items: { pickupAt?: string; status: string }[] }>(`/api/stores/${S06.id}/automation/audits?kind=ADVERT&size=100`);
+  return page.items.some((a) => !!a.pickupAt && Date.parse(a.pickupAt) === Date.parse(pickupAt) && a.status === status);
+}
+
+async function filledTotal(api: ApiClient): Promise<number> {
+  const series = await api.getJson<{ key: string; points: { value: number }[] }[]>(
+    `/api/regions/${seedRegion('zuerich-stadt').id}/automation/metrics?from=2026-11-01&to=2026-11-03`,
+  );
+  return (series.find((s) => s.key === 'ADVERT.FILLED_AFTER_ADVERT')?.points ?? []).reduce((n, p) => n + p.value, 0);
+}
+
+test('AU4 filled slot after the advert counts in the filled-after-advert metric @AU4 @AU9 @page', async ({ page, api, clock, notifications }) => {
+  await onePlacePickup(api, FILL_PICKUP);
+  const before = await filledTotal(api);
+  // 23.5 h before the pickup: the 24 h trigger has passed and the slot is free → advert SENT
+  await clock.fixServer(after(FILL_PICKUP, -23.5));
+  await notifications.runJob('open-slot-adverts');
+  await expect.poll(() => hasAudit(api, FILL_PICKUP, 'SENT')).toBe(true);
+  // bieb takes the slot; the next run marks the advert as filled
+  const signup = await api.post(`/api/stores/${S06.id}/pickups/${encodeURIComponent(FILL_PICKUP)}/signups`);
+  expect(signup.ok(), await signup.text()).toBe(true);
+  await notifications.runJob('open-slot-adverts');
+  await expect.poll(() => filledTotal(api)).toBe(before + 1);
+
+  await page.goto(`/regions/${seedRegion('zuerich-stadt').id}/automation/metrics`);
+  await expectDataState(page, 'automation.metrics.state', 'success');
+  await expect(page.locator('[data-testid="automation.metrics.chart.legend"][data-key="ADVERT.FILLED_AFTER_ADVERT"]')).not.toHaveAttribute('data-total', '0');
+  await clock.fixServer();
+});
+
+test('AU4 late sign-out sends reminder to canceller and resends advert @AU4', async ({ api, clock, notifications }) => {
+  const advert = await api.getJson<Record<string, unknown>>(`/api/stores/${S06.id}/automation/adverts/1`);
+  const saved = await api.put(`/api/stores/${S06.id}/automation/adverts/1`, {
+    ...advert, sendLateCancellationMessage: true, lateCancellationMaxHoursBefore: 72, resendLatestAdvertAfterLateCancellation: true,
+  });
+  expect(saved.ok(), await saved.text()).toBe(true);
+  await onePlacePickup(api, LATE_PICKUP);
+  const me = await api.session();
+  const signup = await api.post(`/api/stores/${S06.id}/pickups/${encodeURIComponent(LATE_PICKUP)}/signups`);
+  expect(signup.ok(), await signup.text()).toBe(true);
+  await notifications.clearNotifications();
+
+  // at the trigger the pickup is full → OCCUPIED_AT_TRIGGER with bieb as the first sign-up, no advert
+  await clock.fixServer(after(LATE_PICKUP, -23.5));
+  await notifications.runJob('open-slot-adverts');
+  await expect.poll(() => hasAudit(api, LATE_PICKUP, 'OCCUPIED_AT_TRIGGER')).toBe(true);
+
+  // bieb signs out late → reminder to bieb and the advert again in the region chat
+  const out = await api.fetch('DELETE', `/api/stores/${S06.id}/pickups/${encodeURIComponent(LATE_PICKUP)}/signups/${me.user!.id}`);
+  expect(out.ok(), await out.text()).toBe(true);
+  await notifications.runJob('open-slot-adverts');
+  await expect.poll(() => hasAudit(api, LATE_PICKUP, 'LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT')).toBe(true);
+  await expect.poll(async () => (await notifications.bells('bieb', 'PICKUP_LATE_CANCELLATION')).length).toBeGreaterThan(0);
+  await expect.poll(async () => (await telegramTo(api, '-1001')).length).toBeGreaterThan(0);
+  await clock.fixServer();
 });
