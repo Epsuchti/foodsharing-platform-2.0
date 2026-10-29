@@ -47,7 +47,7 @@ public class OperationsMetrics {
 
     public static final List<String> CHANNELS = List.of("mail", "push", "telegram");
     public static final List<String> LIMITERS = List.of("login-ip", "login-email", "basket-requests", "client-errors",
-            "group-mails", "support", "messages");
+            "group-mails", "support", "messages", "public-api");
     public static final List<String> LOGIN_FAILURE_REASONS = List.of("invalid-token", "expired-token", "passkey");
 
     private static final Duration DB_CACHE = Duration.ofSeconds(15);

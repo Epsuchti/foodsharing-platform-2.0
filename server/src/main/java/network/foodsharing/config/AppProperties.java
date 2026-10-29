@@ -587,6 +587,12 @@ public class AppProperties {
         /** HSTS max age in seconds (sent on HTTPS requests only; 0 disables). */
         @Setter
         private long hstsMaxAgeSeconds = 31_536_000;
+        /**
+         * Requests per minute and client IP on {@code /api/public/**} (D17.2, 429 TOO_MANY_REQUESTS); 0 disables.
+         * The SPA needs a handful per page view; scrapers and floods of the anonymous API are cut off.
+         */
+        @Setter
+        private int publicApiRequestsPerMinutePerIp = 300;
 
         /** Content-Security-Policy; script hashes are computed from the SPA HTML at startup. */
         @Getter

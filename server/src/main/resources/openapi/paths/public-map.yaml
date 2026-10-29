@@ -21,6 +21,7 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+      '429': {description: 'TOO_MANY_REQUESTS (per-IP limit of /api/public/**)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/public/map/markers/regions:
   get:
@@ -43,6 +44,7 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+      '429': {description: 'TOO_MANY_REQUESTS (per-IP limit of /api/public/**)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/public/map/markers/baskets:
   get:
@@ -65,6 +67,7 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+      '429': {description: 'TOO_MANY_REQUESTS (per-IP limit of /api/public/**)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/public/map/bubbles/{kind}/{id}:
   get:
@@ -103,3 +106,4 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+      '429': {description: 'TOO_MANY_REQUESTS (per-IP limit of /api/public/**)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

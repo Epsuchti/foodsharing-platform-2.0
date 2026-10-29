@@ -56,3 +56,4 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+      '429': {description: 'TOO_MANY_REQUESTS (per-IP limit of /api/public/**)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

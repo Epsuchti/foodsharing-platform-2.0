@@ -47,6 +47,24 @@ jobs:
           git fetch --no-tags origin "${{ github.base_ref }}"
           bash scripts/oasdiff.sh "origin/${{ github.base_ref }}"
 
+  # D17.2: known high/critical advisories in production dependencies fail the build (dev tooling is audited by
+  # Dependabot); the NVD-based OWASP dependency-check of the server runs weekly in security.yml.
+  npm-audit:
+    name: npm audit ${{ matrix.dir }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [., client, e2e]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: npm audit --omit=dev --audit-level=high
+        working-directory: ${{ matrix.dir }}
+        run: npm audit --omit=dev --audit-level=high
+
   build:
     name: Build and verify
     runs-on: ubuntu-latest
