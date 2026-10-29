@@ -108,6 +108,33 @@ export async function runLighthouse(baseURL, pages) {
   }
 }
 
+/**
+ * Lighthouse timing is CPU-sensitive: requests every page once (warm-up: JIT, server caches, compressed assets),
+ * then runs Lighthouse `runs` times and returns the per-page median of each score.
+ */
+export async function runLighthouseMedian(baseURL, pages, runs = 3) {
+  for (const { path, cookie } of pages) {
+    await fetch(new URL(path, baseURL), { headers: cookie ? { cookie } : {} }).then((response) => response.text());
+  }
+  const all = [];
+  for (let i = 0; i < runs; i++) all.push(await runLighthouse(baseURL, pages));
+  return pages.map(({ path }) => {
+    const scores = all.map((run) => run.find((r) => r.path === path));
+    return {
+      path,
+      performance: median(scores.map((s) => s.performance)),
+      accessibility: median(scores.map((s) => s.accessibility)),
+      runs: scores.map((s) => s.performance),
+    };
+  });
+}
+
+export function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+}
+
 /** Default pages of D11.5.3. */
 export async function defaultPages(baseURL) {
   return [
@@ -128,7 +155,8 @@ async function main() {
     console.error('Set E2E_BASE_URL to a running app (e.g. the jar with profile e2e).');
     process.exit(2);
   }
-  const results = await runLighthouse(baseURL, await defaultPages(baseURL));
+  const runs = Number(process.env.LIGHTHOUSE_RUNS ?? 3);
+  const results = await runLighthouseMedian(baseURL, await defaultPages(baseURL), runs);
   console.table(results);
   process.exit(belowThreshold(results).length ? 1 : 0);
 }

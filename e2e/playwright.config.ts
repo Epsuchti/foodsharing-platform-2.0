@@ -12,6 +12,8 @@ import { defineConfig, devices, type PlaywrightTestConfig, type Project } from '
  */
 const CI = !!process.env.CI;
 const CHROMIUM_ONLY = /@chromium-only/;
+/** CPU-sensitive Lighthouse thresholds (D11.5.3): only in the dedicated `lighthouse` project / CI job. */
+const LIGHTHOUSE = /@D11\.5\.3/;
 const TESTS = 'tests/**/*.spec.ts';
 const SCREENS = 'screenshots/**/*.screen.ts';
 /**
@@ -80,11 +82,12 @@ export default defineConfig({
       name: 'setup',
       testMatch: /auth\.setup\.ts$/,
     },
-    e2eProject('chromium', { ...devices['Desktop Chrome'] }),
-    e2eProject('firefox', { ...devices['Desktop Firefox'] }, { grepInvert: CHROMIUM_ONLY }),
-    e2eProject('webkit', { ...devices['Desktop Safari'] }, { grepInvert: CHROMIUM_ONLY }),
-    e2eProject('mobile-chrome', { ...devices['Pixel 7'] }),
-    e2eProject('mobile-safari', { ...devices['iPhone 14'] }, { grepInvert: CHROMIUM_ONLY }),
+    e2eProject('chromium', { ...devices['Desktop Chrome'] }, { grepInvert: LIGHTHOUSE }),
+    e2eProject('firefox', { ...devices['Desktop Firefox'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
+    e2eProject('webkit', { ...devices['Desktop Safari'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
+    e2eProject('mobile-chrome', { ...devices['Pixel 7'] }, { grepInvert: LIGHTHOUSE }),
+    e2eProject('lighthouse', { ...devices['Desktop Chrome'] }, { grep: LIGHTHOUSE }),
+    e2eProject('mobile-safari', { ...devices['iPhone 14'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
     ...(SCREENSHOTS ? screenshotProjects() : []),
   ],
 });

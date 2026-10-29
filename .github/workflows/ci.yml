@@ -174,11 +174,20 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Lighthouse thresholds
         working-directory: e2e
-        run: npx playwright test --project=chromium --grep @D11.5.3
+        # own Playwright project (playwright.config.ts): serial, warm-up, median of 3 runs; CPU-sensitive, so kept
+        # out of the sharded e2e projects. Its blob report joins the coverage merge (@D11.5.3).
+        run: npx playwright test --project=lighthouse
+      - name: Upload blob report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-lighthouse
+          path: e2e/blob-report
+          retention-days: 7
 
   coverage:
     name: Feature coverage
-    needs: e2e
+    needs: [e2e, lighthouse]
     if: ${{ !cancelled() && needs.e2e.result != 'skipped' }}
     runs-on: ubuntu-latest
     steps:
