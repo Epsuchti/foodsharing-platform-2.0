@@ -63,6 +63,15 @@ export const STORES_ROUTES: Routes = [
     ],
   },
   {
+    // S2 / D16.2: CSV import for the store coordination of the region (the page checks the permission)
+    path: 'regions/:regionId/stores/import',
+    canActivate: [authGuard],
+    data: { roles: [Role.Foodsaver] },
+    title: 'stores.import.pageTitle',
+    loadComponent: () =>
+      import('./pages/region-stores-import-page.component').then((m) => m.RegionStoresImportPageComponent),
+  },
+  {
     path: 'regions/:regionId/stores',
     canActivate: [authGuard],
     data: { roles: [Role.Foodsaver] },
