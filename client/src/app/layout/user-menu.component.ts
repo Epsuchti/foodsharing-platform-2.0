@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Popover } from '@openng/optimus-ui/popover';
@@ -47,7 +47,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
         <div class="um">
           <a
             class="um__head"
-            routerLink="/account/profile"
+            [routerLink]="profileRoute()"
             (click)="op.hide()"
             data-testid="nav.user.profile"
           >
@@ -68,7 +68,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
             <i class="pi pi-chevron-right um__go" aria-hidden="true"></i>
           </a>
           <ul class="menu-list" role="menu">
-            @for (item of nav.user(); track item.id) {
+            @for (item of menuItems(); track item.id) {
               <li role="none">
                 <a
                   role="menuitem"
@@ -191,6 +191,13 @@ export class UserMenuComponent {
   protected readonly session = inject(SessionService);
   protected readonly nav = inject(NavContextService);
   private readonly auth = inject(AuthFacadeService);
+
+  /** The head is the profile entry: the public profile (`profile` item, M6) once it is visible, else the account. */
+  protected readonly profileRoute = computed(
+    () => this.nav.user().find((item) => item.id === 'profile')?.route ?? '/account/profile',
+  );
+  /** Items below the head (the `profile` item is rendered as the head itself). */
+  protected readonly menuItems = computed(() => this.nav.user().filter((item) => item.id !== 'profile'));
 
   protected logout(popover: PopoverLike): void {
     popover.hide();

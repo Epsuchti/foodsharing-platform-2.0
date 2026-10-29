@@ -9,6 +9,7 @@ import { GROUPS_GALLERY_SECTIONS } from './sections/groups.section';
 import { INTRO_PICKUPS_GALLERY_SECTIONS } from './sections/intro-pickups.section';
 import { LEGAL_GALLERY_SECTIONS } from './sections/legal.section';
 import { ONBOARDING_GALLERY_SECTIONS } from './sections/onboarding.section';
+import { PROFILES_GALLERY_SECTIONS } from './sections/profiles.section';
 import { QUIZ_GALLERY_SECTIONS } from './sections/quiz.section';
 import { REGIONS_GALLERY_SECTIONS } from './sections/regions.section';
 import { SHARED_M6_GALLERY_SECTIONS } from './sections/shared-m6.section';
@@ -35,4 +36,5 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   ...REGIONS_GALLERY_SECTIONS,
   ...VERIFICATION_GALLERY_SECTIONS,
   ...STORES_GALLERY_SECTIONS,
+  ...PROFILES_GALLERY_SECTIONS,
 ];

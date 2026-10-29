@@ -158,6 +158,11 @@ const MODULE_ROUTES: Routes = [
     path: '',
     loadChildren: () => import('./features/surveys/surveys.routes').then((m) => m.SURVEYS_ROUTES),
   },
+  // --- M6 community ---
+  {
+    path: 'profile',
+    loadChildren: () => import('./features/profiles/profiles.routes').then((m) => m.PROFILES_ROUTES),
+  },
   {
     path: '**',
     title: 'common.pageTitle.notFound',

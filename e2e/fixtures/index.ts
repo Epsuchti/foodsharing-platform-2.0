@@ -8,6 +8,7 @@ import { i18n, type I18nHelpers } from './i18n';
 import { MailBox } from './mails';
 import { NotificationHelpers } from './notifications';
 import { pdf, type PdfHelpers } from './pdf';
+import { ProfileHelpers } from './profiles';
 import { RegionHelpers } from './regions';
 import { StoreHelpers } from './stores';
 import { webauthn, type WebAuthnHelpers } from './webauthn';
@@ -53,6 +54,8 @@ export interface Fixtures {
   pdf: PdfHelpers;
   /** M4 bells/pushes/Telegram captured by the dev endpoints, `runJob(name)`, `simulateTelegramStart(token)`. */
   notifications: NotificationHelpers;
+  /** M6 profiles: `userId(role)`, `giveBanana(role, userId, message?)`, `buddy(role, userId)`, `profile(role, userId)`. */
+  profiles: ProfileHelpers;
   /** internal: performs the automatic seed reset according to `seedReset`. */
   _seed: void;
 }
@@ -178,6 +181,9 @@ export const test = base.extend<Options & Fixtures>({
   notifications: async ({ api, dev }, use) => {
     await use(new NotificationHelpers(api, dev));
   },
+  profiles: async ({ baseURL }, use) => {
+    await use(new ProfileHelpers(baseURL!));
+  },
 });
 
 export { expect };
@@ -218,3 +224,4 @@ export {
   type ConversationSummary,
 } from './messaging';
 export { MAILBOXES, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';
+export { BANANA_TEXT, ProfileHelpers, seedUserId } from './profiles';
