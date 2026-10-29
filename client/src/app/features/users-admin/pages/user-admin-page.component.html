@@ -15,6 +15,12 @@
           @if (u.active === false) {
             <span class="tag tag--off" data-testid="usersAdmin.user.inactive">{{ 'usersAdmin.user.inactive' | t }}</span>
           }
+          @if (u.deletedAt) {
+            <span class="tag tag--off" data-testid="usersAdmin.user.deletedTag">{{ 'usersAdmin.user.deletedTag' | t }}</span>
+          }
+          @if (u.emailBouncedAt) {
+            <span class="tag tag--warn" data-testid="usersAdmin.user.bouncedTag">{{ 'usersAdmin.user.bouncedTag' | t }}</span>
+          }
         </div>
       </div>
       <div class="summary__actions">
@@ -82,6 +88,100 @@
       </dl>
     </section>
 
+    <section class="fs-card card" aria-labelledby="ua-account-title" data-testid="usersAdmin.user.account">
+      <h2 class="card__title" id="ua-account-title">{{ 'usersAdmin.user.account' | t }}</h2>
+      @if (u.deletedAt) {
+        <div class="notice notice--off" data-testid="usersAdmin.user.archive" [attr.data-deleted-at]="u.deletedAt">
+          <i class="pi pi-box" aria-hidden="true"></i>
+          <span>
+            <strong>{{ 'usersAdmin.user.archiveTitle' | t: { date: (u.deletedAt | fsDate: 'dateTime') } }}</strong>
+            <span data-testid="usersAdmin.user.deleteReason">{{
+              u.deleteReason ? ('usersAdmin.user.archiveReason' | t: { reason: u.deleteReason }) : ('usersAdmin.user.archiveNoReason' | t)
+            }}</span>
+          </span>
+        </div>
+      } @else {
+        <ul class="account-rows">
+          <li class="account-row" data-testid="usersAdmin.user.bounce" [attr.data-bounced]="!!u.emailBouncedAt">
+            <span class="account-row__text">
+              <strong>{{ 'usersAdmin.user.emailLabel' | t }}</strong>
+              <span class="muted">
+                {{ u.email }}
+                @if (u.emailBouncedAt) {
+                  · {{ 'usersAdmin.user.bouncedSince' | t: { date: (u.emailBouncedAt | fsDate: 'dateTime') } }}
+                }
+              </span>
+            </span>
+            <span class="account-row__actions">
+              @if (u.emailBouncedAt) {
+                <p-button
+                  [label]="'usersAdmin.user.clearBounce' | t"
+                  icon="pi pi-check"
+                  size="small"
+                  [loading]="clearBounce.busy()"
+                  (onClick)="clearBounce.run()"
+                  data-testid="usersAdmin.user.clearBounce"
+                />
+              }
+              <p-button
+                [label]="'usersAdmin.user.changeEmail' | t"
+                icon="pi pi-envelope"
+                size="small"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="openEmail()"
+                data-testid="usersAdmin.user.changeEmail"
+              />
+            </span>
+          </li>
+          <li class="account-row">
+            <label class="account-row__text" for="ua-no-auto-delete">
+              <strong>{{ 'usersAdmin.user.noAutomaticDelete' | t }}</strong>
+              <span class="muted">{{ 'usersAdmin.user.noAutomaticDeleteHint' | t }}</span>
+            </label>
+            <p-toggleswitch
+              inputId="ua-no-auto-delete"
+              [ngModel]="u.noAutomaticDelete ?? false"
+              (ngModelChange)="setNoAutomaticDelete.run($event)"
+              [disabled]="setNoAutomaticDelete.busy()"
+              data-testid="usersAdmin.user.noAutomaticDelete"
+            />
+          </li>
+          @if (isOrga()) {
+            <li class="account-row">
+              <span class="account-row__text">
+                <strong>{{ 'usersAdmin.user.delete' | t }}</strong>
+                <span class="muted">{{ 'usersAdmin.user.deleteHint' | t }}</span>
+              </span>
+              <p-button
+                [label]="'usersAdmin.user.delete' | t"
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="deleteOpen.set(true)"
+                data-testid="usersAdmin.user.delete"
+              />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="notes" aria-labelledby="ua-notes-title">
+      <h2 class="card__title" id="ua-notes-title">{{ 'usersAdmin.user.notes' | t }}</h2>
+      <p class="muted"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'usersAdmin.user.notesHint' | t }}</p>
+      <fs-wall
+        [posts]="notes.data() ?? []"
+        [state]="notes"
+        [mayPost]="!u.deletedAt"
+        [posting]="addNote.busy()"
+        (post)="addNote.run($event)"
+        (delete)="deleteNote.run($event)"
+        testId="usersAdmin.user.notes"
+      />
+    </section>
+
     <section class="history">
       <h2 class="card__title">{{ 'usersAdmin.user.history' | t }}</h2>
       @if (history(); as source) {
@@ -102,6 +202,64 @@
   (confirm)="setActive.run($event)"
   testId="usersAdmin.user.activeDialog"
 />
+
+<fs-required-message-dialog
+  [(visible)]="deleteOpen"
+  [title]="'usersAdmin.user.deleteTitle' | t: { name: user.data()?.displayName ?? '' }"
+  [text]="'usersAdmin.user.deleteText' | t"
+  [label]="'usersAdmin.user.reason' | t"
+  [confirmLabel]="'usersAdmin.user.delete' | t"
+  severity="danger"
+  [minLength]="3"
+  [maxLength]="1000"
+  [busy]="remove.busy()"
+  (confirm)="remove.run($event)"
+  testId="usersAdmin.user.deleteDialog"
+/>
+
+<p-dialog
+  [visible]="emailOpen()"
+  (visibleChange)="emailOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'usersAdmin.user.emailTitle' | t: { name: user.data()?.displayName ?? '' }"
+  [style]="{ width: 'min(32rem, 94vw)' }"
+  data-testid="usersAdmin.user.emailDialog"
+>
+  <form class="form" (submit)="$event.preventDefault(); requestEmail.run()" novalidate>
+    <p class="muted">{{ 'usersAdmin.user.emailText' | t }}</p>
+    <div class="field">
+      <label for="ua-new-email">{{ 'usersAdmin.user.newEmail' | t }}</label>
+      <input
+        pInputText
+        id="ua-new-email"
+        type="email"
+        autocomplete="off"
+        maxlength="320"
+        [formControl]="newEmail"
+        [attr.aria-invalid]="!!requestEmail.error()"
+        data-testid="usersAdmin.user.newEmail"
+      />
+    </div>
+    @if (requestEmail.error(); as error) {
+      <p class="problem" role="alert" data-testid="usersAdmin.user.emailError" [attr.data-code]="error.code">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        {{ i18n.error(error.code, errorParams(error)) }}
+      </p>
+    }
+    <div class="actions">
+      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="emailOpen.set(false)" />
+      <p-button
+        type="submit"
+        [label]="'usersAdmin.user.sendEmailChange' | t"
+        icon="pi pi-send"
+        [disabled]="newEmail.invalid"
+        [loading]="requestEmail.busy()"
+        data-testid="usersAdmin.user.sendEmailChange"
+      />
+    </div>
+  </form>
+</p-dialog>
 
 <p-dialog
   [visible]="editOpen()"

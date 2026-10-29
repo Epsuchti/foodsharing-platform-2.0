@@ -229,7 +229,7 @@ export {
   type ChatMessage,
   type ConversationSummary,
 } from './messaging';
-export { MAILBOXES, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';
+export { MAILBOXES, injectBounce, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';
 export { BANANA_TEXT, ProfileHelpers, seedUserId } from './profiles';
 export { BASKETS, BasketHelpers, OPEN_ZURICH_BASKETS, ZURICH_HB, type BasketCreateBody, type BasketDto } from './baskets';
 export { ACTIVE_ZURICH_FSPS, FSPS } from './fsp';

@@ -3,6 +3,9 @@ import { of } from 'rxjs';
 
 import { Language, Role, SleepStatus, Theme, UserProfile } from '../../../../api';
 import { loadResource } from '../../../../core/data/data-state';
+import { BounceBannerComponent } from '../../../account/components/bounce-banner.component';
+import { DangerZoneCardComponent } from '../../../account/components/danger-zone-card.component';
+import { DataExportCardComponent } from '../../../account/components/data-export-card.component';
 import { PhotoCardComponent } from '../../../account/components/photo-card.component';
 import { SleepModeCardComponent } from '../../../account/components/sleep-mode-card.component';
 
@@ -28,10 +31,15 @@ const SLEEPING: UserProfile = {
   sleepMessage: 'Ferien im Tessin, ab dem 21. wieder dabei.',
 };
 
-/** Account settings cards (plan-m7 Q3, A5/A9): photo card without photo, sleep mode card in TEMPORARY mode. */
+const BOUNCED: UserProfile = { ...BASE, emailBouncedAt: '2026-11-01T10:12:00Z' };
+
+/**
+ * Account settings cards (plan-m7 Q3/Q4, A5/A9/A13/A18/A21): photo card without photo, sleep mode card in TEMPORARY
+ * mode, the bounce warning, the data export card before its first run and the danger zone.
+ */
 @Component({
   selector: 'fs-gallery-account-section',
-  imports: [PhotoCardComponent, SleepModeCardComponent],
+  imports: [BounceBannerComponent, DangerZoneCardComponent, DataExportCardComponent, PhotoCardComponent, SleepModeCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h2 class="group" id="g-account">Account</h2>
@@ -44,6 +52,18 @@ const SLEEPING: UserProfile = {
         <header class="specimen__head"><code>fs-sleep-mode-card (temporary)</code></header>
         <fs-sleep-mode-card [profile]="sleeping" [now]="now" />
       </section>
+      <section class="specimen" data-testid="gallery.account.bounce">
+        <header class="specimen__head"><code>fs-bounce-banner (address bounces)</code></header>
+        <fs-bounce-banner [profile]="bounced" />
+      </section>
+      <section class="specimen" data-testid="gallery.account.export">
+        <header class="specimen__head"><code>fs-data-export-card</code></header>
+        <fs-data-export-card />
+      </section>
+      <section class="specimen" data-testid="gallery.account.danger">
+        <header class="specimen__head"><code>fs-danger-zone-card</code></header>
+        <fs-danger-zone-card [profile]="noPhoto" />
+      </section>
     </div>
   `,
 })
@@ -51,6 +71,7 @@ export class AccountGallerySection {
   protected readonly now = new Date('2026-11-02T09:00:00Z');
   protected readonly noPhoto = loadResource<UserProfile>({ loader: () => of(BASE), isEmpty: () => false });
   protected readonly sleeping = loadResource<UserProfile>({ loader: () => of(SLEEPING), isEmpty: () => false });
+  protected readonly bounced = loadResource<UserProfile>({ loader: () => of(BOUNCED), isEmpty: () => false });
 }
 
 export const ACCOUNT_GALLERY_SECTIONS: readonly Type<unknown>[] = [AccountGallerySection];

@@ -1,9 +1,10 @@
-import { acceptPendingConsents, injectApiError } from '../fixtures';
+import { acceptPendingConsents, injectApiError, injectBounce as bounce } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Account settings (plan-m7 Q3, A3/A5/A9/A20): settings page with the pending email change of profile@local, jumper's
- * temporary sleep mode card, the photo crop dialog, the email confirm link page and the settings error state ×
+ * Account settings (plan-m7 Q3/Q4, A3/A5/A9/A11/A13/A18/A20): settings page with the pending email change of
+ * profile@local, jumper's temporary sleep mode card, the photo crop dialog, the email confirm link page, the settings
+ * error state, the calendar card, the delete dialog, the bounce banner and ORGA's bounced list ×
  * light/dark × de/fr. Baselines are generated in Docker in the end batch (decision 69:
  * `e2e/scripts/screenshots.sh --update-snapshots`).
  */
@@ -71,6 +72,39 @@ forEachVariant((variant) => {
         await page.goto('/account/settings');
         await expect(page.getByTestId('account.settings.photo.state')).toHaveAttribute('data-state', 'error');
         await visual.expectScreen(page, `account-settings-error-${variant.name}`);
+      });
+
+      // Q4 (A11, A13, A18)
+      screenshotTest('calendar card with link and filters @A11 @screenshot', async ({ page, visual }) => {
+        await page.goto('/account/settings');
+        await expect(page.getByTestId('account.settings.calendar.url')).toBeVisible();
+        await page.locator('label[for="cal-reminder-60"]').click();
+        await visual.expectElement(page.getByTestId('account.settings.calendar'), `account-calendar-${variant.name}`);
+      });
+
+      screenshotTest('delete account dialog @A13 @screenshot', async ({ page, visual }) => {
+        await page.goto('/account/settings');
+        await page.getByTestId('account.settings.danger.open').click();
+        await page.getByTestId('account.settings.danger.reason').fill('Ich ziehe weg.');
+        await visual.expectElement(page.locator('.p-dialog'), `account-delete-dialog-${variant.name}`);
+      });
+
+      screenshotTest('bounce banner on the dashboard @A18 @screenshot', async ({ page, api, visual }) => {
+        await bounce(api, 'foodsaver@local');
+        await page.goto('/dashboard');
+        await expect(page.getByTestId('account.bounce.banner')).toBeVisible();
+        await visual.expectElement(page.getByTestId('dashboard.page.welcome'), `account-bounce-banner-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('orga', () => {
+      screenshotTest.use({ variant, role: 'orga' });
+
+      screenshotTest('bounced emails list @A18 @screenshot', async ({ page, api, visual }) => {
+        await bounce(api, 'foodsaver@local');
+        await page.goto('/admin/bounced-emails');
+        await expect(page.getByTestId('usersAdmin.bounced.row')).toHaveCount(1);
+        await visual.expectScreen(page, `account-bounced-list-${variant.name}`);
       });
     });
   });
