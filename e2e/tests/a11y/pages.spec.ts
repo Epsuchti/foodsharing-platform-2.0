@@ -32,7 +32,7 @@ const ROUTES: RouteCase[] = [
   { path: '/consent', role: 'newbie', ready: 'legal.consent.documents' },
   { path: '/dashboard', role: 'newbie', ready: 'dashboard.page.welcome', consent: true },
   { path: '/dashboard', role: 'orga', ready: 'dashboard.page.welcome' },
-  { path: '/account/settings', role: 'foodsaver' },
+  { path: '/account/settings', role: 'foodsaver', ready: 'account.settings.calendar.url' },
   { path: '/account/sessions', role: 'foodsaver' },
   { path: '/account/security-log', role: 'foodsaver' },
   { path: '/account/profile', role: 'foodsaver' },
@@ -48,9 +48,8 @@ const ROUTES: RouteCase[] = [
   { path: '/account/email/confirm?token=not-a-token', role: 'foodsaver', ready: 'account.email.confirm.tokenError' },
   { path: '/account/email/abort', role: null, ready: 'account.email.abort.tokenError' },
   { path: '/newsletters', role: 'orga', ready: 'newsletters.list.kind' },
-  // M6 account completion 2 (plan-m7 Q4): calendar link of foodsaver, no link yet for bieb, user page with notes, bounced list
-  { path: '/account/settings', role: 'foodsaver', ready: 'account.settings.calendar.url' },
-  { path: '/account/settings', role: 'bieb', ready: 'account.settings.calendar.none' },
+  // M6 account completion 2 (plan-m7 Q4): no calendar link yet for guide (foodsaver's link: the settings row above), user page with notes, bounced list
+  { path: '/account/settings', role: 'guide', ready: 'account.settings.calendar.none', consent: true },
   { path: '/users/00000001-0001-4000-8000-000000000008', role: 'bot', ready: 'usersAdmin.user.notes.composer' },
   { path: '/admin/bounced-emails', role: 'orga', ready: 'usersAdmin.bounced.state' },
   // M6 food baskets (plan-m7 Q5)
