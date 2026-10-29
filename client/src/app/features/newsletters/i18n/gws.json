@@ -43,5 +43,11 @@
   "newsletters.unsubscribe.confirm": "Abbstelle",
   "newsletters.unsubscribe.done": "{email} überchunnt kei Newsletter meh.",
   "newsletters.unsubscribe.settings": "Alli Benachrichtigungsiistellige",
-  "newsletters.list.newBody": "Liebi Foodsaver*inne,"
+  "newsletters.list.newBody": "Liebi Foodsaver*inne,",
+  "newsletters.list.kind": "Art",
+  "newsletters.kind.NEWSLETTER": "Newsletter",
+  "newsletters.kind.INFO_MAIL": "Info-Mail",
+  "newsletters.editor.infoMailHint": "Info-Mail: gaht a alli aktive Mitglieder, wo Info-Mails iigschaltet lönd, au ohni Newsletter-Abo.",
+  "newsletters.editor.queueTitleInfoMail": "Info-Mail schicke?",
+  "newsletters.editor.queueTextInfoMail": "D Info-Mail gaht a {count} Mitglieder, au a die ohni Newsletter-Abo. Das cha mer nöd rückgängig mache."
 }

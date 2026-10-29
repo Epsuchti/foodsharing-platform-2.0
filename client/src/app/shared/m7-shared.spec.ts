@@ -11,6 +11,7 @@ import { ANIMATION_FRAMES, AnimatedCounterComponent, easeOutCubic } from './anim
 import { BlobSource, ImageCropComponent, clampOffset, cropRect, encodeJpeg } from './image-crop/image-crop.component';
 import { MapMarker, MapViewComponent } from './map-view/map-view.component';
 import { UploadDropzoneComponent } from './upload-dropzone/upload-dropzone.component';
+import { UserAvatarComponent } from './user-chip/user-avatar.component';
 import { UserChipComponent } from './user-chip/user-chip.component';
 import { WallComponent, WallPost } from './wall/wall.component';
 
@@ -64,6 +65,22 @@ describe('UserChipComponent sleep badge', () => {
     fixture.componentRef.setInput('sleepMode', 'TEMPORARY');
     await fixture.whenStable();
     expect(byTestId(el(fixture), 'shared.userChip.sleep')).toHaveLength(1);
+  });
+});
+
+describe('UserAvatarComponent broken image', () => {
+  it('falls back to initials and tries again when the photo URL changes (Q3 photo upload)', async () => {
+    const fixture = TestBed.createComponent(UserAvatarComponent);
+    fixture.componentRef.setInput('name', 'Sarah Müller');
+    fixture.componentRef.setInput('avatarUrl', '/api/uploads/old?size=md');
+    await fixture.whenStable();
+    el(fixture).querySelector('img')!.dispatchEvent(new Event('error'));
+    await fixture.whenStable();
+    expect(el(fixture).querySelector('img')).toBeNull();
+    expect(el(fixture).textContent).toContain('SM');
+    fixture.componentRef.setInput('avatarUrl', '/api/uploads/new?size=md');
+    await fixture.whenStable();
+    expect(el(fixture).querySelector('img')?.getAttribute('src')).toBe('/api/uploads/new?size=md');
   });
 });
 
