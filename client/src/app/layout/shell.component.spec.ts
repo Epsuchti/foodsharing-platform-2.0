@@ -12,7 +12,7 @@ import {
   TestingOnlineStatusService,
   provideDataStateTesting,
 } from '../core/testing/data-state-testing';
-import { NAV_ITEMS, NavContext, mobileTabs, visibleNavItems } from './nav.config';
+import { M6_PAGES_READY, NAV_ITEMS, NavContext, mobileTabs, visibleNavItems } from './nav.config';
 import { ShellComponent, chromeOf } from './shell.component';
 
 @Component({
@@ -194,6 +194,41 @@ describe('nav.config', () => {
       'activity',
       'account',
     ]);
+  });
+
+  it('keeps the M6 items hidden until their page flag flips, then applies their own rule', () => {
+    const orga = context({ isAuthenticated: true, hasRole: (role) => role === Role.Orga });
+    const m6Ids = Object.keys(M6_PAGES_READY);
+    const all = [
+      ...visibleNavItems(orga),
+      ...visibleNavItems(orga, 'user'),
+      ...visibleNavItems(orga, 'footer'),
+      ...visibleNavItems(context(), 'footer'),
+    ].map((item) => item.id);
+    expect(all.filter((id) => m6Ids.includes(id))).toEqual([]);
+
+    const saved = { ...M6_PAGES_READY };
+    try {
+      for (const key of Object.keys(M6_PAGES_READY) as (keyof typeof M6_PAGES_READY)[]) {
+        M6_PAGES_READY[key] = true;
+      }
+      const ids = (ctx: NavContext, area?: 'main' | 'user' | 'footer') => visibleNavItems(ctx, area).map((item) => item.id);
+      // public map for everyone, baskets/search for logged-in users, admin tools for ORGA only
+      expect(ids(context())).toContain('map');
+      expect(ids(context())).not.toContain('baskets');
+      const foodsaver = context({ isAuthenticated: true, hasRole: (role) => role === Role.Foodsaver });
+      expect(ids(foodsaver)).toEqual(expect.arrayContaining(['map', 'baskets', 'search']));
+      expect(ids(foodsaver)).not.toContain('adminSettings');
+      expect(ids(orga)).toEqual(expect.arrayContaining(['adminSettings', 'adminOauth', 'adminUploads', 'adminAchievements', 'adminBounced']));
+      expect(ids(foodsaver, 'user')).toContain('profile');
+      // the "about" pages are in the logged-out footer only
+      const about = NAV_ITEMS.filter((item) => item.group === 'about').map((item) => item.id);
+      expect(about).toHaveLength(12);
+      expect(ids(context(), 'footer')).toEqual(expect.arrayContaining(about));
+      expect(ids(foodsaver, 'footer').filter((id) => about.includes(id))).toEqual([]);
+    } finally {
+      Object.assign(M6_PAGES_READY, saved);
+    }
   });
 
   it('reads the chrome mode from the deepest route data', () => {

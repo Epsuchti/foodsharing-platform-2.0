@@ -11,6 +11,7 @@ import { LEGAL_GALLERY_SECTIONS } from './sections/legal.section';
 import { ONBOARDING_GALLERY_SECTIONS } from './sections/onboarding.section';
 import { QUIZ_GALLERY_SECTIONS } from './sections/quiz.section';
 import { REGIONS_GALLERY_SECTIONS } from './sections/regions.section';
+import { SHARED_M6_GALLERY_SECTIONS } from './sections/shared-m6.section';
 import { STORES_GALLERY_SECTIONS } from './sections/stores.section';
 import { VERIFICATION_GALLERY_SECTIONS } from './sections/verification.section';
 
@@ -24,6 +25,7 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   RegionsMapGallerySection,
   InputsGallerySection,
   PeopleGallerySection,
+  ...SHARED_M6_GALLERY_SECTIONS,
   ...CONTENT_GALLERY_SECTIONS,
   ...GROUPS_GALLERY_SECTIONS,
   ...INTRO_PICKUPS_GALLERY_SECTIONS,

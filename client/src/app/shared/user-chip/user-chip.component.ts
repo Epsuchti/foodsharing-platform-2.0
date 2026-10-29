@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tooltip } from '@openng/optimus-ui/tooltip';
 
@@ -28,10 +28,21 @@ import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
         [role]="role()"
         [size]="size()"
         [colorSeed]="userId()"
+        [sleeping]="sleeping()"
       />
       <span class="chip__text">
         <span class="chip__name">
           <span class="chip__name-text">{{ name() }}</span>
+          @if (sleeping()) {
+            <i
+              class="pi pi-moon chip__sleep"
+              role="img"
+              tabindex="0"
+              [attr.aria-label]="sleepLabel() | t: { message: sleepMessage() ?? '' }"
+              [pTooltip]="sleepLabel() | t: { message: sleepMessage() ?? '' }"
+              data-testid="shared.userChip.sleep"
+            ></i>
+          }
           @if (verified()) {
             <i
               class="pi pi-verified chip__verified"
@@ -102,6 +113,11 @@ import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
       color: var(--fs-primary);
       font-size: 0.85em;
     }
+    .chip__sleep {
+      flex: 0 0 auto;
+      color: var(--fs-text-muted);
+      font-size: 0.85em;
+    }
     .chip__number {
       font-variant-numeric: tabular-nums;
     }
@@ -127,4 +143,12 @@ export class UserChipComponent {
   readonly verified = input(false);
   /** Shown as "ID 100006" with a help tooltip (EA3: newcomers give it to their guide). */
   readonly foodsaverNumber = input<number | null | undefined>(undefined);
+  /** Sleep mode (A39, `UserSummary.sleepMode`): moon badge with the sleep message as tooltip, grey avatar ring. */
+  readonly sleepMode = input<boolean | null | undefined>(undefined);
+  readonly sleepMessage = input<string | null | undefined>(undefined);
+
+  protected readonly sleeping = computed(() => this.sleepMode() === true);
+  protected readonly sleepLabel = computed(() =>
+    this.sleepMessage()?.trim() ? 'shared.userChip.sleepingWithMessage' : 'shared.userChip.sleeping',
+  );
 }

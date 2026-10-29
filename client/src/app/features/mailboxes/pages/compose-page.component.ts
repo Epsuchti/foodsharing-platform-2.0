@@ -59,7 +59,7 @@ interface Original {
             <label class="upload" for="mail-files">
               <i class="pi pi-paperclip" aria-hidden="true"></i>{{ 'mailboxes.compose.attach' | t }}
             </label>
-            <input id="mail-files" class="sr-only" type="file" multiple (change)="pick($event)" data-testid="mailboxes.compose.files" />
+            <input id="mail-files" class="fs-visually-hidden" type="file" multiple (change)="pick($event)" data-testid="mailboxes.compose.files" />
             @if (upload.busy()) {
               <span class="hint" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> {{ 'mailboxes.compose.uploading' | t }}</span>
             }
@@ -128,14 +128,6 @@ interface Original {
       border: 1px solid var(--fs-border);
       border-radius: var(--fs-radius-sm);
       background: var(--fs-surface-muted);
-    }
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
     }
   `,
 })
