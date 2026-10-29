@@ -1,12 +1,19 @@
 # Resume notes (paused 2026-10-29)
 
-Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–88), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
+Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–93), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
 
 ## State on `main`
 - Backend: all features of M1–M6 and M7 B1–B10 (imports, prod profile/image/release, runbook/backups, monitoring, load test, security review, privacy review, CI hardening) are done.
 - Frontend: M1–M5 done (incl. surveys, nav badges, rich mail editor), M4 automation done. Lighthouse project green (`/` 100, `/onboarding` ≥ 90).
 - Last verified on main: full `./mvnw clean verify` green; full chromium e2e 407/408 before the latest frontend merges (the one failure was Lighthouse under machine load, since moved to its own `lighthouse` project).
 - Coverage: `node e2e/scripts/feature-coverage.mjs` green (non-strict).
+
+## Windows environment (2026-10-29, resumed session)
+- JDK 21: portable Temurin in `~/.jdks/jdk-21.0.13+9` (owner-approved download). Prefix Java/Maven/Playwright commands with `export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PATH"`. The system JDK 17 is untouched.
+- Node: the system Node 24.14.1 is too old for Angular CLI (≥ 24.15.0); use the Maven-installed `client/node` (`export PATH="$PWD/client/node:$PATH"`). No Python on the machine.
+- **Blocker: no Docker.** The 13 Testcontainers ITs (Postgres) fail with "Failed to load ApplicationContext"; everything else in `./mvnw clean verify` is green (unit, client 296/296, 210 other ITs). Docker is also needed for the screenshot baselines (decision 69), the k6 load test and `smoke.sh`.
+- Step 0 fixes on main (3477dec): first test of `automation.spec.ts` timed out under load (lazy chunks now warmed in `beforeAll`); `feature-coverage.mjs` spawns Playwright through node (Windows EINVAL on `.cmd`). Coverage non-strict green, 112/150 features.
+- In flight: frontend worker on Q1 (`build/m7-q1-scaffolding`, branched from F1); F1 done on `build/m7-f1-stores-import` (f63ad6a, not yet merged); backend worker on `build/m7-bx-open-rows` (N7/EA16/AU5/AU13/C15 e2e, AU11, AD1 admins endpoint), then G1–G4 and F1-R1/R2 from `docs/plan-m7-queue-f.md`.
 
 ## Team setup the owner asked for
 One frontend worker + one backend worker (+ Fable planner for plans/reviews). Workers run in their own worktree, never write to the main checkout; the integrator merges (check `git diff --name-only --diff-filter=U` before committing a merge; union-merge i18n JSON conflicts). Screenshots: write `*.screen.ts` specs only; baselines + design rounds in one batch at the end (decision 69).

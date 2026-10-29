@@ -29,7 +29,11 @@ export interface NavItem {
   exact?: boolean;
   /** Unread count bubble (`NavBadgesService`, loaded after the first page). */
   badge?: NavBadge;
+  /** Section inside its area (M6): `admin` tools, `about` pages of the logged-out footer. */
+  group?: NavGroup;
 }
+
+export type NavGroup = 'admin' | 'about';
 
 /** Sources of nav badges: conversations with unread messages, unread inbox mails. */
 export type NavBadge = 'messages' | 'mailboxes';
@@ -62,6 +66,55 @@ const when =
   (page: M2Page, rule: (ctx: NavContext) => boolean) =>
   (ctx: NavContext): boolean =>
     M2_PAGES_READY[page] && rule(ctx);
+
+/**
+ * M6 pages (plan-m7 Q1, A9). Same pattern as M2_PAGES_READY: each page task flips its flag when the page lands;
+ * until then the item is declared with its real visibility rule but hidden.
+ */
+export const M6_PAGES_READY = {
+  map: false,
+  baskets: false,
+  search: false,
+  profile: false,
+  adminSettings: false,
+  adminOauth: false,
+  adminUploads: false,
+  adminAchievements: false,
+  adminBounced: false,
+  team: false,
+  partners: false,
+  press: false,
+  blog: false,
+  cities: false,
+  demands: false,
+  education: false,
+  donate: false,
+  statistics: false,
+  support: false,
+  releaseNotes: false,
+  faq: false,
+};
+export type M6Page = keyof typeof M6_PAGES_READY;
+const whenM6 =
+  (page: M6Page, rule: (ctx: NavContext) => boolean) =>
+  (ctx: NavContext): boolean =>
+    M6_PAGES_READY[page] && rule(ctx);
+
+/** Footer "about" pages for visitors (M6); hidden until their page flag flips. */
+const ABOUT_PAGES: readonly { id: M6Page; icon: string; route: string }[] = [
+  { id: 'team', icon: 'pi pi-users', route: '/team' },
+  { id: 'partners', icon: 'pi pi-thumbs-up', route: '/pages/partners' },
+  { id: 'press', icon: 'pi pi-megaphone', route: '/pages/press' },
+  { id: 'blog', icon: 'pi pi-book', route: '/blog' },
+  { id: 'cities', icon: 'pi pi-building', route: '/pages/cities' },
+  { id: 'demands', icon: 'pi pi-flag', route: '/pages/demands' },
+  { id: 'education', icon: 'pi pi-graduation-cap', route: '/pages/education' },
+  { id: 'donate', icon: 'pi pi-heart-fill', route: '/donate' },
+  { id: 'statistics', icon: 'pi pi-chart-bar', route: '/statistics' },
+  { id: 'support', icon: 'pi pi-question', route: '/support' },
+  { id: 'releaseNotes', icon: 'pi pi-list', route: '/release-notes' },
+  { id: 'faq', icon: 'pi pi-comments', route: '/faq' },
+];
 
 /** Grant of a scoped permission (`<P>@<regionId>` / `<P>@*`) for any region. */
 export function hasPermissionAnywhere(ctx: NavContext, permission: string): boolean {
@@ -385,6 +438,87 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/surveys',
     visible: (ctx) => ctx.isAuthenticated && ctx.hasPermission('CAN_MANAGE_SURVEYS'),
   },
+  // --- M6 (hidden until M6_PAGES_READY flips) ---
+  {
+    id: 'map',
+    labelKey: 'nav.map',
+    icon: 'pi pi-map',
+    route: '/map',
+    visible: whenM6('map', () => true),
+  },
+  {
+    id: 'baskets',
+    labelKey: 'nav.baskets',
+    icon: 'pi pi-shopping-cart',
+    route: '/baskets',
+    visible: whenM6('baskets', loggedIn),
+  },
+  {
+    id: 'search',
+    labelKey: 'nav.search',
+    icon: 'pi pi-search',
+    route: '/search',
+    visible: whenM6('search', loggedIn),
+  },
+  {
+    id: 'profile',
+    labelKey: 'nav.profile',
+    icon: 'pi pi-user',
+    route: '/profile/me',
+    visible: whenM6('profile', loggedIn),
+    area: 'user',
+  },
+  {
+    id: 'adminSettings',
+    labelKey: 'nav.adminSettings',
+    icon: 'pi pi-sliders-h',
+    route: '/admin/settings',
+    visible: whenM6('adminSettings', isOrga),
+    group: 'admin',
+  },
+  {
+    id: 'adminOauth',
+    labelKey: 'nav.adminOauth',
+    icon: 'pi pi-key',
+    route: '/admin/oauth-clients',
+    visible: whenM6('adminOauth', isOrga),
+    group: 'admin',
+  },
+  {
+    id: 'adminUploads',
+    labelKey: 'nav.adminUploads',
+    icon: 'pi pi-images',
+    route: '/admin/uploads',
+    visible: whenM6('adminUploads', isOrga),
+    group: 'admin',
+  },
+  {
+    id: 'adminAchievements',
+    labelKey: 'nav.adminAchievements',
+    icon: 'pi pi-trophy',
+    route: '/admin/achievements',
+    visible: whenM6('adminAchievements', isOrga),
+    group: 'admin',
+  },
+  {
+    id: 'adminBounced',
+    labelKey: 'nav.adminBounced',
+    icon: 'pi pi-exclamation-circle',
+    route: '/admin/bounced-emails',
+    visible: whenM6('adminBounced', isOrga),
+    group: 'admin',
+  },
+  ...ABOUT_PAGES.map(
+    (page): NavItem => ({
+      id: page.id,
+      labelKey: `nav.${page.id}`,
+      icon: page.icon,
+      route: page.route,
+      visible: whenM6(page.id, loggedOut),
+      area: 'footer',
+      group: 'about',
+    }),
+  ),
 ];
 
 export function visibleNavItems(

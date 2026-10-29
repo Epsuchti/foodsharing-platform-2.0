@@ -51,6 +51,7 @@ export function avatarColor(seed: string | null | undefined): string {
   host: {
     class: 'fs-user-avatar',
     '[attr.data-size]': 'size()',
+    '[attr.data-sleeping]': 'sleeping() ? "" : null',
     role: 'img',
     '[attr.aria-label]': 'name()',
   },
@@ -103,6 +104,14 @@ export function avatarColor(seed: string | null | undefined): string {
       letter-spacing: 0.02em;
       user-select: none;
     }
+    /* sleep mode (A39): grey ring and desaturated picture */
+    :host([data-sleeping]) img,
+    :host([data-sleeping]) .av__initials {
+      box-shadow:
+        0 0 0 2px var(--fs-surface),
+        0 0 0 4px var(--fs-text-muted);
+      filter: grayscale(0.6);
+    }
     .av__badge {
       position: absolute;
       right: -1px;
@@ -133,6 +142,8 @@ export class UserAvatarComponent {
   readonly role = input<Role | null | undefined>(undefined);
   /** Seed for the colour (defaults to the name); pass the user id for stable colours across renames. */
   readonly colorSeed = input<string | null | undefined>(undefined);
+  /** Sleep mode (A39): grey ring. */
+  readonly sleeping = input(false);
 
   protected readonly imageFailed = signal(false);
   protected readonly initials = computed(() => initialsOf(this.name()));

@@ -92,7 +92,7 @@ const FOLDERS: { id: MailFolder; icon: string }[] = [
 
           <section class="list fs-card" [attr.aria-label]="'mailboxes.folder.' + folder() | t">
             <form class="search" (ngSubmit)="search.set(searchDraft.trim()); pageIndex.set(0)">
-              <label class="sr-only" for="mail-search">{{ 'mailboxes.search' | t }}</label>
+              <label class="fs-visually-hidden" for="mail-search">{{ 'mailboxes.search' | t }}</label>
               <input pInputText id="mail-search" type="search" name="q" [placeholder]="'mailboxes.search' | t" [(ngModel)]="searchDraft" data-testid="mailboxes.list.search" />
               <p-button type="submit" icon="pi pi-search" [text]="true" [ariaLabel]="'mailboxes.search' | t" />
             </form>
