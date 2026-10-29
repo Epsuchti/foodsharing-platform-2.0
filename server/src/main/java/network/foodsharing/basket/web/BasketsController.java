@@ -56,8 +56,18 @@ public class BasketsController implements BasketsApi {
     }
 
     @Override
+    public ResponseEntity<List<network.foodsharing.api.model.Grocery>> listBasketGroceries() {
+        return ResponseEntity.ok(queries.groceries().entrySet().stream()
+                .map(e -> new network.foodsharing.api.model.Grocery().id(e.getKey()).name(e.getValue())).toList());
+    }
+
+    @Override
     public ResponseEntity<Basket> getBasket(UUID basketId) {
-        return ResponseEntity.ok(mapper.toBasket(queries.get(basketId)));
+        var view = queries.get(basketId); // 404 / feature check first
+        if (baskets.markRequestsRead(basketId) > 0) {
+            view = queries.get(basketId);
+        }
+        return ResponseEntity.ok(mapper.toBasket(view));
     }
 
     @Override
@@ -74,7 +84,7 @@ public class BasketsController implements BasketsApi {
         baskets.update(basketId, new BasketInput(body.getDescription(), location(body.getLocationType()),
                 body.getContactMessage(), body.getContactPhone(), body.getContactMobile(), null,
                 body.getWeightGrams(), body.getGroceryIds(), kinds(body.getKinds()), body.getLat(), body.getLon(),
-                body.getPhone(), body.getMobile(), body.getPhotoUploadId()));
+                body.getPhone(), body.getMobile(), body.getPhotoUploadId()), Boolean.TRUE.equals(body.getRemovePhoto()));
         return ResponseEntity.ok(mapper.toBasket(queries.get(basketId)));
     }
 

@@ -100,7 +100,8 @@ public class ReportService implements network.foodsharing.user.service.UserViola
      * Files a report about {@code userId}; the report team of the report's region gets a {@code REPORT_NEW} bell.
      *
      * @throws ApiException 404 USER_NOT_FOUND / STORE_NOT_FOUND, 409 REPORT_SELF, 403 ACCESS_DENIED (unverified),
-     *                      403 REPORT_BUTTON_DISABLED, 400 VALIDATION_FAILED (OTHER without text)
+     *                      403 REPORT_BUTTON_DISABLED, 400 VALIDATION_FAILED (OTHER without text),
+     *                      400 REPORT_REASON_NOT_ALLOWED (reason outside the region's set, see {@link #options})
      */
     @Transactional
     public Report create(UUID userId, ReportInput input) {
@@ -121,14 +122,14 @@ public class ReportService implements network.foodsharing.user.service.UserViola
         if (input.message() == null || input.message().strip().length() < 10) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "message");
         }
-        UUID storeRegion = null;
-        if (input.storeId() != null) {
-            storeRegion = stores.findLive(input.storeId())
-                    .orElseThrow(() -> ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND)).getRegionId();
-        }
-        UUID regionId = ReportRules.reportRegion(storeRegion, reported.getHomeRegionId());
+        UUID regionId = reportRegion(reported, input.storeId());
         if (regionId == null) {
             throw ApiException.forbidden(ApiErrorCode.REPORT_BUTTON_DISABLED);
+        }
+        var regionOptions = access.regionOptions(regionId);
+        if (!ReportRules.reasonAllowed(input.reason(), regionOptions.reportReasonOptions(),
+                regionOptions.reportReasonOther())) {
+            throw ApiException.badRequest(ApiErrorCode.REPORT_REASON_NOT_ALLOWED).withArg("field", "reason");
         }
         Report report = new Report();
         report.setRegionId(regionId);
@@ -180,12 +181,7 @@ public class ReportService implements network.foodsharing.user.service.UserViola
         User reporter = users.requireActive(actor.userId());
         User reported = users.findActive(userId)
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.USER_NOT_FOUND));
-        UUID storeRegion = null;
-        if (storeId != null) {
-            storeRegion = stores.findLive(storeId)
-                    .orElseThrow(() -> ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND)).getRegionId();
-        }
-        UUID regionId = ReportRules.reportRegion(storeRegion, reported.getHomeRegionId());
+        UUID regionId = reportRegion(reported, storeId);
         ApiErrorCode denial = ReportRules.reportDenial(access.reporterFacts(reporter, reported));
         if (regionId == null) {
             return new ReportOptionsView(null, ReportRules.reasonOptions(1), false,
@@ -194,6 +190,16 @@ public class ReportService implements network.foodsharing.user.service.UserViola
         var regionOptions = access.regionOptions(regionId);
         return new ReportOptionsView(regionId, ReportRules.reasonOptions(regionOptions.reportReasonOptions()),
                 regionOptions.reportReasonOther(), denial);
+    }
+
+    /** The report's region (shared by {@link #create} and {@link #options}). @throws ApiException 404 STORE_NOT_FOUND */
+    private UUID reportRegion(User reported, UUID storeId) {
+        UUID storeRegion = null;
+        if (storeId != null) {
+            storeRegion = stores.findLive(storeId)
+                    .orElseThrow(() -> ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND)).getRegionId();
+        }
+        return ReportRules.reportRegion(storeRegion, reported.getHomeRegionId());
     }
 
     // ------------------------------------------------------------------------------------------ handling

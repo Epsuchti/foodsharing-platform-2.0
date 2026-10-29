@@ -359,6 +359,7 @@
   "errors.REPORTS_NOT_ACCESSIBLE": "Du häsch kein Zuegriff uf die Meldige.",
   "errors.REPORT_BUTTON_DISABLED": "Meldige sind i eune gmeinsame Bezirk nöd möglich.",
   "errors.REPORT_SELF": "Du chasch dich nöd sälber melde.",
+  "errors.REPORT_REASON_NOT_ALLOWED": "De Meldigsgrund isch i dem Bezirk nöd vorgseh.",
   "errors.REPORT_NOT_FOUND": "Die Meldig gits nöd.",
   "errors.MEDIATION_DISABLED": "Mediation isch i dem Bezirk nöd verfüegbar.",
   "errors.ACHIEVEMENT_NOT_FOUND": "Die Uuszeichnig gits nöd.",

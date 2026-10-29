@@ -47,6 +47,29 @@ class ReportPermissionMatrixTest {
     }
 
     @Test
+    void filingAllowsOnlyTheRegionsReasons() {
+        assertThat(ReportRules.reasonAllowed(ReportReason.LATE, 1, false)).isTrue();
+        assertThat(ReportRules.reasonAllowed(ReportReason.VIOLATED_B2, 1, false)).isFalse();
+        assertThat(ReportRules.reasonAllowed(ReportReason.VIOLATED_B2, 2, false)).isTrue();
+        assertThat(ReportRules.reasonAllowed(ReportReason.LATE, 2, false)).isFalse();
+        assertThat(ReportRules.reasonAllowed(ReportReason.LATE, 3, false)).isTrue();
+        assertThat(ReportRules.reasonAllowed(ReportReason.VIOLATED_B13, 3, false)).isTrue();
+        assertThat(ReportRules.reasonAllowed(ReportReason.SELLS, 9, false)).isTrue(); // unknown set = default 1
+        assertThat(ReportRules.reasonAllowed(ReportReason.OTHER, 3, false)).isFalse();
+        assertThat(ReportRules.reasonAllowed(ReportReason.OTHER, 1, true)).isTrue();
+        assertThat(ReportRules.reasonAllowed(null, 3, true)).isFalse();
+        for (ReportReason reason : ReportReason.values()) {
+            for (int set = 1; set <= 3; set++) {
+                for (boolean other : new boolean[] {false, true}) {
+                    assertThat(ReportRules.reasonAllowed(reason, set, other)).as(reason + "/" + set + "/" + other)
+                            .isEqualTo(reason == ReportReason.OTHER ? other
+                                    : ReportRules.reasonOptions(set).contains(reason));
+                }
+            }
+        }
+    }
+
+    @Test
     void otherNeedsAReasonText() {
         assertThat(ReportRules.reasonTextValid(ReportReason.OTHER, " ")).isFalse();
         assertThat(ReportRules.reasonTextValid(ReportReason.OTHER, null)).isFalse();

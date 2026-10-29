@@ -56,6 +56,17 @@ public final class ReportRules {
         };
     }
 
+    /**
+     * A reason the report's region offers: one of its option set ({@link #reasonOptions}), or OTHER when the region
+     * allows it ({@code REPORT_REASON_OTHER}).
+     */
+    public static boolean reasonAllowed(ReportReason reason, int optionSet, boolean otherAllowed) {
+        if (reason == ReportReason.OTHER) {
+            return otherAllowed;
+        }
+        return reason != null && reasonOptions(optionSet).contains(reason);
+    }
+
     /** OTHER needs a reason text; every other reason ignores it. */
     public static boolean reasonTextValid(ReportReason reason, String reasonText) {
         return reason != ReportReason.OTHER || (reasonText != null && !reasonText.isBlank());
