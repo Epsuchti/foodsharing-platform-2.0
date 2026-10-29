@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
 
 import { Role } from '../../api';
 
@@ -145,7 +145,8 @@ export class UserAvatarComponent {
   /** Sleep mode (A39): grey ring. */
   readonly sleeping = input(false);
 
-  protected readonly imageFailed = signal(false);
+  /** Broken image → initials; a new `avatarUrl` (e.g. a just uploaded photo) tries again. */
+  protected readonly imageFailed = linkedSignal({ source: this.avatarUrl, computation: () => false });
   protected readonly initials = computed(() => initialsOf(this.name()));
   protected readonly color = computed(() => avatarColor(this.colorSeed() ?? this.name()));
   protected readonly badge = computed(() => {

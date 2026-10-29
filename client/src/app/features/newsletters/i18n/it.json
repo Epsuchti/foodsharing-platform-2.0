@@ -43,5 +43,11 @@
   "newsletters.unsubscribe.confirm": "Annulla iscrizione",
   "newsletters.unsubscribe.done": "{email} non riceverà più newsletter.",
   "newsletters.unsubscribe.settings": "Tutte le impostazioni di notifica",
-  "newsletters.list.newBody": "Care e cari foodsaver,"
+  "newsletters.list.newBody": "Care e cari foodsaver,",
+  "newsletters.list.kind": "Tipo",
+  "newsletters.kind.NEWSLETTER": "Newsletter",
+  "newsletters.kind.INFO_MAIL": "E-mail informativa",
+  "newsletters.editor.infoMailHint": "E-mail informativa: va a tutti i membri attivi che tengono attive le e-mail informative, anche senza abbonamento alla newsletter.",
+  "newsletters.editor.queueTitleInfoMail": "Inviare l’e-mail informativa?",
+  "newsletters.editor.queueTextInfoMail": "L’e-mail informativa va a {count} membri, anche a quelli senza abbonamento alla newsletter. L’azione è irreversibile."
 }

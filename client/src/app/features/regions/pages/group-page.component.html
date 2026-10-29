@@ -94,7 +94,7 @@
                 <ul class="people">
                   @for (member of list; track member.user.id) {
                     <li class="row" data-testid="regions.group.member">
-                      <fs-user-chip [name]="member.user.displayName" [userId]="member.user.id" [avatarUrl]="member.user.avatarUrl" [role]="member.user.role" [verified]="member.user.verified" [subtitle]="member.admin ? ('regions.groups.admin' | t) : undefined" />
+                      <fs-user-chip [name]="member.user.displayName" [userId]="member.user.id" [avatarUrl]="member.user.avatarUrl" [role]="member.user.role" [verified]="member.user.verified" [sleepMode]="member.user.sleepMode" [sleepMessage]="member.user.sleepMessage" [subtitle]="member.admin ? ('regions.groups.admin' | t) : undefined" />
                       @if (mayManage()) {
                         <div class="row__actions">
                           <p-button [icon]="member.admin ? 'pi pi-star-fill' : 'pi pi-star'" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="(member.admin ? 'regions.group.removeAdmin' : 'regions.group.makeAdmin') | t: { name: member.user.displayName }" [loading]="toggleAdmin.busy()" (onClick)="toggleAdmin.run(member)" data-testid="regions.group.toggleAdmin" />

@@ -43,5 +43,11 @@
   "newsletters.unsubscribe.confirm": "Se désabonner",
   "newsletters.unsubscribe.done": "{email} ne recevra plus de newsletters.",
   "newsletters.unsubscribe.settings": "Tous les paramètres de notification",
-  "newsletters.list.newBody": "Chères et chers foodsavers,"
+  "newsletters.list.newBody": "Chères et chers foodsavers,",
+  "newsletters.list.kind": "Type",
+  "newsletters.kind.NEWSLETTER": "Newsletter",
+  "newsletters.kind.INFO_MAIL": "E-mail d’information",
+  "newsletters.editor.infoMailHint": "E-mail d’information : envoyé à tous les membres actifs qui gardent les e-mails d’information activés, même sans abonnement à la newsletter.",
+  "newsletters.editor.queueTitleInfoMail": "Envoyer l’e-mail d’information ?",
+  "newsletters.editor.queueTextInfoMail": "L’e-mail d’information sera envoyé à {count} membres, y compris ceux sans abonnement à la newsletter. Cette action est irréversible."
 }

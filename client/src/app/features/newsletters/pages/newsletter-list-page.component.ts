@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { Select } from '@openng/optimus-ui/select';
 
-import { NewsletterPage, NewsletterStatus, NewslettersService, Role } from '../../../api';
+import { NewsletterKind, NewsletterPage, NewsletterStatus, NewslettersService, Role } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
@@ -20,7 +20,9 @@ export const GLOBAL_SCOPE = 'GLOBAL';
 
 /**
  * `/newsletters` and `/regions/:regionId/newsletters` (N7): newsletters of a scope (global for ORGA, regions the
- * user administrates), status filter, "New newsletter" creates a draft and opens the editor.
+ * user administrates), status filter, "New newsletter" creates a draft and opens the editor. ORGA picks the kind in
+ * the global scope (newsletter to opted-in members or info mail to everyone who kept `infoMailMessage`, A20); the
+ * kind is fixed at creation because `NewsletterPatch` has no `kind`.
  */
 @Component({
   selector: 'fs-newsletter-list-page',
@@ -51,6 +53,20 @@ export const GLOBAL_SCOPE = 'GLOBAL';
           data-testid="newsletters.list.scope"
         />
       </div>
+      @if (kindChoice()) {
+        <div class="field">
+          <label for="nl-kind">{{ 'newsletters.list.kind' | t }}</label>
+          <p-select
+            inputId="nl-kind"
+            [options]="kinds()"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="kind()"
+            (ngModelChange)="kind.set($event)"
+            data-testid="newsletters.list.kind"
+          />
+        </div>
+      }
       <div class="field">
         <label for="nl-status">{{ 'newsletters.list.status' | t }}</label>
         <p-select
@@ -77,6 +93,9 @@ export const GLOBAL_SCOPE = 'GLOBAL';
           @for (nl of page.items; track nl.id) {
             <li class="fs-card item" data-testid="newsletters.list.item" [attr.data-status]="nl.status" [attr.data-id]="nl.id">
               <a [routerLink]="['/newsletters', nl.id]" class="subject" data-testid="newsletters.list.open">{{ nl.subject || ('newsletters.list.untitled' | t) }}</a>
+              @if (nl.kind === 'INFO_MAIL') {
+                <span class="badge badge--INFO_MAIL" data-testid="newsletters.list.infoMail">{{ 'newsletters.kind.INFO_MAIL' | t }}</span>
+              }
               <span [class]="'badge badge--' + nl.status">{{ 'newsletters.status.' + nl.status | t }}</span>
               <span class="muted">
                 {{ nl.region?.name ?? ('newsletters.list.global' | t) }} ·
@@ -142,10 +161,19 @@ export class NewsletterListPageComponent {
     isEmpty: (page) => page.items.length === 0,
   });
 
+  /** Info mails (A20) are global and ORGA only: the kind select shows for ORGA in the global scope. */
+  protected readonly kindChoice = computed(() => this.session.user()?.role === Role.Orga && this.scope() === GLOBAL_SCOPE);
+  protected readonly kind = signal<NewsletterKind>(NewsletterKind.Newsletter);
+  protected readonly kinds = computed(() => {
+    this.i18n.language();
+    return Object.values(NewsletterKind).map((value) => ({ value, label: this.i18n.t(`newsletters.kind.${value}`) }));
+  });
+
   protected readonly create = runMutation(
     () =>
       this.api.createNewsletter({
         newsletterCreate: {
+          kind: this.kindChoice() ? this.kind() : NewsletterKind.Newsletter,
           regionId: this.scope() === GLOBAL_SCOPE ? undefined : this.scope(),
           subject: this.i18n.t('newsletters.list.newSubject'),
           bodyMarkdown: this.i18n.t('newsletters.list.newBody'),

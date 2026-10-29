@@ -43,6 +43,11 @@ const ROUTES: RouteCase[] = [
   { path: '/profile/00000001-0001-4000-8000-000000000006?tab=notes', role: 'orga', ready: 'profiles.notes.composer' },
   { path: '/profile/00000001-0001-4000-8000-000000000008', role: 'foodsaver', ready: 'profiles.page.sleep' },
   { path: '/profile/me/buddies', role: 'foodsaver', ready: 'profiles.buddies.state' },
+  // M6 account completion (plan-m7 Q3): pending email change of profile@local, email links without/with a bad token
+  { path: '/account/settings', role: 'profile', ready: 'account.settings.email.pending', consent: true },
+  { path: '/account/email/confirm?token=not-a-token', role: 'foodsaver', ready: 'account.email.confirm.tokenError' },
+  { path: '/account/email/abort', role: null, ready: 'account.email.abort.tokenError' },
+  { path: '/newsletters', role: 'orga', ready: 'newsletters.list.kind' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
