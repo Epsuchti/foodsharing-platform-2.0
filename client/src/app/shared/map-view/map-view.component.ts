@@ -18,7 +18,19 @@ import { DataState } from '../../core/data/data-state';
 import { TPipe } from '../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../data-state';
 
-export type MapMarkerKind = 'region-pin' | 'region' | 'store' | 'fsp' | 'basket' | 'event' | 'pickup' | 'home';
+export type MapMarkerKind =
+  | 'region-pin'
+  | 'region'
+  | 'store'
+  | 'fsp'
+  | 'basket'
+  | 'user'
+  | 'event'
+  | 'pickup'
+  | 'home';
+
+/** Kinds whose click asks the host for a detail bubble (M6 map: food-share points, baskets, users, stores). */
+export const BUBBLE_KINDS: ReadonlySet<MapMarkerKind> = new Set<MapMarkerKind>(['fsp', 'basket', 'user', 'store']);
 
 export interface MapMarker {
   id: string;
@@ -39,6 +51,7 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
   store: 'pi-shopping-bag',
   fsp: 'pi-box',
   basket: 'pi-shopping-cart',
+  user: 'pi-user',
   event: 'pi-calendar',
   pickup: 'pi-truck',
   home: 'pi-home',
@@ -172,6 +185,15 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
     :host ::ng-deep .fs-map-marker[data-kind='home'] .fs-map-marker__pin {
       background: #b5532d;
     }
+    :host ::ng-deep .fs-map-marker[data-kind='fsp'] .fs-map-marker__pin {
+      background: #8a4fb0;
+    }
+    :host ::ng-deep .fs-map-marker[data-kind='basket'] .fs-map-marker__pin {
+      background: #9a5b0b;
+    }
+    :host ::ng-deep .fs-map-marker[data-kind='user'] .fs-map-marker__pin {
+      background: #3d5aa8;
+    }
   `,
 })
 export class MapViewComponent {
@@ -188,6 +210,8 @@ export class MapViewComponent {
   /** Tile URL template (default: `window.__fsTileUrl` in tests, else OSM). */
   readonly tileUrl = input<string | undefined>(undefined);
   readonly markerClick = output<MapMarker>();
+  /** A click on an fsp/basket/user/store marker: the host shows its detail bubble (also emits `markerClick`). */
+  readonly bubble = output<MapMarker>();
   /** Editable position (pin editor): a draggable marker; a click on the map moves it too. */
   readonly position = input<[number, number] | null | undefined>(undefined);
   readonly editable = input(false);
@@ -213,6 +237,14 @@ export class MapViewComponent {
       untracked(() => this.drawMarkers(markers));
     });
     inject(DestroyRef).onDestroy(() => this.map?.remove());
+  }
+
+  /** Marker click: always `markerClick`, plus `bubble` for the bubble kinds (public for tests). */
+  onMarkerClick(marker: MapMarker): void {
+    this.markerClick.emit(marker);
+    if (BUBBLE_KINDS.has(marker.kind)) {
+      this.bubble.emit(marker);
+    }
   }
 
   protected reloadTiles(): void {
@@ -301,7 +333,7 @@ export class MapViewComponent {
         iconAnchor: [16, 36],
       });
       L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true })
-        .on('click', () => this.markerClick.emit(marker))
+        .on('click', () => this.onMarkerClick(marker))
         .addTo(this.layer)
         .getElement()
         ?.setAttribute('data-kind', marker.kind);

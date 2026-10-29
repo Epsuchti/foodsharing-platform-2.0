@@ -8,7 +8,16 @@ import { MultiSelect } from '@openng/optimus-ui/multiselect';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import { debounceTime, map } from 'rxjs';
 
-import { CooperationStatus, Role, StoreListItem, StoreListPage, StoresService, TeamSearchStatus } from '../../../api';
+import {
+  CooperationStatus,
+  RegionDetail,
+  RegionsService,
+  Role,
+  StoreListItem,
+  StoreListPage,
+  StoresService,
+  TeamSearchStatus,
+} from '../../../api';
 import { isMemberOf, isOrga } from '../../../core/auth/permission.util';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
@@ -19,7 +28,13 @@ import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.c
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { STORE_BADGES } from '../../../shared/store-badges/store-badges.component';
 import { ApplyTarget, StoreApplyDialogComponent } from '../components/apply-dialog.component';
-import { COOPERATION_STATUSES, DEFAULT_COOPERATION_FILTER, TEAM_STATUSES } from '../stores.util';
+import {
+  COOPERATION_STATUSES,
+  DEFAULT_COOPERATION_FILTER,
+  TEAM_STATUSES,
+  mayCoordinateRegionStores,
+  mightCoordinateStores,
+} from '../stores.util';
 
 interface Params {
   regionId: string;
@@ -51,7 +66,7 @@ interface Params {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fs-page-header [title]="'stores.region.title' | t" [subtitle]="regionName()" icon="pi pi-shopping-bag" [backLink]="['/regions', regionId()]" />
+    <fs-page-header [title]="'stores.region.title' | t" [subtitle]="regionName()" icon="pi pi-shopping-bag" [backLink]="['/regions', regionId()]" [backLabel]="'stores.region.back' | t" />
 
     <section class="fs-card card filters" data-testid="stores.region.filters">
       <div class="field">
@@ -106,6 +121,17 @@ interface Params {
             [routerLink]="['/stores/new']"
             [queryParams]="{ regionId: regionId() }"
             data-testid="stores.region.create"
+          />
+        }
+        @if (mayImport()) {
+          <p-button
+            [label]="'stores.region.import' | t"
+            icon="pi pi-file-import"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            [routerLink]="['/regions', regionId(), 'stores', 'import']"
+            data-testid="stores.region.import"
           />
         }
       </div>
@@ -193,6 +219,7 @@ interface Params {
 })
 export class RegionStoresPageComponent {
   private readonly api = inject(StoresService);
+  private readonly regionsApi = inject(RegionsService);
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
@@ -215,6 +242,27 @@ export class RegionStoresPageComponent {
   protected readonly mayCreate = computed(() => {
     const session = this.session.session();
     return isOrga(session) || (this.session.hasRole(Role.StoreManager) && isMemberOf(session, this.regionId()));
+  });
+
+  /**
+   * The region (functions, membership) decides whether the CSV import is offered (S2); only loaded for users who
+   * administrate some unit, ORGA may always import.
+   */
+  private readonly region = loadResource<RegionDetail, string>({
+    params: () => {
+      const session = this.session.session();
+      return this.regionId() && !isOrga(session) && mightCoordinateStores(session) ? this.regionId() : undefined;
+    },
+    loader: (regionId) => this.regionsApi.getRegion({ regionId }),
+  });
+
+  protected readonly mayImport = computed(() => {
+    const session = this.session.session();
+    if (isOrga(session)) {
+      return true;
+    }
+    const region = this.region.data();
+    return !!region && region.id === this.regionId() && mayCoordinateRegionStores(session, region);
   });
 
   protected readonly cooperationOptions = computed(() =>
