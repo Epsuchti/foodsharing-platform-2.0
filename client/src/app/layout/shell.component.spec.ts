@@ -184,7 +184,11 @@ describe('nav.config', () => {
       'quizzes',
       'events',
       'polls',
+      'baskets',
     ]);
+    // the baskets entry follows the BASKETS feature toggle (A43)
+    const togglesOff = context({ isAuthenticated: true, featureEnabled: () => false });
+    expect(visibleNavItems(togglesOff).map((item) => item.id)).not.toContain('baskets');
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
     ).toEqual(['account', 'notifications', 'profile']);

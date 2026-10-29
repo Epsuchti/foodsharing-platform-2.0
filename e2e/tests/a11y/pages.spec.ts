@@ -48,6 +48,13 @@ const ROUTES: RouteCase[] = [
   { path: '/account/email/confirm?token=not-a-token', role: 'foodsaver', ready: 'account.email.confirm.tokenError' },
   { path: '/account/email/abort', role: null, ready: 'account.email.abort.tokenError' },
   { path: '/newsletters', role: 'orga', ready: 'newsletters.list.kind' },
+  // M6 food baskets (plan-m7 Q5)
+  { path: '/baskets', role: 'foodsaver', ready: 'baskets.nearby.list' },
+  { path: '/baskets/mine', role: 'foodsaver', ready: 'baskets.mine.offeredList' },
+  { path: '/baskets/new', role: 'foodsaver', ready: 'baskets.form' },
+  { path: '/baskets/00000048-0001-4000-8000-000000000003', role: 'foodsaver', ready: 'baskets.detail.myRequest' },
+  // owner view with requests (bieb's account theme is LIGHT, so the own basket of foodsaver is swept)
+  { path: '/baskets/00000048-0001-4000-8000-000000000001', role: 'foodsaver', ready: 'baskets.detail.requests' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
