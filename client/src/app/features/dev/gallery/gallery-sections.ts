@@ -15,6 +15,7 @@ import { ONBOARDING_GALLERY_SECTIONS } from './sections/onboarding.section';
 import { PROFILES_GALLERY_SECTIONS } from './sections/profiles.section';
 import { QUIZ_GALLERY_SECTIONS } from './sections/quiz.section';
 import { REGIONS_GALLERY_SECTIONS } from './sections/regions.section';
+import { REPORTS_GALLERY_SECTIONS } from './sections/reports.section';
 import { SHARED_M6_GALLERY_SECTIONS } from './sections/shared-m6.section';
 import { STORES_GALLERY_SECTIONS } from './sections/stores.section';
 import { VERIFICATION_GALLERY_SECTIONS } from './sections/verification.section';
@@ -43,4 +44,5 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   ...ACCOUNT_GALLERY_SECTIONS,
   ...BASKETS_GALLERY_SECTIONS,
   ...FOOD_SHARE_POINTS_GALLERY_SECTIONS,
+  ...REPORTS_GALLERY_SECTIONS,
 ];

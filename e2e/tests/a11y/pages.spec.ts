@@ -65,6 +65,12 @@ const ROUTES: RouteCase[] = [
   { path: '/food-share-points/00000049-0001-4000-8000-000000000005', role: 'bot', ready: 'foodSharePoints.detail.activate', consent: true },
   { path: '/food-share-points/new?regionId=00000010-0001-4000-8000-000000000040', role: 'foodsaver', ready: 'foodSharePoints.form' },
   { path: '/food-share-points/mine', role: 'foodsaver', ready: 'foodSharePoints.mine.list' },
+  // M6 reports and mediation (plan-m7 Q8): the report team (reports@local), report 03 has wall posts
+  { path: '/regions/00000010-0001-4000-8000-000000000040/reports', role: 'reports', ready: 'reports.region.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/report-log', role: 'reports', ready: 'reports.log.count', consent: true },
+  { path: '/reports/00000050-0001-4000-8000-000000000003', role: 'reports', ready: 'reports.detail.wall.list', consent: true },
+  { path: '/profile/00000001-0001-4000-8000-000000000007', role: 'reports', ready: 'reports.user.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/mediation', role: 'foodsaver', ready: 'reports.mediation.team' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
