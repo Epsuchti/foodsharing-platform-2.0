@@ -1,0 +1,40 @@
+# Local variant of the production stack (smoke test, backup/restore rehearsal): Mailpit instead of ProtonMail,
+# throwaway secrets, management port published on 127.0.0.1 only. Never use on the server.
+#   docker compose -f compose.yaml -f compose.local.yaml --env-file .env.local up -d
+# server/deploy/smoke.sh writes .env.local (fresh random secrets) and runs exactly this.
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+    ports:
+      - "127.0.0.1:${MAILPIT_UI_PORT:-18025}:8025"
+    networks: [backend]
+
+  app:
+    env_file: !reset []
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/foodsharing
+      SPRING_DATASOURCE_USERNAME: foodsharing
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DOMAIN: localhost
+      APP_BASE_URL: http://localhost:${HTTP_PORT:-18080}
+      APP_IP_SALT: ${APP_IP_SALT}
+      APP_SIGNING_SECRET: ${APP_SIGNING_SECRET}
+      NEWSLETTER_SECRET: ${NEWSLETTER_SECRET}
+      OAUTH_SIGNING_KEY: ${OAUTH_SIGNING_KEY}
+      GOOGLE_CLIENT_ID: smoke-client
+      GOOGLE_CLIENT_SECRET: smoke-secret
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_USERNAME: smoke
+      SMTP_PASSWORD: smoke
+      PUSH_VAPID_PUBLIC: ${PUSH_VAPID_PUBLIC:-}
+      PUSH_VAPID_PRIVATE: ${PUSH_VAPID_PRIVATE:-}
+    ports: !override
+      - "127.0.0.1:${HTTP_PORT:-18080}:8080"
+      - "127.0.0.1:${MANAGEMENT_HTTP_PORT:-19090}:9090"
+    depends_on:
+      mailpit:
+        condition: service_started
