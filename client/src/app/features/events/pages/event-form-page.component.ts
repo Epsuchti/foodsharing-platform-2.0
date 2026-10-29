@@ -105,7 +105,8 @@ import { eventErrors, fromLocalInput, toLocalInput } from '../events.resource';
   `,
   styles: `
     :host { display: block; width: min(100%, 44rem); margin: 0 auto; }
-    .form { display: grid; gap: 0.4rem; padding: 1rem; }
+    .form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; padding: 1rem; min-width: 0; }
+    .form input, .form textarea { width: 100%; min-width: 0; box-sizing: border-box; }
     label, legend { margin-top: 0.4rem; font-weight: 600; }
     fieldset { display: grid; gap: 0.4rem; margin: 0; padding: 0; border: 0; }
     .types { display: flex; flex-wrap: wrap; gap: 1rem; }
@@ -113,7 +114,7 @@ import { eventErrors, fromLocalInput, toLocalInput } from '../events.resource';
     .radio, .switch { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; }
     .radio label, .switch label { margin: 0; font-weight: 400; }
     .row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-    .field { display: grid; gap: 0.25rem; flex: 1 1 12rem; }
+    .field { display: grid; gap: 0.25rem; flex: 1 1 12rem; min-width: 0; }
     .field--zip { flex: 0 1 7rem; }
     .error { color: var(--fs-danger); }
     .actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }

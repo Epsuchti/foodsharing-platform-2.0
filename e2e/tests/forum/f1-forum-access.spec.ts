@@ -19,6 +19,8 @@ test.describe('foodsaver', () => {
     await expect(page.locator(`[data-thread-id="${thread(14)}"]`)).toHaveCount(0);
     await expect(page.getByTestId('forum.list.tabAmbassadors')).toHaveCount(0);
     await expect(page.getByTestId('forum.list.follow')).toHaveAttribute('data-following', 'true');
+    // the click on the region tab leaves the pointer hovering whatever button now sits there
+    await page.mouse.move(0, 0);
     await expectNoSeriousViolations(page);
 
     await page.goto(`/regions/${zs}/forum/ambassadors`);

@@ -183,6 +183,7 @@ describe('nav.config', () => {
       'regions',
       'quizzes',
       'events',
+      'polls',
     ]);
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),

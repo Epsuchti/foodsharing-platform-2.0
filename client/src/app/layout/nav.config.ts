@@ -364,6 +364,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/events/mine',
     visible: loggedIn,
   },
+  {
+    id: 'polls',
+    labelKey: 'nav.polls',
+    icon: 'pi pi-chart-bar',
+    route: '/polls/mine',
+    visible: loggedIn,
+  },
 ];
 
 export function visibleNavItems(

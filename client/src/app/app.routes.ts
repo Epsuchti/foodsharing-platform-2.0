@@ -151,6 +151,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
   },
   {
+    path: '',
+    loadChildren: () => import('./features/polls/polls.routes').then((m) => m.POLLS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

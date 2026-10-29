@@ -54,7 +54,7 @@ import { quotePost } from '../forum.resource';
             @if (!t.active) {<span class="badge badge--warn" data-testid="forum.thread.inactive">{{ 'forum.inactive' | t }}</span>}
           </div>
           <fieldset class="follow">
-            <legend class="sr-only">{{ 'forum.follow.legend' | t }}</legend>
+            <legend class="fs-visually-hidden">{{ 'forum.follow.legend' | t }}</legend>
             <span class="check"><p-checkbox [binary]="true" [ngModel]="t.following.bell" (ngModelChange)="follow.run({ bell: $event, mail: t.following.mail })" inputId="follow-bell" data-testid="forum.thread.followBell" /> <label for="follow-bell">{{ 'forum.follow.bell' | t }}</label></span>
             <span class="check"><p-checkbox [binary]="true" [ngModel]="t.following.mail" (ngModelChange)="follow.run({ bell: t.following.bell, mail: $event })" inputId="follow-mail" data-testid="forum.thread.followMail" /> <label for="follow-mail">{{ 'forum.follow.mail' | t }}</label></span>
           </fieldset>

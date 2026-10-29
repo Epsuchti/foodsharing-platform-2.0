@@ -50,7 +50,7 @@ import { REACTION_EMOJI, REACTION_KEYS, renderMentions } from '../forum.resource
 
     @if (editing()) {
       <form class="edit" (ngSubmit)="save.run()">
-        <label class="sr-only" [for]="'edit-' + p.id">{{ 'forum.post.edit' | t }}</label>
+        <label class="fs-visually-hidden" [for]="'edit-' + p.id">{{ 'forum.post.edit' | t }}</label>
         <textarea pTextarea [id]="'edit-' + p.id" name="body" rows="6" [(ngModel)]="draft" data-testid="forum.post.editBody"></textarea>
         <div class="row">
           <p-button [label]="'common.cancel' | t" [text]="true" (onClick)="editing.set(false)" />

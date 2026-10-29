@@ -66,7 +66,7 @@ import { highlight } from '../forum.resource';
     </div>
 
     <form class="search" role="search" (ngSubmit)="search()">
-      <label class="sr-only" for="forum-search">{{ 'forum.search.label' | t }}</label>
+      <label class="fs-visually-hidden" for="forum-search">{{ 'forum.search.label' | t }}</label>
       <input pInputText id="forum-search" type="search" name="q" [placeholder]="'forum.search.label' | t" [(ngModel)]="queryInput" data-testid="forum.search.input" />
       <span class="check">
         <p-checkbox name="body" [binary]="true" [(ngModel)]="bodyInput" inputId="forum-search-body" data-testid="forum.search.body" />
