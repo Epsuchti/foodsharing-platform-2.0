@@ -1,6 +1,6 @@
 # Production image (D19.1). Built by server/deploy/release.sh (buildx, linux/amd64 + linux/arm64) and the CI
 # release job from the packaged jar (Angular client included): non-root, read-only friendly, data under /data.
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:24-jre
 
 ARG APP_VERSION=unknown
 
