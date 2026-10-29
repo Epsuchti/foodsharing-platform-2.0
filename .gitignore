@@ -29,3 +29,4 @@ server/deploy/.env
 server/deploy/.env.local
 server/deploy/backups/
 server/deploy/monitoring/smtp_password
+server/.idea/
