@@ -58,6 +58,39 @@ export async function injectIncoming(client: ApiClient, mail: IncomingMail): Pro
   expect(response.status(), await response.text()).toBeLessThan(300);
 }
 
+/**
+ * A delivery status notification for `recipient` (a member's address) reaching the `zuerich` mailbox: the server
+ * flags the address as bounced (A18, `UserProfile.emailBouncedAt`). Each call is a new mail (own Message-ID).
+ */
+export async function injectBounce(client: ApiClient, recipient: string): Promise<void> {
+  await injectIncoming(client, {
+    to: 'zuerich@local.test',
+    subject: 'Undelivered Mail Returned to Sender',
+    raw: [
+      'From: MAILER-DAEMON@mx.example.ch',
+      'To: zuerich@local.test',
+      'Subject: Undelivered Mail Returned to Sender',
+      `Message-ID: <e2e-dsn-${Date.now()}-${Math.random().toString(36).slice(2)}@mx.example.ch>`,
+      'Date: Mon, 2 Nov 2026 08:00:00 +0100',
+      'MIME-Version: 1.0',
+      'Content-Type: multipart/report; report-type=delivery-status; boundary="B"',
+      '',
+      '--B',
+      'Content-Type: text/plain',
+      '',
+      'Your message could not be delivered.',
+      '--B',
+      'Content-Type: message/delivery-status',
+      '',
+      `Final-Recipient: rfc822; ${recipient}`,
+      'Action: failed',
+      'Status: 5.1.1',
+      '--B--',
+      '',
+    ].join('\r\n'),
+  });
+}
+
 /** Mail rows of the open folder. */
 export function mailRow(page: Page, subject: string) {
   return page.locator(`[data-testid="mailboxes.list.mail"][data-subject="${subject}"]`);

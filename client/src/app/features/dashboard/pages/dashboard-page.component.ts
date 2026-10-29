@@ -12,6 +12,7 @@ import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.compo
 import { MyNextPickupsCardComponent } from '../../pickups/components/my-next-pickups-card.component';
 import { PushOptInCardComponent } from '../../notifications/components/push-opt-in-card.component';
 import { JourneyLoader } from '../../onboarding/onboarding.resource';
+import { BounceBannerComponent } from '../../account/components/bounce-banner.component';
 
 /** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
 export interface DashboardNextStep {
@@ -42,7 +43,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
 /** M1 dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2) and quick links. */
 @Component({
   selector: 'fs-dashboard-page',
-  imports: [...DATA_STATE_IMPORTS, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent, PushOptInCardComponent],
+  imports: [...DATA_STATE_IMPORTS, BounceBannerComponent, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent, PushOptInCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
@@ -70,6 +71,8 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
           <p class="welcome__hint" data-testid="dashboard.page.roleHint">
             {{ 'dashboard.page.roleHint.' + user.role | t }}
           </p>
+          <!-- A18: mails to the own address bounce (hidden otherwise) -->
+          <fs-bounce-banner class="welcome__bounce" />
         </div>
       </section>
 
@@ -182,6 +185,9 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       display: grid;
       min-width: 0;
       gap: 0.15rem;
+    }
+    .welcome__bounce {
+      margin-top: 0.75rem;
     }
     .welcome__greeting {
       margin: 0;

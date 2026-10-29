@@ -48,6 +48,11 @@ const ROUTES: RouteCase[] = [
   { path: '/account/email/confirm?token=not-a-token', role: 'foodsaver', ready: 'account.email.confirm.tokenError' },
   { path: '/account/email/abort', role: null, ready: 'account.email.abort.tokenError' },
   { path: '/newsletters', role: 'orga', ready: 'newsletters.list.kind' },
+  // M6 account completion 2 (plan-m7 Q4): calendar link of foodsaver, no link yet for bieb, user page with notes, bounced list
+  { path: '/account/settings', role: 'foodsaver', ready: 'account.settings.calendar.url' },
+  { path: '/account/settings', role: 'bieb', ready: 'account.settings.calendar.none' },
+  { path: '/users/00000001-0001-4000-8000-000000000008', role: 'bot', ready: 'usersAdmin.user.notes.composer' },
+  { path: '/admin/bounced-emails', role: 'orga', ready: 'usersAdmin.bounced.state' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

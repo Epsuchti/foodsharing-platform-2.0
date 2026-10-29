@@ -223,5 +223,5 @@ export {
   type ChatMessage,
   type ConversationSummary,
 } from './messaging';
-export { MAILBOXES, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';
+export { MAILBOXES, injectBounce, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';
 export { BANANA_TEXT, ProfileHelpers, seedUserId } from './profiles';
