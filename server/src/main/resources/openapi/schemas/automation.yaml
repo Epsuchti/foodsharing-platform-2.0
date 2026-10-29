@@ -305,6 +305,9 @@ StoreAutomation:
       $ref: './automation.yaml#/SignoutAlertSetting'
     extraSlotAllowed:
       type: boolean
+    cleaningStore:
+      description: "The cleaning store of the store's region (cleaning rule of the pickup policy); absent when none."
+      $ref: './stores.yaml#/StoreRef'
     permissions:
       $ref: './automation.yaml#/AutomationPermissions'
 

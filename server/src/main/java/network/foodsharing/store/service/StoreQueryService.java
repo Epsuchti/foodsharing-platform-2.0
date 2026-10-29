@@ -54,7 +54,7 @@ public class StoreQueryService {
 
     public record Detail(Store store, StoreCategory category, StoreChain chain, List<Grocery> groceries, Region region,
                          String timeZone, List<User> managers, Map<StoreMembershipStatus, Long> teamCounts,
-                         StorePermissionService.Rights rights) {
+                         StorePermissionService.Rights rights, boolean mayUseAutomations) {
     }
 
     public record Metadata(List<StoreCategory> categories, Map<UUID, Long> categoryUsage, List<Grocery> groceries,
@@ -209,7 +209,13 @@ public class StoreQueryService {
                 groceryIds.isEmpty() ? List.of() : groceries.findAllById(groceryIds).stream()
                         .sorted(Comparator.comparing(Grocery::getName)).toList(),
                 regions.require(store.getRegionId()), regions.zoneOf(store.getRegionId()).getId(),
-                storeService.managers(store.getId()), storeService.teamCounts(store.getId()), r);
+                storeService.managers(store.getId()), storeService.teamCounts(store.getId()), r,
+                rights.mayUseAutomations(currentActor.principal().orElse(null), store));
+    }
+
+    /** mayUseAutomations of the current user for the store (permissions endpoint; 404 for unknown stores). */
+    public boolean mayUseAutomations(UUID storeId) {
+        return rights.mayUseAutomations(currentActor.requirePrincipal(), storeService.require(storeId));
     }
 
     /** Rights of the current user (any authenticated user; 404 for unknown stores). */

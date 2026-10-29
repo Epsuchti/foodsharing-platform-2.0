@@ -2,6 +2,7 @@ package network.foodsharing.automation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -84,5 +85,73 @@ class AdvertFlowIT {
         } finally {
             clock(Instant.parse("2026-11-02T09:00:00Z"));
         }
+    }
+
+    /** Coordinator bug report: advert #1 of S-06 with PUSH + TELEGRAM, "Run now" must still post to Telegram. */
+    @Test
+    void runNowWithPushAndTelegramSendsBoth() throws Exception {
+        Cookie bieb = login(SeedUsers.BIEB);
+        // independent of the other test of this class (same database): no earlier advert of S-06
+        jdbc.update("delete from open_slot_advert_audit where store_id = ?", UUID.fromString(S06));
+        mvc.perform(delete("/api/dev/notifications").with(csrf())).andExpect(status().is2xxSuccessful());
+        String body = mvc.perform(get("/api/stores/" + S06 + "/pickups").cookie(bieb)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        Instant pickupAt = null;
+        for (JsonNode pickup : JsonMapper.builder().build().readTree(body)) {
+            if (pickup.get("occupiedSlots").size() < pickup.get("slotCount").asInt()) {
+                pickupAt = Instant.parse(pickup.get("pickupAt").asText());
+                break;
+            }
+        }
+        assertThat(pickupAt).as("a free S-06 pickup").isNotNull();
+        var advert = (tools.jackson.databind.node.ObjectNode) JsonMapper.builder().build().readTree(mvc.perform(
+                get("/api/stores/" + S06 + "/automation/adverts/1").cookie(bieb)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        advert.putArray("channels").add("PUSH").add("TELEGRAM");
+        advert.putArray("pushMessages").add("{{storeName}} {{datetimeDe}}: Push, noch {{freeSlots}} Platz frei");
+        mvc.perform(put("/api/stores/" + S06 + "/automation/adverts/1").cookie(bieb).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(advert.toString())).andExpect(status().isOk());
+        try {
+            clock(pickupAt.minus(Duration.ofHours(23)));
+            String result = mvc.perform(post("/api/stores/" + S06 + "/automation/adverts/run").cookie(bieb)
+                    .with(csrf())).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            assertThat(result).contains("\"failed\":0").contains("\"confirmed\":1");
+            String telegram = mvc.perform(get("/api/dev/notifications?channel=TELEGRAM"))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            assertThat(telegram).as("run result: %s", result).contains("-1001").contains("Platz frei");
+            String again = mvc.perform(post("/api/stores/" + S06 + "/automation/adverts/run").cookie(bieb)
+                    .with(csrf())).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            assertThat(again).contains("\"confirmed\":0").contains("already sent for " + pickupAt);
+        } finally {
+            clock(Instant.parse("2026-11-02T09:00:00Z"));
+        }
+    }
+
+    /** Coordinator request: mayUseAutomations, cleaningStore and mayAddExtraSlot are delivered. */
+    @Test
+    void automationFlagsAreDelivered() throws Exception {
+        Cookie bieb = login(SeedUsers.BIEB);
+        mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(bieb)).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.mayUseAutomations").value(true));
+        mvc.perform(get("/api/stores/" + S06).cookie(bieb)).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.permissions.mayUseAutomations").value(true));
+        UUID cleaning = jdbc.queryForObject("select r.cleaning_store_id from region r join store s on s.region_id = r.id"
+                + " where s.id = ?", UUID.class, UUID.fromString(S06));
+        var automation = mvc.perform(get("/api/stores/" + S06 + "/automation").cookie(bieb)).andExpect(status().isOk());
+        if (cleaning == null) {
+            automation.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                    .jsonPath("$.cleaningStore").doesNotExist());
+        } else {
+            automation.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                    .jsonPath("$.cleaningStore.id").value(cleaning.toString()));
+        }
+        mvc.perform(get("/api/users/me/pickups").cookie(bieb)).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$[*].mayAddExtraSlot").exists());
+        mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.NEWBIE)))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.mayUseAutomations").value(false));
     }
 }

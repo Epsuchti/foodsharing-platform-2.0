@@ -157,6 +157,7 @@ public class PickupMapper {
             model.setSlotCount(v.slot().slotCount());
             model.setDescription(v.slot().description());
             model.setOccupiedSlots(slots(v.slot(), byId));
+            model.setMayAddExtraSlot(v.mayAddExtraSlot());
             return model;
         }).toList();
     }

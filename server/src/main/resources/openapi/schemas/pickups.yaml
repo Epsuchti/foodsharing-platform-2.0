@@ -166,6 +166,9 @@ UserPickup:
         $ref: './pickups.yaml#/PickupSlot'
     description:
       type: string
+    mayAddExtraSlot:
+      description: "AU6: the caller holds the earliest sign-up of this future pickup and may add one extra slot (store allows it, none added yet, within the maximum); false on other users' pickups"
+      type: boolean
 
 UserPickupPage:
   type: object

@@ -128,12 +128,21 @@ public class DevController implements DevApi {
         return ResponseEntity.ok(result);
     }
 
+    /** Title and body of a captured push/Telegram message; a missing title (Telegram texts) is left out, not "null". */
+    static String capturedText(String title, String body) {
+        boolean hasTitle = title != null && !title.isBlank();
+        boolean hasBody = body != null && !body.isBlank();
+        if (hasTitle && hasBody) {
+            return title + "\n" + body;
+        }
+        return hasTitle ? title : hasBody ? body : "";
+    }
+
     private static DevNotification toApi(CapturedMessages.Captured captured) {
         return new DevNotification().id(captured.id()).userId(captured.userId()).type(captured.type())
                 .channel(DevNotificationChannel.valueOf(captured.channel().name()))
                 .params(new java.util.LinkedHashMap<>(captured.params())).link(captured.link())
-                .identifier(captured.identifier()).body(captured.title() + (captured.body() == null
-                        || captured.body().isBlank() ? "" : "\n" + captured.body()))
+                .identifier(captured.identifier()).body(capturedText(captured.title(), captured.body()))
                 .target(captured.target()).createdAt(TimeMapper.toOffset(captured.createdAt()));
     }
 

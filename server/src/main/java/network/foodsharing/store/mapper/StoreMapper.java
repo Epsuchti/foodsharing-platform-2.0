@@ -197,7 +197,7 @@ public class StoreMapper {
         counts.setInvited(count(d, StoreMembershipStatus.INVITED));
         model.setTeamCounts(counts);
         model.setMembership(convert(d.rights().teamStatus(), network.foodsharing.api.model.UserTeamStatus.class));
-        model.setPermissions(toPermissions(d.rights()));
+        model.setPermissions(toPermissions(d.rights()).mayUseAutomations(d.mayUseAutomations()));
         model.setCreatedAt(toOffset(s.getCreatedAt()));
         model.setUpdatedAt(toOffset(s.getUpdatedAt()));
         return model;
