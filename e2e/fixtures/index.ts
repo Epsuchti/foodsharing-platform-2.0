@@ -2,6 +2,7 @@ import { test as base, expect, request as playwrightRequest, type BrowserContext
 import { resolveBaseURL, type Role } from '../support/env';
 import { a11y, expectNoSeriousViolations, type A11yHelpers } from './a11y';
 import { ApiClient, DevApi } from './api';
+import { BasketHelpers } from './baskets';
 import { ClockControl } from './clock';
 import { errors, type ErrorHelpers } from './errors';
 import { i18n, type I18nHelpers } from './i18n';
@@ -56,6 +57,8 @@ export interface Fixtures {
   notifications: NotificationHelpers;
   /** M6 profiles: `userId(role)`, `giveBanana(role, userId, message?)`, `buddy(role, userId)`, `profile(role, userId)`. */
   profiles: ProfileHelpers;
+  /** M6 food baskets: `create(role, body?)`, `tryCreate(role, body)`, `get(role, id)`, `request(role, id, message?)`. */
+  baskets: BasketHelpers;
   /** internal: performs the automatic seed reset according to `seedReset`. */
   _seed: void;
 }
@@ -184,6 +187,9 @@ export const test = base.extend<Options & Fixtures>({
   profiles: async ({ baseURL }, use) => {
     await use(new ProfileHelpers(baseURL!));
   },
+  baskets: async ({ baseURL }, use) => {
+    await use(new BasketHelpers(baseURL!));
+  },
 });
 
 export { expect };
@@ -225,3 +231,4 @@ export {
 } from './messaging';
 export { MAILBOXES, injectBounce, injectIncoming, mailRow, rawMail, type IncomingMail } from './mailbox';
 export { BANANA_TEXT, ProfileHelpers, seedUserId } from './profiles';
+export { BASKETS, BasketHelpers, OPEN_ZURICH_BASKETS, ZURICH_HB, type BasketCreateBody, type BasketDto } from './baskets';

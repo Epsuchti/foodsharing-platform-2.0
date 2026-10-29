@@ -1,4 +1,4 @@
-import { Role, SessionInfo } from '../api';
+import { FeatureToggleKey, Role, SessionInfo } from '../api';
 
 /** What a nav item's `visible` sees. */
 export interface NavContext {
@@ -9,7 +9,14 @@ export interface NavContext {
   hasPermission(permission: string): boolean;
   /** Backend runs the local or e2e profile. */
   devMode: boolean;
+  /**
+   * Feature toggle state (A43, FeatureToggleService: off until loaded). Optional so contexts without toggle
+   * information (unit tests) show toggled items.
+   */
+  featureEnabled?: (key: FeatureToggleKey) => boolean;
 }
+
+const featureOn = (ctx: NavContext, key: FeatureToggleKey) => ctx.featureEnabled?.(key) ?? true;
 
 export type NavArea = 'main' | 'user' | 'footer';
 
@@ -73,7 +80,7 @@ const when =
  */
 export const M6_PAGES_READY = {
   map: false,
-  baskets: false,
+  baskets: true,
   search: false,
   profile: true,
   adminSettings: false,
@@ -453,7 +460,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.baskets',
     icon: 'pi pi-shopping-cart',
     route: '/baskets',
-    visible: whenM6('baskets', loggedIn),
+    visible: whenM6('baskets', (ctx) => loggedIn(ctx) && featureOn(ctx, FeatureToggleKey.Baskets)),
   },
   {
     id: 'search',
