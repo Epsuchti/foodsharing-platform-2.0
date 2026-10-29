@@ -68,6 +68,46 @@ test.describe('bot', () => {
     await expect(page.getByTestId('shell.toast').locator('.p-toast-message')).toHaveCount(0, { timeout: 15_000 });
   });
 
+  test('V1 scopes count and notifications: new, started, ending soon @V1 @N3', async ({ page, api, apiOf, as, clock, notifications, region }) => {
+    const zs = region.id('zuerich-stadt');
+    // the scope select shows the eligible count of every scope (scope-counts)
+    const counts = await api.getJson<{ scope: string; count: number }[]>(`/api/regions/${zs}/polls/scope-counts`);
+    expect(counts.length).toBeGreaterThan(1);
+    await page.goto(`/polls/new?regionId=${zs}`);
+    await page.getByTestId('polls.form.scope').click();
+    const options = page.locator('.p-select-overlay .p-select-option');
+    await expect(options).toHaveCount(counts.length);
+    for (const [i, c] of counts.entries()) await expect(options.nth(i)).toContainText(`(${c.count})`);
+    await page.keyboard.press('Escape');
+
+    // new → bell POLL_NEW to eligible voters right away (notifyVoters)
+    const response = await api.post('/api/polls', {
+      regionId: zs, name: 'Benachrichtigungstest', type: 'SELECT_ONE', scope: 'FOODSAVERS', startsAt: at(2), endsAt: at(40),
+      options: ['Ja', 'Nein'], shuffleOptions: false, notifyVoters: true,
+    });
+    expect(response.status(), await response.text()).toBe(201);
+    const id = ((await response.json()) as { id: string }).id;
+    const ofPoll = async (role: 'foodsaver' | 'jumper', type: string) =>
+      (await notifications.bells(role, type)).filter((b) => b.link === `/polls/${id}`);
+    await expect.poll(() => ofPoll('foodsaver', 'POLL_NEW')).toHaveLength(1);
+
+    // started → POLL_STARTED once (start_notified_at)
+    await clock.fixServer(at(3));
+    await notifications.runJob('poll-notifications');
+    await expect.poll(() => ofPoll('foodsaver', 'POLL_STARTED')).toHaveLength(1);
+    await notifications.runJob('poll-notifications');
+    expect(await ofPoll('foodsaver', 'POLL_STARTED')).toHaveLength(1);
+
+    // jumper votes; ending soon (< 24 h left, ran ≥ 30 h) only reaches voters who have not voted
+    const vote = await apiOf(await as('jumper')).post(`/api/polls/${id}/vote`, { values: { '0': 1 } });
+    expect(vote.status(), await vote.text()).toBeLessThan(300);
+    await clock.fixServer(at(36));
+    await notifications.runJob('poll-notifications');
+    await expect.poll(() => ofPoll('foodsaver', 'POLL_ENDING_SOON')).toHaveLength(1);
+    expect(await ofPoll('jumper', 'POLL_ENDING_SOON')).toHaveLength(0);
+    await clock.fixServer();
+  });
+
   test('V1 author cancels poll @V1', async ({ page }) => {
     await page.goto(`/polls/${poll(1)}`);
     await page.getByTestId('polls.poll.cancel').click();
