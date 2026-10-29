@@ -13,14 +13,28 @@ import network.foodsharing.notification.domain.NotificationType;
  * One notification to one or more users (docs/conventions.md A12). Every recipient gets a bell; unless
  * {@code bellOnly}, recipients also get the mail {@code mailTemplate} ({@code templates/mail/<module>/<name>}) rendered
  * with {@code params} plus {@code link}. {@code identifier} lets a later action remove the bells again.
+ * {@code senderRegionId} (AU11) marks an automated message sent on behalf of a region: mails get the From name
+ * {@code foodsharing <Region>} and a footer line, Telegram messages a signature line ({@link RegionSenderNames}).
  */
 public record NotificationRequest(Set<UUID> recipientIds, NotificationType type, Map<String, String> params,
-                                  String link, String mailTemplate, boolean bellOnly, String identifier, String icon) {
+                                  String link, String mailTemplate, boolean bellOnly, String identifier, String icon,
+                                  UUID senderRegionId) {
 
     public NotificationRequest {
         Objects.requireNonNull(type, "type");
         recipientIds = recipientIds == null ? Set.of() : Set.copyOf(new LinkedHashSet<>(recipientIds));
         params = params == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(params));
+    }
+
+    public NotificationRequest(Set<UUID> recipientIds, NotificationType type, Map<String, String> params, String link,
+                               String mailTemplate, boolean bellOnly, String identifier, String icon) {
+        this(recipientIds, type, params, link, mailTemplate, bellOnly, identifier, icon, null);
+    }
+
+    /** The same request for other recipients. */
+    public NotificationRequest withRecipients(Collection<UUID> recipients) {
+        return new NotificationRequest(Set.copyOf(recipients), type, params, link, mailTemplate, bellOnly, identifier,
+                icon, senderRegionId);
     }
 
     public static Builder to(Collection<UUID> recipientIds, NotificationType type) {
@@ -36,6 +50,7 @@ public record NotificationRequest(Set<UUID> recipientIds, NotificationType type,
         private boolean bellOnly = true;
         private String identifier;
         private String icon;
+        private UUID senderRegionId;
 
         private Builder(Collection<UUID> recipientIds, NotificationType type) {
             this.recipientIds = new LinkedHashSet<>(recipientIds);
@@ -71,8 +86,15 @@ public record NotificationRequest(Set<UUID> recipientIds, NotificationType type,
             return this;
         }
 
+        /** Sent on behalf of this region (AU11 region system sender). */
+        public Builder senderRegion(UUID regionId) {
+            this.senderRegionId = regionId;
+            return this;
+        }
+
         public NotificationRequest build() {
-            return new NotificationRequest(recipientIds, type, params, link, mailTemplate, bellOnly, identifier, icon);
+            return new NotificationRequest(recipientIds, type, params, link, mailTemplate, bellOnly, identifier, icon,
+                    senderRegionId);
         }
     }
 }

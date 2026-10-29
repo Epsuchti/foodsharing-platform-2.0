@@ -5,7 +5,9 @@ import network.foodsharing.notification.domain.NotificationChannelType;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.NotificationChannel;
 import network.foodsharing.notification.service.NotificationRequest;
+import network.foodsharing.notification.service.RegionSenderNames;
 import network.foodsharing.user.domain.User;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Component;
 public class TelegramChannel implements NotificationChannel {
 
     private final TelegramDeliveryService delivery;
+    private final ObjectProvider<RegionSenderNames> senderNames;
 
-    public TelegramChannel(TelegramDeliveryService delivery) {
+    public TelegramChannel(TelegramDeliveryService delivery, ObjectProvider<RegionSenderNames> senderNames) {
         this.delivery = delivery;
+        this.senderNames = senderNames;
     }
 
     @Override
@@ -40,7 +44,10 @@ public class TelegramChannel implements NotificationChannel {
 
     @Override
     public void deliver(User recipient, Bell bell, NotificationRequest request) {
-        delivery.send(recipient, request.type(), bell.getTitleKey(), request.params(), request.link(),
+        java.util.Map<String, String> params = new java.util.HashMap<>(request.params());
+        RegionSenderNames.resolve(senderNames, request.senderRegionId())
+                .ifPresent(name -> params.put(RegionSenderNames.MAIL_VARIABLE, name));
+        delivery.send(recipient, request.type(), bell.getTitleKey(), params, request.link(),
                 request.identifier());
     }
 }

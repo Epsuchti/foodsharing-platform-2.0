@@ -87,6 +87,53 @@ class MailOutboxJobTest {
     }
 
     @Test
+    void regionSenderMailsUseTheRegionDisplayNameWithTheConfiguredAddress() throws Exception {
+        message.setFromName("foodsharing Stadt Zürich");
+        delivery.deliver(message.getId());
+        assertThat(transport.sent()).singleElement().satisfies(mail ->
+                assertThat(new jakarta.mail.internet.InternetAddress(mail.from()).getAddress())
+                        .isEqualTo("noreply@foodsharing.test"));
+        assertThat(new jakarta.mail.internet.InternetAddress(delivery.from(message)).getPersonal())
+                .isEqualTo("foodsharing Stadt Zürich");
+
+        properties.getMail().setFrom("foodsharing <noreply@foodsharing.test>");
+        message.setFromName("foodsharing Bern");
+        assertThat(delivery.from(message)).isEqualTo("foodsharing Bern <noreply@foodsharing.test>");
+        message.setFromName(" ");
+        assertThat(delivery.from(message)).isEqualTo("foodsharing <noreply@foodsharing.test>");
+        // a mailbox mail keeps its own sender
+        message.setFromAddress("zuerich@local.test");
+        message.setFromName("Zürich Team");
+        assertThat(new jakarta.mail.internet.InternetAddress(delivery.from(message)).getAddress())
+                .isEqualTo("zuerich@local.test");
+    }
+
+    @Test
+    void enqueueSetsTheRegionSenderAsFromName() {
+        MailTemplateService templates = mock(MailTemplateService.class);
+        when(templates.render(any(), any(), any())).thenReturn(new RenderedMail("S", "t", "<p>h</p>", Language.DE));
+        when(repository.save(any())).thenAnswer(invocation -> {
+            MailOutboxMessage saved = invocation.getArgument(0);
+            saved.setId(UUID.randomUUID());
+            return saved;
+        });
+        MailRateLimiter limiter = mock(MailRateLimiter.class);
+        when(limiter.check(any(), any())).thenReturn(MailRateLimiter.Decision.allow());
+        MailOutboxService outbox = new MailOutboxService(repository, templates, mock(MailDeliveryService.class),
+                history, properties, clock, limiter);
+        org.mockito.ArgumentCaptor<MailOutboxMessage> saved = org.mockito.ArgumentCaptor.forClass(MailOutboxMessage.class);
+
+        outbox.enqueue(new MailDraft("a@example.org", "magic-link", Language.DE,
+                java.util.Map.of("senderRegion", "Stadt Zürich")));
+        outbox.enqueue(new MailDraft("b@example.org", "magic-link", Language.DE, java.util.Map.of()));
+
+        verify(repository, times(2)).save(saved.capture());
+        assertThat(saved.getAllValues().get(0).getFromName()).isEqualTo("foodsharing Stadt Zürich");
+        assertThat(saved.getAllValues().get(0).getFromAddress()).isNull();
+        assertThat(saved.getAllValues().get(1).getFromName()).isNull();
+    }
+
+    @Test
     void retriesWithExponentialBackoffThenFails() {
         transport.failWith(new MailSendException("smtp down"));
 

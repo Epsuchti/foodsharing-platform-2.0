@@ -320,7 +320,7 @@ public class SignoutAlertService {
                 .param("storeId", store.getId().toString()).param("storeName", store.getName())
                 .param("pickupAt", pickupAt.toString()).param("when", when).param("userName", userName)
                 .param("hoursBefore", String.valueOf(hours)).param("message", text)
-                .link("/stores/" + store.getId() + "/pickups").icon("calendar");
+                .link("/stores/" + store.getId() + "/pickups").icon("calendar").senderRegion(store.getRegionId());
         if (channels.contains(SignoutAlertChannel.BELL)) {
             notifications.notify(request.mail(mail).build());
         } else if (channels.contains(SignoutAlertChannel.PUSH)) {

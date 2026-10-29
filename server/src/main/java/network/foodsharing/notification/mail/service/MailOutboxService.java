@@ -17,6 +17,7 @@ import network.foodsharing.notification.mail.domain.MailAction;
 import network.foodsharing.notification.mail.domain.MailOutboxMessage;
 import network.foodsharing.notification.mail.domain.MailStatus;
 import network.foodsharing.notification.mail.repository.MailOutboxRepository;
+import network.foodsharing.notification.service.RegionSenderNames;
 import network.foodsharing.config.AppProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.PageRequest;
@@ -84,6 +85,11 @@ public class MailOutboxService {
         message.setTemplate(draft.template());
         message.setLanguage(rendered.language());
         message.setSubject(StringUtils.abbreviate(rendered.subject(), 500));
+        Object senderRegion = draft.variables().get(RegionSenderNames.MAIL_VARIABLE);
+        if (senderRegion != null && !senderRegion.toString().isBlank()) {
+            // AU11: automated mail on behalf of a region, From "foodsharing <Region>" <app.mail.from address>
+            message.setFromName(StringUtils.abbreviate(RegionSenderNames.fromName(senderRegion.toString()), 200));
+        }
         Object unsubscribe = draft.variables().get("unsubscribeUrl");
         if (unsubscribe != null) {
             message.setHeaders("List-Unsubscribe: <" + unsubscribe + ">");

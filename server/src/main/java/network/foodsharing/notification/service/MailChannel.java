@@ -9,6 +9,7 @@ import network.foodsharing.notification.domain.NotificationChannelType;
 import network.foodsharing.notification.mail.service.MailDraft;
 import network.foodsharing.notification.mail.service.MailOutboxService;
 import network.foodsharing.user.domain.User;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +20,13 @@ public class MailChannel implements NotificationChannel {
 
     private final MailOutboxService mails;
     private final AppProperties properties;
+    private final ObjectProvider<RegionSenderNames> senderNames;
 
-    public MailChannel(MailOutboxService mails, AppProperties properties) {
+    public MailChannel(MailOutboxService mails, AppProperties properties,
+                       ObjectProvider<RegionSenderNames> senderNames) {
         this.mails = mails;
         this.properties = properties;
+        this.senderNames = senderNames;
     }
 
     @Override
@@ -45,6 +49,7 @@ public class MailChannel implements NotificationChannel {
         Map<String, Object> variables = new HashMap<>(request.params());
         variables.put("link", request.link() == null ? null : absolute(request.link()));
         variables.put("displayName", recipient.getDisplayName());
+        RegionSenderNames.resolve(senderNames, request.senderRegionId()).ifPresent(name -> variables.put(RegionSenderNames.MAIL_VARIABLE, name));
         UUID mailId = mails.enqueue(new MailDraft(recipient.getEmail(), request.mailTemplate(),
                 recipient.getPreferredLanguage(), variables, recipient.getId(), request.type().category().name(),
                 request.identifier()));
