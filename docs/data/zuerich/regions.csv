@@ -1,0 +1,29 @@
+# MODEL pending ambassador confirmation - Zuerich region tree modelled on foodsharing.network (Swiss geography with real postcodes). Lines starting with # are ignored by the import.
+# Format of importRegionsCsv (POST /api/admin/regions/import). Import with: node scripts/import-csv.mjs regions docs/data/zuerich/regions.csv --base-url URL --session TOKEN --confirm
+parent_slug,slug,name,type,time_zone,country,postcodes
+,europa,Europa,CONTINENT,Europe/Zurich,,
+europa,schweiz,Schweiz,COUNTRY,Europe/Zurich,CH,
+schweiz,kanton-zuerich,Kanton Zürich,FEDERAL_STATE,Europe/Zurich,CH,
+kanton-zuerich,zuerich-stadt,Zürich Stadt,CITY,Europe/Zurich,CH,8000
+zuerich-stadt,zuerich-kreis-1,Zürich Kreis 1 (Altstadt),PART_OF_TOWN,Europe/Zurich,CH,8001
+zuerich-stadt,zuerich-kreis-2,Zürich Kreis 2 (Enge Wollishofen Leimbach),PART_OF_TOWN,Europe/Zurich,CH,8002 8038 8041
+zuerich-stadt,zuerich-kreis-3,Zürich Kreis 3 (Wiedikon),PART_OF_TOWN,Europe/Zurich,CH,8003 8045 8055
+zuerich-stadt,zuerich-kreis-4,Zürich Kreis 4 (Aussersihl),PART_OF_TOWN,Europe/Zurich,CH,8004
+zuerich-stadt,zuerich-kreis-5,Zürich Kreis 5 (Industriequartier),PART_OF_TOWN,Europe/Zurich,CH,8005
+zuerich-stadt,zuerich-kreis-6,Zürich Kreis 6 (Unterstrass Oberstrass),PART_OF_TOWN,Europe/Zurich,CH,8006 8057
+zuerich-stadt,zuerich-kreis-7,Zürich Kreis 7 (Fluntern Hottingen Hirslanden Witikon),PART_OF_TOWN,Europe/Zurich,CH,8032 8044 8053
+zuerich-stadt,zuerich-kreis-8,Zürich Kreis 8 (Riesbach),PART_OF_TOWN,Europe/Zurich,CH,8008
+zuerich-stadt,zuerich-kreis-9,Zürich Kreis 9 (Altstetten Albisrieden),PART_OF_TOWN,Europe/Zurich,CH,8047 8048
+zuerich-stadt,zuerich-kreis-10,Zürich Kreis 10 (Höngg Wipkingen),PART_OF_TOWN,Europe/Zurich,CH,8037 8049
+zuerich-stadt,zuerich-kreis-11,Zürich Kreis 11 (Oerlikon Affoltern Seebach),PART_OF_TOWN,Europe/Zurich,CH,8046 8050 8052
+zuerich-stadt,zuerich-kreis-12,Zürich Kreis 12 (Schwamendingen),PART_OF_TOWN,Europe/Zurich,CH,8051
+kanton-zuerich,winterthur,Winterthur,CITY,Europe/Zurich,CH,8400 8401 8402 8403 8404 8405 8406 8408 8409 8410 8411
+kanton-zuerich,limmattal,Limmattal,REGION,Europe/Zurich,CH,8952 8953 8902 8102 8103 8104 8954 8955 8903 8142 8904
+kanton-zuerich,zuercher-oberland,Zürcher Oberland,REGION,Europe/Zurich,CH,8620 8330 8340 8630 8608 8636 8610 8494 8320
+kanton-zuerich,zuercher-unterland,Zürcher Unterland,REGION,Europe/Zurich,CH,8180 8302 8424 8193 8157 8155 8303 8197
+kanton-zuerich,zimmerberg,Zimmerberg,REGION,Europe/Zurich,CH,8810 8820 8800 8134 8805 8802 8803 8942 8135
+kanton-zuerich,glattal,Glattal,REGION,Europe/Zurich,CH,8600 8304 8152 8305 8117 8603 8604 8606
+kanton-zuerich,knonaueramt,Knonaueramt,REGION,Europe/Zurich,CH,8910 8912 8908 8906 8932 8934 8915 8913
+kanton-zuerich,weinland,Zürcher Weinland,REGION,Europe/Zurich,CH,8450 8460 8476 8416 8245 8463 8475
+kanton-zuerich,pfannenstiel,Pfannenstiel,REGION,Europe/Zurich,CH,8706 8700 8702 8703 8704 8708 8712 8707 8634 8618
+kanton-zuerich,furttal,Furttal,REGION,Europe/Zurich,CH,8105 8107 8108 8112 8113 8114 8115

@@ -369,5 +369,6 @@
   "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Jeton d'accès émis",
   "history.action.USER.INACTIVITY_WARNED": "Avertissement d'inactivité envoyé",
   "history.action.INTRO_PICKUP.GUIDE_ADMIN_GRANTED": "Droits d'admin de guide accordés",
-  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Droits d'admin de guide retirés"
+  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Droits d'admin de guide retirés",
+  "history.action.STORE.STORES_IMPORTED": "Commerces importés"
 }

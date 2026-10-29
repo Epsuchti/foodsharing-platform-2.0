@@ -185,6 +185,18 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D11.5.4 | Every step works on a 360 px wide screen and in all five languages. | done | | 360px layouts | d11-journey @D11.5.4 | |  |
 | D11.5.5 | Usability test with 5 real newcomers from Zürich before launch. | todo | | | | | |
 | D15.1 | ER diagram generated from Liquibase via SchemaSpy in CI, kept in `docs/`. | done | scripts/er-diagram.sh (SchemaSpy, Postgres 17) | | | | proved by docs/er/diagrams/summary (regenerated per milestone; full HTML via npm run er-diagram) |
+| D16.1 | Zürich regions data file + CSV import (`docs/data/zuerich/regions.csv`, `scripts/import-csv.mjs regions`). | done | RegionsCsvImportService (# comments), docs/data/zuerich/regions.csv, scripts/import-csv.mjs | | RegionsCsvImportZuerichIT (Postgres), ZuerichRegionsFileTest | | model pending ambassador confirmation |
+| D16.2 | Stores CSV import per region (dry-run preview, confirm; Zürich stores model file). | in-progress | StoresCsvImportService, StoreAdminController (store-admin tag), docs/data/zuerich/stores.csv | F1 stores import page (todo) | s2-import-api @S2 @D16.2; StoresCsvImportServiceTest, StoresCsvImportZuerichIT | | backend done; waits for F1 |
+| D16.3 | EinAb CSV import end-to-end with the Zürich data (regions, stores, aliases, users). | done | PastImportService fixes (umlaut keys, subtree membership, failed jobs), scripts/import-csv.mjs einabs/aliases, docs/data/zuerich/einabs-sample.csv + store-aliases.csv | existing past-import page | PastImportZuerichIT (Postgres), PastImportJobTest, IntroPickupValidationTest | | runbook §4 Initial data |
+| D17.1 | Automated load test (k6, Postgres) with p95 < 200 ms and < 0.1 % failures. | todo | | | | | |
+| D17.2 | Security review (OWASP Top 10 + ASVS L2) with evidence and fixes. | todo | | | | | |
+| D17.3 | Privacy review: data inventory, retention table, account deletion coverage. | todo | | | | | |
+| D18.1 | CI hardening (strict coverage, oasdiff, ER check, audits, shellcheck, release check). | todo | | | | | |
+| D18.2 | Screenshot baselines for every route + three design rounds. | todo | | | | | |
+| D18.3 | Final axe sweep, 5-language smoke, Lighthouse thresholds. | todo | | | | | |
+| D19.1 | Production profile, secrets inventory, container image, release script. | todo | | | | | |
+| D19.2 | Runbook, backups and restore (verified). | todo | | | | | |
+| D19.3 | Monitoring and alerting (Prometheus, alerts, Grafana dashboard). | todo | | | | | |
 
 ## Milestones
 

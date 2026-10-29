@@ -369,5 +369,6 @@
   "history.action.OAUTH_CLIENT.TOKEN_ISSUED": "Access token issued",
   "history.action.USER.INACTIVITY_WARNED": "Inactivity warning sent",
   "history.action.INTRO_PICKUP.GUIDE_ADMIN_GRANTED": "Granted guide admin rights",
-  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Guide admin rights revoked"
+  "history.action.INTRO_PICKUP.GUIDE_ADMIN_REVOKED": "Guide admin rights revoked",
+  "history.action.STORE.STORES_IMPORTED": "Stores imported"
 }

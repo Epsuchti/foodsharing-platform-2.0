@@ -58,6 +58,11 @@ public final class CsvParser {
         return rows;
     }
 
+    /** True for a comment line: its first cell starts with {@code #} (admin imports document their data this way). */
+    public static boolean isComment(List<String> row) {
+        return !row.isEmpty() && row.get(0).strip().startsWith("#");
+    }
+
     static char detectDelimiter(String text) {
         int comma = 0;
         int semicolon = 0;

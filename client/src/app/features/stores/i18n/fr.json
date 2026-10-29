@@ -259,5 +259,18 @@
   "stores.chat.none": "Tu n’as pas accès aux discussions de ce commerce.",
   "stores.chat.channel": "Choisir la discussion",
   "stores.chat.team": "Équipe",
-  "stores.chat.jumper": "Remplaçant·es"
+  "stores.chat.jumper": "Remplaçant·es",
+  "stores.import.error.MISSING_NAME": "Nom manquant",
+  "stores.import.error.NAME_TOO_LONG": "Nom trop long (max. 200 caractères)",
+  "stores.import.error.VALUE_TOO_LONG": "Une valeur est trop longue",
+  "stores.import.error.MISSING_POSTCODE": "NPA manquant",
+  "stores.import.error.UNKNOWN_CATEGORY": "Catégorie inconnue",
+  "stores.import.error.UNKNOWN_CHAIN": "Chaîne inconnue",
+  "stores.import.error.INVALID_COORDINATES": "Coordonnées invalides",
+  "stores.import.error.INVALID_COOPERATION_STATUS": "Statut de coopération invalide",
+  "stores.import.error.INVALID_TEAM_STATUS": "Statut d'équipe invalide",
+  "stores.import.warning.UNKNOWN_USER": "Responsable introuvable (numéro foodsaver)",
+  "stores.import.warning.TOO_MANY_MANAGERS": "Trop de responsables, seuls les premiers sont repris",
+  "stores.import.warning.MISSING_COORDINATES": "Pas de coordonnées, elles sont déduites du NPA",
+  "stores.import.warning.GEOCODING_FAILED": "Les coordonnées n'ont pas pu être déterminées"
 }

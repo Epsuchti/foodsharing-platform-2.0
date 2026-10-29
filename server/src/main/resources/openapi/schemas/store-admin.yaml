@@ -1,0 +1,91 @@
+StoresCsvImport:
+  type: object
+  required: [csv, dryRun]
+  properties:
+    csv:
+      description: 'Columns name,category,chain,street,postcode,city,latitude,longitude,cooperation_status,team_status,public_info,manager_foodsaver_numbers'
+      type: string
+      minLength: 1
+      maxLength: 2000000
+    dryRun:
+      type: boolean
+
+StoreImportStatus:
+  type: string
+  description: 'CREATE / UPDATE = will be (or was) written; UNCHANGED and DUPLICATE are skipped; ERROR rows are skipped.'
+  enum: [CREATE, UPDATE, UNCHANGED, DUPLICATE, ERROR]
+
+StoreImportRow:
+  type: object
+  required: [line, status, errors, warnings]
+  properties:
+    line:
+      type: integer
+      format: int32
+    name:
+      type: string
+    category:
+      type: string
+    chain:
+      type: string
+    street:
+      type: string
+    postcode:
+      type: string
+    city:
+      type: string
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    cooperationStatus:
+      $ref: './stores.yaml#/CooperationStatus'
+    teamStatus:
+      $ref: './stores.yaml#/TeamSearchStatus'
+    managerFoodsaverNumbers:
+      type: array
+      items:
+        type: integer
+        format: int64
+    storeId:
+      description: 'Matched (UPDATE / UNCHANGED) or created store'
+      type: string
+      format: uuid
+    status:
+      $ref: './store-admin.yaml#/StoreImportStatus'
+    errors:
+      description: 'Error keys: MISSING_NAME, NAME_TOO_LONG, VALUE_TOO_LONG, MISSING_POSTCODE, UNKNOWN_CATEGORY, UNKNOWN_CHAIN, INVALID_COORDINATES, INVALID_COOPERATION_STATUS, INVALID_TEAM_STATUS'
+      type: array
+      items:
+        type: string
+    warnings:
+      description: 'Warning keys (row is still imported): UNKNOWN_USER (manager number not found), TOO_MANY_MANAGERS, MISSING_COORDINATES (geocoded on import), GEOCODING_FAILED (after import)'
+      type: array
+      items:
+        type: string
+
+StoresImportPreview:
+  type: object
+  required: [rows, created, updated, skipped, errors, dryRun]
+  properties:
+    rows:
+      type: array
+      items:
+        $ref: './store-admin.yaml#/StoreImportRow'
+    created:
+      type: integer
+      format: int32
+    updated:
+      type: integer
+      format: int32
+    skipped:
+      description: 'UNCHANGED + DUPLICATE rows'
+      type: integer
+      format: int32
+    errors:
+      type: integer
+      format: int32
+    dryRun:
+      type: boolean

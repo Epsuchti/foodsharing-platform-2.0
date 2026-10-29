@@ -70,6 +70,27 @@ class IntroPickupValidationTest {
         assertThat(row.reasons()).containsExactly(PastImportService.Reason.CATEGORY_MAPPED);
         assertThat(PastImportService.mapCategory("Zirkus", row)).isNull();
         assertThat(PastImportService.storeKey("Babu's  Bakery!")).isEqualTo("babusbakery");
-        assertThat(PastImportService.storeKey("Tiny Fish Löwenstrasse")).isEqualTo("tinyfishlöwenstrasse");
+        assertThat(PastImportService.storeKey("Tiny Fish Löwenstrasse")).isEqualTo("tinyfishloewenstrasse");
+    }
+
+    /** D16.3 (Zürich run): umlauts / accents / case fold, so the EinAb table's spellings meet aliases and stores. */
+    @Test
+    void importStoreKeysAndCategoriesFoldUmlautsCaseAndPunctuation() {
+        assertThat(PastImportService.storeKey("BÄCKEREI MÜLLER")).isEqualTo(PastImportService.storeKey("Baeckerei Mueller"))
+                .isEqualTo("baeckereimueller");
+        // decomposed umlaut (macOS / Excel exports) and other accents
+        assertThat(PastImportService.storeKey("Bu\u0308ro Cafe\u0301")).isEqualTo("buerocafe");
+        assertThat(PastImportService.storeKey("Strassenküche Größe")).isEqualTo("strassenkuechegroesse");
+        // idempotent: stored (old, unfolded) alias keys are folded on read
+        assertThat(PastImportService.storeKey("bäckereimüller")).isEqualTo("baeckereimueller");
+        assertThat(PastImportService.storeKey(PastImportService.storeKey("Löwen Bräu"))).isEqualTo("loewenbraeu");
+        PastImportService.Row row = new PastImportService.Row();
+        assertThat(PastImportService.mapCategory("Take-Away", row)).isEqualTo(IntroPickupCategory.TAKEOUT);
+        assertThat(PastImportService.mapCategory("take away", row)).isEqualTo(IntroPickupCategory.TAKEOUT);
+        assertThat(PastImportService.mapCategory("BÄCKEREI", row)).isEqualTo(IntroPickupCategory.BAKERY);
+        assertThat(PastImportService.mapCategory("Messe / Grossabholung", row)).isEqualTo(IntroPickupCategory.GROSSABHOLUNG);
+        assertThat(PastImportService.mapCategory(" lebensmittel-laden ", row)).isEqualTo(IntroPickupCategory.SUPERMARKET);
+        assertThat(row.reasons()).isEmpty();
+        assertThat(PastImportService.mapCategory("FT Reinigung", row)).isEqualTo(IntroPickupCategory.FAIRTEILER_CLEANING);
     }
 }

@@ -18,4 +18,12 @@ class CsvParserTest {
         assertThat(CsvParser.parse("")).isEmpty();
         assertThat(CsvParser.parse(null)).isEmpty();
     }
+
+    @Test
+    void commentLinesStartWithHash() {
+        assertThat(CsvParser.isComment(List.of("# model pending", "x"))).isTrue();
+        assertThat(CsvParser.isComment(List.of("  #note"))).isTrue();
+        assertThat(CsvParser.isComment(List.of("a#b", "#"))).isFalse();
+        assertThat(CsvParser.isComment(List.of())).isFalse();
+    }
 }

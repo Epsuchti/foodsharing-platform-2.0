@@ -1,0 +1,36 @@
+/api/regions/{regionId}/stores/import:
+  post:
+    tags: [store-admin]
+    operationId: importStoresCsv
+    summary: 'Import the stores of a region from CSV (dry run returns the preview only).'
+    description: >-
+      Columns name,category,chain,street,postcode,city,latitude,longitude,cooperation_status,team_status,public_info,
+      manager_foodsaver_numbers (header row optional, lines starting with # are comments, manager numbers separated by
+      spaces). Existing live stores of the region are matched by normalised name + postcode and updated; missing
+      coordinates are geocoded from the postcode on import. Rows with errors are skipped.
+    x-permission: 'mayCoordinateRegionStores'
+    x-history: StoreLogAction.STORES_IMPORTED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/store-admin.yaml#/StoresCsvImport'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/store-admin.yaml#/StoresImportPreview'
+      '400': {description: 'VALIDATION_FAILED or IMPORT_TOO_LARGE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
