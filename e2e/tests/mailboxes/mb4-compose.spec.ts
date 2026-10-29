@@ -12,7 +12,14 @@ test('MB4 compose with attachment sends from the mailbox address, reply sets ans
   await expect(page.getByTestId('mailboxes.compose.send').locator('button')).toBeDisabled();
   await page.getByTestId('mailboxes.compose.to').fill('anna@example.ch');
   await page.getByTestId('mailboxes.compose.subject').fill('Einladung Kochabend');
-  await page.getByTestId('mailboxes.compose.body').fill('Hallo Anna\n\nwir kochen am Freitag.');
+  // the rich-text editor (p-editor, deferred until idle) replaces the loading placeholder
+  const body = page.getByTestId('mailboxes.compose.body').locator('.ql-editor');
+  await body.click();
+  await page.keyboard.type('Hallo Anna');
+  await page.keyboard.press('Enter');
+  await page.getByTestId('mailboxes.compose.body').locator('button.ql-bold').click();
+  await page.keyboard.type('wir kochen am Freitag.');
+  await expect(body.locator('strong')).toHaveText('wir kochen am Freitag.');
   await page.getByTestId('mailboxes.compose.files').setInputFiles({
     name: 'einkaufsliste.txt',
     mimeType: 'text/plain',
@@ -31,9 +38,10 @@ test('MB4 compose with attachment sends from the mailbox address, reply sets ans
   const subject = (await page.getByTestId('mailboxes.mail.subject').textContent())!.trim();
   await page.getByTestId('mailboxes.mail.reply').click();
   await expect(page.getByTestId('mailboxes.compose.subject')).toHaveValue(`Re: ${subject}`);
-  await expect(page.getByTestId('mailboxes.compose.body')).toHaveValue(/> /);
-  await page.getByTestId('mailboxes.compose.body').press('Control+Home');
-  await page.getByTestId('mailboxes.compose.body').pressSequentially('Danke für die Nachricht!');
+  await expect(body.locator('blockquote').first()).toBeVisible();
+  await body.locator('p').first().click();
+  await page.keyboard.type('Danke für die Nachricht!');
+  await expect(body.locator('p').first()).toHaveText('Danke für die Nachricht!');
   await page.getByTestId('mailboxes.compose.send').click();
   await expect(page).toHaveURL(/\/sent$/);
   await page.goto(`/mailboxes/${MAILBOXES.zuerich}/inbox`);

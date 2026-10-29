@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
-import { Textarea } from '@openng/optimus-ui/textarea';
 import { firstValueFrom, map } from 'rxjs';
 
 import { Mail, MailboxesService, Upload } from '../../../api';
@@ -15,6 +14,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { MailBodyEditorComponent } from '../components/mail-body-editor.component';
 import { MailboxStore, formatSize, parseAddresses, textToHtml } from '../mailboxes.resource';
 
 interface Original {
@@ -22,13 +22,13 @@ interface Original {
 }
 
 /**
- * /mailboxes/:mailboxId/compose[?replyTo=&all=1|forwardOf=] (MB4): recipients (validated), subject, text body with
- * the quoted original for replies, attachments via /api/uploads (forwarding keeps the original's attachments on the
+ * /mailboxes/:mailboxId/compose[?replyTo=&all=1|forwardOf=] (MB4): recipients (validated), subject, rich-text body
+ * (`fs-mail-body-editor`, deferred until idle) with the quoted original for replies, attachments via /api/uploads (forwarding keeps the original's attachments on the
  * server). Sends from the mailbox address; 429/503 errors are shown by runMutation.
  */
 @Component({
   selector: 'fs-compose-page',
-  imports: [...DATA_STATE_IMPORTS, Button, FormsModule, InputText, PageHeaderComponent, Textarea, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, FormsModule, InputText, MailBodyEditorComponent, PageHeaderComponent, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="titleKey() | t" icon="pi pi-pencil" [backLink]="['/mailboxes', mailboxId(), 'inbox']" [backLabel]="'mailboxes.title' | t" />
@@ -48,8 +48,12 @@ interface Original {
           <input pInputText id="mail-cc" name="cc" [(ngModel)]="cc" data-testid="mailboxes.compose.cc" />
           <label for="mail-subject">{{ 'mailboxes.compose.subject' | t }}</label>
           <input pInputText id="mail-subject" name="subject" maxlength="250" [(ngModel)]="subject" data-testid="mailboxes.compose.subject" />
-          <label for="mail-body">{{ 'mailboxes.compose.body' | t }}</label>
-          <textarea pTextarea id="mail-body" name="body" rows="12" [(ngModel)]="body" data-testid="mailboxes.compose.body"></textarea>
+          <span class="body-label" id="mail-body-label">{{ 'mailboxes.compose.body' | t }}</span>
+          @defer (on idle) {
+            <fs-mail-body-editor [value]="body()" (valueChange)="body.set($event)" labelledBy="mail-body-label" />
+          } @placeholder (minimum 200ms) {
+            <div class="body-placeholder" aria-hidden="true" data-testid="mailboxes.compose.bodyLoading"></div>
+          }
 
           <div class="attachments">
             <label class="upload" for="mail-files">
@@ -91,7 +95,7 @@ interface Original {
       gap: 0.4rem;
       padding: 1rem;
     }
-    label {
+    label, .body-label {
       margin-top: 0.4rem;
       font-weight: 600;
     }
@@ -118,6 +122,12 @@ interface Original {
     .actions {
       display: flex;
       justify-content: flex-end;
+    }
+    .body-placeholder {
+      height: 18.75rem;
+      border: 1px solid var(--fs-border);
+      border-radius: var(--fs-radius-sm);
+      background: var(--fs-surface-muted);
     }
     .sr-only {
       position: absolute;
@@ -147,7 +157,8 @@ export class ComposePageComponent {
 
   protected cc = '';
   protected subject = '';
-  protected body = '';
+  /** HTML from the rich-text editor (MB4). */
+  protected readonly body = signal('');
   protected readonly uploads = signal<Upload[]>([]);
   protected readonly toValue = signal('');
 
@@ -183,20 +194,17 @@ export class ComposePageComponent {
 
   private prefill(mail: Mail): void {
     const when = mail.receivedAt ? this.dates.format(mail.receivedAt, 'dateTime') : '';
-    const quoted = (mail.bodyText ?? '')
-      .split('\n')
-      .map((line) => `> ${line}`)
-      .join('\n');
+    const quoted = `<blockquote>${textToHtml(mail.bodyText ?? '')}</blockquote>`;
     if (this.replyTo()) {
       const sender = mail.replyTo ?? mail.from;
       const others = this.replyAll() ? [...mail.to, ...mail.cc].map((a) => a.address) : [];
       this.toValue.set(sender.address);
       this.cc = others.filter((a) => a !== sender.address).join(', ');
       this.subject = /^re:/i.test(mail.subject) ? mail.subject : `Re: ${mail.subject}`;
-      this.body = `\n\n${this.i18n.t('mailboxes.compose.wrote', { date: when, name: sender.name ?? sender.address })}\n${quoted}`;
+      this.body.set(`<p><br></p>${textToHtml(this.i18n.t('mailboxes.compose.wrote', { date: when, name: sender.name ?? sender.address }))}${quoted}`);
     } else {
       this.subject = /^fwd?:/i.test(mail.subject) ? mail.subject : `Fwd: ${mail.subject}`;
-      this.body = `\n\n${this.i18n.t('mailboxes.compose.forwardedHeader', { date: when, name: mail.from.name ?? mail.from.address })}\n${mail.bodyText ?? ''}`;
+      this.body.set(`<p><br></p>${textToHtml(this.i18n.t('mailboxes.compose.forwardedHeader', { date: when, name: mail.from.name ?? mail.from.address }))}${textToHtml(mail.bodyText ?? '')}`);
     }
   }
 
@@ -227,7 +235,7 @@ export class ComposePageComponent {
           to: parseAddresses(this.toValue()).valid,
           cc: parseAddresses(this.cc).valid,
           subject: this.subject.trim(),
-          bodyHtml: textToHtml(this.body),
+          bodyHtml: this.body(),
           attachmentUploadIds: this.uploads().map((u) => u.id),
           ...(this.replyTo() ? { inReplyToMailId: this.replyTo()! } : {}),
           ...(this.forward() ? { forwardOfMailId: this.forward()! } : {}),

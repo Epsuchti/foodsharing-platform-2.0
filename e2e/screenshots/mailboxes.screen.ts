@@ -26,6 +26,7 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `mailboxes-bounce-${variant.name}`);
       await page.goto(`/mailboxes/${MAILBOXES.zuerich}/compose?replyTo=00000042-0003-4000-8000-000000000010`);
       await expect(page.getByTestId('mailboxes.compose.subject')).toHaveValue(/^Re:/);
+      await expect(page.getByTestId('mailboxes.compose.body').locator('.ql-editor blockquote').first()).toBeVisible();
       await visual.expectScreen(page, `mailboxes-compose-${variant.name}`);
     });
 
