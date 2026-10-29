@@ -237,7 +237,7 @@ public class StoreTeamService {
         changed(storeId, userId, StoreMembershipStatus.APPLIED, m);
         history.record(history.event(StoreLogAction.REQUEST_APPROVED, store.getId()).actorAutomation(policyName)
                 .secondarySubject(userId).region(store.getRegionId()).build());
-        notify(List.of(userId), NotificationType.STORE_REQUEST_AUTO_ACCEPTED, store, null, null, null, null);
+        notifyAsRegion(List.of(userId), NotificationType.STORE_REQUEST_AUTO_ACCEPTED, store, null, null);
         return true;
     }
 
@@ -258,7 +258,7 @@ public class StoreTeamService {
         String text = blank(message) ? null : message.strip();
         history.record(history.event(StoreLogAction.REQUEST_DECLINED, store.getId()).actorAutomation(policyName)
                 .secondarySubject(userId).region(store.getRegionId()).reason(text).build());
-        notify(List.of(userId), NotificationType.STORE_REQUEST_AUTO_DECLINED, store, text, null, null,
+        notifyAsRegion(List.of(userId), NotificationType.STORE_REQUEST_AUTO_DECLINED, store, text,
                 "store/request-auto-declined");
         return true;
     }
@@ -535,9 +535,22 @@ public class StoreTeamService {
         if (recipients.isEmpty()) {
             return;
         }
-        StoreNotifications.send(events, NotificationRequest.to(recipients, type).param("storeId", store.getId().toString())
+        StoreNotifications.send(events, request(recipients, type, store, message, userName, identifier, mail).build());
+    }
+
+    /** Automated messages (request policy, A24) are sent on behalf of the store's region (AU11, decision 89). */
+    private void notifyAsRegion(Collection<UUID> recipients, NotificationType type, Store store, String message,
+                                String mail) {
+        StoreNotifications.send(events, request(recipients, type, store, message, null, null, mail)
+                .senderRegion(store.getRegionId()).build());
+    }
+
+    private static NotificationRequest.Builder request(Collection<UUID> recipients, NotificationType type, Store store,
+                                                       String message, String userName, String identifier,
+                                                       String mail) {
+        return NotificationRequest.to(recipients, type).param("storeId", store.getId().toString())
                 .param("storeName", store.getName()).param("message", message).param("userName", userName)
-                .link("/stores/" + store.getId()).identifier(identifier).mail(mail).icon("store").build());
+                .link("/stores/" + store.getId()).identifier(identifier).mail(mail).icon("store");
     }
 
     private static String requireMessage(String message) {

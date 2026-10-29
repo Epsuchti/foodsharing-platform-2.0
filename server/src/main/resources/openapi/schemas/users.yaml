@@ -107,6 +107,20 @@ UserProfile:
       format: date
     sleepMessage:
       type: string
+    emailBouncedAt:
+      type: string
+      format: date-time
+      description: 'Last hard bounce of the email address (A35); absent = none.'
+    noAutomaticDelete:
+      type: boolean
+      description: 'Admin view only (admin-users operations): excluded from the automatic deletion of inactive accounts (A13).'
+    deletedAt:
+      type: string
+      format: date-time
+      description: 'Admin view only: when the account was deleted and anonymised (A40); absent = not deleted.'
+    deleteReason:
+      type: string
+      description: 'Admin view only: reason recorded with the deletion (A40).'
 
 UserSettingsUpdate:
   type: object

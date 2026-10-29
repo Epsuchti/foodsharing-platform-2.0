@@ -8,7 +8,9 @@ import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.store.service.ProfileStoreInfo;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.ProfileAchievements;
+import network.foodsharing.user.service.UserNoteService;
 import network.foodsharing.user.service.UserService;
+import network.foodsharing.user.service.UserViolationCounter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +28,8 @@ public class ProfileService {
                               List<MembershipService.Unit> groups, List<ProfileStoreInfo.TeamStore> stores,
                               Stats stats, boolean bananaGivenByMe, boolean mayGiveBanana,
                               BuddyService.Relation buddy, List<ProfileAchievements.Achievement> achievements,
-                              List<ProfileStoreInfo.Chain> kamChains, ProfileRules.Permissions permissions) {
+                              List<ProfileStoreInfo.Chain> kamChains, ProfileRules.Permissions permissions,
+                              Integer violationCount, Integer notesCount) {
     }
 
     private final ProfilePermissionService access;
@@ -38,11 +41,16 @@ public class ProfileService {
     private final UserService users;
     private final ObjectProvider<MemberPickupStats> pickupStats;
     private final ObjectProvider<ProfileAchievements> achievements;
+    private final ObjectProvider<UserViolationCounter> reports;
+    private final UserNoteService notes;
 
     public ProfileService(ProfilePermissionService access, MembershipService memberships, ProfileStoreInfo stores,
                           RatingRepository ratings, BananaService bananas, BuddyService buddies, UserService users,
                           ObjectProvider<MemberPickupStats> pickupStats,
-                          ObjectProvider<ProfileAchievements> achievements) {
+                          ObjectProvider<ProfileAchievements> achievements,
+                          ObjectProvider<UserViolationCounter> reports, UserNoteService notes) {
+        this.reports = reports;
+        this.notes = notes;
         this.access = access;
         this.memberships = memberships;
         this.stores = stores;
@@ -52,6 +60,15 @@ public class ProfileService {
         this.users = users;
         this.pickupStats = pickupStats;
         this.achievements = achievements;
+    }
+
+    private Integer violationCount(UUID userId) {
+        UserViolationCounter counter = reports.getIfAvailable();
+        if (counter == null) {
+            return null;
+        }
+        java.util.OptionalInt count = counter.visibleReportCount(userId);
+        return count.isPresent() ? count.getAsInt() : null;
     }
 
     /** @throws network.foodsharing.common.error.ApiException 401, 404 USER_NOT_FOUND */
@@ -75,6 +92,8 @@ public class ProfileService {
                 context.permissions().maySeeStores() ? stores.teamStores(userId) : null,
                 stats, given, bananas.mayGive(context),
                 context.facts().self() ? BuddyService.Relation.NONE : buddies.relation(viewerId, userId),
-                awards, stores.kamChains(userId), context.permissions());
+                awards, stores.kamChains(userId), context.permissions(),
+                context.facts().self() ? null : violationCount(userId),
+                context.permissions().maySeeNotes() ? notes.countAdminNotes(userId) : null);
     }
 }

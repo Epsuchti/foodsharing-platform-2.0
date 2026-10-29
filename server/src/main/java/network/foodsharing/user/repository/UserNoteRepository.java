@@ -11,4 +11,6 @@ public interface UserNoteRepository extends JpaRepository<UserNote, UUID> {
     List<UserNote> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
     List<UserNote> findByUserIdAndKindOrderByCreatedAtDesc(UUID userId, UserNoteKind kind);
+
+    long countByUserIdAndKind(UUID userId, UserNoteKind kind);
 }

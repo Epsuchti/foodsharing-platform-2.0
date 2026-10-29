@@ -103,10 +103,17 @@ class UsersControllerTest {
     @Test
     @WithSeedUser("foodsaver")
     void returnsTheCurrentUsersProfile() throws Exception {
-        when(userService.getCurrent()).thenReturn(foodsaver());
+        User user = foodsaver();
+        user.setEmailBouncedAt(FixedClockConfig.SEED_NOW);
+        user.setNoAutomaticDelete(true);
+        user.setDeleteReason("internal");
+        when(userService.getCurrent()).thenReturn(user);
 
         mvc.perform(get("/api/users/me"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.emailBouncedAt").value("2026-11-02T09:00:00Z"))
+                .andExpect(jsonPath("$.noAutomaticDelete").doesNotExist())
+                .andExpect(jsonPath("$.deleteReason").doesNotExist())
                 .andExpect(jsonPath("$.id").value(SeedUsers.FOODSAVER.id().toString()))
                 .andExpect(jsonPath("$.email").value("foodsaver@local"))
                 .andExpect(jsonPath("$.displayName").value("foodsaver"))

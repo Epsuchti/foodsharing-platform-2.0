@@ -1,6 +1,9 @@
 package network.foodsharing.report.service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.report.domain.ReportReason;
 
@@ -31,6 +34,26 @@ public final class ReportRules {
     /** The region of a report: the store's region when a store is given, else the reported member's home region. */
     public static UUID reportRegion(UUID storeRegionId, UUID reportedHomeRegionId) {
         return storeRegionId != null ? storeRegionId : reportedHomeRegionId;
+    }
+
+    /** Option set 1 of {@code REPORT_REASON_OPTIONS}: the pickup reasons. */
+    public static final List<ReportReason> PICKUP_REASONS =
+            List.of(ReportReason.LATE, ReportReason.NO_SHOW, ReportReason.CANCELLATION, ReportReason.SELLS);
+
+    /** Option set 2 of {@code REPORT_REASON_OPTIONS}: the rule-book violations. */
+    public static final List<ReportReason> RULE_BOOK_REASONS = Arrays.stream(ReportReason.values())
+            .filter(r -> r.name().startsWith("VIOLATED_")).toList();
+
+    /**
+     * Selectable reasons (without OTHER) of a region's {@code REPORT_REASON_OPTIONS} value: 1 = pickup reasons,
+     * 2 = rule-book violations, 3 = both; any other value falls back to the default set 1.
+     */
+    public static List<ReportReason> reasonOptions(int optionSet) {
+        return switch (optionSet) {
+            case 2 -> RULE_BOOK_REASONS;
+            case 3 -> Stream.concat(PICKUP_REASONS.stream(), RULE_BOOK_REASONS.stream()).toList();
+            default -> PICKUP_REASONS;
+        };
     }
 
     /** OTHER needs a reason text; every other reason ignores it. */

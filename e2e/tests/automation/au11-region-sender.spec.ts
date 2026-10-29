@@ -1,4 +1,4 @@
-import { expect, seedRegion, test, zurichPickupAt } from '../../fixtures';
+import { expect, seedRegion, seedStore, test, zurichPickupAt } from '../../fixtures';
 import { S06 } from './_automation';
 
 /**
@@ -49,4 +49,27 @@ test('AU11 automated sign-out summary is sent as the region (mail From + footer,
   expect(telegram).toHaveLength(1);
   expect(telegram[0].body).toContain(`\n\n— ${sender}`);
   await clock.fixServer();
+});
+
+test('AU11 automated store request decline is sent as the store region @AU11', async ({ api, notifications, mails }) => {
+  const s07 = seedStore('S-07').id;
+  const detail = await api.getJson<{ region: { id: string } }>(`/api/stores/${s07}`);
+  const region = await api.getJson<{ name: string }>(`/api/regions/${detail.region.id}`);
+  const sender = `foodsharing ${region.name}`;
+
+  // S-07's seeded request policy is a dry run; a live one with 0 km declines guide's open application
+  await api.putJson(`/api/stores/${s07}/automation/request-policy`, {
+    enabled: true,
+    dryRun: false,
+    distanceRuleEnabled: true,
+    maximumDistanceKm: 0,
+  });
+  const run = await api.postJson<{ declined: number }>(`/api/stores/${s07}/automation/request-policy/run?dryRun=false`);
+  expect(run.declined).toBeGreaterThan(0);
+  await notifications.runJob('mail-outbox');
+
+  const mail = await mails.waitForMail({ to: 'guide@local' });
+  expect(decodeHeader(mail.from ?? '')).toBe(`${sender} <noreply@localhost>`);
+  expect(mail.html).toContain('data-sender-region="true"');
+  expect(mail.text).toContain(sender);
 });

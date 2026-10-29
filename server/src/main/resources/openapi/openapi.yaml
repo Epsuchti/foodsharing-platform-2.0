@@ -991,6 +991,8 @@ paths:
     $ref: './paths/reports.yaml#/~1api~1regions~1{regionId}~1reports'
   /api/users/{userId}/reports:
     $ref: './paths/reports.yaml#/~1api~1users~1{userId}~1reports'
+  /api/users/{userId}/report-options:
+    $ref: './paths/reports.yaml#/~1api~1users~1{userId}~1report-options'
   /api/reports/{reportId}:
     $ref: './paths/reports.yaml#/~1api~1reports~1{reportId}'
   /api/reports/{reportId}/wall:

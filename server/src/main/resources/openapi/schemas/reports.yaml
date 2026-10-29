@@ -150,6 +150,28 @@ ReportUpdate:
       type: string
       format: uuid
 
+ReportOptions:
+  type: object
+  required: [reasons, otherAllowed, buttonEnabled]
+  properties:
+    regionId:
+      type: string
+      format: uuid
+      description: 'Region the report would go to; absent when neither a store region nor a home region exists.'
+    reasons:
+      type: array
+      description: 'Selectable reasons of the region option set (REPORT_REASON_OPTIONS: 1 = LATE, NO_SHOW, CANCELLATION, SELLS; 2 = the VIOLATED_* rule-book reasons; 3 = both), without OTHER.'
+      items:
+        $ref: './reports.yaml#/ReportReason'
+    otherAllowed:
+      type: boolean
+      description: 'REPORT_REASON_OTHER of the region: OTHER (with a reason text) may be chosen.'
+    buttonEnabled:
+      type: boolean
+      description: 'createReport would accept a report from the actor (same rule).'
+    denialCode:
+      $ref: './common.yaml#/ApiErrorCode'
+
 MediationInfo:
   type: object
   required: [enabled, team]

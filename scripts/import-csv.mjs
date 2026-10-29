@@ -11,6 +11,7 @@
 // ORGA (regions) / store coordinator or ambassador (stores, einabs) after a normal magic-link login in the browser.
 // Never use a dev endpoint for this. Exit code 0 = no row errors, 2 = rows with errors, 1 = request failed.
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 const USAGE = 'usage: import-csv.mjs regions|stores|einabs|aliases <file> --base-url <url> --session <fs_session> '
   + '[--region <slug>] [--confirm] [--json]';
@@ -182,9 +183,11 @@ export async function run(argv, log = console.log) {
   return errors > 0 ? 2 : 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  run(process.argv.slice(2)).then((code) => process.exit(code), (e) => {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // exitCode instead of process.exit(): exiting while fetch's keep-alive sockets close aborts Node on Windows
+  // (libuv assertion UV_HANDLE_CLOSING)
+  run(process.argv.slice(2)).then((code) => { process.exitCode = code; }, (e) => {
     console.error(e.message);
-    process.exit(1);
+    process.exitCode = 1;
   });
 }

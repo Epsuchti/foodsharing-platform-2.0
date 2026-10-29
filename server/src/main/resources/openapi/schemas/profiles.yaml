@@ -122,6 +122,9 @@ ProfilePermissions:
       type: boolean
     maySeePickups:
       type: boolean
+    mayPostWall:
+      type: boolean
+      description: 'createUserWallPost is allowed (server rule mayWriteWall: only the owner writes on their wall).'
 
 PublicProfile:
   type: object
@@ -166,9 +169,11 @@ PublicProfile:
     violationCount:
       type: integer
       format: int32
+      description: 'Reports about the user that the viewer handles (ORGA, or report team of one of the user''s regions or an ancestor; the listUserReports rule); absent for everyone else.'
     notesCount:
       type: integer
       format: int32
+      description: 'Admin notes about the user (listUserNotes); only when permissions.maySeeNotes.'
     registeredAt:
       type: string
       format: date-time

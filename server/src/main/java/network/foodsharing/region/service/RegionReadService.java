@@ -42,7 +42,8 @@ public class RegionReadService {
 
     public record RegionDetailView(Region region, Region parent, List<User> ambassadors, Region welcomeTeam,
                                    List<FunctionGroup> functions, int memberCount, Membership membership,
-                                   String conferenceUrl, RegionStatisticsService.StatisticsView statistics) {
+                                   String conferenceUrl, RegionStatisticsService.StatisticsView statistics,
+                                   boolean mayCoordinateStores) {
     }
 
     private final RegionService regionService;
@@ -85,10 +86,18 @@ public class RegionReadService {
         UUID home = users.findActive(principal.userId()).map(User::getHomeRegionId).orElse(null);
         Membership membership = new Membership(own.isPresent(), admin, regionId.equals(home),
                 own.map(RegionMembership::getJoinedAt).orElse(null));
-        boolean insider = own.isPresent() || admin || currentActor.isOrga();
+        boolean orga = currentActor.isOrga();
+        boolean insider = own.isPresent() || admin || orga;
+        UUID coordinationGroup = functionGroups.stream()
+                .filter(fg -> fg.function() == WorkingGroupFunction.STORES_COORDINATION)
+                .map(fg -> fg.group().getId()).findFirst().orElse(null);
+        boolean mayCoordinateStores = StoreCoordinationRule.mayCoordinate(orga, coordinationGroup,
+                () -> regionService.ancestors(regionId).stream().map(Region::getId).toList(),
+                id -> admins.existsByUserIdAndRegionId(principal.userId(), id));
         return new RegionDetailView(region, parent, ambassadors, welcome, functionGroups,
                 (int) memberships.countByRegionIdAndActiveTrue(regionId), membership,
-                insider ? conference.linkOf(region) : null, insider ? statistics.viewOf(region) : null);
+                insider ? conference.linkOf(region) : null, insider ? statistics.viewOf(region) : null,
+                mayCoordinateStores);
     }
 
     public List<User> ambassadorsOf(UUID regionId) {

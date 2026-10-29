@@ -58,6 +58,20 @@ class RegionApiIT {
     }
 
     @Test
+    void mayCoordinateStoresFollowsTheStoresImportRule() throws Exception {
+        // Zürich has a STORES_COORDINATION group (admin: bieb), which supersedes its ambassador bot
+        String zuerich = "/api/regions/" + ZUERICH;
+        mvc.perform(get(zuerich).cookie(login(SeedUsers.BIEB))).andExpect(jsonPath("$.mayCoordinateStores").value(true));
+        mvc.perform(get(zuerich).cookie(login(SeedUsers.BOT))).andExpect(jsonPath("$.mayCoordinateStores").value(false));
+        mvc.perform(get(zuerich).cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(jsonPath("$.mayCoordinateStores").value(false));
+        mvc.perform(get(zuerich).cookie(login(SeedUsers.ORGA))).andExpect(jsonPath("$.mayCoordinateStores").value(true));
+        // Winterthur has none: ambassadors of an ancestor (bot, canton) count
+        mvc.perform(get("/api/regions/" + WINTERTHUR).cookie(login(SeedUsers.BOT)))
+                .andExpect(jsonPath("$.mayCoordinateStores").value(true));
+    }
+
+    @Test
     void regionPageMembersStatisticsAndSession() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         mvc.perform(get("/api/regions/" + ZUERICH)).andExpect(status().isUnauthorized());

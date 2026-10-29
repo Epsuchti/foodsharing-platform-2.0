@@ -148,9 +148,18 @@ class UserAdminControllerTest {
     @Test
     @WithSeedUser("bot")
     void profileForAdminsAnd403() throws Exception {
-        when(adminService.getForAdmin(SeedUsers.NEWBIE.id())).thenReturn(newbie());
+        User newbie = newbie();
+        newbie.setNoAutomaticDelete(true);
+        newbie.setEmailBouncedAt(java.time.Instant.parse("2026-11-01T08:00:00Z"));
+        newbie.setDeletedAt(java.time.Instant.parse("2026-11-02T09:00:00Z"));
+        newbie.setDeleteReason("asked by user");
+        when(adminService.getForAdmin(SeedUsers.NEWBIE.id())).thenReturn(newbie);
         mvc.perform(get(BASE + "/profile")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("newbie@local"));
+                .andExpect(jsonPath("$.email").value("newbie@local"))
+                .andExpect(jsonPath("$.emailBouncedAt").value("2026-11-01T08:00:00Z"))
+                .andExpect(jsonPath("$.noAutomaticDelete").value(true))
+                .andExpect(jsonPath("$.deletedAt").value("2026-11-02T09:00:00Z"))
+                .andExpect(jsonPath("$.deleteReason").value("asked by user"));
         when(adminService.getForAdmin(SeedUsers.ORGA.id())).thenThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED));
         mvc.perform(get("/api/admin/users/" + SeedUsers.ORGA.id() + "/profile"))
                 .andExpect(status().isForbidden());

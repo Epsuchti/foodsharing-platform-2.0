@@ -91,6 +91,12 @@ public class ReportMapper {
                 .mailboxAddress(info.mailboxAddress());
     }
 
+    public network.foodsharing.api.model.ReportOptions toReportOptions(ReportService.ReportOptionsView view) {
+        return new network.foodsharing.api.model.ReportOptions().regionId(view.regionId())
+                .reasons(view.reasons().stream().map(r -> ReportReason.fromValue(r.name())).toList())
+                .otherAllowed(view.otherAllowed()).buttonEnabled(view.denial() == null).denialCode(view.denial());
+    }
+
     private static ReportStoreRef storeRef(Store store) {
         return new ReportStoreRef().id(store.getId()).name(store.getName());
     }

@@ -58,7 +58,8 @@ public class SecurityConfig {
                                                    SessionCookieWriter sessionCookieWriter,
                                                    ApiErrorResponseWriter errorWriter,
                                                    AppProperties properties,
-                                                   ObjectProvider<HttpSecurityCustomizer> customizers) throws Exception {
+                                                   ObjectProvider<HttpSecurityCustomizer> customizers,
+                                                   ObjectProvider<CspFrameSources> frameSources) throws Exception {
         CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setCookieCustomizer(cookie -> cookie
                 .secure(properties.getAuth().isCookieSecure())
@@ -124,12 +125,16 @@ public class SecurityConfig {
                         headers.httpStrictTransportSecurity(sts -> sts.disable());
                     }
                     if (security.getCsp().isEnabled()) {
-                        String policy = ContentSecurityPolicy.build(security.getCsp());
-                        // the dev-only fake OIDC/OAuth pages (local/e2e) are left out
-                        headers.addHeaderWriter(new org.springframework.security.web.header.writers
-                                .DelegatingRequestMatcherHeaderWriter(request -> !request.getRequestURI().startsWith("/dev/"),
-                                new org.springframework.security.web.header.writers.StaticHeadersWriter(
-                                        "Content-Security-Policy", policy)));
+                        ContentSecurityPolicy.Template policy = ContentSecurityPolicy.build(security.getCsp());
+                        // the dev-only fake OIDC/OAuth pages (local/e2e) are left out; frame-src follows the
+                        // runtime configuration (donation iframes, G4)
+                        headers.addHeaderWriter((request, response) -> {
+                            if (!request.getRequestURI().startsWith("/dev/")
+                                    && !response.containsHeader("Content-Security-Policy")) {
+                                response.setHeader("Content-Security-Policy",
+                                        policy.header(ContentSecurityPolicy.frameUrls(frameSources)));
+                            }
+                        });
                     }
                 })
                 .addFilterBefore(new SessionCookieAuthenticationFilter(sessionAuthenticator, sessionCookieWriter),

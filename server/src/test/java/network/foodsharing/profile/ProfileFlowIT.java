@@ -74,9 +74,25 @@ class ProfileFlowIT {
                 .andExpect(jsonPath("$.banana.mayGive").value(false))
                 .andExpect(jsonPath("$.buddy.status").value("CONFIRMED"))
                 .andExpect(jsonPath("$.permissions.mayEditProfile").value(false))
-                .andExpect(jsonPath("$.permissions.maySeeNotes").value(false));
+                .andExpect(jsonPath("$.permissions.maySeeNotes").value(false))
+                .andExpect(jsonPath("$.permissions.mayPostWall").value(false))
+                .andExpect(jsonPath("$.violationCount").doesNotExist())
+                .andExpect(jsonPath("$.notesCount").doesNotExist());
+        mvc.perform(get("/api/users/" + SeedUsers.BIEB.id() + "/profile").cookie(bieb))
+                .andExpect(jsonPath("$.permissions.mayPostWall").value(true))
+                .andExpect(jsonPath("$.violationCount").doesNotExist());
 
+        // violations: the report team of the user's region and ORGA; notes: administrators (maySeeNotes)
+        mvc.perform(get("/api/users/" + SeedUsers.JUMPER.id() + "/profile").cookie(login(SeedUsers.REPORTS)))
+                .andExpect(jsonPath("$.violationCount").value(4));
         Cookie orga = login(SeedUsers.ORGA);
+        mvc.perform(get("/api/users/" + SeedUsers.JUMPER.id() + "/profile").cookie(orga))
+                .andExpect(jsonPath("$.violationCount").value(4))
+                .andExpect(jsonPath("$.notesCount").value(0));
+        mvc.perform(get("/api/users/" + SeedUsers.SLEEPY.id() + "/profile").cookie(orga))
+                .andExpect(jsonPath("$.notesCount").value(1))
+                .andExpect(jsonPath("$.permissions.mayPostWall").value(false));
+
         mvc.perform(get("/api/users/" + SeedUsers.FOODSAVER.id() + "/profile").cookie(orga))
                 .andExpect(jsonPath("$.permissions.mayAdminister").value(true))
                 .andExpect(jsonPath("$.permissions.maySeeCommitments").value(true))

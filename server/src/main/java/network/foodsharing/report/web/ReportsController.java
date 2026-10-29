@@ -65,6 +65,11 @@ public class ReportsController implements ReportsApi {
     }
 
     @Override
+    public ResponseEntity<network.foodsharing.api.model.ReportOptions> getReportOptions(UUID userId, UUID storeId) {
+        return ResponseEntity.ok(mapper.toReportOptions(reports.options(userId, storeId)));
+    }
+
+    @Override
     public ResponseEntity<WallEntry> createReportWallPost(UUID reportId, WallEntryCreate body) {
         var post = reports.post(reportId, body.getBody());
         return ResponseEntity.status(HttpStatus.CREATED)

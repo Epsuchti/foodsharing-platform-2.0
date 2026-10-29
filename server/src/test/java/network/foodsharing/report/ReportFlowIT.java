@@ -105,6 +105,45 @@ class ReportFlowIT {
     }
 
     @Test
+    void reportOptionsFollowTheReportRegionAndTheFilingRule() throws Exception {
+        Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        String jumper = "/api/users/" + SeedUsers.JUMPER.id() + "/report-options";
+        mvc.perform(get(jumper).cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.regionId").value(ZUERICH))
+                .andExpect(jsonPath("$.reasons").value(org.hamcrest.Matchers.contains("LATE", "NO_SHOW",
+                        "CANCELLATION", "SELLS")))
+                .andExpect(jsonPath("$.otherAllowed").value(false))
+                .andExpect(jsonPath("$.buttonEnabled").value(true))
+                .andExpect(jsonPath("$.denialCode").doesNotExist());
+        jdbc.update("insert into region_option (id, version, created_at, updated_at, region_id, option_key, "
+                + "option_value) values (?, 0, ?, ?, ?, 'REPORT_REASON_OPTIONS', '3'), "
+                + "(?, 0, ?, ?, ?, 'REPORT_REASON_OTHER', 'true')",
+                java.util.UUID.randomUUID(), java.sql.Timestamp.from(SEED_NOW), java.sql.Timestamp.from(SEED_NOW),
+                java.util.UUID.fromString(ZUERICH), java.util.UUID.randomUUID(), java.sql.Timestamp.from(SEED_NOW),
+                java.sql.Timestamp.from(SEED_NOW), java.util.UUID.fromString(ZUERICH));
+        try {
+            mvc.perform(get(jumper).param("storeId", STORE_S01).cookie(foodsaver)).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.regionId").value(ZUERICH))
+                    .andExpect(jsonPath("$.reasons.length()").value(24))
+                    .andExpect(jsonPath("$.otherAllowed").value(true));
+        } finally {
+            jdbc.update("delete from region_option where region_id = ? and option_key in "
+                    + "('REPORT_REASON_OPTIONS', 'REPORT_REASON_OTHER')", java.util.UUID.fromString(ZUERICH));
+        }
+        mvc.perform(get("/api/users/" + SeedUsers.FOODSAVER.id() + "/report-options").cookie(foodsaver))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.buttonEnabled").value(false))
+                .andExpect(jsonPath("$.denialCode").value("REPORT_SELF"));
+        mvc.perform(get(jumper).cookie(login(SeedUsers.NEWBIE))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.buttonEnabled").value(false))
+                .andExpect(jsonPath("$.denialCode").value("ACCESS_DENIED"));
+        mvc.perform(get(jumper).param("storeId", java.util.UUID.randomUUID().toString()).cookie(foodsaver))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
+        mvc.perform(get("/api/users/" + java.util.UUID.randomUUID() + "/report-options").cookie(foodsaver))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
+        mvc.perform(get(jumper)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void fileHandleRemindAndDelete() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         String created = mvc.perform(json(post("/api/users/" + SeedUsers.JUMPER.id() + "/reports"), foodsaver,

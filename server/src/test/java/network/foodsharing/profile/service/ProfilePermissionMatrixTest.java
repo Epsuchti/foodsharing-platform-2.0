@@ -19,23 +19,23 @@ class ProfilePermissionMatrixTest {
     static final UUID C = UUID.fromString("00000000-0000-4000-8000-00000000000c");
 
     // facts: self, orga, administers, shareStoreTeam, managesStoreOfUser, reportButton
-    // expected: edit, notes, report, history, commitments, administer, pickups, stores
+    // expected: edit, notes, report, history, commitments, administer, pickups, stores, post on wall
     static Stream<Arguments> matrix() {
         return Stream.of(
                 Arguments.of("self", f(true, false, false, false, false, false),
-                        p(true, false, false, false, true, false, true, true)),
+                        p(true, false, false, false, true, false, true, true, true)),
                 Arguments.of("stranger", f(false, false, false, false, false, false),
-                        p(false, false, false, false, false, false, false, false)),
+                        p(false, false, false, false, false, false, false, false, false)),
                 Arguments.of("stranger, report button", f(false, false, false, false, false, true),
-                        p(false, false, true, false, false, false, false, false)),
+                        p(false, false, true, false, false, false, false, false, false)),
                 Arguments.of("orga", f(false, true, false, false, false, false),
-                        p(true, true, false, true, true, true, true, true)),
+                        p(true, true, false, true, true, true, true, true, false)),
                 Arguments.of("ambassador", f(false, false, true, false, false, true),
-                        p(true, true, true, true, true, true, true, true)),
+                        p(true, true, true, true, true, true, true, true, false)),
                 Arguments.of("team mate", f(false, false, false, true, false, false),
-                        p(false, false, false, false, false, false, false, true)),
+                        p(false, false, false, false, false, false, false, true, false)),
                 Arguments.of("store manager", f(false, false, false, true, true, false),
-                        p(false, false, false, false, true, false, false, true)));
+                        p(false, false, false, false, true, false, false, true, false)));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -80,7 +80,8 @@ class ProfilePermissionMatrixTest {
 
     private static ProfileRules.Permissions p(boolean edit, boolean notes, boolean report, boolean history,
                                               boolean commitments, boolean administer, boolean pickups,
-                                              boolean stores) {
-        return new ProfileRules.Permissions(edit, notes, report, history, commitments, administer, pickups, stores);
+                                              boolean stores, boolean wall) {
+        return new ProfileRules.Permissions(edit, notes, report, history, commitments, administer, pickups, stores,
+                wall);
     }
 }

@@ -64,10 +64,12 @@ public class ProfileMapper {
                 .regionName(a.regionName())).toList());
         profile.setKamChains(view.kamChains().stream().map(c -> new ProfileChain().id(c.id()).name(c.name())).toList());
         profile.setRegisteredAt(TimeMapper.toOffset(user.getRegisteredAt()));
+        profile.setViolationCount(view.violationCount());
+        profile.setNotesCount(view.notesCount());
         profile.setPermissions(new ProfilePermissions().mayEditProfile(p.mayEditProfile()).maySeeNotes(p.maySeeNotes())
                 .mayReport(p.mayReport()).mayGiveBanana(view.mayGiveBanana()).maySeeHistory(p.maySeeHistory())
                 .maySeeCommitments(p.maySeeCommitments()).mayAdminister(p.mayAdminister())
-                .maySeePickups(p.maySeePickups()));
+                .maySeePickups(p.maySeePickups()).mayPostWall(p.mayPostWall()));
         return profile;
     }
 
