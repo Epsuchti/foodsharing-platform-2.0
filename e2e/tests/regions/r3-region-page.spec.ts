@@ -21,8 +21,8 @@ test.describe('member', () => {
     await page.getByTestId('regions.page.tab.statistics').click();
     await expect(page.getByTestId('regions.statistics.gender')).toBeVisible();
 
-    await page.getByTestId('regions.page.tab.fsps').click();
-    await expect(page.getByTestId('regions.later.empty')).toContainText('Fairteiler');
+    await page.getByTestId('regions.page.tab.wall').click();
+    await expect(page.getByTestId('regions.later.empty')).toContainText('Pinnwand');
     await expectNoSeriousViolations(page);
   });
 

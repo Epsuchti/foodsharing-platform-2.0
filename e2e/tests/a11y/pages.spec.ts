@@ -55,6 +55,12 @@ const ROUTES: RouteCase[] = [
   { path: '/baskets/00000048-0001-4000-8000-000000000003', role: 'foodsaver', ready: 'baskets.detail.myRequest' },
   // owner view with requests (bieb's account theme is LIGHT, so the own basket of foodsaver is swept)
   { path: '/baskets/00000048-0001-4000-8000-000000000001', role: 'foodsaver', ready: 'baskets.detail.requests' },
+  // M6 food share points (plan-m7 Q6): region tab, detail with wall, inactive proposal as FSP admin, form, mine
+  { path: '/regions/00000010-0001-4000-8000-000000000040/food-share-points', role: 'foodsaver', ready: 'foodSharePoints.region.list' },
+  { path: '/food-share-points/00000049-0001-4000-8000-000000000001', role: 'foodsaver', ready: 'foodSharePoints.detail.wall.list' },
+  { path: '/food-share-points/00000049-0001-4000-8000-000000000005', role: 'bot', ready: 'foodSharePoints.detail.activate', consent: true },
+  { path: '/food-share-points/new?regionId=00000010-0001-4000-8000-000000000040', role: 'foodsaver', ready: 'foodSharePoints.form' },
+  { path: '/food-share-points/mine', role: 'foodsaver', ready: 'foodSharePoints.mine.list' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
