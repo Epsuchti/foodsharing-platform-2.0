@@ -1,5 +1,6 @@
 package network.foodsharing.auth.service;
 
+import network.foodsharing.common.metrics.OperationsMetrics;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
@@ -134,9 +135,13 @@ public class MagicLinkService {
     public MagicLinkLogin verify(String rawToken, HttpServletRequest request, HttpServletResponse response) {
         requireEnabled();
         LoginToken token = tokens.findByTokenHash(TokenHasher.sha256Hex(rawToken.strip()))
-                .orElseThrow(() -> ApiException.badRequest(ApiErrorCode.INVALID_LOGIN_TOKEN));
+                .orElseThrow(() -> {
+                    OperationsMetrics.loginFailed("invalid-token");
+                    return ApiException.badRequest(ApiErrorCode.INVALID_LOGIN_TOKEN);
+                });
         Instant now = clock.instant();
         if (!token.isUsableAt(now)) {
+            OperationsMetrics.loginFailed("expired-token");
             userService.findByEmail(token.getEmail()).ifPresent(user -> history.recordInNewTransaction(
                     history.event(AuthAction.LOGIN_FAILED, user.getId())
                             .metadata(Map.of("method", LoginMethod.EMAIL.name(),

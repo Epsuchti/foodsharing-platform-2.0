@@ -7,7 +7,7 @@ import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { tap } from 'rxjs';
 
-import { Pickup, PickupSlot, PickupsService, RegularPickup, SignupResult } from '../../../api';
+import { AutomationService, Pickup, PickupSlot, PickupsService, RegularPickup, SignupResult } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
@@ -155,6 +155,21 @@ interface SlotTarget {
                       (slotClick)="onSlot(pickup, $event)"
                       testId="stores.pickups.slot"
                     />
+                  }
+                  @if (pickup.mayAddExtraSlot) {
+                    <!-- AU6: the first person of the pickup may add one extra slot -->
+                    <p-button
+                      [label]="'pickups.tab.addExtraSlot' | t"
+                      icon="pi pi-plus"
+                      size="small"
+                      [outlined]="true"
+                      [loading]="addExtraSlot.busy()"
+                      (onClick)="addExtraSlot.run(pickup)"
+                      data-testid="stores.pickups.addExtraSlot"
+                    />
+                  }
+                  @if (pickup.extraSlot; as extra) {
+                    <p class="muted" data-testid="stores.pickups.extraSlot">{{ 'pickups.tab.extraSlotBy' | t: { name: extra.byUser.displayName } }}</p>
                   }
                   @if (mySlot(pickup); as mine) {
                     @if (!mine.confirmed) {
@@ -324,6 +339,12 @@ interface SlotTarget {
 export class StorePickupsTab {
   protected readonly ctx = inject(StorePageContext);
   private readonly api = inject(PickupsService);
+  private readonly automationApi = inject(AutomationService);
+
+  protected readonly addExtraSlot = runMutation(
+    (pickup: Pickup) => this.automationApi.addExtraSlot({ storeId: this.ctx.storeId()!, pickupAt: pickup.pickupAt }),
+    { successToastKey: 'pickups.tab.extraSlotAdded', onSuccess: () => this.reload() },
+  );
   private readonly session = inject(SessionService);
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);

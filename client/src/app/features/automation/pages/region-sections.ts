@@ -44,7 +44,7 @@ import { RegionAutomationContext } from '../region-automation.context';
       <h2>{{ 'automation.region.section.overview' | t }}</h2>
       <fs-data-state [state]="overview" skeleton="table" [emptyTitle]="'automation.region.noStores' | t" testId="automation.region.overview" data-testid="automation.region.overview">
         <ng-template [fsData]="overview" let-o>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0">
             <table>
               <thead>
                 <tr>
@@ -413,7 +413,7 @@ export class RegionTelegramSection {
       </div>
       <fs-data-state [state]="holidays" skeleton="table" [emptyTitle]="'automation.holidays.empty' | t" testId="automation.holidays.state" data-testid="automation.holidays.state">
         <ng-template [fsData]="holidays" let-rows>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0">
             <table>
               <thead>
                 <tr>

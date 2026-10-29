@@ -14,8 +14,8 @@ class SlidingWindowRateLimiterTest {
 
     @Test
     void limitsPerKeyAndClearAllForgetsEverything() {
-        SlidingWindowRateLimiter first = new SlidingWindowRateLimiter(clock, 1, Duration.ofHours(1));
-        SlidingWindowRateLimiter second = new SlidingWindowRateLimiter(clock, 1, Duration.ofHours(1));
+        SlidingWindowRateLimiter first = new SlidingWindowRateLimiter("support", clock, 1, Duration.ofHours(1));
+        SlidingWindowRateLimiter second = new SlidingWindowRateLimiter("support", clock, 1, Duration.ofHours(1));
         assertThat(first.tryAcquire("a")).isTrue();
         assertThat(first.tryAcquire("a")).isFalse();
         assertThat(first.tryAcquire("b")).isTrue();

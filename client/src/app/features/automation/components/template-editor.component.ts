@@ -23,6 +23,7 @@ import { appendPlaceholder, renderTemplate, unknownPlaceholders } from '../autom
         [id]="inputId()"
         rows="3"
         [maxlength]="maxLength()"
+        [attr.aria-label]="label() ? null : ('automation.template.message' | t)"
         [ngModel]="value()"
         (ngModelChange)="value.set($event)"
         [attr.data-testid]="testId() + '.text'"

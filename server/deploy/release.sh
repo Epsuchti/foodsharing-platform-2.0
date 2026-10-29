@@ -1,104 +1,108 @@
 #!/usr/bin/env bash
+# Release script of the foodsharing platform image (D19.1, runbook §2).
+#
+#   release.sh [--build] --check   build linux/amd64 + linux/arm64 from the packaged jar, push nothing
+#   release.sh [--build] --load    build for the local platform and load it as <image>:<version> and :local (smoke.sh)
+#   release.sh [--build] --push    clean tree only: build both platforms, push <image>:<version> + :latest,
+#                                  create the annotated git tag v<version> (push the tag yourself)
+#
+#   --build      run ./mvnw clean package -DskipTests first (Angular client included)
+#   --version V  override server/deploy/version.txt
+#
+# Environment: IMAGE_REPOSITORY (default ghcr.io/epsuchti/foodsharing-platform), PLATFORMS, BUILDER_NAME.
 set -euo pipefail
 
-IMAGE_REPOSITORY="${IMAGE_REPOSITORY:-ghcr.io/epsuchti/foodsharing-einab-tabelle-server}"
+DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SERVER_DIR="$(cd "${DEPLOY_DIR}/.." && pwd)"
+REPO_DIR="$(cd "${SERVER_DIR}/.." && pwd)"
+IMAGE_REPOSITORY="${IMAGE_REPOSITORY:-ghcr.io/epsuchti/foodsharing-platform}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
-LATEST_TAG="${LATEST_TAG:-latest}"
+BUILDER_NAME="${BUILDER_NAME:-foodsharing-platform-multiarch}"
 
-if [[ $# -gt 1 ]]; then
-  echo "Usage: $0 [image-tag]"
+usage() {
+  sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit "${1:-1}"
+}
+
+MODE=""
+BUILD=false
+VERSION=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check|--load|--push) [[ -z "${MODE}" ]] || usage; MODE="${1#--}" ;;
+    --build) BUILD=true ;;
+    --version) [[ $# -ge 2 ]] || usage; VERSION="$2"; shift ;;
+    -h|--help) usage 0 ;;
+    *) echo "Unknown argument: $1" >&2; usage ;;
+  esac
+  shift
+done
+[[ -n "${MODE}" ]] || usage
+
+if [[ -z "${VERSION}" ]]; then
+  VERSION="$(tr -d '[:space:]' < "${DEPLOY_DIR}/version.txt")"
+fi
+if [[ ! "${VERSION}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+  echo "Invalid version '${VERSION}' (expected digits, e.g. 44 or 1.2.0)" >&2
   exit 1
 fi
+GIT_TAG="v${VERSION}"
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION_FILE="${VERSION_FILE:-${ROOT_DIR}/deploy/version.txt}"
-
-trim() {
-  local value="$1"
-  value="${value%$'\r'}"
-  value="${value#"${value%%[![:space:]]*}"}"
-  value="${value%"${value##*[![:space:]]}"}"
-  printf '%s\n' "${value}"
-}
-
-maybe_bump_version() {
-  local current_tag="$1"
-  local next_tag
-  local answer
-
-  if [[ ! -t 0 ]]; then
-    printf '%s\n' "${current_tag}"
-    return 0
-  fi
-
-  if [[ ! "${current_tag}" =~ ^[0-9]+$ ]]; then
-    echo "Current version '${current_tag}' is not numeric; skipping bump prompt."
-    printf '%s\n' "${current_tag}"
-    return 0
-  fi
-
-  next_tag="$((current_tag + 1))"
-  read -r -p "Bump version from ${current_tag} to ${next_tag}? [y/N] " answer
-  if [[ "${answer}" =~ ^[Yy]$ ]]; then
-    printf '%s\n' "${next_tag}" > "${VERSION_FILE}"
-    echo "Updated ${VERSION_FILE} to ${next_tag}" >&2
-    printf '%s\n' "${next_tag}"
-    return 0
-  fi
-
-  printf '%s\n' "${current_tag}"
-}
-
-if [[ $# -eq 1 ]]; then
-  TAG="$(trim "$1")"
-else
-  if [[ ! -f "${VERSION_FILE}" ]]; then
-    echo "Missing version file: ${VERSION_FILE}"
+if [[ "${MODE}" == "push" ]]; then
+  if [[ -n "$(git -C "${REPO_DIR}" status --porcelain)" ]]; then
+    echo "Refusing to release from a dirty working tree (commit or stash first)." >&2
     exit 1
   fi
-
-  TAG="$(trim "$(cat "${VERSION_FILE}")")"
-  TAG="$(maybe_bump_version "${TAG}")"
+  if git -C "${REPO_DIR}" rev-parse -q --verify "refs/tags/${GIT_TAG}" > /dev/null; then
+    echo "Git tag ${GIT_TAG} already exists; bump server/deploy/version.txt." >&2
+    exit 1
+  fi
 fi
 
-if [[ -z "${TAG}" ]]; then
-  echo "Image tag cannot be empty"
+if [[ "${BUILD}" == true ]]; then
+  echo "==> Building the jar (client included)"
+  (cd "${SERVER_DIR}" && ./mvnw -B -q clean package -DskipTests)
+fi
+
+shopt -s nullglob
+JARS=("${SERVER_DIR}"/target/foodsharing-platform-*.jar)
+shopt -u nullglob
+if [[ ${#JARS[@]} -ne 1 ]]; then
+  echo "Expected exactly one server/target/foodsharing-platform-*.jar (found ${#JARS[@]}); run with --build." >&2
   exit 1
 fi
-
-echo "Building fresh application artifact with Maven"
-(
-  cd "${ROOT_DIR}"
-  ./mvnw clean install
-)
-
-BUILDER_BASENAME="$(basename "${ROOT_DIR}" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')"
-BUILDER_NAME="${BUILDER_NAME:-${BUILDER_BASENAME}-multiarch}"
-
-if ! docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1; then
-  docker buildx create --name "${BUILDER_NAME}" --use
-else
-  docker buildx use "${BUILDER_NAME}" >/dev/null
+JAR_REL="target/$(basename "${JARS[0]}")"
+if ! unzip -Z1 "${JARS[0]}" "BOOT-INF/classes/static/index.html" > /dev/null 2>&1; then
+  echo "Warning: ${JAR_REL} contains no Angular client (built with -Pskip-client?)." >&2
 fi
 
-docker buildx build \
-  --platform "${PLATFORMS}" \
-  -t "${IMAGE_REPOSITORY}:${TAG}" \
-  -t "${IMAGE_REPOSITORY}:${LATEST_TAG}" \
-  --push \
-  "${ROOT_DIR}"
-
-if ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "Not inside a git repository; cannot create git tag"
-  exit 1
+if ! docker buildx inspect "${BUILDER_NAME}" > /dev/null 2>&1; then
+  docker buildx create --name "${BUILDER_NAME}" --driver docker-container > /dev/null
 fi
 
-if git -C "${ROOT_DIR}" rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
-  git -C "${ROOT_DIR}" tag -d "${TAG}" >/dev/null
-fi
+COMMON=(--builder "${BUILDER_NAME}" --file "${SERVER_DIR}/Dockerfile"
+  --build-arg "JAR_FILE=${JAR_REL}" --build-arg "APP_VERSION=${VERSION}"
+  --label "org.opencontainers.image.version=${VERSION}"
+  --label "org.opencontainers.image.revision=$(git -C "${REPO_DIR}" rev-parse HEAD)"
+  --label "org.opencontainers.image.source=https://github.com/epsuchti/foodsharing-platform-2.0")
 
-git -C "${ROOT_DIR}" tag -a "${TAG}" -m "Release ${TAG}"
-
-echo "Pushed ${IMAGE_REPOSITORY}:${TAG} and ${IMAGE_REPOSITORY}:${LATEST_TAG}"
-echo "Created/updated local git tag ${TAG}"
-echo "Push manually when ready: git -C ${ROOT_DIR} push --force origin refs/tags/${TAG}"
+case "${MODE}" in
+  check)
+    echo "==> Checking ${IMAGE_REPOSITORY}:${VERSION} for ${PLATFORMS} (nothing is pushed)"
+    docker buildx build "${COMMON[@]}" --platform "${PLATFORMS}" "${SERVER_DIR}"
+    echo "OK: image builds for ${PLATFORMS} (version ${VERSION}, jar ${JAR_REL})"
+    ;;
+  load)
+    echo "==> Building ${IMAGE_REPOSITORY}:${VERSION} for the local platform"
+    docker buildx build "${COMMON[@]}" --load \
+      --tag "${IMAGE_REPOSITORY}:${VERSION}" --tag "${IMAGE_REPOSITORY}:local" "${SERVER_DIR}"
+    echo "OK: loaded ${IMAGE_REPOSITORY}:${VERSION} and :local"
+    ;;
+  push)
+    echo "==> Pushing ${IMAGE_REPOSITORY}:${VERSION} and :latest for ${PLATFORMS}"
+    docker buildx build "${COMMON[@]}" --platform "${PLATFORMS}" --push \
+      --tag "${IMAGE_REPOSITORY}:${VERSION}" --tag "${IMAGE_REPOSITORY}:latest" "${SERVER_DIR}"
+    git -C "${REPO_DIR}" tag -a "${GIT_TAG}" -m "Release ${VERSION}"
+    echo "OK: pushed ${IMAGE_REPOSITORY}:${VERSION}; created git tag ${GIT_TAG} (git push origin ${GIT_TAG})"
+    ;;
+esac

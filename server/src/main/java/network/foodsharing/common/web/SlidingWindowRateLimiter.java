@@ -7,6 +7,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import network.foodsharing.common.metrics.OperationsMetrics;
 
 /**
  * In-memory sliding-window limiter keyed by e.g. an IP (pattern from the reference {@code LoginRateLimiter}).
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SlidingWindowRateLimiter {
 
+    private final String name;
     private final Clock clock;
     private final int limit;
     private final Duration window;
@@ -23,7 +25,9 @@ public class SlidingWindowRateLimiter {
     private static final java.util.Set<SlidingWindowRateLimiter> INSTANCES =
             java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
 
-    public SlidingWindowRateLimiter(Clock clock, int limit, Duration window) {
+    /** @param name metric tag of {@code fs_rate_limit_rejections_total} (one of {@link OperationsMetrics#LIMITERS}) */
+    public SlidingWindowRateLimiter(String name, Clock clock, int limit, Duration window) {
+        this.name = name;
         this.clock = clock;
         this.limit = limit;
         this.window = window;
@@ -60,6 +64,9 @@ public class SlidingWindowRateLimiter {
         });
         if (requestsByKey.size() > 10_000) {
             requestsByKey.values().removeIf(requests -> requests.isEmpty() || requests.peekLast().isBefore(windowStart));
+        }
+        if (!allowed[0]) {
+            OperationsMetrics.rateLimited(name);
         }
         return allowed[0];
     }

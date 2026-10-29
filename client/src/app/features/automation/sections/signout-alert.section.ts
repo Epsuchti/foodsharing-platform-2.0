@@ -83,7 +83,7 @@ const CHANNELS: SignoutAlertChannel[] = [SignoutAlertChannel.Bell, SignoutAlertC
       <h3>{{ 'automation.signout.cancellationsTitle' | t }}</h3>
       <fs-data-state [state]="cancellations" skeleton="table" [emptyTitle]="'automation.signout.empty' | t" testId="automation.signout.state" data-testid="automation.signout.state" [compact]="true">
         <ng-template [fsData]="cancellations" let-rows>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0">
             <table>
               <thead>
                 <tr>

@@ -220,5 +220,6 @@
   "automation.telegram.testSent": "Test message sent.",
   "automation.template.placeholders": "Placeholders",
   "automation.template.preview": "Preview",
+  "automation.template.message": "Message text",
   "automation.template.unknown": "Unknown placeholders: {names}"
 }

@@ -220,5 +220,6 @@
   "automation.telegram.testSent": "Testnachricht gschickt.",
   "automation.template.placeholders": "Platzhalter",
   "automation.template.preview": "Vorschau",
+  "automation.template.message": "Nachrichtetext",
   "automation.template.unknown": "Unbekannti Platzhalter: {names}"
 }

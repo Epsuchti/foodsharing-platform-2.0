@@ -82,7 +82,7 @@ public class BasketService {
                          NotificationService notifications, TeamChatPort chat, HistoryService history, Clock clock,
             FeatureToggleService toggles, AppProperties properties) {
         this.toggles = toggles;
-        this.requestLimiter = new SlidingWindowRateLimiter(clock,
+        this.requestLimiter = new SlidingWindowRateLimiter("basket-requests", clock,
                 Math.max(1, properties.getBaskets().getMaxRequestsPerHour()), Duration.ofHours(1));
         this.baskets = baskets;
         this.groceries = groceries;

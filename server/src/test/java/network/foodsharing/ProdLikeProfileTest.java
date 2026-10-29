@@ -54,9 +54,10 @@ class ProdLikeProfileTest {
 
     @Test
     void devApiIsNotReachable() throws Exception {
+        // D19.1: 404 before security, also for anonymous callers (production does not reveal the dev API)
         mvc.perform(get("/api/dev/users"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
         mvc.perform(get("/api/dev/users").with(TestAuth.as(SeedUsers.ORGA)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));

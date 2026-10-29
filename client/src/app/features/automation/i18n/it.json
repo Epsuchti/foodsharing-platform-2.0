@@ -220,5 +220,6 @@
   "automation.telegram.testSent": "Messaggio di prova inviato.",
   "automation.template.placeholders": "Segnaposto",
   "automation.template.preview": "Anteprima",
+  "automation.template.message": "Testo del messaggio",
   "automation.template.unknown": "Segnaposto sconosciuti: {names}"
 }

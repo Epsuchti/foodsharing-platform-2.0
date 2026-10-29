@@ -1,0 +1,52 @@
+# Production stack (D19.1): PostgreSQL + the app. Usage on the host (directory server/deploy, .env next to it):
+#   docker compose up -d            start / upgrade (after changing VERSION in .env)
+#   docker compose logs -f app      JSON logs
+# The app listens on HTTP_BIND (default 127.0.0.1:8080) for the TLS reverse proxy; the management port 9090
+# (health, Prometheus) is reachable only inside the compose network ("backend"), e.g. by compose.monitoring.yaml.
+name: foodsharing
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: foodsharing
+      POSTGRES_USER: foodsharing
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foodsharing -d foodsharing"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    stop_grace_period: 30s
+
+  app:
+    image: ${IMAGE:-ghcr.io/epsuchti/foodsharing-platform}:${VERSION:?set VERSION in .env}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${HTTP_BIND:-127.0.0.1:8080}:8080"
+    volumes:
+      - uploads:/data
+    networks: [backend]
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    # graceful shutdown needs up to 30 s (spring.lifecycle.timeout-per-shutdown-phase)
+    stop_grace_period: 45s
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  backend:

@@ -24,3 +24,9 @@ docs/er/*
 docs/er/diagrams/*
 !docs/er/diagrams/summary/
 !docs/er/deletionOrder.txt
+# deployment secrets and backups (runbook)
+server/deploy/.env
+server/deploy/.env.local
+server/deploy/backups/
+server/deploy/monitoring/smtp_password
+server/.idea/

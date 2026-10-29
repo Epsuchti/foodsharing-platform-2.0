@@ -35,7 +35,7 @@ public class PublicController implements PublicApi {
         this.properties = properties;
         this.versionResolver = versionResolver;
         this.clock = clock;
-        this.clientErrorLimiter = new SlidingWindowRateLimiter(clock,
+        this.clientErrorLimiter = new SlidingWindowRateLimiter("client-errors", clock,
                 properties.getClientErrors().getMaxPerMinutePerIp(), Duration.ofMinutes(1));
     }
 

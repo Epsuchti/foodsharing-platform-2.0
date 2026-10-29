@@ -220,5 +220,6 @@
   "automation.telegram.testSent": "Message de test envoyé.",
   "automation.template.placeholders": "Variables",
   "automation.template.preview": "Aperçu",
+  "automation.template.message": "Texte du message",
   "automation.template.unknown": "Variables inconnues : {names}"
 }

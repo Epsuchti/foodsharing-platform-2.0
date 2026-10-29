@@ -74,7 +74,7 @@ public class MessagingService {
         this.history = history;
         this.properties = properties;
         this.clock = clock;
-        this.sendLimiter = new SlidingWindowRateLimiter(clock,
+        this.sendLimiter = new SlidingWindowRateLimiter("messages", clock,
                 Math.max(1, properties.getMessaging().getMaxMessagesPerMinute()), Duration.ofMinutes(1));
     }
 

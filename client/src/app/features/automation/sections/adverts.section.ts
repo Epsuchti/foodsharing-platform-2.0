@@ -185,7 +185,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
       }
       <fs-data-state [state]="planned" skeleton="table" [emptyTitle]="'automation.adverts.plannedEmpty' | t" testId="automation.adverts.plannedState" data-testid="automation.adverts.plannedState" [compact]="true">
         <ng-template [fsData]="planned" let-rows>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0">
             <table>
               <thead>
                 <tr>
