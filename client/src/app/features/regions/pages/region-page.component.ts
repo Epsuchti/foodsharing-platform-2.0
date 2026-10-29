@@ -24,7 +24,6 @@ interface RegionTab {
 
 /** Features of later milestones, shown as tabs with an "available in a later release" placeholder (R3 partial). */
 const LATER = [
-  { id: 'forum', icon: 'pi pi-comments' },
   { id: 'events', icon: 'pi pi-calendar' },
   { id: 'polls', icon: 'pi pi-chart-bar' },
   { id: 'stores', icon: 'pi pi-shopping-bag' },
@@ -71,6 +70,8 @@ export class RegionPageComponent {
       { id: 'pin', route: 'pin', icon: 'pi pi-map-marker', labelKey: 'regions.tab.pin', visible: member },
       { id: 'settings', route: 'settings', icon: 'pi pi-cog', labelKey: 'regions.tab.settings', visible: admin },
       { id: 'history', route: 'history', icon: 'pi pi-history', labelKey: 'regions.tab.history', visible: admin },
+      // M5 F4: /regions/:regionId/forum (features/forum)
+      { id: 'forum', route: 'forum', icon: 'pi pi-comments', labelKey: 'regions.later.forum', visible: member },
       // M4 F4: /regions/:regionId/automation (features/automation)
       { id: 'automation', route: 'automation', icon: 'pi pi-bolt', labelKey: 'regions.tab.automation', visible: admin || this.automation() },
     ];

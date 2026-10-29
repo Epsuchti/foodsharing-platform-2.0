@@ -42,6 +42,9 @@
             <p-button [label]="'regions.group.archive' | t" icon="pi pi-inbox" severity="danger" [text]="true" (onClick)="confirmArchive(g)" data-testid="regions.group.archive" />
           }
         }
+        @if (g.membership.member) {
+          <a class="p-button p-button-outlined p-button-secondary" [routerLink]="['/regions', g.id, 'forum']" data-testid="regions.group.forum"><i class="pi pi-comments" aria-hidden="true"></i> {{ 'regions.later.forum' | t }}</a>
+        }
       </div>
     </header>
 

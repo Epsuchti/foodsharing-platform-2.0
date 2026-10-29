@@ -143,6 +143,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/automation/automation.routes').then((m) => m.AUTOMATION_ROUTES),
   },
   {
+    path: '',
+    loadChildren: () => import('./features/forum/forum.routes').then((m) => m.FORUM_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>
