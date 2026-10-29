@@ -88,7 +88,8 @@ test.describe('jumper', () => {
     await expectDataState(bieb, 'baskets.detail.state', 'success');
     const row = bieb.locator(`[data-testid="baskets.detail.requestRow"][data-requester-id="${jumperId}"]`);
     await expect(row.getByTestId('baskets.detail.requestMessage')).toContainText(message);
-    await expect(row.getByTestId('baskets.detail.requestStatus')).toHaveAttribute('data-status', 'REQUESTED');
+    // the owner opening the basket marks the open request read
+    await expect(row.getByTestId('baskets.detail.requestStatus')).toHaveAttribute('data-status', 'READ');
     await row.getByTestId('baskets.detail.answer.PICKED_UP').click();
     await expect(row.getByTestId('baskets.detail.requestStatus')).toHaveAttribute('data-status', 'PICKED_UP');
     await expect(bieb.getByTestId('baskets.detail.status')).toBeVisible();

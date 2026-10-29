@@ -194,4 +194,34 @@ class UploadServiceTest {
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> storage.open(orphan + "_md"))
                 .isInstanceOf(java.io.IOException.class);
     }
+
+    /** Seed reset re-inserts image rows with variants=false while their variant files stay: reuse, else render. */
+    @Test
+    void missingVariantsAreReusedWhenStoredElseRendered() throws Exception {
+        java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(400, 300,
+                java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(image, "png", png);
+        Upload upload = uploads.store(me, new UploadService.NewFile("a.png", "image/png", png.toByteArray()));
+        assertThat(upload.isVariants()).isTrue();
+        String md = upload.getStorageKey() + "_md";
+        byte[] marker = {1, 2, 3};
+        storage.write(md, marker);
+
+        upload.setVariants(false);
+        assertThat(uploads.renderMissingVariants()).isGreaterThanOrEqualTo(1);
+        assertThat(upload.isVariants()).isTrue();
+        try (InputStream in = storage.open(md)) {
+            assertThat(in.readAllBytes()).isEqualTo(marker); // reused, not rendered again
+        }
+
+        storage.delete(upload.getStorageKey() + "_sm");
+        upload.setVariants(false);
+        uploads.renderMissingVariants();
+        assertThat(upload.isVariants()).isTrue();
+        try (InputStream in = storage.open(upload.getStorageKey() + "_sm")) {
+            assertThat(in.readAllBytes()).startsWith((byte) 0xFF, (byte) 0xD8);
+        }
+        assertThat(uploads.open(upload, "md").mimeType()).isEqualTo("image/jpeg");
+    }
 }

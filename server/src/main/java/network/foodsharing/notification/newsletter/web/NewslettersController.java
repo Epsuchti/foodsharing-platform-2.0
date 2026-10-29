@@ -110,7 +110,9 @@ public class NewslettersController implements NewslettersApi {
 
     @Override
     public ResponseEntity<Newsletter> updateNewsletter(UUID newsletterId, NewsletterPatch patch) {
-        return ResponseEntity.ok(toModel(newsletters.update(newsletterId, patch.getSubject(),
+        return ResponseEntity.ok(toModel(newsletters.update(newsletterId, patch.getKind() == null ? null
+                        : network.foodsharing.notification.newsletter.domain.NewsletterKind.valueOf(
+                                patch.getKind().name()), patch.getSubject(),
                 patch.getBodyMarkdown())));
     }
 

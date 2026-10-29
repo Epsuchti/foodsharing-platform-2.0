@@ -131,7 +131,7 @@
             schema:
               $ref: '../schemas/reports.yaml#/Report'
       "400":
-        description: VALIDATION_FAILED
+        description: 'VALIDATION_FAILED, or REPORT_REASON_NOT_ALLOWED (the reason is not offered by getReportOptions for the report''s region)'
         content:
           application/json:
             schema:

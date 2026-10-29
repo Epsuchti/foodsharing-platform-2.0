@@ -71,6 +71,13 @@ public class BasketQueryService {
         this.clock = clock;
     }
 
+    /** Groceries the basket form offers (id → name, by name): every signed-in user, unlike the store metadata. */
+    public java.util.Map<UUID, String> groceries() {
+        toggles.requireEnabled(FeatureToggle.BASKETS);
+        actors.requirePrincipal();
+        return groceryCatalog.groceryCatalog();
+    }
+
     /** @throws ApiException 404 BASKET_NOT_FOUND (also DELETED) */
     public BasketView get(UUID basketId) {
         toggles.requireEnabled(FeatureToggle.BASKETS);
