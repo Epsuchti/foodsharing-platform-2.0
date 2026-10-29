@@ -371,6 +371,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/polls/mine',
     visible: loggedIn,
   },
+  {
+    id: 'surveys',
+    labelKey: 'nav.surveys',
+    icon: 'pi pi-list-check',
+    route: '/surveys',
+    visible: (ctx) => ctx.isAuthenticated && ctx.hasPermission('CAN_MANAGE_SURVEYS'),
+  },
 ];
 
 export function visibleNavItems(

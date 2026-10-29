@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { FormsModule } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { UserSummary, UsersService } from '../../api';
 import { loadResource } from '../../core/data/data-state';
@@ -97,6 +97,8 @@ export class UserPickerComponent {
   readonly regionId = input<string | undefined>(undefined);
   readonly label = input<string | undefined>(undefined);
   readonly testId = input('userPicker');
+  /** Custom search (e.g. survey co-author candidates); default `searchUsers` limited to 8 hits. */
+  readonly search = input<((q: string) => Observable<UserSummary[]>) | undefined>(undefined);
   readonly picked = output<UserSummary>();
 
   protected readonly inputId = `fs-user-picker-${nextId++}`;
@@ -108,7 +110,11 @@ export class UserPickerComponent {
       const q = this.query().trim();
       return q.length >= 2 ? { q, regionId: this.regionId() } : undefined;
     },
-    loader: (params) => (params ? this.usersApi.searchUsers({ ...params, limit: 8 }) : of([])),
+    loader: (params) => {
+      if (!params) return of([]);
+      const search = this.search();
+      return search ? search(params.q) : this.usersApi.searchUsers({ ...params, limit: 8 });
+    },
   });
 
   protected visible(users: UserSummary[]): UserSummary[] {
