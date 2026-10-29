@@ -1,13 +1,19 @@
 name: CI
 
 # plan §18.6: contract (validate + oasdiff), build (./mvnw verify), sharded Playwright e2e + feature coverage,
-# screenshot tests in the official Playwright image, ER diagram, release image on tags.
+# screenshot tests in the official Playwright image, ER diagram check, shellcheck, dependency review on PRs, release
+# image on tags (D18.1). Weekly/on-demand: security.yml (dependency-check), load.yml (k6).
 on:
   push:
     branches: [main]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      strict-coverage:
+        description: 'Feature coverage --strict (every ledger feature row needs a tagged test; default after F6)'
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -46,6 +52,43 @@ jobs:
         run: |
           git fetch --no-tags origin "${{ github.base_ref }}"
           bash scripts/oasdiff.sh "origin/${{ github.base_ref }}"
+      # D18.1: what lands on main must stay compatible with the last released contract.
+      - name: Breaking changes against the last release tag (oasdiff)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          tag="$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)"
+          if [[ -z "${tag}" ]]; then
+            echo "No v* tag yet; nothing to compare."
+            exit 0
+          fi
+          bash scripts/oasdiff.sh "${tag}"
+
+  # D18.1: new dependencies of a PR with known high/critical advisories fail the PR.
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  # D18.1: every shell script of the repo (deploy, backup, e2e helpers) is shellcheck-clean.
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: shellcheck (preinstalled on ubuntu runners)
+        run: |
+          mapfile -t scripts < <(git ls-files '*.sh')
+          shellcheck --version
+          shellcheck --severity=warning "${scripts[@]}"
 
   # D17.2: known high/critical advisories in production dependencies fail the build (dev tooling is audited by
   # Dependabot); the NVD-based OWASP dependency-check of the server runs weekly in security.yml.
@@ -202,8 +245,11 @@ jobs:
         run: |
           mkdir -p test-results
           npx playwright merge-reports --reporter json,html ./all-blob-reports
+      # --strict (every feature row tagged) only on demand until the integrator enables it after F6 (plan-m7 Part E).
       - name: Coverage gate (docs/ledger.md vs @ID tags)
-        run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json
+        env:
+          STRICT: ${{ inputs.strict-coverage && '--strict' || '' }}
+        run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json ${STRICT}
       - name: Upload report and coverage
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -262,23 +308,28 @@ jobs:
         with:
           name: app-jar
           path: server/target
-      - run: bash scripts/er-diagram.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: er-diagram
-          path: docs/er
-          retention-days: 30
+      # Fails when docs/er/deletionOrder.txt or docs/er/diagrams/summary/*.dot do not match the changelogs.
+      - run: bash scripts/er-diagram.sh --check
 
   release:
     name: Release image
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [contract, build, e2e, screenshots]
+    needs: [contract, build, e2e, screenshots, er-diagram, shellcheck]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: server/deploy/version.txt equals the tag
+        run: |
+          version="$(tr -d '[:space:]' < server/deploy/version.txt)"
+          if [[ "v${version}" != "${GITHUB_REF_NAME}" ]]; then
+            echo "::error::server/deploy/version.txt is ${version}, the tag is ${GITHUB_REF_NAME}"
+            exit 1
+          fi
       - uses: actions/download-artifact@v4
         with:
           name: app-jar
@@ -290,16 +341,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: meta
+      # Same flow as a manual release (runbook "Build & release"): the tag must point at HEAD; builds
+      # linux/amd64 + linux/arm64 from the tested jar and pushes <version> and latest.
+      - name: release.sh --tagged
         run: |
-          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/foodsharing-platform" >> "$GITHUB_OUTPUT"
-          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@v6
-        with:
-          context: server
-          platforms: linux/amd64,linux/arm64
-          build-args: JAR_FILE=target/foodsharing-platform-*.jar
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}
-            ${{ steps.meta.outputs.image }}:latest
+          export IMAGE_REPOSITORY="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/foodsharing-platform"
+          bash server/deploy/release.sh --tagged

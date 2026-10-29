@@ -29,6 +29,7 @@ Release steps (maintainer machine, Docker with buildx):
 2. `server/deploy/release.sh --build --check` — builds the jar and the image for `linux/amd64` and `linux/arm64`, pushes nothing.
 3. `server/deploy/release.sh --load && server/deploy/smoke.sh` — local image + smoke test against the compose stack (below).
 4. `docker login ghcr.io`, then `server/deploy/release.sh --push` — refuses a dirty tree or an existing tag; pushes `<version>` and `latest`, creates the annotated tag `v<version>`; `git push origin v<version>` (CI's `release` job rebuilds the same tags from the tag build).
+   Alternatively push only the tag: the CI `release` job (on `v*` tags, after contract, build, e2e, screenshots, ER check and shellcheck) checks that `server/deploy/version.txt` equals the tag and runs `server/deploy/release.sh --tagged` (tag must point at HEAD; pushes `<version>` and `latest` from the tested jar).
 5. Upgrade the server (§5).
 
 `smoke.sh` starts `compose.yaml` + `compose.local.yaml` (Postgres, Mailpit, app with throwaway secrets in `server/deploy/.env.local`, project `foodsharing-smoke`, ports 18080/19090 on 127.0.0.1) and checks readiness on the management port, `/` = 200 with the SPA, app-info version = `version.txt`, dev endpoints 404, actuator not on the public port, Prometheus on 9090, JSON log lines, non-root user. `--keep` leaves the stack running (used for the backup rehearsal in §7).
@@ -228,6 +229,7 @@ See [`docs/monitoring.md`](monitoring.md): metrics, alert rules with first steps
 Requests arrive in Admin → Support (`/api/admin/support`, rate limited to `app.support.max-per-hour`). Typical requests:
 - **Data export (GDPR Art. 15/20)**: the user downloads it themselves (Settings → Privacy → Export, `GET /api/users/me/export`, zip of every module). There is no export on behalf of a user; if they cannot log in, verify their identity by mail from the registered address and help them log in (§9.3, email change in §9.1).
 - **Account deletion (Art. 17)**: the user deletes in Settings → Account; ORGA can delete via `DELETE /api/admin/users/{userId}` (history `ACCOUNT_DELETED`). Personal rows are deleted, authored content is anonymised (decision 71). Confirm to the user by mail; backups age out after `KEEP_DAYS` / 30 days offsite (mention this in the answer).
+- **What is kept after a deletion, and for how long**: `docs/privacy/data-inventory.md` (per column: deleted / anonymised / kept) and `docs/privacy/retention.md` (archive 2 years, history per action, cleanup tasks), decision 87.
 - **Email change / bounced address**: Admin → Users → email (`PUT /api/admin/users/{userId}/email`); bounced list `GET /api/admin/users/bounced`.
 
 ### 9.2 Logs by traceId

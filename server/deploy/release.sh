@@ -5,6 +5,8 @@
 #   release.sh [--build] --load    build for the local platform and load it as <image>:<version> and :local (smoke.sh)
 #   release.sh [--build] --push    clean tree only: build both platforms, push <image>:<version> + :latest,
 #                                  create the annotated git tag v<version> (push the tag yourself)
+#   release.sh --tagged            CI on a pushed tag: like --push, but the tag v<version> must already exist and
+#                                  point at HEAD (version.txt must match the tag); no new tag is created
 #
 #   --build      run ./mvnw clean package -DskipTests first (Angular client included)
 #   --version V  override server/deploy/version.txt
@@ -20,7 +22,7 @@ PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 BUILDER_NAME="${BUILDER_NAME:-foodsharing-platform-multiarch}"
 
 usage() {
-  sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-1}"
 }
 
@@ -29,7 +31,7 @@ BUILD=false
 VERSION=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --check|--load|--push) [[ -z "${MODE}" ]] || usage; MODE="${1#--}" ;;
+    --check|--load|--push|--tagged) [[ -z "${MODE}" ]] || usage; MODE="${1#--}" ;;
     --build) BUILD=true ;;
     --version) [[ $# -ge 2 ]] || usage; VERSION="$2"; shift ;;
     -h|--help) usage 0 ;;
@@ -55,6 +57,17 @@ if [[ "${MODE}" == "push" ]]; then
   fi
   if git -C "${REPO_DIR}" rev-parse -q --verify "refs/tags/${GIT_TAG}" > /dev/null; then
     echo "Git tag ${GIT_TAG} already exists; bump server/deploy/version.txt." >&2
+    exit 1
+  fi
+fi
+if [[ "${MODE}" == "tagged" ]]; then
+  TAG_COMMIT="$(git -C "${REPO_DIR}" rev-parse -q --verify "refs/tags/${GIT_TAG}^{commit}" || true)"
+  if [[ -z "${TAG_COMMIT}" ]]; then
+    echo "server/deploy/version.txt says ${VERSION}, but there is no git tag ${GIT_TAG} (tag and version.txt differ)." >&2
+    exit 1
+  fi
+  if [[ "${TAG_COMMIT}" != "$(git -C "${REPO_DIR}" rev-parse HEAD)" ]]; then
+    echo "Git tag ${GIT_TAG} does not point at HEAD; check out the tag to release it." >&2
     exit 1
   fi
 fi
@@ -104,5 +117,11 @@ case "${MODE}" in
       --tag "${IMAGE_REPOSITORY}:${VERSION}" --tag "${IMAGE_REPOSITORY}:latest" "${SERVER_DIR}"
     git -C "${REPO_DIR}" tag -a "${GIT_TAG}" -m "Release ${VERSION}"
     echo "OK: pushed ${IMAGE_REPOSITORY}:${VERSION}; created git tag ${GIT_TAG} (git push origin ${GIT_TAG})"
+    ;;
+  tagged)
+    echo "==> Pushing ${IMAGE_REPOSITORY}:${VERSION} and :latest for ${PLATFORMS} (tag ${GIT_TAG})"
+    docker buildx build "${COMMON[@]}" --platform "${PLATFORMS}" --push \
+      --tag "${IMAGE_REPOSITORY}:${VERSION}" --tag "${IMAGE_REPOSITORY}:latest" "${SERVER_DIR}"
+    echo "OK: pushed ${IMAGE_REPOSITORY}:${VERSION} from ${GIT_TAG}"
     ;;
 esac
