@@ -90,8 +90,7 @@
             [label]="'profiles.action.report' | t"
             severity="danger"
             [text]="true"
-            [routerLink]="['/reports/new']"
-            [queryParams]="{ userId: p.user.id }"
+            (onClick)="reportDialogOpen.set(true)"
             data-testid="profiles.page.report"
           />
         }
@@ -118,6 +117,10 @@
     </fs-profile-card>
 
     <fs-profile-stats [stats]="p.stats" />
+
+    @if (reportsReady && p.violationCount !== undefined && p.violationCount !== null) {
+      <fs-user-reports [userId]="p.user.id" [count]="p.violationCount" />
+    }
 
     <div class="facts">
       @if (p.regions.length || p.groups.length) {
@@ -362,5 +365,9 @@
       (confirm)="giveBanana.run($event)"
       testId="profiles.bananaDialog"
     />
+
+    @if (reportsReady && p.permissions.mayReport && !self()) {
+      <fs-report-dialog [(visible)]="reportDialogOpen" [userId]="p.user.id" [userName]="p.user.displayName" (created)="profile.reload()" />
+    }
   </ng-template>
 </fs-data-state>
