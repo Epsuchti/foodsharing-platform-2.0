@@ -245,7 +245,7 @@ EventCreate:
       type: string
       minLength: 8
       maxLength: 500
-      pattern: ^https://
+      pattern: '^https://\S+$'
     inviteAllMembers:
       type: boolean
 
