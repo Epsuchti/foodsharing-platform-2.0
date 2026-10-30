@@ -11,15 +11,12 @@ import network.foodsharing.resource.domain.Resource;
  */
 public final class ResourceRules {
 
-    /** Upstream {@code REGION_TYPES_WITH_RESOURCES}. */
-    public static final Set<UnitType> REGION_TYPES =
-            Set.of(UnitType.BIG_CITY, UnitType.CITY, UnitType.PART_OF_TOWN, UnitType.WORKING_GROUP);
-
     private ResourceRules() {
     }
 
+    /** {@link UnitType#hasResources()}: the same rule the region page reads as {@code RegionDetail.resourcesAvailable}. */
     public static boolean hasResources(UnitType type) {
-        return type != null && REGION_TYPES.contains(type);
+        return type != null && type.hasResources();
     }
 
     public static boolean maySee(UnitType type, boolean member) {

@@ -1,10 +1,4 @@
-import { Resource, ResourceCategory, ResourceOpenness, UnitType } from '../../api';
-
-/**
- * Unit types with a resource mosaic (upstream `REGION_TYPES_WITH_RESOURCES`, A55); other regions answer 403
- * RESOURCES_NOT_AVAILABLE, so the region page hides the tab there.
- */
-export const RESOURCE_UNIT_TYPES: readonly UnitType[] = [UnitType.BigCity, UnitType.City, UnitType.PartOfTown, UnitType.WorkingGroup];
+import { RegionDetail, Resource, ResourceCategory, ResourceOpenness } from '../../api';
 
 export const RESOURCE_NAME_MAX = 200;
 export const RESOURCE_DESCRIPTION_MAX = 4000;
@@ -13,8 +7,12 @@ export const RESOURCE_IMAGES_MAX = 5;
 
 export const OPENNESS_VALUES: readonly ResourceOpenness[] = [ResourceOpenness.AskFirst, ResourceOpenness.FreeToBorrow, ResourceOpenness.GiveAway];
 
-export function hasResources(type: UnitType | string | undefined | null): boolean {
-  return !!type && (RESOURCE_UNIT_TYPES as readonly string[]).includes(type);
+/**
+ * The region has a resource mosaic: the server's `RegionDetail.resourcesAvailable` (`UnitType.hasResources`, A55);
+ * other units answer 403 RESOURCES_NOT_AVAILABLE, so the region page hides the tab there.
+ */
+export function hasResources(region: Pick<RegionDetail, 'resourcesAvailable'> | undefined | null): boolean {
+  return region?.resourcesAvailable === true;
 }
 
 /** Commons belong to the region (no owner, A55). */

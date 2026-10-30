@@ -29,6 +29,8 @@ export type RedirectUriProblem = 'required' | 'invalid' | 'insecure';
 /**
  * Client-side copy of `OAuthClientService.validRedirectUri` (decision 92 pattern; the server still answers 400
  * OAUTH_REDIRECT_URI_INVALID): absolute, with a host, no fragment, no spaces; https, or http on localhost/127.0.0.1.
+ * Pinned to `OAuthClientService.registrableRedirectUri` by the shared cases in
+ * `server/src/test/resources/rule-cases/oauth-client.json` (both test suites run them).
  */
 export function redirectUriProblem(raw: string): RedirectUriProblem | null {
   const value = raw.trim();
@@ -44,7 +46,8 @@ export function redirectUriProblem(raw: string): RedirectUriProblem | null {
   } catch {
     return 'invalid';
   }
-  if (!url.hostname || !/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
+  // the authority must be written out (`https:///cb` parses with host "cb" in browsers, java.net.URI has no host)
+  if (!url.hostname || !/^[a-z][a-z0-9+.-]*:\/\/[^/?#]/i.test(value)) {
     return 'invalid';
   }
   const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
@@ -54,7 +57,7 @@ export function redirectUriProblem(raw: string): RedirectUriProblem | null {
   return url.protocol === 'http:' ? 'insecure' : 'invalid';
 }
 
-/** Server rule of `createOAuthClient`: 3–60 characters of `a-z 0-9 . _ -`. */
+/** Server rule `OAuthClientService.validClientId`: 3–60 characters of `a-z 0-9 . _ -` (same shared cases). */
 export function validClientId(value: string): boolean {
   return /^[a-z0-9._-]{3,60}$/.test(value.trim());
 }

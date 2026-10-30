@@ -154,6 +154,7 @@ public class RegionMapper {
         detail.setStatistics(view.statistics() == null ? null : toStatistics(view.statistics()));
         detail.setMayCoordinateStores(view.mayCoordinateStores());
         detail.setMayHandleReports(view.mayHandleReports());
+        detail.setResourcesAvailable(region.getType() != null && region.getType().hasResources());
         return detail;
     }
 

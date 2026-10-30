@@ -58,6 +58,17 @@ class RegionApiIT {
     }
 
     @Test
+    void resourcesAvailableFollowsTheResourceRule() throws Exception {
+        Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        // Zürich Stadt is a city (resource mosaic); the canton is a federal state, whose resource endpoints answer
+        // 403 RESOURCES_NOT_AVAILABLE (ResourceFlowIT)
+        mvc.perform(get("/api/regions/" + ZUERICH).cookie(foodsaver))
+                .andExpect(jsonPath("$.resourcesAvailable").value(true));
+        mvc.perform(get("/api/regions/" + CANTON).cookie(foodsaver))
+                .andExpect(jsonPath("$.resourcesAvailable").value(false));
+    }
+
+    @Test
     void mayCoordinateStoresFollowsTheStoresImportRule() throws Exception {
         // Zürich has a STORES_COORDINATION group (admin: bieb), which supersedes its ambassador bot
         String zuerich = "/api/regions/" + ZUERICH;

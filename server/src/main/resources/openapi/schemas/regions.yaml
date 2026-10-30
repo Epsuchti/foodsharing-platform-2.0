@@ -216,6 +216,9 @@ RegionDetail:
     mayHandleReports:
       type: boolean
       description: 'The actor handles the reports of this region (A51: ORGA; admins of its REPORT group, else its ambassadors; admins of its ARBITRATION group; handlers of an ancestor region).'
+    resourcesAvailable:
+      type: boolean
+      description: 'The unit has a resource mosaic (A55: BIG_CITY, CITY, PART_OF_TOWN, WORKING_GROUP); elsewhere the resource endpoints answer 403 RESOURCES_NOT_AVAILABLE. The same rule as ResourceRules.hasResources; membership and the RESOURCES toggle still apply.'
 
 HomeRegionUpdate:
   type: object

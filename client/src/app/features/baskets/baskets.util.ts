@@ -84,15 +84,22 @@ export interface BasketFormValue {
   photoUploadId: string | null;
 }
 
+/** Server `BasketRules.validCoordinates`: in range and not (0, 0). */
+function validPin(position: [number, number] | null): boolean {
+  if (!position) return false;
+  const [lat, lon] = position;
+  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 && !(lat === 0 && lon === 0);
+}
+
 /**
- * Client-side copy of the server rules (BasketRules.validate) so the form explains itself before sending:
- * `BASKET_CONTACT_REQUIRED` without any contact type, `BASKET_LOCATION_REQUIRED` for CUSTOM without a pin and for
- * HOME when the own profile has no coordinates (`homeKnown`). Returns the `ApiErrorCode`s that apply.
+ * Client-side copy of the server rules (BasketRules.locate + validate) so the form explains itself before sending:
+ * `BASKET_CONTACT_REQUIRED` without any contact type, `BASKET_LOCATION_REQUIRED` for CUSTOM without a valid pin and for
+ * HOME when the own profile has no coordinates (`homeKnown`). Returns the `ApiErrorCode`s that apply. Pinned to the
+ * server by the shared cases in `server/src/test/resources/rule-cases/basket-form.json` (both test suites run them).
  */
 export function basketFormProblems(value: BasketFormValue, homeKnown: boolean): ('BASKET_CONTACT_REQUIRED' | 'BASKET_LOCATION_REQUIRED')[] {
   const problems: ('BASKET_CONTACT_REQUIRED' | 'BASKET_LOCATION_REQUIRED')[] = [];
-  const location =
-    value.locationType === BasketLocationType.Custom ? value.position !== null : homeKnown;
+  const location = value.locationType === BasketLocationType.Custom ? validPin(value.position) : homeKnown;
   if (!location) problems.push('BASKET_LOCATION_REQUIRED');
   if (!value.contactMessage && !value.contactPhone && !value.contactMobile) problems.push('BASKET_CONTACT_REQUIRED');
   return problems;

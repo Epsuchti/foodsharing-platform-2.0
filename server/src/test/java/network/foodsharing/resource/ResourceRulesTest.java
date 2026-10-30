@@ -9,8 +9,8 @@ import network.foodsharing.resource.domain.Resource;
 import network.foodsharing.resource.service.ResourceRules;
 import org.junit.jupiter.api.Test;
 
-/** Upstream ResourcePermissions (C6). */
-class ResourcePermissionTest {
+/** Upstream ResourcePermissions (C6): the pure {@link ResourceRules}, incl. the per-user limit. */
+class ResourceRulesTest {
 
     private static final UUID OWNER = UUID.randomUUID();
     private static final UUID OTHER = UUID.randomUUID();
@@ -35,9 +35,23 @@ class ResourcePermissionTest {
     }
 
     @Test
+    void resourcesAvailableIsTheSameRuleAsTheUnitType() {
+        // RegionDetail.resourcesAvailable reads UnitType.hasResources; the endpoints read ResourceRules.hasResources
+        for (UnitType type : UnitType.values()) {
+            assertThat(ResourceRules.hasResources(type)).as(type.name()).isEqualTo(type.hasResources());
+        }
+        assertThat(java.util.Arrays.stream(UnitType.values()).filter(UnitType::hasResources))
+                .containsExactlyInAnyOrder(UnitType.BIG_CITY, UnitType.CITY, UnitType.PART_OF_TOWN,
+                        UnitType.WORKING_GROUP);
+    }
+
+    @Test
     void addLimit() {
+        assertThat(ResourceRules.mayAdd(0, 10)).isTrue();
         assertThat(ResourceRules.mayAdd(9, 10)).isTrue();
         assertThat(ResourceRules.mayAdd(10, 10)).isFalse();
+        assertThat(ResourceRules.mayAdd(11, 10)).isFalse();
+        assertThat(ResourceRules.mayAdd(0, 0)).isFalse();
     }
 
     @Test

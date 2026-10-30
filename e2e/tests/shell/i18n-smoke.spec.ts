@@ -1,11 +1,23 @@
 import type { Page } from '@playwright/test';
-import { LANGUAGES, acceptPendingConsents, expect, expectNoMissingKeys, setLanguage, test, type ApiClient, type Role } from '../../fixtures';
+import {
+  LANGUAGES,
+  acceptPendingConsents,
+  clippedTextsOn,
+  expect,
+  expectNoMissingKeys,
+  expectNoOverflow,
+  setLanguage,
+  test,
+  type ApiClient,
+  type Role,
+} from '../../fixtures';
 import type { Language } from '../../fixtures/types';
 import { consentRequest } from '../a11y/routes';
 
 /**
  * Five-language smoke (plan §18.3, plan-m7 F6) and the M6 translation sweep (plan-m6 F9): pages open in every UI
- * language without raw translation keys and with the right `<html lang>`. Signed-in users get the language through
+ * language without raw translation keys, with the right `<html lang>` and without horizontal overflow or text cut off
+ * sideways (`expectNoOverflow`, review-m7 rec. 7; desktop on chromium, phones on mobile-chrome). Signed-in users get the language through
  * their account setting (it wins over the device setting), visitors through the stored device language.
  */
 
@@ -56,6 +68,8 @@ async function visitAll(
       await expect(page.locator('html')).toHaveAttribute('lang', HTML_LANG[lang]);
       await afterReady?.(page, visit);
       await expectNoMissingKeys(page);
+      // §18.3 "no overflowing text" per language, on desktop (chromium …) and phones (mobile-chrome …)
+      await expectNoOverflow(page, `${visit.path} as ${role ?? 'visitor'} in ${lang}`);
     }
     await page.context().close();
   }
@@ -89,6 +103,23 @@ const SMOKE: Visit[] = [
   { path: '/oauth/consent', role: 'foodsaver', ready: 'oauth.consent.approve', resolve: consentRequest },
   { path: `/stores/${S01}/overview`, role: 'bieb', ready: 'stores.overview.info' },
 ];
+
+test('D18.3 the overflow audit finds clipped text and ignores scrollers, ellipsis and screen-reader text @D18.3', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    const word = 'Lebensmittelrettungsbotschafterinnenversammlung';
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      `<div style="width:120px;overflow:hidden"><span data-testid="audit.clipped">${word}</span></div>
+       <div style="width:120px;overflow-x:auto"><span data-testid="audit.scroller">${word}</span></div>
+       <div style="width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-testid="audit.ellipsis">${word}</div>
+       <span class="fs-visually-hidden" data-testid="audit.srOnly">${word}</span>`,
+    );
+  });
+  const findings = await clippedTextsOn(page);
+  expect(findings.some((finding) => finding.startsWith('audit.clipped '))).toBe(true);
+  expect(findings.filter((finding) => /^audit\.(scroller|ellipsis|srOnly) /.test(finding))).toEqual([]);
+});
 
 test.describe('five-language smoke', () => {
   for (const lang of LANGUAGES) {

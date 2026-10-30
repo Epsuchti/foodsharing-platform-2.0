@@ -200,6 +200,7 @@ export { NotificationHelpers, type BellDto, type DevNotification } from './notif
 export { expectNoSeriousViolations } from './a11y';
 export * from './errors';
 export { LANGUAGES, setLanguage, expectNoMissingKeys } from './i18n';
+export { clippedTextsOn, expectNoOverflow } from './layout';
 export { addVirtualAuthenticator, type VirtualAuthenticator } from './webauthn';
 export { expectPdfContains, pdfText, type PdfSource, type PdfText } from './pdf';
 export { RegionHelpers, regionId, seedRegion, seedRegions, type SeedRegion } from './regions';

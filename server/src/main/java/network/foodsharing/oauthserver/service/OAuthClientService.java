@@ -107,7 +107,7 @@ public class OAuthClientService {
     public Created create(ClientInput in) {
         requireOrga();
         String clientId = in.clientId() == null ? "" : in.clientId().trim();
-        if (!clientId.matches("[a-z0-9._-]{3,60}")) {
+        if (!validClientId(clientId)) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
         }
         if (clients.existsByClientId(clientId)) {
@@ -184,6 +184,23 @@ public class OAuthClientService {
         return secret;
     }
 
+    /**
+     * Client ids: 3–60 characters of {@code a-z 0-9 . _ -} (after trimming). The client copy ({@code oauth.util.ts
+     * validClientId}) runs the same cases ({@code src/test/resources/rule-cases/oauth-client.json}).
+     */
+    public static boolean validClientId(String value) {
+        return value != null && value.trim().matches("[a-z0-9._-]{3,60}");
+    }
+
+    /**
+     * A redirect URI as sent in a client create/update (trimmed, no spaces, then {@link #validRedirectUri}). The
+     * client copy ({@code oauth.util.ts redirectUriProblem}) runs the same cases
+     * ({@code src/test/resources/rule-cases/oauth-client.json}).
+     */
+    public static boolean registrableRedirectUri(String raw) {
+        return raw != null && !raw.trim().contains(" ") && validRedirectUri(raw.trim());
+    }
+
     /** Is the redirect URI acceptable for registration (absolute, https or http on localhost, no fragment)? */
     public static boolean validRedirectUri(String value) {
         try {
@@ -214,7 +231,7 @@ public class OAuthClientService {
                 throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
             }
             for (String uri : in.redirectUris()) {
-                if (uri == null || !validRedirectUri(uri.trim()) || uri.trim().contains(" ")) {
+                if (!registrableRedirectUri(uri)) {
                     throw ApiException.badRequest(ApiErrorCode.OAUTH_REDIRECT_URI_INVALID);
                 }
             }
