@@ -14,6 +14,9 @@ forEachVariant((variant) => {
     screenshotTest('bell panel @N3 @screenshot', async ({ page, visual }) => {
       await page.goto('/dashboard');
       const button = page.getByTestId('bells.button');
+      const menu = page.getByTestId('nav.tab.menu');
+      // the side menu's bell renders after the first page; wait for whichever entry this layout has
+      await expect(button.or(menu).filter({ visible: true }).first()).toBeVisible();
       if (await button.isVisible()) {
         await button.click();
         await expect(page.getByTestId('bells.panel.state')).toHaveAttribute('data-state', 'success');

@@ -71,7 +71,13 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   if (options.waitForData ?? true) {
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
+    // banners, the release-notes dot and toggled nav items appear after the first page (StartupService.markPageShown);
+    // its idle callback falls back to a 5 s timeout under the fixed page clock
+    if (await page.evaluate(() => document.body?.querySelector('fs-shell') !== null)) {
+      await expect(page.locator('html[data-page-shown]')).toHaveCount(1, { timeout: 15_000 });
+    }
     await networkQuiet(page);
+    await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
   }
   await page.evaluate(
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),

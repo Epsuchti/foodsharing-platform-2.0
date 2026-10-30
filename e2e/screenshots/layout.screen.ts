@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { collapseSidenav } from '../fixtures';
+import { acceptPendingConsents, collapseSidenav, type ApiClient } from '../fixtures';
 import { expect, forEachVariant, screenshotTest, variants } from './_setup';
 
 /**
@@ -13,7 +13,9 @@ import { expect, forEachVariant, screenshotTest, variants } from './_setup';
 const WIDE = { width: 1280, height: 800 };
 const LAPTOP = { width: 1000, height: 800 };
 
-async function dashboard(page: Page, viewport: { width: number; height: number }): Promise<void> {
+async function dashboard(page: Page, viewport: { width: number; height: number }, api?: ApiClient): Promise<void> {
+  // seed newcomers have pending legal consents, which would show /consent instead of the dashboard
+  if (api) await acceptPendingConsents(api);
   await page.setViewportSize(viewport);
   await page.goto('/dashboard');
   await expect(page.getByTestId('nav.sidenav')).toBeVisible();
@@ -37,8 +39,8 @@ forEachVariant(
 
         screenshotTest(
           `side menu expanded, ${name} @D4.3 @screenshot`,
-          async ({ page, visual }) => {
-            await dashboard(page, WIDE);
+          async ({ page, visual, apiOf }) => {
+            await dashboard(page, WIDE, apiOf(page));
             if (role === 'newbie')
               await expect(page.getByTestId('nav.onboarding.progress')).toBeVisible();
             await visual.expectScreen(page, `sidenav-expanded-${name}-${variant.name}`, {
@@ -47,8 +49,8 @@ forEachVariant(
           },
         );
 
-        screenshotTest(`side menu rail, ${name} @D4.3 @screenshot`, async ({ page, visual }) => {
-          await dashboard(page, LAPTOP);
+        screenshotTest(`side menu rail, ${name} @D4.3 @screenshot`, async ({ page, visual, apiOf }) => {
+          await dashboard(page, LAPTOP, apiOf(page));
           await collapseSidenav(page);
           await visual.expectScreen(page, `sidenav-rail-${name}-${variant.name}`, {
             fullPage: false,
@@ -66,8 +68,8 @@ forEachVariant((variant) => {
 
     screenshotTest(
       'region switcher with regions and working groups @D4.3 @screenshot',
-      async ({ page, visual }) => {
-        await dashboard(page, WIDE);
+      async ({ page, visual, apiOf }) => {
+        await dashboard(page, WIDE, apiOf(page));
         await page.getByTestId('shell.regionSwitcher').click();
         await expect(page.getByTestId('shell.regionSwitcher.card')).toBeVisible();
         await visual.expectScreen(page, `sidenav-region-switcher-${variant.name}`, {
@@ -78,8 +80,8 @@ forEachVariant((variant) => {
 
     screenshotTest(
       'user menu with language, theme and shortcuts @D4.3 @screenshot',
-      async ({ page, visual }) => {
-        await dashboard(page, LAPTOP);
+      async ({ page, visual, apiOf }) => {
+        await dashboard(page, LAPTOP, apiOf(page));
         await page.getByTestId('shell.userMenu').click();
         await page.getByTestId('shell.userMenu.language').click();
         await expect(page.getByTestId('shell.userMenu.language.de')).toBeVisible();
@@ -91,8 +93,8 @@ forEachVariant((variant) => {
 
     screenshotTest(
       'bell panel next to the bell item @D4.3 @screenshot',
-      async ({ page, visual }) => {
-        await dashboard(page, WIDE);
+      async ({ page, visual, apiOf }) => {
+        await dashboard(page, WIDE, apiOf(page));
         await page.getByTestId('bells.button').click();
         await expect(page.getByTestId('bells.panel.state')).toHaveAttribute(
           'data-state',

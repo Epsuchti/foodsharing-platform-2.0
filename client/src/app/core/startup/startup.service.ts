@@ -39,6 +39,8 @@ export class StartupService {
       return;
     }
     this.shown.set(true);
+    // lets screenshot tests wait for the after-first-page content (banners, toggled items) instead of racing it
+    this.view?.document.documentElement.setAttribute('data-page-shown', '');
     // toggled nav items and pages appear once loaded; routes behind featureGuard load them on their own
     void this.featureToggles.load();
     const view = this.view;
