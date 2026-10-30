@@ -432,20 +432,7 @@ public class BasketService {
     }
 
     private static void locate(Basket basket, User owner, BasketLocationType type, Double lat, Double lon) {
-        basket.setLocationType(type);
-        if (type == BasketLocationType.HOME) {
-            if (owner.getLatitude() == null || owner.getLongitude() == null) {
-                throw ApiException.badRequest(ApiErrorCode.BASKET_LOCATION_REQUIRED);
-            }
-            basket.setLat(owner.getLatitude());
-            basket.setLon(owner.getLongitude());
-        } else {
-            if (!BasketRules.validCoordinates(lat, lon)) {
-                throw ApiException.badRequest(ApiErrorCode.BASKET_LOCATION_REQUIRED);
-            }
-            basket.setLat(lat);
-            basket.setLon(lon);
-        }
+        BasketRules.locate(basket, type, lat, lon, owner.getLatitude(), owner.getLongitude());
     }
 
     private void replaceGroceries(UUID basketId, List<UUID> groceryIds) {

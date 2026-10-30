@@ -3,15 +3,20 @@ package network.foodsharing.basket;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.basket.domain.Basket;
 import network.foodsharing.basket.domain.BasketLocationType;
 import network.foodsharing.basket.domain.BasketRequestStatus;
 import network.foodsharing.basket.domain.BasketStatus;
 import network.foodsharing.basket.service.BasketRules;
+import network.foodsharing.common.error.ApiException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Pure basket rules: open/expiry, who may request/delete, live requests, HOME rounding, distance. */
 class BasketRulesTest {
@@ -65,6 +70,45 @@ class BasketRulesTest {
         assertThat(BasketRules.publicCoordinate(home, 47.389123, false)).isEqualTo(47.389);
         assertThat(BasketRules.publicCoordinate(home, 47.389123, true)).isEqualTo(47.389123);
         assertThat(BasketRules.publicCoordinate(custom, 47.389123, false)).isEqualTo(47.389123);
+    }
+
+    record FormCase(String name, String locationType, boolean home, List<Double> position, boolean contactMessage,
+                    boolean contactPhone, boolean contactMobile, List<String> problems) {
+    }
+
+    record FormCases(String about, List<FormCase> cases) {
+    }
+
+    /** The cases the client's {@code basketFormProblems} runs too (decision 99): the client copy cannot drift. */
+    @Test
+    void locationAndContactRulesMatchTheSharedCases() throws Exception {
+        FormCases fixture;
+        try (InputStream in = getClass().getResourceAsStream("/rule-cases/basket-form.json")) {
+            fixture = JsonMapper.builder().build().readValue(in, FormCases.class);
+        }
+        assertThat(fixture.cases()).hasSizeGreaterThan(10);
+        for (FormCase c : fixture.cases()) {
+            Basket basket = basket(BasketStatus.ACTIVE, NOW.plus(Duration.ofDays(1)), BasketLocationType.HOME);
+            basket.setDescription("Brot");
+            basket.setLifetimeDays(BasketRules.DEFAULT_LIFETIME_DAYS);
+            basket.setContactMessage(c.contactMessage());
+            basket.setContactPhone(c.contactPhone());
+            basket.setContactMobile(c.contactMobile());
+            basket.setPhone("+41 44 123 45 67");
+            basket.setMobile("+41 79 123 45 67");
+            Double lat = c.position() == null ? null : c.position().get(0);
+            Double lon = c.position() == null ? null : c.position().get(1);
+            ApiErrorCode thrown = null;
+            try {
+                BasketRules.locate(basket, BasketLocationType.valueOf(c.locationType()), lat, lon,
+                        c.home() ? 47.3769 : null, c.home() ? 8.5417 : null);
+                BasketRules.validate(basket);
+            } catch (ApiException e) {
+                thrown = e.getCode();
+            }
+            assertThat(thrown == null ? null : thrown.getValue()).as(c.name())
+                    .isEqualTo(c.problems().isEmpty() ? null : c.problems().get(0));
+        }
     }
 
     @Test

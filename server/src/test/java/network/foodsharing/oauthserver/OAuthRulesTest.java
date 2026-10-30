@@ -2,7 +2,9 @@ package network.foodsharing.oauthserver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.InputStream;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +15,7 @@ import network.foodsharing.oauthserver.service.UserInfoService;
 import network.foodsharing.region.domain.Region;
 import network.foodsharing.user.domain.User;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 /** A44: PKCE S256, hashing, redirect URI registration and the userinfo scope matrix. */
 class OAuthRulesTest {
@@ -46,6 +49,31 @@ class OAuthRulesTest {
         assertThat(OAuthClientService.validRedirectUri("https://wiki.example.org/cb#x")).isFalse();
         assertThat(OAuthClientService.validRedirectUri("/relative")).isFalse();
         assertThat(OAuthClientService.validRedirectUri("javascript:alert(1)")).isFalse();
+    }
+
+    record Examples(List<String> valid, List<String> invalid) {
+    }
+
+    record ClientCases(String about, Examples redirectUris, Examples clientIds) {
+    }
+
+    /** The cases the client's {@code redirectUriProblem}/{@code validClientId} run too (decision 116). */
+    @Test
+    void registrationRulesMatchTheSharedCases() throws Exception {
+        ClientCases fixture;
+        try (InputStream in = getClass().getResourceAsStream("/rule-cases/oauth-client.json")) {
+            fixture = JsonMapper.builder().build().readValue(in, ClientCases.class);
+        }
+        assertThat(fixture.redirectUris().valid()).isNotEmpty()
+                .allSatisfy(uri -> assertThat(OAuthClientService.registrableRedirectUri(uri)).as(uri).isTrue());
+        assertThat(fixture.redirectUris().invalid()).isNotEmpty()
+                .allSatisfy(uri -> assertThat(OAuthClientService.registrableRedirectUri(uri)).as(uri).isFalse());
+        assertThat(fixture.clientIds().valid()).isNotEmpty()
+                .allSatisfy(id -> assertThat(OAuthClientService.validClientId(id)).as(id).isTrue());
+        assertThat(fixture.clientIds().invalid()).isNotEmpty()
+                .allSatisfy(id -> assertThat(OAuthClientService.validClientId(id)).as(id).isFalse());
+        assertThat(OAuthClientService.registrableRedirectUri(null)).isFalse();
+        assertThat(OAuthClientService.validClientId(null)).isFalse();
     }
 
     @Test

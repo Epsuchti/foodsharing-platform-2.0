@@ -1,0 +1,40 @@
+{
+  "about": "Shared cases of the OAuth client registration rules (decision 116): OAuthRulesTest runs them against OAuthClientService.registrableRedirectUri / validClientId, client oauth.spec.ts against redirectUriProblem (null = valid) / validClientId.",
+  "redirectUris": {
+    "valid": [
+      "https://wiki.example.org/callback",
+      "https://wiki.example.org",
+      "https://wiki.example.org:8443/oauth/cb?x=1&y=2",
+      "  https://wiki.example.org/cb  ",
+      "HTTPS://wiki.example.org/cb",
+      "https://user@wiki.example.org/cb",
+      "https://192.168.1.10/cb",
+      "http://localhost:8080/cb",
+      "http://localhost/cb",
+      "http://127.0.0.1/cb",
+      "http://127.0.0.1:4200/oauth/callback"
+    ],
+    "invalid": [
+      "",
+      "   ",
+      "http://wiki.example.org/cb",
+      "http://localhost.example.org/cb",
+      "http://192.168.1.10/cb",
+      "https://wiki.example.org/cb#x",
+      "https://wiki.example.org/cb#",
+      "https://wiki example.org/cb",
+      "https://wiki.example.org/c b",
+      "/relative",
+      "wiki.example.org/cb",
+      "javascript:alert(1)",
+      "mailto:ops@example.org",
+      "ftp://wiki.example.org/cb",
+      "https:wiki.example.org/cb",
+      "https:///cb"
+    ]
+  },
+  "clientIds": {
+    "valid": ["wiki", "foodsharing-wiki-zurich", "a.b_c-d", "abc", "  wiki-local  ", "012345678901234567890123456789012345678901234567890123456789"],
+    "invalid": ["", "ab", "Wiki", "wiki zurich", "wiki/zurich", "wiki@zurich", "zürich", "0123456789012345678901234567890123456789012345678901234567890"]
+  }
+}

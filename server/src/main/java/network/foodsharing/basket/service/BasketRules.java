@@ -47,6 +47,31 @@ public final class BasketRules {
         basket.setMobile(phone(basket.getMobile(), basket.isContactMobile(), "mobile"));
     }
 
+    /**
+     * Sets the location: HOME takes the owner's profile coordinates, CUSTOM the pin. The client pre-validates the same
+     * rule ({@code baskets.util.ts basketFormProblems}); both run the cases of
+     * {@code src/test/resources/rule-cases/basket-form.json}.
+     *
+     * @throws ApiException 400 BASKET_LOCATION_REQUIRED (HOME without profile coordinates, CUSTOM without a valid pin)
+     */
+    public static void locate(Basket basket, BasketLocationType type, Double lat, Double lon, Double homeLat,
+                              Double homeLon) {
+        basket.setLocationType(type);
+        if (type == BasketLocationType.HOME) {
+            if (homeLat == null || homeLon == null) {
+                throw ApiException.badRequest(ApiErrorCode.BASKET_LOCATION_REQUIRED);
+            }
+            basket.setLat(homeLat);
+            basket.setLon(homeLon);
+        } else {
+            if (!validCoordinates(lat, lon)) {
+                throw ApiException.badRequest(ApiErrorCode.BASKET_LOCATION_REQUIRED);
+            }
+            basket.setLat(lat);
+            basket.setLon(lon);
+        }
+    }
+
     static boolean validCoordinates(Double lat, Double lon) {
         return lat != null && lon != null && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
                 && !(lat == 0 && lon == 0);

@@ -1,0 +1,19 @@
+{
+  "about": "Shared cases of the basket location/contact rule (decision 99): BasketRulesTest runs them against BasketRules.locate + validate (the first problem is the 400 code), client baskets.util.spec.ts against basketFormProblems (all problems in this order). home = the own profile has coordinates.",
+  "cases": [
+    { "name": "home known, message", "locationType": "HOME", "home": true, "position": null, "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": [] },
+    { "name": "home known, phone only", "locationType": "HOME", "home": true, "position": null, "contactMessage": false, "contactPhone": true, "contactMobile": false, "problems": [] },
+    { "name": "home known, mobile only", "locationType": "HOME", "home": true, "position": null, "contactMessage": false, "contactPhone": false, "contactMobile": true, "problems": [] },
+    { "name": "home unknown", "locationType": "HOME", "home": false, "position": null, "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED"] },
+    { "name": "home ignores a pin", "locationType": "HOME", "home": false, "position": [47.38, 8.52], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED"] },
+    { "name": "custom with pin", "locationType": "CUSTOM", "home": false, "position": [47.38, 8.52], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": [] },
+    { "name": "custom without pin", "locationType": "CUSTOM", "home": true, "position": null, "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED"] },
+    { "name": "custom pin on null island", "locationType": "CUSTOM", "home": true, "position": [0, 0], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED"] },
+    { "name": "custom pin latitude out of range", "locationType": "CUSTOM", "home": true, "position": [90.5, 8.52], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED"] },
+    { "name": "custom pin longitude out of range", "locationType": "CUSTOM", "home": true, "position": [47.38, -180.5], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED"] },
+    { "name": "custom pin on the edge", "locationType": "CUSTOM", "home": false, "position": [-90, 180], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": [] },
+    { "name": "custom pin on the equator", "locationType": "CUSTOM", "home": false, "position": [0, 8.52], "contactMessage": true, "contactPhone": false, "contactMobile": false, "problems": [] },
+    { "name": "no contact type", "locationType": "HOME", "home": true, "position": null, "contactMessage": false, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_CONTACT_REQUIRED"] },
+    { "name": "neither location nor contact", "locationType": "CUSTOM", "home": true, "position": null, "contactMessage": false, "contactPhone": false, "contactMobile": false, "problems": ["BASKET_LOCATION_REQUIRED", "BASKET_CONTACT_REQUIRED"] }
+  ]
+}

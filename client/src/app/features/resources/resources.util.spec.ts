@@ -1,4 +1,4 @@
-import { Resource, ResourceOpenness, Role, UnitType } from '../../api';
+import { Resource, ResourceOpenness, Role } from '../../api';
 import { hasResources, inCategory, mayAddMore, resourceFormErrors, sortCategories, splitCommons, usedCategories } from './resources.util';
 
 const TOOLS = { id: 'c1', name: 'Werkzeug' };
@@ -20,9 +20,10 @@ function resource(overrides: Partial<Resource>): Resource {
 }
 
 describe('resources util', () => {
-  it('knows the unit types with a resource mosaic (cantons and countries have none)', () => {
-    for (const type of [UnitType.BigCity, UnitType.City, UnitType.PartOfTown, UnitType.WorkingGroup]) expect(hasResources(type)).toBe(true);
-    for (const type of [UnitType.FederalState, UnitType.Country, UnitType.Region, UnitType.District, UnitType.Continent]) expect(hasResources(type)).toBe(false);
+  it('shows resources where the server says RegionDetail.resourcesAvailable', () => {
+    expect(hasResources({ resourcesAvailable: true })).toBe(true);
+    expect(hasResources({ resourcesAvailable: false })).toBe(false);
+    expect(hasResources({})).toBe(false);
     expect(hasResources(undefined)).toBe(false);
   });
 

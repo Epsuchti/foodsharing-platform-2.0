@@ -21,6 +21,7 @@ import {
   toUpdate,
   validClientId,
 } from './oauth.util';
+import oauthClientCases from '../../../../../server/src/test/resources/rule-cases/oauth-client.json';
 import { ConsentPageComponent } from './pages/consent-page.component';
 import { OAuthClientsPageComponent, regionNameMap } from './pages/oauth-clients-page.component';
 
@@ -74,6 +75,15 @@ describe('oauth util (C13)', () => {
     expect(validClientId('Wiki')).toBe(false);
     expect(validClientId('a'.repeat(61))).toBe(false);
     expect(suggestClientId('Foodsharing Wiki Zürich!')).toBe('foodsharing-wiki-zurich');
+  });
+
+  it('runs the shared server cases (OAuthRulesTest reads the same file)', () => {
+    const { redirectUris, clientIds } = oauthClientCases;
+    expect(redirectUris.valid.length).toBeGreaterThan(5);
+    for (const uri of redirectUris.valid) expect(redirectUriProblem(uri), uri).toBeNull();
+    for (const uri of redirectUris.invalid) expect(redirectUriProblem(uri), uri).not.toBeNull();
+    for (const id of clientIds.valid) expect(validClientId(id), id).toBe(true);
+    for (const id of clientIds.invalid) expect(validClientId(id), id).toBe(false);
   });
 
   it('orders known scopes and drops unknown ones', () => {

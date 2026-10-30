@@ -12,6 +12,7 @@ import {
   photoVariant,
   profilePosition,
 } from './baskets.util';
+import basketFormCases from '../../../../../server/src/test/resources/rule-cases/basket-form.json';
 
 function value(overrides: Partial<BasketFormValue> = {}): BasketFormValue {
   return {
@@ -40,6 +41,20 @@ describe('baskets.util', () => {
     expect(basketFormProblems(value({ locationType: BasketLocationType.Custom, position: [47.38, 8.52] }), false)).toEqual([]);
     expect(basketFormProblems(value({ contactMessage: false }), true)).toEqual(['BASKET_CONTACT_REQUIRED']);
     expect(basketFormProblems(value({ contactMessage: false, contactMobile: true }), true)).toEqual([]);
+  });
+
+  it('runs the shared server cases (BasketRulesTest reads the same file)', () => {
+    expect(basketFormCases.cases.length).toBeGreaterThan(10);
+    for (const c of basketFormCases.cases) {
+      const form = value({
+        locationType: c.locationType as BasketLocationType,
+        position: c.position ? [c.position[0], c.position[1]] : null,
+        contactMessage: c.contactMessage,
+        contactPhone: c.contactPhone,
+        contactMobile: c.contactMobile,
+      });
+      expect(basketFormProblems(form, c.home), c.name).toEqual(c.problems);
+    }
   });
 
   it('builds the create body: trimmed text, grams, coordinates only for CUSTOM, numbers only when flagged', () => {

@@ -91,13 +91,13 @@ export class RegionPageComponent {
         labelKey: 'regions.tab.foodSharePoints',
         visible: this.toggles.isEnabled(FeatureToggleKey.FoodSharePoints),
       },
-      // M6 Q12: /regions/:regionId/resources (features/resources), RESOURCES toggle, only unit types with a mosaic
+      // M6 Q12: /regions/:regionId/resources (features/resources), RESOURCES toggle, only where RegionDetail.resourcesAvailable
       {
         id: 'resources',
         route: 'resources',
         icon: 'pi pi-th-large',
         labelKey: 'regions.tab.resources',
-        visible: member && this.toggles.isEnabled(FeatureToggleKey.Resources) && hasResources(this.ctx.data()?.type),
+        visible: member && this.toggles.isEnabled(FeatureToggleKey.Resources) && hasResources(this.ctx.data()),
       },
       // M6 Q8: /regions/:regionId/{reports,report-log,mediation} (features/reports)
       { id: 'reports', route: 'reports', icon: 'pi pi-flag', labelKey: 'regions.tab.reports', visible: this.reportHandler() },
