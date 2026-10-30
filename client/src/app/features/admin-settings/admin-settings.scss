@@ -1,0 +1,171 @@
+// Shared look of the admin settings pages (plan-m7 Q13: toggles, configuration, donations, blocklist, IP blocks,
+// uploads, admins).
+:host {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 64rem);
+  margin: 0 auto;
+}
+
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--fs-border);
+
+  @media (min-width: 48rem) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.row__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.row__text {
+  margin: 0.15rem 0 0;
+  color: var(--fs-text-muted);
+  font-size: 0.875rem;
+}
+
+.row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.muted {
+  color: var(--fs-text-muted);
+  font-size: 0.8125rem;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--fs-surface-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.chip--on {
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.chip--off {
+  background: var(--fs-danger-soft);
+  color: var(--fs-danger);
+}
+
+.chip--warn {
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+}
+
+.form {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    align-items: end;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+
+  label,
+  .label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+  }
+}
+
+.field-error {
+  margin: 0;
+  color: var(--fs-danger);
+  font-size: 0.8125rem;
+}
+
+.filters {
+  display: grid;
+  gap: 0.75rem;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th,
+  td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--fs-border);
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  th {
+    color: var(--fs-text-muted);
+    font-size: 0.8rem;
+    font-weight: 650;
+  }
+
+  .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .actions {
+    text-align: end;
+    white-space: nowrap;
+  }
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.section-title {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+}

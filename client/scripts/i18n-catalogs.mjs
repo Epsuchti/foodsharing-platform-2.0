@@ -28,6 +28,7 @@ export const FEATURE_PREFIX_OVERRIDES = {
   'store-chains': 'storeChains.',
   'store-categories': 'storeCategories.',
   'admin-ops': 'adminOps.',
+  'admin-settings': 'adminSettings.',
   'food-share-points': 'foodSharePoints.',
 };
 

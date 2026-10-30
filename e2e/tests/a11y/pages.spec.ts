@@ -77,6 +77,14 @@ const ROUTES: RouteCase[] = [
   { path: '/dashboard', role: 'bot', ready: 'dashboard.activity.list', consent: true },
   { path: '/regions/00000010-0001-4000-8000-000000000040/statistics', role: 'foodsaver', ready: 'regions.statistics.genderList' },
   { path: '/regions/00000010-0001-4000-8000-000000000040/wall', role: 'foodsaver', ready: 'regions.later.empty' },
+  // M6 admin settings, uploads, admins (plan-m7 Q13)
+  { path: '/admin/feature-toggles', role: 'orga', ready: 'adminSettings.toggles.list' },
+  { path: '/admin/configuration', role: 'orga', ready: 'adminSettings.configuration.historyButton' },
+  { path: '/admin/donations', role: 'orga', ready: 'adminSettings.donations.form' },
+  { path: '/admin/email-blocklist', role: 'orga', ready: 'adminSettings.blocklist.table' },
+  { path: '/admin/ip-blocks', role: 'orga', ready: 'adminSettings.ipBlocks.addForm' },
+  { path: '/admin/uploads', role: 'orga', ready: 'adminSettings.uploads.table' },
+  { path: '/admin/admins', role: 'orga', ready: 'admin.admins.count' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

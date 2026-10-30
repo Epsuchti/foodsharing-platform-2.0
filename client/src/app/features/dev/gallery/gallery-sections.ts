@@ -5,6 +5,7 @@ import { JourneyGallerySection } from './sections/journey.section';
 import { PeopleGallerySection } from './sections/people.section';
 import { RegionsMapGallerySection } from './sections/regions-map.section';
 import { ACCOUNT_GALLERY_SECTIONS } from './sections/account.section';
+import { ADMIN_SETTINGS_GALLERY_SECTIONS } from './sections/admin-settings.section';
 import { BASKETS_GALLERY_SECTIONS } from './sections/baskets.section';
 import { CONTENT_GALLERY_SECTIONS } from './sections/content.section';
 import { FOOD_SHARE_POINTS_GALLERY_SECTIONS } from './sections/food-share-points.section';
@@ -47,4 +48,5 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   ...FOOD_SHARE_POINTS_GALLERY_SECTIONS,
   ...REPORTS_GALLERY_SECTIONS,
   ...MAP_GALLERY_SECTIONS,
+  ...ADMIN_SETTINGS_GALLERY_SECTIONS,
 ];
