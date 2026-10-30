@@ -109,6 +109,11 @@ const ROUTES: RouteCase[] = [
   { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'foodsaver', ready: 'achievements.board.list' },
   { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'bot', ready: 'achievements.board.define', consent: true },
   { path: '/admin/achievements', role: 'orga', ready: 'achievements.board.list' },
+  // M6 search + resources (plan-m7 Q12)
+  { path: '/search?q=Wiedikon', role: 'foodsaver', ready: 'search.page.input' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/resources', role: 'foodsaver', ready: 'resources.region.commons' },
+  { path: '/resources/mine', role: 'foodsaver', ready: 'resources.mine.list' },
+  { path: '/resources/favourites', role: 'foodsaver', ready: 'resources.favourites.list' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
