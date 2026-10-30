@@ -4,7 +4,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SessionService } from '../core/auth/session.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TPipe } from '../core/i18n/t.pipe';
+import { StartupService } from '../core/startup/startup.service';
 import { BellButtonComponent } from '../features/bells/components/bell-button.component';
+import { WhatsNewDotComponent } from '../features/content/components/whats-new-dot.component';
 import { BrandComponent } from './brand.component';
 import { LanguageMenuComponent } from './language-menu.component';
 import { NavBadgeComponent } from './nav-badge.component';
@@ -29,6 +31,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     TPipe,
     ThemeMenuComponent,
     UserMenuComponent,
+    WhatsNewDotComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-header', '[attr.data-chrome]': 'chrome()' },
@@ -60,6 +63,21 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       <div class="hdr__actions">
         @if (chrome() === 'full' && session.isAuthenticated()) {
           <fs-region-switcher />
+        }
+        @if (chrome() === 'full') {
+          <!-- C4: the dot (newest release note not seen yet) loads after the first page and never shifts the header -->
+          <a
+            class="hdr-btn hdr__whats-new"
+            routerLink="/release-notes"
+            [attr.aria-label]="'layout.header.whatsNew' | t"
+            [attr.title]="'layout.header.whatsNew' | t"
+            data-testid="shell.whatsNew"
+          >
+            <i class="pi pi-gift" aria-hidden="true"></i>
+            @defer (when startup.pageShown()) {
+              <fs-whats-new-dot />
+            }
+          </a>
         }
         <fs-language-menu />
         <fs-theme-menu />
@@ -178,6 +196,16 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       gap: 0.35rem;
       margin-left: auto;
     }
+    .hdr__whats-new {
+      position: relative;
+      text-decoration: none;
+    }
+    @media (max-width: 47.99rem) {
+      /* phones: the release notes stay reachable from the footer and the about page */
+      .hdr__whats-new {
+        display: none;
+      }
+    }
     .hdr__login {
       gap: 0.5rem;
       margin-left: 0.35rem;
@@ -205,6 +233,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
 export class HeaderComponent {
   protected readonly session = inject(SessionService);
   protected readonly nav = inject(NavContextService);
+  protected readonly startup = inject(StartupService);
   private readonly i18n = inject(I18nService);
   /** Icons only with more than five items or when five long labels (fr/it/de) would collide with the region switcher. */
   protected readonly compactNav = computed(() => {
