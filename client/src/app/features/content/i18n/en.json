@@ -210,6 +210,8 @@
   "content.editor.images": "Images",
   "content.editor.imagesHint": "Upload images and insert them into the text of the open language. They become public when you save.",
   "content.editor.insertImage": "Insert",
+  "content.editor.removeImage": "Remove",
+  "content.editor.imagesRemoved": "{count, plural, one {One image} other {# images}} will be deleted when you save. Remove the links in the text too.",
   "content.function.WELCOME": "Welcome team",
   "content.function.VOTING": "Voting",
   "content.function.FSP": "Food-share points",

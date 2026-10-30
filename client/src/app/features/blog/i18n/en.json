@@ -43,6 +43,8 @@
   "blog.editor.global": "foodsharing (no region)",
   "blog.editor.picture": "Picture",
   "blog.editor.pictureUploading": "Uploading picture …",
+  "blog.editor.removePicture": "Remove picture",
+  "blog.editor.pictureRemoved": "The picture will be deleted when you save.",
   "blog.editor.save": "Save",
   "blog.editor.saveHint": "Title, text and region are required.",
   "blog.editor.saved": "Post saved",

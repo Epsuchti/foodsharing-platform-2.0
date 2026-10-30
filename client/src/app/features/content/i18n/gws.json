@@ -210,6 +210,8 @@
   "content.editor.images": "Bilder",
   "content.editor.imagesHint": "Lad Bilder ufe und füeg si i de Text vo de offne Sprach ii. Si werded bim Speichere öffentlich.",
   "content.editor.insertImage": "Iifüege",
+  "content.editor.removeImage": "Entferne",
+  "content.editor.imagesRemoved": "{count, plural, one {Es Bild wird} other {# Bilder werded}} bim Speichere glöscht. Nimm au d Verwiis im Text use.",
   "content.function.WELCOME": "Begrüessigsteam",
   "content.function.VOTING": "Abstimmige",
   "content.function.FSP": "Fairteiler",

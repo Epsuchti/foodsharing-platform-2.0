@@ -210,6 +210,8 @@
   "content.editor.images": "Images",
   "content.editor.imagesHint": "Téléverse des images et insère-les dans le texte de la langue ouverte. Elles deviennent publiques à l’enregistrement.",
   "content.editor.insertImage": "Insérer",
+  "content.editor.removeImage": "Retirer",
+  "content.editor.imagesRemoved": "{count, plural, one {Une image sera supprimée} other {# images seront supprimées}} à l’enregistrement. Retire aussi les liens dans le texte.",
   "content.function.WELCOME": "Équipe d’accueil",
   "content.function.VOTING": "Votes",
   "content.function.FSP": "Points de partage",

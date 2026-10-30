@@ -208,6 +208,22 @@ interface RegionOption {
             <span class="field__label">{{ 'blog.editor.picture' | t }}</span>
             @if (pictureSrc(); as src) {
               <img class="picture" [src]="src" alt="" width="320" height="180" data-testid="blog.editor.picturePreview" />
+              @if (!readOnly()) {
+                <p-button
+                  [label]="'blog.editor.removePicture' | t"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  size="small"
+                  [text]="true"
+                  [disabled]="upload.busy()"
+                  (onClick)="removePicture()"
+                  data-testid="blog.editor.removePicture"
+                />
+              }
+            } @else if (pictureRemoved()) {
+              <small role="status" data-testid="blog.editor.pictureRemoved">{{
+                'blog.editor.pictureRemoved' | t
+              }}</small>
             }
             @if (!readOnly()) {
               <fs-image-crop
@@ -409,6 +425,8 @@ export class BlogEditorPageComponent {
   protected readonly regionId = signal<string | null>(null);
   protected readonly pictureUploadId = signal<string | null>(null);
   protected readonly localPicture = signal<string | null>(null);
+  /** The saved picture is removed on the next save (`BlogPostUpdate.removePicture`, decision 117). */
+  protected readonly pictureRemoved = signal(false);
   protected readonly preview = signal(false);
   private readonly dirty = signal(false);
 
@@ -439,7 +457,8 @@ export class BlogEditorPageComponent {
 
   protected readonly teaserPlaceholder = computed(() => teaserFromBody(this.body()));
   protected readonly pictureSrc = computed(
-    () => this.localPicture() ?? this.current()?.pictureUrl ?? null,
+    () =>
+      this.localPicture() ?? (this.pictureRemoved() ? null : (this.current()?.pictureUrl ?? null)),
   );
   protected readonly valid = computed(
     () =>
@@ -457,6 +476,7 @@ export class BlogEditorPageComponent {
         this.body.set(post.body);
         this.regionId.set(post.region?.id ?? (this.editor() ? GLOBAL : null));
         this.pictureUploadId.set(null);
+        this.pictureRemoved.set(false);
         this.dirty.set(false);
       }
     });
@@ -490,7 +510,17 @@ export class BlogEditorPageComponent {
     this.revokePreview();
     this.localPicture.set(URL.createObjectURL(blob));
     this.pictureUploadId.set(null);
+    // a new picture replaces the saved one; removePicture is never sent together with pictureUploadId
+    this.pictureRemoved.set(false);
     void this.upload.run(new File([blob], 'blog.jpg', { type: 'image/jpeg' }));
+  }
+
+  /** Drops a picture uploaded in this session and marks the saved one (if any) for removal on save. */
+  protected removePicture(): void {
+    this.revokePreview();
+    this.pictureUploadId.set(null);
+    this.pictureRemoved.set(!!this.current()?.pictureUrl);
+    this.dirty.set(true);
   }
 
   private request() {
@@ -508,7 +538,13 @@ export class BlogEditorPageComponent {
     () =>
       this.isNew()
         ? this.api.createBlogPost({ blogPostCreate: this.request() })
-        : this.api.updateBlogPost({ blogPostId: this.id(), blogPostUpdate: this.request() }),
+        : this.api.updateBlogPost({
+            blogPostId: this.id(),
+            blogPostUpdate: {
+              ...this.request(),
+              removePicture: this.pictureRemoved() ? true : undefined,
+            },
+          }),
     {
       successToastKey: 'blog.editor.saved',
       onSuccess: (saved: BlogPost) => {

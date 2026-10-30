@@ -43,6 +43,8 @@
   "blog.editor.global": "foodsharing (senza regione)",
   "blog.editor.picture": "Immagine",
   "blog.editor.pictureUploading": "Caricamento dell’immagine …",
+  "blog.editor.removePicture": "Rimuovi immagine",
+  "blog.editor.pictureRemoved": "L’immagine verrà eliminata al salvataggio.",
   "blog.editor.save": "Salva",
   "blog.editor.saveHint": "Titolo, testo e regione sono obbligatori.",
   "blog.editor.saved": "Articolo salvato",

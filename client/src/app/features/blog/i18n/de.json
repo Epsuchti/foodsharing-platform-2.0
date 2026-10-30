@@ -43,6 +43,8 @@
   "blog.editor.global": "foodsharing (ohne Bezirk)",
   "blog.editor.picture": "Bild",
   "blog.editor.pictureUploading": "Bild wird hochgeladen …",
+  "blog.editor.removePicture": "Bild entfernen",
+  "blog.editor.pictureRemoved": "Das Bild wird beim Speichern gelöscht.",
   "blog.editor.save": "Speichern",
   "blog.editor.saveHint": "Titel, Text und Bezirk sind nötig.",
   "blog.editor.saved": "Beitrag gespeichert",
