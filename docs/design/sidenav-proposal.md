@@ -453,3 +453,17 @@ now), `shell.languageMenu`/`shell.themeMenu` (phone and visitors only).
 9. **Community open by default?** Open (proposed) means the expanded list scrolls by about 60 px for a
    foodsaver at 1280×800 (the daily group is always visible); closed would fit without scrolling but puts
    "Karte" and "Bezirke & Gruppen" one click away. The rail is unaffected (it folds by measurement).
+
+## 9. Owner decisions (2026-10-30, decision 133)
+
+These answers to section 8 override the proposal where they differ.
+
+1. **Width:** from 1200 px (75rem) the side menu is always expanded and has no collapse toggle. Between 48 and 75rem it shows the rail with the temporary overlay sidebar. Below 48rem nothing changes (tab bar + drawer).
+2. **Visitors:** every desktop visitor gets the side menu too, signed in or not. The top header goes away on desktop. The visitor menu holds the public items (start, map, statistics, content pages, blog, login/sign-up).
+3. **Journey bar:** it lives in the side menu, as the progress meter on the "Mein Einstieg" item. There is no bar at the top of the content column.
+4. **Section names:** "Community / Verwalten / Orga" are translated into all five languages (de, en, gws, fr, it) with the usual i18n check.
+5. **Bells:** a panel opens next to the bell item in the side menu. There is no separate page.
+6. **Placement:** on desktop everything lives in the side menu, including store chains and quiz/content editing, each in a fixed, consistent place. Nothing moves into a "More" menu.
+7. **Keyboard shortcuts:** yes. `[` toggles the rail overlay (below 75rem), and Ctrl/⌘ K focuses search. Both are listed in the user menu's help, and neither fires while you're typing in a field.
+8. **Persistence:** none. The rail or expanded state comes only from the width. Section open/closed states reset on reload (no `fs.nav` / `fs.nav.sections` in storage).
+9. **Community:** open by default.
