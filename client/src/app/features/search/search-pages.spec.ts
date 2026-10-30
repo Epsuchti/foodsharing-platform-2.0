@@ -137,6 +137,35 @@ describe('search', () => {
       expect(TestBed.inject(Router).url).toBe('/food-share-points/f1');
     });
 
+    it('sets aria-activedescendant synchronously while handling the arrow key', async () => {
+      await type('wiedikon');
+      input().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+      // no settle(): the next scheduled change detection may come late on a busy main thread
+      const active = input().getAttribute('aria-activedescendant');
+      expect(active).toBeTruthy();
+      expect(document.getElementById(active!)?.getAttribute('aria-selected')).toBe('true');
+      expect(document.getElementById(active!)?.dataset['link']).toBe('/stores/s1');
+      http.match(searchRequest).forEach((request) => request.flush(results()));
+    });
+
+    it('keeps the active option when the server hits arrive', async () => {
+      await type('wiedikon');
+      await key('ArrowDown');
+      await key('ArrowDown');
+      await key('ArrowDown');
+      // the third option is "show all results"
+      expect(input().getAttribute('aria-activedescendant')).toMatch(/-all$/);
+      await wait(350);
+      http.expectOne(searchRequest).flush(
+        results({ users: [{ id: 'u1', kind: SearchKind.User, title: 'Nina Schneider', link: '/profile/u1' }] }),
+      );
+      await settle();
+      expect(all('[data-testid="search.global.option"]')).toHaveLength(3);
+      expect(input().getAttribute('aria-activedescendant')).toMatch(/-all$/);
+      await key('ArrowUp');
+      expect(document.getElementById(input().getAttribute('aria-activedescendant')!)?.dataset['link']).toBe('/profile/u1');
+    });
+
     it('sends Enter without an active option to /search?q= and closes with Escape', async () => {
       await type('wiedikon');
       await key('Escape');
