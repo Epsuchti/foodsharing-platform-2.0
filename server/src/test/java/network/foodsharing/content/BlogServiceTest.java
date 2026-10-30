@@ -23,6 +23,7 @@ import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.content.domain.BlogPost;
+import network.foodsharing.content.domain.ContentAction;
 import network.foodsharing.content.repository.BlogPostRepository;
 import network.foodsharing.content.service.BlogService;
 import network.foodsharing.history.service.HistoryService;
@@ -55,12 +56,13 @@ class BlogServiceTest {
     private final NotificationService notifications = mock(NotificationService.class);
     private final FeatureToggleService toggles = mock(FeatureToggleService.class);
     private final HistoryService history = mock(HistoryService.class, Answers.RETURNS_DEEP_STUBS);
+    private final UploadService uploads = mock(UploadService.class);
     private BlogService service;
     private BlogPost post;
 
     @BeforeEach
     void setUp() {
-        service = new BlogService(posts, regions, actors, permissions, notifications, mock(UploadService.class),
+        service = new BlogService(posts, regions, actors, permissions, notifications, uploads,
                 toggles, history, Clock.fixed(NOW, ZoneOffset.UTC));
         post = new BlogPost();
         post.setId(UUID.randomUUID());
@@ -112,6 +114,29 @@ class BlogServiceTest {
         service.update(post.getId(), new BlogService.PostInput("Neu", null, null, null, null));
         assertThat(post.isPublished()).isFalse();
         assertThat(post.isAwaitingCheck()).isTrue();
+    }
+
+    @Test
+    void removePictureDeletesTheUploadButNotTogetherWithANewOne() {
+        UUID picture = UUID.randomUUID();
+        post.setPictureUploadId(picture);
+        network.foodsharing.upload.domain.Upload upload = new network.foodsharing.upload.domain.Upload();
+        when(uploads.find(picture)).thenReturn(upload);
+        actAs(EDITOR);
+        assertThatThrownBy(() -> service.update(post.getId(),
+                new BlogService.PostInput(null, null, null, null, UUID.randomUUID(), true)))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        assertThat(post.getPictureUploadId()).isEqualTo(picture);
+
+        service.update(post.getId(), new BlogService.PostInput(null, null, null, null, null, true));
+        assertThat(post.getPictureUploadId()).isNull();
+        verify(uploads).delete(upload);
+        verify(history.event(ContentAction.BLOG_UPDATED, post.getId()).region(REGION).metadata("title", "Hallo"))
+                .metadata("pictureRemoved", picture.toString());
+
+        // without a picture there is nothing to delete
+        service.update(post.getId(), new BlogService.PostInput(null, null, null, null, null, true));
+        verify(uploads, org.mockito.Mockito.times(1)).delete(any());
     }
 
     @Test

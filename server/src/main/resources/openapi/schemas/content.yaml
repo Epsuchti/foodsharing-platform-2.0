@@ -115,7 +115,14 @@ ContentPageUpdate:
       items:
         type: string
         format: uuid
-      description: Images used in the bodies (claimed as CONTENT_IMAGE, public).
+      description: Images used in the bodies (claimed as CONTENT_IMAGE, public). Adds to the page's images.
+    removeImageUploadIds:
+      type: array
+      maxItems: 20
+      items:
+        type: string
+        format: uuid
+      description: 'Images of the page to remove (their uploads are deleted); 400 VALIDATION_FAILED when an id is also in imageUploadIds or is not an image of the page.'
 
 BlogPostSummary:
   type: object
@@ -232,6 +239,9 @@ BlogPostUpdate:
     pictureUploadId:
       type: string
       format: uuid
+    removePicture:
+      type: boolean
+      description: 'Removes the picture (its upload is deleted); 400 VALIDATION_FAILED together with pictureUploadId.'
 
 PublishedUpdate:
   type: object
