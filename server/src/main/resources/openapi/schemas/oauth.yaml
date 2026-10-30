@@ -11,7 +11,7 @@ OAuthClientRef:
 
 ConsentRequest:
   type: object
-  required: [client, scopes, alreadyRemembered, regionAllowed, expiresAt]
+  required: [client, scopes, alreadyRemembered, regionAllowed, requiredRegions, expiresAt]
   properties:
     client:
       $ref: './oauth.yaml#/OAuthClientRef'
@@ -19,6 +19,11 @@ ConsentRequest:
       type: array
       items:
         type: string
+    requiredRegions:
+      type: array
+      description: 'Regions the client requires (membership in one of them); empty when the client has none. Named on the consent page when regionAllowed is false.'
+      items:
+        $ref: './regions.yaml#/RegionRef'
     alreadyRemembered:
       type: boolean
     regionAllowed:

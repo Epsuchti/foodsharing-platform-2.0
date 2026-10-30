@@ -33,10 +33,11 @@ export const SETTINGS_TABS = [
     </nav>
   `,
   styles: `
-    /* a grid/flex item may not grow to the tabs' width: the tabs scroll instead (phones, design review M7 R1) */
+    /* min-width 0: as a grid/flex item the nowrap tabs must scroll, not widen the page on phones (F6 sweep) */
     :host {
       display: block;
       min-width: 0;
+      max-width: 100%;
     }
     .tabs {
       display: flex;

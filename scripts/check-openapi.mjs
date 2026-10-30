@@ -3,7 +3,7 @@
 //
 //   node scripts/check-openapi.mjs [--skip-validate] [--spec-dir <dir>]
 //
-// 1. `openapi-generator-cli validate` on openapi.yaml (generator version pinned in scripts/openapitools.json).
+// 1. `openapi-generator-cli validate` on openapi.yaml (generator version pinned in client/openapitools.json, the single pin).
 // 2. Every path item in paths/<tag>.yaml is referenced from openapi.yaml under the same path (and vice versa).
 // 3. Every operation: exactly one tag == file name, unique operationId, `x-permission`, every 4xx/5xx response is
 //    `application/json` with `$ref` to common.yaml#/ApiError; mutating operations (post/put/patch/delete) have
@@ -40,16 +40,17 @@ function load(file) {
 const decodePointer = (pointer) => pointer.replace(/~1/g, '/').replace(/~0/g, '~');
 
 function validateWithGenerator() {
-  const bin = path.join(REPO_DIR, 'node_modules', '.bin', process.platform === 'win32' ? 'openapi-generator-cli.cmd' : 'openapi-generator-cli');
-  if (!fs.existsSync(bin)) {
+  // the CLI's main.js on this Node: a .cmd shim cannot be spawned without a shell on Windows (EINVAL)
+  const cli = path.join(REPO_DIR, 'node_modules/@openapitools/openapi-generator-cli/main.js');
+  if (!fs.existsSync(cli)) {
     errors.push('openapi-generator-cli is not installed: run `npm ci` in the repository root');
     return;
   }
-  const result = spawnSync(bin, ['--openapitools', path.join(REPO_DIR, 'scripts/openapitools.json'), 'validate', '-i', ROOT], {
+  const result = spawnSync(process.execPath, [cli, '--openapitools', path.join(REPO_DIR, 'client/openapitools.json'), 'validate', '-i', ROOT], {
     cwd: REPO_DIR,
     encoding: 'utf8',
   });
-  const output = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim();
+  const output = `${result.stdout ?? ''}${result.stderr ?? ''}${result.error ? String(result.error) : ''}`.trim();
   if (result.status !== 0) errors.push(`openapi-generator validate failed:\n${output}`);
   else console.log(output.split('\n').filter((line) => /validat|issue/i.test(line)).join('\n'));
 }

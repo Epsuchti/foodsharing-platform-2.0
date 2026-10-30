@@ -1095,6 +1095,8 @@ paths:
     $ref: './paths/resources.yaml#/~1api~1regions~1{regionId}~1resources~1permissions'
   /api/resources/mine:
     $ref: './paths/resources.yaml#/~1api~1resources~1mine'
+  /api/resources/mine/limits:
+    $ref: './paths/resources.yaml#/~1api~1resources~1mine~1limits'
   /api/resources/favourites:
     $ref: './paths/resources.yaml#/~1api~1resources~1favourites'
   /api/resources:

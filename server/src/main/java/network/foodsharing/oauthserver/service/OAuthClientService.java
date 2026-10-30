@@ -17,6 +17,7 @@ import network.foodsharing.oauthserver.domain.OAuthScope;
 import network.foodsharing.oauthserver.repository.OAuthClientRepository;
 import network.foodsharing.oauthserver.repository.OAuthConsentRepository;
 import network.foodsharing.oauthserver.repository.OAuthRefreshTokenRepository;
+import network.foodsharing.region.domain.Region;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
@@ -39,7 +40,8 @@ public class OAuthClientService {
                               Boolean enabled) {
     }
 
-    public record ClientView(Client client, long consentCount) {
+    /** {@code requiredRegions}: the client's required regions in their stored order (deleted ones left out). */
+    public record ClientView(Client client, long consentCount, List<Region> requiredRegions) {
     }
 
     public record Created(ClientView client, String secret) {
@@ -72,7 +74,7 @@ public class OAuthClientService {
     public List<ClientView> list() {
         requireOrga();
         return clients.findByDeletedAtIsNullOrderByName().stream()
-                .map(c -> new ClientView(c, consents.countByClientId(c.getId()))).toList();
+                .map(c -> view(c, consents.countByClientId(c.getId()))).toList();
     }
 
     /** @throws ApiException 403, 404 OAUTH_CLIENT_NOT_FOUND */
@@ -80,7 +82,24 @@ public class OAuthClientService {
     public ClientView get(String clientId) {
         requireOrga();
         Client client = require(clientId);
-        return new ClientView(client, consents.countByClientId(client.getId()));
+        return view(client, consents.countByClientId(client.getId()));
+    }
+
+    /** The regions a client requires (id + name for the admin list and the consent page). */
+    static List<Region> requiredRegions(Client client, RegionService regions) {
+        List<UUID> ids = List.copyOf(client.requiredRegions());
+        return inOrder(ids, regions.findAll(ids));
+    }
+
+    /** {@code found} in the order of {@code ids}; ids without a region (deleted) are skipped. */
+    public static List<Region> inOrder(List<UUID> ids, List<Region> found) {
+        Map<UUID, Region> byId = new java.util.HashMap<>();
+        found.forEach(region -> byId.put(region.getId(), region));
+        return ids.stream().distinct().map(byId::get).filter(java.util.Objects::nonNull).toList();
+    }
+
+    private ClientView view(Client client, long consentCount) {
+        return new ClientView(client, consentCount, requiredRegions(client, regions));
     }
 
     /** @throws ApiException 403, 409 OAUTH_CLIENT_EXISTS, 400 VALIDATION_FAILED / OAUTH_REDIRECT_URI_INVALID */
@@ -105,26 +124,37 @@ public class OAuthClientService {
         Client saved = clients.save(client);
         history.record(history.event(OAuthAction.CLIENT_CREATED, saved.getId())
                 .metadata(Map.of("clientId", clientId, "confidential", saved.isConfidential())).build());
-        return new Created(new ClientView(saved, 0), secret);
+        return new Created(view(saved, 0), secret);
     }
 
-    /** @throws ApiException 403, 404 OAUTH_CLIENT_NOT_FOUND, 400 */
+    /**
+     * Confidential → public drops the secret; public → confidential is refused (a PATCH never hands out a secret,
+     * create a new confidential client instead).
+     *
+     * @throws ApiException 403, 404 OAUTH_CLIENT_NOT_FOUND, 400 (VALIDATION_FAILED with {@code field=confidential}
+     *                      for public → confidential)
+     */
     @Transactional
     public ClientView update(String clientId, ClientInput in) {
         requireOrga();
         Client client = require(clientId);
+        if (!mayChangeKind(client.isConfidential(), in.confidential())) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "confidential");
+        }
         boolean wasConfidential = client.isConfidential();
         String before = describe(client);
         apply(client, in, false);
-        if (!wasConfidential && client.isConfidential() && client.getSecretHash() == null) {
-            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
-        }
         if (wasConfidential && !client.isConfidential()) {
             client.setSecretHash(null);
         }
         history.record(history.event(OAuthAction.CLIENT_UPDATED, client.getId())
                 .change("client", before, describe(client)).build());
-        return new ClientView(client, consents.countByClientId(client.getId()));
+        return view(client, consents.countByClientId(client.getId()));
+    }
+
+    /** May a PATCH set the client kind to {@code requested} (null = unchanged)? Only public → confidential is refused. */
+    public static boolean mayChangeKind(boolean confidential, Boolean requested) {
+        return confidential || !Boolean.TRUE.equals(requested);
     }
 
     /** Soft delete; consents and refresh tokens are revoked. @throws ApiException 403, 404 */

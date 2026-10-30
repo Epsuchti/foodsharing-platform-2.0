@@ -103,7 +103,8 @@ const ALL_TIME_FROM = '2012-01-01';
       padding: 0.3rem 0.8rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface);
       color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer;
     }
-    .chip--active { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary, #fff); }
+    /* soft fill + strong text: white on --fs-primary fails contrast in the dark theme (F6 sweep) */
+    .chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
     .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
     .tile { display: grid; gap: 0.2rem; padding: 1rem; }
     .tile__value { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }

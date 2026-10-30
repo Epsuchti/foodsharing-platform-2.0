@@ -210,6 +210,8 @@
   "content.editor.images": "Immagini",
   "content.editor.imagesHint": "Carica immagini e inseriscile nel testo della lingua aperta. Diventano pubbliche al salvataggio.",
   "content.editor.insertImage": "Inserisci",
+  "content.editor.removeImage": "Rimuovi",
+  "content.editor.imagesRemoved": "{count, plural, one {Un’immagine verrà eliminata} other {# immagini verranno eliminate}} al salvataggio. Rimuovi anche i link nel testo.",
   "content.function.WELCOME": "Team di benvenuto",
   "content.function.VOTING": "Votazioni",
   "content.function.FSP": "Punti di condivisione",

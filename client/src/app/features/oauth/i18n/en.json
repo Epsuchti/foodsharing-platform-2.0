@@ -18,6 +18,7 @@
   "oauth.consent.footer": "This request is valid until {time}. After that, start again in the application.",
   "oauth.consent.regionRequiredTitle": "Not available to you",
   "oauth.consent.regionRequiredText": "{client} is only open to members of certain regions. Join one of them or contact the people running the application.",
+  "oauth.consent.requiredRegions": "Open to members of:",
   "oauth.consent.back": "Back to {client}",
   "oauth.consent.missingTitle": "Sign-in request missing",
   "oauth.clients.title": "OAuth applications",

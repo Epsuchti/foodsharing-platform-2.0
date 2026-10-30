@@ -10,6 +10,7 @@ import network.foodsharing.api.model.Language;
 import network.foodsharing.oauthserver.service.OAuthClientService;
 import network.foodsharing.oauthserver.service.OAuthCrypto;
 import network.foodsharing.oauthserver.service.UserInfoService;
+import network.foodsharing.region.domain.Region;
 import network.foodsharing.user.domain.User;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +46,30 @@ class OAuthRulesTest {
         assertThat(OAuthClientService.validRedirectUri("https://wiki.example.org/cb#x")).isFalse();
         assertThat(OAuthClientService.validRedirectUri("/relative")).isFalse();
         assertThat(OAuthClientService.validRedirectUri("javascript:alert(1)")).isFalse();
+    }
+
+    @Test
+    void clientKindChangesOnlyFromConfidentialToPublic() {
+        assertThat(OAuthClientService.mayChangeKind(false, true)).isFalse();
+        assertThat(OAuthClientService.mayChangeKind(false, false)).isTrue();
+        assertThat(OAuthClientService.mayChangeKind(false, null)).isTrue();
+        assertThat(OAuthClientService.mayChangeKind(true, false)).isTrue();
+        assertThat(OAuthClientService.mayChangeKind(true, true)).isTrue();
+        assertThat(OAuthClientService.mayChangeKind(true, null)).isTrue();
+    }
+
+    @Test
+    void requiredRegionsKeepTheStoredOrderAndSkipDeletedOnes() {
+        UUID a = UUID.randomUUID();
+        UUID b = UUID.randomUUID();
+        UUID gone = UUID.randomUUID();
+        Region regionA = new Region();
+        regionA.setId(a);
+        Region regionB = new Region();
+        regionB.setId(b);
+        assertThat(OAuthClientService.inOrder(java.util.List.of(b, gone, a, b), java.util.List.of(regionA, regionB)))
+                .containsExactly(regionB, regionA);
+        assertThat(OAuthClientService.inOrder(java.util.List.of(), java.util.List.of())).isEmpty();
     }
 
     @Test

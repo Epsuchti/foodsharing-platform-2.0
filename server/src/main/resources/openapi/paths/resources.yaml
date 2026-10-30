@@ -147,6 +147,32 @@
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
 
+/api/resources/mine/limits:
+  get:
+    tags: [resources]
+    operationId: getMyResourceLimits
+    summary: The own-resource limit and whether the caller may add another resource (no region needed).
+    x-permission: authenticated
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/resources.yaml#/MyResourceLimits'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "404":
+        description: FEATURE_DISABLED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+
 /api/resources/favourites:
   get:
     tags: [resources]

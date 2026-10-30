@@ -3,6 +3,10 @@
 //
 //   E2E_BASE_URL=http://localhost:8080 node scripts/lighthouse.mjs          (CLI, exits 1 below a threshold)
 //   import { runLighthouse } from '../scripts/lighthouse.mjs'               (tests/onboarding/d11-lighthouse.spec.ts)
+//   E2E_BASE_URL=… node scripts/lighthouse.mjs --report                     (+ report-only pages, docs/lighthouse.md)
+//
+// Report-only pages (plan-m7 F6: the main M6 pages) are measured and printed but have no thresholds; only the
+// default pages decide the exit code.
 //
 // Chrome: CHROME_PATH, else Playwright's Chromium. The newbie session comes from the dev login endpoint; its pending
 // consents are accepted first so `/onboarding` renders the journey and not the consent page.
@@ -143,6 +147,22 @@ export async function defaultPages(baseURL) {
   ];
 }
 
+/** Report-only pages (plan-m7 F6): the main M6 pages, measured for docs/lighthouse.md, no thresholds. */
+export async function reportOnlyPages(baseURL) {
+  const foodsaver = await sessionCookie(baseURL, 'foodsaver');
+  return [
+    { path: '/map' },
+    { path: '/statistics' },
+    { path: '/about/vision' },
+    { path: '/blog' },
+    { path: '/profile/me', cookie: foodsaver },
+    { path: '/baskets', cookie: foodsaver },
+    { path: '/food-share-points/00000049-0001-4000-8000-000000000001', cookie: foodsaver },
+    { path: '/search?q=Wiedikon', cookie: foodsaver },
+    { path: '/regions/00000010-0001-4000-8000-000000000040/reports', cookie: await sessionCookie(baseURL, 'reports') },
+  ];
+}
+
 export function belowThreshold(results) {
   return results.filter(
     (r) => r.performance < THRESHOLDS.performance || r.accessibility < THRESHOLDS.accessibility,
@@ -156,9 +176,12 @@ async function main() {
     process.exit(2);
   }
   const runs = Number(process.env.LIGHTHOUSE_RUNS ?? 3);
-  const results = await runLighthouseMedian(baseURL, await defaultPages(baseURL), runs);
-  console.table(results);
-  process.exit(belowThreshold(results).length ? 1 : 0);
+  const gated = await defaultPages(baseURL);
+  const reportOnly = process.argv.includes('--report') ? await reportOnlyPages(baseURL) : [];
+  const results = await runLighthouseMedian(baseURL, [...gated, ...reportOnly], runs);
+  const gatedResults = results.filter((r) => gated.some((page) => page.path === r.path));
+  console.table(results.map((r) => ({ ...r, gate: gatedResults.includes(r) ? 'threshold' : 'report only' })));
+  process.exit(belowThreshold(gatedResults).length ? 1 : 0);
 }
 
 if ((process.argv[1] ?? '').endsWith('lighthouse.mjs')) {

@@ -210,6 +210,8 @@
   "content.editor.images": "Bilder",
   "content.editor.imagesHint": "Lade Bilder hoch und füge sie in den Text der offenen Sprache ein. Sie werden beim Speichern öffentlich.",
   "content.editor.insertImage": "Einfügen",
+  "content.editor.removeImage": "Entfernen",
+  "content.editor.imagesRemoved": "{count, plural, one {Ein Bild wird} other {# Bilder werden}} beim Speichern gelöscht. Entferne auch die Verweise im Text.",
   "content.function.WELCOME": "Begrüßungsteam",
   "content.function.VOTING": "Abstimmungen",
   "content.function.FSP": "Fairteiler",

@@ -264,5 +264,47 @@ describe('blog pages (Q11, C2)', () => {
       expect(q('blog.editor.status')?.getAttribute('data-status')).toBe('published');
       expect(q('blog.editor.unpublish')).not.toBeNull();
     });
+
+    it('removes the saved picture with removePicture on save (decision 117)', async () => {
+      TestBed.inject(SessionService).applySession(ambassador());
+      await create(BlogEditorPageComponent, { id: 'p1' });
+      http.expectOne('/api/blog/p1').flush({ ...POST, pictureUrl: '/api/uploads/pic?size=lg' });
+      await settle();
+      expect(q('blog.editor.picturePreview')).not.toBeNull();
+      expect(q('blog.editor.pictureRemoved')).toBeNull();
+
+      button('blog.editor.removePicture').click();
+      await settle();
+      expect(q('blog.editor.picturePreview')).toBeNull();
+      expect(q('blog.editor.removePicture')).toBeNull();
+      expect(q('blog.editor.pictureRemoved')).not.toBeNull();
+
+      button('blog.editor.save').click();
+      const save = http.expectOne((req) => req.url === '/api/blog/p1' && req.method === 'PATCH');
+      expect(save.request.body.removePicture).toBe(true);
+      expect(save.request.body.pictureUploadId).toBeUndefined();
+      save.flush({ ...POST, pictureUrl: undefined });
+      await settle();
+      expect(q('blog.editor.picturePreview')).toBeNull();
+      expect(q('blog.editor.pictureRemoved')).toBeNull();
+
+      // a later save without a removal does not send the flag
+      type('blog.editor.postTitle', 'Geändert');
+      await settle();
+      button('blog.editor.save').click();
+      const again = http.expectOne((req) => req.url === '/api/blog/p1' && req.method === 'PATCH');
+      expect(again.request.body.removePicture).toBeUndefined();
+      again.flush({ ...POST, title: 'Geändert' });
+      await settle();
+    });
+
+    it('a post without picture offers no removal', async () => {
+      TestBed.inject(SessionService).applySession(ambassador());
+      await create(BlogEditorPageComponent, { id: 'p1' });
+      http.expectOne('/api/blog/p1').flush(POST);
+      await settle();
+      expect(q('blog.editor.picturePreview')).toBeNull();
+      expect(q('blog.editor.removePicture')).toBeNull();
+    });
   });
 });

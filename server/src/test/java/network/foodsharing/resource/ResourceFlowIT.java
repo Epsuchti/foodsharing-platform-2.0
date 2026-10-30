@@ -88,6 +88,16 @@ class ResourceFlowIT {
         mvc.perform(get("/api/regions/" + ZUERICH + "/resources/permissions").cookie(jumper))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.mayAdd").value(false))
                 .andExpect(jsonPath("$.maxPerUser").value(3));
+        // ... and without a region for /resources/mine
+        Integer jumperOwn = jdbc.queryForObject("select count(*) from resource where owner_id = ? "
+                + "and deleted_at is null", Integer.class, SeedUsers.JUMPER.id());
+        mvc.perform(get("/api/resources/mine/limits").cookie(jumper)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.maxPerUser").value(3)).andExpect(jsonPath("$.mayAdd").value(false))
+                .andExpect(jsonPath("$.ownCount").value(jumperOwn));
+        Integer biebOwn = jdbc.queryForObject("select count(*) from resource where owner_id = ? "
+                + "and deleted_at is null", Integer.class, SeedUsers.BIEB.id());
+        mvc.perform(get("/api/resources/mine/limits").cookie(login(SeedUsers.BIEB))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.ownCount").value(biebOwn)).andExpect(jsonPath("$.mayAdd").value(biebOwn < 3));
 
         // images carry the original file name of their upload
         String upload = jdbc.queryForObject("select photo_upload_id from basket where id = ?", String.class,
