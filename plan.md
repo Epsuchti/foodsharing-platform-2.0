@@ -219,9 +219,9 @@ Maven profile `-Pskip-client` skips steps 2-3 for fast backend-only builds.
 | `./mvnw clean package && java -jar server/target/*.jar` | Production-like single jar |
 
 Deliverables:
-- [ ] Skeleton repo with the layout above; `./mvnw clean package` produces one runnable jar.
-- [ ] `local` profile boots with H2 + seed data and no external accounts needed.
-- [ ] Opening `http://localhost:8080/some/deep/link` serves the Angular app.
+- [x] Skeleton repo with the layout above; `./mvnw clean package` produces one runnable jar.
+- [x] `local` profile boots with H2 + seed data and no external accounts needed.
+- [x] Opening `http://localhost:8080/some/deep/link` serves the Angular app.
 
 ---
 
@@ -300,10 +300,10 @@ openapi/
 - CI: `openapi-generator validate` + breaking-change diff (`oasdiff`) against `main` on every PR.
 
 Deliverables:
-- [ ] Split spec skeleton with `common.yaml` and the `auth`, `public`, `onboarding` tags.
-- [ ] ArchUnit test: every `@RestController` implements exactly one interface from `network.foodsharing.api`.
-- [ ] ESLint rule banning `HttpClient` outside `core/`/`api/`.
-- [ ] CI job running spec validation and `oasdiff breaking`.
+- [x] Split spec skeleton with `common.yaml` and the `auth`, `public`, `onboarding` tags.
+- [x] ArchUnit test: every `@RestController` implements exactly one interface from `network.foodsharing.api`.
+- [x] ESLint rule banning `HttpClient` outside `core/`/`api/`.
+- [ ] CI job running spec validation and `oasdiff breaking`. — *Gate note: built (`scripts/check-openapi.mjs`, `oasdiff.sh`, CI workflow) and green locally; never run on a Git remote (no remote configured), see launch report "Needs a human".*
 
 ---
 
@@ -428,9 +428,9 @@ so every role and journey stage is one click away. Never available outside `loca
 that profile; covered by a test).
 
 Deliverables:
-- [ ] `db.changelog-master.yaml` + `001-initial`.
-- [ ] Seed CSVs + `context: seed` changesets.
-- [ ] Dev user switcher (local only) + test that it is absent in `prod`.
+- [x] `db.changelog-master.yaml` + `001-initial`.
+- [x] Seed CSVs + `context: seed` changesets.
+- [x] Dev user switcher (local only) + test that it is absent in `prod`.
 
 ---
 
@@ -478,11 +478,11 @@ All user fields from §15.1 exist, but each is asked for only when a step needs 
 | Optional anytime | photo, about me (public), about me (internal for the team), homepage, position/role description, newsletter, contact visibility |
 
 Deliverables:
-- [ ] Google login end-to-end incl. account creation and linking.
-- [ ] Email magic link with Mailpit locally, rate limit, open-redirect guard.
-- [ ] Passkey registration and login.
-- [ ] Cookie sessions + CSRF + session list.
-- [ ] `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env.
+- [x] Google login end-to-end incl. account creation and linking.
+- [x] Email magic link with Mailpit locally, rate limit, open-redirect guard.
+- [x] Passkey registration and login.
+- [x] Cookie sessions + CSRF + session list.
+- [x] `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env.
 
 ---
 
@@ -550,9 +550,9 @@ Every view uses the shared `HistoryTimeline` component with filters (date range,
 pagination and CSV export for admins.
 
 Deliverables:
-- [ ] `history` module, table, `HistoryService`, `@Tracked` listener.
-- [ ] ArchUnit/test rule: every `@Transactional` non-read-only service method records history.
-- [ ] All views from the table above.
+- [x] `history` module, table, `HistoryService`, `@Tracked` listener.
+- [x] ArchUnit/test rule: every `@Transactional` non-read-only service method records history.
+- [x] All views from the table above.
 
 ---
 
@@ -642,11 +642,11 @@ SEO: prerender public routes (Angular SSG), `hreflang` for the five languages.
 
 ### 11.5 UX acceptance criteria
 
-- [ ] New user goes from landing page to "account created" in **≤ 2 clicks** with Google.
-- [ ] At any time the user sees which step they are on and the single next action.
-- [ ] Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`.
-- [ ] Every step works on a 360 px wide screen and in all five languages.
-- [ ] Usability test with 5 real newcomers from Zürich before launch.
+- [x] New user goes from landing page to "account created" in **≤ 2 clicks** with Google.
+- [x] At any time the user sees which step they are on and the single next action.
+- [x] Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`.
+- [x] Every step works on a 360 px wide screen and in all five languages.
+- [ ] Usability test with 5 real newcomers from Zürich before launch. — *Gate note: replaced during the build by three AI persona design rounds (decision 3, `docs/design-review-m7.md`); the real test with Zürich newcomers is still owed before launch, see launch report "Needs a human".*
 
 ---
 
@@ -1053,7 +1053,7 @@ OAuthClient ─ OAuthConsent   Configuration   DonationConfig
 ```
 
 Deliverable:
-- [ ] ER diagram generated from Liquibase via SchemaSpy in CI, kept in `docs/`.
+- [x] ER diagram generated from Liquibase via SchemaSpy in CI, kept in `docs/`.
 
 ---
 

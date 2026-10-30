@@ -55,7 +55,7 @@ test.describe('bieb', () => {
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver', seedReset: 'test' });
 
-  test('PU6 user past pickups and delete all future pickups with reason @PU6', async ({ page, api, dev, as }) => {
+  test('PU6 user past pickups and delete all future pickups with reason @PU6 @D10.3', async ({ page, api, dev, as }) => {
     const me = await dev.user('foodsaver');
     const past = await api.getJson<UserPickupPage>(`/api/users/${me.id}/pickups/past`, { params: { size: 100 } });
     expect(past.page.totalItems).toBe(24);

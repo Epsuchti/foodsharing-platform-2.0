@@ -111,7 +111,7 @@ test('Ve3 wallets show not configured state @Ve3', async ({ as, apiOf }) => {
   expect((await google.json()).code).toBe('WALLET_NOT_CONFIGURED');
 });
 
-test('Ve3 passport history visible to user and ambassador @Ve3 @A8', async ({ as, apiOf }) => {
+test('Ve3 passport history visible to user and ambassador @Ve3 @A8 @D10.3', async ({ as, apiOf }) => {
   const bot = await as('bot');
   await createPassports(apiOf(bot), [USERS.foodsaver]);
 

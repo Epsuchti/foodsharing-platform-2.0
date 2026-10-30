@@ -90,7 +90,7 @@ test.describe('ambassador', () => {
     await expect(page.getByTestId('regions.public.map')).toHaveCount(0);
   });
 
-  test('region settings: an extra onboarding step is added and recorded in the history @R7', async ({ page }) => {
+  test('region settings: an extra onboarding step is added and recorded in the history @R7 @D10.3', async ({ page }) => {
     await page.goto(`/regions/${ZURICH}/settings`);
     await expectDataState(page, 'regions.settings.state', 'success');
     const steps = page.getByTestId('regions.settings.step');

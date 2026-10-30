@@ -83,6 +83,29 @@ public class HistoryQueryService {
                 PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
     }
 
+    /**
+     * Region admin log (plan §10.2, D10.3). For a REGION subject: the region's own entries plus the working-group
+     * changes recorded for it (GROUP subject with {@code region_id} = the region: groups created or edited below it,
+     * group members removed). Any other subject (a working group's own page): that subject's entries. The subject's
+     * access rule decides (ambassadors / FS management of the region, ORGA).
+     *
+     * @throws ApiException 403 HISTORY_SUBJECT_NOT_READABLE
+     */
+    public Page<HistoryEntry> regionLog(HistoryFilter filter) {
+        requireReadable(filter);
+        if (filter.subjectType() != SubjectType.REGION) {
+            return repository.findAll(specification(filter), PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
+        }
+        UUID regionId = filter.subjectId();
+        HistoryFilter rest = new HistoryFilter(null, null, filter.actorId(), filter.involvingUserId(), filter.actions(),
+                filter.from(), filter.to(), filter.page(), filter.size());
+        Specification<HistoryEntry> ownOrGroups = (root, query, cb) -> cb.or(
+                cb.and(cb.equal(root.get("subjectType"), SubjectType.REGION), cb.equal(root.get("subjectId"), regionId)),
+                cb.and(cb.equal(root.get("subjectType"), SubjectType.GROUP), cb.equal(root.get("regionId"), regionId)));
+        return repository.findAll(specification(rest).and(ownOrGroups),
+                PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
+    }
+
     /** CSV export rows (ORGA only, at most {@code app.history.export-max-rows}). */
     public List<HistoryEntry> export(HistoryFilter filter) {
         currentActorService.requireRole(network.foodsharing.api.model.Role.ORGA);

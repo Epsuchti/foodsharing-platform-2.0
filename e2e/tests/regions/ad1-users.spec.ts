@@ -19,7 +19,7 @@ test('AD1 the ambassador searches and filters the users of the home region @AD1'
   await expect(page.getByTestId('usersAdmin.user.name')).toHaveText('Marco Bernasconi');
 });
 
-test('A4 AD1 the ambassador corrects the address with a reason and disables the account @A4 @AD1', async ({ page }) => {
+test('A4 AD1 the ambassador corrects the address with a reason and disables the account @A4 @AD1 @D10.3', async ({ page }) => {
   await page.goto(`/users/${SLEEPY}`);
   await expectDataState(page, 'usersAdmin.user.state', 'success');
 

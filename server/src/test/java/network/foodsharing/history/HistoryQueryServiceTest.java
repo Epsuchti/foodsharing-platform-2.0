@@ -157,6 +157,38 @@ class HistoryQueryServiceTest {
         assertThat(service.export(filter)).containsExactly(myLogin, othersLogin);
     }
 
+    @Test
+    void regionLogAddsTheWorkingGroupChangesOfTheRegion() {
+        UUID region = UUID.randomUUID();
+        UUID group = UUID.randomUUID();
+        UUID otherRegion = UUID.randomUUID();
+        HistoryEntry optionChanged = save(entry(SubjectType.REGION, region, "OPTION_CHANGED", ME,
+                NOW.minus(Duration.ofHours(1))));
+        HistoryEntry groupCreated = entry(SubjectType.GROUP, group, "CREATED", ME, NOW.minus(Duration.ofHours(2)));
+        groupCreated.setRegionId(region);
+        save(groupCreated);
+        HistoryEntry otherGroup = entry(SubjectType.GROUP, UUID.randomUUID(), "CREATED", ME,
+                NOW.minus(Duration.ofHours(3)));
+        otherGroup.setRegionId(otherRegion);
+        save(otherGroup);
+        HistoryEntry otherRegionEntry = save(entry(SubjectType.REGION, otherRegion, "OPTION_CHANGED", ME,
+                NOW.minus(Duration.ofHours(4))));
+
+        TestAuth.login(TestAuth.principal(SeedUsers.ORGA));
+        assertThat(service.regionLog(HistoryFilter.forSubject(SubjectType.REGION, region, List.of(), 0, 20))
+                .getContent()).containsExactly(optionChanged, groupCreated).doesNotContain(otherGroup, otherRegionEntry);
+        assertThat(service.regionLog(HistoryFilter.forSubject(SubjectType.REGION, region, List.of("CREATED"), 0, 20))
+                .getContent()).containsExactly(groupCreated);
+        // a working group's own page lists only its GROUP entries
+        assertThat(service.regionLog(HistoryFilter.forSubject(SubjectType.GROUP, group, List.of(), 0, 20))
+                .getContent()).containsExactly(groupCreated);
+
+        // the subject's access rule still decides (no REGION rule for a plain foodsaver)
+        TestAuth.login(TestAuth.principal(SeedUsers.FOODSAVER));
+        assertForbidden(() -> service.regionLog(HistoryFilter.forSubject(SubjectType.REGION, region, List.of(), 0, 20)),
+                ApiErrorCode.HISTORY_SUBJECT_NOT_READABLE);
+    }
+
     private static void assertForbidden(Runnable call, ApiErrorCode code) {
         assertThatThrownBy(call::run).isInstanceOfSatisfying(ApiException.class, ex -> {
             assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);

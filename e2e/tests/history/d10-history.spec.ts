@@ -326,6 +326,24 @@ test.describe('as orga', () => {
     expect(filteredCsv.length).toBe(3);
     expect(filteredCsv.slice(1).every((row) => row.includes(',ROLE_CHANGED,'))).toBe(true);
   });
+
+  test('D10.3 orga reads the login log of another user on the user page @D10.3 @A22', async ({ page }) => {
+    // plan §10.2 "Login & security log": the user (own, /account/security-log) and orga (here)
+    const foodsaver = '00000001-0001-4000-8000-000000000006';
+    await page.goto(`/users/${foodsaver}`);
+    const list = 'usersAdmin.user.history.list';
+    await expectDataState(page, list, 'success');
+    const texts = await catalog(page);
+    await page.getByTestId('usersAdmin.user.history.filter.actions').click();
+    await page.getByRole('option', { name: genericLabel(texts['history.action.USER.LOGIN']), exact: true }).click();
+    await closeOverlay(page);
+    await expectDataState(page, list, 'success');
+    const actions = await page
+      .getByTestId('usersAdmin.user.history.entry')
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-action')));
+    expect(actions.length).toBeGreaterThan(0);
+    expect(actions.every((action) => action === 'USER.LOGIN')).toBe(true);
+  });
 });
 
 function dayCell(panel: Locator, day: number): Locator {
