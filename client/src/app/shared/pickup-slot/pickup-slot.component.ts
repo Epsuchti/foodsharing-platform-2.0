@@ -40,17 +40,30 @@ import { UserAvatarComponent } from '../user-chip/user-avatar.component';
           </button>
         </li>
       }
-      @for (free of freeSlots(); track $index) {
+      @for (free of freeSlots(); track $index; let first = $first) {
         <li>
+          <!-- the first free slot names itself ("Eintragen" / "frei"), the others stay compact (M7 R2 #16) -->
           <button
             type="button"
             class="slot slot--free"
+            [class.slot--labelled]="first"
             [disabled]="!freeClickable()"
-            [attr.aria-label]="'shared.pickupSlot.free' | t"
+            [attr.aria-label]="
+              freeClickable()
+                ? ('shared.pickupSlot.free' | t)
+                : first
+                  ? ('shared.pickupSlot.freeShort' | t: { count: freeSlots().length })
+                  : ('shared.pickupSlot.freeOnly' | t)
+            "
             (click)="freeClick.emit()"
             [attr.data-testid]="testId() + '.free'"
           >
-            <i class="pi pi-plus" aria-hidden="true"></i>
+            @if (freeClickable()) {
+              <i class="pi pi-plus" aria-hidden="true"></i>
+            }
+            @if (first) {
+              <span class="slot__label" aria-hidden="true">{{ (freeClickable() ? 'shared.pickupSlot.signUp' : 'shared.pickupSlot.freeShort') | t: { count: freeSlots().length } }}</span>
+            }
           </button>
         </li>
       }
@@ -65,11 +78,21 @@ import { UserAvatarComponent } from '../user-chip/user-avatar.component';
     .slot:disabled { cursor: default; }
     .slot--taken { border-color: var(--fs-primary); }
     .slot--unconfirmed { border-style: dashed; border-color: var(--fs-warning-border, var(--fs-border)); }
-    .slot--mine { box-shadow: 0 0 0 2px var(--fs-primary-soft); }
+    .slot--mine { box-shadow: 0 0 0 3px var(--fs-primary-soft), 0 0 0 4px var(--fs-primary); }
     .slot--free {
       border: 2px dashed var(--fs-border); color: var(--fs-text-muted); background: var(--fs-surface);
     }
     .slot--free:not(:disabled):hover { border-color: var(--fs-primary); color: var(--fs-primary-strong); }
+    .slot--free:not(:disabled) { color: var(--fs-primary-strong); border-color: color-mix(in srgb, var(--fs-primary) 55%, var(--fs-border)); }
+    .slot--labelled {
+      display: inline-flex; gap: 0.35rem; width: auto; padding: 0 0.8rem; font: inherit; font-size: 0.85rem; font-weight: 650;
+    }
+    .slot--labelled:disabled { color: var(--fs-text-muted); }
+    .slot__label { white-space: nowrap; }
+    @media (pointer: coarse) {
+      .slot { width: 2.75rem; height: 2.75rem; }
+      .slot--labelled { width: auto; }
+    }
     .slot:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
   `,
 })

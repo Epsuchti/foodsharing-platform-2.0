@@ -174,6 +174,14 @@ describe('nav.config', () => {
     expect(NAV_ITEMS.every((item) => item.labelKey.startsWith('nav.'))).toBe(true);
   });
 
+  it('puts a newcomer journey right after the dashboard (labelled in the compact header)', () => {
+    const newcomer = context({
+      isAuthenticated: true,
+      session: { onboarding: { complete: false } } as unknown as NavContext['session'],
+    });
+    expect(visibleNavItems(newcomer).map((item) => item.id).slice(0, 2)).toEqual(['dashboard', 'onboarding']);
+  });
+
   it('filters by area and session', () => {
     // the map (M1) is public
     expect(visibleNavItems(context()).map((item) => item.id)).toEqual(['home', 'map']);

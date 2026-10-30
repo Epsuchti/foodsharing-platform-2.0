@@ -73,23 +73,38 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
       <p class="muted">{{ 'verification.queue.noComments' | t }}</p>
     }
 
+    @let identityFirst = !verified() && !c.identityConfirmedAt && canConfirmIdentity();
+    @if (identityFirst) {
+      <!-- the expected order (design review M7 R1 #18): check the ID first, then verify; verifying stays possible -->
+      <p class="identity-hint" data-testid="verification.queue.identityFirst">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'verification.queue.identityFirstHint' | t }}
+      </p>
+    }
     <div class="actions">
-      @if (!verified()) {
-        <p-button [label]="'verification.queue.verify' | t" icon="pi pi-verified" size="small" (onClick)="verify.emit()" data-testid="verification.queue.verify" />
-      } @else {
-        <p-button [label]="'verification.queue.unverify' | t" icon="pi pi-undo" severity="danger" [outlined]="true" size="small" (onClick)="unverify.emit()" data-testid="verification.queue.unverify" />
-      }
       @if (!c.identityConfirmedAt && canConfirmIdentity()) {
         <p-button
           [label]="'verification.queue.confirmIdentity' | t"
           icon="pi pi-id-card"
-          severity="secondary"
-          [outlined]="true"
+          [severity]="identityFirst ? undefined : 'secondary'"
+          [outlined]="!identityFirst"
           size="small"
           [loading]="confirmBusy()"
           (onClick)="confirmIdentity.emit()"
           data-testid="verification.queue.confirmIdentity"
         />
+      }
+      @if (!verified()) {
+        <p-button
+          [label]="'verification.queue.verify' | t"
+          icon="pi pi-verified"
+          [severity]="identityFirst ? 'secondary' : undefined"
+          [outlined]="identityFirst"
+          size="small"
+          (onClick)="verify.emit()"
+          data-testid="verification.queue.verify"
+        />
+      } @else {
+        <p-button [label]="'verification.queue.unverify' | t" icon="pi pi-undo" severity="danger" [outlined]="true" size="small" (onClick)="unverify.emit()" data-testid="verification.queue.unverify" />
       }
       <a [routerLink]="['/users', c.user.id, 'verification-history']" class="fs-btn fs-btn--text fs-btn--sm" data-testid="verification.queue.history">
         <i class="pi pi-history" aria-hidden="true"></i>{{ 'verification.queue.history' | t }}
@@ -107,6 +122,21 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
       align-items: center;
       justify-content: space-between;
       gap: 0.5rem;
+    }
+    .identity-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      margin: 0;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--fs-radius-sm);
+      background: var(--fs-warning-soft);
+      color: var(--fs-warning-text);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .identity-hint .pi {
+      margin-top: 0.2rem;
     }
     .comments summary {
       cursor: pointer;

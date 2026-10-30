@@ -45,6 +45,13 @@ import { TPipe } from '../../../core/i18n/t.pipe';
     .tile .pi { color: var(--fs-primary); }
     .tile strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
     .tile span { color: var(--fs-text-muted); font-size: 0.85rem; }
+    /* phones: three compact tiles per row instead of three rows of two (M7 R2 list density) */
+    @media (max-width: 30rem) {
+      .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+      .tile { padding: 0.65rem 0.7rem; }
+      .tile strong { font-size: 1.15rem; }
+      .tile span { font-size: 0.78rem; line-height: 1.3; overflow-wrap: anywhere; }
+    }
   `,
 })
 export class ProfileStatsComponent {

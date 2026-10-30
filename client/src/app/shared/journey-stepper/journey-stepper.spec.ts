@@ -79,6 +79,20 @@ describe('JourneyStepperComponent', () => {
     expect(el.querySelector('[data-testid="t.journey.open"]')).toBeNull();
   });
 
+  it('compact hideAction mode keeps the title but leaves the action to the page', async () => {
+    const { el } = await create({ journey: DEMO_JOURNEY_IN_PROGRESS, mode: 'compact', hideAction: true });
+    expect(el.textContent).toContain('Schritt 6 von 8');
+    expect(el.textContent).toContain('Einführungsabholungen');
+    expect(el.querySelector('[data-testid="t.journey.next"]')).toBeNull();
+    expect(el.querySelector('[data-testid="t.journey.open"]')).toBeNull();
+  });
+
+  it('full mode leaves out the action of the step the page shows itself', async () => {
+    const { el } = await create({ journey: DEMO_JOURNEY_IN_PROGRESS, omitActionFor: 'INTRO_PICKUPS' });
+    expect(el.querySelector('[data-testid="t.journey.action.INTRO_PICKUPS"]')).toBeNull();
+    expect(el.querySelector('[aria-current="step"]')?.textContent).toContain('Einführungsabholungen');
+  });
+
   it('preview mode lists the steps without status', async () => {
     const { el } = await create({ preview: DEMO_JOURNEY_PREVIEW, mode: 'preview' });
     expect(el.querySelectorAll('.step')).toHaveLength(8);

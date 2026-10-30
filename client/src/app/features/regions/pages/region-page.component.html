@@ -62,20 +62,11 @@
               data-testid="regions.page.makeHome"
             />
           }
-          <p-button
-            [label]="'regions.page.leave' | t"
-            icon="pi pi-sign-out"
-            severity="secondary"
-            [text]="true"
-            [loading]="leave.busy()"
-            (onClick)="confirmLeave(region.name)"
-            data-testid="regions.page.leave"
-          />
         }
       </div>
     </header>
 
-    <nav class="tabs" [attr.aria-label]="'regions.page.tabs' | t" data-testid="regions.page.tabs">
+    <nav class="tabs" fsScrollHint [attr.aria-label]="'regions.page.tabs' | t" data-testid="regions.page.tabs">
       @for (tab of tabs(); track tab.id) {
         <a
           class="tabs__tab"
@@ -107,5 +98,25 @@
     <div class="content">
       <router-outlet />
     </div>
+
+    @if (region.membership.member) {
+      <!-- leaving is a rare, consequential action: below the content, not next to the page title (design review M7 R2) -->
+      <footer class="membership" data-testid="regions.page.membership">
+        <p class="membership__text">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          {{ (region.membership.homeRegion ? 'regions.page.membershipHome' : 'regions.page.membershipMember') | t: { name: region.name } }}
+        </p>
+        <p-button
+          [label]="'regions.page.leave' | t"
+          icon="pi pi-sign-out"
+          severity="danger"
+          [text]="true"
+          size="small"
+          [loading]="leave.busy()"
+          (onClick)="confirmLeave(region.name)"
+          data-testid="regions.page.leave"
+        />
+      </footer>
+    }
   </ng-template>
 </fs-data-state>

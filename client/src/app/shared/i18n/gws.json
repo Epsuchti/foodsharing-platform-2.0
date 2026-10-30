@@ -260,5 +260,9 @@
   "shared.upload.full": "S Maximum vo {max} Dateie isch erreicht.",
   "shared.upload.tooMany": "Nöd meh als {max} Dateie.",
   "shared.upload.tooLarge": "Grösser als {size}.",
-  "shared.upload.failed": "Ufelade het nöd klappt."
+  "shared.upload.failed": "Ufelade het nöd klappt.",
+  "shared.markerFilter.active": "{count} aktiv",
+  "shared.pickupSlot.freeOnly": "Freie Platz",
+  "shared.pickupSlot.signUp": "Iitrage",
+  "shared.pickupSlot.freeShort": "{count} frei"
 }

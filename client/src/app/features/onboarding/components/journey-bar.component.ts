@@ -35,6 +35,7 @@ import { JourneyLoader } from '../onboarding.resource';
               <fs-journey-stepper
                 mode="compact"
                 [journey]="j"
+                [hideAction]="onJourneyPage()"
                 testId="onboarding.bar.stepper"
                 [attr.data-current]="j.currentStep"
               />
@@ -52,9 +53,10 @@ import { JourneyLoader } from '../onboarding.resource';
       display: none;
     }
     .bar {
-      width: min(100%, 80rem);
+      /* aligned with the header row and the page content (design review M7 R2) */
+      width: min(100%, var(--fs-page-max));
       margin: 0 auto;
-      padding: 0.4rem 1rem 0.5rem;
+      padding: 0.4rem var(--fs-gutter) 0.5rem;
       border-top: 1px solid var(--fs-header-border);
     }
     @media (max-width: 47.99rem) {
@@ -78,6 +80,9 @@ export class JourneyBarComponent {
       this.session.session().onboarding?.complete === false &&
       journeyBarAllowedOn(this.url()),
   );
+
+  /** On `/onboarding` the page's own call to action is the next step: the bar shows progress only. */
+  protected readonly onJourneyPage = computed(() => isJourneyPage(this.url()));
 
   protected readonly journey = loadResource<Journey, true | undefined>({
     params: () => (this.visible() ? true : undefined),
@@ -110,4 +115,12 @@ export class JourneyBarComponent {
  */
 export function journeyBarAllowedOn(url: string): boolean {
   return !/^\/consent(?:[/?#]|$)/.test(url);
+}
+
+/**
+ * The journey page itself (`/onboarding`, not its step pages): the bar drops its action there because the page's hero
+ * shows the same call to action (design review M7 R2).
+ */
+export function isJourneyPage(url: string): boolean {
+  return /^\/onboarding(?:[?#]|\/?$)/.test(url);
 }

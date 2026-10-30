@@ -1,4 +1,15 @@
-import { journeyBarAllowedOn } from './journey-bar.component';
+import { isJourneyPage, journeyBarAllowedOn } from './journey-bar.component';
+
+describe('isJourneyPage', () => {
+  it('matches the journey page only, not its step pages', () => {
+    for (const url of ['/onboarding', '/onboarding/', '/onboarding?from=bell', '/onboarding#steps']) {
+      expect(isJourneyPage(url), url).toBe(true);
+    }
+    for (const url of ['/onboarding/profile', '/dashboard', '/onboarding-help', '/']) {
+      expect(isJourneyPage(url), url).toBe(false);
+    }
+  });
+});
 
 describe('journeyBarAllowedOn', () => {
   it('hides the journey bar on the consent page only', () => {

@@ -10,7 +10,7 @@
   "regionAdmin.empty": "Keine Bezirke gefunden",
   "regionAdmin.members": "{count, plural, one {# Mitglied} other {# Mitglieder}}",
   "regionAdmin.children": "{count, plural, one {# Unterbezirk} other {# Unterbezirke}}",
-  "regionAdmin.ambassadors": "Botschafter*innen",
+  "regionAdmin.ambassadors": "Botschafter:innen",
   "regionAdmin.parent": "Übergeordnet",
   "regionAdmin.status": "Status",
   "regionAdmin.edit": "{name} bearbeiten",

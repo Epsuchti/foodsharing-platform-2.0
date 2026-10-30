@@ -13,6 +13,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { M6_PAGES_READY } from '../../../layout/nav.config';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { mayHandleReports } from '../../reports/reports.util';
 import { hasResources } from '../../resources/resources.util';
 import { RegionPageContext } from '../region-page.context';
@@ -39,7 +40,7 @@ const LATER: { id: string; icon: string; route?: string }[] = [
  */
 @Component({
   selector: 'fs-region-page',
-  imports: [...DATA_STATE_IMPORTS, Button, RouterLink, RouterLinkActive, RouterOutlet, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, RouterLink, RouterLinkActive, RouterOutlet, ScrollHintDirective, TPipe],
   providers: [RegionPageContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './region-page.component.html',

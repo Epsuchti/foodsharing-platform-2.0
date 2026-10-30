@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, map } from 'rxjs';
 
 import { FeatureToggleKey, Petition, PublicContentService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { FeatureToggleService } from '../../../core/feature-toggles/feature-toggle.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { readStorage, writeStorage } from '../../../core/storage';
-import { PETITION_DISMISSED_KEY, loadPetition } from '../petition.resource';
+import { PETITION_DISMISSED_KEY, loadPetition, petitionBannerAllowedOn } from '../petition.resource';
 import { PetitionNoticeComponent } from './petition-notice.component';
 
 /**
@@ -52,9 +55,18 @@ export class PetitionBannerComponent {
   /** The shell renders this before the rest of the catalog (content.*) may have arrived: wait for it. */
   private readonly catalogReady = signal(false);
 
+  private readonly router = inject(Router);
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+
   protected readonly petition = computed(() => {
     const value = this.state.status() === 'success' ? this.state.data() : null;
-    return value && this.catalogReady() && value.href !== this.dismissed() ? value : null;
+    return value && this.catalogReady() && value.href !== this.dismissed() && petitionBannerAllowedOn(this.url()) ? value : null;
   });
 
   constructor() {

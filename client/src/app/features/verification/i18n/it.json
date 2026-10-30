@@ -100,5 +100,6 @@
   "verification.passports.create": "Crea tessere",
   "verification.passports.jobLabel": "Creazione delle tessere …",
   "verification.passports.jobDone": "Le tessere sono pronte.",
-  "verification.passports.downloadResult": "Scarica il PDF"
+  "verification.passports.downloadResult": "Scarica il PDF",
+  "verification.queue.identityFirstHint": "Controlla prima il documento e conferma l’identità, poi verifica."
 }

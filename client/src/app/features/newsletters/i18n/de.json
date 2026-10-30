@@ -43,7 +43,7 @@
   "newsletters.unsubscribe.confirm": "Abbestellen",
   "newsletters.unsubscribe.done": "{email} bekommt keine Newsletter mehr.",
   "newsletters.unsubscribe.settings": "Alle Benachrichtigungseinstellungen",
-  "newsletters.list.newBody": "Liebe Foodsaver*innen,",
+  "newsletters.list.newBody": "Liebe Foodsaver:innen,",
   "newsletters.list.kind": "Art",
   "newsletters.kind.NEWSLETTER": "Newsletter",
   "newsletters.kind.INFO_MAIL": "Info-Mail",

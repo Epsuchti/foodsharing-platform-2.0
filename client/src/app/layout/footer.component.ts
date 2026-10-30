@@ -67,6 +67,17 @@ import { NavContextService } from './nav-context.service';
       font-weight: 500;
       text-decoration: none;
     }
+    /* touch: 44px tall links in a wrapping row (design review M7 R2 #19) */
+    @media (pointer: coarse) {
+      .ftr__links {
+        gap: 0 1.25rem;
+      }
+      .ftr__links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+      }
+    }
     .ftr__links a:hover {
       color: var(--fs-primary-strong);
       text-decoration: underline;

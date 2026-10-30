@@ -23,6 +23,19 @@ async function choose(page: Page, testId: string, label: string | RegExp): Promi
   await expect(page.locator('.p-overlay')).toHaveCount(0);
 }
 
+/**
+ * Phones fold a filter bar behind its toggle (design review M7 R2): open it there; on wider screens the toggle is
+ * hidden and the selects are always shown.
+ */
+async function openFilters(page: Page, testId: string): Promise<void> {
+  const toggle = page.getByTestId(`${testId}.toggle`);
+  if (await toggle.isVisible()) {
+    await expect(page.getByTestId(`${testId}.status`).or(page.getByTestId(`${testId}.regionId`)).first()).toBeHidden();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  }
+}
+
 /** Opens a pin's bubble with the keyboard (pins overlap at country zoom; Leaflet markers are focusable buttons). */
 async function openPin(pin: Locator): Promise<void> {
   await pin.focus();
@@ -62,6 +75,7 @@ test('M1 public map shows FSP, region and basket markers; logged-in user filters
   await expect(pins(page, 'store')).toHaveCount(all.length);
   await expect(page.getByTestId('map.page.layer.users')).toHaveCount(0);
 
+  await openFilters(page, 'map.page.storeFilter');
   await choose(page, 'map.page.storeFilter.status', 'Kooperiert');
   await choose(page, 'map.page.storeFilter.help', 'Sucht dringend Hilfe');
   await expectDataState(page, 'map.page.map.state', 'success');
@@ -96,6 +110,7 @@ test('M1 user markers only for region admins and only when the toggle is on @M1 
     await bot.goto('/map');
     await bot.getByTestId('map.page.layer.users').click();
     await expect(bot.getByTestId('map.page.layer.users')).toHaveAttribute('aria-pressed', 'true');
+    await openFilters(bot, 'map.page.userFilter');
     await expect(bot.getByTestId('map.page.userFilter.regionId')).toContainText('Zürich Stadt');
     await expectDataState(bot, 'map.page.map.state', 'success');
     await expect(pins(bot, 'user').first()).toBeAttached();

@@ -260,5 +260,9 @@
   "shared.upload.full": "The maximum of {max} files is reached.",
   "shared.upload.tooMany": "Not more than {max} files.",
   "shared.upload.tooLarge": "Larger than {size}.",
-  "shared.upload.failed": "Upload failed."
+  "shared.upload.failed": "Upload failed.",
+  "shared.markerFilter.active": "{count} active",
+  "shared.pickupSlot.freeOnly": "Free slot",
+  "shared.pickupSlot.signUp": "Sign up",
+  "shared.pickupSlot.freeShort": "{count} free"
 }

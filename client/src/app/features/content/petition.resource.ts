@@ -21,6 +21,14 @@ export function loadPetition(api: PublicContentService): Observable<Petition | n
     );
 }
 
+/**
+ * The shell's petition banner stays off the blocking consent page (`/consent`, design review M7 R1 #20: it competed
+ * with "Zustimmen und weiter") and off the petition page, which shows the petition itself.
+ */
+export function petitionBannerAllowedOn(url: string): boolean {
+  return !/^\/(?:consent|petition)(?:[/?#]|$)/.test(url);
+}
+
 /** Only http(s) links leave the page; anything else (javascript:, data:) is not rendered as a link. */
 export function safePetitionHref(href: string | null | undefined): string | null {
   return href && /^https?:\/\//i.test(href.trim()) ? href.trim() : null;

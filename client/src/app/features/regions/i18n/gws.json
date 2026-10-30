@@ -305,5 +305,9 @@
   "regions.statistics.noPickups": "No kei Abholige erfasst",
   "regions.statistics.onlyHomeRegion": "Nur Mitglieder mit däm Stammbezirk",
   "regions.statistics.onlyHomeRegionHint": "Gilt für Gschlächt und Altersgruppe.",
-  "regions.statistics.noMembers": "Kei Mitglieder"
+  "regions.statistics.noMembers": "Kei Mitglieder",
+  "regions.members.permissionsShort": "Rächt",
+  "regions.members.removeShort": "Entferne",
+  "regions.page.membershipHome": "{name} isch din Stammbezirk.",
+  "regions.page.membershipMember": "Du bisch Mitglied vo {name}."
 }

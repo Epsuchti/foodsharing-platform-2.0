@@ -30,6 +30,7 @@ export function currentStepOf(journey: Journey): JourneyStep | undefined {
 
     <fs-data-state [state]="journey" skeleton="card" [skeletonRows]="3" data-testid="onboarding.journey.state">
       <ng-template [fsData]="journey" let-j>
+        <div class="stack">
         @if (j.complete) {
           <section class="fs-card card hero hero--done" data-testid="onboarding.journey.complete">
             <h2 class="hero__title"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'onboarding.journey.completeTitle' | t }}</h2>
@@ -71,7 +72,7 @@ export function currentStepOf(journey: Journey): JourneyStep | undefined {
         }
 
         <h2 class="section-title"><i class="pi pi-list-check" aria-hidden="true"></i>{{ 'onboarding.journey.allSteps' | t }}</h2>
-        <fs-journey-stepper mode="full" [journey]="j" testId="onboarding.journey.stepper" />
+        <fs-journey-stepper mode="full" [journey]="j" [omitActionFor]="current(j)?.key" testId="onboarding.journey.stepper" />
 
         @if (j.tracks?.length) {
           <h2 class="section-title"><i class="pi pi-compass" aria-hidden="true"></i>{{ 'onboarding.journey.tracks' | t }}</h2>
@@ -94,6 +95,7 @@ export function currentStepOf(journey: Journey): JourneyStep | undefined {
             }
           </ul>
         }
+        </div>
       </ng-template>
     </fs-data-state>
   `,

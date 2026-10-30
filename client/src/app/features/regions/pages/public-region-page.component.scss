@@ -10,7 +10,7 @@
   padding: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
   border-radius: var(--fs-radius-xl);
   background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, #f2b84b 18%, transparent), transparent 55%),
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--fs-accent) 18%, transparent), transparent 55%),
     linear-gradient(135deg, var(--fs-primary-soft), var(--fs-surface));
 
   @media (min-width: 48rem) {

@@ -305,7 +305,7 @@ export function filterTree(nodes: readonly PublicRegionNode[], query: string): P
       display: flex;
       align-items: center;
       gap: 0.25rem;
-      min-height: 2.25rem;
+      min-height: var(--fs-target-sm);
     }
     .tree__toggle,
     .tree__spacer {

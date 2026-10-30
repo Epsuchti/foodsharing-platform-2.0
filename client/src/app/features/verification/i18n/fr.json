@@ -100,5 +100,6 @@
   "verification.passports.create": "Créer les cartes",
   "verification.passports.jobLabel": "Création des cartes …",
   "verification.passports.jobDone": "Les cartes sont prêtes.",
-  "verification.passports.downloadResult": "Télécharger le PDF"
+  "verification.passports.downloadResult": "Télécharger le PDF",
+  "verification.queue.identityFirstHint": "Vérifie d’abord la pièce d’identité et confirme l’identité, puis valide le compte."
 }

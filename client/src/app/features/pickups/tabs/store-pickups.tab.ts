@@ -316,8 +316,14 @@ interface SlotTarget {
   styleUrl: '../../stores/stores.scss',
   styles: `
     .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
-    .chips, .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .chips, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+    /* phones: the actions start left under the range chips, the primary one first (M7 R2 action placement) */
+    @media (max-width: 47.99rem) {
+      .actions { width: 100%; }
+      .actions p-button[data-testid='stores.pickups.add'] { order: -1; }
+    }
     .chip {
+      min-height: var(--fs-target-sm);
       padding: 0.35rem 0.85rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface);
       color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer;
     }

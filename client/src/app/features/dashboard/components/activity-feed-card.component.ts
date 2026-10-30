@@ -144,6 +144,16 @@ interface FeedEntry {
     .chip:disabled {
       cursor: progress;
     }
+    /* touch: 44px chips (design review M7 R1 #19: 32px) */
+    @media (pointer: coarse) {
+      .chips {
+        gap: 0.45rem;
+      }
+      .chip {
+        min-height: 2.75rem;
+        padding-inline: 0.85rem;
+      }
+    }
     .list {
       display: grid;
       margin: 0;

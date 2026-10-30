@@ -184,6 +184,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     visible: loggedIn,
     mobileTab: true,
   },
+  // M2: a newcomer's main item comes right after the dashboard (labelled in the compact header, design review M7 R2);
+  // the flag matches the journey page's header icon
+  {
+    id: 'onboarding',
+    labelKey: 'nav.onboarding',
+    icon: 'pi pi-flag',
+    route: '/onboarding',
+    visible: when('onboarding', onboardingOpen),
+  },
   {
     id: 'pickups',
     labelKey: 'nav.pickups',
@@ -226,14 +235,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     visible: loggedIn,
     mobileTab: true,
   },
-  // --- M2: regions & onboarding ---
-  {
-    id: 'onboarding',
-    labelKey: 'nav.onboarding',
-    icon: 'pi pi-compass',
-    route: '/onboarding',
-    visible: when('onboarding', onboardingOpen),
-  },
+  // --- M2: regions ---
   {
     id: 'regions',
     labelKey: 'nav.regions',

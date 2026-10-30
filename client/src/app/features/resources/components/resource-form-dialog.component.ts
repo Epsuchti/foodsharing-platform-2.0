@@ -158,7 +158,7 @@ import {
     .field input, .field textarea { width: 100%; }
     .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
     .chip {
-      display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2.25rem; padding: 0.25rem 0.75rem;
+      display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.25rem 0.75rem;
       border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); color: var(--fs-text);
       font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
     }
