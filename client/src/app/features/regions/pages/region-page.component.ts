@@ -26,9 +26,10 @@ interface RegionTab {
 }
 
 /** Features of later milestones, shown as tabs with an "available in a later release" placeholder (R3 partial). */
-const LATER = [
+const LATER: { id: string; icon: string; route?: string }[] = [
   { id: 'stores', icon: 'pi pi-shopping-bag' },
-  { id: 'wall', icon: 'pi pi-megaphone' },
+  // a tab route of its own (plan-m7 Q7), so /regions/:id/wall stays the wall's address
+  { id: 'wall', icon: 'pi pi-megaphone', route: 'wall' },
 ];
 
 /**
@@ -102,7 +103,7 @@ export class RegionPageComponent {
     this.ctx.isMember()
       ? LATER.map((tab) => ({
           ...tab,
-          route: `later/${tab.id}`,
+          route: tab.route ?? `later/${tab.id}`,
           labelKey: `regions.later.${tab.id}`,
         }))
       : [],

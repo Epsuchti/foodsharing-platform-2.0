@@ -71,6 +71,12 @@ const ROUTES: RouteCase[] = [
   { path: '/reports/00000050-0001-4000-8000-000000000003', role: 'reports', ready: 'reports.detail.wall.list', consent: true },
   { path: '/profile/00000001-0001-4000-8000-000000000007', role: 'reports', ready: 'reports.user.list', consent: true },
   { path: '/regions/00000010-0001-4000-8000-000000000040/mediation', role: 'foodsaver', ready: 'reports.mediation.team' },
+  // M6 map, dashboard feed, region statistics (plan-m7 Q7)
+  { path: '/map', role: null, ready: 'map.page.layers' },
+  { path: '/map', role: 'foodsaver', ready: 'map.page.storeFilter' },
+  { path: '/dashboard', role: 'bot', ready: 'dashboard.activity.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/statistics', role: 'foodsaver', ready: 'regions.statistics.genderList' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/wall', role: 'foodsaver', ready: 'regions.later.empty' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

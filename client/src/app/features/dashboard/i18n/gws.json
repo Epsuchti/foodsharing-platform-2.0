@@ -26,5 +26,22 @@
   "dashboard.page.admin.text": "Mitglieder, Verifizierig und neui Foodsaver:inne vo dim Bezirk verwaltisch bald diräkt da.",
   "dashboard.page.journey.eyebrow": "Din nächschte Schritt",
   "dashboard.page.journey.title": "Dini Reis",
-  "dashboard.page.journey.open": "Ganzi Reis aaluege"
+  "dashboard.page.journey.open": "Ganzi Reis aaluege",
+  "dashboard.activity.title": "Was lauft",
+  "dashboard.activity.filterLabel": "Aazeigti Beriich",
+  "dashboard.activity.empty": "No nüt Nöis",
+  "dashboard.activity.emptyHint": "Da erschiined Biiträg us dine Forum, Betriib, Poschtfächer, Termin und Fairteiler.",
+  "dashboard.activity.loadMore": "Meh lade",
+  "dashboard.activity.type.FORUM": "Forum",
+  "dashboard.activity.type.STORE_WALL": "Betriib",
+  "dashboard.activity.type.MAILBOX": "Poschtfächer",
+  "dashboard.activity.type.EVENT_WALL": "Termin",
+  "dashboard.activity.type.FSP_WALL": "Fairteiler",
+  "dashboard.activity.type.BUDDY_WALL": "Bekannti",
+  "dashboard.baskets.title": "Ässechörb i dinere Nööchi",
+  "dashboard.baskets.empty": "Kei Ässechörb im Umkreis vo {km} km.",
+  "dashboard.baskets.noPosition": "Dis Profil hät no kei Adrässe – dänn zeiged mer dir Chörb i dinere Nööchi.",
+  "dashboard.baskets.addAddress": "Adrässe im Profil iiträge",
+  "dashboard.baskets.all": "Alli Ässechörb",
+  "dashboard.baskets.offer": "Chorb aabiete"
 }
