@@ -84,8 +84,13 @@ const AFTER_FIRST_PAGE_MS = 1500;
     }}</a>
     <fs-request-bar />
     @if (showSidenav()) {
-      <!-- desktop (from 48rem, decision 133): the side menu next to the content replaces the header -->
-      <fs-sidenav />
+      <!-- desktop (from 48rem, decision 133): the side menu next to the content replaces the header. Its own chunk,
+           so phones never load it (D11.5.3); the column is reserved by the media query, so nothing shifts. -->
+      @defer (on immediate) {
+        <fs-sidenav />
+      } @placeholder {
+        <div class="sn sn--placeholder" aria-hidden="true"></div>
+      }
     }
     <div class="shell__col">
       @if (chrome() !== 'none' && !showSidenav()) {
