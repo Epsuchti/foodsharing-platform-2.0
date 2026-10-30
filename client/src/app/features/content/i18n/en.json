@@ -161,7 +161,7 @@
   "content.releaseAdmin.releasedAt": "Released on",
   "content.releaseAdmin.noteTitle": "Title",
   "content.releaseAdmin.body": "Text (Markdown)",
-  "content.releaseAdmin.translationsHint": "Translations saved earlier are kept; the languages you fill in are replaced.",
+  "content.releaseAdmin.translationsHint": "Empty a language's title and text to remove its translation.",
   "content.releaseAdmin.incomplete": "Title and text belong together: {languages}",
   "content.releaseAdmin.saved": "Saved.",
   "content.releaseAdmin.deleted": "Release note deleted.",

@@ -151,6 +151,13 @@ public class ContentMapper {
         model.setReleasedAt(note.note().getReleasedAt());
         model.setTitle(note.title());
         model.setBody(note.body());
+        if (note.translations() != null) {
+            Map<String, network.foodsharing.api.model.ReleaseNoteTranslation> translations =
+                    new java.util.LinkedHashMap<>();
+            note.translations().forEach((language, text) -> translations.put(language,
+                    new network.foodsharing.api.model.ReleaseNoteTranslation().title(text.title()).body(text.body())));
+            model.setTranslations(translations);
+        }
         return model;
     }
 

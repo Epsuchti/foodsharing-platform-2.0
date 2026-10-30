@@ -31,11 +31,23 @@ public class ReleaseNoteService {
     public record Text(String title, String body) {
     }
 
+    /** {@code removeTranslations}: languages to delete (update only; never the German base). */
     public record NoteInput(String version, LocalDate releasedAt, String title, String body,
-                            Map<String, Text> translations) {
+                            Map<String, Text> translations, java.util.Set<String> removeTranslations) {
+
+        public NoteInput(String version, LocalDate releasedAt, String title, String body,
+                         Map<String, Text> translations) {
+            this(version, releasedAt, title, body, translations, null);
+        }
     }
 
-    public record LocalizedNote(ReleaseNote note, String title, String body, String language) {
+    /** {@code translations} (languages other than de) only in editor views, otherwise null. */
+    public record LocalizedNote(ReleaseNote note, String title, String body, String language,
+                                Map<String, Text> translations) {
+
+        public LocalizedNote(ReleaseNote note, String title, String body, String language) {
+            this(note, title, body, language, null);
+        }
     }
 
     private final ReleaseNoteRepository notes;
@@ -62,11 +74,13 @@ public class ReleaseNoteService {
         }).filter(java.util.Objects::nonNull).toList();
     }
 
-    /** All notes for the editor (German texts). @throws ApiException 403 unless ORGA */
+    /** All notes for the editor: German texts plus every translation. @throws ApiException 403 unless ORGA */
     @Transactional(readOnly = true)
     public List<LocalizedNote> listForEdit() {
         requireOrga();
-        return list(BASE_LANGUAGE);
+        List<ReleaseNote> rows = notes.findAllByOrderByReleasedAtDescReleaseVersionDesc();
+        Map<UUID, Map<String, ReleaseNoteI18n>> byNote = byNote(rows);
+        return rows.stream().map(note -> editorView(note, byNote.getOrDefault(note.getId(), Map.of()))).toList();
     }
 
     /** @throws ApiException 403 unless ORGA, 400 VALIDATION_FAILED when the version exists */
@@ -98,12 +112,26 @@ public class ReleaseNoteService {
             }
             note.setReleaseVersion(input.version().strip());
         }
+        java.util.Set<String> remove = input.removeTranslations() == null ? java.util.Set.of()
+                : input.removeTranslations();
+        if (remove.contains(BASE_LANGUAGE)
+                || input.translations() != null && remove.stream().anyMatch(input.translations()::containsKey)) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "removeTranslations");
+        }
         if (input.releasedAt() != null) {
             note.setReleasedAt(input.releasedAt());
         }
         writeTexts(note.getId(), input);
-        history.record(history.event(ContentAction.RELEASE_NOTE_UPDATED, note.getId())
-                .metadata("version", note.getReleaseVersion()).build());
+        List<ReleaseNoteI18n> dropped = texts.findByOwnerId(note.getId()).stream()
+                .filter(row -> remove.contains(row.getLanguage())).toList();
+        texts.deleteAll(dropped);
+        var event = history.event(ContentAction.RELEASE_NOTE_UPDATED, note.getId())
+                .metadata("version", note.getReleaseVersion());
+        if (!dropped.isEmpty()) {
+            event = event.metadata("removedTranslations",
+                    String.join(",", dropped.stream().map(ReleaseNoteI18n::getLanguage).sorted().toList()));
+        }
+        history.record(event.build());
         return localized(note);
     }
 
@@ -152,11 +180,22 @@ public class ReleaseNoteService {
         });
     }
 
+    /** Editor view of a just written note (German texts + translations). */
     private LocalizedNote localized(ReleaseNote note) {
-        ReleaseNoteI18n text = ContentService.pick(texts.findByOwnerId(note.getId()).stream()
-                .collect(Collectors.toMap(ReleaseNoteI18n::getLanguage, Function.identity())), BASE_LANGUAGE);
+        return editorView(note, texts.findByOwnerId(note.getId()).stream()
+                .collect(Collectors.toMap(ReleaseNoteI18n::getLanguage, Function.identity())));
+    }
+
+    private static LocalizedNote editorView(ReleaseNote note, Map<String, ReleaseNoteI18n> rows) {
+        ReleaseNoteI18n text = ContentService.pick(rows, BASE_LANGUAGE);
+        Map<String, Text> translations = new java.util.TreeMap<>();
+        rows.forEach((language, row) -> {
+            if (!BASE_LANGUAGE.equals(language)) {
+                translations.put(language, new Text(row.getTitle(), row.getBody()));
+            }
+        });
         return new LocalizedNote(note, text == null ? "" : text.getTitle(), text == null ? "" : text.getBody(),
-                text == null ? BASE_LANGUAGE : text.getLanguage());
+                text == null ? BASE_LANGUAGE : text.getLanguage(), translations);
     }
 
     private Map<UUID, Map<String, ReleaseNoteI18n>> byNote(List<ReleaseNote> rows) {

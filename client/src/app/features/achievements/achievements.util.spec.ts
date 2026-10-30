@@ -8,6 +8,7 @@ import {
   sortAwards,
   toAchievementCreate,
   toAchievementUpdate,
+  toAwardUpdate,
   translationsMissingName,
 } from './achievements.util';
 
@@ -66,6 +67,34 @@ describe('achievements.util', () => {
       expect(start.value.descriptions.de).toBeUndefined();
       expect(start.value.names.en).toBe('Cleaning hero');
     });
+
+    it('takes the German base text from baseName/baseDescription for administrators in any language', () => {
+      const start = achievementFormValue(
+        achievement({
+          name: 'Cleaning hero',
+          description: 'Helped at the cleaning day.',
+          baseName: 'Fairteiler-Putzheld',
+          baseDescription: 'Hat beim Putztag mitgeholfen.',
+        }),
+        'en',
+      );
+      expect(start.baseKnown).toBe(true);
+      expect(start.value.names.de).toBe('Fairteiler-Putzheld');
+      expect(start.value.descriptions.de).toBe('Hat beim Putztag mitgeholfen.');
+      expect(start.value.names.en).toBe('Cleaning hero');
+    });
+  });
+
+  it('clears the validity of an achievement and the end date of an award only when they had one', () => {
+    const value = { ...NEW_ACHIEVEMENT, names: { de: 'Putzheld' }, validityDays: null };
+    expect(toAchievementUpdate(value, true, 365)).toMatchObject({ clearValidityDays: true });
+    expect(toAchievementUpdate(value, true, null)).not.toHaveProperty('clearValidityDays');
+    expect(toAchievementUpdate({ ...value, validityDays: 30 }, true, 365)).toMatchObject({ validityDays: 30 });
+    expect(toAchievementUpdate({ ...value, validityDays: 30 }, true, 365)).not.toHaveProperty('clearValidityDays');
+
+    expect(toAwardUpdate({ validUntil: '', notice: ' ok ' }, '2026-12-31')).toEqual({ clearValidUntil: true, notice: 'ok' });
+    expect(toAwardUpdate({ validUntil: '', notice: '' }, null)).toEqual({ notice: '' });
+    expect(toAwardUpdate({ validUntil: '2027-01-31', notice: '' }, '2026-12-31')).toEqual({ validUntil: '2027-01-31', notice: '' });
   });
 
   it('requires a name for every translated description', () => {

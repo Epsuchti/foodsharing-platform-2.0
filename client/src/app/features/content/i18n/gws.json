@@ -161,7 +161,7 @@
   "content.releaseAdmin.releasedAt": "Veröffentlicht am",
   "content.releaseAdmin.noteTitle": "Titel",
   "content.releaseAdmin.body": "Text (Markdown)",
-  "content.releaseAdmin.translationsHint": "Scho gspeicherti Übersetzige bliibed; usgfüllti Sprache werded ersetzt.",
+  "content.releaseAdmin.translationsHint": "Lösch Titel und Text vo ere Sprach, zum d Übersetzig entferne.",
   "content.releaseAdmin.incomplete": "Titel und Text ghöred zäme: {languages}",
   "content.releaseAdmin.saved": "Gspeicheret.",
   "content.releaseAdmin.deleted": "Iitrag glöscht.",

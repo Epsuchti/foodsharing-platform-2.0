@@ -217,6 +217,43 @@ class AchievementServiceTest {
         verify(history).event(AchievementAction.DEFINED, view.achievement().getId());
     }
 
+    @Test
+    void validityDaysAreClearedBackToUnlimitedButNotTogetherWithAValue() {
+        achievement.setValidityDays(365);
+        var both = new AchievementService.AchievementInput(null, null, null, null, 30, null, null, null, true);
+        assertThat(codeOf(() -> service.update(achievement.getId(), both))).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        assertThat(achievement.getValidityDays()).isEqualTo(365);
+
+        var clear = new AchievementService.AchievementInput(null, null, null, null, null, null, null, null, true);
+        service.update(achievement.getId(), clear);
+        assertThat(achievement.getValidityDays()).isNull();
+        verify(history).event(AchievementAction.UPDATED, achievement.getId());
+        verify(history).record(any());
+
+        // null still means unchanged
+        achievement.setValidityDays(10);
+        service.update(achievement.getId(),
+                new AchievementService.AchievementInput(null, "Putzheld", null, null, null, null, null, null));
+        assertThat(achievement.getValidityDays()).isEqualTo(10);
+    }
+
+    @Test
+    void awardValidityIsClearedExplicitlyAndRecorded() {
+        AwardedAchievement existing = award(LocalDate.of(2026, 12, 31));
+        when(awards.findById(existing.getId())).thenReturn(Optional.of(existing));
+        assertThat(codeOf(() -> service.updateAward(existing.getId(), LocalDate.of(2027, 1, 1), true, null)))
+                .isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        assertThat(existing.getValidUntil()).isEqualTo("2026-12-31");
+
+        service.updateAward(existing.getId(), null, false, "nur Notiz");
+        assertThat(existing.getValidUntil()).isEqualTo("2026-12-31");
+
+        service.updateAward(existing.getId(), null, true, null);
+        assertThat(existing.getValidUntil()).isNull();
+        // one AWARD_EDITED entry per successful edit (the rejected one recorded nothing)
+        verify(history, org.mockito.Mockito.times(2)).event(AchievementAction.AWARD_EDITED, achievement.getId());
+    }
+
     static ApiErrorCode codeOf(Runnable action) {
         try {
             action.run();

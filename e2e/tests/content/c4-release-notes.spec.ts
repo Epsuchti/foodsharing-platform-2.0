@@ -83,15 +83,29 @@ test("C4 release notes list and what's new indicator @C4 @page", async ({ as, pa
   await expect(notes.first()).toHaveAttribute('data-new', 'true');
   await expectNoMissingKeys(page);
 
-  // ORGA edits the German title (the French translation stays) and deletes the note again
+  // ORGA edits the German title (the French translation is prefilled and stays) and deletes the note again
   const row = orga.locator('[data-testid="content.releaseAdmin.note"][data-version="6.0.0"]');
   await row.getByTestId('content.releaseAdmin.edit').click();
   await expect(orga.getByTestId('content.releaseAdmin.translationsHint')).toBeVisible();
+  await orga.getByTestId('content.releaseAdmin.titles.tab.fr').click();
+  await expect(orga.getByTestId('content.releaseAdmin.titles.field.fr')).toHaveValue('Contenus et statistiques');
+  await orga.getByTestId('content.releaseAdmin.titles.tab.de').click();
   await orga.getByTestId('content.releaseAdmin.titles.field.de').fill('Inhalte, Team und Statistik');
   await orga.getByTestId('content.releaseAdmin.save').click();
   await expect(row).toContainText('Inhalte, Team und Statistik');
   await page.reload();
   await expect(notes.first()).toContainText('Contenus et statistiques');
+
+  // emptying the French title and text removes the translation: French readers get the German text
+  await row.getByTestId('content.releaseAdmin.edit').click();
+  await orga.getByTestId('content.releaseAdmin.titles.tab.fr').click();
+  await orga.getByTestId('content.releaseAdmin.titles.field.fr').fill('');
+  await orga.getByTestId('content.releaseAdmin.bodies.tab.fr').click();
+  await orga.getByTestId('content.releaseAdmin.bodies.field.fr').fill('');
+  await orga.getByTestId('content.releaseAdmin.save').click();
+  await expect(orga.getByTestId('content.releaseAdmin.dialog')).toBeHidden();
+  await page.reload();
+  await expect(notes.first()).toContainText('Inhalte, Team und Statistik');
 
   await row.getByTestId('content.releaseAdmin.delete').click();
   await orga.locator('.p-confirmdialog-accept-button').click();
