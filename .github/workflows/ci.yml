@@ -149,7 +149,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: e2e/package-lock.json
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-jar
           path: server/target
@@ -204,7 +204,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: e2e/package-lock.json
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-jar
           path: server/target
@@ -240,7 +240,7 @@ jobs:
           cache-dependency-path: e2e/package-lock.json
       - run: npm ci
         working-directory: e2e
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: blob-report-*
           path: e2e/all-blob-reports
@@ -279,7 +279,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-jar
           path: server/target
@@ -309,7 +309,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-jar
           path: server/target
@@ -335,7 +335,7 @@ jobs:
             echo "::error::server/deploy/version.txt is ${version}, the tag is ${GITHUB_REF_NAME}"
             exit 1
           fi
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-jar
           path: server/target
