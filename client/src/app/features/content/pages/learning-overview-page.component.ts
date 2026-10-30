@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
-import { ProgressBar } from '@openng/optimus-ui/progressbar';
+import { ProgressBarComponent } from '../../../shared/progress-bar/progress-bar.component';
 
 import {
   Journey,
@@ -30,7 +30,7 @@ import { chapterState, learningProgress } from '../learning-progress';
     Button,
     LearningChapterItemComponent,
     PageHeaderComponent,
-    ProgressBar,
+    ProgressBarComponent,
     RouterLink,
     TPipe,
   ],
@@ -69,10 +69,9 @@ import { chapterState, learningProgress } from '../learning-progress';
                   (p.optional ? 'content.learn.optional' : 'content.learn.required') | t
                 }}</span>
               </div>
-              <p-progressbar
+              <fs-progress-bar
                 [value]="p.total ? (p.read * 100) / p.total : 0"
-                [showValue]="false"
-                [attr.aria-label]="'content.learn.progress' | t: { read: p.read, total: p.total }"
+                [label]="'content.learn.progress' | t: { read: p.read, total: p.total }"
               />
               @if (p.nextKey) {
                 <p-button
@@ -150,7 +149,7 @@ import { chapterState, learningProgress } from '../learning-progress';
       color: var(--fs-text-muted);
       font-size: 0.85rem;
     }
-    .progress p-progressbar {
+    .progress fs-progress-bar {
       grid-column: 1 / -1;
       grid-row: 2;
       --p-progressbar-height: 0.5rem;

@@ -69,6 +69,7 @@ import { quizKindOf } from '../quiz-kind';
           <div
             class="bar"
             role="progressbar"
+            [attr.aria-label]="'quiz.session.progress' | t: { index: q.index + 1, total: q.total }"
             [attr.aria-valuenow]="q.index + (result() ? 1 : 0)"
             aria-valuemin="0"
             [attr.aria-valuemax]="q.total"

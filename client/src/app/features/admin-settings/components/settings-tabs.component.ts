@@ -33,6 +33,12 @@ export const SETTINGS_TABS = [
     </nav>
   `,
   styles: `
+    /* min-width 0: as a grid/flex item the nowrap tabs must scroll, not widen the page on phones (F6 sweep) */
+    :host {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+    }
     .tabs {
       display: flex;
       gap: 0.25rem;

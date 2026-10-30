@@ -92,11 +92,11 @@ const optional = () => new FormControl<string | null>(null);
               </div>
               <div class="field">
                 <label for="sf-category">{{ 'stores.form.category' | t }}</label>
-                <p-select inputId="sf-category" formControlName="categoryId" [options]="loaded.metadata.categories" optionLabel="name" optionValue="id" [showClear]="true" appendTo="body" [style]="{ width: '100%' }" data-testid="stores.form.category" />
+                <p-select inputId="sf-category" [ariaLabel]="'stores.form.category' | t" formControlName="categoryId" [options]="loaded.metadata.categories" optionLabel="name" optionValue="id" [showClear]="true" appendTo="body" [style]="{ width: '100%' }" data-testid="stores.form.category" />
               </div>
               <div class="field">
                 <label for="sf-chain">{{ 'stores.form.chain' | t }}</label>
-                <p-select inputId="sf-chain" formControlName="chainId" [options]="loaded.metadata.chains" optionLabel="name" optionValue="id" [showClear]="true" appendTo="body" [style]="{ width: '100%' }" data-testid="stores.form.chain" />
+                <p-select inputId="sf-chain" [ariaLabel]="'stores.form.chain' | t" formControlName="chainId" [options]="loaded.metadata.chains" optionLabel="name" optionValue="id" [showClear]="true" appendTo="body" [style]="{ width: '100%' }" data-testid="stores.form.chain" />
               </div>
               <div class="field field--wide">
                 <label for="sf-groceries">{{ 'stores.form.groceries' | t }}</label>

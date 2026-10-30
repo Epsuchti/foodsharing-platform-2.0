@@ -122,6 +122,9 @@ jobs:
       - name: ./mvnw verify (backend tests, client build, lint, i18n check, client tests)
         working-directory: server
         run: ./mvnw -B -ntp verify
+      # Needs the generated client API and client/node_modules from the build above.
+      - name: Axe sweep lists every route (e2e/tests/a11y/routes.ts)
+        run: PATH="$PWD/client/node:$PATH" node e2e/scripts/a11y-route-coverage.mjs
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
