@@ -1,4 +1,5 @@
 # Agent Notes
+n> **Temporary (decision 129, owner):** testing is paused. Do not run or write tests; the only check is that the app boots. Existing tests stay untouched (never skip, disable or weaken them). Record every untested change in `docs/test-pause.md`.
 
 Single source of truth: `plan.md`. Build state: `docs/ledger.md`. Decisions: `docs/decisions.md`. Detailed conventions: `docs/conventions.md`.
 
