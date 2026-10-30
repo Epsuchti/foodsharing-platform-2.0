@@ -12,7 +12,15 @@ import {
   TestingOnlineStatusService,
   provideDataStateTesting,
 } from '../core/testing/data-state-testing';
-import { M6_PAGES_READY, NAV_ITEMS, NavContext, mobileTabs, visibleNavItems } from './nav.config';
+import {
+  orderHeaderNav,
+  M6_PAGES_READY,
+  NAV_ITEMS,
+  NavContext,
+  mobileTabs,
+  splitHeaderNav,
+  visibleNavItems,
+} from './nav.config';
 import { ShellComponent, chromeOf } from './shell.component';
 
 @Component({
@@ -180,6 +188,49 @@ describe('nav.config', () => {
       session: { onboarding: { complete: false } } as unknown as NavContext['session'],
     });
     expect(visibleNavItems(newcomer).map((item) => item.id).slice(0, 2)).toEqual(['dashboard', 'onboarding']);
+  });
+
+  it('splits long desktop navs into header links and a "More" menu, secondary items last (design review M7 R3)', () => {
+    const foodsaver = context({
+      isAuthenticated: true,
+      hasRole: (role) => role === Role.Foodsaver,
+      session: { user: { verified: true }, permissions: [], units: [] } as unknown as NavContext['session'],
+    });
+    const ordered = orderHeaderNav(
+      visibleNavItems(foodsaver).filter((item) => item.id !== 'search'),
+      foodsaver,
+    );
+    // primary items in their declared order, the occasional ones (quizzes of a verified member, chains, events, polls) last
+    expect(ordered.map((item) => item.id)).toEqual([
+      'dashboard',
+      'pickups',
+      'messages',
+      'activity',
+      'regions',
+      'stores',
+      'map',
+      'baskets',
+      'quizzes',
+      'storeChains',
+      'events',
+      'polls',
+    ]);
+    const split = splitHeaderNav(ordered, 4);
+    expect(split.inline.map((item) => item.id)).toEqual(['dashboard', 'pickups', 'messages', 'activity']);
+    expect(split.more.map((item) => item.id)).toEqual(ordered.slice(4).map((item) => item.id));
+    // everything fits: no menu; nothing measured yet: everything in the header; at least one link stays
+    expect(splitHeaderNav(ordered, ordered.length)).toEqual({ inline: ordered, more: [] });
+    expect(splitHeaderNav(ordered, Number.MAX_SAFE_INTEGER).more).toEqual([]);
+    expect(splitHeaderNav(ordered, 0).inline.map((item) => item.id)).toEqual(['dashboard']);
+
+    // a newcomer keeps the quizzes among the primary items (before the map)
+    const newcomer = context({
+      isAuthenticated: true,
+      session: { user: { verified: false }, onboarding: { complete: false } } as unknown as NavContext['session'],
+    });
+    const newcomerIds = orderHeaderNav(visibleNavItems(newcomer), newcomer).map((item) => item.id);
+    expect(newcomerIds.indexOf('quizzes')).toBeLessThan(newcomerIds.indexOf('map'));
+    expect(newcomerIds.slice(0, 2)).toEqual(['dashboard', 'onboarding']);
   });
 
   it('filters by area and session', () => {

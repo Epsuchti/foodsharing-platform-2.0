@@ -103,6 +103,7 @@
   "quiz.results.review": "Tutte le domande in sintesi",
   "quiz.results.questionPoints": "{points} PE",
   "quiz.results.allQuizzes": "Tutti i quiz",
+  "quiz.results.toJourney": "Continua il tuo inizio",
   "quiz.results.fullText": "Leggi il testo completo",
   "quiz.results.confirmButton": "Conferma",
   "quiz.results.confirmToast": "Confermato – il tuo nuovo ruolo è attivo.",

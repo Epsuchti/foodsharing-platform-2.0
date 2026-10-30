@@ -1,6 +1,7 @@
 import { FaqEntry, ReleaseNote } from '../../api';
 import { ABOUT_PAGES, contentPath } from './content-paths';
 import {
+  continuesJourney,
   filterFaq,
   foldText,
   hasUnseenReleaseNote,
@@ -183,5 +184,14 @@ describe('content rules (Q10)', () => {
     expect(contentPath('imprint')).toBe('/imprint');
     expect(contentPath('donation-campaign-1')).toBe('/pages/donation-campaign-1');
     expect(new Set(ABOUT_PAGES.map((page) => page.path)).size).toBe(ABOUT_PAGES.length);
+  });
+});
+
+describe('continuesJourney (design review M7 R3)', () => {
+  it('only the last chapter of an open journey leads back to the journey', () => {
+    expect(continuesJourney(undefined, { complete: false })).toBe(true);
+    expect(continuesJourney('hygiene', { complete: false })).toBe(false);
+    expect(continuesJourney(undefined, { complete: true })).toBe(false);
+    expect(continuesJourney(undefined, undefined)).toBe(false);
   });
 });

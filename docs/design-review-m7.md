@@ -127,3 +127,71 @@ Overflow / raw-key / failed-call audit clean on the re-run (light and dark, desk
 106): `npm run lint` (incl. theme tokens), `npm run i18n:check`, `ng test` for the touched specs, `ng build` (jar
 build), e2e typecheck, chromium + mobile-chrome `tests/map/m1-map.spec.ts`, chromium `d11-journey`, `r2-membership`,
 `ve2-verify`, `pu3-signup`, `pu7-options`, `c8-petition`, `d4-shell-navigation`.
+
+## Round 3 — scripted persona walkthroughs (F5, D11.5.5, 2026-10-30)
+
+### Method
+- Plan §18.5 round 3 asks for a usability test with 3–5 people from Zürich; decision 3 replaces it during the build
+  with AI personas. Round 3 makes the personas **scripted and repeatable**: one committed Playwright spec per persona
+  in `e2e/tests/personas/` (tagged `@D11.5.5`, the feature IDs it walks and `@page` for the axe check) that walks the
+  persona's main journey by hand — navigation through the real header / "More" menu / tab bar and drawer, the real
+  forms and dialogs — and asserts the outcome (role, booking, confirmed slot, request, log entries, verified flag,
+  report status, queued newsletter, feature off for members). Other people (the manager who confirms, the requester,
+  the quiz answer key) act through their own API sessions and are not counted.
+- Each spec counts **steps** (tasks as the persona would name them), **clicks/taps** and **filled fields** through a
+  small `Walk` helper (`e2e/tests/personas/_persona.ts`), records them with the duration as test annotations
+  (`test-results/results.json`) and fails when a journey gets longer than its round-3 budget (the counts below) — a
+  longer journey has to be a deliberate decision. Every spec runs on `chromium` (1280×800) and `mobile-chrome`
+  (Pixel 7).
+- Friction is whatever made a walk longer, ambiguous or a dead end. The first runs showed it; it was fixed and the
+  counts below are after the fixes. Admin pages and success/celebration states were re-reviewed by eye from
+  screenshots (desktop and phone; review material only, decision 69/109).
+
+### Persona results
+| Persona (seed) | Journey | Steps | Clicks desktop / phone | Fields | Friction found | Status |
+|---|---|---|---|---|---|---|
+| Newcomer (`newbie`) | consent → "next step" → profile & region → 4 learning chapters → foodsaver quiz + agreement → first EinAb booking → "my EinAbs" | 8 | 52 / 51 (about 35 of them answer the quiz) | 5 | After the last chapter "Zur Übersicht" led to the chapter list instead of the quiz; the confirmed quiz ("Du bist jetzt Foodsaver:in …") was a dead end without the next step. | **Fixed** (R3-3, R3-4) |
+| Foodsaver (`foodsaver`) | my stores → store → sign up for Wednesday → confirmation bell → confirmed slot → offer a basket → request bell → request on the basket | 5 | 14 / 17 | 1 | At 1280 px the header showed one or two links: the rest scrolled out of a 110 px wide nav (search, region switcher and the named user menu took the row), so "Betriebe" and "Essenskörbe" were not findable. | **Fixed** (R3-1) |
+| Store manager (`bieb`) | my stores → store → confirm Sarah's sign-up → add a regular Tuesday pickup → store log shows both | 4 | 11 / 13 | 1 | Phone: the manager's hero (badges + four buttons) pushed the tabs below the first screen (round-2 list). | **Fixed** (R3-2); the spec asserts the tabs end inside the first Pixel 7 screen |
+| Ambassador (`bot`) | verification queue → identity + verify → region reports → no-show report "in progress" with consequence → region newsletter written, saved, queued | 4 | 15 / 16 | 4 | Verification and newsletters sit behind "More" on a 1280 px laptop (one extra click each). | Accepted: the dashboard and the region page link both; from 90rem more links fit |
+| Orga (`orga`) | feature toggles → baskets off (confirm) → the member loses nav entry and page → baskets on | 4 | 5 / 5 | 0 | — | Pass |
+
+A whole walk takes 5–13 s in the e2e set-up (no think time); durations are recorded per run, not budgeted.
+
+### Fixes
+| # | Area | Change |
+|---|---|---|
+| R3-1 | Header, desktop (round-2 list) | The nav takes the free space of the header and wraps into a clipped second row; `HeaderComponent.measureNav` counts the links of the first row (ResizeObserver) and the rest move to a **"More" menu** (`nav.more`: a disclosure with a labelled link list, `aria-expanded`, Escape returns the focus, closes on navigation and on a click outside, active state when the current page is inside, red dot when a hidden item has unread messages/mails). Occasional items are `NavItem.secondary` (store chains/categories, events, polls, surveys, admin pages, quizzes of verified members) and move first (`orderHeaderNav` / `splitHeaderNav`, unit test). A link keeps its test id `nav.<id>` wherever it is reachable; specs open the menu when needed through `openNav(page, id)` (`e2e/fixtures/nav.ts`, also the phone drawer; `b1-baskets` uses it, `d4-shell-navigation` has a new "More" test). To leave room for links the user menu shows the avatar only between 48 and 90rem (the name stays in its accessible name), the search box is `15vw` (was `17vw`), and the first two items keep their label from 90rem (was 75rem: two labels left room for one link at 1280 px). Result at 1280 px: 5–7 icons + "More" for every role, no sideways scrolling. |
+| R3-2 | Store page, phones (round-2 list) | "Route planen" and "Apple Karten" fold behind one "Route" button (`stores.page.route`, `aria-expanded`); desktop unchanged; test ids of both links unchanged (S15). |
+| R3-3 | Learning chapter (success state) | Last chapter while the journey is open: primary "Weiter mit deinem Einstieg" (`content.chapter.toJourney`), "Zur Übersicht" becomes secondary. |
+| R3-4 | Quiz results (celebration state) | Confirmed quiz while the journey is open: "Weiter mit deinem Einstieg" (`quiz.results.toJourney`). |
+| R3-5 | D4.3 mobile spec | Timing cause found (below); the footer check scrolls to the end and measures until the layout has settled. |
+
+### Re-review: admin pages and success states
+- Admin pages (orga, desktop and phone: feature toggles, configuration, uploads, admins, release notes, bounced
+  mails, achievements, OAuth clients, regions, content, jobs, mail outbox, integrations, store categories, blocklist,
+  newsletters, store chains, quiz editor): no horizontal overflow, no raw keys, every data state designed (bounced
+  mails shows its empty state). Open minors: page widths differ (jobs / integrations use the full width, toggles
+  64rem, bounced mails 60rem); integrations show eight filled "Test senden" buttons on one screen.
+- Success states: EinAb booking (private details, calendar, "my EinAbs"), basket created (empty-request hint), pickup
+  sign-up (unconfirmed badge), verification (verified tag + toast) and newsletter queued (status badge) show the
+  result and the next step; the two dead ends were the last chapter and the quiz confirmation (R3-3, R3-4).
+
+### D4.3 (mobile tab bar vs footer)
+Not reproduced in 12 repeated chromium runs, but the timing cause is real: measured on `/dashboard` at 390 px, the
+footer version moves from 2835 px to 3006 px and then to 3666 px between 1.9 and 2.2 s after the page load — the
+deferred petition banner and late dashboard content arrive after `pageShown` (+1.5 s). The spec scrolled to the
+footer once and measured right after it; a layout shift between the two calls left the footer behind the tab bar. The
+check now scrolls to the end and polls the same assertion (version bottom ≤ tab bar top) on the settled page.
+
+### Launch report note (D11.5.5)
+"D11.5.5 — usability test with 5 real newcomers: replaced by scripted AI-persona walkthroughs (decision 3); a real
+usability test with 5 newcomers from Zürich remains recommended before launch."
+
+### Verification
+Persona specs green on `chromium` and `mobile-chrome`, plus chromium and mobile-chrome `d4-shell-navigation`,
+`s15-navigation`, `b1-baskets`, and chromium `c11-feature-toggles`, `c1-content`, `mb2-folders`, `n1-conversations`,
+`a11y/pages`, `q2-session`. Checks (decision 106): `npm run lint`, `npm run i18n:check`, `ng test` for the touched
+specs, `ng build` (jar build), e2e typecheck. Screenshot baselines that change in the next batch: every desktop page
+(header with icons + "More", avatar-only user menu), the store pages on phones ("Route"), the last learning chapter
+and the confirmed quiz result.

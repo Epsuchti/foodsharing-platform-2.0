@@ -52,6 +52,42 @@ test.describe('logged in', () => {
     await expect(page.getByTestId('shell.version')).toBeVisible();
   });
 
+  test('D4.3 desktop header keeps the first items and puts the rest behind "More" @D4.3 @page', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto('/dashboard');
+    const more = page.getByTestId('nav.more');
+    await expect(more).toBeVisible();
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    // first items in the header, the rest (map, baskets, chains, events, polls …) in the closed menu
+    await expect(page.getByTestId('nav.activity')).toBeVisible();
+    await expect(page.getByTestId('nav.map')).toBeHidden();
+    await expect(page.getByTestId('nav.map')).toHaveAttribute('href', '/map');
+    // the header no longer scrolls sideways (design review M7 R1/R2)
+    const nav = page.getByRole('navigation', { name: /.+/ }).filter({ has: page.getByTestId('nav.dashboard') });
+    expect(await nav.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+
+    await more.click();
+    await expect(more).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('nav.more.list')).toBeVisible();
+    await expect(page.getByTestId('nav.map')).toBeVisible();
+    // Escape closes it and gives the focus back to the button
+    await page.keyboard.press('Escape');
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByTestId('nav.map')).toBeHidden();
+    await expect(more).toBeFocused();
+    // a click elsewhere closes it too
+    await more.click();
+    await expect(page.getByTestId('nav.map')).toBeVisible();
+    await page.getByTestId('dashboard.page.welcome').click();
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+
+    await more.click();
+    await page.getByTestId('nav.map').click();
+    await expect.poll(() => path(page)).toBe('/map');
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByTestId('nav.map')).toHaveAttribute('aria-current', 'page');
+  });
+
   test('D4.3 mobile tab bar and menu drawer @D4.3 @page', async ({ page }) => {
     await page.setViewportSize(PHONE);
     await page.goto('/dashboard');
@@ -62,11 +98,19 @@ test.describe('logged in', () => {
     const dashboardTab = page.getByTestId('nav.tab.dashboard');
     await expect(dashboardTab).toHaveAttribute('aria-current', 'page');
     // The tab bar does not cover the page: the footer can be scrolled above it.
+    // Scrolled to the very end and measured until the layout settles: ~2 s after the first page the deferred petition
+    // banner and late dashboard cards push the footer down by several hundred pixels (design review M7 R3: a single
+    // measurement right after the scroll could catch the footer mid-move, behind the bar — the D4.3 flake of round 2).
     const footerVersion = page.getByTestId('shell.version');
-    await footerVersion.scrollIntoViewIfNeeded();
-    const versionBox = await footerVersion.boundingBox();
-    const barBox = await tabBar.boundingBox();
-    expect(versionBox && barBox && versionBox.y + versionBox.height <= barBox.y + 1).toBeTruthy();
+    await expect(footerVersion).toBeAttached();
+    await expect
+      .poll(async () => {
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        const versionBox = await footerVersion.boundingBox();
+        const barBox = await tabBar.boundingBox();
+        return versionBox && barBox ? versionBox.y + versionBox.height - barBox.y : Number.POSITIVE_INFINITY;
+      }, { message: 'footer version above the tab bar when scrolled to the end' })
+      .toBeLessThanOrEqual(1);
 
     const menuTab = page.getByTestId('nav.tab.menu');
     await expect(menuTab).toHaveAttribute('aria-expanded', 'false');

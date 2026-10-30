@@ -38,6 +38,11 @@ export interface NavItem {
   badge?: NavBadge;
   /** Section inside its area (M6): `admin` tools, `about` pages of the logged-out footer. */
   group?: NavGroup;
+  /**
+   * Less frequent main items (design review M7 R3): in the desktop header they go behind "More" before any other
+   * item. Phones list every item in the menu drawer anyway.
+   */
+  secondary?: boolean | ((ctx: NavContext) => boolean);
 }
 
 export type NavGroup = 'admin' | 'about';
@@ -252,6 +257,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   }, // M3
   {
     id: 'quizzes',
+    // newcomers need the quizzes on their way; verified members only now and then
+    secondary: (ctx) => !!ctx.session?.user?.verified,
     labelKey: 'nav.quizzes',
     icon: 'pi pi-question-circle',
     route: '/quizzes',
@@ -289,6 +296,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'users',
+    secondary: true,
     labelKey: 'nav.users',
     icon: 'pi pi-id-card',
     route: '/regions/home/users',
@@ -296,6 +304,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminRegions',
+    secondary: true,
     labelKey: 'nav.adminRegions',
     icon: 'pi pi-sitemap',
     route: '/admin/regions',
@@ -303,6 +312,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminQuizzes',
+    secondary: true,
     labelKey: 'nav.adminQuizzes',
     icon: 'pi pi-pencil',
     route: '/quizzes/edit',
@@ -310,6 +320,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminContent',
+    secondary: true,
     labelKey: 'nav.adminContent',
     icon: 'pi pi-book',
     route: '/admin/content',
@@ -317,6 +328,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'storeChains',
+    secondary: true,
     labelKey: 'nav.storeChains',
     icon: 'pi pi-link',
     route: '/store-chains',
@@ -324,6 +336,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   }, // M3
   {
     id: 'storeCategories',
+    secondary: true,
     labelKey: 'nav.storeCategories',
     icon: 'pi pi-tags',
     route: '/admin/store-categories',
@@ -403,6 +416,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // --- M4 F6: operations (ORGA) ---
   {
     id: 'adminIntegrations',
+    secondary: true,
     labelKey: 'nav.adminIntegrations',
     icon: 'pi pi-sitemap',
     route: '/admin/integrations',
@@ -410,6 +424,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminJobs',
+    secondary: true,
     labelKey: 'nav.adminJobs',
     icon: 'pi pi-clock',
     route: '/admin/jobs',
@@ -417,6 +432,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminMailOutbox',
+    secondary: true,
     labelKey: 'nav.adminMailOutbox',
     icon: 'pi pi-envelope',
     route: '/admin/mail-outbox',
@@ -435,6 +451,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // --- M5 F5/F6: events, polls, surveys ---
   {
     id: 'events',
+    secondary: true,
     labelKey: 'nav.events',
     icon: 'pi pi-calendar',
     route: '/events/mine',
@@ -442,6 +459,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'polls',
+    secondary: true,
     labelKey: 'nav.polls',
     icon: 'pi pi-chart-bar',
     route: '/polls/mine',
@@ -449,6 +467,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'surveys',
+    secondary: true,
     labelKey: 'nav.surveys',
     icon: 'pi pi-list-check',
     route: '/surveys',
@@ -487,6 +506,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   {
     // C2: ambassadors write posts of their regions, ORGA and PR group admins check and publish (A54)
     id: 'blogManage',
+    secondary: true,
     labelKey: 'nav.blogManage',
     icon: 'pi pi-book',
     route: '/blog/manage',
@@ -506,6 +526,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminSettings',
+    secondary: true,
     labelKey: 'nav.adminSettings',
     icon: 'pi pi-sliders-h',
     route: '/admin/feature-toggles',
@@ -514,6 +535,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminOauth',
+    secondary: true,
     labelKey: 'nav.adminOauth',
     icon: 'pi pi-key',
     route: '/admin/oauth-clients',
@@ -522,6 +544,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminUploads',
+    secondary: true,
     labelKey: 'nav.adminUploads',
     icon: 'pi pi-images',
     route: '/admin/uploads',
@@ -530,6 +553,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminAchievements',
+    secondary: true,
     labelKey: 'nav.adminAchievements',
     icon: 'pi pi-trophy',
     route: '/admin/achievements',
@@ -538,6 +562,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminAdmins',
+    secondary: true,
     labelKey: 'nav.adminAdmins',
     icon: 'pi pi-star',
     route: '/admin/admins',
@@ -546,6 +571,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminReleaseNotes',
+    secondary: true,
     labelKey: 'nav.adminReleaseNotes',
     icon: 'pi pi-gift',
     route: '/admin/release-notes',
@@ -554,6 +580,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'adminBounced',
+    secondary: true,
     labelKey: 'nav.adminBounced',
     icon: 'pi pi-exclamation-circle',
     route: '/admin/bounced-emails',
@@ -579,6 +606,25 @@ export function visibleNavItems(
   items: readonly NavItem[] = NAV_ITEMS,
 ): NavItem[] {
   return items.filter((item) => (item.area ?? 'main') === area && item.visible(ctx));
+}
+
+/**
+ * Order of the main items in the desktop header (design review M7 R3): primary items in their declared order, then
+ * the secondary ones, so the occasional items are the first to move into the "More" menu.
+ */
+export function orderHeaderNav(items: readonly NavItem[], ctx: NavContext): NavItem[] {
+  const isSecondary = (item: NavItem) =>
+    typeof item.secondary === 'function' ? item.secondary(ctx) : !!item.secondary;
+  return [...items.filter((item) => !isSecondary(item)), ...items.filter(isSecondary)];
+}
+
+/**
+ * Splits the ordered header items at the number of links that fit the header row (`fit`, measured by the header):
+ * the first ones stay in the header, the rest go to the "More" menu. At least one link stays in the header.
+ */
+export function splitHeaderNav(ordered: readonly NavItem[], fit: number): { inline: NavItem[]; more: NavItem[] } {
+  const count = Math.max(1, Math.min(fit, ordered.length));
+  return { inline: ordered.slice(0, count), more: ordered.slice(count) };
 }
 
 /** Tabs of the mobile bottom bar (the "Menu" tab is added by the component). */

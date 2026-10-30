@@ -8,6 +8,7 @@ import {
   expectErrorState,
   expectNoSeriousViolations,
   injectApiError,
+  openNav,
   test,
 } from '../../fixtures';
 
@@ -27,7 +28,8 @@ test.describe('foodsaver', () => {
   test('B1 create basket with photo, kinds, custom location and lifetime; edit and delete @B1 @page', async ({ page, baskets }) => {
     // the nav entry leads to the nearby page, which offers a basket
     await page.goto('/dashboard');
-    await page.getByTestId('nav.baskets').first().click();
+    // header link, the header's "More" menu (design review M7 R3) or the phone's menu drawer
+    await openNav(page, 'baskets');
     await expect(page).toHaveURL(/\/baskets$/);
     await expectDataState(page, 'baskets.nearby.state', 'success');
     await page.getByTestId('baskets.nearby.offer').click();

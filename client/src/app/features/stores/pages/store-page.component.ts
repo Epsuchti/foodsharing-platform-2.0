@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 
@@ -86,26 +86,43 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
           </div>
           <div class="hero__actions">
             @if (links(store); as nav) {
-              <a
-                class="p-button p-button-secondary p-button-outlined p-button-sm"
-                [href]="nav.google"
-                target="_blank"
-                rel="noopener"
-                data-testid="stores.page.navigate"
-              >
-                <i class="pi pi-directions" aria-hidden="true"></i>
-                <span>{{ 'stores.page.navigate' | t }}</span>
-              </a>
-              <a
-                class="p-button p-button-secondary p-button-outlined p-button-sm"
-                [href]="nav.apple"
-                target="_blank"
-                rel="noopener"
-                data-testid="stores.page.navigateApple"
-              >
-                <i class="pi pi-apple" aria-hidden="true"></i>
-                <span>{{ 'stores.page.navigateApple' | t }}</span>
-              </a>
+              <!-- design review M7 R3: on phones both map links fold behind one "Route" button (the hero kept the tabs below the fold) -->
+              <div class="route" [class.route--open]="routeOpen()">
+                <button
+                  type="button"
+                  class="p-button p-button-secondary p-button-outlined p-button-sm route__toggle"
+                  [attr.aria-expanded]="routeOpen()"
+                  aria-controls="store-route-links"
+                  (click)="routeOpen.set(!routeOpen())"
+                  data-testid="stores.page.route"
+                >
+                  <i class="pi pi-directions" aria-hidden="true"></i>
+                  <span>{{ 'stores.page.route' | t }}</span>
+                  <i class="pi pi-chevron-down route__chevron" aria-hidden="true"></i>
+                </button>
+                <div class="route__links" id="store-route-links">
+                  <a
+                    class="p-button p-button-secondary p-button-outlined p-button-sm"
+                    [href]="nav.google"
+                    target="_blank"
+                    rel="noopener"
+                    data-testid="stores.page.navigate"
+                  >
+                    <i class="pi pi-directions" aria-hidden="true"></i>
+                    <span>{{ 'stores.page.navigate' | t }}</span>
+                  </a>
+                  <a
+                    class="p-button p-button-secondary p-button-outlined p-button-sm"
+                    [href]="nav.apple"
+                    target="_blank"
+                    rel="noopener"
+                    data-testid="stores.page.navigateApple"
+                  >
+                    <i class="pi pi-apple" aria-hidden="true"></i>
+                    <span>{{ 'stores.page.navigateApple' | t }}</span>
+                  </a>
+                </div>
+              </div>
             }
             @if (store.permissions.mayReadWall && store.contact; as contact) {
               @if (contact.phone) {
@@ -158,16 +175,49 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
       gap: 0.5rem;
       align-items: center;
     }
-    .hero__actions a.p-button {
+    .hero__actions a.p-button,
+    .route__toggle {
       display: inline-flex;
       gap: 0.4rem;
       align-items: center;
       text-decoration: none;
     }
+    .route,
+    .route__links {
+      display: contents;
+    }
+    .route__toggle {
+      display: none;
+    }
+    .route__chevron {
+      font-size: 0.7rem;
+      transition: transform 150ms ease;
+    }
+    .route--open .route__chevron {
+      transform: rotate(180deg);
+    }
+    /* phones: one "Route" button; opened, the two map links take their own row below the actions */
+    @media (max-width: 47.99rem) {
+      .route__toggle {
+        display: inline-flex;
+      }
+      .route__links {
+        display: none;
+      }
+      .route--open .route__links {
+        display: flex;
+        flex: 1 0 100%;
+        flex-wrap: wrap;
+        order: 1;
+        gap: 0.5rem;
+      }
+    }
   `,
 })
 export class StorePageComponent {
   protected readonly ctx = inject(StorePageContext);
+  /** Phones: the map links behind the "Route" button are shown. */
+  protected readonly routeOpen = signal(false);
   private readonly session = inject(SessionService);
 
   protected readonly tabs = computed<StoreTab[]>(() => {

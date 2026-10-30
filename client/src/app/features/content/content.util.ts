@@ -138,3 +138,14 @@ export function statisticsTiles(stats: PublicStatistics): StatisticsTile[] {
     tile('baskets', 'pi pi-shopping-cart'),
   ];
 }
+
+/**
+ * Design review M7 R3: after the last learning chapter a newcomer whose journey is still open continues with the
+ * journey (the quiz comes next), not with the chapter overview.
+ */
+export function continuesJourney(
+  nextChapterKey: string | undefined,
+  onboarding: { complete: boolean } | undefined,
+): boolean {
+  return !nextChapterKey && onboarding?.complete === false;
+}

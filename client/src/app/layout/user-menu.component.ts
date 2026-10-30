@@ -105,6 +105,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
   `,
   styles: `
     .user-btn {
+      position: relative;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
@@ -134,6 +135,19 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
     .user-btn__chevron {
       color: var(--fs-text-muted);
       font-size: 0.7rem;
+    }
+    /*
+     * laptops: avatar only, the name stays in the button's accessible name — the main navigation needs the room
+     * (design review M7 R3: at 1280px the nav kept one link next to search, region and the named user menu)
+     */
+    @media (min-width: 48rem) and (max-width: 89.99rem) {
+      .user-btn__name {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
     }
     @media (max-width: 47.99rem) {
       .user-btn {
