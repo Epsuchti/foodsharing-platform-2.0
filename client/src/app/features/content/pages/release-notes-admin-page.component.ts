@@ -5,7 +5,7 @@ import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
 
-import { ContentService, ReleaseNote, ReleaseNoteCreate } from '../../../api';
+import { ContentService, ReleaseNote, ReleaseNoteCreate, ReleaseNoteUpdate } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
@@ -19,10 +19,15 @@ import {
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { releaseNoteRequest, zurichDay } from '../content.util';
 
+/** Saved translations of a note as one language → text map for the language tabs. */
+function mapTexts(note: ReleaseNote, field: 'title' | 'body'): TranslatedText {
+  return Object.fromEntries(Object.entries(note.translations ?? {}).map(([language, text]) => [language, text[field]]));
+}
+
 /**
  * /admin/release-notes (C4, ORGA): the release notes (German texts) with create, edit and delete. German title and
- * text are required; other languages are optional translations. The edit list carries no translations, so an edit
- * only adds or replaces the languages filled in — the others keep what was saved.
+ * text are required; other languages are optional translations. An edit opens with the saved translations; a
+ * language emptied completely is removed (`removeTranslations`).
  */
 @Component({
   selector: 'fs-release-notes-admin-page',
@@ -302,7 +307,7 @@ export class ReleaseNotesAdminPageComponent {
     },
   );
   private readonly update = runMutation(
-    (id: string, body: ReleaseNoteCreate) =>
+    (id: string, body: ReleaseNoteUpdate) =>
       this.api.updateReleaseNote({ releaseNoteId: id, releaseNoteUpdate: body }),
     {
       form: this.form,
@@ -325,8 +330,8 @@ export class ReleaseNotesAdminPageComponent {
     this.form.reset({
       version: note?.version ?? '',
       releasedAt: note?.releasedAt ?? zurichDay(new Date()),
-      titles: note ? { de: note.title } : {},
-      bodies: note ? { de: note.body } : {},
+      titles: note ? { de: note.title, ...mapTexts(note, 'title') } : {},
+      bodies: note ? { de: note.body, ...mapTexts(note, 'body') } : {},
     });
     this.dialogOpen.set(true);
   }
@@ -335,11 +340,11 @@ export class ReleaseNotesAdminPageComponent {
     if (this.form.invalid) {
       return;
     }
-    const { body, incomplete } = releaseNoteRequest(this.form.getRawValue());
+    const note = this.editing();
+    const { body, incomplete } = releaseNoteRequest(this.form.getRawValue(), Object.keys(note?.translations ?? {}));
     if (incomplete.length) {
       return;
     }
-    const note = this.editing();
     void (note ? this.update.run(note.id, body) : this.create.run(body));
   }
 

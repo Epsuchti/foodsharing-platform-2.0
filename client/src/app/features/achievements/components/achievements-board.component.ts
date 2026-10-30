@@ -118,7 +118,7 @@ export class AchievementsBoardComponent {
       const editing = this.selected();
       const start = this.formStart();
       return editing && start
-        ? this.api.updateAchievement({ achievementId: editing.id, achievementUpdate: toAchievementUpdate(value, start.baseKnown) })
+        ? this.api.updateAchievement({ achievementId: editing.id, achievementUpdate: toAchievementUpdate(value, start.baseKnown, editing.validityDays) })
         : this.api.createAchievement({ achievementCreate: toAchievementCreate(value, this.regionId() ?? null) });
     },
     {

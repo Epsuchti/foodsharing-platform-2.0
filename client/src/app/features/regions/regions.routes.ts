@@ -62,8 +62,15 @@ export const REGIONS_ROUTES: Routes = [
       tab('achievements', 'regions.tab.achievements', () =>
         import('../achievements/tabs/region-achievements.tab').then((m) => m.RegionAchievementsTab),
       ),
-      // placeholders until their features exist (plan-m7 Q7): wall, resources (Q12)
-      ...(['wall', 'resources'] as const).map((feature) => ({
+      {
+        // C6 (plan-m7 Q12): the tab lives in features/resources, behind its feature toggle
+        path: 'resources',
+        title: 'regions.tab.resources',
+        canActivate: [featureGuard(FeatureToggleKey.Resources)],
+        loadComponent: () => import('../resources/tabs/region-resources.tab').then((m) => m.RegionResourcesTab),
+      },
+      // placeholder until its feature exists (plan-m7 Q7): wall
+      ...(['wall'] as const).map((feature) => ({
         path: feature,
         title: 'regions.tab.later',
         data: { feature },

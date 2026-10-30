@@ -68,7 +68,8 @@ public class AchievementsController implements AchievementsApi {
 
     @Override
     public ResponseEntity<Award> updateAward(UUID awardId, AwardUpdate awardUpdate) {
-        return ResponseEntity.ok(mapper.toAward(service.updateAward(awardId, awardUpdate.getValidUntil(), false,
+        return ResponseEntity.ok(mapper.toAward(service.updateAward(awardId, awardUpdate.getValidUntil(),
+                Boolean.TRUE.equals(awardUpdate.getClearValidUntil()),
                 awardUpdate.getNotice())));
     }
 

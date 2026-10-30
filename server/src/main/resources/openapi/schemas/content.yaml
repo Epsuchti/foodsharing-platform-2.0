@@ -357,6 +357,11 @@ ReleaseNote:
     body:
       type: string
       description: Markdown.
+    translations:
+      type: object
+      description: 'Editor views only (listReleaseNotesForEdit, create, update): the texts in other languages than the German base (title/body), keyed by language.'
+      additionalProperties:
+        $ref: './content.yaml#/ReleaseNoteTranslation'
 
 ReleaseNoteTranslation:
   type: object
@@ -397,7 +402,15 @@ ReleaseNoteCreate:
 
 ReleaseNoteUpdate:
   type: object
+  description: 'Omitted fields stay unchanged; translations add or replace languages, removeTranslations deletes them (the German base text cannot be removed; a language in both lists is 400 VALIDATION_FAILED).'
   properties:
+    removeTranslations:
+      type: array
+      maxItems: 10
+      items:
+        type: string
+        minLength: 2
+        maxLength: 5
     version:
       type: string
       minLength: 1

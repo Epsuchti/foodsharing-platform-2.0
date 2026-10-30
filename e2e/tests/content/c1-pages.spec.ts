@@ -1,4 +1,5 @@
-import { LANGUAGES, expect, expectDataState, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
+import path from 'node:path';
+import { LANGUAGES, expect, expectDataState, expectNoMissingKeys, pickOption, setLanguage, test } from '../../fixtures';
 
 /**
  * C1 (plan-m7 Q10): the public CMS pages under their canonical routes (`/about/*`, `/imprint`, `/for-companies`) in all
@@ -110,4 +111,48 @@ test('C1 FAQ lists the published questions and filters them @C1 @page', async ({
     await expect(entries).toHaveCount(12);
     await expectNoMissingKeys(page);
   }
+});
+
+/** A 256 px PNG (the screenshot tile stub). */
+const PICTURE = path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png');
+
+test('C1 editor edits a page body and image @C1', async ({ as, apiOf, page }) => {
+  // Q11: ORGA uploads an image, inserts it into the German body, picks another editor function and saves
+  const orga = await as('orga');
+  await setLanguage(orga, 'de');
+  await orga.goto('/admin/content/press');
+  await expectDataState(orga, 'content.editor.state', 'success');
+  await expect(orga.getByTestId('content.editor.image')).toHaveCount(0);
+  const body = orga.getByTestId('content.editor.bodies.field.de');
+  await body.fill('## Medienanfragen\n\nSchreib an presse@foodsharing.ch.');
+  await orga.getByTestId('content.editor.imageUpload.input').setInputFiles(PICTURE);
+  await expect(orga.getByTestId('content.editor.image')).toHaveCount(1);
+  const imageId = await orga.getByTestId('content.editor.image').getAttribute('data-id');
+  expect(imageId).toMatch(/^[0-9a-f-]{36}$/);
+  await orga.getByTestId('content.editor.insertImage').click();
+  const imageUrl = `/api/uploads/${imageId}?size=lg`;
+  await expect(body).toHaveValue(`## Medienanfragen\n\nSchreib an presse@foodsharing.ch.\n\n![](${imageUrl})`);
+  await pickOption(orga, 'content.editor.editorFunction', 'MODERATION');
+  await orga.getByTestId('content.editor.reason').fill('e2e: Bild');
+  await orga.getByTestId('content.editor.save').click();
+  await expect(orga.getByTestId('shell.toast').locator('.p-toast-message').first()).toBeVisible();
+
+  // saved: the image is claimed by the page, the function changed
+  const saved = await apiOf(orga).getJson<PageForEdit & { editorFunction?: string; imageUploadIds?: string[] }>(
+    '/api/content/pages/press',
+  );
+  expect(saved.imageUploadIds).toEqual([imageId]);
+  expect(saved.editorFunction).toBe('MODERATION');
+  expect(saved.bodies.de).toContain(`![](${imageUrl})`);
+  await orga.reload();
+  await expectDataState(orga, 'content.editor.state', 'success');
+  await expect(orga.getByTestId('content.editor.image')).toHaveCount(1);
+
+  // public: the page shows the image, readable without login (CONTENT_IMAGE is public, A41)
+  await setLanguage(page, 'de');
+  await page.goto('/about/press');
+  await expectDataState(page, 'content.page.state', 'success');
+  const image = page.getByTestId('content.page.body').locator('img');
+  await expect(image).toHaveAttribute('src', imageUrl);
+  await expect.poll(() => image.evaluate((node) => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
 });

@@ -6,7 +6,9 @@ import network.foodsharing.admin.domain.ConfigurationKey;
 import network.foodsharing.admin.domain.FeatureToggle;
 import network.foodsharing.admin.service.ConfigurationService;
 import network.foodsharing.admin.service.FeatureToggleService;
+import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +41,21 @@ public class CampaignService {
         this.content = content;
     }
 
-    /** @throws ApiException 404 FEATURE_DISABLED when PETITION_BANNER is off */
+    /**
+     * The running petition: {@code petition.url} is set and {@code petition.days-left} is above 0.
+     *
+     * @throws ApiException 404 FEATURE_DISABLED when PETITION_BANNER is off, 503 PETITION_INACTIVE when the toggle is
+     *     on but no petition is configured or it has ended
+     */
     @Transactional(readOnly = true)
     public Petition petition() {
         toggles.requireEnabled(FeatureToggle.PETITION_BANNER);
-        return new Petition(configuration.url(ConfigurationKey.PETITION_URL),
-                Math.max(0, configuration.integer(ConfigurationKey.PETITION_SIGNATURES)),
-                Math.max(0, configuration.integer(ConfigurationKey.PETITION_DAYS_LEFT)));
+        String url = configuration.url(ConfigurationKey.PETITION_URL);
+        int daysLeft = configuration.integer(ConfigurationKey.PETITION_DAYS_LEFT);
+        if (url == null || url.isBlank() || daysLeft <= 0) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, ApiErrorCode.PETITION_INACTIVE);
+        }
+        return new Petition(url, Math.max(0, configuration.integer(ConfigurationKey.PETITION_SIGNATURES)), daysLeft);
     }
 
     /** The modal is shown only when the DONATION_MODAL toggle and {@code donation.show-modal} are both on. */

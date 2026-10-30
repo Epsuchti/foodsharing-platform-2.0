@@ -27,12 +27,19 @@ FeatureToggleUpdate:
     enabled:
       type: boolean
 
+ConfigurationType:
+  type: string
+  description: 'Value type of a configuration key (server ConfigurationKey.Type); the server validates values by it.'
+  enum: [STRING, INTEGER, BOOLEAN, URL, EMAIL, LIST]
+
 ConfigurationEntry:
   type: object
-  required: [key, value, defaultValue]
+  required: [key, type, value, defaultValue]
   properties:
     key:
       type: string
+    type:
+      $ref: './admin-settings.yaml#/ConfigurationType'
     value:
       type: string
     defaultValue:

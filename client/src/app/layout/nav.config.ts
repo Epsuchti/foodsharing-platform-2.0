@@ -81,7 +81,7 @@ const when =
 export const M6_PAGES_READY = {
   map: true,
   baskets: true,
-  search: false,
+  search: true,
   profile: true,
   adminSettings: true,
   /** OAuth client administration (Q14); follows the OAUTH_PROVIDER toggle. */
@@ -94,13 +94,13 @@ export const M6_PAGES_READY = {
   team: true,
   partners: true,
   press: true,
-  blog: false,
+  blog: true,
   cities: true,
   demands: true,
   education: true,
-  donate: false,
+  donate: true,
   statistics: true,
-  support: false,
+  support: true,
   releaseNotes: true,
   faq: true,
   /** ORGA editor of the release notes (Q10). */
@@ -115,17 +115,17 @@ const whenM6 =
     M6_PAGES_READY[page] && rule(ctx);
 
 /** Footer "about" pages for visitors (M6); hidden until their page flag flips. */
-const ABOUT_PAGES: readonly { id: M6Page; icon: string; route: string }[] = [
+const ABOUT_PAGES: readonly { id: M6Page; icon: string; route: string; toggle?: FeatureToggleKey }[] = [
   { id: 'team', icon: 'pi pi-users', route: '/team' },
   { id: 'partners', icon: 'pi pi-thumbs-up', route: '/about/partners' },
   { id: 'press', icon: 'pi pi-megaphone', route: '/about/press' },
-  { id: 'blog', icon: 'pi pi-book', route: '/blog' },
+  { id: 'blog', icon: 'pi pi-book', route: '/blog', toggle: FeatureToggleKey.Blog },
   { id: 'cities', icon: 'pi pi-building', route: '/about/cities' },
   { id: 'demands', icon: 'pi pi-flag', route: '/about/demands' },
   { id: 'education', icon: 'pi pi-graduation-cap', route: '/about/education' },
   { id: 'donate', icon: 'pi pi-heart-fill', route: '/donate' },
   { id: 'statistics', icon: 'pi pi-chart-bar', route: '/statistics' },
-  { id: 'support', icon: 'pi pi-question', route: '/support' },
+  { id: 'support', icon: 'pi pi-question', route: '/support', toggle: FeatureToggleKey.SupportForm },
   { id: 'releaseNotes', icon: 'pi pi-list', route: '/release-notes' },
   { id: 'faq', icon: 'pi pi-comments', route: '/faq' },
 ];
@@ -472,7 +472,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.search',
     icon: 'pi pi-search',
     route: '/search',
-    visible: whenM6('search', loggedIn),
+    visible: whenM6('search', (ctx) => loggedIn(ctx) && featureOn(ctx, FeatureToggleKey.GlobalSearch)),
   },
   {
     id: 'profile',
@@ -480,6 +480,26 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-user',
     route: '/profile/me',
     visible: whenM6('profile', loggedIn),
+    area: 'user',
+  },
+  {
+    // C2: ambassadors write posts of their regions, ORGA and PR group admins check and publish (A54)
+    id: 'blogManage',
+    labelKey: 'nav.blogManage',
+    icon: 'pi pi-book',
+    route: '/blog/manage',
+    visible: whenM6(
+      'blog',
+      (ctx) => loggedIn(ctx) && isAnyAdmin(ctx) && featureOn(ctx, FeatureToggleKey.Blog),
+    ),
+  },
+  {
+    // C9: the support form for signed-in users (visitors find it in the footer)
+    id: 'help',
+    labelKey: 'nav.support',
+    icon: 'pi pi-question-circle',
+    route: '/support',
+    visible: whenM6('support', (ctx) => loggedIn(ctx) && featureOn(ctx, FeatureToggleKey.SupportForm)),
     area: 'user',
   },
   {
@@ -544,7 +564,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
       labelKey: `nav.${page.id}`,
       icon: page.icon,
       route: page.route,
-      visible: whenM6(page.id, loggedOut),
+      visible: whenM6(page.id, (ctx) => loggedOut(ctx) && (!page.toggle || featureOn(ctx, page.toggle))),
       area: 'footer',
       group: 'about',
     }),

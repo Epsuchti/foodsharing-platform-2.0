@@ -5,6 +5,7 @@ import {
   AchievementUpdate,
   AchievementVisibility,
   Award,
+  AwardUpdate,
   DuplicateMode,
 } from '../../api';
 import { LANGUAGES, UiLanguage } from '../../core/i18n/languages';
@@ -53,15 +54,20 @@ export const NEW_ACHIEVEMENT: AchievementFormValue = {
 
 /**
  * Form values of an existing achievement. The server resolves `name`/`description` in the viewer's preferred language
- * and `translations` holds only the non-German rows, so the German base text is only known when the viewer reads German
- * or has no translation of their own; otherwise the German fields start empty and are only sent when filled.
+ * and `translations` holds only the non-German rows; administrators also get the German base text
+ * (`baseName`/`baseDescription`). Without it the base is only known when the viewer reads German or has no
+ * translation of their own; otherwise the German fields start empty and are only sent when filled.
  */
 export function achievementFormValue(achievement: Achievement, viewerLanguage: string): AchievementFormStart {
   const translations = achievement.translations ?? {};
-  const baseKnown = viewerLanguage === 'de' || !translations[viewerLanguage];
+  const fromServer = achievement.baseName !== undefined && achievement.baseName !== null;
+  const baseKnown = fromServer || viewerLanguage === 'de' || !translations[viewerLanguage];
   const names: TranslatedText = {};
   const descriptions: TranslatedText = {};
-  if (baseKnown) {
+  if (fromServer) {
+    names.de = achievement.baseName;
+    if (achievement.baseDescription) descriptions.de = achievement.baseDescription;
+  } else if (baseKnown) {
     names.de = achievement.name;
     if (achievement.description) descriptions.de = achievement.description;
   }
@@ -118,8 +124,13 @@ export function toAchievementCreate(value: AchievementFormValue, regionId: strin
 /**
  * PATCH body: translations are always sent in full (the server replaces the set). With a known base text an empty
  * German description clears it; with an unknown one the German fields are only sent when the editor filled them.
+ * An emptied validity of an achievement that had one is sent as `clearValidityDays` (unlimited again).
  */
-export function toAchievementUpdate(value: AchievementFormValue, baseKnown: boolean): AchievementUpdate {
+export function toAchievementUpdate(
+  value: AchievementFormValue,
+  baseKnown: boolean,
+  previousValidityDays?: number | null,
+): AchievementUpdate {
   const name = value.names.de?.trim();
   const description = value.descriptions.de?.trim() ?? '';
   return {
@@ -128,8 +139,19 @@ export function toAchievementUpdate(value: AchievementFormValue, baseKnown: bool
     icon: value.icon,
     visibility: value.visibility,
     duplicateMode: value.duplicateMode,
-    ...(value.validityDays ? { validityDays: value.validityDays } : {}),
+    ...(value.validityDays ? { validityDays: value.validityDays } : previousValidityDays ? { clearValidityDays: true } : {}),
     translations: translations(value),
+  };
+}
+
+/** PATCH body of an award: an emptied end date of an award that had one is sent as `clearValidUntil`. */
+export function toAwardUpdate(
+  value: { validUntil: string; notice: string },
+  previousValidUntil?: string | null,
+): AwardUpdate {
+  return {
+    ...(value.validUntil ? { validUntil: value.validUntil } : previousValidUntil ? { clearValidUntil: true } : {}),
+    notice: value.notice.trim(),
   };
 }
 
