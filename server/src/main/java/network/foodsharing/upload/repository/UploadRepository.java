@@ -8,16 +8,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UploadRepository extends JpaRepository<Upload, UUID> {
 
-    org.springframework.data.domain.Page<Upload> findAllByOrderByCreatedAtDesc(
+    org.springframework.data.domain.Page<Upload> findAllByOrderByCreatedAtDescIdDesc(
             org.springframework.data.domain.Pageable pageable);
 
-    org.springframework.data.domain.Page<Upload> findByUsageModuleOrderByCreatedAtDesc(String module,
+    org.springframework.data.domain.Page<Upload> findByUsageModuleOrderByCreatedAtDescIdDesc(String module,
             org.springframework.data.domain.Pageable pageable);
 
-    org.springframework.data.domain.Page<Upload> findByUsageCountOrderByCreatedAtDesc(int usageCount,
+    org.springframework.data.domain.Page<Upload> findByUsageCountOrderByCreatedAtDescIdDesc(int usageCount,
             org.springframework.data.domain.Pageable pageable);
 
-    org.springframework.data.domain.Page<Upload> findByUsageCountGreaterThanOrderByCreatedAtDesc(int usageCount,
+    org.springframework.data.domain.Page<Upload> findByUsageCountGreaterThanOrderByCreatedAtDescIdDesc(int usageCount,
             org.springframework.data.domain.Pageable pageable);
 
     List<Upload> findByUsageModuleAndUsageCountGreaterThan(String module, int usageCount);

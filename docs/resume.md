@@ -74,7 +74,7 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
    - Update the D4/D4.3 specs, `openNav`, the personas' click budgets and the screenshot specs.
    - Baselines change deliberately.
 10. Opening `/login` directly briefly shows the visitor side menu with an empty content area, then switches to the minimal login layout (seen in the local profile, 2026-10-30). The minimal-chrome decision should apply before the first render, so the layout doesn't flash.
-11. Pickup slots: it isn't clear enough which sign-ups are confirmed and which are waiting for the store manager. Today only the avatar ring differs (dashed vs solid), which is hard to see in dark mode and isn't stated in words. A Fable designer proposal is in progress (`docs/design/pickup-slots-*`); implement it after the owner reviews it.
+11. Pickup slots: confirmed vs unconfirmed must be obvious. The design and mockup are in `docs/design/pickup-slots-*`; the owner decisions are in section 10 of the proposal. Implement it.
 12. Broken toggle switches (owner, 2026-10-30): in a flex row next to a long description, `p-toggleswitch` shrinks (`flex-shrink: 1`, `min-width: auto`). On the store pickup policy page the six switches measured 40, 40, 26, 28, 20 and 33 px wide instead of 40, so only the knob was left. The app uses `p-toggleswitch` 51 times in 31 files.
    - Fix globally in `styles.scss` (`.p-toggleswitch { flex-shrink: 0; }`), and give checkboxes, radios, avatars and icon buttons the same treatment where they sit in flex rows.
    - Add a guard: an e2e helper in the a11y sweep, or a check in the i18n smoke, that fails when a switch, checkbox or radio is rendered narrower than its design size, across every route at desktop and phone width. That way the whole app gets checked, not just this page.
@@ -96,3 +96,12 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
      - Update the seed: Zürich Stadt gets a real Fairteiler with cleaning shifts instead of S-13 "Migros City".
      - Update `docs/seed-ids.md`.
    - Contract first (OpenAPI), history on every mutation, i18n in five languages, and an e2e test plus screenshot specs with the feature ID. Update the automation policy page ("Putzen" shows the region's cleaning Fairteiler).
+14. Store team (owner, 2026-10-31):
+   - Sort by pickup count and by last pickup.
+   - A filter (name, role; members/jumpers).
+   - Page members and jumpers on the server instead of loading the whole team (contract first; stable sort with an id tiebreaker).
+   - Applies to the team tab and to "Abholungen pro Mitglied" in the store statistics.
+15. "Navigate" button for addresses (stores, Fairteiler, baskets, events): one button with a dropdown offering Google Maps and Apple Maps (deep links with the coordinates or address). It replaces the current "Route" button.
+16. Edit and delete your own messages in every chat (direct, group, store, region, event, basket chats; check which walls count as chats). Every edit and delete is recorded in the history with the original text, so moderators can still see it. Others see "bearbeitet" / "gelöscht". Decide on a time limit and on moderator access with the owner.
+17. The map doesn't load OpenStreetMap tiles (owner, local profile). Check the tile URL, the CSP `img-src`, the service worker and the attribution; e2e and screenshots stub the tile hosts, so no test noticed. Add a check that at least one real tile request succeeds outside the stubbed tests (smoke).
+18. Unstable sorting: 27 repository methods order only by a timestamp (`…OrderByCreatedAtDesc`). Rows with the same time come back in random order, and with paging an entry can appear on two pages or on none. Uploads are fixed (`…CreatedAtDescIdDesc`, 2026-10-31); found because the uploads screenshot changed between runs. Add the id tiebreaker everywhere, and guard it with an ArchUnit or unit check: every paged or sorted repository query ends with a unique key.

@@ -373,3 +373,14 @@ New:
    enough there?
 8. **Screenshot scope:** add the dark variants of the pickups tab to the baseline matrix (currently only
    light `-de` baselines exist for pickups), since dark mode was the trigger?
+
+## 10. Owner decisions (2026-10-31)
+
+1. Your own pill says "Du".
+2. ✓ opens the existing dialog with "Bestätigen" focused; there is no one-click confirm.
+3. Eligibility: no lock pill. Free slots always look bookable. When the automation (policy rules) would block a sign-up, the sign-up dialog says why and that it can't be booked. The hint line under the pickup goes away.
+4. "Alle n bestätigen" per pickup: yes, from 2 waiting. It opens one confirmation dialog for all of them.
+5. "Wartet (n)": the designer's choice is a filter chip in the toolbar, with the count.
+6. Wording: "unbestätigt" instead of "wartet" (de); the other languages follow.
+7. The "Abholungen" overview page also gets the summary counts.
+8. No dark baselines for the pickups tab (decision 109 stays).
