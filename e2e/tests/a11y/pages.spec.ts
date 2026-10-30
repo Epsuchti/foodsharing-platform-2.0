@@ -95,10 +95,25 @@ const ROUTES: RouteCase[] = [
   { path: '/admin/ip-blocks', role: 'orga', ready: 'adminSettings.ipBlocks.addForm' },
   { path: '/admin/uploads', role: 'orga', ready: 'adminSettings.uploads.table' },
   { path: '/admin/admins', role: 'orga', ready: 'admin.admins.count' },
+  // Q11: blog, donations, support
+  { path: '/blog', role: null, ready: 'blog.list.grid' },
+  { path: '/blog/00000012-0006-4000-8000-000000000001', role: null, ready: 'blog.post.body' },
+  { path: '/blog/manage', role: 'orga', ready: 'blog.manage.new' },
+  { path: '/blog/00000012-0006-4000-8000-000000000007/edit', role: 'bot', ready: 'blog.editor.form', consent: true },
+  { path: '/blog/new', role: 'welcome', ready: 'blog.editor.form', consent: true },
+  { path: '/donate', role: null, ready: 'content.donate.info' },
+  { path: '/support', role: null, ready: 'content.support.form' },
+  { path: '/support?from=%2Fdashboard', role: 'foodsaver', ready: 'content.support.form' },
+  { path: '/admin/content/press', role: 'orga', ready: 'content.editor.images' },
   // M6 achievements (plan-m7 Q9): region tab as member and as ambassador, global admin page
   { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'foodsaver', ready: 'achievements.board.list' },
   { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'bot', ready: 'achievements.board.define', consent: true },
   { path: '/admin/achievements', role: 'orga', ready: 'achievements.board.list' },
+  // M6 search + resources (plan-m7 Q12)
+  { path: '/search?q=Wiedikon', role: 'foodsaver', ready: 'search.page.input' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/resources', role: 'foodsaver', ready: 'resources.region.commons' },
+  { path: '/resources/mine', role: 'foodsaver', ready: 'resources.mine.list' },
+  { path: '/resources/favourites', role: 'foodsaver', ready: 'resources.favourites.list' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
