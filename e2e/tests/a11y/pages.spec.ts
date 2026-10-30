@@ -99,6 +99,11 @@ const ROUTES: RouteCase[] = [
   { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'foodsaver', ready: 'achievements.board.list' },
   { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'bot', ready: 'achievements.board.define', consent: true },
   { path: '/admin/achievements', role: 'orga', ready: 'achievements.board.list' },
+  // M6 OAuth (plan-m7 Q14): connections, client administration, consent page without a request (the real consent
+  // page needs an authorize request; its states are swept by the C13 @page test)
+  { path: '/account/connections', role: 'foodsaver', ready: 'account.connections.item' },
+  { path: '/admin/oauth-clients', role: 'orga', ready: 'oauth.clients.list' },
+  { path: '/oauth/consent', role: 'foodsaver', ready: 'oauth.consent.missing' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

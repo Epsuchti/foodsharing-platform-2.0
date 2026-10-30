@@ -425,5 +425,6 @@
   "nav.support": "Support",
   "nav.releaseNotes": "Release notes",
   "nav.faq": "FAQ",
-  "nav.adminReleaseNotes": "Release notes"
+  "nav.adminReleaseNotes": "Release notes",
+  "nav.connections": "Connected apps"
 }

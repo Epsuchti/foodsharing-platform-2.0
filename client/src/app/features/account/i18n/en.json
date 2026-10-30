@@ -226,5 +226,15 @@
   "account.bounce.text": "Mails to {email} have been rejected since {date}. Until this is sorted out we only send you login links.",
   "account.bounce.change": "Change address",
   "account.bounce.clear": "The address works again",
-  "account.bounce.cleared": "Thank you! We send you emails again."
+  "account.bounce.cleared": "Thank you! We send you emails again.",
+  "account.connections.pageTitle": "Connected apps",
+  "account.connections.title": "Connected apps",
+  "account.connections.subtitle": "Applications you sign in to with your foodsharing account.",
+  "account.connections.empty": "No connected apps",
+  "account.connections.emptyText": "When you allow “Sign in with foodsharing” for an application, it appears here.",
+  "account.connections.since": "Allowed since {date}",
+  "account.connections.revoke": "Revoke access",
+  "account.connections.revokeTitle": "Revoke access?",
+  "account.connections.revokeText": "{name} will be signed out and has to ask for your consent again next time.",
+  "account.connections.revoked": "Access revoked"
 }

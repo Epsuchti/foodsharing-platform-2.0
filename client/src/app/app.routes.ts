@@ -191,6 +191,11 @@ const MODULE_ROUTES: Routes = [
       import('./features/admin-settings/admin-settings.routes').then((m) => m.ADMIN_SETTINGS_ROUTES),
   },
   {
+    // `oauth/consent`, `admin/oauth-clients` (C13)
+    path: '',
+    loadChildren: () => import('./features/oauth/oauth.routes').then((m) => m.OAUTH_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>
