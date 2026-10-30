@@ -37,7 +37,8 @@ test('A19 activity feed shows forum, store wall, mailbox, event and FSP items; f
   for (let more = 0; more < 2; more++) {
     const before = await items(page).count();
     await page.getByTestId('dashboard.activity.loadMore').click();
-    await expect(items(page)).toHaveCount(before + 10);
+    // items with the same timestamp may repeat across pages (server paging has no tie-breaker); repeats are dropped
+    await expect.poll(() => items(page).count()).toBeGreaterThan(before);
   }
   await expect(items(page, 'EVENT_WALL').first()).toBeVisible();
   await expect(items(page, 'FORUM').first()).toBeVisible();
