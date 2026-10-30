@@ -49,6 +49,13 @@ describe('resource pages', () => {
     await new Promise((resolve) => setTimeout(resolve));
     await settle();
   };
+  /** /resources/mine loads the list and `getMyResourceLimits` together. */
+  const flushMine = (resources: Resource[], maxPerUser = 10) => {
+    http.expectOne('/api/resources/mine').flush(resources);
+    http
+      .expectOne('/api/resources/mine/limits')
+      .flush({ ownCount: resources.length, maxPerUser, mayAdd: resources.length < maxPerUser });
+  };
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -155,27 +162,38 @@ describe('resource pages', () => {
   });
 
   describe('my resources', () => {
-    it('counts against the limit of 10 and disables adding at the limit', async () => {
+    it('counts against the server limit and disables adding at the limit', async () => {
       await harness.navigateByUrl('/resources/mine');
       expect(state('resources.mine.state')).toBe('loading');
-      http.expectOne('/api/resources/mine').flush([resource()]);
+      expect(q('[data-testid="resources.mine.add"] button')?.hasAttribute('disabled')).toBe(true);
+      flushMine([resource()]);
       await settle();
       expect(state('resources.mine.state')).toBe('success');
       expect(q('[data-testid="resources.mine.count"]')?.getAttribute('data-count')).toBe('1');
+      expect(q('[data-testid="resources.mine.count"]')?.getAttribute('data-max')).toBe('10');
       expect(q('[data-testid="resources.mine.add"] button')?.hasAttribute('disabled')).toBe(false);
 
       await harness.navigateByUrl('/resources/favourites');
       http.expectOne('/api/resources/favourites').flush([]);
       await harness.navigateByUrl('/resources/mine');
-      http.expectOne('/api/resources/mine').flush(Array.from({ length: 10 }, (_, i) => resource({ id: `r${i}` })));
+      flushMine(Array.from({ length: 10 }, (_, i) => resource({ id: `r${i}` })));
       await settle();
       expect(q('[data-testid="resources.mine.add"] button')?.hasAttribute('disabled')).toBe(true);
       expect(q('[data-testid="resources.mine.count"]')?.className).toContain('count--full');
+
+      // the limit is the configured one (app.resources.max-per-user), not a client constant
+      await harness.navigateByUrl('/resources/favourites');
+      http.expectOne('/api/resources/favourites').flush([]);
+      await harness.navigateByUrl('/resources/mine');
+      flushMine([resource(), resource({ id: 'r2' }), resource({ id: 'r3' })], 3);
+      await settle();
+      expect(q('[data-testid="resources.mine.count"]')?.getAttribute('data-max')).toBe('3');
+      expect(q('[data-testid="resources.mine.add"] button')?.hasAttribute('disabled')).toBe(true);
     });
 
     it('adds a resource through the form dialog', async () => {
       await harness.navigateByUrl('/resources/mine');
-      http.expectOne('/api/resources/mine').flush([]);
+      flushMine([]);
       await settle();
       expect(state('resources.mine.state')).toBe('empty');
       click('[data-testid="resources.mine.add"]');
@@ -206,7 +224,7 @@ describe('resource pages', () => {
       });
       post.flush(resource({ id: 'new', name: 'Einkochtopf' }));
       await settle();
-      http.expectOne('/api/resources/mine').flush([resource({ id: 'new', name: 'Einkochtopf' })]);
+      flushMine([resource({ id: 'new', name: 'Einkochtopf' })]);
       await settle();
       expect(state('resources.mine.state')).toBe('success');
     });
@@ -216,6 +234,7 @@ describe('resource pages', () => {
       http.expectOne('/api/resources/mine').flush(null, { status: 500, statusText: 'Server Error' });
       await settle();
       expect(state('resources.mine.state')).toBe('error');
+      expect(q('[data-testid="resources.mine.add"] button')?.hasAttribute('disabled')).toBe(true);
     });
   });
 
@@ -239,7 +258,7 @@ describe('resource pages', () => {
       expect(state('resources.favourites.state')).toBe('empty');
 
       await harness.navigateByUrl('/resources/mine');
-      http.expectOne('/api/resources/mine').flush([]);
+      flushMine([]);
       await harness.navigateByUrl('/resources/favourites');
       http.expectOne('/api/resources/favourites').flush(null, { status: 500, statusText: 'Server Error' });
       await settle();

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import network.foodsharing.api.ResourcesApi;
 import network.foodsharing.api.model.Language;
+import network.foodsharing.api.model.MyResourceLimits;
 import network.foodsharing.api.model.Resource;
 import network.foodsharing.api.model.ResourceCategory;
 import network.foodsharing.api.model.ResourceCreate;
@@ -59,6 +60,13 @@ public class ResourcesController implements ResourcesApi {
     @Override
     public ResponseEntity<List<Resource>> listFavouriteResources() {
         return ResponseEntity.ok(resources.favouriteResources().stream().map(this::toApi).toList());
+    }
+
+    @Override
+    public ResponseEntity<MyResourceLimits> getMyResourceLimits() {
+        ResourceService.Limits limits = resources.myLimits();
+        return ResponseEntity.ok(new MyResourceLimits().ownCount((int) limits.ownCount())
+                .maxPerUser(limits.maxPerUser()).mayAdd(limits.mayAdd()));
     }
 
     @Override

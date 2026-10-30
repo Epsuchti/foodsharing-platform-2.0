@@ -42,8 +42,8 @@ describe('resources util', () => {
   });
 
   it('applies the per-user limit of 10 like the server', () => {
-    expect(mayAddMore(9)).toBe(true);
-    expect(mayAddMore(10)).toBe(false);
+    expect(mayAddMore(9, 10)).toBe(true);
+    expect(mayAddMore(10, 10)).toBe(false);
     expect(mayAddMore(2, 2)).toBe(false);
   });
 

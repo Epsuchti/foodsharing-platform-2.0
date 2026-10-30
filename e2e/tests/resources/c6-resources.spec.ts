@@ -89,6 +89,8 @@ test.describe('resources', () => {
     await page.goto('/resources/mine');
     await expectDataState(page, 'resources.mine.state', 'success');
     await expect(page.getByTestId('resources.mine.count')).toHaveAttribute('data-count', '10');
+    // the limit comes from the server (getMyResourceLimits), not a client constant
+    await expect(page.getByTestId('resources.mine.count')).toHaveAttribute('data-max', '10');
     await expect(page.getByTestId('resources.mine.add').locator('button')).toBeDisabled();
     const refused = await api.post('/api/resources', { name: 'Zu viel', categoryIds: [CATEGORY.transport], private: false, openness: 'ASK_FIRST', commons: false });
     expect(refused.status()).toBe(409);

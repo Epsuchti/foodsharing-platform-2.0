@@ -144,3 +144,19 @@ ResourcePermissions:
       type: integer
       format: int32
       description: 'Resources a user may own at most (app.resources.max-per-user); mayAdd is false once reached.'
+
+MyResourceLimits:
+  type: object
+  required: [ownCount, maxPerUser, mayAdd]
+  properties:
+    ownCount:
+      type: integer
+      format: int32
+      description: Resources the caller owns (not deleted).
+    maxPerUser:
+      type: integer
+      format: int32
+      description: 'Resources a user may own at most (app.resources.max-per-user, the same in every region).'
+    mayAdd:
+      type: boolean
+      description: 'ownCount < maxPerUser; creating another resource answers 409 RESOURCE_LIMIT_REACHED otherwise.'

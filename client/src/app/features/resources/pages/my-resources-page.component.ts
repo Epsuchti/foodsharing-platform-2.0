@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
+import { forkJoin } from 'rxjs';
 
-import { Resource, ResourcesService } from '../../../api';
+import { MyResourceLimits, Resource, ResourcesService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
@@ -10,12 +11,18 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { ResourceFormDialogComponent } from '../components/resource-form-dialog.component';
 import { ResourceListComponent } from '../components/resource-list.component';
-import { RESOURCE_LIMIT, mayAddMore } from '../resources.util';
+import { mayAddMore } from '../resources.util';
+
+interface MyResources {
+  items: Resource[];
+  limits: MyResourceLimits;
+}
 
 /**
  * /resources/mine (C6; `/resources`, the bell deep link, redirects here): the own resources (`listMyResources`) with
- * the "x of 10" limit hint; adding without a region makes the resource visible in every region the user is a member
- * of (A55). The server enforces the limit (409 RESOURCE_LIMIT_REACHED).
+ * the "x of max" limit hint (`getMyResourceLimits`, loaded together so both refresh after a change); adding without a
+ * region makes the resource visible in every region the user is a member of (A55). The server enforces the limit
+ * (409 RESOURCE_LIMIT_REACHED).
  */
 @Component({
   selector: 'fs-my-resources-page',
@@ -30,9 +37,9 @@ import { RESOURCE_LIMIT, mayAddMore } from '../resources.util';
       <p-button [label]="'resources.mine.add' | t" icon="pi pi-plus" [disabled]="!canAdd()" (onClick)="adding.set(true)" data-testid="resources.mine.add" />
     </fs-page-header>
 
-    @if (resources.data(); as list) {
-      <p class="count" [class.count--full]="!canAdd()" data-testid="resources.mine.count" [attr.data-count]="list.length">
-        {{ (canAdd() ? 'resources.mine.count' : 'resources.mine.limitReached') | t: { count: list.length, max: limit } }}
+    @if (resources.data(); as mine) {
+      <p class="count" [class.count--full]="!canAdd()" data-testid="resources.mine.count" [attr.data-count]="mine.items.length" [attr.data-max]="limit()">
+        {{ (canAdd() ? 'resources.mine.count' : 'resources.mine.limitReached') | t: { count: mine.items.length, max: limit() } }}
       </p>
     }
 
@@ -40,15 +47,15 @@ import { RESOURCE_LIMIT, mayAddMore } from '../resources.util';
       [state]="resources"
       skeleton="list"
       [emptyTitle]="'resources.mine.empty' | t"
-      [emptyText]="'resources.mine.emptyHint' | t: { max: limit }"
+      [emptyText]="'resources.mine.emptyHint' | t: { max: limit() }"
       emptyIcon="pi pi-th-large"
       [emptyActionLabel]="'resources.mine.add' | t"
       emptyActionIcon="pi pi-plus"
       (emptyAction)="adding.set(true)"
       data-testid="resources.mine.state"
     >
-      <ng-template [fsData]="resources" let-list>
-        <fs-resource-list [resources]="list" testId="resources.mine.list" (changed)="resources.reload()" />
+      <ng-template [fsData]="resources" let-mine>
+        <fs-resource-list [resources]="mine.items" testId="resources.mine.list" (changed)="resources.reload()" />
       </ng-template>
     </fs-data-state>
 
@@ -67,14 +74,20 @@ export class MyResourcesPageComponent {
   private readonly api = inject(ResourcesService);
   private readonly session = inject(SessionService);
 
-  protected readonly limit = RESOURCE_LIMIT;
   protected readonly adding = signal(false);
   protected readonly homeRegionId = computed(() => this.session.user()?.homeRegionId ?? null);
 
-  protected readonly resources = loadResource<Resource[], true>({
+  protected readonly resources = loadResource<MyResources, true>({
     params: () => true,
-    loader: () => this.api.listMyResources(),
+    loader: () => forkJoin({ items: this.api.listMyResources(), limits: this.api.getMyResourceLimits() }),
+    isEmpty: (mine) => mine.items.length === 0,
   });
 
-  protected readonly canAdd = computed(() => mayAddMore(this.resources.data()?.length ?? 0));
+  /** `app.resources.max-per-user` from the server (no region needed). */
+  protected readonly limit = computed(() => this.resources.data()?.limits.maxPerUser ?? null);
+  /** Adding needs the loaded limit; the count is the listed resources (the server answers 409 beyond it). */
+  protected readonly canAdd = computed(() => {
+    const mine = this.resources.data();
+    return !!mine && mayAddMore(mine.items.length, mine.limits.maxPerUser);
+  });
 }
