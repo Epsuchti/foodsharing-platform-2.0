@@ -26,5 +26,22 @@
   "dashboard.page.admin.text": "Presto gestirai qui i membri, la verifica e i nuovi arrivati della tua regione.",
   "dashboard.page.journey.eyebrow": "Il tuo prossimo passo",
   "dashboard.page.journey.title": "Il tuo percorso",
-  "dashboard.page.journey.open": "Vedi tutto il percorso"
+  "dashboard.page.journey.open": "Vedi tutto il percorso",
+  "dashboard.activity.title": "Cosa succede",
+  "dashboard.activity.filterLabel": "Ambiti mostrati",
+  "dashboard.activity.empty": "Ancora niente di nuovo",
+  "dashboard.activity.emptyHint": "Qui compaiono i messaggi dei tuoi forum, negozi, caselle di posta, eventi e punti di condivisione.",
+  "dashboard.activity.loadMore": "Carica altro",
+  "dashboard.activity.type.FORUM": "Forum",
+  "dashboard.activity.type.STORE_WALL": "Negozi",
+  "dashboard.activity.type.MAILBOX": "Caselle di posta",
+  "dashboard.activity.type.EVENT_WALL": "Eventi",
+  "dashboard.activity.type.FSP_WALL": "Punti di condivisione",
+  "dashboard.activity.type.BUDDY_WALL": "Conoscenti",
+  "dashboard.baskets.title": "Cestini vicino a te",
+  "dashboard.baskets.empty": "Nessun cestino nel raggio di {km} km.",
+  "dashboard.baskets.noPosition": "Il tuo profilo non ha ancora un indirizzo – aggiungilo per vedere i cestini vicino a te.",
+  "dashboard.baskets.addAddress": "Aggiungi il tuo indirizzo",
+  "dashboard.baskets.all": "Tutti i cestini",
+  "dashboard.baskets.offer": "Offri un cestino"
 }

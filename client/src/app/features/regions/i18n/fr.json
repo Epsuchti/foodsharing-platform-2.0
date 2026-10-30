@@ -291,5 +291,17 @@
   "regions.public.map": "Carte",
   "regions.public.contact": "Contact",
   "regions.public.noContact": "Pas encore de coordonnées.",
-  "regions.public.children": "Régions incluses"
+  "regions.public.children": "Régions incluses",
+  "regions.later.resources": "Ressources",
+  "regions.later.achievements": "Distinctions",
+  "regions.statistics.monthly": "Collectes des {months} derniers mois",
+  "regions.statistics.metric": "Indicateur",
+  "regions.statistics.metric.pickups": "Collectes",
+  "regions.statistics.metric.kg": "Kilogrammes",
+  "regions.statistics.chart.pickups": "Collectes par mois",
+  "regions.statistics.chart.kg": "Kilogrammes sauvés par mois",
+  "regions.statistics.noPickups": "Aucune collecte enregistrée",
+  "regions.statistics.onlyHomeRegion": "Seulement les membres dont c'est la région d'attache",
+  "regions.statistics.onlyHomeRegionHint": "S'applique au genre et aux tranches d'âge.",
+  "regions.statistics.noMembers": "Aucun membre"
 }

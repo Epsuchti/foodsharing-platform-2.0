@@ -79,7 +79,7 @@ const when =
  * until then the item is declared with its real visibility rule but hidden.
  */
 export const M6_PAGES_READY = {
-  map: false,
+  map: true,
   baskets: true,
   search: false,
   profile: true,

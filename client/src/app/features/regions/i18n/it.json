@@ -291,5 +291,17 @@
   "regions.public.map": "Mappa",
   "regions.public.contact": "Contatto",
   "regions.public.noContact": "Ancora nessun contatto.",
-  "regions.public.children": "Regioni incluse"
+  "regions.public.children": "Regioni incluse",
+  "regions.later.resources": "Risorse",
+  "regions.later.achievements": "Riconoscimenti",
+  "regions.statistics.monthly": "Ritiri degli ultimi {months} mesi",
+  "regions.statistics.metric": "Indicatore",
+  "regions.statistics.metric.pickups": "Ritiri",
+  "regions.statistics.metric.kg": "Chilogrammi",
+  "regions.statistics.chart.pickups": "Ritiri al mese",
+  "regions.statistics.chart.kg": "Chilogrammi salvati al mese",
+  "regions.statistics.noPickups": "Ancora nessun ritiro registrato",
+  "regions.statistics.onlyHomeRegion": "Solo i membri con questa regione di riferimento",
+  "regions.statistics.onlyHomeRegionHint": "Vale per genere e fasce d'età.",
+  "regions.statistics.noMembers": "Nessun membro"
 }

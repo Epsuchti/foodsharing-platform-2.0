@@ -26,5 +26,22 @@
   "dashboard.page.admin.text": "Mitglieder, Verifizierung und neue Foodsaver:innen deines Bezirks verwaltest du bald direkt hier.",
   "dashboard.page.journey.eyebrow": "Dein nächster Schritt",
   "dashboard.page.journey.title": "Deine Reise",
-  "dashboard.page.journey.open": "Ganze Reise ansehen"
+  "dashboard.page.journey.open": "Ganze Reise ansehen",
+  "dashboard.activity.title": "Was läuft",
+  "dashboard.activity.filterLabel": "Angezeigte Bereiche",
+  "dashboard.activity.empty": "Noch nichts Neues",
+  "dashboard.activity.emptyHint": "Hier erscheinen Beiträge aus deinen Foren, Betrieben, Postfächern, Terminen und Fairteilern.",
+  "dashboard.activity.loadMore": "Mehr laden",
+  "dashboard.activity.type.FORUM": "Forum",
+  "dashboard.activity.type.STORE_WALL": "Betriebe",
+  "dashboard.activity.type.MAILBOX": "Postfächer",
+  "dashboard.activity.type.EVENT_WALL": "Termine",
+  "dashboard.activity.type.FSP_WALL": "Fairteiler",
+  "dashboard.activity.type.BUDDY_WALL": "Bekannte",
+  "dashboard.baskets.title": "Essenskörbe in deiner Nähe",
+  "dashboard.baskets.empty": "Keine Essenskörbe im Umkreis von {km} km.",
+  "dashboard.baskets.noPosition": "Dein Profil hat noch keine Adresse – damit zeigen wir dir Körbe in deiner Nähe.",
+  "dashboard.baskets.addAddress": "Adresse im Profil eintragen",
+  "dashboard.baskets.all": "Alle Essenskörbe",
+  "dashboard.baskets.offer": "Korb anbieten"
 }

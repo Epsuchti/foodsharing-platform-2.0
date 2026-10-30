@@ -175,7 +175,8 @@ describe('nav.config', () => {
   });
 
   it('filters by area and session', () => {
-    expect(visibleNavItems(context()).map((item) => item.id)).toEqual(['home']);
+    // the map (M1) is public
+    expect(visibleNavItems(context()).map((item) => item.id)).toEqual(['home', 'map']);
     expect(visibleNavItems(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'messages',
@@ -184,6 +185,7 @@ describe('nav.config', () => {
       'quizzes',
       'events',
       'polls',
+      'map',
       'baskets',
     ]);
     // the baskets entry follows the BASKETS feature toggle (A43)

@@ -26,5 +26,22 @@
   "dashboard.page.admin.text": "Soon you’ll manage your region’s members, verification and newcomers right here.",
   "dashboard.page.journey.eyebrow": "Your next step",
   "dashboard.page.journey.title": "Your journey",
-  "dashboard.page.journey.open": "See the whole journey"
+  "dashboard.page.journey.open": "See the whole journey",
+  "dashboard.activity.title": "What's happening",
+  "dashboard.activity.filterLabel": "Shown areas",
+  "dashboard.activity.empty": "Nothing new yet",
+  "dashboard.activity.emptyHint": "Posts from your forums, stores, mailboxes, events and food share points appear here.",
+  "dashboard.activity.loadMore": "Load more",
+  "dashboard.activity.type.FORUM": "Forum",
+  "dashboard.activity.type.STORE_WALL": "Stores",
+  "dashboard.activity.type.MAILBOX": "Mailboxes",
+  "dashboard.activity.type.EVENT_WALL": "Events",
+  "dashboard.activity.type.FSP_WALL": "Food share points",
+  "dashboard.activity.type.BUDDY_WALL": "Buddies",
+  "dashboard.baskets.title": "Food baskets near you",
+  "dashboard.baskets.empty": "No food baskets within {km} km.",
+  "dashboard.baskets.noPosition": "Your profile has no address yet – add one to see baskets near you.",
+  "dashboard.baskets.addAddress": "Add your address",
+  "dashboard.baskets.all": "All food baskets",
+  "dashboard.baskets.offer": "Offer a basket"
 }
