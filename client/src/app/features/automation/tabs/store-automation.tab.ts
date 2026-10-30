@@ -55,6 +55,17 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
       font-weight: 600;
     }
     .subnav__item--active { background: var(--fs-primary-soft); border-color: var(--fs-primary); color: var(--fs-primary-strong); }
+    /* phones: one swipeable row that sticks right below the store tabs (never slides under the sticky bars) */
+    @media (max-width: 47.99rem) {
+      .subnav {
+        position: sticky; z-index: 4; top: var(--fs-sticky-offset, var(--fs-header-h));
+        flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+        margin-bottom: 0.5rem; padding: 0.4rem 0;
+        border-bottom: 1px solid var(--fs-border);
+        background: var(--fs-bg);
+      }
+      .subnav__item { flex: 0 0 auto; white-space: nowrap; }
+    }
   `,
 })
 export class StoreAutomationTab {
