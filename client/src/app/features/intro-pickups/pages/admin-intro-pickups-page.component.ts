@@ -241,7 +241,7 @@ type Tab = 'einabs' | 'bookings' | 'guides';
     <fs-member-pick-dialog [(visible)]="pickOpen" [regionId]="regionId()" [title]="'introPickups.admin.historicalPick' | t" (picked)="startHistorical($event)" />
     <fs-slot-comments-drawer [(slotId)]="commentSlot" [userName]="commentUser()" [admin]="true" (changed)="bookings.reload()" />
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="!!historicalFor()"
       (visibleChange)="!$event && historicalFor.set(null)"
       [modal]="true"

@@ -108,7 +108,7 @@ const reasonControl = () => new FormControl('', { nonNullable: true, validators:
       </ng-template>
     </fs-data-state>
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="!!editing()"
       (visibleChange)="!$event && editing.set(null)"
       [modal]="true"

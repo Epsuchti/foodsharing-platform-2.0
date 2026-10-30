@@ -99,7 +99,7 @@ import { releaseNoteRequest, zurichDay } from '../content.util';
       </ng-template>
     </fs-data-state>
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="dialogOpen()"
       (visibleChange)="dialogOpen.set($event)"
       [modal]="true"

@@ -21,7 +21,7 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
   imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, Drawer, FormsModule, Textarea, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-drawer
+    <p-drawer [ariaCloseLabel]="'common.close' | t"
       [visible]="!!slotId()"
       (visibleChange)="!$event && slotId.set(null)"
       position="right"

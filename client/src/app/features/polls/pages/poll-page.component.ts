@@ -154,8 +154,8 @@ export class PollPageComponent {
         filter((event) => (event.payload as { pollId?: string } | undefined)?.pollId === this.pollId()),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.poll.reload());
-    const unregister = realtime.onReconnect(() => this.poll.reload());
+      .subscribe(() => this.poll.refresh());
+    const unregister = realtime.onReconnect(() => this.poll.refresh());
     inject(DestroyRef).onDestroy(unregister);
   }
 

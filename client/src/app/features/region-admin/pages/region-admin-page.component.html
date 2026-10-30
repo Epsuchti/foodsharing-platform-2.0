@@ -79,7 +79,7 @@
   testId="regionAdmin.deleteDialog"
 />
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="moveOpen()"
   (visibleChange)="moveOpen.set($event)"
   [modal]="true"
@@ -106,7 +106,7 @@
   </div>
 </p-dialog>
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="functionsOpen()"
   (visibleChange)="functionsOpen.set($event)"
   [modal]="true"
@@ -147,7 +147,7 @@
   }
 </p-dialog>
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="importOpen()"
   (visibleChange)="importOpen.set($event)"
   [modal]="true"

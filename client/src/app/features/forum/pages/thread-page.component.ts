@@ -152,8 +152,8 @@ export class ThreadPageComponent {
         debounceTime(300),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.thread.reload());
-    const unregister = realtime.onReconnect(() => this.thread.reload());
+      .subscribe(() => this.thread.refresh());
+    const unregister = realtime.onReconnect(() => this.thread.refresh());
     inject(DestroyRef).onDestroy(unregister);
     // deep links from bells: #post-<id> scrolls once the posts are rendered
     let scrolled = false;

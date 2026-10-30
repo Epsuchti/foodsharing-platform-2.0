@@ -27,7 +27,7 @@ import { DONATION_MODAL_SHOWN_KEY, DONATION_MODAL_SLUG, donationModalDue } from 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (catalogReady()) {
-      <p-dialog
+      <p-dialog [closeAriaLabel]="'common.close' | t"
         [visible]="open()"
         (visibleChange)="open.set($event)"
         [modal]="true"

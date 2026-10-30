@@ -28,6 +28,7 @@ function fakeState(status: DataStatus): DataState<unknown> & { reloads: number }
     reload: () => {
       state.reloads++;
     },
+    refresh: () => undefined,
     set: () => undefined,
     update: () => undefined,
   };
