@@ -114,6 +114,24 @@ describe('content rules (Q10)', () => {
       ).toEqual(['gws', 'it']);
     });
 
+    it('removes saved translations that were emptied completely, keeps the half-filled ones as errors', () => {
+      const { body, incomplete } = releaseNoteRequest(
+        {
+          version: '1',
+          releasedAt: '2026-01-01',
+          titles: { de: 'T', fr: '', it: 'Titolo', en: ' ' },
+          bodies: { de: 'B', fr: '', it: 'Testo', en: '', gws: 'Text' },
+        },
+        ['fr', 'it', 'en', 'gws'],
+      );
+      expect(body.removeTranslations).toEqual(['en', 'fr']);
+      expect(body.translations).toEqual({ it: { title: 'Titolo', body: 'Testo' } });
+      expect(incomplete).toEqual(['gws']);
+      expect(releaseNoteRequest({ version: '1', releasedAt: '2026-01-01', titles: { de: 'T' }, bodies: { de: 'B' } }).body).not.toHaveProperty(
+        'removeTranslations',
+      );
+    });
+
     it('defaults the release date to the Zurich day', () => {
       expect(zurichDay(new Date('2026-11-01T23:30:00Z'))).toBe('2026-11-02');
       expect(zurichDay(new Date('2026-11-02T10:00:00Z'))).toBe('2026-11-02');

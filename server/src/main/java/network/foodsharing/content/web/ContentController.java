@@ -125,7 +125,9 @@ public class ContentController implements ContentApi {
     public ResponseEntity<ReleaseNote> updateReleaseNote(UUID releaseNoteId, ReleaseNoteUpdate body) {
         return ResponseEntity.ok(ContentMapper.toReleaseNote(releaseNotes.update(releaseNoteId,
                 new ReleaseNoteService.NoteInput(body.getVersion(), body.getReleasedAt(), body.getTitle(),
-                        body.getBody(), translations(body.getTranslations())))));
+                        body.getBody(), translations(body.getTranslations()),
+                        body.getRemoveTranslations() == null ? null
+                                : new java.util.HashSet<>(body.getRemoveTranslations())))));
     }
 
     @Override

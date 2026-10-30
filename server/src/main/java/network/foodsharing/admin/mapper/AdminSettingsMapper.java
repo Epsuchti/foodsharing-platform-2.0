@@ -53,7 +53,8 @@ public class AdminSettingsMapper {
 
     public List<ConfigurationEntry> toConfiguration(List<ConfigurationService.Entry> entries) {
         Map<UUID, UserSummary> people = people(entries.stream().map(ConfigurationService.Entry::updatedBy).toList());
-        return entries.stream().map(e -> new ConfigurationEntry().key(e.key().key()).value(e.value())
+        return entries.stream().map(e -> new ConfigurationEntry().key(e.key().key())
+                .type(network.foodsharing.api.model.ConfigurationType.fromValue(e.key().type().name())).value(e.value())
                 .defaultValue(e.key().defaultValue()).description(e.description())
                 .updatedAt(TimeMapper.toOffset(e.updatedAt()))
                 .updatedBy(e.updatedBy() == null ? null : people.get(e.updatedBy()))).toList();

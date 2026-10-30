@@ -49,10 +49,19 @@ public class AchievementService {
     static final ZoneId ZURICH = ZoneId.of("Europe/Zurich");
     static final String DEFAULT_LANGUAGE = "de";
 
-    /** Create / update input; on update null means unchanged ({@code translations} null = unchanged). */
+    /**
+     * Create / update input; on update null means unchanged ({@code translations} null = unchanged) and
+     * {@code clearValidityDays} sets the validity back to unlimited.
+     */
     public record AchievementInput(UUID regionId, String name, String description, String icon, Integer validityDays,
                                    AchievementVisibility visibility, DuplicateMode duplicateMode,
-                                   Map<String, Text> translations) {
+                                   Map<String, Text> translations, boolean clearValidityDays) {
+
+        public AchievementInput(UUID regionId, String name, String description, String icon, Integer validityDays,
+                                AchievementVisibility visibility, DuplicateMode duplicateMode,
+                                Map<String, Text> translations) {
+            this(regionId, name, description, icon, validityDays, visibility, duplicateMode, translations, false);
+        }
     }
 
     public record Text(String name, String description) {
@@ -156,14 +165,23 @@ public class AchievementService {
         if (input.name() != null && blank(input.name()) || input.icon() != null && blank(input.icon())) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
         }
+        if (input.clearValidityDays() && input.validityDays() != null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "clearValidityDays");
+        }
         String oldName = achievement.getName();
         AchievementVisibility oldVisibility = achievement.getVisibility();
+        Integer oldValidity = achievement.getValidityDays();
         apply(achievement, input);
+        if (input.clearValidityDays()) {
+            achievement.setValidityDays(null);
+        }
         if (input.translations() != null) {
             saveTranslations(achievementId, input.translations());
         }
         history.record(history.event(AchievementAction.UPDATED, achievementId).region(achievement.getRegionId())
                 .change("name", oldName, achievement.getName())
+                .metadata("validityDays", Objects.toString(achievement.getValidityDays(), ""))
+                .metadata("previousValidityDays", Objects.toString(oldValidity, ""))
                 .metadata("visibility", achievement.getVisibility().name())
                 .metadata("previousVisibility", oldVisibility.name()).build());
         return views(List.of(achievement), actor, true).getFirst();
@@ -217,10 +235,17 @@ public class AchievementService {
         return awardViews(List.of(award), actor).getFirst();
     }
 
-    /** @throws ApiException 404 AWARD_NOT_FOUND, 403 */
+    /**
+     * {@code clearValidUntil} makes the award valid without end; the change is in the AWARD_EDITED history.
+     *
+     * @throws ApiException 404 AWARD_NOT_FOUND, 403, 400 VALIDATION_FAILED when clearing and setting at once
+     */
     @Transactional
     public AwardView updateAward(UUID awardId, LocalDate validUntil, boolean clearValidUntil, String notice) {
         SessionPrincipal actor = actors.requirePrincipal();
+        if (clearValidUntil && validUntil != null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "clearValidUntil");
+        }
         AwardedAchievement award = requireAward(awardId);
         Achievement achievement = achievements.findById(award.getAchievementId()).orElseThrow();
         access.requireAdminister(actor, achievement.getRegionId());
