@@ -3,7 +3,7 @@ import { expect, expectDataState, seedRegion, seedStore, test } from '../../fixt
 /** AU8: automation decisions — region coordinators see all stores, a manager only the stores they may automate. */
 const ZH = seedRegion('zuerich-stadt').id;
 
-test('AU8 region coordinator sees all decisions, member only own decisions @AU8 @page', async ({ as }) => {
+test('AU8 region coordinator sees all decisions, member only own decisions @AU8 @D10.3 @page', async ({ as }) => {
   // bot: ambassador of Stadt Zürich with CAN_SEE_ALL_AUTOMATION_DECISIONS → decisions of several stores
   const bot = await as('bot');
   await bot.goto(`/regions/${ZH}`);

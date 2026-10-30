@@ -18,7 +18,7 @@ async function configureS06(page: import('@playwright/test').Page, api: ApiClien
   await savePolicy(page);
 }
 
-test('AU1 manager enables gap rule; second sign-up two days later is auto-declined with message, audit shows GAP @AU1 @page', async ({
+test('AU1 manager enables gap rule; second sign-up two days later is auto-declined with message, audit shows GAP @AU1 @D10.3 @page', async ({
   page,
   store,
   api,

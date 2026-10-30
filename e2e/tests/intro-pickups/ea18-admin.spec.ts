@@ -4,7 +4,7 @@ import { ZH } from './_intro';
 /** EA18: user managers delete unbooked EinAbs with a reason, add past EinAbs for a member and adjust counting. */
 test.use({ seedReset: 'test', role: 'bot' });
 
-test('EA18 admin deletes unbooked with reason, creates historical, adjusts count @EA18 @page', async ({ page, as }) => {
+test('EA18 admin deletes unbooked with reason, creates historical, adjusts count @EA18 @D10.3 @page', async ({ page, as }) => {
   await page.goto(`/regions/home/intro-pickups/admin`);
   await expect(page).toHaveURL(new RegExp(`/regions/${ZH}/intro-pickups/admin$`));
   const rows = page.getByTestId('introPickups.admin.einab');
@@ -48,7 +48,7 @@ test('EA18 admin deletes unbooked with reason, creates historical, adjusts count
   await expect(einab1.getByTestId('introPickups.my.progress')).toHaveAttribute('data-done', '2');
 });
 
-test('EA18 admin comments are marked @EA18 @EA13', async ({ page }) => {
+test('EA18 admin comments are marked @EA18 @EA13 @D10.3', async ({ page }) => {
   await page.goto(`/regions/${ZH}/intro-pickups/admin`);
   await page.getByTestId('introPickups.admin.tab.bookings').click();
   await page.getByTestId('introPickups.admin.pastBookings').click();

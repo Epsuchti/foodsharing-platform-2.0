@@ -9,7 +9,7 @@ test.use({ seedReset: 'test' });
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver' });
 
-  test('A6 public profile shows stats, regions, stores for admins, achievements and wall post @A6 @page', async ({ page, as, apiOf, profiles }) => {
+  test('A6 public profile shows stats, regions, stores for admins, achievements and wall post @A6 @D10.3 @page', async ({ page, as, apiOf, profiles }) => {
     const foodsaverId = await profiles.userId('foodsaver');
 
     // the head of the user menu is the profile entry (/profile/me → own id)
@@ -48,6 +48,9 @@ test.describe('foodsaver', () => {
     await orga.getByTestId('profiles.page.tab.history').click();
     await expect(orga).toHaveURL(/tab=history/);
     await expect(orga.getByTestId('profiles.page.panel')).toHaveAttribute('data-tab', 'history');
+    // D10.3 profile change history: the seeded changes of the user are listed
+    await expectDataState(orga, 'profiles.history.list', 'success');
+    await expect(orga.getByTestId('profiles.history.entry').first()).toBeVisible();
 
     // a user without a common store team: no stores, no number, no admin tabs; reads the wall
     const quiz = await as('quiz');

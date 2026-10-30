@@ -20,6 +20,30 @@ async function openLiveSpecimen(page: Page) {
   return live;
 }
 
+/**
+ * Resolves once the shell's after-first-page loads (StartupService.markPageShown: feature toggles, then the deferred
+ * release-notes dot and petition banner) are over and no request has been in flight for 500 ms. Started during a
+ * simulated outage, such a GET is retried 300/900 ms later (retry interceptor); once the outage is lifted that retry
+ * succeeds and rightly ends the offline state by itself, before the banner's retry button can be clicked.
+ * Call before `page.goto`.
+ */
+function startupRequestsDone(page: Page): () => Promise<void> {
+  let inFlight = 0;
+  let lastChange = Date.now();
+  const change = (delta: number) => {
+    inFlight += delta;
+    lastChange = Date.now();
+  };
+  page.on('request', () => change(1));
+  page.on('requestfinished', () => change(-1));
+  page.on('requestfailed', () => change(-1));
+  const toggles = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/public/feature-toggles');
+  return async () => {
+    await toggles;
+    await expect.poll(() => inFlight === 0 && Date.now() - lastChange >= 500, { intervals: [100] }).toBe(true);
+  };
+}
+
 async function catalogText(page: Page, key: string): Promise<string> {
   const catalog = (await (await page.request.get('/i18n/de.json')).json()) as Record<string, string>;
   expect(catalog[key], `i18n key ${key}`).toBeTruthy();
@@ -55,7 +79,9 @@ test('AU12 offline banner appears on network loss and data reloads when back onl
 });
 
 test('AU12 banner reports an unreachable server and recovers via its retry button @AU12', async ({ page }) => {
+  const startupDone = startupRequestsDone(page);
   const live = await openLiveSpecimen(page);
+  await startupDone();
   const serverTitle = await catalogText(page, 'shared.offline.serverTitle');
   const banner = page.getByTestId('shell.offlineBanner');
 
