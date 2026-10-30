@@ -61,8 +61,8 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 
 /* ---- app frame ---- */
 .frame { margin: 1rem auto; width: min(100% - 2rem, 1600px); min-height: 800px; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: inherit; box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
-.frame[data-viewport="laptop"] { width: min(100% - 2rem, 1100px); }
-.frame[data-viewport="tablet"] { width: min(100% - 2rem, 900px); }
+/* 1000 px: the 48–75rem range, where the collapse toggle exists */
+.frame[data-viewport="laptop"] { width: min(100% - 2rem, 1000px); }
 .frame__size { position: absolute; margin: 0.4rem 0 0 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.6; pointer-events: none; }
 
 .shell { position: relative; display: grid; grid-template-columns: var(--fs-sidenav-x) minmax(0, 1fr); min-height: 800px; }
@@ -177,9 +177,9 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 [data-nav="rail"] .tip::after {
   content: attr(data-label); position: absolute; left: calc(100% + 0.6rem); top: 50%; z-index: 70; transform: translateY(-50%);
   padding: 0.35rem 0.6rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); background: var(--fs-surface); color: var(--fs-text);
-  font-size: 0.8rem; font-weight: 600; white-space: nowrap; box-shadow: var(--fs-shadow-md); opacity: 0; pointer-events: none; transition: opacity 100ms ease;
+  font-size: 0.8rem; font-weight: 600; white-space: nowrap; box-shadow: var(--fs-shadow-md); display: none; pointer-events: none;
 }
-[data-nav="rail"] .tip:hover::after, [data-nav="rail"] .tip:focus-visible::after { opacity: 1; }
+[data-nav="rail"] .tip:hover::after, [data-nav="rail"] .tip:focus-visible::after { display: block; }
 [data-nav="rail"] .tip[aria-expanded="true"]::after, [data-nav="rail"] .pop .tip::after { display: none; }
 
 /* ---- flyout / popovers (disclosures with a plain link list, like today's "More") ---- */
@@ -208,10 +208,14 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 .pop .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.1rem 0.75rem 0.5rem; }
 .pop__user { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.5rem 0.75rem; border-bottom: 1px solid var(--fs-border); margin-bottom: 0.35rem; }
 
-/* overlay sidebar (48–80rem): the expanded sidebar floats over the content */
-.shell[data-overlay="true"] .sidenav--overlay { position: absolute; top: 0; left: 0; z-index: 45; width: var(--fs-sidenav-w); height: 800px; box-shadow: var(--fs-shadow-lg); border-right-color: var(--fs-border-strong); }
-.sidenav--overlay { display: none; }
-.shell[data-overlay="true"] .sidenav--overlay { display: flex; }
+/* visitors: login / sign-up in the bottom block */
+.cta { display: flex; gap: 0.4rem; padding: 0.25rem 0; }
+.cta .btn { flex: 1 1 0; justify-content: center; padding: 0.5rem 0.6rem; font-size: 0.85rem; }
+[data-nav="rail"] .cta { flex-direction: column; align-items: center; }
+[data-nav="rail"] .cta .btn { width: var(--fs-sidenav-tile); height: var(--fs-sidenav-tile); padding: 0; }
+[data-nav="rail"] .cta .btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pop .keys { display: grid; gap: 0.25rem; padding: 0.2rem 0.75rem 0.5rem; color: var(--fs-text-muted); font-size: 0.8rem; }
+.pop .keys kbd { padding: 0 0.35rem; border: 1px solid var(--fs-border); border-radius: 0.35rem; font: 600 0.72rem/1.5 var(--fs-font); color: var(--fs-text); }
 
 /* ---- content column (sample page: store) ---- */
 .main { min-width: 0; padding: clamp(1.25rem, 1rem + 1.5vw, 2.5rem) var(--fs-gutter) 2rem; }
@@ -304,16 +308,15 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 <!-- ============ mockup controls ============ -->
 <div class="ctl" role="region" aria-label="Mockup-Einstellungen">
   <fieldset><strong>Rolle</strong>
+    <label><input type="radio" name="role" value="visitor"> Besucher:in</label>
     <label><input type="radio" name="role" value="newcomer"> Newcomer</label>
     <label><input type="radio" name="role" value="foodsaver" checked> Foodsaver:in</label>
     <label><input type="radio" name="role" value="ambassador"> Botschafter:in</label>
     <label><input type="radio" name="role" value="orga"> Orga</label>
   </fieldset>
-  <fieldset><strong>Zustand</strong>
-    <label><input type="radio" name="state" value="open" checked> Ausgeklappt (≥ 80rem)</label>
-    <label><input type="radio" name="state" value="rail"> Eingeklappt (Rail)</label>
-    <label><input type="radio" name="state" value="laptop"> Rail 48–80rem</label>
-    <label><input type="radio" name="state" value="overlay"> Rail + Overlay</label>
+  <fieldset><strong>Breite</strong>
+    <label><input type="radio" name="width" value="desktop" checked> ≥ 1200 px (immer ausgeklappt)</label>
+    <label><input type="radio" name="width" value="laptop"> 1000 px (48–75rem, einklappbar)</label>
   </fieldset>
   <fieldset><strong>Darstellung</strong>
     <label><input type="radio" name="theme" value="light" checked> Hell</label>
@@ -327,21 +330,16 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
     <label><input type="radio" name="pointer" value="fine" checked> Maus 36 px</label>
     <label><input type="radio" name="pointer" value="coarse"> Touch 44 px</label>
   </fieldset>
-  <span class="note">Klickbar: Bezirk, Suche (ohne Funktion), Abschnitte, Glocke, Nutzer:in, Rail-Flyouts. Esc schliesst.</span>
+  <span class="note">Klickbar: Bezirk, Abschnitte, Glocke, Nutzer:in, Rail-Flyouts, Einklappen (nur bei 1000 px, auch mit <kbd>[</kbd>). <kbd>Ctrl/⌘ K</kbd> fokussiert die Suche, Esc schliesst.</span>
 </div>
 
 <div class="frame" id="frame" data-viewport="desktop">
-  <span class="frame__size" id="frameSize">≥ 1280 px</span>
-  <div class="shell" id="shell" data-width="open" data-overlay="false">
+  <span class="frame__size" id="frameSize">≥ 1200 px</span>
+  <div class="shell" id="shell" data-width="open">
     <div class="sidenav" id="sidenav" data-nav="open" data-testid="nav.sidenav"></div>
-    <div class="sidenav sidenav--overlay" id="sidenavOverlay" data-nav="open" aria-label="Navigation" data-testid="nav.sidenav.overlay"></div>
 
     <main class="main" id="main-content" tabindex="-1">
       <div class="page">
-        <div class="journey" id="journey" hidden>
-          <span><strong>Schritt 3 von 6</strong> · Profil &amp; Bezirk</span>
-          <button class="btn btn--primary" type="button">Weiter mit deinem Einstieg</button>
-        </div>
         <section class="hero">
           <a class="hero__parent" href="#"><svg class="i"><use href="#i-marker"/></svg>Zürich Stadt</a>
           <h1>Bäckerei Sonnenberg</h1>
@@ -399,11 +397,28 @@ const SECTIONS = [
   { id: 'community', de: 'Community', fr: 'Communauté', icon: 'i-users', collapsible: true, open: true },
   { id: 'manage', de: 'Verwalten', fr: 'Gérer', icon: 'i-briefcase', collapsible: true, open: true },
   { id: 'orga', de: 'Orga', fr: 'Orga', icon: 'i-cog', collapsible: true, open: false },
+  { id: 'about', de: 'Über foodsharing', fr: 'À propos', icon: 'i-info', collapsible: true, open: true },
 ];
 const ALL = ['newcomer', 'foodsaver', 'ambassador', 'orga'];
+/* visitors (signed out): the public items of nav.config (home, map, statistics, the about pages, blog); login / sign-up sit in the bottom block */
+const VISITOR = ['visitor'];
 const VERIFIED = ['foodsaver', 'ambassador', 'orga'];
 const ADMIN = ['ambassador', 'orga'];
 const ITEMS = [
+  { id: 'home', de: 'Start', fr: 'Accueil', icon: 'i-home', s: 'daily', roles: VISITOR },
+  { id: 'map', de: 'Karte', fr: 'Carte', icon: 'i-map', s: 'daily', roles: VISITOR },
+  { id: 'statistics', de: 'Statistik', fr: 'Statistiques', icon: 'i-chart', s: 'daily', roles: VISITOR },
+  { id: 'blog', de: 'Blog', fr: 'Blog', icon: 'i-book', s: 'daily', roles: VISITOR },
+  { id: 'vision', de: 'Vision', fr: 'Vision', icon: 'i-star', s: 'about', roles: VISITOR },
+  { id: 'about', de: 'Über uns', fr: 'À propos', icon: 'i-info', s: 'about', roles: VISITOR },
+  { id: 'team', de: 'Team', fr: 'Équipe', icon: 'i-users', s: 'about', roles: VISITOR },
+  { id: 'partners', de: 'Partner', fr: 'Partenaires', icon: 'i-link', s: 'about', roles: VISITOR },
+  { id: 'press', de: 'Presse', fr: 'Presse', icon: 'i-megaphone', s: 'about', roles: VISITOR },
+  { id: 'cities', de: 'Städte', fr: 'Villes', icon: 'i-marker', s: 'about', roles: VISITOR },
+  { id: 'demands', de: 'Forderungen', fr: 'Revendications', icon: 'i-flag', s: 'about', roles: VISITOR },
+  { id: 'education', de: 'Bildung', fr: 'Éducation', icon: 'i-idcard', s: 'about', roles: VISITOR },
+  { id: 'donate', de: 'Spenden', fr: 'Faire un don', icon: 'i-gift', s: 'about', roles: VISITOR },
+  { id: 'faq', de: 'FAQ', fr: 'FAQ', icon: 'i-question', s: 'about', roles: VISITOR },
   { id: 'dashboard', de: 'Übersicht', fr: 'Aperçu', icon: 'i-home', s: 'daily', roles: ALL },
   { id: 'onboarding', de: 'Mein Einstieg', fr: 'Mon parcours', icon: 'i-flag', s: 'daily', roles: ['newcomer'], meter: true },
   { id: 'pickups', de: 'Abholungen', fr: 'Collectes', icon: 'i-calendar', s: 'daily', roles: VERIFIED },
@@ -443,6 +458,7 @@ const ITEMS = [
   { id: 'adminBounced', de: 'Unzustellbare E-Mails', fr: 'E-mails non distribués', icon: 'i-exclamation', s: 'orga', roles: ['orga'] },
 ];
 const USERS = {
+  visitor: null,
   newcomer: { name: 'Nadia Neu', role: 'Foodsharer:in', ini: 'NN', cls: '' },
   foodsaver: { name: 'Felix Fischer', role: 'Foodsaver:in', ini: 'FF', cls: '' },
   ambassador: { name: 'Bea Bot', role: 'Botschafter:in', ini: 'BB', cls: 'avatar--amb' },
@@ -455,8 +471,9 @@ const UNITS = {
   ],
   groups: [{ name: 'Kochgruppe' }, { name: 'Öffentlichkeitsarbeit (PR)' }, { name: 'Willkommensteam' }, { name: 'Lagerteam' }],
 };
-const state = { role: 'foodsaver', nav: 'open', theme: 'light', lang: 'de', pointer: 'fine', viewport: 'desktop', overlay: false,
-  open: { community: true, manage: true, orga: false }, currentId: 'stores',
+/* nav: 'open' | 'rail' — the rail exists only at the laptop width (48–75rem); nothing is persisted, a reload starts expanded */
+const state = { role: 'foodsaver', nav: 'open', theme: 'light', lang: 'de', pointer: 'fine', viewport: 'desktop',
+  open: { community: true, manage: true, orga: false, about: true }, currentId: 'stores',
   /* rail: how many collapsible sections (from the bottom: orga, manage, community) are folded into a flyout; measured after render so the rail never scrolls */
   foldCount: 0 };
 
@@ -481,30 +498,34 @@ function renderSidebar(el, mode /* 'open' | 'rail' */) {
   const folded = new Set(collapsible.slice(Math.max(0, collapsible.length - state.foldCount)).map((s) => s.id));
   const fold = (s) => mode === 'rail' && folded.has(s.id);
   const toggleLabel = mode === 'open' ? 'Navigation einklappen' : 'Navigation ausklappen';
+  // the collapse toggle exists only between 48 and 75rem; from 75rem the menu is always expanded
+  const toggle = state.viewport === 'laptop'
+    ? `<button type="button" class="sidenav__toggle tip" data-action="toggle" aria-expanded="${mode === 'open'}" aria-controls="sidenav-nav" aria-label="${toggleLabel}" aria-keyshortcuts="BracketLeft" data-label="${toggleLabel} ([)" data-testid="nav.sidenav.toggle">
+        ${ico(mode === 'open' ? 'i-chev-left' : 'i-panel')}
+      </button>` : '';
+  const signedIn = !!u;
   el.innerHTML = `
     <div class="sidenav__top">
-      <a class="brand tip" href="#" aria-label="foodsharing – zur Übersicht" data-label="foodsharing" data-testid="shell.brand">
+      <a class="brand tip" href="#" aria-label="foodsharing – zur ${signedIn ? 'Übersicht' : 'Startseite'}" data-label="foodsharing" data-testid="shell.brand">
         <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="url(#g)"/><path d="M32 50c-9.5-5.6-16-12.2-16-20.2C16 23.3 20.6 19 26 19c2.6 0 4.6 1 6 2.8C33.4 20 35.4 19 38 19c5.4 0 10 4.3 10 10.8C48 37.8 41.5 44.4 32 50z" fill="#fff"/><path d="M32 21.5c.4-3.6 2.4-6.6 6-8.3" stroke="#d8f3df" stroke-width="3" stroke-linecap="round" fill="none"/></svg>
         <span class="brand__word">food<span>sharing</span></span>
       </a>
-      <button type="button" class="sidenav__toggle tip" data-action="toggle" aria-expanded="${mode === 'open'}" aria-controls="sidenav-nav" aria-label="${toggleLabel}" data-label="${toggleLabel}" data-testid="nav.sidenav.toggle">
-        ${ico(mode === 'open' ? 'i-chev-left' : 'i-panel')}
-      </button>
+      ${toggle}
     </div>
-    <div style="position:relative">
+    ${signedIn ? `<div style="position:relative">
       <button type="button" class="row switcher tip" data-pop="switch" aria-haspopup="true" aria-expanded="false" aria-label="Bezirk: Zürich Stadt – wechseln" data-label="Bezirk: Zürich Stadt" data-testid="shell.regionSwitcher">
         ${ico('i-marker')}<span class="row__label row__ellipsis">Zürich Stadt</span>${ico('i-chev-down', 'i row__chev')}
       </button>
       ${renderSwitcher()}
     </div>
-    <button type="button" class="row search tip" aria-label="Suche öffnen" data-label="Suchen" data-testid="search.open">
+    <button type="button" class="row search tip" aria-label="Suche öffnen" aria-keyshortcuts="Control+K Meta+K" data-label="Suchen (Ctrl K)" data-testid="search.open">
       ${ico('i-search')}<span class="row__label">Suchen…</span><kbd>Ctrl K</kbd>
-    </button>
+    </button>` : ''}
     <nav class="sidenav__nav" id="sidenav-nav" aria-label="Hauptnavigation">
       ${secs.map((s) => renderSection(s, mode, fold(s))).join('')}
     </nav>
     <div class="sidenav__bottom">
-      <a class="row link tip" href="#" data-label="Was ist neu" data-testid="shell.whatsNew">${ico('i-gift')}<span class="row__label">Was ist neu</span><span class="dot" aria-hidden="true"></span><span class="vh">(neue Version)</span></a>
+      ${signedIn ? `<a class="row link tip" href="#" data-label="Was ist neu" data-testid="shell.whatsNew">${ico('i-gift')}<span class="row__label">Was ist neu</span><span class="dot" aria-hidden="true"></span><span class="vh">(neue Version)</span></a>
       <div style="position:relative">
         <button type="button" class="row user tip" data-pop="user" aria-haspopup="true" aria-expanded="false" data-label="${u.name}" data-testid="shell.userMenu">
           <span class="avatar ${u.cls}" aria-hidden="true">${u.ini}</span>
@@ -512,8 +533,25 @@ function renderSidebar(el, mode /* 'open' | 'rail' */) {
           <span class="vh">Benutzermenü öffnen</span>
         </button>
         ${renderUserMenu(u)}
+      </div>` : `<div style="position:relative">
+        <button type="button" class="row tip" data-pop="prefs" aria-haspopup="true" aria-expanded="false" data-label="Sprache & Darstellung" data-testid="shell.prefs">
+          ${ico('i-globe')}<span class="row__label">Sprache & Darstellung</span>${ico('i-chev-down', 'i row__chev')}
+        </button>
+        ${renderPrefs()}
       </div>
+      <div class="cta">
+        <a class="btn btn--primary tip" href="#" data-label="Anmelden" data-testid="shell.login">${ico('i-signout')}<span>Anmelden</span></a>
+        <a class="btn tip" href="#" data-label="Mitmachen" data-testid="shell.register">${ico('i-user')}<span>Mitmachen</span></a>
+      </div>`}
     </div>`;
+}
+
+/* visitors: language and theme without a user menu */
+function renderPrefs() {
+  return `<ul class="pop pop--user" hidden role="menu" data-pop-for="prefs">
+    <li><h3 class="pop__h">Sprache</h3><div class="chips">${['Deutsch', 'Schwiizerdütsch', 'English', 'Français', 'Italiano'].map((l, n) => `<button type="button" class="chip" aria-pressed="${n === 0}" data-testid="shell.prefs.language.${['de', 'gws', 'en', 'fr', 'it'][n]}">${l}</button>`).join('')}</div></li>
+    <li><h3 class="pop__h">Darstellung</h3><div class="chips">${['Hell', 'Dunkel', 'Wie das Gerät'].map((l, n) => `<button type="button" class="chip" aria-pressed="${(state.theme === 'dark' ? 1 : 0) === n}" data-testid="shell.prefs.theme.${['light', 'dark', 'system'][n]}">${l}</button>`).join('')}</div></li>
+  </ul>`;
 }
 
 function renderSection(s, mode, folded) {
@@ -522,7 +560,7 @@ function renderSection(s, mode, folded) {
   const list = `<ul data-testid="nav.section.${s.id}.list" ${folded ? `hidden class="pop pop--fly" data-testid="nav.flyout.${s.id}.list"` : ''}>
       ${s.items.map((i) => renderItem(i)).join('')}</ul>`;
   if (!s.collapsible) {
-    return `<section class="section" data-section="${s.id}"><h2 class="vh">${L(s)}</h2>${list}</section>`;
+    return `<section class="section" data-section="${s.id}"><h2 class="vh">${state.role === 'visitor' ? 'Entdecken' : L(s)}</h2>${list}</section>`;
   }
   const unread = !open && s.items.some((i) => i.badge) ? '<span class="dot" aria-hidden="true" data-testid="nav.section.' + s.id + '.unread"></span>' : '';
   if (folded) {
@@ -575,6 +613,8 @@ function renderUserMenu(u) {
     <li><button type="button" class="row" data-sub="theme" aria-expanded="false">${ico('i-sun')}<span class="row__label">Darstellung<span class="small">${state.theme === 'dark' ? 'Dunkel' : 'Hell'}</span></span>${ico('i-chev-down', 'i row__chev')}</button>
       <div class="chips" hidden data-sub-for="theme">${['Hell', 'Dunkel', 'Wie das Gerät'].map((l, n) => `<button type="button" class="chip" aria-pressed="${(state.theme === 'dark' ? 1 : 0) === n}" data-testid="shell.userMenu.theme.${['light', 'dark', 'system'][n]}">${l}</button>`).join('')}</div></li>
     <li role="none"><div class="pop__sep"></div></li>
+    <li><h3 class="pop__h">Tastaturkürzel</h3><div class="keys" data-testid="shell.userMenu.shortcuts"><span><kbd>Ctrl</kbd> / <kbd>⌘</kbd> <kbd>K</kbd> Suche</span>${state.viewport === 'laptop' ? '<span><kbd>[</kbd> Navigation ein-/ausklappen</span>' : ''}</div></li>
+    <li role="none"><div class="pop__sep"></div></li>
     <li><button type="button" class="row" role="menuitem" data-testid="shell.userMenu.logout">${ico('i-signout')}<span class="row__label">Abmelden</span></button></li>
   </ul>`;
 }
@@ -583,23 +623,19 @@ function renderUserMenu(u) {
 const shell = document.getElementById('shell');
 const frame = document.getElementById('frame');
 const sidenav = document.getElementById('sidenav');
-const overlay = document.getElementById('sidenavOverlay');
 
 function render() {
   document.documentElement.classList.toggle('fs-dark', state.theme === 'dark');
   document.documentElement.classList.toggle('touch', state.pointer === 'coarse');
-  document.getElementById('journey').hidden = state.role !== 'newcomer';
+  if (state.viewport === 'desktop') state.nav = 'open'; // from 75rem: always expanded
   frame.dataset.viewport = state.viewport;
-  document.getElementById('frameSize').textContent = state.viewport === 'desktop' ? '≥ 1280 px (80rem)' : '1100 px (48–80rem: Rail, Ausklappen = Overlay)';
+  document.getElementById('frameSize').textContent = state.viewport === 'desktop' ? '≥ 1200 px (75rem): immer ausgeklappt' : '1000 px (48–75rem): einklappbar, Rail neben dem Inhalt';
   shell.dataset.width = state.nav;
-  shell.dataset.overlay = String(state.overlay);
   sidenav.dataset.nav = state.nav;
-  sidenav.dataset.mode = state.viewport === 'desktop' ? (state.nav === 'open' ? 'sidebar' : 'rail') : 'rail';
-  overlay.dataset.mode = 'overlay';
+  sidenav.dataset.mode = state.nav === 'open' ? 'sidebar' : 'rail';
   renderSidebar(sidenav, state.nav);
-  if (state.overlay) renderSidebar(overlay, 'open'); else overlay.innerHTML = '';
   // expanded: the list scrolls; the current item is scrolled into view and the edges fade where more items wait
-  for (const el of [sidenav, overlay]) {
+  for (const el of [sidenav]) {
     const nav = el.querySelector('.sidenav__nav');
     if (!nav) continue;
     nav.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
@@ -623,11 +659,7 @@ document.addEventListener('click', (e) => {
   if (!t) { closePops(); return; }
   if (t.closest('.ctl')) return;
   e.preventDefault();
-  if (t.dataset.action === 'toggle') {
-    if (state.viewport === 'desktop') { state.nav = state.nav === 'open' ? 'rail' : 'open'; document.querySelector(`input[name=state][value=${state.nav}]`).checked = true; }
-    else { state.overlay = !state.overlay; document.querySelector(`input[name=state][value=${state.overlay ? 'overlay' : 'laptop'}]`).checked = true; }
-    render(); return;
-  }
+  if (t.dataset.action === 'toggle') { toggleNav(); sidenav.querySelector('[data-action=toggle]')?.focus(); return; }
   if (t.dataset.pop) { // switcher / user menu
     const pop = t.parentElement.querySelector('.pop');
     const open = pop.hidden; closePops(); pop.hidden = !open; t.setAttribute('aria-expanded', String(open)); return;
@@ -645,19 +677,31 @@ document.addEventListener('click', (e) => {
   if (t.dataset.testid === 'bells.button') { t.setAttribute('aria-expanded', t.getAttribute('aria-expanded') !== 'true'); return; }
   if (t.classList.contains('chip')) { t.parentElement.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', 'false')); t.setAttribute('aria-pressed', 'true');
     if (t.dataset.testid?.includes('theme.')) { state.theme = t.dataset.testid.endsWith('dark') ? 'dark' : 'light'; document.querySelector(`input[name=theme][value=${state.theme}]`).checked = true; render(); } return; }
-  if (t.dataset.id && t.classList.contains('link')) { state.currentId = t.dataset.id; state.overlay = false; if (state.viewport !== 'desktop') document.querySelector('input[name=state][value=laptop]').checked = true; render(); return; }
+  if (t.dataset.id && t.classList.contains('link')) { state.currentId = t.dataset.id; state.foldCount = 0; render(); return; }
   closePops();
 });
+/* `[` toggles the menu only between 48 and 75rem; neither shortcut fires while typing in a field */
+function toggleNav() {
+  if (state.viewport !== 'laptop') return;
+  state.nav = state.nav === 'open' ? 'rail' : 'open';
+  state.foldCount = 0;
+  render();
+}
+const typing = (e) => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
 document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape') return;
-  const open = document.querySelector('.pop:not([hidden])');
-  if (open) { closePops(); const btn = document.querySelector(`[aria-controls="${open.id}"], [data-pop="${open.dataset.popFor}"]`); btn?.focus(); return; }
-  if (state.overlay) { state.overlay = false; document.querySelector('input[name=state][value=laptop]').checked = true; render(); sidenav.querySelector('[data-action=toggle]')?.focus(); }
+  if (e.key === 'Escape') {
+    const open = document.querySelector('.pop:not([hidden])');
+    if (open) { closePops(); const btn = document.querySelector(`[aria-controls="${open.id}"], [data-pop="${open.dataset.popFor}"]`); btn?.focus(); }
+    return;
+  }
+  if (typing(e)) return;
+  if (e.key === '[' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); toggleNav(); sidenav.querySelector('[data-action=toggle]')?.focus(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { const s = sidenav.querySelector('[data-testid="search.open"]'); if (s) { e.preventDefault(); s.focus(); } }
 });
 document.querySelectorAll('.ctl input').forEach((inp) => inp.addEventListener('change', () => {
   const v = inp.value;
-  if (inp.name === 'role') { state.role = v; state.currentId = v === 'newcomer' ? 'dashboard' : 'stores'; }
-  if (inp.name === 'state') { state.viewport = (v === 'laptop' || v === 'overlay') ? 'laptop' : 'desktop'; state.nav = v === 'open' ? 'open' : 'rail'; state.overlay = v === 'overlay'; }
+  if (inp.name === 'role') { state.role = v; state.currentId = v === 'newcomer' ? 'dashboard' : v === 'visitor' ? 'home' : 'stores'; }
+  if (inp.name === 'width') { state.viewport = v; state.nav = 'open'; } // a width change behaves like a reload: expanded
   if (inp.name === 'theme') state.theme = v;
   if (inp.name === 'lang') state.lang = v;
   if (inp.name === 'pointer') state.pointer = v;
