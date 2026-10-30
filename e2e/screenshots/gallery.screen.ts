@@ -1,3 +1,4 @@
+import { animationsDone } from '../fixtures/a11y';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
@@ -51,6 +52,10 @@ forEachVariant((variant) => {
       await page.getByTestId('gallery.toasts.success').click();
       const toast = page.locator('.p-toast-message').first();
       await expect(toast).toBeVisible();
+      // the click scrolled the gallery to its buttons; the toast is fixed, so the page behind it would differ per run
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      // the toast slides in; capture it at rest
+      await animationsDone(page);
       await visual.expectElement(toast, `toast-success-${variant.name}`, { waitForData: false });
     });
   });
