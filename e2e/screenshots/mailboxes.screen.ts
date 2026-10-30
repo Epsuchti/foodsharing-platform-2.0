@@ -1,5 +1,5 @@
 import { MAILBOXES, injectApiError } from '../fixtures';
-import { expect, forEachVariant, screenshotTest } from './_setup';
+import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup';
 
 /** Mailbox screens (M5 MB1–MB5): list, HTML mail with attachments, bounce, compose, create, error. Baselines later (decision 69). */
 const inbox = `/mailboxes/${MAILBOXES.zuerich}/inbox`;
@@ -26,6 +26,8 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `mailboxes-bounce-${variant.name}`);
       await page.goto(`/mailboxes/${MAILBOXES.zuerich}/compose?replyTo=00000042-0003-4000-8000-000000000010`);
       await expect(page.getByTestId('mailboxes.compose.subject')).toHaveValue(/^Re:/);
+      // the rich-text editor is an `@defer (on idle)` block: idle time only passes when the fixed clock moves
+      await tickFixedClock(page);
       await expect(page.getByTestId('mailboxes.compose.body').locator('.ql-editor blockquote').first()).toBeVisible();
       await visual.expectScreen(page, `mailboxes-compose-${variant.name}`);
     });

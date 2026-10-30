@@ -106,6 +106,17 @@ const screen: ScreenHelpers = {
   },
 };
 
+/**
+ * The page clock is fixed at SEED_NOW (timers keep running, but the time does not move). Work that waits for time to
+ * pass therefore never happens: RxJS `debounceTime` measures elapsed time with `Date.now()` and reschedules forever
+ * (debounced searches), and the fake `requestIdleCallback` never reports idle time (`@defer (on idle)` blocks). Call
+ * this after the step that starts such work; it moves the fixed time on by `ms`, so the work runs on its next check.
+ */
+export async function tickFixedClock(page: Page, ms = 1_000): Promise<void> {
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.setFixedTime(new Date(now + ms));
+}
+
 export const screenshotTest = test.extend<{ variant: Variant | undefined; visual: ScreenHelpers }>({
   variant: [undefined, { option: true }],
 

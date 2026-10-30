@@ -1,4 +1,4 @@
-import { injectApiError, seedStore } from '../fixtures';
+import { S01_THURSDAY, injectApiError, seedStore } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
@@ -22,10 +22,21 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `stores-wall-${variant.name}`, { fullPage: true });
       });
 
-      screenshotTest('store log @S12 @screenshot', async ({ page, visual }) => {
-        await page.goto(`/stores/${S01}/log`);
-        await expect(page.getByTestId('stores.log.list')).toHaveAttribute('data-state', 'success');
-        await visual.expectScreen(page, `stores-log-${variant.name}`);
+      screenshotTest('store log @S12 @screenshot', async ({ page, api, dev, resetSeed, visual }) => {
+        // the seed has no store log entries: bieb (manager of S-01) moves jumper into the team and confirms
+        // foodsaver's Thursday slot, as in the S12 e2e test
+        const jumper = await dev.user('jumper');
+        const foodsaver = await dev.user('foodsaver');
+        try {
+          expect((await api.post(`/api/stores/${S01}/team/${jumper.id}/regular`)).ok()).toBe(true);
+          expect((await api.post(`/api/stores/${S01}/pickups/${encodeURIComponent(S01_THURSDAY)}/signups/${foodsaver.id}/confirm`)).ok()).toBe(true);
+          await page.goto(`/stores/${S01}/log`);
+          await expect(page.getByTestId('stores.log.list')).toHaveAttribute('data-state', 'success');
+          await visual.expectScreen(page, `stores-log-${variant.name}`);
+        } finally {
+          // the following screens of this file expect the plain seed (team, pickups)
+          await resetSeed();
+        }
       });
 
       screenshotTest('store statistics @S14 @screenshot', async ({ page, visual }) => {
