@@ -164,6 +164,8 @@ interface UsersQuery {
       color: var(--fs-text-muted);
     }
     .table-wrap {
+      /* containing block of the .sr-only header labels, so they scroll with the table (design review M7 R1) */
+      position: relative;
       overflow-x: auto;
     }
     .users {

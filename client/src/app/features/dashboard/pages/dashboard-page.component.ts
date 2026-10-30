@@ -94,7 +94,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
                 <div class="card__icon"><i class="pi pi-flag" aria-hidden="true"></i></div>
                 <p class="card__eyebrow">{{ 'dashboard.page.journey.eyebrow' | t }}</p>
                 <h2>{{ current?.title ?? (current ? (current.titleKey ?? 'onboarding.step.' + current.key + '.title') : 'dashboard.page.journey.title') | t }}</h2>
-                <fs-journey-stepper mode="compact" [journey]="j" [linkToJourney]="undefined" testId="dashboard.page.journey" />
+                <fs-journey-stepper mode="compact" [journey]="j" [linkToJourney]="undefined" [progressOnly]="true" testId="dashboard.page.journey" />
                 @if (current?.nextAction; as next) {
                   <a class="fs-btn card__action" [routerLink]="next.route" data-testid="dashboard.page.nextStepAction">
                     <span>{{ next.labelKey | t }}</span>

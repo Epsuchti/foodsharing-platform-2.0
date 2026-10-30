@@ -28,6 +28,7 @@
   "stores.overview.mapLabel": "Emplacement du commerce",
   "stores.overview.requirements": "Conditions pour l’équipe",
   "stores.overview.noRequirements": "Aucune condition particulière.",
+  "stores.overview.requirementsForNewMembers": "Tu fais partie de l’équipe. Ces conditions s’appliquent aux nouveaux membres.",
   "stores.overview.managers": "Responsables",
   "stores.overview.noManagers": "Pas encore de responsable.",
   "stores.teamExplain.CLOSED": "L’équipe n’accepte pas de nouvelles personnes pour l’instant.",

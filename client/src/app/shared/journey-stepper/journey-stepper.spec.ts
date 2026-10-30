@@ -70,6 +70,15 @@ describe('JourneyStepperComponent', () => {
     expect(el.querySelector('[data-testid="t.journey.next"]')?.getAttribute('href')).toBe('/intro-pickups');
   });
 
+  it('compact progressOnly mode leaves the title and the action to the host card', async () => {
+    const { el } = await create({ journey: DEMO_JOURNEY_IN_PROGRESS, mode: 'compact', progressOnly: true });
+    expect(el.textContent).toContain('Schritt 6 von 8');
+    expect(el.querySelectorAll('.meter__seg')).toHaveLength(8);
+    expect(el.textContent).not.toContain('Einführungsabholungen');
+    expect(el.querySelector('[data-testid="t.journey.next"]')).toBeNull();
+    expect(el.querySelector('[data-testid="t.journey.open"]')).toBeNull();
+  });
+
   it('preview mode lists the steps without status', async () => {
     const { el } = await create({ preview: DEMO_JOURNEY_PREVIEW, mode: 'preview' });
     expect(el.querySelectorAll('.step')).toHaveLength(8);

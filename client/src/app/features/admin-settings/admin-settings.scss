@@ -124,6 +124,8 @@
 }
 
 .table-wrap {
+  // containing block of the visually hidden header labels, so they scroll with the table (design review M7 R1)
+  position: relative;
   overflow-x: auto;
 }
 

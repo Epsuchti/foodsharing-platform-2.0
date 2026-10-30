@@ -19,6 +19,17 @@ import { MyStoresPageComponent } from './pages/my-stores-page.component';
 import { RegionStoresPageComponent } from './pages/region-stores-page.component';
 import { StorePageComponent } from './pages/store-page.component';
 import { mapLinks } from './stores.util';
+import { isInTeam } from './tabs/store-overview.tab';
+
+describe('store overview requirements wording', () => {
+  it('treats members and coordinators as in the team, everyone else as a possible applicant', () => {
+    expect(isInTeam(UserTeamStatus.Member)).toBe(true);
+    expect(isInTeam(UserTeamStatus.Coordinator)).toBe(true);
+    for (const status of [UserTeamStatus.NoMember, UserTeamStatus.Applied, UserTeamStatus.Invited, UserTeamStatus.WaitingList, undefined]) {
+      expect(isInTeam(status), String(status)).toBe(false);
+    }
+  });
+});
 
 const REGION = { id: 'r1', slug: 'zh', name: 'Zürich', type: UnitType.City };
 

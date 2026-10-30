@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, skip } from 'rxjs';
 
@@ -69,8 +69,14 @@ export class JourneyBarComponent {
   private readonly api = inject(OnboardingService);
   private readonly session = inject(SessionService);
 
+  private readonly router = inject(Router);
+  private readonly url = signal(this.router.url);
+
   protected readonly visible = computed(
-    () => this.session.isAuthenticated() && this.session.session().onboarding?.complete === false,
+    () =>
+      this.session.isAuthenticated() &&
+      this.session.session().onboarding?.complete === false &&
+      journeyBarAllowedOn(this.url()),
   );
 
   protected readonly journey = loadResource<Journey, true | undefined>({
@@ -81,17 +87,27 @@ export class JourneyBarComponent {
   });
 
   constructor() {
-    const subscription = inject(Router)
+    const navigations = this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd));
+    const urls = navigations.subscribe((event) => this.url.set(event.urlAfterRedirects));
+    const subscription = navigations
       // the first navigation end is the page the bar was just loaded on: no second request
-      .events.pipe(
-        filter((event) => event instanceof NavigationEnd),
-        skip(1),
-      )
+      .pipe(skip(1))
       .subscribe(() => {
         if (this.visible()) {
           this.journey.reload();
         }
       });
-    inject(DestroyRef).onDestroy(() => subscription.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      urls.unsubscribe();
+      subscription.unsubscribe();
+    });
   }
+}
+
+/**
+ * The bar is hidden on the consent page (`/consent`, EA4): its action led to a page the consent guard bounced
+ * straight back from, next to the page's own primary action (design review M7 R1).
+ */
+export function journeyBarAllowedOn(url: string): boolean {
+  return !/^\/consent(?:[/?#]|$)/.test(url);
 }

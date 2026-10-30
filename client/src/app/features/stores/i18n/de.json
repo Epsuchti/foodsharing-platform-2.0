@@ -28,6 +28,7 @@
   "stores.overview.mapLabel": "Standort des Betriebs",
   "stores.overview.requirements": "Voraussetzungen fürs Team",
   "stores.overview.noRequirements": "Keine besonderen Voraussetzungen.",
+  "stores.overview.requirementsForNewMembers": "Du bist im Team. Diese Voraussetzungen gelten für neue Mitglieder.",
   "stores.overview.managers": "Betriebsverantwortliche",
   "stores.overview.noManagers": "Noch keine Verantwortlichen.",
   "stores.teamExplain.CLOSED": "Das Team nimmt zurzeit keine neuen Leute auf.",

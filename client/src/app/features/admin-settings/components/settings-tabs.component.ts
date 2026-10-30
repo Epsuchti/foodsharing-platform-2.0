@@ -33,6 +33,11 @@ export const SETTINGS_TABS = [
     </nav>
   `,
   styles: `
+    /* a grid/flex item may not grow to the tabs' width: the tabs scroll instead (phones, design review M7 R1) */
+    :host {
+      display: block;
+      min-width: 0;
+    }
     .tabs {
       display: flex;
       gap: 0.25rem;
