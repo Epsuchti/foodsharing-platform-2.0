@@ -33,6 +33,8 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { HistoryTimelineComponent } from '../../../shared/history-timeline/history-timeline.component';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { WallComponent, WallPost } from '../../../shared/wall/wall.component';
+import { ReportDialogComponent } from '../../reports/components/report-dialog.component';
+import { UserReportsComponent } from '../../reports/components/user-reports.component';
 import { BananaListComponent } from '../components/banana-list.component';
 import { ProfileCardComponent } from '../components/profile-card.component';
 import { ProfileStatsComponent } from '../components/profile-stats.component';
@@ -51,8 +53,8 @@ const TAB_ICONS: Record<ProfileTab, string> = {
 const COMMITMENT_WEEKS = 12;
 
 /**
- * /profile/:userId (A6, A15, A16, G4; A8 profile history): head card with actions (message, banana, buddy, edit;
- * report once Q8 lands), stat tiles, regions and groups, stores (when the viewer may see them), achievements,
+ * /profile/:userId (A6, A15, A16, G4; A8 profile history): head card with actions (message, banana, buddy, edit,
+ * report → `fs-report-dialog`), stat tiles, the reports block for report handlers (`violationCount`), regions and groups, stores (when the viewer may see them), achievements,
  * KAM chains, active baskets (feature BASKETS) and the tabs wall | bananas | commitments | notes | history
  * (`?tab=`, gated by `ProfilePermissions`). The server decides every right; a 404 renders the not-found state.
  */
@@ -66,9 +68,11 @@ const COMMITMENT_WEEKS = 12;
     HistoryTimelineComponent,
     ProfileCardComponent,
     ProfileStatsComponent,
+    ReportDialogComponent,
     RequiredMessageDialogComponent,
     RouterLink,
     TPipe,
+    UserReportsComponent,
     WallComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -94,6 +98,8 @@ export class ProfilePageComponent {
   protected readonly viewerId = computed(() => this.session.user()?.id);
   protected readonly orga = computed(() => this.session.hasRole(Role.Orga));
   protected readonly reportsReady = M6_PAGES_READY.reports;
+  /** Report dialog (features/reports, G1). */
+  protected readonly reportDialogOpen = signal(false);
   protected readonly subjectType = HistorySubjectType.User;
   protected readonly bananaMin = BANANA_MIN_LENGTH;
   protected readonly bananaMax = BANANA_MAX_LENGTH;

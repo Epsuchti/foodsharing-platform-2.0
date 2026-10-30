@@ -177,6 +177,10 @@ const MODULE_ROUTES: Routes = [
       import('./features/food-share-points/food-share-points.routes').then((m) => m.FOOD_SHARE_POINTS_ROUTES),
   },
   {
+    path: 'reports',
+    loadChildren: () => import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

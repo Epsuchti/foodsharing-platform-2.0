@@ -65,6 +65,16 @@ export const REGIONS_ROUTES: Routes = [
         data: { feature },
         loadComponent: () => import('./tabs/region-later.tab').then((m) => m.RegionLaterTab),
       })),
+      // G1/G2/D10.3 (plan-m7 Q8): the tabs live in features/reports
+      tab('reports', 'regions.tab.reports', () =>
+        import('../reports/tabs/region-reports.tab').then((m) => m.RegionReportsTab),
+      ),
+      tab('report-log', 'regions.tab.reportLog', () =>
+        import('../reports/tabs/region-report-log.tab').then((m) => m.RegionReportLogTab),
+      ),
+      tab('mediation', 'regions.tab.mediation', () =>
+        import('../reports/tabs/region-mediation.tab').then((m) => m.RegionMediationTab),
+      ),
       {
         path: 'later/:feature',
         title: 'regions.tab.later',
