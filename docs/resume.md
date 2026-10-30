@@ -74,3 +74,4 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
    - Update the D4/D4.3 specs, `openNav`, the personas' click budgets and the screenshot specs.
    - Baselines change deliberately.
 10. Opening `/login` directly briefly shows the visitor side menu with an empty content area, then switches to the minimal login layout (seen in the local profile, 2026-10-30). The minimal-chrome decision should apply before the first render, so the layout doesn't flash.
+11. Pickup slots: it isn't clear enough which sign-ups are confirmed and which are waiting for the store manager. Today only the avatar ring differs (dashed vs solid), which is hard to see in dark mode and isn't stated in words. A Fable designer proposal is in progress (`docs/design/pickup-slots-*`); implement it after the owner reviews it.
