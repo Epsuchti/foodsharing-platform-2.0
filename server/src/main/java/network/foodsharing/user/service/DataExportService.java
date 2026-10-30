@@ -17,6 +17,7 @@ import java.util.zip.ZipOutputStream;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.jobs.ProgressTracker;
+import network.foodsharing.common.seed.InMemoryState;
 import network.foodsharing.history.HistoryFilter;
 import network.foodsharing.history.service.HistoryQueryService;
 import network.foodsharing.history.service.HistoryService;
@@ -35,10 +36,11 @@ import tools.jackson.databind.json.JsonMapper;
  * GDPR data export (A21): a zip with {@code profile.json}, {@code settings.json}, {@code history.json} and one
  * {@code <section>.json} per {@link DataExportContributor} (e.g. {@code sessions.json}, {@code notifications.json})
  * plus the user's own uploads under {@code uploads/}; produced as a {@link ProgressTracker} job (download through
- * {@code /api/jobs/{id}/result}). One export per user every {@value #COOLDOWN_MINUTES} minutes (429).
+ * {@code /api/jobs/{id}/result}). One export per user every {@value #COOLDOWN_MINUTES} minutes (429); the dev seed
+ * reset forgets the cooldowns (A59).
  */
 @Service
-public class DataExportService {
+public class DataExportService implements InMemoryState {
 
     static final long COOLDOWN_MINUTES = 10;
     static final int MAX_HISTORY = 5000;
@@ -87,6 +89,12 @@ public class DataExportService {
         history.record(history.event(UserAction.DATA_EXPORTED, me).metadata("sections", files.size())
                 .metadata("uploads", own.size()).build());
         return jobId;
+    }
+
+    /** Dev seed reset: every user may export again at once. */
+    @Override
+    public void resetInMemoryState() {
+        lastExport.clear();
     }
 
     Map<String, Object> files(User user) {

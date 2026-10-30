@@ -11,6 +11,7 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.history.domain.HistoryEntry;
 import network.foodsharing.history.repository.HistoryEntryRepository;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.ContactVisibility;
@@ -25,7 +26,7 @@ import org.springframework.context.annotation.Import;
 
 /** Own profile changes (plan §8.3), admin edits with reason (A4/AD1), enabling/disabling accounts. */
 @JpaSliceTest
-@Import(UserService.class)
+@Import(SharedJpaSliceConfig.class)
 class UserProfileServiceTest {
 
     @Autowired

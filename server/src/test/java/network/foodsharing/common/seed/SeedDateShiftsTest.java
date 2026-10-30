@@ -11,12 +11,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Only seed rows move; DATE columns move by days; every contributor's tables and columns exist in the schema. */
 @JpaSliceTest
+@org.springframework.context.annotation.Import(SharedJpaSliceConfig.class)
 class SeedDateShiftsTest {
 
     @Autowired

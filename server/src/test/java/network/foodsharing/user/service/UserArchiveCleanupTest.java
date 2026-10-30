@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.UUID;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.user.domain.UserArchive;
 import network.foodsharing.user.repository.UserArchiveRepository;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,7 @@ import org.springframework.context.annotation.Import;
 
 /** D17.3 retention: the snapshot of a deleted account is kept 2 years. */
 @JpaSliceTest
-@Import(UserArchiveCleanup.class)
+@Import(SharedJpaSliceConfig.class)
 class UserArchiveCleanupTest {
 
     @Autowired

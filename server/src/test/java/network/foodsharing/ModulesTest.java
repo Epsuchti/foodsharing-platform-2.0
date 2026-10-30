@@ -12,21 +12,22 @@ import org.springframework.modulith.core.ApplicationModules;
  */
 class ModulesTest {
 
-    private final ApplicationModules modules = ApplicationModules.of(FoodsharingApplication.class);
+    /** One class import for all tests (JUnit creates a new instance per test method; A60). */
+    private static final ApplicationModules MODULES = ApplicationModules.of(FoodsharingApplication.class);
 
     @Test
     void modulesRespectTheirBoundaries() {
-        modules.verify();
+        MODULES.verify();
     }
 
     @Test
     void featureModulesAreClosedAndSharedPackagesOpen() {
         for (String feature : new String[] {"user", "auth", "history"}) {
-            assertThat(modules.getModuleByName(feature)).as(feature).isPresent()
+            assertThat(MODULES.getModuleByName(feature)).as(feature).isPresent()
                     .get().extracting(ApplicationModule::isOpen).isEqualTo(false);
         }
         for (String shared : new String[] {"config", "security", "common", "api"}) {
-            assertThat(modules.getModuleByName(shared)).as(shared).isPresent()
+            assertThat(MODULES.getModuleByName(shared)).as(shared).isPresent()
                     .get().extracting(ApplicationModule::isOpen).isEqualTo(true);
         }
     }
@@ -44,19 +45,19 @@ class ModulesTest {
                 "upload", java.util.Set.of("user", "history"));
         java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
         allowed.forEach((name, permitted) -> {
-            ApplicationModule module = modules.getModuleByName(name).orElseThrow();
-            assertThat(module.getDirectDependencies(modules).uniqueModules().map(ApplicationModule::getName)
+            ApplicationModule module = MODULES.getModuleByName(name).orElseThrow();
+            assertThat(module.getDirectDependencies(MODULES).uniqueModules().map(ApplicationModule::getName)
                     .filter(dependency -> !shared.contains(dependency)).toList())
                     .as(name).allMatch(permitted::contains);
         });
         for (String communication : new String[] {"messaging", "mailbox", "forum", "event", "poll", "survey"}) {
-            ApplicationModule target = modules.getModuleByName(communication).orElseThrow();
+            ApplicationModule target = MODULES.getModuleByName(communication).orElseThrow();
             // M6 readers (A38): calendar, map, activity and search may read events/forum/polls/mailboxes; never messaging.
             java.util.Set<String> readers = "messaging".equals(communication) ? java.util.Set.of()
                     : java.util.Set.of("calendar", "map", "activity", "search");
-            modules.stream().filter(module -> !module.equals(target))
+            MODULES.stream().filter(module -> !module.equals(target))
                     .filter(module -> !readers.contains(module.getName())).forEach(module ->
-                    assertThat(module.getDirectDependencies(modules).contains(target)).as(module.getName() + " → " + communication)
+                    assertThat(module.getDirectDependencies(MODULES).contains(target)).as(module.getName() + " → " + communication)
                             .isFalse());
         }
     }
@@ -80,24 +81,24 @@ class ModulesTest {
                         "history")));
         java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
         allowed.forEach((name, permitted) -> {
-            ApplicationModule module = modules.getModuleByName(name).orElseThrow();
-            assertThat(module.getDirectDependencies(modules).uniqueModules().map(ApplicationModule::getName)
+            ApplicationModule module = MODULES.getModuleByName(name).orElseThrow();
+            assertThat(module.getDirectDependencies(MODULES).uniqueModules().map(ApplicationModule::getName)
                     .filter(dependency -> !shared.contains(dependency)).toList())
                     .as(name).allMatch(permitted::contains);
         });
         for (String leaf : new String[] {"activity", "profile"}) {
-            ApplicationModule leafModule = modules.getModuleByName(leaf).orElseThrow();
-            modules.stream().forEach(module -> assertThat(module.getDirectDependencies(modules).contains(leafModule))
+            ApplicationModule leafModule = MODULES.getModuleByName(leaf).orElseThrow();
+            MODULES.stream().forEach(module -> assertThat(module.getDirectDependencies(MODULES).contains(leafModule))
                     .as(module.getName() + " → " + leaf).isFalse());
         }
     }
 
     @Test
     void automationIsNeverADependencyOfPickupOrStore() {
-        ApplicationModule automation = modules.getModuleByName("automation").orElseThrow();
+        ApplicationModule automation = MODULES.getModuleByName("automation").orElseThrow();
         for (String feature : new String[] {"pickup", "store", "region", "user", "notification"}) {
-            ApplicationModule module = modules.getModuleByName(feature).orElseThrow();
-            assertThat(module.getDirectDependencies(modules).contains(automation)).as(feature).isFalse();
+            ApplicationModule module = MODULES.getModuleByName(feature).orElseThrow();
+            assertThat(module.getDirectDependencies(MODULES).contains(automation)).as(feature).isFalse();
         }
     }
 }

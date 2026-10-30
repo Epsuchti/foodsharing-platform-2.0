@@ -18,13 +18,14 @@ import network.foodsharing.history.service.HistoryRetentionJob;
 import network.foodsharing.history.service.HistoryRetentionService;
 import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.user.domain.UserAction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 @JpaSliceTest
-@Import(HistoryRetentionService.class)
+@Import(SharedJpaSliceConfig.class)
 class HistoryRetentionServiceTest {
 
     private static final Instant NOW = FixedClockConfig.SEED_NOW;

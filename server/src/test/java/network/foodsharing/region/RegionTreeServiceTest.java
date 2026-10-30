@@ -16,6 +16,7 @@ import network.foodsharing.region.repository.RegionRepository;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.region.service.RegionTreeService;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Closure table maintenance: insert, move (incl. subtree), refusal to move into the own subtree. */
 @JpaSliceTest
-@Import({RegionTreeService.class, RegionService.class, RegionClosureRepository.class})
+@Import(SharedJpaSliceConfig.class)
 class RegionTreeServiceTest {
 
     @Autowired

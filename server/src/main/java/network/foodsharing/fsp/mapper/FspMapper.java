@@ -44,6 +44,7 @@ public class FspMapper {
     public List<FspSummary> toSummaries(List<FspSummaryView> views) {
         return views.stream().map(view -> new FspSummary().id(view.fsp().getId()).name(view.fsp().getName())
                 .photoUrl(photoUrl(view.fsp().getPhotoUploadId())).city(view.fsp().getCity())
+                .lat(view.fsp().getLat()).lon(view.fsp().getLon())
                 .status(FspStatus.fromValue(view.fsp().getStatus().name())).followerCount(view.followerCount())
                 .following(view.following())).toList();
     }

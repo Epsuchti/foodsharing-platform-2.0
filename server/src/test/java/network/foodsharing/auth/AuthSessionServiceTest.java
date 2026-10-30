@@ -29,6 +29,7 @@ import network.foodsharing.security.SessionCookieWriter;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
@@ -47,7 +48,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @JpaSliceTest
-@Import({AuthSessionService.class, UserService.class, SessionCookieWriter.class, IpHasher.class})
+@Import(SharedJpaSliceConfig.class)
 class AuthSessionServiceTest {
 
     private static final Instant NOW = FixedClockConfig.SEED_NOW;

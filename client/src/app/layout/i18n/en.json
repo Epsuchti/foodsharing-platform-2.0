@@ -13,5 +13,6 @@
   "layout.header.region": "Region: {name} – switch",
   "layout.header.regions": "Your regions",
   "layout.header.homeRegion": "Home region",
-  "layout.nav.unread": "({count} unread)"
+  "layout.nav.unread": "({count} unread)",
+  "layout.header.whatsNew": "What’s new"
 }

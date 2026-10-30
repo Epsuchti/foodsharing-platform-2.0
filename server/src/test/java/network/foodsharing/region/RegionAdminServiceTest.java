@@ -21,6 +21,7 @@ import network.foodsharing.region.service.RegionsCsvImportService;
 import network.foodsharing.region.service.Slugs;
 import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Import;
 
 /** Region administration (R7) and the regions CSV import: slugs, email names, functions, move, delete, import. */
 @JpaSliceTest
-@Import(RegionSliceConfig.class)
+@Import(SharedJpaSliceConfig.class)
 class RegionAdminServiceTest {
 
     @Autowired
