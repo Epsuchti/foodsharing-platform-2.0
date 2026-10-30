@@ -84,6 +84,21 @@ class ResourceFlowIT {
         mvc.perform(post("/api/resources").with(csrf()).cookie(jumper).contentType(MediaType.APPLICATION_JSON)
                 .content(body)).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("RESOURCE_LIMIT_REACHED"));
+        // the limit travels with the permissions (app.resources.max-per-user=3 here)
+        mvc.perform(get("/api/regions/" + ZUERICH + "/resources/permissions").cookie(jumper))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.mayAdd").value(false))
+                .andExpect(jsonPath("$.maxPerUser").value(3));
+
+        // images carry the original file name of their upload
+        String upload = jdbc.queryForObject("select photo_upload_id from basket where id = ?", String.class,
+                "00000048-0001-4000-8000-000000000001");
+        String fileName = jdbc.queryForObject("select file_name from upload where id = ?", String.class,
+                java.util.UUID.fromString(upload));
+        jdbc.update("insert into resource_image (id, version, created_at, updated_at, resource_id, upload_id, "
+                + "sort_order) values (random_uuid(), 0, now(), now(), ?, ?, 0)", java.util.UUID.fromString(id),
+                java.util.UUID.fromString(upload));
+        mvc.perform(get("/api/resources/mine").cookie(jumper)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '" + id + "')].images[0].fileName").value(fileName));
         mvc.perform(post("/api/resources").with(csrf()).cookie(login(SeedUsers.BIEB))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"X\",\"categoryIds\":[\"00000000-0000-4000-8000-000000000000\"],"

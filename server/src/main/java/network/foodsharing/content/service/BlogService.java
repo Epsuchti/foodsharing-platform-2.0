@@ -40,7 +40,13 @@ public class BlogService {
 
     public static final String PICTURE_MODULE = "BLOG_PICTURE";
 
-    public record PostInput(String title, String teaser, String body, UUID regionId, UUID pictureUploadId) {
+    /** {@code removePicture}: update only, deletes the picture (not together with {@code pictureUploadId}). */
+    public record PostInput(String title, String teaser, String body, UUID regionId, UUID pictureUploadId,
+                            boolean removePicture) {
+
+        public PostInput(String title, String teaser, String body, UUID regionId, UUID pictureUploadId) {
+            this(title, teaser, body, regionId, pictureUploadId, false);
+        }
     }
 
     /** A post with what the current user may do with it. */
@@ -160,6 +166,9 @@ public class BlogService {
         if (!BlogRules.mayEdit(actor, facts(post))) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
+        if (input.removePicture() && input.pictureUploadId() != null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "removePicture");
+        }
         if (input.regionId() != null && !input.regionId().equals(post.getRegionId())) {
             if (!BlogRules.mayCreate(actor, input.regionId())) {
                 throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
@@ -183,12 +192,21 @@ public class BlogService {
                 uploads.delete(uploads.find(previous));
             }
         }
+        UUID removedPicture = input.removePicture() ? post.getPictureUploadId() : null;
+        if (removedPicture != null) {
+            post.setPictureUploadId(null);
+            uploads.delete(uploads.find(removedPicture));
+        }
         boolean needsCheck = BlogRules.changeNeedsCheck(actor, facts(post));
         if (needsCheck) {
             post.setPublished(false);
         }
-        history.record(history.event(ContentAction.BLOG_UPDATED, post.getId()).region(post.getRegionId())
-                .metadata("title", post.getTitle()).build());
+        var updated = history.event(ContentAction.BLOG_UPDATED, post.getId()).region(post.getRegionId())
+                .metadata("title", post.getTitle());
+        if (removedPicture != null) {
+            updated = updated.metadata("pictureRemoved", removedPicture.toString());
+        }
+        history.record(updated.build());
         if (needsCheck) {
             history.record(history.event(ContentAction.BLOG_UNPUBLISHED, post.getId()).region(post.getRegionId())
                     .metadata("reason", "changed by a non-editor").build());

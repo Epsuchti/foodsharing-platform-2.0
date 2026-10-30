@@ -24,7 +24,7 @@
     tags: [content]
     operationId: createContentPage
     summary: Create a content page.
-    x-permission: ORGA
+    x-permission: ORGA or PR group admin (only ORGA picks another editor function)
     x-history: ContentAction.PAGE_CREATED
     requestBody:
       required: true
@@ -121,7 +121,7 @@
     tags: [content]
     operationId: listBlogPosts
     summary: Blog posts incl. unpublished (editors).
-    x-permission: ORGA or PR group admin
+    x-permission: ORGA, PR group admin or ambassador (only posts of their regions and their own drafts)
     parameters:
       - name: page
         in: query
@@ -167,7 +167,7 @@
     tags: [content]
     operationId: createBlogPost
     summary: Write a blog post (unpublished).
-    x-permission: ORGA or PR group admin
+    x-permission: ORGA, PR group admin or ambassador of the post's region
     x-history: ContentAction.BLOG_CREATED
     requestBody:
       required: true
@@ -206,7 +206,7 @@
     tags: [content]
     operationId: getBlogPost
     summary: Blog post for editing.
-    x-permission: ORGA or PR group admin
+    x-permission: published posts for everybody signed in; drafts for whoever may edit them
     parameters:
       - name: blogPostId
         in: path
@@ -243,7 +243,7 @@
     tags: [content]
     operationId: updateBlogPost
     summary: Edit a blog post.
-    x-permission: ORGA or author
+    x-permission: ORGA, PR group admin, ambassador of the post's region, or the author of an unpublished post
     x-history: ContentAction.BLOG_UPDATED
     parameters:
       - name: blogPostId
@@ -293,7 +293,7 @@
     tags: [content]
     operationId: deleteBlogPost
     summary: Delete a blog post.
-    x-permission: ORGA or author
+    x-permission: ORGA, PR group admin, ambassador of the post's region, or the author of an unpublished post
     x-history: ContentAction.BLOG_DELETED
     parameters:
       - name: blogPostId
