@@ -24,6 +24,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
       <button
         type="button"
         class="user-btn"
+        #menuTrigger
         (click)="menu.toggle($event)"
         aria-haspopup="true"
         data-testid="shell.userMenu"
@@ -41,8 +42,8 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
         <span class="fs-visually-hidden">{{ 'layout.userMenu.open' | t }}</span>
         <i class="pi pi-chevron-down user-btn__chevron" aria-hidden="true"></i>
       </button>
-      <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
-      @defer (when menu.load()) {
+      <!-- code prefetched after the first page, rendered on the first click (LazyPopover, D11.5.3) -->
+      @defer (on interaction(menuTrigger); prefetch when menu.prefetch()) {
       <p-popover #op>
         <div class="um">
           <a

@@ -43,6 +43,7 @@ import { StartupService } from '../core/startup/startup.service';
         class="tabs__tab"
         [class.tabs__tab--active]="menuOpen()"
         [attr.aria-expanded]="menuOpen()"
+        #menuTrigger
         (click)="menuOpen.set(true)"
         data-testid="nav.tab.menu"
       >
@@ -56,8 +57,8 @@ import { StartupService } from '../core/startup/startup.service';
       </button>
     </nav>
 
-    <!-- the menu drawer is not part of the start-up bundle (D11.5.3): it loads after the first page or on the first tap -->
-    @defer (when startup.pageShown() || menuOpen()) {
+    <!-- the menu drawer is not part of the start-up bundle (D11.5.3): its code loads after the first page, it renders on the first tap -->
+    @defer (on interaction(menuTrigger); prefetch when startup.pageShown()) {
     <p-drawer
       [visible]="menuOpen()"
       (visibleChange)="menuOpen.set($event)"
