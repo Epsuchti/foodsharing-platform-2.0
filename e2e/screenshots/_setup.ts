@@ -30,9 +30,9 @@ export interface Variant {
   name: string;
 }
 
-/** Default matrix: both themes × German plus one long-text language (fr) to catch overflow. */
-export const THEMES: readonly ThemeName[] = ['light', 'dark'];
-export const SCREENSHOT_LANGUAGES: readonly Language[] = ['de', 'fr'];
+/** Default matrix (decision 109): one variant, light theme in German, on the desktop and mobile projects. Dark mode is covered by the axe sweep in both themes; other languages by the i18n checks. */
+export const THEMES: readonly ThemeName[] = ['light'];
+export const SCREENSHOT_LANGUAGES: readonly Language[] = ['de'];
 
 export function variants(themes: readonly ThemeName[] = THEMES, languages: readonly Language[] = SCREENSHOT_LANGUAGES): Variant[] {
   return themes.flatMap((theme) => languages.map((lang) => ({ theme, lang, name: `${theme}-${lang}` })));
