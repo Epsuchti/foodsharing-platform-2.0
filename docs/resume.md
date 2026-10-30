@@ -34,3 +34,9 @@ One frontend worker + one backend worker (+ Fable planner for plans/reviews). Wo
 5. Integrator final gate (`docs/plan-m7.md` Part D): full verify, Playwright on all 5 projects, screenshots, `feature-coverage.mjs --strict` (then enable strict in CI), release check, smoke, load test refresh, every ledger row done, tick plan.md checkboxes, Fable final review `docs/review-m7.md`, finalise `docs/launch-report.md`.
 
 Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot] [notes]` ('-' keeps a column; `--add` adds rows).
+
+## After the base build (owner, 2026-10-30)
+1. Parallel shards for the local e2e and screenshot scripts: N jars with their own database and port, `--shard=i/N`, a separate output folder and server log per shard (about 3–4× faster).
+2. Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
+3. Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
+4. Native date inputs show `mm/dd/yyyy` in a German or Swiss-German UI, because they follow the browser locale. Check this against the app language.
