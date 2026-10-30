@@ -71,10 +71,36 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   if (options.waitForData ?? true) {
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
+    await networkQuiet(page);
   }
   await page.evaluate(
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );
+}
+
+/**
+ * Waits until no request has finished for 500 ms (wall clock, so it also works under `page.clock.setFixedTime`). The
+ * after-first-page requests (feature toggles, nav badges, banners) otherwise land in some captures and not in others.
+ */
+async function networkQuiet(page: Page): Promise<void> {
+  let last = -1;
+  let since = Date.now();
+  await expect
+    .poll(
+      async () => {
+        const count = await page.evaluate(() => {
+          performance.setResourceTimingBufferSize(100_000);
+          return performance.getEntriesByType('resource').length;
+        });
+        if (count !== last) {
+          last = count;
+          since = Date.now();
+        }
+        return Date.now() - since >= 500;
+      },
+      { intervals: [100], timeout: 15_000 },
+    )
+    .toBe(true);
 }
 
 /**
