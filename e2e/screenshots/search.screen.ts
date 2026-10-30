@@ -9,10 +9,6 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 forEachVariant((variant) => {
   screenshotTest.describe(`search ${variant.name}`, () => {
     screenshotTest.use({ variant, role: 'foodsaver' });
-    // the seed reset leaves search_index empty (see tests/search/c5-search.spec.ts)
-    screenshotTest.beforeEach(async ({ notifications }) => {
-      await notifications.runJob('search-reindex');
-    });
 
     screenshotTest('search header combobox @C5 @screenshot', async ({ page, visual }) => {
       // the header box shows from 48rem (phones reach /search through the drawer): tablet width on every project

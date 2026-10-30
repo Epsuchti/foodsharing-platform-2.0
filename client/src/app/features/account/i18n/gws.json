@@ -226,5 +226,15 @@
   "account.bounce.text": "Mails a {email} sind sit {date} zruggwise worde. Bis das klärt isch, schicked mir dir nur no Login-Links.",
   "account.bounce.change": "Adrässe ändere",
   "account.bounce.clear": "Adrässe funktioniert wieder",
-  "account.bounce.cleared": "Merci! Mir schicked dir wieder E-Mails."
+  "account.bounce.cleared": "Merci! Mir schicked dir wieder E-Mails.",
+  "account.connections.pageTitle": "Verbundeni Aawändige",
+  "account.connections.title": "Verbundeni Aawändige",
+  "account.connections.subtitle": "Aawändige, wo du di mit dim foodsharing-Konto aamäldisch.",
+  "account.connections.empty": "Kei verbundeni Aawändige",
+  "account.connections.emptyText": "Wänn du bi ere Aawändig «Aamälde mit foodsharing» erlaubsch, erschiint si da.",
+  "account.connections.since": "Erlaubt sit {date}",
+  "account.connections.revoke": "Zuegriff entzieh",
+  "account.connections.revokeTitle": "Zuegriff entzieh?",
+  "account.connections.revokeText": "{name} wird abgmäldet und mues s nächscht Mal wieder um dini Zuestimmig froge.",
+  "account.connections.revoked": "Zuegriff entzoge"
 }

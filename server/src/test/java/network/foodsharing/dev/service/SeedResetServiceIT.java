@@ -81,6 +81,12 @@ class SeedResetServiceIT {
             // written by jobs since startup, not by the changelog: search index (SearchReindexJob), job locks and runs
             now.keySet().stream().filter(table -> !List.of("SEARCH_INDEX", "SHEDLOCK", "JOB_RUN").contains(table))
                     .forEach(table -> assertThat(now.get(table)).as(table).isEqualTo(started.get(table)));
+            // the snapshot predates the start-up index build: the reset rebuilds it (SeedDerivedData), same entries
+            assertThat(started.get("SEARCH_INDEX")).isNotEmpty();
+            assertThat(jdbc.queryForList("select kind || ':' || entity_id from search_index", String.class))
+                    .containsExactlyInAnyOrderElementsOf(jdbc.queryForList(
+                            "select distinct kind || ':' || entity_id from search_index", String.class))
+                    .hasSize(started.get("SEARCH_INDEX").size());
         }
     }
 

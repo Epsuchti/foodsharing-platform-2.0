@@ -1,34 +1,11 @@
-import { FeatureToggleKey } from '../../api';
+import { ConfigurationEntry, FeatureToggleKey } from '../../api';
 
-/** Value types of configuration keys (server `ConfigurationKey.Type`). */
-export type ConfigurationType = 'STRING' | 'INTEGER' | 'BOOLEAN' | 'URL' | 'EMAIL' | 'LIST';
+/** Value types of configuration keys as plain strings (the generated `ConfigurationType` enum values). */
+export type ConfigurationTypeName = `${ConfigurationEntry['type']}`;
 
-/**
- * Types of the known configuration keys, copied from the server enum `admin.domain.ConfigurationKey` until
- * `ConfigurationEntry` carries its type (backend request). Unknown keys are edited as plain text; the server
- * validates every value (400 CONFIGURATION_VALUE_INVALID).
- */
-export const CONFIGURATION_TYPES: Readonly<Record<string, ConfigurationType>> = {
-  'support.email': 'EMAIL',
-  'petition.url': 'URL',
-  'petition.signatures': 'INTEGER',
-  'petition.days-left': 'INTEGER',
-  'donation.show-campaign-card': 'BOOLEAN',
-  'donation.show-modal': 'BOOLEAN',
-  'donation.modal-hours-logged-in': 'INTEGER',
-  'donation.modal-hours-logged-out': 'INTEGER',
-  'donation.info-url': 'URL',
-  'donation.iframe-one-time-url': 'URL',
-  'donation.iframe-campaign-url': 'URL',
-  'donation.iframe-friendship-circle-url': 'URL',
-  'donation.iframe-self-service-url': 'URL',
-  'donation.campaign-page-slugs': 'LIST',
-  'statistics.public-cache-minutes': 'INTEGER',
-  'oauth.issuer': 'URL',
-};
-
-export function configurationType(key: string): ConfigurationType {
-  return CONFIGURATION_TYPES[key] ?? 'STRING';
+/** The value type the server reports for a key (`ConfigurationEntry.type`); plain text when missing. */
+export function configurationType(entry: Pick<ConfigurationEntry, 'type'>): ConfigurationTypeName {
+  return entry.type ?? 'STRING';
 }
 
 /** i18n key suffix of a configuration key: `support.email` → `support_email` (catalog keys are flat). */
