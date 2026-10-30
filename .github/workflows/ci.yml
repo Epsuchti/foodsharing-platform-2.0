@@ -9,11 +9,6 @@ on:
     tags: ['v*']
   pull_request:
   workflow_dispatch:
-    inputs:
-      strict-coverage:
-        description: 'Feature coverage --strict (every ledger feature row needs a tagged test; default after F6)'
-        type: boolean
-        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -257,11 +252,9 @@ jobs:
         run: |
           mkdir -p test-results
           npx playwright merge-reports --reporter json,html ./all-blob-reports
-      # --strict (every feature row tagged) only on demand until the integrator enables it after F6 (plan-m7 Part E).
+      # --strict since F6 (decision 126): every feature row of docs/ledger.md needs a tagged test.
       - name: Coverage gate (docs/ledger.md vs @ID tags)
-        env:
-          STRICT: ${{ inputs.strict-coverage && '--strict' || '' }}
-        run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json ${STRICT}
+        run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict
       - name: Upload report and coverage
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
