@@ -1,8 +1,6 @@
 # Resume notes (paused 2026-10-29)
 
-Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–129), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
-
-## TEST PAUSE (decision 129): no tests are run or written until implementation is done; only a boot check. See docs/test-pause.md.
+Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–130), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
 
 ## State on `main`
 - Backend: all features of M1–M6 and M7 B1–B10 (imports, prod profile/image/release, runbook/backups, monitoring, load test, security review, privacy review, CI hardening) are done.
