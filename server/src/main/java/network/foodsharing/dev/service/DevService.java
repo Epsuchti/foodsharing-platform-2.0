@@ -19,6 +19,8 @@ import network.foodsharing.notification.mail.CapturingMailTransport;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Profile({"local", "e2e"})
 public class DevService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DevService.class);
 
     private final DevUserCatalog catalog;
     private final UserService userService;
@@ -130,12 +134,22 @@ public class DevService {
      * @throws ApiException 409 when the database is not H2
      */
     public void resetAll() {
+        long started = System.nanoTime();
         seedResetService.reset();
+        long seeded = System.nanoTime();
         clearCapturedMails();
         // in-memory state: circuit breakers, seen Telegram chats, rate limiters (login, messages, baskets, …)
-        inMemoryStates.orderedStream().forEach(network.foodsharing.common.seed.InMemoryState::resetInMemoryState);
+        StringBuilder states = new StringBuilder();
+        inMemoryStates.orderedStream().forEach(state -> {
+            long stateStarted = System.nanoTime();
+            state.resetInMemoryState();
+            states.append(' ').append(org.springframework.util.ClassUtils.getUserClass(state).getSimpleName())
+                    .append('=').append((System.nanoTime() - stateStarted) / 1_000_000);
+        });
         network.foodsharing.common.web.SlidingWindowRateLimiter.clearAll();
         setClock(properties.getClock().getFixed());
+        LOG.info("Dev reset done in {} ms (database {} ms, in-memory state ms:{})",
+                (System.nanoTime() - started) / 1_000_000, (seeded - started) / 1_000_000, states);
     }
 
     private User requireUser(UUID userId) {
