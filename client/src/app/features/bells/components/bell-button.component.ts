@@ -34,7 +34,9 @@ export function badgeText(count: number): string {
       }
     </button>
     @if (open()) {
-      @defer {
+      <!-- on immediate, not the default "on idle": opened by a click, the panel must not wait for an idle browser
+           (right after the first page the main thread can stay busy for seconds) -->
+      @defer (on immediate) {
         <fs-bell-panel (closed)="open.set(false)" />
       }
     }

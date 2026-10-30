@@ -22,7 +22,7 @@ let nextId = 0;
   imports: [Button, Dialog, FormsModule, TPipe, Textarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="visible()"
       (visibleChange)="visible.set($event)"
       [modal]="true"

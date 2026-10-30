@@ -67,8 +67,11 @@ test('AU12 banner reports an unreachable server and recovers via its retry butto
   await expect(banner).toContainText(serverTitle);
   expect(outage.calls()).toBeGreaterThan(0);
 
-  // Retrying while the server is still down keeps the banner.
+  // Retrying while the server is still down keeps the banner. Wait for that probe to fail: still in flight when the
+  // outage is removed, it would reach the server, succeed and hide the banner before the second click.
+  const probeFailed = page.waitForEvent('requestfailed', (request) => request.url().includes('/api/public/app-info'));
   await page.getByTestId('shell.offlineBanner.retry').click();
+  await probeFailed;
   await expect(banner).toBeVisible();
 
   await outage.remove();

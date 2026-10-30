@@ -46,6 +46,13 @@ export interface DataState<T> {
   readonly isLoading: Signal<boolean>;
   /** Loads again with the current params (keeps the data visible → `refreshing`). */
   reload(): void;
+  /**
+   * Background refetch (realtime event or reconnect): reloads only while data is shown (success, empty, refreshing,
+   * or stale after a failed reload). A first load, an error without data, forbidden and not found are left alone:
+   * a shown error keeps its retry button until the user retries, instead of being swapped for a skeleton under the
+   * user's pointer.
+   */
+  refresh(): void;
   /** Replaces the data locally (after a mutation or optimistic update); recomputes success/empty. */
   set(value: T): void;
   update(fn: (value: T | undefined) => T): void;
@@ -194,6 +201,12 @@ export function loadResource<T, P = undefined>(options: LoadResourceOptions<T, P
     }
   };
 
+  const refresh = () => {
+    if (data() !== undefined || status() === 'empty') {
+      reload();
+    }
+  };
+
   if (options.params) {
     const paramsFn = options.params;
     effect(
@@ -250,6 +263,7 @@ export function loadResource<T, P = undefined>(options: LoadResourceOptions<T, P
     isStale: isStale.asReadonly(),
     isLoading: computed(() => status() === 'loading' || status() === 'refreshing'),
     reload,
+    refresh,
     set: (value: T) => settle(value),
     update: (fn) => settle(fn(data())),
   };
@@ -274,6 +288,11 @@ export function staticDataState<T>(
     isStale: signal(value !== undefined && ['error', 'offline'].includes(status)).asReadonly(),
     isLoading: computed(() => statusSignal() === 'loading' || statusSignal() === 'refreshing'),
     reload: () => onReload?.(),
+    refresh: () => {
+      if (dataSignal() !== undefined || statusSignal() === 'empty') {
+        onReload?.();
+      }
+    },
     set: (next: T) => {
       dataSignal.set(next);
       statusSignal.set(defaultIsEmpty(next) ? 'empty' : 'success');

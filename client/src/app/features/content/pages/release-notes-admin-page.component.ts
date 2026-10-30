@@ -104,7 +104,7 @@ function mapTexts(note: ReleaseNote, field: 'title' | 'body'): TranslatedText {
       </ng-template>
     </fs-data-state>
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="dialogOpen()"
       (visibleChange)="dialogOpen.set($event)"
       [modal]="true"

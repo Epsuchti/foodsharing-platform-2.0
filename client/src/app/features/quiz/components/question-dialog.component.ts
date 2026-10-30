@@ -31,7 +31,7 @@ interface AnswerDraft {
   imports: [Button, Dialog, FormsModule, InputNumber, InputText, LanguageTabsEditorComponent, Select, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [header]="(question() ? 'quiz.editor.editQuestion' : 'quiz.editor.newQuestion') | t"
       [(visible)]="visible"
       [modal]="true"

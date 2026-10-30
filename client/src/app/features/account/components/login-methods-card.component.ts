@@ -200,7 +200,7 @@ const PROVIDER_ICONS: Record<AuthProvider, string> = {
       </fs-data-state>
     </section>
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="!!dialog()"
       (visibleChange)="!$event && closeDialog()"
       [modal]="true"

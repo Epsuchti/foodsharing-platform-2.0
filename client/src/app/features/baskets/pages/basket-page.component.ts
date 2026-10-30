@@ -212,7 +212,7 @@ import { REQUEST_MESSAGE_MAX, answerActions, isOpenRequest, photoVariant } from 
           </aside>
         </div>
 
-        <p-dialog
+        <p-dialog [closeAriaLabel]="'common.close' | t"
           [visible]="requestOpen()"
           (visibleChange)="requestOpen.set($event)"
           [modal]="true"
