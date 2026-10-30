@@ -44,6 +44,17 @@ import { RegionAutomationContext } from '../region-automation.context';
       color: inherit; text-decoration: none; font-size: 0.9rem; font-weight: 600;
     }
     .subnav__item--active { background: var(--fs-primary-soft); border-color: var(--fs-primary); color: var(--fs-primary-strong); }
+    /* phones: one swipeable row that sticks right below the shell header (never slides under it) */
+    @media (max-width: 47.99rem) {
+      .subnav {
+        position: sticky; z-index: 4; top: var(--fs-sticky-offset, var(--fs-header-h));
+        flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid var(--fs-border);
+        background: var(--fs-bg);
+      }
+      .subnav__item { flex: 0 0 auto; white-space: nowrap; }
+    }
   `,
 })
 export class RegionAutomationPageComponent {

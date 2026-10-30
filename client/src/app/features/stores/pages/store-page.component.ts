@@ -9,6 +9,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PhoneButtonComponent } from '../../../shared/phone/phone-button.component';
 import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
+import { StickyOffsetDirective } from '../../../shared/sticky/sticky-offset.directive';
 import {
   CooperationStatusBadgeComponent,
   MembershipBadgeComponent,
@@ -44,6 +45,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
     RouterLinkActive,
     RouterOutlet,
     ScrollHintDirective,
+    StickyOffsetDirective,
     TeamStatusBadgeComponent,
     TPipe,
   ],
@@ -141,7 +143,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
           </div>
         </header>
 
-        <nav class="tabs" fsScrollHint [attr.aria-label]="'stores.page.tabs' | t" data-testid="stores.page.tabs">
+        <nav class="tabs" fsScrollHint fsStickyOffset [attr.aria-label]="'stores.page.tabs' | t" data-testid="stores.page.tabs">
           @for (tab of tabs(); track tab.id) {
             <a
               class="tabs__tab"
