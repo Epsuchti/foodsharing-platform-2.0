@@ -62,10 +62,16 @@ interface SweepFixtures {
 
 async function sweep({ as, apiOf }: SweepFixtures, route: RouteCase, theme: 'light' | 'dark'): Promise<void> {
   const page = await as(route.role);
-  if (route.role && route.consent !== false) await acceptPendingConsents(apiOf(page));
-  await route.setup?.(apiOf(page));
+  if (route.role) {
+    const api = apiOf(page);
+    if (route.consent !== false) await acceptPendingConsents(api);
+    // Some seed accounts keep LIGHT (bieb, quiz, …): with SYSTEM the emulated color scheme decides the theme.
+    const settings = await api.patch('/api/users/me/settings', { theme: 'SYSTEM' });
+    expect(settings.status(), await settings.text()).toBe(200);
+  }
+  const prepared = await route.setup?.(apiOf(page));
   await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [THEME_STORAGE_KEY, theme] as const);
-  await page.goto(route.path);
+  await page.goto(typeof prepared === 'string' ? prepared : route.path);
   await settle(page, route);
   if (theme === 'dark') await expect(page.locator('html')).toHaveClass(/fs-dark/);
   await animationsDone(page);

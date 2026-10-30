@@ -51,6 +51,28 @@ const NEWSLETTER = '00000004-0006-4000-8000-000000000001';
 const BASKET_BROT = '00000048-0001-4000-8000-000000000001';
 const FSP_WIEDIKON = '00000049-0001-4000-8000-000000000001';
 
+/**
+ * Starts an authorization request of the public seed client `mobile-dev` (no remembered consent) and returns the
+ * consent page `/oauth/authorize` redirects to (fixtures/oauth.ts does the same with a fresh PKCE pair; this file
+ * stays free of Node/Playwright imports for the coverage script).
+ */
+export async function consentRequest(api: ApiClient): Promise<string> {
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: 'mobile-dev',
+    redirect_uri: 'http://localhost:8080/dev/oauth-callback',
+    scope: 'openid profile',
+    code_challenge: 'Z3_WMgKJ-vanY78-e0-noChyK-_awhaix-Kbn5pKM1Q',
+    code_challenge_method: 'S256',
+  });
+  const response = await api.request.get(api.url(`/oauth/authorize?${params}`), { maxRedirects: 0 });
+  const location = response.headers()['location'] ?? '';
+  if (response.status() !== 302 || !location.includes('/oauth/consent?request=')) {
+    throw new Error(`authorize answered ${response.status()} → ${location}`);
+  }
+  return new URL(location, api.baseURL).pathname + new URL(location, api.baseURL).search;
+}
+
 export const SWEEP_ROUTES: RouteCase[] = [
   // --- public pages and the shell
   { path: '/', role: null, ready: 'public.landing.hero', mobile: true },
@@ -124,10 +146,13 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: '/quizzes/foodsaver', role: 'quiz', ready: 'quiz.intro.description' },
   {
     path: '/quizzes/foodsaver/session',
-    role: 'quiz',
+    // newbie may start the foodsaver quiz (q2-session); the second theme finds the round of the first one running
+    role: 'newbie',
     ready: 'quiz.session.question',
-    // a running round (the second theme finds the round of the first one still running)
-    setup: (api) => api.fetch('POST', '/api/quizzes/FOODSAVER/sessions', { timed: false }),
+    setup: async (api) => {
+      const response = await api.fetch('POST', '/api/quizzes/FOODSAVER/sessions', { timed: false });
+      if (!response.ok() && response.status() !== 409) throw new Error(`quiz start: ${response.status()} ${await response.text()}`);
+    },
   },
   { path: '/quizzes/foodsaver/results', role: 'foodsaver', ready: 'quiz.results.summary' },
   { path: '/quizzes/history', role: 'quiz', ready: 'quiz.history.state' },
@@ -286,6 +311,17 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: `/regions/${ZH}/resources`, role: 'foodsaver', ready: 'resources.region.commons' },
   { path: '/resources/mine', role: 'foodsaver', ready: 'resources.mine.list' },
   { path: '/resources/favourites', role: 'foodsaver', ready: 'resources.favourites.list' },
+  // --- M6 OAuth (plan-m7 Q14): connections, client administration, consent page with and without a request
+  { path: '/account/connections', role: 'foodsaver', ready: 'account.connections.item' },
+  { path: '/admin/oauth-clients', role: 'orga', ready: 'oauth.clients.list' },
+  { path: '/oauth/consent', role: 'foodsaver', ready: 'oauth.consent.missing' },
+  {
+    path: '/oauth/consent?request=…',
+    role: 'foodsaver',
+    ready: 'oauth.consent.approve',
+    // a real authorize request of the public seed client (fixed PKCE pair) → the consent page it redirects to
+    setup: (api) => consentRequest(api),
+  },
 ];
 
 /**

@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { LANGUAGES, acceptPendingConsents, expect, expectNoMissingKeys, setLanguage, test, type ApiClient, type Role } from '../../fixtures';
 import type { Language } from '../../fixtures/types';
+import { consentRequest } from '../a11y/routes';
 
 /**
  * Five-language smoke (plan §18.3, plan-m7 F6) and the M6 translation sweep (plan-m6 F9): pages open in every UI
@@ -23,6 +24,8 @@ interface Visit {
   role: Role | null;
   /** Proves the page content (not only the shell) rendered. */
   ready: string;
+  /** Computes the URL to open (instead of `path`) as the page's user. */
+  resolve?: (api: ApiClient) => Promise<string>;
 }
 
 /** Opens the pages of one role in `lang` and checks each for raw keys and the `lang` attribute. */
@@ -45,7 +48,7 @@ async function visitAll(
       await setLanguage(page, lang);
     }
     for (const visit of visits.filter((entry) => entry.role === role)) {
-      await page.goto(visit.path);
+      await page.goto(visit.resolve ? await visit.resolve(apiOf(page)) : visit.path);
       await expect(page.getByTestId(visit.ready).first(), `${visit.path} as ${role ?? 'visitor'}`).toBeVisible();
       await expect
         .poll(() => page.locator('[data-state="loading"], [data-state="refreshing"]').count(), { message: `${visit.path} still loading` })
@@ -82,12 +85,14 @@ const SMOKE: Visit[] = [
   { path: `/baskets/${BASKET_JOGHURT}`, role: 'foodsaver', ready: 'baskets.detail.content' },
   { path: `/food-share-points/${FSP_WIEDIKON}`, role: 'foodsaver', ready: 'foodSharePoints.detail.wall.list' },
   { path: '/search?q=Wiedikon', role: 'foodsaver', ready: 'search.page.input' },
+  // C13 consent page of a real authorize request
+  { path: '/oauth/consent', role: 'foodsaver', ready: 'oauth.consent.approve', resolve: consentRequest },
   { path: `/stores/${S01}/overview`, role: 'bieb', ready: 'stores.overview.info' },
 ];
 
 test.describe('five-language smoke', () => {
   for (const lang of LANGUAGES) {
-    test(`D18.3 landing, onboarding, dashboard, profile, store, basket, FSP, statistics, map, search and a content page in ${lang} @D18.3 @C1`, async ({
+    test(`D18.3 landing, onboarding, dashboard, profile, store, basket, FSP, statistics, map, search, a content page and the OAuth consent in ${lang} @D18.3 @C1 @C13`, async ({
       as,
       apiOf,
     }) => {
