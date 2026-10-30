@@ -98,11 +98,12 @@ public class RegionsController implements RegionsApi {
     @Override
     public ResponseEntity<HistoryEntryPage> getRegionHistory(UUID regionId, List<String> actions, OffsetDateTime from,
                                                              OffsetDateTime to, Integer page, Integer size) {
-        regionService.require(regionId);
-        HistoryFilter filter = new HistoryFilter(SubjectType.REGION, regionId, null, null, actions,
+        // a working group's page shows its GROUP entries; a region's log adds its working-group changes (D10.3)
+        SubjectType subjectType = regionService.require(regionId).historySubjectType();
+        HistoryFilter filter = new HistoryFilter(subjectType, regionId, null, null, actions,
                 TimeMapper.toInstant(from), TimeMapper.toInstant(to), page == null ? 0 : page,
                 size == null ? 20 : size);
-        return ResponseEntity.ok(historyMapper.toPage(historyQueryService.list(filter)));
+        return ResponseEntity.ok(historyMapper.toPage(historyQueryService.regionLog(filter)));
     }
 
     @Override

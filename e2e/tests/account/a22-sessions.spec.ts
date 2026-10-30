@@ -65,7 +65,7 @@ test('A22 log out everywhere @A22', async ({ page, as, apiOf }) => {
   expect(sessions.map((session) => session.current)).toEqual([true]);
 });
 
-test('A22 security log lists logins and revocations @A22 @page', async ({ page, as, apiOf }) => {
+test('A22 security log lists logins and revocations @A22 @D10.3 @page', async ({ page, as, apiOf }) => {
   const other = await as('foodsaver');
   const otherApi = apiOf(other);
   // a second device logs in and is then signed out from here

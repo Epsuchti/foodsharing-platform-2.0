@@ -162,7 +162,7 @@ test('Q2 store manager confirm requires confidentiality consent @Q2', async ({ a
   expect(await role(own)).toBe('STORE_MANAGER');
 });
 
-test('Q2 quiz session history visible to user and ambassador @Q2 @A8', async ({ as, apiOf }) => {
+test('Q2 quiz session history visible to user and ambassador @Q2 @A8 @D10.3', async ({ as, apiOf }) => {
   const user = await as('quiz');
   await acceptPendingConsents(apiOf(user));
   await user.goto('/quizzes');
