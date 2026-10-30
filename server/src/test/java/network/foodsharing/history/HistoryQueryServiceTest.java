@@ -16,6 +16,7 @@ import network.foodsharing.history.service.HistoryQueryService;
 import network.foodsharing.history.service.SystemHistoryAccessRule;
 import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.SeedUsers;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.user.service.UserHistoryAccessRule;
@@ -28,8 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 
 @JpaSliceTest
-@Import({HistoryQueryService.class, HistoryAccessPolicy.class, UserHistoryAccessRule.class,
-        SystemHistoryAccessRule.class})
+@Import(SharedJpaSliceConfig.class)
 class HistoryQueryServiceTest {
 
     private static final Instant NOW = FixedClockConfig.SEED_NOW;

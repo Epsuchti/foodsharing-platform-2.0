@@ -38,6 +38,9 @@
         <skip.client>false</skip.client>
         <skipTests>false</skipTests>
         <skip.client.test>${skipTests}</skip.client.test>
+        <!-- parallel test JVMs (docs/conventions.md A60); -Dtest.forks=1 runs everything in one JVM -->
+        <test.forks>4</test.forks>
+        <it.forks>${test.forks}</it.forks>
     </properties>
 
     <dependencyManagement>
@@ -465,6 +468,13 @@
                     <excludes>
                         <exclude>**/*IT.java</exclude>
                     </excludes>
+                    <!-- A60: one JVM per fork (own in-memory H2 databases and Spring context cache), reused for
+                         the next test class; files a test writes go to a directory of its own fork -->
+                    <forkCount>${test.forks}</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <systemPropertyVariables>
+                        <app.uploads.dir>${project.build.directory}/test-uploads/unit-${surefire.forkNumber}</app.uploads.dir>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
@@ -473,6 +483,11 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
+                    <forkCount>${it.forks}</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <systemPropertyVariables>
+                        <app.uploads.dir>${project.build.directory}/test-uploads/it-${surefire.forkNumber}</app.uploads.dir>
+                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
