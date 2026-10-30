@@ -12,6 +12,7 @@ import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.oauthserver.service.OAuthClientService;
 import network.foodsharing.oauthserver.service.OAuthClientService.ClientInput;
 import network.foodsharing.oauthserver.service.OAuthClientService.ClientView;
+import network.foodsharing.region.mapper.RegionMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminOAuthClientsController implements AdminOauthApi {
 
     private final OAuthClientService clients;
+    private final RegionMapper regionMapper;
 
-    public AdminOAuthClientsController(OAuthClientService clients) {
+    public AdminOAuthClientsController(OAuthClientService clients, RegionMapper regionMapper) {
         this.clients = clients;
+        this.regionMapper = regionMapper;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class AdminOAuthClientsController implements AdminOauthApi {
 
     @Override
     public ResponseEntity<List<OAuthClient>> listOAuthClients() {
-        return ResponseEntity.ok(clients.list().stream().map(AdminOAuthClientsController::toApi).toList());
+        return ResponseEntity.ok(clients.list().stream().map(this::toApi).toList());
     }
 
     @Override
@@ -67,12 +70,14 @@ public class AdminOAuthClientsController implements AdminOauthApi {
         return types == null ? null : types.stream().map(OAuthGrantType::getValue).toList();
     }
 
-    private static OAuthClient toApi(ClientView view) {
+    private OAuthClient toApi(ClientView view) {
         var c = view.client();
         return new OAuthClient().clientId(c.getClientId()).name(c.getName()).confidential(c.isConfidential())
                 .redirectUris(c.redirectUriList()).scopes(List.copyOf(c.scopeSet()))
                 .grantTypes(c.grantTypeSet().stream().map(OAuthGrantType::fromValue).toList())
-                .requiredRegionIds(List.copyOf(c.requiredRegions())).enabled(c.isEnabled())
+                .requiredRegionIds(List.copyOf(c.requiredRegions()))
+                .requiredRegions(view.requiredRegions().stream().map(regionMapper::toRef).toList())
+                .enabled(c.isEnabled())
                 .createdAt(TimeMapper.toOffset(c.getCreatedAt())).consentCount((int) view.consentCount());
     }
 }

@@ -6,11 +6,6 @@ import { Resource, ResourceCategory, ResourceOpenness, UnitType } from '../../ap
  */
 export const RESOURCE_UNIT_TYPES: readonly UnitType[] = [UnitType.BigCity, UnitType.City, UnitType.PartOfTown, UnitType.WorkingGroup];
 
-/**
- * Own resources per user (`app.resources.max-per-user`, default 10). Only for the "x of 10" hint on /resources/mine:
- * the region tab uses `ResourcePermissions.mayAdd` and the server answers 409 RESOURCE_LIMIT_REACHED.
- */
-export const RESOURCE_LIMIT = 10;
 export const RESOURCE_NAME_MAX = 200;
 export const RESOURCE_DESCRIPTION_MAX = 4000;
 export const RESOURCE_CATEGORIES_MAX = 5;
@@ -49,8 +44,11 @@ export function inCategory(resources: readonly Resource[], categoryId: string | 
   return categoryId ? resources.filter((resource) => resource.categories.some((category) => category.id === categoryId)) : [...resources];
 }
 
-/** Within the per-user limit (the server rule `ResourceRules.mayAdd`). */
-export function mayAddMore(ownCount: number, limit = RESOURCE_LIMIT): boolean {
+/**
+ * Within the per-user limit (the server rule `ResourceRules.mayAdd`). The limit (`app.resources.max-per-user`) comes
+ * from the server: `MyResourceLimits` on /resources/mine, `ResourcePermissions` in a region.
+ */
+export function mayAddMore(ownCount: number, limit: number): boolean {
   return ownCount < limit;
 }
 

@@ -112,6 +112,10 @@
     tags: [admin-oauth]
     operationId: updateOAuthClient
     summary: Edit an OAuth client.
+    description: >-
+      The client kind is fixed at creation in one direction: confidential → public drops the secret, public →
+      confidential is refused (400 VALIDATION_FAILED, args.field = confidential) because a PATCH never hands out a
+      secret. To make a public client confidential, create a new confidential client.
     x-permission: ORGA
     x-history: OAuthAction.CLIENT_UPDATED
     parameters:
@@ -134,7 +138,7 @@
             schema:
               $ref: '../schemas/admin-oauth.yaml#/OAuthClient'
       "400":
-        description: OAUTH_REDIRECT_URI_INVALID or VALIDATION_FAILED
+        description: OAUTH_REDIRECT_URI_INVALID or VALIDATION_FAILED (also public → confidential, args.field = confidential)
         content:
           application/json:
             schema:

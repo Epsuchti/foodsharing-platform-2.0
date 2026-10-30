@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { ApiErrorCode, DonationPage, Language } from '../../api';
+import { ApiErrorCode, ContentPageKind, DonationPage, Language } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { FeatureToggleService } from '../../core/feature-toggles/feature-toggle.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
@@ -18,6 +18,7 @@ import {
   donationPageEmpty,
   safeHttpsUrl,
 } from './donation.util';
+import { ContentEditorPageComponent } from './pages/content-editor-page.component';
 import { DonatePageComponent } from './pages/donate-page.component';
 import { SupportPageComponent } from './pages/support-page.component';
 import { plausibleEmail, supportSourcePage } from './support.util';
@@ -252,6 +253,62 @@ describe('content pages (Q11)', () => {
       expect(q('content.support.rateLimited')).not.toBeNull();
       expect(q('content.support.sent')).toBeNull();
       expect((q('content.support.subject') as HTMLInputElement).value).toBe('Frage');
+    });
+  });
+
+  describe('editor images (decision 117)', () => {
+    it('removes a claimed image on save with removeImageUploadIds; nothing is sent without a removal', async () => {
+      fixture = TestBed.createComponent(ContentEditorPageComponent) as ComponentFixture<unknown>;
+      fixture.componentRef.setInput('slug', 'about');
+      document.body.appendChild(fixture.nativeElement as HTMLElement);
+      await settle();
+      http.expectOne('/api/content/pages/about').flush({
+        titles: { de: 'Über uns' },
+        bodies: { de: 'Text' },
+        kind: ContentPageKind.Page,
+        published: true,
+        imageUploadIds: ['img-1', 'img-2'],
+      });
+      await settle();
+      expect(all('content.editor.image')).toHaveLength(2);
+      expect(q('content.editor.imagesRemoved')).toBeNull();
+
+      const first = q('content.editor.image')!;
+      expect(first.getAttribute('data-id')).toBe('img-1');
+      (first.querySelector('[data-testid="content.editor.removeImage"] button') as HTMLButtonElement).click();
+      await settle();
+      expect([...all('content.editor.image')].map((item) => item.getAttribute('data-id'))).toEqual(['img-2']);
+      expect(q('content.editor.imagesRemoved')).not.toBeNull();
+
+      (q('content.editor.save')!.querySelector('button') as HTMLButtonElement).click();
+      const save = http.expectOne((req) => req.url === '/api/content/pages/about' && req.method === 'PUT');
+      expect(save.request.body.removeImageUploadIds).toEqual(['img-1']);
+      expect(save.request.body.imageUploadIds).toBeUndefined();
+      save.flush({ slug: 'about', title: 'Über uns', kind: ContentPageKind.Page, published: true });
+      await settle();
+      http.expectOne('/api/content/pages/about').flush({
+        titles: { de: 'Über uns' },
+        bodies: { de: 'Text' },
+        kind: ContentPageKind.Page,
+        published: true,
+        imageUploadIds: ['img-2'],
+      });
+      await settle();
+      expect(q('content.editor.imagesRemoved')).toBeNull();
+
+      (q('content.editor.save')!.querySelector('button') as HTMLButtonElement).click();
+      const again = http.expectOne((req) => req.url === '/api/content/pages/about' && req.method === 'PUT');
+      expect(again.request.body.removeImageUploadIds).toBeUndefined();
+      again.flush({ slug: 'about', title: 'Über uns', kind: ContentPageKind.Page, published: true });
+      await settle();
+      http.expectOne('/api/content/pages/about').flush({
+        titles: { de: 'Über uns' },
+        bodies: { de: 'Text' },
+        kind: ContentPageKind.Page,
+        published: true,
+        imageUploadIds: ['img-2'],
+      });
+      await settle();
     });
   });
 });

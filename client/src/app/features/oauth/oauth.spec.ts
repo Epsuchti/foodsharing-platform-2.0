@@ -5,7 +5,7 @@ import { ConfirmationService } from '@openng/optimus-ui/api';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach, vi } from 'vitest';
 
-import { ApiErrorCode, ConsentRequest, OAuthClient, OAuthGrantType } from '../../api';
+import { ApiErrorCode, ConsentRequest, OAuthClient, OAuthGrantType, RegionRef, UnitType } from '../../api';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { ConnectionsPageComponent } from '../account/pages/connections-page.component';
 import { OAUTH_REDIRECT } from './oauth-redirect';
@@ -22,7 +22,14 @@ import {
   validClientId,
 } from './oauth.util';
 import { ConsentPageComponent } from './pages/consent-page.component';
-import { OAuthClientsPageComponent, missingRegionKey } from './pages/oauth-clients-page.component';
+import { OAuthClientsPageComponent, regionNameMap } from './pages/oauth-clients-page.component';
+
+const ZURICH: RegionRef = {
+  id: '00000010-0001-4000-8000-000000000040',
+  slug: 'zuerich-stadt',
+  name: 'Zürich Stadt',
+  type: UnitType.City,
+};
 
 const WIKI: OAuthClient = {
   clientId: 'wiki',
@@ -31,7 +38,8 @@ const WIKI: OAuthClient = {
   redirectUris: ['https://wiki.example.org/callback'],
   scopes: ['openid', 'profile', 'email', 'regions'],
   grantTypes: [OAuthGrantType.AuthorizationCode, OAuthGrantType.RefreshToken],
-  requiredRegionIds: ['00000010-0001-4000-8000-000000000040'],
+  requiredRegionIds: [ZURICH.id],
+  requiredRegions: [ZURICH],
   enabled: true,
   createdAt: '2026-09-15T08:00:00Z',
   consentCount: 1,
@@ -42,6 +50,7 @@ const REQUEST: ConsentRequest = {
   scopes: ['email', 'openid', 'profile'],
   alreadyRemembered: false,
   regionAllowed: true,
+  requiredRegions: [],
   expiresAt: '2026-11-02T10:10:00Z',
 };
 
@@ -101,9 +110,11 @@ describe('oauth util (C13)', () => {
     expect(update.grantTypes).toEqual([OAuthGrantType.AuthorizationCode, OAuthGrantType.RefreshToken]);
   });
 
-  it('asks only for region names it does not know', () => {
-    expect(missingRegionKey(['b', 'a', 'b'], new Map())).toBe('a,b');
-    expect(missingRegionKey(['a'], new Map([['a', 'A']]))).toBeUndefined();
+  it('takes region names from the clients and the picker, later sources win', () => {
+    const names = regionNameMap([ZURICH], undefined, [{ ...ZURICH, name: 'Zürich' }, { ...ZURICH, id: 'b', name: 'Bern' }]);
+    expect(names.get(ZURICH.id)).toBe('Zürich');
+    expect(names.get('b')).toBe('Bern');
+    expect(regionNameMap().size).toBe(0);
   });
 });
 
@@ -154,9 +165,12 @@ describe('oauth consent page (C13)', () => {
   it('region-restricted client: no approve button, going back declines', async () => {
     fixture.componentRef.setInput('request', 'r2');
     await settle();
-    http.expectOne('/api/oauth/authorize-requests/r2').flush({ ...REQUEST, regionAllowed: false });
+    http.expectOne('/api/oauth/authorize-requests/r2').flush({ ...REQUEST, regionAllowed: false, requiredRegions: [ZURICH] });
     await settle();
     expect(q('oauth.consent.regionRequired')).not.toBeNull();
+    // the required regions are named
+    expect(q('oauth.consent.requiredRegion')?.getAttribute('data-region')).toBe(ZURICH.id);
+    expect(q('oauth.consent.requiredRegion')?.textContent?.trim()).toBe('Zürich Stadt');
     expect(q('oauth.consent.approve')).toBeNull();
     (q('oauth.consent.back')?.querySelector('button') as HTMLButtonElement).click();
     const decision = http.expectOne('/api/oauth/authorize-requests/r2/decision');
@@ -234,7 +248,7 @@ describe('oauth clients and connections pages (C13)', () => {
       scopes: ['openid', 'profile'],
       requiredRegionIds: [],
     });
-    create.flush({ client: { ...WIKI, clientId: 'partner-app', name: 'Partner App', requiredRegionIds: [] }, clientSecret: 's3cret' });
+    create.flush({ client: { ...WIKI, clientId: 'partner-app', name: 'Partner App', requiredRegionIds: [], requiredRegions: [] }, clientSecret: 's3cret' });
     await settle();
     expect(qa('[data-testid="oauth.clients.row"]').length).toBe(1);
     expect(q('[data-testid="oauth.clients.secret.value"]')?.textContent?.trim()).toBe('s3cret');
@@ -257,12 +271,11 @@ describe('oauth clients and connections pages (C13)', () => {
     expect(q('[data-testid="oauth.clients.form.error"]')).not.toBeNull();
   });
 
-  it('clients: list resolves region names, disabling asks first', async () => {
+  it('clients: region names come with the list (no request per region), disabling asks first', async () => {
     await harness.navigateByUrl('/clients');
     http.expectOne('/api/admin/oauth-clients').flush([WIKI]);
     await settle();
-    http.expectOne(`/api/regions/${WIKI.requiredRegionIds[0]}`).flush({ id: WIKI.requiredRegionIds[0], name: 'Zürich Stadt' });
-    await settle();
+    http.expectNone((req) => req.url.startsWith('/api/regions/'));
     expect(q('[data-testid="oauth.clients.rowRegions"]')?.textContent).toContain('Zürich Stadt');
 
     const confirm = vi.spyOn(TestBed.inject(ConfirmationService), 'confirm');

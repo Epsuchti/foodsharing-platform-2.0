@@ -8,9 +8,7 @@ import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { RadioButton } from '@openng/optimus-ui/radiobutton';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
-import { catchError, forkJoin, map, of } from 'rxjs';
-
-import { AdminOauthService, OAuthClient, RegionRef, RegionsService } from '../../../api';
+import { AdminOauthService, OAuthClient, RegionRef } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
@@ -36,10 +34,14 @@ import {
 
 type DialogMode = { kind: 'create' } | { kind: 'edit'; clientId: string };
 
-/** Ids whose names are not known yet, sorted and joined (a stable resource key), or undefined when none. */
-export function missingRegionKey(ids: Iterable<string>, known: ReadonlyMap<string, string>): string | undefined {
-  const missing = [...new Set(ids)].filter((id) => !known.has(id)).sort();
-  return missing.length ? missing.join(',') : undefined;
+/**
+ * Region names by id: from the clients' `requiredRegions` (the server sends id + name, no lookup per id), then the
+ * regions picked in the dialog (later sources win).
+ */
+export function regionNameMap(...sources: (readonly RegionRef[] | undefined)[]): ReadonlyMap<string, string> {
+  const names = new Map<string, string>();
+  sources.forEach((regions) => regions?.forEach((region) => names.set(region.id, region.name)));
+  return names;
 }
 
 /**
@@ -403,7 +405,7 @@ export function missingRegionKey(ids: Iterable<string>, known: ReadonlyMap<strin
 })
 export class OAuthClientsPageComponent {
   private readonly api = inject(AdminOauthService);
-  private readonly regionsApi = inject(RegionsService);
+
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
 
@@ -438,25 +440,15 @@ export class OAuthClientsPageComponent {
     loader: (clientId) => this.api.getOAuthClient({ clientId }),
   });
 
-  /** Region names by id: from the picker, or loaded for the ids the list and the draft show. */
-  private readonly regionNames = signal<ReadonlyMap<string, string>>(new Map());
-  private readonly regionLookup = loadResource<RegionRef[], string>({
-    params: () =>
-      missingRegionKey(
-        [...(this.clients.data() ?? []).flatMap((client) => client.requiredRegionIds), ...this.draft().requiredRegionIds],
-        this.regionNames(),
-      ),
-    loader: (key) =>
-      forkJoin(
-        key.split(',').map((regionId) =>
-          this.regionsApi.getRegion({ regionId }).pipe(
-            map((region): RegionRef => region),
-            // an unknown or hidden region keeps its id as name (and is not asked for again)
-            catchError(() => of({ id: regionId, name: regionId } as RegionRef)),
-          ),
-        ),
-      ),
-  });
+  /** Regions picked in the dialog (their names are not in any loaded client yet). */
+  private readonly pickedRegions = signal<readonly RegionRef[]>([]);
+  private readonly regionNames = computed(() =>
+    regionNameMap(
+      (this.clients.data() ?? []).flatMap((client) => client.requiredRegions),
+      this.editClient.data()?.requiredRegions,
+      this.pickedRegions(),
+    ),
+  );
 
   protected readonly create = runMutation(() => this.api.createOAuthClient({ oAuthClientCreate: toCreate(this.draft()) }), {
     errorToast: false,
@@ -519,12 +511,6 @@ export class OAuthClientsPageComponent {
   });
 
   constructor() {
-    effect(() => {
-      const found = this.regionLookup.data();
-      if (found?.length) {
-        untracked(() => this.rememberRegions(found));
-      }
-    });
     // the edit form starts from the freshly loaded client
     effect(() => {
       const client = this.editClient.data();
@@ -535,7 +521,8 @@ export class OAuthClientsPageComponent {
   }
 
   protected regionName(id: string): string {
-    return this.regionNames().get(id) ?? '…';
+    // a deleted region is left out of requiredRegions: its id stays readable
+    return this.regionNames().get(id) ?? id;
   }
 
   protected shown(problem: string): boolean {
@@ -576,7 +563,7 @@ export class OAuthClientsPageComponent {
   }
 
   protected addRegion(region: RegionRef): void {
-    this.rememberRegions([region]);
+    this.pickedRegions.update((regions) => [...regions, region]);
     const ids = this.draft().requiredRegionIds;
     if (!ids.includes(region.id)) {
       this.patch({ requiredRegionIds: [...ids, region.id] });
@@ -655,11 +642,5 @@ export class OAuthClientsPageComponent {
 
   private replace(saved: OAuthClient): void {
     this.clients.update((list) => (list ?? []).map((item) => (item.clientId === saved.clientId ? saved : item)));
-  }
-
-  private rememberRegions(regions: readonly RegionRef[]): void {
-    const next = new Map(this.regionNames());
-    regions.forEach((region) => next.set(region.id, region.name));
-    this.regionNames.set(next);
   }
 }

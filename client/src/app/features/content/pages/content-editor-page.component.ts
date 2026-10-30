@@ -154,9 +154,23 @@ const NEW = 'new';
                       (onClick)="insertImage(image.url)"
                       data-testid="content.editor.insertImage"
                     />
+                    <p-button
+                      [label]="'content.editor.removeImage' | t"
+                      icon="pi pi-trash"
+                      size="small"
+                      severity="danger"
+                      [text]="true"
+                      (onClick)="removeImage(image.id)"
+                      data-testid="content.editor.removeImage"
+                    />
                   </li>
                 }
               </ul>
+            }
+            @if (removedImageIds().length) {
+              <small role="status" data-testid="content.editor.imagesRemoved">{{
+                'content.editor.imagesRemoved' | t: { count: removedImageIds().length }
+              }}</small>
             }
           </div>
         </section>
@@ -419,6 +433,8 @@ export class ContentEditorPageComponent {
   /** Images already claimed by the page (ids) and the ones uploaded in this session. */
   protected readonly savedImageIds = signal<string[]>([]);
   protected readonly newImages = signal<Upload[]>([]);
+  /** Claimed images removed on the next save (`removeImageUploadIds`, decision 117; their uploads are deleted). */
+  protected readonly removedImageIds = signal<string[]>([]);
 
   private readonly bodiesEditor = viewChild<LanguageTabsEditorComponent>('bodiesEditor');
 
@@ -430,12 +446,16 @@ export class ContentEditorPageComponent {
       label: this.i18n.t('content.function.' + value),
     }));
   });
+  /** Claimed images that stay after the next save. */
+  private readonly keptImageIds = computed(() =>
+    this.savedImageIds().filter((id) => !this.removedImageIds().includes(id)),
+  );
   protected readonly maxNewImages = computed(() =>
-    Math.max(0, MAX_IMAGES - this.savedImageIds().length),
+    Math.max(0, MAX_IMAGES - this.keptImageIds().length),
   );
   protected readonly imageUrls = computed(() =>
     [
-      ...this.savedImageIds(),
+      ...this.keptImageIds(),
       ...this.newImages()
         .map((upload) => upload.id)
         .filter((id) => !this.savedImageIds().includes(id)),
@@ -490,8 +510,21 @@ export class ContentEditorPageComponent {
         this.editorFunction.set(page.editorFunction || WorkingGroupFunction.Pr);
         this.savedImageIds.set(page.imageUploadIds ?? []);
         this.newImages.set([]);
+        this.removedImageIds.set([]);
       }
     });
+  }
+
+  /**
+   * Removes an image: one uploaded in this session is only dropped (never claimed), a claimed one is removed on save.
+   * Markdown in the bodies that links the image is left to the author.
+   */
+  protected removeImage(id: string): void {
+    if (this.savedImageIds().includes(id)) {
+      this.removedImageIds.update((ids) => (ids.includes(id) ? ids : [...ids, id]));
+    } else {
+      this.newImages.update((uploads) => uploads.filter((upload) => upload.id !== id));
+    }
   }
 
   /** Adds the image's Markdown to the body of the language tab that is open. */
@@ -517,10 +550,11 @@ export class ContentEditorPageComponent {
           reason: this.reason().trim() || undefined,
           // only ORGA picks another function; others leave it unchanged (the server answers 403 otherwise)
           editorFunction: this.isOrga() ? this.editorFunction() : undefined,
-          // new images are claimed; the ones already claimed stay (the server only adds)
+          // new images are claimed and added; claimed ones are removed only through removeImageUploadIds
           imageUploadIds: this.newImages().length
             ? this.newImages().map((upload) => upload.id)
             : undefined,
+          removeImageUploadIds: this.removedImageIds().length ? this.removedImageIds() : undefined,
         },
       });
     },

@@ -19,7 +19,8 @@ import { OAUTH_REDIRECT } from '../oauth-redirect';
  * when no remembered consent covers the requested scopes. Shows the application, what each scope shares and a
  * "remember" checkbox; approve/decline post the decision and leave the app for the returned redirect URI (a code,
  * or `error=access_denied`). A region-restricted client the user may not use (`regionAllowed=false`,
- * OAUTH_REGION_REQUIRED) only offers going back to the application. An answered or expired request is 404
+ * OAUTH_REGION_REQUIRED) names the regions it requires (`requiredRegions`) and only offers going back to the
+ * application. An answered or expired request is 404
  * OAUTH_REQUEST_EXPIRED (not-found state).
  */
 @Component({
@@ -54,6 +55,14 @@ import { OAUTH_REDIRECT } from '../oauth-redirect';
                   <div>
                     <p class="notice__title">{{ 'oauth.consent.regionRequiredTitle' | t }}</p>
                     <p>{{ 'oauth.consent.regionRequiredText' | t: { client: c.client.name } }}</p>
+                    @if (c.requiredRegions.length) {
+                      <p class="notice__list-title">{{ 'oauth.consent.requiredRegions' | t }}</p>
+                      <ul class="notice__list" data-testid="oauth.consent.requiredRegions">
+                        @for (region of c.requiredRegions; track region.id) {
+                          <li data-testid="oauth.consent.requiredRegion" [attr.data-region]="region.id">{{ region.name }}</li>
+                        }
+                      </ul>
+                    }
                   </div>
                 </div>
                 <div class="actions">
@@ -210,6 +219,13 @@ import { OAUTH_REDIRECT } from '../oauth-redirect';
     }
     .notice__title {
       font-weight: 650;
+    }
+    .notice .notice__list-title {
+      margin-top: 0.5rem;
+    }
+    .notice__list {
+      margin: 0.25rem 0 0;
+      padding-left: 1.25rem;
     }
     .field-error {
       margin: 0;

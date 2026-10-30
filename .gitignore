@@ -6,6 +6,12 @@ client/node/
 client/node_modules/
 client/dist/
 client/src/app/api/
+# openapi-generator-cli writes an openapitools.json pinned to the *latest* generator into whatever directory it runs
+# from. The only pin is client/openapitools.json (= openapi-generator.version in server/pom.xml, checked by
+# client/scripts/generate-api.mjs), so stray copies are ignored, never committed.
+/openapitools.json
+/server/openapitools.json
+/e2e/openapitools.json
 client/public/i18n/
 e2e/node_modules/
 e2e/.auth/

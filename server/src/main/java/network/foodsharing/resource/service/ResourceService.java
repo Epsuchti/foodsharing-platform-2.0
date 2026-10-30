@@ -73,6 +73,9 @@ public class ResourceService {
     public record Permissions(boolean mayAdd, boolean mayEditCommons, int maxPerUser) {
     }
 
+    public record Limits(long ownCount, int maxPerUser, boolean mayAdd) {
+    }
+
     private final ResourceRepository resources;
     private final ResourceCategoryRepository categories;
     private final ResourceCategoryNameRepository categoryNames;
@@ -157,6 +160,16 @@ public class ResourceService {
         toggles.requireEnabled(FeatureToggle.RESOURCES);
         SessionPrincipal principal = currentActor.requirePrincipal();
         return views(resources.findByOwnerIdAndDeletedAtIsNullOrderByName(principal.userId()), principal);
+    }
+
+    /** The caller's own-resource count against the per-user limit (no region needed). @throws ApiException 404 */
+    @Transactional(readOnly = true)
+    public Limits myLimits() {
+        toggles.requireEnabled(FeatureToggle.RESOURCES);
+        SessionPrincipal principal = currentActor.requirePrincipal();
+        long own = resources.countByOwnerIdAndDeletedAtIsNull(principal.userId());
+        int max = properties.getResources().getMaxPerUser();
+        return new Limits(own, max, ResourceRules.mayAdd(own, max));
     }
 
     @Transactional(readOnly = true)
