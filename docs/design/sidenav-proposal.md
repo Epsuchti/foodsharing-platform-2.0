@@ -464,7 +464,7 @@ These answers to section 8 override the proposal where they differ.
 4. **Section names:** "Community / Verwalten / Orga" are translated into all five languages (de, en, gws, fr, it) with the usual i18n check.
 5. **Bells:** a panel opens next to the bell item in the side menu. There is no separate page.
 6. **Placement:** on desktop everything lives in the side menu, including store chains and quiz/content editing, each in a fixed, consistent place. Nothing moves into a "More" menu.
-7. **Keyboard shortcuts:** yes. `[` collapses and expands the side menu (only between 48 and 75rem), and Ctrl/⌘ K focuses search. Both are listed in the user menu's help, and neither fires while you're typing in a field.
+7. **Keyboard shortcuts:** `[` collapses and expands the side menu (only between 48 and 75rem). Ctrl/⌘ K for search was dropped (owner, 2026-10-30). It is listed in the user menu's help, and neither fires while you're typing in a field.
 8. **Persistence:** none. The collapsed state below 75rem resets to expanded on reload, and section open/closed states reset on reload (no `fs.nav` / `fs.nav.sections` in storage).
 9. **Community:** open by default.
 10. **Popovers:** the user menu, region switcher, bell panel, visitor language/theme and the rail flyouts all open as a raised card outside the sidebar's right edge, over the content, with no scrim ("Schwebend", owner's pick). The card has a 1 px strong border, a large shadow and a notch toward its trigger, and the trigger shows a pressed state while the card is open. The sidebar background is tinted (`--fs-sidenav-bg`), and the card uses `--fs-surface-raised`.

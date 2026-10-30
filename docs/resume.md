@@ -60,7 +60,7 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
      - Every block is recorded in the history.
      - The values are configurable.
 6. Store automation: the pickup-policy and request-policy sections have the same save/run race that AU4 had. Their "test" and "run" buttons stay enabled while the form has unsaved changes. Apply the adverts pattern: disable them while the draft is dirty or a save is in flight, show the "Erst speichern" hint, and add a unit test.
-7. Side menu search: the placeholder "Personen, Betriebe, Grupp…" runs into the "Ctrl K" hint and gets cut off. Reserve space for the hint (padding-right), use a shorter placeholder (e.g. "Suchen"), or drop the hint while a value or placeholder would collide.
+7. Side menu search: remove the Ctrl/⌘ K shortcut completely (owner, decision 133 amended). That means the key handler, the "Ctrl K" hint in the search field, `aria-keyshortcuts`, and its line in the user menu's shortcuts block, plus the unit and e2e checks for it. The hint was also cutting off the placeholder "Personen, Betriebe, Grupp…"; check that the placeholder fits afterwards.
 8. Seen on the same screenshot (event page `/events/<id>`):
    - The date range repeats the date in another format: "Samstag, 17. Oktober 2026 um 08:00 – 17.10.2026, 11:00". On the same day it should read "… 08:00 – 11:00".
    - There is a stray space before the comma: "Fairteiler Wiedikon , Schlossgasse 10".
