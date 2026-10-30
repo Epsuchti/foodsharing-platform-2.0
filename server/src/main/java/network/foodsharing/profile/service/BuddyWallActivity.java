@@ -49,11 +49,11 @@ public class BuddyWallActivity implements ActivityContribution {
         if (owners.isEmpty()) {
             return List.of();
         }
-        return posts.findByUserIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(owners.keySet(), before,
+        return posts.findByUserIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(owners.keySet(), before,
                         PageRequest.of(0, Math.max(limit, 1))).stream()
                 .map(p -> {
                     String name = owners.get(p.getUserId()).getDisplayName();
-                    return new Item(p.getCreatedAt(), name, p.getBody(), "/profile/" + p.getUserId(),
+                    return new Item(p.getId(), p.getCreatedAt(), name, p.getBody(), "/profile/" + p.getUserId(),
                             p.getAuthorId(), p.getUserId(), name);
                 }).toList();
     }

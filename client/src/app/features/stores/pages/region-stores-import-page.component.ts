@@ -15,7 +15,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { CsvDropzoneComponent, CsvFile } from '../../../shared/csv-dropzone/csv-dropzone.component';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
-import { canConfirmStoresImport, mayCoordinateRegionStores } from '../stores.util';
+import { canConfirmStoresImport, mayImportStores } from '../stores.util';
 
 export const STORES_IMPORT_COLUMNS =
   'name,category,chain,street,postcode,city,latitude,longitude,cooperation_status,team_status,public_info,manager_foodsaver_numbers';
@@ -222,7 +222,7 @@ export class RegionStoresImportPageComponent {
     loader: (regionId) =>
       this.regionsApi.getRegion({ regionId }).pipe(
         map((region) => {
-          if (!mayCoordinateRegionStores(this.session.session(), region)) {
+          if (!mayImportStores(this.session.session(), region)) {
             throw FORBIDDEN;
           }
           return region;

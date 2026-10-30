@@ -30,7 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StoreCategoryService {
 
-    public record Item<T>(T item, long storeCount) {
+    /** {@code storeCount} is null when the caller may not see usage counts. */
+    public record Item<T>(T item, Long storeCount) {
     }
 
     private final StoreCategoryRepository categories;
@@ -53,11 +54,18 @@ public class StoreCategoryService {
 
     // ---- categories ----
 
+    /**
+     * Every signed-in user reads the category names (map filter); the usage count ({@code storeCount}) is ORGA-only
+     * and {@code null} for everybody else.
+     *
+     * @throws ApiException 401 without a session
+     */
     @Transactional(readOnly = true)
     public List<Item<StoreCategory>> listCategories() {
-        currentActor.requireRole(Role.ORGA);
+        currentActor.requirePrincipal();
+        boolean orga = currentActor.isOrga();
         return categories.findAllByOrderByNameAsc().stream()
-                .map(c -> new Item<>(c, stores.countByCategoryId(c.getId()))).toList();
+                .map(c -> new Item<>(c, orga ? stores.countByCategoryId(c.getId()) : null)).toList();
     }
 
     /** @throws ApiException 403, 400 VALIDATION_FAILED, 409 NAME_TAKEN */
@@ -75,7 +83,7 @@ public class StoreCategoryService {
         }
         categories.save(category);
         record(StoreCategoryAction.CATEGORY_CREATED, category.getId(), clean, null);
-        return new Item<>(category, 0);
+        return new Item<>(category, 0L);
     }
 
     /** @throws ApiException 403, 404 CATEGORY_NOT_FOUND, 400, 409 NAME_TAKEN */
@@ -170,7 +178,7 @@ public class StoreCategoryService {
         grocery.setName(clean);
         groceries.save(grocery);
         record(StoreCategoryAction.GROCERY_CREATED, grocery.getId(), clean, null);
-        return new Item<>(grocery, 0);
+        return new Item<>(grocery, 0L);
     }
 
     /** @throws ApiException 403, 404 GROCERY_NOT_FOUND, 400, 409 NAME_TAKEN */

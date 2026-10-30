@@ -108,7 +108,17 @@ class StoreChainApiIT {
     @Test
     void categoryAdminWithMerge() throws Exception {
         Cookie orga = login(SeedUsers.ORGA);
-        mvc.perform(get("/api/store-categories").cookie(login(SeedUsers.BIEB))).andExpect(status().isForbidden());
+        // names are readable by every signed-in user (map filter), usage counts and editing stay ORGA-only
+        Cookie bieb = login(SeedUsers.BIEB);
+        mvc.perform(get("/api/store-categories").cookie(bieb)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id=='" + SUPERMARKT + "')].name").isNotEmpty())
+                .andExpect(jsonPath("$[*].storeCount").value(
+                        org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.nullValue())));
+        mvc.perform(json(post("/api/store-categories").cookie(bieb), "{\"name\":\"Kiosk\"}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/store-categories")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/store-categories").cookie(orga)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id=='" + SUPERMARKT + "')].storeCount").isNotEmpty());
         mvc.perform(json(post("/api/store-categories").cookie(orga), "{\"name\":\"supermarkt\"}"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NAME_TAKEN"));
         String created = mvc.perform(json(post("/api/store-categories").cookie(orga), "{\"name\":\"Kiosk\"}"))

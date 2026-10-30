@@ -13,6 +13,6 @@ public interface EventWallPostRepository extends JpaRepository<EventWallPost, UU
     List<EventWallPost> findByEventIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID eventId);
 
     /** Activity feed (A19): newest live posts of the given owners before a cursor. */
-    List<EventWallPost> findByEventIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(
+    List<EventWallPost> findByEventIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(
             Collection<UUID> ids, Instant before, Pageable pageable);
 }

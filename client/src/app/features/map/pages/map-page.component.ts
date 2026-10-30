@@ -10,13 +10,12 @@ import {
   MapMarkerKind,
   MapService,
   PublicMapService,
-  Role,
   StoreMarker,
   StoreMarkerHelp,
   StoreMarkerScope,
   StoreMarkerStatus,
-  StoreMetadata,
-  StoresService,
+  StoreCategoriesService,
+  StoreCategory,
   UserMarkerActivity,
   UserMarkerMember,
   UserMarkerRole,
@@ -379,7 +378,7 @@ export class MapPageComponent {
   private readonly session = inject(SessionService);
   private readonly mapApi = inject(MapService);
   private readonly publicApi = inject(PublicMapService);
-  private readonly storesApi = inject(StoresService);
+  private readonly categoriesApi = inject(StoreCategoriesService);
   private readonly toggles = inject(FeatureToggleService);
   private readonly i18n = inject(I18nService);
   private readonly dates = inject(DateTimeFormatter);
@@ -458,10 +457,10 @@ export class MapPageComponent {
         ...(filter.member !== UserMarkerMember.All ? { member: filter.member } : {}),
       }),
   });
-  /** Store categories for the filter (foodsavers and up may read the store metadata). */
-  private readonly metadata = loadResource<StoreMetadata, true>({
-    params: () => (this.showLayer('stores') && this.session.hasRole(Role.Foodsaver) ? true : undefined),
-    loader: () => this.storesApi.getStoreMetadata(),
+  /** Store categories for the filter (every signed-in user may read the category names). */
+  private readonly categories = loadResource<StoreCategory[], true>({
+    params: () => (this.showLayer('stores') && this.loggedIn() ? true : undefined),
+    loader: () => this.categoriesApi.listStoreCategories(),
   });
 
   /** One status line for all visible layers. */
@@ -498,7 +497,7 @@ export class MapPageComponent {
   protected readonly storeFilters = computed<MarkerFilter[]>(() => {
     this.i18n.language();
     const t = (key: string) => this.i18n.t(key);
-    const categories = this.metadata.data()?.categories ?? [];
+    const categories = this.categories.data() ?? [];
     return [
       { key: 'status', label: t('map.stores.status'), options: Object.values(StoreMarkerStatus).map((value) => ({ value, label: t(`map.stores.status.${value}`) })) },
       { key: 'help', label: t('map.stores.help'), options: Object.values(StoreMarkerHelp).map((value) => ({ value, label: t(`map.stores.help.${value}`) })) },

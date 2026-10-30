@@ -179,7 +179,7 @@ public class FspQueryService {
         if (names.isEmpty()) {
             return List.of();
         }
-        return posts.findByFspIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(names.keySet(), before,
+        return posts.findByFspIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(names.keySet(), before,
                         PageRequest.of(0, limit)).stream()
                 .map(p -> new FeedPost(p.getId(), p.getFspId(), names.get(p.getFspId()), p.getAuthorId(),
                         p.getBody(), p.getCreatedAt())).toList();
