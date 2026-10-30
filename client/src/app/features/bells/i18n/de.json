@@ -108,5 +108,6 @@
   "bell.ui.page.emptyUnread": "Alles gelesen",
   "bell.ui.page.loadMore": "Ältere laden",
   "bell.ui.page.deleteRead": "Gelesene löschen",
-  "bell.ui.page.deletedRead": "Gelesene Benachrichtigungen gelöscht"
+  "bell.ui.page.deletedRead": "Gelesene Benachrichtigungen gelöscht",
+  "bell.ui.button.itemUnread": "Glocke, {count} ungelesen"
 }

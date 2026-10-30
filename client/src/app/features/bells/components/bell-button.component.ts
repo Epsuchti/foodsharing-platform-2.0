@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { TPipe } from '../../../core/i18n/t.pipe';
+import { SidenavCardDirective, SidenavPopovers } from '../../../layout/sidenav-popover';
 import { BellStore } from '../bells.resource';
 import { BellPanelComponent } from './bell-panel.component';
 
@@ -10,34 +12,67 @@ export function badgeText(count: number): string {
 }
 
 /**
- * Header bell (N3): icon button with the unread badge from `BellStore`; toggles the lazily loaded `fs-bell-panel`.
+ * Bell (N3): button with the unread badge from `BellStore`; toggles the lazily loaded `fs-bell-panel`.
+ * - `header` (phones): icon button, the panel opens below the header.
+ * - `sidenav` (desktop side menu, decision 133): a labelled item ("Glocke") whose panel opens as a floating card next
+ *   to it; no page change.
  */
 @Component({
   selector: 'fs-bell-button',
-  imports: [BellPanelComponent],
+  imports: [BellPanelComponent, SidenavCardDirective, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'bell-button' },
+  host: { class: 'bell-button', '[class.bell-button--sidenav]': "variant() === 'sidenav'" },
   template: `
-    <button
-      type="button"
-      class="hdr-icon-btn"
-      [attr.aria-label]="label()"
-      [attr.aria-expanded]="open()"
-      aria-haspopup="dialog"
-      (click)="open.set(!open())"
-      data-testid="bells.button"
-      [attr.data-unread]="store.unreadCount()"
-    >
-      <i class="pi pi-bell" aria-hidden="true"></i>
-      @if (store.unreadCount() > 0) {
-        <span class="badge" aria-hidden="true" data-testid="bells.badge">{{ badge() }}</span>
-      }
-    </button>
-    @if (open()) {
-      <!-- on immediate, not the default "on idle": opened by a click, the panel must not wait for an idle browser
-           (right after the first page the main thread can stay busy for seconds) -->
-      @defer (on immediate) {
-        <fs-bell-panel (closed)="open.set(false)" />
+    @if (variant() === 'sidenav') {
+      <button
+        type="button"
+        class="sn-row"
+        #sideTrigger
+        [attr.aria-label]="label()"
+        [attr.aria-expanded]="open()"
+        aria-haspopup="dialog"
+        aria-controls="sn-card-bells"
+        [attr.data-label]="'nav.bells' | t"
+        (click)="popovers?.toggle('bells', sideTrigger)"
+        data-testid="bells.button"
+        [attr.data-unread]="store.unreadCount()"
+      >
+        <i class="pi pi-bell" aria-hidden="true"></i>
+        <!-- the visible label is part of the accessible name (WCAG 2.5.3): "Glocke" + the count -->
+        <span class="sn-row__label" aria-hidden="true">{{ 'nav.bells' | t }}</span>
+        @if (store.unreadCount() > 0) {
+          <span class="sn-badge" aria-hidden="true" data-testid="bells.badge">{{ badge() }}</span>
+        }
+      </button>
+      <div id="sn-card-bells" class="sn-card--panel" fsSidenavCard="bells" [focusFirst]="false">
+        @if (open()) {
+          @defer (on immediate) {
+            <fs-bell-panel [embedded]="true" (closed)="popovers?.close(true)" />
+          }
+        }
+      </div>
+    } @else {
+      <button
+        type="button"
+        class="hdr-icon-btn"
+        [attr.aria-label]="label()"
+        [attr.aria-expanded]="open()"
+        aria-haspopup="dialog"
+        (click)="headerOpen.set(!headerOpen())"
+        data-testid="bells.button"
+        [attr.data-unread]="store.unreadCount()"
+      >
+        <i class="pi pi-bell" aria-hidden="true"></i>
+        @if (store.unreadCount() > 0) {
+          <span class="badge" aria-hidden="true" data-testid="bells.badge">{{ badge() }}</span>
+        }
+      </button>
+      @if (open()) {
+        <!-- on immediate, not the default "on idle": opened by a click, the panel must not wait for an idle browser
+             (right after the first page the main thread can stay busy for seconds) -->
+        @defer (on immediate) {
+          <fs-bell-panel (closed)="headerOpen.set(false)" />
+        }
       }
     }
   `,
@@ -45,6 +80,9 @@ export function badgeText(count: number): string {
     :host {
       position: relative;
       display: inline-flex;
+    }
+    :host(.bell-button--sidenav) {
+      display: block;
     }
     .hdr-icon-btn {
       position: relative;
@@ -86,10 +124,20 @@ export function badgeText(count: number): string {
 export class BellButtonComponent {
   private readonly i18n = inject(I18nService);
   protected readonly store = inject(BellStore);
-  protected readonly open = signal(false);
+  /** Only inside fs-sidenav. */
+  protected readonly popovers = inject(SidenavPopovers, { optional: true });
+  readonly variant = input<'header' | 'sidenav'>('header');
+  protected readonly headerOpen = signal(false);
+  protected readonly open = computed(() =>
+    this.variant() === 'sidenav' ? this.popovers?.openId() === 'bells' : this.headerOpen(),
+  );
   protected readonly badge = computed(() => badgeText(this.store.unreadCount()));
   protected readonly label = computed(() => {
     const count = this.store.unreadCount();
+    if (this.variant() === 'sidenav') {
+      // the side menu item shows "Glocke": its accessible name starts with that label (WCAG 2.5.3)
+      return count ? this.i18n.t('bell.ui.button.itemUnread', { count }) : this.i18n.t('nav.bells');
+    }
     return count ? this.i18n.t('bell.ui.button.unread', { count }) : this.i18n.t('bell.ui.button.label');
   });
 }

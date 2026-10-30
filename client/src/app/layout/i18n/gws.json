@@ -17,5 +17,14 @@
   "layout.nav.unread": "({count} ungläse)",
   "layout.header.whatsNew": "Was isch neu",
   "layout.header.searchOpen": "Suechi uftue",
-  "layout.header.searchClose": "Suechi zuetue"
+  "layout.header.searchClose": "Suechi zuetue",
+  "layout.sidenav.collapse": "Navigation iiklappe",
+  "layout.sidenav.expand": "Navigation uusklappe",
+  "layout.sidenav.shortcuts": "Tastatur-Chürzel",
+  "layout.sidenav.shortcutSearch": "Sueche",
+  "layout.sidenav.shortcutToggle": "Navigation ii-/uusklappe",
+  "layout.sidenav.prefs": "Sprach & Darstellig",
+  "layout.sidenav.join": "Mitmache",
+  "layout.header.groups": "Arbetsgruppe",
+  "layout.header.regionFilter": "Bezirk oder Gruppe filtere"
 }

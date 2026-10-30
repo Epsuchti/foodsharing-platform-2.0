@@ -35,7 +35,9 @@ import { TPipe } from '../core/i18n/t.pipe';
           fill="none"
         />
       </svg>
-      <span class="brand__word">food<span>sharing</span></span>
+      @if (!markOnly()) {
+        <span class="brand__word">food<span>sharing</span></span>
+      }
     </a>
   `,
   styles: `
@@ -84,4 +86,6 @@ import { TPipe } from '../core/i18n/t.pipe';
 })
 export class BrandComponent {
   readonly link = input<string>('/');
+  /** The mark alone (side menu rail); the link keeps its name. */
+  readonly markOnly = input(false);
 }

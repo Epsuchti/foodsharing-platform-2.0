@@ -72,5 +72,7 @@
   "onboarding.region.nextIntroPickups": "Nächste Einführungsabholungen",
   "onboarding.region.freeSlots": "{count, plural, one {1 Platz frei} other {# Plätze frei}}",
   "onboarding.region.noDates": "Gerade keine freien Termine – wir benachrichtigen dich gerne.",
-  "onboarding.region.allDates": "Alle Termine ansehen"
+  "onboarding.region.allDates": "Alle Termine ansehen",
+  "onboarding.meter.progress": "Schritt {current} von {total}",
+  "onboarding.meter.retry": "Fortschritt neu laden"
 }

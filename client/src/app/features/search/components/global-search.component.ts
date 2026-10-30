@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
 
@@ -41,7 +41,11 @@ const ALL_KEY = '\u0000all';
   selector: 'fs-global-search',
   imports: [...DATA_STATE_IMPORTS, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'fs-global-search', '(focusout)': 'onFocusOut($event)' },
+  host: {
+    class: 'fs-global-search',
+    '[class.fs-global-search--start]': "popupAlign() === 'start'",
+    '(focusout)': 'onFocusOut($event)',
+  },
   template: `
     @if (catalogReady()) {
       <div class="gs" role="search" [attr.aria-label]="'search.global.landmark' | t">
@@ -169,6 +173,8 @@ const ALL_KEY = '\u0000all';
       background: var(--fs-surface);
       box-shadow: var(--fs-shadow-lg, 0 12px 32px rgb(0 0 0 / 0.18));
     }
+    /* side menu (decision 133): the field sits at the left edge, so the results open towards the content */
+    :host(.fs-global-search--start) .gs__popup { right: auto; left: 0; }
     .gs__group + .gs__group, .gs__group + .gs__option--all { margin-top: 0.35rem; }
     .gs__group-label { padding: 0.35rem 0.6rem 0.2rem; color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     .gs__option {
@@ -202,6 +208,8 @@ export class GlobalSearchComponent {
   protected readonly listboxId = `fs-global-search-${nextId}-list`;
   protected readonly hintId = `fs-global-search-${nextId++}-hint`;
   protected readonly minLength = SEARCH_MIN_LENGTH;
+  /** Edge the results popup aligns with: the header field (end) or the side menu field (start). */
+  readonly popupAlign = input<'end' | 'start'>('end');
 
   /** Rendered in the header before the rest of the catalog (search.*) may have arrived: wait for it. */
   protected readonly catalogReady = signal(false);

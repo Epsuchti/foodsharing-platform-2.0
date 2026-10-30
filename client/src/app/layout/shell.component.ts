@@ -31,6 +31,8 @@ import { FooterComponent } from './footer.component';
 import { ChromeMode, HeaderComponent } from './header.component';
 import { MobileTabBarComponent } from './mobile-tab-bar.component';
 import { RequestBarComponent } from './request-bar.component';
+import { SidenavComponent } from './sidenav.component';
+import { SidenavStateService } from './sidenav-state';
 
 /** Route data key: `data: { chrome: 'minimal' }` hides navigation, footer and tab bar (login, surveys). */
 export const CHROME_DATA_KEY = 'chrome';
@@ -64,6 +66,7 @@ const AFTER_FIRST_PAGE_MS = 1500;
     RequestBarComponent,
     RouterOutlet,
     SessionExpiredDialogComponent,
+    SidenavComponent,
     TPipe,
     Toast,
     RealtimeStatusComponent,
@@ -73,45 +76,53 @@ const AFTER_FIRST_PAGE_MS = 1500;
     class: 'fs-shell',
     '[attr.data-chrome]': 'chrome()',
     '[class.fs-shell--tabbar]': 'showTabBar()',
+    '[attr.data-nav]': "sidenav.mode() === 'rail' ? 'rail' : null",
   },
   template: `
     <a class="skip-link" href="#main-content" data-testid="shell.skipLink">{{
       'layout.shell.skip' | t
     }}</a>
     <fs-request-bar />
-    @if (chrome() !== 'none') {
-      <fs-header [chrome]="chrome()"><fs-journey-bar fsJourneyBar /></fs-header>
+    @if (showSidenav()) {
+      <!-- desktop (from 48rem, decision 133): the side menu next to the content replaces the header -->
+      <fs-sidenav />
     }
-    <fs-offline-banner />
-    <fs-realtime-status />
-    <main id="main-content" class="shell__main" tabindex="-1">
-      <router-outlet />
-    </main>
-    @if (chrome() === 'full') {
-      <!-- C8: in the page flow below the fold (main is at least one viewport high), so it never shifts content -->
-      @defer (when firstPageShown()) {
-        <fs-petition-banner />
-        <!-- C7: donation modal per the hours setting (DONATION_MODAL toggle) -->
-        <fs-donation-modal />
+    <div class="shell__col">
+      @if (chrome() !== 'none' && !showSidenav()) {
+        <!-- phones, and the minimal chrome (login, surveys) on every width; the journey bar is a phone thing now -->
+        <fs-header [chrome]="chrome()"><fs-journey-bar fsJourneyBar /></fs-header>
       }
-      <fs-footer />
-    }
-    @if (showTabBar()) {
-      <fs-mobile-tab-bar />
-    }
-    <!-- overlays load after the first page has rendered: not part of the start-up bundle (D11.5.3) -->
-    @defer (when firstPageShown()) {
-      <!-- autoZIndex off: a toast must not become the topmost overlay, or open dialogs ignore Escape -->
-      <p-toast position="top-center" [breakpoints]="toastBreakpoints" [autoZIndex]="false" style="z-index: 2000" data-testid="shell.toast" />
-      <!-- p-confirmdialog does not pass closeAriaLabel on to its dialog: name the header X through pass-through
-           attributes, or it is an unnamed icon-only button (axe button-name) -->
-      <p-confirmdialog
-        [pt]="{ pcCloseButton: { root: { 'aria-label': ('common.close' | t) } } }"
-        [style]="{ width: 'min(30rem, calc(100vw - 2rem))' }"
-        data-testid="shell.confirm"
-      />
-      <fs-session-expired-dialog />
-    }
+      <fs-offline-banner />
+      <fs-realtime-status />
+      <main id="main-content" class="shell__main" tabindex="-1">
+        <router-outlet />
+      </main>
+      @if (chrome() === 'full') {
+        <!-- C8: in the page flow below the fold (main is at least one viewport high), so it never shifts content -->
+        @defer (when firstPageShown()) {
+          <fs-petition-banner />
+          <!-- C7: donation modal per the hours setting (DONATION_MODAL toggle) -->
+          <fs-donation-modal />
+        }
+        <fs-footer />
+      }
+      @if (showTabBar()) {
+        <fs-mobile-tab-bar />
+      }
+      <!-- overlays load after the first page has rendered: not part of the start-up bundle (D11.5.3) -->
+      @defer (when firstPageShown()) {
+        <!-- autoZIndex off: a toast must not become the topmost overlay, or open dialogs ignore Escape -->
+        <p-toast position="top-center" [breakpoints]="toastBreakpoints" [autoZIndex]="false" style="z-index: 2000" data-testid="shell.toast" />
+        <!-- p-confirmdialog does not pass closeAriaLabel on to its dialog: name the header X through pass-through
+             attributes, or it is an unnamed icon-only button (axe button-name) -->
+        <p-confirmdialog
+          [pt]="{ pcCloseButton: { root: { 'aria-label': ('common.close' | t) } } }"
+          [style]="{ width: 'min(30rem, calc(100vw - 2rem))' }"
+          data-testid="shell.confirm"
+        />
+        <fs-session-expired-dialog />
+      }
+    </div>
   `,
   styles: `
     :host {
@@ -119,6 +130,37 @@ const AFTER_FIRST_PAGE_MS = 1500;
       min-height: 100vh;
       min-height: 100dvh;
       flex-direction: column;
+    }
+    .shell__col {
+      display: flex;
+      flex: 1 0 auto;
+      flex-direction: column;
+      min-width: 0;
+    }
+    /*
+     * Desktop with the full chrome (decision 133): the side menu column next to the content. The layout follows the
+     * media query, not the script, so the prerendered landing page (rendered with the phone header) already reserves
+     * the column and nothing shifts when the side menu replaces the header after hydration. There is no top header,
+     * so the sticky offset of the page bars is 0 (StickyOffsetDirective, store tabs, automation subnavs, bell panel).
+     */
+    @media (min-width: 48rem) {
+      :host([data-chrome='full']) {
+        --fs-header-h: 0px;
+        display: grid;
+        grid-template-columns: var(--fs-sidenav-x) minmax(0, 1fr);
+        align-items: start;
+      }
+      :host([data-chrome='full'][data-nav='rail']) {
+        --fs-sidenav-x: var(--fs-sidenav-rail-w);
+      }
+      :host([data-chrome='full']) .shell__col {
+        grid-column: 2;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+      :host([data-chrome='full']) fs-header {
+        display: none;
+      }
     }
     .shell__main {
       flex: 1 0 auto;
@@ -169,6 +211,9 @@ export class ShellComponent {
 
   readonly chrome = computed<ChromeMode>(() => this.navigationEnd());
   readonly showTabBar = computed(() => this.chrome() === 'full' && this.session.isAuthenticated());
+  protected readonly sidenav = inject(SidenavStateService);
+  /** Desktop (from 48rem) with the full chrome: the side menu instead of the header (decision 133). */
+  readonly showSidenav = computed(() => this.chrome() === 'full' && this.sidenav.desktop());
 
   /**
    * True once the first page has rendered and the browser is idle: the overlays and the web font load then, after
