@@ -82,6 +82,10 @@ import { TPipe } from '../core/i18n/t.pipe';
     .brand__word span {
       color: var(--fs-primary);
     }
+    /* on the tinted side menu (decision 133) the primary green is below 4.5:1 (axe color-contrast) */
+    :host-context(.sn) .brand__word span {
+      color: var(--fs-primary-strong);
+    }
   `,
 })
 export class BrandComponent {

@@ -67,6 +67,8 @@ test.describe('signed in', () => {
     await page.getByTestId('dashboard.page.welcome').click();
     await page.keyboard.press('[');
     await expect(sidenav).toHaveAttribute('data-mode', 'sidebar');
+    // the search field comes with the feature toggles, after the first page
+    await expect(page.getByTestId('search.global.input')).toBeVisible();
     await page.keyboard.press('Control+k');
     await expect(page.getByTestId('search.global.input')).toBeFocused();
     // while typing, "[" is text
@@ -226,9 +228,16 @@ test.describe('visitor', () => {
     page,
   }) => {
     await page.setViewportSize(WIDE);
+    // `/` is prerendered with the phone header: hydrating it must not report a mismatch, and the server's header
+    // must be gone once the side menu took over
+    const angularErrors: string[] = [];
+    page.on('console', (message) => {
+      if (/NG0\d+/.test(message.text())) angularErrors.push(message.text());
+    });
     await page.goto('/');
     await expect(page.getByTestId('nav.sidenav')).toBeVisible();
     await expect(page.locator('fs-header')).toHaveCount(0);
+    expect(angularErrors).toEqual([]);
     await expect(page.getByTestId('nav.home')).toHaveAttribute('aria-current', 'page');
     await expect(page.getByTestId('nav.map')).toBeVisible();
     await expect(page.getByTestId('shell.userMenu')).toHaveCount(0);

@@ -256,6 +256,10 @@ describe('SidenavComponent in the shell', () => {
     host = fixture.nativeElement as HTMLElement;
     await TestBed.inject(Router).navigateByUrl(options.role ? '/dashboard' : '/');
     await fixture.whenStable();
+    // the service reads the viewport after the first render (jsdom: no match): emulate a desktop viewport again
+    state.desktop.set(true);
+    state.wide.set(options.wide);
+    await fixture.whenStable();
   }
 
   async function press(key: string, target: EventTarget = document.body): Promise<void> {

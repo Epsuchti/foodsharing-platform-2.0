@@ -225,10 +225,15 @@
       color: var(--fs-text);
     }
 
-    // trigger of an open card: pressed
+    // trigger of an open card: pressed (secondary text darkens too: muted text is below 4.5:1 on the pressed tint)
     &[aria-expanded='true'] {
       background: var(--fs-sidenav-pressed);
       color: var(--fs-text);
+
+      .sn-row__small,
+      .sn-user__who span {
+        color: var(--fs-text);
+      }
     }
 
     > .pi {

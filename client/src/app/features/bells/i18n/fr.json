@@ -109,5 +109,5 @@
   "bell.ui.page.loadMore": "Charger les plus anciennes",
   "bell.ui.page.deleteRead": "Supprimer les lues",
   "bell.ui.page.deletedRead": "Notifications lues supprimées",
-  "bell.ui.button.itemUnread": "Notifications, {count} non lues"
+  "bell.ui.button.itemCount": "({count} non lues)"
 }

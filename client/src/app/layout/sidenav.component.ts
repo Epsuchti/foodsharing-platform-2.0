@@ -161,6 +161,9 @@ import { UserMenuComponent } from './user-menu.component';
           <kbd class="sn-row__kbd sn__search-kbd" aria-hidden="true">Ctrl K</kbd>
         </div>
       }
+    } @else if (searchPending()) {
+      <!-- the feature toggles arrive after the first page: keep the search row, so the list does not jump -->
+      <div class="sn__search" aria-hidden="true"></div>
     }
 
     <div
@@ -431,6 +434,9 @@ export class SidenavComponent {
       this.toggles.isEnabled(FeatureToggleKey.GlobalSearch),
   );
 
+  /** Signed in, toggles not loaded yet: the search may still appear. */
+  protected readonly searchPending = computed(() => this.signedIn() && !this.toggles.loaded());
+
   private readonly url = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -443,6 +449,8 @@ export class SidenavComponent {
     sidenavSections(this.nav.context()),
   );
   private readonly allItems = computed(() => this.sections().flatMap((section) => section.items));
+  /** The visible item ids (a string, so equal item sets do not re-trigger the rail folding). */
+  private readonly itemKey = computed(() => this.allItems().map((item) => item.id).join(','));
   protected readonly activeId = computed(() => activeNavId(this.url(), this.allItems()));
   protected readonly currentSection = computed<NavSection | null>(() => {
     const id = this.activeId();
@@ -492,14 +500,19 @@ export class SidenavComponent {
       );
     });
 
-    // rail folding: start unfolded whenever the mode, the items or the language change, then fold until it fits
+    // a width change closes an open card
     effect(() => {
       this.mode();
-      this.sections();
+      untracked(() => this.popovers.close(false));
+    });
+    // rail folding: start unfolded whenever the mode or the set of items changes, then fold until it fits (a new
+    // session object with the same items, e.g. after a language change, keeps the folding and an open card)
+    effect(() => {
+      this.mode();
+      this.itemKey();
       untracked(() => {
         this.foldCount.set(0);
         this.railScroll.set(false);
-        this.popovers.close(false);
       });
       afterNextRender(() => this.measure(), { injector: this.injector });
     });

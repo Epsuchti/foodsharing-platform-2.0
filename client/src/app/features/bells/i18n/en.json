@@ -109,5 +109,5 @@
   "bell.ui.page.loadMore": "Load older",
   "bell.ui.page.deleteRead": "Delete read",
   "bell.ui.page.deletedRead": "Read notifications deleted",
-  "bell.ui.button.itemUnread": "Notifications, {count} unread"
+  "bell.ui.button.itemCount": "({count} unread)"
 }

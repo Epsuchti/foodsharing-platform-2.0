@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { DestroyRef, Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, PLATFORM_ID, afterNextRender, computed, inject, signal } from '@angular/core';
 
 import type { NavSection, NavSectionDef } from './nav.config';
 
@@ -125,7 +125,10 @@ export class SidenavStateService {
       // from 75rem the menu is always expanded; coming back below it starts expanded again
       if (wide.matches) this.collapsed.set(false);
     };
-    update();
+    // after the first render: the prerendered landing page was rendered with the phone header, and hydration needs
+    // the client's first render to match it (the shell's media query already reserves the column and hides the
+    // header, so the switch is not visible). An unmatched server view would stay in the DOM.
+    afterNextRender(update);
     desktop.addEventListener?.('change', update);
     wide.addEventListener?.('change', update);
     inject(DestroyRef).onDestroy(() => {

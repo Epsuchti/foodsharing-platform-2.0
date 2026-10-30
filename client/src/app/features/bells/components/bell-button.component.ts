@@ -28,7 +28,6 @@ export function badgeText(count: number): string {
         type="button"
         class="sn-row"
         #sideTrigger
-        [attr.aria-label]="label()"
         [attr.aria-expanded]="open()"
         aria-haspopup="dialog"
         aria-controls="sn-card-bells"
@@ -38,16 +37,17 @@ export function badgeText(count: number): string {
         [attr.data-unread]="store.unreadCount()"
       >
         <i class="pi pi-bell" aria-hidden="true"></i>
-        <!-- the visible label is part of the accessible name (WCAG 2.5.3): "Glocke" + the count -->
-        <span class="sn-row__label" aria-hidden="true">{{ 'nav.bells' | t }}</span>
+        <!-- the name is the visible label plus a hidden count, like the side menu's links (WCAG 2.5.3) -->
+        <span class="sn-row__label">{{ 'nav.bells' | t }}</span>
         @if (store.unreadCount() > 0) {
           <span class="sn-badge" aria-hidden="true" data-testid="bells.badge">{{ badge() }}</span>
+          <span class="fs-visually-hidden">{{ 'bell.ui.button.itemCount' | t: { count: store.unreadCount() } }}</span>
         }
       </button>
       <div id="sn-card-bells" class="sn-card--panel" fsSidenavCard="bells" [focusFirst]="false">
         @if (open()) {
           @defer (on immediate) {
-            <fs-bell-panel [embedded]="true" (closed)="popovers?.close(true)" />
+            <fs-bell-panel [embedded]="true" (closed)="closeCard()" />
           }
         }
       </div>
@@ -132,12 +132,17 @@ export class BellButtonComponent {
     this.variant() === 'sidenav' ? this.popovers?.openId() === 'bells' : this.headerOpen(),
   );
   protected readonly badge = computed(() => badgeText(this.store.unreadCount()));
+
+  /**
+   * The panel asks to close (Escape, a click outside, a chosen bell). A click on another side menu trigger has already
+   * opened that card: then only the bell card is gone, the new card stays.
+   */
+  protected closeCard(): void {
+    // no refocus here: Escape is handled (with refocus) by the side menu, an outside click must keep its target's focus
+    if (this.popovers?.openId() === 'bells') this.popovers.close(false);
+  }
   protected readonly label = computed(() => {
     const count = this.store.unreadCount();
-    if (this.variant() === 'sidenav') {
-      // the side menu item shows "Glocke": its accessible name starts with that label (WCAG 2.5.3)
-      return count ? this.i18n.t('bell.ui.button.itemUnread', { count }) : this.i18n.t('nav.bells');
-    }
     return count ? this.i18n.t('bell.ui.button.unread', { count }) : this.i18n.t('bell.ui.button.label');
   });
 }
