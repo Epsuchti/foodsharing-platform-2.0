@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 
-import { Role } from '../../api';
+import { FeatureToggleKey, Role } from '../../api';
 import { authGuard } from '../../core/auth/auth.guard';
+import { featureGuard } from '../../core/feature-toggles/feature.guard';
 import { ABOUT_PAGES, contentPath } from './content-paths';
 
 const loadContentPage = () =>
@@ -11,7 +12,7 @@ const loadContentPage = () =>
  * Mounted at '' in app.routes.ts; paths inside are full paths.
  * Public CMS pages: `about` (overview), `about/<page>`, `imprint`, `for-companies` (fixed slugs, C1), `pages/:slug`
  * (any published page) and `content/:slug` (links inside page bodies, redirected to the canonical path); `faq`,
- * `team` (C16), `statistics` (C3), `release-notes` (C4), `petition` (C8); `learn` + `learn/:key` (learning chapters,
+ * `team` (C16), `statistics` (C3), `release-notes` (C4), `petition` (C8), `donate` (C7), `support` (C9, SUPPORT_FORM toggle); `learn` + `learn/:key` (learning chapters,
  * onboarding step 3); `admin/content/**` (editor for ORGA and PR admins; the server answers 403 for everybody else)
  * and `admin/release-notes` (ORGA).
  */
@@ -64,6 +65,18 @@ export const CONTENT_ROUTES: Routes = [
     title: 'content.petition.pageTitle',
     loadComponent: () =>
       import('./pages/petition-page.component').then((m) => m.PetitionPageComponent),
+  },
+  {
+    path: 'donate',
+    title: 'content.donate.pageTitle',
+    loadComponent: () => import('./pages/donate-page.component').then((m) => m.DonatePageComponent),
+  },
+  {
+    path: 'support',
+    canActivate: [featureGuard(FeatureToggleKey.SupportForm)],
+    title: 'content.support.pageTitle',
+    loadComponent: () =>
+      import('./pages/support-page.component').then((m) => m.SupportPageComponent),
   },
   {
     path: 'learn',

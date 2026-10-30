@@ -181,6 +181,10 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
   },
   {
+    path: 'blog',
+    loadChildren: () => import('./features/blog/blog.routes').then((m) => m.BLOG_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

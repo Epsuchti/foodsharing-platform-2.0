@@ -243,6 +243,14 @@ export class LanguageTabsEditorComponent implements ControlValueAccessor, Valida
     return lang === 'de' ? '' : (this.value().de ?? '');
   }
 
+  /** Appends a paragraph to the text of the active language (e.g. image Markdown from the content editor). */
+  insert(text: string): void {
+    const lang = this.active();
+    const current = (this.value()[lang] ?? '').replace(/\s+$/, '');
+    this.preview.set(false);
+    this.update(lang, current ? `${current}\n\n${text}` : text);
+  }
+
   protected update(lang: UiLanguage, text: string): void {
     const next = { ...this.value(), [lang]: text };
     if (!text) {

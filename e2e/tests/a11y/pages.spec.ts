@@ -87,6 +87,16 @@ const ROUTES: RouteCase[] = [
   { path: '/dashboard', role: 'bot', ready: 'dashboard.activity.list', consent: true },
   { path: '/regions/00000010-0001-4000-8000-000000000040/statistics', role: 'foodsaver', ready: 'regions.statistics.genderList' },
   { path: '/regions/00000010-0001-4000-8000-000000000040/wall', role: 'foodsaver', ready: 'regions.later.empty' },
+  // Q11: blog, donations, support
+  { path: '/blog', role: null, ready: 'blog.list.grid' },
+  { path: '/blog/00000012-0006-4000-8000-000000000001', role: null, ready: 'blog.post.body' },
+  { path: '/blog/manage', role: 'orga', ready: 'blog.manage.new' },
+  { path: '/blog/00000012-0006-4000-8000-000000000007/edit', role: 'bot', ready: 'blog.editor.form', consent: true },
+  { path: '/blog/new', role: 'welcome', ready: 'blog.editor.form', consent: true },
+  { path: '/donate', role: null, ready: 'content.donate.info' },
+  { path: '/support', role: null, ready: 'content.support.form' },
+  { path: '/support?from=%2Fdashboard', role: 'foodsaver', ready: 'content.support.form' },
+  { path: '/admin/content/press', role: 'orga', ready: 'content.editor.images' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
