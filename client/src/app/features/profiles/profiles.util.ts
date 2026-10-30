@@ -83,7 +83,21 @@ const ACHIEVEMENT_ICONS: Readonly<Record<string, string>> = {
   heart: 'heart',
 };
 
+/**
+ * PrimeIcons offered by the achievement icon picker (plan-m7 Q9); the picker stores the bare name (`trophy`), which
+ * {@link achievementIcon} renders as `pi pi-trophy`.
+ */
+export const ACHIEVEMENT_ICON_CHOICES: readonly string[] = [
+  'trophy', 'star', 'heart', 'crown', 'verified', 'shield', 'sparkles', 'sun', 'gift', 'thumbs-up', 'face-smile',
+  'users', 'book', 'graduation-cap', 'lightbulb', 'briefcase', 'wrench', 'hammer', 'truck', 'car', 'box',
+  'shopping-bag', 'megaphone', 'calendar', 'camera', 'palette', 'globe', 'flag', 'bolt', 'microchip', 'wallet',
+];
+const KNOWN_ICONS: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(ACHIEVEMENT_ICON_CHOICES.map((name) => [name, name])),
+  ...ACHIEVEMENT_ICONS,
+};
+
 export function achievementIcon(icon: string | null | undefined): string {
-  const name = icon ? ACHIEVEMENT_ICONS[icon.replace(/^pi[- ]+(pi-)?/, '')] : undefined;
+  const name = icon ? KNOWN_ICONS[icon.replace(/^pi[- ]+(pi-)?/, '')] : undefined;
   return `pi pi-${name ?? 'trophy'}`;
 }

@@ -77,6 +77,10 @@ const ROUTES: RouteCase[] = [
   { path: '/reports/00000050-0001-4000-8000-000000000003', role: 'reports', ready: 'reports.detail.wall.list', consent: true },
   { path: '/profile/00000001-0001-4000-8000-000000000007', role: 'reports', ready: 'reports.user.list', consent: true },
   { path: '/regions/00000010-0001-4000-8000-000000000040/mediation', role: 'foodsaver', ready: 'reports.mediation.team' },
+  // M6 achievements (plan-m7 Q9): region tab as member and as ambassador, global admin page
+  { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'foodsaver', ready: 'achievements.board.list' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'bot', ready: 'achievements.board.define', consent: true },
+  { path: '/admin/achievements', role: 'orga', ready: 'achievements.board.list' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

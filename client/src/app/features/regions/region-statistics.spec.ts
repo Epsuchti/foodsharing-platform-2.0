@@ -53,10 +53,10 @@ describe('region statistics', () => {
       TestBed.configureTestingModule({
         providers: [
           ...provideDataStateTesting({
-            translations: { 'regions.gender.FEMALE': 'weiblich', 'regions.gender.MALE': 'männlich', 'regions.later.title': '{feature} kommt bald', 'regions.later.achievements': 'Auszeichnungen' },
+            translations: { 'regions.gender.FEMALE': 'weiblich', 'regions.gender.MALE': 'männlich', 'regions.later.title': '{feature} kommt bald', 'regions.later.wall': 'Pinnwand' },
             routes: [
               { path: 'regions/:regionId/statistics', component: RegionStatisticsTab, providers: [context] },
-              { path: 'regions/:regionId/achievements', component: RegionLaterTab, data: { feature: 'achievements' } },
+              { path: 'regions/:regionId/wall', component: RegionLaterTab, data: { feature: 'wall' } },
             ],
           }),
           provideOptimus(),
@@ -118,9 +118,9 @@ describe('region statistics', () => {
     });
 
     it('renders a placeholder tab registered with route data', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/achievements`);
+      await harness.navigateByUrl(`/regions/${ZH}/wall`);
       await settle();
-      expect(q('[data-testid="regions.later.empty"]')?.textContent).toContain('Auszeichnungen kommt bald');
+      expect(q('[data-testid="regions.later.empty"]')?.textContent).toContain('Pinnwand kommt bald');
     });
   });
 });
