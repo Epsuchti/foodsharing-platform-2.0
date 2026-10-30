@@ -234,7 +234,7 @@ export { MAILBOXES, injectBounce, injectIncoming, mailRow, rawMail, type Incomin
 export { BANANA_TEXT, ProfileHelpers, seedUserId } from './profiles';
 export { BASKETS, BasketHelpers, OPEN_ZURICH_BASKETS, ZURICH_HB, type BasketCreateBody, type BasketDto } from './baskets';
 export { ACTIVE_ZURICH_FSPS, FSPS } from './fsp';
-export { openNav } from './nav';
+export { PHONE_MAX, SIDENAV_WIDE_MIN, collapseSidenav, journeyIndicator, journeyProgress, openNav } from './nav';
 export { REPORTS, pickOption } from './reports';
 export {
   OAUTH_CLIENTS,

@@ -1,4 +1,14 @@
-import { LANGUAGES, acceptPendingConsents, expect, expectNoMissingKeys, setLanguage, test, type Role } from '../../fixtures';
+import {
+  LANGUAGES,
+  acceptPendingConsents,
+  expect,
+  expectNoMissingKeys,
+  journeyIndicator,
+  journeyProgress,
+  setLanguage,
+  test,
+  type Role,
+} from '../../fixtures';
 import { acceptConsentPage, newEmail, skipPasskeyNudge } from '../auth/_auth';
 
 /** §11 onboarding journey: landing → account in two clicks, current step + next action, 360 px × 5 languages. */
@@ -27,7 +37,8 @@ test('D11.5.1 landing to account created in two clicks with Google @D11.5.1 @pag
   // privacy policy, then straight into the journey
   await acceptConsentPage(page, /\/onboarding$/);
   await expect(page.getByTestId('onboarding.journey.current')).toHaveAttribute('data-step', 'PROFILE_REGION');
-  await expect(page.getByTestId('onboarding.bar')).toBeVisible();
+  // the journey progress: the bar on phones, the meter of the side menu's journey item on desktop (decision 133)
+  await expect(journeyIndicator(page)).toBeVisible();
 });
 
 const STAGES: { role: Role; step: RegExp }[] = [
@@ -54,9 +65,10 @@ test('D11.5.2 every seed stage shows the current step and one next action @D11.5
     await expect(actions, role).toHaveCount(1);
     await expect(page.getByTestId(`onboarding.journey.stepper.step.${journey.currentStep}`), role).toHaveAttribute('aria-current', 'step');
 
-    // the header bar names the same step everywhere in the app
+    // the journey progress names the same step everywhere in the app: the header bar on phones, the meter on
+    // "Mein Einstieg" in the desktop side menu (decision 133)
     await page.goto('/dashboard');
-    await expect(page.getByTestId('onboarding.bar.stepper'), role).toHaveAttribute('data-current', journey.currentStep!);
+    await expect(journeyProgress(page), role).toHaveAttribute('data-current', journey.currentStep!);
     await expect(page.getByTestId('dashboard.page.nextStep'), role).toHaveAttribute('data-journey-step', journey.currentStep!);
   }
 
@@ -65,6 +77,8 @@ test('D11.5.2 every seed stage shows the current step and one next action @D11.5
   await foodsaver.goto('/dashboard');
   await expect(foodsaver.getByTestId('dashboard.page.nextStep')).toHaveAttribute('data-step', 'profile');
   await expect(foodsaver.getByTestId('onboarding.bar')).toHaveCount(0);
+  await expect(foodsaver.getByTestId('nav.onboarding')).toHaveCount(0);
+  await expect(foodsaver.getByTestId('nav.onboarding.progress')).toHaveCount(0);
   await foodsaver.goto('/onboarding');
   await expect(foodsaver.getByTestId('onboarding.journey.complete')).toBeVisible();
 });
