@@ -81,7 +81,7 @@ const when =
 export const M6_PAGES_READY = {
   map: true,
   baskets: true,
-  search: false,
+  search: true,
   profile: true,
   adminSettings: false,
   adminOauth: false,
@@ -469,7 +469,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.search',
     icon: 'pi pi-search',
     route: '/search',
-    visible: whenM6('search', loggedIn),
+    visible: whenM6('search', (ctx) => loggedIn(ctx) && featureOn(ctx, FeatureToggleKey.GlobalSearch)),
   },
   {
     id: 'profile',

@@ -186,6 +186,14 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
   },
   {
+    path: 'search',
+    loadChildren: () => import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
+  },
+  {
+    path: 'resources',
+    loadChildren: () => import('./features/resources/resources.routes').then((m) => m.RESOURCES_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

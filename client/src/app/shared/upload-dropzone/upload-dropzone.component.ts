@@ -85,7 +85,8 @@ export function formatBytes(bytes: number): string {
               <i class="pi pi-file file__icon" aria-hidden="true"></i>
             }
             <span class="file__name">{{ upload.fileName }}</span>
-            <span class="muted">{{ sizeLabel(upload.size) }}</span>
+            <!-- files attached earlier (e.g. resource images) come back without a size -->
+            <span class="muted">{{ upload.size ? sizeLabel(upload.size) : '' }}</span>
             <p-button
               icon="pi pi-times"
               [text]="true"

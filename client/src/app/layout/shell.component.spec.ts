@@ -187,10 +187,12 @@ describe('nav.config', () => {
       'polls',
       'map',
       'baskets',
+      'search',
     ]);
-    // the baskets entry follows the BASKETS feature toggle (A43)
+    // the baskets and search entries follow the BASKETS / GLOBAL_SEARCH feature toggles (A43)
     const togglesOff = context({ isAuthenticated: true, featureEnabled: () => false });
     expect(visibleNavItems(togglesOff).map((item) => item.id)).not.toContain('baskets');
+    expect(visibleNavItems(togglesOff).map((item) => item.id)).not.toContain('search');
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
     ).toEqual(['account', 'notifications', 'profile']);
