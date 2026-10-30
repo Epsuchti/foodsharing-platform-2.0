@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 
-import { acceptPendingConsents, expect, injectApiError, test } from '../../fixtures';
+import { expect, injectApiError, test } from '../../fixtures';
 
 /**
  * A21 data export (plan-m7 Q4, A49): the settings card starts the export job, shows its progress and offers the zip
@@ -59,10 +59,8 @@ test('A21 data export job produces zip with profile and history sections @A21', 
   await expect(page.getByTestId('account.settings.export.error')).toHaveAttribute('data-code', 'TOO_MANY_REQUESTS');
 });
 
-test('A21 a failing start is shown below the button @A21', async ({ as, apiOf }) => {
-  // another user: the 10-minute cooldown is kept in memory and survives the seed reset
-  const page = await as('bieb');
-  await acceptPendingConsents(apiOf(page));
+test('A21 a failing start is shown below the button @A21', async ({ as }) => {
+  const page = await as('foodsaver');
   await injectApiError(page, { url: '/api/users/me/export', method: 'POST', status: 503, times: 1 });
   await page.goto('/account/settings');
   await page.getByTestId('account.settings.export.start').click();

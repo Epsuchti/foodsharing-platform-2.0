@@ -227,7 +227,7 @@ describe('nav.config', () => {
       const foodsaver = context({ isAuthenticated: true, hasRole: (role) => role === Role.Foodsaver });
       expect(ids(foodsaver)).toEqual(expect.arrayContaining(['map', 'baskets', 'search']));
       expect(ids(foodsaver)).not.toContain('adminSettings');
-      expect(ids(orga)).toEqual(expect.arrayContaining(['adminSettings', 'adminOauth', 'adminUploads', 'adminAchievements', 'adminBounced']));
+      expect(ids(orga)).toEqual(expect.arrayContaining(['adminSettings', 'adminOauth', 'adminUploads', 'adminAchievements', 'adminBounced', 'adminAdmins']));
       expect(ids(foodsaver, 'user')).toContain('profile');
       // the "about" pages are in the logged-out footer only
       const about = NAV_ITEMS.filter((item) => item.group === 'about').map((item) => item.id);

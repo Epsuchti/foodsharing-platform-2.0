@@ -173,7 +173,7 @@
             <div class="matrix__row" [attr.data-permission]="permission">
               <span class="matrix__text">
                 <label [for]="'perm-' + permission">{{ 'regions.permission.' + permission + '.label' | t }}</label>
-                <span class="matrix__source">{{ sourceText(grant) }}</span>
+                <span class="matrix__source" data-testid="regions.members.permissionSource" [attr.data-source]="grant?.source ?? 'NONE'">{{ sourceText(grant) }}</span>
               </span>
               <p-toggleswitch
                 [inputId]="'perm-' + permission"
