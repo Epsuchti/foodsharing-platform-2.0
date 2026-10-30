@@ -73,3 +73,4 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
    - Postfächer only shows for people with a mailbox.
    - Update the D4/D4.3 specs, `openNav`, the personas' click budgets and the screenshot specs.
    - Baselines change deliberately.
+10. Opening `/login` directly briefly shows the visitor side menu with an empty content area, then switches to the minimal login layout (seen in the local profile, 2026-10-30). The minimal-chrome decision should apply before the first render, so the layout doesn't flash.
