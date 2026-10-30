@@ -24,6 +24,17 @@ export class FeatureToggleService {
     return this.toggles()[key] === true;
   }
 
+  /**
+   * Applies a toggle changed in this tab (admin settings, C11) so nav entries and guards follow at once; other
+   * tabs and users see the change on their next start (the server caches toggles for 30 s).
+   */
+  apply(key: FeatureToggleKey, enabled: boolean): void {
+    const current = this.state();
+    if (current) {
+      this.state.set({ ...current, [key]: enabled });
+    }
+  }
+
   /** Loads once; resolves to the toggles (empty on failure, retried next call). */
   load(): Promise<FeatureToggles> {
     const current = this.state();
