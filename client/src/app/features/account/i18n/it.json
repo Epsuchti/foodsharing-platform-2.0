@@ -226,5 +226,15 @@
   "account.bounce.text": "Le e-mail a {email} vengono respinte dal {date}. Finché la cosa non è risolta ti inviamo solo link di accesso.",
   "account.bounce.change": "Cambia indirizzo",
   "account.bounce.clear": "L’indirizzo funziona di nuovo",
-  "account.bounce.cleared": "Grazie! Ti inviamo di nuovo e-mail."
+  "account.bounce.cleared": "Grazie! Ti inviamo di nuovo e-mail.",
+  "account.connections.pageTitle": "App collegate",
+  "account.connections.title": "App collegate",
+  "account.connections.subtitle": "Applicazioni a cui accedi con il tuo account foodsharing.",
+  "account.connections.empty": "Nessuna app collegata",
+  "account.connections.emptyText": "Quando consenti «Accedi con foodsharing» a un’applicazione, compare qui.",
+  "account.connections.since": "Consentita dal {date}",
+  "account.connections.revoke": "Revoca accesso",
+  "account.connections.revokeTitle": "Revocare l’accesso?",
+  "account.connections.revokeText": "{name} verrà disconnessa e la prossima volta dovrà chiedere di nuovo il tuo consenso.",
+  "account.connections.revoked": "Accesso revocato"
 }

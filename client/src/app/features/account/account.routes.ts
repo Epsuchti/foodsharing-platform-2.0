@@ -1,9 +1,12 @@
 import { Routes } from '@angular/router';
 
+import { FeatureToggleKey } from '../../api';
 import { authGuard } from '../../core/auth/auth.guard';
+import { featureGuard } from '../../core/feature-toggles/feature.guard';
 
 /**
  * /account/* — own settings (photo, sleep mode, email, preferences, login methods), signed-in devices, security log,
+ * connected applications (OAuth, C13),
  * the own profile form and the email-change links (`email/confirm` logged in, `email/abort` public).
  */
 export const ACCOUNT_ROUTES: Routes = [
@@ -37,6 +40,14 @@ export const ACCOUNT_ROUTES: Routes = [
         title: 'account.securityLog.pageTitle',
         loadComponent: () =>
           import('./pages/security-log-page.component').then((m) => m.SecurityLogPageComponent),
+      },
+      {
+        // C13: OAuth applications the user allowed (remembered consents)
+        path: 'connections',
+        title: 'account.connections.pageTitle',
+        canActivate: [featureGuard(FeatureToggleKey.OauthProvider)],
+        loadComponent: () =>
+          import('./pages/connections-page.component').then((m) => m.ConnectionsPageComponent),
       },
       {
         path: 'email/confirm',

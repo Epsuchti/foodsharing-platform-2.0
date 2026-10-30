@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
+import { FeatureToggleKey } from '../../../api';
+import { FeatureToggleService } from '../../../core/feature-toggles/feature-toggle.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 
 interface AccountTab {
@@ -8,6 +10,8 @@ interface AccountTab {
   route: string;
   icon: string;
   labelKey: string;
+  /** Shown unless this feature toggle is known to be off. */
+  feature?: FeatureToggleKey;
 }
 
 const TABS: readonly AccountTab[] = [
@@ -21,6 +25,14 @@ const TABS: readonly AccountTab[] = [
   },
   // M4 F2: notification settings live in features/notifications (route account/notifications)
   { id: 'notifications', route: '/account/notifications', icon: 'pi pi-bell', labelKey: 'nav.notifications' },
+  // C13: applications that sign in with foodsharing (OAuth consents)
+  {
+    id: 'connections',
+    route: '/account/connections',
+    icon: 'pi pi-link',
+    labelKey: 'nav.connections',
+    feature: FeatureToggleKey.OauthProvider,
+  },
 ];
 
 /** Switches between the account pages (scrolls horizontally on narrow phones). */
@@ -30,7 +42,7 @@ const TABS: readonly AccountTab[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <nav class="tabs" [attr.aria-label]="'account.tabs.label' | t">
-      @for (tab of tabs; track tab.id) {
+      @for (tab of tabs(); track tab.id) {
         <a
           class="tab"
           [routerLink]="tab.route"
@@ -88,5 +100,9 @@ const TABS: readonly AccountTab[] = [
   `,
 })
 export class AccountTabsComponent {
-  protected readonly tabs = TABS;
+  private readonly features = inject(FeatureToggleService);
+
+  protected readonly tabs = computed(() =>
+    TABS.filter((tab) => !tab.feature || !this.features.loaded() || this.features.isEnabled(tab.feature)),
+  );
 }

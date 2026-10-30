@@ -203,6 +203,11 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/blog/blog.routes').then((m) => m.BLOG_ROUTES),
   },
   {
+    // `oauth/consent`, `admin/oauth-clients` (C13)
+    path: '',
+    loadChildren: () => import('./features/oauth/oauth.routes').then((m) => m.OAUTH_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>

@@ -234,3 +234,18 @@ export { BANANA_TEXT, ProfileHelpers, seedUserId } from './profiles';
 export { BASKETS, BasketHelpers, OPEN_ZURICH_BASKETS, ZURICH_HB, type BasketCreateBody, type BasketDto } from './baskets';
 export { ACTIVE_ZURICH_FSPS, FSPS } from './fsp';
 export { REPORTS, pickOption } from './reports';
+export {
+  OAUTH_CLIENTS,
+  SEED_OAUTH_REDIRECT,
+  authorizeLocation,
+  authorizeUrl,
+  callbackParams,
+  devGetLastOAuthCode,
+  exchangeCode,
+  pkce,
+  refreshToken,
+  userinfo,
+  type DevOAuthCode,
+  type Pkce,
+  type TokenResponse,
+} from './oauth';
