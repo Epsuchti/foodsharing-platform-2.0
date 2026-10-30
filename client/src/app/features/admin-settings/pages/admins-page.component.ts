@@ -69,6 +69,12 @@ export function unitLink(unit: RegionRef): string[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'adminSettings.admins.title' | t" [subtitle]="'adminSettings.admins.subtitle' | t" icon="pi pi-star" />
+    <!--
+      The filter selects do not move the active option on hover ([focusOnHover]=false; hovering still highlights it):
+      a filter change re-renders the list, the page shifts under the resting pointer and Optimus took the hover on the
+      closing overlay as the active option, so the closed combobox kept aria-activedescendant pointing at an option
+      that no longer exists (axe aria-valid-attr-value, AD1 flake).
+    -->
     <div class="filters">
       <div class="field">
         <label for="admins-search">{{ 'adminSettings.admins.search' | t }}</label>
@@ -84,6 +90,7 @@ export function unitLink(unit: RegionRef): string[] {
           [ngModel]="kind()"
           (ngModelChange)="setKind($event)"
           appendTo="body"
+          [focusOnHover]="false"
           [style]="{ width: '100%' }"
           data-testid="admin.admins.kind"
         >
@@ -100,6 +107,7 @@ export function unitLink(unit: RegionRef): string[] {
           [ngModel]="active()"
           (ngModelChange)="setActive($event)"
           appendTo="body"
+          [focusOnHover]="false"
           [style]="{ width: '100%' }"
           data-testid="admin.admins.activeFilter"
         >

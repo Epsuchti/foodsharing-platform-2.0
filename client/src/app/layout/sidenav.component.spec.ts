@@ -328,6 +328,15 @@ describe('SidenavComponent in the shell', () => {
     const trigger = byTestId('shell.userMenu')!;
     const card = byTestId('shell.userMenu.card')!;
     expect(card.hidden).toBe(true);
+    expect(byTestId('shell.whatsNew')).not.toBeNull();
+    // A2: the role under the name follows a session refresh; shell.userMenu.role is the one inside the card
+    expect(byTestId('shell.userMenu.triggerRole')?.textContent).toContain('common.role.FOODSAVER');
+    expect(card.contains(byTestId('shell.userMenu.role'))).toBe(true);
+    const session = TestBed.inject(SessionService);
+    session.applySession({ ...session.session()!, user: { ...session.user()!, role: Role.Orga } });
+    await fixture.whenStable();
+    expect(byTestId('shell.userMenu.triggerRole')?.textContent).toContain('common.role.ORGA');
+    expect(byTestId('shell.userMenu.role')?.textContent).toContain('common.role.ORGA');
     trigger.click();
     await fixture.whenStable();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
@@ -350,6 +359,8 @@ describe('SidenavComponent in the shell', () => {
     expect(byTestId('shell.userMenu')).toBeNull();
     expect(byTestId('shell.login')?.getAttribute('href')).toBe('/login');
     expect(byTestId('shell.register')).not.toBeNull();
+    // C4: "what's new" is there for visitors too, as in the former desktop header
+    expect(byTestId('shell.whatsNew')?.getAttribute('href')).toBe('/release-notes');
     byTestId('shell.prefs')!.click();
     await fixture.whenStable();
     expect(byTestId('shell.prefs')?.getAttribute('aria-expanded')).toBe('true');

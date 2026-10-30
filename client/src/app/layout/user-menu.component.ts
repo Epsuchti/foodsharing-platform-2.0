@@ -47,7 +47,7 @@ import { SidenavStateService } from './sidenav-state';
         />
         <span class="sn-user__who">
           <strong>{{ user.displayName }}</strong>
-          <span data-testid="shell.userMenu.role">{{ 'common.role.' + user.role | t }}</span>
+          <span data-testid="shell.userMenu.triggerRole">{{ 'common.role.' + user.role | t }}</span>
         </span>
         <span class="fs-visually-hidden">{{ 'layout.userMenu.open' | t }}</span>
       </button>
@@ -64,7 +64,8 @@ import { SidenavStateService } from './sidenav-state';
             <div class="um__who">
               <strong>{{ user.displayName }}</strong>
               <span>{{ user.email }}</span>
-              <span class="um__role">{{ 'common.role.' + user.role | t }}</span>
+              <!-- shell.userMenu.role is the role inside the open menu, as in the phone header's popover (A2) -->
+              <span class="um__role" data-testid="shell.userMenu.role">{{ 'common.role.' + user.role | t }}</span>
             </div>
           </a>
           <ul class="sn__list">
