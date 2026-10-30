@@ -213,6 +213,9 @@ RegionDetail:
     mayCoordinateStores:
       type: boolean
       description: 'The actor coordinates the stores of this region (ORGA; else the admins of its STORES_COORDINATION group; else ambassadors of the region or an ancestor), the rule of the stores CSV import.'
+    mayHandleReports:
+      type: boolean
+      description: 'The actor handles the reports of this region (A51: ORGA; admins of its REPORT group, else its ambassadors; admins of its ARBITRATION group; handlers of an ancestor region).'
 
 HomeRegionUpdate:
   type: object

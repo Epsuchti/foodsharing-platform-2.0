@@ -137,6 +137,7 @@ ReportCreate:
 
 ReportUpdate:
   type: object
+  description: 'Omitted fields stay unchanged. An empty consequence clears it (as UserPatch text fields); reminder and forum thread are cleared with clearReminder / clearForumThread (400 VALIDATION_FAILED together with a value). Every change, clears included, is a REPORT history entry.'
   properties:
     status:
       $ref: './reports.yaml#/ReportStatus'
@@ -146,9 +147,15 @@ ReportUpdate:
     reminderAt:
       type: string
       format: date-time
+    clearReminder:
+      type: boolean
+      description: 'Removes the reminder.'
     forumThreadId:
       type: string
       format: uuid
+    clearForumThread:
+      type: boolean
+      description: 'Unlinks the forum thread.'
 
 ReportOptions:
   type: object

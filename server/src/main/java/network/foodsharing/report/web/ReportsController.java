@@ -140,7 +140,9 @@ public class ReportsController implements ReportsApi {
         var view = reports.update(reportId, new ReportService.ReportChange(
                 body.getStatus() == null ? null
                         : network.foodsharing.report.domain.ReportStatus.valueOf(body.getStatus().name()),
-                body.getConsequence(), TimeMapper.toInstant(body.getReminderAt()), body.getForumThreadId()));
+                body.getConsequence(), TimeMapper.toInstant(body.getReminderAt()),
+                Boolean.TRUE.equals(body.getClearReminder()), body.getForumThreadId(),
+                Boolean.TRUE.equals(body.getClearForumThread())));
         return ResponseEntity.ok(mapper.toReport(view, reports.latestWall(reportId, DETAIL_WALL_SIZE)));
     }
 }
