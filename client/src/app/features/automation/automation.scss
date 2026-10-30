@@ -94,10 +94,10 @@ h3 {
 }
 
 .chip {
-  // ≥ 24 px touch target (WCAG 2.5.8)
+  // chip target size of decision 124: 36 px with a mouse, 44 px on touch (WCAG 2.5.8 asks for 24 px)
   display: inline-flex;
   align-items: center;
-  min-height: 1.75rem;
+  min-height: var(--fs-target-sm);
   padding: 0.25rem 0.6rem;
   border: 1px solid var(--fs-border);
   border-radius: 999px;

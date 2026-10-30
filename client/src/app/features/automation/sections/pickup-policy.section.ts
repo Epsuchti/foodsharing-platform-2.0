@@ -137,6 +137,8 @@ export const MAX_STORES_PER_LINK = 5;
               <div class="field">
                 <label [for]="'pp-link-stores-' + i">{{ 'automation.policy.linkStores' | t }}</label>
                 <p-multiselect
+                  #linkStores
+                  (onChange)="releaseOpenGuard(linkStores)"
                   [inputId]="'pp-link-stores-' + i"
                   [options]="storeOptions()"
                   optionLabel="name"
@@ -347,6 +349,16 @@ export class PickupPolicySection {
 
   protected removeLink(index: number): void {
     this.draft()!.linkedStores.splice(index, 1);
+  }
+
+  /**
+   * Optimus MultiSelect ignores every click on its field for 150 ms after the click that opened the list (a guard
+   * against one click toggling twice, released by a timer). Choosing a store ends that opening click, so the guard is
+   * released right away: otherwise "open, choose, close" within 150 ms (or with the timer running late on a busy main
+   * thread) left the list open, because the closing click on the dropdown icon was swallowed (AU1 flake).
+   */
+  protected releaseOpenGuard(select: MultiSelect): void {
+    select.clickInProgress = false;
   }
 
   protected storeNames(rule: LinkedStoreRule): string {

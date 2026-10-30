@@ -269,20 +269,21 @@ import { UserMenuComponent } from './user-menu.component';
     </div>
 
     <div class="sn__bottom">
+      <!-- C4: "what's new" for everybody, visitors included, as in the former desktop header -->
+      <a
+        class="sn-row"
+        routerLink="/release-notes"
+        [attr.data-label]="'layout.header.whatsNew' | t"
+        data-testid="shell.whatsNew"
+      >
+        <i class="pi pi-gift" aria-hidden="true"></i>
+        <span class="sn-row__label">{{ 'layout.header.whatsNew' | t }}</span>
+        <!-- the dot loads after the first page and never shifts the row -->
+        @defer (when startup.pageShown()) {
+          <span class="sn__whats-new-dot"><fs-whats-new-dot /></span>
+        }
+      </a>
       @if (signedIn()) {
-        <a
-          class="sn-row"
-          routerLink="/release-notes"
-          [attr.data-label]="'layout.header.whatsNew' | t"
-          data-testid="shell.whatsNew"
-        >
-          <i class="pi pi-gift" aria-hidden="true"></i>
-          <span class="sn-row__label">{{ 'layout.header.whatsNew' | t }}</span>
-          <!-- C4: the dot loads after the first page and never shifts the row -->
-          @defer (when startup.pageShown()) {
-            <span class="sn__whats-new-dot"><fs-whats-new-dot /></span>
-          }
-        </a>
         <fs-user-menu variant="sidenav" />
       } @else {
         <button
