@@ -305,5 +305,9 @@
   "regions.statistics.noPickups": "No pickups recorded yet",
   "regions.statistics.onlyHomeRegion": "Only members with this home region",
   "regions.statistics.onlyHomeRegionHint": "Applies to gender and age groups.",
-  "regions.statistics.noMembers": "No members"
+  "regions.statistics.noMembers": "No members",
+  "regions.members.permissionsShort": "Permissions",
+  "regions.members.removeShort": "Remove",
+  "regions.page.membershipHome": "{name} is your home region.",
+  "regions.page.membershipMember": "You are a member of {name}."
 }

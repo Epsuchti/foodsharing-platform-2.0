@@ -129,7 +129,7 @@ interface RegionResources {
     }
     .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1rem; }
     .chip {
-      min-height: 2.25rem; padding: 0.25rem 0.8rem; border: 1px solid var(--fs-border); border-radius: 999px;
+      min-height: var(--fs-target-sm); padding: 0.25rem 0.8rem; border: 1px solid var(--fs-border); border-radius: 999px;
       background: var(--fs-surface); color: var(--fs-text); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
     }
     .chip--on { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }

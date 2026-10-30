@@ -16,6 +16,7 @@ import { M6_PAGES_READY } from './nav.config';
 import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
 import { RegionSwitcherComponent } from './region-switcher.component';
+import { ScrollHintDirective } from '../shared/scroll-hint/scroll-hint.directive';
 import { ThemeMenuComponent } from './theme-menu.component';
 import { UserMenuComponent } from './user-menu.component';
 
@@ -33,6 +34,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     NavBadgeComponent,
     RouterLink,
     RouterLinkActive,
+    ScrollHintDirective,
     TPipe,
     ThemeMenuComponent,
     UserMenuComponent,
@@ -46,12 +48,14 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       @if (chrome() === 'full') {
         <nav
           class="hdr__nav"
+          fsScrollHint
           [class.hdr__nav--compact]="compactNav()"
           [attr.aria-label]="'layout.header.mainNav' | t"
         >
           @for (item of mainItems(); track item.id) {
             <a
               class="hdr__link"
+              [class.hdr__link--labelled]="labelled().has(item.id)"
               [routerLink]="item.route"
               routerLinkActive="hdr__link--active"
               [routerLinkActiveOptions]="{ exact: !!item.exact }"
@@ -186,6 +190,19 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       overflow: hidden;
       clip: rect(0 0 0 0);
     }
+    /* wide screens: the first items keep their label in the compact nav (design review M7 R2: 9 unlabelled icons) */
+    @media (min-width: 75rem) {
+      .hdr__nav--compact .hdr__link--labelled {
+        padding: 0.5rem 0.8rem;
+      }
+      .hdr__nav--compact .hdr__link--labelled span {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+      }
+    }
     @media (min-width: 48rem) and (max-width: 74.99rem) {
       .hdr__link span {
         position: absolute;
@@ -272,6 +289,20 @@ export class HeaderComponent {
     const items = this.mainItems();
     const chars = items.reduce((sum, item) => sum + this.i18n.t(item.labelKey).length, 0);
     return items.length > 5 || chars > 56;
+  });
+  /**
+   * Compact nav: the leading items (dashboard and the role's main item, e.g. the newcomer journey or pickups) keep
+   * their label on wide screens — at most two and at most 24 characters together, so the nav keeps its width budget.
+   */
+  protected readonly labelled = computed(() => {
+    const ids = new Set<string>();
+    let chars = 0;
+    for (const item of this.mainItems()) {
+      chars += this.i18n.t(item.labelKey).length;
+      if (ids.size >= 2 || chars > 24) break;
+      ids.add(item.id);
+    }
+    return ids;
   });
   readonly chrome = input<ChromeMode>('full');
 }

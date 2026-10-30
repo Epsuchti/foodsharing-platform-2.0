@@ -62,7 +62,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 2.25rem;
+  min-height: var(--fs-target-sm);
   padding: 0.2rem 0.7rem;
   border: 1px solid var(--fs-border);
   border-radius: 999px;

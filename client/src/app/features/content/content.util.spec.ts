@@ -9,7 +9,7 @@ import {
   unseenVersions,
   zurichDay,
 } from './content.util';
-import { safePetitionHref } from './petition.resource';
+import { petitionBannerAllowedOn, safePetitionHref } from './petition.resource';
 
 const note = (version: string): ReleaseNote => ({
   id: `id-${version}`,
@@ -166,6 +166,15 @@ describe('content rules (Q10)', () => {
     expect(safePetitionHref(' https://petition.example/x ')).toBe('https://petition.example/x');
     expect(safePetitionHref('javascript:alert(1)')).toBeNull();
     expect(safePetitionHref('')).toBeNull();
+  });
+
+  it('keeps the petition banner off the consent and petition pages', () => {
+    for (const url of ['/consent', '/consent?returnUrl=%2Fdashboard', '/petition']) {
+      expect(petitionBannerAllowedOn(url), url).toBe(false);
+    }
+    for (const url of ['/', '/dashboard', '/consents', '/legal/privacy-policy', '/petitions-faq']) {
+      expect(petitionBannerAllowedOn(url), url).toBe(true);
+    }
   });
 
   it('maps CMS slugs to their canonical routes', () => {

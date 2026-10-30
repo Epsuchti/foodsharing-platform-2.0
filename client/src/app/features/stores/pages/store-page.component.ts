@@ -8,6 +8,7 @@ import { hasPermission } from '../../../core/auth/permission.util';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PhoneButtonComponent } from '../../../shared/phone/phone-button.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import {
   CooperationStatusBadgeComponent,
   MembershipBadgeComponent,
@@ -42,6 +43,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
+    ScrollHintDirective,
     TeamStatusBadgeComponent,
     TPipe,
   ],
@@ -95,7 +97,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
                 <span>{{ 'stores.page.navigate' | t }}</span>
               </a>
               <a
-                class="p-button p-button-secondary p-button-text p-button-sm"
+                class="p-button p-button-secondary p-button-outlined p-button-sm"
                 [href]="nav.apple"
                 target="_blank"
                 rel="noopener"
@@ -122,7 +124,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
           </div>
         </header>
 
-        <nav class="tabs" [attr.aria-label]="'stores.page.tabs' | t" data-testid="stores.page.tabs">
+        <nav class="tabs" fsScrollHint [attr.aria-label]="'stores.page.tabs' | t" data-testid="stores.page.tabs">
           @for (tab of tabs(); track tab.id) {
             <a
               class="tabs__tab"

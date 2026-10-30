@@ -10,7 +10,7 @@
   border: 1px solid var(--fs-border);
   border-radius: var(--fs-radius-xl);
   background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, #f2b84b 18%, transparent), transparent 55%),
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--fs-accent) 18%, transparent), transparent 55%),
     linear-gradient(135deg, var(--fs-primary-soft), var(--fs-surface));
 
   @media (min-width: 48rem) {
@@ -55,6 +55,14 @@
 
 .hero__parent .pi {
   font-size: 0.75rem;
+}
+
+/* touch: 44px target without moving the title (design review M7 R2) */
+@media (pointer: coarse) {
+  .hero__parent {
+    min-height: 2.75rem;
+    margin-block: -0.6rem;
+  }
 }
 
 .hero__type {
@@ -173,4 +181,28 @@
 
 .content {
   min-width: 0;
+}
+
+.membership {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--fs-border);
+  color: var(--fs-text-muted);
+  font-size: 0.92rem;
+}
+
+.membership__text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.membership__text .pi {
+  color: var(--fs-primary);
 }

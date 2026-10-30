@@ -39,6 +39,11 @@ import { TPipe } from '../core/i18n/t.pipe';
     </a>
   `,
   styles: `
+    /* never squeezed by a long header nav (design review M7 R1 #12: the logo shrank to a dot) */
+    :host {
+      display: block;
+      flex: none;
+    }
     .brand {
       display: inline-flex;
       align-items: center;
@@ -46,7 +51,13 @@ import { TPipe } from '../core/i18n/t.pipe';
       color: var(--fs-text);
       text-decoration: none;
     }
+    @media (pointer: coarse) {
+      .brand {
+        min-height: 2.75rem;
+      }
+    }
     .brand__mark {
+      flex: none;
       width: 2.1rem;
       height: 2.1rem;
       filter: drop-shadow(0 4px 10px rgb(25 93 53 / 0.22));
@@ -55,6 +66,12 @@ import { TPipe } from '../core/i18n/t.pipe';
       font-size: 1.15rem;
       font-weight: 800;
       letter-spacing: -0.03em;
+    }
+    /* narrow phones (360px): the mark alone, so the header actions fit; the link keeps its name (aria-label) */
+    @media (max-width: 24.99rem) {
+      .brand__word {
+        display: none;
+      }
     }
     .brand__word span {
       color: var(--fs-primary);

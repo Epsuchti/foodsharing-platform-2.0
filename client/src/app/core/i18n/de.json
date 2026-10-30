@@ -247,7 +247,7 @@
   "errors.TELEGRAM_NOT_LINKED": "Verbinde zuerst dein Telegram-Konto.",
   "errors.NEWSLETTER_NOT_FOUND": "Diesen Newsletter gibt es nicht.",
   "errors.NEWSLETTER_NOT_DRAFT": "Nur Entwürfe können bearbeitet, gelöscht oder versendet werden.",
-  "errors.NEWSLETTER_NO_RECIPIENTS": "Dieser Newsletter hätte keine Empfänger*innen.",
+  "errors.NEWSLETTER_NO_RECIPIENTS": "Dieser Newsletter hätte keine Empfänger:innen.",
   "errors.NEWSLETTER_NOT_CANCELLABLE": "Nur geplante oder laufende Newsletter können gestoppt werden.",
   "errors.POLICY_NOT_FOUND": "Für diesen Betrieb ist diese Automatisierung nicht eingerichtet.",
   "errors.ADVERT_NOT_FOUND": "Diese Ausschreibung gibt es nicht.",

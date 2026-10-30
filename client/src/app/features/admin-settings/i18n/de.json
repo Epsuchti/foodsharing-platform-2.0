@@ -172,7 +172,7 @@
   "adminSettings.uploads.moduleName.mailbox": "Mail-Anhänge",
   "adminSettings.uploads.moduleName.UNCLAIMED": "Unbenutzt",
   "adminSettings.admins.title": "Admins",
-  "adminSettings.admins.subtitle": "Botschafter*innen und Arbeitsgruppen-Admins mit ihren Bezirken und Gruppen.",
+  "adminSettings.admins.subtitle": "Botschafter:innen und Arbeitsgruppen-Admins mit ihren Bezirken und Gruppen.",
   "adminSettings.admins.search": "Name oder E-Mail",
   "adminSettings.admins.kind": "Verwaltet",
   "adminSettings.admins.kind.ALL": "Bezirke und Gruppen",

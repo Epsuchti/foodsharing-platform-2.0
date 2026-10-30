@@ -20,7 +20,7 @@
   "polls.scope.FOODSAVERS": "Alle Foodsaver",
   "polls.scope.VERIFIED_FOODSAVERS": "Verifizierte Foodsaver",
   "polls.scope.STORE_MANAGERS": "Betriebsverantwortliche",
-  "polls.scope.AMBASSADORS": "Botschafter*innen",
+  "polls.scope.AMBASSADORS": "Botschafter:innen",
   "polls.scope.VERIFIED_FOODSAVERS_HOME_REGION": "Verifizierte Foodsaver mit diesem Stammbezirk",
   "polls.startsAt": "beginnt {date}",
   "polls.endsAt": "endet {date}",

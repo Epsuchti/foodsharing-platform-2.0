@@ -86,7 +86,7 @@
   "automation.extraSlot.audit": "Hinzugefügte Zusatzplätze",
   "automation.extraSlot.hint": "Einmal pro Abholung, für wer sich zuerst eingetragen hat.",
   "automation.extraSlot.title": "Zusatzplatz",
-  "automation.grouping.askWho": "Frag die Botschafter*innen deines Bezirks nach der Berechtigung.",
+  "automation.grouping.askWho": "Frag die Botschafter:innen deines Bezirks nach der Berechtigung.",
   "automation.grouping.count": "{count, plural, one {# Abholung} other {# Abholungen}}",
   "automation.grouping.days": "Tage voraus",
   "automation.grouping.empty": "In diesem Zeitraum ist niemand eingetragen.",

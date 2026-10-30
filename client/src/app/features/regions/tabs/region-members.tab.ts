@@ -122,7 +122,10 @@ interface MemberQuery {
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem;
-      justify-content: flex-end;
+      justify-content: flex-start;
+      @media (min-width: 48rem) {
+        justify-content: flex-end;
+      }
     }
     .matrix {
       display: grid;

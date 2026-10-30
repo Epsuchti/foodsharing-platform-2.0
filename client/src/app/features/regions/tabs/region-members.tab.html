@@ -96,9 +96,10 @@
               @if (ctx.manageUsers()) {
                 <p-button
                   icon="pi pi-key"
+                  [label]="'regions.members.permissionsShort' | t"
                   severity="secondary"
-                  [text]="true"
-                  [rounded]="true"
+                  [outlined]="true"
+                  size="small"
                   [ariaLabel]="'regions.members.permissions' | t: { name: member.user.displayName }"
                   (onClick)="openPermissions(member)"
                   data-testid="regions.members.permissionsButton"
@@ -118,9 +119,10 @@
               @if (ctx.isAdmin() && !member.admin) {
                 <p-button
                   icon="pi pi-user-minus"
+                  [label]="'regions.members.removeShort' | t"
                   severity="danger"
                   [text]="true"
-                  [rounded]="true"
+                  size="small"
                   [ariaLabel]="'regions.members.remove' | t: { name: member.user.displayName }"
                   (onClick)="openRemove(member)"
                   data-testid="regions.members.removeButton"

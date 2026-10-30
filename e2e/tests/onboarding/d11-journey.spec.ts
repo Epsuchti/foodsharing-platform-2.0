@@ -82,8 +82,13 @@ test('D11.5.4 journey works at 360px in all five languages @D11.5.4', async ({ a
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${lang} ${path}`).toBeLessThanOrEqual(0);
     }
+    // the journey page has one call to action: the bar shows the step but leaves the action to the page
+    // (design review M7 R2); on every other page the bar carries the action
     await page.goto('/onboarding');
     await expect(page.getByTestId('onboarding.journey.cta')).toBeVisible();
+    await expect(page.getByTestId('onboarding.bar.stepper')).toBeVisible();
+    await expect(page.getByTestId('onboarding.bar.stepper.next')).toHaveCount(0);
+    await page.goto('/dashboard');
     await expect(page.getByTestId('onboarding.bar.stepper.next')).toBeVisible();
   }
 });

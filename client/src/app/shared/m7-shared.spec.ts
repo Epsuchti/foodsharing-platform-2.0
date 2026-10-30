@@ -11,6 +11,7 @@ import { ANIMATION_FRAMES, AnimatedCounterComponent, easeOutCubic } from './anim
 import { BlobSource, ImageCropComponent, clampOffset, cropRect, encodeJpeg } from './image-crop/image-crop.component';
 import { MapMarker, MapViewComponent } from './map-view/map-view.component';
 import { MarkerFilterBarComponent } from './marker-filter-bar/marker-filter-bar.component';
+import { updateScrollHint } from './scroll-hint/scroll-hint.directive';
 import { UploadDropzoneComponent } from './upload-dropzone/upload-dropzone.component';
 import { UserAvatarComponent } from './user-chip/user-avatar.component';
 import { UserChipComponent } from './user-chip/user-chip.component';
@@ -326,5 +327,59 @@ describe('MarkerFilterBarComponent', () => {
     fixture.componentInstance.values.subscribe((values) => changes.push(values));
     (fixture.componentInstance as unknown as { set(key: string, value: string): void }).set('status', 'COOPERATING');
     expect(changes).toEqual([{ status: 'COOPERATING', help: 'ALL' }]);
+  });
+
+  it('folds behind a toggle on phones that counts the filters differing from the defaults', async () => {
+    const fixture = TestBed.createComponent(MarkerFilterBarComponent);
+    fixture.componentRef.setInput('label', 'Filter stores');
+    fixture.componentRef.setInput('testId', 'test.filter');
+    fixture.componentRef.setInput('collapseOnPhone', true);
+    fixture.componentRef.setInput('defaults', { status: 'ALL', help: 'ALL' });
+    fixture.componentRef.setInput('filters', [
+      { key: 'status', label: 'Cooperation', options: [{ value: 'ALL', label: 'All' }] },
+      { key: 'help', label: 'Team', options: [{ value: 'ALL', label: 'All' }] },
+    ]);
+    fixture.componentRef.setInput('values', { status: 'ALL', help: 'ALL' });
+    await fixture.whenStable();
+    const toggle = byTestId(el(fixture), 'test.filter.toggle')[0] as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(el(fixture).querySelector('fieldset')?.classList).toContain('bar--closed');
+    expect(byTestId(el(fixture), 'test.filter.activeCount').length).toBe(0);
+
+    toggle.click();
+    fixture.componentRef.setInput('values', { status: 'COOPERATING', help: 'ALL' });
+    await fixture.whenStable();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(el(fixture).querySelector('fieldset')?.classList).not.toContain('bar--closed');
+    expect(byTestId(el(fixture), 'test.filter.activeCount').length).toBe(1);
+  });
+
+  it('marks the sides of a scrolling row behind which more items wait', () => {
+    const el = document.createElement('div');
+    const metrics = { scrollWidth: 600, clientWidth: 300, scrollLeft: 0 };
+    for (const key of Object.keys(metrics) as (keyof typeof metrics)[]) {
+      Object.defineProperty(el, key, { get: () => metrics[key] });
+    }
+    updateScrollHint(el);
+    expect([el.hasAttribute('data-more-start'), el.hasAttribute('data-more-end')]).toEqual([false, true]);
+    metrics.scrollLeft = 150;
+    updateScrollHint(el);
+    expect([el.hasAttribute('data-more-start'), el.hasAttribute('data-more-end')]).toEqual([true, true]);
+    metrics.scrollLeft = 300;
+    updateScrollHint(el);
+    expect([el.hasAttribute('data-more-start'), el.hasAttribute('data-more-end')]).toEqual([true, false]);
+    metrics.scrollWidth = 300;
+    updateScrollHint(el);
+    expect([el.hasAttribute('data-more-start'), el.hasAttribute('data-more-end')]).toEqual([false, false]);
+  });
+
+  it('has no toggle unless collapseOnPhone is set', async () => {
+    const fixture = TestBed.createComponent(MarkerFilterBarComponent);
+    fixture.componentRef.setInput('label', 'Filter');
+    fixture.componentRef.setInput('testId', 'test.filter');
+    fixture.componentRef.setInput('filters', []);
+    await fixture.whenStable();
+    expect(byTestId(el(fixture), 'test.filter.toggle').length).toBe(0);
+    expect(el(fixture).querySelector('fieldset')?.classList).not.toContain('bar--closed');
   });
 });

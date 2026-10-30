@@ -51,7 +51,7 @@
 
 .blob--b {
   inset: 0.55rem -0.4rem -0.3rem 0.6rem;
-  background: color-mix(in srgb, #f2b84b 30%, transparent);
+  background: color-mix(in srgb, var(--fs-accent) 30%, transparent);
   transform: rotate(18deg);
 }
 
@@ -137,7 +137,7 @@
     background:
       radial-gradient(
         28rem 18rem at 100% 0%,
-        color-mix(in srgb, #f2b84b 16%, transparent),
+        color-mix(in srgb, var(--fs-accent) 16%, transparent),
         transparent 70%
       ),
       radial-gradient(

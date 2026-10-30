@@ -139,6 +139,13 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
       .user-btn {
         padding: 0.15rem;
       }
+      @media (pointer: coarse) {
+        .user-btn {
+          min-width: 2.75rem;
+          min-height: 2.75rem;
+          justify-content: center;
+        }
+      }
       .user-btn__name,
       .user-btn__chevron {
         display: none;

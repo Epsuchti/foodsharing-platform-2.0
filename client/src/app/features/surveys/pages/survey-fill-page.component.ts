@@ -87,7 +87,7 @@ import { AnswerDraft, buildAnswers, missingRequired } from '../surveys.resource'
     legend { font-weight: 600; margin-bottom: 0.35rem; padding: 0; }
     .req { color: var(--fs-danger); margin-left: 0.2rem; }
     textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; border: 1px solid var(--fs-border-strong, var(--fs-border)); border-radius: 0.4rem; background: var(--fs-surface); color: var(--fs-text); }
-    .choice { display: flex; align-items: center; gap: 0.5rem; min-height: 2.25rem; }
+    .choice { display: flex; align-items: center; gap: 0.5rem; min-height: var(--fs-target-sm); }
     .store { margin: 0; font-weight: 600; }
     .notice { margin: 0; padding: 0.75rem 1rem; border-radius: 0.5rem; background: var(--fs-surface-muted); }
     .notice--ok { background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 600; }

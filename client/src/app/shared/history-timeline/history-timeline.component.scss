@@ -16,7 +16,7 @@
 }
 
 .ht__preset {
-  min-height: 2.25rem;
+  min-height: var(--fs-target-sm);
   padding: 0.35rem 0.9rem;
   border: 1px solid var(--fs-border-strong);
   border-radius: 999px;

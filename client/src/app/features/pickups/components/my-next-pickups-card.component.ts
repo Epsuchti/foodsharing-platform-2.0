@@ -57,7 +57,10 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
     .list li { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
     .when { color: var(--fs-text-muted); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
     .wait { color: var(--fs-warning-text); }
-    .links { display: flex; flex-wrap: wrap; gap: 1rem; font-weight: 600; }
+    .links { display: flex; flex-wrap: wrap; gap: 0 1rem; font-weight: 600; }
+    @media (pointer: coarse) {
+      .links a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+    }
   `,
 })
 export class MyNextPickupsCardComponent {

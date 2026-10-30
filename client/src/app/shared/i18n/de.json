@@ -260,5 +260,9 @@
   "shared.upload.full": "Das Maximum von {max} Dateien ist erreicht.",
   "shared.upload.tooMany": "Nicht mehr als {max} Dateien.",
   "shared.upload.tooLarge": "Grösser als {size}.",
-  "shared.upload.failed": "Hochladen fehlgeschlagen."
+  "shared.upload.failed": "Hochladen fehlgeschlagen.",
+  "shared.markerFilter.active": "{count} aktiv",
+  "shared.pickupSlot.freeOnly": "Freier Platz",
+  "shared.pickupSlot.signUp": "Eintragen",
+  "shared.pickupSlot.freeShort": "{count} frei"
 }

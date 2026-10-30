@@ -305,5 +305,9 @@
   "regions.statistics.noPickups": "Ancora nessun ritiro registrato",
   "regions.statistics.onlyHomeRegion": "Solo i membri con questa regione di riferimento",
   "regions.statistics.onlyHomeRegionHint": "Vale per genere e fasce d'età.",
-  "regions.statistics.noMembers": "Nessun membro"
+  "regions.statistics.noMembers": "Nessun membro",
+  "regions.members.permissionsShort": "Permessi",
+  "regions.members.removeShort": "Rimuovi",
+  "regions.page.membershipHome": "{name} è la tua regione principale.",
+  "regions.page.membershipMember": "Sei membro di {name}."
 }

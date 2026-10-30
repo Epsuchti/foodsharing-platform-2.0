@@ -114,6 +114,33 @@ import { TPipe } from '../../core/i18n/t.pipe';
     .ph__actions:empty {
       display: none;
     }
+    /* phones (design review M7 R2): a compact title block so the page's content starts on the first screen */
+    @media (max-width: 47.99rem) {
+      :host {
+        gap: 0.5rem;
+        margin-bottom: 1.1rem;
+      }
+      .ph__row {
+        align-items: flex-start;
+        gap: 0.75rem 0.85rem;
+      }
+      .ph__icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-top: 0.1rem;
+        font-size: 1.1rem;
+      }
+      .ph__text {
+        flex-basis: 12rem;
+      }
+      .ph__subtitle {
+        font-size: 0.92rem;
+        line-height: 1.45;
+      }
+      .ph__actions {
+        flex-basis: 100%;
+      }
+    }
   `,
 })
 export class PageHeaderComponent {

@@ -45,7 +45,7 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
     :host { display: grid; gap: 1rem; }
     .subnav { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1rem; }
     .subnav__item {
-      display: inline-flex; align-items: center; min-height: 2.25rem;
+      display: inline-flex; align-items: center; min-height: var(--fs-target-sm);
       padding: 0.35rem 0.8rem;
       border-radius: 999px;
       border: 1px solid var(--fs-border);

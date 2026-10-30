@@ -10,7 +10,7 @@
   border: 1px solid var(--fs-border);
   border-radius: var(--fs-radius-xl);
   background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, #f2b84b 18%, transparent), transparent 55%),
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--fs-accent) 18%, transparent), transparent 55%),
     linear-gradient(135deg, var(--fs-primary-soft), var(--fs-surface));
 
   @media (min-width: 48rem) {
@@ -55,6 +55,14 @@
 
 .hero__parent .pi {
   font-size: 0.75rem;
+}
+
+/* touch: 44px target without moving the title (design review M7 R2) */
+@media (pointer: coarse) {
+  .hero__parent {
+    min-height: 2.75rem;
+    margin-block: -0.6rem;
+  }
 }
 
 .hero__type {

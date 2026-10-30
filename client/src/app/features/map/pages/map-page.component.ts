@@ -100,10 +100,20 @@ interface Selected {
               (input)="query.set($any($event.target).value)"
               data-testid="map.page.search"
             />
-            <p-button type="submit" icon="pi pi-search" [label]="'map.search.submit' | t" [disabled]="query().trim().length < 2" data-testid="map.page.searchSubmit" />
+            <p-button
+              type="submit"
+              class="phone-icon-only"
+              icon="pi pi-search"
+              [label]="'map.search.submit' | t"
+              [ariaLabel]="'map.search.submit' | t"
+              [disabled]="query().trim().length < 2"
+              data-testid="map.page.searchSubmit"
+            />
           </form>
         }
         <p-button
+          [class.phone-icon-only]="loggedIn()"
+          [ariaLabel]="(locating() ? 'map.page.locating' : 'map.page.nearMe') | t"
           [label]="(locating() ? 'map.page.locating' : 'map.page.nearMe') | t"
           icon="pi pi-compass"
           severity="secondary"
@@ -161,10 +171,26 @@ interface Selected {
         </p>
       }
       @if (showLayer('stores')) {
-        <fs-marker-filter-bar [filters]="storeFilters()" [values]="$any(storeFilter())" (valuesChange)="storeFilter.set($any($event))" [label]="'map.stores.filterLabel' | t" testId="map.page.storeFilter" />
+        <fs-marker-filter-bar
+          [filters]="storeFilters()"
+          [values]="$any(storeFilter())"
+          (valuesChange)="storeFilter.set($any($event))"
+          [label]="'map.stores.filterLabel' | t"
+          [collapseOnPhone]="true"
+          [defaults]="$any(defaultStoreFilter)"
+          testId="map.page.storeFilter"
+        />
       }
       @if (showLayer('users')) {
-        <fs-marker-filter-bar [filters]="userFilters()" [values]="$any(userFilter())" (valuesChange)="userFilter.set($any($event))" [label]="'map.users.filterLabel' | t" testId="map.page.userFilter" />
+        <fs-marker-filter-bar
+          [filters]="userFilters()"
+          [values]="$any(userFilter())"
+          (valuesChange)="userFilter.set($any($event))"
+          [label]="'map.users.filterLabel' | t"
+          [collapseOnPhone]="true"
+          [defaults]="defaultUserFilter"
+          testId="map.page.userFilter"
+        />
       }
     </section>
 
@@ -262,7 +288,7 @@ interface Selected {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      min-height: 2.25rem;
+      min-height: var(--fs-target-sm);
       padding: 0.35rem 0.85rem;
       border: 1px solid var(--fs-border);
       border-radius: 999px;
@@ -289,6 +315,60 @@ interface Selected {
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
+    }
+    /*
+     * Phones (design review M7 R1 #10): search, layer chips and four store filters filled the first screen. Search and
+     * "near me" share one row with icon-only buttons, the layer chips are one swipeable row and the filters fold
+     * behind a toggle (fs-marker-filter-bar collapseOnPhone), so the map starts within the first screen.
+     */
+    @media (max-width: 47.99rem) {
+      .controls {
+        gap: 0.65rem;
+        padding: 0.75rem;
+      }
+      .controls__row {
+        flex-wrap: nowrap;
+      }
+      .search {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .phone-icon-only ::ng-deep .p-button-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .phone-icon-only ::ng-deep .p-button {
+        min-width: 2.75rem;
+        padding-inline: 0.7rem;
+      }
+      .layers {
+        flex-wrap: nowrap;
+        margin-inline: -0.75rem;
+        padding: 0.1rem 0.75rem 0.25rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        scroll-padding-inline: 0.75rem;
+      }
+      .layer {
+        flex: none;
+      }
+    }
+    @media (pointer: coarse) {
+      .hit,
+      .layer,
+      .search__input {
+        min-height: 2.75rem;
+      }
+      .bubble__close {
+        top: 0.25rem;
+        right: 0.25rem;
+        width: 2.75rem;
+        height: 2.75rem;
+      }
     }
     .muted {
       margin: 0;
@@ -384,6 +464,13 @@ export class MapPageComponent {
   private readonly dates = inject(DateTimeFormatter);
 
   protected readonly loggedIn = this.session.isAuthenticated;
+  /** "Not filtered" values for the phone filter toggle's count (the region of the user layer is a choice, not a filter). */
+  protected readonly defaultStoreFilter = DEFAULT_STORE_FILTER;
+  protected readonly defaultUserFilter: Record<string, string> = {
+    role: UserMarkerRole.All,
+    activity: UserMarkerActivity.All,
+    member: UserMarkerMember.All,
+  };
   protected readonly layers = signal<MapLayer[]>(readLayers());
   protected readonly storeFilter = signal<StoreFilterValues>({ ...DEFAULT_STORE_FILTER });
   protected readonly userFilter = signal<UserFilterValues>({

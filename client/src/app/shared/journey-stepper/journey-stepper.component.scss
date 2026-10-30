@@ -72,11 +72,29 @@
   .compact .meter {
     display: none;
   }
+  /* count above the title; the title may take two lines instead of being cut off next to the action (M7 R2 #14) */
   .compact__text {
+    flex-direction: column;
     flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 0;
+    line-height: 1.25;
+  }
+  .compact__text strong {
+    display: -webkit-box;
     overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+  .compact__count {
+    font-size: 0.75rem;
+  }
+  .compact__action {
+    max-width: 58%;
+    white-space: normal;
+    text-align: center;
   }
 }
 

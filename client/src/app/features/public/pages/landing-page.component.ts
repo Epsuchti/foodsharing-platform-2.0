@@ -300,7 +300,7 @@ export const EXPLAINER_FAQ = ['what', 'cost', 'time', 'who', 'safe'] as const;
       bottom: 4%;
       width: 34%;
       height: 34%;
-      background: color-mix(in srgb, #f2b84b 45%, transparent);
+      background: color-mix(in srgb, var(--fs-accent) 45%, transparent);
     }
     .art__card {
       position: absolute;

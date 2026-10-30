@@ -185,7 +185,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       background:
         radial-gradient(
           circle at 100% 0%,
-          color-mix(in srgb, #f2b84b 22%, transparent),
+          color-mix(in srgb, var(--fs-accent) 22%, transparent),
           transparent 55%
         ),
         linear-gradient(135deg, var(--fs-primary-soft), var(--fs-surface));
@@ -267,6 +267,11 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       min-width: 0;
       align-content: start;
     }
+    /* cards that render nothing for this user (push opt-in, pickups of newcomers) leave no double gap (M7 R2) */
+    .main > :empty,
+    .side > :empty {
+      display: none;
+    }
     /* Desktop: greeting, next step and the activity feed on the left; quick links and nearby baskets beside them. */
     @media (min-width: 56rem) {
       :host {
@@ -318,6 +323,14 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       color: var(--fs-primary-strong);
       font-weight: 650;
       font-size: 0.9rem;
+    }
+    @media (pointer: coarse) {
+      .card__more {
+        display: inline-flex;
+        align-items: center;
+        justify-self: start;
+        min-height: 2.75rem;
+      }
     }
     .card__action {
       justify-self: start;

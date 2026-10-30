@@ -39,7 +39,7 @@ import { RegionAutomationContext } from '../region-automation.context';
     :host { display: grid; gap: 1rem; width: min(100%, 64rem); margin: 0 auto; }
     .subnav { display: flex; flex-wrap: wrap; gap: 0.35rem; }
     .subnav__item {
-      display: inline-flex; align-items: center; min-height: 2.25rem;
+      display: inline-flex; align-items: center; min-height: var(--fs-target-sm);
       padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--fs-border);
       color: inherit; text-decoration: none; font-size: 0.9rem; font-weight: 600;
     }

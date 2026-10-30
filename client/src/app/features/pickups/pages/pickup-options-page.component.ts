@@ -19,10 +19,10 @@ import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-
   imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, PickupSignupDialogComponent, RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fs-page-header [title]="'pickups.options.title' | t" [subtitle]="'pickups.options.subtitle' | t" icon="pi pi-calendar-plus" />
-    <div class="toolbar">
+    <!-- secondary page actions sit in the page header (design review M7 R2: consistent action placement) -->
+    <fs-page-header [title]="'pickups.options.title' | t" [subtitle]="'pickups.options.subtitle' | t" icon="pi pi-calendar-plus">
       <p-button [label]="'pickups.mine.title' | t" icon="pi pi-calendar" severity="secondary" [outlined]="true" routerLink="/pickups/mine" data-testid="pickups.options.mine" />
-    </div>
+    </fs-page-header>
     <fs-data-state
       [state]="options"
       skeleton="list"
@@ -61,10 +61,12 @@ import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-
   `,
   styles: `
     :host { display: block; width: min(100%, 56rem); margin: 0 auto; }
-    .toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
     .cards { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
-    .option { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem; }
-    .option__main { display: grid; gap: 0.2rem; }
+    /* the action stays beside the text on phones too (one row per pickup instead of three, M7 R2 list density) */
+    .option {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem;
+    }
+    .option__main { display: grid; gap: 0.15rem; min-width: 0; }
     .option__store { font-weight: 700; color: inherit; }
     .option__when { font-variant-numeric: tabular-nums; }
     .muted { color: var(--fs-text-muted); font-size: 0.88rem; }

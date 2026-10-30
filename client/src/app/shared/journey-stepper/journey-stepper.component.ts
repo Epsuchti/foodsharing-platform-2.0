@@ -67,8 +67,8 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                 }
               }
             </span>
-            @if (progressOnly()) {
-              <!-- the host card shows the step title and the action itself -->
+            @if (progressOnly() || hideAction()) {
+              <!-- the host card / page shows the action itself -->
             } @else if (current()?.nextAction; as next) {
               <a class="fs-btn fs-btn--sm compact__action" [routerLink]="next.route" (click)="action.emit(next)" [attr.data-testid]="testId() + '.next'">
                 {{ next.labelKey | t }}
@@ -161,7 +161,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                     </div>
                   }
                   <div class="step__foot">
-                    @if (step.nextAction; as next) {
+                    @if (step.key !== omitActionFor() && step.nextAction; as next) {
                       <a class="fs-btn fs-btn--sm" [routerLink]="next.route" (click)="action.emit(next)" [attr.data-testid]="testId() + '.action.' + step.key">
                         {{ next.labelKey | t }}
                         <i class="pi pi-arrow-right" aria-hidden="true"></i>
@@ -196,6 +196,13 @@ export class JourneyStepperComponent {
    * step's title and action themselves (dashboard; design review M7 R1: the action appeared twice in one card).
    */
   readonly progressOnly = input(false);
+  /**
+   * Compact mode: progress and the current step's title, but no action and no link (the journey page, whose own call
+   * to action is the next step; design review M7 R2: the same CTA appeared three times on `/onboarding`).
+   */
+  readonly hideAction = input(false);
+  /** Full mode: the step whose action the host page shows itself (the journey page's hero CTA). */
+  readonly omitActionFor = input<string | null | undefined>(undefined);
   readonly action = output<JourneyNextAction>();
 
   protected readonly steps = computed<JourneyStep[]>(() => [
