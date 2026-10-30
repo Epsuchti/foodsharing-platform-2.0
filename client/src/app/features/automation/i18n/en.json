@@ -21,6 +21,7 @@
   "automation.adverts.resend": "Send the latest advert again",
   "automation.adverts.rotating": "Sent in turns, one per advert.",
   "automation.adverts.runResult": "Checked {evaluated}: {sent} sent, {skipped} skipped, {failed} failed.",
+  "automation.adverts.saveFirst": "Save first: dry runs and runs use the saved adverts.",
   "automation.adverts.telegramChat": "Telegram chat",
   "automation.adverts.telegramDefault": "Store or region chat",
   "automation.adverts.title": "Open-slot adverts",

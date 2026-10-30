@@ -21,6 +21,7 @@
   "automation.adverts.resend": "Renvoyer la dernière annonce",
   "automation.adverts.rotating": "Envoyés à tour de rôle, un par annonce.",
   "automation.adverts.runResult": "{evaluated} vérifiées : {sent} envoyées, {skipped} ignorées, {failed} en échec.",
+  "automation.adverts.saveFirst": "Enregistrez d'abord : le test et l'exécution utilisent les annonces enregistrées.",
   "automation.adverts.telegramChat": "Chat Telegram",
   "automation.adverts.telegramDefault": "Chat du commerce ou de la région",
   "automation.adverts.title": "Annonces de créneaux libres",
