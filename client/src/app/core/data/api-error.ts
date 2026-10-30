@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { OperatorFunction, catchError, from, of, switchMap, throwError } from 'rxjs';
 
 import { ApiError, ApiErrorCode, FieldError } from '../../api';
 
@@ -114,6 +115,36 @@ export function toApiErrorView(error: unknown): ApiErrorView {
   }
   const message = error instanceof Error ? error.message : String(error ?? 'Unknown error');
   return { status: -1, code: 'UNKNOWN', message, retryable: true, fieldErrors: [] };
+}
+
+/**
+ * For calls with `responseType: 'blob'` (PDF downloads): the error body arrives as a Blob, so the ApiError inside
+ * is read first and the call fails with its view (`errors.<code>` instead of the status fallback).
+ * `this.api.getBusinessCard(params).pipe(readBlobErrors())`
+ */
+export function readBlobErrors<T>(): OperatorFunction<T, T> {
+  return catchError((error: unknown) => {
+    const source = error instanceof HttpErrorResponse ? error : null;
+    if (!source || !(source.error instanceof Blob)) {
+      return throwError(() => error);
+    }
+    return from(source.error.text()).pipe(
+      catchError(() => of('')),
+      switchMap((text) =>
+        throwError(() =>
+          toApiErrorView(
+            new HttpErrorResponse({
+              error: text,
+              headers: source.headers,
+              status: source.status,
+              statusText: source.statusText,
+              url: source.url ?? undefined,
+            }),
+          ),
+        ),
+      ),
+    );
+  });
 }
 
 /** Bodies of non-JSON error responses (e.g. responseType text/blob) may contain the JSON as a string. */

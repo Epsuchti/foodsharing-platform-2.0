@@ -10,6 +10,7 @@ import { apiHttpError, provideDataStateTesting } from '../core/testing/data-stat
 import { ANIMATION_FRAMES, AnimatedCounterComponent, easeOutCubic } from './animated-counter/animated-counter.component';
 import { BlobSource, ImageCropComponent, clampOffset, cropRect, encodeJpeg } from './image-crop/image-crop.component';
 import { MapMarker, MapViewComponent } from './map-view/map-view.component';
+import { MarkerFilterBarComponent } from './marker-filter-bar/marker-filter-bar.component';
 import { UploadDropzoneComponent } from './upload-dropzone/upload-dropzone.component';
 import { UserAvatarComponent } from './user-chip/user-avatar.component';
 import { UserChipComponent } from './user-chip/user-chip.component';
@@ -289,5 +290,41 @@ describe('MapViewComponent bubble', () => {
     }
     expect(bubbles).toEqual(['fsp', 'basket', 'user', 'store']);
     expect(clicks).toEqual(kinds);
+  });
+});
+
+describe('MapViewComponent focus', () => {
+  it('moves the map to the focus point and reports the centre', async () => {
+    const fixture = TestBed.createComponent(MapViewComponent);
+    fixture.componentRef.setInput('markers', [
+      { id: 'a', kind: 'fsp', lat: 47.37, lon: 8.51, label: 'a' },
+      { id: 'b', kind: 'fsp', lat: 47.5, lon: 8.72, label: 'b' },
+    ]);
+    await fixture.whenStable();
+    await expect.poll(() => el(fixture).getAttribute('data-center')).not.toBeNull();
+    fixture.componentRef.setInput('focus', { lat: 47.4996, lon: 8.7241, zoom: 13 });
+    await fixture.whenStable();
+    await expect.poll(() => el(fixture).getAttribute('data-center')).toBe('47.500,8.724');
+  });
+});
+
+describe('MarkerFilterBarComponent', () => {
+  it('renders one labelled select per filter and updates the values', async () => {
+    const fixture = TestBed.createComponent(MarkerFilterBarComponent);
+    fixture.componentRef.setInput('label', 'Filter stores');
+    fixture.componentRef.setInput('testId', 'test.filter');
+    fixture.componentRef.setInput('filters', [
+      { key: 'status', label: 'Cooperation', options: [{ value: 'ALL', label: 'All' }, { value: 'COOPERATING', label: 'Cooperating' }] },
+      { key: 'help', label: 'Team', options: [{ value: 'ALL', label: 'All' }] },
+    ]);
+    fixture.componentRef.setInput('values', { status: 'ALL', help: 'ALL' });
+    await fixture.whenStable();
+    expect(el(fixture).querySelector('legend')?.textContent).toContain('Filter stores');
+    expect(byTestId(el(fixture), 'test.filter.status').length).toBe(1);
+    expect(el(fixture).querySelector('label[for="test.filter-help"]')?.textContent).toContain('Team');
+    const changes: Record<string, string>[] = [];
+    fixture.componentInstance.values.subscribe((values) => changes.push(values));
+    (fixture.componentInstance as unknown as { set(key: string, value: string): void }).set('status', 'COOPERATING');
+    expect(changes).toEqual([{ status: 'COOPERATING', help: 'ALL' }]);
   });
 });

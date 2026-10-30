@@ -79,7 +79,7 @@ const when =
  * until then the item is declared with its real visibility rule but hidden.
  */
 export const M6_PAGES_READY = {
-  map: false,
+  map: true,
   baskets: true,
   search: false,
   profile: true,
@@ -87,7 +87,7 @@ export const M6_PAGES_READY = {
   adminOauth: false,
   adminUploads: false,
   adminAchievements: false,
-  adminBounced: false,
+  adminBounced: true,
   team: false,
   partners: false,
   press: false,
@@ -100,8 +100,8 @@ export const M6_PAGES_READY = {
   support: false,
   releaseNotes: false,
   faq: false,
-  /** Report button on profiles (Q8); no nav item of its own. */
-  reports: false,
+  /** Report button on profiles, region tabs reports/report-log/mediation (Q8); no nav item of its own. */
+  reports: true,
 };
 export type M6Page = keyof typeof M6_PAGES_READY;
 const whenM6 =

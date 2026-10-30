@@ -11,7 +11,9 @@ import { runMutation } from '../../../core/data/mutation';
 import { FeatureToggleService } from '../../../core/feature-toggles/feature-toggle.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { M6_PAGES_READY } from '../../../layout/nav.config';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { mayHandleReports } from '../../reports/reports.util';
 import { RegionPageContext } from '../region-page.context';
 import { isAccessibleType } from '../shared/unit-types';
 
@@ -24,9 +26,10 @@ interface RegionTab {
 }
 
 /** Features of later milestones, shown as tabs with an "available in a later release" placeholder (R3 partial). */
-const LATER = [
+const LATER: { id: string; icon: string; route?: string }[] = [
   { id: 'stores', icon: 'pi pi-shopping-bag' },
-  { id: 'wall', icon: 'pi pi-megaphone' },
+  // a tab route of its own (plan-m7 Q7), so /regions/:id/wall stays the wall's address
+  { id: 'wall', icon: 'pi pi-megaphone', route: 'wall' },
 ];
 
 /**
@@ -57,6 +60,11 @@ export class RegionPageComponent {
     ),
   );
 
+  /** Report handlers (A51 rule copied in reports.util until RegionDetail says so; the server decides). */
+  private readonly reportHandler = computed(
+    () => M6_PAGES_READY.reports && mayHandleReports(this.session.session(), this.ctx.data()),
+  );
+
   protected readonly tabs = computed<RegionTab[]>(() => {
     const member = this.ctx.isMember() || this.ctx.isOrga();
     const admin = this.ctx.isAdmin();
@@ -81,6 +89,10 @@ export class RegionPageComponent {
         labelKey: 'regions.tab.foodSharePoints',
         visible: this.toggles.isEnabled(FeatureToggleKey.FoodSharePoints),
       },
+      // M6 Q8: /regions/:regionId/{reports,report-log,mediation} (features/reports)
+      { id: 'reports', route: 'reports', icon: 'pi pi-flag', labelKey: 'regions.tab.reports', visible: this.reportHandler() },
+      { id: 'reportLog', route: 'report-log', icon: 'pi pi-list', labelKey: 'regions.tab.reportLog', visible: this.reportHandler() },
+      { id: 'mediation', route: 'mediation', icon: 'pi pi-comments', labelKey: 'regions.tab.mediation', visible: M6_PAGES_READY.reports && member },
       // M4 F4: /regions/:regionId/automation (features/automation)
       { id: 'automation', route: 'automation', icon: 'pi pi-bolt', labelKey: 'regions.tab.automation', visible: admin || this.automation() },
     ];
@@ -91,7 +103,7 @@ export class RegionPageComponent {
     this.ctx.isMember()
       ? LATER.map((tab) => ({
           ...tab,
-          route: `later/${tab.id}`,
+          route: tab.route ?? `later/${tab.id}`,
           labelKey: `regions.later.${tab.id}`,
         }))
       : [],

@@ -5,6 +5,11 @@ import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { AccountTabsComponent } from '../components/account-tabs.component';
+import { BounceBannerComponent } from '../components/bounce-banner.component';
+import { BusinessCardComponent } from '../components/business-card.component';
+import { CalendarCardComponent } from '../components/calendar-card.component';
+import { DangerZoneCardComponent } from '../components/danger-zone-card.component';
+import { DataExportCardComponent } from '../components/data-export-card.component';
 import { EmailCardComponent } from '../components/email-card.component';
 import { LoginMethodsCardComponent } from '../components/login-methods-card.component';
 import { PhotoCardComponent } from '../components/photo-card.component';
@@ -13,14 +18,20 @@ import { SleepModeCardComponent } from '../components/sleep-mode-card.component'
 import { PickupReminderCardComponent } from '../../pickups/components/pickup-reminder-card.component';
 
 /**
- * /account/settings — photo (A5), language, theme and mail switches (A12, A17, A20), email address (A3), sleep mode
- * (A9), login methods incl. passkeys (D8) and pickup reminders. The own profile is loaded once and shared by the
- * cards that show its values.
+ * /account/settings — bounce warning (A18), photo (A5), language, theme and mail switches (A12, A17, A20), email
+ * address (A3), sleep mode (A9), login methods incl. passkeys (D8), pickup reminders, calendar feed (A11), business
+ * card (A14), data export (A21) and the danger zone (A13). The own profile is loaded once and shared by the cards
+ * that show its values.
  */
 @Component({
   selector: 'fs-settings-page',
   imports: [
     AccountTabsComponent,
+    BounceBannerComponent,
+    BusinessCardComponent,
+    CalendarCardComponent,
+    DangerZoneCardComponent,
+    DataExportCardComponent,
     EmailCardComponent,
     LoginMethodsCardComponent,
     PageHeaderComponent,
@@ -39,12 +50,17 @@ import { PickupReminderCardComponent } from '../../pickups/components/pickup-rem
     />
     <fs-account-tabs />
     <div class="layout">
+      <fs-bounce-banner [profile]="profile" [showChangeLink]="false" />
       <fs-photo-card [profile]="profile" />
       <fs-preferences-card [profile]="profile" />
       <fs-email-card [profile]="profile" />
       <fs-sleep-mode-card [profile]="profile" />
       <fs-login-methods-card [autoAddPasskey]="autoAdd()" />
       <fs-pickup-reminder-card />
+      <fs-calendar-card />
+      <fs-business-card />
+      <fs-data-export-card />
+      <fs-danger-zone-card [profile]="profile" />
     </div>
   `,
   styles: `

@@ -32,7 +32,7 @@ const ROUTES: RouteCase[] = [
   { path: '/consent', role: 'newbie', ready: 'legal.consent.documents' },
   { path: '/dashboard', role: 'newbie', ready: 'dashboard.page.welcome', consent: true },
   { path: '/dashboard', role: 'orga', ready: 'dashboard.page.welcome' },
-  { path: '/account/settings', role: 'foodsaver' },
+  { path: '/account/settings', role: 'foodsaver', ready: 'account.settings.calendar.url' },
   { path: '/account/sessions', role: 'foodsaver' },
   { path: '/account/security-log', role: 'foodsaver' },
   { path: '/account/profile', role: 'foodsaver' },
@@ -48,6 +48,10 @@ const ROUTES: RouteCase[] = [
   { path: '/account/email/confirm?token=not-a-token', role: 'foodsaver', ready: 'account.email.confirm.tokenError' },
   { path: '/account/email/abort', role: null, ready: 'account.email.abort.tokenError' },
   { path: '/newsletters', role: 'orga', ready: 'newsletters.list.kind' },
+  // M6 account completion 2 (plan-m7 Q4): no calendar link yet for guide (foodsaver's link: the settings row above), user page with notes, bounced list
+  { path: '/account/settings', role: 'guide', ready: 'account.settings.calendar.none', consent: true },
+  { path: '/users/00000001-0001-4000-8000-000000000008', role: 'bot', ready: 'usersAdmin.user.notes.composer' },
+  { path: '/admin/bounced-emails', role: 'orga', ready: 'usersAdmin.bounced.state' },
   // M6 food baskets (plan-m7 Q5)
   { path: '/baskets', role: 'foodsaver', ready: 'baskets.nearby.list' },
   { path: '/baskets/mine', role: 'foodsaver', ready: 'baskets.mine.offeredList' },
@@ -61,6 +65,18 @@ const ROUTES: RouteCase[] = [
   { path: '/food-share-points/00000049-0001-4000-8000-000000000005', role: 'bot', ready: 'foodSharePoints.detail.activate', consent: true },
   { path: '/food-share-points/new?regionId=00000010-0001-4000-8000-000000000040', role: 'foodsaver', ready: 'foodSharePoints.form' },
   { path: '/food-share-points/mine', role: 'foodsaver', ready: 'foodSharePoints.mine.list' },
+  // M6 reports and mediation (plan-m7 Q8): the report team (reports@local), report 03 has wall posts
+  { path: '/regions/00000010-0001-4000-8000-000000000040/reports', role: 'reports', ready: 'reports.region.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/report-log', role: 'reports', ready: 'reports.log.count', consent: true },
+  { path: '/reports/00000050-0001-4000-8000-000000000003', role: 'reports', ready: 'reports.detail.wall.list', consent: true },
+  { path: '/profile/00000001-0001-4000-8000-000000000007', role: 'reports', ready: 'reports.user.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/mediation', role: 'foodsaver', ready: 'reports.mediation.team' },
+  // M6 map, dashboard feed, region statistics (plan-m7 Q7)
+  { path: '/map', role: null, ready: 'map.page.layers' },
+  { path: '/map', role: 'foodsaver', ready: 'map.page.storeFilter' },
+  { path: '/dashboard', role: 'bot', ready: 'dashboard.activity.list', consent: true },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/statistics', role: 'foodsaver', ready: 'regions.statistics.genderList' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/wall', role: 'foodsaver', ready: 'regions.later.empty' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {
