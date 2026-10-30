@@ -107,7 +107,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | C2 | Blog: create, edit, publish/unpublish, delete, per region, teaser, picture | done | content: BlogService create/edit/publish/unpublish/soft delete per region, awaitingCheck (decision 76) |  |  |  | verified by the test worker on f960077 |
 | C3 | Public statistics (kg saved, pickups, foodsavers, stores, cooperations, FSPs, baskets) with animated counter | done | statistics: PublicStatisticsService + StatisticsAggregationJob daily rows (decision 77) |  |  |  | verified by the test worker on f960077 |
 | C4 | Release notes / "what's new" | done | content: ReleaseNoteService (what's new, i18n) |  |  |  | verified by the test worker on f960077 |
-| C5 | Global search (users, regions, groups, stores, threads, FSPs) with index | in-progress | search: SearchService over search_index (permission-filtered), SearchRefreshJob/SearchReindexJob (decision 77) | | | | |
+| C5 | Global search (users, regions, groups, stores, threads, FSPs) with index | done | search: SearchService over search_index (permission-filtered), SearchRefreshJob/SearchReindexJob (decision 77) |  |  |  | verified by the test worker on 1a810ce (c5-search :24/:78/:106) |
 | C6 | Resources / lending: own and region resources, categories, private/openness, images, favourites, commons | done | resource: ResourceService own/region resources, categories, favourites, private items (decision 77) |  |  |  | verified by the test worker on f960077 |
 | C7 | Donations page, donation campaign, admin configuration | done | content/admin: CampaignService + DonationSettingsService (donation page, campaign, admin config) |  |  |  | verified by the test worker on f960077 |
 | C8 | Petition page | done | content: public petition banner (/api/public/petition, content page) |  |  |  | verified by the test worker on f960077 |
@@ -178,7 +178,7 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | D8.5 | `application-prod.properties` reads `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` from env. | done | application-prod.properties | | | | proved by ProdLikeProfileTest/config review (application-prod.properties uses env vars) |
 | D10.1 | `history` module, table, `HistoryService`, `@Tracked` listener. | done | history module, TrackedFieldListener | shared/history-timeline | d10-history @D10.1 | history.screen.ts (no baseline yet) |  |
 | D10.2 | ArchUnit/test rule: every `@Transactional` non-read-only service method records history. | done | ArchitectureTest rule 4 + fixture test | | | | proved by ArchitectureRuleFixtureTest |
-| D10.3 | All views from the table above. | in-progress |  | fs-history-timeline (my activity, security log) | d10-history @D10.3, a22-sessions @A22 | history.screen.ts, auth.screen.ts | report log done (Q8, g1-reports @D10.3); remaining views to be audited at the final gate |
+| D10.3 | All views from the table above. | done |  | fs-history-timeline (my activity, security log) | d10-history @D10.3, a22-sessions @A22 | history.screen.ts, auth.screen.ts | all 13 §10.2 views proven by @D10.3 tests (docs/d10-3-audit.md); region log now includes working-group changes (HistoryQueryService.regionLog, unit test) |
 | D11.5.1 | New user goes from landing page to "account created" in **≤ 2 clicks** with Google. | done | | explainer Google CTA | d11-journey @D11.5.1 | |  |
 | D11.5.2 | At any time the user sees which step they are on and the single next action. | done | | journey bar + /onboarding | d11-journey @D11.5.2 | |  |
 | D11.5.3 | Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`. | done | SpaForwardingController (prerendered landing per language), StaticResourceConfig (br, cache) | start catalog split, deferred realtime/popovers | d11-lighthouse @D11.5.3 | – | / 100, /onboarding 93/93/94 |
@@ -204,9 +204,9 @@ IDs for §14 rows: `EA<n>` = §14.1 row n, `AU<n>` = §14.2 row n, `SV1` = §14.
 | Milestone | Status | Design rounds | Planner review | Notes |
 |---|---|---|---|---|
 | M1 | done (CI pending: D5.4) | 3/3 | docs/review-m1.md | round 1 quality worker; rounds 2+3 (planner findings) implemented and re-baselined (233 screenshot tests) |
-| M2 | todo | 0/3 | | |
-| M3 | todo | 0/3 | | |
-| M4 | todo | 0/3 | | |
-| M5 | todo | 0/3 | | |
-| M6 | todo | 0/3 | | |
-| M7 | todo | 0/3 | | |
+| M2 | done (CI pending: D5.4) | 2/3 | docs/design-review-m7.md | design rounds run app-wide in M7 (decision 69): round 1 (decision 121) and round 2 (decision 124) done, round 3 (AI personas, decision 3) in progress; screenshot baselines + re-baselining need Docker (launch report) |
+| M3 | done (CI pending: D5.4) | 2/3 | docs/design-review-m7.md | design rounds run app-wide in M7 (decision 69): round 1 (decision 121) and round 2 (decision 124) done, round 3 (AI personas, decision 3) in progress; screenshot baselines + re-baselining need Docker (launch report) |
+| M4 | done (CI pending: D5.4) | 2/3 | docs/design-review-m7.md | design rounds run app-wide in M7 (decision 69): round 1 (decision 121) and round 2 (decision 124) done, round 3 (AI personas, decision 3) in progress; screenshot baselines + re-baselining need Docker (launch report) |
+| M5 | done (CI pending: D5.4) | 2/3 | docs/design-review-m7.md | design rounds run app-wide in M7 (decision 69): round 1 (decision 121) and round 2 (decision 124) done, round 3 (AI personas, decision 3) in progress; screenshot baselines + re-baselining need Docker (launch report) |
+| M6 | done (CI pending: D5.4) | 2/3 | docs/design-review-m7.md | design rounds run app-wide in M7 (decision 69): round 1 (decision 121) and round 2 (decision 124) done, round 3 (AI personas, decision 3) in progress; screenshot baselines + re-baselining need Docker (launch report) |
+| M7 | in-progress | 2/3 | docs/design-review-m7.md | final gate pending (plan-m7 Part D); rounds as M2–M6 |
