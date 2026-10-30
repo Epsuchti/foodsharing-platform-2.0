@@ -1,19 +1,22 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { TPipe } from '../../core/i18n/t.pipe';
+
 /**
  * Page title block: optional back link, eyebrow, title, subtitle and projected actions (right on desktop,
  * below on mobile). `<fs-page-header [title]="…" [subtitle]="…"><p-button … /></fs-page-header>`
  */
 @Component({
   selector: 'fs-page-header',
-  imports: [RouterLink],
+  imports: [RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-page-header' },
   template: `
     @if (backLink()) {
-      <a class="ph__back" [routerLink]="backLink()" data-testid="shared.pageHeader.back">
+      <a class="ph__back" [routerLink]="backLink()" [attr.aria-label]="backLabel() ? null : ('common.back' | t)" data-testid="shared.pageHeader.back">
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        <!-- an icon-only back link (no backLabel) is named by aria-label (axe link-name) -->
         <span>{{ backLabel() }}</span>
       </a>
     }

@@ -146,7 +146,7 @@ import { QUIZ_ICONS, localized, quizKindOf } from '../quiz-kind';
                         [label]="'' + question.commentCount"
                         [text]="true"
                         severity="secondary"
-                        [ariaLabel]="'quiz.editor.comments' | t"
+                        [ariaLabel]="question.commentCount + ' ' + ('quiz.editor.comments' | t)"
                         (onClick)="openComments(question)"
                         data-testid="quiz.editor.openComments"
                       />

@@ -13,6 +13,7 @@
     "screenshots": "bash scripts/screenshots.sh",
     "coverage": "node scripts/feature-coverage.mjs",
     "coverage:strict": "node scripts/feature-coverage.mjs --strict",
+    "a11y:routes": "node scripts/a11y-route-coverage.mjs",
     "typecheck": "tsc --noEmit -p .",
     "report": "playwright show-report"
   },

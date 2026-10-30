@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
-import { ProgressBar } from '@openng/optimus-ui/progressbar';
+import { ProgressBarComponent } from '../../../shared/progress-bar/progress-bar.component';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { Subscription, interval } from 'rxjs';
 
@@ -33,7 +33,7 @@ export function progressPercent(progress: NewsletterProgress | undefined): numbe
  */
 @Component({
   selector: 'fs-newsletter-editor-page',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, InputText, MarkdownComponent, PageHeaderComponent, ProgressBar, Textarea, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, InputText, MarkdownComponent, PageHeaderComponent, ProgressBarComponent, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'newsletters.editor.title' | t" [backLink]="['/newsletters']" [backLabel]="'newsletters.editor.back' | t" icon="pi pi-megaphone" />
@@ -87,7 +87,7 @@ export function progressPercent(progress: NewsletterProgress | undefined): numbe
 
           @if (progress(); as p) {
             <section class="fs-card progress" data-testid="newsletters.editor.progress" [attr.data-status]="p.status">
-              <p-progressbar [value]="percent()" [attr.aria-label]="'newsletters.editor.progress' | t" />
+              <fs-progress-bar [value]="percent()" [label]="'newsletters.editor.progress' | t" />
               <p>{{ 'newsletters.editor.progressText' | t: { sent: p.sent, failed: p.failed, total: p.total } }}</p>
               @if (p.status === 'QUEUED' || p.status === 'SENDING') {
                 <p-button [label]="'newsletters.editor.cancel' | t" icon="pi pi-stop" severity="danger" [outlined]="true" [loading]="cancel.busy()" (onClick)="cancel.run()" data-testid="newsletters.editor.cancel" />
