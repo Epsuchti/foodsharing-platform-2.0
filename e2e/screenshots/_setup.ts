@@ -103,6 +103,10 @@ async function networkQuiet(page: Page): Promise<void> {
     .toBe(true);
 }
 
+async function modalOpen(page: Page): Promise<boolean> {
+  return page.locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible').count().then((n) => n > 0);
+}
+
 /**
  * Masked regions (version, trace ids) are painted in the page's muted surface colour instead of Playwright's
  * magenta, so the screenshots stay readable in reviews (review-m1 round 2 #4).
@@ -117,7 +121,10 @@ const screen: ScreenHelpers = {
   async expectScreen(page, name, options = {}) {
     await settle(page, options);
     await expect(page).toHaveScreenshot(`${name}.png`, {
-      fullPage: options.fullPage ?? true,
+      // A full-page capture of an open modal shows its backdrop only over the first viewport (fixed elements keep the
+      // viewport's size), so the page below it looked brighter than the dimmed part. Modals are captured as the
+      // viewport the user sees.
+      fullPage: options.fullPage ?? !(await modalOpen(page)),
       mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
       maskColor: await maskColor(page),
       ...(options.clip ? { clip: options.clip } : {}),
@@ -146,7 +153,7 @@ export async function tickFixedClock(page: Page, ms = 1_000): Promise<void> {
 export const screenshotTest = test.extend<{ variant: Variant | undefined; visual: ScreenHelpers }>({
   variant: [undefined, { option: true }],
 
-  page: async ({ page, variant }, use) => {
+  page: async ({ page, variant, role, apiOf }, use) => {
     await page.clock.setFixedTime(new Date(SEED_NOW));
     await page.route(
       (url) => TILE_HOSTS.test(url.hostname),
@@ -169,6 +176,15 @@ export const screenshotTest = test.extend<{ variant: Variant | undefined; visual
         },
         [LANG_STORAGE_KEY, variant.lang, THEME_STORAGE_KEY, variant.theme] as const,
       );
+      if (role) {
+        // A signed-in account's own language/theme win over local storage (seed accounts use gws, fr, …), so the
+        // account is set to the variant too; the seed reset restores it.
+        const response = await apiOf(page).patch('/api/users/me/settings', {
+          language: variant.lang,
+          theme: variant.theme.toUpperCase(),
+        });
+        expect(response.ok(), `PATCH /api/users/me/settings → ${response.status()}`).toBe(true);
+      }
     }
     await use(page);
   },
