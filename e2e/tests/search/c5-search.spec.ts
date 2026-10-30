@@ -13,6 +13,20 @@ const NEWBIE = '00000001-0001-4000-8000-000000000001';
 const input = (page: Page) => page.getByTestId('search.global.input');
 const option = (page: Page, link: string) => page.locator(`[data-testid="search.global.option"][data-link="${link}"]`);
 
+/**
+ * Phones show the header search behind a search icon (`shell.searchToggle`): tap it to open the field. On wider
+ * screens the field is always there and the toggle is hidden.
+ */
+async function openSearch(page: Page): Promise<void> {
+  await expect(page.locator('[data-testid="shell.searchToggle"]:visible, [data-testid="search.global.input"]:visible').first()).toBeVisible();
+  const toggle = page.getByTestId('shell.searchToggle');
+  if (await toggle.isVisible()) {
+    if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
+    await expect(input(page)).toBeFocused();
+  }
+  await expect(input(page)).toBeVisible();
+}
+
 /** The server search answered for the current text (not only the instant index results). */
 async function serverAnswered(page: Page): Promise<void> {
   await expect(page.getByTestId('search.global.state')).toHaveAttribute('data-state', /^(success|empty)$/);
@@ -29,6 +43,7 @@ test.describe('foodsaver', () => {
     await acceptPendingConsents(apiOf(page));
     await page.goto('/dashboard');
     await expect(input(page)).toHaveAttribute('role', 'combobox');
+    await openSearch(page);
 
     // stores, threads and FSPs of the region
     await input(page).fill('Wiedikon');
@@ -53,6 +68,7 @@ test.describe('foodsaver', () => {
     await expect(input(page)).toHaveValue('');
 
     // a user without a region stays hidden; Enter opens the full search page
+    await openSearch(page);
     await input(page).fill('Lea Brunner');
     await expect(page.getByTestId('search.global.empty')).toBeVisible();
     await expect(option(page, `/profile/${NEWBIE}`)).toHaveCount(0);
@@ -83,6 +99,7 @@ test.describe('foodsaver', () => {
     });
     await page.goto('/dashboard');
     const index = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/search/index');
+    await openSearch(page);
     await input(page).click();
     await index;
 
@@ -108,6 +125,7 @@ test.describe('foodsaver', () => {
     // the retry interceptor repeats GETs twice: three failures reach the error state
     await injectApiError(page, { url: '/api/search', status: 503, times: 3 });
     await page.goto('/dashboard');
+    await openSearch(page);
     await input(page).fill('Nina');
     await expect(page.getByTestId('search.global.state')).toHaveAttribute('data-state', 'error');
 

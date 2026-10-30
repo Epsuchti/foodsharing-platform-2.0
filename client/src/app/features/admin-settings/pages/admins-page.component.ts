@@ -211,6 +211,10 @@ export function unitLink(unit: RegionRef): string[] {
       gap: 0.5rem;
     }
     .email {
+      /* WCAG 2.5.8: at least a 24 px touch target */
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
       overflow-wrap: anywhere;
     }
     .units {

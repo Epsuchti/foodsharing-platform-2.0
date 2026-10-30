@@ -15,5 +15,7 @@
   "layout.header.regions": "Dini Bezirk",
   "layout.header.homeRegion": "Stammbezirk",
   "layout.nav.unread": "({count} ungläse)",
-  "layout.header.whatsNew": "Was isch neu"
+  "layout.header.whatsNew": "Was isch neu",
+  "layout.header.searchOpen": "Suechi uftue",
+  "layout.header.searchClose": "Suechi zuetue"
 }

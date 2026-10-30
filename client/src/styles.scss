@@ -67,6 +67,8 @@
   --fs-text: #1a2a20;
   --fs-text-muted: #5c6b60;
   --fs-primary: #25834a;
+  /* text and icons on a filled primary surface (contrast ≥ 4.5:1 in both themes) */
+  --fs-on-primary: #ffffff;
   --fs-primary-strong: #195d35;
   --fs-primary-soft: #e3f3e7;
   --fs-danger: #b53c35;
@@ -112,6 +114,7 @@
   --fs-text: #ecf2ea;
   --fs-text-muted: #a3b09f;
   --fs-primary: #4cba70;
+  --fs-on-primary: #0d1f13;
   --fs-primary-strong: #82d59b;
   --fs-primary-soft: rgb(76 186 112 / 0.14);
   --fs-primary-200: #1f4a2f;

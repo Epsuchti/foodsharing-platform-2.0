@@ -15,5 +15,7 @@
   "layout.header.regions": "Your regions",
   "layout.header.homeRegion": "Home region",
   "layout.nav.unread": "({count} unread)",
-  "layout.header.whatsNew": "What’s new"
+  "layout.header.whatsNew": "What’s new",
+  "layout.header.searchOpen": "Open search",
+  "layout.header.searchClose": "Close search"
 }

@@ -151,8 +151,24 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       }
       <div class="hdr__actions">
         @if (chrome() === 'full' && searchEnabled()) {
-          <!-- C5: replaces the "search" nav link from 48rem; phones reach /search through the drawer -->
-          <fs-global-search class="hdr__search" />
+          <!-- C5: replaces the "search" nav link from 48rem; on phones the search icon opens it below the header -->
+          <button
+            type="button"
+            class="hdr-btn hdr__search-toggle"
+            aria-controls="hdr-search"
+            [attr.aria-expanded]="searchOpen()"
+            [attr.aria-label]="(searchOpen() ? 'layout.header.searchClose' : 'layout.header.searchOpen') | t"
+            (click)="toggleSearch()"
+            data-testid="shell.searchToggle"
+          >
+            <i [class]="searchOpen() ? 'pi pi-times' : 'pi pi-search'" aria-hidden="true"></i>
+          </button>
+          <fs-global-search
+            id="hdr-search"
+            class="hdr__search"
+            [class.hdr__search--open]="searchOpen()"
+            (keydown.escape)="closeSearchIfEmpty($event)"
+          />
         }
         @if (chrome() === 'full' && session.isAuthenticated()) {
           <fs-region-switcher />
@@ -399,9 +415,28 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       width: clamp(9rem, 15vw, 17rem);
       margin-right: 0.35rem;
     }
+    .hdr__search-toggle {
+      display: none;
+    }
     @media (max-width: 47.99rem) {
+      .hdr__search-toggle {
+        display: inline-grid;
+      }
       .hdr__search {
         display: none;
+      }
+      /* phones: the open search spans the screen right below the header */
+      .hdr__search--open {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        display: block;
+        width: auto;
+        margin: 0;
+        padding: 0.5rem var(--fs-gutter);
+        border-bottom: 1px solid var(--fs-header-border);
+        background: var(--fs-header-bg);
       }
     }
     .hdr__whats-new {
@@ -465,6 +500,29 @@ export class HeaderComponent {
     this.split().more.some((item) => !!item.badge && this.badges.count(item.badge) > 0),
   );
   protected readonly moreOpen = signal(false);
+  /** Phones: the header search is open below the header (C5). */
+  protected readonly searchOpen = signal(false);
+
+  protected toggleSearch(): void {
+    const open = !this.searchOpen();
+    this.searchOpen.set(open);
+    if (open) {
+      // focus the input once it is shown (the first focus also loads the search index)
+      afterNextRender(
+        () => this.host.nativeElement.querySelector<HTMLInputElement>('#hdr-search input')?.focus(),
+        { injector: this.injector },
+      );
+    }
+  }
+
+  /** Escape in an empty search closes it on phones and returns focus to the toggle. */
+  protected closeSearchIfEmpty(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (this.searchOpen() && !input?.value) {
+      this.searchOpen.set(false);
+      this.host.nativeElement.querySelector<HTMLButtonElement>('[data-testid="shell.searchToggle"]')?.focus();
+    }
+  }
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
   private readonly navEl = viewChild<ElementRef<HTMLElement>>('navEl');
@@ -496,7 +554,10 @@ export class HeaderComponent {
         filter((event) => event instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.moreOpen.set(false));
+      .subscribe(() => {
+        this.moreOpen.set(false);
+        this.searchOpen.set(false);
+      });
 
     // measure which links fit whenever the nav changes size (window, "More" appearing) or its links change
     const view = inject(DOCUMENT).defaultView;
