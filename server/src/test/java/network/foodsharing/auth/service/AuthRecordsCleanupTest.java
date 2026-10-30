@@ -16,6 +16,7 @@ import network.foodsharing.auth.repository.EmailChangeRepository;
 import network.foodsharing.auth.repository.IpBlockRepository;
 import network.foodsharing.auth.repository.RegistrationAttemptRepository;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
@@ -25,7 +26,7 @@ import org.springframework.context.annotation.Import;
 
 /** D17.3 retention: ended sessions, expired email changes, ended IP blocks and old sign-up attempts are removed. */
 @JpaSliceTest
-@Import(AuthRecordsCleanup.class)
+@Import(SharedJpaSliceConfig.class)
 class AuthRecordsCleanupTest {
 
     @Autowired

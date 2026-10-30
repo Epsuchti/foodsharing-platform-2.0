@@ -20,6 +20,7 @@ import network.foodsharing.region.service.GroupService.GroupInput;
 import network.foodsharing.region.service.RegionNotificationListener;
 import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
@@ -36,7 +37,7 @@ import org.springframework.test.context.event.RecordApplicationEvents;
 /** Working-group rules (plan §13.2 R9–R11): apply types × membership × requirements, admins, restricted functions. */
 @JpaSliceTest
 @RecordApplicationEvents
-@Import(RegionSliceConfig.class)
+@Import(SharedJpaSliceConfig.class)
 class GroupServiceTest {
 
     @Autowired

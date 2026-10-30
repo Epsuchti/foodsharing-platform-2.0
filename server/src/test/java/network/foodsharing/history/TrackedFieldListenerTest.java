@@ -10,6 +10,7 @@ import network.foodsharing.history.repository.HistoryEntryRepository;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
@@ -24,7 +25,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 @JpaSliceTest
-@Import(UserService.class)
+@Import(SharedJpaSliceConfig.class)
 class TrackedFieldListenerTest {
 
     @Autowired
