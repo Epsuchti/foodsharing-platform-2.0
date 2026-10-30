@@ -3,7 +3,7 @@
 //
 //   node scripts/check-openapi.mjs [--skip-validate] [--spec-dir <dir>]
 //
-// 1. `openapi-generator-cli validate` on openapi.yaml (generator version pinned in scripts/openapitools.json).
+// 1. `openapi-generator-cli validate` on openapi.yaml (generator version pinned in client/openapitools.json, the single pin).
 // 2. Every path item in paths/<tag>.yaml is referenced from openapi.yaml under the same path (and vice versa).
 // 3. Every operation: exactly one tag == file name, unique operationId, `x-permission`, every 4xx/5xx response is
 //    `application/json` with `$ref` to common.yaml#/ApiError; mutating operations (post/put/patch/delete) have
@@ -45,7 +45,7 @@ function validateWithGenerator() {
     errors.push('openapi-generator-cli is not installed: run `npm ci` in the repository root');
     return;
   }
-  const result = spawnSync(bin, ['--openapitools', path.join(REPO_DIR, 'scripts/openapitools.json'), 'validate', '-i', ROOT], {
+  const result = spawnSync(bin, ['--openapitools', path.join(REPO_DIR, 'client/openapitools.json'), 'validate', '-i', ROOT], {
     cwd: REPO_DIR,
     encoding: 'utf8',
   });
