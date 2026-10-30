@@ -13,10 +13,29 @@ export interface A11yOptions {
 }
 
 /**
+ * Waits until every finite CSS/Web animation (overlay enter/leave, message fade-in) has finished, so axe and hit tests
+ * see the final colors and positions. Infinite ones (skeleton shimmer, spinners) are ignored.
+ */
+export async function animationsDone(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    for (let round = 0; round < 5; round++) {
+      const running = document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity && animation.playState === 'running');
+      if (!running.length) return;
+      await Promise.all(running.map((animation) => animation.finished.catch(() => undefined)));
+    }
+  });
+}
+
+/**
  * Runs axe (WCAG 2.0/2.1 A+AA, 2.2 AA) and fails on `serious`/`critical` violations (plan §18.3). The full axe result
  * is attached to the test. Runs automatically after every passing test tagged `@page` on its `page` fixture.
  */
 export async function expectNoSeriousViolations(page: Page, options: A11yOptions = {}): Promise<void> {
+  // axe must see the colours at rest: a dialog still fading out (confirm accepted, page already changed) has its text
+  // at a few percent opacity and fails color-contrast at random (B1 on /baskets/mine)
+  await animationsDone(page);
   let builder = new AxeBuilder({ page }).withTags(AXE_TAGS);
   for (const selector of options.include ?? []) builder = builder.include(selector);
   for (const selector of options.exclude ?? []) builder = builder.exclude(selector);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
 
@@ -24,12 +24,16 @@ interface RemoteResults {
 }
 
 let nextId = 0;
+/** activeKey of the "show all results" option (option keys never start with a NUL). */
+const ALL_KEY = '\u0000all';
 
 /**
  * Header search (C5, plan-m7 Q12): an ARIA 1.2 combobox with a grouped listbox popup. While typing, the user's own
  * entities (`getSearchIndex`, loaded once on first focus) are matched in the browser right away; from two characters
  * the server search (`search`) follows after 300 ms and adds the other hits (duplicates of index hits left out).
  * Arrow keys move through the options, Enter opens the active one or `/search?q=`, Escape closes (and then clears).
+ * The active option is kept by key, so it stays the same option when the server hits arrive after the index hits, and
+ * an arrow key renders it at once: `aria-activedescendant` points at it as soon as the keydown has been handled.
  * The header shows it for logged-in users when GLOBAL_SEARCH is on. Focus stays in the input (aria-activedescendant);
  * the options' tabindex=-1 and keydown.enter only serve pointer users and the template lint.
  */
@@ -192,6 +196,7 @@ export class GlobalSearchComponent {
   private readonly api = inject(SearchService);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   protected readonly inputId = `fs-global-search-${nextId}`;
   protected readonly listboxId = `fs-global-search-${nextId}-list`;
@@ -204,8 +209,15 @@ export class GlobalSearchComponent {
   /** The query the server is asked for (300 ms after the last keystroke, from two characters). */
   private readonly debounced = signal('');
   readonly open = signal(false);
-  /** Index into options() (options().length = "show all"), -1 = none. */
-  readonly active = signal(-1);
+  /** Key of the active option (ALL_KEY = "show all"), null = none. */
+  private readonly activeKey = signal<string | null>(null);
+  /** Index into options() (options().length = "show all"), -1 = none (also when the active option is gone). */
+  readonly active = computed(() => {
+    const key = this.activeKey();
+    if (key === null) return -1;
+    if (key === ALL_KEY) return this.query().trim() ? this.options().length : -1;
+    return this.options().findIndex((option) => option.key === key);
+  });
   private readonly indexWanted = signal(false);
 
   protected readonly index = loadResource<SearchIndexData, true>({
@@ -281,7 +293,7 @@ export class GlobalSearchComponent {
 
   onInput(value: string): void {
     this.query.set(value);
-    this.active.set(-1);
+    this.activeKey.set(null);
     this.open.set(value.trim().length > 0);
   }
 
@@ -293,7 +305,10 @@ export class GlobalSearchComponent {
         event.preventDefault();
         if (!this.query().trim()) return;
         this.open.set(true);
-        this.active.set(moveActive(this.active(), total, event.key === 'ArrowDown' ? 1 : -1));
+        this.setActive(moveActive(this.active(), total, event.key === 'ArrowDown' ? 1 : -1));
+        // render now, not with the next scheduled change detection: the active option must be in the DOM
+        // (aria-activedescendant, aria-selected) once the key event is handled, also while the main thread is busy
+        this.changeDetector.detectChanges();
         this.scrollActiveIntoView();
         return;
       case 'Enter': {
@@ -339,7 +354,12 @@ export class GlobalSearchComponent {
 
   private close(): void {
     this.open.set(false);
-    this.active.set(-1);
+    this.activeKey.set(null);
+  }
+
+  private setActive(index: number): void {
+    const options = this.options();
+    this.activeKey.set(index < 0 ? null : index < options.length ? options[index].key : ALL_KEY);
   }
 
   private reset(): void {
