@@ -25,8 +25,14 @@ ActivitySource:
 
 ActivityItem:
   type: object
-  required: [type, at, title, link, source]
+  required: [id, type, at, title, link, source]
   properties:
+    id:
+      type: string
+      format: uuid
+      description: >-
+        Id of the underlying post or mail; stable across requests. The feed is ordered by `at` descending, then
+        `type`, then `id` descending, so no item appears on two pages.
     type:
       $ref: './activity.yaml#/ActivityType'
     at:

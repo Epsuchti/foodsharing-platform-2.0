@@ -13,5 +13,6 @@
   "layout.header.region": "Bezirk: {name} – wächsle",
   "layout.header.regions": "Dini Bezirk",
   "layout.header.homeRegion": "Stammbezirk",
-  "layout.nav.unread": "({count} ungläse)"
+  "layout.nav.unread": "({count} ungläse)",
+  "layout.header.whatsNew": "Was isch neu"
 }

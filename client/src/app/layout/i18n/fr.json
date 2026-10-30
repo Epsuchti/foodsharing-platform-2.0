@@ -13,5 +13,6 @@
   "layout.header.region": "Région : {name} – changer",
   "layout.header.regions": "Tes régions",
   "layout.header.homeRegion": "Région principale",
-  "layout.nav.unread": "({count} non lus)"
+  "layout.nav.unread": "({count} non lus)",
+  "layout.header.whatsNew": "Nouveautés"
 }

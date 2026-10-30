@@ -58,6 +58,17 @@ export const REGIONS_ROUTES: Routes = [
         canActivate: [featureGuard(FeatureToggleKey.FoodSharePoints)],
         loadComponent: () => import('../food-share-points/tabs/region-fsps.tab').then((m) => m.RegionFspsTab),
       },
+      // AC1 (plan-m7 Q9): the tab lives in features/achievements
+      tab('achievements', 'regions.tab.achievements', () =>
+        import('../achievements/tabs/region-achievements.tab').then((m) => m.RegionAchievementsTab),
+      ),
+      // placeholders until their features exist (plan-m7 Q7): wall, resources (Q12)
+      ...(['wall', 'resources'] as const).map((feature) => ({
+        path: feature,
+        title: 'regions.tab.later',
+        data: { feature },
+        loadComponent: () => import('./tabs/region-later.tab').then((m) => m.RegionLaterTab),
+      })),
       // G1/G2/D10.3 (plan-m7 Q8): the tabs live in features/reports
       tab('reports', 'regions.tab.reports', () =>
         import('../reports/tabs/region-reports.tab').then((m) => m.RegionReportsTab),
@@ -68,13 +79,6 @@ export const REGIONS_ROUTES: Routes = [
       tab('mediation', 'regions.tab.mediation', () =>
         import('../reports/tabs/region-mediation.tab').then((m) => m.RegionMediationTab),
       ),
-      // placeholders until their features exist (plan-m7 Q7): wall, resources (Q12), achievements (Q9)
-      ...(['wall', 'resources', 'achievements'] as const).map((feature) => ({
-        path: feature,
-        title: 'regions.tab.later',
-        data: { feature },
-        loadComponent: () => import('./tabs/region-later.tab').then((m) => m.RegionLaterTab),
-      })),
       {
         path: 'later/:feature',
         title: 'regions.tab.later',

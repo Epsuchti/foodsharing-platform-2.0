@@ -32,7 +32,7 @@ import {
   COOPERATION_STATUSES,
   DEFAULT_COOPERATION_FILTER,
   TEAM_STATUSES,
-  mayCoordinateRegionStores,
+  mayImportStores,
   mightCoordinateStores,
 } from '../stores.util';
 
@@ -245,7 +245,7 @@ export class RegionStoresPageComponent {
   });
 
   /**
-   * The region (functions, membership) decides whether the CSV import is offered (S2); only loaded for users who
+   * The region's `mayCoordinateStores` decides whether the CSV import is offered (S2); only loaded for users who
    * administrate some unit, ORGA may always import.
    */
   private readonly region = loadResource<RegionDetail, string>({
@@ -262,7 +262,7 @@ export class RegionStoresPageComponent {
       return true;
     }
     const region = this.region.data();
-    return !!region && region.id === this.regionId() && mayCoordinateRegionStores(session, region);
+    return !!region && region.id === this.regionId() && mayImportStores(session, region);
   });
 
   protected readonly cooperationOptions = computed(() =>

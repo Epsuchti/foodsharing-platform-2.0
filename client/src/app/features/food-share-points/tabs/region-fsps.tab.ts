@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
-import { firstValueFrom } from 'rxjs';
-
-import { FoodSharePointsService, FspSummary, MapMarker as ApiMapMarker, PublicMapService } from '../../../api';
+import { FoodSharePointsService, FspSummary } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
@@ -12,16 +10,11 @@ import { RegionPageContext } from '../../regions/region-page.context';
 import { FspCardComponent } from '../components/fsp-card.component';
 import { fspMarkers } from '../fsp.util';
 
-interface RegionFsps {
-  fsps: FspSummary[];
-  markers: ApiMapMarker[];
-}
-
 /**
  * /regions/:regionId/food-share-points (FS1, R3): the region's food share points as cards next to a map. The list
  * asks for inactive ones too; the server only returns them to people who may activate or manage them or who created
- * them ("awaiting activation" tag). `FspSummary` has no coordinates, so the pins come from the public FSP markers
- * (active FSPs); without them the list still shows. Region members propose new FSPs.
+ * them ("awaiting activation" tag). Every listed FSP with a position gets a pin (`FspSummary.lat/lon`). Region
+ * members propose new FSPs.
  */
 @Component({
   selector: 'fs-region-fsps-tab',
@@ -48,7 +41,7 @@ interface RegionFsps {
       <ng-template [fsData]="data" let-loaded>
         <div class="split">
           <ul class="list" data-testid="foodSharePoints.region.list">
-            @for (fsp of loaded.fsps; track fsp.id) {
+            @for (fsp of loaded; track fsp.id) {
               <li><fs-fsp-card [fsp]="fsp" [highlighted]="selected() === fsp.id" /></li>
             }
           </ul>
@@ -81,28 +74,18 @@ interface RegionFsps {
 export class RegionFspsTab {
   private readonly ctx = inject(RegionPageContext);
   private readonly api = inject(FoodSharePointsService);
-  private readonly publicMap = inject(PublicMapService);
   private readonly router = inject(Router);
 
   protected readonly selected = signal<string | null>(null);
   /** Region members propose FSPs (INACTIVE until activated); FSP admins create active ones. */
   protected readonly mayPropose = computed(() => this.ctx.isMember() || this.ctx.isOrga());
 
-  protected readonly data = loadResource<RegionFsps, string>({
+  protected readonly data = loadResource<FspSummary[], string>({
     params: () => this.ctx.regionId() ?? undefined,
-    loader: async (regionId) => {
-      const fsps = await firstValueFrom(this.api.listRegionFoodSharePoints({ regionId, includeInactive: true }));
-      // pins are a bonus: a failing marker request leaves the list usable
-      const markers = fsps.length ? await firstValueFrom(this.publicMap.listPublicFspMarkers()).catch(() => [] as ApiMapMarker[]) : [];
-      return { fsps, markers };
-    },
-    isEmpty: (value) => value.fsps.length === 0,
+    loader: (regionId) => this.api.listRegionFoodSharePoints({ regionId, includeInactive: true }),
   });
 
-  protected readonly markers = computed<MapMarker[]>(() => {
-    const loaded = this.data.data();
-    return loaded ? fspMarkers(loaded.fsps, loaded.markers) : [];
-  });
+  protected readonly markers = computed<MapMarker[]>(() => fspMarkers(this.data.data() ?? []));
 
   protected pick(marker: MapMarker): void {
     if (marker.kind !== 'fsp') return;

@@ -33,12 +33,19 @@ test('A19 activity feed shows forum, store wall, mailbox, event and FSP items; f
     await expect(chip(page, type)).toHaveAttribute('aria-pressed', 'true');
   }
 
-  // "load more" appends the next pages until the event and forum items show
+  // the server pages are disjoint: ties (e.g. several store wall posts at the same minute) never repeat or vanish
+  const pages = await Promise.all([0, 1, 2].map((p) => api.getJson<{ items: { id: string }[] }>(`/api/activity?page=${p}&size=10`)));
+  const ids = pages.flatMap((p) => p.items.map((entry) => entry.id));
+  expect(ids).toHaveLength(30);
+  expect(new Set(ids).size).toBe(30);
+  const firstThirty = await api.getJson<{ items: { id: string }[] }>('/api/activity?page=0&size=30');
+  expect(firstThirty.items.map((entry) => entry.id)).toEqual(ids);
+
+  // "load more" appends the next pages (10 items each) until the event and forum items show
   for (let more = 0; more < 2; more++) {
     const before = await items(page).count();
     await page.getByTestId('dashboard.activity.loadMore').click();
-    // items with the same timestamp may repeat across pages (server paging has no tie-breaker); repeats are dropped
-    await expect.poll(() => items(page).count()).toBeGreaterThan(before);
+    await expect(items(page)).toHaveCount(before + 10);
   }
   await expect(items(page, 'EVENT_WALL').first()).toBeVisible();
   await expect(items(page, 'FORUM').first()).toBeVisible();

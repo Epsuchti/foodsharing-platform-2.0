@@ -138,9 +138,9 @@ test.describe('region tab', () => {
     await expect(card(page, FSPS.wiedikon).getByTestId('foodSharePoints.card.inactive')).toHaveCount(0);
     await expect(card(page, FSPS.wiedikon).getByTestId('foodSharePoints.card.following')).toBeVisible();
     await expect(card(page, FSPS.enge)).toHaveCount(0);
-    // pins for the active ones only
+    // a pin for every listed FSP, the inactive proposal included (FspSummary.lat/lon)
     const map = page.getByTestId('foodSharePoints.region.map');
-    await expect(map.locator('.fs-map-marker[data-kind="fsp"]')).toHaveCount(ACTIVE_ZURICH_FSPS.length);
+    await expect(map.locator('.fs-map-marker[data-kind="fsp"]')).toHaveCount(ACTIVE_ZURICH_FSPS.length + 1);
 
     // the detail page has the address with navigation links, managers and the seeded wall
     await card(page, FSPS.wiedikon).getByTestId('foodSharePoints.card.link').click();

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, forwardRef, input, signal, untracked } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -233,6 +233,15 @@ export class LanguageTabsEditorComponent implements ControlValueAccessor, Valida
 
   private onChange: (value: TranslatedText) => void = () => undefined;
   protected onTouched: () => void = () => undefined;
+  private onValidatorChange: () => void = () => undefined;
+
+  constructor() {
+    // a changed `requiredLanguages` re-runs the form validation (e.g. an editor that learns the German text is unknown)
+    effect(() => {
+      this.requiredLanguages();
+      untracked(() => this.onValidatorChange());
+    });
+  }
 
   protected filled(lang: UiLanguage): boolean {
     return !!this.value()[lang]?.trim();
@@ -266,6 +275,10 @@ export class LanguageTabsEditorComponent implements ControlValueAccessor, Valida
 
   setDisabledState(disabled: boolean): void {
     this.disabled.set(disabled);
+  }
+
+  registerOnValidatorChange(fn: () => void): void {
+    this.onValidatorChange = fn;
   }
 
   validate(_control: AbstractControl): ValidationErrors | null {

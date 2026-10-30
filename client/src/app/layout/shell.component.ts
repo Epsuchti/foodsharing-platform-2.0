@@ -17,6 +17,7 @@ import { filter, map, take } from 'rxjs';
 
 import { SessionService } from '../core/auth/session.service';
 import { warmWebFont, whenIdle } from '../core/theme/web-font';
+import { PetitionBannerComponent } from '../features/content/components/petition-banner.component';
 import { JourneyBarComponent } from '../features/onboarding/components/journey-bar.component';
 import { TPipe } from '../core/i18n/t.pipe';
 import { RealtimeService } from '../core/realtime/realtime.service';
@@ -57,6 +58,7 @@ const AFTER_FIRST_PAGE_MS = 1500;
     JourneyBarComponent,
     MobileTabBarComponent,
     OfflineBannerComponent,
+    PetitionBannerComponent,
     RequestBarComponent,
     RouterOutlet,
     SessionExpiredDialogComponent,
@@ -84,6 +86,10 @@ const AFTER_FIRST_PAGE_MS = 1500;
       <router-outlet />
     </main>
     @if (chrome() === 'full') {
+      <!-- C8: in the page flow below the fold (main is at least one viewport high), so it never shifts content -->
+      @defer (when firstPageShown()) {
+        <fs-petition-banner />
+      }
       <fs-footer />
     }
     @if (showTabBar()) {

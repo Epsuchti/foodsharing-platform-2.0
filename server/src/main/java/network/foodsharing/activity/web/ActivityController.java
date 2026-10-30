@@ -41,7 +41,7 @@ public class ActivityController implements ActivityApi {
                 .filter(java.util.Objects::nonNull).collect(Collectors.toSet());
         Map<UUID, UserSummary> authors = authorIds.isEmpty() ? Map.of() : users.findAll(authorIds).stream()
                 .collect(Collectors.toMap(User::getId, userMapper::toSummary, (a, b) -> a));
-        List<ActivityItem> items = result.getContent().stream().map(i -> new ActivityItem()
+        List<ActivityItem> items = result.getContent().stream().map(i -> new ActivityItem().id(i.id())
                 .type(ActivityType.fromValue(i.type().name())).at(TimeMapper.toOffset(i.at())).title(i.title())
                 .excerpt(i.excerpt()).link(i.link()).author(i.authorId() == null ? null : authors.get(i.authorId()))
                 .source(new ActivitySource().id(i.sourceId()).name(i.sourceName() == null ? "" : i.sourceName())))

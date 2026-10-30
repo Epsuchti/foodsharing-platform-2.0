@@ -88,5 +88,6 @@
   "regionAdmin.importError.INVALID_TIME_ZONE": "Ungültigi Ziitzone",
   "regionAdmin.importError.UNKNOWN_PARENT": "Übergordnete Bezirk unbekannt",
   "regionAdmin.importError.DUPLICATE_SLUG": "Churzname doppelt",
-  "regionAdmin.importError.WORKING_GROUP_NOT_IMPORTABLE": "Arbetsgruppe chönd nöd importiert werde"
+  "regionAdmin.importError.WORKING_GROUP_NOT_IMPORTABLE": "Arbetsgruppe chönd nöd importiert werde",
+  "regionAdmin.form.teamPage": "Uf de Teamsiite zeige"
 }

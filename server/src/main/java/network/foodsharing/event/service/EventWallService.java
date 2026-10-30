@@ -92,7 +92,7 @@ public class EventWallService {
         if (names.isEmpty()) {
             return java.util.List.of();
         }
-        return posts.findByEventIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(names.keySet(), before,
+        return posts.findByEventIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(names.keySet(), before,
                         org.springframework.data.domain.PageRequest.of(0, limit)).stream()
                 .map(p -> new FeedPost(p.getId(), p.getEventId(), names.get(p.getEventId()), p.getAuthorId(),
                         p.getBody(), p.getCreatedAt())).toList();
