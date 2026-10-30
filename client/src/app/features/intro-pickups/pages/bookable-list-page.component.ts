@@ -159,7 +159,7 @@ interface Filters {
       </fs-data-state>
     }
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="!!booked()"
       (visibleChange)="!$event && booked.set(undefined)"
       [modal]="true"

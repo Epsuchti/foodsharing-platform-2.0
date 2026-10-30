@@ -11,7 +11,7 @@ import { TPipe } from '../../core/i18n/t.pipe';
   imports: [Button, Dialog, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="expired.visible()"
       (visibleChange)="!$event && expired.close()"
       [modal]="true"

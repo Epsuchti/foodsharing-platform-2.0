@@ -28,6 +28,9 @@ ResourceImage:
       format: uuid
     url:
       type: string
+    fileName:
+      type: string
+      description: Original file name of the upload.
 
 Resource:
   type: object
@@ -131,9 +134,13 @@ ResourceUpdate:
 
 ResourcePermissions:
   type: object
-  required: [mayAdd, mayEditCommons]
+  required: [mayAdd, mayEditCommons, maxPerUser]
   properties:
     mayAdd:
       type: boolean
     mayEditCommons:
       type: boolean
+    maxPerUser:
+      type: integer
+      format: int32
+      description: 'Resources a user may own at most (app.resources.max-per-user); mayAdd is false once reached.'

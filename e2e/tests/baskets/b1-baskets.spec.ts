@@ -1,6 +1,15 @@
 import path from 'node:path';
+import { animationsDone } from '../a11y/animations';
 import { acceptConfirm } from '../stores/_stores';
-import { acceptPendingConsents, expect, expectDataState, expectErrorState, injectApiError, test } from '../../fixtures';
+import {
+  acceptPendingConsents,
+  expect,
+  expectDataState,
+  expectErrorState,
+  expectNoSeriousViolations,
+  injectApiError,
+  test,
+} from '../../fixtures';
 
 /**
  * B1 food baskets: offer, edit, delete (plan-m7 Q5, plan-m6 B5). The e2e clock is fixed at SEED_NOW
@@ -86,6 +95,10 @@ test.describe('foodsaver', () => {
 
     // delete after confirmation: gone from my baskets and from the API
     await page.getByTestId('baskets.detail.delete').click();
+    // the confirmation itself passes axe (its header close button is named)
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await animationsDone(page);
+    await expectNoSeriousViolations(page, { include: ['[role="alertdialog"]'] });
     await acceptConfirm(page);
     await expect(page).toHaveURL(/\/baskets\/mine$/);
     await expectDataState(page, 'baskets.mine.offeredState', 'success');

@@ -67,7 +67,7 @@ const EMPTY: FormModel = {
   imports: [Button, Checkbox, Dialog, FormsModule, InputNumber, InputText, Select, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="visible()"
       (visibleChange)="visible.set($event)"
       [modal]="true"

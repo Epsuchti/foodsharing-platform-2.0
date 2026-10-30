@@ -41,14 +41,24 @@ public class ContentService {
     public record PageTexts(ContentPage page, Map<String, String> titles, Map<String, String> bodies) {
     }
 
-    /** {@code editorFunction}/{@code imageUploadIds} null = unchanged. */
+    /**
+     * {@code editorFunction}/{@code imageUploadIds} null = unchanged ({@code imageUploadIds} adds);
+     * {@code removeImageUploadIds} removes images of the page and deletes their uploads.
+     */
     public record PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
                             Integer sortOrder, Integer estimatedMinutes, boolean published, String reason,
-                            String editorFunction, List<UUID> imageUploadIds) {
+                            String editorFunction, List<UUID> imageUploadIds, List<UUID> removeImageUploadIds) {
+
+        public PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
+                         Integer sortOrder, Integer estimatedMinutes, boolean published, String reason,
+                         String editorFunction, List<UUID> imageUploadIds) {
+            this(titles, bodies, kind, sortOrder, estimatedMinutes, published, reason, editorFunction,
+                    imageUploadIds, null);
+        }
 
         public PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
                          Integer sortOrder, Integer estimatedMinutes, boolean published, String reason) {
-            this(titles, bodies, kind, sortOrder, estimatedMinutes, published, reason, null, null);
+            this(titles, bodies, kind, sortOrder, estimatedMinutes, published, reason, null, null, null);
         }
     }
 
@@ -278,6 +288,23 @@ public class ContentService {
         page.setImageUploadIds(joined.isEmpty() ? null : joined);
     }
 
+    /** Drops {@code uploadIds} from the page's images and deletes their uploads; returns the removed ids. */
+    private List<String> removeImages(ContentPage page, List<UUID> uploadIds) {
+        if (uploadIds.isEmpty()) {
+            return List.of();
+        }
+        java.util.LinkedHashSet<String> current = new java.util.LinkedHashSet<>(imageIds(page));
+        List<String> removed = new java.util.ArrayList<>();
+        for (UUID uploadId : new java.util.LinkedHashSet<>(uploadIds)) {
+            if (current.remove(uploadId.toString())) {
+                uploads.delete(uploads.find(uploadId));
+                removed.add(uploadId.toString());
+            }
+        }
+        page.setImageUploadIds(current.isEmpty() ? null : String.join(",", current));
+        return removed;
+    }
+
     /** Claimed image uploads of a page (editor view). */
     public static List<UUID> imageUploadIds(ContentPage page) {
         return imageIds(page).stream().map(UUID::fromString).toList();
@@ -323,8 +350,15 @@ public class ContentService {
         if (input.editorFunction() != null) {
             page.setEditorFunction(requestedFunction(input.editorFunction()).name());
         }
+        List<UUID> remove = input.removeImageUploadIds() == null ? List.of() : input.removeImageUploadIds();
+        if (!remove.isEmpty() && (input.imageUploadIds() != null && remove.stream()
+                .anyMatch(input.imageUploadIds()::contains)
+                || !imageIds(page).containsAll(remove.stream().map(UUID::toString).toList()))) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "removeImageUploadIds");
+        }
         ContentPage saved = pages.saveAndFlush(page);
         claimImages(saved, input.imageUploadIds(), actor.userId());
+        List<String> removedImages = removeImages(saved, remove);
         Map<String, ContentPageI18n> existing = texts.findByOwnerId(saved.getId()).stream()
                 .collect(Collectors.toMap(ContentPageI18n::getLanguage, Function.identity()));
         existing.values().stream().filter(row -> !input.titles().containsKey(row.getLanguage())).forEach(texts::delete);
@@ -339,9 +373,14 @@ public class ContentService {
             row.setBody(input.bodies().get(language));
             texts.save(row);
         });
+        Map<String, Object> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("slug", slug);
+        metadata.put("languages", String.join(",", input.titles().keySet()));
+        if (!removedImages.isEmpty()) {
+            metadata.put("removedImages", String.join(",", removedImages));
+        }
         history.record(history.event(created ? ContentAction.PAGE_CREATED : ContentAction.PAGE_UPDATED, saved.getId())
-                .reason(input.reason()).metadata(Map.of("slug", slug, "languages",
-                        String.join(",", input.titles().keySet()))).build());
+                .reason(input.reason()).metadata(metadata).build());
         if (input.published() && !wasPublished) {
             history.record(history.event(ContentAction.PAGE_PUBLISHED, saved.getId()).metadata("slug", slug).build());
         }

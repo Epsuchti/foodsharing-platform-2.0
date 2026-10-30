@@ -50,7 +50,7 @@ import { DELETE_REASON_MAX, deletionConfirmed } from '../account.util';
       </fs-data-state>
     </section>
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="dialogOpen()"
       (visibleChange)="dialogOpen.set($event)"
       [modal]="true"

@@ -243,6 +243,21 @@ public class UploadService {
         }
     }
 
+    /** Original file names of {@code uploadIds} (missing uploads are left out); one query. */
+    @Transactional(readOnly = true)
+    public java.util.Map<UUID, String> fileNames(java.util.Collection<UUID> uploadIds) {
+        if (uploadIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        java.util.Map<UUID, String> names = new java.util.HashMap<>();
+        repository.findAllById(uploadIds).forEach(upload -> {
+            if (upload.getFileName() != null) {
+                names.put(upload.getId(), upload.getFileName());
+            }
+        });
+        return names;
+    }
+
     /** The owner deletes an unclaimed upload. */
     @Transactional
     public void deleteOwn(UUID userId, UUID uploadId) {

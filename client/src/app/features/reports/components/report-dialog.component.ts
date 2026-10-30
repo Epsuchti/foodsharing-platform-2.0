@@ -37,7 +37,7 @@ import {
   imports: [...DATA_STATE_IMPORTS, Button, Dialog, FormsModule, InputText, Select, Textarea, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="visible()"
       (visibleChange)="visible.set($event)"
       [modal]="true"

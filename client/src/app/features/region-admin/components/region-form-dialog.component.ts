@@ -38,7 +38,7 @@ const ZONES = ['Europe/Zurich', 'Europe/Berlin', 'Europe/Vienna', 'Europe/Luxemb
   imports: [Button, Dialog, InputText, ReactiveFormsModule, Select, TPipe, Textarea, ToggleSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="visible()"
       (visibleChange)="visible.set($event)"
       [modal]="true"

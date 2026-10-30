@@ -184,7 +184,8 @@ const SEVERITY: DataStatus[] = ['offline', 'error', 'forbidden', 'notFound', 'lo
 
 /**
  * One DataState for several layers (the map shows one status line): the most severe status wins (offline > error >
- * … > loading > refreshing > success); `reload()` reloads the layers that failed (all when none failed).
+ * … > loading > refreshing > success); `reload()` reloads the layers that failed (all when none failed), `refresh()`
+ * refreshes the layers that show data.
  */
 export function combineStates(states: Signal<readonly DataState<unknown>[]>): DataState<true> {
   const status = computed<DataStatus>(() => {
@@ -205,6 +206,7 @@ export function combineStates(states: Signal<readonly DataState<unknown>[]>): Da
       const broken = states().filter(failed);
       (broken.length > 0 ? broken : states()).forEach((state) => state.reload());
     },
+    refresh: () => states().forEach((state) => state.refresh()),
     set: () => undefined,
     update: () => undefined,
   };

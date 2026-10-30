@@ -37,7 +37,7 @@ export const RESTRICTED_FUNCTIONS: readonly WorkingGroupFunction[] = [
   imports: [Button, Dialog, InputNumber, InputText, ReactiveFormsModule, Select, TPipe, Textarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="visible()"
       (visibleChange)="visible.set($event)"
       [modal]="true"

@@ -62,7 +62,7 @@ public class ContentController implements ContentApi {
                 body.getTitles(), body.getBodies(), network.foodsharing.content.domain.ContentPageKind.valueOf(
                         body.getKind().name()), body.getSortOrder(), body.getEstimatedMinutes(),
                 Boolean.TRUE.equals(body.getPublished()), body.getReason(), body.getEditorFunction(),
-                body.getImageUploadIds()))));
+                body.getImageUploadIds(), body.getRemoveImageUploadIds()))));
     }
 
     @Override
@@ -93,7 +93,8 @@ public class ContentController implements ContentApi {
     @Override
     public ResponseEntity<BlogPost> updateBlogPost(UUID blogPostId, BlogPostUpdate body) {
         return ResponseEntity.ok(mapper.toPost(blog.update(blogPostId, new BlogService.PostInput(body.getTitle(),
-                body.getTeaser(), body.getBody(), body.getRegionId(), body.getPictureUploadId()))));
+                body.getTeaser(), body.getBody(), body.getRegionId(), body.getPictureUploadId(),
+                Boolean.TRUE.equals(body.getRemovePicture())))));
     }
 
     @Override

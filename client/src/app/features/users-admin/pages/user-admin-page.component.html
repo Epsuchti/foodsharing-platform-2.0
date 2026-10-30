@@ -217,7 +217,7 @@
   testId="usersAdmin.user.deleteDialog"
 />
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="emailOpen()"
   (visibleChange)="emailOpen.set($event)"
   [modal]="true"
@@ -261,7 +261,7 @@
   </form>
 </p-dialog>
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="editOpen()"
   (visibleChange)="editOpen.set($event)"
   [modal]="true"

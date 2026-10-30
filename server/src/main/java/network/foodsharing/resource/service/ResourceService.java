@@ -58,7 +58,7 @@ public class ResourceService {
     public record Category(UUID id, String name, String icon) {
     }
 
-    public record Image(UUID uploadId, String url) {
+    public record Image(UUID uploadId, String url, String fileName) {
     }
 
     /** A resource prepared for display to one viewer. */
@@ -70,7 +70,7 @@ public class ResourceService {
                         ResourceOpenness openness, UUID regionId, List<UUID> imageUploadIds, boolean commons) {
     }
 
-    public record Permissions(boolean mayAdd, boolean mayEditCommons) {
+    public record Permissions(boolean mayAdd, boolean mayEditCommons, int maxPerUser) {
     }
 
     private final ResourceRepository resources;
@@ -148,7 +148,8 @@ public class ResourceService {
     public Permissions permissionsIn(UUID regionId) {
         SessionPrincipal principal = requireViewer(regionId);
         return new Permissions(ResourceRules.mayAdd(resources.countByOwnerIdAndDeletedAtIsNull(principal.userId()),
-                properties.getResources().getMaxPerUser()), mayEditCommons(principal, regionId));
+                properties.getResources().getMaxPerUser()), mayEditCommons(principal, regionId),
+                properties.getResources().getMaxPerUser());
     }
 
     @Transactional(readOnly = true)
@@ -398,9 +399,13 @@ public class ResourceService {
         Map<UUID, List<UUID>> categoryIds = categoryLinks.findByResourceIdIn(ids).stream().collect(Collectors.groupingBy(
                 ResourceLinks.CategoryLink::getResourceId,
                 Collectors.mapping(ResourceLinks.CategoryLink::getCategoryId, Collectors.toList())));
-        Map<UUID, List<Image>> imageMap = images.findByResourceIdInOrderBySortOrder(ids).stream().collect(
+        List<ResourceLinks.Image> imageRows = images.findByResourceIdInOrderBySortOrder(ids);
+        Map<UUID, String> fileNames = uploads.fileNames(imageRows.stream().map(ResourceLinks.Image::getUploadId)
+                .collect(Collectors.toSet()));
+        Map<UUID, List<Image>> imageMap = imageRows.stream().collect(
                 Collectors.groupingBy(ResourceLinks.Image::getResourceId, Collectors.mapping(
-                        i -> new Image(i.getUploadId(), "/api/uploads/" + i.getUploadId()), Collectors.toList())));
+                        i -> new Image(i.getUploadId(), "/api/uploads/" + i.getUploadId(),
+                                fileNames.get(i.getUploadId())), Collectors.toList())));
         Set<UUID> favs = favourites.findByUserIdAndResourceIdIn(principal.userId(), ids).stream()
                 .map(ResourceLinks.Favourite::getResourceId).collect(Collectors.toSet());
         Map<UUID, User> owners = users.findAll(list.stream().map(Resource::getOwnerId)

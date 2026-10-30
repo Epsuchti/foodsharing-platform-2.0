@@ -274,8 +274,8 @@ export class MessagesPageComponent {
         RealtimeEventType.ConversationUpdated,
       )
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(() => this.conversations.reload());
-    const unregister = this.realtime.onReconnect(() => this.conversations.reload());
+      .subscribe(() => this.conversations.refresh());
+    const unregister = this.realtime.onReconnect(() => this.conversations.refresh());
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
