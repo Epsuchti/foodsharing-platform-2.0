@@ -31,8 +31,17 @@
   }
   :host(.has-mail) .rail,
   :host(.has-mail) .list,
-  :host(.has-mail) .title {
+  :host(.has-mail) .title p-button {
     display: none;
+  }
+  /* an open mail fills the phone screen; the page title stays for screen readers (the h1 of the page) */
+  :host(.has-mail) .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 .box {
