@@ -59,3 +59,4 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
      - Admins can see and lift active blocks; this reuses the existing IP blocklist admin page if possible.
      - Every block is recorded in the history.
      - The values are configurable.
+6. Store automation: the pickup-policy and request-policy sections have the same save/run race that AU4 had. Their "test" and "run" buttons stay enabled while the form has unsaved changes. Apply the adverts pattern: disable them while the draft is dirty or a save is in flight, show the "Erst speichern" hint, and add a unit test.
