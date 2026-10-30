@@ -21,6 +21,7 @@
   "automation.adverts.resend": "Letzten Hinweis erneut senden",
   "automation.adverts.rotating": "Werden abwechselnd verschickt, eine pro Hinweis.",
   "automation.adverts.runResult": "{evaluated} geprüft: {sent} gesendet, {skipped} übersprungen, {failed} fehlgeschlagen.",
+  "automation.adverts.saveFirst": "Erst speichern: Testen und Ausführen verwenden die gespeicherten Hinweise.",
   "automation.adverts.telegramChat": "Telegram-Chat",
   "automation.adverts.telegramDefault": "Betriebs- oder Bezirks-Chat",
   "automation.adverts.title": "Hinweise auf freie Plätze",

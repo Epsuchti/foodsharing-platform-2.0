@@ -176,10 +176,13 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
       <div class="row">
         <h3 class="grow">{{ 'automation.adverts.plannedTitle' | t }}</h3>
         @if (ctx.mayEdit() && ctx.data()?.adverts?.length) {
-          <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" size="small" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.adverts.runDry" />
-          <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" size="small" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.adverts.run" />
+          <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.adverts.runDry" />
+          <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.adverts.run" />
         }
       </div>
+      @if (ctx.mayEdit() && ctx.data()?.adverts?.length && unsaved()) {
+        <p class="muted" data-testid="automation.adverts.saveFirst">{{ 'automation.adverts.saveFirst' | t }}</p>
+      }
       @if (lastRun(); as r) {
         <p class="banner banner--info" data-testid="automation.adverts.runResult">{{ 'automation.adverts.runResult' | t: { evaluated: r.evaluated, sent: r.confirmed, skipped: r.skipped, failed: r.failed } }}</p>
       }
@@ -281,6 +284,14 @@ export class AdvertsSection {
   protected dirty(advert: OpenSlotAdvert): boolean {
     const saved = this.saved(advert.advertNumber!);
     return !saved || JSON.stringify(saved) !== JSON.stringify(advert);
+  }
+
+  /**
+   * "Run now" works on the saved adverts: while a draft differs from the server state, or a save/delete is still in
+   * flight (and until the saved state is reloaded), a run would evaluate the old configuration.
+   */
+  protected unsaved(): boolean {
+    return this.save.busy() || this.remove.busy() || this.drafts().some((advert) => this.dirty(advert));
   }
 
   protected messages(advert: OpenSlotAdvert, channel: AdvertChannel): string[] {
