@@ -21,12 +21,6 @@ async function serverAnswered(page: Page): Promise<void> {
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver' });
 
-  // The seed reset restores a database snapshot taken before the start-up index build, so search_index is empty
-  // after every reset (reported as a backend request); build it the way the nightly job does.
-  test.beforeEach(async ({ notifications }) => {
-    await notifications.runJob('search-reindex');
-  });
-
   test("C5 header search finds users of my region, stores, threads and FSPs; other regions' users hidden; orga searches globally @C5 @page", async ({
     page,
     as,
