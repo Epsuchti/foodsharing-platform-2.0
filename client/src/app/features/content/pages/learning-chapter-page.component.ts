@@ -11,6 +11,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { continuesJourney } from '../content.util';
 
 /**
  * /learn/:key (C1, onboarding step 3): one learning chapter with reading time. Signed-in users mark it as read
@@ -69,16 +70,30 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
                 <i class="pi pi-check-circle" aria-hidden="true"></i
                 >{{ 'content.chapter.markedRead' | t }}
               </p>
-              <p-button
-                [label]="
-                  (c.nextChapterKey ? 'content.chapter.nextChapter' : 'content.chapter.toOverview')
-                    | t
-                "
-                icon="pi pi-arrow-right"
-                iconPos="right"
-                (onClick)="continue(c)"
-                data-testid="content.chapter.next"
-              />
+              <div class="next__actions">
+                <p-button
+                  [label]="
+                    (c.nextChapterKey ? 'content.chapter.nextChapter' : 'content.chapter.toOverview')
+                      | t
+                  "
+                  [icon]="toJourney(c) ? 'pi pi-list' : 'pi pi-arrow-right'"
+                  [iconPos]="toJourney(c) ? 'left' : 'right'"
+                  [severity]="toJourney(c) ? 'secondary' : undefined"
+                  [outlined]="toJourney(c)"
+                  (onClick)="continue(c)"
+                  data-testid="content.chapter.next"
+                />
+                @if (toJourney(c)) {
+                  <!-- design review M7 R3: after the last chapter a newcomer continues with the journey (quiz) -->
+                  <p-button
+                    [label]="'content.chapter.toJourney' | t"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    routerLink="/onboarding"
+                    data-testid="content.chapter.toJourney"
+                  />
+                }
+              </div>
             } @else {
               <p class="next__text">{{ 'content.chapter.markHint' | t }}</p>
               <p-button
@@ -151,6 +166,11 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
       color: var(--fs-text-muted);
       font-size: 0.92rem;
     }
+    .next__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
     .next__done {
       display: flex;
       align-items: center;
@@ -196,6 +216,11 @@ export class LearningChapterPageComponent {
       },
     },
   );
+
+  /** The last chapter of someone on the newcomer journey: the journey is the next stop, not the overview. */
+  protected toJourney(chapter: ContentPage): boolean {
+    return continuesJourney(chapter.nextChapterKey, this.session.session()?.onboarding);
+  }
 
   protected continue(chapter: ContentPage): void {
     void this.router.navigate(

@@ -103,6 +103,7 @@
   "quiz.results.review": "All questions at a glance",
   "quiz.results.questionPoints": "{points} FP",
   "quiz.results.allQuizzes": "All quizzes",
+  "quiz.results.toJourney": "Continue getting started",
   "quiz.results.fullText": "Read the full text",
   "quiz.results.confirmButton": "Confirm",
   "quiz.results.confirmToast": "Confirmed – your new role is active.",

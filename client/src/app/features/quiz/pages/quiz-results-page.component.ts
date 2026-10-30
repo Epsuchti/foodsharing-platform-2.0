@@ -97,6 +97,18 @@ import { quizKindOf } from '../quiz-kind';
             <p class="banner banner--success" data-testid="quiz.results.confirmed">
               <i class="pi pi-verified" aria-hidden="true"></i>{{ 'quiz.results.confirmed.' + quizKind() | t }}
             </p>
+            @if (journeyOpen()) {
+              <!-- design review M7 R3: the success state leads to the next step of the newcomer journey -->
+              <div class="actions">
+                <p-button
+                  [label]="'quiz.results.toJourney' | t"
+                  icon="pi pi-arrow-right"
+                  iconPos="right"
+                  routerLink="/onboarding"
+                  data-testid="quiz.results.toJourney"
+                />
+              </div>
+            }
           } @else if (r.requiresConfirmation && r.confirmationDocument) {
             <section class="fs-card card confirm" data-testid="quiz.results.confirm">
               <h2 class="card__title">
@@ -282,6 +294,8 @@ export class QuizResultsPageComponent {
   protected readonly quizKind = computed(() => quizKindOf(this.kind()) as QuizKind);
   protected readonly agreed = signal(false);
   protected readonly confirmed = signal(false);
+  /** Newcomers still on their journey continue there after confirming (the quiz is one of its steps). */
+  protected readonly journeyOpen = computed(() => this.session.session()?.onboarding?.complete === false);
 
   protected readonly results = loadResource<QuizResult, { kind: QuizKind; test: boolean }>({
     params: () => ({ kind: this.quizKind(), test: this.isPractice() }),

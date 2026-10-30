@@ -189,6 +189,21 @@ describe('stores pages', () => {
     expect(q('[data-testid="stores.page.call"]')).not.toBeNull();
   });
 
+  it('store page: one "Route" button opens both map links (phones, design review M7 R3)', async () => {
+    await harness.navigateByUrl('/stores/s1');
+    http.expectOne('/api/stores/s1').flush(detail());
+    await settle();
+    const toggle = q('[data-testid="stores.page.route"]') as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    // both links stay in the page (desktop shows them, phones fold them behind the button)
+    expect(q('[data-testid="stores.page.navigate"]')?.getAttribute('href')).toContain('query=47.3779,8.5427');
+    expect(q('[data-testid="stores.page.navigateApple"]')).not.toBeNull();
+    toggle.click();
+    await settle();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(q('.route')?.classList.contains('route--open')).toBe(true);
+  });
+
   it('map links use coordinates, else the address', () => {
     expect(mapLinks(detail())?.google).toContain('query=47.3779,8.5427');
     expect(mapLinks(detail({ latitude: undefined, longitude: undefined }))?.google).toContain('Bahnhofbr%C3%BCcke%201');

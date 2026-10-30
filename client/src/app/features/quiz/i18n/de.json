@@ -103,6 +103,7 @@
   "quiz.results.review": "Alle Fragen im Überblick",
   "quiz.results.questionPoints": "{points} FP",
   "quiz.results.allQuizzes": "Alle Quiz",
+  "quiz.results.toJourney": "Weiter mit deinem Einstieg",
   "quiz.results.fullText": "Ganzen Text lesen",
   "quiz.results.confirmButton": "Bestätigen",
   "quiz.results.confirmToast": "Bestätigt – deine neue Rolle ist aktiv.",
