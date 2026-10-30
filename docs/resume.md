@@ -51,3 +51,11 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
    - The 429 answer and the UI message.
    - Metrics and alerting.
    - Keep the e2e/test profiles at 0, and extend `RateLimitInventoryTest`.
+   - Owner decisions (2026-10-30):
+     - Both a per-IP and a per-user-account limit.
+     - The real client IP from `X-Forwarded-For`, trusted only from our own reverse proxy.
+     - Hitting the limit blocks that IP or account for a while, not just the requests of that minute. Every answer during the block is 429 with `Retry-After`.
+     - The block grows with repeat offences: for example 1 min, then 5 min, then 30 min, reset after a quiet day.
+     - Admins can see and lift active blocks; this reuses the existing IP blocklist admin page if possible.
+     - Every block is recorded in the history.
+     - The values are configurable.
