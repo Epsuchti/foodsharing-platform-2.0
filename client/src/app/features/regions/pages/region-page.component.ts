@@ -61,7 +61,7 @@ export class RegionPageComponent {
     ),
   );
 
-  /** Report handlers (A51 rule copied in reports.util until RegionDetail says so; the server decides). */
+  /** Report handlers (`RegionDetail.mayHandleReports`; the server decides). */
   private readonly reportHandler = computed(
     () => M6_PAGES_READY.reports && mayHandleReports(this.session.session(), this.ctx.data()),
   );

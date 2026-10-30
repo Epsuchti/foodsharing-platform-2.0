@@ -46,6 +46,18 @@ describe('feature toggles', () => {
     expect(toggles.isEnabled(FeatureToggleKey.Baskets)).toBe(true);
   });
 
+  it('apply a change made in the admin settings once loaded, and ignore it before', async () => {
+    const toggles = TestBed.inject(FeatureToggleService);
+    toggles.apply(FeatureToggleKey.Baskets, true);
+    expect(toggles.loaded()).toBe(false);
+    const load = toggles.load();
+    http.expectOne(URL).flush({ BASKETS: true, BLOG: true });
+    await load;
+    toggles.apply(FeatureToggleKey.Baskets, false);
+    expect(toggles.isEnabled(FeatureToggleKey.Baskets)).toBe(false);
+    expect(toggles.isEnabled(FeatureToggleKey.Blog)).toBe(true);
+  });
+
   it('are loaded once the first page was shown', () => {
     const startup = TestBed.inject(StartupService);
     startup.markPageShown();

@@ -1,4 +1,4 @@
-import { FspAddress, FspCreate, FspSummary, FspUpdate, MapMarker as ApiMapMarker, MapMarkerKind } from '../../api';
+import { FspAddress, FspCreate, FspSummary, FspUpdate } from '../../api';
 import { MapMarker } from '../../shared/map-view/map-view.component';
 
 /** Server limits (`schemas/food-share-points.yaml`). */
@@ -39,14 +39,13 @@ export function photoVariant(url: string | null | undefined, size: 'sm' | 'md' |
 }
 
 /**
- * Map pins for a region's FSP list. `FspSummary` carries no coordinates, so the pins come from the public FSP
- * markers (ACTIVE ones only), limited to the FSPs of the list and labelled with their names.
+ * Map pins for a region's FSP list from the coordinates of `FspSummary` (inactive FSPs included), labelled with
+ * their names; FSPs without a position get no pin.
  */
-export function fspMarkers(fsps: readonly FspSummary[], markers: readonly ApiMapMarker[]): MapMarker[] {
-  const names = new Map(fsps.map((fsp) => [fsp.id, fsp.name]));
-  return markers
-    .filter((marker) => marker.kind === MapMarkerKind.Fsp && names.has(marker.id))
-    .map((marker) => ({ id: marker.id, kind: 'fsp', lat: marker.lat, lon: marker.lon, label: names.get(marker.id) ?? '' }));
+export function fspMarkers(fsps: readonly FspSummary[]): MapMarker[] {
+  return fsps.flatMap((fsp) =>
+    fsp.lat != null && fsp.lon != null ? [{ id: fsp.id, kind: 'fsp' as const, lat: fsp.lat, lon: fsp.lon, label: fsp.name }] : [],
+  );
 }
 
 /** Values of the FSP form (see FspFormPageComponent). */

@@ -412,6 +412,7 @@
   "nav.adminUploads": "File caricati",
   "nav.adminAchievements": "Riconoscimenti",
   "nav.adminBounced": "E-mail non recapitate",
+  "nav.adminAdmins": "Admin",
   "nav.team": "Team",
   "nav.partners": "Partner",
   "nav.press": "Stampa",
@@ -424,5 +425,6 @@
   "nav.support": "Supporto",
   "nav.releaseNotes": "Note di rilascio",
   "nav.faq": "FAQ",
-  "nav.adminReleaseNotes": "Novità"
+  "nav.adminReleaseNotes": "Novità",
+  "nav.blogManage": "Articoli del blog"
 }

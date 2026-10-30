@@ -195,7 +195,7 @@ describe('nav.config', () => {
     expect(visibleNavItems(togglesOff).map((item) => item.id)).not.toContain('search');
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
-    ).toEqual(['account', 'notifications', 'profile']);
+    ).toEqual(['account', 'notifications', 'profile', 'help']);
     expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'messages',
@@ -229,13 +229,30 @@ describe('nav.config', () => {
       const foodsaver = context({ isAuthenticated: true, hasRole: (role) => role === Role.Foodsaver });
       expect(ids(foodsaver)).toEqual(expect.arrayContaining(['map', 'baskets', 'search']));
       expect(ids(foodsaver)).not.toContain('adminSettings');
-      expect(ids(orga)).toEqual(expect.arrayContaining(['adminSettings', 'adminOauth', 'adminUploads', 'adminAchievements', 'adminBounced']));
+      expect(ids(orga)).toEqual(expect.arrayContaining(['adminSettings', 'adminOauth', 'adminUploads', 'adminAchievements', 'adminBounced', 'adminAdmins']));
       expect(ids(foodsaver, 'user')).toContain('profile');
       // the "about" pages are in the logged-out footer only
       const about = NAV_ITEMS.filter((item) => item.group === 'about').map((item) => item.id);
       expect(about).toHaveLength(12);
       expect(ids(context(), 'footer')).toEqual(expect.arrayContaining(about));
       expect(ids(foodsaver, 'footer').filter((id) => about.includes(id))).toEqual([]);
+      // Q11: blog management for ORGA and admins of a region/group, support in the user menu; both and the footer
+      // entries of blog and support follow their feature toggles (BLOG, SUPPORT_FORM)
+      expect(ids(orga)).toContain('blogManage');
+      expect(ids(foodsaver)).not.toContain('blogManage');
+      const ambassador = context({
+        isAuthenticated: true,
+        hasRole: (role) => role === Role.Foodsaver,
+        session: { units: [{ admin: true }] } as never,
+      });
+      expect(ids(ambassador)).toContain('blogManage');
+      expect(ids(foodsaver, 'user')).toContain('help');
+      const off = (ctx: NavContext) => ({ ...ctx, featureEnabled: () => false });
+      expect(ids(off(orga))).not.toContain('blogManage');
+      expect(ids(off(foodsaver), 'user')).not.toContain('help');
+      expect(ids(off(context()), 'footer')).toEqual(expect.arrayContaining(['donate']));
+      expect(ids(off(context()), 'footer')).not.toContain('blog');
+      expect(ids(off(context()), 'footer')).not.toContain('support');
     } finally {
       Object.assign(M6_PAGES_READY, saved);
     }

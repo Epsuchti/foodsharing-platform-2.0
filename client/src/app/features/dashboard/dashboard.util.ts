@@ -22,15 +22,14 @@ export function toggleExcluded(excluded: readonly ActivityType[], type: Activity
   return excluded.includes(type) ? excluded.filter((entry) => entry !== type) : ACTIVITY_TYPES.filter((entry) => entry === type || excluded.includes(entry));
 }
 
-const itemKey = (item: ActivityItem) => `${item.type}|${item.link}|${item.at}|${item.title}`;
-
 /**
- * Appends the next feed page; items already shown are skipped (new activity between two requests shifts the pages,
- * so the start of the next page can repeat the end of the previous one).
+ * Appends the next feed page; items already shown (same `id`) are skipped (new activity between two requests shifts
+ * the pages, so the start of the next page can repeat the end of the previous one). Items with equal time, link and
+ * title are different posts and both stay.
  */
 export function mergeActivityPages(shown: readonly ActivityItem[], next: readonly ActivityItem[]): ActivityItem[] {
-  const seen = new Set(shown.map(itemKey));
-  return [...shown, ...next.filter((item) => !seen.has(itemKey(item)))];
+  const seen = new Set(shown.map((item) => item.id));
+  return [...shown, ...next.filter((item) => !seen.has(item.id))];
 }
 
 /** The first baskets of a nearby list (the server sorts by distance). */

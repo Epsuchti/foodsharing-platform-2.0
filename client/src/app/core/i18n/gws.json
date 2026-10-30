@@ -412,6 +412,7 @@
   "nav.adminUploads": "Uploads",
   "nav.adminAchievements": "Uuszeichnige",
   "nav.adminBounced": "Unzuestellbari E-Mails",
+  "nav.adminAdmins": "Admins",
   "nav.team": "Team",
   "nav.partners": "Partner",
   "nav.press": "Presse",
@@ -424,5 +425,6 @@
   "nav.support": "Support",
   "nav.releaseNotes": "Versionshiwiis",
   "nav.faq": "FAQ",
-  "nav.adminReleaseNotes": "Neuigkeite"
+  "nav.adminReleaseNotes": "Neuigkeite",
+  "nav.blogManage": "Blogbiiträg"
 }

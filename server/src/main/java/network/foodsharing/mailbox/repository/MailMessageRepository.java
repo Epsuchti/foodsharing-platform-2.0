@@ -43,6 +43,6 @@ public interface MailMessageRepository extends JpaRepository<MailMessage, UUID> 
     List<MailMessage> findByFolderAndMessageIdIn(MailFolder folder, Collection<String> messageIds);
 
     /** Activity feed: INBOX mails of the given mailboxes received before {@code before}, newest first. */
-    List<MailMessage> findByMailboxIdInAndFolderAndReceivedAtBeforeOrderByReceivedAtDesc(
+    List<MailMessage> findByMailboxIdInAndFolderAndReceivedAtBeforeOrderByReceivedAtDescIdDesc(
             Collection<UUID> mailboxIds, MailFolder folder, Instant before, Pageable pageable);
 }

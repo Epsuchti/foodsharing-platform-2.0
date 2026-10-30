@@ -54,7 +54,7 @@ function session(units: SessionInfo['units'] = [], role: Role = Role.Ambassador)
   };
 }
 
-function region(admin: boolean, reportGroup: boolean): RegionDetail {
+function region(mayHandleReports?: boolean): RegionDetail {
   return {
     id: ZH,
     slug: 'zuerich-stadt',
@@ -63,13 +63,13 @@ function region(admin: boolean, reportGroup: boolean): RegionDetail {
     hasChildren: false,
     memberCount: 10,
     ambassadors: [],
-    functions: reportGroup
-      ? [{ function: WorkingGroupFunction.Report, group: { id: 'g24', slug: 'meldungen', name: 'Meldungen' } }]
-      : [],
-    membership: { member: true, admin, homeRegion: true },
+    // an ambassador of a region with a REPORT group: the client no longer derives anything from these
+    functions: [{ function: WorkingGroupFunction.Report, group: { id: 'g24', slug: 'meldungen', name: 'Meldungen' } }],
+    membership: { member: true, admin: true, homeRegion: true },
     timeZone: 'Europe/Zurich',
     joinMode: 'OPEN' as RegionDetail['joinMode'],
     moderated: false,
+    ...(mayHandleReports === undefined ? {} : { mayHandleReports }),
   };
 }
 
@@ -130,8 +130,12 @@ describe('reports.util', () => {
     expect(handlingPatch(r, draft)).toEqual({});
     expect(handlingPatch(r, { ...draft, status: ReportStatus.InProgress })).toEqual({ status: ReportStatus.InProgress });
     expect(handlingPatch(r, { ...draft, consequence: ' Verwarnung ' })).toEqual({ consequence: 'Verwarnung' });
-    // emptied fields cannot be cleared through the contract
-    expect(handlingPatch(r, { ...draft, consequence: '', reminderAt: '' })).toEqual({});
+    // emptied fields are cleared: empty consequence, clearReminder, clearForumThread
+    expect(handlingPatch(r, { ...draft, consequence: ' ', reminderAt: '' })).toEqual({ consequence: '', clearReminder: true });
+    const linked = report({ forumThreadId: THREAD });
+    expect(handlingPatch(linked, { ...handlingDraft(linked), forumThreadId: '' })).toEqual({ clearForumThread: true });
+    // nothing to clear when the field was empty already
+    expect(handlingPatch(report(), { ...handlingDraft(report()), consequence: '', reminderAt: '', forumThreadId: '' })).toEqual({});
     const reminder = '2026-11-05T10:30';
     expect(handlingPatch(r, { ...draft, reminderAt: reminder, forumThreadId: THREAD })).toEqual({
       reminderAt: new Date(reminder).toISOString(),
@@ -160,20 +164,18 @@ describe('reports.util', () => {
     expect(SETTABLE_STATUSES).toContain(ReportStatus.Completed);
   });
 
-  it('shows the reports tabs to ORGA, report/arbitration group admins and ambassadors without a report group', () => {
-    expect(mayHandleReports(session([], Role.Orga), region(false, true))).toBe(true);
+  it('shows the reports tabs to ORGA and wherever the server says RegionDetail.mayHandleReports', () => {
+    expect(mayHandleReports(session([], Role.Orga), undefined)).toBe(true);
+    expect(mayHandleReports(session([], Role.Orga), region(false))).toBe(true);
+    expect(mayHandleReports(session(), region(true))).toBe(true);
+    // the server decides: an ambassador of a region with a REPORT group is no handler there
+    expect(mayHandleReports(session(), region(false))).toBe(false);
+    // a REPORT group admin somewhere does not make every region's tabs appear
     const reportAdmin = session([
       { id: 'g24', name: 'Meldungen', slug: 'meldungen', type: UnitType.WorkingGroup, member: true, admin: true, homeRegion: false, function: WorkingGroupFunction.Report },
     ]);
-    expect(mayHandleReports(reportAdmin, region(false, true))).toBe(true);
-    const arbitrationMember = session([
-      { id: 'g26', name: 'Schiedsstelle', slug: 'schiedsstelle', type: UnitType.WorkingGroup, member: true, admin: false, homeRegion: false, function: WorkingGroupFunction.Arbitration },
-    ]);
-    expect(mayHandleReports(arbitrationMember, region(false, true))).toBe(false);
-    // ambassadors handle only where no REPORT group exists
-    expect(mayHandleReports(session(), region(true, false))).toBe(true);
-    expect(mayHandleReports(session(), region(true, true))).toBe(false);
-    expect(mayHandleReports(session(), region(false, false))).toBe(false);
+    expect(mayHandleReports(reportAdmin, region(false))).toBe(false);
+    expect(mayHandleReports(reportAdmin, region())).toBe(false);
     expect(mayHandleReports(null, undefined)).toBe(false);
   });
 });

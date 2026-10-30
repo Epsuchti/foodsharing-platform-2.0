@@ -13,8 +13,11 @@ import { mergeActivityPages, nearestBaskets, toggleExcluded } from './dashboard.
 const tick = () => new Promise((resolve) => setTimeout(resolve));
 const serverError = { status: 500, statusText: 'Server Error' };
 
+let nextItemId = 0;
+
 function item(overrides: Partial<ActivityItem> = {}): ActivityItem {
   return {
+    id: `00000000-0000-4000-8000-${String(++nextItemId).padStart(12, '0')}`,
     type: ActivityType.Forum,
     at: '2026-11-01T10:00:00Z',
     title: 'Neues im Forum',
@@ -43,6 +46,12 @@ describe('dashboard util', () => {
     const b = item({ title: 'Zweiter', at: '2026-10-31T10:00:00Z' });
     const c = item({ title: 'Dritter', at: '2026-10-30T10:00:00Z' });
     expect(mergeActivityPages([a, b], [b, c]).map((entry) => entry.title)).toEqual(['Neues im Forum', 'Zweiter', 'Dritter']);
+  });
+
+  it('keeps different posts with the same time, link and title (tied store wall posts)', () => {
+    const first = item({ type: ActivityType.StoreWall, title: 'Migros City', link: '/stores/s1' });
+    const second = { ...first, id: '00000000-0000-4000-8000-999999999999' };
+    expect(mergeActivityPages([first], [first, second]).map((entry) => entry.id)).toEqual([first.id, second.id]);
   });
 
   it('keeps the three nearest baskets', () => {

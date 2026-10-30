@@ -21,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Dashboard activity feed (A19): the newest items of every {@link ActivitySource} the user did not hide
  * ({@code user_account.activity_filters}), merged by time. Paging takes {@code (page + 1) * size} items of every
- * source and slices the merged list (the feed is shallow; upstream pages the same way per source).
+ * source and slices the merged list (the feed is shallow; upstream pages the same way per source). The order is
+ * total and the same in every source and in the merge ({@link #ORDER}: time descending, then type, then item id
+ * descending), so tied items never repeat or vanish across pages.
  */
 @Service
 @Transactional(readOnly = true)
@@ -29,12 +31,23 @@ public class ActivityFeedService {
 
     public static final int MAX_SIZE = 50;
 
-    /** One feed entry. */
-    public record ActivityItem(ActivityType type, Instant at, String title, String excerpt, String link,
+    /** One feed entry; {@code id} is the id of the underlying post or mail. */
+    public record ActivityItem(UUID id, ActivityType type, Instant at, String title, String excerpt, String link,
                                UUID authorId, UUID sourceId, String sourceName) {
     }
 
-    /** A source of feed entries (implemented in this module on top of the other modules' services). */
+    /**
+     * Feed order: newest first, then type name, then id descending. Ids compare as their lower-case text, which is the
+     * unsigned byte order PostgreSQL and H2 use for {@code ORDER BY id DESC} in the sources.
+     */
+    static final Comparator<ActivityItem> ORDER = Comparator.comparing(ActivityItem::at).reversed()
+            .thenComparing((ActivityItem i) -> i.type().name())
+            .thenComparing(i -> i.id().toString(), Comparator.reverseOrder());
+
+    /**
+     * A source of feed entries (implemented in this module on top of the other modules' services). {@code latest}
+     * returns items newest first with ties ordered by id descending (the restriction of {@link #ORDER}).
+     */
     public interface ActivitySource {
 
         ActivityType type();
@@ -83,7 +96,7 @@ public class ActivityFeedService {
 
             @Override
             public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
-                return contribution.latest(userId, before, limit).stream().map(i -> new ActivityItem(type, i.at(),
+                return contribution.latest(userId, before, limit).stream().map(i -> new ActivityItem(i.id(), type, i.at(),
                         i.title(), excerpt(i.text()), i.link(), i.authorId(), i.sourceId(), i.sourceName())).toList();
             }
         };
@@ -99,7 +112,7 @@ public class ActivityFeedService {
                 all.addAll(source.latest(userId, before, limit));
             }
         }
-        all.sort(Comparator.comparing(ActivityItem::at).reversed());
+        all.sort(ORDER);
         int from = Math.min(page * size, all.size());
         List<ActivityItem> slice = all.subList(from, Math.min(all.size(), from + size));
         return new PageImpl<>(List.copyOf(slice), PageRequest.of(page, size), all.size());

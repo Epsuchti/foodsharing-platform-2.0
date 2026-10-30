@@ -194,6 +194,15 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/resources/resources.routes').then((m) => m.RESOURCES_ROUTES),
   },
   {
+    path: '',
+    loadChildren: () =>
+      import('./features/admin-settings/admin-settings.routes').then((m) => m.ADMIN_SETTINGS_ROUTES),
+  },
+  {
+    path: 'blog',
+    loadChildren: () => import('./features/blog/blog.routes').then((m) => m.BLOG_ROUTES),
+  },
+  {
     path: '**',
     title: 'common.pageTitle.notFound',
     loadComponent: () =>
