@@ -1,4 +1,4 @@
-import { LANGUAGES, SEED_NOW, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
+import { LANGUAGES, PHONE_MAX, SEED_NOW, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
 import { schema } from '../../support/openapi';
 
 /** AD1 (§14.4 "translations with i18n:check"): the packaged jar serves complete catalogs for all five languages. */
@@ -52,7 +52,9 @@ for (const lang of LANGUAGES) {
     for (const path of ['/', '/dev/gallery', '/does-not-exist']) {
       await page.goto(path);
       await expect(page.locator('html')).toHaveAttribute('lang', HTML_LANG[lang]);
-      await expect(page.getByTestId('shell.languageMenu')).toBeVisible();
+      // the language switch: the header menu on phones, the side menu's "Sprache & Darstellung" on desktop (decision 133)
+      const phone = (page.viewportSize()?.width ?? 1280) <= PHONE_MAX;
+      await expect(page.getByTestId(phone ? 'shell.languageMenu' : 'shell.prefs')).toBeVisible();
       await expectNoMissingKeys(page);
     }
   });

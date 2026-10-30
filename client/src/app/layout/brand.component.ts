@@ -35,7 +35,9 @@ import { TPipe } from '../core/i18n/t.pipe';
           fill="none"
         />
       </svg>
-      <span class="brand__word">food<span>sharing</span></span>
+      @if (!markOnly()) {
+        <span class="brand__word">food<span>sharing</span></span>
+      }
     </a>
   `,
   styles: `
@@ -80,8 +82,14 @@ import { TPipe } from '../core/i18n/t.pipe';
     .brand__word span {
       color: var(--fs-primary);
     }
+    /* on the tinted side menu (decision 133) the primary green is below 4.5:1 (axe color-contrast) */
+    :host-context(.sn) .brand__word span {
+      color: var(--fs-primary-strong);
+    }
   `,
 })
 export class BrandComponent {
   readonly link = input<string>('/');
+  /** The mark alone (side menu rail); the link keeps its name. */
+  readonly markOnly = input(false);
 }

@@ -108,5 +108,6 @@
   "bell.ui.page.emptyUnread": "Tutto letto",
   "bell.ui.page.loadMore": "Carica le più vecchie",
   "bell.ui.page.deleteRead": "Elimina le lette",
-  "bell.ui.page.deletedRead": "Notifiche lette eliminate"
+  "bell.ui.page.deletedRead": "Notifiche lette eliminate",
+  "bell.ui.button.itemCount": "({count} non lette)"
 }

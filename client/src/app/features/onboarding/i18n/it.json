@@ -72,5 +72,7 @@
   "onboarding.region.nextIntroPickups": "Prossimi ritiri introduttivi",
   "onboarding.region.freeSlots": "{count, plural, one {1 posto libero} other {# posti liberi}}",
   "onboarding.region.noDates": "Al momento nessuna data libera – ti avvisiamo volentieri.",
-  "onboarding.region.allDates": "Vedi tutte le date"
+  "onboarding.region.allDates": "Vedi tutte le date",
+  "onboarding.meter.progress": "Passo {current} di {total}",
+  "onboarding.meter.retry": "Ricarica i progressi"
 }

@@ -108,5 +108,6 @@
   "bell.ui.page.emptyUnread": "Alles gläse",
   "bell.ui.page.loadMore": "Älteri lade",
   "bell.ui.page.deleteRead": "Gläseni lösche",
-  "bell.ui.page.deletedRead": "Gläseni Benachrichtigunge glöscht"
+  "bell.ui.page.deletedRead": "Gläseni Benachrichtigunge glöscht",
+  "bell.ui.button.itemCount": "({count} ungläse)"
 }

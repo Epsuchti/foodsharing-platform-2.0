@@ -17,5 +17,14 @@
   "layout.nav.unread": "({count} non letti)",
   "layout.header.whatsNew": "Novità",
   "layout.header.searchOpen": "Apri la ricerca",
-  "layout.header.searchClose": "Chiudi la ricerca"
+  "layout.header.searchClose": "Chiudi la ricerca",
+  "layout.sidenav.collapse": "Comprimi la navigazione",
+  "layout.sidenav.expand": "Espandi la navigazione",
+  "layout.sidenav.shortcuts": "Scorciatoie da tastiera",
+  "layout.sidenav.shortcutSearch": "Cerca",
+  "layout.sidenav.shortcutToggle": "Comprimi o espandi la navigazione",
+  "layout.sidenav.prefs": "Lingua e aspetto",
+  "layout.sidenav.join": "Partecipa",
+  "layout.header.groups": "Gruppi di lavoro",
+  "layout.header.regionFilter": "Filtra regioni e gruppi"
 }
