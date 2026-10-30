@@ -12,7 +12,7 @@ export const LATER_FEATURES = ['forum', 'events', 'polls', 'stores', 'wall', 're
 
 /**
  * Placeholder tab for region features that ship in a later release: `later/:feature`, or a tab route of its own with
- * `data.feature` (`wall`, `resources`, `achievements`; plan-m7 Q9/Q12 and the wall task replace them).
+ * `data.feature` (`wall`, `resources`; plan-m7 Q12 and the wall task replace them).
  */
 @Component({
   selector: 'fs-region-later-tab',

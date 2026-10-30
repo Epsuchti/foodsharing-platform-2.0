@@ -86,7 +86,7 @@ export const M6_PAGES_READY = {
   adminSettings: false,
   adminOauth: false,
   adminUploads: false,
-  adminAchievements: false,
+  adminAchievements: true,
   adminBounced: true,
   team: true,
   partners: true,
