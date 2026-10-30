@@ -1,5 +1,5 @@
 import { injectApiError, seedStore } from '../fixtures';
-import { expect, forEachVariant, screenshotTest } from './_setup';
+import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup';
 
 /**
  * Store screens (M3 F2…F6): my stores, region store list, store header + overview, store form — filled, empty,
@@ -40,7 +40,9 @@ forEachVariant((variant) => {
 
       screenshotTest('region store list empty @S1 @screenshot', async ({ page, visual }) => {
         await page.goto(`/regions/${ZURICH}/stores`);
+        await expect(page.getByTestId('stores.region.state')).toHaveAttribute('data-state', 'success');
         await page.getByTestId('stores.region.search').fill('zzzz');
+        await tickFixedClock(page);
         await expect(page.getByTestId('stores.region.state')).toHaveAttribute('data-state', 'empty');
         await visual.expectScreen(page, `stores-region-empty-${variant.name}`);
       });
@@ -59,7 +61,9 @@ forEachVariant((variant) => {
       });
 
       screenshotTest('store page forbidden @S1 @screenshot', async ({ page, visual }) => {
-        await page.goto(`/stores/${seedStore('S-11').id}`);
+        // region members see a limited store page (S-11: success with "apply"); Winterthur (S-23) is outside
+        // foodsaver's regions
+        await page.goto(`/stores/${seedStore('S-23').id}`);
         await expect(page.getByTestId('stores.page.state')).toHaveAttribute('data-state', 'forbidden');
         await visual.expectScreen(page, `stores-page-forbidden-${variant.name}`);
       });

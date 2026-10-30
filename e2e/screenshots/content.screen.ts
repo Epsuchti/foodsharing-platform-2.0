@@ -68,11 +68,15 @@ forEachVariant((variant) => {
         await page.goto('/release-notes');
         await expect(page.getByTestId('content.releaseNotes.state')).toHaveAttribute('data-state', 'success');
         await expect(page.getByTestId('content.releaseNotes.new')).toHaveCount(1);
+        // the shell's petition banner (C8) loads after the feature toggles: wait for it so the screenshot is stable
+        await expect(page.getByTestId('content.petition.banner')).toBeVisible();
         await visual.expectScreen(page, `release-notes-${variant.name}`);
 
+        // the petition page shows the petition itself; the shell banner stays off it (petitionBannerAllowedOn)
         await page.goto('/petition');
         await expect(page.getByTestId('content.petition.state')).toHaveAttribute('data-state', 'success');
-        await expect(page.getByTestId('content.petition.banner')).toBeVisible();
+        await expect(page.getByTestId('content.petition.sign')).toBeVisible();
+        await expect(page.getByTestId('content.petition.banner')).toHaveCount(0);
         await visual.expectScreen(page, `petition-${variant.name}`);
       });
 
@@ -165,7 +169,9 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `release-notes-admin-${variant.name}`);
 
         await page.getByTestId('content.releaseAdmin.edit').first().click();
-        await expect(page.getByTestId('content.releaseAdmin.dialog')).toBeVisible();
+        // the p-dialog host has no box of its own; its content renders inside it
+        await expect(page.getByTestId('content.releaseAdmin.dialog').getByRole('dialog')).toBeVisible();
+        await expect(page.getByTestId('content.releaseAdmin.version')).toHaveValue('5.0.0');
         await visual.expectScreen(page, `release-notes-admin-dialog-${variant.name}`);
       });
     });

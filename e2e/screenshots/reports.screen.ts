@@ -1,4 +1,4 @@
-import { REPORTS, injectApiError, regionId } from '../fixtures';
+import { REPORTS, acceptPendingConsents, injectApiError, regionId } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 const ZURICH = regionId('zuerich-stadt');
@@ -16,6 +16,15 @@ forEachVariant((variant) => {
   screenshotTest.describe(`reports team ${variant.name}`, () => {
     // reports@local administers the Zürich REPORT group
     screenshotTest.use({ variant, role: 'reports' });
+
+    // reports@local has a pending privacy declaration for responsible persons (EA4): without accepting it every page
+    // shows /consent. Her account language (fr) wins over the variant's device setting, so store the variant on it.
+    screenshotTest.beforeEach(async ({ page, apiOf }) => {
+      const api = apiOf(page);
+      await acceptPendingConsents(api);
+      const response = await api.patch('/api/users/me/settings', { language: variant.lang, theme: variant.theme.toUpperCase() });
+      expect(response.ok(), `PATCH /api/users/me/settings → ${response.status()}`).toBe(true);
+    });
 
     screenshotTest('region reports tab @G1 @screenshot', async ({ page, visual }) => {
       await page.goto(`/regions/${ZURICH}/reports`);
