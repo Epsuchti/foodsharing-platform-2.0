@@ -185,7 +185,7 @@ public class StoreWallService {
         }
         java.util.Map<UUID, String> names = new java.util.HashMap<>();
         stores.findLiveIn(ids).forEach(st -> names.put(st.getId(), st.getName()));
-        return posts.findByStoreIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(names.keySet(), before,
+        return posts.findByStoreIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(names.keySet(), before,
                         org.springframework.data.domain.PageRequest.of(0, limit)).stream()
                 .map(p -> new FeedPost(p.getId(), p.getStoreId(), names.get(p.getStoreId()), p.getAuthorId(),
                         p.getText(), p.getCreatedAt())).toList();

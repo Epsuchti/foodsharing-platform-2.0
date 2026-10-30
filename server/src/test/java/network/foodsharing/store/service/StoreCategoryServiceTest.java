@@ -79,10 +79,34 @@ class StoreCategoryServiceTest {
     void everythingNeedsOrga() {
         when(currentActor.requireRole(network.foodsharing.api.model.Role.ORGA))
                 .thenThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED));
-        assertThat(codeOf(service::listCategories)).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(codeOf(() -> service.createCategory("Kiosk", null))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(codeOf(() -> service.updateCategory(bakery.getId(), "Bäcker", null)))
+                .isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(codeOf(() -> service.deleteCategory(bakery.getId()))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(codeOf(service::listGroceries)).isEqualTo(ApiErrorCode.ACCESS_DENIED);
         assertThat(codeOf(() -> service.createGrocery("Obst"))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
         assertThat(codeOf(() -> service.mergeCategory(bakery.getId(), market.getId())))
                 .isEqualTo(ApiErrorCode.ACCESS_DENIED);
+    }
+
+    @Test
+    void everySignedInUserReadsCategoryNamesButOnlyOrgaSeesUsageCounts() {
+        when(categories.findAllByOrderByNameAsc()).thenReturn(List.of(bakery, market));
+        when(stores.countByCategoryId(bakery.getId())).thenReturn(3L);
+        when(currentActor.requireRole(network.foodsharing.api.model.Role.ORGA))
+                .thenThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED));
+        when(currentActor.isOrga()).thenReturn(false);
+        assertThat(service.listCategories()).extracting(i -> i.item().getName(), StoreCategoryService.Item::storeCount)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple("Bäckerei", null),
+                        org.assertj.core.groups.Tuple.tuple("Markt", null));
+        verify(stores, never()).countByCategoryId(any());
+
+        when(currentActor.isOrga()).thenReturn(true);
+        assertThat(service.listCategories()).extracting(StoreCategoryService.Item::storeCount)
+                .containsExactly(3L, 0L);
+
+        when(currentActor.requirePrincipal()).thenThrow(ApiException.unauthenticated());
+        assertThat(codeOf(service::listCategories)).isEqualTo(ApiErrorCode.AUTHENTICATION_REQUIRED);
     }
 
     @Test

@@ -10,14 +10,14 @@ import java.util.UUID;
  */
 public interface ActivityContribution {
 
-    /** One entry; {@code link} is an SPA route. */
-    record Item(Instant at, String title, String text, String link, UUID authorId, UUID sourceId,
+    /** One entry; {@code id} is the id of the underlying post or mail (stable, tie-breaker), {@code link} an SPA route. */
+    record Item(UUID id, Instant at, String title, String text, String link, UUID authorId, UUID sourceId,
                 String sourceName) {
     }
 
     /** Name of the {@code ActivityType} the entries belong to (also the filter key). */
     String type();
 
-    /** The newest entries for {@code userId} created before {@code before}, newest first. */
+    /** The newest entries for {@code userId} created before {@code before}, newest first (ties by id, descending). */
     List<Item> latest(UUID userId, Instant before, int limit);
 }

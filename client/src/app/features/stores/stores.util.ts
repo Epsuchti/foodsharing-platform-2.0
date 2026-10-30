@@ -5,8 +5,6 @@ import {
   StoreAddress,
   StoresImportPreview,
   TeamSearchStatus,
-  UnitType,
-  WorkingGroupFunction,
 } from '../../api';
 import { isOrga } from '../../core/auth/permission.util';
 
@@ -50,30 +48,15 @@ export function mapLinks(store: { latitude?: number; longitude?: number; address
   };
 }
 
-export type RegionCoordinationInfo = Pick<RegionDetail, 'id' | 'parentId' | 'functions' | 'membership'>;
-
 /**
- * UI mirror of the server's `mayCoordinateRegionStores` (S2 import): ORGA; else, when the region has a
- * STORES_COORDINATION group, only admins of that group; else ambassadors of the region or its parent. The server
- * also counts ambassadors of higher ancestors and re-checks every call.
+ * Whether the stores CSV import (S2) is offered: ORGA, or the server's `RegionDetail.mayCoordinateStores` (the
+ * store-coordination rule lives only on the server; it re-checks every call).
  */
-export function mayCoordinateRegionStores(
+export function mayImportStores(
   session: SessionInfo | null | undefined,
-  region: RegionCoordinationInfo,
+  region: Pick<RegionDetail, 'mayCoordinateStores'> | null | undefined,
 ): boolean {
-  if (isOrga(session)) {
-    return true;
-  }
-  const units = session?.units ?? [];
-  const coordination = region.functions.find((f) => f.function === WorkingGroupFunction.StoresCoordination);
-  if (coordination) {
-    return units.some((unit) => unit.admin && unit.id === coordination.group.id);
-  }
-  const parentId = region.parentId;
-  return (
-    region.membership.admin ||
-    (!!parentId && units.some((unit) => unit.admin && unit.type !== UnitType.WorkingGroup && unit.id === parentId))
-  );
+  return isOrga(session) || region?.mayCoordinateStores === true;
 }
 
 /** Cheap pre-check without the region: only ORGA and admins of some unit can coordinate stores anywhere. */

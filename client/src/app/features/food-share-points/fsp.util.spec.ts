@@ -1,4 +1,4 @@
-import { FspStatus, FspSummary, MapMarkerKind } from '../../api';
+import { FspStatus, FspSummary } from '../../api';
 import {
   MANAGERS_MAX,
   addManager,
@@ -38,16 +38,16 @@ describe('fsp.util', () => {
     expect(photoVariant(undefined, 'sm')).toBeUndefined();
   });
 
-  it('fspMarkers keeps the FSP pins of the list, labelled with their names', () => {
-    const markers = fspMarkers(
-      [summary('a', 'Wiedikon'), summary('b', 'Altstetten')],
-      [
-        { id: 'a', kind: MapMarkerKind.Fsp, lat: 47.37, lon: 8.51 },
-        { id: 'c', kind: MapMarkerKind.Fsp, lat: 47.5, lon: 8.72 },
-        { id: 'b', kind: MapMarkerKind.Basket, lat: 47.38, lon: 8.48 },
-      ],
-    );
-    expect(markers).toEqual([{ id: 'a', kind: 'fsp', lat: 47.37, lon: 8.51, label: 'Wiedikon' }]);
+  it('fspMarkers pins every FSP of the list with a position (inactive ones too), labelled with its name', () => {
+    const markers = fspMarkers([
+      { ...summary('a', 'Wiedikon'), lat: 47.37, lon: 8.51 },
+      { ...summary('b', 'Altstetten'), status: FspStatus.Inactive, lat: 47.38, lon: 0 },
+      summary('c', 'Ohne Ort'),
+    ]);
+    expect(markers).toEqual([
+      { id: 'a', kind: 'fsp', lat: 47.37, lon: 8.51, label: 'Wiedikon' },
+      { id: 'b', kind: 'fsp', lat: 47.38, lon: 0, label: 'Altstetten' },
+    ]);
   });
 
   describe('bodies', () => {
