@@ -20,6 +20,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
       <button
         type="button"
         class="hdr-btn hdr-btn--labelled region-btn"
+        #menuTrigger
         (click)="menu.toggle($event)"
         aria-haspopup="true"
         [attr.aria-label]="'layout.header.region' | t: { name: context.activeRegion()?.name ?? '' }"
@@ -29,8 +30,8 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
         <span class="region-btn__name">{{ context.activeRegion()?.name }}</span>
         <i class="pi pi-chevron-down region-btn__chevron" aria-hidden="true"></i>
       </button>
-      <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
-      @defer (when menu.load()) {
+      <!-- code prefetched after the first page, rendered on the first click (LazyPopover, D11.5.3) -->
+      @defer (on interaction(menuTrigger); prefetch when menu.prefetch()) {
       <p-popover #op>
         <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.regions' | t">
           @for (region of context.regions(); track region.id) {

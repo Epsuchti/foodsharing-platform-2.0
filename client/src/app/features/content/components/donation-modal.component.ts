@@ -39,7 +39,12 @@ import { DONATION_MODAL_SHOWN_KEY, DONATION_MODAL_SLUG, donationModalDue } from 
       >
         <div class="body" data-testid="content.donationModal.body">
           @if (text(); as t) {
-            <fs-markdown [markdown]="t.body" />
+            <!-- Markdown (marked + DOMPurify) loads only when the modal shows, not with the shell's overlays -->
+            @defer (on immediate) {
+              <fs-markdown [markdown]="t.body" />
+            } @placeholder {
+              <p>{{ 'content.donationModal.text' | t }}</p>
+            }
           } @else {
             <p>{{ 'content.donationModal.text' | t }}</p>
           }

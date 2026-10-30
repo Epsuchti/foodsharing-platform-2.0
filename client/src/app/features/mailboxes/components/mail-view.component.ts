@@ -9,7 +9,8 @@ import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
-import { formatSize, sanitizeMailHtml } from '../mailboxes.resource';
+import { sanitizeMailHtml } from '../mail-html';
+import { formatSize } from '../mailboxes.resource';
 
 /**
  * One mail (MB3): headers, HTML in a sandboxed iframe (server jsoup + DOMPurify, remote images removed) with a

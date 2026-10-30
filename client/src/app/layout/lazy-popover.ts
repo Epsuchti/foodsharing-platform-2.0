@@ -1,4 +1,4 @@
-import { Signal, computed, effect, inject, signal } from '@angular/core';
+import { Signal, effect, inject } from '@angular/core';
 
 import { StartupService } from '../core/startup/startup.service';
 
@@ -10,15 +10,15 @@ export interface PopoverLike {
 }
 
 /**
- * Header menus render their `p-popover` inside `@defer (when menu.load())` so the popover code is not
- * part of the start-up bundle (D11.5.3). A click before it has loaded requests it and opens it at the trigger as
- * soon as it is there. Create it in a field initializer (it registers an effect).
+ * Header menus render their `p-popover` inside `@defer (on interaction(menuTrigger); prefetch when menu.prefetch())`
+ * so the popover code is not part of the start-up bundle (D11.5.3). The code is fetched after the first page; the
+ * popover renders on the first click of its button and opens at the trigger as soon as it is there (rendering every
+ * header menu right after the first page was part of one long task). Create it in a field initializer (it registers
+ * an effect).
  */
 export class LazyPopover {
-  readonly requested = signal(false);
-  private readonly startup = inject(StartupService);
-  /** Load after the first page has been shown (StartupService), or at once on a click. */
-  readonly load = computed(() => this.startup.pageShown() || this.requested());
+  /** Fetch the code after the first page has been shown (StartupService). */
+  readonly prefetch = inject(StartupService).pageShown;
   private pending: EventTarget | null = null;
 
   constructor(private readonly popover: Signal<PopoverLike | undefined>) {
@@ -38,7 +38,6 @@ export class LazyPopover {
       loaded.toggle(event);
     } else {
       this.pending = event.currentTarget;
-      this.requested.set(true);
     }
   }
 

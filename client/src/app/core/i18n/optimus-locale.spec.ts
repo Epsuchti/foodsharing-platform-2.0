@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
@@ -18,6 +19,18 @@ describe('calendarNames', () => {
     const de = calendarNames('de-CH');
     expect(de.dayNamesMin[1]).toBe('Mo');
     expect(de.monthNames[2]).toBe('März');
+  });
+
+  it('builds the names once per locale with one formatter per style (start-up long task)', () => {
+    const spy = vi.spyOn(Intl, 'DateTimeFormat');
+    try {
+      const first = calendarNames('it-CH');
+      expect(spy).toHaveBeenCalledTimes(4);
+      expect(calendarNames('it-CH')).toBe(first);
+      expect(spy).toHaveBeenCalledTimes(4);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
 

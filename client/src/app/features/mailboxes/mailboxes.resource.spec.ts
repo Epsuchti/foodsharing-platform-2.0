@@ -1,4 +1,5 @@
-import { formatSize, parseAddresses, sanitizeMailHtml, textToHtml } from './mailboxes.resource';
+import { sanitizeMailHtml } from './mail-html';
+import { formatSize, parseAddresses, textToHtml } from './mailboxes.resource';
 
 describe('mailbox helpers', () => {
   it('sanitises mail HTML: scripts, handlers and remote images go, links open in a new tab', () => {

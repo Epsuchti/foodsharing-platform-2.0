@@ -5,23 +5,37 @@ import { I18nService } from './i18n.service';
 
 type Translation = Parameters<Optimus['setTranslation']>[0];
 
-/** Weekday/month names from Intl for a locale (Sunday first, as Optimus expects). */
-export function calendarNames(locale: string) {
-  const day = (style: 'long' | 'short' | 'narrow') =>
+export interface CalendarNames {
+  dayNames: string[];
+  dayNamesShort: string[];
+  dayNamesMin: string[];
+  monthNames: string[];
+  monthNamesShort: string[];
+}
+
+const calendarCache = new Map<string, CalendarNames>();
+
+/**
+ * Weekday/month names from Intl for a locale (Sunday first, as Optimus expects). Cached per locale and built with
+ * one formatter per style: creating an `Intl.DateTimeFormat` is expensive, and the translation is rebuilt on every
+ * catalog change (start-up catalog, complete catalog) — 38 formatters per call were a long task on slow phones.
+ */
+export function calendarNames(locale: string): CalendarNames {
+  const cached = calendarCache.get(locale);
+  if (cached) {
+    return cached;
+  }
+  const day = (style: 'long' | 'short') => {
+    const format = new Intl.DateTimeFormat(locale, { weekday: style, timeZone: 'UTC' });
     // 2026-11-01 is a Sunday
-    Array.from({ length: 7 }, (_, i) =>
-      new Intl.DateTimeFormat(locale, { weekday: style, timeZone: 'UTC' }).format(
-        new Date(Date.UTC(2026, 10, 1 + i)),
-      ),
-    );
-  const month = (style: 'long' | 'short') =>
-    Array.from({ length: 12 }, (_, i) =>
-      new Intl.DateTimeFormat(locale, { month: style, timeZone: 'UTC' }).format(
-        new Date(Date.UTC(2026, i, 15)),
-      ),
-    );
+    return Array.from({ length: 7 }, (_, i) => format.format(new Date(Date.UTC(2026, 10, 1 + i))));
+  };
+  const month = (style: 'long' | 'short') => {
+    const format = new Intl.DateTimeFormat(locale, { month: style, timeZone: 'UTC' });
+    return Array.from({ length: 12 }, (_, i) => format.format(new Date(Date.UTC(2026, i, 15))));
+  };
   const short = day('short');
-  return {
+  const names: CalendarNames = {
     dayNames: day('long'),
     dayNamesShort: short,
     // two letters read better than Intl's one-letter "narrow" form (M D M D F S S)
@@ -29,6 +43,8 @@ export function calendarNames(locale: string) {
     monthNames: month('long'),
     monthNamesShort: month('short'),
   };
+  calendarCache.set(locale, names);
+  return names;
 }
 
 /**
