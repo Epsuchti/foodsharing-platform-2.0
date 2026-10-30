@@ -1,6 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 
+import { StartupService } from '../startup/startup.service';
+
 /** Push state of this browser (N4): no API / blocked by the user / not asked yet / allowed. */
 export type PushPermission = 'unsupported' | 'denied' | 'default' | 'granted';
 
@@ -36,6 +38,7 @@ export function subscriptionData(subscription: PushSubscription): PushSubscripti
 @Injectable({ providedIn: 'root' })
 export class PushClient {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly startup = inject(StartupService);
 
   permission(): PushPermission {
     if (!this.browser || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
@@ -55,6 +58,8 @@ export class PushClient {
     if (this.permission() === 'unsupported') throw new Error('PUSH_UNSUPPORTED');
     const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
     if (permission !== 'granted') throw new Error('PUSH_DENIED');
+    // the worker registers a while after start-up (StartupService); subscribing needs it now
+    this.startup.requestServiceWorker();
     const registration = await this.registration();
     if (!registration) throw new Error('PUSH_UNSUPPORTED');
     const subscription =

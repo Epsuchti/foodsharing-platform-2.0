@@ -37,6 +37,7 @@ import { loadingInterceptor } from './core/http/loading.interceptor';
 import { retryInterceptor } from './core/http/retry.interceptor';
 import { I18nTitleStrategy } from './core/i18n/i18n-title.strategy';
 import { I18nService } from './core/i18n/i18n.service';
+import { StartupService } from './core/startup/startup.service';
 import { isUiLanguage } from './core/i18n/languages';
 import { SeoService } from './core/i18n/seo.service';
 import { OptimusLocaleService } from './core/i18n/optimus-locale';
@@ -108,7 +109,8 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withNoHttpTransferCache()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
+      // after the first page and a quiet period, not when stable: the install downloads every chunk (StartupService)
+      registrationStrategy: () => inject(StartupService).serviceWorkerReady,
     }),
   ],
 };

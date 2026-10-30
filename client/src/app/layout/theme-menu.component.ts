@@ -20,6 +20,7 @@ const ICONS: Record<ThemePreference, string> = {
     <button
       type="button"
       class="hdr-btn"
+      #menuTrigger
       (click)="menu.toggle($event)"
       [attr.aria-label]="'layout.header.theme' | t"
       aria-haspopup="true"
@@ -27,8 +28,8 @@ const ICONS: Record<ThemePreference, string> = {
     >
       <i [class]="icon()" aria-hidden="true"></i>
     </button>
-    <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
-    @defer (when menu.load()) {
+    <!-- code prefetched after the first page, rendered on the first click (LazyPopover, D11.5.3) -->
+    @defer (on interaction(menuTrigger); prefetch when menu.prefetch()) {
     <p-popover #op>
       <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.theme' | t">
         @for (mode of modes; track mode) {

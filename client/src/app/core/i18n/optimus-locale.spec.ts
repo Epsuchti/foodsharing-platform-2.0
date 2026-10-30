@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
@@ -10,18 +11,39 @@ import { OptimusLocaleService, calendarNames } from './optimus-locale';
 
 describe('calendarNames', () => {
   it('starts the week on Sunday as Optimus expects and uses the locale', () => {
-    const fr = calendarNames('fr-CH');
+    const fr = calendarNames('fr-FR');
     expect(fr.dayNames[0]).toBe('dimanche');
     expect(fr.dayNames[1]).toBe('lundi');
     expect(fr.monthNames[0]).toBe('janvier');
     expect(fr.monthNames).toHaveLength(12);
-    const de = calendarNames('de-CH');
+    const de = calendarNames('de-DE');
     expect(de.dayNamesMin[1]).toBe('Mo');
     expect(de.monthNames[2]).toBe('März');
+  });
+
+  it('builds the names once per locale with one formatter per style (start-up long task)', () => {
+    const spy = vi.spyOn(Intl, 'DateTimeFormat');
+    try {
+      const first = calendarNames('it-CH');
+      expect(spy).toHaveBeenCalledTimes(4);
+      expect(calendarNames('it-CH')).toBe(first);
+      expect(spy).toHaveBeenCalledTimes(4);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
 
 describe('OptimusLocaleService', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  /** The month/day names follow when the browser is idle (jsdom: 1 s timeout fallback). */
+  function idle(): void {
+    vi.advanceTimersByTime(1000);
+    TestBed.tick();
+  }
+
   function setup() {
     TestBed.configureTestingModule({
       providers: [
@@ -49,6 +71,9 @@ describe('OptimusLocaleService', () => {
       'fr',
     );
     service.start();
+    // the names are not built in the start-up render (D11.5.3): Optimus keeps its defaults until idle
+    expect(optimus.getTranslation('monthNames')[0]).toBe('January');
+    idle();
     expect(optimus.getTranslation('today')).toBe('Aujourd’hui');
     expect(optimus.getTranslation('clear')).toBe('Effacer');
     expect(optimus.getTranslation('monthNames')[0]).toBe('janvier');
@@ -66,6 +91,7 @@ describe('OptimusLocaleService', () => {
     expect(optimus.getTranslation('today')).toBe('Heute');
     i18n.useCatalog({ 'common.optimus.today': 'Oggi' }, 'it');
     TestBed.tick();
+    idle();
     expect(optimus.getTranslation('today')).toBe('Oggi');
     expect(optimus.getTranslation('monthNames')[0]).toBe('gennaio');
   });

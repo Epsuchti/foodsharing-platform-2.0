@@ -23,6 +23,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
       type="button"
       class="hdr-btn"
       [class.hdr-btn--labelled]="showLabel()"
+      #menuTrigger
       (click)="menu.toggle($event)"
       aria-haspopup="true"
       data-testid="shell.languageMenu"
@@ -31,8 +32,8 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
       <span class="fs-visually-hidden">{{ 'layout.header.language' | t }}</span>
       <span class="hdr-btn__code">{{ code() }}</span>
     </button>
-    <!-- loaded after the first page or on the first click (LazyPopover, D11.5.3) -->
-    @defer (when menu.load()) {
+    <!-- code prefetched after the first page, rendered on the first click (LazyPopover, D11.5.3) -->
+    @defer (on interaction(menuTrigger); prefetch when menu.prefetch()) {
     <p-popover #op>
       <ul class="menu-list" role="menu" [attr.aria-label]="'layout.header.language' | t">
         @for (language of languages; track language) {
