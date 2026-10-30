@@ -40,3 +40,14 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
 2. Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
 3. Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
 4. Native date inputs show `mm/dd/yyyy` in a German or Swiss-German UI, because they follow the browser locale. Check this against the app language.
+5. Bot protection: a per-IP request limit for the whole API, not only the anonymous part.
+   - What exists today:
+     - `/api/public/**` is limited to 300/min per IP (`PublicApiRateLimitFilter`, decision 86).
+     - The magic link has its own per-email and per-IP limit (`LoginRateLimiter`).
+     - A few actions have per-user limits.
+   - Missing: signed-in requests (`/api/**` outside public) have no per-IP or per-session ceiling.
+   - Decide the limits: a general per-IP limit, plus a per-user limit for signed-in sessions so shared IPs (offices, mobile carriers) don't block each other.
+   - Decide the client IP behind the reverse proxy (`X-Forwarded-For` only from the trusted proxy).
+   - The 429 answer and the UI message.
+   - Metrics and alerting.
+   - Keep the e2e/test profiles at 0, and extend `RateLimitInventoryTest`.
