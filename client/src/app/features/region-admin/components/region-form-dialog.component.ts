@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
@@ -6,6 +7,7 @@ import { InputText } from '@openng/optimus-ui/inputtext';
 import { Select } from '@openng/optimus-ui/select';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
+import { map } from 'rxjs';
 
 import { RegionAdminItem, RegionJoinMode, UnitType } from '../../../api';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -23,6 +25,8 @@ export interface RegionFormValue {
   country?: string;
   joinMode: RegionJoinMode;
   moderated: boolean;
+  /** Working groups only: shown on the public team page (C16, ORGA). */
+  teamPage?: boolean;
   reason?: string;
 }
 
@@ -77,6 +81,12 @@ const ZONES = ['Europe/Zurich', 'Europe/Berlin', 'Europe/Vienna', 'Europe/Luxemb
             <label for="ra-moderated">{{ 'regionAdmin.form.moderated' | t }}</label>
             <p-toggleswitch inputId="ra-moderated" formControlName="moderated" />
           </div>
+          @if (isWorkingGroup()) {
+            <div class="switch">
+              <label for="ra-team-page">{{ 'regionAdmin.form.teamPage' | t }}</label>
+              <p-toggleswitch inputId="ra-team-page" formControlName="teamPage" data-testid="regionAdmin.form.teamPage" />
+            </div>
+          }
         </div>
         <div class="field">
           <label for="ra-teaser">{{ 'regionAdmin.form.teaser' | t }}</label>
@@ -169,8 +179,15 @@ export class RegionFormDialogComponent {
     country: new FormControl('', { nonNullable: true }),
     joinMode: new FormControl<RegionJoinMode>(RegionJoinMode.Open, { nonNullable: true }),
     moderated: new FormControl(false, { nonNullable: true }),
+    teamPage: new FormControl(false, { nonNullable: true }),
     reason: new FormControl('', { nonNullable: true }),
   });
+
+  /** The team-page switch only applies to working groups (C16). */
+  protected readonly isWorkingGroup = toSignal(
+    this.form.controls.type.valueChanges.pipe(map((type) => type === UnitType.WorkingGroup)),
+    { initialValue: false },
+  );
 
   constructor() {
     effect(() => {
@@ -189,6 +206,7 @@ export class RegionFormDialogComponent {
         country: item?.country ?? '',
         joinMode: item?.joinMode ?? RegionJoinMode.Open,
         moderated: item?.moderated ?? false,
+        teamPage: item?.teamPage ?? false,
         reason: '',
       });
       this.form.controls.reason.setValidators(item ? [Validators.required, Validators.minLength(3)] : []);
@@ -213,6 +231,7 @@ export class RegionFormDialogComponent {
       country: blank(value.country)?.toUpperCase(),
       joinMode: value.joinMode,
       moderated: value.moderated,
+      teamPage: value.type === UnitType.WorkingGroup ? value.teamPage : undefined,
       reason: blank(value.reason),
     });
   }

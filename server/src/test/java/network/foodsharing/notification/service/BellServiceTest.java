@@ -12,6 +12,7 @@ import network.foodsharing.notification.domain.Bell;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.repository.BellRepository;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,7 @@ import org.springframework.context.annotation.Import;
 
 /** N3: own bells only, unread first, read/delete in bulk, 404 for foreign bells. */
 @JpaSliceTest
-@Import(BellService.class)
+@Import(SharedJpaSliceConfig.class)
 class BellServiceTest {
 
     @Autowired

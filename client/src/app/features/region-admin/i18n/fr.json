@@ -88,5 +88,6 @@
   "regionAdmin.importError.INVALID_TIME_ZONE": "Fuseau horaire invalide",
   "regionAdmin.importError.UNKNOWN_PARENT": "Parent inconnu",
   "regionAdmin.importError.DUPLICATE_SLUG": "Identifiant en double",
-  "regionAdmin.importError.WORKING_GROUP_NOT_IMPORTABLE": "Les groupes de travail ne peuvent pas être importés"
+  "regionAdmin.importError.WORKING_GROUP_NOT_IMPORTABLE": "Les groupes de travail ne peuvent pas être importés",
+  "regionAdmin.form.teamPage": "Afficher sur la page de l’équipe"
 }

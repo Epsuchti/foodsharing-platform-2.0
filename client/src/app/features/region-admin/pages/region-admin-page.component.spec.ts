@@ -58,6 +58,37 @@ describe('RegionAdminPageComponent', () => {
     expect(host.querySelector('[data-testid="regionAdmin.path"]')?.textContent).toContain('SCHWEIZ');
   });
 
+  it('team-page switch only for working groups; the edit sends it (C16)', async () => {
+    const group: RegionAdminItem = {
+      ...item('it', 0),
+      region: { id: 'id-it', slug: 'it', name: 'IT', type: UnitType.WorkingGroup },
+      teamPage: true,
+    };
+    http.expectOne((req) => req.url === '/api/admin/regions').flush(page([item('schweiz', 0), group]));
+    await settle();
+    const edit = (index: number) =>
+      (host.querySelectorAll('[data-testid="regionAdmin.edit"] button')[index] as HTMLButtonElement).click();
+
+    edit(0);
+    await settle();
+    expect(document.querySelector('[data-testid="regionAdmin.form.reason"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="regionAdmin.form.teamPage"]')).toBeNull();
+
+    edit(1);
+    await settle();
+    const toggle = document.querySelector('[data-testid="regionAdmin.form.teamPage"] input') as HTMLInputElement;
+    expect(toggle.checked).toBe(true);
+    toggle.click();
+    const reason = document.querySelector('[data-testid="regionAdmin.form.reason"]') as HTMLInputElement;
+    reason.value = 'nicht mehr aktiv';
+    reason.dispatchEvent(new Event('input'));
+    await settle();
+    (document.querySelector('[data-testid="regionAdmin.form.save"] button') as HTMLButtonElement).click();
+    await settle();
+    const update = http.expectOne((req) => req.method === 'PATCH' && req.url === '/api/admin/regions/id-it');
+    expect(update.request.body).toEqual(expect.objectContaining({ teamPage: false, reason: 'nicht mehr aktiv' }));
+  });
+
   it('CSV import: dry run first, confirm only without errors', async () => {
     http.expectOne((req) => req.url === '/api/admin/regions').flush(page([]));
     await settle();

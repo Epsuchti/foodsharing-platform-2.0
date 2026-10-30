@@ -53,8 +53,9 @@ public class ReportService implements network.foodsharing.user.service.UserViola
                               boolean sendConfirmationMail) {
     }
 
-    /** Requested changes; null = unchanged. */
-    public record ReportChange(ReportStatus status, String consequence, Instant reminderAt, UUID forumThreadId) {
+    /** Requested changes; null = unchanged, a blank consequence and the clear flags remove a value. */
+    public record ReportChange(ReportStatus status, String consequence, Instant reminderAt, boolean clearReminder,
+                               UUID forumThreadId, boolean clearForumThread) {
     }
 
     /** A wall post with its delete right. */
@@ -266,6 +267,12 @@ public class ReportService implements network.foodsharing.user.service.UserViola
         if (change.status() == ReportStatus.DELETED) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "status");
         }
+        if (change.clearReminder() && change.reminderAt() != null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "clearReminder");
+        }
+        if (change.clearForumThread() && change.forumThreadId() != null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "clearForumThread");
+        }
         if (change.status() != null && change.status() != report.getStatus()) {
             record(ReportAction.STATUS_CHANGED, report, "status", report.getStatus(), change.status());
             report.setStatus(change.status());
@@ -277,14 +284,15 @@ public class ReportService implements network.foodsharing.user.service.UserViola
                 report.setConsequence(consequence);
             }
         }
-        if (change.reminderAt() != null && !change.reminderAt().equals(report.getReminderAt())) {
-            record(ReportAction.REMINDER_SET, report, "reminderAt", report.getReminderAt(), change.reminderAt());
-            report.setReminderAt(change.reminderAt());
+        Instant reminderAt = change.clearReminder() ? null : change.reminderAt();
+        if ((change.clearReminder() || reminderAt != null) && !Objects.equals(reminderAt, report.getReminderAt())) {
+            record(ReportAction.REMINDER_SET, report, "reminderAt", report.getReminderAt(), reminderAt);
+            report.setReminderAt(reminderAt);
         }
-        if (change.forumThreadId() != null && !change.forumThreadId().equals(report.getForumThreadId())) {
-            record(ReportAction.THREAD_LINKED, report, "forumThreadId", report.getForumThreadId(),
-                    change.forumThreadId());
-            report.setForumThreadId(change.forumThreadId());
+        UUID threadId = change.clearForumThread() ? null : change.forumThreadId();
+        if ((change.clearForumThread() || threadId != null) && !Objects.equals(threadId, report.getForumThreadId())) {
+            record(ReportAction.THREAD_LINKED, report, "forumThreadId", report.getForumThreadId(), threadId);
+            report.setForumThreadId(threadId);
         }
         return view(reports.save(report));
     }

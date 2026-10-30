@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import org.junit.jupiter.api.BeforeAll;
 import network.foodsharing.config.MutableClock;
 import network.foodsharing.notification.mail.CapturingMailTransport;
 import network.foodsharing.testsupport.SeedUsers;
@@ -14,7 +16,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-/** e2e profile on H2: a reset restores the seed state (twice in a row, counts stable), mails and the clock. */
+/**
+ * e2e profile on H2: a reset restores the seed state (twice in a row, counts stable, every table row by row equal to
+ * the state after startup), mails and the clock. The reset replays the {@link SeedSnapshot} taken at startup; its
+ * duration is logged ("Dev reset done in …"), not asserted.
+ */
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:seed-reset-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "app.scheduling.enabled=false"})
@@ -42,6 +48,75 @@ class SeedResetServiceIT {
     @Autowired
     private network.foodsharing.config.RenewableLockProvider lockProvider;
 
+    @Autowired
+    private SeedSnapshot snapshot;
+
+    @Autowired
+    private network.foodsharing.upload.service.UploadSeedFiles uploadSeedFiles;
+
+    /** Every table after startup (the class has its own database, so no other test touched it yet). */
+    private static Map<String, List<String>> started;
+
+    @BeforeAll
+    static void rememberTheStartedState(@Autowired JdbcTemplate jdbc) {
+        started = tables(jdbc);
+    }
+
+    @Test
+    void resetRestoresEveryTableAsAfterStartupFromTheStartupSnapshot() {
+        assertThat(snapshot.available()).isTrue();
+        assertThat(started).containsKeys("USER_ACCOUNT", "DATABASECHANGELOG", "UPLOAD");
+
+        for (int round = 0; round < 2; round++) {
+            jdbc.update("update user_account set display_name = 'Changed' where id = ?", SeedUsers.FOODSAVER.id());
+            jdbc.update("delete from history_entry");
+            jdbc.update("update upload set variants = false");
+            jdbc.execute("create table stray_table (id int)");
+
+            seedResetService.reset();
+            uploadSeedFiles.resetInMemoryState(); // as on startup: marks the variants of the seeded images
+
+            Map<String, List<String>> now = tables(jdbc);
+            assertThat(now.keySet()).isEqualTo(started.keySet());
+            // written by jobs since startup, not by the changelog: search index (SearchReindexJob), job locks and runs
+            now.keySet().stream().filter(table -> !List.of("SEARCH_INDEX", "SHEDLOCK", "JOB_RUN").contains(table))
+                    .forEach(table -> assertThat(now.get(table)).as(table).isEqualTo(started.get(table)));
+        }
+    }
+
+    private static Map<String, List<String>> tables(JdbcTemplate jdbc) {
+        Map<String, List<String>> tables = new TreeMap<>();
+        for (String table : jdbc.queryForList("select table_name from information_schema.tables "
+                + "where table_schema = 'PUBLIC' and table_type = 'BASE TABLE'", String.class)) {
+            tables.put(table, jdbc.query("select * from \"" + table + "\"", (rs, row) -> {
+                StringBuilder line = new StringBuilder();
+                for (int column = 1; column <= rs.getMetaData().getColumnCount(); column++) {
+                    Object value = rs.getObject(column);
+                    if (value instanceof java.sql.Array array) {
+                        value = java.util.Arrays.deepToString((Object[]) array.getArray());
+                    } else if (value instanceof byte[] bytes) {
+                        value = java.util.Arrays.toString(bytes);
+                    }
+                    line.append(value).append('|');
+                }
+                return line.toString();
+            }).stream().sorted().toList());
+        }
+        return tables;
+    }
+
+    /**
+     * {@code app.scheduling.enabled=false} means no {@code @Scheduled} task at all: Spring Modulith Moments used to
+     * switch scheduling on anyway, and jobs then wrote history in the middle of these tests and hit the dropped
+     * {@code shedlock} table during resets.
+     */
+    @Test
+    void noScheduledTaskRunsWhenSchedulingIsOff(
+            @Autowired org.springframework.context.ApplicationContext context) {
+        assertThat(context.getBeansOfType(org.springframework.scheduling.config.ScheduledTaskHolder.class).values())
+                .flatExtracting(holder -> List.copyOf(holder.getScheduledTasks())).isEmpty();
+    }
+
     @Test
     void scheduledJobLocksStillWorkAfterAReset() {
         var config = new net.javacrumbs.shedlock.core.LockConfiguration(Instant.now(), "seed-reset-lock-test",
@@ -49,7 +124,9 @@ class SeedResetServiceIT {
         lockProvider.lock(config).orElseThrow().unlock();
         seedResetService.reset();
         // without renewing the provider's row cache the update hits the recreated, empty table and returns empty
-        assertThat(lockProvider.lock(config)).isPresent();
+        var again = lockProvider.lock(config);
+        assertThat(again).isPresent();
+        again.get().unlock(); // a held lock would make later resets wait for it (as for a running job)
     }
 
     @Test

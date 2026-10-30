@@ -18,6 +18,7 @@ import network.foodsharing.region.service.RegionOptionsService.PickupRule;
 import network.foodsharing.region.service.RegionSettingsService;
 import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
@@ -30,7 +31,7 @@ import org.springframework.context.annotation.Import;
 
 /** Option × actor matrix (R5), pin (R6), settings (EA22 / onboarding steps). */
 @JpaSliceTest
-@Import(RegionSliceConfig.class)
+@Import(SharedJpaSliceConfig.class)
 class RegionOptionsServiceTest {
 
     @Autowired

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import network.foodsharing.testsupport.DataInventory;
 import network.foodsharing.testsupport.DataInventory.Row;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,6 +29,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * with its remover in {@code docs/privacy/retention.md}.
  */
 @JpaSliceTest
+@org.springframework.context.annotation.Import(SharedJpaSliceConfig.class)
 class DataInventoryTest {
 
     private static final Pattern USER_ATTRIBUTE = Pattern.compile(

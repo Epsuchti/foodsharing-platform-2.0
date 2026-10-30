@@ -24,6 +24,7 @@ import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class RegionReadService {
     public record RegionDetailView(Region region, Region parent, List<User> ambassadors, Region welcomeTeam,
                                    List<FunctionGroup> functions, int memberCount, Membership membership,
                                    String conferenceUrl, RegionStatisticsService.StatisticsView statistics,
-                                   boolean mayCoordinateStores) {
+                                   boolean mayCoordinateStores, boolean mayHandleReports) {
     }
 
     private final RegionService regionService;
@@ -55,11 +56,13 @@ public class RegionReadService {
     private final CurrentActorService currentActor;
     private final ConferenceLinkService conference;
     private final RegionStatisticsService statistics;
+    private final ObjectProvider<ReportHandlerRule> reportHandlerRule;
 
     public RegionReadService(RegionService regionService, RegionRepository regions,
                              RegionMembershipRepository memberships, RegionAdminRepository admins,
                              RegionFunctionRepository functions, UserService users, CurrentActorService currentActor,
-                             ConferenceLinkService conference, RegionStatisticsService statistics) {
+                             ConferenceLinkService conference, RegionStatisticsService statistics,
+                             ObjectProvider<ReportHandlerRule> reportHandlerRule) {
         this.regionService = regionService;
         this.regions = regions;
         this.memberships = memberships;
@@ -69,6 +72,7 @@ public class RegionReadService {
         this.currentActor = currentActor;
         this.conference = conference;
         this.statistics = statistics;
+        this.reportHandlerRule = reportHandlerRule;
     }
 
     /** @throws network.foodsharing.common.error.ApiException 404 REGION_NOT_FOUND */
@@ -97,7 +101,16 @@ public class RegionReadService {
         return new RegionDetailView(region, parent, ambassadors, welcome, functionGroups,
                 (int) memberships.countByRegionIdAndActiveTrue(regionId), membership,
                 insider ? conference.linkOf(region) : null, insider ? statistics.viewOf(region) : null,
-                mayCoordinateStores);
+                mayCoordinateStores, mayHandleReports(principal, regionId, orga));
+    }
+
+    /** A51 handler rule from the report module; without it (slice tests) only ORGA. */
+    static boolean mayHandleReports(ReportHandlerRule rule, SessionPrincipal principal, UUID regionId, boolean orga) {
+        return rule == null ? orga : rule.mayHandleReports(principal, regionId);
+    }
+
+    private boolean mayHandleReports(SessionPrincipal principal, UUID regionId, boolean orga) {
+        return mayHandleReports(reportHandlerRule.getIfAvailable(), principal, regionId, orga);
     }
 
     public List<User> ambassadorsOf(UUID regionId) {

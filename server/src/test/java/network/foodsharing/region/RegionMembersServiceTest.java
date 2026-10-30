@@ -16,6 +16,7 @@ import network.foodsharing.region.service.RegionStatisticsService;
 import network.foodsharing.security.Permission;
 import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.Gender;
@@ -33,7 +34,7 @@ import org.springframework.test.context.event.RecordApplicationEvents;
 /** Member management (R8), permission grants (A10), region detail and statistics (R3, R13). */
 @JpaSliceTest
 @RecordApplicationEvents
-@Import(RegionSliceConfig.class)
+@Import(SharedJpaSliceConfig.class)
 class RegionMembersServiceTest {
 
     @Autowired

@@ -23,6 +23,7 @@ import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.region.service.RegionMaintenanceJob;
 import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
 import network.foodsharing.user.service.UserService;
@@ -36,8 +37,7 @@ import org.springframework.test.context.event.RecordApplicationEvents;
 /** Join / leave / home region rules (docs/conventions.md A10), welcome-bell recipients and the nightly maintenance. */
 @JpaSliceTest
 @RecordApplicationEvents
-@Import({MembershipService.class, UserService.class, RegionClosureRepository.class, RegionMaintenanceJob.class,
-        JobRunner.class})
+@Import(SharedJpaSliceConfig.class)
 class MembershipServiceTest {
 
     @Autowired

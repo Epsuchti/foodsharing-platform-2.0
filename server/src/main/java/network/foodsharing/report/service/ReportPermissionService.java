@@ -14,6 +14,7 @@ import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.region.service.RegionOptionsService;
 import network.foodsharing.region.service.RegionReadService;
+import network.foodsharing.region.service.ReportHandlerRule;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
@@ -28,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(readOnly = true)
-public class ReportPermissionService {
+public class ReportPermissionService implements ReportHandlerRule {
 
     private final PermissionService permissions;
     private final RegionService regions;
@@ -66,6 +67,12 @@ public class ReportPermissionService {
             }
         }
         return ReportRules.mayHandle(permissions.isOrga(actor), handler);
+    }
+
+    /** {@code RegionDetail.mayHandleReports}: the same rule as {@link #mayHandle}. */
+    @Override
+    public boolean mayHandleReports(SessionPrincipal actor, UUID regionId) {
+        return mayHandle(actor, regionId);
     }
 
     /** @throws ApiException 403 REPORTS_NOT_ACCESSIBLE */

@@ -1135,8 +1135,8 @@ Playwright (`@playwright/test`, folder `e2e/` at repo root) runs against the **p
 ### 18.4 Screenshot (visual regression) tests ("it looks correct")
 
 - Playwright `expect(page).toHaveScreenshot()` for **every page and every important state**: loading
-  skeleton, empty, error, filled; dialogs; journey steps 1-8; both themes (light/dark); mobile and desktop;
-  de plus one long-text language (fr) to catch overflow.
+  skeleton, empty, error, filled; dialogs; journey steps 1-8; mobile and desktop, light theme, German
+  (decision 109: dark mode is covered by the axe sweep in both themes, other languages by the i18n checks).
 - Stable screenshots: fixed clock (`page.clock`), seed data with fixed UUIDs/dates, animations disabled,
   web fonts preloaded, map tiles stubbed, avatars from local fixtures; screenshots generated inside the
   official Playwright Docker image so CI and local runs match.
