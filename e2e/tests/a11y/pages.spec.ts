@@ -117,9 +117,9 @@ for (const theme of ['light', 'dark'] as const) {
       await expectNoSeriousViolations(page);
       await page.keyboard.press('Escape');
       // the rail with an open section flyout (48–75rem)
-      await page.setViewportSize({ width: 1000, height: 640 });
+      await page.setViewportSize({ width: 1000, height: 700 });
       await collapseSidenav(page);
-      // 640px of height: the rail folds Verwalten and Community into flyouts
+      // 700px of height: the rail folds Verwalten and Community into flyouts
       const flyout = page.getByTestId('nav.flyout.community');
       await flyout.click();
       await expect(flyout).toHaveAttribute('aria-expanded', 'true');

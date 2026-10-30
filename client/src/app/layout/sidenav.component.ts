@@ -83,6 +83,7 @@ import { UserMenuComponent } from './user-menu.component';
     class: 'sn',
     'data-testid': 'nav.sidenav',
     '[attr.data-mode]': 'mode()',
+    '[attr.data-rail-scroll]': "railScroll() ? '' : null",
     '(document:keydown)': 'onKeydown($event)',
     '(document:click)': 'onDocumentClick($event)',
     '(window:resize)': 'popovers.relayout()',
@@ -455,6 +456,8 @@ export class SidenavComponent {
   private readonly choices = signal<SectionChoices>({});
   /** Rail: how many collapsible sections are folded into flyouts (measured, from the bottom up). */
   private readonly foldCount = signal(0);
+  /** Rail: even with every section folded it does not fit (very low windows): the list scrolls after all. */
+  protected readonly railScroll = signal(false);
   private readonly collapsibleIds = computed(() =>
     this.sections()
       .filter((section) => section.def.collapsible)
@@ -495,6 +498,7 @@ export class SidenavComponent {
       this.sections();
       untracked(() => {
         this.foldCount.set(0);
+        this.railScroll.set(false);
         this.popovers.close(false);
       });
       afterNextRender(() => this.measure(), { injector: this.injector });
@@ -577,6 +581,7 @@ export class SidenavComponent {
       return;
     }
     this.foldCount.set(0);
+    this.railScroll.set(false);
     afterNextRender(() => this.measure(), { injector: this.injector });
   }
 
@@ -591,6 +596,8 @@ export class SidenavComponent {
     if (next !== this.foldCount()) {
       this.foldCount.set(next);
       afterNextRender(() => this.measure(), { injector: this.injector });
+    } else if (overflowing) {
+      this.railScroll.set(true);
     }
   }
 

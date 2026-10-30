@@ -595,6 +595,11 @@
       overflow: visible;
     }
 
+    // fallback for very low windows: everything is folded and it still does not fit
+    &[data-rail-scroll] .sn__nav {
+      overflow-y: auto;
+    }
+
     .sn__list {
       justify-items: center;
     }

@@ -107,7 +107,7 @@ forEachVariant((variant) => {
     screenshotTest(
       'rail with the Verwalten flyout open @D4.3 @screenshot',
       async ({ page, visual }) => {
-        await page.setViewportSize({ width: 1000, height: 640 });
+        await page.setViewportSize({ width: 1000, height: 700 });
         await page.goto('/dashboard');
         await collapseSidenav(page);
         const flyout = page.getByTestId('nav.flyout.manage');

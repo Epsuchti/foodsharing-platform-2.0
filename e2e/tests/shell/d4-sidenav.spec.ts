@@ -94,7 +94,7 @@ test.describe('signed in', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
     await page.getByTestId('shell.userMenu.language.de').click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-    await page.locator('#main-content').click({ position: { x: 600, y: 300 } });
+    await page.getByTestId('dashboard.page.welcome').click();
     await expect(page.getByTestId('shell.userMenu.card')).toBeHidden();
 
     // the bell panel opens next to the bell item (no page change)
@@ -155,7 +155,7 @@ test.describe('signed in', () => {
     await expect(sidenav).toHaveAttribute('data-mode', 'sidebar');
 
     // a short window: sections fold into flyouts so the rail never scrolls
-    await page.setViewportSize({ width: 1000, height: 600 });
+    await page.setViewportSize({ width: 1000, height: 700 });
     await collapseSidenav(page);
     const flyout = page.getByTestId('nav.flyout.community');
     await expect(flyout).toBeVisible();
