@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abholplätze – Mockup</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108; --fs-accent: #f2b84b;
+  --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04);
+  --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08); --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-target-sm: 2.25rem; --fs-surface-raised: #ffffff; --fs-border-strong: #c7d4c2;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* ---- new tokens of this proposal ---- */
+  --fs-on-warning: #ffffff;            /* icon on a --fs-warning badge */
+  --fs-slot-size: 2.4rem;              /* taken/free slot diameter (2.75rem on touch) */
+  --fs-slot-ring: 2px;                 /* ring width of a slot */
+  --fs-slot-badge: 1.05rem;            /* state badge diameter */
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3);
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b;
+  --fs-accent: #9c7a3c; --fs-surface-raised: #262e26;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  --fs-on-warning: #1a201a;
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; --fs-slot-size: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl {
+  position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center;
+  padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm);
+}
+.ctl strong { font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ctl .note { margin-left: auto; color: var(--fs-text-muted); }
+.ctl .reset { padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); }
+
+/* ---- app frame ---- */
+.frame { margin: 1rem auto; width: min(100% - 2rem, 960px); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
+.frame[data-viewport="phone"] { width: min(100% - 2rem, 412px); }
+.frame__size { position: absolute; margin: 0.4rem 0 0 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.6; pointer-events: none; }
+.page { padding: 0.75rem clamp(1rem, 0.6rem + 2vw, 2rem) 2rem; }
+
+/* store hero (abbreviated) + tab strip, so the tab sits in its real context */
+.hero { padding: 1rem 1.25rem; border-radius: var(--fs-radius-lg); background: linear-gradient(120deg, color-mix(in srgb, var(--fs-primary) 10%, var(--fs-surface)), color-mix(in srgb, var(--fs-accent) 12%, var(--fs-surface))); border: 1px solid var(--fs-border); }
+.hero__kicker { margin: 0; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fs-primary-strong); }
+.hero h1 { margin: 0.1rem 0 0.15rem; font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem); letter-spacing: -0.02em; }
+.hero p { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
+.tabs { display: flex; gap: 0.25rem; margin: 0.75rem 0 1rem; padding-bottom: 0.25rem; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.8rem; border: 0; border-radius: var(--fs-radius-sm); background: transparent; color: var(--fs-text-muted); font-size: 0.9rem; font-weight: 600; white-space: nowrap; }
+.tab[aria-current="page"] { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+
+/* ---- pickups tab: toolbar ---- */
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+.chips, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.85rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); font-size: 0.88rem; }
+.chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.chip__count { display: inline-grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 0.3rem; border-radius: 999px; background: var(--fs-warning); color: var(--fs-on-warning); font-size: 0.72rem; font-weight: 700; line-height: 1; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.4rem 0.9rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); font-size: 0.88rem; font-weight: 600; box-shadow: var(--fs-shadow-sm); }
+.btn--primary { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); }
+.btn--text { border-color: transparent; background: transparent; box-shadow: none; color: var(--fs-primary-strong); }
+.btn--danger { border-color: var(--fs-danger); color: var(--fs-danger); background: transparent; box-shadow: none; }
+.btn--sm { min-height: var(--fs-target-sm); padding: 0.25rem 0.65rem; font-size: 0.82rem; }
+.btn--icon { width: var(--fs-target-sm); padding: 0; border-color: transparent; box-shadow: none; background: transparent; color: var(--fs-text-muted); }
+@media (max-width: 47.99rem) { .actions { width: 100%; } .actions .btn--primary { order: -1; } }
+.frame[data-viewport="phone"] .actions { width: 100%; }
+.frame[data-viewport="phone"] .actions .btn--primary { order: -1; }
+
+/* ---- cards and pickups (as stores.scss / store-pickups.tab.ts) ---- */
+.stack { display: grid; gap: 0.85rem; }
+.card { padding: 1rem 1.25rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.card__title { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+.pickup { display: grid; gap: 0.45rem; padding: 0.6rem 0; border-top: 1px solid var(--fs-border); }
+.pickup:first-of-type { border-top: 0; }
+.pickup__head { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; align-items: center; }
+.pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pickup__desc { color: var(--fs-text-muted); font-size: 0.88rem; }
+.badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; }
+.muted { margin: 0; color: var(--fs-text-muted); }
+.pickup__edit { order: 5; margin-left: auto; }
+/* phones: the summary takes its own line under time/badge, the pencil stays on the first line */
+.frame[data-viewport="phone"] .summary { order: 6; flex-basis: 100%; }
+
+/* summary line: counts of confirmed / waiting; the "wartet" part is warning-coloured AND carries the hourglass */
+.summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.45rem; margin: 0; font-size: 0.82rem; color: var(--fs-text-muted); font-variant-numeric: tabular-nums; }
+.summary__part { display: inline-flex; align-items: center; gap: 0.3rem; }
+.summary__part .i { width: 0.9em; height: 0.9em; }
+.summary__part--ok { color: var(--fs-primary-strong); }
+.summary__part--pending { color: var(--fs-warning-text); font-weight: 650; }
+.summary__sep { color: var(--fs-border-strong); }
+.summary__all { margin-left: 0.15rem; }
+
+/* ---- slots (new) ---- */
+.slots { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.slot {
+  position: relative; display: inline-grid; place-items: center; width: var(--fs-slot-size); height: var(--fs-slot-size); padding: 0;
+  border-radius: 999px; border: var(--fs-slot-ring) solid transparent; background: none;
+}
+.av { display: inline-grid; place-items: center; width: calc(var(--fs-slot-size) - 2 * var(--fs-slot-ring) - 4px); height: calc(var(--fs-slot-size) - 2 * var(--fs-slot-ring) - 4px); border-radius: 999px; color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; }
+.av--sm { width: 1.75rem; height: 1.75rem; font-size: 0.68rem; }
+/* taken: solid primary ring + check badge */
+.slot--taken { border-color: var(--fs-primary); }
+/* waiting: dashed warning ring + hourglass badge */
+.slot--pending { border-style: dashed; border-color: var(--fs-warning); }
+.slot__state {
+  position: absolute; right: -0.2rem; bottom: -0.2rem; display: grid; place-items: center; width: var(--fs-slot-badge); height: var(--fs-slot-badge);
+  border-radius: 999px; border: 2px solid var(--fs-surface); background: var(--fs-primary); color: var(--fs-on-primary); font-size: 0.6rem;
+}
+.slot__state .i { width: 0.62rem; height: 0.62rem; stroke-width: 3; }
+.slot--pending .slot__state { background: var(--fs-warning); color: var(--fs-on-warning); }
+/* labelled pill: own slot ("Du"), manager's pending slots (name + confirm), and the first free slot */
+.slot--labelled { display: inline-flex; gap: 0.4rem; width: auto; min-width: var(--fs-slot-size); padding: 0 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 650; }
+.slot--labelled .slot__state { position: static; border: 0; width: 1rem; height: 1rem; background: transparent; }
+.slot--labelled.slot--taken .slot__state { color: var(--fs-primary-strong); }
+.slot--labelled.slot--pending .slot__state { color: var(--fs-warning-text); }
+.slot--labelled .slot__state .i { width: 0.95rem; height: 0.95rem; stroke-width: 2.4; }
+.slot__label { white-space: nowrap; }
+/* mine: filled pill so it is the one thing that stands out in the row */
+.slot--mine.slot--taken { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.slot--mine.slot--pending { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.slot--mine .slot__you { font-weight: 800; }
+/* free */
+.slot--free { border: var(--fs-slot-ring) dashed var(--fs-border); color: var(--fs-text-muted); background: var(--fs-surface); }
+.slot--free:not(:disabled) { color: var(--fs-primary-strong); border-color: color-mix(in srgb, var(--fs-primary) 55%, var(--fs-border)); }
+.slot--free:not(:disabled):hover { border-color: var(--fs-primary); background: var(--fs-primary-soft); }
+.slot--free.slot--labelled { padding: 0 0.8rem; }
+.slot--free .i { width: 0.95rem; height: 0.95rem; }
+/* split chip for managers: [avatar name ⏳][✓] */
+.split { display: inline-flex; align-items: stretch; border-radius: 999px; }
+.split .slot--labelled { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right-width: 1px; border-right-style: solid; border-right-color: color-mix(in srgb, var(--fs-warning) 50%, transparent); padding-right: 0.55rem; }
+.split__confirm {
+  display: inline-grid; place-items: center; width: var(--fs-target-sm); height: var(--fs-slot-size); min-width: var(--fs-slot-size); padding: 0 0.1rem; border: var(--fs-slot-ring) dashed var(--fs-warning); border-left: 0;
+  border-top-right-radius: 999px; border-bottom-right-radius: 999px; background: var(--fs-surface); color: var(--fs-primary-strong);
+}
+.split__confirm:hover { background: var(--fs-primary-soft); }
+.split__confirm .i { width: 1rem; height: 1rem; stroke-width: 2.6; }
+.slot:focus-visible, .split__confirm:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
+/* own status line (keeps data-testid stores.pickups.unconfirmed) */
+.pending { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.88rem; font-weight: 600; }
+.hint { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-text-muted); font-size: 0.82rem; }
+
+/* ---- "before" look (today's pickup-slot.component.ts), for comparison ---- */
+.before .slot--taken { border-color: var(--fs-primary); }
+.before .slot--pending { border-style: dashed; border-color: var(--fs-warning-border); }
+.before .slot--mine { box-shadow: 0 0 0 3px var(--fs-primary-soft), 0 0 0 4px var(--fs-primary); background: none; color: inherit; }
+.before .slot__state, .before .summary, .before .hint { display: none; }
+.before .slot--labelled.slot--taken { padding: 0; }
+
+/* ---- dialogs (Optimus p-dialog look) ---- */
+.scrim { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 1rem; background: rgb(17 22 17 / 0.45); }
+.scrim[hidden] { display: none; }
+.dialog { width: min(28rem, 94vw); padding: 1.1rem 1.25rem 1.25rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-lg); background: var(--fs-surface-raised); box-shadow: var(--fs-shadow-lg); }
+.dialog__head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.dialog__head h2 { margin: 0; font-size: 1.1rem; flex: 1; }
+.dialog__state { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0 0 0.75rem; font-size: 0.88rem; font-weight: 650; }
+.dialog__state--pending { color: var(--fs-warning-text); }
+.dialog__state--ok { color: var(--fs-primary-strong); }
+.dialog p { margin: 0 0 0.6rem; }
+.dialog textarea { width: 100%; min-height: 5rem; padding: 0.5rem 0.65rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); color: inherit; font: inherit; resize: vertical; }
+.dialog label { display: grid; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+.dialog__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.toast { position: fixed; right: 1rem; bottom: 1rem; z-index: 400; display: flex; align-items: center; gap: 0.5rem; max-width: min(24rem, calc(100vw - 2rem)); padding: 0.7rem 0.9rem; border: 1px solid var(--fs-primary); border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 600; font-size: 0.9rem; box-shadow: var(--fs-shadow-md); }
+.toast[hidden] { display: none; }
+
+/* ---- legend (mockup aid) ---- */
+.legend { margin: 1rem auto 2rem; width: min(100% - 2rem, 960px); font-size: 0.85rem; color: var(--fs-text-muted); }
+.legend h2 { margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--fs-text); }
+.legend ul { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.legend li { display: flex; align-items: center; gap: 0.6rem; }
+.legend .slots { flex: none; }
+</style>
+</head>
+<body>
+
+<div class="ctl" role="region" aria-label="Mockup-Einstellungen">
+  <fieldset><strong>Version</strong>
+    <label><input type="radio" name="version" value="after" checked>Vorschlag</label>
+    <label><input type="radio" name="version" value="before">Heute</label>
+  </fieldset>
+  <fieldset><strong>Rolle</strong>
+    <label><input type="radio" name="role" value="foodsaver" checked>Foodsaver:in (Sarah)</label>
+    <label><input type="radio" name="role" value="bieb">Betriebsverantwortliche:r (Bea)</label>
+  </fieldset>
+  <fieldset><strong>Theme</strong>
+    <label><input type="radio" name="theme" value="light" checked>Hell</label>
+    <label><input type="radio" name="theme" value="dark">Dunkel</label>
+  </fieldset>
+  <fieldset><strong>Breite</strong>
+    <label><input type="radio" name="viewport" value="desktop" checked>Desktop 960</label>
+    <label><input type="radio" name="viewport" value="phone">Phone 412 (Touch)</label>
+  </fieldset>
+  <button type="button" class="reset" id="reset">Daten zurücksetzen</button>
+  <span class="note">Klickbar: Plätze, Bestätigen, Austragen, „Alle bestätigen“.</span>
+</div>
+
+<div class="frame" id="frame" data-viewport="desktop">
+  <span class="frame__size" id="frameSize">960 px</span>
+  <div class="page">
+    <div class="hero">
+      <p class="hero__kicker">Supermarkt · Zürich Stadt</p>
+      <h1>Coop Bahnhofbrücke</h1>
+      <p>Bahnhofbrücke 1, 8001 Zürich</p>
+    </div>
+    <nav class="tabs" aria-label="Betrieb">
+      <a class="tab" href="#">Übersicht</a><a class="tab" href="#">Team</a><a class="tab" href="#" aria-current="page">Abholungen</a><a class="tab" href="#">Pinnwand</a><a class="tab" href="#">Statistik</a><a class="tab" href="#">Chat</a>
+    </nav>
+
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Zeitraum">
+        <button type="button" class="chip chip--active" aria-pressed="true" data-testid="stores.pickups.range.twoWeeks">Nächste 2 Wochen</button>
+        <button type="button" class="chip" aria-pressed="false" data-testid="stores.pickups.range.all">Alle geplanten</button>
+        <button type="button" class="chip" id="pendingFilter" aria-pressed="false" data-testid="stores.pickups.range.pending" hidden>
+          <svg class="i" aria-hidden="true"><use href="#ic-hourglass"/></svg>Wartet <span class="chip__count" id="pendingCount">0</span>
+        </button>
+      </div>
+      <div class="actions" id="managerActions" hidden>
+        <button type="button" class="btn btn--sm"><svg class="i" aria-hidden="true"><use href="#ic-history"/></svg>Verlauf</button>
+        <button type="button" class="btn btn--sm"><svg class="i" aria-hidden="true"><use href="#ic-replay"/></svg>Regelmässige Abholungen</button>
+        <button type="button" class="btn btn--sm btn--primary"><svg class="i" aria-hidden="true"><use href="#ic-plus"/></svg>Einmalige Abholung</button>
+      </div>
+    </div>
+
+    <div class="stack" id="list" data-testid="stores.pickups.list"></div>
+  </div>
+</div>
+
+<section class="legend" aria-label="Legende">
+  <h2>Zustände (Vorschlag)</h2>
+  <ul id="legend"></ul>
+</section>
+
+<!-- slot dialog (manager: confirm / remove; foodsaver own: sign out) -->
+<div class="scrim" id="scrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="dialog"></div>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="ic-hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="ic-pencil" viewBox="0 0 24 24"><path d="M4 20l4.5-1L19 8.5a2.1 2.1 0 0 0-3-3L5.5 16 4 20z"/></symbol>
+  <symbol id="ic-user-minus" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0M16 12h6"/></symbol>
+  <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="ic-history" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4.5h4.5M12 8v4.5l3 1.5"/></symbol>
+  <symbol id="ic-replay" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5"/></symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</svg>
+
+<script>
+(function () {
+  'use strict';
+  // ---- fixtures: the two weeks from Mon 2 Nov 2026, store time zone Europe/Zurich ------------------------------
+  const ME = { id: 'me', name: 'Sarah Müller' };
+  const BIEB = { id: 'bieb', name: 'Bea Botschaft' };
+  const P = {
+    priya: { id: 'u1', name: 'Priya Sharma' }, marco: { id: 'u2', name: 'Marco Bernasconi' }, lena: { id: 'u3', name: 'Lena Huber' },
+    tom: { id: 'u4', name: 'Tom Keller' }, ayse: { id: 'u5', name: 'Ayşe Demir' }, noah: { id: 'u6', name: 'Noah Frei' },
+    mia: { id: 'u7', name: 'Mia Steiner' }, jonas: { id: 'u8', name: 'Jonas Weber' }, elif: { id: 'u9', name: 'Elif Kaya' },
+  };
+  const COLORS = ['#25834a', '#1c6f91', '#8a4fb0', '#b5532d', '#2f6e6a', '#9a3f62', '#5a6b1f', '#3d5aa8'];
+  const initialData = () => [
+    { day: 'Montag, 2. November', time: '19:00', regular: true, slotCount: 3, slots: [], elig: { eligible: true } },
+    { day: 'Dienstag, 3. November', time: '18:30', regular: true, slotCount: 2, slots: [s(P.priya, true), s(P.marco, false)], elig: { eligible: false, reason: 'NO_FREE_SLOT' } },
+    { day: 'Donnerstag, 5. November', time: '19:00', regular: true, slotCount: 3, slots: [s(P.lena, true), s(ME, false)], elig: { eligible: false, reason: 'ALREADY_SIGNED_UP' } },
+    { day: 'Samstag, 7. November', time: '10:00', regular: false, desc: 'Marktreste, grosse Taschen mitbringen', slotCount: 4, slots: [s(P.tom, true), s(P.ayse, true), s(P.noah, true), s(P.mia, true)], elig: { eligible: false, reason: 'NO_FREE_SLOT' } },
+    { day: 'Montag, 9. November', time: '19:00', regular: true, slotCount: 3, slots: [s(ME, true), s(P.marco, true)], elig: { eligible: false, reason: 'ALREADY_SIGNED_UP' } },
+    { day: 'Mittwoch, 11. November', time: '20:30', regular: true, desc: 'Grosse Abholung', slotCount: 8, slots: [s(P.priya, true), s(P.tom, true), s(P.lena, true), s(P.jonas, false), s(P.elif, false), s(P.ayse, false)], elig: { eligible: true } },
+    { day: 'Donnerstag, 12. November', time: '19:00', regular: true, slotCount: 2, slots: [], elig: { eligible: false, reason: 'REGION_RULE_TIMESPAN_LIMIT' } },
+    { day: 'Samstag, 14. November', time: '10:00', regular: true, slotCount: 2, slots: [s(P.noah, true)], elig: { eligible: false, reason: 'SIGNUP_NOT_YET_OPEN' } },
+  ];
+  function s(user, confirmed) { return { user, confirmed }; }
+
+  // real i18n strings (pickups/i18n/de.json, shared/i18n/de.json) + proposed new keys (marked NEW)
+  const T = {
+    'pickups.tab.waiting': 'Wartet auf Bestätigung',
+    'pickups.tab.confirmSlot': 'Bestätigen',
+    'pickups.tab.removeSlot': 'Austragen',
+    'pickups.tab.removeTitle': '{name} austragen',
+    'pickups.tab.removeText': 'Die Person erhält deine Nachricht.',
+    'pickups.tab.confirmed': 'Eintrag bestätigt.',
+    'pickups.tab.removed': 'Ausgetragen, die Nachricht wurde zugestellt.',
+    'pickups.tab.edit': 'Abholung bearbeiten',
+    'pickups.tab.regularBadge': 'regelmässig',
+    'pickups.signout.title': 'Austragen?',
+    'pickups.signout.text': 'Bitte trag dich nur kurzfristig aus, wenn es nicht anders geht – das Team ist auf dich angewiesen.',
+    'pickups.signout.confirm': 'Austragen',
+    'pickups.signout.done': 'Ausgetragen.',
+    'pickups.signup.title': 'Für Abholung eintragen',
+    'pickups.signup.text': 'Trag dich nur ein, wenn du sicher kommen kannst.',
+    'pickups.signup.confirm': 'Eintragen',
+    'pickups.signup.doneUnconfirmed': 'Eingetragen – wartet auf Bestätigung durch die Betriebsverantwortlichen.',
+    'pickups.eligibility.SIGNUP_NOT_YET_OPEN': 'Für diese Abholung kann man sich noch nicht eintragen.',
+    'pickups.eligibility.REGION_RULE_TIMESPAN_LIMIT': 'Die Abholregel des Bezirks erlaubt keine weitere Abholung in diesem Zeitraum.',
+    'shared.pickupSlot.label': '{taken} von {total} Plätzen belegt',
+    'shared.pickupSlot.confirmed': '{name}, bestätigt',
+    'shared.pickupSlot.free': 'Freier Platz – eintragen',
+    'shared.pickupSlot.freeOnly': 'Freier Platz',
+    'shared.pickupSlot.signUp': 'Eintragen',
+    'shared.pickupSlot.freeShort': '{count} frei',
+    // NEW (proposal)
+    'shared.pickupSlot.unconfirmed': '{name}, wartet auf Bestätigung',              // changed wording (was: noch nicht bestätigt)
+    'shared.pickupSlot.you': 'Du',
+    'shared.pickupSlot.mineConfirmed': 'Du ({name}), bestätigt – austragen',
+    'shared.pickupSlot.mineUnconfirmed': 'Du ({name}), wartet auf Bestätigung – austragen',
+    'shared.pickupSlot.confirmOne': '{name} bestätigen',
+    'shared.pickupSlot.freeLocked': '{count, plural, one {# freier Platz} other {# freie Plätze}} – {reason}',
+    'pickups.tab.summary.confirmed': '{confirmed} von {total} bestätigt',
+    'pickups.tab.summary.waiting': '{count, plural, one {# wartet} other {# warten}}',
+    'pickups.tab.summary.waitingYou': 'Du wartest',
+    'pickups.tab.waitingMine': 'Dein Platz wartet auf Bestätigung',
+    'pickups.tab.confirmAll': 'Alle {count} bestätigen',
+    'pickups.tab.confirmedAll': '{count} Einträge bestätigt.',
+    'pickups.tab.range.pending': 'Wartet',
+    'pickups.tab.pendingEmpty': 'Nichts wartet auf deine Bestätigung.',
+  };
+  function t(key, vars) {
+    let str = T[key] || key;
+    str = str.replace(/\{(\w+), plural, one \{([^}]*)\} other \{([^}]*)\}\}/g, (_, v, one, other) => (Number(vars[v]) === 1 ? one : other).replace('#', vars[v]));
+    return str.replace(/\{(\w+)\}/g, (_, v) => (vars && v in vars) ? vars[v] : `{${v}}`);
+  }
+  const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const icon = (id) => `<svg class="i" aria-hidden="true"><use href="#ic-${id}"/></svg>`;
+  function initials(name) { const p = name.trim().split(/[\s._@-]+/).filter(Boolean); return (p.length === 1 ? p[0].slice(0, 2) : p[0][0] + p[p.length - 1][0]).toUpperCase(); }
+  function color(seed) { let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) | 0; return COLORS[Math.abs(h) % COLORS.length]; }
+  const avatar = (user, cls = '') => `<span class="av ${cls}" style="background:${color(user.name)}" aria-hidden="true">${initials(user.name)}</span>`;
+
+  // ---- state ---------------------------------------------------------------------------------------------------
+  const state = { version: 'after', role: 'foodsaver', theme: 'light', viewport: 'desktop', pendingOnly: false, data: initialData() };
+  const myId = () => (state.role === 'bieb' ? BIEB.id : ME.id);
+  const isManager = () => state.role === 'bieb';
+  const mySlot = (p) => p.slots.find((x) => x.user.id === myId());
+
+  // ---- render ---------------------------------------------------------------------------------------------------
+  function renderSlots(p, i) {
+    const after = state.version === 'after';
+    const me = myId();
+    const free = Math.max(0, p.slotCount - p.slots.length);
+    const freeClickable = !mySlot(p) && (after ? p.elig.eligible : true);
+    const items = [];
+    for (const slot of p.slots) {
+      const mine = slot.user.id === me;
+      const pending = !slot.confirmed;
+      const stateCls = pending ? 'slot--pending' : 'slot--taken';
+      const stateIcon = `<span class="slot__state" aria-hidden="true">${icon(pending ? 'hourglass' : 'check')}</span>`;
+      const common = `data-testid="stores.pickups.slot.taken" data-user="${esc(slot.user.name)}" data-confirmed="${slot.confirmed}" data-i="${i}" data-u="${slot.user.id}"`;
+      if (mine) {
+        const label = after ? t(pending ? 'shared.pickupSlot.mineUnconfirmed' : 'shared.pickupSlot.mineConfirmed', { name: slot.user.name })
+                            : t(pending ? 'shared.pickupSlot.unconfirmed' : 'shared.pickupSlot.confirmed', { name: slot.user.name });
+        items.push(`<li><button type="button" class="slot slot--labelled slot--mine ${stateCls}" ${common} data-action="own" aria-label="${esc(label)}" title="${esc(slot.user.name)}">
+          ${avatar(slot.user, 'av--sm')}${after ? `<span class="slot__label slot__you">${t('shared.pickupSlot.you')}</span>${stateIcon}` : ''}</button></li>`);
+      } else if (after && pending && isManager()) {
+        // manager: pending gets the room: name + hourglass + a one-click confirm
+        items.push(`<li><div class="split" role="group" aria-label="${esc(t('shared.pickupSlot.unconfirmed', { name: slot.user.name }))}">
+          <button type="button" class="slot slot--labelled ${stateCls}" ${common} data-action="slot" aria-label="${esc(t('shared.pickupSlot.unconfirmed', { name: slot.user.name }))}">
+            ${avatar(slot.user, 'av--sm')}<span class="slot__label">${esc(slot.user.name.split(' ')[0])}</span>${stateIcon}</button>
+          <button type="button" class="split__confirm" data-action="confirm" data-i="${i}" data-u="${slot.user.id}" aria-label="${esc(t('shared.pickupSlot.confirmOne', { name: slot.user.name }))}" title="${esc(t('pickups.tab.confirmSlot'))}" data-testid="stores.pickups.slot.confirm">${icon('check')}</button>
+        </div></li>`);
+      } else {
+        const label = t(pending ? 'shared.pickupSlot.unconfirmed' : 'shared.pickupSlot.confirmed', { name: slot.user.name });
+        const disabled = isManager() ? '' : 'disabled';
+        items.push(`<li><button type="button" class="slot ${stateCls}" ${common} data-action="slot" ${disabled} aria-label="${esc(label)}" title="${esc(slot.user.name)}">
+          ${avatar(slot.user)}${stateIcon}</button></li>`);
+      }
+    }
+    for (let k = 0; k < free; k++) {
+      const first = k === 0;
+      let label, inner;
+      if (freeClickable) {
+        label = t('shared.pickupSlot.free');
+        inner = `${icon('plus')}${first ? `<span class="slot__label" aria-hidden="true">${t('shared.pickupSlot.signUp')}</span>` : ''}`;
+      } else {
+        const reason = after && p.elig.reason && T['pickups.eligibility.' + p.elig.reason];
+        label = first ? (reason ? t('shared.pickupSlot.freeLocked', { count: free, reason }) : t('shared.pickupSlot.freeShort', { count: free })) : t('shared.pickupSlot.freeOnly');
+        inner = first ? `${after && reason ? icon('lock') : ''}<span class="slot__label" aria-hidden="true">${t('shared.pickupSlot.freeShort', { count: free })}</span>` : '';
+      }
+      items.push(`<li><button type="button" class="slot slot--free ${first ? 'slot--labelled' : ''}" ${freeClickable ? '' : 'disabled'} data-action="free" data-i="${i}" aria-label="${esc(label)}" data-testid="stores.pickups.slot.free">${inner}</button></li>`);
+    }
+    return `<ul class="slots" aria-label="${esc(t('shared.pickupSlot.label', { taken: p.slots.length, total: p.slotCount }))}">${items.join('')}</ul>`;
+  }
+
+  function renderSummary(p, i) {
+    if (state.version !== 'after' || p.slots.length === 0) return '';
+    const confirmed = p.slots.filter((x) => x.confirmed).length;
+    const pending = p.slots.length - confirmed;
+    const mine = mySlot(p);
+    const parts = [`<span class="summary__part summary__part--ok">${icon('check')}${t('pickups.tab.summary.confirmed', { confirmed, total: p.slotCount })}</span>`];
+    if (pending) {
+      const text = mine && !mine.confirmed && pending === 1 ? t('pickups.tab.summary.waitingYou') : t('pickups.tab.summary.waiting', { count: pending });
+      parts.push(`<span class="summary__sep" aria-hidden="true">·</span><span class="summary__part summary__part--pending">${icon('hourglass')}${text}</span>`);
+    }
+    if (isManager() && pending >= 2) {
+      parts.push(`<button type="button" class="btn btn--text btn--sm summary__all" data-action="confirmAll" data-i="${i}" data-testid="stores.pickups.confirmAll">${t('pickups.tab.confirmAll', { count: pending })}</button>`);
+    }
+    return `<p class="summary" data-testid="stores.pickups.summary" data-confirmed="${confirmed}" data-pending="${pending}">${parts.join('')}</p>`;
+  }
+
+  function renderPickup(p, i) {
+    const after = state.version === 'after';
+    const mine = mySlot(p);
+    const lines = [];
+    if (mine && !mine.confirmed) {
+      lines.push(`<p class="pending" data-testid="stores.pickups.unconfirmed">${icon('hourglass')}${after ? t('pickups.tab.waitingMine') : t('pickups.tab.waiting')}</p>`);
+    }
+    if (after && !mine && !p.elig.eligible && p.slots.length < p.slotCount && T['pickups.eligibility.' + p.elig.reason]) {
+      lines.push(`<p class="hint" data-testid="stores.pickups.eligibilityHint">${icon('lock')}${T['pickups.eligibility.' + p.elig.reason]}</p>`);
+    }
+    return `<div class="pickup" data-testid="stores.pickups.pickup" data-slots="${p.slotCount}">
+      <div class="pickup__head">
+        <span class="pickup__time">${p.time}</span>
+        ${p.regular ? `<span class="badge">${t('pickups.tab.regularBadge')}</span>` : ''}
+        ${p.desc ? `<span class="pickup__desc">${esc(p.desc)}</span>` : ''}
+        ${renderSummary(p, i)}
+        ${isManager() ? `<button type="button" class="btn btn--icon pickup__edit" aria-label="${t('pickups.tab.edit')}">${icon('pencil')}</button>` : ''}
+      </div>
+      ${renderSlots(p, i)}
+      ${lines.join('')}
+    </div>`;
+  }
+
+  function render() {
+    document.documentElement.classList.toggle('fs-dark', state.theme === 'dark');
+    document.documentElement.classList.toggle('touch', state.viewport === 'phone');
+    const frame = document.getElementById('frame');
+    frame.dataset.viewport = state.viewport;
+    document.getElementById('frameSize').textContent = state.viewport === 'phone' ? '412 px · Touch' : '960 px';
+    frame.classList.toggle('before', state.version === 'before');
+    document.getElementById('managerActions').hidden = !isManager();
+    const pendingTotal = state.data.reduce((n, p) => n + p.slots.filter((x) => !x.confirmed).length, 0);
+    const filter = document.getElementById('pendingFilter');
+    filter.hidden = !(isManager() && state.version === 'after');
+    filter.classList.toggle('chip--active', state.pendingOnly);
+    filter.setAttribute('aria-pressed', String(state.pendingOnly));
+    document.getElementById('pendingCount').textContent = pendingTotal;
+    const rows = state.data.map((p, i) => ({ p, i })).filter(({ p }) => !state.pendingOnly || p.slots.some((x) => !x.confirmed));
+    const list = document.getElementById('list');
+    list.innerHTML = rows.length
+      ? rows.map(({ p, i }) => `<section class="card day" data-testid="stores.pickups.day"><h2 class="card__title">${p.day}</h2>${renderPickup(p, i)}</section>`).join('')
+      : `<section class="card"><p class="muted">${t('pickups.tab.pendingEmpty')}</p></section>`;
+    renderLegend();
+  }
+
+  function renderLegend() {
+    const demo = (cls, inner, text) => `<li><ul class="slots"><li><span class="slot ${cls}" style="cursor:default">${inner}</span></li></ul><span>${text}</span></li>`;
+    const badge = (k) => `<span class="slot__state" aria-hidden="true">${icon(k)}</span>`;
+    document.getElementById('legend').innerHTML = [
+      demo('slot--taken', avatar(P.priya) + badge('check'), 'Bestätigt: durchgezogener Ring, Haken-Badge'),
+      demo('slot--pending', avatar(P.marco) + badge('hourglass'), 'Wartet: gestrichelter Ring, Sanduhr-Badge'),
+      demo('slot--labelled slot--mine slot--taken', avatar(ME, 'av--sm') + `<span class="slot__label slot__you">Du</span>${badge('check')}`, 'Du, bestätigt: gefüllte Pille mit „Du“'),
+      demo('slot--labelled slot--mine slot--pending', avatar(ME, 'av--sm') + `<span class="slot__label slot__you">Du</span>${badge('hourglass')}`, 'Du, wartet: gelbe Pille mit „Du“'),
+      demo('slot--free slot--labelled', `${icon('plus')}<span class="slot__label">Eintragen</span>`, 'Frei, du kannst dich eintragen'),
+      demo('slot--free slot--labelled', `${icon('lock')}<span class="slot__label">2 frei</span>`, 'Frei, aber nicht für dich (Grund als Hinweis)'),
+    ].join('') + `<li><span class="split"><span class="slot slot--labelled slot--pending" style="cursor:default">${avatar(P.jonas, 'av--sm')}<span class="slot__label">Jonas</span>${badge('hourglass')}</span><span class="split__confirm" style="cursor:default">${icon('check')}</span></span><span>Verantwortliche: wartender Platz mit Name und Sofort-Bestätigen</span></li>`;
+  }
+
+  // ---- dialogs -------------------------------------------------------------------------------------------------
+  const scrim = document.getElementById('scrim');
+  const dialog = document.getElementById('dialog');
+  let lastFocus = null;
+  function openDialog(html) { lastFocus = document.activeElement; dialog.innerHTML = html; scrim.hidden = false; (dialog.querySelector('[autofocus]') || dialog.querySelector('button')).focus(); }
+  function closeDialog() { scrim.hidden = true; dialog.innerHTML = ''; if (lastFocus) lastFocus.focus(); }
+  scrim.addEventListener('click', (e) => { if (e.target === scrim) closeDialog(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !scrim.hidden) closeDialog(); });
+  let toastTimer;
+  function toast(text) { const el = document.getElementById('toast'); el.innerHTML = `${icon('check')}${esc(text)}`; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600); }
+
+  function slotDialog(i, uid) {
+    const p = state.data[i]; const slot = p.slots.find((x) => x.user.id === uid); if (!slot) return;
+    const pending = !slot.confirmed;
+    openDialog(`
+      <div class="dialog__head">${avatar(slot.user)}<h2 id="dlgTitle">${esc(slot.user.name)}</h2><button type="button" class="btn btn--icon" data-close aria-label="Schliessen">${icon('x')}</button></div>
+      <p class="muted">${p.day}, ${p.time}</p>
+      <p class="dialog__state ${pending ? 'dialog__state--pending' : 'dialog__state--ok'}">${icon(pending ? 'hourglass' : 'check')}${pending ? t('pickups.tab.waiting') : 'Bestätigt'}</p>
+      <div class="dialog__actions" style="justify-content:flex-start">
+        ${pending ? `<button type="button" class="btn btn--primary" data-confirm="${i}:${uid}" data-testid="stores.pickups.confirmSlot" autofocus>${icon('check')}${t('pickups.tab.confirmSlot')}</button>` : ''}
+        <button type="button" class="btn btn--danger" data-remove="${i}:${uid}" data-testid="stores.pickups.removeSlot">${icon('user-minus')}${t('pickups.tab.removeSlot')}</button>
+      </div>`);
+  }
+  function removeDialog(i, uid) {
+    const p = state.data[i]; const slot = p.slots.find((x) => x.user.id === uid); if (!slot) return;
+    openDialog(`
+      <div class="dialog__head"><h2 id="dlgTitle">${esc(t('pickups.tab.removeTitle', { name: slot.user.name }))}</h2><button type="button" class="btn btn--icon" data-close aria-label="Schliessen">${icon('x')}</button></div>
+      <p class="muted">${t('pickups.tab.removeText')}</p>
+      <label>Nachricht<textarea id="msg" autofocus placeholder="Hallo ${esc(slot.user.name.split(' ')[0])}, …"></textarea></label>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--text" data-close>Abbrechen</button>
+        <button type="button" class="btn btn--danger" data-remove-confirm="${i}:${uid}" data-testid="stores.pickups.removeDialog.confirm" disabled>${t('pickups.tab.removeSlot')}</button>
+      </div>`);
+    dialog.querySelector('#msg').addEventListener('input', (e) => { dialog.querySelector('[data-remove-confirm]').disabled = !e.target.value.trim(); });
+  }
+  function signoutDialog(i) {
+    openDialog(`
+      <div class="dialog__head"><h2 id="dlgTitle">${t('pickups.signout.title')}</h2><button type="button" class="btn btn--icon" data-close aria-label="Schliessen">${icon('x')}</button></div>
+      <p>${t('pickups.signout.text')}</p>
+      <div class="dialog__actions"><button type="button" class="btn btn--text" data-close>Abbrechen</button><button type="button" class="btn btn--danger" data-signout="${i}" autofocus>${t('pickups.signout.confirm')}</button></div>`);
+  }
+  function signupDialog(i) {
+    const p = state.data[i];
+    openDialog(`
+      <div class="dialog__head"><h2 id="dlgTitle">${t('pickups.signup.title')}</h2><button type="button" class="btn btn--icon" data-close aria-label="Schliessen">${icon('x')}</button></div>
+      <p><strong>Coop Bahnhofbrücke</strong><br>${p.day}, ${p.time}</p>
+      <p class="muted">${t('pickups.signup.text')}</p>
+      <div class="dialog__actions"><button type="button" class="btn btn--text" data-close>Abbrechen</button><button type="button" class="btn btn--primary" data-signup="${i}" autofocus>${icon('check')}${t('pickups.signup.confirm')}</button></div>`);
+  }
+  dialog.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.hasAttribute('data-close')) return closeDialog();
+    const pair = (a) => b.getAttribute(a).split(':');
+    if (b.hasAttribute('data-confirm')) { const [i, u] = pair('data-confirm'); confirmSlot(+i, u); closeDialog(); }
+    else if (b.hasAttribute('data-remove')) { const [i, u] = pair('data-remove'); removeDialog(+i, u); }
+    else if (b.hasAttribute('data-remove-confirm')) { const [i, u] = pair('data-remove-confirm'); state.data[+i].slots = state.data[+i].slots.filter((x) => x.user.id !== u); closeDialog(); toast(t('pickups.tab.removed')); render(); }
+    else if (b.hasAttribute('data-signout')) { const i = +b.dataset.signout; state.data[i].slots = state.data[i].slots.filter((x) => x.user.id !== myId()); state.data[i].elig = { eligible: true }; closeDialog(); toast(t('pickups.signout.done')); render(); }
+    else if (b.hasAttribute('data-signup')) { const i = +b.dataset.signup; const confirmed = isManager(); state.data[i].slots.push(s(isManager() ? BIEB : ME, confirmed)); state.data[i].elig = { eligible: false, reason: 'ALREADY_SIGNED_UP' }; closeDialog(); toast(confirmed ? 'Eingetragen und bestätigt.' : t('pickups.signup.doneUnconfirmed')); render(); }
+  });
+  function confirmSlot(i, uid) { const slot = state.data[i].slots.find((x) => x.user.id === uid); if (slot) slot.confirmed = true; toast(t('pickups.tab.confirmed')); render(); }
+
+  // ---- list interactions ----------------------------------------------------------------------------------------
+  document.getElementById('list').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-action]'); if (!b || b.disabled) return;
+    const i = +b.dataset.i;
+    switch (b.dataset.action) {
+      case 'free': signupDialog(i); break;
+      case 'own': signoutDialog(i); break;
+      case 'slot': if (isManager()) slotDialog(i, b.dataset.u); break;
+      case 'confirm': confirmSlot(i, b.dataset.u); break;
+      case 'confirmAll': { const n = state.data[i].slots.filter((x) => !x.confirmed).length; state.data[i].slots.forEach((x) => { x.confirmed = true; }); toast(t('pickups.tab.confirmedAll', { count: n })); render(); break; }
+    }
+  });
+  document.getElementById('pendingFilter').addEventListener('click', () => { state.pendingOnly = !state.pendingOnly; render(); });
+  document.querySelectorAll('.chips [data-testid^="stores.pickups.range."]:not(#pendingFilter)').forEach((c) => c.addEventListener('click', () => { state.pendingOnly = false; render(); }));
+  document.querySelectorAll('.ctl input[type=radio]').forEach((r) => r.addEventListener('change', () => { state[r.name] = r.value; if (r.name === 'role') state.pendingOnly = false; render(); }));
+  document.getElementById('reset').addEventListener('click', () => { state.data = initialData(); state.pendingOnly = false; render(); });
+  render();
+})();
+</script>
+</body>
+</html>
