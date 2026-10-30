@@ -78,7 +78,21 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
 12. Broken toggle switches (owner, 2026-10-30): in a flex row next to a long description, `p-toggleswitch` shrinks (`flex-shrink: 1`, `min-width: auto`). On the store pickup policy page the six switches measured 40, 40, 26, 28, 20 and 33 px wide instead of 40, so only the knob was left. The app uses `p-toggleswitch` 51 times in 31 files.
    - Fix globally in `styles.scss` (`.p-toggleswitch { flex-shrink: 0; }`), and give checkboxes, radios, avatars and icon buttons the same treatment where they sit in flex rows.
    - Add a guard: an e2e helper in the a11y sweep, or a check in the i18n smoke, that fails when a switch, checkbox or radio is rendered narrower than its design size, across every route at desktop and phone width. That way the whole app gets checked, not just this page.
-13. Cleaning rule: the region's cleaning store (`region.cleaning_store_id`, read by `PickupPolicyEvaluator.cleaningRule`) can't be set anywhere in the UI. It is in the API schema (`IntroPickupRegionSettings.cleaningStoreId`), but the region settings form keeps it unedited, and only the seed sets it (Zürich Stadt → S-13). Without it, every store in that region gets `NO_CLEANING_STORE` and is left for manual confirmation.
-   - Add a store picker to the region's automation or settings page. Only stores of that region qualify.
-   - Decide whether sub-regions inherit the parent's cleaning store. Today only the store's own region counts.
-   - Show the configured cleaning store on the store policy page next to the "Putzen" rule.
+13. Fairteiler cleaning shifts and the cleaning rule (owner, 2026-10-30, decision 136). This replaces the "cleaning store" field.
+   - The existing food share points (FS1, `/food-share-points`) are upgraded; there is no new store type. A Fairteiler can switch on cleaning shifts:
+     - regular and one-time slots
+     - sign-up with confirmation by the Fairteiler's managers
+     - a team
+     - history and statistics
+     The labels say "Putzeinsatz" instead of "Abholung". Reuse the store pickup building blocks (slots, sign-up, confirmation, eligibility) where possible.
+   - Region setting: each region picks which Fairteiler count for the cleaning rule (one or several). Only Fairteiler in that region itself can be picked; there is no inheritance, so sub-regions configure their own.
+   - Cleaning rule (`PickupPolicyEvaluator.cleaningRule`):
+     - Fulfilled by a confirmed cleaning shift in the back-check period (12 months) or an upcoming one, at any of the region's cleaning Fairteiler.
+     - Free shifts for the reminder threshold are counted across all of them.
+     - Exemptions, the new-foodsaver grace period and `NO_CLEANING_STORE` (renamed to "no cleaning Fairteiler") stay.
+   - Data:
+     - A new changelog replaces `region.cleaning_store_id` with a region↔Fairteiler link table.
+     - Migrate existing values.
+     - Update the seed: Zürich Stadt gets a real Fairteiler with cleaning shifts instead of S-13 "Migros City".
+     - Update `docs/seed-ids.md`.
+   - Contract first (OpenAPI), history on every mutation, i18n in five languages, and an e2e test plus screenshot specs with the feature ID. Update the automation policy page ("Putzen" shows the region's cleaning Fairteiler).
