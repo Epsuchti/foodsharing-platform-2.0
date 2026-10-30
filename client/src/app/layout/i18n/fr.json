@@ -15,5 +15,7 @@
   "layout.header.regions": "Tes régions",
   "layout.header.homeRegion": "Région principale",
   "layout.nav.unread": "({count} non lus)",
-  "layout.header.whatsNew": "Nouveautés"
+  "layout.header.whatsNew": "Nouveautés",
+  "layout.header.searchOpen": "Ouvrir la recherche",
+  "layout.header.searchClose": "Fermer la recherche"
 }
