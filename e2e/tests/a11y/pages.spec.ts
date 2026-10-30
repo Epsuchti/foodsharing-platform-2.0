@@ -97,6 +97,10 @@ const ROUTES: RouteCase[] = [
   { path: '/support', role: null, ready: 'content.support.form' },
   { path: '/support?from=%2Fdashboard', role: 'foodsaver', ready: 'content.support.form' },
   { path: '/admin/content/press', role: 'orga', ready: 'content.editor.images' },
+  // M6 achievements (plan-m7 Q9): region tab as member and as ambassador, global admin page
+  { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'foodsaver', ready: 'achievements.board.list' },
+  { path: '/regions/00000010-0001-4000-8000-000000000040/achievements', role: 'bot', ready: 'achievements.board.define', consent: true },
+  { path: '/admin/achievements', role: 'orga', ready: 'achievements.board.list' },
 ];
 
 async function settle(page: Page, ready?: string): Promise<void> {

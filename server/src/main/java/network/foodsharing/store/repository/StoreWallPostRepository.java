@@ -19,6 +19,6 @@ public interface StoreWallPostRepository extends JpaRepository<StoreWallPost, UU
     List<StoreWallPost> findByStoreIdAndDeletedAtIsNull(UUID storeId);
 
     /** Activity feed (A19): newest live posts of the given owners before a cursor. */
-    List<StoreWallPost> findByStoreIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(
+    List<StoreWallPost> findByStoreIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(
             Collection<UUID> ids, Instant before, Pageable pageable);
 }

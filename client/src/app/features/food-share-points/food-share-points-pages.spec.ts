@@ -5,7 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { ApiErrorCode, Fsp, FspStatus, FspSummary, Language, MapMarkerKind, Role, Theme, UnitType } from '../../api';
+import { ApiErrorCode, Fsp, FspStatus, FspSummary, Language, Role, Theme, UnitType } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { RegionPageContext } from '../regions/region-page.context';
@@ -103,20 +103,20 @@ describe('food share point pages', () => {
   const markers = '/api/public/map/markers/food-share-points';
 
   describe('region tab', () => {
-    it('lists the FSPs including inactive ones, with pins for the active ones', async () => {
+    it('lists the FSPs including inactive ones, with pins for all of them from their own coordinates', async () => {
       await harness.navigateByUrl(`/regions/${ZH}/food-share-points`);
       expect(state('foodSharePoints.region.state')).toBe('loading');
       const list = http.expectOne(regionList);
       expect(list.request.params.get('includeInactive')).toBe('true');
-      list.flush([summary(), summary({ id: F5, name: 'Fairteiler Altstetten', status: FspStatus.Inactive, followerCount: 1 })]);
-      await new Promise((resolve) => setTimeout(resolve));
-      http.expectOne(markers).flush([
-        { id: F1, kind: MapMarkerKind.Fsp, lat: 47.3721, lon: 8.5172 },
-        { id: 'elsewhere', kind: MapMarkerKind.Fsp, lat: 47.5, lon: 8.72 },
+      list.flush([
+        summary({ lat: 47.3721, lon: 8.5172 }),
+        summary({ id: F5, name: 'Fairteiler Altstetten', status: FspStatus.Inactive, followerCount: 1, lat: 47.3874, lon: 8.4867 }),
       ]);
       await new Promise((resolve) => setTimeout(resolve));
       await settle();
+      http.expectNone(markers);
       expect(state('foodSharePoints.region.state')).toBe('success');
+      expect(all('fs-map-view .fs-visually-hidden li').length).toBe(2);
       expect(all('[data-testid="foodSharePoints.card"]').length).toBe(2);
       expect(q(`fs-fsp-card[data-fsp-id="${F5}"] [data-testid="foodSharePoints.card.inactive"]`)).not.toBeNull();
       expect(q(`fs-fsp-card[data-fsp-id="${F1}"] [data-testid="foodSharePoints.card.inactive"]`)).toBeNull();
@@ -134,7 +134,7 @@ describe('food share point pages', () => {
       expect(q('[data-testid="foodSharePoints.region.add"]')).toBeNull();
     });
 
-    it('keeps the list when the pins fail and retries a failed list', async () => {
+    it('retries a failed list; an FSP without a position gets no pin', async () => {
       await harness.navigateByUrl(`/regions/${ZH}/food-share-points`);
       http.expectOne(regionList).flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, serverError);
       await new Promise((resolve) => setTimeout(resolve));
@@ -144,11 +144,10 @@ describe('food share point pages', () => {
       await settle();
       http.expectOne(regionList).flush([summary()]);
       await new Promise((resolve) => setTimeout(resolve));
-      http.expectOne(markers).flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, serverError);
-      await new Promise((resolve) => setTimeout(resolve));
       await settle();
       expect(state('foodSharePoints.region.state')).toBe('success');
       expect(all('[data-testid="foodSharePoints.card"]').length).toBe(1);
+      expect(all('fs-map-view .fs-visually-hidden li').length).toBe(0);
     });
   });
 

@@ -49,11 +49,11 @@ describe('map page', () => {
     localStorage.removeItem(LAYERS_STORAGE_KEY);
   });
 
-  function login(admin = false): void {
+  function login(admin = false, role: Role = Role.Foodsaver): void {
     TestBed.inject(SessionService).applySession({
       authenticated: true,
       permissions: [],
-      user: { id: ME, email: 'foodsaver@local', displayName: 'Sarah', role: Role.Foodsaver, language: Language.De, theme: Theme.System, verified: true, homeRegionId: ZH },
+      user: { id: ME, email: 'foodsaver@local', displayName: 'Sarah', role, language: Language.De, theme: Theme.System, verified: true, homeRegionId: ZH },
       units: [{ id: ZH, name: 'Zürich Stadt', slug: 'zuerich-stadt', type: UnitType.BigCity, member: true, admin, homeRegion: true }],
     });
   }
@@ -93,7 +93,8 @@ describe('map page', () => {
   });
 
   it('loads stores with the filter bar for signed-in users and searches a place', async () => {
-    login();
+    // a foodsharer: the category filter needs only a session (listStoreCategories), not the foodsaver store metadata
+    login(false, Role.Foodsharer);
     localStorage.setItem(LAYERS_STORAGE_KEY, '["stores","events"]');
     await harness.navigateByUrl('/map');
     http.expectOne(TOGGLES).flush({ FOOD_SHARE_POINTS: true, BASKETS: true, MAP_USERS: true });
@@ -102,7 +103,8 @@ describe('map page', () => {
       { id: 's1', lat: 47.36, lon: 8.54, name: 'Bäckerei', cooperationStatus: 'COOPERATION_ESTABLISHED', teamStatus: 'OPEN' },
     ]);
     http.expectOne((req) => req.url === '/api/map/markers/events').flush([]);
-    http.expectOne('/api/store-metadata').flush({ categories: [{ id: 'c1', name: 'Bäckerei' }], groceries: [], weightCategories: [], chains: [] });
+    http.expectOne('/api/store-categories').flush([{ id: 'c1', name: 'Bäckerei' }]);
+    http.expectNone('/api/store-metadata');
     await settle();
     // not an administrator: no member layer
     expect(q('[data-testid="map.page.layer.users"]')).toBeNull();

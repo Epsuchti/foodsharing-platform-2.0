@@ -14,7 +14,7 @@ public interface FspWallPostRepository extends JpaRepository<FspWallPost, UUID> 
     Page<FspWallPost> findByFspIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID fspId, Pageable pageable);
 
     /** Activity feed (A19): newest posts of the given FSPs before a cursor. */
-    List<FspWallPost> findByFspIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(Collection<UUID> fspIds,
+    List<FspWallPost> findByFspIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(Collection<UUID> fspIds,
                                                                                            Instant before,
                                                                                            Pageable pageable);
 

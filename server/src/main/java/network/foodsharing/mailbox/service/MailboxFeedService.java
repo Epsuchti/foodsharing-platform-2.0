@@ -38,7 +38,7 @@ public class MailboxFeedService {
         if (boxes.isEmpty()) {
             return List.of();
         }
-        return mails.findByMailboxIdInAndFolderAndReceivedAtBeforeOrderByReceivedAtDesc(boxes.keySet(),
+        return mails.findByMailboxIdInAndFolderAndReceivedAtBeforeOrderByReceivedAtDescIdDesc(boxes.keySet(),
                         MailFolder.INBOX, before, PageRequest.of(0, Math.max(limit, 1))).stream()
                 .map(m -> new FeedMail(m.getId(), m.getMailboxId(), boxes.get(m.getMailboxId()).getName(),
                         m.getSubject(), m.getFromName(), m.getFromAddress(), m.getReceivedAt())).toList();

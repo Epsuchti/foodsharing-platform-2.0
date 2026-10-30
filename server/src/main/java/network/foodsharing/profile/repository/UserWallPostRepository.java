@@ -16,7 +16,7 @@ public interface UserWallPostRepository extends JpaRepository<UserWallPost, UUID
     List<UserWallPost> findByUserIdOrAuthorId(UUID userId, UUID authorId);
 
     /** Activity feed: live posts on the given walls created before {@code before}, newest first. */
-    List<UserWallPost> findByUserIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDesc(Collection<UUID> userIds,
+    List<UserWallPost> findByUserIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(Collection<UUID> userIds,
                                                                                               Instant before,
                                                                                               Pageable pageable);
 }

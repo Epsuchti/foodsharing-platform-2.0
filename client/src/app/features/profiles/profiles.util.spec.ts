@@ -1,6 +1,7 @@
 import { Banana, BuddyRelation, PublicProfile, Role } from '../../api';
 import {
   BANANA_MIN_LENGTH,
+  ACHIEVEMENT_ICON_CHOICES,
   achievementIcon,
   activeTab,
   buddyActions,
@@ -81,5 +82,12 @@ describe('profiles util', () => {
     expect(achievementIcon('pi-truck')).toBe('pi pi-truck');
     expect(achievementIcon('unknown-thing')).toBe('pi pi-trophy');
     expect(achievementIcon(undefined)).toBe('pi pi-trophy');
+  });
+
+  it('renders every icon of the achievement picker as itself', () => {
+    for (const name of ACHIEVEMENT_ICON_CHOICES) {
+      expect(achievementIcon(name)).toBe(`pi pi-${name}`);
+    }
+    expect(achievementIcon('crown')).toBe('pi pi-crown');
   });
 });

@@ -40,7 +40,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
               and p.hiddenAt is null and t.deletedAt is null and t.active = true and p.createdAt < :before
               and ((t.ambassadorForum = false and t.regionId in :memberRegions)
                    or (t.ambassadorForum = true and t.regionId in :adminRegions))
-            order by p.createdAt desc, p.id""")
+            order by p.createdAt desc, p.id desc""")
     List<Object[]> feed(@Param("memberRegions") Collection<UUID> memberRegions,
                         @Param("adminRegions") Collection<UUID> adminRegions, @Param("before") Instant before,
                         Pageable pageable);

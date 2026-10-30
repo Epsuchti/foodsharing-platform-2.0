@@ -33,7 +33,7 @@ final class WallActivitySources {
 
         @Override
         public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
-            return walls.latestOfMyStores(userId, before, limit).stream().map(p -> new ActivityItem(type(),
+            return walls.latestOfMyStores(userId, before, limit).stream().map(p -> new ActivityItem(p.id(), type(),
                     p.createdAt(), p.storeName(), ActivityFeedService.excerpt(p.text()),
                     "/stores/" + p.storeId(), p.authorId(), p.storeId(), p.storeName())).toList();
         }
@@ -55,7 +55,7 @@ final class WallActivitySources {
 
         @Override
         public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
-            return walls.latestOfAcceptedEvents(userId, before, limit).stream().map(p -> new ActivityItem(type(),
+            return walls.latestOfAcceptedEvents(userId, before, limit).stream().map(p -> new ActivityItem(p.id(), type(),
                     p.createdAt(), p.eventName(), ActivityFeedService.excerpt(p.body()),
                     "/events/" + p.eventId(), p.authorId(), p.eventId(), p.eventName())).toList();
         }
@@ -77,7 +77,7 @@ final class WallActivitySources {
 
         @Override
         public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
-            return fsps.latestOfFollowed(userId, before, limit).stream().map(p -> new ActivityItem(type(),
+            return fsps.latestOfFollowed(userId, before, limit).stream().map(p -> new ActivityItem(p.id(), type(),
                     p.createdAt(), p.fspName(), ActivityFeedService.excerpt(p.body()),
                     "/food-share-points/" + p.fspId(), p.authorId(), p.fspId(), p.fspName())).toList();
         }

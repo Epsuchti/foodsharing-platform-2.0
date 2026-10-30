@@ -60,7 +60,7 @@ export class RegionPageComponent {
     ),
   );
 
-  /** Report handlers (A51 rule copied in reports.util until RegionDetail says so; the server decides). */
+  /** Report handlers (`RegionDetail.mayHandleReports`; the server decides). */
   private readonly reportHandler = computed(
     () => M6_PAGES_READY.reports && mayHandleReports(this.session.session(), this.ctx.data()),
   );
@@ -93,6 +93,8 @@ export class RegionPageComponent {
       { id: 'reports', route: 'reports', icon: 'pi pi-flag', labelKey: 'regions.tab.reports', visible: this.reportHandler() },
       { id: 'reportLog', route: 'report-log', icon: 'pi pi-list', labelKey: 'regions.tab.reportLog', visible: this.reportHandler() },
       { id: 'mediation', route: 'mediation', icon: 'pi pi-comments', labelKey: 'regions.tab.mediation', visible: M6_PAGES_READY.reports && member },
+      // M6 Q9: /regions/:regionId/achievements (features/achievements)
+      { id: 'achievements', route: 'achievements', icon: 'pi pi-trophy', labelKey: 'regions.tab.achievements', visible: member },
       // M4 F4: /regions/:regionId/automation (features/automation)
       { id: 'automation', route: 'automation', icon: 'pi pi-bolt', labelKey: 'regions.tab.automation', visible: admin || this.automation() },
     ];

@@ -2,8 +2,12 @@
   get:
     tags: [store-categories]
     operationId: listStoreCategories
-    summary: 'All store-categories with usage counts.'
-    x-permission: 'ORGA'
+    summary: 'All store categories (sorted by name); every signed-in user, `storeCount` only for ORGA.'
+    description: >-
+      Category names are shared vocabulary (map store filter, store pages), so every signed-in user may read them,
+      like the store markers. Usage counts are an administration view and are omitted unless the caller is ORGA.
+      Creating, renaming, merging and deleting stay ORGA-only.
+    x-permission: authenticated
     responses:
       '200':
         description: OK

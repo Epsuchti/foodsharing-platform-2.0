@@ -32,8 +32,8 @@ final class CommunicationActivitySources {
 
         @Override
         public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
-            return forum.latest(userId, before, limit).stream().map(p -> new ActivityItem(type(), p.createdAt(),
-                    p.threadTitle(), ActivityFeedService.excerpt(p.body()), "/forum/threads/" + p.threadId(),
+            return forum.latest(userId, before, limit).stream().map(p -> new ActivityItem(p.id(), type(),
+                    p.createdAt(), p.threadTitle(), ActivityFeedService.excerpt(p.body()), "/forum/threads/" + p.threadId(),
                     p.authorId(), p.threadId(), p.threadTitle())).toList();
         }
     }
@@ -54,8 +54,8 @@ final class CommunicationActivitySources {
 
         @Override
         public List<ActivityItem> latest(UUID userId, Instant before, int limit) {
-            return mailboxes.latest(userId, before, limit).stream().map(m -> new ActivityItem(type(), m.receivedAt(),
-                    m.subject(), m.fromName() != null && !m.fromName().isBlank() ? m.fromName() : m.fromAddress(),
+            return mailboxes.latest(userId, before, limit).stream().map(m -> new ActivityItem(m.id(), type(),
+                    m.receivedAt(), m.subject(), m.fromName() != null && !m.fromName().isBlank() ? m.fromName() : m.fromAddress(),
                     "/mailboxes/" + m.mailboxId(), null, m.mailboxId(), m.mailboxName())).toList();
         }
     }
