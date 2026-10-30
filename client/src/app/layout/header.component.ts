@@ -5,10 +5,14 @@ import { SessionService } from '../core/auth/session.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TPipe } from '../core/i18n/t.pipe';
 import { StartupService } from '../core/startup/startup.service';
+import { FeatureToggleKey } from '../api';
+import { FeatureToggleService } from '../core/feature-toggles/feature-toggle.service';
 import { BellButtonComponent } from '../features/bells/components/bell-button.component';
+import { GlobalSearchComponent } from '../features/search/components/global-search.component';
 import { WhatsNewDotComponent } from '../features/content/components/whats-new-dot.component';
 import { BrandComponent } from './brand.component';
 import { LanguageMenuComponent } from './language-menu.component';
+import { M6_PAGES_READY } from './nav.config';
 import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
 import { RegionSwitcherComponent } from './region-switcher.component';
@@ -24,6 +28,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     BellButtonComponent,
     RegionSwitcherComponent,
     BrandComponent,
+    GlobalSearchComponent,
     LanguageMenuComponent,
     NavBadgeComponent,
     RouterLink,
@@ -44,7 +49,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
           [class.hdr__nav--compact]="compactNav()"
           [attr.aria-label]="'layout.header.mainNav' | t"
         >
-          @for (item of nav.main(); track item.id) {
+          @for (item of mainItems(); track item.id) {
             <a
               class="hdr__link"
               [routerLink]="item.route"
@@ -61,6 +66,10 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
         </nav>
       }
       <div class="hdr__actions">
+        @if (chrome() === 'full' && searchEnabled()) {
+          <!-- C5: replaces the "search" nav link from 48rem; phones reach /search through the drawer -->
+          <fs-global-search class="hdr__search" />
+        }
         @if (chrome() === 'full' && session.isAuthenticated()) {
           <fs-region-switcher />
         }
@@ -196,6 +205,15 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       gap: 0.35rem;
       margin-left: auto;
     }
+    .hdr__search {
+      width: clamp(9rem, 17vw, 17rem);
+      margin-right: 0.35rem;
+    }
+    @media (max-width: 47.99rem) {
+      .hdr__search {
+        display: none;
+      }
+    }
     .hdr__whats-new {
       position: relative;
       text-decoration: none;
@@ -235,9 +253,18 @@ export class HeaderComponent {
   protected readonly nav = inject(NavContextService);
   protected readonly startup = inject(StartupService);
   private readonly i18n = inject(I18nService);
+  private readonly toggles = inject(FeatureToggleService);
+  /** Header search (C5): logged in and GLOBAL_SEARCH on (off until the toggles are loaded). */
+  protected readonly searchEnabled = computed(
+    () => this.session.isAuthenticated() && M6_PAGES_READY.search && this.toggles.isEnabled(FeatureToggleKey.GlobalSearch),
+  );
+  /** The search box stands in for the "search" link of the main navigation. */
+  protected readonly mainItems = computed(() =>
+    this.searchEnabled() ? this.nav.main().filter((item) => item.id !== 'search') : this.nav.main(),
+  );
   /** Icons only with more than five items or when five long labels (fr/it/de) would collide with the region switcher. */
   protected readonly compactNav = computed(() => {
-    const items = this.nav.main();
+    const items = this.mainItems();
     const chars = items.reduce((sum, item) => sum + this.i18n.t(item.labelKey).length, 0);
     return items.length > 5 || chars > 56;
   });

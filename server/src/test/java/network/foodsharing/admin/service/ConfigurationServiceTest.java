@@ -61,7 +61,7 @@ class ConfigurationServiceTest {
     @Test
     void updateValidatesAndRecordsOnlyChanges() {
         when(repository.findByConfigKey("petition.signatures")).thenReturn(Optional.empty());
-        when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.saveAndFlush(any())).thenAnswer(inv -> inv.getArgument(0));
         assertThatThrownBy(() -> service.update("petition.signatures", "many")).isInstanceOfSatisfying(
                 ApiException.class, ex -> assertThat(ex.getCode()).isEqualTo(ApiErrorCode.CONFIGURATION_VALUE_INVALID));
         assertThatThrownBy(() -> service.update("no.such.key", "1")).isInstanceOfSatisfying(

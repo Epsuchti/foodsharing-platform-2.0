@@ -105,7 +105,8 @@ public class ConfigurationService {
         });
         String old = row.getConfigValue() == null ? key.defaultValue() : row.getConfigValue();
         row.setConfigValue(normalized);
-        ConfigurationSetting saved = settings.save(row);
+        // flush so JPA auditing sets updatedAt/updatedBy before the response is built from the row
+        ConfigurationSetting saved = settings.saveAndFlush(row);
         if (!old.equals(normalized)) {
             history.record(history.event(AdminAction.CONFIGURATION_CHANGED, HistoryService.SYSTEM_SUBJECT_ID)
                     .change(key.key(), old, normalized).build());

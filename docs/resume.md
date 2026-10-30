@@ -1,6 +1,6 @@
 # Resume notes (paused 2026-10-29)
 
-Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–113), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
+Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–116), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
 
 ## State on `main`
 - Backend: all features of M1–M6 and M7 B1–B10 (imports, prod profile/image/release, runbook/backups, monitoring, load test, security review, privacy review, CI hardening) are done.
@@ -19,6 +19,7 @@ Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–113), `docs/co
 - Merged on main (2026-10-30): F1 stores import; Q1–Q10 and Q13 of `docs/plan-m7-queue-f.md`; backend open rows, contract gaps G1–G4, follow-ups (decisions 97, 102, 108); fast seed reset (107); test speed-up, 4 forks (108); screenshot matrix light/German only (109).
 - Ledger rows still waiting for the test worker to see their tagged tests pass on main (decision 106): A19, AC1, C1, C3, C4, C8, C16, C10, C11, C12, C14, AD1. D10.3 needs an audit of its remaining views.
 - Workers in flight: Q11 blog/donations/support (`build/m7-q11-blog`), Q12 search/resources (`build/m7-q12-search`), Q14 OAuth (`build/m7-q14-oauth`), backend product fixes (`build/m7-b-fixes`: release-note translations, PETITION_INACTIVE, achievement base text + clears, ConfigurationEntry.type, updateConfiguration audit fields), Sonnet test worker running full checks on main in its own worktree.
+- Open optional backend requests (no blocker): OAuth `ConsentRequest.requiredRegions` and `OAuthClient.requiredRegions` as RegionRef (names); PATCH public→confidential should issue a secret or document the 400; resource limit in `ResourcePermissions` and file names on `ResourceImage`; blog `removePicture` and content page image removal (backend worker 2 in progress).
 - After Q14: plan-m6 F9 leftovers (a11y sweep completeness, translated-pages sweep), then the end batch (plan-m7 Part C F2–F6) — needs Docker for the baselines — and the final gate (Part D).
 
 ## Team setup the owner asked for

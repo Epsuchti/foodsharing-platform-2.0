@@ -9,18 +9,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import network.foodsharing.admin.domain.AdminAction;
 import network.foodsharing.admin.domain.FeatureToggle;
 import network.foodsharing.admin.domain.FeatureToggleSetting;
 import network.foodsharing.admin.repository.FeatureToggleSettingRepository;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
-import network.foodsharing.config.MutableClock;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.testsupport.FixedClockConfig;
 import org.junit.jupiter.api.Test;
 
 /** A43/C11: defaults, stored overrides, 30 s cache, requireEnabled → 404 FEATURE_DISABLED, ORGA changes. */
@@ -29,8 +29,9 @@ class FeatureToggleServiceTest {
     FeatureToggleSettingRepository repository = mock(FeatureToggleSettingRepository.class);
     CurrentActorService actors = mock(CurrentActorService.class);
     HistoryService history = mock(HistoryService.class, RETURNS_DEEP_STUBS);
-    MutableClock clock = new FixedClockConfig().clock();
-    FeatureToggleService service = new FeatureToggleService(repository, actors, history, clock);
+    /** Monotonic nanoseconds of the cache (the business clock is fixed in e2e and must not matter). */
+    AtomicLong ticker = new AtomicLong(1_000L);
+    FeatureToggleService service = new FeatureToggleService(repository, actors, history, ticker::get);
 
     static FeatureToggleSetting row(FeatureToggle toggle, boolean enabled) {
         FeatureToggleSetting row = new FeatureToggleSetting();
@@ -54,8 +55,35 @@ class FeatureToggleServiceTest {
         service.isEnabled(FeatureToggle.BASKETS);
         service.isEnabled(FeatureToggle.BLOG);
         verify(repository, times(1)).findAll();
-        clock.fixAt(FixedClockConfig.SEED_NOW.plusSeconds(31));
+        ticker.addAndGet(Duration.ofSeconds(30).toNanos());
         service.isEnabled(FeatureToggle.BASKETS);
+        verify(repository, times(1)).findAll();
+        ticker.addAndGet(Duration.ofSeconds(1).toNanos());
+        service.isEnabled(FeatureToggle.BASKETS);
+        verify(repository, times(2)).findAll();
+    }
+
+    @Test
+    void theSeedResetClearsTheCacheWhateverTheBusinessClockSays() {
+        // a toggle switched off directly in the database (as a seed reset restores it) ...
+        when(repository.findAll()).thenReturn(List.of(row(FeatureToggle.BASKETS, false)));
+        assertThat(service.isEnabled(FeatureToggle.BASKETS)).isFalse();
+        when(repository.findAll()).thenReturn(List.of());
+        // ... stays cached without time passing on the ticker,
+        assertThat(service.isEnabled(FeatureToggle.BASKETS)).isFalse();
+        // and the reset of the in-memory state (A59) brings the seeded state back at once
+        assertThat(service).isInstanceOf(network.foodsharing.common.seed.InMemoryState.class);
+        service.resetInMemoryState();
+        assertThat(service.isEnabled(FeatureToggle.BASKETS)).isTrue();
+    }
+
+    @Test
+    void theTickerMayStartNegativeOrWrap() {
+        ticker.set(Long.MAX_VALUE - 5);
+        when(repository.findAll()).thenReturn(List.of());
+        service.isEnabled(FeatureToggle.BLOG);
+        ticker.addAndGet(Duration.ofSeconds(31).toNanos()); // overflows to a negative value
+        service.isEnabled(FeatureToggle.BLOG);
         verify(repository, times(2)).findAll();
     }
 

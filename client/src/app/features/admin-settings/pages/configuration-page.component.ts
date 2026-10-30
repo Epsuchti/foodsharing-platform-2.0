@@ -17,7 +17,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { HistoryTimelineComponent } from '../../../shared/history-timeline/history-timeline.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { AdminSettingsResources } from '../admin-settings.resource';
-import { ConfigurationType, configurationGroup, configurationLabelKey, configurationType } from '../admin-settings.util';
+import { ConfigurationTypeName, configurationGroup, configurationLabelKey, configurationType } from '../admin-settings.util';
 import { SettingsTabsComponent } from '../components/settings-tabs.component';
 
 interface ConfigGroup {
@@ -75,7 +75,7 @@ const KNOWN_GROUPS = ['support', 'petition', 'donation', 'statistics', 'oauth'];
           <h2 class="section-title">{{ groupLabel(group.id) }}</h2>
           <ul class="list fs-card">
             @for (entry of group.entries; track entry.key) {
-              @let type = typeOf(entry.key);
+              @let type = typeOf(entry);
               @let inputId = 'config-' + entry.key;
               <li class="row" data-testid="adminSettings.configuration.row" [attr.data-key]="entry.key" [attr.data-type]="type">
                 <div class="field">
@@ -224,11 +224,11 @@ export class ConfigurationPageComponent {
     },
   );
 
-  protected typeOf(key: string): ConfigurationType {
-    return configurationType(key);
+  protected typeOf(entry: ConfigurationEntry): ConfigurationTypeName {
+    return configurationType(entry);
   }
 
-  protected inputType(type: ConfigurationType): string {
+  protected inputType(type: ConfigurationTypeName): string {
     return type === 'INTEGER' ? 'number' : type === 'EMAIL' ? 'email' : type === 'URL' ? 'url' : 'text';
   }
 

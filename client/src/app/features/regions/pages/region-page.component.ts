@@ -14,6 +14,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { M6_PAGES_READY } from '../../../layout/nav.config';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { mayHandleReports } from '../../reports/reports.util';
+import { hasResources } from '../../resources/resources.util';
 import { RegionPageContext } from '../region-page.context';
 import { isAccessibleType } from '../shared/unit-types';
 
@@ -88,6 +89,14 @@ export class RegionPageComponent {
         icon: 'pi pi-box',
         labelKey: 'regions.tab.foodSharePoints',
         visible: this.toggles.isEnabled(FeatureToggleKey.FoodSharePoints),
+      },
+      // M6 Q12: /regions/:regionId/resources (features/resources), RESOURCES toggle, only unit types with a mosaic
+      {
+        id: 'resources',
+        route: 'resources',
+        icon: 'pi pi-th-large',
+        labelKey: 'regions.tab.resources',
+        visible: member && this.toggles.isEnabled(FeatureToggleKey.Resources) && hasResources(this.ctx.data()?.type),
       },
       // M6 Q8: /regions/:regionId/{reports,report-log,mediation} (features/reports)
       { id: 'reports', route: 'reports', icon: 'pi pi-flag', labelKey: 'regions.tab.reports', visible: this.reportHandler() },

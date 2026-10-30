@@ -74,11 +74,18 @@ class AdminSettingsIT {
     void configurationAndDonations() throws Exception {
         Cookie orga = login(SeedUsers.ORGA);
         mvc.perform(get("/api/admin/configuration").cookie(orga)).andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.key == 'support.email')].value").value("support@local.test"));
+                .andExpect(jsonPath("$[?(@.key == 'support.email')].value").value("support@local.test"))
+                .andExpect(jsonPath("$[?(@.key == 'support.email')].type").value("EMAIL"))
+                .andExpect(jsonPath("$[?(@.key == 'petition.days-left')].type").value("INTEGER"))
+                .andExpect(jsonPath("$[?(@.key == 'donation.campaign-page-slugs')].type").value("LIST"));
         mvc.perform(json(put("/api/admin/configuration/support.email"), orga, "{\"value\":\"nope\"}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("CONFIGURATION_VALUE_INVALID"));
+        // the response carries the persisted audit values of this save (fixed e2e clock), not the seed row's
         mvc.perform(json(put("/api/admin/configuration/support.email"), orga, "{\"value\":\"help@local.test\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.value").value("help@local.test"));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.value").value("help@local.test"))
+                .andExpect(jsonPath("$.type").value("EMAIL"))
+                .andExpect(jsonPath("$.updatedAt").value(org.hamcrest.Matchers.startsWith("2026-11-02T09:00")))
+                .andExpect(jsonPath("$.updatedBy.id").value(SeedUsers.ORGA.id().toString()));
         mvc.perform(json(put("/api/admin/configuration/support.email"), login(SeedUsers.BOT),
                 "{\"value\":\"x@local.test\"}")).andExpect(status().isForbidden());
         mvc.perform(get("/api/admin/donations").cookie(orga)).andExpect(status().isOk())

@@ -4,6 +4,7 @@ import {
   ReleaseNote,
   ReleaseNoteCreate,
   ReleaseNoteTranslation,
+  ReleaseNoteUpdate,
 } from '../../api';
 
 /** Lower case without accents, so "Fairteiler" matches "fairteiler" and "écrire" matches "ecrire". */
@@ -68,11 +69,15 @@ export interface ReleaseNoteForm {
 
 /**
  * Request body of a release note (C4) from the five-language form: German is the main text, every other language
- * with both a title and a text becomes a translation (added or replaced; languages left empty are not sent, so
- * translations saved earlier stay). `incomplete` lists languages with only one of the two.
+ * with both a title and a text becomes a translation (added or replaced). On an edit, `saved` are the languages the
+ * note has translations for; one emptied completely is removed (`removeTranslations`). `incomplete` lists languages
+ * with only one of the two.
  */
-export function releaseNoteRequest(form: ReleaseNoteForm): {
-  body: ReleaseNoteCreate;
+export function releaseNoteRequest(
+  form: ReleaseNoteForm,
+  saved: readonly string[] = [],
+): {
+  body: ReleaseNoteCreate & Pick<ReleaseNoteUpdate, 'removeTranslations'>;
   incomplete: string[];
 } {
   const text = (value: string | undefined) => value?.trim() ?? '';
@@ -91,6 +96,9 @@ export function releaseNoteRequest(form: ReleaseNoteForm): {
       incomplete.push(language);
     }
   }
+  const removeTranslations = saved
+    .filter((language) => language !== 'de' && !text(form.titles[language]) && !text(form.bodies[language]))
+    .sort();
   return {
     body: {
       version: form.version.trim(),
@@ -98,6 +106,7 @@ export function releaseNoteRequest(form: ReleaseNoteForm): {
       title: text(form.titles['de']),
       body: text(form.bodies['de']),
       ...(Object.keys(translations).length ? { translations } : {}),
+      ...(removeTranslations.length ? { removeTranslations } : {}),
     },
     incomplete: incomplete.sort(),
   };

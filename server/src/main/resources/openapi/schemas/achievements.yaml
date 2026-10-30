@@ -54,8 +54,15 @@ Achievement:
       format: int32
     mayAdminister:
       type: boolean
+    baseName:
+      type: string
+      description: 'German base name (`name` is in the viewer''s language); only when mayAdminister.'
+    baseDescription:
+      type: string
+      description: 'German base description; only when mayAdminister and set.'
     translations:
       type: object
+      description: 'Translations other than the German base text (never `de`).'
       additionalProperties:
         $ref: './achievements.yaml#/AchievementTranslation'
 
@@ -93,7 +100,11 @@ AchievementCreate:
 
 AchievementUpdate:
   type: object
+  description: 'Omitted fields stay unchanged. validityDays is set back to unlimited with clearValidityDays (400 VALIDATION_FAILED together with validityDays).'
   properties:
+    clearValidityDays:
+      type: boolean
+      description: 'Awards of this achievement are valid without end again.'
     name:
       type: string
       minLength: 1
@@ -167,10 +178,14 @@ AwardCreate:
 
 AwardUpdate:
   type: object
+  description: 'Omitted fields stay unchanged; an empty notice clears it. validUntil is removed (valid without end) with clearValidUntil (400 VALIDATION_FAILED together with validUntil).'
   properties:
     validUntil:
       type: string
       format: date
+    clearValidUntil:
+      type: boolean
+      description: 'The award is valid without end.'
     notice:
       type: string
       maxLength: 1000

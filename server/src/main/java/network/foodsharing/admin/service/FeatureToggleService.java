@@ -1,6 +1,5 @@
 package network.foodsharing.admin.service;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -9,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.LongSupplier;
 import network.foodsharing.admin.domain.AdminAction;
 import network.foodsharing.admin.domain.FeatureToggle;
 import network.foodsharing.admin.domain.FeatureToggleSetting;
@@ -16,8 +16,10 @@ import network.foodsharing.admin.repository.FeatureToggleSettingRepository;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.seed.InMemoryState;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,28 +27,46 @@ import org.springframework.transaction.annotation.Transactional;
  * Feature toggles (A43, C11): a missing row means {@link FeatureToggle#defaultEnabled()}; states are cached for
  * 30 s (a change on this node clears the cache at once). Modules call {@link #requireEnabled} in their services:
  * a disabled feature answers 404 {@code FEATURE_DISABLED}.
+ *
+ * <p>The cache expiry is measured on a monotonic ticker ({@link System#nanoTime()}), not on the business
+ * {@code Clock}: the e2e profile fixes that clock, so a clock-based cache would never expire there. The cache is an
+ * {@link InMemoryState}, so {@code POST /api/dev/seed/reset} clears it together with the database (A59).
  */
 @Service
-public class FeatureToggleService {
+public class FeatureToggleService implements InMemoryState {
 
     static final Duration CACHE = Duration.ofSeconds(30);
 
     public record ToggleState(FeatureToggle toggle, boolean enabled, String description, Instant updatedAt) {
     }
 
+    private record Snapshot(Map<FeatureToggle, Boolean> states, long loadedAtNanos) {
+    }
+
     private final FeatureToggleSettingRepository settings;
     private final CurrentActorService actors;
     private final HistoryService history;
-    private final Clock clock;
-    private volatile Map<FeatureToggle, Boolean> cached;
-    private volatile Instant cachedAt;
+    private final LongSupplier ticker;
+    private volatile Snapshot cached;
 
+    @Autowired
     public FeatureToggleService(FeatureToggleSettingRepository settings, CurrentActorService actors,
-                                HistoryService history, Clock clock) {
+                                HistoryService history) {
+        this(settings, actors, history, System::nanoTime);
+    }
+
+    /** {@code ticker}: monotonic nanoseconds (tests pass their own). */
+    FeatureToggleService(FeatureToggleSettingRepository settings, CurrentActorService actors,
+                         HistoryService history, LongSupplier ticker) {
         this.settings = settings;
         this.actors = actors;
         this.history = history;
-        this.clock = clock;
+        this.ticker = ticker;
+    }
+
+    @Override
+    public void resetInMemoryState() {
+        cached = null;
     }
 
     public boolean isEnabled(FeatureToggle toggle) {
@@ -62,15 +82,13 @@ public class FeatureToggleService {
 
     /** Every toggle with its effective state (public bootstrap, cached). */
     public Map<FeatureToggle, Boolean> states() {
-        Map<FeatureToggle, Boolean> current = cached;
-        Instant at = cachedAt;
-        Instant now = clock.instant();
-        if (current == null || at == null || now.isAfter(at.plus(CACHE)) || now.isBefore(at)) {
-            current = load();
+        Snapshot current = cached;
+        long now = ticker.getAsLong();
+        if (current == null || now - current.loadedAtNanos() > CACHE.toNanos()) {
+            current = new Snapshot(load(), now);
             cached = current;
-            cachedAt = now;
         }
-        return current;
+        return current.states();
     }
 
     /** ORGA list with descriptions. */

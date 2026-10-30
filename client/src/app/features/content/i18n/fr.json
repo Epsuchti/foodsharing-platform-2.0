@@ -161,7 +161,7 @@
   "content.releaseAdmin.releasedAt": "Publié le",
   "content.releaseAdmin.noteTitle": "Titre",
   "content.releaseAdmin.body": "Texte (Markdown)",
-  "content.releaseAdmin.translationsHint": "Les traductions déjà enregistrées sont conservées ; les langues remplies sont remplacées.",
+  "content.releaseAdmin.translationsHint": "Videz le titre et le texte d'une langue pour supprimer sa traduction.",
   "content.releaseAdmin.incomplete": "Titre et texte vont ensemble : {languages}",
   "content.releaseAdmin.saved": "Enregistré.",
   "content.releaseAdmin.deleted": "Entrée supprimée.",

@@ -5,7 +5,7 @@ import { ConfirmationService } from '@openng/optimus-ui/api';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { AdminUnitKind, ApiErrorCode, FeatureToggleKey, UnitType } from '../../api';
+import { AdminUnitKind, ApiErrorCode, ConfigurationType, FeatureToggleKey, UnitType } from '../../api';
 import { FeatureToggleService } from '../../core/feature-toggles/feature-toggle.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { configurationLabelKey, configurationType, formatBytes, isImage, toggleOrder } from './admin-settings.util';
@@ -22,11 +22,10 @@ const BOT = { id: 'u11', displayName: 'Bot Botschafter', role: 'AMBASSADOR', ver
 
 describe('admin settings helpers', () => {
   it('know the configuration types and label keys', () => {
-    expect(configurationType('support.email')).toBe('EMAIL');
-    expect(configurationType('petition.signatures')).toBe('INTEGER');
-    expect(configurationType('donation.show-modal')).toBe('BOOLEAN');
-    expect(configurationType('donation.campaign-page-slugs')).toBe('LIST');
-    expect(configurationType('something.new')).toBe('STRING');
+    // the server reports the type (ConfigurationEntry.type); plain text without one
+    expect(configurationType({ type: ConfigurationType.Email })).toBe('EMAIL');
+    expect(configurationType({ type: ConfigurationType.List })).toBe('LIST');
+    expect(configurationType({} as { type: ConfigurationType })).toBe('STRING');
     expect(configurationLabelKey('donation.modal-hours-logged-in')).toBe('adminSettings.configuration.key.donation_modal_hours_logged_in');
   });
 
@@ -128,14 +127,17 @@ describe('admin settings pages', () => {
   it('configuration: typed inputs, invalid value shown at the row, saved value replaces the row', async () => {
     await harness.navigateByUrl('/configuration');
     http.expectOne('/api/admin/configuration').flush([
-      { key: 'support.email', value: 'support@foodsharing.network', defaultValue: 'support@foodsharing.network' },
-      { key: 'petition.signatures', value: '0', defaultValue: '0' },
-      { key: 'donation.show-modal', value: 'false', defaultValue: 'false' },
+      { key: 'support.email', type: ConfigurationType.Email, value: 'support@foodsharing.network', defaultValue: 'support@foodsharing.network' },
+      { key: 'petition.signatures', type: ConfigurationType.Integer, value: '0', defaultValue: '0' },
+      { key: 'donation.show-modal', type: ConfigurationType.Boolean, value: 'false', defaultValue: 'false' },
+      // a key the client has never heard of still gets the input of its server type
+      { key: 'brand.new-flag', type: ConfigurationType.Boolean, value: 'true', defaultValue: 'false' },
     ]);
     await settle();
     expect(q('[data-key="support.email"] input')?.getAttribute('type')).toBe('email');
     expect(q('[data-key="petition.signatures"] input')?.getAttribute('type')).toBe('number');
     expect(q('[data-key="donation.show-modal"]')?.getAttribute('data-type')).toBe('BOOLEAN');
+    expect(q('[data-key="brand.new-flag"]')?.getAttribute('data-type')).toBe('BOOLEAN');
 
     const input = q('[data-key="support.email"] input') as HTMLInputElement;
     input.value = 'not-an-address';
@@ -155,7 +157,7 @@ describe('admin settings pages', () => {
     click('[data-key="support.email"] [data-testid="adminSettings.configuration.save"]');
     http
       .expectOne('/api/admin/configuration/support.email')
-      .flush({ key: 'support.email', value: 'help@example.org', defaultValue: 'support@foodsharing.network', updatedAt: '2026-11-02T10:00:00Z' });
+      .flush({ key: 'support.email', type: ConfigurationType.Email, value: 'help@example.org', defaultValue: 'support@foodsharing.network', updatedAt: '2026-11-02T10:00:00Z' });
     await settle();
     expect((q('[data-key="support.email"] input') as HTMLInputElement).value).toBe('help@example.org');
     expect((q('[data-key="support.email"] [data-testid="adminSettings.configuration.save"] button') as HTMLButtonElement).disabled).toBe(true);

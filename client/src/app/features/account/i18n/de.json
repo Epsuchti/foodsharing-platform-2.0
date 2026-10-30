@@ -226,5 +226,15 @@
   "account.bounce.text": "Mails an {email} wurden seit {date} zurückgewiesen. Bis das geklärt ist, schicken wir dir nur noch Login-Links.",
   "account.bounce.change": "Adresse ändern",
   "account.bounce.clear": "Adresse funktioniert wieder",
-  "account.bounce.cleared": "Danke! Wir schicken dir wieder E-Mails."
+  "account.bounce.cleared": "Danke! Wir schicken dir wieder E-Mails.",
+  "account.connections.pageTitle": "Verbundene Anwendungen",
+  "account.connections.title": "Verbundene Anwendungen",
+  "account.connections.subtitle": "Anwendungen, bei denen du dich mit deinem foodsharing-Konto anmeldest.",
+  "account.connections.empty": "Keine verbundenen Anwendungen",
+  "account.connections.emptyText": "Wenn du bei einer Anwendung „Anmelden mit foodsharing“ erlaubst, erscheint sie hier.",
+  "account.connections.since": "Erlaubt seit {date}",
+  "account.connections.revoke": "Zugriff entziehen",
+  "account.connections.revokeTitle": "Zugriff entziehen?",
+  "account.connections.revokeText": "{name} wird abgemeldet und muss beim nächsten Mal wieder um deine Zustimmung bitten.",
+  "account.connections.revoked": "Zugriff entzogen"
 }

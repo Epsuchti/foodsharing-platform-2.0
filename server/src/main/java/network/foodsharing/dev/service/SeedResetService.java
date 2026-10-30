@@ -3,11 +3,13 @@ package network.foodsharing.dev.service;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import javax.sql.DataSource;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.seed.SeedDerivedData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -32,13 +34,16 @@ public class SeedResetService {
     private final SpringLiquibase liquibase;
     private final network.foodsharing.config.RenewableLockProvider lockProvider;
     private final SeedSnapshot snapshot;
+    private final List<SeedDerivedData> derivedData;
 
     public SeedResetService(DataSource dataSource, SpringLiquibase liquibase,
-                            network.foodsharing.config.RenewableLockProvider lockProvider, SeedSnapshot snapshot) {
+                            network.foodsharing.config.RenewableLockProvider lockProvider, SeedSnapshot snapshot,
+                            List<SeedDerivedData> derivedData) {
         this.lockProvider = lockProvider;
         this.dataSource = dataSource;
         this.liquibase = liquibase;
         this.snapshot = snapshot;
+        this.derivedData = List.copyOf(derivedData);
     }
 
     /**
@@ -56,18 +61,35 @@ public class SeedResetService {
                     "Seed reset is only supported on H2 databases");
         }
         long started = System.nanoTime();
-        long[] phases = new long[2];
+        long[] phases = new long[3];
         String[] source = new String[1];
         lockProvider.whilePaused(JOB_WAIT, () -> {
             phases[0] = System.nanoTime();
             dropAll();
             phases[1] = System.nanoTime();
             source[0] = restore();
+            phases[2] = System.nanoTime();
+            rebuildDerivedData();
         });
         long done = System.nanoTime();
-        log.info("Seed reset done in {} ms (waiting for jobs {} ms, drop {} ms, {} {} ms)",
+        log.info("Seed reset done in {} ms (waiting for jobs {} ms, drop {} ms, {} {} ms, derived data {} ms)",
                 (done - started) / 1_000_000, (phases[0] - started) / 1_000_000,
-                (phases[1] - phases[0]) / 1_000_000, source[0], (done - phases[1]) / 1_000_000);
+                (phases[1] - phases[0]) / 1_000_000, source[0], (phases[2] - phases[1]) / 1_000_000,
+                (done - phases[2]) / 1_000_000);
+    }
+
+    /**
+     * Start-up steps that derive data from the seed (search index, …) ran after the snapshot was taken, so they run
+     * again on the restored database ({@link SeedDerivedData}). A failure is logged; the reset itself succeeded.
+     */
+    private void rebuildDerivedData() {
+        for (SeedDerivedData data : derivedData) {
+            try {
+                data.rebuildAfterSeedReset();
+            } catch (RuntimeException e) {
+                log.warn("Rebuilding the {} after the seed reset failed: {}", data.derivedDataName(), e.getMessage());
+            }
+        }
     }
 
     /** @return where the seed state came from ({@code snapshot} or {@code changelog}) */

@@ -15,7 +15,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
-import { NOTICE_MAX, awardExpired, isoDay, sortAwards } from '../achievements.util';
+import { NOTICE_MAX, awardExpired, isoDay, sortAwards, toAwardUpdate } from '../achievements.util';
 
 /**
  * Awards of one achievement (AC1, administrators): active ones first, then revoked. Each active award can get a new
@@ -176,7 +176,7 @@ export class AwardsDialogComponent {
       const { validUntil, notice } = this.editForm.getRawValue();
       return this.api.updateAward({
         awardId: award.id,
-        awardUpdate: { ...(validUntil ? { validUntil } : {}), notice: notice.trim() },
+        awardUpdate: toAwardUpdate({ validUntil, notice }, award.validUntil),
       });
     },
     {

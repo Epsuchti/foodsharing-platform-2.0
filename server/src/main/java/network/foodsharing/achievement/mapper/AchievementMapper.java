@@ -48,7 +48,7 @@ public class AchievementMapper {
                 in.getValidityDays(),
                 in.getVisibility() == null ? null : AchievementVisibility.valueOf(in.getVisibility().getValue()),
                 in.getDuplicateMode() == null ? null : DuplicateMode.valueOf(in.getDuplicateMode().getValue()),
-                texts(in.getTranslations()));
+                texts(in.getTranslations()), Boolean.TRUE.equals(in.getClearValidityDays()));
     }
 
     public Achievement toAchievement(AchievementService.AchievementView view) {
@@ -62,6 +62,9 @@ public class AchievementMapper {
                 .duplicateMode(network.foodsharing.api.model.DuplicateMode.fromValue(a.getDuplicateMode().name()))
                 .systemKey(a.getSystemKey() == null ? null : AchievementSystemKey.fromValue(a.getSystemKey().name()))
                 .awardedCount(view.awardedCount()).mayAdminister(view.mayAdminister())
+                // administrators edit the German base text whatever their own language is
+                .baseName(view.mayAdminister() ? a.getName() : null)
+                .baseDescription(view.mayAdminister() ? a.getDescription() : null)
                 .translations(translations.isEmpty() ? null : translations);
     }
 

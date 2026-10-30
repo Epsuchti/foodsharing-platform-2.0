@@ -186,6 +186,14 @@ const MODULE_ROUTES: Routes = [
     loadChildren: () => import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
   },
   {
+    path: 'search',
+    loadChildren: () => import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
+  },
+  {
+    path: 'resources',
+    loadChildren: () => import('./features/resources/resources.routes').then((m) => m.RESOURCES_ROUTES),
+  },
+  {
     path: '',
     loadChildren: () =>
       import('./features/admin-settings/admin-settings.routes').then((m) => m.ADMIN_SETTINGS_ROUTES),
@@ -193,6 +201,11 @@ const MODULE_ROUTES: Routes = [
   {
     path: 'blog',
     loadChildren: () => import('./features/blog/blog.routes').then((m) => m.BLOG_ROUTES),
+  },
+  {
+    // `oauth/consent`, `admin/oauth-clients` (C13)
+    path: '',
+    loadChildren: () => import('./features/oauth/oauth.routes').then((m) => m.OAUTH_ROUTES),
   },
   {
     path: '**',
