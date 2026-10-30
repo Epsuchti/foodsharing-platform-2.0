@@ -103,7 +103,10 @@ const AFTER_FIRST_PAGE_MS = 1500;
     @defer (when firstPageShown()) {
       <!-- autoZIndex off: a toast must not become the topmost overlay, or open dialogs ignore Escape -->
       <p-toast position="top-center" [breakpoints]="toastBreakpoints" [autoZIndex]="false" style="z-index: 2000" data-testid="shell.toast" />
+      <!-- p-confirmdialog does not pass closeAriaLabel on to its dialog: name the header X through pass-through
+           attributes, or it is an unnamed icon-only button (axe button-name) -->
       <p-confirmdialog
+        [pt]="{ pcCloseButton: { root: { 'aria-label': ('common.close' | t) } } }"
         [style]="{ width: 'min(30rem, calc(100vw - 2rem))' }"
         data-testid="shell.confirm"
       />

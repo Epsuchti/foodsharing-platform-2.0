@@ -23,7 +23,7 @@ import { TPipe } from '../../core/i18n/t.pipe';
       (onClick)="open.set(true)"
       data-testid="shared.foodsaverId.help"
     />
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="open()"
       (visibleChange)="open.set($event)"
       [modal]="true"

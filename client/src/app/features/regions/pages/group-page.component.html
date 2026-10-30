@@ -188,7 +188,7 @@
   testId="regions.group.declineDialog"
 />
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="mailOpen()"
   (visibleChange)="mailOpen.set($event)"
   [modal]="true"

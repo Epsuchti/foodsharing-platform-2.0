@@ -218,6 +218,41 @@ describe('loadResource', () => {
     expect(unsubscribed).toBe(1);
   });
 
+  it('refresh() leaves a first load, an error without data, forbidden and not found alone', () => {
+    const loader = controlledLoader<string[]>();
+    const state = create({ loader: loader.loader });
+    state.refresh();
+    expect(loader.calls).toBe(1);
+    loader.reject(apiHttpError(500, ApiErrorCode.UnexpectedError));
+    state.refresh();
+    expect(loader.calls).toBe(1);
+    expect(state.status()).toBe('error');
+
+    const missing = controlledLoader<string>();
+    const notFound = create({ loader: missing.loader });
+    missing.reject(apiHttpError(404, ApiErrorCode.ResourceNotFound));
+    notFound.refresh();
+    expect(missing.calls).toBe(1);
+    expect(notFound.status()).toBe('notFound');
+  });
+
+  it('refresh() reloads shown data, also empty and stale data', () => {
+    const loader = controlledLoader<string[]>();
+    const state = create({ loader: loader.loader });
+    loader.resolve([]);
+    state.refresh();
+    expect(loader.calls).toBe(2);
+    expect(state.status()).toBe('refreshing');
+    loader.resolve(['a']);
+    state.refresh();
+    expect(loader.calls).toBe(3);
+    loader.reject(apiHttpError(503, ApiErrorCode.UnexpectedError));
+    expect(state.isStale()).toBe(true);
+    state.refresh();
+    expect(loader.calls).toBe(4);
+    expect(state.status()).toBe('refreshing');
+  });
+
   it('set() and update() replace the data locally', () => {
     const state = create({ loader: () => of(['a', 'b']) });
     state.update((list) => (list ?? []).filter((item) => item !== 'a'));

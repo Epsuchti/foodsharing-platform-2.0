@@ -79,7 +79,7 @@ export function photoFile(blob: Blob): File {
       </fs-data-state>
     </section>
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="dialogOpen()"
       (visibleChange)="!$event && close()"
       [modal]="true"

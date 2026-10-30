@@ -185,7 +185,7 @@ export function missingRegionKey(ids: Iterable<string>, known: ReadonlyMap<strin
     </fs-data-state>
 
     @if (dialog(); as mode) {
-      <p-dialog
+      <p-dialog [closeAriaLabel]="'common.close' | t"
         [visible]="true"
         (visibleChange)="!$event && closeDialog()"
         [modal]="true"
@@ -383,7 +383,7 @@ export function missingRegionKey(ids: Iterable<string>, known: ReadonlyMap<strin
     </ng-template>
 
     @if (secret(); as shown) {
-      <p-dialog
+      <p-dialog [closeAriaLabel]="'common.close' | t"
         [visible]="true"
         (visibleChange)="!$event && secret.set(null)"
         [modal]="true"

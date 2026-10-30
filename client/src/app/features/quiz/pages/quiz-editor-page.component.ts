@@ -172,7 +172,7 @@ import { QUIZ_ICONS, localized, quizKindOf } from '../quiz-kind';
       (changed)="onQuestionChanged($event)"
     />
 
-    <p-drawer
+    <p-drawer [ariaCloseLabel]="'common.close' | t"
       [(visible)]="commentsOpen"
       position="right"
       [header]="'quiz.editor.comments' | t"

@@ -155,7 +155,7 @@
   testId="regions.members.removeDialog"
 />
 
-<p-dialog
+<p-dialog [closeAriaLabel]="'common.close' | t"
   [visible]="permissionOpen()"
   (visibleChange)="permissionOpen.set($event)"
   [modal]="true"

@@ -174,7 +174,7 @@ import { introPickupIcs } from '../intro-pickups.resource';
 
     <fs-slot-comments-drawer [(slotId)]="commentSlot" [userName]="commentUser()" (changed)="einabs.reload()" />
 
-    <p-dialog
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="!!assigning()"
       (visibleChange)="!$event && assigning.set(null)"
       [modal]="true"
