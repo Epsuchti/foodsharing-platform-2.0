@@ -423,5 +423,6 @@
   "nav.statistics": "Statistiques",
   "nav.support": "Support",
   "nav.releaseNotes": "Notes de version",
-  "nav.faq": "FAQ"
+  "nav.faq": "FAQ",
+  "nav.adminReleaseNotes": "Nouveautés"
 }

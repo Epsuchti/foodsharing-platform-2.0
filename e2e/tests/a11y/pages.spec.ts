@@ -71,6 +71,16 @@ const ROUTES: RouteCase[] = [
   { path: '/reports/00000050-0001-4000-8000-000000000003', role: 'reports', ready: 'reports.detail.wall.list', consent: true },
   { path: '/profile/00000001-0001-4000-8000-000000000007', role: 'reports', ready: 'reports.user.list', consent: true },
   { path: '/regions/00000010-0001-4000-8000-000000000040/mediation', role: 'foodsaver', ready: 'reports.mediation.team' },
+  // M6 public content (plan-m7 Q10): about overview and pages, FAQ, team, statistics, release notes, petition, editor
+  { path: '/about', role: null, ready: 'content.about.link' },
+  { path: '/about/vision', role: null, ready: 'content.page.body' },
+  { path: '/imprint', role: null, ready: 'content.page.body' },
+  { path: '/faq', role: null, ready: 'content.faq.entry' },
+  { path: '/team', role: null, ready: 'content.team.group' },
+  { path: '/statistics', role: null, ready: 'content.statistics.tile' },
+  { path: '/release-notes', role: null, ready: 'content.releaseNotes.note' },
+  { path: '/petition', role: null, ready: 'content.petition.card' },
+  { path: '/admin/release-notes', role: 'orga', ready: 'content.releaseAdmin.note' },
   // M6 map, dashboard feed, region statistics (plan-m7 Q7)
   { path: '/map', role: null, ready: 'map.page.layers' },
   { path: '/map', role: 'foodsaver', ready: 'map.page.storeFilter' },

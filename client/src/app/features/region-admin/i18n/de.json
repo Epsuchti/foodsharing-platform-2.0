@@ -88,5 +88,6 @@
   "regionAdmin.importError.INVALID_TIME_ZONE": "Ungültige Zeitzone",
   "regionAdmin.importError.UNKNOWN_PARENT": "Übergeordneter Bezirk unbekannt",
   "regionAdmin.importError.DUPLICATE_SLUG": "Kurzname doppelt",
-  "regionAdmin.importError.WORKING_GROUP_NOT_IMPORTABLE": "Arbeitsgruppen können nicht importiert werden"
+  "regionAdmin.importError.WORKING_GROUP_NOT_IMPORTABLE": "Arbeitsgruppen können nicht importiert werden",
+  "regionAdmin.form.teamPage": "Auf der Teamseite zeigen"
 }
