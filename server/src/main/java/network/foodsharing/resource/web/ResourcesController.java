@@ -52,7 +52,8 @@ public class ResourcesController implements ResourcesApi {
     @Override
     public ResponseEntity<ResourcePermissions> getResourcePermissions(UUID regionId) {
         ResourceService.Permissions p = resources.permissionsIn(regionId);
-        return ResponseEntity.ok(new ResourcePermissions().mayAdd(p.mayAdd()).mayEditCommons(p.mayEditCommons()));
+        return ResponseEntity.ok(new ResourcePermissions().mayAdd(p.mayAdd()).mayEditCommons(p.mayEditCommons())
+                .maxPerUser(p.maxPerUser()));
     }
 
     @Override
@@ -103,7 +104,8 @@ public class ResourcesController implements ResourcesApi {
                 .categories(v.categories().stream().map(ResourcesController::toApi).toList())
                 .owner(v.owner() == null ? null : users.toSummary(v.owner())).regionId(r.getRegionId())
                 ._private(r.isPrivateResource()).openness(ResourceOpenness.fromValue(r.getOpenness().name()))
-                .images(v.images().stream().map(i -> new ResourceImage().uploadId(i.uploadId()).url(i.url())).toList())
+                .images(v.images().stream().map(i -> new ResourceImage().uploadId(i.uploadId()).url(i.url())
+                        .fileName(i.fileName())).toList())
                 .favourite(v.favourite()).mayEdit(v.mayEdit()).mayDelete(v.mayDelete());
     }
 }
