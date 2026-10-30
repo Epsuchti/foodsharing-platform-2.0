@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -162,7 +163,11 @@ class OAuthFlowIT {
         String consentPage = authorize(newbie, "wiki", "openid", null);
         String requestId = query(consentPage, "request");
         mvc.perform(get("/api/oauth/authorize-requests/" + requestId).cookie(newbie)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.regionAllowed").value(false));
+                .andExpect(jsonPath("$.regionAllowed").value(false))
+                // the consent page names the required regions
+                .andExpect(jsonPath("$.requiredRegions[0].id").value("00000010-0001-4000-8000-000000000040"))
+                .andExpect(jsonPath("$.requiredRegions[0].slug").value("zuerich-stadt"))
+                .andExpect(jsonPath("$.requiredRegions[0].name").isString());
         mvc.perform(post("/api/oauth/authorize-requests/" + requestId + "/decision").with(csrf()).cookie(newbie)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"approve\":true,\"remember\":false}"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("OAUTH_REGION_REQUIRED"));
@@ -206,7 +211,21 @@ class OAuthFlowIT {
         mvc.perform(post("/api/admin/oauth-clients/mobile-dev/secret").with(csrf()).cookie(orga))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("OAUTH_CLIENT_PUBLIC"));
         mvc.perform(get("/api/admin/oauth-clients").cookie(orga)).andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.clientId == 'wiki')].consentCount").exists());
+                .andExpect(jsonPath("$[?(@.clientId == 'wiki')].consentCount").exists())
+                .andExpect(jsonPath("$[?(@.clientId == 'wiki')].requiredRegions[0].slug").value("zuerich-stadt"))
+                .andExpect(jsonPath("$[?(@.clientId == 'partner-app')].requiredRegions[0]").doesNotExist());
+        // public → confidential is refused (a PATCH never hands out a secret); confidential → public drops it
+        mvc.perform(patch("/api/admin/oauth-clients/mobile-dev").with(csrf()).cookie(orga)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"confidential\":true}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.args.field").value("confidential"));
+        mvc.perform(get("/api/admin/oauth-clients/mobile-dev").cookie(orga)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.confidential").value(false));
+        mvc.perform(patch("/api/admin/oauth-clients/partner-app").with(csrf()).cookie(orga)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"confidential\":false}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.confidential").value(false));
+        mvc.perform(post("/api/admin/oauth-clients/partner-app/secret").with(csrf()).cookie(orga))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("OAUTH_CLIENT_PUBLIC"));
         mvc.perform(delete("/api/admin/oauth-clients/partner-app").with(csrf()).cookie(orga))
                 .andExpect(status().isNoContent());
         mvc.perform(get("/api/admin/oauth-clients/partner-app").cookie(orga)).andExpect(status().isNotFound());

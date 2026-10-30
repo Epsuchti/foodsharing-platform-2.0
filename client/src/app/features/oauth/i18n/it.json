@@ -18,6 +18,7 @@
   "oauth.consent.footer": "Questa richiesta è valida fino alle {time}. Dopo devi ricominciare dall’applicazione.",
   "oauth.consent.regionRequiredTitle": "Non disponibile per te",
   "oauth.consent.regionRequiredText": "{client} è riservata ai membri di determinate regioni. Unisciti a una di esse o contatta chi gestisce l’applicazione.",
+  "oauth.consent.requiredRegions": "Aperto ai membri di:",
   "oauth.consent.back": "Torna a {client}",
   "oauth.consent.missingTitle": "Richiesta di accesso mancante",
   "oauth.clients.title": "Applicazioni OAuth",

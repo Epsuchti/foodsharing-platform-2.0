@@ -18,6 +18,7 @@
   "oauth.consent.footer": "Diese Anfrage ist bis {time} gültig. Danach musst du in der Anwendung neu beginnen.",
   "oauth.consent.regionRequiredTitle": "Für dich nicht verfügbar",
   "oauth.consent.regionRequiredText": "{client} steht nur Mitgliedern bestimmter Bezirke offen. Tritt einem dieser Bezirke bei oder wende dich an die Betreiber*innen der Anwendung.",
+  "oauth.consent.requiredRegions": "Offen für Mitglieder von:",
   "oauth.consent.back": "Zurück zu {client}",
   "oauth.consent.missingTitle": "Anmeldeanfrage fehlt",
   "oauth.clients.title": "OAuth-Anwendungen",

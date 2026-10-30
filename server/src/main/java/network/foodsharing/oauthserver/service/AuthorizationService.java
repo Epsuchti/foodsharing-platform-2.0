@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import network.foodsharing.oauthserver.repository.OAuthClientRepository;
 import network.foodsharing.oauthserver.repository.OAuthCodeRepository;
 import network.foodsharing.oauthserver.repository.OAuthConsentRepository;
 import network.foodsharing.oauthserver.repository.OAuthRequestRepository;
+import network.foodsharing.region.domain.Region;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
@@ -46,7 +48,7 @@ public class AuthorizationService {
     public static final String CONSENT_PAGE = "/oauth/consent?request=";
 
     public record ConsentView(AuthorizationRequest request, Client client, Set<String> scopes,
-                              boolean alreadyRemembered, boolean regionAllowed) {
+                              boolean alreadyRemembered, boolean regionAllowed, List<Region> requiredRegions) {
     }
 
     private final OAuthClientRepository clients;
@@ -150,7 +152,7 @@ public class AuthorizationService {
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.OAUTH_REQUEST_EXPIRED));
         Set<String> scopes = OAuthEntities.split(request.getScopes());
         return new ConsentView(request, client, scopes, remembered(client, principal.userId(), scopes),
-                regionAllowed(client, principal.userId()));
+                regionAllowed(client, principal.userId()), OAuthClientService.requiredRegions(client, regions));
     }
 
     /**

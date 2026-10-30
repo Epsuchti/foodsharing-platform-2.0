@@ -6,7 +6,7 @@ OAuthGrantType:
 
 OAuthClient:
   type: object
-  required: [clientId, name, confidential, redirectUris, scopes, grantTypes, requiredRegionIds, enabled, createdAt, consentCount]
+  required: [clientId, name, confidential, redirectUris, scopes, grantTypes, requiredRegionIds, requiredRegions, enabled, createdAt, consentCount]
   properties:
     clientId:
       type: string
@@ -35,6 +35,11 @@ OAuthClient:
       items:
         type: string
         format: uuid
+    requiredRegions:
+      type: array
+      description: 'The required regions with their names, in the order of requiredRegionIds (deleted regions are left out).'
+      items:
+        $ref: './regions.yaml#/RegionRef'
     enabled:
       type: boolean
     createdAt:
@@ -89,6 +94,7 @@ OAuthClientUpdate:
       maxLength: 200
     confidential:
       type: boolean
+      description: 'Only false is a change (confidential → public, the secret is dropped); true on a public client answers 400 VALIDATION_FAILED.'
     redirectUris:
       type: array
       items:

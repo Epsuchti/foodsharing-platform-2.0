@@ -10,6 +10,7 @@ import network.foodsharing.api.model.ConsentRequest;
 import network.foodsharing.api.model.OAuthClientRef;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.oauthserver.service.AuthorizationService;
+import network.foodsharing.region.mapper.RegionMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class OAuthConsentController implements OauthApi {
 
     private final AuthorizationService authorization;
+    private final RegionMapper regionMapper;
 
-    public OAuthConsentController(AuthorizationService authorization) {
+    public OAuthConsentController(AuthorizationService authorization, RegionMapper regionMapper) {
         this.authorization = authorization;
+        this.regionMapper = regionMapper;
     }
 
     @Override
@@ -30,6 +33,7 @@ public class OAuthConsentController implements OauthApi {
                 .client(new OAuthClientRef().clientId(view.client().getClientId()).name(view.client().getName()))
                 .scopes(List.copyOf(view.scopes())).alreadyRemembered(view.alreadyRemembered())
                 .regionAllowed(view.regionAllowed())
+                .requiredRegions(view.requiredRegions().stream().map(regionMapper::toRef).toList())
                 .expiresAt(view.request().getExpiresAt().atOffset(java.time.ZoneOffset.UTC)));
     }
 

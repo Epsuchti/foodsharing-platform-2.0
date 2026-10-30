@@ -18,6 +18,7 @@
   "oauth.consent.footer": "Die Aafrog gilt bis {time}. Dänn muesch i de Aawändig neu aafange.",
   "oauth.consent.regionRequiredTitle": "Für di nöd verfüegbar",
   "oauth.consent.regionRequiredText": "{client} isch nur für Mitglieder vo bestimmte Bezirk offe. Tritt eim vo dene Bezirk bi oder mäld di bi de Betriiber*inne vo de Aawändig.",
+  "oauth.consent.requiredRegions": "Offe für Mitglieder vo:",
   "oauth.consent.back": "Zrugg zu {client}",
   "oauth.consent.missingTitle": "Aamäldeaafrog fehlt",
   "oauth.clients.title": "OAuth-Aawändige",
