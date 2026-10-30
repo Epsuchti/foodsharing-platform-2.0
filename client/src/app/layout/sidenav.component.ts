@@ -14,7 +14,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 
 import { FeatureToggleKey } from '../api';
@@ -485,10 +485,16 @@ export class SidenavComponent {
       untracked(() => this.choices.update((choices) => openCurrentSection(choices, current)));
     });
 
-    // navigation closes an open card and brings the current item into view
+    // a navigation closes an open card. Not the app's first navigation: the side menu may already be there while it
+    // is still running, and a card opened meanwhile must stay open when it ends.
+    const starts = this.router.events
+      .pipe(filter((event) => event instanceof NavigationStart && this.router.navigated))
+      .subscribe(() => this.popovers.close(false));
+    inject(DestroyRef).onDestroy(() => starts.unsubscribe());
+
+    // after a navigation the current item comes into view
     effect(() => {
       this.url();
-      untracked(() => this.popovers.close(false));
       afterNextRender(
         () => {
           this.navEl()
