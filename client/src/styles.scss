@@ -377,6 +377,21 @@
     }
   }
 
+  // Text link button (tertiary action). Used since M2 but never defined, so these rendered as filled primary
+  // buttons next to the real primary action (verification queue "history", design review M7 R1).
+  .fs-btn--text {
+    border-color: transparent;
+    background: transparent;
+    color: var(--fs-primary-strong);
+
+    &:hover {
+      border-color: transparent;
+      background: var(--fs-primary-soft);
+      color: var(--fs-primary-strong);
+      box-shadow: none;
+    }
+  }
+
   .fs-btn--lg {
     padding: 0.8rem 1.4rem;
     font-size: 1.05rem;
@@ -389,6 +404,18 @@
 
   .p-button {
     font-weight: 650;
+  }
+
+  // Touch screens: every button is at least 44px tall (design review M7 R1: small buttons such as "Eintragen",
+  // "Bewerben" and the journey action were 31–34px on phones). Width stays content-driven.
+  @media (pointer: coarse) {
+    .p-button,
+    .fs-btn {
+      min-height: 2.75rem;
+    }
+    .p-button.p-button-icon-only {
+      min-width: 2.75rem;
+    }
   }
 
   /*

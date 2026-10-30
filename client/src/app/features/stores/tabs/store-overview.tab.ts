@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { StoreDetail } from '../../../api';
+import { StoreDetail, UserTeamStatus } from '../../../api';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
@@ -106,7 +106,10 @@ interface Requirement {
 
           <section class="fs-card card" data-testid="stores.overview.requirements">
             <h2 class="card__title"><i class="pi pi-list-check" aria-hidden="true"></i>{{ 'stores.overview.requirements' | t }}</h2>
-            <p class="muted">{{ 'stores.teamExplain.' + store.teamStatus | t }}</p>
+            <!-- members and coordinators are not asked to apply (design review M7 R1) -->
+            <p class="muted" data-testid="stores.overview.teamExplain">
+              {{ (inTeam() ? 'stores.overview.requirementsForNewMembers' : 'stores.teamExplain.' + store.teamStatus) | t }}
+            </p>
             @if (requirements().length) {
               <ul class="checklist">
                 @for (req of requirements(); track req.id) {
@@ -156,6 +159,9 @@ export class StoreOverviewTab {
     return [{ id: store.id, kind: 'store', lat: store.latitude, lon: store.longitude, label: store.name }];
   });
 
+  /** Members and coordinators read the requirements as information for new members, not as an invitation to apply. */
+  protected readonly inTeam = computed(() => isInTeam(this.ctx.data()?.membership));
+
   protected readonly requirements = computed<Requirement[]>(() => {
     const store: StoreDetail | undefined = this.ctx.data();
     if (!store) return [];
@@ -167,4 +173,9 @@ export class StoreOverviewTab {
     ];
     return all.filter((req) => req.active);
   });
+}
+
+/** True for members and coordinators of the store (they read the requirements as information for new members). */
+export function isInTeam(membership: UserTeamStatus | undefined): boolean {
+  return membership === UserTeamStatus.Member || membership === UserTeamStatus.Coordinator;
 }

@@ -62,10 +62,14 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                 <strong>{{ 'shared.journey.complete' | t }}</strong>
               } @else if (current(); as step) {
                 <span class="compact__count">{{ 'shared.journey.stepOf' | t: { n: currentIndex() + 1, total: steps().length } }}</span>
-                <strong>{{ title(step) }}</strong>
+                @if (!progressOnly()) {
+                  <strong>{{ title(step) }}</strong>
+                }
               }
             </span>
-            @if (current()?.nextAction; as next) {
+            @if (progressOnly()) {
+              <!-- the host card shows the step title and the action itself -->
+            } @else if (current()?.nextAction; as next) {
               <a class="fs-btn fs-btn--sm compact__action" [routerLink]="next.route" (click)="action.emit(next)" [attr.data-testid]="testId() + '.next'">
                 {{ next.labelKey | t }}
                 <i class="pi pi-arrow-right" aria-hidden="true"></i>
@@ -187,6 +191,11 @@ export class JourneyStepperComponent {
   /** Compact mode without a next action links here (the onboarding page). */
   readonly linkToJourney = input<string | undefined>('/onboarding');
   readonly testId = input('shared.journey');
+  /**
+   * Compact mode: only the progress meter and "step n of m" (no title, no action), for cards that show the current
+   * step's title and action themselves (dashboard; design review M7 R1: the action appeared twice in one card).
+   */
+  readonly progressOnly = input(false);
   readonly action = output<JourneyNextAction>();
 
   protected readonly steps = computed<JourneyStep[]>(() => [

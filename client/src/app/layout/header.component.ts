@@ -144,6 +144,11 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
       }
     }
     .hdr__link {
+      /*
+       * Containing block of the visually hidden label: without it the absolutely positioned spans of links scrolled
+       * out of the nav escaped its overflow and widened the page (ORGA: 220–350px horizontal scroll, design review M7 R1).
+       */
+      position: relative;
       display: inline-flex;
       flex: none;
       align-items: center;

@@ -28,6 +28,7 @@
   "stores.overview.mapLabel": "Posizione del negozio",
   "stores.overview.requirements": "Requisiti per il team",
   "stores.overview.noRequirements": "Nessun requisito particolare.",
+  "stores.overview.requirementsForNewMembers": "Fai parte del team. Questi requisiti valgono per i nuovi membri.",
   "stores.overview.managers": "Responsabili",
   "stores.overview.noManagers": "Ancora nessun responsabile.",
   "stores.teamExplain.CLOSED": "Il team al momento non accetta nuove persone.",

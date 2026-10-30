@@ -55,6 +55,13 @@ import { TPipe } from '../../core/i18n/t.pipe';
     .ph__back:hover {
       color: var(--fs-primary-strong);
     }
+    /* touch: 44px tap target without moving the title (design review M7 R1) */
+    @media (pointer: coarse) {
+      .ph__back {
+        min-height: 2.75rem;
+        margin-block: -0.6rem;
+      }
+    }
     .ph__row {
       display: flex;
       flex-wrap: wrap;

@@ -28,6 +28,7 @@
   "stores.overview.mapLabel": "Store location",
   "stores.overview.requirements": "Requirements for the team",
   "stores.overview.noRequirements": "No special requirements.",
+  "stores.overview.requirementsForNewMembers": "You are in the team. These requirements apply to new members.",
   "stores.overview.managers": "Store managers",
   "stores.overview.noManagers": "No store managers yet.",
   "stores.teamExplain.CLOSED": "The team is not taking new people at the moment.",
