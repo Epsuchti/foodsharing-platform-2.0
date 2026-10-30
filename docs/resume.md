@@ -66,3 +66,10 @@ Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot]
    - There is a stray space before the comma: "Fairteiler Wiedikon , Schlossgasse 10".
    - In full-page screenshots the fixed side menu ends at the first viewport height. That's a capture artefact, like the modal backdrop. Decide whether the screenshot helper should capture with a viewport as tall as the page.
    - The "Verwalten" heading sits faded under the scroll fade at the bottom of the menu list. Check that the fade doesn't make a section heading look disabled.
+9. Menu priorities (decision 135):
+   - Rework `nav.config.ts` (sections, order, `mobileTab`) and the side menu and user menu: Meine Aktivität and Quiz move into the user menu.
+   - Phone tabs become Übersicht/Mein Einstieg, Abholungen, Betriebe, Nachrichten, plus Menu.
+   - Mein Einstieg is shown only while the journey is unfinished.
+   - Postfächer only shows for people with a mailbox.
+   - Update the D4/D4.3 specs, `openNav`, the personas' click budgets and the screenshot specs.
+   - Baselines change deliberately.
