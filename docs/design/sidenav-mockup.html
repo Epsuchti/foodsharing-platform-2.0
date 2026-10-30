@@ -19,6 +19,8 @@
   --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   /* ---- new tokens of the proposal ---- */
   --fs-sidenav-w: 16.5rem; --fs-sidenav-rail-w: 4.5rem; --fs-sidenav-x: var(--fs-sidenav-w); --fs-sidenav-tile: 2.5rem; --fs-on-danger: #ffffff;
+  /* the sidebar sits on a muted surface so a floating popover (raised, white) is unmistakably a separate layer */
+  --fs-sidenav-bg: #f3f6f1; --fs-surface-raised: #ffffff; --fs-sidenav-hover: rgb(26 42 32 / 0.07); --fs-sidenav-pressed: rgb(26 42 32 / 0.12);
   color-scheme: light;
 }
 :root.fs-dark {
@@ -29,6 +31,8 @@
   --fs-accent: #9c7a3c; --fs-header-bg: rgb(17 22 17 / 0.82); --fs-header-border: rgb(61 71 59 / 0.7);
   --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
   --fs-on-danger: #1a201a;
+  /* dark: shadows are weak, so the popover is a lighter surface with a strong border */
+  --fs-sidenav-bg: #151a15; --fs-surface-raised: #262e26; --fs-sidenav-hover: rgb(236 242 234 / 0.08); --fs-sidenav-pressed: rgb(236 242 234 / 0.14);
   color-scheme: dark;
 }
 :root.touch { --fs-target-sm: 2.75rem; --fs-sidenav-tile: 2.75rem; }
@@ -71,8 +75,11 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 /* ---- side navigation ---- */
 .sidenav {
   position: sticky; top: 0; z-index: 40; display: flex; flex-direction: column; height: 800px; max-height: 100vh;
-  padding: 0 0.75rem 0.75rem; border-right: 1px solid var(--fs-border); background: var(--fs-surface);
+  padding: 0 0.75rem 0.75rem; border-right: 1px solid var(--fs-border); background: var(--fs-sidenav-bg);
 }
+/* light scrim over the content while a popover is open (the alternative "Popover-Stil"; off by default) */
+.scrim { position: absolute; inset: 0; left: var(--fs-sidenav-x); z-index: 44; background: rgb(17 22 17 / 0.22); }
+.scrim[hidden] { display: none; }
 .sidenav__top { display: flex; align-items: center; gap: 0.5rem; height: var(--fs-header-h); flex: none; }
 .brand { display: inline-flex; align-items: center; gap: 0.6rem; min-width: 0; color: var(--fs-text); font-weight: 700; letter-spacing: -0.02em; }
 .brand__mark { width: 2rem; height: 2rem; flex: none; }
@@ -89,7 +96,9 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
   border: 0; border-radius: var(--fs-radius-sm); background: transparent; color: var(--fs-text-muted); font-size: 0.92rem; font-weight: 600; text-align: left;
   transition: background-color 150ms ease, color 150ms ease;
 }
-.row:hover { background: var(--fs-surface-muted); color: var(--fs-text); }
+.row:hover { background: var(--fs-sidenav-hover); color: var(--fs-text); }
+/* trigger of an open popover: pressed */
+.sidenav .row[aria-expanded="true"], .sidenav .section__btn[aria-expanded="true"][data-fly] { background: var(--fs-sidenav-pressed); color: var(--fs-text); }
 .row .i { font-size: 1.05rem; width: 1.25rem; }
 .row__label { flex: 1 1 auto; min-width: 0; }
 .row__label--wrap { overflow-wrap: anywhere; }
@@ -97,13 +106,19 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 .row__chev { color: var(--fs-text-muted); width: 0.9rem; height: 0.9rem; }
 .switcher { margin-top: 0.25rem; }
 .switcher__hint { display: block; color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 500; line-height: 1.2; }
-.search { margin: 0.35rem 0 0.5rem; background: var(--fs-surface-muted); color: var(--fs-text-muted); font-weight: 500; }
-.search:hover { background: color-mix(in srgb, var(--fs-surface-muted) 70%, var(--fs-border)); }
+.search { margin: 0.35rem 0 0.5rem; border: 1px solid var(--fs-border); background: var(--fs-surface); color: var(--fs-text-muted); font-weight: 500; }
+.search:hover { border-color: var(--fs-border-strong); background: var(--fs-surface); }
 .search kbd { margin-left: auto; padding: 0 0.35rem; border: 1px solid var(--fs-border); border-radius: 0.35rem; font: 600 0.7rem/1.4 var(--fs-font); color: var(--fs-text-muted); }
 
+/* the scrolling list sits in a wrapper that draws the edge fades, so popovers (absolute to the sidebar) are never masked */
+.navwrap { position: relative; display: flex; flex: 1 1 auto; min-height: 0; }
+.navwrap::before, .navwrap::after { content: ''; position: absolute; left: 0; right: 0; height: 2.5rem; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 150ms ease; }
+.navwrap::before { top: 0; background: linear-gradient(to bottom, var(--fs-sidenav-bg), transparent); }
+.navwrap::after { bottom: 0; background: linear-gradient(to top, var(--fs-sidenav-bg), transparent); }
+.navwrap[data-more-start]::before, .navwrap[data-more-end]::after { opacity: 1; }
 .sidenav__nav { flex: 1 1 auto; min-height: 0; margin: 0 -0.25rem; padding: 0.25rem; overflow-y: auto; overscroll-behavior: contain; }
 .sidenav__nav ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.sidenav__nav li { position: relative; }
+.sidenav__nav li { position: static; }
 .link { position: relative; text-decoration: none; }
 .link[aria-current="page"], .link[aria-current="page"]:hover { background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 700; }
 .link[aria-current="page"]::before { content: ''; position: absolute; top: 0.45rem; bottom: 0.45rem; left: 0; width: 3px; border-radius: 999px; background: var(--fs-primary); }
@@ -115,7 +130,7 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 .link--meter { padding-bottom: 0.55rem; }
 .link__count { margin-left: auto; color: var(--fs-text-muted); font-size: 0.78rem; font-weight: 600; }
 
-.section { position: relative; margin-top: 0.5rem; }
+.section { position: static; margin-top: 0.5rem; }
 .section__h { margin: 0; }
 .section__btn {
   display: flex; align-items: center; gap: 0.4rem; width: 100%; min-height: var(--fs-target-sm); padding: 0.5rem 0.75rem 0.25rem; border: 0; border-radius: var(--fs-radius-sm);
@@ -149,9 +164,7 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 [data-nav="rail"] .pop { overflow-x: hidden; justify-items: stretch; }
 [data-nav="rail"] .pop li { width: 100%; }
 /* the scrolling list fades where more items wait (vertical ScrollHintDirective) */
-.sidenav__nav[data-more-end] { mask-image: linear-gradient(to top, transparent, black 2.5rem); }
-.sidenav__nav[data-more-start] { mask-image: linear-gradient(to bottom, transparent, black 2.5rem); }
-.sidenav__nav[data-more-start][data-more-end] { mask-image: linear-gradient(to bottom, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent); }
+[data-nav="rail"] .navwrap { width: 100%; }
 [data-nav="rail"] .sidenav__nav { width: 100%; margin: 0; padding: 0.25rem 0; overflow: visible; }
 [data-nav="rail"] .sidenav__nav ul { justify-items: center; }
 [data-nav="rail"] .badge { position: absolute; top: 0.3rem; inset-inline-start: calc(50% + 0.35rem); margin: 0; }
@@ -183,11 +196,32 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 [data-nav="rail"] .tip[aria-expanded="true"]::after, [data-nav="rail"] .pop .tip::after { display: none; }
 
 /* ---- flyout / popovers (disclosures with a plain link list, like today's "More") ---- */
+/*
+ * Every sidebar popover is one floating layer: positioned by JS outside the sidebar's right edge (left = sidebar width + gap),
+ * top aligned to its trigger (bottom aligned for the user block), never inside the sidebar area. Raised surface, 1 px strong
+ * border, elevation shadow, rounded card and a notch pointing at the trigger (--notch-y).
+ */
 .pop {
-  position: absolute; z-index: 80; min-width: 15rem; max-height: 60vh; overflow-y: auto; margin: 0; padding: 0.4rem; list-style: none;
-  border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); box-shadow: var(--fs-shadow-lg);
+  position: absolute; left: calc(100% + 0.75rem); z-index: 80; width: 17rem; max-height: min(60vh, 560px); overflow-y: auto; margin: 0; padding: 0.4rem; list-style: none;
+  border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); background: var(--fs-surface-raised); color: var(--fs-text);
+  box-shadow: var(--fs-shadow-lg), 0 0 0 4px color-mix(in srgb, var(--fs-text) 4%, transparent);
 }
+.pop::before {
+  content: ''; position: absolute; left: -7px; top: calc(var(--notch-y, 1.25rem) - 6px); width: 12px; height: 12px; transform: rotate(45deg);
+  border-left: 1px solid var(--fs-border-strong); border-bottom: 1px solid var(--fs-border-strong); background: var(--fs-surface-raised);
+}
+.pop--panel { width: 20rem; padding: 0; }
 .pop[hidden] { display: none; }
+.pop .row:hover { background: var(--fs-sidenav-hover); }
+/* bell panel */
+.bells__h { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0.9rem; border-bottom: 1px solid var(--fs-border); font-weight: 700; }
+.bells__h .btn { margin-left: auto; padding: 0.3rem 0.6rem; font-size: 0.78rem; }
+.bell { display: grid; grid-template-columns: 2rem 1fr; gap: 0.2rem 0.6rem; padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--fs-border); color: var(--fs-text); font-size: 0.88rem; text-decoration: none; }
+.bell:hover { background: var(--fs-sidenav-hover); }
+.bell .i { grid-row: span 2; width: 2rem; height: 2rem; padding: 0.45rem; border-radius: 999px; background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.bell time { color: var(--fs-text-muted); font-size: 0.75rem; }
+.bell--unread { font-weight: 650; }
+.bells__all { display: block; padding: 0.6rem 0.9rem; text-align: center; font-size: 0.85rem; }
 .pop li { list-style: none; }
 .pop .row { color: var(--fs-text); font-weight: 550; font-size: 0.95rem; }
 .pop .row .i { color: var(--fs-text-muted); }
@@ -197,13 +231,8 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
 .pop .small { display: block; color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 500; }
 .pop .check { margin-left: auto; color: var(--fs-primary); }
 .pop input { width: 100%; margin: 0.2rem 0 0.4rem; padding: 0.5rem 0.75rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); color: var(--fs-text); font: inherit; font-size: 0.9rem; }
-.pop--fly { left: calc(100% + 0.4rem); top: 0; }
-.pop--switch { left: 0; top: calc(100% + 0.3rem); width: calc(var(--fs-sidenav-w) - 1.5rem); }
-[data-nav="rail"] .pop--switch { left: calc(100% + 0.4rem); top: 0; width: auto; }
-.pop--user { left: 0; bottom: calc(100% + 0.3rem); width: calc(var(--fs-sidenav-w) - 1.5rem); }
-[data-nav="rail"] .pop--user { left: calc(100% + 0.4rem); bottom: 0; width: auto; }
 .pop .sub { display: grid; gap: 2px; padding: 0 0 0.25rem 2.2rem; }
-.pop .chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); color: var(--fs-text); font-size: 0.82rem; font-weight: 600; }
+.pop .chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem; border: 1px solid var(--fs-border-strong); border-radius: 999px; background: var(--fs-surface-raised); color: var(--fs-text); font-size: 0.82rem; font-weight: 600; }
 .pop .chip[aria-pressed="true"] { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
 .pop .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.1rem 0.75rem 0.5rem; }
 .pop__user { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.5rem 0.75rem; border-bottom: 1px solid var(--fs-border); margin-bottom: 0.35rem; }
@@ -326,6 +355,10 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
     <label><input type="radio" name="lang" value="de" checked> Deutsch</label>
     <label><input type="radio" name="lang" value="fr"> Längste (fr)</label>
   </fieldset>
+  <fieldset><strong>Popover-Stil</strong>
+    <label><input type="radio" name="popstyle" value="float" checked> Schwebend (empfohlen)</label>
+    <label><input type="radio" name="popstyle" value="scrim"> Mit Abdunkelung</label>
+  </fieldset>
   <fieldset><strong>Zeiger</strong>
     <label><input type="radio" name="pointer" value="fine" checked> Maus 36 px</label>
     <label><input type="radio" name="pointer" value="coarse"> Touch 44 px</label>
@@ -337,6 +370,7 @@ svg.i { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentCo
   <span class="frame__size" id="frameSize">≥ 1200 px</span>
   <div class="shell" id="shell" data-width="open">
     <div class="sidenav" id="sidenav" data-nav="open" data-testid="nav.sidenav"></div>
+    <div class="scrim" id="scrim" hidden aria-hidden="true"></div>
 
     <main class="main" id="main-content" tabindex="-1">
       <div class="page">
@@ -472,7 +506,7 @@ const UNITS = {
   groups: [{ name: 'Kochgruppe' }, { name: 'Öffentlichkeitsarbeit (PR)' }, { name: 'Willkommensteam' }, { name: 'Lagerteam' }],
 };
 /* nav: 'open' | 'rail' — the rail exists only at the laptop width (48–75rem); nothing is persisted, a reload starts expanded */
-const state = { role: 'foodsaver', nav: 'open', theme: 'light', lang: 'de', pointer: 'fine', viewport: 'desktop',
+const state = { role: 'foodsaver', nav: 'open', theme: 'light', lang: 'de', pointer: 'fine', viewport: 'desktop', popstyle: 'float',
   open: { community: true, manage: true, orga: false, about: true }, currentId: 'stores',
   /* rail: how many collapsible sections (from the bottom: orga, manage, community) are folded into a flyout; measured after render so the rail never scrolls */
   foldCount: 0 };
@@ -512,7 +546,7 @@ function renderSidebar(el, mode /* 'open' | 'rail' */) {
       </a>
       ${toggle}
     </div>
-    ${signedIn ? `<div style="position:relative">
+    ${signedIn ? `<div>
       <button type="button" class="row switcher tip" data-pop="switch" aria-haspopup="true" aria-expanded="false" aria-label="Bezirk: Zürich Stadt – wechseln" data-label="Bezirk: Zürich Stadt" data-testid="shell.regionSwitcher">
         ${ico('i-marker')}<span class="row__label row__ellipsis">Zürich Stadt</span>${ico('i-chev-down', 'i row__chev')}
       </button>
@@ -521,20 +555,20 @@ function renderSidebar(el, mode /* 'open' | 'rail' */) {
     <button type="button" class="row search tip" aria-label="Suche öffnen" aria-keyshortcuts="Control+K Meta+K" data-label="Suchen (Ctrl K)" data-testid="search.open">
       ${ico('i-search')}<span class="row__label">Suchen…</span><kbd>Ctrl K</kbd>
     </button>` : ''}
-    <nav class="sidenav__nav" id="sidenav-nav" aria-label="Hauptnavigation">
+    <div class="navwrap"><nav class="sidenav__nav" id="sidenav-nav" aria-label="Hauptnavigation">
       ${secs.map((s) => renderSection(s, mode, fold(s))).join('')}
-    </nav>
+    </nav></div>
     <div class="sidenav__bottom">
       ${signedIn ? `<a class="row link tip" href="#" data-label="Was ist neu" data-testid="shell.whatsNew">${ico('i-gift')}<span class="row__label">Was ist neu</span><span class="dot" aria-hidden="true"></span><span class="vh">(neue Version)</span></a>
-      <div style="position:relative">
-        <button type="button" class="row user tip" data-pop="user" aria-haspopup="true" aria-expanded="false" data-label="${u.name}" data-testid="shell.userMenu">
+      <div>
+        <button type="button" class="row user tip" data-pop="user" data-anchor="bottom" aria-haspopup="true" aria-expanded="false" data-label="${u.name}" data-testid="shell.userMenu">
           <span class="avatar ${u.cls}" aria-hidden="true">${u.ini}</span>
           <span class="user__who"><strong>${u.name}</strong><span data-testid="shell.userMenu.role">${u.role}</span></span>
           <span class="vh">Benutzermenü öffnen</span>
         </button>
         ${renderUserMenu(u)}
-      </div>` : `<div style="position:relative">
-        <button type="button" class="row tip" data-pop="prefs" aria-haspopup="true" aria-expanded="false" data-label="Sprache & Darstellung" data-testid="shell.prefs">
+      </div>` : `<div>
+        <button type="button" class="row tip" data-pop="prefs" data-anchor="bottom" aria-haspopup="true" aria-expanded="false" data-label="Sprache & Darstellung" data-testid="shell.prefs">
           ${ico('i-globe')}<span class="row__label">Sprache & Darstellung</span>${ico('i-chev-down', 'i row__chev')}
         </button>
         ${renderPrefs()}
@@ -548,7 +582,7 @@ function renderSidebar(el, mode /* 'open' | 'rail' */) {
 
 /* visitors: language and theme without a user menu */
 function renderPrefs() {
-  return `<ul class="pop pop--user" hidden role="menu" data-pop-for="prefs">
+  return `<ul class="pop" hidden role="menu" aria-label="Sprache & Darstellung" data-pop-for="prefs">
     <li><h3 class="pop__h">Sprache</h3><div class="chips">${['Deutsch', 'Schwiizerdütsch', 'English', 'Français', 'Italiano'].map((l, n) => `<button type="button" class="chip" aria-pressed="${n === 0}" data-testid="shell.prefs.language.${['de', 'gws', 'en', 'fr', 'it'][n]}">${l}</button>`).join('')}</div></li>
     <li><h3 class="pop__h">Darstellung</h3><div class="chips">${['Hell', 'Dunkel', 'Wie das Gerät'].map((l, n) => `<button type="button" class="chip" aria-pressed="${(state.theme === 'dark' ? 1 : 0) === n}" data-testid="shell.prefs.theme.${['light', 'dark', 'system'][n]}">${l}</button>`).join('')}</div></li>
   </ul>`;
@@ -557,7 +591,7 @@ function renderPrefs() {
 function renderSection(s, mode, folded) {
   const isCurrent = s.items.some((i) => i.id === state.currentId);
   const open = !s.collapsible || state.open[s.id] || isCurrent;
-  const list = `<ul data-testid="nav.section.${s.id}.list" ${folded ? `hidden class="pop pop--fly" data-testid="nav.flyout.${s.id}.list"` : ''}>
+  const list = `<ul data-testid="nav.section.${s.id}.list" ${folded ? `hidden class="pop" data-testid="nav.flyout.${s.id}.list"` : ''}>
       ${s.items.map((i) => renderItem(i)).join('')}</ul>`;
   if (!s.collapsible) {
     return `<section class="section" data-section="${s.id}"><h2 class="vh">${state.role === 'visitor' ? 'Entdecken' : L(s)}</h2>${list}</section>`;
@@ -567,7 +601,7 @@ function renderSection(s, mode, folded) {
     return `<section class="section section--fold ${isCurrent ? 'section--current' : ''}" data-section="${s.id}">
       <h2 class="section__h"><button type="button" class="section__btn tip" data-fly="${s.id}" aria-expanded="false" aria-controls="fly-${s.id}" data-label="${L(s)}" data-testid="nav.flyout.${s.id}">
         ${ico(s.icon, 'i section__ico')}<span>${L(s)}</span>${ico('i-chev-right', 'i row__chev')}${unread}</button></h2>
-      <ul id="fly-${s.id}" class="pop pop--fly" hidden data-testid="nav.flyout.${s.id}.list">${s.items.map((i) => renderItem(i)).join('')}</ul>
+      <ul id="fly-${s.id}" class="pop" hidden aria-label="${L(s)}" data-pop-for="fly-${s.id}" data-testid="nav.flyout.${s.id}.list">${s.items.map((i) => renderItem(i)).join('')}</ul>
     </section>`;
   }
   return `<section class="section ${isCurrent ? 'section--current' : ''}" data-section="${s.id}">
@@ -581,17 +615,29 @@ function renderItem(i) {
   const cur = i.id === state.currentId ? 'aria-current="page"' : '';
   const badge = i.badge ? `<span class="badge" aria-hidden="true" data-testid="nav.badge.${i.id}">${i.badge}</span><span class="vh">(${i.badge} ungelesen)</span>` : '';
   const meter = i.meter ? `<span class="link__count">3/6</span><span class="meter" aria-hidden="true" data-testid="nav.onboarding.progress"><i></i></span>` : '';
-  const tag = i.panel ? 'button type="button" aria-haspopup="dialog" aria-expanded="false" data-testid="bells.button"' : `a href="#" data-testid="nav.${i.id}"`;
+  const tag = i.panel ? 'button type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="bells-panel" data-pop="bells" data-testid="bells.button"' : `a href="#" data-testid="nav.${i.id}"`;
   const end = i.panel ? 'button' : 'a';
   return `<li><${tag} class="row link tip ${i.meter ? 'link--meter' : ''}" ${cur} data-nav-section="${i.s}" data-label="${L(i)}" data-id="${i.id}">
-      ${ico(i.icon)}<span class="row__label row__label--wrap">${L(i)}</span>${meter}${badge}</${end}></li>`;
+      ${ico(i.icon)}<span class="row__label row__label--wrap">${L(i)}</span>${meter}${badge}</${end}>${i.panel ? renderBells() : ''}</li>`;
+}
+
+/* bell panel: the existing fs-bell-panel content, opened next to the bell item */
+function renderBells() {
+  const bell = (icon, text, time, unread) => `<a class="bell ${unread ? 'bell--unread' : ''}" href="#">${ico(icon)}<span>${text}</span><time>${time}</time></a>`;
+  return `<div id="bells-panel" class="pop pop--panel" hidden role="dialog" aria-label="Glocke" data-pop-for="bells" data-testid="bells.panel">
+    <div class="bells__h">${ico('i-bell')}Glocke<button type="button" class="btn" data-testid="bells.markAllRead">Alle gelesen</button></div>
+    ${bell('i-check', 'Deine Abholung bei Bäckerei Sonnenberg am Mi 05.11. ist bestätigt.', 'vor 12 Minuten', true)}
+    ${bell('i-cart', 'Mara hat deinen Essenskorb «Brot & Gipfeli» angefragt.', 'vor 2 Stunden', true)}
+    ${bell('i-users', 'Neue Bewerbung für das Team von Café Limmat.', 'gestern', false)}
+    <a class="bells__all" href="#">Alle Benachrichtigungen</a>
+  </div>`;
 }
 
 function renderSwitcher() {
   const many = UNITS.regions.length + UNITS.groups.length >= 8;
   const row = (r, slug) => `<li><button type="button" class="row" role="menuitemradio" aria-checked="${!!r.home}" data-testid="shell.region.${slug}">
       ${ico('i-marker')}<span class="row__label">${r.name}${r.home ? '<span class="small">Stammbezirk</span>' : ''}</span>${r.home ? ico('i-check', 'i check') : ''}</button></li>`;
-  return `<ul class="pop pop--switch" hidden role="menu" aria-label="Deine Bezirke" data-pop-for="switch">
+  return `<ul class="pop" hidden role="menu" aria-label="Deine Bezirke" data-pop-for="switch">
     ${many ? '<li role="none"><input type="search" placeholder="Bezirk oder Gruppe filtern" aria-label="Filtern" data-testid="shell.regionSwitcher.filter"></li>' : ''}
     ${UNITS.regions.map((r, n) => row(r, 'r' + n)).join('')}
     <li role="none"><div class="pop__sep"></div><h3 class="pop__h">Arbeitsgruppen</h3></li>
@@ -601,7 +647,7 @@ function renderSwitcher() {
 
 function renderUserMenu(u) {
   const item = (icon, label, id) => `<li><a class="row" role="menuitem" href="#" data-testid="nav.user.${id}">${ico(icon)}<span class="row__label">${label}</span></a></li>`;
-  return `<ul class="pop pop--user" hidden role="menu" data-pop-for="user">
+  return `<ul class="pop" hidden role="menu" aria-label="Benutzermenü" data-pop-for="user">
     <li role="none"><a class="pop__user" href="#" data-testid="nav.user.profile"><span class="avatar ${u.cls}" aria-hidden="true">${u.ini}</span><span class="user__who"><strong>${u.name}</strong><span>${u.name.toLowerCase().replace(' ', '.')}@local.test</span><span style="color:var(--fs-primary-strong);font-weight:650">${u.role}</span></span></a></li>
     ${item('i-user', 'Konto', 'account')}
     ${VERIFIED.includes(state.role) ? item('i-idcard', 'Mein Ausweis', 'passport') : ''}
@@ -635,13 +681,13 @@ function render() {
   sidenav.dataset.mode = state.nav === 'open' ? 'sidebar' : 'rail';
   renderSidebar(sidenav, state.nav);
   // expanded: the list scrolls; the current item is scrolled into view and the edges fade where more items wait
-  for (const el of [sidenav]) {
-    const nav = el.querySelector('.sidenav__nav');
-    if (!nav) continue;
+  {
+    const nav = sidenav.querySelector('.sidenav__nav'), wrap = nav.parentElement;
     nav.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
-    const hint = () => { nav.toggleAttribute('data-more-start', nav.scrollTop > 4); nav.toggleAttribute('data-more-end', nav.scrollTop + nav.clientHeight < nav.scrollHeight - 4); };
+    const hint = () => { wrap.toggleAttribute('data-more-start', nav.scrollTop > 4); wrap.toggleAttribute('data-more-end', nav.scrollTop + nav.clientHeight < nav.scrollHeight - 4); };
     nav.addEventListener('scroll', hint, { passive: true }); hint();
   }
+  document.getElementById('scrim').hidden = true;
   // rail: fold sections from the bottom up (Orga, Verwalten, Community) until the rail fits; the daily group never folds
   if (state.nav === 'rail') {
     const collapsible = sections().filter((s) => s.collapsible).length;
@@ -649,36 +695,62 @@ function render() {
   }
 }
 
-function closePops(except) {
-  document.querySelectorAll('.pop:not([hidden])').forEach((p) => { if (p !== except) p.hidden = true; });
-  document.querySelectorAll('[data-pop][aria-expanded="true"], [data-fly][aria-expanded="true"]').forEach((b) => { if (b.getAttribute('aria-controls') !== except?.id && b.nextElementSibling !== except) b.setAttribute('aria-expanded', 'false'); });
+/* ---- one floating layer for every sidebar popover ---- */
+let openTrigger = null;
+const popOf = (trigger) => trigger.dataset.fly ? document.getElementById(trigger.getAttribute('aria-controls')) : trigger.parentElement.querySelector(`.pop[data-pop-for="${trigger.dataset.pop}"]`);
+
+/* positions the popover outside the sidebar: left = sidebar edge + gap (CSS), top aligned to the trigger, or bottom aligned for the bottom block; clamped into the sidebar height */
+function placePop(trigger, pop) {
+  const sn = sidenav.getBoundingClientRect(), t = trigger.getBoundingClientRect();
+  pop.style.top = '0px';
+  const base = pop.offsetParent.getBoundingClientRect(); // the nearest positioned ancestor (sidebar or the list wrapper)
+  const h = pop.offsetHeight, pad = 8;
+  let top = trigger.dataset.anchor === 'bottom' ? t.bottom - sn.top - h : t.top - sn.top;
+  top = Math.max(pad, Math.min(top, sn.height - h - pad));
+  pop.style.top = `${Math.round(top - (base.top - sn.top))}px`;
+  pop.style.left = `${Math.round(sn.right - base.left + 12)}px`; // outside the sidebar's edge, 12 px gap
+  pop.style.setProperty('--notch-y', `${Math.round(Math.max(16, Math.min(h - 16, t.top + t.height / 2 - sn.top - top)))}px`);
+}
+
+function openPop(trigger) {
+  const pop = popOf(trigger);
+  if (!pop) return;
+  const wasOpen = !pop.hidden;
+  closePops();
+  if (wasOpen) return;
+  trigger.setAttribute('aria-expanded', 'true');
+  pop.hidden = false;
+  placePop(trigger, pop);
+  openTrigger = trigger;
+  document.getElementById('scrim').hidden = state.popstyle !== 'scrim';
+  pop.querySelector('input, a, button')?.focus();
+}
+
+/* Escape, a click outside, or choosing an item closes the popover; focus returns to its trigger */
+function closePops(refocus = false) {
+  document.querySelectorAll('.pop:not([hidden])').forEach((p) => { p.hidden = true; });
+  document.querySelectorAll('[data-pop][aria-expanded="true"], [data-fly][aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+  document.getElementById('scrim').hidden = true;
+  if (refocus && openTrigger?.isConnected) openTrigger.focus();
+  openTrigger = null;
 }
 
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button, a');
-  if (!t) { closePops(); return; }
+  if (!t) { if (openTrigger) closePops(e.target.id === 'scrim'); return; }
   if (t.closest('.ctl')) return;
   e.preventDefault();
   if (t.dataset.action === 'toggle') { toggleNav(); sidenav.querySelector('[data-action=toggle]')?.focus(); return; }
-  if (t.dataset.pop) { // switcher / user menu
-    const pop = t.parentElement.querySelector('.pop');
-    const open = pop.hidden; closePops(); pop.hidden = !open; t.setAttribute('aria-expanded', String(open)); return;
-  }
-  if (t.dataset.fly) { // rail flyout
-    const pop = document.getElementById(t.getAttribute('aria-controls'));
-    const open = pop.hidden; closePops(); pop.hidden = !open; t.setAttribute('aria-expanded', String(open));
-    if (open) pop.querySelector('a, button')?.focus();
-    return;
-  }
+  if (t.dataset.pop || t.dataset.fly) { openPop(t); return; } // switcher, user menu, prefs, bells, rail flyouts
   if (t.dataset.sec) { // collapsible section
     state.open[t.dataset.sec] = t.getAttribute('aria-expanded') !== 'true'; render(); return;
   }
-  if (t.dataset.sub) { const sub = t.parentElement.querySelector('[data-sub-for]'); sub.hidden = !sub.hidden; t.setAttribute('aria-expanded', String(!sub.hidden)); return; }
-  if (t.dataset.testid === 'bells.button') { t.setAttribute('aria-expanded', t.getAttribute('aria-expanded') !== 'true'); return; }
+  if (t.dataset.sub) { const sub = t.parentElement.querySelector('[data-sub-for]'); sub.hidden = !sub.hidden; t.setAttribute('aria-expanded', String(!sub.hidden)); const pop = t.closest('.pop'); if (pop && openTrigger) placePop(openTrigger, pop); return; }
   if (t.classList.contains('chip')) { t.parentElement.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', 'false')); t.setAttribute('aria-pressed', 'true');
     if (t.dataset.testid?.includes('theme.')) { state.theme = t.dataset.testid.endsWith('dark') ? 'dark' : 'light'; document.querySelector(`input[name=theme][value=${state.theme}]`).checked = true; render(); } return; }
   if (t.dataset.id && t.classList.contains('link')) { state.currentId = t.dataset.id; state.foldCount = 0; render(); return; }
-  closePops();
+  if (t.closest('.pop')) { closePops(true); return; } // an item was chosen
+  if (openTrigger) closePops();
 });
 /* `[` toggles the menu only between 48 and 75rem; neither shortcut fires while typing in a field */
 function toggleNav() {
@@ -689,11 +761,7 @@ function toggleNav() {
 }
 const typing = (e) => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    const open = document.querySelector('.pop:not([hidden])');
-    if (open) { closePops(); const btn = document.querySelector(`[aria-controls="${open.id}"], [data-pop="${open.dataset.popFor}"]`); btn?.focus(); }
-    return;
-  }
+  if (e.key === 'Escape') { if (openTrigger) closePops(true); return; }
   if (typing(e)) return;
   if (e.key === '[' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); toggleNav(); sidenav.querySelector('[data-action=toggle]')?.focus(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { const s = sidenav.querySelector('[data-testid="search.open"]'); if (s) { e.preventDefault(); s.focus(); } }
@@ -705,6 +773,7 @@ document.querySelectorAll('.ctl input').forEach((inp) => inp.addEventListener('c
   if (inp.name === 'theme') state.theme = v;
   if (inp.name === 'lang') state.lang = v;
   if (inp.name === 'pointer') state.pointer = v;
+  if (inp.name === 'popstyle') state.popstyle = v;
   state.foldCount = 0;
   render();
 }));
