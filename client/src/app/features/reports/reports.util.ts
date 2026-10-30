@@ -8,7 +8,6 @@ import {
   SessionInfo,
   StoreListItem,
   UserTeamStatus,
-  WorkingGroupFunction,
 } from '../../api';
 import { isOrga } from '../../core/auth/permission.util';
 
@@ -100,17 +99,25 @@ export function handlingErrors(draft: ReportHandlingDraft): Partial<Record<keyof
 }
 
 /**
- * `ReportUpdate` with only the changed fields (each one is its own history entry on the server). The contract
- * cannot clear a field, so an emptied consequence/reminder/thread is not sent.
+ * `ReportUpdate` with only the changed fields (each one is its own history entry on the server). Emptying a field
+ * that had a value clears it: an empty consequence, `clearReminder`, `clearForumThread`.
  */
 export function handlingPatch(report: Report, draft: ReportHandlingDraft): ReportUpdate {
   const patch: ReportUpdate = {};
   if (draft.status !== report.status) patch.status = draft.status;
   const consequence = draft.consequence.trim();
-  if (consequence && consequence !== (report.consequence ?? '')) patch.consequence = consequence;
-  if (draft.reminderAt && draft.reminderAt !== toLocalInput(report.reminderAt)) patch.reminderAt = fromLocalInput(draft.reminderAt);
+  if (consequence !== (report.consequence ?? '')) patch.consequence = consequence;
+  if (draft.reminderAt) {
+    if (draft.reminderAt !== toLocalInput(report.reminderAt)) patch.reminderAt = fromLocalInput(draft.reminderAt);
+  } else if (report.reminderAt) {
+    patch.clearReminder = true;
+  }
   const thread = draft.forumThreadId.trim();
-  if (thread && thread !== (report.forumThreadId ?? '')) patch.forumThreadId = thread;
+  if (thread) {
+    if (thread !== (report.forumThreadId ?? '')) patch.forumThreadId = thread;
+  } else if (report.forumThreadId) {
+    patch.clearForumThread = true;
+  }
   return patch;
 }
 
@@ -132,17 +139,12 @@ export function localDay(iso: string | undefined): string | undefined {
 }
 
 /**
- * Whether the region page offers the reports tabs (A51 copied client-side until the contract exposes the rule):
- * ORGA; admins of a REPORT or ARBITRATION working group (handlers of their region and the regions below; which
- * regions exactly is decided by the server, others see the forbidden state); ambassadors of a region without a
- * REPORT group. The server answers 403 REPORTS_NOT_ACCESSIBLE to everyone else.
+ * Whether the region page offers the reports tabs: ORGA, or the server's `RegionDetail.mayHandleReports` (the A51
+ * handler rule lives only on the server, which answers 403 REPORTS_NOT_ACCESSIBLE to everyone else).
  */
-export function mayHandleReports(session: SessionInfo | null | undefined, region: RegionDetail | undefined): boolean {
-  if (isOrga(session)) return true;
-  const handlerFunctions: readonly WorkingGroupFunction[] = [WorkingGroupFunction.Report, WorkingGroupFunction.Arbitration];
-  const groupAdmin = (session?.units ?? []).some(
-    (unit) => unit.admin && unit.type === 'WORKING_GROUP' && !!unit.function && handlerFunctions.includes(unit.function),
-  );
-  if (groupAdmin) return true;
-  return !!region?.membership.admin && !region.functions.some((assignment) => assignment.function === WorkingGroupFunction.Report);
+export function mayHandleReports(
+  session: SessionInfo | null | undefined,
+  region: Pick<RegionDetail, 'mayHandleReports'> | undefined,
+): boolean {
+  return isOrga(session) || region?.mayHandleReports === true;
 }
