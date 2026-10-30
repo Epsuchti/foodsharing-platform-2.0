@@ -17,6 +17,7 @@ import { filter, map, take } from 'rxjs';
 
 import { SessionService } from '../core/auth/session.service';
 import { warmWebFont, whenIdle } from '../core/theme/web-font';
+import { DonationModalComponent } from '../features/content/components/donation-modal.component';
 import { PetitionBannerComponent } from '../features/content/components/petition-banner.component';
 import { JourneyBarComponent } from '../features/onboarding/components/journey-bar.component';
 import { TPipe } from '../core/i18n/t.pipe';
@@ -59,6 +60,7 @@ const AFTER_FIRST_PAGE_MS = 1500;
     MobileTabBarComponent,
     OfflineBannerComponent,
     PetitionBannerComponent,
+    DonationModalComponent,
     RequestBarComponent,
     RouterOutlet,
     SessionExpiredDialogComponent,
@@ -89,6 +91,8 @@ const AFTER_FIRST_PAGE_MS = 1500;
       <!-- C8: in the page flow below the fold (main is at least one viewport high), so it never shifts content -->
       @defer (when firstPageShown()) {
         <fs-petition-banner />
+        <!-- C7: donation modal per the hours setting (DONATION_MODAL toggle) -->
+        <fs-donation-modal />
       }
       <fs-footer />
     }

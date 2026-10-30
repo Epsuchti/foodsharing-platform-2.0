@@ -7,6 +7,7 @@ import {
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -21,7 +22,11 @@ import {
   ContentPageSummary,
   ContentPageUpdate,
   ContentService,
+  Role,
+  Upload,
+  WorkingGroupFunction,
 } from '../../../api';
+import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -33,6 +38,8 @@ import {
   TranslatedText,
 } from '../../../shared/language-tabs-editor/language-tabs-editor.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { UploadDropzoneComponent } from '../../../shared/upload-dropzone/upload-dropzone.component';
+import { MAX_IMAGES, contentImageUrls, imageMarkdown } from '../content-images';
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const NEW = 'new';
@@ -40,6 +47,8 @@ const NEW = 'new';
 /**
  * /admin/content/:slug (C1): edits a content page in five languages (title + Markdown body with preview, tabs mark
  * missing languages), kind, order, reading time and published flag. `/admin/content/new` creates a page.
+ * Q11: the editor function (ORGA only, A54) and page images — uploaded through `fs-upload-dropzone`, claimed on save
+ * (`imageUploadIds`, CONTENT_IMAGE, public) and inserted as Markdown into the open language tab of the body.
  */
 @Component({
   selector: 'fs-content-editor-page',
@@ -56,6 +65,7 @@ const NEW = 'new';
     Select,
     TPipe,
     ToggleSwitch,
+    UploadDropzoneComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -105,6 +115,7 @@ const NEW = 'new';
             testId="content.editor.titles"
           />
           <fs-language-tabs-editor
+            #bodiesEditor
             name="bodies"
             [ngModel]="bodies()"
             (ngModelChange)="bodies.set($event)"
@@ -120,6 +131,34 @@ const NEW = 'new';
               {{ 'content.editor.missingBodies' | t: { languages: missingBodies().join(', ') } }}
             </p>
           }
+          <div class="images" data-testid="content.editor.images">
+            <span class="images__label">{{ 'content.editor.images' | t }}</span>
+            <small>{{ 'content.editor.imagesHint' | t }}</small>
+            <fs-upload-dropzone
+              [(uploads)]="newImages"
+              [maxFiles]="maxNewImages()"
+              accept="image/*"
+              testId="content.editor.imageUpload"
+            />
+            @if (imageUrls().length) {
+              <ul class="images__list">
+                @for (image of imageUrls(); track image.id) {
+                  <li class="images__item" [attr.data-id]="image.id" data-testid="content.editor.image">
+                    <img [src]="image.thumb" alt="" width="96" height="96" />
+                    <p-button
+                      [label]="'content.editor.insertImage' | t"
+                      icon="pi pi-plus"
+                      size="small"
+                      severity="secondary"
+                      [outlined]="true"
+                      (onClick)="insertImage(image.url)"
+                      data-testid="content.editor.insertImage"
+                    />
+                  </li>
+                }
+              </ul>
+            }
+          </div>
         </section>
 
         <aside class="fs-card editor__settings">
@@ -154,6 +193,30 @@ const NEW = 'new';
               (ngModelChange)="kind.set($event)"
               data-testid="content.editor.kind"
             />
+          </div>
+          <div class="field">
+            <label for="content-function">{{ 'content.editor.editorFunction' | t }}</label>
+            <p-select
+              inputId="content-function"
+              name="editorFunction"
+              [options]="functionOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [fluid]="true"
+              [disabled]="!isOrga()"
+              [ngModel]="editorFunction()"
+              (ngModelChange)="editorFunction.set($event)"
+              aria-describedby="content-function-hint"
+              data-testid="content.editor.editorFunction"
+            >
+              <ng-template #item let-option
+                ><span [attr.data-value]="option.value">{{ option.label }}</span></ng-template
+              >
+            </p-select>
+            <small id="content-function-hint">{{
+              (isOrga() ? 'content.editor.editorFunctionHint' : 'content.editor.editorFunctionOrga')
+                | t
+            }}</small>
           </div>
           <div class="field field--row">
             <div class="field">
@@ -298,12 +361,44 @@ const NEW = 'new';
       gap: 0.1rem;
       cursor: pointer;
     }
+    .images {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .images__label {
+      font-weight: 600;
+    }
+    .images small {
+      color: var(--fs-text-muted);
+      font-size: 0.82rem;
+    }
+    .images__list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .images__item {
+      display: grid;
+      justify-items: center;
+      gap: 0.35rem;
+    }
+    .images__item img {
+      width: 6rem;
+      height: 6rem;
+      object-fit: cover;
+      border-radius: var(--fs-radius-sm);
+      border: 1px solid var(--fs-border);
+    }
   `,
 })
 export class ContentEditorPageComponent {
   private readonly api = inject(ContentService);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
 
   /** Route parameter (`new` creates a page). */
   readonly slug = input.required<string>();
@@ -319,6 +414,33 @@ export class ContentEditorPageComponent {
   protected readonly published = signal(false);
   protected readonly reason = signal('');
   protected readonly newSlug = signal('');
+  /** Working-group function whose admins may edit the page (default PR; only ORGA changes it, A54). */
+  protected readonly editorFunction = signal<string>(WorkingGroupFunction.Pr);
+  /** Images already claimed by the page (ids) and the ones uploaded in this session. */
+  protected readonly savedImageIds = signal<string[]>([]);
+  protected readonly newImages = signal<Upload[]>([]);
+
+  private readonly bodiesEditor = viewChild<LanguageTabsEditorComponent>('bodiesEditor');
+
+  protected readonly isOrga = computed(() => this.session.hasRole(Role.Orga));
+  protected readonly functionOptions = computed(() => {
+    this.i18n.language();
+    return Object.values(WorkingGroupFunction).map((value) => ({
+      value,
+      label: this.i18n.t('content.function.' + value),
+    }));
+  });
+  protected readonly maxNewImages = computed(() =>
+    Math.max(0, MAX_IMAGES - this.savedImageIds().length),
+  );
+  protected readonly imageUrls = computed(() =>
+    [
+      ...this.savedImageIds(),
+      ...this.newImages()
+        .map((upload) => upload.id)
+        .filter((id) => !this.savedImageIds().includes(id)),
+    ].map((id) => ({ id, ...contentImageUrls(id) })),
+  );
 
   protected readonly page = loadResource<ContentPageUpdate, string | undefined>({
     params: () => (this.isNew() ? undefined : this.slug()),
@@ -365,8 +487,16 @@ export class ContentEditorPageComponent {
         this.minutes.set(page.estimatedMinutes ?? null);
         this.published.set(page.published);
         this.reason.set('');
+        this.editorFunction.set(page.editorFunction || WorkingGroupFunction.Pr);
+        this.savedImageIds.set(page.imageUploadIds ?? []);
+        this.newImages.set([]);
       }
     });
+  }
+
+  /** Adds the image's Markdown to the body of the language tab that is open. */
+  protected insertImage(url: string): void {
+    this.bodiesEditor()?.insert(imageMarkdown(url));
   }
 
   protected readonly save = runMutation(
@@ -385,6 +515,12 @@ export class ContentEditorPageComponent {
               : undefined,
           published: this.published(),
           reason: this.reason().trim() || undefined,
+          // only ORGA picks another function; others leave it unchanged (the server answers 403 otherwise)
+          editorFunction: this.isOrga() ? this.editorFunction() : undefined,
+          // new images are claimed; the ones already claimed stay (the server only adds)
+          imageUploadIds: this.newImages().length
+            ? this.newImages().map((upload) => upload.id)
+            : undefined,
         },
       });
     },

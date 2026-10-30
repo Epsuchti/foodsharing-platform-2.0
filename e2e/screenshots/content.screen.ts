@@ -4,7 +4,8 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 /**
  * Content screens (C1): learning overview with progress and chapter states, a chapter, a CMS page, the content admin
  * list and editor, the learning overview error state, the about overview, FAQ, team, statistics (+ error), release
- * notes (+ ORGA editor) and the petition page with its banner (Q10) — × light/dark × de/fr.
+ * notes (+ ORGA editor) and the petition page with its banner (Q10); blog list/post (+ error), management and
+ * editor, donate and support (+ rate limit) (Q11) — light/de (decision 109).
  */
 screenshotTest.use({ seedReset: 'test' });
 
@@ -82,6 +83,49 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `statistics-error-${variant.name}`);
       });
 
+      screenshotTest('blog list and post @C2 @screenshot', async ({ page, visual }) => {
+        await page.goto('/blog');
+        await expect(page.getByTestId('blog.list.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('blog.list.post')).toHaveCount(6);
+        await visual.expectScreen(page, `blog-list-${variant.name}`);
+
+        await page.goto('/blog/00000012-0006-4000-8000-000000000001');
+        await expect(page.getByTestId('blog.post.state')).toHaveAttribute('data-state', 'success');
+        await visual.expectScreen(page, `blog-post-${variant.name}`);
+      });
+
+      screenshotTest('donate and support @C7 @C9 @screenshot', async ({ page, visual }) => {
+        await page.goto('/donate');
+        await expect(page.getByTestId('content.donate.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('content.donate.campaign')).toHaveCount(2);
+        await visual.expectScreen(page, `donate-${variant.name}`);
+
+        // the user agent differs between machines: the field is masked
+        await page.goto('/support?from=%2Fdashboard');
+        await expect(page.getByTestId('content.support.form')).toBeVisible();
+        await visual.expectScreen(page, `support-${variant.name}`, {
+          mask: [page.getByTestId('content.support.userAgent')],
+        });
+
+        await injectApiError(page, { url: '/api/public/support/tickets', method: 'POST', status: 429, code: 'SUPPORT_RATE_LIMITED' });
+        await page.getByTestId('content.support.firstName').fill('Mia');
+        await page.getByTestId('content.support.email').fill('mia@example.org');
+        await page.getByTestId('content.support.subject').fill('Frage zur Registrierung');
+        await page.getByTestId('content.support.body').fill('Wie werde ich Foodsaver?');
+        await page.getByTestId('content.support.send').click();
+        await expect(page.getByTestId('content.support.rateLimited')).toBeVisible();
+        await visual.expectScreen(page, `support-rate-limited-${variant.name}`, {
+          mask: [page.getByTestId('content.support.userAgent')],
+        });
+      });
+
+      screenshotTest('blog list error @C2 @screenshot', async ({ page, visual }) => {
+        await injectApiError(page, { url: /\/api\/public\/blog(\?|$)/, status: 500 });
+        await page.goto('/blog');
+        await expect(page.getByTestId('blog.list.state')).toHaveAttribute('data-state', 'error');
+        await visual.expectScreen(page, `blog-list-error-${variant.name}`);
+      });
+
       screenshotTest('learning overview error @C1 @screenshot', async ({ page, visual }) => {
         await injectApiError(page, { url: /\/api\/public\/content\/learning(\?|$)/, status: 500 });
         await page.goto('/learn');
@@ -101,6 +145,18 @@ forEachVariant((variant) => {
         await page.goto('/admin/content/rules');
         await expect(page.getByTestId('content.editor.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `content-editor-${variant.name}`);
+      });
+
+      screenshotTest('blog management and editor @C2 @screenshot', async ({ page, visual }) => {
+        await page.goto('/blog/manage');
+        await expect(page.getByTestId('blog.manage.state')).toHaveAttribute('data-state', 'success');
+        await visual.expectScreen(page, `blog-manage-${variant.name}`);
+
+        // seed post 07 waits for the check: ORGA sees publish
+        await page.goto('/blog/00000012-0006-4000-8000-000000000007/edit');
+        await expect(page.getByTestId('blog.editor.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('blog.editor.publish')).toBeVisible();
+        await visual.expectScreen(page, `blog-editor-${variant.name}`);
       });
 
       screenshotTest('release notes editor @C4 @screenshot', async ({ page, visual }) => {

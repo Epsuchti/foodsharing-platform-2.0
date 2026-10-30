@@ -425,5 +425,6 @@
   "nav.support": "Support",
   "nav.releaseNotes": "Versionshinweise",
   "nav.faq": "FAQ",
-  "nav.adminReleaseNotes": "Neuigkeiten"
+  "nav.adminReleaseNotes": "Neuigkeiten",
+  "nav.blogManage": "Blogbeiträge"
 }
