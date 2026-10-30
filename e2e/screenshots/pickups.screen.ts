@@ -58,6 +58,20 @@ forEachVariant((variant) => {
       });
     });
 
+    screenshotTest.describe('foodsaver booking', () => {
+      // books a slot, so the seed is reset per test and the screens above stay on the untouched seed
+      screenshotTest.use({ variant, role: 'foodsaver', seedReset: 'test' });
+
+      screenshotTest('booked slot, unconfirmed @PU3 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S07}/pickups`);
+        const row = page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${S07_WEDNESDAY}"]`);
+        await row.getByTestId('stores.pickups.slot.free').first().click();
+        await page.getByTestId('pickups.signup.confirm').click();
+        await expect(row.locator('[data-testid="stores.pickups.slot.taken"][data-confirmed="false"]')).toHaveCount(1);
+        await visual.expectScreen(page, `pickups-booked-${variant.name}`);
+      });
+    });
+
     screenshotTest.describe('jumper', () => {
       screenshotTest.use({ variant, role: 'jumper' });
 
