@@ -458,12 +458,12 @@ now), `shell.languageMenu`/`shell.themeMenu` (phone and visitors only).
 
 These answers to section 8 override the proposal where they differ.
 
-1. **Width:** the side menu exists on desktop only (from 48rem). There it is always expanded, the "Ausgeklappt" state of the mockup, and always sits next to the content, never over it. There is no rail, no overlay and no collapse toggle. Phones below 48rem keep the current tab bar and drawer. Between 48 and 75rem the content column gets narrower; pages must still fit there (no horizontal overflow).
+1. **Width:** the side menu exists on desktop only (from 48rem). It always sits next to the content, never over it, and there is no overlay. From 1200 px (75rem) it is always expanded, the "Ausgeklappt" state of the mockup, with no toggle. Between 48 and 75rem it starts expanded and has a collapse toggle that shrinks it to the icon rail, still next to the content, so the content column widens. Collapsed sections open as flyouts from the rail. Phones below 48rem keep the current tab bar and drawer. Pages must fit the content column at every desktop width (no horizontal overflow).
 2. **Visitors:** every desktop visitor gets the side menu too, signed in or not. The top header goes away on desktop. The visitor menu holds the public items (start, map, statistics, content pages, blog, login/sign-up).
 3. **Journey bar:** it lives in the side menu, as the progress meter on the "Mein Einstieg" item. There is no bar at the top of the content column.
 4. **Section names:** "Community / Verwalten / Orga" are translated into all five languages (de, en, gws, fr, it) with the usual i18n check.
 5. **Bells:** a panel opens next to the bell item in the side menu. There is no separate page.
 6. **Placement:** on desktop everything lives in the side menu, including store chains and quiz/content editing, each in a fixed, consistent place. Nothing moves into a "More" menu.
-7. **Keyboard shortcuts:** yes. Ctrl/⌘ K focuses search (there is no rail, so no toggle shortcut). It is listed in the user menu's help, and neither fires while you're typing in a field.
-8. **Persistence:** none. Section open/closed states reset on reload (no `fs.nav` / `fs.nav.sections` in storage).
+7. **Keyboard shortcuts:** yes. `[` collapses and expands the side menu (only between 48 and 75rem), and Ctrl/⌘ K focuses search. Both are listed in the user menu's help, and neither fires while you're typing in a field.
+8. **Persistence:** none. The collapsed state below 75rem resets to expanded on reload, and section open/closed states reset on reload (no `fs.nav` / `fs.nav.sections` in storage).
 9. **Community:** open by default.
