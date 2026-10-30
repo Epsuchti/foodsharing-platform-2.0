@@ -153,6 +153,7 @@ public class RegionMapper {
         detail.setMembership(membership);
         detail.setStatistics(view.statistics() == null ? null : toStatistics(view.statistics()));
         detail.setMayCoordinateStores(view.mayCoordinateStores());
+        detail.setMayHandleReports(view.mayHandleReports());
         return detail;
     }
 
