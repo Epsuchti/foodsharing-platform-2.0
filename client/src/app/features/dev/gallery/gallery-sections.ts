@@ -15,6 +15,7 @@ import { MAP_GALLERY_SECTIONS } from './sections/map.section';
 import { GROUPS_GALLERY_SECTIONS } from './sections/groups.section';
 import { INTRO_PICKUPS_GALLERY_SECTIONS } from './sections/intro-pickups.section';
 import { LEGAL_GALLERY_SECTIONS } from './sections/legal.section';
+import { OAUTH_GALLERY_SECTIONS } from './sections/oauth.section';
 import { ONBOARDING_GALLERY_SECTIONS } from './sections/onboarding.section';
 import { PROFILES_GALLERY_SECTIONS } from './sections/profiles.section';
 import { QUIZ_GALLERY_SECTIONS } from './sections/quiz.section';
@@ -55,4 +56,5 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   ...ADMIN_SETTINGS_GALLERY_SECTIONS,
   ...ACHIEVEMENTS_GALLERY_SECTIONS,
   ...RESOURCES_GALLERY_SECTIONS,
+  ...OAUTH_GALLERY_SECTIONS,
 ];

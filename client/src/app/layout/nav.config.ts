@@ -84,7 +84,8 @@ export const M6_PAGES_READY = {
   search: true,
   profile: true,
   adminSettings: true,
-  adminOauth: false,
+  /** OAuth client administration (Q14); follows the OAUTH_PROVIDER toggle. */
+  adminOauth: true,
   adminUploads: true,
   adminAchievements: true,
   adminBounced: true,
@@ -514,7 +515,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.adminOauth',
     icon: 'pi pi-key',
     route: '/admin/oauth-clients',
-    visible: whenM6('adminOauth', isOrga),
+    visible: whenM6('adminOauth', (ctx) => isOrga(ctx) && featureOn(ctx, FeatureToggleKey.OauthProvider)),
     group: 'admin',
   },
   {
