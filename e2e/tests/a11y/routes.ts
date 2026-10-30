@@ -80,7 +80,7 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: '/login', role: null, mobile: true },
   { path: '/login/sent?email=newbie%40local', role: null },
   // without a token: the verify page shows its error state
-  { path: '/login/verify', role: null },
+  { path: '/login/verify?token=not-a-token', role: null, ready: 'auth.verify.tokenError', states: ['error'] },
   { path: '/forbidden', role: null },
   { path: '/does-not-exist', role: null },
   { path: '/dev/gallery', role: null, ready: 'gallery.dataState.live' },
