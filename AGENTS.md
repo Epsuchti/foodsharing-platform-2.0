@@ -25,7 +25,7 @@ Environment: start every shell with `source scripts/env.sh`; requirements, comma
 - Tests are never skipped, disabled or weakened to get green. Fix the code.
 - `data-testid="<module>.<page>.<element>"` on interactive elements.
 
-## Choosing the workflow (agents in `.claude/agents/`, details in `docs/tasks/README.md`)
+## Choosing the workflow (agents from the `workflow` plugin, github.com/Epsuchti/claude-agents; details in `docs/tasks/README.md`)
 | Task | Who |
 |---|---|
 | A question, a lookup, a one-line change | the main session directly |

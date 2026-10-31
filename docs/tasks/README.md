@@ -1,7 +1,8 @@
 # Task workflow (planner → designer → implementer → tester)
 
-Goal: build the right thing the first time, and spend fewer tokens doing it. The agent definitions live in
-`.claude/agents/`.
+Goal: build the right thing the first time, and spend fewer tokens doing it. The agents come from the `workflow` plugin
+(github.com/Epsuchti/claude-agents, enabled per user in `~/.claude/settings.json`). A project can override an agent
+with a file of the same name in `.claude/agents/`.
 
 1. **Plan.** The main session hands the owner's request to `planner` (Opus).
    - The planner reads only what it needs and returns its understanding plus numbered questions, each with a
