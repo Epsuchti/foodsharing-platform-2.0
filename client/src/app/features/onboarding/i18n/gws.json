@@ -72,5 +72,7 @@
   "onboarding.region.nextIntroPickups": "Nächschti Iifüehrigsabholige",
   "onboarding.region.freeSlots": "{count, plural, one {1 Platz frei} other {# Plätz frei}}",
   "onboarding.region.noDates": "Grad kei freie Termin – mir benachrichtiged di gern.",
-  "onboarding.region.allDates": "Alli Termin aaluege"
+  "onboarding.region.allDates": "Alli Termin aaluege",
+  "onboarding.meter.progress": "Schritt {current} vo {total}",
+  "onboarding.meter.retry": "Fortschritt neu lade"
 }

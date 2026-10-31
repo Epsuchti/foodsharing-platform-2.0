@@ -144,9 +144,18 @@ import { MessagingStore } from '../messaging.resource';
         grid-template-columns: 1fr;
       }
       :host(.has-open) .list,
-      :host(.has-open) .title,
+      :host(.has-open) .title p-button,
       :host(:not(.has-open)) .open {
         display: none;
+      }
+      /* an open conversation fills the phone screen; the page title stays for screen readers (the h1 of the page) */
+      :host(.has-open) .title {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
       }
     }
     .items {

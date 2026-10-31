@@ -36,6 +36,14 @@ export async function expectNoSeriousViolations(page: Page, options: A11yOptions
   // axe must see the colours at rest: a dialog still fading out (confirm accepted, page already changed) has its text
   // at a few percent opacity and fails color-contrast at random (B1 on /baskets/mine)
   await animationsDone(page);
+  // axe's target-size rule counts a target as obscured when it sits under a sticky bar (store tabs, subnavs) at the
+  // scroll position the test happened to leave, which depends on the last click, not on the page (AU4 on the adverts
+  // page). The scan runs at the top of the page; the sticky bars themselves are checked in their own specs (AU3, D4).
+  await page.evaluate(async () => {
+    if (window.scrollY === 0) return;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
   let builder = new AxeBuilder({ page }).withTags(AXE_TAGS);
   for (const selector of options.include ?? []) builder = builder.include(selector);
   for (const selector of options.exclude ?? []) builder = builder.exclude(selector);

@@ -1,0 +1,782 @@
+// ---------------------------------------------------------------------------------------------------
+// Desktop side menu (decision 133, docs/design/sidenav-proposal.md §3 and sidenav-mockup.html). Global, because
+// the side menu's rows and cards are shared by fs-sidenav, fs-region-switcher, fs-user-menu and fs-bell-button.
+// Phones (< 48rem) never render any of it.
+// ---------------------------------------------------------------------------------------------------
+// same layer order as styles.scss (this file is emitted first)
+@layer base, optimus, app;
+
+@layer app {
+  .sn {
+    position: sticky;
+    top: 0;
+    // above sticky page bars and map panes (Leaflet uses 400+), below dialogs (1100+) and toasts (2000)
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+    height: 100vh;
+    height: 100dvh;
+    padding: 0 0.75rem 0.75rem;
+    border-inline-end: 1px solid var(--fs-border);
+    background: var(--fs-sidenav-bg);
+    color: var(--fs-text);
+    // the badges of the side menu use the dark-mode safe text colour (proposal §3.6)
+    --fs-badge-text: var(--fs-on-danger);
+  }
+
+  .sn__top {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    // the literal header height: --fs-header-h is 0 in the side menu layout
+    height: 4rem;
+  }
+
+  .sn__toggle {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: var(--fs-target-sm);
+    height: var(--fs-target-sm);
+    margin-inline-start: auto;
+    border: 0;
+    border-radius: var(--fs-radius-sm);
+    background: transparent;
+    color: var(--fs-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fs-sidenav-hover);
+      color: var(--fs-text);
+    }
+  }
+
+  .sn__switcher {
+    flex: none;
+    margin-top: 0.25rem;
+  }
+
+  // the search field renders once the complete catalog is there: its row is reserved, so the list never jumps
+  .sn__search {
+    flex: none;
+    min-height: 2.5rem;
+    margin: 0.35rem 0 0.5rem;
+  }
+
+  // the list scrolls inside a wrapper that draws the edge fades, so cards (fixed) are never masked
+  .sn__navwrap {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    &::before,
+    &::after {
+      position: absolute;
+      z-index: 2;
+      right: 0;
+      left: 0;
+      height: 2.5rem;
+      content: '';
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease;
+    }
+
+    &::before {
+      top: 0;
+      background: linear-gradient(to bottom, var(--fs-sidenav-bg), transparent);
+    }
+
+    &::after {
+      bottom: 0;
+      background: linear-gradient(to top, var(--fs-sidenav-bg), transparent);
+    }
+
+    &[data-more-start]::before,
+    &[data-more-end]::after {
+      opacity: 1;
+    }
+  }
+
+  .sn__nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0 -0.25rem;
+    // room for the focus ring inside the scrolling list
+    padding: 0.25rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .sn__list {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &[hidden] {
+      display: none;
+    }
+
+    > li {
+      position: relative;
+    }
+  }
+
+  .sn__section + .sn__section {
+    margin-top: 0.5rem;
+  }
+
+  .sn__heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  .sn__section-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    min-height: var(--fs-target-sm);
+    padding: 0.5rem 0.75rem 0.25rem;
+    border: 0;
+    border-radius: var(--fs-radius-sm);
+    background: transparent;
+    color: var(--fs-text-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: start;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--fs-text);
+    }
+
+    .sn-row__chev {
+      margin-inline-start: auto;
+      transition: transform 150ms ease;
+    }
+
+    &[aria-expanded='false'] .sn-row__chev {
+      transform: rotate(-90deg);
+    }
+  }
+
+  .sn__section-ico {
+    display: none;
+  }
+
+  .sn__bottom {
+    display: grid;
+    flex: none;
+    gap: 2px;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--fs-border);
+  }
+
+  .sn__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.25rem 0;
+
+    .fs-btn {
+      flex: 1 1 auto;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.85rem;
+      white-space: normal;
+    }
+  }
+
+  // ---- rows: links, buttons, triggers ----
+  .sn-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    min-height: var(--fs-target-sm);
+    padding: 0.25rem 0.75rem;
+    border: 0;
+    border-radius: var(--fs-radius-sm);
+    background: transparent;
+    color: var(--fs-text-muted);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+
+    &:hover {
+      background: var(--fs-sidenav-hover);
+      color: var(--fs-text);
+    }
+
+    // trigger of an open card: pressed (secondary text darkens too: muted text is below 4.5:1 on the pressed tint)
+    &[aria-expanded='true'] {
+      background: var(--fs-sidenav-pressed);
+      color: var(--fs-text);
+
+      .sn-row__small,
+      .sn-user__who span {
+        color: var(--fs-text);
+      }
+    }
+
+    > .pi {
+      flex: none;
+      width: 1.25rem;
+      font-size: 1.05rem;
+      text-align: center;
+    }
+  }
+
+  // long labels wrap, never ellipsis (decision 133)
+  .sn-row__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  // the active region name is the one deliberate truncation (full name in the accessible name)
+  .sn-row__ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sn-row__small {
+    display: block;
+    color: var(--fs-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .sn-row__chev {
+    flex: none;
+    color: var(--fs-text-muted);
+    font-size: 0.7rem;
+  }
+
+  .sn-row__kbd {
+    flex: none;
+    margin-inline-start: auto;
+    padding: 0 0.35rem;
+    border: 1px solid var(--fs-border);
+    border-radius: 0.35rem;
+    color: var(--fs-text-muted);
+    font: 600 0.7rem/1.4 var(--fs-font);
+  }
+
+  .sn-link[aria-current='page'],
+  .sn-link[aria-current='page']:hover {
+    background: var(--fs-primary-soft);
+    color: var(--fs-primary-strong);
+    font-weight: 700;
+  }
+
+  .sn-link[aria-current='page']::before {
+    position: absolute;
+    top: 0.45rem;
+    bottom: 0.45rem;
+    left: 0;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--fs-primary);
+    content: '';
+  }
+
+  // room for the "3/6" count and the meter of the journey item (fs-journey-meter is laid over the item)
+  .sn-link--meter {
+    padding-bottom: 0.55rem;
+    padding-inline-end: 2.75rem;
+  }
+
+  .sn-link__count {
+    flex: none;
+    margin-inline-start: auto;
+    color: var(--fs-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .sn-meter {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.3rem;
+    left: 2.7rem;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--fs-border);
+    pointer-events: none;
+
+    > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--fs-primary);
+    }
+  }
+
+  .sn-badge {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    margin-inline-start: auto;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: var(--fs-danger);
+    color: var(--fs-on-danger);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .sn-dot {
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-inline-start: auto;
+    border-radius: 999px;
+    background: var(--fs-danger);
+  }
+
+  // ---- user block ----
+  .sn-user {
+    gap: 0.6rem;
+    padding-inline-start: 0.5rem;
+  }
+
+  .sn-user__who {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.25;
+
+    strong {
+      overflow: hidden;
+      color: var(--fs-text);
+      font-size: 0.92rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span {
+      color: var(--fs-text-muted);
+      font-size: 0.76rem;
+      font-weight: 500;
+    }
+  }
+
+  // ---- floating cards (Schwebend): outside the menu's right edge, over the content, no scrim ----
+  .sn-card {
+    position: fixed;
+    z-index: 80;
+    width: 17rem;
+    border: 1px solid var(--fs-border-strong);
+    border-radius: var(--fs-radius-md);
+    background: var(--fs-surface-raised);
+    color: var(--fs-text);
+    box-shadow:
+      var(--fs-shadow-lg),
+      0 0 0 4px color-mix(in srgb, var(--fs-text) 4%, transparent);
+    text-align: start;
+
+    &[hidden] {
+      display: none;
+    }
+
+    // the notch toward the trigger (outside the scrolling body, so it is never clipped)
+    &::before {
+      position: absolute;
+      top: calc(var(--notch-y, 1.25rem) - 6px);
+      left: -7px;
+      width: 12px;
+      height: 12px;
+      transform: rotate(45deg);
+      border-bottom: 1px solid var(--fs-border-strong);
+      border-left: 1px solid var(--fs-border-strong);
+      background: var(--fs-surface-raised);
+      content: '';
+    }
+
+    .sn-row {
+      color: var(--fs-text);
+      font-size: 0.95rem;
+      font-weight: 550;
+
+      > .pi {
+        color: var(--fs-text-muted);
+      }
+    }
+
+    .sn-row[aria-current='page'],
+    .sn-row[aria-checked='true'] {
+      background: var(--fs-primary-soft);
+      color: var(--fs-primary-strong);
+      font-weight: 700;
+    }
+  }
+
+  .sn-card__body {
+    display: grid;
+    gap: 2px;
+    max-height: min(70vh, 560px);
+    margin: 0;
+    padding: 0.4rem;
+    overflow-y: auto;
+    border-radius: inherit;
+    list-style: none;
+  }
+
+  .sn-card--panel {
+    width: 22rem;
+  }
+
+  // the search results popup hangs below the field: the card must not clip it
+  .sn-card--search {
+    width: 20rem;
+
+    .sn-card__body {
+      overflow: visible;
+    }
+  }
+
+  .sn-card__h {
+    margin: 0.5rem 0 0.2rem;
+    padding: 0 0.75rem;
+    color: var(--fs-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .sn-card__sep {
+    height: 1px;
+    margin: 0.35rem 0;
+    background: var(--fs-border);
+  }
+
+  .sn-card__check {
+    flex: none;
+    margin-inline-start: auto;
+    color: var(--fs-primary);
+  }
+
+  .sn-card__filter {
+    width: 100%;
+    margin: 0.2rem 0 0.4rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-sm);
+    background: var(--fs-surface-muted);
+    color: var(--fs-text);
+    font: inherit;
+    font-size: 0.9rem;
+  }
+
+  .sn-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.1rem 0.75rem 0.5rem;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .sn-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--fs-target-sm);
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--fs-border-strong);
+    border-radius: 999px;
+    background: var(--fs-surface-raised);
+    color: var(--fs-text);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      border-color: var(--fs-primary);
+      background: var(--fs-primary-soft);
+      color: var(--fs-primary-strong);
+    }
+  }
+
+  .sn-keys {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.2rem 0.75rem 0.5rem;
+    color: var(--fs-text-muted);
+    font-size: 0.8rem;
+
+    kbd {
+      padding: 0 0.35rem;
+      border: 1px solid var(--fs-border);
+      border-radius: 0.35rem;
+      color: var(--fs-text);
+      font: 600 0.72rem/1.5 var(--fs-font);
+    }
+  }
+
+  // ---- rail (48–75rem, collapsed): icon tiles, labels visually hidden (they stay the accessible names) ----
+  .sn[data-mode='rail'] {
+    align-items: center;
+    padding: 0 0.875rem 0.75rem;
+
+    .sn__top {
+      flex-direction: column;
+      justify-content: center;
+      height: auto;
+      padding: 0.6rem 0 0.25rem;
+      gap: 0.25rem;
+    }
+
+    .sn__toggle {
+      margin: 0;
+    }
+
+    .sn-row__label,
+    .sn-row__chev,
+    .sn-row__kbd,
+    .sn-user__who,
+    .sn__section-label,
+    .sn-link__count {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .sn-row {
+      width: var(--fs-sidenav-tile);
+      height: var(--fs-sidenav-tile);
+      min-height: var(--fs-sidenav-tile);
+      padding: 0;
+      justify-content: center;
+
+      > .pi {
+        font-size: 1.15rem;
+      }
+    }
+
+    .sn__search {
+      min-height: 0;
+      margin: 0.25rem 0;
+    }
+
+    .sn__navwrap {
+      width: 100%;
+    }
+
+    // the rail never scrolls: sections fold into flyouts until it fits (measured)
+    .sn__nav {
+      width: 100%;
+      margin: 0;
+      padding: 0.25rem 0;
+      overflow: visible;
+    }
+
+    // fallback for very low windows: everything is folded and it still does not fit
+    &[data-rail-scroll] .sn__nav {
+      overflow-y: auto;
+    }
+
+    .sn__list {
+      justify-items: center;
+    }
+
+    .sn-badge {
+      position: absolute;
+      top: 0.3rem;
+      inset-inline-start: calc(50% + 0.35rem);
+      margin: 0;
+    }
+
+    .sn-dot {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      margin: 0;
+    }
+
+    .sn-meter {
+      display: none;
+    }
+
+    .sn__section {
+      width: 100%;
+      margin-top: 0.35rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--fs-border);
+    }
+
+    .sn__section-btn {
+      display: none;
+    }
+
+    .sn__flyout-btn {
+      display: flex;
+      position: relative;
+      justify-content: center;
+      width: var(--fs-sidenav-tile);
+      height: var(--fs-sidenav-tile);
+      min-height: var(--fs-sidenav-tile);
+      margin: 0 auto;
+      padding: 0;
+      letter-spacing: 0;
+      text-transform: none;
+
+      &:hover,
+      &[aria-expanded='true'] {
+        background: var(--fs-sidenav-pressed);
+        color: var(--fs-text);
+      }
+
+      .sn__section-ico {
+        display: block;
+        font-size: 1.15rem;
+      }
+
+      .sn-row__chev {
+        position: absolute;
+        right: 0.15rem;
+        bottom: 0.2rem;
+        width: auto;
+        height: auto;
+        clip: auto;
+        font-size: 0.55rem;
+        transform: none;
+      }
+    }
+
+    .sn__section--current .sn__flyout-btn {
+      background: var(--fs-primary-soft);
+      color: var(--fs-primary-strong);
+    }
+
+    .sn__bottom {
+      width: 100%;
+      justify-items: center;
+    }
+
+    .sn-user {
+      padding: 0;
+    }
+
+    .sn__cta {
+      flex-direction: column;
+      align-items: center;
+
+      .fs-btn {
+        width: var(--fs-sidenav-tile);
+        height: var(--fs-sidenav-tile);
+        padding: 0;
+
+        span {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+        }
+      }
+    }
+
+    // tooltip: the label from data-label on hover / focus (aria-hidden; the hidden span stays the name)
+    [data-label] {
+      position: relative;
+    }
+
+    [data-label]::after {
+      position: absolute;
+      z-index: 70;
+      top: 50%;
+      left: calc(100% + 0.6rem);
+      display: none;
+      padding: 0.35rem 0.6rem;
+      transform: translateY(-50%);
+      border: 1px solid var(--fs-border);
+      border-radius: var(--fs-radius-sm);
+      background: var(--fs-surface-raised);
+      box-shadow: var(--fs-shadow-md);
+      color: var(--fs-text);
+      content: attr(data-label);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    [data-label]:hover::after,
+    [data-label]:focus-visible::after {
+      display: block;
+    }
+
+    [data-label][aria-expanded='true']::after,
+    .sn-card [data-label]::after {
+      display: none;
+    }
+
+    // inside a card (flyout, user menu) the rows keep their labels
+    .sn-card {
+      .sn__list {
+        justify-items: stretch;
+      }
+
+      .sn-row {
+        width: 100%;
+        height: auto;
+        min-height: var(--fs-target-sm);
+        padding: 0.25rem 0.75rem;
+        justify-content: flex-start;
+
+        > .pi {
+          font-size: 1.05rem;
+        }
+      }
+
+      .sn-row__label,
+      .sn-row__chev,
+      .sn-user__who {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+      }
+
+      .sn-badge {
+        position: static;
+        margin-inline-start: auto;
+      }
+    }
+  }
+}

@@ -427,5 +427,11 @@
   "nav.faq": "FAQ",
   "nav.adminReleaseNotes": "Neuigkeiten",
   "nav.blogManage": "Blogbeiträge",
-  "nav.connections": "Verbundene Apps"
+  "nav.connections": "Verbundene Apps",
+  "nav.section.daily": "Täglich",
+  "nav.section.discover": "Entdecken",
+  "nav.section.community": "Community",
+  "nav.section.manage": "Verwalten",
+  "nav.section.orga": "Orga",
+  "nav.section.about": "Über foodsharing"
 }

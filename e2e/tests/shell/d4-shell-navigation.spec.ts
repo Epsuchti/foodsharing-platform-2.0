@@ -19,13 +19,16 @@ function path(page: Page): string {
 test.describe('logged in', () => {
   test.use({ role: 'foodsaver' });
 
-  test('D4.3 desktop header navigation @D4.3 @page', async ({ page }) => {
+  test('D4.3 desktop side menu navigation @D4.3 @page', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await page.goto('/dashboard');
 
+    // decision 133: the side menu replaces the top header on desktop
     const nav = page.getByRole('navigation', { name: /.+/ }).filter({ has: page.getByTestId('nav.dashboard') });
     await expect(nav).toBeVisible();
-    await expect(page.getByTestId('nav.dashboard')).toHaveClass(/hdr__link--active/);
+    await expect(page.getByTestId('nav.sidenav')).toHaveAttribute('data-mode', 'sidebar');
+    await expect(page.locator('fs-header')).toHaveCount(0);
+    await expect(page.getByTestId('nav.dashboard')).toHaveAttribute('aria-current', 'page');
     await expect(page.getByTestId('nav.activity')).toHaveAttribute('href', '/me/activity');
     // The dev gallery lives in the footer, not in the main navigation.
     await expect(page.getByTestId('nav.gallery')).toHaveCount(0);
@@ -33,15 +36,15 @@ test.describe('logged in', () => {
     // M3: pickups for verified foodsavers; M5: messages.
     await expect(page.getByTestId('nav.pickups')).toBeVisible();
     await expect(page.getByTestId('nav.messages')).toHaveAttribute('href', '/messages');
-    // Desktop has no tab bar; the user menu sits in the header.
+    // Desktop has no tab bar; the user menu sits at the bottom of the side menu.
     await expect(page.getByTestId('shell.tabBar')).toBeHidden();
     await expect(page.getByTestId('shell.userMenu')).toBeVisible();
     await expect(page.getByTestId('shell.login')).toHaveCount(0);
 
     await page.getByTestId('nav.activity').click();
     await expect.poll(() => path(page)).toBe('/me/activity');
-    await expect(page.getByTestId('nav.activity')).toHaveClass(/hdr__link--active/);
-    await expect(page.getByTestId('nav.dashboard')).not.toHaveClass(/hdr__link--active/);
+    await expect(page.getByTestId('nav.activity')).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByTestId('nav.dashboard')).not.toHaveAttribute('aria-current', 'page');
 
     await page.getByTestId('shell.brand').click();
     await expect.poll(() => path(page)).toBe('/dashboard');
@@ -52,40 +55,35 @@ test.describe('logged in', () => {
     await expect(page.getByTestId('shell.version')).toBeVisible();
   });
 
-  test('D4.3 desktop header keeps the first items and puts the rest behind "More" @D4.3 @page', async ({ page }) => {
+  test('D4.3 desktop side menu lists every item in a fixed section, Community open by default @D4.3 @page', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await page.goto('/dashboard');
-    const more = page.getByTestId('nav.more');
-    await expect(more).toBeVisible();
-    await expect(more).toHaveAttribute('aria-expanded', 'false');
-    // first items in the header, the rest (map, baskets, chains, events, polls …) in the closed menu
-    await expect(page.getByTestId('nav.activity')).toBeVisible();
-    await expect(page.getByTestId('nav.map')).toBeHidden();
+    // decision 133: no "More" menu on desktop; map, chains, events, polls … have their place in the side menu
+    await expect(page.getByTestId('nav.more')).toHaveCount(0);
+    const community = page.getByTestId('nav.section.community');
+    await expect(community).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('nav.map')).toBeVisible();
     await expect(page.getByTestId('nav.map')).toHaveAttribute('href', '/map');
-    // the header no longer scrolls sideways (design review M7 R1/R2)
+    await expect(page.getByTestId('nav.storeChains')).toHaveAttribute('data-nav-section', 'manage');
+    // the side menu never scrolls sideways
     const nav = page.getByRole('navigation', { name: /.+/ }).filter({ has: page.getByTestId('nav.dashboard') });
     expect(await nav.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
 
-    await more.click();
-    await expect(more).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.getByTestId('nav.more.list')).toBeVisible();
-    await expect(page.getByTestId('nav.map')).toBeVisible();
-    // Escape closes it and gives the focus back to the button
-    await page.keyboard.press('Escape');
-    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    // a section closes and opens again with its heading
+    await community.click();
+    await expect(community).toHaveAttribute('aria-expanded', 'false');
     await expect(page.getByTestId('nav.map')).toBeHidden();
-    await expect(more).toBeFocused();
-    // a click elsewhere closes it too
-    await more.click();
+    await community.click();
     await expect(page.getByTestId('nav.map')).toBeVisible();
-    await page.getByTestId('dashboard.page.welcome').click();
-    await expect(more).toHaveAttribute('aria-expanded', 'false');
 
-    await more.click();
     await page.getByTestId('nav.map').click();
     await expect.poll(() => path(page)).toBe('/map');
-    await expect(more).toHaveAttribute('aria-expanded', 'false');
     await expect(page.getByTestId('nav.map')).toHaveAttribute('aria-current', 'page');
+
+    // the parent item is current by route prefix: "Betriebe" on a store page
+    await page.getByTestId('nav.stores').click();
+    await expect.poll(() => path(page)).toBe('/stores/mine');
+    await expect(page.getByTestId('nav.stores')).toHaveAttribute('aria-current', 'page');
   });
 
   test('D4.3 mobile tab bar and menu drawer @D4.3 @page', async ({ page }) => {

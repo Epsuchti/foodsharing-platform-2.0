@@ -10,6 +10,31 @@ export type MessageParams = Record<string, unknown>;
 const pluralRulesCache = new Map<string, Intl.PluralRules>();
 const numberFormatCache = new Map<string, Intl.NumberFormat>();
 
+/**
+ * Small counts (integers 0–999) without Intl (D11.5.3): creating the first `Intl.NumberFormat` / `Intl.PluralRules`
+ * of a locale loads its ICU data — ~115 ms at 4× CPU inside the first page render, before `/onboarding`'s LCP.
+ * For these values every UI locale (de-CH, en, fr-CH, it-CH) formats the plain digits and the plural category is
+ * `one` for 1 (French: 0 and 1) and `other` otherwise; message-format.spec.ts checks this against Intl.
+ */
+function isSmallCount(value: number): boolean {
+  return Number.isInteger(value) && value >= 0 && value < 1000;
+}
+
+function smallCountCategory(value: number, locale: string): Intl.LDMLPluralRule {
+  const french = locale === 'fr' || locale.startsWith('fr-');
+  return value === 1 || (french && value === 0) ? 'one' : 'other';
+}
+
+/** Locales whose small counts follow {@link smallCountCategory}; anything else always goes through Intl. */
+const SMALL_COUNT_LOCALES = /^(de|en|fr|it)(-|$)/;
+
+function pluralCategory(value: number, locale: string): Intl.LDMLPluralRule {
+  if (isSmallCount(value) && SMALL_COUNT_LOCALES.test(locale)) {
+    return smallCountCategory(value, locale);
+  }
+  return pluralRules(locale).select(value);
+}
+
 function pluralRules(locale: string): Intl.PluralRules {
   let rules = pluralRulesCache.get(locale);
   if (!rules) {
@@ -20,6 +45,9 @@ function pluralRules(locale: string): Intl.PluralRules {
 }
 
 function formatNumber(value: number, locale: string): string {
+  if (isSmallCount(value) && SMALL_COUNT_LOCALES.test(locale)) {
+    return String(value);
+  }
   let format = numberFormatCache.get(locale);
   if (!format) {
     format = new Intl.NumberFormat(locale);
@@ -140,7 +168,7 @@ function formatPlaceholder(
   }
   const chosen =
     options.get(`=${count}`) ??
-    options.get(pluralRules(locale).select(count)) ??
+    options.get(pluralCategory(count, locale)) ??
     options.get('other') ??
     '';
   return formatMessage(replaceHash(chosen, formatNumber(count, locale)), params, locale);

@@ -148,7 +148,7 @@ interface NearbyParams {
       font: inherit;
       cursor: pointer;
     }
-    .switch__btn--on { background: var(--fs-primary); color: #fff; }
+    .switch__btn--on { background: var(--fs-primary); color: var(--fs-on-primary); }
     .switch__btn:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: -2px; }
     .split { display: grid; gap: 1rem; }
     .split[data-view='list'] .split__map, .split[data-view='map'] .split__list { display: none; }

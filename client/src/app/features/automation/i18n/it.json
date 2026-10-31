@@ -21,6 +21,7 @@
   "automation.adverts.resend": "Invia di nuovo l'ultimo annuncio",
   "automation.adverts.rotating": "Inviati a turno, uno per annuncio.",
   "automation.adverts.runResult": "{evaluated} controllati: {sent} inviati, {skipped} saltati, {failed} falliti.",
+  "automation.adverts.saveFirst": "Salva prima: prova ed esecuzione usano gli annunci salvati.",
   "automation.adverts.telegramChat": "Chat Telegram",
   "automation.adverts.telegramDefault": "Chat del negozio o della regione",
   "automation.adverts.title": "Annunci di posti liberi",

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Popover } from '@openng/optimus-ui/popover';
@@ -8,8 +8,11 @@ import { SessionService } from '../core/auth/session.service';
 import { TPipe } from '../core/i18n/t.pipe';
 import { PasskeyNudgeComponent } from '../features/auth/components/passkey-nudge.component';
 import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
+import { DisplayPrefsComponent } from './display-prefs.component';
 import { NavContextService } from './nav-context.service';
 import { LazyPopover, PopoverLike } from './lazy-popover';
+import { SidenavCardDirective, SidenavPopovers } from './sidenav-popover';
+import { SidenavStateService } from './sidenav-state';
 
 /**
  * Avatar button with the user menu: profile (head), items with area 'user' from nav.config.ts, logout; plus the
@@ -17,10 +20,82 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
  */
 @Component({
   selector: 'fs-user-menu',
-  imports: [PasskeyNudgeComponent, Popover, RouterLink, TPipe, UserAvatarComponent],
+  imports: [DisplayPrefsComponent, PasskeyNudgeComponent, Popover, RouterLink, SidenavCardDirective, TPipe, UserAvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
+      @if (variant() === 'sidenav') {
+      <!-- desktop side menu (decision 133): the bottom block opens a floating card, bottom aligned -->
+      <button
+        type="button"
+        class="sn-row sn-user"
+        #sideTrigger
+        (click)="popovers?.toggle('user', sideTrigger)"
+        aria-haspopup="true"
+        [attr.aria-expanded]="cardOpen()"
+        aria-controls="sn-card-user"
+        [attr.data-label]="user.displayName"
+        data-testid="shell.userMenu"
+      >
+        <fs-user-avatar
+          aria-hidden="true"
+          [name]="user.displayName"
+          [avatarUrl]="user.avatarUrl"
+          [role]="user.role"
+          [colorSeed]="user.id"
+          size="sm"
+        />
+        <span class="sn-user__who">
+          <strong>{{ user.displayName }}</strong>
+          <span data-testid="shell.userMenu.triggerRole">{{ 'common.role.' + user.role | t }}</span>
+        </span>
+        <span class="fs-visually-hidden">{{ 'layout.userMenu.open' | t }}</span>
+      </button>
+      <div id="sn-card-user" fsSidenavCard="user" anchor="bottom" data-testid="shell.userMenu.card">
+        <div class="sn-card__body">
+          <a class="um__head" [routerLink]="profileRoute()" (click)="popovers?.close(true)" data-testid="nav.user.profile">
+            <fs-user-avatar
+              [name]="user.displayName"
+              [avatarUrl]="user.avatarUrl"
+              [role]="user.role"
+              [colorSeed]="user.id"
+              size="md"
+            />
+            <div class="um__who">
+              <strong>{{ user.displayName }}</strong>
+              <span>{{ user.email }}</span>
+              <!-- shell.userMenu.role is the role inside the open menu, as in the phone header's popover (A2) -->
+              <span class="um__role" data-testid="shell.userMenu.role">{{ 'common.role.' + user.role | t }}</span>
+            </div>
+          </a>
+          <ul class="sn__list">
+            @for (item of menuItems(); track item.id) {
+              <li>
+                <a class="sn-row" [routerLink]="item.route" (click)="popovers?.close(true)" [attr.data-testid]="'nav.user.' + item.id">
+                  <i [class]="item.icon" aria-hidden="true"></i>
+                  <span class="sn-row__label">{{ item.labelKey | t }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+          <div class="sn-card__sep"></div>
+          <fs-display-prefs testIdPrefix="shell.userMenu" [disclosure]="true" />
+          <div class="sn-card__sep"></div>
+          <h3 class="sn-card__h">{{ 'layout.sidenav.shortcuts' | t }}</h3>
+          <div class="sn-keys" data-testid="shell.userMenu.shortcuts">
+            <span><kbd>Ctrl</kbd> / <kbd>⌘</kbd> <kbd>K</kbd> {{ 'layout.sidenav.shortcutSearch' | t }}</span>
+            @if (sidenav.canCollapse()) {
+              <span><kbd>[</kbd> {{ 'layout.sidenav.shortcutToggle' | t }}</span>
+            }
+          </div>
+          <div class="sn-card__sep"></div>
+          <button type="button" class="sn-row" (click)="logoutFromCard()" data-testid="shell.userMenu.logout">
+            <i class="pi pi-sign-out" aria-hidden="true"></i>
+            <span class="sn-row__label">{{ 'nav.logout' | t }}</span>
+          </button>
+        </div>
+      </div>
+      } @else {
       <button
         type="button"
         class="user-btn"
@@ -99,6 +174,7 @@ import { LazyPopover, PopoverLike } from './lazy-popover';
           </ul>
         </div>
       </p-popover>
+      }
       }
       <fs-passkey-nudge />
     }
@@ -213,6 +289,11 @@ export class UserMenuComponent {
   protected readonly session = inject(SessionService);
   protected readonly nav = inject(NavContextService);
   private readonly auth = inject(AuthFacadeService);
+  /** Only inside fs-sidenav. */
+  protected readonly popovers = inject(SidenavPopovers, { optional: true });
+  protected readonly sidenav = inject(SidenavStateService);
+  readonly variant = input<'header' | 'sidenav'>('header');
+  protected readonly cardOpen = computed(() => this.popovers?.openId() === 'user');
 
   /** The head is the profile entry: the public profile (`profile` item, M6) once it is visible, else the account. */
   protected readonly profileRoute = computed(
@@ -220,6 +301,11 @@ export class UserMenuComponent {
   );
   /** Items below the head (the `profile` item is rendered as the head itself). */
   protected readonly menuItems = computed(() => this.nav.user().filter((item) => item.id !== 'profile'));
+
+  protected logoutFromCard(): void {
+    this.popovers?.close(false);
+    this.auth.logout().subscribe({ error: () => undefined });
+  }
 
   protected logout(popover: PopoverLike): void {
     popover.hide();

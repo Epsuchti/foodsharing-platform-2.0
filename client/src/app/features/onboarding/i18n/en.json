@@ -72,5 +72,7 @@
   "onboarding.region.nextIntroPickups": "Next introductory pickups",
   "onboarding.region.freeSlots": "{count, plural, one {1 spot left} other {# spots left}}",
   "onboarding.region.noDates": "No free dates right now – we’re happy to notify you.",
-  "onboarding.region.allDates": "See all dates"
+  "onboarding.region.allDates": "See all dates",
+  "onboarding.meter.progress": "Step {current} of {total}",
+  "onboarding.meter.retry": "Reload progress"
 }

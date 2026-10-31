@@ -183,11 +183,21 @@ else
   done
 fi
 
+MOUNT_DIR="${REPO_DIR}"
+case "$(uname -s)" in
+  MINGW* | MSYS* | CYGWIN*)
+    # Git Bash on Windows: stop MSYS from rewriting container paths (/work/e2e → C:/Program Files/Git/work/e2e) and
+    # hand Docker Desktop a Windows path for the mount.
+    export MSYS_NO_PATHCONV=1
+    MOUNT_DIR="$(cd "${REPO_DIR}" && pwd -W)"
+    ;;
+esac
+
 echo "[screenshots] running ${SHARDS} shard(s) in ${IMAGE} against ${BASE_URLS[*]}"
 docker run --rm --ipc=host --init \
   "${NETWORK_ARGS[@]}" \
   ${USER_ARGS[@]+"${USER_ARGS[@]}"} \
-  -v "${REPO_DIR}:/work" \
+  -v "${MOUNT_DIR}:/work" \
   ${MODULES_ARGS[@]+"${MODULES_ARGS[@]}"} \
   -w /work/e2e \
   -e CI="${CI:-}" \

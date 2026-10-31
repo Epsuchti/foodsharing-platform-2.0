@@ -21,6 +21,7 @@
   "automation.adverts.resend": "Letschte Hiiwiis nomal schicke",
   "automation.adverts.rotating": "Wärde abwächslend verschickt, eini pro Hiiwiis.",
   "automation.adverts.runResult": "{evaluated} prüeft: {sent} gschickt, {skipped} übersprunge, {failed} fehlgschlage.",
+  "automation.adverts.saveFirst": "Zersch speichere: Teste und Usfüehre bruuched di gspeicherete Hiiwiis.",
   "automation.adverts.telegramChat": "Telegram-Chat",
   "automation.adverts.telegramDefault": "Betriebs- oder Bezirks-Chat",
   "automation.adverts.title": "Hiiwiis uf freii Plätz",

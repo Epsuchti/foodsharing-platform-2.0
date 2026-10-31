@@ -427,5 +427,11 @@
   "nav.faq": "FAQ",
   "nav.adminReleaseNotes": "Release notes",
   "nav.blogManage": "Blog posts",
-  "nav.connections": "Connected apps"
+  "nav.connections": "Connected apps",
+  "nav.section.daily": "Daily",
+  "nav.section.discover": "Discover",
+  "nav.section.community": "Community",
+  "nav.section.manage": "Manage",
+  "nav.section.orga": "Orga",
+  "nav.section.about": "About foodsharing"
 }

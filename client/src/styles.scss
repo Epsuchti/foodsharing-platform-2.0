@@ -1,6 +1,8 @@
 // Global styles. Layer order (declared by provideOptimus cssLayer): base, optimus, app.
 // Component styles are unlayered and therefore win over all three.
 
+@use 'app/layout/sidenav';
+
 @layer base, optimus, app;
 
 // Fonts are copied to /fonts (angular.json assets) under stable names so index.html can preload them while the
@@ -67,6 +69,8 @@
   --fs-text: #1a2a20;
   --fs-text-muted: #5c6b60;
   --fs-primary: #25834a;
+  /* text and icons on a filled primary surface (contrast ≥ 4.5:1 in both themes) */
+  --fs-on-primary: #ffffff;
   --fs-primary-strong: #195d35;
   --fs-primary-soft: #e3f3e7;
   --fs-danger: #b53c35;
@@ -95,6 +99,19 @@
   --fs-tabbar-h: 4.25rem;
   /* chips, pills and segmented links: 36px with a mouse, 44px on touch screens (design review M7 R2 #19) */
   --fs-target-sm: 2.25rem;
+  /* desktop side menu (decision 133, docs/design/sidenav-proposal.md §3.7) */
+  --fs-sidenav-w: 16.5rem;
+  --fs-sidenav-rail-w: 4.5rem;
+  /* current width of the side menu column (the shell sets it to the rail width; 0 on phones) */
+  --fs-sidenav-x: var(--fs-sidenav-w);
+  --fs-sidenav-tile: 2.5rem;
+  /* the side menu sits on a tinted surface, so a floating card (raised) reads as a separate layer */
+  --fs-sidenav-bg: #f3f6f1;
+  --fs-sidenav-hover: rgb(26 42 32 / 0.07);
+  --fs-sidenav-pressed: rgb(26 42 32 / 0.12);
+  --fs-surface-raised: #ffffff;
+  /* text on --fs-danger badges */
+  --fs-on-danger: #ffffff;
 
   --fs-font:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
@@ -112,6 +129,7 @@
   --fs-text: #ecf2ea;
   --fs-text-muted: #a3b09f;
   --fs-primary: #4cba70;
+  --fs-on-primary: #0d1f13;
   --fs-primary-strong: #82d59b;
   --fs-primary-soft: rgb(76 186 112 / 0.14);
   --fs-primary-200: #1f4a2f;
@@ -128,6 +146,12 @@
   --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
   --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
   --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  /* dark: shadows are weak, so a card is a lighter surface with a strong border */
+  --fs-sidenav-bg: #151a15;
+  --fs-sidenav-hover: rgb(236 242 234 / 0.08);
+  --fs-sidenav-pressed: rgb(236 242 234 / 0.14);
+  --fs-surface-raised: #262e26;
+  --fs-on-danger: #1a201a;
 
   color-scheme: dark;
 }
@@ -135,6 +159,7 @@
 @media (pointer: coarse) {
   :root {
     --fs-target-sm: 2.75rem;
+    --fs-sidenav-tile: 2.75rem;
   }
 }
 

@@ -40,6 +40,14 @@ describe('StartupService', () => {
     http.expectNone(() => true);
   });
 
+  it('marks the document once the first page was shown (screenshot tests wait for it)', () => {
+    document.documentElement.removeAttribute('data-page-shown');
+    startup.markPageShown();
+    http.match(() => true).forEach((request) => request.flush({}));
+    expect(document.documentElement.hasAttribute('data-page-shown')).toBe(true);
+    document.documentElement.removeAttribute('data-page-shown');
+  });
+
   it('lets the service worker register only a quiet period after the first page', async () => {
     startup.markPageShown();
     http.match(() => true).forEach((request) => request.flush({}));

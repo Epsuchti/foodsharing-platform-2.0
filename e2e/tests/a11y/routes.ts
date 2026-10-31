@@ -239,7 +239,7 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: '/mailboxes/new', role: 'orga', ready: 'mailboxes.create.kindRegion' },
   { path: `/mailboxes/${MAILBOX_ZH}/compose`, role: 'bot', ready: 'mailboxes.compose.subject' },
   { path: `/mailboxes/${MAILBOX_ZH}/inbox`, role: 'bot', ready: 'mailboxes.rail.mailbox' },
-  { path: `/mailboxes/${MAILBOX_ZH}/inbox/${MAIL_5}`, role: 'bot', ready: 'mailboxes.rail.mailbox' },
+  { path: `/mailboxes/${MAILBOX_ZH}/inbox/${MAIL_5}`, role: 'bot', ready: 'mailboxes.mail.subject' },
   { path: '/newsletters', role: 'orga', ready: 'newsletters.list.kind', mobile: true },
   { path: `/newsletters/${NEWSLETTER}`, role: 'orga', ready: 'newsletters.editor.root' },
   { path: `/regions/${ZH}/newsletters`, role: 'bot', ready: 'newsletters.list.state' },

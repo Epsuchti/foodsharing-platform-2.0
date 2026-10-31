@@ -20,12 +20,16 @@ export function monthLabel(month: string, locale: string): string {
  * `<fs-month-bar-chart [bars]="…" [label]="…" unit="kg" />` (S14): accessible bar chart, one bar per month (CSS, no
  * chart library). The values are also exposed as a list for screen readers.
  */
+let nextChartId = 0;
+
 @Component({
   selector: 'fs-month-bar-chart',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <figure class="chart" [attr.data-testid]="testId()">
-      <figcaption class="chart__caption">{{ label() }}</figcaption>
+      <figcaption class="chart__caption" [id]="captionId">{{ label() }}</figcaption>
+      <!-- the months scroll sideways on phones: the scroll area is focusable so keyboards can scroll it (axe) -->
+      <div class="chart__scroll" tabindex="0" role="group" [attr.aria-labelledby]="captionId" [attr.data-testid]="testId() + '.scroll'">
       <ol class="chart__bars" [attr.aria-label]="label()">
         @for (bar of view(); track bar.month) {
           <li class="chart__item" [attr.data-month]="bar.month" [attr.data-value]="bar.value" [attr.data-testid]="testId() + '.bar'">
@@ -35,6 +39,7 @@ export function monthLabel(month: string, locale: string): string {
           </li>
         }
       </ol>
+      </div>
     </figure>
   `,
   styles: `
@@ -43,8 +48,10 @@ export function monthLabel(month: string, locale: string): string {
     .chart__caption { margin-bottom: 0.5rem; font-weight: 600; }
     .chart__bars {
       display: grid; grid-auto-flow: column; grid-auto-columns: minmax(2.2rem, 1fr); gap: 0.35rem;
-      margin: 0; padding: 0 0 0.25rem; list-style: none; overflow-x: auto;
+      margin: 0; padding: 0 0 0.25rem; list-style: none;
     }
+    .chart__scroll { overflow-x: auto; border-radius: var(--fs-radius-sm); }
+    .chart__scroll:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
     .chart__item { display: grid; grid-template-rows: auto 9rem auto; gap: 0.25rem; justify-items: center; }
     .chart__value { font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--fs-text-muted); }
     .chart__track { display: flex; align-items: flex-end; width: 100%; height: 100%; }
@@ -54,6 +61,7 @@ export function monthLabel(month: string, locale: string): string {
 })
 export class MonthBarChartComponent {
   private readonly i18n = inject(I18nService);
+  protected readonly captionId = `fs-month-chart-${nextChartId++}`;
 
   readonly bars = input.required<readonly MonthBar[]>();
   readonly label = input.required<string>();

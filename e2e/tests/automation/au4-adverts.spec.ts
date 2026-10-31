@@ -22,10 +22,16 @@ test('AU4 advert 48 h before posts a rotating Telegram message to the region cha
   await card.getByTestId('automation.adverts.message.TELEGRAM.1.text').fill('Noch Platz bei ');
   await card.getByTestId('automation.adverts.message.TELEGRAM.1.placeholder.storeName').click();
   await expect(card.getByTestId('automation.adverts.message.TELEGRAM.1.preview')).toContainText("Babu's Bakery");
+  // "run now" evaluates the saved adverts: blocked while the form has unsaved changes or the save is in flight
+  const run = page.getByTestId('automation.adverts.run').locator('button');
+  await expect(run).toBeDisabled();
+  await expect(page.getByTestId('automation.adverts.saveFirst')).toBeVisible();
   await card.getByTestId('automation.adverts.save').click();
   await expect(card.getByTestId('automation.adverts.save').locator('button')).toBeDisabled();
+  await expect(run).toBeEnabled();
+  await expect(page.getByTestId('automation.adverts.saveFirst')).toBeHidden();
 
-  await page.getByTestId('automation.adverts.run').click();
+  await run.click();
   await expect(page.getByTestId('automation.adverts.runResult')).toBeVisible();
   await expect.poll(async () => (await telegramTo(api, '-1001')).length, { timeout: 15_000 }).toBeGreaterThan(0);
   const sent = await telegramTo(api, '-1001');

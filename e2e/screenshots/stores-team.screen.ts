@@ -1,5 +1,5 @@
 import { injectApiError, seedStore } from '../fixtures';
-import { expect, forEachVariant, screenshotTest } from './_setup';
+import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup';
 
 /**
  * Store team screens (M3 F3): team tab as manager and member, row menu, required-message dialog, invite dialog,
@@ -27,7 +27,9 @@ forEachVariant((variant) => {
         await page.goto(`/stores/${S01}/team`);
         await page.locator('[data-testid="stores.team.member"][data-user="Sarah Müller"]').getByTestId('stores.team.menu').click();
         await expect(page.getByTestId('stores.team.toStandby')).toBeVisible();
-        await visual.expectScreen(page, `stores-team-menu-${variant.name}`);
+        // viewport only: a full-page capture resizes the viewport, and p-popover closes on resize (desktop)
+        await visual.expectScreen(page, `stores-team-menu-${variant.name}`, { fullPage: false });
+        await expect(page.getByTestId('stores.team.toStandby')).toBeVisible();
         await page.getByTestId('stores.team.toStandby').click();
         await expect(page.getByTestId('stores.team.messageDialog.message')).toBeVisible();
         await visual.expectScreen(page, `stores-team-message-${variant.name}`);
@@ -37,6 +39,7 @@ forEachVariant((variant) => {
         await page.goto(`/stores/${S08}/team`);
         await page.getByTestId('stores.team.invite').click();
         await page.getByTestId('stores.invite.search').fill('Julien');
+        await tickFixedClock(page);
         await expect(page.getByTestId('stores.invite.result').first()).toBeVisible();
         await visual.expectScreen(page, `stores-team-invite-${variant.name}`);
       });

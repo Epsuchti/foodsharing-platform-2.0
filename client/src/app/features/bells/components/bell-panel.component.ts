@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { Bell, BellPage, BellsService } from '../../../api';
@@ -25,6 +25,7 @@ export const BELL_PANEL_SIZE = 10;
     role: 'dialog',
     '[attr.aria-label]': 'label()',
     'data-testid': 'bell.ui.panel',
+    '[class.panel--embedded]': 'embedded()',
     '(document:keydown.escape)': 'closed.emit()',
     '(document:click)': 'onDocumentClick($event)',
   },
@@ -82,6 +83,16 @@ export const BELL_PANEL_SIZE = 10;
       box-shadow: var(--fs-shadow-lg);
       text-align: start;
     }
+    /* inside the side menu's floating card (decision 133): the card is the frame and places it */
+    :host(.panel--embedded) {
+      position: static;
+      width: auto;
+      max-height: min(32rem, calc(100dvh - 2rem));
+      border: 0;
+      border-radius: inherit;
+      background: transparent;
+      box-shadow: none;
+    }
     @media (max-width: 40rem) {
       :host {
         position: fixed;
@@ -123,6 +134,8 @@ export class BellPanelComponent {
 
   /** Emitted on Escape, outside click, navigation. */
   readonly closed = output<void>();
+  /** Rendered inside the side menu's card (no own position, border or shadow). */
+  readonly embedded = input(false);
 
   protected readonly bells = loadResource<BellPage, number>({
     params: () => this.store.version(),

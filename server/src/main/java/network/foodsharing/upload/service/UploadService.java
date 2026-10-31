@@ -297,13 +297,13 @@ public class UploadService {
                                                                   int size) {
         var pageable = org.springframework.data.domain.PageRequest.of(page, size);
         if (module != null && !module.isBlank()) {
-            return repository.findByUsageModuleOrderByCreatedAtDesc(module.strip(), pageable);
+            return repository.findByUsageModuleOrderByCreatedAtDescIdDesc(module.strip(), pageable);
         }
         if (unclaimed != null) {
-            return unclaimed ? repository.findByUsageCountOrderByCreatedAtDesc(0, pageable)
-                    : repository.findByUsageCountGreaterThanOrderByCreatedAtDesc(0, pageable);
+            return unclaimed ? repository.findByUsageCountOrderByCreatedAtDescIdDesc(0, pageable)
+                    : repository.findByUsageCountGreaterThanOrderByCreatedAtDescIdDesc(0, pageable);
         }
-        return repository.findAllByOrderByCreatedAtDesc(pageable);
+        return repository.findAllByOrderByCreatedAtDescIdDesc(pageable);
     }
 
     @Transactional(readOnly = true)

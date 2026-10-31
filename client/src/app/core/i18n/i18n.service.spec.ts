@@ -7,7 +7,7 @@ import { Language, Role, Theme } from '../../api';
 import { provideApi } from '../../api/provide-api';
 import { SessionService } from '../auth/session.service';
 import { I18nService, LANGUAGE_STORAGE_KEY, languageFromPath } from './i18n.service';
-import { matchBrowserLanguage } from './languages';
+import { LANGUAGES, intlLocale, matchBrowserLanguage } from './languages';
 import { formatMessage } from './message-format';
 
 describe('formatMessage', () => {
@@ -34,6 +34,31 @@ describe('formatMessage', () => {
     const template = '{count, plural, one {# collecte} other {# collectes}}';
     expect(formatMessage(template, { count: 0 }, 'fr-CH')).toBe('0 collecte');
     expect(formatMessage(template, { count: 2 }, 'fr-CH')).toBe('2 collectes');
+  });
+
+  it('formats small counts exactly like Intl in every UI locale, without Intl (D11.5.3)', () => {
+    const template = '{count, plural, one {one:#} other {other:#}}';
+    for (const language of LANGUAGES) {
+      const locale = intlLocale(language);
+      const rules = new Intl.PluralRules(locale);
+      const numbers = new Intl.NumberFormat(locale);
+      for (let count = 0; count < 1000; count++) {
+        const expected = `${rules.select(count) === 'one' ? 'one' : 'other'}:${numbers.format(count)}`;
+        expect(formatMessage(template, { count }, locale)).toBe(expected);
+        expect(formatMessage('{count}', { count }, locale)).toBe(numbers.format(count));
+      }
+    }
+  });
+
+  it('leaves larger, negative and fractional numbers to Intl', () => {
+    for (const count of [1000, 12345, -1, 1.5, 0.5]) {
+      for (const locale of ['de-CH', 'fr-CH', 'it-CH', 'en-CH']) {
+        expect(formatMessage('{count}', { count }, locale)).toBe(new Intl.NumberFormat(locale).format(count));
+      }
+    }
+    expect(formatMessage('{count, plural, one {one} other {other}}', { count: 1.5 }, 'fr-CH')).toBe(
+      new Intl.PluralRules('fr-CH').select(1.5),
+    );
   });
 
   it('supports nested placeholders and select', () => {

@@ -1,4 +1,4 @@
-import { acceptPendingConsents, expect, expectNoSeriousViolations, test } from '../../fixtures';
+import { acceptPendingConsents, collapseSidenav, expect, expectNoSeriousViolations, test } from '../../fixtures';
 import { devices, type Page } from '@playwright/test';
 import type { ApiClient } from '../../fixtures/api';
 import { animationsDone } from './animations';
@@ -92,17 +92,37 @@ for (const theme of ['light', 'dark'] as const) {
       const page = await as('foodsaver');
       await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [THEME_STORAGE_KEY, theme] as const);
 
-      // Desktop: language and theme popovers.
+      // Desktop (decision 133): language and theme live in the side menu's user menu card; the bell panel and the
+      // region switcher open as cards next to their items.
       await page.setViewportSize({ width: 1280, height: 800 });
       await page.goto('/dashboard');
       await settle(page, { ready: 'dashboard.page.welcome' });
-      await page.getByTestId('shell.languageMenu').click();
-      await expect(page.getByTestId('shell.language.fr')).toBeVisible();
+      await page.getByTestId('shell.userMenu').click();
+      await page.getByTestId('shell.userMenu.language').click();
+      await expect(page.getByTestId('shell.userMenu.language.fr')).toBeVisible();
+      await page.getByTestId('shell.userMenu.theme').click();
+      await expect(page.getByTestId('shell.userMenu.theme.dark')).toBeVisible();
       await animationsDone(page);
       await expectNoSeriousViolations(page);
       await page.keyboard.press('Escape');
-      await page.getByTestId('shell.themeMenu').click();
-      await expect(page.getByTestId('shell.theme.dark')).toBeVisible();
+      await expect(page.getByTestId('shell.userMenu.card')).toBeHidden();
+      await page.getByTestId('bells.button').click();
+      await expect(page.getByTestId('bells.panel.state')).toBeVisible();
+      await animationsDone(page);
+      await expectNoSeriousViolations(page);
+      await page.keyboard.press('Escape');
+      await page.getByTestId('shell.regionSwitcher').click();
+      await expect(page.getByTestId('shell.regionSwitcher.card')).toBeVisible();
+      await animationsDone(page);
+      await expectNoSeriousViolations(page);
+      await page.keyboard.press('Escape');
+      // the rail with an open section flyout (48–75rem)
+      await page.setViewportSize({ width: 1000, height: 700 });
+      await collapseSidenav(page);
+      // 700px of height: the rail folds Verwalten and Community into flyouts
+      const flyout = page.getByTestId('nav.flyout.community');
+      await flyout.click();
+      await expect(flyout).toHaveAttribute('aria-expanded', 'true');
       await animationsDone(page);
       await expectNoSeriousViolations(page);
       await page.keyboard.press('Escape');

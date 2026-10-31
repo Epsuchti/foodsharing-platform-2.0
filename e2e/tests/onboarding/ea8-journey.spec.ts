@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { type ApiClient, type Role, acceptPendingConsents, expect, expectStatus, test } from '../../fixtures';
+import { type ApiClient, type Role, acceptPendingConsents, expect, expectStatus, journeyIndicator, test } from '../../fixtures';
 import { setIntroSettings } from '../intro-pickups/_intro';
 import { playSession, solutionKey } from '../quiz/_quiz';
 import { ZH, confirmMessage, openQueue, queueCard } from '../verification/_verification';
@@ -148,7 +148,10 @@ test('EA8 newbie becomes a verified foodsaver with passport through every journe
   await expect(page.getByTestId('onboarding.journey.complete')).toBeVisible();
   expect((await me.session()).user?.role).toBe('FOODSAVER');
   await page.goto('/dashboard');
-  await expect(page.getByTestId('onboarding.bar')).toHaveCount(0);
+  await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+  // no journey progress any more: the bar on phones, the side menu's journey item and meter on desktop
+  await expect(journeyIndicator(page)).toHaveCount(0);
+  await expect(page.getByTestId('nav.onboarding')).toHaveCount(0);
 
   // the newcomer got a bell each time others unblocked a step (§11 "waiting for others")
   const bells = await me.getJson<{ items: { type: string }[] }>('/api/bells?size=50');

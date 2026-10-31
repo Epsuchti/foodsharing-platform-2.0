@@ -1,17 +1,21 @@
 import { HttpTestingController } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { WritableSignal, computed, signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
-import { afterEach, beforeAll } from 'vitest';
+import { afterEach, beforeAll, vi } from 'vitest';
 
-import { ApiErrorCode } from '../../api';
+import { AdvertChannel, ApiErrorCode, OpenSlotAdvert, StoreAutomation } from '../../api';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { AUTOMATION_ROUTES } from './automation.routes';
+import { AdvertsSection } from './sections/adverts.section';
+import { StoreAutomationContext } from './store-automation.context';
 import {
   advertValues,
   appendPlaceholder,
   decisionTone,
+  emptyAdvert,
   fillDays,
   renderTemplate,
   toggle,
@@ -114,5 +118,93 @@ describe('region automation page', () => {
       .flush(apiHttpError(403, ApiErrorCode.AccessDenied).error, { status: 403, statusText: 'Forbidden' });
     await settle();
     expect(q('[data-testid="automation.grouping.state"]')?.getAttribute('data-state')).toBe('forbidden');
+  });
+});
+
+describe('adverts section: run now uses the saved adverts', () => {
+  const S = '00000020-0001-4000-8000-000000000006';
+  const saved: OpenSlotAdvert = {
+    ...emptyAdvert(1),
+    enabled: true,
+    dryRun: false,
+    channels: [AdvertChannel.Telegram],
+    telegramMessages: ['Noch Platz bei {{storeName}}'],
+  };
+  const automation = signal<StoreAutomation | undefined>(undefined);
+  const reload = vi.fn();
+  let http: HttpTestingController;
+  let fixture: ComponentFixture<AdvertsSection>;
+  const q = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector(selector);
+  const runButton = () => q('[data-testid="automation.adverts.run"] button') as HTMLButtonElement;
+  const runDryButton = () => q('[data-testid="automation.adverts.runDry"] button') as HTMLButtonElement;
+  const settle = async () => {
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+  const section = () => fixture.componentInstance as unknown as { drafts: WritableSignal<OpenSlotAdvert[]> };
+  const state = (advert: OpenSlotAdvert) => ({ adverts: [advert], permissions: { mayEdit: true } }) as unknown as StoreAutomation;
+
+  beforeEach(async () => {
+    automation.set(state(structuredClone(saved)));
+    reload.mockReset();
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting(),
+        provideOptimus(),
+        {
+          provide: StoreAutomationContext,
+          useValue: {
+            storeId: signal(S),
+            data: automation,
+            mayEdit: computed(() => !!automation()?.permissions.mayEdit),
+            timeZone: signal('Europe/Zurich'),
+            store: { data: signal({ id: S, name: "Babu's Bakery" }) },
+            reload,
+          },
+        },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(AdvertsSection);
+    await settle();
+    http.expectOne((r) => r.url === `/api/stores/${S}/automation/adverts/planned`).flush([]);
+    http.match((r) => r.url.includes('telegram')).forEach((r) => r.flush({ chats: [] }));
+    await settle();
+  });
+
+  afterEach(() => http.verify({ ignoreCancelled: true }));
+
+  it('blocks run and dry run while a draft is unsaved or the save is in flight', async () => {
+    expect(runButton().disabled).toBe(false);
+    expect(runDryButton().disabled).toBe(false);
+    expect(q('[data-testid="automation.adverts.saveFirst"]')).toBeNull();
+
+    // the user changes the trigger: unsaved
+    section().drafts.update((list) => list.map((a) => ({ ...a, triggerHoursBefore: 48 })));
+    await settle();
+    expect(runButton().disabled).toBe(true);
+    expect(runDryButton().disabled).toBe(true);
+    expect(q('[data-testid="automation.adverts.saveFirst"]')).not.toBeNull();
+
+    // save in flight: still blocked
+    (q('[data-testid="automation.adverts.save"] button') as HTMLButtonElement).click();
+    await settle();
+    const put = http.expectOne((r) => r.method === 'PUT' && r.url === `/api/stores/${S}/automation/adverts/1`);
+    expect(runButton().disabled).toBe(true);
+
+    // saved, but the store automation is not reloaded yet: still blocked
+    put.flush({ ...saved, triggerHoursBefore: 48 });
+    await settle();
+    expect(reload).toHaveBeenCalled();
+    http.match((r) => r.url === `/api/stores/${S}/automation/adverts/planned`).forEach((r) => r.flush([]));
+    await settle();
+    expect(runButton().disabled).toBe(true);
+
+    // the reloaded state matches the draft: run is possible again
+    automation.set(state({ ...saved, triggerHoursBefore: 48 }));
+    await settle();
+    expect(runButton().disabled).toBe(false);
+    expect(runDryButton().disabled).toBe(false);
+    expect(q('[data-testid="automation.adverts.saveFirst"]')).toBeNull();
   });
 });

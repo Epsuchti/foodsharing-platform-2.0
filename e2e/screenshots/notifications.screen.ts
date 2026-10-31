@@ -14,6 +14,9 @@ forEachVariant((variant) => {
     screenshotTest('bell panel @N3 @screenshot', async ({ page, visual }) => {
       await page.goto('/dashboard');
       const button = page.getByTestId('bells.button');
+      const menu = page.getByTestId('nav.tab.menu');
+      // the side menu's bell renders after the first page; wait for whichever entry this layout has
+      await expect(button.or(menu).filter({ visible: true }).first()).toBeVisible();
       if (await button.isVisible()) {
         await button.click();
         await expect(page.getByTestId('bells.panel.state')).toHaveAttribute('data-state', 'success');
@@ -29,11 +32,15 @@ forEachVariant((variant) => {
       await page.goto('/bells');
       const state = page.getByTestId('bells.page.state');
       await expect(state).toHaveAttribute('data-state', 'success');
+      // the unread count (badge, "mark all read") loads after the first page has shown; until then the inner button
+      // is disabled and a click on the p-button host does nothing
+      const markAllRead = page.getByTestId('bells.page.markAllRead').locator('button');
+      await expect(markAllRead).toBeEnabled();
       await visual.expectScreen(page, `bells-page-${variant.name}`);
       await page.getByTestId('bells.page.filter').locator('.p-togglebutton').nth(1).click();
       await expect(state).toHaveAttribute('data-state', 'success');
       await visual.expectScreen(page, `bells-page-unread-${variant.name}`);
-      await page.getByTestId('bells.page.markAllRead').click();
+      await markAllRead.click();
       await expect(state).toHaveAttribute('data-state', 'empty');
       await visual.expectScreen(page, `bells-page-empty-${variant.name}`);
     });

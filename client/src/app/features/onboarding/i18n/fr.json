@@ -72,5 +72,7 @@
   "onboarding.region.nextIntroPickups": "Prochaines collectes d’introduction",
   "onboarding.region.freeSlots": "{count, plural, one {1 place libre} other {# places libres}}",
   "onboarding.region.noDates": "Pas de date libre pour l’instant – nous te prévenons volontiers.",
-  "onboarding.region.allDates": "Voir toutes les dates"
+  "onboarding.region.allDates": "Voir toutes les dates",
+  "onboarding.meter.progress": "Étape {current} sur {total}",
+  "onboarding.meter.retry": "Recharger la progression"
 }

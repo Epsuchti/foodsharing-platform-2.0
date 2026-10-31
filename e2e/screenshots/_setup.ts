@@ -71,10 +71,46 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   if (options.waitForData ?? true) {
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
+    // banners, the release-notes dot and toggled nav items appear after the first page (StartupService.markPageShown);
+    // its idle callback falls back to a 5 s timeout under the fixed page clock
+    if (await page.evaluate(() => document.body?.querySelector('fs-shell') !== null)) {
+      await expect(page.locator('html[data-page-shown]')).toHaveCount(1, { timeout: 15_000 });
+    }
+    await networkQuiet(page);
+    await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
   }
   await page.evaluate(
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );
+}
+
+/**
+ * Waits until no request has finished for 500 ms (wall clock, so it also works under `page.clock.setFixedTime`). The
+ * after-first-page requests (feature toggles, nav badges, banners) otherwise land in some captures and not in others.
+ */
+async function networkQuiet(page: Page): Promise<void> {
+  let last = -1;
+  let since = Date.now();
+  await expect
+    .poll(
+      async () => {
+        const count = await page.evaluate(() => {
+          performance.setResourceTimingBufferSize(100_000);
+          return performance.getEntriesByType('resource').length;
+        });
+        if (count !== last) {
+          last = count;
+          since = Date.now();
+        }
+        return Date.now() - since >= 500;
+      },
+      { intervals: [100], timeout: 15_000 },
+    )
+    .toBe(true);
+}
+
+async function modalOpen(page: Page): Promise<boolean> {
+  return page.locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible').count().then((n) => n > 0);
 }
 
 /**
@@ -91,7 +127,10 @@ const screen: ScreenHelpers = {
   async expectScreen(page, name, options = {}) {
     await settle(page, options);
     await expect(page).toHaveScreenshot(`${name}.png`, {
-      fullPage: options.fullPage ?? true,
+      // A full-page capture of an open modal shows its backdrop only over the first viewport (fixed elements keep the
+      // viewport's size), so the page below it looked brighter than the dimmed part. Modals are captured as the
+      // viewport the user sees.
+      fullPage: options.fullPage ?? !(await modalOpen(page)),
       mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
       maskColor: await maskColor(page),
       ...(options.clip ? { clip: options.clip } : {}),
@@ -106,10 +145,21 @@ const screen: ScreenHelpers = {
   },
 };
 
+/**
+ * The page clock is fixed at SEED_NOW (timers keep running, but the time does not move). Work that waits for time to
+ * pass therefore never happens: RxJS `debounceTime` measures elapsed time with `Date.now()` and reschedules forever
+ * (debounced searches), and the fake `requestIdleCallback` never reports idle time (`@defer (on idle)` blocks). Call
+ * this after the step that starts such work; it moves the fixed time on by `ms`, so the work runs on its next check.
+ */
+export async function tickFixedClock(page: Page, ms = 1_000): Promise<void> {
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.setFixedTime(new Date(now + ms));
+}
+
 export const screenshotTest = test.extend<{ variant: Variant | undefined; visual: ScreenHelpers }>({
   variant: [undefined, { option: true }],
 
-  page: async ({ page, variant }, use) => {
+  page: async ({ page, variant, role, apiOf }, use) => {
     await page.clock.setFixedTime(new Date(SEED_NOW));
     await page.route(
       (url) => TILE_HOSTS.test(url.hostname),
@@ -132,6 +182,15 @@ export const screenshotTest = test.extend<{ variant: Variant | undefined; visual
         },
         [LANG_STORAGE_KEY, variant.lang, THEME_STORAGE_KEY, variant.theme] as const,
       );
+      if (role) {
+        // A signed-in account's own language/theme win over local storage (seed accounts use gws, fr, …), so the
+        // account is set to the variant too; the seed reset restores it.
+        const response = await apiOf(page).patch('/api/users/me/settings', {
+          language: variant.lang,
+          theme: variant.theme.toUpperCase(),
+        });
+        expect(response.ok(), `PATCH /api/users/me/settings → ${response.status()}`).toBe(true);
+      }
     }
     await use(page);
   },

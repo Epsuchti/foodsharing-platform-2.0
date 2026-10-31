@@ -35,7 +35,9 @@ import { TPipe } from '../core/i18n/t.pipe';
           fill="none"
         />
       </svg>
-      <span class="brand__word">food<span>sharing</span></span>
+      @if (!markOnly()) {
+        <span class="brand__word">food<span>sharing</span></span>
+      }
     </a>
   `,
   styles: `
@@ -67,8 +69,12 @@ import { TPipe } from '../core/i18n/t.pipe';
       font-weight: 800;
       letter-spacing: -0.03em;
     }
-    /* narrow phones (360px): the mark alone, so the header actions fit; the link keeps its name (aria-label) */
-    @media (max-width: 24.99rem) {
+    /*
+     * phones (360–480px): the mark alone, so the header actions fit; the link keeps its name (aria-label). With the
+     * phone search toggle the signed-in actions need ~260px: the wordmark beside them widened the page by ~36px on a
+     * 412px phone, which shifted the fixed tab bar and every tap target against the layout viewport.
+     */
+    @media (max-width: 29.99rem) {
       .brand__word {
         display: none;
       }
@@ -76,8 +82,14 @@ import { TPipe } from '../core/i18n/t.pipe';
     .brand__word span {
       color: var(--fs-primary);
     }
+    /* on the tinted side menu (decision 133) the primary green is below 4.5:1 (axe color-contrast) */
+    :host-context(.sn) .brand__word span {
+      color: var(--fs-primary-strong);
+    }
   `,
 })
 export class BrandComponent {
   readonly link = input<string>('/');
+  /** The mark alone (side menu rail); the link keeps its name. */
+  readonly markOnly = input(false);
 }
