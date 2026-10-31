@@ -22,7 +22,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  *
  * <p>Ids are time-ordered UUIDs (version 7, monotonic within the JVM), so the id works as the last order key: rows
  * created in the same instant (the e2e clock is fixed) come back in creation order instead of a random one
- * (decision 137, {@code StableOrderTest}). Seed rows keep their fixed ids, which sort before every generated one.
+ * (decision 138, {@code StableOrderTest}). Seed rows keep their fixed ids, which sort before every generated one.
  */
 @Getter
 @Setter

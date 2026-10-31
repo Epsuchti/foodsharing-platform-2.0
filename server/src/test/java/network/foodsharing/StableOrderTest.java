@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 
 /**
- * Stable order (resume item 18, decision 137): every ordered repository query ends with a unique key, so rows with the
+ * Stable order (resume item 18, decision 138): every ordered repository query ends with a unique key, so rows with the
  * same timestamp (or name, or date) never come back in a random order and a page boundary never moves between calls.
  * The key is the id, except for the few order keys in {@link #UNIQUE_ORDER_KEYS} that are unique by a database
  * constraint.

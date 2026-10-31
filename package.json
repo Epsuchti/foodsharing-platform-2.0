@@ -13,6 +13,7 @@
     "e2e:install": "npm --prefix e2e ci && npm --prefix e2e exec -- playwright install",
     "e2e": "npm --prefix e2e exec -- playwright test",
     "e2e:chromium": "npm --prefix e2e exec -- playwright test --project=chromium",
+    "e2e:sharded": "node e2e/scripts/run-sharded.mjs",
     "e2e:ui": "npm --prefix e2e exec -- playwright test --ui",
     "e2e:screenshots": "bash e2e/scripts/screenshots.sh",
     "e2e:coverage": "node e2e/scripts/feature-coverage.mjs",
