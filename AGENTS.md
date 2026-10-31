@@ -23,3 +23,14 @@ Single source of truth: `plan.md`. Build state: `docs/ledger.md`. Decisions: `do
 - Every feature gets a Playwright e2e test tagged with its feature ID (`@S6`) and screenshot specs for its states. Baselines are generated in batch at the end, not per task (decision 69). Screenshot baselines are only updated deliberately (`e2e/scripts/screenshots.sh --update-snapshots`), never to make a failing test pass by accident.
 - Tests are never skipped, disabled or weakened to get green. Fix the code.
 - `data-testid="<module>.<page>.<element>"` on interactive elements.
+
+## Choosing the workflow (agents in `.claude/agents/`, details in `docs/tasks/README.md`)
+| Task | Who |
+|---|---|
+| A question, a lookup, a one-line change | the main session directly |
+| Clear and small: about 3 files or fewer, one layer, no contract, Liquibase or permission change | `fixer` (Sonnet); then `tester` if shared components, the shell or many pages are touched |
+| Needs a decision, spans layers (contract + server + client), changes the database, permissions or data protection, a visible UI change, or "done" can't be said in one sentence | `planner` → owner approves the plan (→ `designer` mockup if the owner wants one) → `implementer` → `tester` → fixes by the same `implementer` |
+
+- When in doubt, use the planner: building in the wrong direction costs more than a question round.
+- Agents can't ask the owner directly. The main session relays the planner's questions and the answers.
+- The main session merges into `main` and pushes only when the owner says so.

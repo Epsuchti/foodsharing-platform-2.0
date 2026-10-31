@@ -27,8 +27,8 @@ Goal: build the right thing the first time, and spend fewer tokens doing it. The
 - Fixes reuse the implementer's context while it's still small.
 
 ## Tips
-- Use this flow for anything bigger than a one-file fix; small fixes go straight to an implementer or the main
-  session.
+- Which path to take is decided by the table in `AGENTS.md` ("Choosing the workflow"): small, clear tasks go to `fixer`
+  (Sonnet), questions and one-line changes stay in the main session, everything else uses this flow.
 - Keep the plan file current: when the owner changes something mid-way, edit the plan first, then tell the
   implementer.
 - The tester's model is Haiku: fine for running commands and summarising. If a failure needs judgement (bug or
