@@ -7,6 +7,92 @@ import { isHeldRequest } from '../fixtures/errors';
 import { LANG_STORAGE_KEY, THEME_STORAGE_KEY } from '../fixtures/i18n';
 
 /**
+ * Every capture is rendered in Inter, what a returning user sees (the product makes Inter a progressive enhancement:
+ * system font on the first visit, `fs.font=inter` + `font-display: optional` afterwards, see client/src/styles.scss).
+ * `fs.font` alone is not enough: with `optional` the browser keeps the fallback for the whole page lifetime when the
+ * download misses its ~100 ms block period (machine load). So the init script below also adds the two Inter faces to
+ * `document.fonts` from bytes it carries itself (the app's own /fonts files, fetched once per worker). A FontFace made
+ * from a buffer needs no network, and it is declared `display: 'block'`: text waits for it and can never be painted in
+ * the fallback. It is added after the CSS faces, so it wins the match for the same family and unicode ranges.
+ * `assertInter` fails a capture that still is not in Inter.
+ */
+const INTER_FAMILY = 'Inter Variable';
+const FONT_STORAGE_KEY = 'fs.font';
+const INTER_FACES = [
+  {
+    file: '/fonts/inter-latin-ext-wght-normal.woff2',
+    unicodeRange:
+      'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF',
+  },
+  {
+    file: '/fonts/inter-latin-wght-normal.woff2',
+    unicodeRange:
+      'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD',
+  },
+];
+const interBytes = new Map<string, Promise<string>>();
+
+async function interFaces(page: Page): Promise<{ data: string; unicodeRange: string }[]> {
+  return Promise.all(
+    INTER_FACES.map(async ({ file, unicodeRange }) => {
+      let bytes = interBytes.get(file);
+      if (!bytes) {
+        bytes = page
+          .context()
+          .request.get(file)
+          .then(async (response) => {
+            expect(response.ok(), `GET ${file} → ${response.status()}`).toBe(true);
+            return (await response.body()).toString('base64');
+          });
+        interBytes.set(file, bytes);
+        bytes.catch(() => interBytes.delete(file));
+      }
+      return { data: await bytes, unicodeRange };
+    }),
+  );
+}
+
+/** Pins Inter for every document of the page's context (also pages opened later). */
+async function pinInter(page: Page): Promise<void> {
+  const faces = await interFaces(page);
+  await page.context().addInitScript(
+    ([family, storageKey, list]) => {
+      try {
+        window.localStorage.setItem(storageKey, 'inter');
+      } catch {
+        /* storage disabled */
+      }
+      const pinned: FontFace[] = [];
+      (window as unknown as { __fsPinnedInter: FontFace[] }).__fsPinnedInter = pinned;
+      for (const { data, unicodeRange } of list) {
+        const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+        const face = new FontFace(family, bytes.buffer, { style: 'normal', weight: '100 900', display: 'block', unicodeRange });
+        document.fonts.add(face);
+        pinned.push(face);
+        face.load().catch(() => undefined);
+      }
+    },
+    [INTER_FAMILY, FONT_STORAGE_KEY, faces] as const,
+  );
+}
+
+/** Fails when the page is not rendered in Inter: `.fs-inter` set, both pinned faces loaded, body resolves to Inter. */
+async function assertInter(page: Page): Promise<void> {
+  const state = await page.evaluate(async (family) => {
+    const faces = (window as unknown as { __fsPinnedInter?: FontFace[] }).__fsPinnedInter ?? [];
+    await Promise.all(faces.map((f) => f.loaded.catch(() => undefined)));
+    return {
+      isInter: document.documentElement.classList.contains('fs-inter'),
+      loaded: faces.filter((f) => f.status === 'loaded').length,
+      faces: faces.length,
+      resolved: document.body ? getComputedStyle(document.body).fontFamily.includes(family) : false,
+    };
+  }, INTER_FAMILY);
+  const ok = state.isInter && state.loaded >= INTER_FACES.length && state.resolved;
+  expect(ok, `screenshot is not rendered in Inter: ${JSON.stringify(state)}`).toBe(true);
+}
+
+/**
  * Base for `screenshots/<area>.screen.ts` (plan §18.4). Every page gets: browser clock fixed at SEED_NOW, map tiles and
  * external avatars stubbed with local fixtures, the variant's theme/language applied before the app boots, and
  * reduced motion (set on the screenshot projects). Baselines are only produced inside the official Playwright image
@@ -169,6 +255,7 @@ const screen: ScreenHelpers = {
   settle,
   async expectScreen(page, name, options = {}) {
     await settle(page, options);
+    await assertInter(page);
     await expect(page).toHaveScreenshot(`${name}.png`, {
       // A full-page capture of an open modal shows its backdrop only over the first viewport (fixed elements keep the
       // viewport's size), so the page below it looked brighter than the dimmed part. Modals are captured as the
@@ -181,6 +268,7 @@ const screen: ScreenHelpers = {
   },
   async expectElement(locator, name, options = {}) {
     await settle(locator.page(), options);
+    await assertInter(locator.page());
     await expect(locator).toHaveScreenshot(`${name}.png`, {
       mask: [locator.page().locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
       maskColor: await maskColor(locator.page()),
@@ -203,6 +291,7 @@ export const screenshotTest = test.extend<{ variant: Variant | undefined; visual
   variant: [undefined, { option: true }],
 
   page: async ({ page, variant, role, apiOf }, use) => {
+    await pinInter(page);
     trackPendingRequests(page);
     await page.clock.setFixedTime(new Date(SEED_NOW));
     await page.route(
