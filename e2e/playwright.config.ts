@@ -32,7 +32,8 @@ const shared: PlaywrightTestConfig['use'] = {
   testIdAttribute: 'data-testid',
   trace: CI ? 'retain-on-failure' : 'on-first-retry',
   screenshot: 'only-on-failure',
-  video: 'retain-on-failure',
+  // E2E_VIDEO=off skips recording a video of every test (it is only kept on failure); see decision 137.
+  video: process.env.E2E_VIDEO === 'off' ? 'off' : 'retain-on-failure',
   actionTimeout: 10_000,
   navigationTimeout: 20_000,
 };
@@ -51,7 +52,8 @@ export default defineConfig({
   outputDir: path.join(RESULTS_DIR, 'artifacts'),
   globalSetup: './global-setup.ts',
   globalTeardown: './global-teardown.ts',
-  // One shared in-memory database per jar: tests run serially; CI parallelism comes from shards with their own jar.
+  // One shared in-memory database per jar: tests run serially; parallelism comes from shards with their own jar
+  // (CI matrix, locally scripts/run-sharded.mjs and screenshots.sh --shards, decision 137).
   workers: 1,
   fullyParallel: false,
   retries: 0,

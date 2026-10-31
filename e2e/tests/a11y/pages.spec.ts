@@ -14,6 +14,12 @@ import { SWEEP_ROUTES, type RouteCase } from './routes';
 // Default seed reset per file: account theme/language of the seed users are SYSTEM/de, so the emulated color scheme
 // decides the theme of logged-in pages.
 
+// Every sweep test prepares its own state (consents, theme, route setup), so the tests are independent: `parallel`
+// makes each test its own scheduling group, so `--shard` can split this file (~470 tests, almost half of a project)
+// across shards instead of leaving one shard with all of it and another with nothing (decision 137). With
+// `workers: 1` the tests of a shard still run one after another, in file order.
+test.describe.configure({ mode: 'parallel' });
+
 /** Data states that mean "this page did not render what the sweep wants to see" unless the route expects them. */
 const FAILED_STATES = ['error', 'forbidden', 'notFound', 'offline'];
 

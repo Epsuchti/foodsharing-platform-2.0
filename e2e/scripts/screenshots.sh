@@ -13,13 +13,13 @@
 # bare `--update-snapshots` / `-u` to `--update-snapshots=changed` (Playwright's default mode) and only joins a
 # following word that is a valid mode (`--update-snapshots all` → `--update-snapshots=all`).
 #
-# --shards=N (or E2E_SHARDS; default 1, decision 131): N jars, each with its own port, in-memory database, log
+# --shards=N (or E2E_SHARDS; default 1, decision 137): N jars, each with its own port, in-memory database, log
 # (test-results/server-screenshots-<i>.log) and upload folder; inside the container N `playwright test --shard=i/N`
 # processes (output in test-results/instances/screenshots-<i>/output.log) whose blob reports are merged into
 # playwright-report/ and test-results/results.json. Updating baselines works the same way sharded.
 #
 # Env: E2E_BASE_URL (reuse a running app reachable from the container; only with one shard), E2E_JAR, E2E_BUILD=1
-# (build the jar when missing), E2E_PORT (one shard only), E2E_JAVA_OPTS, E2E_SHARDS,
+# (build the jar when missing), E2E_PORT (one shard only), E2E_JAVA_OPTS, E2E_SHARDS, E2E_VIDEO (off by default when sharded),
 # PLAYWRIGHT_IMAGE (default mcr.microsoft.com/playwright:v1.64.1-noble).
 set -euo pipefail
 
@@ -193,6 +193,11 @@ case "$(uname -s)" in
     ;;
 esac
 
+# Sharded runs skip the per-test video like run-sharded.mjs (the diff images are the failure artifact); E2E_VIDEO
+# set explicitly wins.
+VIDEO="${E2E_VIDEO:-}"
+if ((SHARDS > 1)) && [[ -z "${VIDEO}" ]]; then VIDEO=off; fi
+
 echo "[screenshots] running ${SHARDS} shard(s) in ${IMAGE} against ${BASE_URLS[*]}"
 docker run --rm --ipc=host --init \
   "${NETWORK_ARGS[@]}" \
@@ -205,6 +210,7 @@ docker run --rm --ipc=host --init \
   -e E2E_BASE_URLS="${BASE_URLS[*]}" \
   -e E2E_PROXY_TARGETS="${PROXY_TARGETS[*]:-}" \
   -e E2E_SCREENSHOTS=1 \
+  -e E2E_VIDEO="${VIDEO}" \
   -e npm_config_cache=/tmp/.npm \
   "${IMAGE}" \
   bash scripts/screenshots-container.sh ${PW_ARGS[@]+"${PW_ARGS[@]}"}

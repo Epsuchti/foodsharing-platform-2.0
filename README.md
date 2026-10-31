@@ -41,14 +41,46 @@ npm run e2e:chromium                                # one project
 npm run e2e -- tests/auth --project=chromium        # a folder / file
 npm run e2e:ui                                      # Playwright UI mode
 npm run e2e:screenshots                             # screenshot tests in the official Playwright Docker image
-npm run e2e:screenshots -- --update-snapshots       # deliberately re-baseline (review the PNGs in the PR)
+npm run e2e:screenshots -- --update-snapshots=changed   # deliberately re-baseline (review the PNGs in the PR)
 npm run e2e:coverage                                # ledger IDs vs @ID tags → docs/coverage.md
 npm run e2e:typecheck                               # tsc --noEmit -p e2e
 ```
 
 Environment variables: `E2E_BASE_URL` (test a running app instead of starting the jar, e.g. `http://localhost:8081`
 started with `--spring.profiles.active=e2e`), `E2E_BUILD=1` (build the jar when missing), `E2E_JAR`, `E2E_PORT`,
-`E2E_SCREENSHOTS=1` (enables the screenshot projects; set by `screenshots.sh`).
+`E2E_JAVA_OPTS`, `E2E_SCREENSHOTS=1` (enables the screenshot projects; set by `screenshots.sh`), `E2E_INSTANCE`
+(set by the sharded runners below: own state file, auth states, `test-results/instances/<name>/` and upload folder).
+
+### Full runs, sharded locally (decision 137)
+
+One jar holds one in-memory database, so a single run is serial (`workers: 1`). For full runs, shard on this machine:
+`run-sharded.mjs` starts N jars (slots; own port, database, upload folder, log), cuts the suite into 3×N chunks
+(`--shard=k/K`) and lets the slots work through them, each chunk against its slot's jar like a serial run (every spec
+file still starts with a seed reset). The blob reports are merged into one HTML report and one `results.json`.
+Sharded runs don't record videos (`E2E_VIDEO=off`, ~20 % faster; `--video` keeps them).
+
+```bash
+npm run e2e:sharded -- --project=chromium                 # slots: min(4, free GB / 2.5); --shards=N to override
+npm run e2e:sharded -- --project=mobile-chrome --shards=4 tests/stores
+node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict   # works on the merged JSON
+npm run e2e:screenshots -- --shards=4                     # N jars on the host, N shards in one container
+npm run e2e:screenshots -- --shards=4 --update-snapshots=changed   # re-baseline, sharded (or =all)
+```
+
+- Live output: failures and a progress line per minute (tests done, running chunks, CPU, free memory). At the end:
+  passed / failed / flaky / skipped (the `setup` project counts once per chunk), every failed test with `file:line`,
+  wall time, peak CPU, lowest free memory. Exit code 1 on any failure or flaky test, a crashed chunk or jar, or a
+  failed merge.
+- Files: `e2e/test-results/instances/slot-<i>/server.log`, `instances/chunk-<k>/{output.log,artifacts/}`
+  (screenshots: `instances/screenshots-<i>/output.log`, `test-results/server-screenshots-<i>.log`). Merged:
+  `e2e/playwright-report/` and `e2e/test-results/results.json`.
+- Measured on the 16-CPU dev machine (decision 137): chromium 43 min serial → 16:22 with 4 slots.
+- A spec file is one scheduling unit unless it opts into `test.describe.configure({ mode: 'parallel' })`; only files
+  whose tests are independent of each other may do that (the axe sweep `tests/a11y/pages.spec.ts` does).
+- `--update-snapshots` takes an optional mode since Playwright 1.50 (`all|changed|missing|none`), so a bare
+  `--update-snapshots screenshots/auth.screen.ts` would take the file as the mode. `screenshots.sh` rewrites a bare
+  `--update-snapshots`/`-u` to `--update-snapshots=changed`; with plain `npx playwright test` always write the `=mode`.
+- `E2E_BASE_URL` and `E2E_PORT` don't combine with more than one shard (every shard needs its own database).
 
 Rules (see `docs/conventions.md` A8 and `AGENTS.md`):
 
