@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface QuizQuestionCommentRepository extends JpaRepository<QuizQuestionComment, UUID> {
 
-    List<QuizQuestionComment> findByQuestionIdOrderByCreatedAtAsc(UUID questionId);
+    List<QuizQuestionComment> findByQuestionIdOrderByCreatedAtAscIdAsc(UUID questionId);
 
     long countByQuestionId(UUID questionId);
 }

@@ -15,7 +15,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface PickupPolicyAuditRepository extends JpaRepository<PickupPolicyAudit, UUID> {
 
-    Optional<PickupPolicyAudit> findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDesc(UUID storeId, UUID userId,
+    Optional<PickupPolicyAudit> findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDescIdDesc(UUID storeId, UUID userId,
                                                                                            Instant pickupAt);
 
     @Query("select a from PickupPolicyAudit a where a.storeId in :storeIds and a.createdAt >= :from "

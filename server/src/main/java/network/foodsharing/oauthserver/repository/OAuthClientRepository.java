@@ -12,5 +12,5 @@ public interface OAuthClientRepository extends JpaRepository<Client, UUID> {
 
     boolean existsByClientId(String clientId);
 
-    List<Client> findByDeletedAtIsNullOrderByName();
+    List<Client> findByDeletedAtIsNullOrderByNameAscIdAsc();
 }

@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LegalAcceptanceRepository extends JpaRepository<LegalAcceptance, UUID> {
 
-    List<LegalAcceptance> findByUserIdOrderByAcceptedAtDesc(UUID userId);
+    List<LegalAcceptance> findByUserIdOrderByAcceptedAtDescIdDesc(UUID userId);
 
     Optional<LegalAcceptance> findByUserIdAndKindAndDocumentVersion(UUID userId, LegalDocumentKind kind, String version);
 }

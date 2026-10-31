@@ -64,7 +64,7 @@ public class StoreCategoryService {
     public List<Item<StoreCategory>> listCategories() {
         currentActor.requirePrincipal();
         boolean orga = currentActor.isOrga();
-        return categories.findAllByOrderByNameAsc().stream()
+        return categories.findAllByOrderByNameAscIdAsc().stream()
                 .map(c -> new Item<>(c, orga ? stores.countByCategoryId(c.getId()) : null)).toList();
     }
 
@@ -155,14 +155,14 @@ public class StoreCategoryService {
     @Transactional(readOnly = true)
     public Map<UUID, String> groceryCatalog() {
         Map<UUID, String> catalog = new java.util.LinkedHashMap<>();
-        groceries.findAllByOrderByNameAsc().forEach(g -> catalog.put(g.getId(), g.getName()));
+        groceries.findAllByOrderByNameAscIdAsc().forEach(g -> catalog.put(g.getId(), g.getName()));
         return catalog;
     }
 
     @Transactional(readOnly = true)
     public List<Item<Grocery>> listGroceries() {
         currentActor.requireRole(Role.ORGA);
-        return groceries.findAllByOrderByNameAsc().stream()
+        return groceries.findAllByOrderByNameAscIdAsc().stream()
                 .map(g -> new Item<>(g, storeGroceries.countByGroceryId(g.getId()))).toList();
     }
 

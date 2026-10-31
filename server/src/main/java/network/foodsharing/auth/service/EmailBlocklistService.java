@@ -90,7 +90,7 @@ public class EmailBlocklistService {
 
     @Transactional(readOnly = true)
     public List<EmailBlocklistEntry> list() {
-        return repository.findAll(Sort.by("pattern"));
+        return repository.findAll(Sort.by("pattern", "id"));
     }
 
     /** @throws ApiException 400 VALIDATION_FAILED, 409 BLOCKLIST_DUPLICATE */

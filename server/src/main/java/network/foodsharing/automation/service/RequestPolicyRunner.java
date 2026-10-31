@@ -182,7 +182,7 @@ public class RequestPolicyRunner {
 
     private void audit(RequestPolicy policy, UUID userId, boolean dryRun, RequestDecision status, PolicyRule rule,
                        String message, String error, boolean dedupe) {
-        if (dedupe && REPEATABLE.contains(status) && audits.findFirstByStoreIdAndUserIdOrderByCreatedAtDesc(
+        if (dedupe && REPEATABLE.contains(status) && audits.findFirstByStoreIdAndUserIdOrderByCreatedAtDescIdDesc(
                 policy.getStoreId(), userId).map(previous -> previous.getStatus() == status).orElse(false)) {
             return;
         }

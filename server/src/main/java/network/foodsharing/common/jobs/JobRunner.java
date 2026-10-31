@@ -76,8 +76,32 @@ public class JobRunner {
         return jobs.stream().filter(job -> job.jobName().equals(name)).findFirst();
     }
 
+    /**
+     * Jobs that run on their schedule ({@code app.jobs.scheduled}, comma separated); empty (the default) = every job.
+     * The e2e profile keeps only the infrastructure jobs (mail outbox, search refresh, Telegram poll): the business
+     * jobs ran on the machine's wall clock (automation every 5 min, hourly reminders, nightly maintenance) and
+     * changed the data in the middle of a test (a PICKUP_DECISION history entry appearing in D10.3). Tests start
+     * them explicitly ({@code POST /api/dev/jobs/{name}/run}, a MANUAL run, never skipped).
+     */
+    private java.util.Set<String> scheduledJobs = java.util.Set.of();
+
+    @org.springframework.beans.factory.annotation.Value("${app.jobs.scheduled:}")
+    void setScheduledJobs(String names) {
+        scheduledJobs = java.util.Arrays.stream(names.split(",")).map(String::strip).filter(n -> !n.isEmpty())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
+    /** Whether a SCHEDULE run of {@code jobName} executes (see {@link #setScheduledJobs}). */
+    boolean runsOnSchedule(String jobName) {
+        return scheduledJobs.isEmpty() || scheduledJobs.contains(jobName);
+    }
+
     /** Runs {@code job} now and records it. Manual runs ({@code actorId} = the ORGA user or null in dev) rethrow. */
     public JobRun run(RunnableJob job, JobRun.Trigger trigger, UUID actorId) {
+        if (trigger == JobRun.Trigger.SCHEDULE && !runsOnSchedule(job.jobName())) {
+            // not scheduled in this profile: nothing runs and nothing is recorded (the row is returned unsaved)
+            return newRow(job, trigger, actorId);
+        }
         boolean record = trigger == JobRun.Trigger.MANUAL || job.recordEveryRun();
         JobRun started = newRow(job, trigger, actorId);
         JobRun run = record ? tx.execute(status -> runs.save(started)) : started;
@@ -126,12 +150,12 @@ public class JobRunner {
     /** Last run of a job: newest of the recorded row and the in-memory one. */
     /** Run history of a job, newest first. */
     public org.springframework.data.domain.Page<JobRun> runs(String jobName, int page, int size) {
-        return runs.findByJobNameOrderByStartedAtDesc(jobName,
+        return runs.findByJobNameOrderByStartedAtDescIdDesc(jobName,
                 org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 100)));
     }
 
     public Optional<JobRun> lastRun(String jobName) {
-        Optional<JobRun> stored = runs.findFirstByJobNameOrderByStartedAtDesc(jobName);
+        Optional<JobRun> stored = runs.findFirstByJobNameOrderByStartedAtDescIdDesc(jobName);
         JobRun memory = lastInMemory.get(jobName);
         if (memory == null) {
             return stored;

@@ -67,7 +67,7 @@ public class TelegramChatService {
     @Transactional(readOnly = true)
     public List<ChatConfig> list(SessionPrincipal actor, OwnerType ownerType, UUID ownerId) {
         requireAccess(actor, ownerType, ownerId);
-        return chats.findByOwnerTypeAndOwnerIdOrderByTitleAsc(ownerType, ownerId).stream()
+        return chats.findByOwnerTypeAndOwnerIdOrderByTitleAscIdAsc(ownerType, ownerId).stream()
                 .map(c -> new ChatConfig(c.getChatId(), c.getTitle(), c.isEnabled())).toList();
     }
 
@@ -76,7 +76,7 @@ public class TelegramChatService {
     public List<ChatConfig> replace(SessionPrincipal actor, OwnerType ownerType, UUID ownerId, List<ChatConfig> wanted) {
         requireAccess(actor, ownerType, ownerId);
         Map<String, TelegramAlertChat> existing = new HashMap<>();
-        for (TelegramAlertChat chat : chats.findByOwnerTypeAndOwnerIdOrderByTitleAsc(ownerType, ownerId)) {
+        for (TelegramAlertChat chat : chats.findByOwnerTypeAndOwnerIdOrderByTitleAscIdAsc(ownerType, ownerId)) {
             existing.put(chat.getChatId(), chat);
         }
         Map<String, ChatConfig> target = new LinkedHashMap<>();
@@ -107,7 +107,7 @@ public class TelegramChatService {
             chats.save(chat);
         }
         chats.flush();
-        return chats.findByOwnerTypeAndOwnerIdOrderByTitleAsc(ownerType, ownerId).stream()
+        return chats.findByOwnerTypeAndOwnerIdOrderByTitleAscIdAsc(ownerType, ownerId).stream()
                 .map(c -> new ChatConfig(c.getChatId(), c.getTitle(), c.isEnabled())).toList();
     }
 
@@ -120,7 +120,7 @@ public class TelegramChatService {
     public void sendTest(SessionPrincipal actor, OwnerType ownerType, UUID ownerId, String chatId) {
         requireAccess(actor, ownerType, ownerId);
         delivery.requireConfigured();
-        TelegramAlertChat chat = chats.findByOwnerTypeAndOwnerIdOrderByTitleAsc(ownerType, ownerId).stream()
+        TelegramAlertChat chat = chats.findByOwnerTypeAndOwnerIdOrderByTitleAscIdAsc(ownerType, ownerId).stream()
                 .filter(c -> c.getChatId().equals(chatId)).findFirst()
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.RESOURCE_NOT_FOUND));
         delivery.sendText(chat.getChatId(), delivery.text("telegram.chat-test", Locale.GERMAN, chat.getTitle()), null,

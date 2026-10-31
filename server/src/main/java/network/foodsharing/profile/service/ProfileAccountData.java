@@ -45,11 +45,11 @@ public class ProfileAccountData implements AccountDeletionContributor, DataExpor
 
     @Override
     public Object export(UUID userId) {
-        List<Map<String, Object>> received = ratings.findByRecipientIdOrderByCreatedAtDesc(userId).stream()
+        List<Map<String, Object>> received = ratings.findByRecipientIdOrderByCreatedAtDescIdDesc(userId).stream()
                 .map(r -> Map.<String, Object>of("senderId", r.getSenderId(), "message", r.getMessage(),
                         "givenAt", r.getCreatedAt()))
                 .toList();
-        List<Map<String, Object>> sent = ratings.findBySenderIdOrderByCreatedAtDesc(userId).stream()
+        List<Map<String, Object>> sent = ratings.findBySenderIdOrderByCreatedAtDescIdDesc(userId).stream()
                 .map(r -> Map.<String, Object>of("recipientId", r.getRecipientId(), "message", r.getMessage(),
                         "givenAt", r.getCreatedAt()))
                 .toList();

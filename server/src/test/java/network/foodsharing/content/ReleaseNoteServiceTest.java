@@ -62,7 +62,7 @@ class ReleaseNoteServiceTest {
         rows.addAll(List.of(row("de", "Neu"), row("fr", "Nouveau"), row("it", "Nuovo")));
         when(actors.isOrga()).thenReturn(true);
         when(notes.findById(note.getId())).thenReturn(Optional.of(note));
-        when(notes.findAllByOrderByReleasedAtDescReleaseVersionDesc()).thenReturn(List.of(note));
+        when(notes.findAllByOrderByReleasedAtDescReleaseVersionDescIdDesc()).thenReturn(List.of(note));
         when(texts.findByOwnerId(note.getId())).thenAnswer(i -> List.copyOf(rows));
         when(texts.findByOwnerIdIn(anyCollection())).thenAnswer(i -> List.copyOf(rows));
         when(texts.save(any(ReleaseNoteI18n.class))).thenAnswer(i -> {

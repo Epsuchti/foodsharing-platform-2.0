@@ -135,7 +135,7 @@ public class PickupUserService {
     /** Sign-ups of {@code userId} from {@code from} on, for the calendar feed (the caller checked the feed token). */
     @Transactional(readOnly = true)
     public List<CalendarPickup> calendarPickups(UUID userId, Instant from) {
-        return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAt(userId, from)).stream()
+        return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(userId, from)).stream()
                 .map(view -> new CalendarPickup(view.store().getId(), view.store().getName(),
                         java.util.stream.Stream.of(view.store().getStreet(), java.util.stream.Stream.of(
                                         view.store().getPostcode(), view.store().getCity())
@@ -149,7 +149,7 @@ public class PickupUserService {
     @Transactional(readOnly = true)
     public List<UserPickupView> myPickups() {
         UUID userId = currentActor.requireUserId();
-        return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAt(userId, clock.instant()));
+        return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(userId, clock.instant()));
     }
 
     /** @throws ApiException 404 USER_NOT_FOUND, 403 unless self or mayAdministrateUser */
@@ -158,7 +158,7 @@ public class PickupUserService {
         requireSelfOrAdmin(userId);
         PageRequest request = PageRequest.of(page == null ? 0 : Math.max(0, page),
                 size == null ? 20 : Math.min(Math.max(1, size), 100));
-        Page<PickupSignup> rows = signups.findByUserIdAndPickupAtLessThanOrderByPickupAtDesc(userId, clock.instant(),
+        Page<PickupSignup> rows = signups.findByUserIdAndPickupAtLessThanOrderByPickupAtDescIdDesc(userId, clock.instant(),
                 request);
         return new PageImpl<>(views(userId, rows.getContent()), request, rows.getTotalElements());
     }
@@ -175,7 +175,7 @@ public class PickupUserService {
         SessionPrincipal actor = requireSelfOrAdmin(userId);
         boolean self = actor.userId().equals(userId);
         String text = reason == null || reason.isBlank() ? null : reason.strip();
-        List<PickupSignup> future = signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAt(userId,
+        List<PickupSignup> future = signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(userId,
                 clock.instant());
         Map<UUID, Store> byId = stores.storesById(future.stream().map(PickupSignup::getStoreId).distinct().toList())
                 .stream().collect(Collectors.toMap(Store::getId, Function.identity()));
@@ -244,7 +244,7 @@ public class PickupUserService {
         Instant from = date.atStartOfDay(zone).toInstant();
         Instant to = date.plusDays(1).atStartOfDay(zone).toInstant();
         List<UserPickupView> pickups = views(userId,
-                signups.findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAt(userId, from, to));
+                signups.findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtAscIdAsc(userId, from, to));
         return new AgendaView(date, pickups, introPickups.bookingsOf(userId, from, to));
     }
 

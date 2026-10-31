@@ -25,6 +25,18 @@ const SCREENS = 'screenshots/**/*.screen.ts';
  */
 const SCREENSHOTS = process.env.E2E_SCREENSHOTS === '1';
 
+/**
+ * Windows worker crashes (exit code 3221226505 = 0xC0000409, a fast-fail/abort inside the node test worker, about once
+ * per full mobile-chrome run): Playwright pipes the worker's stderr away, so the crash left no trace. Workers inherit
+ * this environment, so a fatal error (V8 out of memory, a native abort) now writes a Node diagnostic report (JS and
+ * native stacks, heap statistics, loaded native modules) to test-results/node-reports. Diagnostics only: nothing is
+ * retried or hidden.
+ */
+if (!/--report-on-fatalerror/.test(process.env.NODE_OPTIONS ?? '')) {
+  const reports = `${__dirname}/test-results/node-reports`.split('\\').join('/');
+  process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --report-on-fatalerror --report-uncaught-exception --report-directory="${reports}"`.trim();
+}
+
 const shared: PlaywrightTestConfig['use'] = {
   serviceWorkers: 'block',
   locale: 'de-CH',

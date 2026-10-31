@@ -1,5 +1,5 @@
 import { test as base, expect, request as playwrightRequest, type BrowserContext, type Page } from '@playwright/test';
-import { resolveBaseURL, type Role } from '../support/env';
+import { SEED_NOW, resolveBaseURL, type Role } from '../support/env';
 import { a11y, expectNoSeriousViolations, type A11yHelpers } from './a11y';
 import { ApiClient, DevApi } from './api';
 import { BasketHelpers } from './baskets';
@@ -65,6 +65,16 @@ export interface Fixtures {
 
 let lastResetFile: string | undefined;
 
+/**
+ * The browser starts at the server's seed clock (SEED_NOW) and time then runs normally. Without this the page used
+ * the machine's wall clock against seed data fixed at SEED_NOW, so "today", "upcoming", relative times and the
+ * date pickers' month changed with the calendar day a run happened on. Tests that need a frozen page clock still call
+ * `clock.fixBrowser()` / `page.clock.setFixedTime()` on top of it.
+ */
+async function startAtSeedNow(context: BrowserContext): Promise<void> {
+  await context.clock.install({ time: new Date(SEED_NOW) });
+}
+
 export const test = base.extend<Options & Fixtures>({
   role: [undefined, { option: true }],
   seedReset: ['file', { option: true }],
@@ -76,7 +86,9 @@ export const test = base.extend<Options & Fixtures>({
 
   _seed: [
     async ({ seedReset, baseURL }, use, testInfo) => {
-      const due = seedReset === 'test' || (seedReset === 'file' && lastResetFile !== testInfo.file);
+      // keyed per repetition too: with --repeat-each every repetition of a file starts from the seed again
+      const fileKey = `${testInfo.file}#${testInfo.repeatEachIndex}`;
+      const due = seedReset === 'test' || (seedReset === 'file' && lastResetFile !== fileKey);
       if (due) {
         const request = await playwrightRequest.newContext({ baseURL });
         try {
@@ -84,7 +96,7 @@ export const test = base.extend<Options & Fixtures>({
         } finally {
           await request.dispose();
         }
-        lastResetFile = testInfo.file;
+        lastResetFile = fileKey;
       }
       await use();
     },
@@ -93,6 +105,7 @@ export const test = base.extend<Options & Fixtures>({
 
   context: async ({ context, role, baseURL, _seed }, use) => {
     void _seed;
+    await startAtSeedNow(context);
     if (role) await new ApiClient(context.request, baseURL!).loginAs(role);
     await use(context);
   },
@@ -142,6 +155,7 @@ export const test = base.extend<Options & Fixtures>({
         ...(hasTouch ? { hasTouch } : {}),
       });
       contexts.push(context);
+      await startAtSeedNow(context);
       if (role) await new ApiClient(context.request, baseURL!).loginAs(role);
       return context.newPage();
     });

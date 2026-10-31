@@ -145,7 +145,7 @@ public class GroupService {
     public List<GroupView> groupsIn(UUID regionId, boolean includeArchived) {
         regions.findById(regionId).orElseThrow(() -> ApiException.notFound(ApiErrorCode.REGION_NOT_FOUND));
         SessionPrincipal actor = currentActor.requirePrincipal();
-        return regions.findByParentIdOrderBySortOrderAscNameAsc(regionId).stream()
+        return regions.findByParentIdOrderBySortOrderAscNameAscIdAsc(regionId).stream()
                 .filter(Region::isGroup)
                 .filter(group -> includeArchived || group.getGroupCategory() != GroupCategory.ARCHIVED)
                 .map(group -> view(group, actor, false)).toList();
@@ -189,7 +189,7 @@ public class GroupService {
     public List<ApplicationView> applications(UUID groupId, GroupApplicationStatus status) {
         Region group = requireGroup(groupId);
         requireManager(group);
-        List<GroupApplication> rows = applications.findByGroupIdAndStatusOrderByCreatedAtAsc(groupId,
+        List<GroupApplication> rows = applications.findByGroupIdAndStatusOrderByCreatedAtAscIdAsc(groupId,
                 status == null ? GroupApplicationStatus.PENDING : status);
         return applicationViews(rows);
     }
@@ -525,7 +525,7 @@ public class GroupService {
         Region parent = group.getParentId() == null ? null : regions.findById(group.getParentId()).orElse(null);
         List<User> groupAdmins = users.findActive(admins.findUserIds(group.getId())).stream()
                 .sorted(Comparator.comparing(User::getDisplayName, String.CASE_INSENSITIVE_ORDER)).toList();
-        List<Region> subGroups = regions.findByParentIdOrderBySortOrderAscNameAsc(group.getId()).stream()
+        List<Region> subGroups = regions.findByParentIdOrderBySortOrderAscNameAscIdAsc(group.getId()).stream()
                 .filter(Region::isGroup).toList();
         RequirementCheck check = detail ? requirementCheck(group, userId) : null;
         String conferenceUrl = detail && (member || permissions.isOrga(actor)) ? conference.linkOf(group) : null;

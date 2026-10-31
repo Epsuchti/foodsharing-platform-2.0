@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RegionOnboardingStepRepository extends JpaRepository<RegionOnboardingStep, UUID> {
 
-    List<RegionOnboardingStep> findByRegionIdOrderBySortOrderAsc(UUID regionId);
+    List<RegionOnboardingStep> findByRegionIdOrderBySortOrderAscIdAsc(UUID regionId);
 }

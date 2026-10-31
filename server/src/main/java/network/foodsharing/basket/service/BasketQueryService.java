@@ -93,7 +93,7 @@ public class BasketQueryService {
                 .sorted(Comparator.comparing(Grocery::name)).toList();
         List<BasketKind> kindList = kinds.findByBasketId(basketId).stream().map(BasketKindEntry::getKind).sorted()
                 .toList();
-        List<BasketRequestEntry> all = requests.findByBasketIdOrderByRequestedAt(basketId);
+        List<BasketRequestEntry> all = requests.findByBasketIdOrderByRequestedAtAscIdAsc(basketId);
         List<BasketRequestEntry> visible = owner || orga
                 ? all.stream().filter(r -> BasketRules.isLive(r.getStatus())).toList() : List.of();
         BasketRequestEntry mine = all.stream().filter(r -> r.getRequesterId().equals(actor.userId())).findFirst()
@@ -126,7 +126,7 @@ public class BasketQueryService {
     public List<BasketView> mine() {
         toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
-        return baskets.findByOwnerIdAndStatusNotOrderByCreatedAtDesc(me, BasketStatus.DELETED).stream()
+        return baskets.findByOwnerIdAndStatusNotOrderByCreatedAtDescIdDesc(me, BasketStatus.DELETED).stream()
                 .map(basket -> summary(basket, me, null)).toList();
     }
 
@@ -134,7 +134,7 @@ public class BasketQueryService {
     public List<BasketView> requested() {
         toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
-        return requests.findByRequesterIdOrderByRequestedAtDesc(me).stream()
+        return requests.findByRequesterIdOrderByRequestedAtDescIdDesc(me).stream()
                 .filter(r -> BasketRules.isLive(r.getStatus()))
                 .map(r -> baskets.findById(r.getBasketId()).orElse(null))
                 .filter(b -> b != null && b.getStatus() != BasketStatus.DELETED)
@@ -146,7 +146,7 @@ public class BasketQueryService {
         toggles.requireEnabled(FeatureToggle.BASKETS);
         UUID me = actors.requireUserId();
         Instant now = clock.instant();
-        return baskets.findByOwnerIdAndStatusOrderByCreatedAtDesc(userId, BasketStatus.ACTIVE).stream()
+        return baskets.findByOwnerIdAndStatusOrderByCreatedAtDescIdDesc(userId, BasketStatus.ACTIVE).stream()
                 .filter(basket -> basket.getExpiresAt().isAfter(now))
                 .map(basket -> summary(basket, me, null)).toList();
     }

@@ -11,9 +11,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface FoodSharePointRepository extends JpaRepository<FoodSharePoint, UUID> {
 
-    List<FoodSharePoint> findByRegionIdAndDeletedAtIsNullOrderByNameAsc(UUID regionId);
+    List<FoodSharePoint> findByRegionIdAndDeletedAtIsNullOrderByNameAscIdAsc(UUID regionId);
 
-    List<FoodSharePoint> findByIdInAndDeletedAtIsNullOrderByNameAsc(Collection<UUID> ids);
+    List<FoodSharePoint> findByIdInAndDeletedAtIsNullOrderByNameAscIdAsc(Collection<UUID> ids);
 
     List<FoodSharePoint> findByStatusAndDeletedAtIsNull(FspStatus status);
 

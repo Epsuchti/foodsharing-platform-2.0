@@ -6,10 +6,13 @@ test.use({ seedReset: 'test' });
 test('onboarding: journey error with retry, bar keeps working @D11.5.2', async ({ as, apiOf }) => {
   const page = await as('einab1');
   await acceptPendingConsents(apiOf(page));
-  await injectApiError(page, { url: '**/api/onboarding/journey', status: 400, code: 'VALIDATION_FAILED', times: 2 });
+  // fail every journey request until the retry: the page and the header bar both load the journey, and the bar's
+  // after-first-page request can come before or after the retry click (a fixed `times: 2` raced it)
+  const injection = await injectApiError(page, { url: '**/api/onboarding/journey', status: 400, code: 'VALIDATION_FAILED' });
   await page.goto('/onboarding');
   const state = page.getByTestId('onboarding.journey.state');
   await expect(state).toHaveAttribute('data-state', 'error');
+  await injection.remove();
   await page.getByTestId('onboarding.journey.state.retry').getByRole('button').click();
   await expect(state).toHaveAttribute('data-state', 'success');
   await expect(page.getByTestId('onboarding.journey.current')).toHaveAttribute('data-step', 'INTRO_PICKUPS');

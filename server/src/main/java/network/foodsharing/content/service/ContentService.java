@@ -106,7 +106,7 @@ public class ContentService {
     /** Published FAQ entries (pages of kind FAQ) in sort order. */
     @Transactional(readOnly = true)
     public List<LocalizedPage> faq(String language) {
-        return pages.findByKindOrderBySortOrderAscSlugAsc(ContentPageKind.FAQ).stream().filter(ContentPage::isPublished)
+        return pages.findByKindOrderBySortOrderAscSlugAscIdAsc(ContentPageKind.FAQ).stream().filter(ContentPage::isPublished)
                 .filter(page -> !texts.findByOwnerId(page.getId()).isEmpty())
                 .map(page -> localize(page, language, null)).toList();
     }
@@ -199,8 +199,8 @@ public class ContentService {
     public List<PageTexts> allPages(ContentPageKind kind) {
         SessionPrincipal actor = currentActor.requirePrincipal();
         requireEditor();
-        List<ContentPage> rows = (kind == null ? pages.findAllByOrderByKindAscSortOrderAscSlugAsc()
-                : pages.findByKindOrderBySortOrderAscSlugAsc(kind)).stream().filter(page -> mayEdit(actor, page))
+        List<ContentPage> rows = (kind == null ? pages.findAllByOrderByKindAscSortOrderAscSlugAscIdAsc()
+                : pages.findByKindOrderBySortOrderAscSlugAscIdAsc(kind)).stream().filter(page -> mayEdit(actor, page))
                 .toList();
         Map<UUID, List<ContentPageI18n>> byPage = texts.findByOwnerIdIn(rows.stream().map(ContentPage::getId).toList())
                 .stream().collect(Collectors.groupingBy(ContentPageI18n::getOwnerId));
@@ -388,7 +388,7 @@ public class ContentService {
     }
 
     private List<ContentPage> publishedChapters() {
-        return pages.findByKindOrderBySortOrderAscSlugAsc(ContentPageKind.LEARNING_CHAPTER).stream()
+        return pages.findByKindOrderBySortOrderAscSlugAscIdAsc(ContentPageKind.LEARNING_CHAPTER).stream()
                 .filter(ContentPage::isPublished).toList();
     }
 

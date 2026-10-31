@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LegalDocumentVersionRepository extends JpaRepository<LegalDocumentVersion, UUID> {
 
-    List<LegalDocumentVersion> findByKindOrderByPublishedAtDesc(LegalDocumentKind kind);
+    List<LegalDocumentVersion> findByKindOrderByPublishedAtDescIdDesc(LegalDocumentKind kind);
 
     Optional<LegalDocumentVersion> findByKindAndDocumentVersion(LegalDocumentKind kind, String version);
 

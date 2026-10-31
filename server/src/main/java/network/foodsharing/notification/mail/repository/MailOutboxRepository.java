@@ -15,7 +15,7 @@ import org.springframework.data.repository.query.Param;
 public interface MailOutboxRepository extends JpaRepository<MailOutboxMessage, UUID> {
 
     @Query("select m.id from MailOutboxMessage m where m.status = :status and m.nextAttemptAt <= :now "
-            + "order by m.priority desc, m.nextAttemptAt, m.createdAt")
+            + "order by m.priority desc, m.nextAttemptAt, m.createdAt, m.id")
     List<UUID> findDueIds(@Param("status") MailStatus status, @Param("now") Instant now, Pageable page);
 
     /** Slot times (deferral or creation) of non-AUTH mails to a recipient since {@code since}, oldest first (A27). */
@@ -34,7 +34,8 @@ public interface MailOutboxRepository extends JpaRepository<MailOutboxMessage, U
                                                                       Instant since);
 
     @Query("select m from MailOutboxMessage m where (:status is null or m.status = :status) and (:search is null "
-            + "or lower(m.toAddress) like :search or lower(m.subject) like :search or lower(m.template) like :search)")
+            + "or lower(m.toAddress) like :search or lower(m.subject) like :search or lower(m.template) like :search) "
+            + "order by m.createdAt desc, m.id desc")
     Page<MailOutboxMessage> search(@Param("status") MailStatus status, @Param("search") String search,
                                    Pageable page);
 

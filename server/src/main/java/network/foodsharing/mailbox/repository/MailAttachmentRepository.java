@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MailAttachmentRepository extends JpaRepository<MailAttachment, UUID> {
 
-    List<MailAttachment> findByMailIdOrderByCreatedAtAsc(UUID mailId);
+    List<MailAttachment> findByMailIdOrderByCreatedAtAscIdAsc(UUID mailId);
 
     List<MailAttachment> findByMailIdIn(Collection<UUID> mailIds);
 

@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AchievementRepository extends JpaRepository<Achievement, UUID> {
 
-    List<Achievement> findByRegionIdAndDeletedAtIsNullOrderByNameAsc(UUID regionId);
+    List<Achievement> findByRegionIdAndDeletedAtIsNullOrderByNameAscIdAsc(UUID regionId);
 
-    List<Achievement> findByRegionIdIsNullAndDeletedAtIsNullOrderByNameAsc();
+    List<Achievement> findByRegionIdIsNullAndDeletedAtIsNullOrderByNameAscIdAsc();
 
     Optional<Achievement> findBySystemKey(AchievementSystemKey systemKey);
 }

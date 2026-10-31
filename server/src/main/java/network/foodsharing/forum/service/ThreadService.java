@@ -194,7 +194,7 @@ public class ThreadService {
         ForumThread thread = context.thread();
         List<ForumPost> visible = posts.findByThreadIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(thread.getId());
         List<ForumPostReaction> postReactions = visible.isEmpty() ? List.of()
-                : reactions.findByPostIdInOrderByCreatedAtAsc(visible.stream().map(ForumPost::getId).toList());
+                : reactions.findByPostIdInOrderByCreatedAtAscIdAsc(visible.stream().map(ForumPost::getId).toList());
         ForumThreadFollow follow = follows.findByThreadIdAndUserId(thread.getId(), context.actor().userId())
                 .orElse(null);
         return new ForumViews.ThreadDetails(thread, visible, postReactions, follow, context.actor(), context.forum());

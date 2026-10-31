@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StoreCategoryRepository extends JpaRepository<StoreCategory, UUID> {
 
-    List<StoreCategory> findAllByOrderByNameAsc();
+    List<StoreCategory> findAllByOrderByNameAscIdAsc();
 
     Optional<StoreCategory> findByNameIgnoreCase(String name);
 }

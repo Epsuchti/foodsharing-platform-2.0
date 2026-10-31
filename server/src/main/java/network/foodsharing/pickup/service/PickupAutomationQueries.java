@@ -40,21 +40,21 @@ public class PickupAutomationQueries {
 
     /** Pickup time of the user's latest confirmed sign-up in the store before {@code before}. */
     public Optional<Instant> lastConfirmedPickup(UUID storeId, UUID userId, Instant before) {
-        return signups.findFirstByStoreIdAndUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(storeId,
+        return signups.findFirstByStoreIdAndUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDescIdDesc(storeId,
                 userId, before).map(PickupSignup::getPickupAt);
     }
 
     /** Unconfirmed sign-ups after {@code now}, by pickup time. */
     public List<PickupSignup> unconfirmedFuture(Collection<UUID> storeIds, Instant now) {
         return storeIds.isEmpty() ? List.of()
-                : signups.findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAt(storeIds, now);
+                : signups.findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAtAscIdAsc(storeIds, now);
     }
 
     /** Extra slots (AU6) added to pickups of these stores with {@code from <= createdAt < to}, newest first. */
     public List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlotsOfStores(Collection<UUID> storeIds,
                                                                                       Instant from, Instant to) {
         return storeIds.isEmpty() ? List.of() : extraSlots
-                .findByStoreIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(storeIds, from, to);
+                .findByStoreIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDescIdDesc(storeIds, from, to);
     }
 
     public List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlotsInRegions(Collection<UUID> regionIds,

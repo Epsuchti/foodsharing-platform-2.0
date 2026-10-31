@@ -105,7 +105,7 @@ public class RegionSettingsService {
     /** Extra onboarding steps of a region with their translations, by sort order. */
     @Transactional(readOnly = true)
     public List<Step> steps(UUID regionId) {
-        List<RegionOnboardingStep> rows = steps.findByRegionIdOrderBySortOrderAsc(regionId);
+        List<RegionOnboardingStep> rows = steps.findByRegionIdOrderBySortOrderAscIdAsc(regionId);
         Map<UUID, List<RegionOnboardingStepI18n>> texts = stepTexts.findByOwnerIdIn(
                 rows.stream().map(RegionOnboardingStep::getId).toList()).stream()
                 .collect(Collectors.groupingBy(RegionOnboardingStepI18n::getOwnerId));
@@ -192,7 +192,7 @@ public class RegionSettingsService {
     }
 
     private void replaceSteps(UUID regionId, List<Step> requested) {
-        Map<UUID, RegionOnboardingStep> existing = steps.findByRegionIdOrderBySortOrderAsc(regionId).stream()
+        Map<UUID, RegionOnboardingStep> existing = steps.findByRegionIdOrderBySortOrderAscIdAsc(regionId).stream()
                 .collect(Collectors.toMap(RegionOnboardingStep::getId, step -> step));
         Set<String> keys = new java.util.HashSet<>();
         for (Step step : requested) {

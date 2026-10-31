@@ -15,7 +15,7 @@ public interface AuthIdentityRepository extends JpaRepository<AuthIdentity, UUID
     Optional<AuthIdentity> findByProviderAndSubject(@Param("provider") IdentityProvider provider,
                                                     @Param("subject") String subject);
 
-    @Query("select i from AuthIdentity i where i.user.id = :userId order by i.createdAt")
+    @Query("select i from AuthIdentity i where i.user.id = :userId order by i.createdAt, i.id")
     List<AuthIdentity> findByUserId(@Param("userId") UUID userId);
 
     @Query("select i from AuthIdentity i where i.id = :id and i.user.id = :userId")

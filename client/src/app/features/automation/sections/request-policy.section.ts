@@ -17,7 +17,7 @@ import { StoreAutomationContext } from '../store-automation.context';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (draft(); as p) {
-      <section class="card fs-card" data-testid="automation.request.root" [attr.data-enabled]="p.enabled">
+      <section class="card fs-card" data-testid="automation.request.root" [attr.data-enabled]="p.enabled" [attr.data-unsaved]="unsaved()">
         <h2>{{ 'automation.request.title' | t }}</h2>
         <p class="muted">{{ 'automation.request.intro' | t }}</p>
         <div class="switch-row">
@@ -51,10 +51,13 @@ import { StoreAutomationContext } from '../store-automation.context';
         <div class="actions">
           <p-button [label]="'common.save' | t" icon="pi pi-save" [loading]="save.busy()" [disabled]="!dirty()" (onClick)="save.run()" data-testid="automation.request.save" />
           @if (ctx.data()?.requestPolicy) {
-            <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.request.runDry" />
-            <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.request.run" />
+            <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.request.runDry" />
+            <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun || unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.request.run" />
           }
         </div>
+        @if (ctx.data()?.requestPolicy && unsaved()) {
+          <p class="muted" data-testid="automation.request.saveFirst">{{ 'automation.request.saveFirst' | t }}</p>
+        }
       }
       @if (lastRun(); as r) {
         <p class="banner banner--info" data-testid="automation.request.runResult">
@@ -83,6 +86,11 @@ export class RequestPolicySection {
     const draft = this.draft();
     const saved = this.ctx.data()?.requestPolicy;
     return !!draft && (!saved || JSON.stringify(draft) !== JSON.stringify(saved));
+  }
+
+  /** Dry run and run evaluate the saved policy, so they wait for unsaved changes and a running save (see adverts). */
+  protected unsaved(): boolean {
+    return this.save.busy() || this.dirty();
   }
 
   protected readonly save = runMutation(

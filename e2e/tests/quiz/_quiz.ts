@@ -87,6 +87,9 @@ export async function playInBrowser(page: Page, key: Map<string, string[]>): Pro
     await expect(page.getByTestId('quiz.session.verdict')).toBeVisible();
     answered++;
     const results = page.getByTestId('quiz.session.results');
+    const next = page.getByTestId('quiz.session.next');
+    // branch only once one of the two is rendered (an isVisible() right after the verdict could miss either)
+    await expect(results.or(next).first()).toBeVisible();
     if (await results.isVisible()) {
       await results.click();
       return answered;

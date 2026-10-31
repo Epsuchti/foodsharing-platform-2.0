@@ -15,9 +15,9 @@ public interface BasketRepository extends JpaRepository<Basket, UUID> {
 
     List<Basket> findByStatusAndExpiresAtLessThanEqual(BasketStatus status, Instant now);
 
-    List<Basket> findByOwnerIdAndStatusNotOrderByCreatedAtDesc(UUID ownerId, BasketStatus status);
+    List<Basket> findByOwnerIdAndStatusNotOrderByCreatedAtDescIdDesc(UUID ownerId, BasketStatus status);
 
-    List<Basket> findByOwnerIdAndStatusOrderByCreatedAtDesc(UUID ownerId, BasketStatus status);
+    List<Basket> findByOwnerIdAndStatusOrderByCreatedAtDescIdDesc(UUID ownerId, BasketStatus status);
 
     List<Basket> findByOwnerId(UUID ownerId);
 

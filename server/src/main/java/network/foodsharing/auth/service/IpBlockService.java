@@ -58,7 +58,7 @@ public class IpBlockService {
     /** All blocks, newest first (active and expired). */
     @Transactional(readOnly = true)
     public List<IpBlock> list() {
-        return repository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        return repository.findAll(Sort.by(Sort.Direction.DESC, "createdAt", "id"));
     }
 
     /** @throws ApiException 400 VALIDATION_FAILED (not an IP address or CIDR range) */

@@ -81,7 +81,7 @@ public class StoreChainService {
     public Page<ChainView> list(Collection<StoreChainStatus> statuses, String search, Integer page, Integer size) {
         SessionPrincipal actor = currentActor.requireRole(Role.FOODSAVER);
         String needle = search == null || search.isBlank() ? null : search.strip().toLowerCase(Locale.ROOT);
-        List<StoreChain> all = chains.findAllByOrderByNameAsc().stream()
+        List<StoreChain> all = chains.findAllByOrderByNameAscIdAsc().stream()
                 .filter(c -> statuses == null || statuses.isEmpty() || statuses.contains(c.getStatus()))
                 .filter(c -> needle == null || c.getName().toLowerCase(Locale.ROOT).contains(needle)
                         || (c.getHqCity() != null && c.getHqCity().toLowerCase(Locale.ROOT).contains(needle)))

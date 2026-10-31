@@ -221,7 +221,7 @@ public class MailboxService {
     private void remove(Mailbox mailbox) {
         UUID mailboxId = mailbox.getId();
         for (MailMessage mail : mails.findByMailboxId(mailboxId)) {
-            List<MailAttachment> files = attachments.findByMailIdOrderByCreatedAtAsc(mail.getId());
+            List<MailAttachment> files = attachments.findByMailIdOrderByCreatedAtAscIdAsc(mail.getId());
             attachmentStore.deleteAll(files);
             mails.delete(mail);
         }

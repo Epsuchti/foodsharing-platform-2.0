@@ -10,7 +10,7 @@ public interface PasskeyCredentialRepository extends JpaRepository<PasskeyCreden
 
     Optional<PasskeyCredential> findByCredentialId(String credentialId);
 
-    List<PasskeyCredential> findByUserIdOrderByCreatedAt(UUID userId);
+    List<PasskeyCredential> findByUserIdOrderByCreatedAtAscIdAsc(UUID userId);
 
     Optional<PasskeyCredential> findByIdAndUserId(UUID id, UUID userId);
 

@@ -125,7 +125,7 @@ public class UploadService {
     /** Uploads owned by a user, oldest first (GDPR export, A21). */
     @Transactional(readOnly = true)
     public List<Upload> ownedBy(UUID ownerUserId) {
-        return repository.findByOwnerUserIdOrderByCreatedAt(ownerUserId);
+        return repository.findByOwnerUserIdOrderByCreatedAtAscIdAsc(ownerUserId);
     }
 
     @Transactional(readOnly = true)

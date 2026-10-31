@@ -16,18 +16,18 @@ public interface IntroPickupRepository extends JpaRepository<IntroPickup, UUID> 
     Optional<IntroPickup> findLive(@Param("id") UUID id);
 
     @Query("select p from IntroPickup p where p.regionId = :regionId and p.deletedAt is null and p.startAt >= :from "
-            + "order by p.startAt asc")
+            + "order by p.startAt asc, p.id asc")
     List<IntroPickup> findUpcoming(@Param("regionId") UUID regionId, @Param("from") Instant from);
 
     @Query("select p from IntroPickup p where p.regionId = :regionId and p.deletedAt is null "
-            + "and p.startAt >= :from and p.startAt < :to order by p.startAt asc")
+            + "and p.startAt >= :from and p.startAt < :to order by p.startAt asc, p.id asc")
     List<IntroPickup> findBetween(@Param("regionId") UUID regionId, @Param("from") Instant from,
                                   @Param("to") Instant to);
 
-    @Query("select p from IntroPickup p where p.regionId = :regionId and p.deletedAt is null order by p.startAt asc")
+    @Query("select p from IntroPickup p where p.regionId = :regionId and p.deletedAt is null order by p.startAt asc, p.id asc")
     List<IntroPickup> findByRegion(@Param("regionId") UUID regionId);
 
-    @Query("select p from IntroPickup p where p.guideId = :guideId and p.deletedAt is null order by p.startAt asc")
+    @Query("select p from IntroPickup p where p.guideId = :guideId and p.deletedAt is null order by p.startAt asc, p.id asc")
     List<IntroPickup> findByGuide(@Param("guideId") UUID guideId);
 
     @Query("select p from IntroPickup p where p.id in :ids")

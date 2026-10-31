@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReleaseNoteRepository extends JpaRepository<ReleaseNote, UUID> {
 
-    List<ReleaseNote> findAllByOrderByReleasedAtDescReleaseVersionDesc();
+    List<ReleaseNote> findAllByOrderByReleasedAtDescReleaseVersionDescIdDesc();
 
     boolean existsByReleaseVersion(String releaseVersion);
 }

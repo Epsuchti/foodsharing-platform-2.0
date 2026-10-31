@@ -197,7 +197,7 @@ public class PickupPolicyRunner {
 
     private void audit(PickupPolicy policy, Signup signup, boolean dryRun, PickupPolicyDecision decision,
                        List<Reason> reasons, String userMessage, String error, boolean dedupe) {
-        if (dedupe && REPEATABLE.contains(decision) && audits.findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDesc(
+        if (dedupe && REPEATABLE.contains(decision) && audits.findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDescIdDesc(
                 signup.storeId(), signup.userId(), signup.pickupAt())
                 .map(previous -> previous.getDecision() == decision).orElse(false)) {
             return;

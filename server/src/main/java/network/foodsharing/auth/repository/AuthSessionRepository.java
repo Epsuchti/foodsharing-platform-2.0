@@ -16,7 +16,7 @@ public interface AuthSessionRepository extends JpaRepository<AuthSession, UUID> 
     Optional<AuthSession> findByTokenHashWithUser(@Param("tokenHash") String tokenHash);
 
     @Query("select s from AuthSession s where s.user.id = :userId and s.revokedAt is null and s.expiresAt > :now "
-            + "order by s.lastSeenAt desc")
+            + "order by s.lastSeenAt desc, s.id desc")
     List<AuthSession> findActiveByUserId(@Param("userId") UUID userId, @Param("now") Instant now);
 
     @Query("select s from AuthSession s where s.id = :id and s.user.id = :userId")

@@ -184,7 +184,7 @@ public class QuizSessionService {
         }
         quizzes.findByKind(QuizKind.HYGIENE).ifPresent(quiz -> {
             java.util.Map<UUID, List<QuizRuleService.Attempt>> byUser = new java.util.HashMap<>();
-            for (QuizSession session : sessions.findByUserIdInAndQuizIdOrderByStartedAtAsc(userIds, quiz.getId())) {
+            for (QuizSession session : sessions.findByUserIdInAndQuizIdOrderByStartedAtAscIdAsc(userIds, quiz.getId())) {
                 if (!session.isTest()) {
                     byUser.computeIfAbsent(session.getUserId(), id -> new java.util.ArrayList<>())
                             .add(new QuizRuleService.Attempt(session.getStatus(), session.getEndedAt()));
@@ -345,7 +345,7 @@ public class QuizSessionService {
     public ResultView results(QuizKind kind, boolean test) {
         SessionPrincipal actor = currentActor.requirePrincipal();
         Quiz quiz = editor.requireQuiz(kind);
-        QuizSession session = sessions.findFirstByUserIdAndQuizIdAndTestAndStatusNotOrderByEndedAtDesc(actor.userId(),
+        QuizSession session = sessions.findFirstByUserIdAndQuizIdAndTestAndStatusNotOrderByEndedAtDescIdDesc(actor.userId(),
                         quiz.getId(), test, QuizSessionStatus.RUNNING)
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.QUIZ_SESSION_NOT_FOUND));
         List<SnapshotQuestion> questions = read(session.getQuestions(), QUESTIONS);
@@ -471,14 +471,14 @@ public class QuizSessionService {
     }
 
     private List<QuizRuleService.Attempt> attempts(UUID userId, Quiz quiz) {
-        return sessions.findByUserIdAndQuizIdOrderByStartedAtAsc(userId, quiz.getId()).stream()
+        return sessions.findByUserIdAndQuizIdOrderByStartedAtAscIdAsc(userId, quiz.getId()).stream()
                 .filter(session -> !session.isTest())
                 .map(session -> new QuizRuleService.Attempt(session.getStatus(), session.getEndedAt())).toList();
     }
 
     private List<SessionView> sessionsOf(UUID userId, QuizKind kind) {
         Map<UUID, QuizKind> kinds = quizzes.findAll().stream().collect(Collectors.toMap(Quiz::getId, Quiz::getKind));
-        return sessions.findByUserIdOrderByStartedAtDesc(userId).stream()
+        return sessions.findByUserIdOrderByStartedAtDescIdDesc(userId).stream()
                 .map(session -> new SessionView(session, kinds.get(session.getQuizId())))
                 .filter(view -> kind == null || view.kind() == kind).toList();
     }

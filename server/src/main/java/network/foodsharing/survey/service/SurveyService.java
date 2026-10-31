@@ -180,7 +180,7 @@ public class SurveyService {
         survey.setDescription(blankToNull(description));
 
         Map<UUID, SurveyQuestion> existing = new HashMap<>();
-        questions.findBySurveyIdOrderBySortOrder(surveyId).forEach(q -> existing.put(q.getId(), q));
+        questions.findBySurveyIdOrderBySortOrderAscIdAsc(surveyId).forEach(q -> existing.put(q.getId(), q));
         Set<UUID> kept = new HashSet<>();
         for (QuestionInput q : input) {
             if (q.id() != null && (!existing.containsKey(q.id()) || !kept.add(q.id()))) {
@@ -235,8 +235,8 @@ public class SurveyService {
     public ResultsView results(UUID surveyId) {
         UUID me = requireManager();
         requireAccessible(surveyId, me);
-        List<SurveyQuestion> list = questions.findBySurveyIdOrderBySortOrder(surveyId);
-        List<SurveyResponse> all = responses.findBySurveyIdOrderByCreatedAt(surveyId);
+        List<SurveyQuestion> list = questions.findBySurveyIdOrderBySortOrderAscIdAsc(surveyId);
+        List<SurveyResponse> all = responses.findBySurveyIdOrderByCreatedAtAscIdAsc(surveyId);
         Map<UUID, Map<UUID, List<String>>> byResponse = new HashMap<>();
         if (!all.isEmpty()) {
             for (SurveyAnswer answer : answers.findByResponseIdIn(all.stream().map(SurveyResponse::getId).toList())) {
@@ -265,7 +265,7 @@ public class SurveyService {
         UUID me = currentActor.requireUserId();
         Survey survey = surveys.findById(surveyId).orElseThrow(SurveyService::notFound);
         Store store = storeId == null ? null : stores.require(storeId);
-        return new FormView(survey, questions.findBySurveyIdOrderBySortOrder(surveyId),
+        return new FormView(survey, questions.findBySurveyIdOrderBySortOrderAscIdAsc(surveyId),
                 responses.existsBySurveyIdAndUserId(surveyId, me), store);
     }
 
@@ -283,7 +283,7 @@ public class SurveyService {
         if (responses.existsBySurveyIdAndUserId(surveyId, me)) {
             throw ApiException.conflict(ApiErrorCode.SURVEY_ALREADY_SUBMITTED);
         }
-        List<SurveyQuestion> list = questions.findBySurveyIdOrderBySortOrder(surveyId);
+        List<SurveyQuestion> list = questions.findBySurveyIdOrderBySortOrderAscIdAsc(surveyId);
         boolean hasStore = list.stream().anyMatch(q -> q.getType() == SurveyQuestionType.STORE);
         Store store = null;
         if (hasStore) {
@@ -456,11 +456,11 @@ public class SurveyService {
     }
 
     private List<UUID> coauthorIdsOf(UUID surveyId) {
-        return coauthors.findBySurveyIdOrderByCreatedAt(surveyId).stream().map(SurveyCoauthor::getUserId).toList();
+        return coauthors.findBySurveyIdOrderByCreatedAtAscIdAsc(surveyId).stream().map(SurveyCoauthor::getUserId).toList();
     }
 
     private SurveyView view(Survey survey, UUID me) {
-        List<SurveyQuestion> list = questions.findBySurveyIdOrderBySortOrder(survey.getId());
+        List<SurveyQuestion> list = questions.findBySurveyIdOrderBySortOrderAscIdAsc(survey.getId());
         return new SurveyView(survey, list, responses.countBySurveyId(survey.getId()), list.size(),
                 coauthorIdsOf(survey.getId()), survey.getOwnerId().equals(me));
     }

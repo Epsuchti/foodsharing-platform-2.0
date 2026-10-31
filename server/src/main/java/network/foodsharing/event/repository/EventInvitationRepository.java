@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EventInvitationRepository extends JpaRepository<EventInvitation, UUID> {
 
-    List<EventInvitation> findByEventIdOrderByCreatedAt(UUID eventId);
+    List<EventInvitation> findByEventIdOrderByCreatedAtAscIdAsc(UUID eventId);
 
     List<EventInvitation> findByEventIdIn(Collection<UUID> eventIds);
 

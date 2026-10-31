@@ -227,7 +227,7 @@ public class ReportService implements network.foodsharing.user.service.UserViola
             throw ApiException.forbidden(ApiErrorCode.REPORTS_NOT_ACCESSIBLE);
         }
         Map<UUID, Boolean> regionAccess = new HashMap<>();
-        return reports.findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId).stream()
+        return reports.findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(userId).stream()
                 .filter(r -> regionAccess.computeIfAbsent(r.getRegionId(), id -> access.mayHandle(actor, id)))
                 .toList();
     }
@@ -244,7 +244,7 @@ public class ReportService implements network.foodsharing.user.service.UserViola
             return java.util.OptionalInt.empty();
         }
         Map<UUID, Boolean> regionAccess = new HashMap<>();
-        return java.util.OptionalInt.of((int) reports.findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId)
+        return java.util.OptionalInt.of((int) reports.findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(userId)
                 .stream().filter(r -> regionAccess.computeIfAbsent(r.getRegionId(), id -> access.mayHandle(actor, id)))
                 .count());
     }
@@ -321,7 +321,7 @@ public class ReportService implements network.foodsharing.user.service.UserViola
         requireHandled(reportId);
         SessionPrincipal actor = actors.requirePrincipal();
         boolean orga = access.isOrga(actor);
-        return posts.findByReportIdAndDeletedAtIsNullOrderByCreatedAtDesc(reportId,
+        return posts.findByReportIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(reportId,
                         PageRequest.of(page == null ? 0 : Math.max(page, 0),
                                 size == null ? 20 : Math.min(Math.max(size, 1), MAX_PAGE_SIZE)))
                 .map(p -> new PostView(p, ReportRules.mayDeleteWallPost(orga, p.getAuthorId().equals(actor.userId()))));

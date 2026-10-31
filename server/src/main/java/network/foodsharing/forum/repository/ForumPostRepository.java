@@ -27,7 +27,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query("""
             select p from ForumPost p where p.threadId = :threadId and p.deletedAt is null
               and (p.hiddenAt is null or :moderator = true) and lower(p.body) like :pattern escape '\\'
-            order by p.createdAt""")
+            order by p.createdAt, p.id""")
     List<ForumPost> matching(@Param("threadId") UUID threadId, @Param("pattern") String pattern,
                              @Param("moderator") boolean moderator);
 

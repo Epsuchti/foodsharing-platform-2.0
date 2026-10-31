@@ -295,7 +295,7 @@ public class EventService {
     }
 
     private void invite(Event event, Set<UUID> userIds) {
-        Set<UUID> existing = invitations.findByEventIdOrderByCreatedAt(event.getId()).stream()
+        Set<UUID> existing = invitations.findByEventIdOrderByCreatedAtAscIdAsc(event.getId()).stream()
                 .map(EventInvitation::getUserId).collect(Collectors.toSet());
         List<UUID> invited = new ArrayList<>();
         for (UUID userId : userIds) {
@@ -352,7 +352,7 @@ public class EventService {
 
     /** ACCEPTED / MAYBE invitees. */
     Set<UUID> attendees(UUID eventId) {
-        return invitations.findByEventIdOrderByCreatedAt(eventId).stream()
+        return invitations.findByEventIdOrderByCreatedAtAscIdAsc(eventId).stream()
                 .filter(i -> ATTENDING.contains(i.getStatus())).map(EventInvitation::getUserId)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -360,7 +360,7 @@ public class EventService {
     EventDetails details(EventContext context) {
         Event event = context.event();
         EventItem item = items(List.of(event), context.actor().userId()).getFirst();
-        return new EventDetails(item, wallPosts.findByEventIdAndDeletedAtIsNullOrderByCreatedAtDesc(event.getId()),
+        return new EventDetails(item, wallPosts.findByEventIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(event.getId()),
                 context.actor(), clock.instant());
     }
 

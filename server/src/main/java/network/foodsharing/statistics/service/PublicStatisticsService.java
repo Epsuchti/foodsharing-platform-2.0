@@ -45,7 +45,7 @@ public class PublicStatisticsService {
         if (snapshot != null && now.isBefore(snapshot.until())) {
             return snapshot.totals();
         }
-        PublicTotals totals = daily.findFirstByOrderByDayDesc()
+        PublicTotals totals = daily.findFirstByOrderByDayDescIdDesc()
                 .map(row -> new PublicTotals(row.getKgSaved(), row.getPickups(), row.getFoodsavers(), row.getStores(),
                         row.getCooperations(), row.getFoodSharePoints(), row.getBaskets(),
                         row.getUpdatedAt() == null ? now : row.getUpdatedAt()))

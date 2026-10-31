@@ -24,7 +24,7 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
             order by r.createdAt desc, r.id""")
     Page<Report> list(@Param("regionId") UUID regionId, @Param("status") ReportStatus status, Pageable pageable);
 
-    List<Report> findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID reportedUserId);
+    List<Report> findByReportedUserIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(UUID reportedUserId);
 
     /** Due reminders of open reports (ReportReminderJob). */
     @Query("""

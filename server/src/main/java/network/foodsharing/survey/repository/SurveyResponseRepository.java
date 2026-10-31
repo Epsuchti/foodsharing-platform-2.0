@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, UUID> {
 
-    List<SurveyResponse> findBySurveyIdOrderByCreatedAt(UUID surveyId);
+    List<SurveyResponse> findBySurveyIdOrderByCreatedAtAscIdAsc(UUID surveyId);
 
     boolean existsBySurveyIdAndUserId(UUID surveyId, UUID userId);
 

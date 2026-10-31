@@ -36,7 +36,7 @@ public class PickupStatsIntegrations {
         return new MemberPickupStats() {
             @Override
             public Optional<Instant> lastPickupAt(UUID userId) {
-                return signups.findFirstByUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(userId,
+                return signups.findFirstByUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDescIdDesc(userId,
                         clock.instant()).map(PickupSignup::getPickupAt);
             }
 
@@ -62,7 +62,7 @@ public class PickupStatsIntegrations {
     @Bean
     network.foodsharing.user.service.CommitmentSource pickupCommitments(PickupSignupRepository signups) {
         return (userId, from, to) -> signups
-                .findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAt(userId, from, to).stream()
+                .findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtAscIdAsc(userId, from, to).stream()
                 .filter(PickupSignup::isConfirmed)
                 .map(s -> new network.foodsharing.user.service.CommitmentSource.Commitment(
                         network.foodsharing.user.service.CommitmentSource.Kind.PICKUP, s.getPickupAt()))

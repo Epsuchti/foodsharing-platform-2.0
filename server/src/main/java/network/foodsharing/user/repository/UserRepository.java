@@ -28,10 +28,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByActiveTrue();
 
-    org.springframework.data.domain.Page<User> findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(
+    org.springframework.data.domain.Page<User> findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDescIdDesc(
             org.springframework.data.domain.Pageable pageable);
 
-    org.springframework.data.domain.Page<User> findByHomeRegionIdAndEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(
+    org.springframework.data.domain.Page<User> findByHomeRegionIdAndEmailBouncedAtIsNotNullOrderByEmailBouncedAtDescIdDesc(
             UUID homeRegionId, org.springframework.data.domain.Pageable pageable);
 
     List<User> findBySleepStatus(network.foodsharing.user.domain.SleepStatus status);

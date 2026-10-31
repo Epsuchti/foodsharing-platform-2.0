@@ -61,7 +61,7 @@ public class PublicRegionService {
         Region region = regions.findBySlug(slug).filter(r -> !r.isGroup() && r.isActive())
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.REGION_NOT_FOUND));
         Region parent = region.getParentId() == null ? null : regions.findById(region.getParentId()).orElse(null);
-        List<Region> children = regions.findByParentIdOrderBySortOrderAscNameAsc(region.getId()).stream()
+        List<Region> children = regions.findByParentIdOrderBySortOrderAscNameAscIdAsc(region.getId()).stream()
                 .filter(child -> !child.isGroup() && child.isActive()).toList();
         List<String> ambassadors = reads.ambassadorsOf(region.getId()).stream().map(User::getDisplayName).toList();
         String contact = region.getEmailName() == null ? null : region.getEmailName() + "@" + properties.getDomain();

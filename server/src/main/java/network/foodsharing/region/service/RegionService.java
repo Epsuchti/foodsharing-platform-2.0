@@ -60,7 +60,7 @@ public class RegionService {
     /** Active working groups flagged for the public team page (C16), in sort order. */
     @Transactional(readOnly = true)
     public List<Region> teamPageGroups() {
-        return regions.findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAsc();
+        return regions.findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAscIdAsc();
     }
 
     /** Active regions (no working groups) with at least one ambassador (explainer counter). */
@@ -181,8 +181,8 @@ public class RegionService {
     /** Direct children, regions before working groups, by sort order and name. */
     @Transactional(readOnly = true)
     public List<Region> children(UUID regionId, boolean includeGroups) {
-        List<Region> children = regionId == null ? regions.findByParentIdIsNullOrderBySortOrderAscNameAsc()
-                : regions.findByParentIdOrderBySortOrderAscNameAsc(regionId);
+        List<Region> children = regionId == null ? regions.findByParentIdIsNullOrderBySortOrderAscNameAscIdAsc()
+                : regions.findByParentIdOrderBySortOrderAscNameAscIdAsc(regionId);
         return children.stream().filter(region -> includeGroups || !region.isGroup()).toList();
     }
 

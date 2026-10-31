@@ -149,7 +149,7 @@ public class SearchIndexRepository {
             }
             sql.append(')');
         }
-        sql.append(" order by title limit :limit");
+        sql.append(" order by title, kind, entity_id limit :limit");
         return jdbc.query(sql.toString(), p, (rs, n) -> new SearchHitRow(SearchKind.valueOf(rs.getString(1)),
                 rs.getObject(2, UUID.class), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)));
     }
@@ -163,7 +163,7 @@ public class SearchIndexRepository {
     public List<SearchHitRow> ownStores(UUID userId) {
         return jdbc.query("select s.id, s.name, s.city from store s join store_membership m on m.store_id = s.id"
                         + " where m.user_id = :user and m.status in ('MEMBER', 'JUMPER') and s.deleted_at is null"
-                        + " order by s.name", new MapSqlParameterSource("user", userId),
+                        + " order by s.name, s.id", new MapSqlParameterSource("user", userId),
                 (rs, n) -> new SearchHitRow(SearchKind.STORE, rs.getObject(1, UUID.class), rs.getString(2), rs.getString(3),
                         "/stores/" + rs.getObject(1, UUID.class), null));
     }
@@ -171,7 +171,7 @@ public class SearchIndexRepository {
     /** Food share points the user follows or manages. */
     public List<SearchHitRow> ownFoodSharePoints(UUID userId) {
         return jdbc.query("select f.id, f.name, f.city from food_share_point f join fsp_follower o on o.fsp_id = f.id"
-                        + " where o.user_id = :user and f.deleted_at is null order by f.name",
+                        + " where o.user_id = :user and f.deleted_at is null order by f.name, f.id",
                 new MapSqlParameterSource("user", userId),
                 (rs, n) -> new SearchHitRow(SearchKind.FSP, rs.getObject(1, UUID.class), rs.getString(2), rs.getString(3),
                         "/food-share-points/" + rs.getObject(1, UUID.class), null));
@@ -180,7 +180,7 @@ public class SearchIndexRepository {
     /** Named conversations of the user (titles only; read model, no dependency on messaging, A33). */
     public List<SearchHitRow> ownConversations(UUID userId, int limit) {
         return jdbc.query("select c.id, c.name from conversation c join conversation_member m on m.conversation_id = c.id"
-                        + " where m.user_id = :user and c.name is not null order by c.last_message_at desc limit :limit",
+                        + " where m.user_id = :user and c.name is not null order by c.last_message_at desc, c.id desc limit :limit",
                 new MapSqlParameterSource("user", userId).addValue("limit", limit),
                 (rs, n) -> new SearchHitRow(null, rs.getObject(1, UUID.class), rs.getString(2), null,
                         "/messages/" + rs.getObject(1, UUID.class), null));

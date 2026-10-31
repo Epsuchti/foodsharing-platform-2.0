@@ -13,18 +13,18 @@ import org.springframework.data.repository.query.Param;
 public interface BlogPostRepository extends JpaRepository<BlogPost, UUID> {
 
     @Query("select b from BlogPost b where b.published = true and b.deletedAt is null"
-            + " order by b.publishedAt desc, b.createdAt desc")
+            + " order by b.publishedAt desc, b.createdAt desc, b.id desc")
     Page<BlogPost> findPublished(Pageable pageable);
 
     @Query("select b from BlogPost b where b.published = true and b.deletedAt is null and b.regionId = :regionId"
-            + " order by b.publishedAt desc, b.createdAt desc")
+            + " order by b.publishedAt desc, b.createdAt desc, b.id desc")
     Page<BlogPost> findPublishedOfRegion(@Param("regionId") UUID regionId, Pageable pageable);
 
-    @Query("select b from BlogPost b where b.deletedAt is null order by b.createdAt desc")
+    @Query("select b from BlogPost b where b.deletedAt is null order by b.createdAt desc, b.id desc")
     Page<BlogPost> findAllActive(Pageable pageable);
 
     @Query("select b from BlogPost b where b.deletedAt is null and (b.authorId = :userId or b.regionId in :regionIds)"
-            + " order by b.createdAt desc")
+            + " order by b.createdAt desc, b.id desc")
     Page<BlogPost> findActiveOfAuthorOrRegions(@Param("userId") UUID userId,
                                                @Param("regionIds") Collection<UUID> regionIds, Pageable pageable);
 

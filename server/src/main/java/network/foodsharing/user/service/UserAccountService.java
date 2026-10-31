@@ -117,7 +117,7 @@ public class UserAccountService {
     public List<NoteView> listNotes(UUID userId) {
         SessionPrincipal actor = requireAdministers(userId);
         boolean orga = permissions.isOrga(actor);
-        return notes.findByUserIdAndKindOrderByCreatedAtDesc(userId, UserNoteKind.ADMIN_NOTE).stream()
+        return notes.findByUserIdAndKindOrderByCreatedAtDescIdDesc(userId, UserNoteKind.ADMIN_NOTE).stream()
                 .map(note -> new NoteView(note, orga || actor.userId().equals(note.getAuthorId()))).toList();
     }
 
@@ -178,10 +178,10 @@ public class UserAccountService {
         SessionPrincipal actor = actors.requirePrincipal();
         if (regionId == null) {
             permissions.requireOrga(actor);
-            return users.findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(PageRequest.of(page, size));
+            return users.findByEmailBouncedAtIsNotNullOrderByEmailBouncedAtDescIdDesc(PageRequest.of(page, size));
         }
         permissions.requireMayAdministrateRegion(actor, regionId);
-        return users.findByHomeRegionIdAndEmailBouncedAtIsNotNullOrderByEmailBouncedAtDesc(regionId,
+        return users.findByHomeRegionIdAndEmailBouncedAtIsNotNullOrderByEmailBouncedAtDescIdDesc(regionId,
                 PageRequest.of(page, size));
     }
 

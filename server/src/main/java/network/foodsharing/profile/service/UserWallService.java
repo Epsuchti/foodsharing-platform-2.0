@@ -40,7 +40,7 @@ public class UserWallService {
     @Transactional(readOnly = true)
     public Page<PostView> list(UUID userId, int page, int size) {
         ProfilePermissionService.Context context = access.basic(userId);
-        return posts.findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, PageRequest.of(page, size))
+        return posts.findByUserIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(userId, PageRequest.of(page, size))
                 .map(post -> new PostView(post, mayDelete(context, post)));
     }
 

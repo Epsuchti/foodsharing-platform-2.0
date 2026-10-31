@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 public interface HolidayCalendarRepository extends JpaRepository<HolidayCalendarEntry, UUID> {
 
     @Query("select h from HolidayCalendarEntry h where h.country = :country and h.holidayDate >= :from "
-            + "and h.holidayDate < :to and (h.canton is null or h.canton = :canton) order by h.holidayDate, h.name")
+            + "and h.holidayDate < :to and (h.canton is null or h.canton = :canton) order by h.holidayDate, h.name, h.id")
     List<HolidayCalendarEntry> findInRange(@Param("country") String country, @Param("canton") String canton,
                                            @Param("from") LocalDate from, @Param("to") LocalDate to);
 }

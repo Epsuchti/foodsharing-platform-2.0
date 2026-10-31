@@ -46,9 +46,17 @@ test.describe('bot', () => {
     await inputs.nth(2).fill('Egal');
     await page.getByTestId('polls.form.removeOption').nth(2).click();
     await expect(inputs).toHaveCount(2);
-    // the server clock decides the lead time (start ≥ now + 1 h)
+    // lead time (start ≥ now + 1 h): the browser runs on the seed clock like the server, so the form already refuses
+    // a start in 30 min; the server rule refuses the same dates on the API (it decides, the form only mirrors it)
     await page.getByTestId('polls.form.submit').click();
-    await expect(page.getByTestId('polls.form.serverError')).toHaveAttribute('data-code', 'POLL_DATES_INVALID');
+    await expect(page.getByTestId('polls.form.datesHint')).toHaveClass(/\berror\b/);
+    await expect(page).toHaveURL(/\/polls\/new\?regionId=/);
+    const tooEarly = await api.post('/api/polls', {
+      regionId: zs, name: 'Zu früh', type: 'SELECT_ONE', scope: 'FOODSAVERS', startsAt: at(0.5), endsAt: at(48),
+      options: ['Ja', 'Nein'], shuffleOptions: false, notifyVoters: false,
+    });
+    expect(tooEarly.status()).toBe(400);
+    expect(await tooEarly.text()).toContain('POLL_DATES_INVALID');
     await page.getByTestId('polls.form.startsAt').fill(local(at(3)));
     await expectNoSeriousViolations(page);
     await page.getByTestId('polls.form.submit').click();

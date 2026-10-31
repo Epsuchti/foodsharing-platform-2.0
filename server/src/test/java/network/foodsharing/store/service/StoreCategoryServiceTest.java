@@ -91,7 +91,7 @@ class StoreCategoryServiceTest {
 
     @Test
     void everySignedInUserReadsCategoryNamesButOnlyOrgaSeesUsageCounts() {
-        when(categories.findAllByOrderByNameAsc()).thenReturn(List.of(bakery, market));
+        when(categories.findAllByOrderByNameAscIdAsc()).thenReturn(List.of(bakery, market));
         when(stores.countByCategoryId(bakery.getId())).thenReturn(3L);
         when(currentActor.requireRole(network.foodsharing.api.model.Role.ORGA))
                 .thenThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED));

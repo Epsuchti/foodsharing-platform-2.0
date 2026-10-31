@@ -10,5 +10,5 @@ public interface StatisticsDailyRepository extends JpaRepository<StatisticsDaily
 
     Optional<StatisticsDaily> findByDay(LocalDate day);
 
-    Optional<StatisticsDaily> findFirstByOrderByDayDesc();
+    Optional<StatisticsDaily> findFirstByOrderByDayDescIdDesc();
 }
