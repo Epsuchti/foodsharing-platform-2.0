@@ -22,7 +22,8 @@ e2e/all-blob-reports/
 e2e/.state/
 node_modules/
 .DS_Store
-.claude/
+.claude/*
+!.claude/agents/
 
 # ER diagram: commit only the summary diagrams + table order (regenerate with npm run er-diagram)
 docs/er/*
