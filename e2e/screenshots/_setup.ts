@@ -87,7 +87,10 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   await animationsDone(page);
   await page.evaluate(() => {
     const active = document.activeElement as HTMLElement | null;
-    if (active && active.matches('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) active.blur();
+    const field = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]';
+    // a combobox/autocomplete keeps its focus: blurring it closes the open list the capture is about (C5 search)
+    const opensList = '[role="combobox"], [aria-autocomplete], [aria-expanded="true"], [aria-controls]';
+    if (active && active.matches(field) && !active.matches(opensList)) active.blur();
   });
   await animationsDone(page);
   await page.evaluate(
