@@ -1,4 +1,6 @@
 import { defineConfig, devices, type PlaywrightTestConfig, type Project } from '@playwright/test';
+import path from 'node:path';
+import { RESULTS_DIR } from './support/env';
 
 /**
  * E2E against the packaged jar (profile `e2e`: in-memory H2 + seed, fixed clock, captured mails).
@@ -45,7 +47,8 @@ const e2eProject = (name: string, use: Project['use'], extra: Partial<Project> =
 
 export default defineConfig({
   testDir: '.',
-  outputDir: 'test-results/artifacts',
+  // Per E2E_INSTANCE (sharded runs) a folder of its own, else test-results/artifacts.
+  outputDir: path.join(RESULTS_DIR, 'artifacts'),
   globalSetup: './global-setup.ts',
   globalTeardown: './global-teardown.ts',
   // One shared in-memory database per jar: tests run serially; CI parallelism comes from shards with their own jar.

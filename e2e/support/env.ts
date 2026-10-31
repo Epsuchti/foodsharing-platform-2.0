@@ -6,10 +6,19 @@ export const E2E_DIR = path.resolve(__dirname, '..');
 export const REPO_DIR = path.resolve(E2E_DIR, '..');
 export const SERVER_DIR = path.join(REPO_DIR, 'server');
 export const OPENAPI_DIR = path.join(SERVER_DIR, 'src/main/resources/openapi');
-export const AUTH_DIR = path.join(E2E_DIR, '.auth');
-export const STATE_DIR = path.join(E2E_DIR, '.state');
+/**
+ * Name of a parallel Playwright run in the same checkout (`E2E_INSTANCE=shard-2`, set by scripts/run-sharded.mjs and
+ * scripts/screenshots.sh --shards). Each instance gets its own server state file, auth states, test-results folder
+ * (server log, artifacts) and upload directory, so shards never share files. Unset: the classic single-run paths.
+ */
+export const INSTANCE = (process.env.E2E_INSTANCE ?? '').replace(/[^\w.-]/g, '');
+const perInstance = (dir: string): string => (INSTANCE ? path.join(dir, INSTANCE) : dir);
+export const AUTH_DIR = perInstance(path.join(E2E_DIR, '.auth'));
+export const STATE_DIR = perInstance(path.join(E2E_DIR, '.state'));
 export const SERVER_STATE_FILE = path.join(STATE_DIR, 'server.json');
-export const RESULTS_DIR = path.join(E2E_DIR, 'test-results');
+export const RESULTS_DIR = INSTANCE
+  ? path.join(E2E_DIR, 'test-results', 'instances', INSTANCE)
+  : path.join(E2E_DIR, 'test-results');
 
 /** Seed time anchor (docs/conventions.md A6). The e2e profile fixes the server clock to it. */
 export const SEED_NOW = '2026-11-02T09:00:00Z';
