@@ -7,7 +7,7 @@ import { afterEach } from 'vitest';
 import { BookableIntroPickup, IntroPickupCategory, Role, SessionInfo } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
-import { isOnline, isoToZonedLocal, zonedLocalToIso } from './intro-category';
+import { canSetCounted, isOnline, isoToZonedLocal, zonedLocalToIso } from './intro-category';
 import { BookableListPageComponent } from './pages/bookable-list-page.component';
 import { GuideDashboardPageComponent } from './pages/guide-dashboard-page.component';
 import { NewcomerFunnelPageComponent } from './pages/newcomer-funnel-page.component';
@@ -60,6 +60,22 @@ describe('intro pickup helpers', () => {
   it('knows the online category', () => {
     expect(isOnline(IntroPickupCategory.Online)).toBe(true);
     expect(isOnline(IntroPickupCategory.Bakery)).toBe(false);
+  });
+});
+
+describe('counted switch rule (EA18)', () => {
+  it('shows the switch for DONE and CANCELLED bookings', () => {
+    expect(canSetCounted({ status: 'DONE', counted: true })).toBe(true);
+    expect(canSetCounted({ status: 'CANCELLED', counted: false })).toBe(true);
+  });
+
+  it('keeps the switch for a counted past BOOKED booking (a CANCELLED one switched on)', () => {
+    expect(canSetCounted({ status: 'BOOKED', counted: true })).toBe(true);
+  });
+
+  it('has no switch for a future BOOKED booking, which is not counted', () => {
+    expect(canSetCounted({ status: 'BOOKED', counted: false })).toBe(false);
+    expect(canSetCounted({ status: 'BOOKED' })).toBe(false);
   });
 });
 

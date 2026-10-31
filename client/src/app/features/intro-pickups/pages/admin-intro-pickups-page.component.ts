@@ -35,7 +35,7 @@ import { RequiredMessageDialogComponent } from '../../../shared/required-message
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { MemberPickDialogComponent } from '../components/member-pick-dialog.component';
 import { SlotCommentsDrawerComponent } from '../components/slot-comments-drawer.component';
-import { INTRO_CATEGORIES, zonedLocalToIso } from '../intro-category';
+import { canSetCounted, INTRO_CATEGORIES, zonedLocalToIso } from '../intro-category';
 
 type Tab = 'einabs' | 'bookings' | 'guides';
 
@@ -143,7 +143,7 @@ type Tab = 'einabs' | 'bookings' | 'guides';
                       </td>
                       <td><span [class]="'tag tag--' + booking.status">{{ 'introPickups.status.' + booking.status | t }}</span></td>
                       <td>
-                        @if (booking.status === 'DONE' || booking.status === 'CANCELLED') {
+                        @if (canSetCounted(booking)) {
                           <p-toggleswitch [ngModel]="!!booking.counted" (ngModelChange)="setCounted.run(booking, $event)" [ariaLabel]="'introPickups.admin.col.counted' | t" data-testid="introPickups.admin.counted" />
                         }
                       </td>
@@ -362,6 +362,7 @@ export class AdminIntroPickupsPageComponent {
   );
 
   // counted + admin comments
+  protected readonly canSetCounted = canSetCounted;
   protected readonly setCounted = runMutation(
     (booking: GuideBooking, counted: boolean) =>
       this.api.setBookingCounted({ slotId: booking.slotId, bookingCountedUpdate: { counted } }),

@@ -39,7 +39,13 @@ test('EA18 admin deletes unbooked with reason, creates historical, adjusts count
   const cancelled = bookings.nth(statuses.indexOf('CANCELLED'));
   const toggle = cancelled.getByTestId('introPickups.admin.counted').locator('input');
   await expect(toggle).not.toBeChecked();
+  const reloaded = page.waitForResponse((r) => r.request().method() === 'GET' && r.url().includes('/admin/bookings'));
   await cancelled.getByTestId('introPickups.admin.counted').click();
+  await reloaded;
+  // the list reloaded: the booking is BOOKED now, counts, and keeps its switch so it can be undone
+  await expect(page.getByTestId('introPickups.admin.bookingsState')).toHaveAttribute('data-state', 'success');
+  await expect(bookings.filter({ hasText: 'Luca' })).toHaveCount(2);
+  await expect(cancelled).toHaveAttribute('data-status', 'BOOKED');
   await expect(toggle).toBeChecked();
 
   // einab1 now has two counted intro pickups

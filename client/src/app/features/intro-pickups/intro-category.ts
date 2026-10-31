@@ -20,6 +20,16 @@ export function isOnline(category: IntroPickupCategory | null | undefined): bool
   return category === IntroPickupCategory.Online;
 }
 
+/**
+ * Whether an admin may flip the "counted" switch of a booking (EA18). The server only accepts past appointments:
+ * DONE or CANCELLED ones, and BOOKED ones that already count (`counted`, i.e. started). Switching a CANCELLED booking
+ * on makes it BOOKED, so `counted` must keep the switch visible, otherwise it could not be switched back. A future
+ * BOOKED booking is not counted and gets no switch.
+ */
+export function canSetCounted(booking: { status: string; counted?: boolean }): boolean {
+  return booking.status === 'DONE' || booking.status === 'CANCELLED' || !!booking.counted;
+}
+
 /** Offset (ms) of `timeZone` from UTC at `date`. */
 function offsetOf(date: Date, timeZone: string): number {
   const parts = new Intl.DateTimeFormat('en-US', {
