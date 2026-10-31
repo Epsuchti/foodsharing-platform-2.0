@@ -2,7 +2,7 @@
 
 Foodsharing Platform 2.0 is being handed over to a new developer. Start here, then read `plan.md` (the single source of truth), `AGENTS.md` (binding rules), `docs/conventions.md`, `docs/decisions.md` (1–138) and `docs/ledger.md` (build state per feature).
 
-Everything is committed on local `main`. Nothing has been pushed: there is no remote yet, so CI (`.github/workflows/ci.yml`) has never run.
+The repository is `git@github.com:Epsuchti/foodsharing-platform-2.0.git` (`origin`). As of 2026-10-31, `origin/main` is at a08df6a, and local `main` is ahead with the sharding, stability and handover commits. CI (`.github/workflows/ci.yml`) runs on every push to `main`. Its run on a08df6a failed only in `./mvnw verify`, on `BellMessagesSyncTest`, which is fixed in 2de8a15. The other jobs (contract, audits, shellcheck) were green, and e2e and screenshots did not run because the build failed.
 
 ## Where the project stands
 - **Features:** every feature row in `docs/ledger.md` is done except D11.5.3 and D18.3 (Lighthouse, see "Open" below). M1–M6 are done; M7 is in its final gate. Strict coverage: 150/150 features have a tagged test.
@@ -33,7 +33,7 @@ Everything is committed on local `main`. Nothing has been pushed: there is no re
 **Handover check, server unit tests:** 6 failures in two classes.
 - **`BellMessagesSyncTest` (5):** fixed. The side menu added the key `bell.ui.button.itemCount` without running `node scripts/sync-bell-messages.mjs`; it now passes 5/5.
 - **`SpaForwardingControllerTest.languagePreferenceOrderIsCookieThenAcceptLanguageThenGerman` (1): still open.** It expects `/it` to fall back to the client shell because "a language without a prerendered page (client build skipped)". The current `server/target/classes/static/` contains a prerendered `it/index.html` from the full client build, so the controller serves it.
-  - The test depends on the build state; it passed in earlier full `verify` runs.
+  - The test depends on the build state: in CI's clean build on a08df6a it passed. Locally, a stale `static/it` from an earlier build makes it fail. Run `./mvnw clean verify` before suspecting the code.
   - Next: find out why `static/it` now exists (stale output from another build, or a prerender change), then make the test independent of what is in `target/classes`.
   - Don't just change the expectation.
 
@@ -67,7 +67,7 @@ Everything is committed on local `main`. Nothing has been pushed: there is no re
   - focus and border differences in a few screenshots under load
 - **Windows Playwright worker crash** (exit 3221226505 / 0xC0000409): hits a random test about once per full serial run and passes on rerun. It's infrastructure on this machine, not app code. Sharded runs turn video off, which lowers memory.
 - **Needs a human** (`docs/launch-report.md`):
-  - a remote repository, so CI runs (D5.4, D18.1)
+  - a green CI run on GitHub: push `main`, then fix what the e2e and screenshot jobs report (D5.4, D18.1)
   - a server, domain and mail provider; then `smoke.sh`, `release.sh --check` and the k6 load test against it
   - legal texts
   - a real usability test with newcomers
