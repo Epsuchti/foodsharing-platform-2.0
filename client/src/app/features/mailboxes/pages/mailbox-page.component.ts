@@ -205,15 +205,17 @@ export class MailboxPageComponent {
   });
 
   constructor() {
-    // new mail (realtime), a reconnect or a local change: refetch in place (the open mail stays)
+    // new mail (realtime), a reconnect or a local change: refetch in place (the open mail stays). refresh(), not
+    // reload(): a shown error state stays until the user retries (decision 118); the first realtime connect after
+    // the first page bumps the version too and used to replace the error state and its retry button.
     let seen = this.store.version();
     effect(() => {
       const version = this.store.version();
       if (version !== seen) {
         seen = version;
         untracked(() => {
-          this.mailboxes.reload();
-          this.mails.reload();
+          this.mailboxes.refresh();
+          this.mails.refresh();
         });
       }
     });

@@ -75,6 +75,8 @@ async function chooseActionFilter(page: Page, label: string): Promise<void> {
 
 /** Closes an open select/multiselect/datepicker overlay by clicking outside (Escape is not reliable on touch). */
 async function closeOverlay(page: Page): Promise<void> {
+  // a toast (e.g. "export downloaded") sits over the top of the page for 4 s and would take the click
+  await expect(page.getByTestId('shell.toast').locator('.p-toast-message')).toHaveCount(0, { timeout: 15_000 });
   await page.getByRole('heading', { level: 1 }).click();
   await expect(page.locator('.p-overlay, .p-multiselect-overlay, .p-datepicker-panel')).toHaveCount(0);
 }

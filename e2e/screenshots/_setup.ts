@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Locator, Page, PageScreenshotOptions } from '@playwright/test';
 import { SEED_NOW, expect, test, type Language } from '../fixtures';
+import { animationsDone } from '../fixtures/a11y';
 import { LANG_STORAGE_KEY, THEME_STORAGE_KEY } from '../fixtures/i18n';
 
 /**
@@ -79,6 +80,16 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
     await networkQuiet(page);
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
   }
+  // Opening dialogs, drawers and popovers animate in and move the focus when their animation ends; a field filled
+  // during that animation kept or lost its focus ring depending on machine load (AC1 define, C13 create, N3 bells
+  // under parallel shards). Wait for running animations/transitions, then take the focus off form fields: a capture
+  // shows fields at rest, never a focus ring that depends on timing.
+  await animationsDone(page);
+  await page.evaluate(() => {
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active.matches('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) active.blur();
+  });
+  await animationsDone(page);
   await page.evaluate(
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );

@@ -470,6 +470,8 @@
                     </excludes>
                     <!-- A60: one JVM per fork (own in-memory H2 databases and Spring context cache), reused for
                          the next test class; files a test writes go to a directory of its own fork -->
+                    <!-- the same JVM time zone as the app (FoodsharingApplication.JVM_TIME_ZONE) on every machine -->
+                    <argLine>-Duser.timezone=UTC</argLine>
                     <forkCount>${test.forks}</forkCount>
                     <reuseForks>true</reuseForks>
                     <systemPropertyVariables>
@@ -483,6 +485,7 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
+                    <argLine>-Duser.timezone=UTC</argLine>
                     <forkCount>${it.forks}</forkCount>
                     <reuseForks>true</reuseForks>
                     <systemPropertyVariables>
