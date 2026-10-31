@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shell setup for builds and tests (docs/dev-environment.md). Source it from anywhere inside the repository:
 #
 #   source scripts/env.sh
