@@ -107,8 +107,7 @@ import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, resultGroups } from '../se
     }
   `,
   styles: `
-    /* minmax(0, 1fr): the single column never grows past the page because of a child's intrinsic width
-       (WebKit sizes the search input and the hit rows wider than Chromium and stretched the whole page by 20px) */
+    /* minmax(0, 1fr): the single column never grows past the page because of a child's intrinsic width */
     :host { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
     .bar { display: flex; gap: 0.5rem; max-width: 40rem; }
     .bar input { flex: 1; min-width: 0; }
