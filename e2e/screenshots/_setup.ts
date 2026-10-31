@@ -185,6 +185,12 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
     if (active && active.matches(field) && !active.matches(opensList)) active.blur();
   });
   await animationsDone(page);
+  // The side menu scrolls the current item into view once after each navigation (SidenavComponent). Toggled nav items
+  // that arrive afterwards change the list's height and leave that scroll at an offset which depends on arrival
+  // order (C10 uploads). Everything has arrived now: repeat the app's own scroll so the menu is at rest, always.
+  await page.evaluate(() =>
+    document.querySelector<HTMLElement>('#sn-nav [aria-current="page"]')?.scrollIntoView({ block: 'nearest' }),
+  );
   await page.evaluate(
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );

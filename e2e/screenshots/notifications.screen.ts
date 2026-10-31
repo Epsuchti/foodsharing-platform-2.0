@@ -18,6 +18,9 @@ forEachVariant((variant) => {
       // the side menu's bell renders after the first page; wait for whichever entry this layout has
       await expect(button.or(menu).filter({ visible: true }).first()).toBeVisible();
       if (await button.isVisible()) {
+        // an open side menu card closes on a width change or a navigation; let the shell finish its first page before
+        // opening it, the way a user only clicks once the page is there
+        await visual.settle(page);
         await button.click();
         await expect(page.getByTestId('bells.panel.state')).toHaveAttribute('data-state', 'success');
       } else {
