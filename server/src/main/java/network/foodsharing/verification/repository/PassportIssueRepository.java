@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PassportIssueRepository extends JpaRepository<PassportIssue, UUID> {
 
-    Optional<PassportIssue> findFirstByUserIdOrderByValidUntilDescCreatedAtDesc(UUID userId);
+    Optional<PassportIssue> findFirstByUserIdOrderByValidUntilDescCreatedAtDescIdDesc(UUID userId);
 
-    List<PassportIssue> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<PassportIssue> findByUserIdOrderByCreatedAtDescIdDesc(UUID userId);
 }

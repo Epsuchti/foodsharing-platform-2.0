@@ -73,7 +73,7 @@ public class IntroPickupProgressService {
     /** Guide and admin comments on the user's bookings, oldest first. */
     @Transactional(readOnly = true)
     public List<GuideComment> commentsOn(UUID userId) {
-        List<IntroPickupComment> list = comments.findByBookingUserIdOrderByCreatedAtAsc(userId);
+        List<IntroPickupComment> list = comments.findByBookingUserIdOrderByCreatedAtAscIdAsc(userId);
         Map<UUID, User> authors = views.usersById(list.stream().map(IntroPickupComment::getAuthorId)
                 .filter(Objects::nonNull).toList());
         return list.stream().map(c -> {

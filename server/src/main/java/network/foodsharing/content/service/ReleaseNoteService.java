@@ -66,7 +66,7 @@ public class ReleaseNoteService {
     /** Newest first in the requested language (fallback de → any). */
     @Transactional(readOnly = true)
     public List<LocalizedNote> list(String language) {
-        List<ReleaseNote> rows = notes.findAllByOrderByReleasedAtDescReleaseVersionDesc();
+        List<ReleaseNote> rows = notes.findAllByOrderByReleasedAtDescReleaseVersionDescIdDesc();
         Map<UUID, Map<String, ReleaseNoteI18n>> byNote = byNote(rows);
         return rows.stream().map(note -> {
             ReleaseNoteI18n text = ContentService.pick(byNote.getOrDefault(note.getId(), Map.of()), language);
@@ -78,7 +78,7 @@ public class ReleaseNoteService {
     @Transactional(readOnly = true)
     public List<LocalizedNote> listForEdit() {
         requireOrga();
-        List<ReleaseNote> rows = notes.findAllByOrderByReleasedAtDescReleaseVersionDesc();
+        List<ReleaseNote> rows = notes.findAllByOrderByReleasedAtDescReleaseVersionDescIdDesc();
         Map<UUID, Map<String, ReleaseNoteI18n>> byNote = byNote(rows);
         return rows.stream().map(note -> editorView(note, byNote.getOrDefault(note.getId(), Map.of()))).toList();
     }

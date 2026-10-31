@@ -101,8 +101,8 @@ public class StoreQueryService {
         SessionPrincipal actor = currentActor.requirePrincipal();
         StorePermissionService.require(PermissionService.isAtLeast(actor.role(),
                 network.foodsharing.api.model.Role.FOODSAVER));
-        return new Metadata(categories.findAllByOrderByNameAsc(), Map.of(), groceries.findAllByOrderByNameAsc(),
-                weights.findAllByOrderBySortOrderAsc(), chains.findAllByOrderByNameAsc());
+        return new Metadata(categories.findAllByOrderByNameAscIdAsc(), Map.of(), groceries.findAllByOrderByNameAscIdAsc(),
+                weights.findAllByOrderBySortOrderAscIdAsc(), chains.findAllByOrderByNameAscIdAsc());
     }
 
     /**

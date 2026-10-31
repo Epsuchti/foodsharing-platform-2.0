@@ -11,9 +11,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface JobRunRepository extends JpaRepository<JobRun, UUID> {
 
-    Optional<JobRun> findFirstByJobNameOrderByStartedAtDesc(String jobName);
+    Optional<JobRun> findFirstByJobNameOrderByStartedAtDescIdDesc(String jobName);
 
-    org.springframework.data.domain.Page<JobRun> findByJobNameOrderByStartedAtDesc(String jobName,
+    org.springframework.data.domain.Page<JobRun> findByJobNameOrderByStartedAtDescIdDesc(String jobName,
             org.springframework.data.domain.Pageable pageable);
 
     @Modifying

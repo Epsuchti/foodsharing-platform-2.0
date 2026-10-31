@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserNoteRepository extends JpaRepository<UserNote, UUID> {
 
-    List<UserNote> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<UserNote> findByUserIdOrderByCreatedAtDescIdDesc(UUID userId);
 
-    List<UserNote> findByUserIdAndKindOrderByCreatedAtDesc(UUID userId, UserNoteKind kind);
+    List<UserNote> findByUserIdAndKindOrderByCreatedAtDescIdDesc(UUID userId, UserNoteKind kind);
 
     long countByUserIdAndKind(UUID userId, UserNoteKind kind);
 }

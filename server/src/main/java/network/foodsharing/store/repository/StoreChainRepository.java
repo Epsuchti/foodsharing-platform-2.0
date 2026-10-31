@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StoreChainRepository extends JpaRepository<StoreChain, UUID> {
 
-    List<StoreChain> findAllByOrderByNameAsc();
+    List<StoreChain> findAllByOrderByNameAscIdAsc();
 }

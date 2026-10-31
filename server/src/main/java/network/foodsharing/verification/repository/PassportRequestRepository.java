@@ -12,5 +12,5 @@ public interface PassportRequestRepository extends JpaRepository<PassportRequest
 
     List<PassportRequest> findByUserIdAndFulfilledAtIsNull(UUID userId);
 
-    List<PassportRequest> findByUserIdInOrderByRequestedAtDesc(Collection<UUID> userIds);
+    List<PassportRequest> findByUserIdInOrderByRequestedAtDescIdDesc(Collection<UUID> userIds);
 }

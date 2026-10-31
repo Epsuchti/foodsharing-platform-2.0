@@ -44,7 +44,7 @@ public class UserNoteService {
 
     @Transactional(readOnly = true)
     public List<UserNote> list(UUID userId, UserNoteKind kind) {
-        return kind == null ? repository.findByUserIdOrderByCreatedAtDesc(userId)
-                : repository.findByUserIdAndKindOrderByCreatedAtDesc(userId, kind);
+        return kind == null ? repository.findByUserIdOrderByCreatedAtDescIdDesc(userId)
+                : repository.findByUserIdAndKindOrderByCreatedAtDescIdDesc(userId, kind);
     }
 }

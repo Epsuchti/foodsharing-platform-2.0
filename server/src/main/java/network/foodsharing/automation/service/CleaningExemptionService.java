@@ -53,7 +53,7 @@ public class CleaningExemptionService {
     @Transactional(readOnly = true)
     public List<CleaningRuleExemption> list(UUID regionId) {
         requireRegionAutomation(regionId);
-        return exemptions.findByRegionIdOrderByCreatedAt(regionId);
+        return exemptions.findByRegionIdOrderByCreatedAtAscIdAsc(regionId);
     }
 
     /** @throws ApiException 403, 404 REGION_NOT_FOUND / USER_NOT_FOUND, 409 CLEANING_EXEMPTION_EXISTS */

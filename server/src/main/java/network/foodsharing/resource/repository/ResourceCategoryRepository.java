@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ResourceCategoryRepository extends JpaRepository<ResourceLinks.Category, UUID> {
 
-    List<ResourceLinks.Category> findAllByOrderBySortOrder();
+    List<ResourceLinks.Category> findAllByOrderBySortOrderAscIdAsc();
 }

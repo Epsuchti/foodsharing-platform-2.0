@@ -88,7 +88,7 @@ public class EmailChangeService implements EmailChangePort {
     public Optional<Pending> pending() {
         UUID me = actors.requireUserId();
         Instant now = clock.instant();
-        return changes.findByUserIdOrderByCreatedAtDesc(me).stream().filter(c -> c.isPendingAt(now)).findFirst()
+        return changes.findByUserIdOrderByCreatedAtDescIdDesc(me).stream().filter(c -> c.isPendingAt(now)).findFirst()
                 .map(c -> new Pending(c.getNewEmail(), c.getCreatedAt()));
     }
 
@@ -115,7 +115,7 @@ public class EmailChangeService implements EmailChangePort {
             throw ApiException.conflict(ApiErrorCode.EMAIL_TAKEN);
         }
         Instant now = clock.instant();
-        changes.findByUserIdOrderByCreatedAtDesc(userId).stream().filter(c -> c.isPendingAt(now))
+        changes.findByUserIdOrderByCreatedAtDescIdDesc(userId).stream().filter(c -> c.isPendingAt(now))
                 .forEach(c -> c.setAbortedAt(now));
         String token = TokenHasher.newToken();
         String abortToken = TokenHasher.newToken();
@@ -185,7 +185,7 @@ public class EmailChangeService implements EmailChangePort {
     public void abort() {
         UUID me = actors.requireUserId();
         Instant now = clock.instant();
-        changes.findByUserIdOrderByCreatedAtDesc(me).stream().filter(c -> c.isPendingAt(now))
+        changes.findByUserIdOrderByCreatedAtDescIdDesc(me).stream().filter(c -> c.isPendingAt(now))
                 .forEach(c -> abortChange(c, now));
     }
 

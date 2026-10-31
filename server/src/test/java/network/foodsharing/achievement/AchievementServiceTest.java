@@ -110,7 +110,7 @@ class AchievementServiceTest {
     void multipleAddsASecondAwardWithValidityFromDaysAndSendsABell() {
         achievement.setValidityDays(30);
         AwardedAchievement existing = award(LocalDate.of(2026, 11, 1));
-        when(awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDesc(recipient.getId(),
+        when(awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(recipient.getId(),
                 achievement.getId())).thenReturn(List.of(existing));
         var view = service.award(achievement.getId(), recipient.getId(), null, " geschrubbt ");
         assertThat(view.award()).isNotSameAs(existing);
@@ -125,7 +125,7 @@ class AchievementServiceTest {
     void overrideExtendsTheActiveAward() {
         achievement.setDuplicateMode(DuplicateMode.OVERRIDE);
         AwardedAchievement existing = award(LocalDate.of(2027, 6, 1));
-        when(awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDesc(recipient.getId(),
+        when(awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(recipient.getId(),
                 achievement.getId())).thenReturn(List.of(existing));
         var view = service.award(achievement.getId(), recipient.getId(), LocalDate.of(2027, 1, 1), "neu");
         assertThat(view.award()).isSameAs(existing);
@@ -159,7 +159,7 @@ class AchievementServiceTest {
         assertThat(award.getAwardedBy()).isNull();
         verify(history).event(AchievementAction.AUTO_AWARDED, achievement.getId());
         // a renewed pass replaces the end date of the existing certificate (also an earlier one)
-        when(awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDesc(recipient.getId(),
+        when(awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(recipient.getId(),
                 achievement.getId())).thenReturn(List.of(award));
         service.autoAward(AchievementSystemKey.HYGIENE_CERTIFICATE, recipient.getId(), 30);
         assertThat(award.getValidUntil()).isEqualTo("2026-11-27");
@@ -188,7 +188,7 @@ class AchievementServiceTest {
         hidden.setVisibility(AchievementVisibility.HIDDEN);
         AwardedAchievement secret = award(null);
         secret.setAchievementId(hidden.getId());
-        when(awards.findByUserIdAndRevokedAtIsNullOrderByAwardedAtDesc(recipient.getId()))
+        when(awards.findByUserIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(recipient.getId()))
                 .thenReturn(List.of(visible, secret));
         when(achievements.findAllById(any())).thenReturn(List.of(achievement, hidden));
         when(access.viewer(any(), any(), any())).thenReturn(new AchievementRules.Viewer(false, true, false, false));

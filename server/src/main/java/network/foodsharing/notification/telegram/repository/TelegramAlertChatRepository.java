@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TelegramAlertChatRepository extends JpaRepository<TelegramAlertChat, UUID> {
 
-    List<TelegramAlertChat> findByOwnerTypeAndOwnerIdOrderByTitleAsc(TelegramAlertChat.OwnerType ownerType, UUID ownerId);
+    List<TelegramAlertChat> findByOwnerTypeAndOwnerIdOrderByTitleAscIdAsc(TelegramAlertChat.OwnerType ownerType, UUID ownerId);
 
     List<TelegramAlertChat> findByOwnerTypeAndOwnerIdAndEnabledTrue(TelegramAlertChat.OwnerType ownerType, UUID ownerId);
 }

@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserWallPostRepository extends JpaRepository<UserWallPost, UUID> {
 
-    Page<UserWallPost> findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    Page<UserWallPost> findByUserIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(UUID userId, Pageable pageable);
 
     List<UserWallPost> findByUserIdOrAuthorId(UUID userId, UUID authorId);
 

@@ -16,7 +16,7 @@ public interface OpenSlotAdvertAuditRepository extends JpaRepository<OpenSlotAdv
 
     /** Audits of one (advert, pickup, trigger hours), without the given status, oldest first. */
     @Query("select a from OpenSlotAdvertAudit a where a.advertId = :advertId and a.pickupAt = :pickupAt "
-            + "and a.triggerHoursBefore = :hours and a.status <> :excluded order by a.createdAt")
+            + "and a.triggerHoursBefore = :hours and a.status <> :excluded order by a.createdAt, a.id")
     List<OpenSlotAdvertAudit> findForPickup(@Param("advertId") UUID advertId, @Param("pickupAt") Instant pickupAt,
                                             @Param("hours") Integer triggerHoursBefore,
                                             @Param("excluded") AdvertStatus excluded);

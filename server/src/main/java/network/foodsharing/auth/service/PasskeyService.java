@@ -85,13 +85,13 @@ public class PasskeyService {
     @Transactional(readOnly = true)
     public List<PasskeyCredential> findCredentialsByHandle(String handle) {
         return userEntities.findByHandle(handle)
-                .map(entity -> credentials.findByUserIdOrderByCreatedAt(entity.getUserId()))
+                .map(entity -> credentials.findByUserIdOrderByCreatedAtAscIdAsc(entity.getUserId()))
                 .orElse(List.of());
     }
 
     @Transactional(readOnly = true)
     public List<PasskeyCredential> listForUser(UUID userId) {
-        return credentials.findByUserIdOrderByCreatedAt(userId);
+        return credentials.findByUserIdOrderByCreatedAtAscIdAsc(userId);
     }
 
     /**

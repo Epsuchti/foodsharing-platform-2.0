@@ -73,7 +73,7 @@ public class OAuthClientService {
     @Transactional(readOnly = true)
     public List<ClientView> list() {
         requireOrga();
-        return clients.findByDeletedAtIsNullOrderByName().stream()
+        return clients.findByDeletedAtIsNullOrderByNameAscIdAsc().stream()
                 .map(c -> view(c, consents.countByClientId(c.getId()))).toList();
     }
 

@@ -132,7 +132,7 @@ class IncomingMailProcessorTest {
     void htmlIsSanitisedAndInlineImagesPointToTheirAttachment() throws IOException {
         processor.process(eml("html-inline-image.eml"));
         MailMessage mail = inbox(zuerich).get(0);
-        List<MailAttachment> files = attachments.findByMailIdOrderByCreatedAtAsc(mail.getId());
+        List<MailAttachment> files = attachments.findByMailIdOrderByCreatedAtAscIdAsc(mail.getId());
         assertThat(files).hasSize(1);
         assertThat(files.get(0).getContentId()).isEqualTo("logo@example.ch");
         assertThat(mail.getBodyHtml()).doesNotContain("script", "tracker", "javascript:")
@@ -145,7 +145,7 @@ class IncomingMailProcessorTest {
         processor.process(eml("two-attachments.eml"));
         MailMessage mail = inbox(zuerich).get(0);
         assertThat(mail.getAttachmentCount()).isEqualTo(2);
-        assertThat(attachments.findByMailIdOrderByCreatedAtAsc(mail.getId())).extracting(MailAttachment::getFileName)
+        assertThat(attachments.findByMailIdOrderByCreatedAtAscIdAsc(mail.getId())).extracting(MailAttachment::getFileName)
                 .containsExactly("plan.pdf", "liste.txt");
         assertThat(mail.getBodyText()).isEqualTo("Anbei zwei Dateien.");
     }
@@ -213,7 +213,7 @@ class IncomingMailProcessorTest {
         MailMessage mail = inbox(zuerich).get(0);
         assertThat(mail.getBodyText()).contains("Einladung zum Fest");
         assertThat(mail.getBodyHtml()).isEqualTo("<p>Einladung zum <b>Fest</b></p>");
-        assertThat(attachments.findByMailIdOrderByCreatedAtAsc(mail.getId())).extracting(MailAttachment::getFileName)
+        assertThat(attachments.findByMailIdOrderByCreatedAtAscIdAsc(mail.getId())).extracting(MailAttachment::getFileName)
                 .containsExactly("fest.ics");
     }
 

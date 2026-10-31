@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface IntroPickupCommentRepository extends JpaRepository<IntroPickupComment, UUID> {
 
-    List<IntroPickupComment> findBySlotIdOrderByCreatedAtAsc(UUID slotId);
+    List<IntroPickupComment> findBySlotIdOrderByCreatedAtAscIdAsc(UUID slotId);
 
     List<IntroPickupComment> findBySlotIdIn(Collection<UUID> slotIds);
 
-    List<IntroPickupComment> findByBookingUserIdOrderByCreatedAtAsc(UUID bookingUserId);
+    List<IntroPickupComment> findByBookingUserIdOrderByCreatedAtAscIdAsc(UUID bookingUserId);
 }

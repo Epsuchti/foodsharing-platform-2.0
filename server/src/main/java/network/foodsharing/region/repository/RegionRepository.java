@@ -20,9 +20,9 @@ public interface RegionRepository extends JpaRepository<Region, UUID> {
 
     boolean existsByEmailName(String emailName);
 
-    List<Region> findByParentIdOrderBySortOrderAscNameAsc(UUID parentId);
+    List<Region> findByParentIdOrderBySortOrderAscNameAscIdAsc(UUID parentId);
 
-    List<Region> findByParentIdIsNullOrderBySortOrderAscNameAsc();
+    List<Region> findByParentIdIsNullOrderBySortOrderAscNameAscIdAsc();
 
     long countByParentId(UUID parentId);
 
@@ -34,14 +34,14 @@ public interface RegionRepository extends JpaRepository<Region, UUID> {
     List<Region> findAncestors(@Param("id") UUID id);
 
     @Query("select r from Region r where r.type in :types and (:q is null or lower(r.name) like :q "
-            + "or lower(r.slug) like :q) order by r.name")
+            + "or lower(r.slug) like :q) order by r.name, r.id")
     Page<Region> search(@Param("q") String q, @Param("types") Collection<UnitType> types, Pageable pageable);
 
-    Page<Region> findByParentId(UUID parentId, Pageable pageable);
+    Page<Region> findByParentIdOrderBySortOrderAscNameAscIdAsc(UUID parentId, Pageable pageable);
 
-    Page<Region> findByParentIdIsNull(Pageable pageable);
+    Page<Region> findByParentIdIsNullOrderBySortOrderAscNameAscIdAsc(Pageable pageable);
 
     Optional<Region> findByEmailName(String emailName);
 
-    List<Region> findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAsc();
+    List<Region> findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAscIdAsc();
 }

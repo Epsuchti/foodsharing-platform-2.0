@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EventWallPostRepository extends JpaRepository<EventWallPost, UUID> {
 
-    List<EventWallPost> findByEventIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID eventId);
+    List<EventWallPost> findByEventIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(UUID eventId);
 
     /** Activity feed (A19): newest live posts of the given owners before a cursor. */
     List<EventWallPost> findByEventIdInAndDeletedAtIsNullAndCreatedAtBeforeOrderByCreatedAtDescIdDesc(

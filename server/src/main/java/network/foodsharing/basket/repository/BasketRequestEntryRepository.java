@@ -10,11 +10,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BasketRequestEntryRepository extends JpaRepository<BasketRequestEntry, UUID> {
 
-    List<BasketRequestEntry> findByBasketIdOrderByRequestedAt(UUID basketId);
+    List<BasketRequestEntry> findByBasketIdOrderByRequestedAtAscIdAsc(UUID basketId);
 
     Optional<BasketRequestEntry> findByBasketIdAndRequesterId(UUID basketId, UUID requesterId);
 
-    List<BasketRequestEntry> findByRequesterIdOrderByRequestedAtDesc(UUID requesterId);
+    List<BasketRequestEntry> findByRequesterIdOrderByRequestedAtDescIdDesc(UUID requesterId);
 
     List<BasketRequestEntry> findByBasketIdInAndStatusAndAnsweredAtGreaterThanEqualAndAnsweredAtLessThan(
             Collection<UUID> basketIds, network.foodsharing.basket.domain.BasketRequestStatus status, Instant from,

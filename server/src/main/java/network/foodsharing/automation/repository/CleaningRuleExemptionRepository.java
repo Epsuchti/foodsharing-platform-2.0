@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CleaningRuleExemptionRepository extends JpaRepository<CleaningRuleExemption, UUID> {
 
-    List<CleaningRuleExemption> findByRegionIdOrderByCreatedAt(UUID regionId);
+    List<CleaningRuleExemption> findByRegionIdOrderByCreatedAtAscIdAsc(UUID regionId);
 
     boolean existsByRegionIdAndUserId(UUID regionId, UUID userId);
 

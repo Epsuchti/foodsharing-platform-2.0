@@ -137,7 +137,7 @@ public class ResourceService {
         regionScope.add(regionId);
         List<UUID> members = regions.activeMemberIds(regionId);
         Set<UUID> buddyIds = buddies.confirmedBuddies(principal.userId());
-        List<Resource> visible = new ArrayList<>(resources.findByOwnerIdIsNullAndRegionIdAndDeletedAtIsNullOrderByName(
+        List<Resource> visible = new ArrayList<>(resources.findByOwnerIdIsNullAndRegionIdAndDeletedAtIsNullOrderByNameAscIdAsc(
                 regionId));
         if (!members.isEmpty()) {
             resources.findOwnedIn(members, regionScope).stream()
@@ -159,7 +159,7 @@ public class ResourceService {
     public List<View> mine() {
         toggles.requireEnabled(FeatureToggle.RESOURCES);
         SessionPrincipal principal = currentActor.requirePrincipal();
-        return views(resources.findByOwnerIdAndDeletedAtIsNullOrderByName(principal.userId()), principal);
+        return views(resources.findByOwnerIdAndDeletedAtIsNullOrderByNameAscIdAsc(principal.userId()), principal);
     }
 
     /** The caller's own-resource count against the per-user limit (no region needed). @throws ApiException 404 */
@@ -179,7 +179,7 @@ public class ResourceService {
         Set<UUID> ids = favourites.findByUserId(principal.userId()).stream()
                 .map(ResourceLinks.Favourite::getResourceId).collect(Collectors.toSet());
         Set<UUID> buddyIds = buddies.confirmedBuddies(principal.userId());
-        return views(ids.isEmpty() ? List.of() : resources.findByIdInAndDeletedAtIsNullOrderByName(ids).stream()
+        return views(ids.isEmpty() ? List.of() : resources.findByIdInAndDeletedAtIsNullOrderByNameAscIdAsc(ids).stream()
                 .filter(r -> ResourceRules.visibleTo(r, principal.userId(), buddyIds)).toList(), principal);
     }
 
@@ -412,7 +412,7 @@ public class ResourceService {
         Map<UUID, List<UUID>> categoryIds = categoryLinks.findByResourceIdIn(ids).stream().collect(Collectors.groupingBy(
                 ResourceLinks.CategoryLink::getResourceId,
                 Collectors.mapping(ResourceLinks.CategoryLink::getCategoryId, Collectors.toList())));
-        List<ResourceLinks.Image> imageRows = images.findByResourceIdInOrderBySortOrder(ids);
+        List<ResourceLinks.Image> imageRows = images.findByResourceIdInOrderBySortOrderAscIdAsc(ids);
         Map<UUID, String> fileNames = uploads.fileNames(imageRows.stream().map(ResourceLinks.Image::getUploadId)
                 .collect(Collectors.toSet()));
         Map<UUID, List<Image>> imageMap = imageRows.stream().collect(
@@ -439,7 +439,7 @@ public class ResourceService {
     }
 
     private List<Category> categoryList(String language) {
-        List<ResourceLinks.Category> all = categories.findAllByOrderBySortOrder();
+        List<ResourceLinks.Category> all = categories.findAllByOrderBySortOrderAscIdAsc();
         Map<UUID, Map<String, String>> names = categoryNames.findByCategoryIdIn(all.stream()
                         .map(ResourceLinks.Category::getId).toList()).stream()
                 .collect(Collectors.groupingBy(ResourceLinks.CategoryName::getCategoryId,

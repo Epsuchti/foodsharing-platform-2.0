@@ -35,8 +35,8 @@ public class BananaService {
     @Transactional(readOnly = true)
     public List<Rating> list(UUID userId, boolean sent) {
         access.basic(userId);
-        return sent ? ratings.findBySenderIdOrderByCreatedAtDesc(userId)
-                : ratings.findByRecipientIdOrderByCreatedAtDesc(userId);
+        return sent ? ratings.findBySenderIdOrderByCreatedAtDescIdDesc(userId)
+                : ratings.findByRecipientIdOrderByCreatedAtDescIdDesc(userId);
     }
 
     /** May the current user give {@code userId} a banana (the profile's {@code mayGive}). */

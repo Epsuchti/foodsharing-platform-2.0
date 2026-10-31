@@ -114,8 +114,8 @@ public class AchievementService {
         if (!viewer.admin() && !viewer.member()) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
-        List<Achievement> list = regionId == null ? achievements.findByRegionIdIsNullAndDeletedAtIsNullOrderByNameAsc()
-                : achievements.findByRegionIdAndDeletedAtIsNullOrderByNameAsc(regionId);
+        List<Achievement> list = regionId == null ? achievements.findByRegionIdIsNullAndDeletedAtIsNullOrderByNameAscIdAsc()
+                : achievements.findByRegionIdAndDeletedAtIsNullOrderByNameAscIdAsc(regionId);
         return views(list.stream().filter(a -> AchievementRules.definitionVisible(a.getVisibility(), viewer))
                 .toList(), actor, viewer.admin());
     }
@@ -209,7 +209,7 @@ public class AchievementService {
         SessionPrincipal actor = actors.requirePrincipal();
         Achievement achievement = requireLive(achievementId);
         access.requireAdminister(actor, achievement.getRegionId());
-        return awardViews(awards.findByAchievementIdOrderByAwardedAtDesc(achievementId), actor);
+        return awardViews(awards.findByAchievementIdOrderByAwardedAtDescIdDesc(achievementId), actor);
     }
 
     /**
@@ -309,7 +309,7 @@ public class AchievementService {
     @Transactional(readOnly = true)
     public Optional<AwardedAchievement> activeSystemAward(AchievementSystemKey key, UUID userId) {
         return achievements.findBySystemKey(key).flatMap(a -> awards
-                .findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDesc(userId, a.getId()).stream()
+                .findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(userId, a.getId()).stream()
                 .findFirst());
     }
 
@@ -323,7 +323,7 @@ public class AchievementService {
         AwardedAchievement award = null;
         boolean extended = false;
         if (achievement.getDuplicateMode() == DuplicateMode.OVERRIDE) {
-            award = awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDesc(userId,
+            award = awards.findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(userId,
                     achievement.getId()).stream().findFirst().orElse(null);
         }
         if (award != null) {
@@ -357,7 +357,7 @@ public class AchievementService {
     }
 
     private List<AwardedAchievement> visibleAwards(SessionPrincipal viewer, UUID userId) {
-        List<AwardedAchievement> list = awards.findByUserIdAndRevokedAtIsNullOrderByAwardedAtDesc(userId);
+        List<AwardedAchievement> list = awards.findByUserIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(userId);
         Map<UUID, Achievement> defs = definitions(list.stream().map(AwardedAchievement::getAchievementId).toList());
         Map<UUID, AchievementRules.Viewer> viewers = new HashMap<>();
         return list.stream().filter(award -> {

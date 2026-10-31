@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GroupApplicationRepository extends JpaRepository<GroupApplication, UUID> {
 
-    List<GroupApplication> findByGroupIdAndStatusOrderByCreatedAtAsc(UUID groupId, GroupApplicationStatus status);
+    List<GroupApplication> findByGroupIdAndStatusOrderByCreatedAtAscIdAsc(UUID groupId, GroupApplicationStatus status);
 
     Optional<GroupApplication> findFirstByGroupIdAndUserIdAndStatus(UUID groupId, UUID userId,
                                                                     GroupApplicationStatus status);
@@ -18,5 +18,5 @@ public interface GroupApplicationRepository extends JpaRepository<GroupApplicati
 
     Optional<GroupApplication> findByIdAndGroupId(UUID id, UUID groupId);
 
-    List<GroupApplication> findByGroupIdOrderByCreatedAtDesc(UUID groupId);
+    List<GroupApplication> findByGroupIdOrderByCreatedAtDescIdDesc(UUID groupId);
 }

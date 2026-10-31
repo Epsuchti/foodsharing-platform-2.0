@@ -15,9 +15,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface PollRepository extends JpaRepository<Poll, UUID> {
 
-    List<Poll> findByRegionIdOrderByStartsAtDesc(UUID regionId);
+    List<Poll> findByRegionIdOrderByStartsAtDescIdDesc(UUID regionId);
 
-    List<Poll> findByRegionIdInAndStartsAtLessThanEqualAndEndsAtGreaterThanOrderByEndsAt(
+    List<Poll> findByRegionIdInAndStartsAtLessThanEqualAndEndsAtGreaterThanOrderByEndsAtAscIdAsc(
             Collection<UUID> regionIds, Instant startsBefore, Instant endsAfter);
 
     /** Serialises votes on one poll (A36: aggregates updated under the poll row lock). */

@@ -355,7 +355,7 @@ public class BasketService {
             return 0;
         }
         int marked = 0;
-        for (BasketRequestEntry request : requests.findByBasketIdOrderByRequestedAt(basketId)) {
+        for (BasketRequestEntry request : requests.findByBasketIdOrderByRequestedAtAscIdAsc(basketId)) {
             if (request.getStatus() == BasketRequestStatus.REQUESTED) {
                 history.record(history.event(BasketAction.REQUEST_STATUS_CHANGED, basketId)
                         .change("status", BasketRequestStatus.REQUESTED, BasketRequestStatus.READ)
@@ -380,7 +380,7 @@ public class BasketService {
             }
             scrubPersonalData(basket);
         }
-        for (BasketRequestEntry request : requests.findByRequesterIdOrderByRequestedAtDesc(userId)) {
+        for (BasketRequestEntry request : requests.findByRequesterIdOrderByRequestedAtDescIdDesc(userId)) {
             notifications.removeBells(requestBell(request.getBasketId(), userId));
             requests.delete(request);
         }
@@ -418,7 +418,7 @@ public class BasketService {
 
     private void markDeleted(Basket basket) {
         basket.setStatus(BasketStatus.DELETED);
-        for (BasketRequestEntry request : requests.findByBasketIdOrderByRequestedAt(basket.getId())) {
+        for (BasketRequestEntry request : requests.findByBasketIdOrderByRequestedAtAscIdAsc(basket.getId())) {
             notifications.removeBells(requestBell(basket.getId(), request.getRequesterId()));
         }
         UUID photo = basket.getPhotoUploadId();

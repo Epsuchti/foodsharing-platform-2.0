@@ -124,7 +124,7 @@ public class MailService {
 
     @Transactional(readOnly = true)
     public List<MailAttachment> attachmentsOf(UUID mailId) {
-        return attachments.findByMailIdOrderByCreatedAtAsc(mailId);
+        return attachments.findByMailIdOrderByCreatedAtAscIdAsc(mailId);
     }
 
     /** @throws ApiException 404 ATTACHMENT_NOT_FOUND (+ mail access codes) */
@@ -184,7 +184,7 @@ public class MailService {
         if (mail.getFolder() != MailFolder.TRASH) {
             move(mailbox, mail, MailFolder.TRASH);
         } else {
-            attachmentStore.deleteAll(attachments.findByMailIdOrderByCreatedAtAsc(mailId));
+            attachmentStore.deleteAll(attachments.findByMailIdOrderByCreatedAtAscIdAsc(mailId));
             mails.delete(mail);
             history.record(event(MailboxAction.MAIL_DELETED, mailbox).metadata("mailId", mailId.toString())
                     .metadata("subject", abbreviate(mail.getSubject(), 200)).build());
@@ -320,7 +320,7 @@ public class MailService {
         List<Upload> files = new ArrayList<>();
         Set<UUID> seen = new LinkedHashSet<>();
         if (forwarded != null) {
-            for (MailAttachment attachment : attachments.findByMailIdOrderByCreatedAtAsc(forwarded.getId())) {
+            for (MailAttachment attachment : attachments.findByMailIdOrderByCreatedAtAscIdAsc(forwarded.getId())) {
                 if (seen.add(attachment.getUploadId())) {
                     files.add(uploads.find(attachment.getUploadId()));
                 }

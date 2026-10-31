@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ResourceImageRepository extends JpaRepository<ResourceLinks.Image, UUID> {
 
-    List<ResourceLinks.Image> findByResourceIdInOrderBySortOrder(Collection<UUID> resourceIds);
+    List<ResourceLinks.Image> findByResourceIdInOrderBySortOrderAscIdAsc(Collection<UUID> resourceIds);
 
     List<ResourceLinks.Image> findByResourceId(UUID resourceId);
 

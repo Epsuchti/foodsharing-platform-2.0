@@ -10,9 +10,9 @@ public interface RatingRepository extends JpaRepository<Rating, UUID> {
 
     Optional<Rating> findByRecipientIdAndSenderId(UUID recipientId, UUID senderId);
 
-    List<Rating> findByRecipientIdOrderByCreatedAtDesc(UUID recipientId);
+    List<Rating> findByRecipientIdOrderByCreatedAtDescIdDesc(UUID recipientId);
 
-    List<Rating> findBySenderIdOrderByCreatedAtDesc(UUID senderId);
+    List<Rating> findBySenderIdOrderByCreatedAtDescIdDesc(UUID senderId);
 
     long countByRecipientId(UUID recipientId);
 

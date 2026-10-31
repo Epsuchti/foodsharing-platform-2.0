@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReportWallPostRepository extends JpaRepository<ReportWallPost, UUID> {
 
-    Page<ReportWallPost> findByReportIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID reportId, Pageable pageable);
+    Page<ReportWallPost> findByReportIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(UUID reportId, Pageable pageable);
 
     Optional<ReportWallPost> findByIdAndReportIdAndDeletedAtIsNull(UUID id, UUID reportId);
 }

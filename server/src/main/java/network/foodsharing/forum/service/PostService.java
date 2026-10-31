@@ -184,7 +184,7 @@ public class PostService {
 
     ForumViews.PostDetails details(ThreadContext context, ForumPost post) {
         return new ForumViews.PostDetails(context.thread(), post,
-                reactions.findByPostIdInOrderByCreatedAtAsc(List.of(post.getId())), context.actor(), context.forum());
+                reactions.findByPostIdInOrderByCreatedAtAscIdAsc(List.of(post.getId())), context.actor(), context.forum());
     }
 
     private void recount(ForumThread thread) {

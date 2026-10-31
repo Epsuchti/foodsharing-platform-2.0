@@ -27,7 +27,7 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
 
     /** My memberships, latest conversation activity first (conversations without messages last). */
     @Query(value = "select m from ConversationMember m, Conversation c where c.id = m.conversationId and m.userId = :userId"
-            + " order by case when c.lastMessageAt is null then 1 else 0 end, c.lastMessageAt desc, c.createdAt desc",
+            + " order by case when c.lastMessageAt is null then 1 else 0 end, c.lastMessageAt desc, c.createdAt desc, c.id desc",
             countQuery = "select count(m) from ConversationMember m where m.userId = :userId")
     Page<ConversationMember> pageOf(@Param("userId") UUID userId, Pageable pageable);
 

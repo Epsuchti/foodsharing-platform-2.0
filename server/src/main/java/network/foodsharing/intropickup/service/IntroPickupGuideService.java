@@ -418,7 +418,7 @@ public class IntroPickupGuideService {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         requireBooking(slot);
-        return commentViews(comments.findBySlotIdOrderByCreatedAtAsc(slot.getId()));
+        return commentViews(comments.findBySlotIdOrderByCreatedAtAscIdAsc(slot.getId()));
     }
 
     List<CommentView> commentViews(List<IntroPickupComment> list) {

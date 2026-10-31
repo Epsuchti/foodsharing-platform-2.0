@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GroceryRepository extends JpaRepository<Grocery, UUID> {
 
-    List<Grocery> findAllByOrderByNameAsc();
+    List<Grocery> findAllByOrderByNameAscIdAsc();
 
     Optional<Grocery> findByNameIgnoreCase(String name);
 }

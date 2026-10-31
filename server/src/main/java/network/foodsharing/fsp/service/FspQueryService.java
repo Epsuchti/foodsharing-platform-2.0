@@ -92,7 +92,7 @@ public class FspQueryService {
         SessionPrincipal actor = actors.requirePrincipal();
         regions.require(regionId);
         boolean mayAdd = includeInactive && access.mayAdd(actor, regionId);
-        List<FoodSharePoint> list = fsps.findByRegionIdAndDeletedAtIsNullOrderByNameAsc(regionId);
+        List<FoodSharePoint> list = fsps.findByRegionIdAndDeletedAtIsNullOrderByNameAscIdAsc(regionId);
         Set<UUID> managed = includeInactive ? followers.findByUserId(actor.userId()).stream()
                 .filter(r -> r.getRole() == FspFollowerRole.MANAGER).map(FspFollower::getFspId)
                 .collect(Collectors.toSet()) : Set.of();
@@ -106,7 +106,7 @@ public class FspQueryService {
         toggles.requireEnabled(FeatureToggle.FOOD_SHARE_POINTS);
         UUID userId = actors.requireUserId();
         Set<UUID> ids = followedIds(userId);
-        return ids.isEmpty() ? List.of() : summaries(fsps.findByIdInAndDeletedAtIsNullOrderByNameAsc(ids), userId);
+        return ids.isEmpty() ? List.of() : summaries(fsps.findByIdInAndDeletedAtIsNullOrderByNameAscIdAsc(ids), userId);
     }
 
     /** Ids of the FSPs the user follows or manages (activity feed). */
@@ -120,7 +120,7 @@ public class FspQueryService {
         SessionPrincipal actor = actors.requirePrincipal();
         FoodSharePoint fsp = require(fspId);
         FspRules.Facts facts = access.requireVisible(actor, fsp);
-        return posts.findByFspIdAndDeletedAtIsNullOrderByCreatedAtDesc(fspId, PageRequest.of(page, size))
+        return posts.findByFspIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(fspId, PageRequest.of(page, size))
                 .map(post -> new PostView(post, FspRules.mayDeletePost(facts,
                         post.getAuthorId().equals(actor.userId()))));
     }
@@ -175,7 +175,7 @@ public class FspQueryService {
             return List.of();
         }
         Map<UUID, String> names = new HashMap<>();
-        fsps.findByIdInAndDeletedAtIsNullOrderByNameAsc(ids).forEach(f -> names.put(f.getId(), f.getName()));
+        fsps.findByIdInAndDeletedAtIsNullOrderByNameAscIdAsc(ids).forEach(f -> names.put(f.getId(), f.getName()));
         if (names.isEmpty()) {
             return List.of();
         }

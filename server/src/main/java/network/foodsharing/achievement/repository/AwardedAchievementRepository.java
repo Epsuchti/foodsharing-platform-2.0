@@ -11,11 +11,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface AwardedAchievementRepository extends JpaRepository<AwardedAchievement, UUID> {
 
-    List<AwardedAchievement> findByAchievementIdOrderByAwardedAtDesc(UUID achievementId);
+    List<AwardedAchievement> findByAchievementIdOrderByAwardedAtDescIdDesc(UUID achievementId);
 
-    List<AwardedAchievement> findByUserIdAndRevokedAtIsNullOrderByAwardedAtDesc(UUID userId);
+    List<AwardedAchievement> findByUserIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(UUID userId);
 
-    List<AwardedAchievement> findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDesc(UUID userId,
+    List<AwardedAchievement> findByUserIdAndAchievementIdAndRevokedAtIsNullOrderByAwardedAtDescIdDesc(UUID userId,
                                                                                                UUID achievementId);
 
     @Query("select a.achievementId, count(a) from AwardedAchievement a where a.revokedAt is null"

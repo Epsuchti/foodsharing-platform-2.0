@@ -144,7 +144,7 @@ public class QuizEditorService {
         return new QuizDetailView(quiz, texts.stream().collect(Collectors.toMap(QuizI18n::getLanguage, QuizI18n::getName)),
                 texts.stream().filter(t -> t.getDescription() != null)
                         .collect(Collectors.toMap(QuizI18n::getLanguage, QuizI18n::getDescription)),
-                questions.findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAsc(quiz.getId()).size(),
+                questions.findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(quiz.getId()).size(),
                 mayEdit(actor, kind));
     }
 
@@ -195,13 +195,13 @@ public class QuizEditorService {
     public List<QuestionView> questions(QuizKind kind) {
         Quiz quiz = requireQuiz(kind);
         requireRead(kind);
-        return views(questions.findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAsc(quiz.getId()));
+        return views(questions.findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(quiz.getId()));
     }
 
     /** All non-deleted questions with answers (for sessions; no permission check). */
     @Transactional(readOnly = true)
     public List<QuestionView> pool(Quiz quiz) {
-        return views(questions.findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAsc(quiz.getId()));
+        return views(questions.findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(quiz.getId()));
     }
 
     @Transactional
@@ -298,7 +298,7 @@ public class QuizEditorService {
         Quiz quiz = requireQuiz(kind);
         requireRead(kind);
         requireQuestion(quiz, questionId);
-        List<QuizQuestionComment> rows = comments.findByQuestionIdOrderByCreatedAtAsc(questionId);
+        List<QuizQuestionComment> rows = comments.findByQuestionIdOrderByCreatedAtAscIdAsc(questionId);
         Map<UUID, User> authors = users.findActive(rows.stream().map(QuizQuestionComment::getAuthorId)
                         .filter(java.util.Objects::nonNull).distinct().toList()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));

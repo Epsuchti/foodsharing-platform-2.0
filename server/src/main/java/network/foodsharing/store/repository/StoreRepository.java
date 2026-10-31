@@ -20,13 +20,13 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
     @Query("select s from Store s where s.deletedAt is null")
     List<Store> findAllLive();
 
-    @Query("select s from Store s where s.regionId in :regionIds and s.deletedAt is null order by s.name")
+    @Query("select s from Store s where s.regionId in :regionIds and s.deletedAt is null order by s.name, s.id")
     List<Store> findLiveInRegions(@Param("regionIds") Collection<UUID> regionIds);
 
-    @Query("select s from Store s where s.id in :ids and s.deletedAt is null order by s.name")
+    @Query("select s from Store s where s.id in :ids and s.deletedAt is null order by s.name, s.id")
     List<Store> findLiveIn(@Param("ids") Collection<UUID> ids);
 
-    @Query("select s from Store s where s.chainId = :chainId and s.deletedAt is null order by s.name")
+    @Query("select s from Store s where s.chainId = :chainId and s.deletedAt is null order by s.name, s.id")
     List<Store> findLiveByChain(@Param("chainId") UUID chainId);
 
     @Query("select count(s) from Store s where s.regionId in :regionIds and s.deletedAt is null "

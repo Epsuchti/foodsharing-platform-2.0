@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, UUID> {
 
-    List<QuizQuestion> findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAsc(UUID quizId);
+    List<QuizQuestion> findByQuizIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(UUID quizId);
 
     Optional<QuizQuestion> findByIdAndQuizIdAndDeletedAtIsNull(UUID id, UUID quizId);
 }

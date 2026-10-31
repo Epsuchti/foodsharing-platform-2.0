@@ -37,7 +37,6 @@ import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,15 +102,14 @@ public class RegionAdminService {
     @Transactional(readOnly = true)
     public Page<AdminItem> list(UUID parentId, String q, int page, int size) {
         requireOrga();
-        PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 200),
-                Sort.by("sortOrder", "name"));
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 200));
         Page<Region> result;
         if (q != null && !q.isBlank()) {
             result = reads.search(q, null, page, size);
         } else if (parentId == null) {
-            result = regions.findByParentIdIsNull(pageable);
+            result = regions.findByParentIdIsNullOrderBySortOrderAscNameAscIdAsc(pageable);
         } else {
-            result = regions.findByParentId(parentId, pageable);
+            result = regions.findByParentIdOrderBySortOrderAscNameAscIdAsc(parentId, pageable);
         }
         return result.map(this::item);
     }

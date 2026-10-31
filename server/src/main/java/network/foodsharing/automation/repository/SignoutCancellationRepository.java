@@ -20,7 +20,7 @@ public interface SignoutCancellationRepository extends JpaRepository<SignoutCanc
     List<SignoutCancellation> findByStoreIdAndStatusAndPickupAtLessThanEqual(UUID storeId, CancellationStatus status,
                                                                             Instant pickupAt);
 
-    List<SignoutCancellation> findByStoreIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtDesc(
+    List<SignoutCancellation> findByStoreIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtDescIdDesc(
             UUID storeId, Instant from, Instant to);
 
     @Query("select c from SignoutCancellation c where c.storeId in :storeIds and c.createdAt >= :from "

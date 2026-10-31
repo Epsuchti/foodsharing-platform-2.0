@@ -96,7 +96,7 @@ public class PushSubscriptionService {
 
     @Transactional(readOnly = true)
     public List<PushSubscription> subscriptions(UUID userId) {
-        return repository.findByUserIdOrderByCreatedAtAsc(userId);
+        return repository.findByUserIdOrderByCreatedAtAscIdAsc(userId);
     }
 
     @Transactional(readOnly = true)

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PickupWeightCategoryRepository extends JpaRepository<PickupWeightCategory, UUID> {
 
-    List<PickupWeightCategory> findAllByOrderBySortOrderAsc();
+    List<PickupWeightCategory> findAllByOrderBySortOrderAscIdAsc();
 
     Optional<PickupWeightCategory> findByCode(String code);
 }

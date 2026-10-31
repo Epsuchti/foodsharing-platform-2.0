@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ForumPostReactionRepository extends JpaRepository<ForumPostReaction, UUID> {
 
-    List<ForumPostReaction> findByPostIdInOrderByCreatedAtAsc(Collection<UUID> postIds);
+    List<ForumPostReaction> findByPostIdInOrderByCreatedAtAscIdAsc(Collection<UUID> postIds);
 
     Optional<ForumPostReaction> findByPostIdAndUserIdAndReactionKey(UUID postId, UUID userId, ReactionKey key);
 }

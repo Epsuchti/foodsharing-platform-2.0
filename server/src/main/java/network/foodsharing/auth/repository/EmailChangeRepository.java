@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EmailChangeRepository extends JpaRepository<EmailChange, UUID> {
 
-    List<EmailChange> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<EmailChange> findByUserIdOrderByCreatedAtDescIdDesc(UUID userId);
 
     Optional<EmailChange> findByTokenHash(String tokenHash);
 

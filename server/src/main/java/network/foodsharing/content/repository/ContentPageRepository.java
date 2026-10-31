@@ -12,7 +12,7 @@ public interface ContentPageRepository extends JpaRepository<ContentPage, UUID> 
 
     Optional<ContentPage> findBySlug(String slug);
 
-    List<ContentPage> findByKindOrderBySortOrderAscSlugAsc(ContentPageKind kind);
+    List<ContentPage> findByKindOrderBySortOrderAscSlugAscIdAsc(ContentPageKind kind);
 
-    List<ContentPage> findAllByOrderByKindAscSortOrderAscSlugAsc();
+    List<ContentPage> findAllByOrderByKindAscSortOrderAscSlugAscIdAsc();
 }

@@ -166,7 +166,7 @@ public class SignoutAlertService {
         if (fromDay.isAfter(toDay)) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "from");
         }
-        return cancellations.findByStoreIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtDesc(storeId,
+        return cancellations.findByStoreIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtDescIdDesc(storeId,
                 fromDay.atStartOfDay(zone).toInstant(), toDay.plusDays(1).atStartOfDay(zone).toInstant());
     }
 

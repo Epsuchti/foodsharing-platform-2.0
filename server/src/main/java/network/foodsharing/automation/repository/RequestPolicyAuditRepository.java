@@ -15,7 +15,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface RequestPolicyAuditRepository extends JpaRepository<RequestPolicyAudit, UUID> {
 
-    Optional<RequestPolicyAudit> findFirstByStoreIdAndUserIdOrderByCreatedAtDesc(UUID storeId, UUID userId);
+    Optional<RequestPolicyAudit> findFirstByStoreIdAndUserIdOrderByCreatedAtDescIdDesc(UUID storeId, UUID userId);
 
     @Query("select a from RequestPolicyAudit a where a.storeId in :storeIds and a.createdAt >= :from "
             + "and a.createdAt < :to and (:allUsers = true or a.userId = :userId) "

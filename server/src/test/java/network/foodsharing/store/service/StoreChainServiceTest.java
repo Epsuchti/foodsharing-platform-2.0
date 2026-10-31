@@ -167,7 +167,7 @@ class StoreChainServiceTest {
         migros.setId(UUID.randomUUID());
         migros.setName("Migros");
         migros.setStatus(StoreChainStatus.WAITING);
-        when(chains.findAllByOrderByNameAsc()).thenReturn(List.of(chain, migros));
+        when(chains.findAllByOrderByNameAscIdAsc()).thenReturn(List.of(chain, migros));
         assertThat(service.list(List.of(StoreChainStatus.WAITING), null, 0, 20).getContent())
                 .extracting(v -> v.chain().getName()).containsExactly("Migros");
         assertThat(service.list(null, "coo", 0, 20).getContent()).extracting(v -> v.chain().getName())

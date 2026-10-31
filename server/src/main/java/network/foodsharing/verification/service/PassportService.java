@@ -115,7 +115,7 @@ public class PassportService {
     /** Latest issue, else {@code last_passport_at} + validity; null when the user never had a passport. */
     @Transactional(readOnly = true)
     public Validity validity(User user) {
-        Optional<PassportIssue> latest = issues.findFirstByUserIdOrderByValidUntilDescCreatedAtDesc(user.getId());
+        Optional<PassportIssue> latest = issues.findFirstByUserIdOrderByValidUntilDescCreatedAtDescIdDesc(user.getId());
         if (latest.isPresent()) {
             return new Validity(latest.get().getValidFrom(), latest.get().getValidUntil());
         }
@@ -212,7 +212,7 @@ public class PassportService {
         if (members.isEmpty()) {
             return List.of();
         }
-        List<PassportRequest> list = requests.findByUserIdInOrderByRequestedAtDesc(members).stream()
+        List<PassportRequest> list = requests.findByUserIdInOrderByRequestedAtDescIdDesc(members).stream()
                 .filter(r -> includeFulfilled || r.getFulfilledAt() == null).toList();
         Set<UUID> ids = new LinkedHashSet<>();
         list.forEach(r -> {

@@ -6,7 +6,6 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.notification.domain.NotificationAction;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 
 import java.time.Clock;
 import java.util.List;
@@ -174,7 +173,7 @@ public class MailOutboxService {
     public Page<MailOutboxMessage> search(MailStatus status, String search, int page, int size) {
         String pattern = search == null || search.isBlank() ? null
                 : "%" + search.strip().toLowerCase(java.util.Locale.ROOT) + "%";
-        return repository.search(status, pattern, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return repository.search(status, pattern, PageRequest.of(page, size));
     }
 
     /**

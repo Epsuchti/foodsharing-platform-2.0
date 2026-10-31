@@ -42,7 +42,7 @@ public class AuthMethodsService {
     @Transactional(readOnly = true)
     public LoginMethods list() {
         UUID userId = currentActorService.requireUserId();
-        return new LoginMethods(identities.findByUserId(userId), passkeys.findByUserIdOrderByCreatedAt(userId));
+        return new LoginMethods(identities.findByUserId(userId), passkeys.findByUserIdOrderByCreatedAtAscIdAsc(userId));
     }
 
     /**

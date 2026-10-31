@@ -81,7 +81,7 @@ public class LegalService {
     @Transactional(readOnly = true)
     public Optional<LegalDocumentVersion> currentVersion(LegalDocumentKind kind) {
         Instant now = clock.instant();
-        return versions.findByKindOrderByPublishedAtDesc(kind).stream()
+        return versions.findByKindOrderByPublishedAtDescIdDesc(kind).stream()
                 .filter(version -> !version.getPublishedAt().isAfter(now)).findFirst();
     }
 
@@ -107,7 +107,7 @@ public class LegalService {
 
     @Transactional(readOnly = true)
     public List<Consent> consents(User user) {
-        List<LegalAcceptance> accepted = acceptances.findByUserIdOrderByAcceptedAtDesc(user.getId());
+        List<LegalAcceptance> accepted = acceptances.findByUserIdOrderByAcceptedAtDescIdDesc(user.getId());
         List<Consent> result = new ArrayList<>();
         for (LegalDocumentKind kind : LegalDocumentKind.values()) {
             Optional<LegalDocumentVersion> current = currentVersion(kind);
@@ -135,7 +135,7 @@ public class LegalService {
         if (current.isEmpty()) {
             return false;
         }
-        return acceptances.findByUserIdOrderByAcceptedAtDesc(userId).stream().filter(a -> a.getKind() == kind)
+        return acceptances.findByUserIdOrderByAcceptedAtDescIdDesc(userId).stream().filter(a -> a.getKind() == kind)
                 .findFirst().map(latest -> isCurrent(kind, latest, current.get())).orElse(false);
     }
 
@@ -171,7 +171,7 @@ public class LegalService {
     @Transactional(readOnly = true)
     public List<LegalDocumentVersion> versions(LegalDocumentKind kind) {
         permissions.requireOrga(currentActor.requirePrincipal());
-        return versions.findByKindOrderByPublishedAtDesc(kind);
+        return versions.findByKindOrderByPublishedAtDescIdDesc(kind);
     }
 
     /**
@@ -225,7 +225,7 @@ public class LegalService {
         Instant acceptedVersionPublished = versions.findByKindAndDocumentVersion(kind, latest.getDocumentVersion())
                 .map(LegalDocumentVersion::getPublishedAt).orElse(Instant.EPOCH);
         Instant now = clock.instant();
-        return versions.findByKindOrderByPublishedAtDesc(kind).stream()
+        return versions.findByKindOrderByPublishedAtDescIdDesc(kind).stream()
                 .filter(v -> v.getPublishedAt().isAfter(acceptedVersionPublished) && !v.getPublishedAt().isAfter(now))
                 .noneMatch(LegalDocumentVersion::isRequireReconsent);
     }

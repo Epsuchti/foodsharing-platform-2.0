@@ -51,27 +51,27 @@ public interface PickupSignupRepository extends JpaRepository<PickupSignup, UUID
             + "and s.pickupAt < :now group by s.userId")
     List<MemberStatsRow> memberStats(@Param("storeId") UUID storeId, @Param("now") Instant now);
 
-    List<PickupSignup> findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAt(UUID userId, Instant from);
+    List<PickupSignup> findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(UUID userId, Instant from);
 
-    List<PickupSignup> findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAt(UUID userId,
+    List<PickupSignup> findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtAscIdAsc(UUID userId,
                                                                                                Instant from,
                                                                                                Instant to);
 
-    org.springframework.data.domain.Page<PickupSignup> findByUserIdAndPickupAtLessThanOrderByPickupAtDesc(
+    org.springframework.data.domain.Page<PickupSignup> findByUserIdAndPickupAtLessThanOrderByPickupAtDescIdDesc(
             UUID userId, Instant before, org.springframework.data.domain.Pageable pageable);
 
     /** Latest confirmed sign-up of a user in a store before {@code before} (automation rules). */
-    Optional<PickupSignup> findFirstByStoreIdAndUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(
+    Optional<PickupSignup> findFirstByStoreIdAndUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDescIdDesc(
             UUID storeId, UUID userId, Instant before);
 
     /** Unconfirmed future sign-ups of the given stores (automation job). */
-    List<PickupSignup> findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAt(Collection<UUID> storeIds,
+    List<PickupSignup> findByStoreIdInAndConfirmedFalseAndPickupAtAfterOrderByPickupAtAscIdAsc(Collection<UUID> storeIds,
                                                                                        Instant now);
 
     /** Past confirmed sign-ups of a user (member statistics). */
     long countByUserIdAndConfirmedTrueAndPickupAtLessThan(UUID userId, Instant now);
 
-    Optional<PickupSignup> findFirstByUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDesc(UUID userId,
+    Optional<PickupSignup> findFirstByUserIdAndConfirmedTrueAndPickupAtLessThanOrderByPickupAtDescIdDesc(UUID userId,
                                                                                                   Instant now);
 
     @Query("select s from PickupSignup s where s.confirmed = true and s.pickupAt >= :from and s.pickupAt < :to "

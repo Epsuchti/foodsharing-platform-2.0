@@ -30,7 +30,7 @@ public interface UploadRepository extends JpaRepository<Upload, UUID> {
 
     List<Upload> findByVariantsFalseAndMimeTypeIn(java.util.Collection<String> mimeTypes);
 
-    List<Upload> findByOwnerUserIdOrderByCreatedAt(java.util.UUID ownerUserId);
+    List<Upload> findByOwnerUserIdOrderByCreatedAtAscIdAsc(java.util.UUID ownerUserId);
 
     boolean existsByStorageKey(String storageKey);
 

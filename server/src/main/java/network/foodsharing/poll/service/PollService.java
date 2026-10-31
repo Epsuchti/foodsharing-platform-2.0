@@ -71,7 +71,7 @@ public class PollService {
     public List<PollItem> listRegion(UUID regionId) {
         PollRules.Actor actor = access.currentActor(regionId);
         PollPermissionService.require(PollRules.maySee(actor));
-        List<Poll> list = polls.findByRegionIdOrderByStartsAtDesc(regionId);
+        List<Poll> list = polls.findByRegionIdOrderByStartsAtDescIdDesc(regionId);
         Set<UUID> voted = list.isEmpty() ? Set.of()
                 : votes.votedPollIds(actor.userId(), list.stream().map(Poll::getId).toList());
         Instant now = clock.instant();
@@ -87,7 +87,7 @@ public class PollService {
             return List.of();
         }
         Instant now = clock.instant();
-        List<Poll> running = polls.findByRegionIdInAndStartsAtLessThanEqualAndEndsAtGreaterThanOrderByEndsAt(
+        List<Poll> running = polls.findByRegionIdInAndStartsAtLessThanEqualAndEndsAtGreaterThanOrderByEndsAtAscIdAsc(
                 regionIds, now, now).stream().filter(p -> p.getCancelledAt() == null).toList();
         if (running.isEmpty()) {
             return List.of();

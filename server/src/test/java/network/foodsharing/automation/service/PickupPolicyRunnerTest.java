@@ -169,7 +169,7 @@ class PickupPolicyRunnerTest {
         decide(new Decision(false, true, false, List.of(new Reason(PolicyRule.PUBLIC_HOLIDAY, "Feiertag")), null));
         PickupPolicyAudit previous = new PickupPolicyAudit();
         previous.setDecision(PickupPolicyDecision.SKIPPED);
-        when(audits.findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDesc(STORE, USER, PICKUP))
+        when(audits.findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDescIdDesc(STORE, USER, PICKUP))
                 .thenReturn(Optional.of(previous));
         assertThat(runner.runAll().skipped()).isEqualTo(1);
         verify(audits, never()).save(any());

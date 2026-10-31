@@ -14,7 +14,7 @@ public interface PickupExtraSlotRepository extends JpaRepository<PickupExtraSlot
 
     List<PickupExtraSlot> findByStoreIdAndPickupAtIn(UUID storeId, Collection<Instant> pickupAts);
 
-    List<PickupExtraSlot> findByStoreIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+    List<PickupExtraSlot> findByStoreIdInAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDescIdDesc(
             Collection<UUID> storeIds, Instant from, Instant to);
 
     List<PickupExtraSlot> findByCreatedAtGreaterThanEqualAndCreatedAtLessThan(Instant from, Instant to);
