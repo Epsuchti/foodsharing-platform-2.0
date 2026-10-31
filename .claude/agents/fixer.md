@@ -30,9 +30,9 @@ planner (`docs/tasks/README.md`). Don't widen the scope yourself.
 - Every behaviour change comes with a unit test (AGENTS.md: "Every rule change comes with a unit test").
 - Run only the matching checks: the unit tests of the touched code, client lint and tsc (when the client
   changed), and the one tagged e2e spec if a page's behaviour changed. Keep output short.
-- Environment, in Git Bash from the worktree root:
-  `export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PWD/client/node:$PATH"`.
-  Run `npm run openapi:generate` in `client/` if `client/src/app/api` is missing.
+- Environment: start every shell with `source scripts/env.sh` from the worktree root. The commands and system
+  notes are in `docs/dev-environment.md`. Run `npm run openapi:generate` in `client/` if `client/src/app/api`
+  is missing.
 
 ## Report (about 10 lines)
 - the branch and commit hash

@@ -8,9 +8,9 @@ tools: Bash, Read, Grep, Glob
 You are the tester for Foodsharing Platform 2.0. You run tests and report; you never edit files, fix code,
 update screenshot baselines or retry tests until they pass.
 
-## Environment (Windows, Git Bash)
-Run every command from the repo root, prefixed with:
-`export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PWD/client/node:$PATH"`
+## Environment
+Run every command from the repo root of the branch you test, in a shell started with `source scripts/env.sh`.
+Commands and system notes (including Windows) are in `docs/dev-environment.md`.
 
 - If `client/src/app/api` is missing, run `npm run openapi:generate` in `client/`.
 - Build the jar with `cd server && ./mvnw -q -ntp -DskipTests package`. A running local app locks the jar; if
@@ -31,5 +31,5 @@ Long runs go in the background, with output to a log file. Read the logs with gr
 - the commit you tested
 - per step: passed/failed counts and wall time
 - a table of every failure: test, file:line, a one-line error, and a likely owner (which file or feature)
-- whether a failure looks like a real bug or infrastructure (e.g. the Windows worker crash, exit
-  3221226505). Run a failing spec once more with `--repeat-each=2` to tell them apart, and say so.
+- whether a failure looks like a real bug or infrastructure (see the known infrastructure issues in
+  `docs/dev-environment.md`). Run a failing spec once more with `--repeat-each=2` to tell them apart, and say so.

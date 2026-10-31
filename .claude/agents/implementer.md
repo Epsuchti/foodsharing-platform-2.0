@@ -14,6 +14,8 @@ You are the implementer for Foodsharing Platform 2.0. You build exactly what the
 
 ## How to work
 - Work only in your worktree. Merge `main` into your branch before you commit. Never push.
+- Start every shell with `source scripts/env.sh` from the worktree root. The commands and system notes are in
+  `docs/dev-environment.md`.
 - Contract first: change `server/src/main/resources/openapi/`, regenerate (`npm run openapi:generate` in
   `client/`), then implement. After any contract change, typecheck the client too.
 - Follow the binding rules in `AGENTS.md`:

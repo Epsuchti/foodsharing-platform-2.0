@@ -1,6 +1,7 @@
 # Agent Notes
 
 Single source of truth: `plan.md`. Build state: `docs/ledger.md`. Decisions: `docs/decisions.md`. Detailed conventions: `docs/conventions.md`.
+Environment: start every shell with `source scripts/env.sh`; requirements, commands and OS notes are in `docs/dev-environment.md`.
 
 ## Carried over from foodsharing-einab-tabelle
 - Prefer production-safe migrations that work on PostgreSQL **and** H2 (`MODE=PostgreSQL`).

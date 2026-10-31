@@ -40,7 +40,7 @@ The repository is `git@github.com:Epsuchti/foodsharing-platform-2.0.git` (`origi
 **Not verified yet:** the stability pass (decision 138) was merged when its worker was stopped, before its own full verification run. Its commits passed their targeted checks. A full run on today's main hasn't been done yet. That's the first job.
 
 ## First steps for the next developer
-1. Set up the environment (Windows notes below), then build the jar:
+1. Set up the shell (`source scripts/env.sh`, see `docs/dev-environment.md`), then build the jar:
    `cd server && ./mvnw -q -DskipTests package`
 2. Run the full suites on main, twice. Both runs must be green before anything else:
    - `npm run e2e:sharded -- --project=chromium`
@@ -82,22 +82,9 @@ The owner works with Claude Code:
 
 Workers never write to the main checkout and merge `main` before committing; only the integrator merges into `main` and checks `git diff --name-only --diff-filter=U` before committing a merge. Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`). The one unmerged branch worth keeping is `build/m7-perf-2`.
 
-## Windows environment
-- **JDK 21:** portable Temurin in `~/.jdks/jdk-21.0.13+9`. Every Git Bash shell, from the repo root, needs `export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PWD/client/node:$PATH"`.
-- **Node:** use the Maven-installed `client/node` (24.15). The system Node is too old for the Angular CLI. There is no Python.
-- **Docker Desktop:** installed; the CLI is in `/c/Program Files/Docker/Docker/resources/bin`. It's needed for the Postgres ITs and the screenshot container.
-- **Generated client API:** `client/src/app/api` is generated and never committed. Run `npm run openapi:generate` in `client/` when it's missing; `npm start` and the Maven build regenerate it.
-- **Maven build:** it runs `npm ci` in `client/`, which reinstalls `client/node_modules`. Lint and unit tests in `client/` fail while that runs.
-- **Locked jar:** a running local app locks `server/target/*.jar` on Windows. Stop it before `./mvnw clean package`.
-- **Local app:**
-  - from `server/`: `java -jar target/foodsharing-platform-0.0.1-SNAPSHOT.jar --spring.profiles.active=local`
-  - or: `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`
-  - http://localhost:8080, with seed data and the test-person switcher on `/login`
-  - the H2 database is in `server/data/`
-  - Mailpit: `server/start_smtp_server.sh`
-  - The app's built-in browser pane can't reach external hosts, so map tiles don't load there; check the map in a normal browser (resume item 17).
-- **Lighthouse:** set `CHROME_PATH` to Playwright's headless shell (`…/chromium_headless_shell-1248/chrome-headless-shell-win64/chrome-headless-shell.exe`); the full chrome.exe can't be spawned on this machine.
-- **Ledger:** `scripts/ledger.py` needs Python. Edit `docs/ledger.md` by hand, keeping the 8 columns of a feature row.
+## Environment
+Set up every shell with `source scripts/env.sh`. Requirements, commands and the Windows notes are in `docs/dev-environment.md`.
+On the original machine (Windows 11): portable Temurin 21 in `~/.jdks/jdk-21.0.13+9`, Docker Desktop, no Python. The app's built-in browser pane there can't reach external hosts, so map tiles don't load in it (item 17).
 
 ## After the base build: agreed with the owner, not started
 1. Parallel shards: done (decision 137).
