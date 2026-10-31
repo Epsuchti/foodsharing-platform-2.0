@@ -62,7 +62,8 @@ import { loadPetition, safePetitionHref } from '../petition.resource';
                 rel="noopener noreferrer"
                 data-testid="content.petition.sign"
               >
-                <i class="pi pi-pencil" aria-hidden="true"></i>{{ 'content.petition.sign' | t }}
+                <i class="pi pi-pencil" aria-hidden="true"></i
+                ><span class="sign__label">{{ 'content.petition.sign' | t }}</span>
                 <span class="fs-visually-hidden">{{ 'content.petition.newTab' | t }}</span>
               </a>
             }
@@ -109,7 +110,13 @@ import { loadPetition, safePetitionHref } from '../petition.resource';
     .sign {
       justify-self: start;
       gap: 0.5rem;
+      max-width: 100%;
       text-decoration: none;
+      white-space: normal;
+    }
+    .sign__label {
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
   `,
 })
