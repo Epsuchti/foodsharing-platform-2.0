@@ -28,7 +28,7 @@
         <npm.version>11.12.1</npm.version>
         <!-- milestone 2: passports (PDF + QR), wallets -->
         <openpdf.version>2.0.3</openpdf.version>
-        <zxing.version>3.5.3</zxing.version>
+        <zxing.version>3.5.4</zxing.version>
         <pdfbox.version>3.0.5</pdfbox.version>
         <google-auth.version>1.33.0</google-auth.version>
         <bouncycastle.version>1.80</bouncycastle.version>
