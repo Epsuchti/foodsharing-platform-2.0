@@ -119,6 +119,9 @@ test.describe('foodsaver', () => {
     await page.getByTestId('messaging.conversation.composer').fill('Super, @');
     await expect(page.getByTestId('messaging.conversation.mentionPick')).toHaveCount(1);
     await page.getByTestId('messaging.conversation.mentionPick').click();
+    // the token reaches the textarea with the next change detection; typing before that appended to the old text
+    // and the next input event overwrote the token ("Super, @bis bald" under load)
+    await expect(page.getByTestId('messaging.conversation.composer')).toHaveValue(/@\[[^\]]+\]\(user:[0-9a-f-]+\) $/);
     await page.getByTestId('messaging.conversation.composer').press('End');
     await page.getByTestId('messaging.conversation.composer').pressSequentially('bis bald');
     await page.getByTestId('messaging.conversation.send').click();
