@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "claude-agents": {
+      "source": { "source": "github", "repo": "Epsuchti/claude-agents" }
+    }
+  },
+  "enabledPlugins": {
+    "workflow@claude-agents": true
+  }
+}

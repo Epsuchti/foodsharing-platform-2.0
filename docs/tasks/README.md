@@ -1,7 +1,7 @@
 # Task workflow (planner → designer → implementer → tester)
 
 Goal: build the right thing the first time, and spend fewer tokens doing it. The agents come from the `workflow` plugin
-(github.com/Epsuchti/claude-agents, enabled per user in `~/.claude/settings.json`). A project can override an agent
+(github.com/Epsuchti/claude-agents), enabled for everyone in the project's `.claude/settings.json`. A project can override an agent
 with a file of the same name in `.claude/agents/`.
 
 1. **Plan.** The main session hands the owner's request to `planner` (Opus).
