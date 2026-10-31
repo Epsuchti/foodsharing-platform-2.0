@@ -40,6 +40,16 @@ const DEFAULT_CODES: Record<number, string> = {
   503: 'UNEXPECTED_ERROR',
 };
 
+/**
+ * Requests an `injectApiError({ delayMs })` is holding on purpose (a loading-state capture keeps them pending). The
+ * screenshot `settle` ignores them when it waits for every other request of the app shell to finish.
+ */
+const heldRequests = new WeakSet<Request>();
+
+export function isHeldRequest(request: Request): boolean {
+  return heldRequests.has(request);
+}
+
 export const INJECTED_TRACE_ID = 'e2e000000000';
 
 /** Builds a predicate for `page.route` from a path or RegExp. */
@@ -66,7 +76,10 @@ export async function injectApiError(page: Page, options: InjectApiErrorOptions)
       return;
     }
     calls++;
-    if (options.delayMs) await new Promise((resolve) => setTimeout(resolve, options.delayMs));
+    if (options.delayMs) {
+      heldRequests.add(request);
+      await new Promise((resolve) => setTimeout(resolve, options.delayMs));
+    }
     if (options.status === undefined) {
       await route.fallback();
       return;

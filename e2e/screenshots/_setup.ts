@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Locator, Page, PageScreenshotOptions } from '@playwright/test';
+import type { Locator, Page, PageScreenshotOptions, Request } from '@playwright/test';
 import { SEED_NOW, expect, test, type Language } from '../fixtures';
 import { animationsDone } from '../fixtures/a11y';
+import { isHeldRequest } from '../fixtures/errors';
 import { LANG_STORAGE_KEY, THEME_STORAGE_KEY } from '../fixtures/i18n';
 
 /**
@@ -70,14 +71,19 @@ export interface ScreenHelpers {
 
 async function settle(page: Page, options: { waitForData?: boolean } = {}): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
-  if (options.waitForData ?? true) {
+  const waitForData = options.waitForData ?? true;
+  if (waitForData) {
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
-    // banners, the release-notes dot and toggled nav items appear after the first page (StartupService.markPageShown);
-    // its idle callback falls back to a 5 s timeout under the fixed page clock
-    if (await page.evaluate(() => document.body?.querySelector('fs-shell') !== null)) {
-      await expect(page.locator('html[data-page-shown]')).toHaveCount(1, { timeout: 15_000 });
-    }
-    await networkQuiet(page);
+  }
+  // banners, the release-notes dot and toggled nav items appear after the first page (StartupService.markPageShown);
+  // its idle callback falls back to a 5 s timeout under the fixed page clock. A loading-state capture (waitForData
+  // false) holds a request of its own on purpose; neither this marker nor the quiet check waits for that one, so the
+  // shell is still at rest with its data, like in every other capture.
+  if (await page.evaluate(() => document.body?.querySelector('fs-shell') !== null)) {
+    await expect(page.locator('html[data-page-shown]')).toHaveCount(1, { timeout: 15_000 });
+  }
+  await networkQuiet(page);
+  if (waitForData) {
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
   }
   // Opening dialogs, drawers and popovers animate in and move the focus when their animation ends; a field filled
@@ -98,9 +104,32 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   );
 }
 
+/** Running requests per page (started, neither finished nor failed yet). */
+const PENDING_TYPES = new Set(['document', 'stylesheet', 'script', 'font', 'image', 'fetch', 'xhr']);
+const pendingRequests = new WeakMap<Page, Set<Request>>();
+
+function trackPendingRequests(page: Page): void {
+  const pending = new Set<Request>();
+  pendingRequests.set(page, pending);
+  page.on('request', (request) => {
+    if (PENDING_TYPES.has(request.resourceType())) pending.add(request);
+  });
+  const done = (request: Request): void => void pending.delete(request);
+  page.on('requestfinished', done);
+  page.on('requestfailed', done);
+}
+
+/** Running requests except the ones `injectApiError({ delayMs })` holds on purpose (they never end during a capture). */
+function pendingCount(page: Page): number {
+  let count = 0;
+  for (const request of pendingRequests.get(page) ?? []) if (!isHeldRequest(request)) count++;
+  return count;
+}
+
 /**
- * Waits until no request has finished for 500 ms (wall clock, so it also works under `page.clock.setFixedTime`). The
- * after-first-page requests (feature toggles, nav badges, banners) otherwise land in some captures and not in others.
+ * Waits until no request has finished for 500 ms (wall clock, so it also works under `page.clock.setFixedTime`) and no
+ * request is running, except the ones a loading-state capture holds on purpose. The after-first-page requests
+ * (feature toggles, nav badges, banners) otherwise land in some captures and not in others.
  */
 async function networkQuiet(page: Page): Promise<void> {
   let last = -1;
@@ -112,7 +141,7 @@ async function networkQuiet(page: Page): Promise<void> {
           performance.setResourceTimingBufferSize(100_000);
           return performance.getEntriesByType('resource').length;
         });
-        if (count !== last) {
+        if (count !== last || pendingCount(page) > 0) {
           last = count;
           since = Date.now();
         }
@@ -174,6 +203,7 @@ export const screenshotTest = test.extend<{ variant: Variant | undefined; visual
   variant: [undefined, { option: true }],
 
   page: async ({ page, variant, role, apiOf }, use) => {
+    trackPendingRequests(page);
     await page.clock.setFixedTime(new Date(SEED_NOW));
     await page.route(
       (url) => TILE_HOSTS.test(url.hostname),
