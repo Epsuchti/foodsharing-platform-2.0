@@ -6,7 +6,9 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
  * × light/dark × de/fr on desktop and mobile.
  */
 
-screenshotTest.use({ seedReset: 'off' });
+// Seed reset per file, not off: with off this file saw whatever the spec before it left behind, which depends on how
+// --shard splits the files (decision 137).
+screenshotTest.use({ seedReset: 'file' });
 
 /**
  * Full-page captures stitch the page below the first viewport, where a `position: fixed` tab bar would be painted
@@ -69,6 +71,9 @@ forEachVariant((variant) => {
       screenshotTest(`offline shell ${variant.name} @AU12 @screenshot`, async ({ page, context, visual }) => {
         await page.goto('/dashboard');
         await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+        // Go offline only after the dashboard's data has loaded (decision 125): otherwise a slow activity feed (seen
+        // under 4 parallel shards) renders its own offline state instead of the loaded feed of the baseline.
+        await visual.settle(page);
         await context.setOffline(true);
         await expect(page.getByTestId('shell.offlineBanner')).toBeVisible();
         await tabBarInFlow(page);

@@ -10,6 +10,7 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:chromium": "playwright test --project=chromium",
+    "e2e:sharded": "node scripts/run-sharded.mjs",
     "screenshots": "bash scripts/screenshots.sh",
     "coverage": "node scripts/feature-coverage.mjs",
     "coverage:strict": "node scripts/feature-coverage.mjs --strict",

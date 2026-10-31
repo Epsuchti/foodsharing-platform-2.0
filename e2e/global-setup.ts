@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import type { FullConfig } from '@playwright/test';
-import { RESULTS_DIR, SERVER_DIR, clearServerState, writeServerState } from './support/env';
+import { INSTANCE, RESULTS_DIR, SERVER_DIR, clearServerState, writeServerState } from './support/env';
 
 const HEALTH_TIMEOUT_MS = Number(process.env.E2E_STARTUP_TIMEOUT_MS ?? 120_000);
 
@@ -19,6 +19,7 @@ const HEALTH_TIMEOUT_MS = Number(process.env.E2E_STARTUP_TIMEOUT_MS ?? 120_000);
  *                   (`E2E_BUILD=always` rebuilds every time).
  * - `E2E_PORT`      fixed port instead of a free one.
  * - `E2E_JAVA_OPTS` extra JVM options.
+ * - `E2E_INSTANCE`  name of a parallel run in this checkout (own state, log, uploads; see support/env.ts).
  */
 export default async function globalSetup(_config: FullConfig): Promise<void> {
   const reuse = process.env.E2E_BASE_URL?.replace(/\/+$/, '');
@@ -37,9 +38,12 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   const log = fs.openSync(logFile, 'w');
 
   const javaOpts = (process.env.E2E_JAVA_OPTS ?? '').split(' ').filter(Boolean);
+  // Parallel instances (E2E_INSTANCE) must not share app.uploads.dir: the seed reset rewrites the seed files and the
+  // upload cleanup deletes variant files whose row is missing in *its own* database.
+  const instanceArgs = INSTANCE ? [`--app.uploads.dir=${path.join(RESULTS_DIR, 'uploads')}`] : [];
   const child = spawn(
     'java',
-    [...javaOpts, '-jar', jar, '--spring.profiles.active=e2e', `--server.port=${port}`],
+    [...javaOpts, '-jar', jar, '--spring.profiles.active=e2e', `--server.port=${port}`, ...instanceArgs],
     {
       cwd: SERVER_DIR,
       // application-e2e.properties derives app.base-url and the fake OIDC URIs from E2E_PORT.
