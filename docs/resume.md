@@ -170,3 +170,20 @@ Workers never write to the main checkout and merge `main` before committing; onl
 17. The map doesn't load OpenStreetMap tiles (owner, local profile). First finding (2026-10-31): in the app's built-in browser pane every external request fails (OSM, Carto, Wikimedia; the tiles answer 504 via the service worker), while `curl` from the same machine gets the tile (200). So it is probably the browser pane's network, not the app. Confirm in a normal browser before changing code. Check the tile URL, the CSP `img-src`, the service worker and the attribution; e2e and screenshots stub the tile hosts, so no test noticed. Add a check that at least one real tile request succeeds outside the stubbed tests (smoke).
 18. Done (decision 138, `StableOrderTest`). Unstable sorting: 27 repository methods order only by a timestamp (`…OrderByCreatedAtDesc`). Rows with the same time come back in random order, and with paging an entry can appear on two pages or on none. Uploads are fixed (`…CreatedAtDescIdDesc`, 2026-10-31); found because the uploads screenshot changed between runs. Add the id tiebreaker everywhere, and guard it with an ArchUnit or unit check: every paged or sorted repository query ends with a unique key.
 19. Toasts on phones stick out past the left edge of the screen: at 412px, "…rden übernommen" is cut off (seen in the gallery toast screenshot, 2026-10-31). Check `toastBreakpoints` in `shell.component.ts` and the toast width/position so it stays inside a 16px gutter. Add a phone check to the overflow audit.
+20. Search rework (owner, 2026-10-31; compared with foodsharing.network's `SearchGateway.php`). No Elasticsearch: it needs too much memory for a single-host setup, it's a second system to keep in sync including permissions, and Postgres covers the need. Revisit only with millions of entries; then look at Meilisearch or Typesense first.
+   - Matching:
+     - Postgres full-text (`tsvector`, German stemming) with `ts_rank` relevance.
+     - `pg_trgm` for typo tolerance and an indexed "contains".
+     - `unaccent` for umlauts.
+     - Permissions stay in the same SQL query.
+   - Order: your own things first, as foodsharing.network does:
+     - regions and groups you're a member of or administer
+     - stores where you're store manager, then member
+     - buddies first among people
+     - events and polls by time distance
+     
+     Then relevance, then title, then id.
+   - People search becomes contact-based, as on foodsharing.network: people who share a region, group, store team or chat with you, plus buddies. Last names are hidden in region search. Email search only with permission; global people search only for orga.
+   - A rate limit on the full search (ties in with item 5, bot protection).
+   - Forum: search post contents too, not only thread titles, behind a feature switch. With several words, also search stores' street, postcode and town.
+   - Tests: these Postgres features don't exist in H2, so the search queries get Testcontainers Postgres ITs. Keep `SearchService` unit tests for the permission scope.
