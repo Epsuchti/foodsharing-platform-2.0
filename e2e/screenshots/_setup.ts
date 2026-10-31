@@ -171,6 +171,7 @@ async function settle(page: Page, options: { waitForData?: boolean } = {}): Prom
   await networkQuiet(page);
   if (waitForData) {
     await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
+    await expect(page.getByTestId('shell.requestBar')).toHaveCount(0);
   }
   // Opening dialogs, drawers and popovers animate in and move the focus when their animation ends; a field filled
   // during that animation kept or lost its focus ring depending on machine load (AC1 define, C13 create, N3 bells
@@ -221,11 +222,13 @@ function pendingCount(page: Page): number {
 /**
  * Waits until no request has finished for 500 ms (wall clock, so it also works under `page.clock.setFixedTime`) and no
  * request is running, except the ones a loading-state capture holds on purpose. The after-first-page requests
- * (feature toggles, nav badges, banners) otherwise land in some captures and not in others.
+ * (feature toggles, nav badges, banners) otherwise land in some captures and not in others. The browser must also have
+ * answered several polls in that time: under load one slow answer can use up the 500 ms while the page is still busy.
  */
 async function networkQuiet(page: Page): Promise<void> {
   let last = -1;
   let since = Date.now();
+  let quietPolls = 0;
   await expect
     .poll(
       async () => {
@@ -236,12 +239,34 @@ async function networkQuiet(page: Page): Promise<void> {
         if (count !== last || pendingCount(page) > 0) {
           last = count;
           since = Date.now();
+          quietPolls = 0;
+        } else {
+          quietPolls++;
         }
-        return Date.now() - since >= 500;
+        return Date.now() - since >= 500 && quietPolls >= 5;
       },
       { intervals: [100], timeout: 15_000 },
     )
     .toBe(true);
+}
+
+/**
+ * Every shard runs on a free port, and some screens show the app's own address (AU5 adverts, surveys, support). A
+ * capture always shows the same address, so a baseline never depends on the port of the run that took it.
+ */
+async function fixedOrigin(page: Page): Promise<void> {
+  await page.evaluate((shown) => {
+    const origin = location.origin;
+    if (origin === shown) return;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeValue?.includes(origin)) node.nodeValue = node.nodeValue.split(origin).join(shown);
+    }
+    for (const field of document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')) {
+      if (field.value.includes(origin)) field.value = field.value.split(origin).join(shown);
+    }
+  }, 'http://localhost:8081');
 }
 
 async function modalOpen(page: Page): Promise<boolean> {
@@ -262,11 +287,19 @@ const screen: ScreenHelpers = {
   async expectScreen(page, name, options = {}) {
     await settle(page, options);
     await assertInter(page);
+    await fixedOrigin(page);
+    // A full-page capture of an open modal shows its backdrop only over the first viewport (fixed elements keep the
+    // viewport's size), so the page below it looked brighter than the dimmed part. Modals are captured as the
+    // viewport the user sees.
+    const fullPage = options.fullPage ?? !(await modalOpen(page));
+    // A full-page capture draws the sticky side menu at the page's scroll offset, and a click before the capture
+    // leaves that offset depending on what had arrived by then (S2 import result). Always capture from the top.
+    if (fullPage) {
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await animationsDone(page);
+    }
     await expect(page).toHaveScreenshot(`${name}.png`, {
-      // A full-page capture of an open modal shows its backdrop only over the first viewport (fixed elements keep the
-      // viewport's size), so the page below it looked brighter than the dimmed part. Modals are captured as the
-      // viewport the user sees.
-      fullPage: options.fullPage ?? !(await modalOpen(page)),
+      fullPage,
       mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
       maskColor: await maskColor(page),
       ...(options.clip ? { clip: options.clip } : {}),
@@ -275,6 +308,7 @@ const screen: ScreenHelpers = {
   async expectElement(locator, name, options = {}) {
     await settle(locator.page(), options);
     await assertInter(locator.page());
+    await fixedOrigin(locator.page());
     await expect(locator).toHaveScreenshot(`${name}.png`, {
       mask: [locator.page().locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
       maskColor: await maskColor(locator.page()),
