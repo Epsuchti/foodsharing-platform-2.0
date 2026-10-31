@@ -59,7 +59,7 @@ export const MAX_STORES_PER_LINK = 5;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (draft(); as p) {
-      <section class="card fs-card" data-testid="automation.policy.root" [attr.data-enabled]="p.enabled" [attr.data-dry-run]="p.dryRun">
+      <section class="card fs-card" data-testid="automation.policy.root" [attr.data-enabled]="p.enabled" [attr.data-dry-run]="p.dryRun" [attr.data-unsaved]="unsaved()">
         <h2>{{ 'automation.policy.title' | t }}</h2>
         <p class="muted">{{ 'automation.policy.intro' | t }}</p>
         <div class="switch-row">
@@ -245,14 +245,17 @@ export const MAX_STORES_PER_LINK = 5;
         @if (ctx.mayEdit()) {
           <p-button [label]="'common.save' | t" icon="pi pi-save" [loading]="save.busy()" [disabled]="!dirty()" (onClick)="save.run()" data-testid="automation.policy.save" />
           @if (exists()) {
-            <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.policy.runDry" />
-            <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.policy.run" />
+            <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.policy.runDry" />
+            <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun || unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.policy.run" />
           }
         }
         @if (exists()) {
           <p-button [label]="'automation.preview.open' | t" icon="pi pi-question-circle" [text]="true" (onClick)="previewOpen.set(true)" data-testid="automation.policy.preview" />
         }
       </div>
+      @if (ctx.mayEdit() && exists() && unsaved()) {
+        <p class="muted" data-testid="automation.policy.saveFirst">{{ 'automation.policy.saveFirst' | t }}</p>
+      }
       @if (lastRun(); as r) {
         <p class="banner banner--info" data-testid="automation.policy.runResult">
           {{ 'automation.common.runResult' | t: { evaluated: r.evaluated, confirmed: r.confirmed, declined: r.declined, skipped: r.skipped, deferred: r.deferred, failed: r.failed } }}
@@ -337,6 +340,14 @@ export class PickupPolicySection {
     const saved = this.ctx.data()?.pickupPolicy;
     if (!saved) return true;
     return JSON.stringify(this.payload(draft)) !== JSON.stringify(this.payload(saved));
+  }
+
+  /**
+   * Dry run and run evaluate the saved policy: while the draft differs from the server state, or a save is still in
+   * flight (and until the saved state is reloaded), a run would use the old configuration (same rule as the adverts).
+   */
+  protected unsaved(): boolean {
+    return this.save.busy() || this.dirty();
   }
 
   protected ownLinks(): number {

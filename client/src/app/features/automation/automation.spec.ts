@@ -6,16 +6,20 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach, beforeAll, vi } from 'vitest';
 
-import { AdvertChannel, ApiErrorCode, OpenSlotAdvert, StoreAutomation } from '../../api';
+import { AdvertChannel, ApiErrorCode, OpenSlotAdvert, PickupPolicy, RequestPolicy, StoreAutomation } from '../../api';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { AUTOMATION_ROUTES } from './automation.routes';
 import { AdvertsSection } from './sections/adverts.section';
+import { PickupPolicySection } from './sections/pickup-policy.section';
+import { RequestPolicySection } from './sections/request-policy.section';
 import { StoreAutomationContext } from './store-automation.context';
 import {
   advertValues,
   appendPlaceholder,
   decisionTone,
   emptyAdvert,
+  emptyPickupPolicy,
+  emptyRequestPolicy,
   fillDays,
   renderTemplate,
   toggle,
@@ -207,4 +211,118 @@ describe('adverts section: run now uses the saved adverts', () => {
     expect(runDryButton().disabled).toBe(false);
     expect(q('[data-testid="automation.adverts.saveFirst"]')).toBeNull();
   });
+});
+
+/**
+ * Pickup policy and request policy (resume item 6): dry run and run evaluate the saved policy, so they are blocked
+ * while the draft is unsaved, while the save is in flight and until the saved state is reloaded (same rule as AU4).
+ */
+describe('policy sections: run now uses the saved policy', () => {
+  const S = '00000020-0001-4000-8000-000000000006';
+  const savedPickup: PickupPolicy = { ...emptyPickupPolicy(), enabled: true, dryRun: false, gapRuleEnabled: true, version: 1 };
+  const savedRequest: RequestPolicy = { ...emptyRequestPolicy(), enabled: true, dryRun: false };
+  const automation = signal<StoreAutomation | undefined>(undefined);
+  const reload = vi.fn();
+  let http: HttpTestingController;
+  let fixture: ComponentFixture<unknown>;
+  const q = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector(selector);
+  const button = (testId: string) => q(`[data-testid="${testId}"] button`) as HTMLButtonElement;
+  const settle = async () => {
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+  const state = (pickupPolicy: PickupPolicy, requestPolicy: RequestPolicy) =>
+    ({ pickupPolicy, requestPolicy, adverts: [], permissions: { mayEdit: true } }) as unknown as StoreAutomation;
+
+  beforeEach(() => {
+    automation.set(state(structuredClone(savedPickup), structuredClone(savedRequest)));
+    reload.mockReset();
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting(),
+        provideOptimus(),
+        {
+          provide: StoreAutomationContext,
+          useValue: {
+            storeId: signal(S),
+            regionId: signal(undefined),
+            data: automation,
+            mayEdit: computed(() => !!automation()?.permissions.mayEdit),
+            timeZone: signal('Europe/Zurich'),
+            store: { data: signal({ id: S, name: "Babu's Bakery" }) },
+            reload,
+          },
+        },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify({ ignoreCancelled: true }));
+
+  const cases = [
+    {
+      name: 'pickup policy',
+      prefix: 'automation.policy',
+      url: `/api/stores/${S}/automation/pickup-policy`,
+      create: () => TestBed.createComponent(PickupPolicySection),
+      edit: () => {
+        const draft = (fixture.componentInstance as { draft: WritableSignal<PickupPolicy | null> }).draft;
+        draft.update((p) => ({ ...p!, minimumGapDays: 5 }));
+      },
+      saved: (p: PickupPolicy, r: RequestPolicy) => state({ ...p, minimumGapDays: 5 }, r),
+      body: () => ({ ...savedPickup, minimumGapDays: 5, version: 2 }),
+    },
+    {
+      name: 'request policy',
+      prefix: 'automation.request',
+      url: `/api/stores/${S}/automation/request-policy`,
+      create: () => TestBed.createComponent(RequestPolicySection),
+      edit: () => {
+        const draft = (fixture.componentInstance as { draft: WritableSignal<RequestPolicy | null> }).draft;
+        draft.update((p) => ({ ...p!, maximumDistanceKm: 9 }));
+      },
+      saved: (p: PickupPolicy, r: RequestPolicy) => state(p, { ...r, maximumDistanceKm: 9 }),
+      body: () => ({ ...savedRequest, maximumDistanceKm: 9 }),
+    },
+  ];
+
+  for (const c of cases) {
+    it(`${c.name}: blocks run and dry run while the draft is unsaved or the save is in flight`, async () => {
+      fixture = c.create();
+      await settle();
+      const run = () => button(`${c.prefix}.run`);
+      const runDry = () => button(`${c.prefix}.runDry`);
+      const hint = () => q(`[data-testid="${c.prefix}.saveFirst"]`);
+      expect(run().disabled).toBe(false);
+      expect(runDry().disabled).toBe(false);
+      expect(hint()).toBeNull();
+
+      // the user changes a rule: unsaved
+      c.edit();
+      await settle();
+      expect(run().disabled).toBe(true);
+      expect(runDry().disabled).toBe(true);
+      expect(hint()).not.toBeNull();
+
+      // save in flight: still blocked
+      button(`${c.prefix}.save`).click();
+      await settle();
+      const put = http.expectOne((r) => r.method === 'PUT' && r.url === c.url);
+      expect(runDry().disabled).toBe(true);
+
+      // saved, but the store automation is not reloaded yet: still blocked
+      put.flush(c.body());
+      await settle();
+      expect(reload).toHaveBeenCalled();
+      expect(runDry().disabled).toBe(true);
+
+      // the reloaded state matches the draft: run is possible again
+      automation.set(c.saved(structuredClone(savedPickup), structuredClone(savedRequest)));
+      await settle();
+      expect(run().disabled).toBe(false);
+      expect(runDry().disabled).toBe(false);
+      expect(hint()).toBeNull();
+    });
+  }
 });
