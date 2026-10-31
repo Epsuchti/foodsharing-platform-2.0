@@ -46,13 +46,15 @@ test('R9 R11 the group admin accepts an application, edits the group and sends a
   await page.getByTestId('regions.groupForm.submit').click();
   await expect(page.getByTestId('regions.group.head')).toContainText('Wir erzählen von foodsharing.');
 
-  const sentAfter = new Date().toISOString();
+  // a unique subject instead of "sent after the machine's wall clock": captured mails carry the fixed server clock
+  // (SEED_NOW), so a wall-clock bound fails as soon as the run's calendar day passes SEED_NOW
+  const subject = `Treffen am Montag ${Date.now().toString(36)}`;
   await page.getByTestId('regions.group.mail').click();
-  await page.getByTestId('regions.group.mailSubject').fill('Treffen am Montag');
+  await page.getByTestId('regions.group.mailSubject').fill(subject);
   await page.getByTestId('regions.group.mailBody').fill('Hallo zusammen, wir treffen uns am Montag.');
   await page.getByTestId('regions.group.mailSend').click();
   await expect(page.getByTestId('regions.group.mailDialog')).toBeHidden();
-  await mails.waitForMail({ to: 'foodsaver@local', subjectContains: 'Treffen am Montag', sentAfter });
+  await mails.waitForMail({ to: 'foodsaver@local', subjectContains: subject });
 });
 
 test('R9 applying, withdrawing and declining with a message @R9', async ({ as }) => {

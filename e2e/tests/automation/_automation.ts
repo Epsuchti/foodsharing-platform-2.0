@@ -69,9 +69,21 @@ export async function waitForAudit(client: ApiClient, key: string, pickupAt: str
   return found!;
 }
 
-/** Saves the pickup policy form and waits for the toast + disabled save button. */
+/**
+ * Saves the pickup policy form and waits until the saved state is reloaded (`data-unsaved="false"`): the save button
+ * is also disabled while the save is in flight, so a disabled button alone does not mean "saved".
+ */
 export async function savePolicy(page: Page): Promise<void> {
-  await page.getByTestId('automation.policy.save').click();
-  await expect(page.getByTestId('shell.toast').locator('.p-toast-message').first()).toBeVisible();
-  await expect(page.getByTestId('automation.policy.save').locator('button')).toBeDisabled();
+  await saveSection(page, 'automation.policy');
+}
+
+/** Saves a policy section and waits for the PUT and the reloaded saved state (run buttons are usable again). */
+export async function saveSection(page: Page, prefix: 'automation.policy' | 'automation.request'): Promise<void> {
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === 'PUT' && /\/automation\/(pickup|request)-policy$/.test(new URL(r.url()).pathname),
+  );
+  await page.getByTestId(`${prefix}.save`).locator('button').click();
+  expect((await saved).ok()).toBe(true);
+  await expect(page.getByTestId(`${prefix}.root`)).toHaveAttribute('data-unsaved', 'false');
+  await expect(page.getByTestId(`${prefix}.save`).locator('button')).toBeDisabled();
 }

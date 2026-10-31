@@ -123,7 +123,9 @@ test('AU1 linked-store editor saves a bidirectional rule with message preview, m
 test('AU1 run now and preview decision @AU1', async ({ page }) => {
   await openAutomation(page, 'S-01', 'policy');
   await expect(page.getByTestId('automation.policy.root')).toHaveAttribute('data-dry-run', 'true');
-  await page.getByTestId('automation.policy.runDry').click();
+  const runDry = page.getByTestId('automation.policy.runDry').locator('button');
+  await expect(runDry).toBeEnabled();
+  await runDry.click();
   await expect(page.getByTestId('automation.policy.runResult')).toBeVisible();
 
   await page.getByTestId('automation.policy.preview').click();

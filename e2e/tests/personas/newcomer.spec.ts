@@ -82,6 +82,8 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
   });
 
   await walk.step('passes the foodsaver quiz and accepts the agreement', async () => {
+    // the mode choice is part of the loaded intro: wait for it before branching
+    await expect(page.getByTestId('quiz.intro.startButton')).toBeVisible();
     const untimed = page.getByTestId('quiz.intro.untimed');
     if (await untimed.isVisible()) await walk.click(untimed);
     await walk.click(page.getByTestId('quiz.intro.startButton'));
@@ -93,6 +95,7 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
       await walk.click(page.getByTestId('quiz.session.submit'));
       await expect(page.getByTestId('quiz.session.verdict')).toBeVisible();
       const results = page.getByTestId('quiz.session.results');
+      await expect(results.or(page.getByTestId('quiz.session.next')).first()).toBeVisible();
       if (await results.isVisible()) {
         await walk.click(results);
         break;

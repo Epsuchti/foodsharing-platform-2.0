@@ -25,8 +25,10 @@ test('AU12 integration status page lists channels in log mode, probe and test me
   const smtp = page.locator('[data-testid="adminOps.integrations.card"][data-integration="SMTP"]');
   await smtp.getByTestId('adminOps.integrations.probe').click();
   await expect(page.locator('.p-toast-message-success')).toBeVisible();
+  // the probe toast lives 4 s: under load it can be gone before the second one shows, so count them one at a time
+  await expect(page.locator('.p-toast-message-success')).toHaveCount(0, { timeout: 15_000 });
   await smtp.getByTestId('adminOps.integrations.test').click();
-  await expect(page.locator('.p-toast-message-success')).toHaveCount(2);
+  await expect(page.locator('.p-toast-message-success')).toBeVisible();
 });
 
 test('AU12 open breaker shows state and bell to orga @AU12', async ({ as, api, apiOf, notifications }) => {

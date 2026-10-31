@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { acceptPendingConsents, expect, expectDataState, test } from '../../fixtures';
-import { openAutomation, setSwitch, typeNumber } from './_automation';
+import { openAutomation, saveSection, setSwitch, typeNumber } from './_automation';
 
 /** AU3: team request automation on S-07 (welcome manages it, guide has applied; seeded request policy: dry run, 5 km). */
 test.use({ role: 'welcome', seedReset: 'test' });
@@ -10,9 +10,14 @@ async function goLiveAndRun(page: Page, km: number): Promise<void> {
   await expect(page.getByTestId('automation.request.root')).toHaveAttribute('data-enabled', 'true');
   await setSwitch(page.getByTestId('automation.request.dryRun'), false);
   await typeNumber(page.getByTestId('automation.request.km'), km);
-  await page.getByTestId('automation.request.save').click();
-  await expect(page.getByTestId('automation.request.save').locator('button')).toBeDisabled();
-  await page.getByTestId('automation.request.run').click();
+  // run evaluates the saved policy: blocked until the save is done and the saved state is reloaded
+  const run = page.getByTestId('automation.request.run').locator('button');
+  await expect(run).toBeDisabled();
+  await expect(page.getByTestId('automation.request.saveFirst')).toBeVisible();
+  await saveSection(page, 'automation.request');
+  await expect(page.getByTestId('automation.request.saveFirst')).toBeHidden();
+  await expect(run).toBeEnabled();
+  await run.click();
   await expect(page.getByTestId('automation.request.runResult')).toBeVisible();
 }
 
