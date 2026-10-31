@@ -1,42 +1,106 @@
-# Resume notes (paused 2026-10-29)
+# Handover (2026-10-31)
 
-Read first: `plan.md`, `docs/ledger.md`, `docs/decisions.md` (1–131), `docs/conventions.md`, `docs/plan-m1.md` … `docs/plan-m7.md`, `AGENTS.md`.
+Foodsharing Platform 2.0 is being handed over to a new developer. Start here, then read `plan.md` (the single source of truth), `AGENTS.md` (binding rules), `docs/conventions.md`, `docs/decisions.md` (1–138) and `docs/ledger.md` (build state per feature).
 
-## State on `main`
-- Backend: all features of M1–M6 and M7 B1–B10 (imports, prod profile/image/release, runbook/backups, monitoring, load test, security review, privacy review, CI hardening) are done.
-- Frontend: M1–M5 done (incl. surveys, nav badges, rich mail editor), M4 automation done. Lighthouse project green (`/` 100, `/onboarding` ≥ 90).
-- Last verified on main: full `./mvnw clean verify` green; full chromium e2e 407/408 before the latest frontend merges (the one failure was Lighthouse under machine load, since moved to its own `lighthouse` project).
-- Coverage: `node e2e/scripts/feature-coverage.mjs` green (non-strict).
+Everything is committed on local `main`. Nothing has been pushed: there is no remote yet, so CI (`.github/workflows/ci.yml`) has never run.
 
-## Windows environment (2026-10-29, resumed session)
-- JDK 21: portable Temurin in `~/.jdks/jdk-21.0.13+9` (owner-approved download). Prefix Java/Maven/Playwright commands with `export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PATH"`. The system JDK 17 is untouched.
-- Node: the system Node 24.14.1 is too old for Angular CLI (≥ 24.15.0); use the Maven-installed `client/node` (`export PATH="$PWD/client/node:$PATH"`). No Python on the machine.
-- **Blocker: no Docker.** The 13 Testcontainers ITs (Postgres) fail with "Failed to load ApplicationContext"; everything else in `./mvnw clean verify` is green (unit, client 296/296, 210 other ITs). Docker is also needed for the screenshot baselines (decision 69), the k6 load test and `smoke.sh`.
-- Step 0 fixes on main: first test of `automation.spec.ts` timed out under load (lazy chunks now warmed in `beforeAll`); `feature-coverage.mjs` spawns Playwright through node (Windows EINVAL on `.cmd`); `fixtures/pdf.ts` font path with '/' (Windows). Coverage non-strict green, 112/150 features.
-- Step 0 Playwright chromium (before the merges): 435/441; the 6 failures were Windows path bugs (pdf fixture: fixed; `scripts/import-csv.mjs` main check: with the backend worker as F1-R2).
-- Lighthouse: the full Playwright `chrome.exe` cannot be spawned on this machine (spawn UNKNOWN; the headless shell works), so run the `lighthouse` project with `CHROME_PATH=<ms-playwright>/chromium_headless_shell-1248/chrome-headless-shell-win64/chrome-headless-shell.exe`. Under parallel worker builds `/` scored perf 95 / a11y 100, `/onboarding` perf 77 (runs 77, 82, 68) / a11y 100 → re-measure on an idle machine in F6 before touching anything; thresholds unchanged.
-- Ledger: no Python, so `scripts/ledger.py` cannot run; rows are edited with a small node helper (same columns).
-- Merged on main (2026-10-30): F1 stores import; Q1–Q10 and Q13 of `docs/plan-m7-queue-f.md`; backend open rows, contract gaps G1–G4, follow-ups (decisions 97, 102, 108); fast seed reset (107); test speed-up, 4 forks (108); screenshot matrix light/German only (109).
-- Ledger rows still waiting for the test worker to see their tagged tests pass on main (decision 106): A19, AC1, C1, C3, C4, C8, C16, C10, C11, C12, C14, AD1. D10.3 needs an audit of its remaining views.
-- Workers in flight: Q11 blog/donations/support (`build/m7-q11-blog`), Q12 search/resources (`build/m7-q12-search`), Q14 OAuth (`build/m7-q14-oauth`), backend product fixes (`build/m7-b-fixes`: release-note translations, PETITION_INACTIVE, achievement base text + clears, ConfigurationEntry.type, updateConfiguration audit fields), Sonnet test worker running full checks on main in its own worktree.
-- Open optional backend requests (no blocker): OAuth `ConsentRequest.requiredRegions` and `OAuthClient.requiredRegions` as RegionRef (names); PATCH public→confidential should issue a secret or document the 400; resource limit in `ResourcePermissions` and file names on `ResourceImage`; blog `removePicture` and content page image removal (backend worker 2 in progress).
-- Performance: `/onboarding` Lighthouse (hard threshold 90) is ~80 under load. Branch `build/m7-perf-2` (build-time theme, blocking first navigation) is parked until it can be measured on an idle machine/CI runner (decision 131); also the `fsScrollHint` forced layout follow-up.
-- After Q14: plan-m6 F9 leftovers (a11y sweep completeness, translated-pages sweep), then the end batch (plan-m7 Part C F2–F6) — needs Docker for the baselines — and the final gate (Part D).
+## Where the project stands
+- **Features:** every feature row in `docs/ledger.md` is done except D11.5.3 and D18.3 (Lighthouse, see "Open" below). M1–M6 are done; M7 is in its final gate. Strict coverage: 150/150 features have a tagged test.
+- **Desktop side menu** (decisions 133–135, `docs/design/sidenav-*`) replaced the desktop header. Phones keep the bottom tab bar.
+- **Screenshot baselines:** 547 baselines (`e2e/__screenshots__`, light theme, German, desktop and mobile; decision 109) were generated in Docker. A compare run matched 544/547; the three differences were fixed and each re-compared 3×.
+- **Test speed:** decision 137 added parallel local runs, 4 apps with their own databases: about 16 min for chromium and 14 min for screenshots, instead of about 43 and 40 serially.
+- **Test stability (decision 138):**
+  - every ordered query has an id tiebreaker, guarded by `StableOrderTest`; UUID v7 ids
+  - the browser uses the seed clock
+  - the seed is reset per repetition
+  - the JVM runs in UTC
+  - error states stay until the user retries
+  - no clicks covered by toasts
+  - screenshots wait for `html[data-page-shown]`, the network to go quiet, and animations to finish
+  - business jobs don't fire on the wall clock in the e2e profile
+  - automation test/run buttons are blocked while a form is unsaved
 
-## Team setup the owner asked for
-One frontend worker + one backend worker (+ Fable planner for plans/reviews). Workers run in their own worktree, never write to the main checkout; the integrator merges (check `git diff --name-only --diff-filter=U` before committing a merge; union-merge i18n JSON conflicts). Screenshots: write `*.screen.ts` specs only; baselines + design rounds in one batch at the end (decision 69).
+## Last verified results
+| What | On | Result |
+|---|---|---|
+| Server unit tests + all 257 ITs incl. the 13 Postgres Testcontainers ITs | main 69f8b9e | green |
+| Full chromium e2e (serial) | main a3a3be4, side menu merged | 1002/1007; the 5 failures were fixed afterwards and checked with repeat runs |
+| Full mobile-chrome e2e (serial) | main a3a3be4 | 1006/1007; the one flake (AU1) was fixed afterwards |
+| Full chromium e2e (sharded) | the sharding branch on a08df6a | 1006/1006 in 16:22 |
+| Screenshots | main a08df6a | 547 baselines; 544/547 on compare; the three fixed and re-compared |
+| Handover check after the stability merge | main de04b34 + bell sync | client typecheck, lint, i18n check, 92/92 unit test files and e2e typecheck green; server unit tests 1162/1168 (see below) |
 
-## Remaining queue, in order
-1. Frontend: M7 F1 stores CSV import page + `e2e/tests/stores/s2-import.spec.ts @S2 @D16.2` (backend ready).
-2. Frontend: M6 Queue F (`docs/plan-m6.md`): profiles/bananas/buddies/sleep; account (email change, photo crop, calendar feed, business card, data export, delete account, notes, bounce UI); baskets; food share points; map with all layers; activity feed/dashboard; reports & mediation; achievements; admin (feature toggles, configuration, blocklists, uploads); content/blog/release notes/team/petition/donations/support; statistics with animated counters; global search; resources; OAuth consent + client admin. Small leftover: mailbox pages use `sr-only` instead of `fs-visually-hidden`.
-3. Backend: answer frontend requests from step 2; M6 B14/B15, M5 B10, M4 B9, M3 B8 close tasks are covered by M7 B10 except ledger rows the frontend closes.
-4. End batch (`docs/plan-m7.md` Part C F2–F6): all screenshot baselines in Docker (two stable runs), design rounds 1–3 with AI personas, final axe sweep over every route, 5-language smoke, Lighthouse report.
-5. Integrator final gate (`docs/plan-m7.md` Part D): full verify, Playwright on all 5 projects, screenshots, `feature-coverage.mjs --strict` (then enable strict in CI), release check, smoke, load test refresh, every ledger row done, tick plan.md checkboxes, Fable final review `docs/review-m7.md`, finalise `docs/launch-report.md`.
+**Handover check, server unit tests:** 6 failures in two classes.
+- **`BellMessagesSyncTest` (5):** fixed. The side menu added the key `bell.ui.button.itemCount` without running `node scripts/sync-bell-messages.mjs`; it now passes 5/5.
+- **`SpaForwardingControllerTest.languagePreferenceOrderIsCookieThenAcceptLanguageThenGerman` (1): still open.** It expects `/it` to fall back to the client shell because "a language without a prerendered page (client build skipped)". The current `server/target/classes/static/` contains a prerendered `it/index.html` from the full client build, so the controller serves it.
+  - The test depends on the build state; it passed in earlier full `verify` runs.
+  - Next: find out why `static/it` now exists (stale output from another build, or a prerender change), then make the test independent of what is in `target/classes`.
+  - Don't just change the expectation.
 
-Helper: `scripts/ledger.py <ID> <status> [backend] [frontend] [e2e] [screenshot] [notes]` ('-' keeps a column; `--add` adds rows).
+**Not verified yet:** the stability pass (decision 138) was merged when its worker was stopped, before its own full verification run. Its commits passed their targeted checks. A full run on today's main hasn't been done yet. That's the first job.
 
-## After the base build (owner, 2026-10-30)
-1. Parallel shards for the local e2e and screenshot scripts: N jars with their own database and port, `--shard=i/N`, a separate output folder and server log per shard (about 3–4× faster).
+## First steps for the next developer
+1. Set up the environment (Windows notes below), then build the jar:
+   `cd server && ./mvnw -q -DskipTests package`
+2. Run the full suites on main, twice. Both runs must be green before anything else:
+   - `npm run e2e:sharded -- --project=chromium`
+   - `npm run e2e:sharded -- --project=mobile-chrome`
+   - `node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict`
+3. Screenshots:
+   - Compare first: `npm run e2e:screenshots -- --shards=4`.
+   - Decision 138 (UUID v7 ids, seed clock in the browser, UTC) may change visible data in some screens. Look at each difference; retake only intended changes with `npm run e2e:screenshots -- --shards=4 --update-snapshots=changed`.
+   - Never update baselines to make a failing test pass (AGENTS.md).
+4. The final gate (plan-m7 Part D):
+   - fill in the test results in `docs/launch-report.md`
+   - regenerate `docs/coverage.md`
+   - set M7 done in the ledger
+   - tick `plan.md`
+   - go through the "needs a human" table with the owner
+
+## Open (base build)
+- **Lighthouse D11.5.3 / D18.3:** `/onboarding` scores 82–86 under load against a hard threshold of 90; `/` scores 98–99. Measure on an idle machine or in CI. If it's still below 90, the parked branch `build/m7-perf-2` (decision 131: build-time theme, blocking first navigation) is the next step.
+- **Flakes seen in the last runs,** addressed by decision 138 but not yet confirmed by a full run:
+  - `mb2-folders.spec.ts:85` (list reloaded before the retry click)
+  - `d10-history.spec.ts:299` (a toast covered the h1)
+  - `events.screen.ts:26` (times; probably a stale baseline)
+  - `history.screen.ts:20` (order)
+  - focus and border differences in a few screenshots under load
+- **Windows Playwright worker crash** (exit 3221226505 / 0xC0000409): hits a random test about once per full serial run and passes on rerun. It's infrastructure on this machine, not app code. Sharded runs turn video off, which lowers memory.
+- **Needs a human** (`docs/launch-report.md`):
+  - a remote repository, so CI runs (D5.4, D18.1)
+  - a server, domain and mail provider; then `smoke.sh`, `release.sh --check` and the k6 load test against it
+  - legal texts
+  - a real usability test with newcomers
+  - the product question whether verification requires a confirmed identity
+
+## How the work was organised
+The owner works with Claude Code:
+- an integrator session on `main`
+- Opus workers, each in its own git worktree (`.claude/worktrees/`, branches `worktree-agent-*` and `build/*`)
+- a Sonnet test worker for full runs
+- Fable for designs and reviews
+
+Workers never write to the main checkout and merge `main` before committing; only the integrator merges into `main` and checks `git diff --name-only --diff-filter=U` before committing a merge. Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`). The one unmerged branch worth keeping is `build/m7-perf-2`.
+
+## Windows environment
+- **JDK 21:** portable Temurin in `~/.jdks/jdk-21.0.13+9`. Every Git Bash shell, from the repo root, needs `export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PWD/client/node:$PATH"`.
+- **Node:** use the Maven-installed `client/node` (24.15). The system Node is too old for the Angular CLI. There is no Python.
+- **Docker Desktop:** installed; the CLI is in `/c/Program Files/Docker/Docker/resources/bin`. It's needed for the Postgres ITs and the screenshot container.
+- **Generated client API:** `client/src/app/api` is generated and never committed. Run `npm run openapi:generate` in `client/` when it's missing; `npm start` and the Maven build regenerate it.
+- **Maven build:** it runs `npm ci` in `client/`, which reinstalls `client/node_modules`. Lint and unit tests in `client/` fail while that runs.
+- **Locked jar:** a running local app locks `server/target/*.jar` on Windows. Stop it before `./mvnw clean package`.
+- **Local app:**
+  - from `server/`: `java -jar target/foodsharing-platform-0.0.1-SNAPSHOT.jar --spring.profiles.active=local`
+  - or: `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`
+  - http://localhost:8080, with seed data and the test-person switcher on `/login`
+  - the H2 database is in `server/data/`
+  - Mailpit: `server/start_smtp_server.sh`
+  - The app's built-in browser pane can't reach external hosts, so map tiles don't load there; check the map in a normal browser (resume item 17).
+- **Lighthouse:** set `CHROME_PATH` to Playwright's headless shell (`…/chromium_headless_shell-1248/chrome-headless-shell-win64/chrome-headless-shell.exe`); the full chrome.exe can't be spawned on this machine.
+- **Ledger:** `scripts/ledger.py` needs Python. Edit `docs/ledger.md` by hand, keeping the 8 columns of a feature row.
+
+## After the base build: agreed with the owner, not started
+1. Parallel shards: done (decision 137).
 2. Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
 3. Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
 4. Native date inputs show `mm/dd/yyyy` in a German or Swiss-German UI, because they follow the browser locale. Check this against the app language.
