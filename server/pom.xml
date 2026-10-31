@@ -94,7 +94,7 @@
             <!-- web-push's JWT library (runtime there; its checked JoseException is part of PushService.send) -->
             <groupId>org.bitbucket.b_c</groupId>
             <artifactId>jose4j</artifactId>
-            <version>0.9.6</version>
+            <version>0.9.7</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
