@@ -1,5 +1,59 @@
 # Project conventions (from plan-m1 Part A; binding for all milestones)
 
+## Contents
+Don't read this file in full. Find the rule here, then search for its number (e.g. `A3.`) and read only that
+section.
+
+- **Architecture and backend:**
+  - A1 package layout
+  - A2 error codes
+  - A3 history recording
+  - A4 ArchUnit rules
+  - A15/A47 time zones and "today" (Europe/Zurich)
+  - A17/A25 jobs
+  - A18 backend patterns (M2)
+  - A22/A40/A40a cross-module SPIs and contributors
+  - A26 integrations and circuit breakers
+  - A38 new modules and dependencies
+- **API contract and data:**
+  - A5 OpenAPI split
+  - A57 contract additions
+  - A6 Liquibase layout
+  - A13 seed date shifting
+  - A16 public endpoints and tags
+- **Security and permissions:**
+  - A9 auth and session
+  - A10 scoped permission model
+  - A11 SessionInfo enrichment
+  - A19 store permissions
+  - A36 forum, event, poll and survey permissions
+  - A44/A56 OAuth2/OIDC provider
+  - A58 security headers and rate limits
+- **Frontend:**
+  - A7 frontend conventions
+  - A14 user content in five languages
+  - A43 feature toggles and configuration
+- **Notifications and communication:**
+  - A12/A23 notifications and channels
+  - A27 mail
+  - A28 Telegram
+  - A32 realtime (STOMP)
+  - A33 messaging
+  - A35 mailbox
+- **Domain modules:**
+  - stores and pickups: A20 pickups, A21 store log
+  - automation: A24 module, A29 cleanup and ORGA alerts, A30 pickup and request policies, A31 adverts, alerts,
+    metrics and newsletters
+  - forum, events, polls, surveys: A37 moderation log, A37a–A37d implementation notes
+  - community: A39 sleep mode, A41 images, A42 walls, A45 search index, A46 profile, A48/A49 account,
+    A50 map, activity and intro-pickup admin, A51 reports and mediation, A52 achievements, A53 admin settings,
+    A54 content, blog and support, A55 statistics, search and resources
+  - uploads: A34
+- **Tests and tooling:**
+  - A8 test naming
+  - A59 dev/test support
+  - A60 test performance
+
 ### A1. Backend package layout
 ```
 network.foodsharing
