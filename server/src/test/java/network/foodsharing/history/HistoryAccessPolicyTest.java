@@ -59,6 +59,36 @@ class HistoryAccessPolicyTest {
     }
 
     @Test
+    void recordedValuesFollowTheRuleExceptForOrga() {
+        HistoryAccessRule hidesValues = new HistoryAccessRule() {
+            @Override
+            public SubjectType subjectType() {
+                return SubjectType.CONVERSATION;
+            }
+
+            @Override
+            public boolean canRead(SessionPrincipal actor, UUID subjectId) {
+                return true;
+            }
+
+            @Override
+            public boolean mayReadValues(SessionPrincipal actor, UUID subjectId) {
+                return false;
+            }
+        };
+        HistoryAccessPolicy withValues = new HistoryAccessPolicy(
+                List.of(new UserHistoryAccessRule(new PermissionService()), hidesValues), new PermissionService());
+        UUID conversation = UUID.randomUUID();
+        assertThat(withValues.canRead(foodsaver, SubjectType.CONVERSATION, conversation)).isTrue();
+        assertThat(withValues.mayReadValues(foodsaver, SubjectType.CONVERSATION, conversation)).isFalse();
+        assertThat(withValues.mayReadValues(null, SubjectType.CONVERSATION, conversation)).isFalse();
+        assertThat(withValues.mayReadValues(orga, SubjectType.CONVERSATION, conversation)).isTrue();
+        // the default: whoever may read the subject also sees the values
+        assertThat(withValues.mayReadValues(foodsaver, SubjectType.USER, SeedUsers.FOODSAVER.id())).isTrue();
+        assertThat(withValues.mayReadValues(foodsaver, SubjectType.STORE, UUID.randomUUID())).isTrue();
+    }
+
+    @Test
     void twoRulesForOneSubjectTypeAreAStartupError() {
         assertThatThrownBy(() -> new HistoryAccessPolicy(
                 List.of(new UserHistoryAccessRule(new PermissionService()), new UserHistoryAccessRule(new PermissionService())), new PermissionService()))

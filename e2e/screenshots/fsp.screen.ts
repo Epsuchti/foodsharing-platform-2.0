@@ -25,6 +25,16 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `fsp-detail-${variant.name}`);
     });
 
+    screenshotTest('fsp navigate menu open @FS1 @screenshot', async ({ page, visual }) => {
+      await page.goto(`/food-share-points/${FSPS.wiedikon}`);
+      await expect(page.getByTestId('foodSharePoints.detail.state')).toHaveAttribute('data-state', 'success');
+      await expect(page.getByTestId('foodSharePoints.detail.wall.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('foodSharePoints.detail.navigate').click();
+      await expect(page.getByTestId('foodSharePoints.detail.navigate.google')).toBeVisible();
+      // viewport only: a full-page capture resizes the viewport, and p-popover closes on resize (desktop)
+      await visual.expectScreen(page, `fsp-detail-navigate-${variant.name}`, { fullPage: false });
+    });
+
     screenshotTest('fsp inactive proposal as creator @FS1 @screenshot', async ({ page, visual }) => {
       await page.goto(`/food-share-points/${FSPS.altstetten}`);
       await expect(page.getByTestId('foodSharePoints.detail.inactive')).toBeVisible();

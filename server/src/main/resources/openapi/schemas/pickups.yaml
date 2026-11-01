@@ -183,7 +183,7 @@ UserPickupPage:
 
 PickupOption:
   type: object
-  required: [store, pickupAt, slotCount, occupiedSlots]
+  required: [store, pickupAt, slotCount, occupiedSlots, confirmedCount]
   properties:
     store:
       $ref: './stores.yaml#/StoreRef'
@@ -199,6 +199,11 @@ PickupOption:
       type: array
       items:
         $ref: './users.yaml#/UserSummary'
+    confirmedCount:
+      type: integer
+      format: int32
+      minimum: 0
+      description: How many of `occupiedSlots` are confirmed by a store manager.
     isConfirmed:
       type: boolean
 

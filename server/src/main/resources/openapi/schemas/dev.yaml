@@ -171,3 +171,18 @@ DevOAuthCode:
       type: string
     state:
       type: string
+
+DevRateLimitBlockCreate:
+  type: object
+  required: [scope]
+  properties:
+    scope:
+      $ref: './admin-settings.yaml#/RateLimitBlockScope'
+    ip:
+      type: string
+      maxLength: 64
+      description: Required for scope IP.
+    userId:
+      type: string
+      format: uuid
+      description: Required for scope ACCOUNT.

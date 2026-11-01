@@ -55,10 +55,26 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `admin-blocklist-${variant.name}`);
     });
 
-    screenshotTest('ip blocks empty @C12 @screenshot', async ({ page, visual }) => {
+    screenshotTest('ip blocks empty @C12 @D17.2 @screenshot', async ({ page, visual }) => {
       await page.goto('/admin/ip-blocks');
       await expect(page.getByTestId('adminSettings.ipBlocks.state')).toHaveAttribute('data-state', /success|empty/);
+      await expect(page.getByTestId('adminSettings.ipBlocks.autoState')).toHaveAttribute('data-state', 'empty');
       await visual.expectScreen(page, `admin-ip-blocks-${variant.name}`);
+    });
+
+    screenshotTest('ip blocks with an automatic block @D17.2 @screenshot', async ({ page, visual, api }) => {
+      const created = await api.post('/api/dev/rate-limit-blocks', { scope: 'IP', ip: '203.0.113.7' });
+      expect(created.status()).toBe(201);
+      const block = (await created.json()) as { id: string };
+      try {
+        await page.goto('/admin/ip-blocks');
+        await expect(page.getByTestId('adminSettings.ipBlocks.autoState')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('adminSettings.ipBlocks.autoRow')).toHaveCount(1);
+        await visual.expectScreen(page, `admin-ip-blocks-auto-${variant.name}`);
+      } finally {
+        // blocks live in memory until the next seed reset: leave none for the other captures
+        await api.delete(`/api/admin/rate-limit-blocks/${block.id}`);
+      }
     });
 
     screenshotTest('uploads @C10 @screenshot', async ({ page, visual }) => {

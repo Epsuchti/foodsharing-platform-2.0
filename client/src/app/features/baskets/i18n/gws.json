@@ -57,6 +57,8 @@
   "baskets.detail.location": "Abholort",
   "baskets.detail.locationHome": "I de Nöchi vo de Wohnadrässe (ungefähr aazeigt)",
   "baskets.detail.locationCustom": "Vom Aabieter gwählte Abholort",
+  "baskets.detail.navigateApproximate": "Ungfähre Standort, uf öppe 100 m gnau",
+  "baskets.detail.navigateLabel": "Ässechorb",
   "baskets.detail.mapLabel": "Charte mit em Abholort",
   "baskets.detail.contact": "Kontakt",
   "baskets.detail.message": "Nachricht schriibe",

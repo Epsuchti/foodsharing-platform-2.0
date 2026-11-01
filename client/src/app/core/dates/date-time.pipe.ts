@@ -73,6 +73,16 @@ export class DateTimeFormatter {
     return formatter.format(date);
   }
 
+  /** Both instants fall on the same calendar day in the time zone (a range then names the date once). */
+  sameDay(
+    a: string | number | Date | null | undefined,
+    b: string | number | Date | null | undefined,
+    timeZone = DEFAULT_TIME_ZONE,
+  ): boolean {
+    const first = this.format(a, 'date', timeZone);
+    return first !== '' && first === this.format(b, 'date', timeZone);
+  }
+
   private relative(date: Date, now: Date, locale: string): string {
     const seconds = Math.round((date.getTime() - now.getTime()) / 1000);
     const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });

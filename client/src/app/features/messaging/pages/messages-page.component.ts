@@ -91,7 +91,11 @@ import { MessagingStore } from '../messaging.resource';
                     }
                     <span class="item__text">
                       <span class="item__name">{{ c.name }}</span>
-                      <span class="item__preview" data-testid="messaging.list.preview">{{ preview(c) }}</span>
+                      @if (c.lastMessage?.deleted) {
+                        <span class="item__preview item__preview--deleted" data-testid="messaging.list.preview" data-deleted="true">{{ 'messaging.message.deleted' | t }}</span>
+                      } @else {
+                        <span class="item__preview" data-testid="messaging.list.preview">{{ preview(c) }}</span>
+                      }
                     </span>
                     <span class="item__meta">
                       @if (c.lastMessageAt) {
@@ -195,6 +199,9 @@ import { MessagingStore } from '../messaging.resource';
       min-width: 0;
     }
     .item__name,
+    .item__preview--deleted {
+      font-style: italic;
+    }
     .item__preview {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -281,6 +288,7 @@ export class MessagesPageComponent {
         RealtimeEventType.ConversationMessage,
         RealtimeEventType.ConversationRead,
         RealtimeEventType.ConversationUpdated,
+        RealtimeEventType.ConversationMessageUpdated,
       )
       .pipe(debounceTime(300), takeUntilDestroyed())
       .subscribe(() => this.conversations.refresh());

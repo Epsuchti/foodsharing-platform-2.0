@@ -2,6 +2,9 @@ package network.foodsharing.config;
 
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiErrorResponseWriter;
+import network.foodsharing.common.web.ApiRateLimitFilter;
+import network.foodsharing.common.web.RateLimitBlockRecorder;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.security.HttpSecurityCustomizer;
 import network.foodsharing.security.SessionAuthenticator;
 import network.foodsharing.security.SessionCookieAuthenticationFilter;
@@ -25,7 +28,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
  * {@code XSRF-TOKEN} cookie + {@code X-XSRF-TOKEN} header, JSON 401/403 bodies. Everything under {@code /api/**}
  * needs a session except the public/auth bootstrap endpoints; non-API paths (SPA, static files) are open.
  * Google OAuth2 login and WebAuthn are added to this chain by the auth module through {@link HttpSecurityCustomizer}
- * beans. The security context is never stored in the servlet session: {@code JSESSIONID} only carries the
+ * beans. {@link ApiRateLimitFilter} (D17.2) runs right after the session cookie authentication. The security context is never stored in the servlet session: {@code JSESSIONID} only carries the
  * OAuth2/WebAuthn handshakes, never API authentication.
  */
 @Configuration
@@ -59,7 +62,9 @@ public class SecurityConfig {
                                                    ApiErrorResponseWriter errorWriter,
                                                    AppProperties properties,
                                                    ObjectProvider<HttpSecurityCustomizer> customizers,
-                                                   ObjectProvider<CspFrameSources> frameSources) throws Exception {
+                                                   ObjectProvider<CspFrameSources> frameSources,
+                                                   RateLimitBlockRegistry rateLimitBlocks,
+                                                   RateLimitBlockRecorder rateLimitRecorder) throws Exception {
         CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setCookieCustomizer(cookie -> cookie
                 .secure(properties.getAuth().isCookieSecure())
@@ -119,7 +124,8 @@ public class SecurityConfig {
                             ? new AppProperties.Security() : properties.getSecurity();
                     long hsts = security.getHstsMaxAgeSeconds();
                     if (hsts > 0) {
-                        // A58: only on HTTPS requests (X-Forwarded-Proto via server.forward-headers-strategy)
+                        // A58: only on HTTPS requests (X-Forwarded-Proto from a trusted proxy via Tomcat's RemoteIpValve,
+                        // server.forward-headers-strategy=native)
                         headers.httpStrictTransportSecurity(sts -> sts.includeSubDomains(true).maxAgeInSeconds(hsts));
                     } else {
                         headers.httpStrictTransportSecurity(sts -> sts.disable());
@@ -138,7 +144,10 @@ public class SecurityConfig {
                     }
                 })
                 .addFilterBefore(new SessionCookieAuthenticationFilter(sessionAuthenticator, sessionCookieWriter),
-                        AnonymousAuthenticationFilter.class);
+                        AnonymousAuthenticationFilter.class)
+                // D17.2: per account with a session, per client IP without one; escalating blocks
+                .addFilterAfter(new ApiRateLimitFilter(rateLimitBlocks, rateLimitRecorder, errorWriter),
+                        SessionCookieAuthenticationFilter.class);
         for (HttpSecurityCustomizer customizer : customizers.orderedStream().toList()) {
             customizer.customize(http);
         }

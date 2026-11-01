@@ -1,0 +1,92 @@
+# Seed (resume item 16): edited and deleted chat messages with their history (docs/seed-ids.md module 0041).
+# Changes rows of 131-messaging-seed.yaml (none of them is the latest message of its conversation, so the previews
+# stay as they are).
+databaseChangeLog:
+  - changeSet:
+      id: seed-179-1
+      author: platform
+      context: seed
+      comment: 'Kochgruppe Planung: seq 6 edited by foodsaver, seq 4 deleted by guide (its sender); S-01 team chat: seq 5 deleted by bieb (moderator).'
+      changes:
+        - update:
+            tableName: message
+            columns:
+              - column: {name: body, value: 'Ich kümmere mich ums Brot und den Zopf.'}
+              - column: {name: edited_at, valueDate: '2026-10-31T19:20:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T19:20:00'}
+            where: "id = '00000041-0003-4000-8000-000000000021'"
+        - update:
+            tableName: message
+            columns:
+              - column: {name: body, value: ''}
+              - column: {name: deleted_at, valueDate: '2026-10-31T15:10:00'}
+              - column: {name: deleted_by, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: updated_at, valueDate: '2026-10-31T15:10:00'}
+            where: "id = '00000041-0003-4000-8000-000000000019'"
+        - update:
+            tableName: message
+            columns:
+              - column: {name: body, value: ''}
+              - column: {name: deleted_at, valueDate: '2026-11-01T13:30:00'}
+              - column: {name: deleted_by, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: updated_at, valueDate: '2026-11-01T13:30:00'}
+            where: "id = '00000041-0003-4000-8000-000000000028'"
+  - changeSet:
+      id: seed-179-2
+      author: platform
+      context: seed
+      comment: 'History of the edit and the two deletes (original text readable by the chat moderators only).'
+      changes:
+        - insert:
+            tableName: history_entry
+            columns:
+              - column: {name: id, value: '00000041-0006-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T19:20:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T19:20:00'}
+              - column: {name: created_by, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: occurred_at, valueDate: '2026-10-31T19:20:00'}
+              - column: {name: actor_id, value: '00000001-0001-4000-8000-000000000006'}
+              - column: {name: actor_type, value: 'USER'}
+              - column: {name: subject_type, value: 'CONVERSATION'}
+              - column: {name: subject_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: secondary_subject_id, value: '00000041-0003-4000-8000-000000000021'}
+              - column: {name: action, value: 'MESSAGE_EDITED'}
+              - column: {name: old_value, value: 'Ich kümmere mich ums Brot.'}
+              - column: {name: new_value, value: 'Ich kümmere mich ums Brot und den Zopf.'}
+              - column: {name: metadata, value: '{"seq":6}'}
+        - insert:
+            tableName: history_entry
+            columns:
+              - column: {name: id, value: '00000041-0006-4000-8000-000000000002'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-10-31T15:10:00'}
+              - column: {name: updated_at, valueDate: '2026-10-31T15:10:00'}
+              - column: {name: created_by, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: occurred_at, valueDate: '2026-10-31T15:10:00'}
+              - column: {name: actor_id, value: '00000001-0001-4000-8000-000000000010'}
+              - column: {name: actor_type, value: 'USER'}
+              - column: {name: subject_type, value: 'CONVERSATION'}
+              - column: {name: subject_id, value: '00000041-0001-4000-8000-000000000003'}
+              - column: {name: secondary_subject_id, value: '00000041-0003-4000-8000-000000000019'}
+              - column: {name: action, value: 'MESSAGE_DELETED'}
+              - column: {name: old_value, value: 'Parfait, dann Samstag um 17 Uhr.'}
+              - column: {name: metadata, value: '{"seq":4,"moderator":false}'}
+        - insert:
+            tableName: history_entry
+            columns:
+              - column: {name: id, value: '00000041-0006-4000-8000-000000000003'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-01T13:30:00'}
+              - column: {name: updated_at, valueDate: '2026-11-01T13:30:00'}
+              - column: {name: created_by, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: occurred_at, valueDate: '2026-11-01T13:30:00'}
+              - column: {name: actor_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: actor_type, value: 'USER'}
+              - column: {name: subject_type, value: 'CONVERSATION'}
+              - column: {name: subject_id, value: '00000041-0001-4000-8000-000000000004'}
+              - column: {name: secondary_subject_id, value: '00000041-0003-4000-8000-000000000028'}
+              - column: {name: action, value: 'MESSAGE_DELETED'}
+              - column: {name: old_value, value: 'Ich schaue, ob ich kann.'}
+              - column: {name: reason, value: 'Doppelt gepostet, die Abholung ist schon besetzt.'}
+              - column: {name: metadata, value: '{"seq":5,"moderator":true}'}

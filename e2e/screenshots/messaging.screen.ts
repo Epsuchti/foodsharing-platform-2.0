@@ -25,6 +25,9 @@ forEachVariant((variant) => {
     screenshotTest('group conversation with members dialog @N1 @screenshot', async ({ page, visual }) => {
       await page.goto(`/messages/${CONVERSATIONS.kochgruppe}`);
       await expect(page.getByTestId('messaging.conversation.state')).toHaveAttribute('data-state', 'success');
+      // seeded: seq 4 deleted by its sender, seq 6 edited
+      await expect(page.locator('[data-testid="messaging.conversation.message"][data-seq="4"]')).toHaveAttribute('data-deleted', 'true');
+      await expect(page.locator('[data-testid="messaging.conversation.message"][data-seq="6"]')).toHaveAttribute('data-edited', 'true');
       await visual.expectScreen(page, `messaging-group-${variant.name}`);
       await page.getByTestId('messaging.conversation.members').click();
       await expect(page.getByRole('dialog')).toBeVisible();
@@ -48,6 +51,30 @@ forEachVariant((variant) => {
 
   screenshotTest.describe(`store chat ${variant.name}`, () => {
     screenshotTest.use({ variant, role: 'bieb' });
+
+    screenshotTest('message menu, edit mode, moderator delete and deleted states @N1 @screenshot', async ({ page, visual }) => {
+      await page.goto(`/messages/${CONVERSATIONS.s01Team}`);
+      await expect(page.getByTestId('messaging.conversation.state')).toHaveAttribute('data-state', 'success');
+      // seeded: seq 5 deleted by the store manager (moderation placeholder)
+      await expect(page.locator('[data-testid="messaging.conversation.message"][data-seq="5"]')).toHaveAttribute('data-deleted', 'true');
+      const own = page.locator('[data-testid="messaging.conversation.message"][data-seq="6"]');
+      await own.hover();
+      await own.getByTestId('messaging.conversation.messageMenu').click();
+      await expect(page.getByTestId('messaging.conversation.edit')).toBeVisible();
+      await visual.expectScreen(page, `messaging-message-menu-${variant.name}`);
+      await page.getByTestId('messaging.conversation.edit').click();
+      await expect(page.getByTestId('messaging.conversation.editBanner')).toBeVisible();
+      await visual.expectScreen(page, `messaging-edit-mode-${variant.name}`);
+      await page.getByTestId('messaging.conversation.editCancel').click();
+      await expect(page.getByTestId('messaging.conversation.editBanner')).toHaveCount(0);
+
+      const other = page.locator('[data-testid="messaging.conversation.message"][data-seq="2"]');
+      await other.hover();
+      await other.getByTestId('messaging.conversation.messageMenu').click();
+      await page.getByTestId('messaging.conversation.delete').click();
+      await expect(page.getByTestId('messaging.conversation.deleteDialog.message')).toBeVisible();
+      await visual.expectScreen(page, `messaging-moderate-dialog-${variant.name}`);
+    });
 
     screenshotTest('store team chat tab @S10 @screenshot', async ({ page, visual }) => {
       await page.goto(`/stores/${S01}/chat`);

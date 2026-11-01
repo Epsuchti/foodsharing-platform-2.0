@@ -7,6 +7,7 @@
 //  - a key is used outside its module (global prefixes are allowed everywhere)
 //  - a translation uses other {placeholders} than the German one
 //  - errors.<CODE> is missing for a value of ApiErrorCode in server/.../openapi/schemas/common.yaml
+//  - automation.metric.<KEY with '.' -> '_'> is missing for a value of MetricKey in server/.../schemas/automation.yaml
 // Unused keys are reported as warnings.
 import { readFile } from 'node:fs/promises';
 
@@ -20,10 +21,11 @@ import {
 } from './i18n-catalogs.mjs';
 
 const COMMON_YAML = '../server/src/main/resources/openapi/schemas/common.yaml';
+const AUTOMATION_YAML = '../server/src/main/resources/openapi/schemas/automation.yaml';
 /** Client-side error codes that are not part of ApiErrorCode. */
 const CLIENT_ERROR_CODES = ['NETWORK', 'UNKNOWN', 'CLIENT_ERROR'];
-/** Prefixes resolved at runtime (errors.<code>, lang.<lang>, theme.<mode>); never reported as unused. */
-const DYNAMIC_PREFIXES = ['errors.', 'lang.', 'theme.'];
+/** Prefixes resolved at runtime (errors.<code>, lang.<lang>, theme.<mode>, automation.metric.<key>); never reported as unused. */
+const DYNAMIC_PREFIXES = ['errors.', 'lang.', 'theme.', 'automation.metric.'];
 
 const errors = [];
 const warnings = [];
@@ -163,32 +165,48 @@ for (const file of files) {
   }
 }
 
-// --- ApiErrorCode -----------------------------------------------------------------------------------
-async function apiErrorCodes() {
-  const yaml = await readFile(COMMON_YAML, 'utf8');
+// --- contract enums -------------------------------------------------------------------------------
+/** Values of a block-style string enum (`enum:` followed by `- VALUE` lines) at the top level of a schema file. */
+async function yamlEnum(file, name) {
+  const yaml = await readFile(file, 'utf8');
   const lines = yaml.split(/\r?\n/);
-  const start = lines.findIndex((line) => /^ApiErrorCode:\s*$/.test(line));
+  const start = lines.findIndex((line) => new RegExp(`^${name}:\\s*$`).test(line));
   if (start < 0) {
-    throw new Error(`ApiErrorCode not found in ${COMMON_YAML}`);
+    throw new Error(`${name} not found in ${file}`);
   }
-  const codes = [];
+  const values = [];
   for (const line of lines.slice(start + 1)) {
     if (/^\S/.test(line) && !line.startsWith('#')) {
       break;
     }
-    const match = /^\s+-\s+([A-Z][A-Z0-9_]*)\s*(#.*)?$/.exec(line);
+    const match = /^\s+-\s+([A-Z][A-Z0-9_.]*)\s*(#.*)?$/.exec(line);
     if (match) {
-      codes.push(match[1]);
+      values.push(match[1]);
     }
   }
-  return codes;
+  if (values.length === 0) {
+    throw new Error(`${name} in ${file} has no block-style enum values`);
+  }
+  return values;
 }
 
-const codes = await apiErrorCodes();
+// ApiErrorCode -> errors.<CODE>
+const codes = await yamlEnum(COMMON_YAML, 'ApiErrorCode');
 for (const code of [...codes, ...CLIENT_ERROR_CODES]) {
   for (const lang of LANGUAGES) {
     if (!keysByLang[lang].has(`errors.${code}`)) {
       errors.push(`${lang}: missing "errors.${code}" (ApiErrorCode)`);
+    }
+  }
+}
+
+// MetricKey -> automation.metric.<KEY with every '.' replaced by '_'> (client metricLabelKey)
+const metricKeys = await yamlEnum(AUTOMATION_YAML, 'MetricKey');
+for (const key of metricKeys) {
+  const label = `automation.metric.${key.replaceAll('.', '_')}`;
+  for (const lang of LANGUAGES) {
+    if (!keysByLang[lang].has(label)) {
+      errors.push(`${lang}: missing "${label}" (MetricKey ${key})`);
     }
   }
 }
@@ -216,5 +234,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `i18n check passed: ${keysByLang.de.size} keys in ${LANGUAGES.length} languages, ${used.size} static usages, ${codes.length} API error codes.`,
+  `i18n check passed: ${keysByLang.de.size} keys in ${LANGUAGES.length} languages, ${used.size} static usages, ${codes.length} API error codes, ${metricKeys.length} metric keys.`,
 );

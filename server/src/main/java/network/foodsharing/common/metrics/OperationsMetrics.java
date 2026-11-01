@@ -44,10 +44,14 @@ public class OperationsMetrics {
     public static final String WEBSOCKET_USERS = "fs.websocket.connected.users";
     public static final String RATE_LIMIT_REJECTIONS = "fs.rate.limit.rejections";
     public static final String LOGIN_FAILURES = "fs.login.failures";
+    public static final String RATE_LIMIT_BLOCKS = "fs.rate.limit.blocks";
 
     public static final List<String> CHANNELS = List.of("mail", "push", "telegram");
     public static final List<String> LIMITERS = List.of("login-ip", "login-email", "basket-requests", "client-errors",
-            "group-mails", "support", "messages", "public-api");
+            "group-mails", "support", "messages", "public-api", "api-ip", "api-user");
+    /** Tags of {@code fs_rate_limit_blocks_total} (D17.2): the blocked scope and the level, "3+" for 3 and above. */
+    public static final List<String> BLOCK_SCOPES = List.of("ip", "account");
+    public static final List<String> BLOCK_LEVELS = List.of("1", "2", "3+");
     public static final List<String> LOGIN_FAILURE_REASONS = List.of("invalid-token", "expired-token", "passkey");
 
     private static final Duration DB_CACHE = Duration.ofSeconds(15);
@@ -87,6 +91,7 @@ public class OperationsMetrics {
         CHANNELS.forEach(channel -> deliveryCounter(registry, channel));
         LIMITERS.forEach(limiter -> rateLimitCounter(registry, limiter));
         LOGIN_FAILURE_REASONS.forEach(reason -> loginFailureCounter(registry, reason));
+        BLOCK_SCOPES.forEach(scope -> BLOCK_LEVELS.forEach(level -> rateLimitBlockCounter(registry, scope, level)));
         JOBS.keySet().forEach(this::registerJobMeters);
     }
 
@@ -120,6 +125,12 @@ public class OperationsMetrics {
     /** A rate limiter ({@link #LIMITERS}) rejected a request. */
     public static void rateLimited(String limiter) {
         rateLimitCounter(Metrics.globalRegistry, limiter).increment();
+    }
+
+    /** The API rate limit blocked an account or IP ({@code scope} IP or ACCOUNT, 1-based {@code level}). */
+    public static void rateLimitBlocked(String scope, int level) {
+        rateLimitBlockCounter(Metrics.globalRegistry, scope.toLowerCase(java.util.Locale.ROOT),
+                BLOCK_LEVELS.get(Math.min(Math.max(level, 1), BLOCK_LEVELS.size()) - 1)).increment();
     }
 
     /** A login attempt failed ({@link #LOGIN_FAILURE_REASONS}). */
@@ -162,6 +173,11 @@ public class OperationsMetrics {
     private static Counter rateLimitCounter(MeterRegistry registry, String limiter) {
         return Counter.builder(RATE_LIMIT_REJECTIONS).tag("limiter", limiter)
                 .description("Requests rejected by a rate limiter").register(registry);
+    }
+
+    private static Counter rateLimitBlockCounter(MeterRegistry registry, String scope, String level) {
+        return Counter.builder(RATE_LIMIT_BLOCKS).tag("scope", scope).tag("level", level)
+                .description("Accounts or IPs blocked by the API rate limit").register(registry);
     }
 
     private static Counter loginFailureCounter(MeterRegistry registry, String reason) {

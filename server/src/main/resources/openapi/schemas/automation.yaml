@@ -507,12 +507,74 @@ MetricPoint:
       type: integer
       format: int64
 
+MetricKey:
+  # Keys of MetricSeries (AU9), in display-group order. Every value needs automation.metric.<KEY with '.' -> '_'>
+  # in all five languages (client/scripts/check-i18n.mjs); MetricKeyCoverageTest keeps it equal to the keys
+  # MetricArchiveService produces.
+  type: string
+  enum:
+    # --- pickup slot decisions (DEFERRED writes no audit, so it has no key) ---
+    - SLOT_APPROVAL.CONFIRMED
+    - SLOT_APPROVAL.DECLINED
+    - SLOT_APPROVAL.WOULD_CONFIRM
+    - SLOT_APPROVAL.WOULD_DECLINE
+    - SLOT_APPROVAL.SKIPPED
+    - SLOT_APPROVAL.FAILED
+    # --- decline reasons (DECLINED and WOULD_DECLINE), one per PolicyRule ---
+    - SLOT_DECLINE_RULE.MANUAL_DATE
+    - SLOT_DECLINE_RULE.PUBLIC_HOLIDAY
+    - SLOT_DECLINE_RULE.HOLIDAY_CALENDAR_UNAVAILABLE
+    - SLOT_DECLINE_RULE.RULES_SKIPPED_NEAR_PICKUP
+    - SLOT_DECLINE_RULE.GAP
+    - SLOT_DECLINE_RULE.EXPERIENCE
+    - SLOT_DECLINE_RULE.NO_CLEANING_STORE
+    - SLOT_DECLINE_RULE.CLEANING_REQUIRED
+    - SLOT_DECLINE_RULE.CLEANING_REMINDER
+    - SLOT_DECLINE_RULE.CLEANING_NEW_USER
+    - SLOT_DECLINE_RULE.LINKED_STORE
+    - SLOT_DECLINE_RULE.ALL_RULES_PASSED
+    - SLOT_DECLINE_RULE.DISTANCE
+    - SLOT_DECLINE_RULE.NO_ADDRESS
+    # --- skip reasons, one per PolicyRule ---
+    - SLOT_SKIP_RULE.MANUAL_DATE
+    - SLOT_SKIP_RULE.PUBLIC_HOLIDAY
+    - SLOT_SKIP_RULE.HOLIDAY_CALENDAR_UNAVAILABLE
+    - SLOT_SKIP_RULE.RULES_SKIPPED_NEAR_PICKUP
+    - SLOT_SKIP_RULE.GAP
+    - SLOT_SKIP_RULE.EXPERIENCE
+    - SLOT_SKIP_RULE.NO_CLEANING_STORE
+    - SLOT_SKIP_RULE.CLEANING_REQUIRED
+    - SLOT_SKIP_RULE.CLEANING_REMINDER
+    - SLOT_SKIP_RULE.CLEANING_NEW_USER
+    - SLOT_SKIP_RULE.LINKED_STORE
+    - SLOT_SKIP_RULE.ALL_RULES_PASSED
+    - SLOT_SKIP_RULE.DISTANCE
+    - SLOT_SKIP_RULE.NO_ADDRESS
+    # --- store requests, one per RequestDecision ---
+    - REQUEST.APPROVED
+    - REQUEST.DECLINED
+    - REQUEST.WOULD_APPROVE
+    - REQUEST.WOULD_DECLINE
+    - REQUEST.SKIPPED
+    - REQUEST.FAILED
+    # --- short-notice sign-outs, one per CancellationStatus ---
+    - CANCELLATION.OPEN
+    - CANCELLATION.REPLACED
+    - CANCELLATION.NOT_REPLACED
+    - CANCELLATION.REJOINED
+    - CANCELLATION.UNKNOWN
+    # --- adverts, extra slots, intro pickups ---
+    - ADVERT.SENT
+    - ADVERT.FILLED_AFTER_ADVERT
+    - EXTRA_SLOT.ADDED
+    - INTRO_PICKUP.DONE
+
 MetricSeries:
   type: object
   required: [key, points]
   properties:
     key:
-      type: string
+      $ref: './automation.yaml#/MetricKey'
     points:
       type: array
       items:

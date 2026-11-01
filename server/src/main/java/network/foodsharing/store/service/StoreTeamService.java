@@ -39,6 +39,7 @@ import network.foodsharing.store.domain.UserTeamStatus;
 import network.foodsharing.store.repository.StoreMembershipRepository;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +56,12 @@ public class StoreTeamService {
                                  StorePickupInfo.MemberStats stats, Double distanceKm, boolean withPhone) {
     }
 
-    public record TeamView(List<TeamMemberView> members, List<TeamMemberView> jumpers, List<TeamMemberView> applications,
-                           List<TeamMemberView> invitations, Map<UUID, User> inviters, boolean mayEditTeam) {
+    /** Applications and invitations (null without mayEditTeam); the team itself is paged in {@link #teamMembers}. */
+    public record TeamView(List<TeamMemberView> applications, List<TeamMemberView> invitations,
+                           Map<UUID, User> inviters, boolean mayEditTeam) {
+    }
+
+    private record Rows(List<TeamMemberView> views, Map<UUID, User> users) {
     }
 
     private final StoreService stores;
@@ -105,38 +110,75 @@ public class StoreTeamService {
     public TeamView team(UUID storeId) {
         Store store = stores.require(storeId);
         StorePermissionService.Rights r = stores.requireAccess(store);
-        List<StoreMembership> all = memberships.findByStoreId(storeId);
+        if (!r.mayEditTeam()) {
+            return new TeamView(null, null, Map.of(), false);
+        }
+        Rows rows = rows(store, r, Set.of(StoreMembershipStatus.APPLIED, StoreMembershipStatus.INVITED));
+        List<TeamMemberView> applications = new ArrayList<>();
+        List<TeamMemberView> invitations = new ArrayList<>();
+        for (TeamMemberView view : rows.views()) {
+            (view.membership().getStatus() == StoreMembershipStatus.APPLIED ? applications : invitations).add(view);
+        }
+        return new TeamView(applications, invitations, rows.users(), true);
+    }
+
+    /**
+     * One page of the team (members and jumpers): status filter, name search, sort; stable order (decision 138).
+     *
+     * @throws ApiException 404, 403 unless mayAccessStore
+     */
+    @Transactional(readOnly = true)
+    public Page<TeamMemberView> teamMembers(UUID storeId, TeamListQuery query) {
+        Store store = stores.require(storeId);
+        StorePermissionService.Rights r = stores.requireAccess(store);
+        List<TeamMemberView> list = rows(store, r, Set.of(StoreMembershipStatus.MEMBER, StoreMembershipStatus.JUMPER))
+                .views().stream().filter(v -> matchesStatus(v.membership(), query.status()))
+                .filter(v -> query.matches(v.user())).sorted(order(query.sort())).toList();
+        return query.page(list);
+    }
+
+    private static boolean matchesStatus(StoreMembership m, TeamListQuery.Status status) {
+        return switch (status) {
+            case ALL -> true;
+            case MANAGER -> m.isManager();
+            case MEMBER -> m.getStatus() == StoreMembershipStatus.MEMBER;
+            case JUMPER -> m.getStatus() == StoreMembershipStatus.JUMPER;
+            case FORMER -> false;
+        };
+    }
+
+    static Comparator<TeamMemberView> order(TeamListQuery.Sort sort) {
+        Comparator<TeamMemberView> byName = TeamListQuery.byName(TeamMemberView::user);
+        return switch (sort == null ? TeamListQuery.Sort.NAME : sort) {
+            case NAME -> Comparator.comparing((TeamMemberView v) -> !v.membership().isManager()).thenComparing(byName);
+            case PICKUP_COUNT -> Comparator.comparingInt((TeamMemberView v) -> -v.stats().pickupCount())
+                    .thenComparing(byName);
+            case LAST_PICKUP -> Comparator.comparing((TeamMemberView v) -> v.stats().lastPickupAt(),
+                    Comparator.nullsLast(Comparator.<Instant>reverseOrder())).thenComparing(byName);
+        };
+    }
+
+    /** Views of the store's memberships with the given statuses (users loaded with the inviters). */
+    private Rows rows(Store store, StorePermissionService.Rights r, Set<StoreMembershipStatus> statuses) {
+        List<StoreMembership> all = memberships.findByStoreId(store.getId()).stream()
+                .filter(m -> statuses.contains(m.getStatus())).toList();
         Map<UUID, User> byId = users.findAll(all.stream().flatMap(m -> m.getInvitedBy() == null
                 ? java.util.stream.Stream.of(m.getUserId()) : java.util.stream.Stream.of(m.getUserId(),
                 m.getInvitedBy())).distinct().toList()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
-        Map<UUID, StorePickupInfo.MemberStats> stats = pickupInfo.memberStats(storeId);
-        List<TeamMemberView> members = new ArrayList<>();
-        List<TeamMemberView> jumpers = new ArrayList<>();
-        List<TeamMemberView> applications = new ArrayList<>();
-        List<TeamMemberView> invitations = new ArrayList<>();
+        Map<UUID, StorePickupInfo.MemberStats> stats = pickupInfo.memberStats(store.getId());
         Map<UUID, Instant> hygiene = quizzes.hygieneValidUntil(all.stream().map(StoreMembership::getUserId).toList());
+        List<TeamMemberView> views = new ArrayList<>();
         for (StoreMembership m : all) {
             User user = byId.get(m.getUserId());
             if (user == null) {
                 continue;
             }
-            TeamMemberView view = new TeamMemberView(user, m, hygiene.get(user.getId()),
+            views.add(new TeamMemberView(user, m, hygiene.get(user.getId()),
                     stats.getOrDefault(user.getId(), new StorePickupInfo.MemberStats(0, null, null)),
-                    r.maySeeMemberDistance() ? distance(user, store) : null, r.maySeePhoneNumbers());
-            switch (m.getStatus()) {
-                case MEMBER -> members.add(view);
-                case JUMPER -> jumpers.add(view);
-                case APPLIED -> applications.add(view);
-                case INVITED -> invitations.add(view);
-            }
+                    r.maySeeMemberDistance() ? distance(user, store) : null, r.maySeePhoneNumbers()));
         }
-        Comparator<TeamMemberView> order = Comparator.comparing((TeamMemberView v) -> !v.membership().isManager())
-                .thenComparing(v -> v.user().getDisplayName(), String.CASE_INSENSITIVE_ORDER);
-        members.sort(order);
-        jumpers.sort(order);
-        return new TeamView(members, jumpers, r.mayEditTeam() ? applications : null,
-                r.mayEditTeam() ? invitations : null, byId, r.mayEditTeam());
+        return new Rows(views, byId);
     }
 
     static Double distance(User user, Store store) {

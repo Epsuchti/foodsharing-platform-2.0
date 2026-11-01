@@ -1,9 +1,9 @@
 import { FspStatus, FspSummary } from '../../api';
+import { navigationLinks } from '../../shared/navigate-button/navigate.util';
 import {
   MANAGERS_MAX,
   addManager,
   fspCreateBody,
-  fspMapLinks,
   fspMarkers,
   fspUpdateBody,
   photoVariant,
@@ -17,17 +17,17 @@ function summary(id: string, name: string): FspSummary {
 }
 
 describe('fsp.util', () => {
-  describe('fspMapLinks', () => {
+  describe('navigation links of an FSP (shared navigationLinks)', () => {
     it('uses the coordinates when known', () => {
-      const links = fspMapLinks({ name: 'Fairteiler Wiedikon', lat: 47.3721, lon: 8.5172, address: ADDRESS });
-      expect(links?.google).toBe('https://www.google.com/maps/search/?api=1&query=47.3721,8.5172');
-      expect(links?.apple).toBe('https://maps.apple.com/?ll=47.3721,8.5172&q=Fairteiler%20Wiedikon');
+      const links = navigationLinks({ lat: 47.3721, lon: 8.5172, ...ADDRESS, label: 'Fairteiler Wiedikon' });
+      expect(links?.google).toBe('https://www.google.com/maps/dir/?api=1&destination=47.3721,8.5172');
+      expect(links?.apple).toBe('https://maps.apple.com/?daddr=47.3721,8.5172&q=Fairteiler%20Wiedikon');
     });
 
     it('falls back to the address, and to nothing without one', () => {
-      const links = fspMapLinks({ name: 'X', address: ADDRESS });
+      const links = navigationLinks({ ...ADDRESS, label: 'X' });
       expect(links?.google).toContain(encodeURIComponent('Schlossgasse 10 8003 Zürich'));
-      expect(fspMapLinks({ name: 'X', address: { street: '', postcode: '', city: '' } })).toBeNull();
+      expect(navigationLinks({ street: '', postcode: '', city: '', label: 'X' })).toBeNull();
     });
   });
 
