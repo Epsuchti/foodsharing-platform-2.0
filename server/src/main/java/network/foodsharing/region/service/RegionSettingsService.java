@@ -39,8 +39,7 @@ public class RegionSettingsService {
 
     public record IntroPickupSettings(int maxActiveBookingsPerUser, boolean preventDuplicateGuideBookings,
                                       boolean preventDuplicateCategoryBookings,
-                                      boolean requireFairteilerVisitByThirdIntroPickup, Set<String> ignoredCategories,
-                                      UUID cleaningStoreId) {
+                                      boolean requireFairteilerVisitByThirdIntroPickup, Set<String> ignoredCategories) {
     }
 
     public record Step(UUID id, String key, Map<String, String> titles, Map<String, String> descriptions,
@@ -96,8 +95,7 @@ public class RegionSettingsService {
     public Settings read(Region region) {
         IntroPickupSettings intro = new IntroPickupSettings(region.getMaxActiveBookingsPerUser(),
                 region.isPreventDuplicateGuideBookings(), region.isPreventDuplicateCategoryBookings(),
-                region.isRequireFairteilerVisitByThird(), categories(region.getIgnoredCategories()),
-                region.getCleaningStoreId());
+                region.isRequireFairteilerVisitByThird(), categories(region.getIgnoredCategories()));
         return new Settings(intro, new OnboardingSettings(region.isLearningPagesMandatory(), steps(region.getId())),
                 region.getJoinMode(), region.getTimeZone(), region.getConferenceUrl());
     }
@@ -168,9 +166,6 @@ public class RegionSettingsService {
                     : intro.ignoredCategories().stream().sorted().collect(Collectors.joining(","));
             record(action, region, "ignoredCategories", region.getIgnoredCategories(), ignored, change.reason());
             region.setIgnoredCategories(ignored);
-            record(action, region, "cleaningStoreId", region.getCleaningStoreId(), intro.cleaningStoreId(),
-                    change.reason());
-            region.setCleaningStoreId(intro.cleaningStoreId());
         }
         OnboardingSettings onboarding = change.onboarding();
         if (onboarding != null) {

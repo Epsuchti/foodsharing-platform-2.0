@@ -118,9 +118,6 @@ public class Region extends BaseEntity implements HistorySubject {
     @Column(name = "ignored_categories", length = 400)
     private String ignoredCategories;
 
-    @Column(name = "cleaning_store_id")
-    private UUID cleaningStoreId;
-
     @Column(name = "learning_pages_mandatory", nullable = false)
     private boolean learningPagesMandatory = true;
 

@@ -16,7 +16,16 @@ public enum FspAction implements HistoryAction {
     UNFOLLOWED,
     WALL_POST_CREATED,
     WALL_POST_DELETED,
-    FIELD_CHANGED;
+    FIELD_CHANGED,
+    // FS2 cleaning shifts (decision 148)
+    CLEANING_ENABLED,
+    CLEANING_DISABLED,
+    CLEANING_SCHEDULE_CHANGED,
+    CLEANING_SIGNED_UP,
+    CLEANING_SIGNED_OUT,
+    CLEANING_CONFIRMED,
+    CLEANING_REMOVED,
+    REGION_CLEANING_FSPS_CHANGED;
 
     @Override
     public String code() {

@@ -145,7 +145,7 @@ class RegionOptionsServiceTest {
         var step = new RegionSettingsService.Step(null, "newcomer-meeting",
                 java.util.Map.of("de", "Neuen-Treffen", "en", "Newcomer meeting"), java.util.Map.of("de", "Montag"), 1);
         var updated = settings.update(city.getId(), new RegionSettingsService.SettingsChange(
-                new RegionSettingsService.IntroPickupSettings(2, false, true, true, java.util.Set.of("ONLINE"), null),
+                new RegionSettingsService.IntroPickupSettings(2, false, true, true, java.util.Set.of("ONLINE")),
                 new RegionSettingsService.OnboardingSettings(false, List.of(step)), RegionJoinMode.APPLICATION,
                 "Europe/Berlin", "https://meet.example/zh", "new rules"));
 

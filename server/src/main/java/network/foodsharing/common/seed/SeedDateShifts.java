@@ -32,7 +32,8 @@ public final class SeedDateShifts {
                 boolean date = spec.endsWith(":date");
                 String column = date ? spec.substring(0, spec.length() - 5) : spec;
                 List<Object[]> rows = jdbc.query("select id, " + column + " from " + table + " where " + column
-                        + " is not null and cast(id as varchar(36)) like ?",
+                        + " is not null and cast(id as varchar(36)) like ? order by " + column
+                        + (delta.isNegative() ? " asc" : " desc"),
                         (rs, n) -> new Object[] {rs.getObject(1, UUID.class), date ? rs.getDate(2) : rs.getTimestamp(2)},
                         like);
                 for (Object[] row : rows) {

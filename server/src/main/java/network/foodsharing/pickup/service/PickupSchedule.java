@@ -1,16 +1,11 @@
 package network.foodsharing.pickup.service;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
+import network.foodsharing.common.schedule.SlotSchedule;
 import network.foodsharing.pickup.domain.PickupDate;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.domain.RegularPickup;
@@ -43,60 +38,32 @@ public final class PickupSchedule {
 
     /**
      * Occurrences of the weekly schedule with {@code from <= pickupAt < to}. Local times that fall into a DST gap move
-     * forward (java.time rule); in an overlap the earlier offset is used.
+     * forward (java.time rule); in an overlap the earlier offset is used. Delegates to {@link SlotSchedule}.
      */
     public static List<Slot> regularOccurrences(UUID storeId, Collection<RegularPickup> regular, ZoneId zone,
                                                 Instant from, Instant to) {
-        List<Slot> result = new ArrayList<>();
-        if (regular.isEmpty() || !from.isBefore(to)) {
-            return result;
-        }
-        LocalDate day = from.atZone(zone).toLocalDate();
-        LocalDate last = to.atZone(zone).toLocalDate();
-        for (; !day.isAfter(last); day = day.plusDays(1)) {
-            for (RegularPickup r : regular) {
-                if (r.getWeekday() != day.getDayOfWeek()) {
-                    continue;
-                }
-                Instant at = ZonedDateTime.of(day, r.getStartTime(), zone).toInstant();
-                if (!at.isBefore(from) && at.isBefore(to)) {
-                    result.add(new Slot(storeId, at, r.getSlotCount(), r.getDescription(), true, List.of()));
-                }
-            }
-        }
-        result.sort(Comparator.comparing(Slot::pickupAt));
-        return result;
+        List<SlotSchedule.Weekly> weekly = regular.stream().map(r -> new SlotSchedule.Weekly(r.getWeekday(),
+                r.getStartTime(), r.getSlotCount(), r.getDescription())).toList();
+        return SlotSchedule.<PickupSignup>regularOccurrences(weekly, zone, from, to).stream()
+                .map(s -> toSlot(storeId, s)).toList();
     }
 
     /**
      * Merges regular occurrences, one-time rows (override or addition; slot count 0 cancels) and sign-ups. Sign-ups at
      * times without an occurrence still show up (slot count = number of sign-ups). Cancelled pickups without sign-ups
-     * are dropped. Sorted by time.
+     * are dropped. Sorted by time. Delegates to {@link SlotSchedule}.
      */
     public static List<Slot> merge(UUID storeId, List<Slot> regular, Collection<PickupDate> dates,
                                    Collection<PickupSignup> signups) {
-        Map<Instant, Slot> byTime = new TreeMap<>();
-        for (Slot slot : regular) {
-            byTime.put(slot.pickupAt(), slot);
-        }
-        for (PickupDate date : dates) {
-            Slot previous = byTime.get(date.getPickupAt());
-            byTime.put(date.getPickupAt(), new Slot(storeId, date.getPickupAt(), date.getSlotCount(),
-                    date.getDescription(), previous != null && previous.regular(), List.of()));
-        }
-        Map<Instant, List<PickupSignup>> signupsByTime = new TreeMap<>();
-        for (PickupSignup signup : signups) {
-            signupsByTime.computeIfAbsent(signup.getPickupAt(), k -> new ArrayList<>()).add(signup);
-        }
-        for (Map.Entry<Instant, List<PickupSignup>> e : signupsByTime.entrySet()) {
-            List<PickupSignup> list = e.getValue();
-            list.sort(Comparator.comparing(PickupSignup::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())));
-            Slot slot = byTime.get(e.getKey());
-            byTime.put(e.getKey(), slot == null
-                    ? new Slot(storeId, e.getKey(), list.size(), null, false, List.copyOf(list))
-                    : new Slot(storeId, e.getKey(), Math.max(slot.slotCount(), list.size()), slot.description(),
-                            slot.regular(), List.copyOf(list)));
-        }
-        return byTime.values().stream().filter(s -> s.slotCount() > 0 || !s.signups().isEmpty()).toList();
+        List<SlotSchedule.Slot<PickupSignup>> base = regular.stream().map(s -> new SlotSchedule.Slot<>(s.pickupAt(),
+                s.slotCount(), s.description(), s.regular(), s.signups())).toList();
+        List<SlotSchedule.OneTime> oneTime = dates.stream().map(d -> new SlotSchedule.OneTime(d.getPickupAt(),
+                d.getSlotCount(), d.getDescription())).toList();
+        return SlotSchedule.merge(base, oneTime, signups, PickupSignup::getPickupAt, PickupSignup::getCreatedAt)
+                .stream().map(s -> toSlot(storeId, s)).toList();
+    }
+
+    private static Slot toSlot(UUID storeId, SlotSchedule.Slot<PickupSignup> s) {
+        return new Slot(storeId, s.at(), s.slotCount(), s.description(), s.regular(), s.signups());
     }
 }

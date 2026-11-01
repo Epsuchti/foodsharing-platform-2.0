@@ -172,6 +172,23 @@ class LocalProfileSmokeIT {
                 SeedUsers.NEWBIE.id())).isEqualTo(4);
     }
 
+    /** FS2 (decision 148): changelog 180 applied, cleaning seed loaded, Zürich Stadt counts Fairteiler Wiedikon. */
+    @Test
+    void cleaningSeedLinksWiedikonToZurich() {
+        assertThat(jdbc.queryForObject("select count(*) from information_schema.columns where lower(table_name) = "
+                + "'region' and lower(column_name) = 'cleaning_store_id'", Integer.class)).isZero();
+        assertThat(jdbc.queryForList("select f.name from region_cleaning_fsp c join region r on r.id = c.region_id "
+                + "join food_share_point f on f.id = c.fsp_id where r.slug = 'zuerich-stadt'", String.class))
+                .containsExactly("Fairteiler Wiedikon");
+        assertThat(jdbc.queryForObject("select cleaning_enabled from food_share_point where name = "
+                + "'Fairteiler Wiedikon'", Boolean.class)).isTrue();
+        assertThat(jdbc.queryForObject("select count(*) from fsp_cleaning_regular", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from fsp_cleaning_signup where confirmed = true",
+                Integer.class)).isEqualTo(3);
+        assertThat(jdbc.queryForObject("select count(*) from fsp_cleaning_signup where confirmed = false",
+                Integer.class)).isEqualTo(1);
+    }
+
     @Test
     void fakeOidcDiscoveryIsServed() throws Exception {
         mvc.perform(get("/dev/oidc/.well-known/openid-configuration"))

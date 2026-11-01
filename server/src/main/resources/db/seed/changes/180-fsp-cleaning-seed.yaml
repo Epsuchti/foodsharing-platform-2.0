@@ -1,0 +1,121 @@
+# Seed (FS2, decision 148): Fairteiler Wiedikon has cleaning shifts (weekly Saturday 10:00, a one-time shift, a
+# cancelled Saturday), confirmed past shifts of foodsaver (within 12 months), bieb and bot (older), an unconfirmed
+# upcoming sign-up of guide, and zuerich-stadt counts Wiedikon for the cleaning rule. Ids: docs/seed-ids.md (0049).
+databaseChangeLog:
+  - changeSet:
+      id: seed-180-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Fairteiler Wiedikon offers cleaning shifts.'
+      changes:
+        - update:
+            tableName: food_share_point
+            columns:
+              - column: {name: cleaning_enabled, valueBoolean: true}
+            where: "id = '00000049-0001-4000-8000-000000000001'"
+  - changeSet:
+      id: seed-180-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Weekly cleaning shift of Wiedikon.'
+      changes:
+        - loadUpdateData:
+            tableName: fsp_cleaning_regular
+            file: ../fsp/fsp_cleaning_regular.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID}
+              - column: {name: weekday, type: STRING}
+              - column: {name: start_time, type: STRING}
+              - column: {name: slot_count, type: NUMERIC}
+              - column: {name: description, type: STRING}
+  - changeSet:
+      id: seed-180-3
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'One-time cleaning shifts, overrides and the cancelled Saturday.'
+      changes:
+        - loadUpdateData:
+            tableName: fsp_cleaning_shift
+            file: ../fsp/fsp_cleaning_shift.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID}
+              - column: {name: shift_at, type: STRING}
+              - column: {name: slot_count, type: NUMERIC}
+              - column: {name: description, type: STRING}
+  - changeSet:
+      id: seed-180-4
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Cleaning sign-ups (three confirmed past, one unconfirmed upcoming).'
+      changes:
+        - loadUpdateData:
+            tableName: fsp_cleaning_signup
+            file: ../fsp/fsp_cleaning_signup.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID}
+              - column: {name: user_id, type: UUID}
+              - column: {name: shift_at, type: STRING}
+              - column: {name: confirmed, type: BOOLEAN}
+              - column: {name: confirmed_by, type: UUID}
+              - column: {name: confirmed_at, type: STRING}
+  - changeSet:
+      id: seed-180-5
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'zuerich-stadt counts Fairteiler Wiedikon for the cleaning rule.'
+      changes:
+        - loadUpdateData:
+            tableName: region_cleaning_fsp
+            file: ../fsp/region_cleaning_fsp.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID}
+              - column: {name: fsp_id, type: UUID}

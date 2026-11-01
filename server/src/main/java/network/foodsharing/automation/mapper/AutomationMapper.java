@@ -215,6 +215,11 @@ public class AutomationMapper {
         return model;
     }
 
+    public static network.foodsharing.api.model.FspRef toFspRef(
+            network.foodsharing.fsp.service.FspCleaningQueries.CleaningFsp fsp) {
+        return new network.foodsharing.api.model.FspRef().id(fsp.id()).name(fsp.name());
+    }
+
     public static StoreRef toStoreRef(Store store) {
         StoreRef ref = new StoreRef();
         ref.setId(store.getId());

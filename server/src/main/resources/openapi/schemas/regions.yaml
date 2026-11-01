@@ -433,9 +433,6 @@ IntroPickupRegionSettings:
       type: array
       items:
         $ref: './intro-pickups.yaml#/IntroPickupCategory'
-    cleaningStoreId:
-      type: string
-      format: uuid
 
 OnboardingRegionSettings:
   type: object

@@ -23,7 +23,7 @@ import network.foodsharing.automation.service.PickupPolicyEvaluator.LinkRule;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Reason;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.RegionInfo;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Signup;
-import network.foodsharing.automation.service.PickupPolicyEvaluator.Slot;
+import network.foodsharing.automation.service.PickupPolicyEvaluator.CleaningSlot;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Spec;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.UserInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +38,7 @@ class PickupPolicyEvaluatorTest {
     static final UUID STORE = UUID.randomUUID();
     static final UUID LINKED = UUID.randomUUID();
     static final UUID CLEANING = UUID.randomUUID();
+    static final UUID CLEANING_2 = UUID.randomUUID();
     static final UUID REGION = UUID.randomUUID();
     static final UUID USER = UUID.randomUUID();
     static final UUID OTHER = UUID.randomUUID();
@@ -199,16 +200,17 @@ class PickupPolicyEvaluatorTest {
 
     void freeCleaningSlots(int count) {
         for (int i = 0; i < count; i++) {
-            data.slots.add(new Slot(at("2026-11-10T18:00").plus(Duration.ofDays(i)), 0));
+            data.cleaningSlots.add(new CleaningSlot(at("2026-11-10T18:00").plus(Duration.ofDays(i)), CLEANING,
+                    "Fairteiler Wiedikon"));
         }
-        data.slots.add(new Slot(at("2026-11-09T18:00"), 1));
     }
 
     @Test
-    void noCleaningStoreDeclines() {
-        data.cleaningStore = null;
+    void noCleaningFairteilerDeclines() {
+        data.cleaningFsps = List.of();
         Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
-        assertThat(rules(d)).containsExactly(PolicyRule.NO_CLEANING_STORE);
+        assertThat(rules(d)).containsExactly(PolicyRule.NO_CLEANING_FAIRTEILER);
+        assertThat(d.reasons().getFirst().text()).contains("Zürich");
         assertThat(d.allowed()).isFalse();
     }
 
@@ -225,10 +227,51 @@ class PickupPolicyEvaluatorTest {
                 .containsExactly(PolicyRule.ALL_RULES_PASSED);
     }
 
+    /** D5: an upcoming cleaning sign-up counts while it is still unconfirmed. */
     @Test
     void plannedCleaningPasses() {
         data.signups.add(new Signup(CLEANING, USER, at("2026-11-20T10:00"), false, NOW));
         assertThat(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void cleaningAtAnyOfTheRegionsFairteilerCounts() {
+        data.cleaningFsps = List.of(CLEANING, CLEANING_2);
+        data.signups.add(new Signup(CLEANING_2, USER, at("2026-05-01T10:00"), true, NOW));
+        freeCleaningSlots(5);
+        assertThat(rules(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data)))
+                .containsExactly(PolicyRule.ALL_RULES_PASSED);
+    }
+
+    @Test
+    void cleaningAtAFairteilerOutsideTheRegionListDoesNotCount() {
+        data.signups.add(new Signup(CLEANING_2, USER, at("2026-05-01T10:00"), true, NOW));
+        freeCleaningSlots(5);
+        assertThat(rules(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data)))
+                .containsExactly(PolicyRule.CLEANING_REQUIRED);
+    }
+
+    /** D6: the next three free shifts across all cleaning Fairteiler; the link goes to the earliest one's tab. */
+    @Test
+    void declineListsFreeShiftsAcrossFairteilerAndLinksTheEarliest() {
+        data.cleaningFsps = List.of(CLEANING, CLEANING_2);
+        data.cleaningSlots.add(new CleaningSlot(at("2026-11-09T18:00"), CLEANING_2, "Fairteiler Langstrasse"));
+        freeCleaningSlots(4);
+        Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.CLEANING_REQUIRED);
+        String text = d.reasons().getFirst().text();
+        assertThat(text).contains("09.11.2026 18:00 – Fairteiler Langstrasse\n10.11.2026 18:00 – Fairteiler Wiedikon"
+                + "\n11.11.2026 18:00 – Fairteiler Wiedikon").doesNotContain("12.11.2026 18:00")
+                .contains("/food-share-points/" + CLEANING_2 + "/cleaning");
+    }
+
+    /** D6: without a free shift the link goes to the first configured Fairteiler. */
+    @Test
+    void withoutFreeShiftsTheLinkGoesToTheFirstFairteiler() {
+        data.cleaningFsps = List.of(CLEANING_2, CLEANING);
+        Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.CLEANING_REMINDER);
+        assertThat(d.userMessage()).contains("/food-share-points/" + CLEANING_2 + "/cleaning");
     }
 
     @Test
@@ -239,7 +282,8 @@ class PickupPolicyEvaluatorTest {
         assertThat(d.allowed()).isTrue();
         assertThat(rules(d)).containsExactly(PolicyRule.CLEANING_REMINDER);
         assertThat(d.userMessage()).startsWith("Hey Sarah").contains("01.06.2025").contains("nur noch 3 freie")
-                .contains("10.11.2026 18:00").contains("/stores/" + CLEANING)
+                .contains("10.11.2026 18:00 – Fairteiler Wiedikon")
+                .contains("/food-share-points/" + CLEANING + "/cleaning")
                 .endsWith("wende dich an die Betriebsverantwortlichen.");
     }
 
@@ -422,14 +466,14 @@ class PickupPolicyEvaluatorTest {
     static class FakeData implements PickupPolicyEvaluator.Data {
 
         final List<Signup> signups = new ArrayList<>();
-        final List<Slot> slots = new ArrayList<>();
+        final List<CleaningSlot> cleaningSlots = new ArrayList<>();
         final Map<LocalDate, String> holidays = new HashMap<>();
         final Map<UUID, Spec> policies = new HashMap<>();
         final Map<UUID, String> names = new HashMap<>(Map.of(STORE, "Store GmbH", LINKED, "Linked AG", CLEANING,
                 "Fairteiler"));
         boolean holidayDown;
         boolean exempt;
-        UUID cleaningStore = CLEANING;
+        List<UUID> cleaningFsps = List.of(CLEANING);
         Instant verifiedAt = Instant.parse("2020-01-01T00:00:00Z");
         Duration outage = Duration.ZERO;
 
@@ -455,7 +499,7 @@ class PickupPolicyEvaluatorTest {
 
         @Override
         public RegionInfo region(UUID regionId) {
-            return new RegionInfo(REGION, "Zürich", cleaningStore);
+            return new RegionInfo(REGION, "Zürich", cleaningFsps);
         }
 
         @Override
@@ -484,8 +528,21 @@ class PickupPolicyEvaluatorTest {
         }
 
         @Override
-        public List<Slot> slots(UUID storeId, Instant from, Instant to) {
-            return storeId.equals(CLEANING) ? slots : List.of();
+        public Optional<Instant> lastConfirmedCleaning(Collection<UUID> fspIds, UUID userId, Instant before) {
+            return signups.stream().filter(s -> fspIds.contains(s.storeId()) && s.userId().equals(userId)
+                    && s.confirmed() && s.pickupAt().isBefore(before)).map(Signup::pickupAt)
+                    .max(Instant::compareTo);
+        }
+
+        @Override
+        public List<Instant> cleaningSignupsOfUser(UUID userId, Collection<UUID> fspIds, Instant from, Instant to) {
+            return signupsOfUser(userId, fspIds, from, to).stream().map(Signup::pickupAt).toList();
+        }
+
+        @Override
+        public List<CleaningSlot> freeCleaningSlots(Collection<UUID> fspIds, Instant from, Instant to) {
+            return cleaningSlots.stream().filter(s -> fspIds.contains(s.fspId()) && !s.at().isBefore(from)
+                    && s.at().isBefore(to)).sorted(java.util.Comparator.comparing(CleaningSlot::at)).toList();
         }
 
         @Override
@@ -512,8 +569,8 @@ class PickupPolicyEvaluatorTest {
         }
 
         @Override
-        public String storeLink(UUID storeId) {
-            return "http://localhost:4200/stores/" + storeId;
+        public String cleaningLink(UUID fspId) {
+            return "http://localhost:4200/food-share-points/" + fspId + "/cleaning";
         }
 
         @Override
