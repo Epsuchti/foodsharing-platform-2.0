@@ -31,7 +31,7 @@
   "pickups.tab.regularBadge": "regular",
   "pickups.tab.edit": "Edit pickup",
   "pickups.tab.cancelled": "Cancelled",
-  "pickups.tab.waiting": "Waiting for confirmation",
+  "pickups.tab.waiting": "Unconfirmed",
   "pickups.tab.addExtraSlot": "Add one extra slot",
   "pickups.tab.extraSlotBy": "Extra slot added by {name}",
   "pickups.tab.extraSlotAdded": "Extra slot added.",
@@ -101,5 +101,16 @@
   "pickups.reminders.title": "Pickup reminders",
   "pickups.reminders.text": "A bell and an email 24 hours before each of your pickups.",
   "pickups.reminders.label": "Remind me of my pickups",
-  "pickups.reminders.saved": "Reminder setting saved."
+  "pickups.reminders.saved": "Reminder setting saved.",
+  "pickups.tab.waitingMine": "Your slot is still unconfirmed",
+  "pickups.tab.summary.confirmed": "{confirmed} of {total} confirmed",
+  "pickups.tab.summary.unconfirmed": "{count} unconfirmed",
+  "pickups.tab.confirmAll": "Confirm all {count}",
+  "pickups.tab.confirmAllTitle": "Confirm all?",
+  "pickups.tab.confirmAllText": "Confirm for this pickup: {names}.",
+  "pickups.tab.confirmedAll": "{count} sign-ups confirmed.",
+  "pickups.tab.range.pending": "Unconfirmed ({count})",
+  "pickups.tab.pendingEmpty": "No unconfirmed sign-ups left.",
+  "pickups.tab.state.confirmed": "Confirmed",
+  "pickups.tab.state.unconfirmed": "Unconfirmed"
 }

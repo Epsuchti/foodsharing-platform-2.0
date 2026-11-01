@@ -79,7 +79,10 @@ class PickupUserApiIT {
         mvc.perform(get("/api/users/me/pickups/options").cookie(foodsaver)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-04T19:30:00Z')].store.name").isNotEmpty())
                 .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-07T17:00:00Z')]").isEmpty())
-                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-05T18:00:00Z')].isConfirmed").value(false));
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-05T18:00:00Z')].isConfirmed").value(false))
+                // S-01 Thursday: the foodsaver (unconfirmed) and one confirmed sign-up
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-05T18:00:00Z')].occupiedSlots.length()").value(2))
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-05T18:00:00Z')].confirmedCount").value(1));
         mvc.perform(get("/api/users/me/pickups/options").cookie(login(SeedUsers.QUIZ)))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NOT_VERIFIED"));
         Cookie bieb = login(SeedUsers.BIEB);
