@@ -159,7 +159,7 @@ build), e2e typecheck, chromium + mobile-chrome `tests/map/m1-map.spec.ts`, chro
 A whole walk takes 5–13 s in the e2e set-up (no think time); durations are recorded per run, not budgeted.
 
 Note (decision 149, 2026-11-01): Betriebe became a phone tab, so the foodsaver and store-manager walks lose one tap on
-the phone (no drawer for "my stores"). Their budgets were lowered to the new maximum: foodsaver 16 (desktop 14,
+the phone (no drawer for "my stores"). Their budgets were lowered to the measured maximum: foodsaver 16 (desktop 13,
 phone 16), store manager 12 (desktop 11, phone 12). Budgets are only ever lowered this way, never raised.
 
 ### Fixes
