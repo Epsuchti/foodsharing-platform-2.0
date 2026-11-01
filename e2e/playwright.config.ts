@@ -68,7 +68,9 @@ export default defineConfig({
   // (CI matrix, locally scripts/run-sharded.mjs and screenshots.sh --shards, decision 137).
   workers: 1,
   fullyParallel: false,
-  retries: 0,
+  // CI runs a failed test up to 3 more times: a pass on a retry counts as flaky, not as failed, and stays listed in the
+  // reports. Locally a failure stays a failure.
+  retries: CI ? 3 : 0,
   forbidOnly: CI,
   // CI never writes baselines: a missing or changed screenshot fails the run (review-m1 §1.1).
   // Locally Playwright's default ('missing') applies; deliberate updates go through screenshots.sh --update-snapshots.

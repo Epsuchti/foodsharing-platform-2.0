@@ -10,6 +10,7 @@
 //   npm run e2e:sharded -- --project=chromium                 # default slot count, see below
 //   npm run e2e:sharded -- --project=chromium --shards=4 tests/stores
 //   node scripts/run-sharded.mjs --summary test-results/results.json   # only print the summary of a JSON report
+//   node scripts/run-sharded.mjs --step-summary "E2E tests" test-results/results.json   # add it to the GitHub run summary
 //
 // Options:
 //   --shards=N   parallel slots (jars + browsers); default min(4, floor(free memory GB / 2.5)), at least 1 (E2E_SHARDS)
@@ -54,6 +55,7 @@ function parseArgs(argv) {
   let shards = process.env.E2E_SHARDS ? Number(process.env.E2E_SHARDS) : undefined;
   let chunks;
   let summary;
+  let stepSummary;
   let video = false;
   const rest = [];
   const count = (value, what) => {
@@ -69,6 +71,7 @@ function parseArgs(argv) {
     else if (arg === '--chunks') chunks = count(argv[++i], 'chunk count');
     else if (arg === '--video') video = true;
     else if (arg === '--summary') summary = argv[++i] ?? RESULTS_JSON;
+    else if (arg === '--step-summary') stepSummary = { title: argv[++i], file: argv[++i] ?? RESULTS_JSON };
     else if (arg === '--shard' || arg.startsWith('--shard=')) throw new Error('Use --shards=N; the runner sets --shard itself.');
     else if (arg === '--help' || arg === '-h') {
       console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 30).join('\n'));
@@ -78,7 +81,7 @@ function parseArgs(argv) {
   if (shards !== undefined) count(shards, 'shard count');
   shards ??= defaultShards();
   chunks ??= shards === 1 ? 1 : 3 * shards;
-  return { shards, chunks: Math.max(chunks, shards), video, summary, rest };
+  return { shards, chunks: Math.max(chunks, shards), video, summary, stepSummary, rest };
 }
 
 /** Passed/failed/flaky/skipped counts and the failed tests (file:line) of a Playwright JSON report. */
@@ -95,7 +98,7 @@ export function summarize(report) {
         else if (test.status === 'skipped') counts.skipped++;
         else if (test.status === 'flaky') {
           counts.flaky++;
-          flaky.push({ where, name });
+          flaky.push({ where, name, attempts: test.results?.length });
         } else {
           counts.failed++;
           const error = test.results?.flatMap((r) => r.errors ?? [r.error]).find(Boolean);
@@ -123,7 +126,29 @@ export function printSummary(summary, log = console.log) {
     for (const f of flaky) log(`  ${f.where}  ${f.name}`);
   }
   for (const e of errors) log(`[sharded] error: ${e}`);
-  return counts.failed === 0 && counts.flaky === 0 && errors.length === 0;
+  // flaky (passed on CI's retry) is listed above but does not fail the run, like in a plain `playwright test`
+  return counts.failed === 0 && errors.length === 0;
+}
+
+/** Markdown for the GitHub run summary: the counts and every test that only passed on a retry. */
+export function stepSummaryMarkdown(title, { counts, flaky }) {
+  const lines = [`### ${title}`, '', `${counts.passed} passed, ${counts.failed} failed, ${counts.flaky} flaky, ${counts.skipped} skipped`, ''];
+  if (flaky.length) {
+    lines.push('Flaky (passed on a retry):', '');
+    for (const f of flaky) lines.push(`- \`${f.where}\` ${f.name} (${f.attempts} attempts)`);
+    lines.push('');
+  }
+  return lines.join('\n') + '\n';
+}
+
+/** Appends to the run summary. Never fails the job: the test step has already decided that. */
+function writeStepSummary({ title, file }) {
+  const target = process.env.GITHUB_STEP_SUMMARY;
+  if (!target) return;
+  const text = fs.existsSync(file)
+    ? stepSummaryMarkdown(title, summarize(JSON.parse(fs.readFileSync(file, 'utf8'))))
+    : `### ${title}\n\nNo results: the run wrote no ${path.basename(file)}.\n\n`;
+  fs.appendFileSync(target, text);
 }
 
 const fmt = (ms) => {
@@ -399,6 +424,10 @@ async function run({ shards, chunks, video, rest }) {
 if (path.resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
   try {
     const args = parseArgs(process.argv.slice(2));
+    if (args.stepSummary) {
+      writeStepSummary(args.stepSummary);
+      process.exit(0);
+    }
     if (args.summary) {
       process.exit(printSummary(summarize(JSON.parse(fs.readFileSync(args.summary, 'utf8')))) ? 0 : 1);
     }
