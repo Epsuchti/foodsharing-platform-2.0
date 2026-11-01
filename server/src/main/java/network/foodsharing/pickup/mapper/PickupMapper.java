@@ -173,6 +173,9 @@ public class PickupMapper {
             model.setDescription(v.slot().description());
             model.setOccupiedSlots(v.slot().signups().stream().filter(s -> byId.containsKey(s.getUserId()))
                     .map(s -> userMapper.toSummary(byId.get(s.getUserId()))).toList());
+            // same filter as occupiedSlots, so the count never exceeds it
+            model.setConfirmedCount((int) v.slot().signups().stream()
+                    .filter(s -> byId.containsKey(s.getUserId()) && s.isConfirmed()).count());
             model.setIsConfirmed(v.confirmed());
             return model;
         }).toList();
