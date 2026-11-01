@@ -88,8 +88,8 @@ On the original machine (Windows 11): portable Temurin 21 in `~/.jdks/jdk-21.0.1
 
 ## After the base build: agreed with the owner, not started
 1. Parallel shards: done (decision 137).
-2. Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
-3. Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
+2. Done (decision 142). Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
+3. Done (decision 142). Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
 4. Native date inputs show `mm/dd/yyyy` in a German or Swiss-German UI, because they follow the browser locale. Check this against the app language.
 5. Bot protection: a per-IP request limit for the whole API, not only the anonymous part.
    - What exists today:

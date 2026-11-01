@@ -15,6 +15,7 @@ import network.foodsharing.api.model.Holiday;
 import network.foodsharing.api.model.HolidayScope;
 import network.foodsharing.api.model.LinkedStoreRule;
 import network.foodsharing.api.model.LinkedStoreWindowMode;
+import network.foodsharing.api.model.MetricKey;
 import network.foodsharing.api.model.PickupPolicyDecision;
 import network.foodsharing.api.model.PolicyDecisionPreview;
 import network.foodsharing.api.model.PolicyReason;
@@ -35,11 +36,15 @@ import network.foodsharing.store.domain.Store;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.mapper.UserMapper;
 import network.foodsharing.user.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /** Automation domain ↔ generated models. */
 @Component
 public class AutomationMapper {
+
+    private static final Logger log = LoggerFactory.getLogger(AutomationMapper.class);
 
     private final UserMapper userMapper;
     private final UserService users;
@@ -331,17 +336,30 @@ public class AutomationMapper {
         }).toList();
     }
 
+    /**
+     * One series per known key. A key that is not in {@link MetricKey} (e.g. an old archived key) is left out with a
+     * warning; it never fails the response.
+     */
     public List<network.foodsharing.api.model.MetricSeries> toSeries(Map<String, Map<java.time.LocalDate, Long>> series) {
-        return series.entrySet().stream().map(e -> {
+        List<network.foodsharing.api.model.MetricSeries> result = new java.util.ArrayList<>();
+        series.forEach((key, points) -> {
+            MetricKey metricKey;
+            try {
+                metricKey = MetricKey.fromValue(key);
+            } catch (IllegalArgumentException e) {
+                log.warn("Unknown metric key {} left out of the metrics response", key);
+                return;
+            }
             var model = new network.foodsharing.api.model.MetricSeries();
-            model.setKey(e.getKey());
-            model.setPoints(e.getValue().entrySet().stream().map(p -> {
+            model.setKey(metricKey);
+            model.setPoints(points.entrySet().stream().map(p -> {
                 var point = new network.foodsharing.api.model.MetricPoint();
                 point.setDay(p.getKey());
                 point.setValue(p.getValue());
                 return point;
             }).toList());
-            return model;
-        }).toList();
+            result.add(model);
+        });
+        return result;
     }
 }

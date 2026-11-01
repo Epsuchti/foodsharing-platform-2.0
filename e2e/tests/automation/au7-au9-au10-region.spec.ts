@@ -17,10 +17,21 @@ test('AU7 users grouped by future pickup count for permission holder @AU7 @page'
   await expectDataState(jumper, 'automation.grouping.state', 'forbidden');
 });
 
-test('AU9 metrics show decisions, adverts filled and cancellations per day @AU9 @page', async ({ page }) => {
+test('AU9 metrics show decisions, adverts filled and cancellations per group @AU9 @page', async ({ page }) => {
   await page.goto(`/regions/${ZH}/automation/metrics`);
   await expectDataState(page, 'automation.metrics.state', 'success');
-  for (const key of ['SLOT_APPROVAL.CONFIRMED', 'ADVERT.FILLED_AFTER_ADVERT', 'CANCELLATION.NOT_REPLACED']) {
+  // default group: sign-ups, with labels instead of raw keys and a hidden data table
+  const section = page.getByTestId('automation.metrics.state');
+  await expect(page.locator('[data-testid="automation.metrics.totals.row"]').first()).toBeVisible();
+  await expect(section).not.toContainText(/\b[A-Z_]+\.[A-Z_]+\b/);
+  await expect(page.getByTestId('automation.metrics.chart.table')).toBeAttached();
+  for (const [group, key] of [
+    ['PICKUP', 'SLOT_APPROVAL.CONFIRMED'],
+    ['ADVERTS', 'ADVERT.FILLED_AFTER_ADVERT'],
+    ['CANCELLATIONS', 'CANCELLATION.NOT_REPLACED'],
+  ]) {
+    await page.getByTestId(`automation.metrics.group.${group}`).click();
+    await expect(page.locator(`[data-testid="automation.metrics.totals.row"][data-key="${key}"]`)).not.toHaveAttribute('data-total', '0');
     await expect(page.locator(`[data-testid="automation.metrics.chart.legend"][data-key="${key}"]`)).not.toHaveAttribute('data-total', '0');
   }
 });
