@@ -4,7 +4,7 @@ import { S06, S06_A, createPickup, openAutomation, savePolicy, setSwitch } from 
 
 /**
  * AU1 gap rule with a shared store list (decision 151). Seed: S-01 and S-03 share a gap of 2 days; S-03's policy is
- * off ("Keine Automatisierung") and bieb may not automate S-03 (locked member). bieb manages S-01, S-02, S-05, S-06.
+ * off ("Keine Automatisierung"). bieb may automate S-01, S-02, S-03, S-05 and S-06.
  */
 test.use({ role: 'bieb', seedReset: 'test' });
 
@@ -12,12 +12,27 @@ const S02 = seedStore('S-02');
 const S03 = seedStore('S-03');
 const S05 = seedStore('S-05');
 
+/** Picks a store in the gap list picker; the list overlays the field (appendTo body), so Escape closes it. */
 async function pickGapStore(page: Page, name: string): Promise<void> {
-  const picker = page.getByTestId('automation.policy.gapStores');
-  await picker.click();
-  await page.locator('.p-multiselect-overlay').getByText(name, { exact: true }).click();
-  await picker.locator('.p-multiselect-dropdown').click();
-  await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+  await page.getByTestId('automation.policy.gapStores').click();
+  const overlay = page.locator('.p-multiselect-overlay');
+  await overlay.getByText(name, { exact: true }).click();
+  await expect(page.locator(`[data-testid="automation.policy.gapMember"]`).filter({ hasText: name })).toHaveCount(1);
+  // the overlay may still be animating in when the first Escape arrives
+  await expect(async () => {
+    await page.keyboard.press('Escape');
+    await expect(overlay).toHaveCount(0, { timeout: 1_000 });
+  }).toPass();
+}
+
+/** The seed has no manager of S-01 without rights on S-03: the saved list is answered with S-03 locked. */
+async function lockListedStores(page: Page): Promise<void> {
+  await page.route(/\/api\/stores\/[^/]+\/automation$/, async (route) => {
+    const response = await route.fetch();
+    const json = await response.json();
+    for (const gap of json.pickupPolicy?.gapStores ?? []) gap.mayEdit = false;
+    await route.fulfill({ response, json });
+  });
 }
 
 function member(page: Page, storeId: string): Locator {
@@ -58,6 +73,7 @@ test('AU1 gap list: saving writes the shared gap to the listed stores and a pick
 });
 
 test('AU1 gap list: a locked member cannot be removed; switching the rule off leaves the list @AU1', async ({ page, api }) => {
+  await lockListedStores(page);
   await openAutomation(page, 'S-01', 'policy');
   const locked = member(page, S03.id);
   await expect(locked).toHaveAttribute('data-locked', 'true');

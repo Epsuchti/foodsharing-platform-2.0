@@ -48,8 +48,11 @@ forEachVariant((variant) => {
       const picker = page.getByTestId('automation.policy.gapStores');
       await picker.click();
       await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
-      await picker.locator('.p-multiselect-dropdown').click();
-      await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+      // the gap picker's list overlays the field (appendTo body): Escape closes it
+      await expect(async () => {
+        await page.keyboard.press('Escape');
+        await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0, { timeout: 1_000 });
+      }).toPass();
       await expect(page.locator('[data-testid="automation.policy.gapWarning"][data-kind="CONFLICT"]')).toBeVisible();
       await visual.expectElement(page.getByTestId('automation.policy.gapCard'), `automation-gap-conflict-${variant.name}`);
 

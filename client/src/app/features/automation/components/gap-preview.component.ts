@@ -70,7 +70,7 @@ const WORDS: Record<GapDayResult, string> = {
     .day__word { font-size: 0.78rem; font-weight: 700; overflow-wrap: anywhere; }
     .day__word--short { display: none; }
     .day[data-result='PICKUP'] { background: var(--fs-primary); border-color: var(--fs-primary); color: var(--fs-on-primary); }
-    .day[data-result='PICKUP'] .day__date { color: inherit; opacity: 0.85; }
+    .day[data-result='PICKUP'] .day__date { color: inherit; }
     .day[data-result='BLOCKED'] { background: var(--fs-danger-soft); border-color: var(--fs-danger-border); color: var(--fs-danger); }
     .day[data-result='OK'] { background: var(--fs-primary-soft); border-color: var(--fs-primary-200); color: var(--fs-primary-strong); }
     .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0; font-size: 0.8rem; color: var(--fs-text-muted); }
