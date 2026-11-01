@@ -10,6 +10,9 @@ import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import {
   AutomationService,
   CleaningExemption,
+  FspCleaningService,
+  FspRef,
+  RegionCleaningFsps,
   Holiday,
   MetricSeries,
   PickupCountGroup,
@@ -180,6 +183,96 @@ export class RegionExemptionsSection {
   protected readonly remove = runMutation(
     (row: CleaningExemption) => this.api.removeCleaningExemption({ regionId: this.ctx.regionId()!, exemptionId: row.id }),
     { successToastKey: 'automation.exemptions.removed', onSuccess: () => this.list.reload() },
+  );
+}
+
+/**
+ * "Putzen" (FS2, decision 148): the region's Fairteiler that count for the cleaning rule of the pickup policies. Only
+ * active Fairteiler of the region with cleaning shifts can be chosen (D7); same gate as the cleaning exemptions (D8).
+ */
+@Component({
+  selector: 'fs-region-cleaning-fsps',
+  imports: [...DATA_STATE_IMPORTS, Button, FormsModule, RouterLink, ToggleSwitch, TPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <section class="card fs-card">
+      <h2>{{ 'automation.region.section.cleaning-fsps' | t }}</h2>
+      <p class="muted">{{ 'automation.cleaningFsps.intro' | t }}</p>
+      <fs-data-state
+        [state]="selection"
+        skeleton="list"
+        [emptyTitle]="'automation.cleaningFsps.empty' | t"
+        [emptyText]="'automation.cleaningFsps.emptyText' | t"
+        testId="automation.cleaningFsps.state"
+        data-testid="automation.cleaningFsps.state"
+      >
+        <ng-template [fsData]="selection">
+          <ul class="list" data-testid="automation.cleaningFsps.list">
+            @for (fsp of candidates(); track fsp.id) {
+              <li class="row" data-testid="automation.cleaningFsps.row" [attr.data-fsp]="fsp.name" [attr.data-selected]="isSelected(fsp)">
+                <p-toggleswitch
+                  [inputId]="'cf-' + fsp.id"
+                  [ngModel]="isSelected(fsp)"
+                  (ngModelChange)="toggle(fsp, $event)"
+                  data-testid="automation.cleaningFsps.toggle"
+                />
+                <label class="grow" [for]="'cf-' + fsp.id">{{ fsp.name }}</label>
+                <a [routerLink]="['/food-share-points', fsp.id, 'cleaning']" data-testid="automation.cleaningFsps.link">{{ 'automation.cleaningFsps.open' | t }}</a>
+              </li>
+            }
+          </ul>
+          <div class="actions">
+            <p-button [label]="'common.save' | t" icon="pi pi-save" [disabled]="!dirty()" [loading]="save.busy()" (onClick)="save.run()" data-testid="automation.cleaningFsps.save" />
+          </div>
+        </ng-template>
+      </fs-data-state>
+    </section>
+  `,
+  styleUrl: '../automation.scss',
+})
+export class RegionCleaningFspsSection {
+  private readonly ctx = inject(RegionAutomationContext);
+  private readonly api = inject(FspCleaningService);
+  protected readonly draft = signal<string[]>([]);
+
+  protected readonly selection = loadResource<RegionCleaningFsps, string>({
+    params: () => this.ctx.regionId(),
+    loader: (regionId) => this.api.getRegionCleaningFsps({ regionId }),
+    isEmpty: (s) => s.candidates.length === 0 && s.selected.length === 0,
+  });
+
+  /** The candidates, plus selected Fairteiler that stopped qualifying (shown so they can be dropped). */
+  protected readonly candidates = computed<FspRef[]>(() => {
+    const s = this.selection.data();
+    if (!s) return [];
+    const ids = new Set(s.candidates.map((f) => f.id));
+    return [...s.candidates, ...s.selected.filter((f) => !ids.has(f.id))];
+  });
+
+  constructor() {
+    // copy the stored selection into the editable draft whenever it (re)loads
+    effect(() => {
+      const data = this.selection.data();
+      untracked(() => this.draft.set((data?.selected ?? []).map((f) => f.id)));
+    });
+  }
+
+  protected isSelected(fsp: FspRef): boolean {
+    return this.draft().includes(fsp.id);
+  }
+
+  protected toggle(fsp: FspRef, on: boolean): void {
+    this.draft.update((ids) => (on ? [...ids.filter((id) => id !== fsp.id), fsp.id] : ids.filter((id) => id !== fsp.id)));
+  }
+
+  protected dirty(): boolean {
+    const saved = (this.selection.data()?.selected ?? []).map((f) => f.id).sort();
+    return JSON.stringify([...this.draft()].sort()) !== JSON.stringify(saved);
+  }
+
+  protected readonly save = runMutation(
+    () => this.api.replaceRegionCleaningFsps({ regionId: this.ctx.regionId()!, regionCleaningFspsUpdate: { fspIds: this.draft() } }),
+    { successToastKey: 'automation.cleaningFsps.saved', onSuccess: () => this.selection.reload() },
   );
 }
 

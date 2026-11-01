@@ -275,5 +275,14 @@
   "automation.template.placeholders": "Platzhalter",
   "automation.template.preview": "Vorschau",
   "automation.template.message": "Nachrichtentext",
-  "automation.template.unknown": "Unbekannte Platzhalter: {names}"
+  "automation.template.unknown": "Unbekannte Platzhalter: {names}",
+  "automation.region.section.cleaning-fsps": "Putzen",
+  "automation.cleaningFsps.intro": "Wähle die Fairteiler des Bezirks, deren Putzeinsätze für die Putzregel der Abholautomatik zählen. Wählbar sind aktive Fairteiler mit Putzeinsätzen.",
+  "automation.cleaningFsps.empty": "Kein Fairteiler mit Putzeinsätzen",
+  "automation.cleaningFsps.emptyText": "Die Verantwortlichen eines Fairteilers schalten die Putzeinsätze im Fairteiler-Formular ein.",
+  "automation.cleaningFsps.open": "Putzeinsätze",
+  "automation.cleaningFsps.saved": "Putz-Fairteiler gespeichert.",
+  "automation.policy.cleaningFsps": "Es zählen die Putzeinsätze an:",
+  "automation.policy.noCleaningFsps": "Der Bezirk hat noch keinen Putz-Fairteiler; die Regel lehnt dann ab.",
+  "automation.policy.cleaningFspsLink": "Putz-Fairteiler wählen"
 }

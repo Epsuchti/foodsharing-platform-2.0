@@ -275,5 +275,14 @@
   "automation.template.placeholders": "Platzhalter",
   "automation.template.preview": "Vorschau",
   "automation.template.message": "Nachrichtetext",
-  "automation.template.unknown": "Unbekannti Platzhalter: {names}"
+  "automation.template.unknown": "Unbekannti Platzhalter: {names}",
+  "automation.region.section.cleaning-fsps": "Putze",
+  "automation.cleaningFsps.intro": "Wähl d Fairteiler vom Bezirk, wo ihri Putzeinsätz für d Putzregle vo de Abholautomatik zelle. Wählbar sind aktivi Fairteiler mit Putzeinsätz.",
+  "automation.cleaningFsps.empty": "Kein Fairteiler mit Putzeinsätz",
+  "automation.cleaningFsps.emptyText": "D Verantwortliche vomene Fairteiler schalted d Putzeinsätz im Fairteiler-Formular ii.",
+  "automation.cleaningFsps.open": "Putzeinsätz",
+  "automation.cleaningFsps.saved": "Putz-Fairteiler gspeicheret.",
+  "automation.policy.cleaningFsps": "Es zelled d Putzeinsätz bi:",
+  "automation.policy.noCleaningFsps": "De Bezirk hät no kei Putz-Fairteiler; d Regle lehnt denn ab.",
+  "automation.policy.cleaningFspsLink": "Putz-Fairteiler wähle"
 }

@@ -275,5 +275,14 @@
   "automation.template.placeholders": "Placeholders",
   "automation.template.preview": "Preview",
   "automation.template.message": "Message text",
-  "automation.template.unknown": "Unknown placeholders: {names}"
+  "automation.template.unknown": "Unknown placeholders: {names}",
+  "automation.region.section.cleaning-fsps": "Cleaning",
+  "automation.cleaningFsps.intro": "Choose the region's Fairteiler whose cleaning shifts count for the cleaning rule of the pickup automation. Active Fairteiler with cleaning shifts can be chosen.",
+  "automation.cleaningFsps.empty": "No Fairteiler with cleaning shifts",
+  "automation.cleaningFsps.emptyText": "A Fairteiler's managers switch on cleaning shifts in the Fairteiler form.",
+  "automation.cleaningFsps.open": "Cleaning shifts",
+  "automation.cleaningFsps.saved": "Cleaning Fairteiler saved.",
+  "automation.policy.cleaningFsps": "Cleaning shifts count at:",
+  "automation.policy.noCleaningFsps": "The region has no cleaning Fairteiler yet; the rule then declines.",
+  "automation.policy.cleaningFspsLink": "Choose cleaning Fairteiler"
 }

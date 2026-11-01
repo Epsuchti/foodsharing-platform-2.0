@@ -275,5 +275,14 @@
   "automation.template.placeholders": "Variables",
   "automation.template.preview": "Aperçu",
   "automation.template.message": "Texte du message",
-  "automation.template.unknown": "Variables inconnues : {names}"
+  "automation.template.unknown": "Variables inconnues : {names}",
+  "automation.region.section.cleaning-fsps": "Nettoyage",
+  "automation.cleaningFsps.intro": "Choisis les Fairteiler de la région dont les créneaux de nettoyage comptent pour la règle de nettoyage de l'automatisation des collectes. Seuls les Fairteiler actifs avec créneaux sont proposés.",
+  "automation.cleaningFsps.empty": "Aucun Fairteiler avec créneaux de nettoyage",
+  "automation.cleaningFsps.emptyText": "Les responsables d'un Fairteiler activent les créneaux de nettoyage dans son formulaire.",
+  "automation.cleaningFsps.open": "Créneaux",
+  "automation.cleaningFsps.saved": "Fairteiler de nettoyage enregistrés.",
+  "automation.policy.cleaningFsps": "Les créneaux comptent à :",
+  "automation.policy.noCleaningFsps": "La région n'a pas encore de Fairteiler de nettoyage ; la règle refuse alors.",
+  "automation.policy.cleaningFspsLink": "Choisir les Fairteiler"
 }

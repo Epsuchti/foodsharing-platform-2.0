@@ -275,5 +275,14 @@
   "automation.template.placeholders": "Segnaposto",
   "automation.template.preview": "Anteprima",
   "automation.template.message": "Testo del messaggio",
-  "automation.template.unknown": "Segnaposto sconosciuti: {names}"
+  "automation.template.unknown": "Segnaposto sconosciuti: {names}",
+  "automation.region.section.cleaning-fsps": "Pulizie",
+  "automation.cleaningFsps.intro": "Scegli i Fairteiler della regione i cui turni di pulizia contano per la regola delle pulizie dell'automazione dei ritiri. Si possono scegliere i Fairteiler attivi con turni di pulizia.",
+  "automation.cleaningFsps.empty": "Nessun Fairteiler con turni di pulizia",
+  "automation.cleaningFsps.emptyText": "I responsabili di un Fairteiler attivano i turni di pulizia nel modulo del Fairteiler.",
+  "automation.cleaningFsps.open": "Turni",
+  "automation.cleaningFsps.saved": "Fairteiler per la pulizia salvati.",
+  "automation.policy.cleaningFsps": "Contano i turni presso:",
+  "automation.policy.noCleaningFsps": "La regione non ha ancora un Fairteiler per la pulizia; la regola allora rifiuta.",
+  "automation.policy.cleaningFspsLink": "Scegli i Fairteiler"
 }

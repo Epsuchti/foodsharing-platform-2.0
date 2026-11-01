@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { Textarea } from '@openng/optimus-ui/textarea';
+import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import { firstValueFrom, map } from 'rxjs';
 
 import { ApiErrorCode, FoodSharePointsService, Fsp, RegionDetail, RegionsService, Upload, UploadsService } from '../../../api';
@@ -55,7 +56,7 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
  */
 @Component({
   selector: 'fs-fsp-form-page',
-  imports: [...DATA_STATE_IMPORTS, Button, ImageCropComponent, InputText, MapViewComponent, PageHeaderComponent, ReactiveFormsModule, RouterLink, Textarea, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, ImageCropComponent, InputText, MapViewComponent, PageHeaderComponent, ReactiveFormsModule, RouterLink, Textarea, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header
@@ -160,6 +161,15 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
               }
             </section>
 
+            <section class="fs-card card" data-testid="foodSharePoints.form.cleaningSection">
+              <h2 class="card__title"><i class="pi pi-sparkles" aria-hidden="true"></i>{{ 'foodSharePoints.form.cleaning' | t }}</h2>
+              <div class="switch">
+                <p-toggleswitch inputId="ff-cleaning" formControlName="cleaningEnabled" data-testid="foodSharePoints.form.cleaning" />
+                <label for="ff-cleaning">{{ 'foodSharePoints.form.cleaningLabel' | t }}</label>
+              </div>
+              <p class="muted">{{ 'foodSharePoints.form.cleaningHint' | t }}</p>
+            </section>
+
             @if (save.error(); as error) {
               <p class="error" role="alert" [attr.data-code]="error.code" data-testid="foodSharePoints.form.error">{{ errorText(error) }}</p>
             }
@@ -186,6 +196,7 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
     .card__title { display: flex; gap: 0.5rem; align-items: center; margin: 0; font-size: 1.05rem; }
     .card__title .pi { color: var(--fs-primary-strong); }
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
+    .switch { display: flex; gap: 0.75rem; align-items: center; }
     .note {
       display: flex;
       gap: 0.5rem;
@@ -234,6 +245,7 @@ export class FspFormPageComponent {
     street: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(STREET_MAX)] }),
     postcode: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(POSTCODE_MAX)] }),
     city: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(CITY_MAX)] }),
+    cleaningEnabled: new FormControl(false, { nonNullable: true }),
   });
   private readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
 
@@ -337,6 +349,7 @@ export class FspFormPageComponent {
       street: fsp.address.street,
       postcode: fsp.address.postcode,
       city: fsp.address.city,
+      cleaningEnabled: fsp.cleaningEnabled,
     });
     if (fsp.lat != null && fsp.lon != null) this.position.set([fsp.lat, fsp.lon]);
   }
