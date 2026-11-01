@@ -3,7 +3,7 @@ import { Injectable, computed, inject } from '@angular/core';
 import { AppInfoService } from '../core/app-info.service';
 import { SessionService } from '../core/auth/session.service';
 import { FeatureToggleService } from '../core/feature-toggles/feature-toggle.service';
-import { NavContext, mobileTabs, visibleNavItems } from './nav.config';
+import { NavContext, drawerItems, mobileTabs, visibleNavItems } from './nav.config';
 
 /** Signals of the visible navigation, derived from session + app info. */
 @Injectable({ providedIn: 'root' })
@@ -33,4 +33,6 @@ export class NavContextService {
   readonly user = computed(() => visibleNavItems(this.context(), 'user'));
   readonly footer = computed(() => visibleNavItems(this.context(), 'footer'));
   readonly tabs = computed(() => mobileTabs(this.context()));
+  /** Main items of the phone menu drawer, in side menu order (decision 149). */
+  readonly drawer = computed(() => drawerItems(this.context()));
 }

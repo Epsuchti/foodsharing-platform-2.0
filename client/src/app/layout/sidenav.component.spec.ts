@@ -55,11 +55,37 @@ describe('side menu nav.config (decision 133)', () => {
   });
 
   it('lists a foodsaver in fixed places: daily group with the bell, Community, store chains in Verwalten', () => {
+    // decision 149: Meine Aktivität and Quiz are in the user menu; Forum of the home region in Community
     expect(shape(foodsaver)).toEqual({
       daily: ['dashboard', 'pickups', 'stores', 'messages', 'bells', 'baskets'],
-      community: ['map', 'regions', 'events', 'polls', 'quizzes', 'activity'],
+      community: ['map', 'events', 'regions', 'polls', 'forum'],
       manage: ['storeChains'],
     });
+  });
+
+  it('shows Postfächer only with the session flag and Forum only with a home region (decision 149)', () => {
+    const withFlag = (mailboxes: boolean | undefined, units: UnitMembership[]) =>
+      context({
+        isAuthenticated: true,
+        hasRole: () => true,
+        session: { user: { verified: true }, permissions: [], units, mailboxes } as unknown as NavContext['session'],
+      });
+    const ids = (ctx: NavContext) => sidenavSections(ctx).flatMap((section) => section.items.map((item) => item.id));
+    expect(ids(withFlag(undefined, [unit({ homeRegion: true })]))).not.toContain('mailboxes');
+    expect(ids(withFlag(false, [unit({ homeRegion: true })]))).not.toContain('mailboxes');
+    expect(shape(withFlag(true, [unit({ homeRegion: true })]))['community']).toEqual([
+      'map',
+      'events',
+      'regions',
+      'polls',
+      'forum',
+      'mailboxes',
+    ]);
+    expect(ids(withFlag(true, []))).not.toContain('forum');
+    expect(ids(withFlag(true, [unit({ homeRegion: false })]))).not.toContain('forum');
+    // nothing of the user menu in the side menu
+    expect(ids(withFlag(true, [unit({ homeRegion: true })]))).not.toContain('activity');
+    expect(ids(withFlag(true, [unit({ homeRegion: true })]))).not.toContain('quizzes');
   });
 
   it('shows the journey for newcomers and the admin sections for ambassadors and orga', () => {
@@ -73,7 +99,7 @@ describe('side menu nav.config (decision 133)', () => {
     });
     expect(shape(newcomer)).toEqual({
       daily: ['dashboard', 'onboarding', 'messages', 'bells', 'baskets'],
-      community: ['map', 'regions', 'introPickups', 'events', 'polls', 'quizzes', 'activity'],
+      community: ['map', 'events', 'regions', 'polls', 'introPickups'],
     });
 
     const ambassador = context({
@@ -83,6 +109,7 @@ describe('side menu nav.config (decision 133)', () => {
         user: { verified: true },
         permissions: [],
         units: [unit({ admin: true, homeRegion: true })],
+        mailboxes: true,
       } as unknown as NavContext['session'],
     });
     expect(shape(ambassador)['manage']).toEqual([
@@ -93,7 +120,8 @@ describe('side menu nav.config (decision 133)', () => {
       'blogManage',
       'storeChains',
     ]);
-    expect(shape(ambassador)['daily']).toContain('mailboxes');
+    expect(shape(ambassador)['daily']).not.toContain('mailboxes');
+    expect(shape(ambassador)['community']).toEqual(['map', 'events', 'regions', 'polls', 'forum', 'mailboxes']);
     expect(shape(ambassador)['orga']).toBeUndefined();
 
     const orga = context({
@@ -147,7 +175,12 @@ describe('side menu nav.config (decision 133)', () => {
     expect(activeNavId('/stores/mine', items)).toBe('stores');
     expect(activeNavId('/stores/12/team?tab=1', items)).toBe('stores');
     expect(activeNavId('/store-chains', items)).toBe('storeChains');
-    expect(activeNavId('/regions/5/forum', items)).toBe('regions');
+    // decision 149: the forum pages belong to Forum, the other region pages to Regionen
+    expect(activeNavId('/regions/12/forum', items)).toBe('forum');
+    expect(activeNavId('/regions/12/forum/ambassadors/new', items)).toBe('forum');
+    expect(activeNavId('/forum/threads/3', items)).toBe('forum');
+    expect(activeNavId('/regions/12/members', items)).toBe('regions');
+    expect(activeNavId('/regions/12/forum-like', items)).toBe('regions');
     expect(activeNavId('/events/7', items)).toBe('events');
     expect(activeNavId('/dashboard#top', items)).toBe('dashboard');
     expect(activeNavId('/account/settings', items)).toBeNull();
@@ -166,7 +199,8 @@ describe('side menu nav.config (decision 133)', () => {
     // a deeper route of another item wins over the region prefix
     expect(activeNavId('/regions/home/verification', all)).toBe('verification');
     expect(activeNavId('/quizzes/edit/3', all)).toBe('adminQuizzes');
-    expect(activeNavId('/quizzes/3', all)).toBe('quizzes');
+    // Quiz is a user menu item (decision 149): no side menu item is current
+    expect(activeNavId('/quizzes/3', all)).toBeNull();
 
     const visitor = sidenavSections(context()).flatMap((section) => section.items);
     // the start page matches exactly, "Über uns" too (its sub-pages are their own items)
@@ -182,6 +216,13 @@ describe('side menu nav.config (decision 133)', () => {
     expect(matchesPrefix('/store-chains', '/stores')).toBe(false);
     expect(matchesPrefix('/storesX', '/stores')).toBe(false);
     expect(matchesPrefix('/dashboard', '/')).toBe(false);
+    // `*` is exactly one segment
+    expect(matchesPrefix('/regions/12/forum', '/regions/*/forum')).toBe(true);
+    expect(matchesPrefix('/regions/12/forum/new', '/regions/*/forum')).toBe(true);
+    expect(matchesPrefix('/regions/12/forum-like', '/regions/*/forum')).toBe(false);
+    expect(matchesPrefix('/regions/forum', '/regions/*/forum')).toBe(false);
+    expect(matchesPrefix('/regions//forum', '/regions/*/forum')).toBe(false);
+    expect(matchesPrefix('/regions/1/2/forum', '/regions/*/forum')).toBe(false);
   });
 
   it('filters the switcher units by name, ignoring case and accents', () => {
