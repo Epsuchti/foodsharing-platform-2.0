@@ -72,6 +72,15 @@ class MailboxApiIT {
     }
 
     @Test
+    @Order(0)
+    void sessionCarriesTheMailboxesFlag() throws Exception {
+        mvc.perform(get("/api/auth/session").cookie(login(SeedUsers.BOT)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.mailboxes").value(true));
+        mvc.perform(get("/api/auth/session").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.mailboxes").value(false));
+    }
+
+    @Test
     void listsReadsAndMovesSeededMails() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         String list = body(get("/api/mailboxes").cookie(bot));

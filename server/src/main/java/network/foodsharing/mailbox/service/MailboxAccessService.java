@@ -125,6 +125,24 @@ public class MailboxAccessService {
         return mail;
     }
 
+    /**
+     * Whether the menu shows Postfächer (decision 149): ORGA, admins of any unit with a role that may have a mailbox
+     * (they may create one), or readers of at least one mailbox. Cheapest checks first; the reader query runs last.
+     */
+    @Transactional(readOnly = true)
+    public boolean showsMailboxes(SessionPrincipal actor) {
+        if (actor == null) {
+            return false;
+        }
+        if (permissions.isOrga(actor)) {
+            return true;
+        }
+        if (mayHaveMailbox(actor.role()) && !regions.adminRegionIds(actor.userId()).isEmpty()) {
+            return true;
+        }
+        return !visibleMailboxes(actor).isEmpty();
+    }
+
     /** Mailboxes the actor reads: own personal, ambassador regions, member of; sorted personal first, then by name. */
     @Transactional(readOnly = true)
     public List<Mailbox> visibleMailboxes(SessionPrincipal actor) {

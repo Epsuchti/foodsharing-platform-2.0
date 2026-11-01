@@ -28,6 +28,9 @@ SessionInfo:
         $ref: './legal.yaml#/LegalDocumentKind'
     onboarding:
       $ref: './onboarding.yaml#/OnboardingState'
+    mailboxes:
+      type: boolean
+      description: Reads a mailbox or may create one (menu item Postfächer, filled by the mailbox enricher).
 
 SessionUser:
   type: object
