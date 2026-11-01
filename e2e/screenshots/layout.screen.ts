@@ -141,6 +141,44 @@ forEachVariant((variant) => {
   });
 });
 
+// decision 149: Meine Aktivität and Quiz in the user menu and on top of the phone drawer, tabs without filler
+const PHONE = { width: 390, height: 844 };
+
+forEachVariant((variant) => {
+  screenshotTest.describe(`menu priorities foodsaver ${variant.name}`, () => {
+    screenshotTest.use({ variant, role: 'foodsaver' });
+
+    screenshotTest('user menu with Meine Aktivität and Quiz first @D4.3 @screenshot', async ({ page, visual }) => {
+      await dashboard(page, WIDE);
+      await page.getByTestId('shell.userMenu').click();
+      await expect(page.getByTestId('shell.userMenu.card').getByTestId('nav.user.activity')).toBeVisible();
+      await visual.expectScreen(page, `sidenav-user-menu-foodsaver-${variant.name}`, { fullPage: false });
+    });
+
+    screenshotTest('phone drawer in side menu order @D4.3 @screenshot', async ({ page, visual }) => {
+      await page.setViewportSize(PHONE);
+      await page.goto('/dashboard');
+      await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+      await page.getByTestId('nav.tab.menu').click();
+      await expect(page.getByTestId('nav.drawer.activity')).toBeVisible();
+      await visual.expectScreen(page, `mobile-drawer-foodsaver-${variant.name}`, { fullPage: false });
+    });
+  });
+
+  screenshotTest.describe(`menu priorities newcomer ${variant.name}`, () => {
+    screenshotTest.use({ variant, role: 'newbie' });
+
+    screenshotTest('newcomer phone tab bar: Mein Einstieg, Nachrichten, Menu @D4.3 @screenshot', async ({ page, visual, apiOf }) => {
+      await acceptPendingConsents(apiOf(page));
+      await page.setViewportSize(PHONE);
+      await page.goto('/dashboard');
+      await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+      await expect(page.getByTestId('nav.tab.onboarding')).toBeVisible();
+      await visual.expectElement(page.getByTestId('shell.tabBar'), `mobile-tabs-newcomer-${variant.name}`);
+    });
+  });
+});
+
 // the longest labels: fr (proposal §4 "Long labels": they wrap, never ellipsis)
 forEachVariant(
   (variant) => {

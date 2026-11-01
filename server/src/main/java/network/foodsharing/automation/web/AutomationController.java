@@ -159,7 +159,8 @@ public class AutomationController implements AutomationApi {
         model.setAdverts(adverts.list(storeId).stream().map(mapper::toModel).toList());
         signoutAlerts.find(storeId).ifPresent(view -> model.setSignoutAlert(mapper.toModel(view)));
         model.setExtraSlotAllowed(store.isExtraSlotAllowed());
-        pickupPolicies.cleaningStoreOf(store).map(AutomationMapper::toStoreRef).ifPresent(model::setCleaningStore);
+        model.setCleaningFoodSharePoints(pickupPolicies.cleaningFoodSharePointsOf(store).stream()
+                .map(AutomationMapper::toFspRef).toList());
         AutomationPermissions permissions = new AutomationPermissions();
         permissions.setMayEdit(true);
         permissions.setMaySeeAudits(true);

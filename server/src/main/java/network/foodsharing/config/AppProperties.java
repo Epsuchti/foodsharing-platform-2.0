@@ -545,6 +545,8 @@ public class AppProperties {
         private int minLength = 2;
         /** Incremental index refresh interval (B12). */
         private int refreshSeconds = 120;
+        /** Global searches per user and minute (decision 147); 0 = no limit (test, e2e). Restart to change. */
+        private int rateLimitPerMinute = 60;
     }
 
     /** Resource mosaic (C9). */

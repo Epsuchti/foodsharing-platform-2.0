@@ -25,6 +25,7 @@ import network.foodsharing.automation.repository.PickupPolicyLinkedStoreMemberRe
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreRepository;
 import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
@@ -77,14 +78,14 @@ public class PickupPolicyService {
     private final StorePermissionService permissions;
     private final CurrentActorService currentActor;
     private final HistoryService history;
-    private final network.foodsharing.region.service.RegionService regions;
+    private final FspCleaningQueries cleaning;
 
     public PickupPolicyService(PickupPolicyRepository policies, PickupPolicyLinkedStoreRepository links,
                                PickupPolicyLinkedStoreMemberRepository members,
                                PickupPolicyExcludedDateRepository excludedDates, StoreService stores,
                                StorePermissionService permissions, CurrentActorService currentActor,
-                               HistoryService history, network.foodsharing.region.service.RegionService regions) {
-        this.regions = regions;
+                               HistoryService history, FspCleaningQueries cleaning) {
+        this.cleaning = cleaning;
         this.policies = policies;
         this.links = links;
         this.members = members;
@@ -95,11 +96,10 @@ public class PickupPolicyService {
         this.history = history;
     }
 
-    /** The live cleaning store of the store's region (cleaning rule), empty when the region has none. */
+    /** The Fairteiler of the store's region that count for the cleaning rule (FS2), by name. */
     @Transactional(readOnly = true)
-    public Optional<Store> cleaningStoreOf(Store store) {
-        return regions.find(store.getRegionId()).map(region -> region.getCleaningStoreId())
-                .flatMap(id -> stores.liveStores(List.of(id)).stream().findFirst());
+    public List<FspCleaningQueries.CleaningFsp> cleaningFoodSharePointsOf(Store store) {
+        return cleaning.cleaningFsps(store.getRegionId());
     }
 
     /** The store, after checking mayUseAutomations. @throws ApiException 404, 403 */

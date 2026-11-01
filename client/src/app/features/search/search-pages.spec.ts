@@ -187,6 +187,23 @@ describe('search', () => {
       await settle();
       expect(state('search.global.state')).toBe('error');
     });
+
+    it('shows the rate limit (429) with its own text and retry', async () => {
+      await type('nina');
+      await wait(350);
+      http
+        .expectOne(searchRequest)
+        .flush(
+          { code: 'TOO_MANY_REQUESTS', message: 'limit', retryable: true, retryAfterSeconds: 42 },
+          { status: 429, statusText: 'Too Many Requests', headers: { 'Retry-After': '42' } },
+        );
+      await settle();
+      expect(state('search.global.state')).toBe('error');
+      const error = q('[data-testid="search.global.state"] fs-error-state')!;
+      expect(error.textContent).toContain('search.rateLimited.title');
+      expect(error.textContent).toContain('search.rateLimited.text');
+      expect(q('[data-testid="search.global.state"] [data-testid$=".retry"]')).not.toBeNull();
+    });
   });
 
   describe('search page', () => {
@@ -233,6 +250,29 @@ describe('search', () => {
       http.expectOne(searchRequest).flush(results({ polls: [{ id: 'p1', kind: SearchKind.Poll, title: 'Yyy', link: '/polls/p1' }] }));
       await settle();
       expect(state('search.page.state')).toBe('success');
+    });
+
+    it('shows the rate limit (429) with its own text; retry searches again', async () => {
+      await harness.navigateByUrl('/search?q=nina');
+      await settle();
+      http
+        .expectOne(searchRequest)
+        .flush(
+          { code: 'TOO_MANY_REQUESTS', message: 'limit', retryable: true, retryAfterSeconds: 42 },
+          { status: 429, statusText: 'Too Many Requests', headers: { 'Retry-After': '42' } },
+        );
+      await settle();
+      expect(state('search.page.state')).toBe('error');
+      const error = q('[data-testid="search.page.state"] fs-error-state')!;
+      expect(error.textContent).toContain('search.rateLimited.title');
+      expect(error.textContent).toContain('search.rateLimited.text');
+
+      // other errors keep the default text
+      (q('[data-testid="search.page.state"] [data-testid$=".retry"] button') as HTMLButtonElement).click();
+      await settle();
+      http.expectOne(searchRequest).flush(null, { status: 500, statusText: 'Server Error' });
+      await settle();
+      expect(q('[data-testid="search.page.state"] fs-error-state')!.textContent).not.toContain('search.rateLimited');
     });
   });
 });

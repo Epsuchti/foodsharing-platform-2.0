@@ -1,4 +1,5 @@
 import { SearchHit, SearchIndexData, SearchIndexEntry, SearchKind, SearchResults } from '../../api';
+import { ApiErrorView } from '../../core/data/api-error';
 
 /** Minimum query length of the server search (`search.q` minLength, A55). */
 export const SEARCH_MIN_LENGTH = 2;
@@ -110,6 +111,11 @@ export function resultGroups(results: SearchResults | undefined, seenLinks: Read
 
 export function countHits(results: SearchResults): number {
   return SEARCH_GROUPS.reduce((sum, group) => sum + (results[group.key]?.length ?? 0), 0);
+}
+
+/** The search rate limit answered (429, decision 147): shown with its own text and the wait time. */
+export function isSearchRateLimited(error: ApiErrorView | undefined): boolean {
+  return error?.status === 429;
 }
 
 /** Next active option index for the arrow keys (wraps around; -1 = the input itself). */

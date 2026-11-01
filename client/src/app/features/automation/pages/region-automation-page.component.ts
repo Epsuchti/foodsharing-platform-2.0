@@ -75,7 +75,7 @@ export class RegionAutomationPageComponent {
     const list: string[] = [];
     if (admin) list.push('overview');
     list.push('audits');
-    if (admin) list.push('cleaning-exemptions');
+    if (admin) list.push('cleaning-fsps', 'cleaning-exemptions');
     if (admin || hasPermission(s, Permission.CanSeeUserPickupCountGrouping, regionId)) list.push('grouping');
     if (admin) list.push('metrics', 'telegram');
     list.push('holidays');

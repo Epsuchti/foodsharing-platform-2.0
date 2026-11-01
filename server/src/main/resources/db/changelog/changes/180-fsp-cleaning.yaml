@@ -1,0 +1,127 @@
+# FS2 (decision 136, resume item 13): Fairteiler cleaning shifts and the region's cleaning Fairteiler. A shift is
+# identified by (fsp_id, shift_at) like a pickup (A20). The single region.cleaning_store_id is dropped without moving
+# data (store ids can't become Fairteiler ids; decision 148).
+databaseChangeLog:
+  - changeSet:
+      id: 180-1
+      author: platform
+      comment: 'Cleaning switch per Fairteiler.'
+      changes:
+        - addColumn:
+            tableName: food_share_point
+            columns:
+              - column: {name: cleaning_enabled, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+  - changeSet:
+      id: 180-2
+      author: platform
+      comment: 'Regular (weekly) cleaning shifts.'
+      changes:
+        - createTable:
+            tableName: fsp_cleaning_regular
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_fsp_cleaning_regular, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_cleaning_regular_fsp_id, references: food_share_point(id), deleteCascade: true}}
+              - column: {name: weekday, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: start_time, type: TIME, constraints: {nullable: false}}
+              - column: {name: slot_count, type: INT, constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(100)}
+        - addUniqueConstraint:
+            tableName: fsp_cleaning_regular
+            columnNames: fsp_id, weekday, start_time
+            constraintName: uq_fsp_cleaning_regular_fsp_id_weekday_start_time
+  - changeSet:
+      id: 180-3
+      author: platform
+      comment: 'One-time cleaning shifts and overrides of regular occurrences (slot_count 0 cancels).'
+      changes:
+        - createTable:
+            tableName: fsp_cleaning_shift
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_fsp_cleaning_shift, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_cleaning_shift_fsp_id, references: food_share_point(id), deleteCascade: true}}
+              - column: {name: shift_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: slot_count, type: INT, constraints: {nullable: false}}
+              - column: {name: description, type: VARCHAR(100)}
+        - addUniqueConstraint:
+            tableName: fsp_cleaning_shift
+            columnNames: fsp_id, shift_at
+            constraintName: uq_fsp_cleaning_shift_fsp_id_shift_at
+  - changeSet:
+      id: 180-4
+      author: platform
+      comment: 'Cleaning sign-ups (who cleans when).'
+      changes:
+        - createTable:
+            tableName: fsp_cleaning_signup
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_fsp_cleaning_signup, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: fsp_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_cleaning_signup_fsp_id, references: food_share_point(id), deleteCascade: true}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_fsp_cleaning_signup_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: shift_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: confirmed, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: confirmed_by, type: UUID}
+              - column: {name: confirmed_at, type: TIMESTAMP WITH TIME ZONE}
+        - addUniqueConstraint:
+            tableName: fsp_cleaning_signup
+            columnNames: fsp_id, user_id, shift_at
+            constraintName: uq_fsp_cleaning_signup_fsp_id_user_id_shift_at
+        - createIndex:
+            tableName: fsp_cleaning_signup
+            indexName: ix_fsp_cleaning_signup_fsp_id_shift_at
+            columns:
+              - column: {name: fsp_id}
+              - column: {name: shift_at}
+        - createIndex:
+            tableName: fsp_cleaning_signup
+            indexName: ix_fsp_cleaning_signup_user_id_shift_at
+            columns:
+              - column: {name: user_id}
+              - column: {name: shift_at}
+  - changeSet:
+      id: 180-5
+      author: platform
+      comment: 'The Fairteiler of a region that count for the cleaning rule (AU1).'
+      changes:
+        - createTable:
+            tableName: region_cleaning_fsp
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_region_cleaning_fsp, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: region_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_cleaning_fsp_region_id, references: region(id), deleteCascade: true}}
+              - column: {name: fsp_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_region_cleaning_fsp_fsp_id, references: food_share_point(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: region_cleaning_fsp
+            columnNames: region_id, fsp_id
+            constraintName: uq_region_cleaning_fsp_region_id_fsp_id
+        - createIndex:
+            tableName: region_cleaning_fsp
+            indexName: ix_region_cleaning_fsp_fsp_id
+            columns:
+              - column: {name: fsp_id}
+  - changeSet:
+      id: 180-6
+      author: platform
+      comment: 'The single cleaning store per region is replaced by region_cleaning_fsp (no data moved).'
+      changes:
+        - dropColumn:
+            tableName: region
+            columnName: cleaning_store_id

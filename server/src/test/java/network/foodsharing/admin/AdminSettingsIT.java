@@ -70,7 +70,7 @@ class AdminSettingsIT {
         mvc.perform(json(patch("/api/admin/feature-toggles/NOPE"), orga, "{\"enabled\":true}"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("FEATURE_TOGGLE_NOT_FOUND"));
         mvc.perform(get("/api/admin/feature-toggles").cookie(orga)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(10));
+                .andExpect(jsonPath("$.length()").value(11));
     }
 
     @Test

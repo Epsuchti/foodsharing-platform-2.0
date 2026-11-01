@@ -26,10 +26,8 @@ class NewcomerProgressServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-11-02T09:00:00Z");
     private static final Duration STALLED = Duration.ofDays(30);
-    private static final IntroPickupSettings ZURICH = new IntroPickupSettings(3, true, true, true, Set.of("ONLINE"),
-            null);
-    private static final IntroPickupSettings NO_FAIRTEILER = new IntroPickupSettings(3, true, true, false, Set.of(),
-            null);
+    private static final IntroPickupSettings ZURICH = new IntroPickupSettings(3, true, true, true, Set.of("ONLINE"));
+    private static final IntroPickupSettings NO_FAIRTEILER = new IntroPickupSettings(3, true, true, false, Set.of());
 
     private static User user(boolean verified, int registeredDaysAgo) {
         User user = new User();

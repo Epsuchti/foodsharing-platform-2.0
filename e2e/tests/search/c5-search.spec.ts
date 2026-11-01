@@ -2,13 +2,19 @@ import type { Page } from '@playwright/test';
 import { FSPS, acceptPendingConsents, expect, expectDataState, expectErrorState, expectNoSeriousViolations, injectApiError, seedStore, test } from '../../fixtures';
 
 /**
- * C5 global search (plan-m7 Q12, A55). Seed: foodsaver (Sarah Müller) is a member of zuerich-stadt and follows the
- * FSP Wiedikon (own search index); "Wiedikon" also finds the store Coop Wiedikon and the forum thread "Fairteiler
- * Wiedikon: Kühlschrank defekt". Users are visible by home region: Nina Schneider (bieb) lives in zuerich-stadt, Lea
- * Brunner (newbie) has no region, so only ORGA finds her.
+ * C5 global search (plan-m7 Q12, A55, decision 147). Seed: foodsaver (Sarah Müller) is a member of zuerich-stadt and
+ * of the group Kochgruppe Zürich and follows the FSP Wiedikon (own search index); "Wiedikon" also finds the store Coop
+ * Wiedikon (Birmensdorferstrasse 150) and the forum thread "Fairteiler Wiedikon: Kühlschrank defekt". People search is
+ * contact-based: Nina Schneider (bieb) is a confirmed buddy and shares zuerich-stadt, Lea Brunner (newbie) shares
+ * nothing with her, so only ORGA finds her. Only assertions that hold on the H2 (LIKE) path as well.
  */
 const BIEB = '00000001-0001-4000-8000-000000000009';
 const NEWBIE = '00000001-0001-4000-8000-000000000001';
+const KOCHGRUPPE = '00000011-0001-4000-8000-000000000033';
+/** "Willkommen im Forum Zürich Stadt": "Werbung" only occurs in the text of its first post. */
+const WELCOME_THREAD = '00000043-0001-4000-8000-000000000001';
+
+const pageHit = (page: Page, link: string) => page.locator(`[data-testid="search.page.hit"][data-link="${link}"]`);
 
 const input = (page: Page) => page.getByTestId('search.global.input');
 const option = (page: Page, link: string) => page.locator(`[data-testid="search.global.option"][data-link="${link}"]`);
@@ -134,5 +140,65 @@ test.describe('foodsaver', () => {
     const { retry } = await expectErrorState(page, 'search.page.state');
     await retry.click();
     await expectDataState(page, 'search.page.state', 'success');
+  });
+
+  test('C5 own groups come first; a store address needs a second word @C5', async ({ page, apiOf }) => {
+    await acceptPendingConsents(apiOf(page));
+
+    // many "… Zürich" groups match; the own one (Kochgruppe) leads although others sort before it by name
+    await page.goto('/search?q=Z%C3%BCrich');
+    await expectDataState(page, 'search.page.state', 'success');
+    const groups = page.locator('[data-testid="search.page.group"][data-group="remote.groups"] [data-testid="search.page.hit"]');
+    await expect(groups.first()).toHaveAttribute('data-link', `/groups/${KOCHGRUPPE}`);
+    expect(await groups.count()).toBeGreaterThan(1);
+
+    // the street alone does not find the store, name + street does
+    const coop = `/stores/${seedStore('Coop Wiedikon').id}`;
+    await page.goto('/search?q=Birmensdorferstrasse');
+    await expect(page.getByTestId('search.page.state')).toHaveAttribute('data-state', /^(success|empty)$/);
+    await expect(pageHit(page, coop)).toHaveCount(0);
+    await page.goto('/search?q=Coop%20Birmensdorferstrasse');
+    await expectDataState(page, 'search.page.state', 'success');
+    await expect(pageHit(page, coop)).toBeVisible();
+  });
+
+  test('C5 the search rate limit (429) shows its own message with retry @C5', async ({ page, apiOf }) => {
+    await acceptPendingConsents(apiOf(page));
+    await injectApiError(page, { url: '/api/search', status: 429, retryAfterSeconds: 42, times: 1 });
+    await page.goto('/search?q=Nina');
+    const { root, retry } = await expectErrorState(page, 'search.page.state');
+    await expect(root).toContainText(/Zu viele Suchanfragen|Too many searches/);
+    await expect(root).toContainText('42');
+    await retry.click();
+    await expectDataState(page, 'search.page.state', 'success');
+
+    // the header search shows the same message in its popup
+    await injectApiError(page, { url: '/api/search', status: 429, retryAfterSeconds: 42, times: 1 });
+    await page.goto('/dashboard');
+    await openSearch(page);
+    await input(page).fill('Nina');
+    await expect(page.getByTestId('search.global.state')).toHaveAttribute('data-state', 'error');
+    await expect(page.getByTestId('search.global.state')).toContainText(/Zu viele Suchanfragen|Too many searches/);
+  });
+});
+
+test.describe('forum post contents', () => {
+  test.use({ role: 'foodsaver', seedReset: 'test' });
+
+  test('C5 forum posts are searched only with SEARCH_FORUM_POSTS on; the hit shows a snippet @C5', async ({ page, as, apiOf }) => {
+    await acceptPendingConsents(apiOf(page));
+    await page.goto('/search?q=Werbung');
+    await expect(page.getByTestId('search.page.state')).toHaveAttribute('data-state', /^(success|empty)$/);
+    await expect(pageHit(page, `/forum/threads/${WELCOME_THREAD}`)).toHaveCount(0);
+
+    const orga = await as('orga');
+    const switched = await apiOf(orga).patch('/api/admin/feature-toggles/SEARCH_FORUM_POSTS', { enabled: true });
+    expect(switched.status()).toBe(200);
+
+    await page.goto('/search?q=Werbung');
+    await expectDataState(page, 'search.page.state', 'success');
+    const hit = pageHit(page, `/forum/threads/${WELCOME_THREAD}`);
+    await expect(hit).toBeVisible();
+    await expect(hit).toContainText('keine Werbung');
   });
 });

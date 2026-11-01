@@ -287,7 +287,6 @@ public class RegionMapper {
             }
         }
         introModel.setIgnoredCategories(categories);
-        introModel.setCleaningStoreId(intro.cleaningStoreId());
         model.setIntroPickups(introModel);
         OnboardingRegionSettings onboarding = new OnboardingRegionSettings();
         onboarding.setLearningPagesMandatory(settings.onboarding().learningPagesMandatory());
@@ -315,8 +314,7 @@ public class RegionMapper {
                         intro.getPreventDuplicateGuideBookings(), intro.getPreventDuplicateCategoryBookings(),
                         intro.getRequireFairteilerVisitByThirdIntroPickup(),
                         intro.getIgnoredCategories() == null ? Set.of() : intro.getIgnoredCategories().stream()
-                                .map(IntroPickupCategory::getValue).collect(Collectors.toCollection(LinkedHashSet::new)),
-                        intro.getCleaningStoreId()),
+                                .map(IntroPickupCategory::getValue).collect(Collectors.toCollection(LinkedHashSet::new))),
                 onboarding == null ? null : new RegionSettingsService.OnboardingSettings(
                         onboarding.getLearningPagesMandatory(),
                         onboarding.getExtraSteps() == null ? null : onboarding.getExtraSteps().stream()

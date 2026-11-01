@@ -38,6 +38,10 @@ class IndexUsagePostgresIT {
     @ParameterizedTest(name = "{0}")
     @CsvSource(delimiter = '|', value = {
         "ix_search_index_text_trgm|select id from search_index where search_text like '%zurich%'",
+        "ix_search_index_text_trgm|select id from search_index where 'zuerch' <% search_text",
+        "ix_search_index_vector|select id from search_index where search_vector @@ to_tsquery('fs_german', 'backerei:*')",
+        "ix_forum_post_body_fts|select id from forum_post where to_tsvector('fs_german'::regconfig, body)"
+                + " @@ to_tsquery('fs_german', 'kuhlschrank')",
         "ix_basket_status_expires_at|select id from basket where status = 'ACTIVE' and expires_at < now()",
         "ix_report_region_status|select id from report where region_id = '00000000-0000-0000-0000-000000000001'"
                 + " and status = 'NEW'",

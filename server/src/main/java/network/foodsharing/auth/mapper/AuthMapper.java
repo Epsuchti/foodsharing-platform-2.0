@@ -91,6 +91,9 @@ public class AuthMapper {
             onboarding.setCurrentStep(builder.onboardingCurrentStep());
             info.setOnboarding(onboarding);
         }
+        if (builder.mailboxes() != null) {
+            info.setMailboxes(builder.mailboxes());
+        }
         return info;
     }
 

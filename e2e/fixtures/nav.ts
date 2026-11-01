@@ -5,9 +5,13 @@ export const PHONE_MAX = 767;
 /** From 75rem (1200px) the desktop side menu is always expanded; below it can be collapsed to the rail. */
 export const SIDENAV_WIDE_MIN = 1200;
 
+/** Items of the user menu (`area: 'user'` in nav.config.ts; decision 149 moved Meine Aktivität and Quiz there). */
+const USER_MENU_ITEMS: readonly string[] = ['activity', 'quizzes', 'account', 'notifications', 'passport', 'help', 'profile'];
+
 /**
  * Opens a main navigation item the way a user would, on every layout:
  * - phones: the bottom tab when the item is a tab, otherwise "Menu" → drawer entry (`nav.drawer.<id>`);
+ * - desktop, user menu items: the user menu `shell.userMenu` → `nav.user.<id>`;
  * - desktop (decision 133): the side menu link `nav.<id>`. A link in a closed section (Orga is closed by default)
  *   opens its section heading `nav.section.<section>` first; in the collapsed rail a folded section opens its flyout
  *   `nav.flyout.<section>` first.
@@ -24,6 +28,11 @@ export async function openNav(page: Page, id: string): Promise<number> {
     }
     await page.getByTestId('nav.tab.menu').click();
     await page.getByTestId(`nav.drawer.${id}`).click();
+    return 2;
+  }
+  if (USER_MENU_ITEMS.includes(id)) {
+    await page.getByTestId('shell.userMenu').click();
+    await page.getByTestId(`nav.user.${id}`).click();
     return 2;
   }
   const link = page.getByTestId('nav.sidenav').getByTestId(`nav.${id}`);

@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mindestabstand mit gemeinsamer Betriebsliste (AU1) – Mockup</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-primary-200: #b4e7c2; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108;
+  --fs-accent: #f2b84b; --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04); --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08);
+  --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-target-sm: 2.25rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-primary-200: #1f4a2f; --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1);
+  --fs-danger-border: rgb(240 138 128 / 0.3); --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1);
+  --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b; --fs-accent: #9c7a3c;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+a { color: var(--fs-primary-strong); font-weight: 600; text-underline-offset: 0.18em; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl {
+  position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center;
+  padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm);
+}
+.ctl strong { font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ctl .note { margin-left: auto; color: var(--fs-text-muted); }
+
+/* ---- app frame ---- */
+.frame { margin: 1rem auto; width: min(100% - 2rem, 1100px); min-height: 700px; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
+.frame[data-viewport="phone"] { width: 412px; }
+.page { padding: 1.25rem clamp(1rem, 0.6rem + 2vw, 2rem) 2rem; display: grid; gap: 1rem; }
+.frame[data-viewport="phone"] .page { padding: 1rem; }
+.store__eyebrow { margin: 0; color: var(--fs-text-muted); font-size: 0.82rem; font-weight: 650; }
+.store__title { margin: 0 0 0.75rem; font-size: 1.5rem; letter-spacing: -0.02em; line-height: 1.2; }
+.tabs { display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--fs-border); }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; padding: 0.55rem 0.9rem; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--fs-text-muted); font-weight: 600; }
+.tab[aria-selected="true"] { color: var(--fs-primary-strong); border-bottom-color: var(--fs-primary); }
+.subnav { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.frame[data-viewport="phone"] .subnav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.subnav__item { flex: none; display: inline-flex; align-items: center; min-height: var(--fs-target-sm); padding: 0.35rem 0.8rem; border: 1px solid var(--fs-border); border-radius: 999px; color: inherit; text-decoration: none; font-size: 0.9rem; font-weight: 600; white-space: nowrap; }
+.subnav__item--active { background: var(--fs-primary-soft); border-color: var(--fs-primary); color: var(--fs-primary-strong); }
+
+/* ---- product styles (automation.scss + the proposal) ---- */
+.fs-card { padding: clamp(1.1rem, 1rem + 1vw, 1.5rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.card { display: grid; gap: 0.75rem; min-width: 0; }
+h2 { margin: 0; font-size: 1.15rem; letter-spacing: -0.02em; }
+h3 { margin: 0; font-size: 1rem; letter-spacing: -0.02em; }
+.muted { margin: 0; color: var(--fs-text-muted); font-size: 0.88rem; }
+.switch-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.switch-row__text { display: grid; gap: 0.15rem; }
+.switch { position: relative; flex: none; width: 2.5rem; height: 1.5rem; border: 0; border-radius: 999px; background: var(--fs-border-strong); transition: background 150ms; padding: 0; }
+.switch::after { content: ''; position: absolute; top: 0.2rem; left: 0.2rem; width: 1.1rem; height: 1.1rem; border-radius: 999px; background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); transition: transform 150ms; }
+.switch[aria-checked="true"] { background: var(--fs-primary); }
+.switch[aria-checked="true"]::after { transform: translateX(1rem); }
+.switch:disabled { opacity: 0.55; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 0.75rem; }
+.rules .gap-card { grid-column: 1 / -1; }
+.field { display: grid; gap: 0.3rem; min-width: 0; }
+.field > label { font-size: 0.9rem; font-weight: 600; }
+.stepper { display: inline-flex; width: 9rem; border: 1px solid var(--fs-border-strong); border-radius: 0.75rem; background: var(--fs-surface); overflow: hidden; }
+.stepper input { flex: 1; min-width: 0; width: 3rem; border: 0; background: none; text-align: center; font-variant-numeric: tabular-nums; padding: 0.4rem; outline: none; }
+.stepper button { width: 2.5rem; min-height: var(--fs-target-sm); border: 0; background: var(--fs-surface-muted); color: var(--fs-text-muted); }
+.stepper button:hover:not(:disabled) { color: var(--fs-text); }
+.stepper:has(input:disabled) { opacity: 0.55; }
+.stepper--invalid { border-color: var(--fs-danger); }
+.error-text { margin: 0; color: var(--fs-danger); font-size: 0.88rem; }
+
+/* picker (Optimus p-multiselect look) */
+.picker { position: relative; }
+.picker__field { display: flex; align-items: center; gap: 0.5rem; width: 100%; min-height: 2.5rem; padding: 0 0.75rem; border: 1px solid var(--fs-border-strong); border-radius: 0.75rem; background: var(--fs-surface); text-align: left; }
+.touch .picker__field { min-height: 2.75rem; }
+.picker__field:disabled { opacity: 0.55; }
+.picker__field[aria-expanded="true"] { border-color: var(--fs-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fs-primary) 25%, transparent); }
+.picker__field .ph { flex: 1; color: var(--fs-text-muted); }
+.picker__field .count { color: var(--fs-text-muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.picker__panel { position: absolute; z-index: 50; top: calc(100% + 4px); left: 0; right: 0; display: none; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-lg); }
+.picker__panel[data-open="true"] { display: block; }
+.picker__search { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem; padding: 0 0.6rem; border: 1px solid var(--fs-border-strong); border-radius: 0.75rem; min-height: 2.5rem; }
+.picker__search input { flex: 1; min-width: 0; border: 0; background: none; outline: none; }
+.picker__search .i { color: var(--fs-text-muted); }
+.picker__list { max-height: 16rem; overflow-y: auto; margin: 0 0 0.5rem; padding: 0 0.5rem; list-style: none; }
+.opt { display: flex; align-items: center; gap: 0.55rem; width: 100%; min-height: var(--fs-target-sm); padding: 0.4rem 0.6rem; border: 0; border-radius: var(--fs-radius-sm); background: none; text-align: left; }
+.opt:hover:not(:disabled), .opt:focus-visible { background: var(--fs-surface-muted); }
+.opt:disabled { opacity: 0.6; }
+.opt .box { width: 1.1rem; height: 1.1rem; flex: none; border: 1px solid var(--fs-border-strong); border-radius: 0.3rem; display: grid; place-items: center; color: var(--fs-on-primary); }
+.opt[aria-selected="true"] .box { background: var(--fs-primary); border-color: var(--fs-primary); }
+.opt .name { flex: 1; min-width: 0; }
+.picker__empty { padding: 0.6rem 1rem 0.9rem; }
+
+/* badges (automation.scss .badge) */
+.badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.1rem 0.5rem; border-radius: 0.375rem; background: var(--fs-surface-muted); color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.badge .i { width: 0.9em; height: 0.9em; }
+.badge--ok { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.badge--dry { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.badge--bad { background: var(--fs-danger-soft); color: var(--fs-danger); }
+
+/* member rows */
+.members { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.member { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.2rem 0.6rem; align-items: center; min-height: var(--fs-target-sm); padding: 0.35rem 0.4rem 0.35rem 0.7rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); }
+.member[data-error="true"] { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); }
+.member .i.shop { color: var(--fs-text-muted); }
+.member__main { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; min-width: 0; }
+.member__name { font-weight: 650; }
+.member__end { display: inline-flex; align-items: center; gap: 0.4rem; }
+.member__end .lock { color: var(--fs-text-muted); }
+.btn-icon { display: inline-grid; place-items: center; width: var(--fs-target-sm); height: var(--fs-target-sm); border: 0; border-radius: 999px; background: none; color: var(--fs-text-muted); }
+.btn-icon:hover { background: var(--fs-surface-muted); color: var(--fs-danger); }
+.btn-text { display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.7rem; border: 1px solid transparent; border-radius: 0.75rem; background: none; color: var(--fs-primary-strong); font-weight: 650; font-size: 0.9rem; width: fit-content; }
+.btn-text:hover:not(:disabled) { background: var(--fs-primary-soft); }
+.btn-text:disabled { opacity: 0.55; }
+.btn-text--danger { color: var(--fs-danger); }
+.btn-text--danger:hover:not(:disabled) { background: var(--fs-danger-soft); }
+.leave { display: grid; gap: 0.1rem; }
+
+/* banners (automation.scss) */
+.banner { display: flex; gap: 0.6rem; align-items: flex-start; margin: 0; padding: 0.75rem 1rem; border: 1px solid var(--fs-warning-border); border-radius: var(--fs-radius-md); background: var(--fs-warning-soft); color: var(--fs-warning-text); font-size: 0.92rem; }
+.banner .i { margin-top: 0.25rem; }
+.banner--info { border-color: var(--fs-primary-200); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.banner--danger { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); color: var(--fs-danger); }
+.banner--sm { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+
+/* preview */
+.gap-preview { display: grid; gap: 0.6rem; padding: 0.85rem; border-radius: var(--fs-radius-md); background: var(--fs-surface-muted); }
+.gap-preview__title { display: flex; align-items: center; gap: 0.45rem; margin: 0; font-size: 1rem; }
+.gap-preview__title .i { color: var(--fs-primary-strong); }
+.days { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; margin: 0; padding: 0; list-style: none; }
+.day { display: grid; align-content: center; justify-items: center; gap: 0.1rem; min-height: 3.4rem; padding: 0.3rem 0.1rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); background: var(--fs-surface); text-align: center; line-height: 1.15; }
+.day__date { font-size: 0.72rem; color: var(--fs-text-muted); font-variant-numeric: tabular-nums; }
+.day__word { font-size: 0.78rem; font-weight: 700; }
+.day .i { width: 1.05em; height: 1.05em; }
+.day[data-result="PICKUP"] { background: var(--fs-primary); border-color: var(--fs-primary); color: var(--fs-on-primary); }
+.day[data-result="PICKUP"] .day__date { color: inherit; opacity: 0.85; }
+.day[data-result="BLOCKED"] { background: var(--fs-danger-soft); border-color: var(--fs-danger-border); color: var(--fs-danger); }
+.day[data-result="OK"] { background: var(--fs-primary-soft); border-color: var(--fs-primary-200); color: var(--fs-primary-strong); }
+.day__wd { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0; font-size: 0.8rem; color: var(--fs-text-muted); }
+.legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.next { display: flex; align-items: center; gap: 0.45rem; margin: 0; font-weight: 600; }
+.next .i { color: var(--fs-text-muted); }
+.preview { padding: 0.6rem 0.8rem; border-left: 3px solid var(--fs-primary); border-radius: var(--fs-radius-sm); background: var(--fs-surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.92rem; }
+.preview__t { display: block; font-size: 0.78rem; font-weight: 700; color: var(--fs-text-muted); margin-bottom: 0.2rem; }
+.frame[data-viewport="phone"] .day { min-height: 3.2rem; padding: 0.25rem 0; }
+.frame[data-viewport="phone"] .day__word { font-size: 0.62rem; }
+.frame[data-viewport="phone"] .day__date { font-size: 0.64rem; }
+.frame[data-viewport="phone"] .day__wd { display: none; }
+
+/* skeleton + error state of the candidates */
+.skel { height: 2.5rem; border-radius: 0.75rem; background: linear-gradient(90deg, var(--fs-surface-muted), var(--fs-border), var(--fs-surface-muted)); background-size: 200% 100%; animation: sh 1.4s infinite; }
+@keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.state-err { display: grid; justify-items: start; gap: 0.4rem; padding: 0.75rem; border: 1px dashed var(--fs-border-strong); border-radius: var(--fs-radius-md); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: var(--fs-target-sm); padding: 0.5rem 1.1rem; border: 1px solid var(--fs-primary); border-radius: 0.75rem; background: var(--fs-primary); color: var(--fs-on-primary); font-weight: 650; line-height: 1.2; }
+.btn:disabled { opacity: 0.6; }
+.btn--outlined { background: transparent; color: var(--fs-primary-strong); border-color: var(--fs-border-strong); }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.link { display: grid; gap: 0.6rem; padding: 0.85rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); }
+.link--mirror { background: var(--fs-surface-muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.6rem; border: 1px solid var(--fs-border-strong); border-radius: 999px; font-size: 0.85rem; }
+.kv { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0; font-size: 0.88rem; }
+.kv div { display: flex; gap: 0.35rem; }
+.kv dt { color: var(--fs-text-muted); }
+.kv dd { margin: 0; font-weight: 600; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="ctl" role="region" aria-label="Mockup-Steuerung">
+  <strong>Ansicht</strong>
+  <fieldset><legend class="vh">Ansicht</legend>
+    <label><input type="radio" name="view" value="proposal" checked>Vorschlag</label>
+    <label><input type="radio" name="view" value="today">Heute</label>
+  </fieldset>
+  <strong>Zustand</strong>
+  <fieldset><legend class="vh">Zustand</legend>
+    <label><input type="radio" name="state" value="empty">Leer</label>
+    <label><input type="radio" name="state" value="list" checked>Mit Liste</label>
+    <label><input type="radio" name="state" value="warn">Warnungen</label>
+    <label><input type="radio" name="state" value="conflict">Konflikt</label>
+    <label><input type="radio" name="state" value="err403">Fehler 403</label>
+    <label><input type="radio" name="state" value="loading">Laden</label>
+    <label><input type="radio" name="state" value="loaderr">Ladefehler</label>
+  </fieldset>
+  <strong>Rolle</strong>
+  <fieldset><legend class="vh">Rolle</legend>
+    <label><input type="radio" name="role" value="all" checked>Rechte für alle Betriebe</label>
+    <label><input type="radio" name="role" value="own">Nur dieser Betrieb</label>
+    <label><input type="radio" name="role" value="read">Nur lesen</label>
+  </fieldset>
+  <strong>Theme</strong>
+  <fieldset><legend class="vh">Theme</legend>
+    <label><input type="radio" name="theme" value="light" checked>Hell</label>
+    <label><input type="radio" name="theme" value="dark">Dunkel</label>
+  </fieldset>
+  <strong>Gerät</strong>
+  <fieldset><legend class="vh">Gerät</legend>
+    <label><input type="radio" name="vp" value="desktop" checked>Desktop</label>
+    <label><input type="radio" name="vp" value="phone">Phone 412</label>
+  </fieldset>
+  <span class="note">Mockup, Runde 2 (Owner-Antworten 2026-11-01) · Schalter, Stepper, Auswahl und Vorschau sind live</span>
+</div>
+
+<svg hidden aria-hidden="true">
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="ic-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
+  <symbol id="ic-warn" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="ic-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol>
+  <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="ic-shop" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5M3 9h18v11H3zM9 20v-6h6v6"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="ic-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="ic-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ic-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="ic-arrows" viewBox="0 0 24 24"><path d="m17 8 4 4-4 4M7 8l-4 4 4 4M3 12h18"/></symbol>
+  <symbol id="ic-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="ic-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+  <symbol id="ic-play" viewBox="0 0 24 24"><path d="m5 3 14 9-14 9z"/></symbol>
+</svg>
+
+<div class="frame" id="frame" data-viewport="desktop">
+  <div class="page">
+    <div>
+      <p class="store__eyebrow">Betrieb · Zürich Stadt</p>
+      <h1 class="store__title">Coop Bahnhofbrücke</h1>
+      <div class="tabs" role="tablist" aria-label="Betrieb">
+        <button class="tab" role="tab" aria-selected="false">Übersicht</button>
+        <button class="tab" role="tab" aria-selected="false">Team</button>
+        <button class="tab" role="tab" aria-selected="false">Abholungen</button>
+        <button class="tab" role="tab" aria-selected="false">Verlauf</button>
+        <button class="tab" role="tab" aria-selected="true">Automatisierung</button>
+      </div>
+    </div>
+    <nav class="subnav" aria-label="Automatisierungsbereiche">
+      <a class="subnav__item subnav__item--active" href="#" aria-current="page">Eintragungsregeln</a>
+      <a class="subnav__item" href="#">Auto-Aufnahme</a>
+      <a class="subnav__item" href="#">Freie-Plätze-Hinweise</a>
+      <a class="subnav__item" href="#">Austragungs-Hinweise</a>
+      <a class="subnav__item" href="#">Zusatzplatz</a>
+      <a class="subnav__item" href="#">Entscheidungen</a>
+    </nav>
+
+    <section class="card fs-card" data-testid="automation.policy.root">
+      <h2>Regeln für Abholungs-Eintragungen</h2>
+      <p class="muted">Neue Eintragungen werden nach diesen Regeln geprüft und automatisch bestätigt oder abgelehnt.</p>
+      <div class="switch-row"><span class="switch-row__text"><strong>Eintragungen automatisch bestätigen</strong></span><button class="switch js-dis" role="switch" aria-checked="true" aria-label="Eintragungen automatisch bestätigen"></button></div>
+      <div class="switch-row"><span class="switch-row__text"><strong>Testmodus</strong><span class="muted">Zeichnet nur auf, was passieren würde; niemand wird bestätigt oder abgelehnt.</span></span><button class="switch js-dis" role="switch" aria-checked="true" aria-label="Testmodus"></button></div>
+      <p class="banner"><svg class="i"><use href="#ic-eye"/></svg>Testmodus: Entscheidungen werden als «würde …» protokolliert, es wird nichts verändert.</p>
+    </section>
+
+    <div class="rules">
+      <!-- ===== gap card ===== -->
+      <section class="card fs-card gap-card" data-testid="automation.policy.gapCard" id="gapCard">
+        <div class="switch-row">
+          <label class="switch-row__text" for="pp-gap"><strong>Mindestabstand</strong>
+            <span class="muted" id="gapHint">Tage zwischen zwei Abholungen derselben Person in diesem Betrieb.</span></label>
+          <button class="switch js-dis" id="pp-gap" role="switch" aria-checked="true" data-testid="automation.policy.gapEnabled"></button>
+        </div>
+
+        <div class="field" id="gapDaysField">
+          <label for="pp-gap-days" id="gapDaysLabel">Tage</label>
+          <div class="stepper" id="stepper">
+            <button type="button" id="gapDec" aria-label="Weniger Tage">−</button>
+            <input id="pp-gap-days" type="number" min="0" max="60" value="2" data-testid="automation.policy.gapDays" aria-describedby="gapDaysHint">
+            <button type="button" id="gapInc" aria-label="Mehr Tage">+</button>
+          </div>
+          <p class="muted" id="gapDaysHint" hidden></p>
+          <p class="error-text" id="gapDaysErr" hidden></p>
+        </div>
+
+        <!-- proposal-only part -->
+        <div class="js-proposal card" style="gap: 0.75rem;">
+          <div class="field">
+            <label for="pp-gap-stores">Gilt auch für diese Betriebe (optional)</label>
+            <p class="muted" id="gapStoresHint">Höchstens 9 weitere Betriebe aus deiner Region. Abholungen dort zählen für den Abstand.</p>
+            <div id="candState" data-testid="automation.policy.gapStores.state">
+              <div class="picker" id="picker">
+                <button type="button" class="picker__field" id="pp-gap-stores" aria-haspopup="listbox" aria-expanded="false" aria-describedby="gapStoresHint" data-testid="automation.policy.gapStores">
+                  <span class="ph">Betrieb hinzufügen …</span>
+                  <span class="count" id="pickCount"></span>
+                  <svg class="i"><use href="#ic-chev"/></svg>
+                </button>
+                <div class="picker__panel" id="panel" data-open="false">
+                  <div class="picker__search"><svg class="i"><use href="#ic-search"/></svg><input id="search" type="search" placeholder="Suchen" aria-label="Betriebe durchsuchen"></div>
+                  <ul class="picker__list" id="optList" role="listbox" aria-multiselectable="true" aria-label="Betriebe"></ul>
+                  <p class="muted picker__empty" id="optEmpty" hidden>Kein Betrieb gefunden.</p>
+                </div>
+              </div>
+              <div id="candSkel" hidden><div class="skel" aria-busy="true" aria-label="Betriebe werden geladen"></div></div>
+              <div id="candErr" class="state-err" hidden role="alert">
+                <span>Die Betriebe konnten nicht geladen werden.</span>
+                <button class="btn btn--outlined" type="button" data-testid="automation.policy.gapStores.retry">Erneut versuchen</button>
+              </div>
+            </div>
+          </div>
+
+          <ul class="members" id="members" aria-label="Betriebe in der Liste"></ul>
+          <p class="muted" id="lockedLeave" hidden data-testid="automation.policy.gapLockedLeave"><svg class="i" aria-hidden="true"><use href="#ic-lock"/></svg> Zum Verlassen der Liste die Regel ausschalten.</p>
+
+          <p class="banner banner--info" id="note" hidden data-testid="automation.policy.gapNote"><svg class="i"><use href="#ic-info"/></svg><span id="noteText"></span></p>
+          <div id="warnings" style="display: grid; gap: 0.5rem;"></div>
+
+          <section class="gap-preview" id="preview" data-testid="automation.policy.gapPreview" aria-labelledby="pvTitle">
+            <h4 class="gap-preview__title" id="pvTitle"><svg class="i"><use href="#ic-eye"/></svg>Vorschau</h4>
+            <p class="muted" id="pvIntro"></p>
+            <ol class="days" id="days" aria-label="Vorschau der Abstandsregel"></ol>
+            <p class="legend" aria-hidden="true">
+              <span><svg class="i"><use href="#ic-bag"/></svg>Abholung</span>
+              <span><svg class="i"><use href="#ic-x"/></svg>Nein (wird abgelehnt)</span>
+              <span><svg class="i"><use href="#ic-check"/></svg>OK (wird bestätigt)</span>
+            </p>
+            <p class="next" data-testid="automation.policy.gapPreview.next"><svg class="i"><use href="#ic-cal"/></svg><span id="pvNext"></span></p>
+            <div class="preview" data-testid="automation.policy.gapPreview.message"><span class="preview__t">Nachricht bei Ablehnung</span><span id="pvMsg"></span></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="card fs-card">
+        <div class="switch-row"><label class="switch-row__text"><strong>Erfahrung</strong><span class="muted">Neue brauchen zuerst eine bestätigte Abholung in diesem Betrieb.</span></label><button class="switch js-dis" role="switch" aria-checked="true" aria-label="Erfahrung"></button></div>
+      </section>
+      <section class="card fs-card">
+        <div class="switch-row"><label class="switch-row__text"><strong>Putzen</strong><span class="muted">Ein Putzeinsatz im Putzbetrieb des Bezirks in den letzten 12 Monaten ist nötig.</span></label><button class="switch js-dis" role="switch" aria-checked="false" aria-label="Putzen"></button></div>
+        <a href="#">Putz-Ausnahmen des Bezirks</a>
+      </section>
+      <section class="card fs-card">
+        <div class="switch-row"><label class="switch-row__text"><strong>Feiertage</strong><span class="muted">An Feiertagen keine automatische Bestätigung.</span></label><button class="switch js-dis" role="switch" aria-checked="true" aria-label="Feiertage"></button></div>
+        <a href="#">Feiertage anzeigen</a>
+      </section>
+    </div>
+
+    <!-- ===== links card (mirror of Denner Langstrasse) ===== -->
+    <section class="card fs-card" data-testid="automation.policy.links">
+      <h3>Verknüpfte Betriebe</h3>
+      <p class="muted">Wer sich hier einträgt, darf im selben Zeitraum nicht in den verknüpften Betrieben eingetragen sein. Nach der Karenzzeit wird die Eintragung entfernt.</p>
+      <div class="link link--mirror" data-testid="automation.policy.link.0">
+        <div id="linkWarn" class="js-proposal"></div>
+        <p class="muted"><svg class="i"><use href="#ic-arrows"/></svg> Vom verknüpften Betrieb gesetzt (Denner Langstrasse); dort bearbeiten.</p>
+        <dl class="kv"><div><dt>Zeitraum</dt><dd>Tage davor/danach 3 / 3</dd></div><div><dt>Karenzzeit</dt><dd>30 Minuten</dd></div></dl>
+      </div>
+      <div class="actions"><button class="btn btn--outlined js-dis" type="button">+ Verknüpfte Betriebe hinzufügen</button></div>
+    </section>
+
+    <section class="card fs-card">
+      <h3>Ausgeschlossene Tage</h3>
+      <div class="chips"><span class="chip">8.11.2026 <span aria-hidden="true">×</span></span></div>
+    </section>
+
+    <p class="error-text" id="saveErr" role="alert" hidden data-testid="automation.policy.error"></p>
+    <div class="actions" id="actions">
+      <button class="btn js-dis" type="button" id="saveBtn" data-testid="automation.policy.save"><svg class="i"><use href="#ic-save"/></svg>Speichern</button>
+      <button class="btn btn--outlined js-dis" type="button"><svg class="i"><use href="#ic-eye"/></svg>Jetzt testen</button>
+      <button class="btn btn--outlined js-dis" type="button" disabled><svg class="i"><use href="#ic-play"/></svg>Jetzt ausführen</button>
+      <button class="btn-text" type="button"><svg class="i"><use href="#ic-q"/></svg>Entscheidung testen</button>
+    </div>
+    <p class="muted" id="saveFirst">Erst speichern: Testen und Ausführen verwenden die gespeicherten Regeln.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- data: seed stores of zuerich-stadt (docs/seed-ids.md) ---------- */
+const SELF = { id: 's01', name: 'Coop Bahnhofbrücke' };
+const CANDIDATES = [
+  { id: 's05', name: 'Coop Stauffacher', automationActive: true },
+  { id: 's12', name: 'Coop Wiedikon', automationActive: true, ownOnlyLocked: true },
+  { id: 's03', name: 'Migros Limmatplatz', automationActive: false },
+  { id: 's04', name: 'Denner Langstrasse', automationActive: true,
+    links: [{ owner: 's04', storeIds: ['s01'], windowMode: 'LAST_DAYS', before: 3, after: 3 }] },
+  { id: 's13', name: 'Migros City', automationActive: true, inOtherList: true },
+  { id: 's14', name: 'Denner Altstetten', automationActive: true },
+  { id: 's06', name: "Babu's Bakery", automationActive: true },
+  { id: 's02', name: 'Bäckerei Vohdin', automationActive: false },
+  { id: 's07', name: 'Hiltl', automationActive: false },
+].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+const byId = (id) => id === SELF.id ? SELF : CANDIDATES.find((c) => c.id === id);
+// Link rules that touch this store (the mirrored rule in the links card): owner Denner Langstrasse → Coop Bahnhofbrücke.
+const LINK_RULES = [{ owner: 's04', storeIds: ['s01'], windowMode: 'LAST_DAYS', before: 3, after: 3 }];
+
+const STATES = {
+  empty:    { enabled: true, gap: 2, members: [] },
+  list:     { enabled: true, gap: 2, members: ['s05', 's12'] },
+  warn:     { enabled: true, gap: 3, members: ['s05', 's12', 's03'] },
+  conflict: { enabled: true, gap: 3, members: ['s05', 's12', 's04'] },
+  err403:   { enabled: true, gap: 2, members: ['s05', 's12', 's03'], saveError: { code: 'ACCESS_DENIED', storeId: 's12' } },
+  loading:  { enabled: true, gap: 2, members: ['s05', 's12'], cand: 'loading' },
+  loaderr:  { enabled: true, gap: 2, members: ['s05', 's12'], cand: 'error' },
+};
+const model = { view: 'proposal', state: 'list', role: 'all', enabled: true, gap: 2, members: [], cand: 'ok', saveError: null };
+
+/* ---------- pure preview logic (goes to automation.util.ts) ---------- */
+const TODAY = new Date(2026, 10, 1);
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const fmtShort = (d) => `${d.getDate()}.${d.getMonth() + 1}.`;
+const fmtLong = (d) => `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
+const days = (n) => n === 1 ? '1 Tag' : `${n} Tage`;
+const all = (names) => names.length <= 1 ? names.join('') : names.slice(0, -1).join(', ') + ' und ' + names[names.length - 1];
+const calendarGapDays = (offset) => Math.max(0, Math.abs(offset) - 1);
+function gapPreview(pickup, gap, storeNames) {
+  const cells = [];
+  for (let d = -5; d <= 5; d++) {
+    cells.push({ date: addDays(pickup, d), offset: d, result: d === 0 ? 'PICKUP' : calendarGapDays(d) < gap ? 'BLOCKED' : 'OK' });
+  }
+  const next = addDays(pickup, gap + 1);
+  const exampleOffset = Math.max(1, gap);                      // last blocked day after the pickup
+  const actual = calendarGapDays(exampleOffset);
+  const message = gap === 0
+    ? 'Mit 0 Tagen Abstand lehnt die Regel keine Eintragung ab.'
+    : storeNames.length > 1
+    ? `Du hast bereits am ${fmtLong(pickup)} eine Abholung bei ${storeNames[0]}. Zwischen zwei Abholungen bei ${all(storeNames)} müssen mindestens ${days(gap)} liegen; hier wären es nur ${days(actual)}.`
+    : `Zwischen den Abholungen liegt nur ${days(actual)} Abstand; erforderlich sind mindestens ${days(gap)}.`;
+  return { cells, next, message, example: addDays(pickup, exampleOffset) };
+}
+/* link rule reach (D7) */
+const reach = (r) => r.windowMode === 'SAME_DAY' ? 0 : Math.max(r.before, r.after) - 1;
+const windowText = (r) => r.windowMode === 'SAME_DAY' ? 'gleicher Tag' : `${r.before} Tage davor / ${r.after} danach`;
+
+/* ---------- derived ---------- */
+const mayEdit = () => model.role !== 'read';
+const isLocked = (id) => model.role === 'own' && !!byId(id).ownOnlyLocked;
+const hasLocked = () => model.members.some(isLocked);
+function linkFindings() {
+  const inList = new Set([SELF.id, ...model.members]);
+  const out = [];
+  const rules = [...LINK_RULES, ...CANDIDATES.flatMap((c) => (model.members.includes(c.id) ? c.links ?? [] : []))];
+  const seen = new Set();
+  for (const r of rules) {
+    const key = r.owner + r.storeIds.join();
+    if (seen.has(key)) continue; seen.add(key);
+    if (!model.members.length || reach(r) >= model.gap) continue;
+    const touches = inList.has(r.owner) || r.storeIds.some((s) => inList.has(s));
+    if (!touches) continue;
+    const blocking = inList.has(r.owner) && r.storeIds.every((s) => inList.has(s));
+    const other = r.owner === SELF.id ? byId(r.storeIds[0]) : byId(r.owner);
+    out.push({ blocking, store: other, rule: r });
+  }
+  return out;
+}
+
+/* ---------- render ---------- */
+const $ = (id) => document.getElementById(id);
+const svg = (n) => `<svg class="i" aria-hidden="true"><use href="#ic-${n}"/></svg>`;
+function badge(c, locked) {
+  if (locked) return `<span class="badge badge--bad">${svg('lock')}Keine Berechtigung</span>`;
+  if (c.inOtherList) return `<span class="badge">${svg('list')}In anderer Liste</span>`;
+  return c.automationActive
+    ? `<span class="badge badge--ok">${svg('check')}Automatisierung aktiv</span>`
+    : `<span class="badge badge--dry">${svg('warn')}Keine Automatisierung</span>`;
+}
+
+function render() {
+  const proposal = model.view === 'proposal';
+  document.querySelectorAll('.js-proposal').forEach((el) => el.toggleAttribute('hidden', !proposal));
+  document.querySelectorAll('.js-dis').forEach((el) => { el.disabled = !mayEdit(); });
+  $('gapHint').textContent = proposal
+    ? 'Tage zwischen zwei Abholungen derselben Person in diesem Betrieb – und in den Betrieben der Liste.'
+    : 'Tage zwischen zwei Abholungen derselben Person in diesem Betrieb.';
+  $('gapDaysLabel').textContent = proposal ? 'Min. Tage Abstand' : 'Tage';
+  $('pp-gap').setAttribute('aria-checked', String(model.enabled));
+
+  const withList = proposal && model.members.length > 0;
+  const gapLocked = withList && hasLocked();
+  const input = $('pp-gap-days');
+  input.value = model.gap; input.min = withList ? 1 : 0;
+  const daysDisabled = !mayEdit() || !model.enabled || gapLocked;
+  input.disabled = daysDisabled; $('gapDec').disabled = daysDisabled; $('gapInc').disabled = daysDisabled;
+  const invalid = withList && model.gap < 1;
+  $('stepper').classList.toggle('stepper--invalid', invalid);
+  $('gapDaysErr').hidden = !invalid; $('gapDaysErr').textContent = invalid ? 'Mit einer Liste mindestens 1 Tag.' : '';
+  const hint = gapLocked
+    ? `Der Abstand gilt für alle Betriebe der Liste; für ${all(model.members.filter(isLocked).map((id) => byId(id).name))} fehlt dir die Berechtigung, darum kannst du ihn hier nicht ändern.`
+    : withList ? 'Mit einer Liste mindestens 1 Tag.' : '';
+  $('gapDaysHint').hidden = !hint || invalid; $('gapDaysHint').textContent = hint;
+  // today's view: field disabled when the rule is off (as in the code today); proposal: the rest folds away
+  document.querySelector('.js-proposal.card').hidden = !proposal || !model.enabled;
+  if (!proposal) { renderSaveError(); return; }
+
+  // candidates
+  $('picker').hidden = model.cand !== 'ok'; $('candSkel').hidden = model.cand !== 'loading'; $('candErr').hidden = model.cand !== 'error';
+  $('pp-gap-stores').disabled = !mayEdit() || model.members.length >= 9;
+  $('pickCount').textContent = model.members.length ? `${model.members.length} von 9 gewählt` : '';
+  renderOptions();
+
+  // member rows
+  const err = model.saveError;
+  $('members').innerHTML = model.members.map((id) => {
+    const c = byId(id); const locked = isLocked(id);
+    const rowErr = err && err.storeId === id;
+    const end = locked || !mayEdit()
+      ? (locked ? `<span class="member__end"><svg class="i lock" aria-hidden="true"><use href="#ic-lock"/></svg></span>` : '')
+      : `<span class="member__end"><button type="button" class="btn-icon" aria-label="${c.name} entfernen" data-remove="${id}" data-testid="automation.policy.gapMember.remove">${svg('x')}</button></span>`;
+    return `<li class="member" data-testid="automation.policy.gapMember" data-store="${id}" data-locked="${locked}" data-automation="${c.automationActive}" data-error="${!!rowErr}">
+      ${svg('shop').replace('class="i"', 'class="i shop"')}
+      <span class="member__main"><span class="member__name">${c.name}</span>${badge(c, locked || rowErr)}</span>${end}</li>`;
+  }).join('');
+  $('lockedLeave').hidden = !hasLocked() || !mayEdit();
+
+  // note (names, this store first)
+  $('note').hidden = !model.members.length;
+  $('noteText').textContent = `Gemeinsame Liste: Mindestabstand und «Regel aktiv» gelten für ${all([SELF.name, ...model.members.map((id) => byId(id).name)])}. Speichern schreibt beides auch dort.`;
+
+  // warnings
+  const w = [];
+  const noAuto = model.members.map(byId).filter((c) => !c.automationActive).map((c) => c.name);
+  if (noAuto.length) w.push({ kind: 'NO_AUTOMATION', cls: 'banner', icon: 'warn', role: 'status',
+    text: `${all(noAuto)} prüft Eintragungen nicht automatisch: Abholungen dort zählen für den Abstand, Eintragungen dort werden aber nicht abgelehnt.` });
+  const findings = linkFindings();
+  let blocking = false;
+  for (const f of findings) {
+    blocking = blocking || f.blocking;
+    w.push(f.blocking
+      ? { kind: 'CONFLICT', cls: 'banner banner--danger', icon: 'ban', role: 'alert', store: f.store.id,
+          text: `Die Verknüpfung mit ${f.store.name} (${windowText(f.rule)}) widerspricht dem Mindestabstand (${days(model.gap)}). Entferne ${f.store.name} aus der Liste oder ändere die Verknüpfung, dann kannst du speichern.` }
+      : { kind: 'LINK', cls: 'banner', icon: 'warn', role: 'status', store: f.store.id,
+          text: `Die Verknüpfung mit ${f.store.name} (${windowText(f.rule)}) deckt weniger Tage ab als der Mindestabstand (${days(model.gap)}).` });
+  }
+  $('warnings').innerHTML = w.map((x, i) => `<p class="${x.cls}" role="${x.role}" id="warn${i}" data-testid="automation.policy.gapWarning" data-kind="${x.kind}" ${x.store ? `data-store="${x.store}"` : ''}>${svg(x.icon)}<span>${x.text}</span></p>`).join('');
+  // the same link findings in the links card, as one-liners
+  $('linkWarn').innerHTML = findings.map((f) => `<p class="${f.blocking ? 'banner banner--danger' : 'banner'} banner--sm" role="${f.blocking ? 'alert' : 'status'}" data-testid="automation.policy.link.0.gapWarning">${svg(f.blocking ? 'ban' : 'warn')}<span>${f.blocking ? 'Widerspricht' : 'Deckt weniger Tage ab als'} dem Mindestabstand (${days(model.gap)}) der gemeinsamen Liste${f.blocking ? '; speichern ist gesperrt' : ''}.</span></p>`).join('');
+
+  // save
+  const save = $('saveBtn');
+  save.disabled = !mayEdit() || blocking || invalid;
+  const conflictId = w.findIndex((x) => x.kind === 'CONFLICT');
+  if (conflictId >= 0) save.setAttribute('aria-describedby', 'warn' + conflictId); else save.removeAttribute('aria-describedby');
+
+  // preview
+  const pickup = addDays(TODAY, 7);
+  const names = [SELF.name, ...model.members.map((id) => byId(id).name)];
+  const pv = gapPreview(pickup, model.gap, names);
+  $('pvIntro').textContent = `Beispiel: eine Abholung am ${fmtLong(pickup)}. So entscheidet die Regel über eine zweite Eintragung an den Tagen davor und danach.`;
+  const WORD = { PICKUP: ['bag', 'Abholung', 'Abh.'], BLOCKED: ['x', 'Nein', 'Nein'], OK: ['check', 'OK', 'OK'] };
+  const phone = $('frame').dataset.viewport === 'phone';
+  $('days').innerHTML = pv.cells.map((c) => {
+    const [ic, word, short] = WORD[c.result];
+    const iso = c.date.toISOString().slice(0, 10);
+    return `<li class="day" data-testid="automation.policy.gapPreview.day" data-date="${iso}" data-result="${c.result}" aria-label="${fmtLong(c.date)}: ${word}" ${c.result === 'PICKUP' ? 'aria-current="date"' : ''}>
+      <span class="day__date" aria-hidden="true"><span class="day__wd">${WD[c.date.getDay()]}</span>${fmtShort(c.date)}</span>${svg(ic)}<span class="day__word" aria-hidden="true">${phone ? short : word}</span></li>`;
+  }).join('');
+  $('pvNext').textContent = `Nächste mögliche Abholung: ${fmtLong(pv.next)}`;
+  $('pvMsg').textContent = pv.message;
+  renderSaveError();
+}
+
+function renderSaveError() {
+  const e = model.saveError; const el = $('saveErr');
+  el.hidden = !e;
+  if (!e) return;
+  el.dataset.code = e.code;
+  el.textContent = e.code === 'ACCESS_DENIED' ? `Für ${byId(e.storeId).name} fehlt dir die Berechtigung für Automatisierungen.` : 'Bitte prüfe deine Eingaben.';
+}
+
+function renderOptions() {
+  const q = $('search').value.trim().toLowerCase();
+  const items = CANDIDATES.filter((c) => c.name.toLowerCase().includes(q));
+  $('optEmpty').hidden = items.length > 0;
+  $('optList').innerHTML = items.map((c) => {
+    const sel = model.members.includes(c.id);
+    const dis = c.inOtherList || isLocked(c.id) || (!sel && model.members.length >= 9);
+    return `<li role="option" aria-selected="${sel}"><button type="button" class="opt" role="presentation" aria-selected="${sel}" data-opt="${c.id}" ${dis ? 'disabled' : ''}>
+      <span class="box">${sel ? svg('check') : ''}</span><span class="name">${c.name}</span>${badge(c, isLocked(c.id))}</button></li>`;
+  }).join('');
+}
+
+/* ---------- events ---------- */
+function applyState() {
+  const s = STATES[model.state];
+  model.enabled = s.enabled; model.gap = s.gap; model.members = [...s.members]; model.cand = s.cand ?? 'ok'; model.saveError = s.saveError ?? null;
+  render();
+}
+document.querySelectorAll('input[name=view]').forEach((r) => r.addEventListener('change', () => { model.view = r.value; render(); }));
+document.querySelectorAll('input[name=state]').forEach((r) => r.addEventListener('change', () => { model.state = r.value; applyState(); }));
+document.querySelectorAll('input[name=role]').forEach((r) => r.addEventListener('change', () => { model.role = r.value; render(); }));
+document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => document.documentElement.classList.toggle('fs-dark', r.value === 'dark')));
+document.querySelectorAll('input[name=vp]').forEach((r) => r.addEventListener('change', () => {
+  $('frame').dataset.viewport = r.value; document.documentElement.classList.toggle('touch', r.value === 'phone'); render();
+}));
+$('pp-gap').addEventListener('click', () => { if (!mayEdit()) return; model.enabled = !model.enabled; render(); });
+$('gapDec').addEventListener('click', () => { model.gap = Math.max(0, model.gap - 1); model.saveError = null; render(); });
+$('gapInc').addEventListener('click', () => { model.gap = Math.min(60, model.gap + 1); model.saveError = null; render(); });
+$('pp-gap-days').addEventListener('change', (e) => { model.gap = Math.min(60, Math.max(0, +e.target.value || 0)); render(); });
+$('pp-gap-stores').addEventListener('click', () => {
+  const open = $('panel').dataset.open !== 'true';
+  $('panel').dataset.open = String(open); $('pp-gap-stores').setAttribute('aria-expanded', String(open));
+  if (open) { renderOptions(); $('search').focus(); }
+});
+$('search').addEventListener('input', renderOptions);
+$('optList').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-opt]'); if (!b || b.disabled) return;
+  const id = b.dataset.opt;
+  model.members = model.members.includes(id) ? model.members.filter((m) => m !== id) : [...model.members, id];
+  model.saveError = null; render(); renderOptions();
+});
+$('members').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-remove]'); if (!b) return;
+  model.members = model.members.filter((m) => m !== b.dataset.remove); model.saveError = null; render();
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#picker') && $('panel').dataset.open === 'true') { $('panel').dataset.open = 'false'; $('pp-gap-stores').setAttribute('aria-expanded', 'false'); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('panel').dataset.open === 'true') { $('panel').dataset.open = 'false'; $('pp-gap-stores').setAttribute('aria-expanded', 'false'); $('pp-gap-stores').focus(); } });
+$('candErr').querySelector('button').addEventListener('click', () => { model.cand = 'ok'; render(); });
+applyState();
+</script>
+</body>
+</html>

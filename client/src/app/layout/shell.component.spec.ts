@@ -17,6 +17,7 @@ import {
   M6_PAGES_READY,
   NAV_ITEMS,
   NavContext,
+  drawerItems,
   mobileTabs,
   splitHeaderNav,
   visibleNavItems,
@@ -117,6 +118,8 @@ describe('ShellComponent', () => {
     expect(byTestId('nav.tab.pickups')).not.toBeNull();
     // M5: messages
     expect(byTestId('nav.tab.messages')).not.toBeNull();
+    // decision 149: Betriebe is a tab
+    expect(byTestId('nav.tab.stores')).not.toBeNull();
   });
 
   it('hides navigation, footer and tab bar on minimal-chrome routes', async () => {
@@ -205,31 +208,29 @@ describe('nav.config', () => {
       'dashboard',
       'pickups',
       'messages',
-      'activity',
       'regions',
       'stores',
       'map',
       'baskets',
-      'quizzes',
       'storeChains',
       'events',
       'polls',
     ]);
     const split = splitHeaderNav(ordered, 4);
-    expect(split.inline.map((item) => item.id)).toEqual(['dashboard', 'pickups', 'messages', 'activity']);
+    expect(split.inline.map((item) => item.id)).toEqual(['dashboard', 'pickups', 'messages', 'regions']);
     expect(split.more.map((item) => item.id)).toEqual(ordered.slice(4).map((item) => item.id));
     // everything fits: no menu; nothing measured yet: everything in the header; at least one link stays
     expect(splitHeaderNav(ordered, ordered.length)).toEqual({ inline: ordered, more: [] });
     expect(splitHeaderNav(ordered, Number.MAX_SAFE_INTEGER).more).toEqual([]);
     expect(splitHeaderNav(ordered, 0).inline.map((item) => item.id)).toEqual(['dashboard']);
 
-    // a newcomer keeps the quizzes among the primary items (before the map)
+    // a newcomer keeps the journey first; the quizzes are in the user menu (decision 149)
     const newcomer = context({
       isAuthenticated: true,
       session: { user: { verified: false }, onboarding: { complete: false } } as unknown as NavContext['session'],
     });
     const newcomerIds = orderHeaderNav(visibleNavItems(newcomer), newcomer).map((item) => item.id);
-    expect(newcomerIds.indexOf('quizzes')).toBeLessThan(newcomerIds.indexOf('map'));
+    expect(newcomerIds).not.toContain('quizzes');
     expect(newcomerIds.slice(0, 2)).toEqual(['dashboard', 'onboarding']);
   });
 
@@ -239,9 +240,7 @@ describe('nav.config', () => {
     expect(visibleNavItems(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'messages',
-      'activity',
       'regions',
-      'quizzes',
       'events',
       'polls',
       'map',
@@ -254,13 +253,91 @@ describe('nav.config', () => {
     expect(visibleNavItems(togglesOff).map((item) => item.id)).not.toContain('search');
     expect(
       visibleNavItems(context({ isAuthenticated: true }), 'user').map((item) => item.id),
-    ).toEqual(['account', 'notifications', 'profile', 'help']);
-    expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
-      'dashboard',
-      'messages',
-      'activity',
-      'account',
-    ]);
+    ).toEqual(['activity', 'quizzes', 'account', 'notifications', 'help', 'profile']);
+    expect(mobileTabs(context({ isAuthenticated: true })).map((item) => item.id)).toEqual(['dashboard', 'messages']);
+  });
+
+  describe('phone tabs, user menu and drawer (decision 149)', () => {
+    const unit = { id: 'r1', name: 'Zürich', homeRegion: true, admin: false, member: true, type: 'CITY' };
+    const newcomer = context({
+      isAuthenticated: true,
+      session: { user: { verified: false }, onboarding: { complete: false }, units: [] } as unknown as NavContext['session'],
+    });
+    const unverified = context({
+      isAuthenticated: true,
+      hasRole: (role) => role === Role.Foodsaver,
+      session: { user: { verified: false }, onboarding: { complete: true }, units: [unit] } as unknown as NavContext['session'],
+    });
+    const foodsaver = context({
+      isAuthenticated: true,
+      hasRole: (role) => role === Role.Foodsaver,
+      session: { user: { verified: true }, onboarding: { complete: true }, units: [unit] } as unknown as NavContext['session'],
+    });
+    const ids = (items: { id: string }[]) => items.map((item) => item.id);
+
+    it('gives each persona its tabs, without filler', () => {
+      expect(ids(mobileTabs(newcomer))).toEqual(['onboarding', 'messages']);
+      expect(ids(mobileTabs(foodsaver))).toEqual(['dashboard', 'pickups', 'stores', 'messages']);
+      expect(ids(mobileTabs(unverified))).toEqual(['dashboard', 'stores', 'messages']);
+      expect(mobileTabs(context())).toEqual([]);
+    });
+
+    it('shows Mein Einstieg only while the journey is open, in the menu and as a tab', () => {
+      const withJourney = (onboarding: unknown) =>
+        context({ isAuthenticated: true, session: { user: { verified: false }, onboarding } as unknown as NavContext['session'] });
+      for (const [onboarding, open] of [
+        [{ complete: false }, true],
+        [{ complete: true }, false],
+        [undefined, false],
+      ] as const) {
+        expect(ids(visibleNavItems(withJourney(onboarding))).includes('onboarding')).toBe(open);
+        expect(ids(mobileTabs(withJourney(onboarding))).includes('onboarding')).toBe(open);
+        expect(ids(mobileTabs(withJourney(onboarding))).includes('dashboard')).toBe(!open);
+      }
+    });
+
+    it('declares the user menu in its order: Meine Aktivität and Quiz first', () => {
+      expect(ids(visibleNavItems(foodsaver, 'user'))).toEqual([
+        'activity',
+        'quizzes',
+        'account',
+        'notifications',
+        'passport',
+        'help',
+        'profile',
+      ]);
+    });
+
+    it('lists the drawer main items in side menu order, without the bell and the user items', () => {
+      expect(ids(drawerItems(foodsaver))).toEqual([
+        'dashboard',
+        'pickups',
+        'stores',
+        'messages',
+        'baskets',
+        'map',
+        'events',
+        'regions',
+        'polls',
+        'forum',
+        'storeChains',
+        'search',
+      ]);
+      expect(ids(drawerItems(newcomer))).toEqual([
+        'dashboard',
+        'onboarding',
+        'messages',
+        'baskets',
+        'map',
+        'events',
+        'regions',
+        'polls',
+        'introPickups',
+        'search',
+      ]);
+      // logged out: no drawer (footer pages stay out)
+      expect(drawerItems(context())).toEqual([]);
+    });
   });
 
   it('keeps the M6 items hidden until their page flag flips, then applies their own rule', () => {

@@ -127,7 +127,7 @@ class AdvertFlowIT {
         }
     }
 
-    /** Coordinator request: mayUseAutomations, cleaningStore and mayAddExtraSlot are delivered. */
+    /** Coordinator request: mayUseAutomations, the cleaning Fairteiler and mayAddExtraSlot are delivered. */
     @Test
     void automationFlagsAreDelivered() throws Exception {
         Cookie bieb = login(SeedUsers.BIEB);
@@ -137,16 +137,13 @@ class AdvertFlowIT {
         mvc.perform(get("/api/stores/" + S06).cookie(bieb)).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .jsonPath("$.permissions.mayUseAutomations").value(true));
-        UUID cleaning = jdbc.queryForObject("select r.cleaning_store_id from region r join store s on s.region_id = r.id"
-                + " where s.id = ?", UUID.class, UUID.fromString(S06));
-        var automation = mvc.perform(get("/api/stores/" + S06 + "/automation").cookie(bieb)).andExpect(status().isOk());
-        if (cleaning == null) {
-            automation.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
-                    .jsonPath("$.cleaningStore").doesNotExist());
-        } else {
-            automation.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
-                    .jsonPath("$.cleaningStore.id").value(cleaning.toString()));
-        }
+        java.util.List<String> cleaning = jdbc.queryForList("select cast(c.fsp_id as varchar(36)) from region_cleaning_fsp c"
+                + " join store s on s.region_id = c.region_id where s.id = ? order by c.fsp_id", String.class,
+                UUID.fromString(S06));
+        mvc.perform(get("/api/stores/" + S06 + "/automation").cookie(bieb)).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.cleaningFoodSharePoints[*].id").value(org.hamcrest.Matchers
+                                .containsInAnyOrder(cleaning.toArray())));
         mvc.perform(get("/api/users/me/pickups").cookie(bieb)).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .jsonPath("$[*].mayAddExtraSlot").exists());

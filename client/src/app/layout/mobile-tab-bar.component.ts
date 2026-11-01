@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Drawer } from '@openng/optimus-ui/drawer';
 
@@ -14,9 +14,13 @@ import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
 import { StartupService } from '../core/startup/startup.service';
 
+/** User menu items the drawer shows directly under the profile block. */
+const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
+
 /**
- * Mobile bottom tab bar (below 48rem, logged in): up to four tabs from nav.config.ts (`mobileTab`) plus
- * "Menu", which opens a drawer with all navigation, language, theme and logout.
+ * Mobile bottom tab bar (below 48rem, logged in): up to four tabs from nav.config.ts (`mobileTabs`) plus
+ * "Menu", which opens a drawer with all navigation, language, theme and logout. Drawer order (decision 149): profile,
+ * Meine Aktivität and Quiz, the bells, the main items in side menu order, the other user items.
  */
 @Component({
   selector: 'fs-mobile-tab-bar',
@@ -84,6 +88,23 @@ import { StartupService } from '../core/startup/startup.service';
           </div>
         </div>
       }
+      @if (topUserItems().length > 0) {
+        <ul class="menu-list">
+          @for (item of topUserItems(); track item.id) {
+            <li>
+              <a
+                class="menu-list__item"
+                [routerLink]="item.route"
+                (click)="menuOpen.set(false)"
+                [attr.data-testid]="'nav.drawer.' + item.id"
+              >
+                <i [class]="item.icon" aria-hidden="true"></i>
+                <span>{{ item.labelKey | t }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
       <!-- N3: the header bell is hidden below 48rem; the drawer links the bells page with the unread count -->
       <a class="menu-list__item mm__bells" routerLink="/bells" (click)="menuOpen.set(false)" data-testid="nav.drawer.bells">
         <i class="pi pi-bell" aria-hidden="true"></i>
@@ -93,7 +114,7 @@ import { StartupService } from '../core/startup/startup.service';
         }
       </a>
       <ul class="menu-list">
-        @for (item of nav.main(); track item.id) {
+        @for (item of nav.drawer(); track item.id) {
           <li>
             <a
               class="menu-list__item"
@@ -111,7 +132,7 @@ import { StartupService } from '../core/startup/startup.service';
       <!-- Two lists with a rule in between: a separator <li> would break the list semantics (axe "list"). -->
       <hr class="menu-list__separator mm__rule" />
       <ul class="menu-list">
-        @for (item of nav.user(); track item.id) {
+        @for (item of otherUserItems(); track item.id) {
           <li>
             <a
               class="menu-list__item"
@@ -321,6 +342,9 @@ export class MobileTabBarComponent {
   protected readonly languages = LANGUAGES;
   protected readonly themes: readonly ThemePreference[] = THEME_PREFERENCES;
   protected readonly menuOpen = signal(false);
+  /** Meine Aktivität and Quiz right under the profile (decision 149). */
+  protected readonly topUserItems = computed(() => this.nav.user().filter((item) => DRAWER_TOP.includes(item.id)));
+  protected readonly otherUserItems = computed(() => this.nav.user().filter((item) => !DRAWER_TOP.includes(item.id)));
 
   protected setLanguage(language: UiLanguage): void {
     void this.i18n.setLanguage(language);

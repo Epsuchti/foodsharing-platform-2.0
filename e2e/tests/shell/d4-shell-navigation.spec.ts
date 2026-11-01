@@ -29,7 +29,9 @@ test.describe('logged in', () => {
     await expect(page.getByTestId('nav.sidenav')).toHaveAttribute('data-mode', 'sidebar');
     await expect(page.locator('fs-header')).toHaveCount(0);
     await expect(page.getByTestId('nav.dashboard')).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByTestId('nav.activity')).toHaveAttribute('href', '/me/activity');
+    // decision 149: Meine Aktivität and Quiz are in the user menu, not in the side menu
+    await expect(page.getByTestId('nav.activity')).toHaveCount(0);
+    await expect(page.getByTestId('nav.quizzes')).toHaveCount(0);
     // The dev gallery lives in the footer, not in the main navigation.
     await expect(page.getByTestId('nav.gallery')).toHaveCount(0);
     await expect(page.getByTestId('nav.footer.gallery')).toBeVisible();
@@ -41,9 +43,17 @@ test.describe('logged in', () => {
     await expect(page.getByTestId('shell.userMenu')).toBeVisible();
     await expect(page.getByTestId('shell.login')).toHaveCount(0);
 
-    await page.getByTestId('nav.activity').click();
+    // the user menu lists Meine Aktivität and Quiz first, right under the profile head
+    await page.getByTestId('shell.userMenu').click();
+    const card = page.getByTestId('shell.userMenu.card');
+    await expect(card.getByTestId('nav.user.activity')).toHaveAttribute('href', '/me/activity');
+    const order = await card
+      .locator('a[data-testid^="nav.user."]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('data-testid')));
+    expect(order.slice(0, 3)).toEqual(['nav.user.profile', 'nav.user.activity', 'nav.user.quizzes']);
+    await card.getByTestId('nav.user.activity').click();
     await expect.poll(() => path(page)).toBe('/me/activity');
-    await expect(page.getByTestId('nav.activity')).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByTestId('history.myActivity.list')).toBeVisible();
     await expect(page.getByTestId('nav.dashboard')).not.toHaveAttribute('aria-current', 'page');
 
     await page.getByTestId('shell.brand').click();
@@ -119,6 +129,16 @@ test.describe('logged in', () => {
     await expect(drawer).toBeVisible();
     // The drawer sits above its modal mask (not dimmed by it).
     await animationsDone(page);
+    // decision 149: Meine Aktivität and Quiz directly under the profile, then the bells, then the main items
+    const drawerLinks = await drawer
+      .locator('a[data-testid^="nav.drawer."]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('data-testid')));
+    expect(drawerLinks.slice(0, 4)).toEqual([
+      'nav.drawer.activity',
+      'nav.drawer.quizzes',
+      'nav.drawer.bells',
+      'nav.drawer.dashboard',
+    ]);
     const activityLink = drawer.getByTestId('nav.drawer.activity');
     const linkBox = (await activityLink.boundingBox())!;
     const onTop = await page.evaluate(
@@ -143,9 +163,10 @@ test.describe('logged in', () => {
     await expect(drawer).toBeHidden();
     await expect.poll(() => path(page)).toBe('/me/activity');
     await expect(dashboardTab).not.toHaveAttribute('aria-current', 'page');
-    // Four tabs (dashboard, pickups, messages, activity); the account moved into the menu drawer (M5).
-    await expect(page.getByTestId('nav.tab.activity')).toHaveAttribute('aria-current', 'page');
+    // Four tabs (decision 149): dashboard, pickups, stores, messages; activity and account are in the menu drawer.
+    await expect(page.getByTestId('nav.tab.stores')).toHaveAttribute('href', '/stores/mine');
     await expect(page.getByTestId('nav.tab.messages')).toHaveAttribute('href', '/messages');
+    await expect(page.getByTestId('nav.tab.activity')).toHaveCount(0);
     await expect(page.getByTestId('nav.tab.account')).toHaveCount(0);
     // No horizontal overflow on a phone (it would widen the layout viewport and move the fixed tab bar).
     await expect(page.getByTestId('history.myActivity.list')).toHaveAttribute('data-state', 'success');

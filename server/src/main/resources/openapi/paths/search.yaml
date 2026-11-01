@@ -4,7 +4,7 @@
   get:
     tags: [search]
     operationId: search
-    summary: Search everything the user may see (max. 8 per kind).
+    summary: Search everything the user may see (max. 20 per kind; own entities first, decision 147).
     x-permission: authenticated
     parameters:
       - name: q
@@ -41,6 +41,17 @@
               $ref: '../schemas/common.yaml#/ApiError'
       "404":
         description: FEATURE_DISABLED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "429":
+        description: 'TOO_MANY_REQUESTS: more than app.search.rate-limit-per-minute searches of the user in the last minute (decision 147).'
+        headers:
+          Retry-After:
+            description: Seconds until the next search is accepted.
+            schema:
+              type: integer
         content:
           application/json:
             schema:
