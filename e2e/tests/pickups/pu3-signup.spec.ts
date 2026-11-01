@@ -1,4 +1,4 @@
-import { S01_THURSDAY, S07_WEDNESDAY, acceptPendingConsents, expect, test, zurichPickupAt } from '../../fixtures';
+import { S01_THURSDAY, S07_WEDNESDAY, acceptPendingConsents, expect, expectStatus, test, zurichPickupAt } from '../../fixtures';
 import { bellCount, openPickups, openSignup, pickupRow } from './_pickups';
 import { acceptConfirm } from '../stores/_stores';
 
@@ -63,6 +63,99 @@ test('PU3 sign out self and remove other with message @PU3', async ({ page, as, 
   await expect(pickupRow(bieb, S01_THURSDAY).getByTestId('stores.pickups.slot.taken')).toHaveCount(0);
   const after = (await store.pickupsOf(api, 'S-01')).find((p) => p.pickupAt === S01_THURSDAY);
   expect(after?.occupiedSlots ?? []).toHaveLength(0);
+});
+
+test('PU3 manager confirms from the ✓: the slot dialog opens with "Bestätigen" focused @PU3', async ({ as }) => {
+  const bieb = await as('bieb');
+  await openPickups(bieb, 'S-01');
+  const row = pickupRow(bieb, S01_THURSDAY);
+  const summary = row.getByTestId('stores.pickups.summary');
+  await expect(summary).toHaveAttribute('data-confirmed', '1');
+  await expect(summary).toHaveAttribute('data-pending', '1');
+
+  await row.locator('[data-testid="stores.pickups.slot.confirm"][data-user="Sarah Müller"]').click();
+  await expect(bieb.getByTestId('stores.pickups.slotState')).toHaveAttribute('data-confirmed', 'false');
+  // no one-click confirm: the dialog is the review moment, its "Bestätigen" has the focus
+  const confirmButton = bieb.getByTestId('stores.pickups.confirmSlot').locator('button');
+  await expect(confirmButton).toBeFocused();
+  await bieb.keyboard.press('Enter');
+
+  await expect(summary).toHaveAttribute('data-pending', '0');
+  await expect(summary).toHaveAttribute('data-confirmed', '2');
+  await expect(row.locator('[data-testid="stores.pickups.slot.taken"][data-user="Sarah Müller"]')).toHaveAttribute('data-confirmed', 'true');
+  await expect(row.getByTestId('stores.pickups.slot.confirm')).toHaveCount(0);
+});
+
+test('PU3 manager confirms all unconfirmed sign-ups of a pickup in one go @PU3', async ({ as, store }) => {
+  // second unconfirmed sign-up on S-01 Thursday: sleepy (confirmed in the seed) signs out and in again
+  const path = `/api/stores/${store.id('S-01')}/pickups/${encodeURIComponent(S01_THURSDAY)}/signups`;
+  await store.withRole('sleepy', async (client) => {
+    const me = await client.session();
+    await expectStatus(await client.delete(`${path}/${me.user!.id}`), [200, 204], 'sleepy signs out');
+  });
+  await store.signUp('sleepy', 'S-01', S01_THURSDAY);
+
+  const bieb = await as('bieb');
+  await openPickups(bieb, 'S-01');
+  const row = pickupRow(bieb, S01_THURSDAY);
+  const summary = row.getByTestId('stores.pickups.summary');
+  await expect(summary).toHaveAttribute('data-pending', '2');
+  await row.getByTestId('stores.pickups.confirmAll').click();
+  // one dialog that names the people
+  const dialog = bieb.locator('.p-confirmdialog');
+  await expect(dialog).toContainText('Sarah Müller');
+  await expect(dialog).toContainText('Marco Bernasconi');
+  await acceptConfirm(bieb);
+
+  await expect(summary).toHaveAttribute('data-pending', '0');
+  await expect(summary).toHaveAttribute('data-confirmed', '2');
+  await expect(row.getByTestId('stores.pickups.confirmAll')).toHaveCount(0);
+  await expect(row.locator('[data-testid="stores.pickups.slot.taken"][data-confirmed="false"]')).toHaveCount(0);
+});
+
+test('PU3 manager filters by "Unbestätigt (n)" and sees the empty text when all are confirmed @PU3', async ({ as }) => {
+  const bieb = await as('bieb');
+  await openPickups(bieb, 'S-01');
+  const chip = bieb.getByTestId('stores.pickups.range.pending');
+  await expect(chip).toHaveAttribute('aria-pressed', 'false');
+  const count = Number(await chip.getAttribute('data-count'));
+  expect(count).toBeGreaterThan(0);
+
+  await chip.click();
+  await expect(chip).toHaveAttribute('aria-pressed', 'true');
+  const rows = bieb.getByTestId('stores.pickups.pickup');
+  await expect(rows.first()).toBeVisible();
+  // every listed pickup has an unconfirmed slot; together they hold the chip's count
+  const pending = await rows.evaluateAll((els) =>
+    els.map((el) => el.querySelectorAll('[data-testid="stores.pickups.slot.taken"][data-confirmed="false"]').length),
+  );
+  expect(pending.every((n) => n > 0)).toBe(true);
+  expect(pending.reduce((a, b) => a + b, 0)).toBe(count);
+
+  // confirm them one by one; the chip stays pressed and the list says when nothing is left
+  for (let left = count; left > 0; left--) {
+    await bieb.getByTestId('stores.pickups.slot.confirm').first().click();
+    await bieb.getByTestId('stores.pickups.confirmSlot').click();
+    await expect(chip).toHaveAttribute('data-count', String(left - 1));
+  }
+  await expect(chip).toHaveAttribute('aria-pressed', 'true');
+  await expect(bieb.getByTestId('stores.pickups.pendingEmpty')).toBeVisible();
+  await expect(rows).toHaveCount(0);
+});
+
+test('PU3 every slot button names its state @PU3', async ({ as }) => {
+  const bieb = await as('bieb');
+  await openPickups(bieb, 'S-01');
+  const slots = bieb.locator('[data-testid="stores.pickups.slot.taken"], [data-testid="stores.pickups.slot.free"]');
+  await expect(slots.first()).toBeVisible();
+  for (const name of await slots.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') ?? ''))) {
+    expect(name).toMatch(/bestätigt|unbestätigt|frei/i);
+  }
+  const confirms = bieb.getByTestId('stores.pickups.slot.confirm');
+  await expect(confirms.first()).toBeVisible();
+  for (const name of await confirms.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') ?? ''))) {
+    expect(name).toMatch(/^.+ bestätigen$/);
+  }
 });
 
 test('PU3 sign-up before horizon opens is refused @PU3', async ({ api, store }) => {
