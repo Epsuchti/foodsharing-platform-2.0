@@ -269,8 +269,8 @@ async function fixedOrigin(page: Page): Promise<void> {
   }, 'http://localhost:8081');
 }
 
-async function modalOpen(page: Page): Promise<boolean> {
-  return page.locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible').count().then((n) => n > 0);
+async function overlayOpen(page: Page): Promise<boolean> {
+  return page.locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible, .sn-card:visible').count().then((n) => n > 0);
 }
 
 /**
@@ -290,8 +290,9 @@ const screen: ScreenHelpers = {
     await fixedOrigin(page);
     // A full-page capture of an open modal shows its backdrop only over the first viewport (fixed elements keep the
     // viewport's size), so the page below it looked brighter than the dimmed part. Modals are captured as the
-    // viewport the user sees.
-    const fullPage = options.fullPage ?? !(await modalOpen(page));
+    // viewport the user sees. So are the side menu's cards: a full-page capture resizes the viewport to 1x1 and back,
+    // and on a slow machine the app sees that width change and closes the open card (N3 bell panel on CI).
+    const fullPage = options.fullPage ?? !(await overlayOpen(page));
     // A full-page capture draws the sticky side menu at the page's scroll offset, and a click before the capture
     // leaves that offset depending on what had arrived by then (S2 import result). Always capture from the top.
     if (fullPage) {
