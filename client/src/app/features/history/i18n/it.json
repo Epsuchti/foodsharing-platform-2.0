@@ -220,6 +220,8 @@
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Decisioni archiviate",
   "history.action.AUTOMATION.FIELD_CHANGED": "Campo modificato",
   "history.action.SYSTEM.ADMIN_JOB_RUN_MANUAL": "Job avviato manualmente",
+  "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCKED": "Bloccato automaticamente (limite di richieste)",
+  "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCK_LIFTED": "Blocco automatico revocato",
   "history.action.SYSTEM.ADMIN_INTEGRATION_PROBED": "Integrazione verificata",
   "history.action.SYSTEM.ADMIN_INTEGRATION_TEST_SENT": "Messaggio di prova dell’integrazione inviato",
   "history.action.PICKUP.EXTRA_SLOT_ADDED": "Posto in più aggiunto",

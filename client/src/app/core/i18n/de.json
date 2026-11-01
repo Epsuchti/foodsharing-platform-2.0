@@ -373,6 +373,7 @@
   "errors.BLOCKLIST_DUPLICATE": "Dieser Eintrag steht bereits auf der Sperrliste.",
   "errors.BLOCKLIST_ENTRY_NOT_FOUND": "Diesen Sperrlisten-Eintrag gibt es nicht.",
   "errors.IP_BLOCK_NOT_FOUND": "Diese IP-Sperre gibt es nicht.",
+  "errors.RATE_LIMIT_BLOCK_NOT_FOUND": "Diese Sperre gibt es nicht mehr.",
   "errors.BLOG_POST_NOT_FOUND": "Diesen Blogbeitrag gibt es nicht.",
   "errors.PETITION_INACTIVE": "Zurzeit läuft keine Petition.",
   "errors.RELEASE_NOTE_NOT_FOUND": "Diesen Versionshinweis gibt es nicht.",
