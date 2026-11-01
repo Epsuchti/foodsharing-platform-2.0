@@ -529,9 +529,13 @@ paths:
     $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1log'
   /api/stores/{storeId}/statistics:
     $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics'
+  /api/stores/{storeId}/statistics/members:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics~1members'
   # --- store-team ---
   /api/stores/{storeId}/team:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team'
+  /api/stores/{storeId}/team/members:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1members'
   /api/stores/{storeId}/applications:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications'
   /api/stores/{storeId}/applications/me:

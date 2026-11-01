@@ -57,6 +57,7 @@ class QueryCountIT {
         "BOT|/api/regions/" + ZUERICH + "/polls|12",
         "BOT|/api/events/mine|6",
         "BIEB|/api/stores/" + STORE_S01 + "/team|19",
+        "BIEB|/api/stores/" + STORE_S01 + "/team/members|19",
         "BIEB|/api/users/me/pickups|20",
         // D17.1 load-test paths (per-kind loops of the journey/session are constant, not per row)
         "FOODSAVER|/api/auth/session|50",
