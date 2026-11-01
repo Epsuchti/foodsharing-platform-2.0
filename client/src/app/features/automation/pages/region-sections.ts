@@ -264,7 +264,11 @@ export class RegionGroupingSection {
         (ngModelChange)="$event && group.set($event)"
         [ariaLabel]="'automation.metrics.groupLabel' | t"
         data-testid="automation.metrics.group"
-      />
+      >
+        <ng-template #item let-option>
+          <span [attr.data-testid]="'automation.metrics.group.' + option.id">{{ option.label }}</span>
+        </ng-template>
+      </p-selectbutton>
       <fs-data-state [state]="metrics" skeleton="card" [emptyTitle]="'automation.metrics.empty' | t" testId="automation.metrics.state" data-testid="automation.metrics.state">
         <ng-template [fsData]="metrics">
           @if (totals().length) {

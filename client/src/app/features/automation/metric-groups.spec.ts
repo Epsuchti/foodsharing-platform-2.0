@@ -139,6 +139,11 @@ describe('region metrics section (AU9)', () => {
     const text = q('[data-testid="automation.metrics.state"]')?.textContent ?? '';
     expect(text).not.toMatch(/\b[A-Z_]+\.[A-Z_]+\b/);
     expect(rows[0].textContent).toContain(de['automation.metric.SLOT_APPROVAL_CONFIRMED']);
+
+    // switching the group shows only that group's series
+    (q('[data-testid="automation.metrics.group.DECLINE_REASONS"]') as HTMLElement).click();
+    await settle();
+    expect(all('[data-testid="automation.metrics.totals.row"]').map((r) => r.getAttribute('data-key'))).toEqual(['SLOT_DECLINE_RULE.GAP']);
   });
 
   it('a group without values shows the inline hint, not the page empty state', async () => {
