@@ -2,6 +2,7 @@ import { Type } from '@angular/core';
 
 import { InputsGallerySection } from './sections/inputs.section';
 import { JourneyGallerySection } from './sections/journey.section';
+import { NavigateGallerySection } from './sections/navigate.section';
 import { PeopleGallerySection } from './sections/people.section';
 import { RegionsMapGallerySection } from './sections/regions-map.section';
 import { ACCOUNT_GALLERY_SECTIONS } from './sections/account.section';
@@ -36,6 +37,7 @@ export const GALLERY_SECTIONS: readonly Type<unknown>[] = [
   RegionsMapGallerySection,
   InputsGallerySection,
   PeopleGallerySection,
+  NavigateGallerySection,
   ...SHARED_M6_GALLERY_SECTIONS,
   ...CONTENT_GALLERY_SECTIONS,
   ...BLOG_GALLERY_SECTIONS,

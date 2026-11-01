@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 
@@ -7,6 +7,8 @@ import { SessionService } from '../../../core/auth/session.service';
 import { hasPermission } from '../../../core/auth/permission.util';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
+import { NavigationLinks, navigationLinks } from '../../../shared/navigate-button/navigate.util';
 import { PhoneButtonComponent } from '../../../shared/phone/phone-button.component';
 import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { StickyOffsetDirective } from '../../../shared/sticky/sticky-offset.directive';
@@ -16,7 +18,6 @@ import {
   TeamStatusBadgeComponent,
 } from '../../../shared/store-badges/store-badges.component';
 import { StorePageContext } from '../store-page.context';
-import { mapLinks } from '../stores.util';
 
 interface StoreTab {
   id: string;
@@ -40,6 +41,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
     Button,
     CooperationStatusBadgeComponent,
     MembershipBadgeComponent,
+    NavigateButtonComponent,
     PhoneButtonComponent,
     RouterLink,
     RouterLinkActive,
@@ -88,43 +90,7 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
           </div>
           <div class="hero__actions">
             @if (links(store); as nav) {
-              <!-- design review M7 R3: on phones both map links fold behind one "Route" button (the hero kept the tabs below the fold) -->
-              <div class="route" [class.route--open]="routeOpen()">
-                <button
-                  type="button"
-                  class="p-button p-button-secondary p-button-outlined p-button-sm route__toggle"
-                  [attr.aria-expanded]="routeOpen()"
-                  aria-controls="store-route-links"
-                  (click)="routeOpen.set(!routeOpen())"
-                  data-testid="stores.page.route"
-                >
-                  <i class="pi pi-directions" aria-hidden="true"></i>
-                  <span>{{ 'stores.page.route' | t }}</span>
-                  <i class="pi pi-chevron-down route__chevron" aria-hidden="true"></i>
-                </button>
-                <div class="route__links" id="store-route-links">
-                  <a
-                    class="p-button p-button-secondary p-button-outlined p-button-sm"
-                    [href]="nav.google"
-                    target="_blank"
-                    rel="noopener"
-                    data-testid="stores.page.navigate"
-                  >
-                    <i class="pi pi-directions" aria-hidden="true"></i>
-                    <span>{{ 'stores.page.navigate' | t }}</span>
-                  </a>
-                  <a
-                    class="p-button p-button-secondary p-button-outlined p-button-sm"
-                    [href]="nav.apple"
-                    target="_blank"
-                    rel="noopener"
-                    data-testid="stores.page.navigateApple"
-                  >
-                    <i class="pi pi-apple" aria-hidden="true"></i>
-                    <span>{{ 'stores.page.navigateApple' | t }}</span>
-                  </a>
-                </div>
-              </div>
+              <fs-navigate-button [links]="nav" testId="stores.page.navigate" [small]="true" />
             }
             @if (store.permissions.mayReadWall && store.contact; as contact) {
               @if (contact.phone) {
@@ -177,49 +143,10 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
       gap: 0.5rem;
       align-items: center;
     }
-    .hero__actions a.p-button,
-    .route__toggle {
-      display: inline-flex;
-      gap: 0.4rem;
-      align-items: center;
-      text-decoration: none;
-    }
-    .route,
-    .route__links {
-      display: contents;
-    }
-    .route__toggle {
-      display: none;
-    }
-    .route__chevron {
-      font-size: 0.7rem;
-      transition: transform 150ms ease;
-    }
-    .route--open .route__chevron {
-      transform: rotate(180deg);
-    }
-    /* phones: one "Route" button; opened, the two map links take their own row below the actions */
-    @media (max-width: 47.99rem) {
-      .route__toggle {
-        display: inline-flex;
-      }
-      .route__links {
-        display: none;
-      }
-      .route--open .route__links {
-        display: flex;
-        flex: 1 0 100%;
-        flex-wrap: wrap;
-        order: 1;
-        gap: 0.5rem;
-      }
-    }
   `,
 })
 export class StorePageComponent {
   protected readonly ctx = inject(StorePageContext);
-  /** Phones: the map links behind the "Route" button are shown. */
-  protected readonly routeOpen = signal(false);
   private readonly session = inject(SessionService);
 
   protected readonly tabs = computed<StoreTab[]>(() => {
@@ -253,7 +180,7 @@ export class StorePageComponent {
     return tabs.filter((tab) => tab.visible && STORE_TABS_READY.has(tab.id));
   });
 
-  protected links(store: StoreDetail): { google: string; apple: string } | null {
-    return mapLinks(store);
+  protected links(store: StoreDetail): NavigationLinks | null {
+    return navigationLinks({ lat: store.latitude, lon: store.longitude, ...store.address, label: store.name });
   }
 }

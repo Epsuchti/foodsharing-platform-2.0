@@ -16,11 +16,13 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
+import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
+import { navigationLinks } from '../../../shared/navigate-button/navigate.util';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { WallComponent, WallPost } from '../../../shared/wall/wall.component';
-import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } from '../fsp.util';
+import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.util';
 
 /**
  * /food-share-points/:fspId (FS1; the FSP_ACTIVATE and FSP_NEW_POST bells link here): photo, description, address
@@ -36,6 +38,7 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
     DateTimePipe,
     FormsModule,
     MapViewComponent,
+    NavigateButtonComponent,
     PageHeaderComponent,
     RouterLink,
     ToggleSwitch,
@@ -121,14 +124,7 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
               </address>
               @if (links(); as l) {
                 <div class="links">
-                  <a class="link" [href]="l.google" target="_blank" rel="noopener noreferrer" data-testid="foodSharePoints.detail.googleMaps">
-                    <i class="pi pi-directions" aria-hidden="true"></i> {{ 'foodSharePoints.detail.googleMaps' | t }}
-                    <span class="fs-visually-hidden">{{ 'foodSharePoints.detail.newTab' | t }}</span>
-                  </a>
-                  <a class="link" [href]="l.apple" target="_blank" rel="noopener noreferrer" data-testid="foodSharePoints.detail.appleMaps">
-                    <i class="pi pi-directions" aria-hidden="true"></i> {{ 'foodSharePoints.detail.appleMaps' | t }}
-                    <span class="fs-visually-hidden">{{ 'foodSharePoints.detail.newTab' | t }}</span>
-                  </a>
+                  <fs-navigate-button [links]="l" testId="foodSharePoints.detail.navigate" />
                 </div>
               }
               @if (center(); as c) {
@@ -276,7 +272,6 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
     .inactive__text { display: flex; gap: 0.5rem; align-items: center; margin: 0; }
     .address { font-style: normal; line-height: 1.5; }
     .links { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
-    .link { display: inline-flex; gap: 0.35rem; align-items: center; font-weight: 600; }
     .switch { display: flex; gap: 0.75rem; align-items: center; }
     .managers { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
     .manager { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; min-width: 0; }
@@ -305,7 +300,7 @@ export class FspPageComponent {
   protected readonly photo = computed(() => photoVariant(this.fsp.data()?.photoUrl, 'lg'));
   protected readonly links = computed(() => {
     const f = this.fsp.data();
-    return f ? fspMapLinks(f) : null;
+    return f ? navigationLinks({ lat: f.lat, lon: f.lon, ...f.address, label: f.name }) : null;
   });
   protected readonly center = computed<[number, number] | undefined>(() => {
     const f = this.fsp.data();
