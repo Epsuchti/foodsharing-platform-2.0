@@ -31,7 +31,7 @@
   "pickups.tab.regularBadge": "regelmässig",
   "pickups.tab.edit": "Abholig bearbeite",
   "pickups.tab.cancelled": "Abgseit",
-  "pickups.tab.waiting": "Wartet uf Bestätigung",
+  "pickups.tab.waiting": "Unbestätigt",
   "pickups.tab.addExtraSlot": "En Zuesatzplatz hinzuefüege",
   "pickups.tab.extraSlotBy": "Zuesatzplatz vo {name}",
   "pickups.tab.extraSlotAdded": "Zuesatzplatz hinzuegfüegt.",
@@ -101,5 +101,16 @@
   "pickups.reminders.title": "Abholerinnerige",
   "pickups.reminders.text": "E Glogge und es Mail 24 Stund vor jedere vo dine Abholige.",
   "pickups.reminders.label": "A mini Abholige erinnere",
-  "pickups.reminders.saved": "Erinnerigsiistellig gspicheret."
+  "pickups.reminders.saved": "Erinnerigsiistellig gspicheret.",
+  "pickups.tab.waitingMine": "Din Platz isch no unbestätigt",
+  "pickups.tab.summary.confirmed": "{confirmed} vo {total} bestätigt",
+  "pickups.tab.summary.unconfirmed": "{count} unbestätigt",
+  "pickups.tab.confirmAll": "Alli {count} bestätige",
+  "pickups.tab.confirmAllTitle": "Alli bestätige?",
+  "pickups.tab.confirmAllText": "Für die Abholig bestätige: {names}.",
+  "pickups.tab.confirmedAll": "{count} Iiträg bestätigt.",
+  "pickups.tab.range.pending": "Unbestätigt ({count})",
+  "pickups.tab.pendingEmpty": "Kei unbestätigti Iiträg meh.",
+  "pickups.tab.state.confirmed": "Bestätigt",
+  "pickups.tab.state.unconfirmed": "Unbestätigt"
 }

@@ -20,8 +20,11 @@ import network.foodsharing.api.model.StoreListPage;
 import network.foodsharing.api.model.StoreMetadata;
 import network.foodsharing.api.model.StorePatch;
 import network.foodsharing.api.model.StorePermissions;
+import network.foodsharing.api.model.StatisticsMemberStatus;
+import network.foodsharing.api.model.StoreMemberPickupsPage;
 import network.foodsharing.api.model.StoreStatistics;
 import network.foodsharing.api.model.TeamSearchStatus;
+import network.foodsharing.api.model.TeamSort;
 import network.foodsharing.api.model.WallPost;
 import network.foodsharing.api.model.WallPostCreate;
 import network.foodsharing.api.model.WallPostPage;
@@ -107,6 +110,13 @@ public class StoresController implements StoresApi {
     @Override
     public ResponseEntity<StoreStatistics> getStoreStatistics(UUID storeId, LocalDate from, LocalDate to) {
         return ResponseEntity.ok(mapper.toStatistics(statistics.statistics(storeId, from, to)));
+    }
+
+    @Override
+    public ResponseEntity<StoreMemberPickupsPage> listStoreStatisticsMembers(UUID storeId, LocalDate from, LocalDate to,
+            StatisticsMemberStatus status, String search, TeamSort sort, Integer page, Integer size) {
+        return ResponseEntity.ok(mapper.toMemberPickupsPage(statistics.memberPickups(storeId, from, to,
+                mapper.toStatisticsQuery(status, search, sort, page, size))));
     }
 
     @Override

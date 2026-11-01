@@ -29,7 +29,7 @@ export function canCollapse(widthPx: number, remPx = 16): boolean {
   return widthPx >= SIDENAV_MIN_REM * remPx && widthPx < SIDENAV_WIDE_REM * remPx;
 }
 
-/** Focus is in a field where `[` or Ctrl K are text (input, textarea, select, contenteditable). */
+/** Focus is in a field where `[` is text (input, textarea, select, contenteditable). */
 export function isTypingTarget(target: EventTarget | null): boolean {
   const element = target as HTMLElement | null;
   if (!element || typeof element.tagName !== 'string') return false;
@@ -50,12 +50,6 @@ export function isCollapseShortcut(event: ShortcutEvent): boolean {
   if (event.key !== '[' || event.metaKey || isTypingTarget(event.target)) return false;
   const altGr = event.ctrlKey && event.altKey;
   return altGr || (!event.ctrlKey && !event.altKey);
-}
-
-/** Ctrl K (Cmd K on macOS) focuses the search. Never while typing. */
-export function isSearchShortcut(event: ShortcutEvent): boolean {
-  if (event.key.toLowerCase() !== 'k' || event.altKey || isTypingTarget(event.target)) return false;
-  return event.ctrlKey !== event.metaKey;
 }
 
 /** User's open/closed choices per section (reset on reload). */

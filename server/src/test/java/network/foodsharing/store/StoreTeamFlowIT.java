@@ -140,16 +140,42 @@ class StoreTeamFlowIT {
     @Test
     void teamListShowsPhonesToMembersButNoApplications() throws Exception {
         mvc.perform(get(S + "01/team").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.applications").isEmpty())
+                .andExpect(jsonPath("$.members").doesNotExist());
+        mvc.perform(get(S + "01/team/members").cookie(login(SeedUsers.FOODSAVER)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.members[0].isManager").value(true))
-                .andExpect(jsonPath("$.members[0].user.phone").isNotEmpty())
-                .andExpect(jsonPath("$.members[0].phone").value(org.hamcrest.Matchers.startsWith("+")))
-                .andExpect(jsonPath("$.jumpers[0].user.id").value(SeedUsers.JUMPER.id().toString()))
-                .andExpect(jsonPath("$.applications").isEmpty());
-        mvc.perform(get(S + "01/team").cookie(login(SeedUsers.JUMPER)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.members[0].user.phone").doesNotExist())
-                .andExpect(jsonPath("$.members[0].phone").doesNotExist());
+                .andExpect(jsonPath("$.items[0].isManager").value(true))
+                .andExpect(jsonPath("$.items[0].user.phone").isNotEmpty())
+                .andExpect(jsonPath("$.items[0].phone").value(org.hamcrest.Matchers.startsWith("+")))
+                .andExpect(jsonPath("$.page.page").value(0)).andExpect(jsonPath("$.page.size").value(20));
+        mvc.perform(get(S + "01/team/members").param("status", "JUMPER").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.user.id=='" + SeedUsers.JUMPER.id() + "')].status").value(
+                        org.hamcrest.Matchers.contains("JUMPER")))
+                .andExpect(jsonPath("$.items[?(@.status=='MEMBER')]").isEmpty());
+        mvc.perform(get(S + "01/team/members").cookie(login(SeedUsers.JUMPER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].user.phone").doesNotExist())
+                .andExpect(jsonPath("$.items[0].phone").doesNotExist());
         mvc.perform(get(S + "01/team").cookie(login(SeedUsers.BIEB)))
-                .andExpect(jsonPath("$.applications").isArray()).andExpect(jsonPath("$.members[0].distanceKm").exists());
+                .andExpect(jsonPath("$.applications").isArray());
+        mvc.perform(get(S + "01/team/members").cookie(login(SeedUsers.BIEB)))
+                .andExpect(jsonPath("$.items[0].distanceKm").exists());
+    }
+
+    @Test
+    void teamListPagesSortsAndValidates() throws Exception {
+        Cookie bieb = login(SeedUsers.BIEB);
+        mvc.perform(get(S + "01/team/members").param("size", "1").param("page", "1").param("sort", "PICKUP_COUNT")
+                        .cookie(bieb))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.page.page").value(1))
+                .andExpect(jsonPath("$.page.totalItems").value(org.hamcrest.Matchers.greaterThan(1)));
+        mvc.perform(get(S + "01/team/members").param("search", "zzz-nobody").cookie(bieb))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.page.totalItems").value(0));
+        mvc.perform(get(S + "01/team/members").param("size", "101").cookie(bieb))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get(S + "01/team/members").param("status", "FORMER").cookie(bieb))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -88,6 +88,7 @@ test('AU4 filled slot after the advert counts in the filled-after-advert metric 
 
   await page.goto(`/regions/${seedRegion('zuerich-stadt').id}/automation/metrics`);
   await expectDataState(page, 'automation.metrics.state', 'success');
+  await page.getByTestId('automation.metrics.group.ADVERTS').click();
   await expect(page.locator('[data-testid="automation.metrics.chart.legend"][data-key="ADVERT.FILLED_AFTER_ADVERT"]')).not.toHaveAttribute('data-total', '0');
   await clock.fixServer();
 });

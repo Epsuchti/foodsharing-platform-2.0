@@ -13,6 +13,8 @@ import network.foodsharing.api.model.ConversationReadUpdate;
 import network.foodsharing.api.model.ConversationRename;
 import network.foodsharing.api.model.ConversationUnreadCount;
 import network.foodsharing.api.model.MessageCreate;
+import network.foodsharing.api.model.MessageDelete;
+import network.foodsharing.api.model.MessageUpdate;
 import network.foodsharing.api.model.MessagePreview;
 import network.foodsharing.api.model.RegionConversation;
 import network.foodsharing.api.model.RegionConversationUpdate;
@@ -24,6 +26,7 @@ import network.foodsharing.messaging.domain.ConversationMessage;
 import network.foodsharing.messaging.service.ConversationLinkService;
 import network.foodsharing.messaging.service.ConversationQueryService;
 import network.foodsharing.messaging.service.ConversationQueryService.ConversationView;
+import network.foodsharing.messaging.service.MessagePermissions;
 import network.foodsharing.messaging.service.MessagingService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
@@ -83,29 +86,51 @@ public class MessagingController implements MessagingApi {
 
     @Override
     public ResponseEntity<ConversationDetail> getConversation(UUID conversationId) {
-        UUID me = currentActor.requireUserId();
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        UUID me = actor.userId();
         ConversationView view = queries.view(me, conversationId);
+        MessagePermissions permissions = messaging.permissions(actor, conversationId);
         network.foodsharing.api.model.Conversation c = toApi(view);
         ConversationDetail detail = new ConversationDetail().id(c.getId()).kind(c.getKind()).name(c.getName())
                 .customName(c.getCustomName()).locked(c.getLocked()).members(c.getMembers())
                 .memberCount(c.getMemberCount()).lastMessage(c.getLastMessage()).lastMessageAt(c.getLastMessageAt())
                 .unreadCount(c.getUnreadCount()).lastReadSeq(c.getLastReadSeq()).lastSeq(c.getLastSeq())
                 .storeId(c.getStoreId()).regionId(c.getRegionId())
-                .messages(queries.latest(me, conversationId).stream().map(MessagingController::toApi).toList());
+                .messages(queries.latest(me, conversationId).stream().map(m -> toApi(m, permissions)).toList());
         return ResponseEntity.ok(detail);
     }
 
     @Override
     public ResponseEntity<List<ChatMessage>> listMessages(UUID conversationId, Long beforeSeq, Long afterSeq,
                                                           Integer limit) {
-        return ResponseEntity.ok(queries.messages(currentActor.requireUserId(), conversationId, beforeSeq, afterSeq,
-                limit == null ? 30 : limit).stream().map(MessagingController::toApi).toList());
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        List<ConversationMessage> page = queries.messages(actor.userId(), conversationId, beforeSeq, afterSeq,
+                limit == null ? 30 : limit);
+        MessagePermissions permissions = messaging.permissions(actor, conversationId);
+        return ResponseEntity.ok(page.stream().map(m -> toApi(m, permissions)).toList());
     }
 
     @Override
     public ResponseEntity<ChatMessage> sendMessage(UUID conversationId, MessageCreate create) {
-        return ResponseEntity.ok(toApi(messaging.send(currentActor.requireUserId(), conversationId, create.getBody(),
-                create.getClientKey())));
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        ConversationMessage sent = messaging.send(actor.userId(), conversationId, create.getBody(),
+                create.getClientKey());
+        return ResponseEntity.ok(toApi(sent, messaging.permissions(actor, conversationId)));
+    }
+
+    @Override
+    public ResponseEntity<ChatMessage> editMessage(UUID conversationId, UUID messageId, MessageUpdate update) {
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        ConversationMessage edited = messaging.editMessage(actor, conversationId, messageId, update.getBody());
+        return ResponseEntity.ok(toApi(edited, messaging.permissions(actor, conversationId)));
+    }
+
+    @Override
+    public ResponseEntity<ChatMessage> deleteMessage(UUID conversationId, UUID messageId, MessageDelete delete) {
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        ConversationMessage deleted = messaging.deleteMessage(actor, conversationId, messageId,
+                delete == null ? null : delete.getReason());
+        return ResponseEntity.ok(toApi(deleted, messaging.permissions(actor, conversationId)));
     }
 
     @Override
@@ -169,15 +194,20 @@ public class MessagingController implements MessagingApi {
         if (c.getLastMessageAt() != null) {
             api.lastMessage(new MessagePreview().seq(c.getLastSeq()).body(c.getLastMessagePreview() == null ? ""
                     : c.getLastMessagePreview()).senderId(c.getLastSenderId())
-                    .at(TimeMapper.toOffset(c.getLastMessageAt())));
+                    .at(TimeMapper.toOffset(c.getLastMessageAt()))
+                    // a message body is never empty, so an empty preview means the latest message was deleted
+                    .deleted(c.getLastMessagePreview() != null && c.getLastMessagePreview().isEmpty()));
         }
         return api;
     }
 
-    static ChatMessage toApi(ConversationMessage message) {
+    static ChatMessage toApi(ConversationMessage message, MessagePermissions permissions) {
         return new ChatMessage().id(message.getId()).seq(message.getSeq()).senderId(message.getSenderId())
                 .body(message.getBody()).sentAt(TimeMapper.toOffset(message.getSentAt()))
-                .clientKey(message.getClientKey());
+                .clientKey(message.getClientKey()).editedAt(TimeMapper.toOffset(message.getEditedAt()))
+                .deletedAt(TimeMapper.toOffset(message.getDeletedAt()))
+                .deletedByModerator(message.isDeleted() ? message.isDeletedByModerator() : null)
+                .mayEdit(permissions.mayEdit(message)).mayDelete(permissions.mayDelete(message));
     }
 
     private static RegionConversation toApi(ConversationLinkService.RegionChat chat) {

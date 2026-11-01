@@ -39,6 +39,11 @@ public class SlidingWindowRateLimiter {
         requestsByKey.clear();
     }
 
+    /** Forgets the recorded attempts of one key (e.g. when an admin lifts its block). */
+    public void clear(String key) {
+        requestsByKey.remove(key);
+    }
+
     /** Dev seed reset: clears every limiter. */
     public static void clearAll() {
         synchronized (INSTANCES) {

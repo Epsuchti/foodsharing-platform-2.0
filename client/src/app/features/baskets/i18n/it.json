@@ -57,6 +57,8 @@
   "baskets.detail.location": "Luogo di ritiro",
   "baskets.detail.locationHome": "Vicino all'abitazione (posizione approssimativa)",
   "baskets.detail.locationCustom": "Luogo di ritiro scelto dalla persona",
+  "baskets.detail.navigateApproximate": "Posizione approssimativa, precisa a circa 100 m",
+  "baskets.detail.navigateLabel": "Cesto",
   "baskets.detail.mapLabel": "Mappa con il luogo di ritiro",
   "baskets.detail.contact": "Contatto",
   "baskets.detail.message": "Scrivi un messaggio",

@@ -22,6 +22,11 @@ export interface ChatMessage {
   body: string;
   sentAt: string;
   clientKey?: string;
+  editedAt?: string;
+  deletedAt?: string;
+  deletedByModerator?: boolean;
+  mayEdit?: boolean;
+  mayDelete?: boolean;
 }
 
 export interface ConversationSummary {
@@ -37,6 +42,23 @@ export interface ConversationSummary {
 /** Sends a message as the API client's user. */
 export function sendMessage(client: ApiClient, conversationId: string, body: string): Promise<ChatMessage> {
   return client.postJson<ChatMessage>(`/api/conversations/${conversationId}/messages`, { body });
+}
+
+/** Edits an own message (within the edit window). */
+export function editMessage(client: ApiClient, conversationId: string, messageId: string, body: string): Promise<ChatMessage> {
+  return client.patchJson<ChatMessage>(`/api/conversations/${conversationId}/messages/${messageId}`, { body });
+}
+
+/** Deletes a message; `reason` is required when a moderator deletes someone else's message. */
+export async function deleteMessage(client: ApiClient, conversationId: string, messageId: string, reason?: string): Promise<ChatMessage> {
+  const response = await client.fetch('DELETE', `/api/conversations/${conversationId}/messages/${messageId}`, reason ? { reason } : undefined);
+  expect(response.status(), `delete message: ${await response.text()}`).toBe(200);
+  return (await response.json()) as ChatMessage;
+}
+
+/** The bubble of one message of the open conversation. */
+export function bubble(page: Page, seq: number) {
+  return page.locator(`[data-testid="messaging.conversation.message"][data-seq="${seq}"]`);
 }
 
 /** Finds or creates the conversation with exactly these members (plus the caller). */

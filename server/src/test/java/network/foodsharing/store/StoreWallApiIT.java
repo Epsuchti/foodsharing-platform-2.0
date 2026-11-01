@@ -114,10 +114,22 @@ class StoreWallApiIT {
         mvc.perform(get("/api/stores/" + S01 + "/statistics").cookie(login(SeedUsers.BIEB)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.totalPickups").value(Matchers.greaterThan(0)))
                 .andExpect(jsonPath("$.months.length()").value(12))
-                .andExpect(jsonPath("$.weightCategory.code").value("KG_10_20"))
-                .andExpect(jsonPath("$.perMember").isNotEmpty());
+                .andExpect(jsonPath("$.weightCategory.code").value("KG_10_20"));
+        mvc.perform(get("/api/stores/" + S01 + "/statistics/members").cookie(login(SeedUsers.BIEB)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isNotEmpty())
+                .andExpect(jsonPath("$.items[0].status").exists())
+                .andExpect(jsonPath("$.items[0].lastPickupAt").exists())
+                .andExpect(jsonPath("$.page.totalItems").value(Matchers.greaterThan(0)));
+        mvc.perform(get("/api/stores/" + S01 + "/statistics/members").param("from", "2012-01-01")
+                        .param("sort", "NAME").param("size", "1").cookie(login(SeedUsers.BIEB)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1));
+        mvc.perform(get("/api/stores/" + S01 + "/statistics/members").param("size", "101")
+                        .cookie(login(SeedUsers.BIEB)))
+                .andExpect(status().isBadRequest());
         mvc.perform(get("/api/stores/" + S01 + "/statistics").cookie(login(SeedUsers.FOODSAVER)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.perMember").doesNotExist());
+        mvc.perform(get("/api/stores/" + S01 + "/statistics/members").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
 
     @Test

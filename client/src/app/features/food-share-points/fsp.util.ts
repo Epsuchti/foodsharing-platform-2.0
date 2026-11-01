@@ -1,4 +1,4 @@
-import { FspAddress, FspCreate, FspSummary, FspUpdate } from '../../api';
+import { FspCreate, FspSummary, FspUpdate } from '../../api';
 import { MapMarker } from '../../shared/map-view/map-view.component';
 
 /** Server limits (`schemas/food-share-points.yaml`). */
@@ -8,28 +8,6 @@ export const POSTCODE_MAX = 20;
 export const CITY_MAX = 200;
 export const DESCRIPTION_MAX = 32600;
 export const MANAGERS_MAX = 20;
-
-export interface MapLinks {
-  google: string;
-  apple: string;
-}
-
-/** Navigation deep links (as `stores.util.ts` `mapLinks`): coordinates when known, otherwise the address. */
-export function fspMapLinks(fsp: { lat?: number | null; lon?: number | null; address: FspAddress; name: string }): MapLinks | null {
-  const { lat, lon, address } = fsp;
-  if (lat != null && lon != null) {
-    return {
-      google: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
-      apple: `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(fsp.name)}`,
-    };
-  }
-  const query = [address.street, address.postcode, address.city].filter(Boolean).join(' ');
-  if (!query) return null;
-  return {
-    google: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-    apple: `https://maps.apple.com/?q=${encodeURIComponent(query)}`,
-  };
-}
 
 /** Photo URL in another variant size (the server returns `…?size=md`; A41 sizes sm|md|lg). */
 export function photoVariant(url: string | null | undefined, size: 'sm' | 'md' | 'lg'): string | undefined {

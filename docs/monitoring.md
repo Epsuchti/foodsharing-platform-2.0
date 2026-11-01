@@ -28,7 +28,8 @@ Operations metrics of the platform (`common/metrics/OperationsMetrics`):
 | `fs_job_consecutive_failures` | gauge | `name` | failures in a row (reset on success) | alert `JobFailing` |
 | `fs_async_jobs_running` | gauge | – | background jobs (imports, exports) in `RUNNING` (`ProgressTracker`) | alert `AsyncJobsPiling` |
 | `fs_websocket_connected_users` | gauge | – | users with an open STOMP session | dashboard |
-| `fs_rate_limit_rejections_total` | counter | `limiter` | every rejection of a `SlidingWindowRateLimiter` (login-ip, login-email, basket-requests, client-errors, group-mails, support, messages) | alert `RateLimitSpike` |
+| `fs_rate_limit_rejections_total` | counter | `limiter` | every rejection of a `SlidingWindowRateLimiter` (login-ip, login-email, basket-requests, client-errors, group-mails, support, messages, public-api, api-ip, api-user; for api-ip/api-user also every request rejected during a block) | alert `RateLimitSpike` |
+| `fs_rate_limit_blocks_total` | counter | `scope` = `ip`, `account`; `level` = `1`, `2`, `3+` | every new block of the API rate limit (D17.2, `ApiRateLimitFilter`) | alert `RateLimitBlocks` |
 | `fs_login_failures_total` | counter | `reason` = `invalid-token`, `expired-token`, `passkey` | failed magic-link / passkey logins | alert `LoginFailureSpike` |
 
 Metrics contain no personal data (no user ids, emails or IPs as tags).
@@ -50,6 +51,7 @@ Metrics contain no personal data (no user ids, emails or IPs as tags).
 | `NotificationDeliveryFailures` | ticket | > 50 failures / 30 min per channel | check provider status, keys (`docs/secrets.md`) |
 | `LoginFailureSpike` | ticket | > 100 failed logins / 15 min | runbook §9.4 |
 | `RateLimitSpike` | ticket | > 200 rejections / 15 min per limiter | runbook §9.4 |
+| `RateLimitBlocks` | ticket | > 20 new API rate-limit blocks / 1 h | runbook §9.4 (automatic blocks: admin IP blocks page, proxy check) |
 | `AsyncJobsPiling` | ticket | > 10 running background jobs for 15 min | runbook §6.2 |
 
 Routing: `alertmanager.yml` mails the IT team; `page` alerts repeat every 30 min, `ticket` alerts daily. Not covered by Prometheus (host level): disk space, certificate expiry and backup freshness — the host's cron mails the output of `backup.sh` / `verify-backup.sh` (runbook §7) and `df -h` checks run there.

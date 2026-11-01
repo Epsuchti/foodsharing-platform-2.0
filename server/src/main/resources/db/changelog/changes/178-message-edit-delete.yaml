@@ -1,0 +1,13 @@
+# Milestone 6 (resume item 16): edit and delete own chat messages, moderator delete (A33 amended).
+databaseChangeLog:
+  - changeSet:
+      id: 178-1
+      author: platform
+      comment: 'Edit and delete markers of a chat message; a deleted message keeps its row and seq with an empty body.'
+      changes:
+        - addColumn:
+            tableName: message
+            columns:
+              - column: {name: edited_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: deleted_at, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: deleted_by, type: UUID}

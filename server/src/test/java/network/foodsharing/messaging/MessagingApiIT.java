@@ -2,6 +2,7 @@ package network.foodsharing.messaging;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -142,6 +143,131 @@ class MessagingApiIT {
         List<String> inGroup = JsonPath.read(body(get("/api/users/search").param("q", "Jo")
                 .param("regionId", "00000011-0001-4000-8000-000000000033").cookie(guide)), "$[*].id");
         assertThat(inGroup).contains(SeedUsers.JUMPER.id().toString());
+    }
+
+    // ------------------------------------------------------------------------------ edit / delete (item 16)
+
+    static final String DIRECT_FOODSAVER_BIEB = "00000041-0001-4000-8000-000000000001";
+    static final String DIRECT_FOODSAVER_BOT = "00000041-0001-4000-8000-000000000002";
+    static final String GROUP_KOCHGRUPPE = "00000041-0001-4000-8000-000000000003";
+    static final String S01_TEAM = "00000041-0001-4000-8000-000000000004";
+
+    @Test
+    void editAndDeleteOwnMessagesWithAllErrorCodes() throws Exception {
+        Cookie guide = login(SeedUsers.GUIDE);
+        Cookie jumper = login(SeedUsers.JUMPER);
+        String id = JsonPath.read(body(json(post("/api/conversations/lookup"), "{\"memberIds\":[\""
+                + SeedUsers.JUMPER.id() + "\"]}").cookie(guide)), "$.id");
+        String sent = body(json(post("/api/conversations/" + id + "/messages"), "{\"body\":\"Treffen um 18 Uhr\"}")
+                .cookie(guide));
+        String messageId = JsonPath.read(sent, "$.id");
+        assertThat((Boolean) JsonPath.read(sent, "$.mayEdit")).isTrue();
+        assertThat((Boolean) JsonPath.read(sent, "$.mayDelete")).isTrue();
+        String path = "/api/conversations/" + id + "/messages/" + messageId;
+
+        mvc.perform(json(patch(path), "{\"body\":\"Treffen um 19 Uhr\"}").cookie(guide)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.body").value("Treffen um 19 Uhr")).andExpect(jsonPath("$.editedAt").exists())
+                .andExpect(jsonPath("$.mayEdit").value(true));
+        mvc.perform(get("/api/conversations/" + id).cookie(jumper))
+                .andExpect(jsonPath("$.messages[0].body").value("Treffen um 19 Uhr"))
+                .andExpect(jsonPath("$.messages[0].editedAt").exists())
+                .andExpect(jsonPath("$.messages[0].mayEdit").value(false))
+                .andExpect(jsonPath("$.messages[0].mayDelete").value(false))
+                .andExpect(jsonPath("$.lastMessage.body").value("Treffen um 19 Uhr"));
+
+        mvc.perform(json(patch(path), "{\"body\":\"   \"}").cookie(guide)).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MESSAGE_EMPTY"));
+        mvc.perform(json(patch(path), "{\"body\":\"Meins\"}").cookie(jumper)).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("MESSAGE_NOT_EDITABLE"));
+        mvc.perform(json(delete(path), "").cookie(jumper)).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("MESSAGE_NOT_EDITABLE"));
+        mvc.perform(json(patch(path), "{\"body\":\"x\"}").cookie(login(SeedUsers.WELCOME)))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NOT_CONVERSATION_MEMBER"));
+        mvc.perform(json(patch("/api/conversations/" + id + "/messages/" + UUID.randomUUID()), "{\"body\":\"x\"}")
+                .cookie(guide)).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MESSAGE_NOT_FOUND"));
+        mvc.perform(json(patch("/api/conversations/" + UUID.randomUUID() + "/messages/" + messageId),
+                "{\"body\":\"x\"}").cookie(guide)).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("CONVERSATION_NOT_FOUND"));
+
+        mvc.perform(json(delete(path), "").cookie(guide)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.body").value("")).andExpect(jsonPath("$.deletedAt").exists())
+                .andExpect(jsonPath("$.deletedByModerator").value(false))
+                .andExpect(jsonPath("$.mayEdit").value(false)).andExpect(jsonPath("$.mayDelete").value(false));
+        mvc.perform(json(delete(path), "").cookie(guide)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("MESSAGE_DELETED"));
+        mvc.perform(json(patch(path), "{\"body\":\"x\"}").cookie(guide)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("MESSAGE_DELETED"));
+        mvc.perform(get("/api/conversations").cookie(jumper))
+                .andExpect(jsonPath("$.items[?(@.id=='" + id + "')].lastMessage.deleted").value(true))
+                .andExpect(jsonPath("$.items[?(@.id=='" + id + "')].lastMessage.body").value(""));
+
+        // the seeded first message of foodsaver ↔ bieb is older than 24 hours
+        String old = "/api/conversations/" + DIRECT_FOODSAVER_BIEB + "/messages/00000041-0003-4000-8000-000000000001";
+        Cookie bieb = login(SeedUsers.BIEB);
+        mvc.perform(json(patch(old), "{\"body\":\"x\"}").cookie(bieb)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("MESSAGE_EDIT_WINDOW_EXPIRED"));
+        mvc.perform(json(delete(old), "").cookie(bieb)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("MESSAGE_EDIT_WINDOW_EXPIRED"));
+    }
+
+    @Test
+    void storeManagersDeleteOtherPeoplesMessagesWithAReason() throws Exception {
+        Cookie bieb = login(SeedUsers.BIEB);
+        // seq 2 "Danke für die Info!" by foodsaver
+        String path = "/api/conversations/" + S01_TEAM + "/messages/00000041-0003-4000-8000-000000000025";
+        mvc.perform(get("/api/conversations/" + S01_TEAM + "/messages").param("afterSeq", "1").param("limit", "1")
+                .cookie(bieb)).andExpect(jsonPath("$[0].mayEdit").value(false))
+                .andExpect(jsonPath("$[0].mayDelete").value(true));
+        mvc.perform(json(delete(path), "").cookie(bieb)).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("DELETE_REASON_REQUIRED"));
+        mvc.perform(json(delete(path), "{\"reason\":\"zu kurz\"}").cookie(bieb)).andExpect(status().isBadRequest());
+        mvc.perform(json(patch(path), "{\"body\":\"x\"}").cookie(bieb)).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("MESSAGE_NOT_EDITABLE"));
+        mvc.perform(json(delete(path), "{\"reason\":\"Gehört in den Direktchat.\"}").cookie(bieb))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.deletedByModerator").value(true))
+                .andExpect(jsonPath("$.body").value(""));
+
+        // the seeded moderator delete is shown as such
+        mvc.perform(get("/api/conversations/" + S01_TEAM + "/messages").param("afterSeq", "4").param("limit", "1")
+                .cookie(bieb)).andExpect(jsonPath("$[0].deletedByModerator").value(true))
+                .andExpect(jsonPath("$[0].body").value(""));
+    }
+
+    @Test
+    void originalTextsInTheHistoryOnlyForModerators() throws Exception {
+        // store chat: the store manager and ORGA see the original text and the reason
+        String store = body(get("/api/history").param("subjectType", "CONVERSATION").param("subjectId", S01_TEAM)
+                .param("actions", "MESSAGE_DELETED").cookie(login(SeedUsers.BIEB)));
+        assertThat(JsonPath.<List<String>>read(store, "$.items[?(@.id=='00000041-0006-4000-8000-000000000003')].oldValue"))
+                .containsExactly("Ich schaue, ob ich kann.");
+        assertThat(JsonPath.<List<String>>read(store, "$.items[?(@.id=='00000041-0006-4000-8000-000000000003')].reason"))
+                .containsExactly("Doppelt gepostet, die Abholung ist schon besetzt.");
+
+        // group chat: ORGA sees the originals, a member sees the entries without values
+        String orga = body(get("/api/history").param("subjectType", "CONVERSATION").param("subjectId", GROUP_KOCHGRUPPE)
+                .cookie(login(SeedUsers.ORGA)));
+        assertThat(JsonPath.<List<String>>read(orga, "$.items[?(@.id=='00000041-0006-4000-8000-000000000001')].oldValue"))
+                .containsExactly("Ich kümmere mich ums Brot.");
+        String member = body(get("/api/history").param("subjectType", "CONVERSATION")
+                .param("subjectId", GROUP_KOCHGRUPPE).cookie(login(SeedUsers.JUMPER)));
+        assertThat(JsonPath.<List<String>>read(member, "$.items[*].action")).contains("MESSAGE_EDITED", "MESSAGE_DELETED");
+        assertThat(JsonPath.<List<Object>>read(member, "$.items[?(@.action=='MESSAGE_EDITED')].oldValue")).containsOnlyNulls();
+        assertThat(JsonPath.<List<Object>>read(member, "$.items[?(@.action=='MESSAGE_EDITED')].newValue")).containsOnlyNulls();
+        assertThat(JsonPath.<List<Object>>read(member, "$.items[?(@.action=='MESSAGE_DELETED')].oldValue")).containsOnlyNulls();
+
+        // direct chat: a region admin (ambassador) who is a member does not see the originals either
+        Cookie bot = login(SeedUsers.BOT);
+        String sent = body(json(post("/api/conversations/" + DIRECT_FOODSAVER_BOT + "/messages"),
+                "{\"body\":\"Bis Freitag\"}").cookie(bot));
+        mvc.perform(json(patch("/api/conversations/" + DIRECT_FOODSAVER_BOT + "/messages/" + JsonPath.read(sent, "$.id")),
+                "{\"body\":\"Bis Samstag\"}").cookie(bot)).andExpect(status().isOk());
+        String direct = body(get("/api/history").param("subjectType", "CONVERSATION")
+                .param("subjectId", DIRECT_FOODSAVER_BOT).param("actions", "MESSAGE_EDITED").cookie(bot));
+        assertThat(JsonPath.<List<Object>>read(direct, "$.items[*].action")).isNotEmpty();
+        assertThat(JsonPath.<List<Object>>read(direct, "$.items[*].oldValue")).containsOnlyNulls();
+        String asOrga = body(get("/api/history").param("subjectType", "CONVERSATION")
+                .param("subjectId", DIRECT_FOODSAVER_BOT).param("actions", "MESSAGE_EDITED").cookie(login(SeedUsers.ORGA)));
+        assertThat(JsonPath.<List<String>>read(asOrga, "$.items[*].oldValue")).contains("Bis Freitag");
     }
 
     private List<String> members(String conversationId, Cookie cookie) throws Exception {

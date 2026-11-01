@@ -12,11 +12,13 @@ import { RegionContextService } from '../../../core/region/region-context.servic
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-dialog.component';
+import { PickupSummaryComponent } from '../components/pickup-summary.component';
+import { SlotSummary, countSummary } from '../pickups.util';
 
 /** /pickups (PU7): "where can I help" – pickups with free slots in my stores, sorted by time, sign up inline. */
 @Component({
   selector: 'fs-pickup-options-page',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, PickupSignupDialogComponent, RouterLink, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, PickupSignupDialogComponent, PickupSummaryComponent, RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- secondary page actions sit in the page header (design review M7 R2: consistent action placement) -->
@@ -41,8 +43,19 @@ import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-
                 @if (option.description) {
                   <span class="muted">{{ option.description }}</span>
                 }
-                <span class="muted" data-testid="pickups.options.free">
-                  {{ 'pickups.options.free' | t: { free: option.slotCount - option.occupiedSlots.length, total: option.slotCount } }}
+                <span class="option__slots">
+                  <span class="muted" data-testid="pickups.options.free">
+                    {{ 'pickups.options.free' | t: { free: option.slotCount - option.occupiedSlots.length, total: option.slotCount } }}
+                  </span>
+                  @if (option.occupiedSlots.length > 0) {
+                    @let summary = summaryOf(option);
+                    <fs-pickup-summary
+                      [confirmed]="summary.confirmed"
+                      [unconfirmed]="summary.unconfirmed"
+                      [total]="summary.total"
+                      testId="pickups.options.summary"
+                    />
+                  }
                 </span>
               </div>
               <p-button
@@ -70,6 +83,7 @@ import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-
     .option__store { font-weight: 700; color: inherit; }
     .option__when { font-variant-numeric: tabular-nums; }
     .muted { color: var(--fs-text-muted); font-size: 0.88rem; }
+    .option__slots { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.75rem; row-gap: 0.15rem; }
   `,
 })
 export class PickupOptionsPageComponent {
@@ -89,6 +103,11 @@ export class PickupOptionsPageComponent {
       .filter((option) => option.occupiedSlots.length < option.slotCount)
       .sort((a, b) => a.pickupAt.localeCompare(b.pickupAt)),
   );
+
+  /** The options list only has the counts: unconfirmed = taken − confirmed, never below 0. */
+  protected summaryOf(option: PickupOption): SlotSummary {
+    return countSummary(option.occupiedSlots.length, option.confirmedCount, option.slotCount);
+  }
 
   protected readonly signupOpen = signal(false);
   protected readonly target = signal<SignupTarget | null>(null);

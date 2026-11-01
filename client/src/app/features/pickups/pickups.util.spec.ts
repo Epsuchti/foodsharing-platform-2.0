@@ -1,4 +1,14 @@
-import { addDays, dayOf, groupByDay, zonedToUtc } from './pickups.util';
+import {
+  addDays,
+  countSummary,
+  dayOf,
+  firstName,
+  groupByDay,
+  pickupSummary,
+  slotState,
+  unconfirmedCount,
+  zonedToUtc,
+} from './pickups.util';
 
 describe('pickups util (A20)', () => {
   it('converts store-local date and time to the UTC pickupAt, across DST', () => {
@@ -17,5 +27,50 @@ describe('pickups util (A20)', () => {
       ['2026-11-04', 1],
       ['2026-11-05', 2],
     ]);
+  });
+});
+
+describe('pickup slot helpers (PU3)', () => {
+  const slot = (id: string, confirmed: boolean) => ({ user: { id }, confirmed });
+
+  it('tells own slots apart from confirmed and unconfirmed ones', () => {
+    expect(slotState(slot('a', true), 'me')).toBe('confirmed');
+    expect(slotState(slot('a', false), 'me')).toBe('unconfirmed');
+    expect(slotState(slot('me', true), 'me')).toBe('mineConfirmed');
+    expect(slotState(slot('me', false), 'me')).toBe('mineUnconfirmed');
+    expect(slotState(slot('me', false), undefined)).toBe('unconfirmed');
+  });
+
+  it('summarises a pickup from its slots', () => {
+    expect(pickupSummary([slot('a', true), slot('b', true), slot('c', false)], 4)).toEqual({
+      confirmed: 2,
+      unconfirmed: 1,
+      total: 4,
+    });
+    expect(pickupSummary([], 3)).toEqual({ confirmed: 0, unconfirmed: 0, total: 3 });
+  });
+
+  it('builds the options page summary from counts, never below 0', () => {
+    expect(countSummary(3, 1, 4)).toEqual({ confirmed: 1, unconfirmed: 2, total: 4 });
+    expect(countSummary(2, 2, 2)).toEqual({ confirmed: 2, unconfirmed: 0, total: 2 });
+    expect(countSummary(1, 3, 2)).toEqual({ confirmed: 1, unconfirmed: 0, total: 2 });
+    expect(countSummary(1, -1, 2)).toEqual({ confirmed: 0, unconfirmed: 1, total: 2 });
+  });
+
+  it('counts unconfirmed sign-ups across pickups', () => {
+    expect(
+      unconfirmedCount([
+        { occupiedSlots: [slot('a', false), slot('b', true)] },
+        { occupiedSlots: [] },
+        { occupiedSlots: [slot('c', false), slot('d', false)] },
+      ]),
+    ).toBe(3);
+    expect(unconfirmedCount([])).toBe(0);
+  });
+
+  it('takes the first name up to the first space', () => {
+    expect(firstName('Marco Bernasconi')).toBe('Marco');
+    expect(firstName('  Priya  ')).toBe('Priya');
+    expect(firstName('Anna Lena Meier')).toBe('Anna');
   });
 });

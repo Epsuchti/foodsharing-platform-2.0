@@ -53,6 +53,9 @@ forEachVariant((variant) => {
       await page.goto(`/regions/${ZH}/automation/metrics`);
       await expect(page.getByTestId('automation.metrics.state')).toHaveAttribute('data-state', 'success');
       await visual.expectScreen(page, `automation-metrics-${variant.name}`);
+      await page.getByTestId('automation.metrics.group.DECLINE_REASONS').click();
+      await expect(page.locator('[data-testid="automation.metrics.totals.row"][data-key^="SLOT_DECLINE_RULE."]').first()).toBeVisible();
+      await visual.expectScreen(page, `automation-metrics-decline-reasons-${variant.name}`);
     });
   });
 });

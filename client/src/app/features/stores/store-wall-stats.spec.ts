@@ -117,6 +117,16 @@ describe('store wall, statistics and pickup history tabs', () => {
     expect(qa('[data-testid="stores.wall.state"]')[0].getAttribute('data-state')).toBe('empty');
   });
 
+  const MEMBERS_URL = '/api/stores/s1/statistics/members';
+  const memberRow = (name: string, over: Record<string, unknown> = {}) => ({
+    user: { ...USER, id: name, displayName: name },
+    pickups: 5,
+    status: 'MEMBER',
+    isManager: false,
+    lastPickupAt: '2026-10-29T18:00:00Z',
+    ...over,
+  });
+
   it('statistics: one bar per month, kg hint and per-member table', async () => {
     await open('statistics', { mayEditStore: true, maySeeStoreLog: true });
     http.expectOne((r) => r.url === '/api/stores/s1/statistics').flush({
@@ -127,12 +137,22 @@ describe('store wall, statistics and pickup history tabs', () => {
         { month: '2026-09', pickups: 2, kg: 30 },
         { month: '2026-10', pickups: 3, kg: 45 },
       ],
-      perMember: [{ user: USER, pickups: 5 }],
     });
+    const members = http.expectOne((r) => r.url === MEMBERS_URL);
+    expect(members.request.params.get('sort')).toBe('PICKUP_COUNT');
+    expect(members.request.params.get('status')).toBe('ALL');
+    expect(members.request.params.get('page')).toBe('0');
+    expect(members.request.params.get('size')).toBe('20');
+    expect(members.request.params.has('from')).toBe(false);
+    members.flush(PAGE([memberRow('Sarah'), memberRow('Jonas', { status: 'JUMPER' }), memberRow('Lea', { status: 'FORMER', lastPickupAt: undefined })]));
     await settle();
     const bars = qa('[data-testid="stores.statistics.chart.bar"]');
     expect(bars.map((bar) => bar.getAttribute('data-value'))).toEqual(['2', '3']);
-    expect(qa('[data-testid="stores.statistics.member"]')).toHaveLength(1);
+    expect(qa('[data-testid="stores.statistics.member"]')).toHaveLength(3);
+    expect(qa('[data-testid="stores.statistics.formerBadge"]')).toHaveLength(1);
+    expect(qa('[data-testid="stores.statistics.jumperBadge"]')).toHaveLength(1);
+    expect(qa('[data-testid="stores.statistics.members.count"]')[0].textContent).toContain('stores.team.count');
+    expect(qa('[data-testid="stores.statistics.members.paginator"]')).toHaveLength(0);
     expect(qa('[data-testid="stores.statistics.weightHint"]')).toHaveLength(1);
     expect(qa('[data-testid="stores.page.tab.log"]')).toHaveLength(1);
 
@@ -145,7 +165,46 @@ describe('store wall, statistics and pickup history tabs', () => {
     const all = http.expectOne((r) => r.url === '/api/stores/s1/statistics');
     expect(all.request.params.get('from')).toBe('2012-01-01');
     all.flush({ totalPickups: 0, totalKg: 0, months: [] });
+    const allMembers = http.expectOne((r) => r.url === MEMBERS_URL);
+    expect(allMembers.request.params.get('from')).toBe('2012-01-01');
+    allMembers.flush(PAGE([]));
     await settle();
+    expect(qa('[data-testid="stores.statistics.members.empty"]')).toHaveLength(1);
+  });
+
+  it('statistics: former chip, sort and pages; empty filter resets', async () => {
+    await open('statistics', { mayEditStore: true });
+    http.expectOne((r) => r.url === '/api/stores/s1/statistics').flush({ totalPickups: 0, totalKg: 0, months: [] });
+    http.expectOne((r) => r.url === MEMBERS_URL).flush({
+      items: [memberRow('Sarah')],
+      page: { page: 0, size: 20, totalItems: 25, totalPages: 2 },
+    });
+    await settle();
+    expect(qa('[data-testid="stores.statistics.members.paginator"]')).toHaveLength(1);
+
+    (qa('[data-testid="stores.statistics.members.filter.former"]')[0] as HTMLButtonElement).click();
+    await settle();
+    const former = http.expectOne((r) => r.url === MEMBERS_URL);
+    expect(former.request.params.get('status')).toBe('FORMER');
+    former.flush(PAGE([]));
+    await settle();
+    expect(qa('[data-testid="stores.statistics.members.emptyFilter"]')).toHaveLength(1);
+    expect(qa('[data-testid="stores.statistics.members.filter.former"]')[0].getAttribute('aria-pressed')).toBe('true');
+
+    (qa('[data-testid="stores.statistics.members.resetFilter"] button')[0] as HTMLButtonElement).click();
+    await settle();
+    const reset = http.expectOne((r) => r.url === MEMBERS_URL);
+    expect(reset.request.params.get('status')).toBe('ALL');
+    reset.flush(PAGE([memberRow('Sarah')]));
+    await settle();
+  });
+
+  it('statistics: no per-member card without mayEditStore', async () => {
+    await open('statistics', {});
+    http.expectOne((r) => r.url === '/api/stores/s1/statistics').flush({ totalPickups: 0, totalKg: 0, months: [] });
+    await settle();
+    http.expectNone((r) => r.url === MEMBERS_URL);
+    expect(qa('[data-testid="stores.statistics.members"]')).toHaveLength(0);
   });
 
   it('pickup history: KAM tab links to the history, range in the store time zone', async () => {

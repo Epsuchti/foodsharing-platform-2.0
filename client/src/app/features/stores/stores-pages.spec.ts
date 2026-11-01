@@ -18,7 +18,7 @@ import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { MyStoresPageComponent } from './pages/my-stores-page.component';
 import { RegionStoresPageComponent } from './pages/region-stores-page.component';
 import { StorePageComponent } from './pages/store-page.component';
-import { mapLinks } from './stores.util';
+import { navigationLinks } from '../../shared/navigate-button/navigate.util';
 import { isInTeam } from './tabs/store-overview.tab';
 
 describe('store overview requirements wording', () => {
@@ -189,23 +189,25 @@ describe('stores pages', () => {
     expect(q('[data-testid="stores.page.call"]')).not.toBeNull();
   });
 
-  it('store page: one "Route" button opens both map links (phones, design review M7 R3)', async () => {
+  it('store page: one "Navigate" button opens a menu with both directions links (resume item 15)', async () => {
     await harness.navigateByUrl('/stores/s1');
     http.expectOne('/api/stores/s1').flush(detail());
     await settle();
-    const toggle = q('[data-testid="stores.page.route"]') as HTMLButtonElement;
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    // both links stay in the page (desktop shows them, phones fold them behind the button)
-    expect(q('[data-testid="stores.page.navigate"]')?.getAttribute('href')).toContain('query=47.3779,8.5427');
-    expect(q('[data-testid="stores.page.navigateApple"]')).not.toBeNull();
-    toggle.click();
+    const trigger = q('[data-testid="stores.page.navigate"]') as HTMLButtonElement;
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    trigger.click();
     await settle();
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(q('.route')?.classList.contains('route--open')).toBe(true);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    // the popover renders to the body
+    const item = (id: string) => document.querySelector(`[data-testid="${id}"]`);
+    expect(item('stores.page.navigate.google')?.getAttribute('href')).toContain('destination=47.3779,8.5427');
+    expect(item('stores.page.navigate.apple')?.getAttribute('href')).toContain('daddr=47.3779,8.5427');
   });
 
-  it('map links use coordinates, else the address', () => {
-    expect(mapLinks(detail())?.google).toContain('query=47.3779,8.5427');
-    expect(mapLinks(detail({ latitude: undefined, longitude: undefined }))?.google).toContain('Bahnhofbr%C3%BCcke%201');
+  it('navigation links use coordinates, else the address', () => {
+    const links = (store: ReturnType<typeof detail>) =>
+      navigationLinks({ lat: store.latitude, lon: store.longitude, ...store.address, label: store.name });
+    expect(links(detail())?.google).toContain('destination=47.3779,8.5427');
+    expect(links(detail({ latitude: undefined, longitude: undefined }))?.google).toContain('Bahnhofbr%C3%BCcke%201');
   });
 });

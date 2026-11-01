@@ -10,7 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationEnd, RoutesRecognized, Router, RouterOutlet } from '@angular/router';
 import { ConfirmDialog } from '@openng/optimus-ui/confirmdialog';
 import { Toast } from '@openng/optimus-ui/toast';
 import { filter, map, take } from 'rxjs';
@@ -51,6 +51,14 @@ export function chromeOf(root: ActivatedRouteSnapshot | null): ChromeMode {
 /** Application frame: request bar, header, offline banner, page, footer, mobile tab bar, toasts, dialogs. */
 /** Delay after the first page rendered (and the browser went idle) before overlays and the web font load. */
 const AFTER_FIRST_PAGE_MS = 1500;
+
+/**
+ * Toast box on phones: the top-center container sits at `left: 50%` with `translateX(-50%)`, so a 16px gutter is
+ * `width: 100vw - 2rem` centred at 50%. A `left: 1rem` shifted the box half its width past the left edge (issue 19).
+ */
+export const TOAST_BREAKPOINTS = {
+  '640px': { width: 'calc(100vw - 2rem)', left: '50%', right: 'auto' },
+};
 
 @Component({
   selector: 'fs-shell',
@@ -202,14 +210,26 @@ export class ShellComponent {
   private readonly router = inject(Router);
   private readonly session = inject(SessionService);
 
-  protected readonly toastBreakpoints = {
-    '640px': { width: 'calc(100vw - 2rem)', left: '1rem', right: '1rem' },
-  };
+  protected readonly toastBreakpoints = TOAST_BREAKPOINTS;
 
+  /**
+   * The chrome mode follows NavigationEnd, except for the very first navigation: routes are lazy, so the mode is only
+   * known once they are recognised, and waiting for NavigationEnd would render the full chrome (side menu) first and
+   * switch to the minimal layout afterwards (flash on a direct visit of /login). So the first navigation applies it
+   * at RoutesRecognized, before anything of the page is rendered.
+   */
+  private initialNavigationDone = false;
   private readonly navigationEnd = toSignal(
     this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      map(() => chromeOf(this.router.routerState.snapshot.root)),
+      filter((event) => event instanceof RoutesRecognized || event instanceof NavigationEnd),
+      filter((event) => event instanceof NavigationEnd || !this.initialNavigationDone),
+      map((event) => {
+        if (event instanceof NavigationEnd) {
+          this.initialNavigationDone = true;
+          return chromeOf(this.router.routerState.snapshot.root);
+        }
+        return chromeOf((event as RoutesRecognized).state.root);
+      }),
     ),
     { initialValue: chromeOf(this.router.routerState.snapshot.root) },
   );

@@ -18,7 +18,10 @@ public enum AdminAction implements HistoryAction {
     IP_BLOCK_ADDED,
     IP_BLOCK_REMOVED,
     UPLOAD_DELETED_BY_ADMIN,
-    DONATION_SETTINGS_CHANGED;
+    DONATION_SETTINGS_CHANGED,
+    // D17.2: automatic blocks of the API rate limit; they hold raw IPs or user ids, so they are kept 90 days
+    RATE_LIMIT_BLOCKED,
+    RATE_LIMIT_BLOCK_LIFTED;
 
     @Override
     public String code() {
@@ -32,6 +35,10 @@ public enum AdminAction implements HistoryAction {
 
     @Override
     public RetentionPolicy retention() {
-        return RetentionPolicy.YEARS_2;
+        // no constant-specific bodies: they would make getClass() an anonymous subclass (contract checks use its name)
+        return switch (this) {
+            case RATE_LIMIT_BLOCKED, RATE_LIMIT_BLOCK_LIFTED -> RetentionPolicy.DAYS_90;
+            default -> RetentionPolicy.YEARS_2;
+        };
     }
 }
