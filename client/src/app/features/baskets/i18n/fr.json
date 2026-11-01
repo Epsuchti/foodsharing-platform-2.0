@@ -57,6 +57,8 @@
   "baskets.detail.location": "Lieu de retrait",
   "baskets.detail.locationHome": "Près du domicile (position approximative)",
   "baskets.detail.locationCustom": "Lieu de retrait choisi par la personne",
+  "baskets.detail.navigateApproximate": "Position approximative, à environ 100 m près",
+  "baskets.detail.navigateLabel": "Panier",
   "baskets.detail.mapLabel": "Carte avec le lieu de retrait",
   "baskets.detail.contact": "Contact",
   "baskets.detail.message": "Envoyer un message",

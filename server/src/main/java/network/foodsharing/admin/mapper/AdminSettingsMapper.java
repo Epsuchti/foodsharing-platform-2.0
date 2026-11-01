@@ -17,6 +17,8 @@ import network.foodsharing.api.model.FeatureToggleState;
 import network.foodsharing.api.model.IpBlockContext;
 import network.foodsharing.api.model.IpBlockEntry;
 import network.foodsharing.api.model.PageMeta;
+import network.foodsharing.api.model.RateLimitBlockEntry;
+import network.foodsharing.api.model.RateLimitBlockScope;
 import network.foodsharing.api.model.UploadAdminItem;
 import network.foodsharing.api.model.UploadAdminPage;
 import network.foodsharing.api.model.UploadAdminSummary;
@@ -25,6 +27,7 @@ import network.foodsharing.api.model.UserSummary;
 import network.foodsharing.auth.domain.IpBlock;
 import network.foodsharing.common.mapper.PageMapper;
 import network.foodsharing.common.mapper.TimeMapper;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.upload.domain.Upload;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.user.domain.User;
@@ -33,7 +36,7 @@ import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-/** Admin settings entities → API models (C10, C11, C12, C14). */
+/** Admin settings entities → API models (C10, C11, C12, C14, D17.2 rate-limit blocks). */
 @Component
 public class AdminSettingsMapper {
 
@@ -74,6 +77,16 @@ public class AdminSettingsMapper {
                 .context(IpBlockContext.fromValue(b.getContext().name()))
                 .createdAt(TimeMapper.toOffset(b.getCreatedAt())).expiresAt(TimeMapper.toOffset(b.getUntilAt()))
                 .createdBy(b.getCreatedBy() == null ? null : people.get(b.getCreatedBy()))).toList();
+    }
+
+    public List<RateLimitBlockEntry> toRateLimitBlocks(List<RateLimitBlockRegistry.Block> list) {
+        Map<UUID, UserSummary> people = people(list.stream().flatMap(b -> b.userId().stream()).toList());
+        return list.stream().map(b -> new RateLimitBlockEntry().id(b.id())
+                .scope(RateLimitBlockScope.fromValue(b.scope().name()))
+                .ip(b.scope() == RateLimitBlockRegistry.Scope.IP ? b.subject() : null)
+                .user(b.userId().map(people::get).orElse(null))
+                .level(b.level()).blockedAt(TimeMapper.toOffset(b.blockedAt()))
+                .expiresAt(TimeMapper.toOffset(b.expiresAt()))).toList();
     }
 
     public DonationSettings toDonation(DonationSettingsService.Donation d) {

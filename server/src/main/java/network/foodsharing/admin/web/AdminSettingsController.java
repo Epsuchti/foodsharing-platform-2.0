@@ -18,12 +18,16 @@ import network.foodsharing.api.model.FeatureToggleState;
 import network.foodsharing.api.model.FeatureToggleUpdate;
 import network.foodsharing.api.model.IpBlockCreate;
 import network.foodsharing.api.model.IpBlockEntry;
+import network.foodsharing.api.model.RateLimitBlockEntry;
 import network.foodsharing.auth.domain.IpBlockContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-/** ORGA settings (C11 feature toggles, C14 configuration, C12 email blocklist and IP blocks, C8 donations). */
+/**
+ * ORGA settings (C11 feature toggles, C14 configuration, C12 email blocklist and IP blocks, D17.2 automatic
+ * rate-limit blocks, C8 donations).
+ */
 @RestController
 public class AdminSettingsController implements AdminSettingsApi {
 
@@ -102,6 +106,17 @@ public class AdminSettingsController implements AdminSettingsApi {
     @Override
     public ResponseEntity<Void> deleteIpBlock(UUID blockId) {
         blocklists.removeIpBlock(blockId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<RateLimitBlockEntry>> listRateLimitBlocks() {
+        return ResponseEntity.ok(mapper.toRateLimitBlocks(blocklists.rateLimitBlocks()));
+    }
+
+    @Override
+    public ResponseEntity<Void> liftRateLimitBlock(UUID blockId) {
+        blocklists.liftRateLimitBlock(blockId);
         return ResponseEntity.noContent().build();
     }
 

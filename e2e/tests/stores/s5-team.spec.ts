@@ -13,15 +13,18 @@ test.describe('bieb', () => {
   test('S5 team list shows members, jumpers, applied, invited and stats @S5 @page', async ({ page, as, apiOf }) => {
     await openStore(page, 'S-01', 'team');
     await expectDataState(page, 'stores.team.state', 'success');
+    await expectDataState(page, 'stores.team.list', 'success');
+    // one list (resume item 14): members and jumpers together, told apart by status and badge
     const members = page.getByTestId('stores.team.members');
-    await expect(members.getByTestId('stores.team.member')).toHaveCount(3);
+    await expect(members.locator('[data-testid="stores.team.member"][data-status="MEMBER"]')).toHaveCount(3);
     await expect(memberRow(page, NAMES.bieb).getByTestId('stores.team.manager')).toBeVisible();
     await expect(memberRow(page, NAMES.foodsaver).getByTestId('stores.team.manager')).toHaveCount(0);
     // pickup statistics per member (bieb has 30 past pickups in the seed, A20)
     await expect(memberRow(page, NAMES.bieb).getByTestId('stores.team.pickupCount')).toHaveText(/\d+/);
-    const jumpers = page.getByTestId('stores.team.jumpers');
-    await expect(jumpers.getByTestId('stores.team.member')).toHaveCount(1);
+    const jumpers = members.locator('[data-testid="stores.team.member"][data-status="JUMPER"]');
+    await expect(jumpers).toHaveCount(1);
     await expect(jumpers).toContainText(NAMES.jumper);
+    await expect(jumpers.getByTestId('stores.team.jumperBadge')).toBeVisible();
     // managers see applications and invitations
     await expect(page.getByTestId('stores.team.applications')).toBeVisible();
     await expect(page.getByTestId('stores.team.invitations')).toBeVisible();
@@ -55,7 +58,10 @@ test.describe('foodsaver', () => {
     // members see the team but neither applications nor invitations nor row actions
     await openStore(page, 'S-01', 'team');
     await expectDataState(page, 'stores.team.state', 'success');
-    await expect(page.getByTestId('stores.team.members').getByTestId('stores.team.member')).toHaveCount(3);
+    await expectDataState(page, 'stores.team.list', 'success');
+    await expect(
+      page.getByTestId('stores.team.members').locator('[data-testid="stores.team.member"][data-status="MEMBER"]'),
+    ).toHaveCount(3);
     await expect(page.getByTestId('stores.team.applications')).toHaveCount(0);
     await expect(page.getByTestId('stores.team.invitations')).toHaveCount(0);
     await expect(page.getByTestId('stores.team.menu')).toHaveCount(0);

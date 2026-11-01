@@ -1,6 +1,9 @@
 import {
   CONVERSATIONS,
+  bubble,
   bubbles,
+  deleteMessage,
+  editMessage,
   expect,
   expectDataState,
   expectNoSeriousViolations,
@@ -46,6 +49,36 @@ test.describe('foodsaver', () => {
     await page.getByTestId('messaging.conversation.composer').press('Enter');
     await expect(bubbles(bieb).last()).toContainText('bis später', { timeout: 2_000 });
     await expectNoSeriousViolations(page);
+  });
+
+  test('N2 edits and deletes of the other member update the open conversation live and after a reconnect @N2 @N1', async ({ page, context, as, apiOf }) => {
+    await page.goto(`/messages/${CONVERSATIONS.foodsaverBieb}`);
+    await expectDataState(page, 'messaging.conversation.state', 'success');
+    await waitForRealtime(page);
+    const biebApi = apiOf(await as('bieb'));
+    const sent = await sendMessage(biebApi, CONVERSATIONS.foodsaverBieb, 'Abholung um 18 Uhr');
+    const live = bubble(page, sent.seq);
+    await expect(live).toContainText('18 Uhr', { timeout: 2_000 });
+
+    await editMessage(biebApi, CONVERSATIONS.foodsaverBieb, sent.id, 'Abholung um 19 Uhr');
+    await expect(live.getByTestId('messaging.conversation.body')).toHaveText('Abholung um 19 Uhr', { timeout: 2_000 });
+    await expect(live.getByTestId('messaging.conversation.edited')).toBeVisible();
+
+    await deleteMessage(biebApi, CONVERSATIONS.foodsaverBieb, sent.id);
+    await expect(live.getByTestId('messaging.conversation.deleted')).toBeVisible({ timeout: 2_000 });
+    await expect(listItem(page, CONVERSATIONS.foodsaverBieb).getByTestId('messaging.list.preview')).toHaveAttribute('data-deleted', 'true');
+
+    // an edit while offline shows up after the reconnect (the loaded window is reloaded)
+    const second = await sendMessage(biebApi, CONVERSATIONS.foodsaverBieb, 'Bringst du Taschen mit?');
+    await expect(bubble(page, second.seq)).toContainText('Taschen', { timeout: 2_000 });
+    await context.setOffline(true);
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __fsRealtime: { connected(): boolean } }).__fsRealtime.connected()))
+      .toBe(false);
+    await editMessage(biebApi, CONVERSATIONS.foodsaverBieb, second.id, 'Bringst du zwei Taschen mit?');
+    await context.setOffline(false);
+    await waitForRealtime(page);
+    await expect(bubble(page, second.seq).getByTestId('messaging.conversation.body')).toHaveText('Bringst du zwei Taschen mit?');
   });
 
   test('N2 after going offline and back online the client reconnects and fetches missed messages @N2', async ({ page, context, as, apiOf }) => {

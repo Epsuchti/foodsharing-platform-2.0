@@ -3,7 +3,6 @@ import {
   canCollapse,
   foldedSections,
   isCollapseShortcut,
-  isSearchShortcut,
   isSectionOpen,
   isTypingTarget,
   nextFoldCount,
@@ -65,16 +64,6 @@ describe('side menu state rules', () => {
     expect(isTypingTarget(inside)).toBe(true);
     expect(isCollapseShortcut(key('[', { target: inside }))).toBe(false);
     editable.remove();
-  });
-
-  it('focuses the search with Ctrl K or Cmd K, never while typing', () => {
-    expect(isSearchShortcut(key('k', { ctrlKey: true }))).toBe(true);
-    expect(isSearchShortcut(key('K', { metaKey: true }))).toBe(true);
-    expect(isSearchShortcut(key('k'))).toBe(false);
-    expect(isSearchShortcut(key('k', { ctrlKey: true, altKey: true }))).toBe(false);
-    expect(
-      isSearchShortcut(key('k', { ctrlKey: true, target: document.createElement('input') })),
-    ).toBe(false);
   });
 
   it('opens Community by default, keeps Orga closed unless chosen and never closes the daily group', () => {

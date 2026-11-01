@@ -53,6 +53,10 @@ test.describe('jumper', () => {
 
   test('PU4 hygiene certificate required @PU4 @page', async ({ page }) => {
     await openPickups(page, 'S-02');
+    // no lock pill or hint in the row (owner decision): the free slot stays clickable, the dialog says why not
+    const row = pickupRow(page, S02_WEDNESDAY);
+    await expect(row.getByTestId('stores.pickups.slot.free').first()).toBeEnabled();
+    await expect(row.locator('.pi-lock')).toHaveCount(0);
     await openSignup(page, S02_WEDNESDAY);
     await expect(page.locator('[data-testid="shared.eligibility.reason"][data-reason="HYGIENE_CERTIFICATE_REQUIRED"]')).toBeVisible();
     await expect(page.getByTestId('pickups.signup.confirm')).toHaveCount(0);

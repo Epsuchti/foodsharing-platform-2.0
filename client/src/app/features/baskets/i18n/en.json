@@ -57,6 +57,8 @@
   "baskets.detail.location": "Pick-up location",
   "baskets.detail.locationHome": "Near the owner's home (shown approximately)",
   "baskets.detail.locationCustom": "Pick-up point chosen by the owner",
+  "baskets.detail.navigateApproximate": "Approximate location, accurate to about 100 m",
+  "baskets.detail.navigateLabel": "Food basket",
   "baskets.detail.mapLabel": "Map with the pick-up location",
   "baskets.detail.contact": "Contact",
   "baskets.detail.message": "Send message",

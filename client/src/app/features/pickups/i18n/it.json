@@ -31,7 +31,7 @@
   "pickups.tab.regularBadge": "regolare",
   "pickups.tab.edit": "Modifica ritiro",
   "pickups.tab.cancelled": "Annullato",
-  "pickups.tab.waiting": "In attesa di conferma",
+  "pickups.tab.waiting": "Non confermato",
   "pickups.tab.addExtraSlot": "Aggiungi un posto extra",
   "pickups.tab.extraSlotBy": "Posto extra aggiunto da {name}",
   "pickups.tab.extraSlotAdded": "Posto extra aggiunto.",
@@ -101,5 +101,16 @@
   "pickups.reminders.title": "Promemoria dei ritiri",
   "pickups.reminders.text": "Una campanella e un'e-mail 24 ore prima di ciascuno dei tuoi ritiri.",
   "pickups.reminders.label": "Ricordami i miei ritiri",
-  "pickups.reminders.saved": "Impostazione dei promemoria salvata."
+  "pickups.reminders.saved": "Impostazione dei promemoria salvata.",
+  "pickups.tab.waitingMine": "Il tuo posto non è ancora confermato",
+  "pickups.tab.summary.confirmed": "{confirmed} su {total} confermati",
+  "pickups.tab.summary.unconfirmed": "{count, plural, one {# non confermato} other {# non confermati}}",
+  "pickups.tab.confirmAll": "Conferma tutti e {count}",
+  "pickups.tab.confirmAllTitle": "Confermare tutti?",
+  "pickups.tab.confirmAllText": "Confermare per questo ritiro: {names}.",
+  "pickups.tab.confirmedAll": "{count} iscrizioni confermate.",
+  "pickups.tab.range.pending": "Non confermati ({count})",
+  "pickups.tab.pendingEmpty": "Nessuna iscrizione non confermata.",
+  "pickups.tab.state.confirmed": "Confermato",
+  "pickups.tab.state.unconfirmed": "Non confermato"
 }

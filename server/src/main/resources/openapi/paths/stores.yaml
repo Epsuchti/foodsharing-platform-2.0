@@ -406,3 +406,66 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/statistics/members:
+  get:
+    tags: [stores]
+    operationId: listStoreStatisticsMembers
+    summary: 'One page of the people who picked up in the range (members, jumpers and former members), with count and last pickup in the range.'
+    x-permission: 'mayEditStore'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: status
+        in: query
+        schema:
+          $ref: '../schemas/stores.yaml#/StatisticsMemberStatus'
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      - name: sort
+        in: query
+        schema:
+          $ref: '../schemas/stores.yaml#/TeamSort'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stores.yaml#/StoreMemberPickupsPage'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

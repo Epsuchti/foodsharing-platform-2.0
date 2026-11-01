@@ -247,6 +247,8 @@ Links are valid 30 min (`app.auth.login-token-validity-minutes`) and single-use;
 ### 9.4 IP blocks and abuse
 Admin → Settings → IP blocks (`/api/admin/ip-blocks`) blocks an IP hash (raw IPs are never stored; rotating `APP_IP_SALT` invalidates all blocks). Login-failure and rate-limit spikes (`LoginFailureSpike`, `RateLimitSpike`): find the source in the logs (§9.2, the proxy log has the IPs), block it, and keep the block time-limited.
 
+Automatic blocks (D17.2): more than 300 API requests a minute block the account (signed in) or the IP (anonymous) for 1, 5, then 30 minutes. They are listed below the manual blocks on the same page ("Automatic blocks") and can be lifted there; lifting also resets the escalation level. They are kept in memory only, so a restart clears them; the history keeps every block and lift for 90 days (`ADMIN_RATE_LIMIT_BLOCKED`, raw IP or user id). `RateLimitBlocks` (more than 20 blocks in an hour) means a bot wave or a limit that is too low: check `fs_rate_limit_rejections_total{limiter=~"api-.*"}` and the history; raise `app.security.api-rate-limit.*` if real users are hit (restart needed). A blocked admin cannot lift their own block; it ends by itself after at most 30 minutes. Proxy requirement: the reverse proxy must send `X-Forwarded-For` and `X-Forwarded-Proto` and reach the app from a trusted address (private ranges by default, `TRUSTED_PROXIES` otherwise). If it sends no `X-Forwarded-For`, every anonymous visitor shares the proxy's IP and its budget.
+
 ### 9.5 Incident checklist
 1. Acknowledge the alert; open an incident note (time, symptom, alert).
 2. Check `docker compose ps`, §6.1, the dashboard and the last 15 min of ERROR logs (§9.2).

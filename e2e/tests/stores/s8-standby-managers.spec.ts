@@ -13,12 +13,12 @@ test('S8 move to standby with message and back @S8', async ({ page }) => {
   await openStore(page, 'S-01', 'team');
   await memberAction(page, NAMES.foodsaver, 'toStandby');
   await confirmWithMessage(page, 'Du warst lange nicht mehr abholen, wir setzen dich vorerst auf die Springerliste.');
-  await expect(page.getByTestId('stores.team.jumpers').locator(`[data-user="${NAMES.foodsaver}"]`)).toBeVisible();
   await expect(memberRow(page, NAMES.foodsaver)).toHaveAttribute('data-status', 'JUMPER');
+  await expect(memberRow(page, NAMES.foodsaver).getByTestId('stores.team.jumperBadge')).toBeVisible();
 
   await memberAction(page, NAMES.foodsaver, 'toTeam');
-  await expect(page.getByTestId('stores.team.members').locator(`[data-user="${NAMES.foodsaver}"]`)).toBeVisible();
   await expect(memberRow(page, NAMES.foodsaver)).toHaveAttribute('data-status', 'MEMBER');
+  await expect(memberRow(page, NAMES.foodsaver).getByTestId('stores.team.jumperBadge')).toHaveCount(0);
 });
 
 test('S8 appoint third manager allowed, fourth refused, coordinator overrides @S8', async ({ as, apiOf, dev, store }) => {

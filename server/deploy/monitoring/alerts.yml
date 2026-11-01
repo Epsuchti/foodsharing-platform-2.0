@@ -102,6 +102,12 @@ groups:
         annotations:
           summary: "Rate limiter {{ $labels.limiter }} rejected more than 200 requests in 15 minutes"
           runbook: "runbook §9.4"
+      - alert: RateLimitBlocks
+        expr: sum(increase(fs_rate_limit_blocks_total{job="foodsharing"}[1h])) > 20
+        labels: {severity: ticket}
+        annotations:
+          summary: "The API rate limit blocked more than 20 accounts or IPs in one hour"
+          runbook: "runbook §9.4 (automatic blocks)"
       - alert: AsyncJobsPiling
         expr: fs_async_jobs_running{job="foodsharing"} > 10
         for: 15m

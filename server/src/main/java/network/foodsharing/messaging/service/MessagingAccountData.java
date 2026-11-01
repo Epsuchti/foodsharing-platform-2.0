@@ -38,7 +38,8 @@ public class MessagingAccountData implements AccountDeletionContributor, DataExp
     public Object export(UUID userId) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("memberships", UserRows.read(em, "ConversationMember", "userId", userId, "conversationId", "joinedAt", "lastReadSeq"));
-        data.put("sentMessages", UserRows.read(em, "ConversationMessage", "senderId", userId, "conversationId", "body", "sentAt"));
+        data.put("sentMessages", UserRows.read(em, "ConversationMessage", "senderId", userId, "conversationId", "body",
+                "sentAt", "editedAt", "deletedAt"));
         return data;
     }
 }
