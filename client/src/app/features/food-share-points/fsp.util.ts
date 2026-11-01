@@ -35,6 +35,8 @@ export interface FspFormValue {
   city: string;
   position: [number, number] | null;
   photoUploadId: string | null;
+  /** FS2: cleaning shifts on/off (undefined = unchanged). */
+  cleaningEnabled?: boolean;
 }
 
 /**
@@ -52,6 +54,7 @@ export function fspUpdateBody(value: FspFormValue): FspUpdate {
     lat: value.position ? value.position[0] : undefined,
     lon: value.position ? value.position[1] : undefined,
     photoUploadId: value.photoUploadId ?? undefined,
+    cleaningEnabled: value.cleaningEnabled,
   };
 }
 

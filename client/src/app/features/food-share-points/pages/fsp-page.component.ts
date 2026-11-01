@@ -27,7 +27,8 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
 /**
  * /food-share-points/:fspId (FS1; the FSP_ACTIVATE and FSP_NEW_POST bells link here): photo, description, address
  * with navigation links and map, managers, follow switches (bell / mail), wall (`fs-wall`). FSP admins activate an
- * INACTIVE FSP and delete; editors (FSP admins and managers) edit and replace the managers. The server decides every
+ * INACTIVE FSP and delete; editors (FSP admins and managers) edit and replace the managers. With cleaning shifts on
+ * (FS2) a card links to `…/cleaning`. The server decides every
  * right (`Fsp.permissions`); a hidden or unknown FSP renders the not-found state.
  */
 @Component({
@@ -139,6 +140,16 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
                 />
               }
             </section>
+
+            @if (f.cleaningEnabled) {
+              <section class="fs-card card" data-testid="foodSharePoints.detail.cleaning">
+                <h2 class="card__title"><i class="pi pi-sparkles" aria-hidden="true"></i> {{ 'foodSharePoints.cleaning.title' | t }}</h2>
+                <p class="muted">{{ 'foodSharePoints.cleaning.teaser' | t }}</p>
+                <div>
+                  <p-button [label]="'foodSharePoints.cleaning.open' | t" icon="pi pi-calendar" [routerLink]="['/food-share-points', f.id, 'cleaning']" data-testid="fsp.cleaning.open" />
+                </div>
+              </section>
+            }
 
             @if (f.following.following || f.permissions.mayFollow) {
               <section class="fs-card card" data-testid="foodSharePoints.detail.follow" [attr.data-following]="f.following.following">

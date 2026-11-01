@@ -113,7 +113,7 @@ export class RegionSettingsTab {
     isEmpty: () => false,
   });
 
-  /** Original intro pickup settings (fields the form does not edit, e.g. the cleaning store, are kept). */
+  /** Original intro pickup settings (fields the form does not edit are kept). */
   private original: RegionSettings | null = null;
 
   constructor() {

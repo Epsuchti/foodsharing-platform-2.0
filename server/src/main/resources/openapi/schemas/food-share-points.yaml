@@ -32,6 +32,16 @@ FspSummary:
     following:
       type: boolean
 
+FspRef:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
 FspAddress:
   type: object
   required: [street, postcode, city]
@@ -71,7 +81,8 @@ FspPermissions:
 
 Fsp:
   type: object
-  required: [id, name, region, address, status, managers, createdAt, followerCount, following, permissions]
+  required: [id, name, region, address, status, managers, createdAt, followerCount, following, permissions,
+             cleaningEnabled]
   properties:
     id:
       type: string
@@ -110,6 +121,9 @@ Fsp:
       $ref: './food-share-points.yaml#/FspFollowing'
     permissions:
       $ref: './food-share-points.yaml#/FspPermissions'
+    cleaningEnabled:
+      description: 'The Fairteiler offers cleaning shifts (FS2).'
+      type: boolean
 
 FspCreate:
   type: object
@@ -148,6 +162,9 @@ FspCreate:
     photoUploadId:
       type: string
       format: uuid
+    cleaningEnabled:
+      description: 'Cleaning shifts on (FS2); switching off removes the Fairteiler from the regions cleaning rule.'
+      type: boolean
 
 FspUpdate:
   type: object
@@ -180,6 +197,9 @@ FspUpdate:
     photoUploadId:
       type: string
       format: uuid
+    cleaningEnabled:
+      description: 'Cleaning shifts on (FS2); switching off removes the Fairteiler from the regions cleaning rule.'
+      type: boolean
 
 FspStatusUpdate:
   type: object

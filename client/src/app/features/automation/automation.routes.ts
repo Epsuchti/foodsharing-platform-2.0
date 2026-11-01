@@ -38,6 +38,9 @@ export const AUTOMATION_ROUTES: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'audits' },
       section('overview', 'automation.region.section.overview', () => region().then((m) => m.RegionOverviewSection)),
       section('audits', 'automation.region.section.audits', () => region().then((m) => m.RegionAuditsSection)),
+      section('cleaning-fsps', 'automation.region.section.cleaning-fsps', () =>
+        region().then((m) => m.RegionCleaningFspsSection),
+      ),
       section('cleaning-exemptions', 'automation.region.section.cleaning-exemptions', () =>
         region().then((m) => m.RegionExemptionsSection),
       ),

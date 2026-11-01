@@ -113,6 +113,37 @@ describe('region automation page', () => {
     expect(q('[data-testid="automation.region.audits.state"]')?.getAttribute('data-state')).toBe('error');
   });
 
+  it('cleaning Fairteiler (FS2): toggles a candidate and saves the selection', async () => {
+    const wiedikon = { id: 'f1', name: 'Fairteiler Wiedikon' };
+    const oerlikon = { id: 'f3', name: 'Fairteiler Oerlikon' };
+    await harness.navigateByUrl(`/regions/${R}/automation/cleaning-fsps`);
+    region();
+    await settle();
+    http.expectOne(`/api/regions/${R}/cleaning-food-share-points`).flush({ selected: [wiedikon], candidates: [oerlikon, wiedikon] });
+    await settle();
+    const rows = harness.routeNativeElement!.querySelectorAll('[data-testid="automation.cleaningFsps.row"]');
+    expect(rows.length).toBe(2);
+    expect(q('[data-fsp="Fairteiler Wiedikon"]')?.getAttribute('data-selected')).toBe('true');
+    expect((q('[data-testid="automation.cleaningFsps.save"] button') as HTMLButtonElement).disabled).toBe(true);
+    (q('[data-fsp="Fairteiler Oerlikon"] [data-testid="automation.cleaningFsps.toggle"] input') as HTMLInputElement).click();
+    await settle();
+    (q('[data-testid="automation.cleaningFsps.save"] button') as HTMLButtonElement).click();
+    const save = http.expectOne((r) => r.method === 'PUT' && r.url === `/api/regions/${R}/cleaning-food-share-points`);
+    expect(save.request.body.fspIds).toEqual(['f1', 'f3']);
+    save.flush({ selected: [oerlikon, wiedikon], candidates: [oerlikon, wiedikon] });
+    await settle();
+    http.expectOne(`/api/regions/${R}/cleaning-food-share-points`).flush({ selected: [oerlikon, wiedikon], candidates: [oerlikon, wiedikon] });
+  });
+
+  it('cleaning Fairteiler (FS2): empty state without candidates', async () => {
+    await harness.navigateByUrl(`/regions/${R}/automation/cleaning-fsps`);
+    region();
+    await settle();
+    http.expectOne(`/api/regions/${R}/cleaning-food-share-points`).flush({ selected: [], candidates: [] });
+    await settle();
+    expect(q('[data-testid="automation.cleaningFsps.state"]')?.getAttribute('data-state')).toBe('empty');
+  });
+
   it('grouping: forbidden state', async () => {
     await harness.navigateByUrl(`/regions/${R}/automation/grouping`);
     region();

@@ -66,6 +66,8 @@ class QueryCountIT {
         "FOODSAVER|/api/users/me/stores|13",
         "FOODSAVER|/api/map/markers/stores|3",
         "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|26",
+        // FS2: the cleaning shifts of Fairteiler Wiedikon (one query per table, not per shift)
+        "FOODSAVER|/api/food-share-points/00000049-0001-4000-8000-000000000001/cleaning/shifts|20",
         "FOODSAVER|/api/search?q=brot|4",
     })
     void listEndpointStaysWithinItsStatementBudget(SeedUsers user, String path, long budget) throws Exception {

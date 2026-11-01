@@ -107,6 +107,22 @@ export const MAX_STORES_PER_LINK = 5;
               <span class="muted">{{ 'automation.policy.cleaningHint' | t }}</span></label>
             <p-toggleswitch inputId="pp-clean" [(ngModel)]="p.cleaningRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.cleaning" />
           </div>
+          <!-- FS2: the region's cleaning Fairteiler, or a hint linking to the "Putzen" section -->
+          @if (ctx.data()?.cleaningFoodSharePoints?.length) {
+            <p class="muted">{{ 'automation.policy.cleaningFsps' | t }}</p>
+            <ul class="cleaning-fsps" data-testid="automation.policy.cleaningFsps">
+              @for (fsp of ctx.data()!.cleaningFoodSharePoints; track fsp.id) {
+                <li><a [routerLink]="['/food-share-points', fsp.id, 'cleaning']" data-testid="automation.policy.cleaningFsp">{{ fsp.name }}</a></li>
+              }
+            </ul>
+          } @else {
+            <p class="muted" data-testid="automation.policy.noCleaningFsps">
+              {{ 'automation.policy.noCleaningFsps' | t }}
+              @if (ctx.regionId(); as regionId) {
+                <a [routerLink]="['/regions', regionId, 'automation', 'cleaning-fsps']" data-testid="automation.policy.cleaningFspsLink">{{ 'automation.policy.cleaningFspsLink' | t }}</a>
+              }
+            </p>
+          }
           @if (ctx.regionId(); as regionId) {
             <a [routerLink]="['/regions', regionId, 'automation', 'cleaning-exemptions']" data-testid="automation.policy.exemptionsLink">{{ 'automation.policy.exemptionsLink' | t }}</a>
           }

@@ -25,15 +25,15 @@ import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.LinkRule;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.RegionInfo;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Signup;
-import network.foodsharing.automation.service.PickupPolicyEvaluator.Slot;
+import network.foodsharing.automation.service.PickupPolicyEvaluator.CleaningSlot;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Spec;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.UserInfo;
 import network.foodsharing.common.integration.Integration;
 import network.foodsharing.common.integration.IntegrationRegistry;
 import network.foodsharing.config.AppProperties;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.service.PickupAutomationQueries;
-import network.foodsharing.pickup.service.PickupScheduleService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreService;
@@ -54,7 +54,7 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     private final RegionService regions;
     private final UserService users;
     private final PickupAutomationQueries signups;
-    private final PickupScheduleService schedule;
+    private final FspCleaningQueries cleaning;
     private final HolidayCalendarService holidays;
     private final IntegrationRegistry integrations;
     private final AppProperties properties;
@@ -63,7 +63,7 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     public PickupPolicyData(PickupPolicyRepository policies, PickupPolicyExcludedDateRepository excludedDates,
                             PickupPolicyLinkedStoreRepository links, PickupPolicyLinkedStoreMemberRepository linkMembers,
                             CleaningRuleExemptionRepository exemptions, StoreService stores, RegionService regions,
-                            UserService users, PickupAutomationQueries signups, PickupScheduleService schedule,
+                            UserService users, PickupAutomationQueries signups, FspCleaningQueries cleaning,
                             HolidayCalendarService holidays, IntegrationRegistry integrations,
                             AppProperties properties, Clock clock) {
         this.policies = policies;
@@ -75,7 +75,7 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
         this.regions = regions;
         this.users = users;
         this.signups = signups;
-        this.schedule = schedule;
+        this.cleaning = cleaning;
         this.holidays = holidays;
         this.integrations = integrations;
         this.properties = properties;
@@ -126,8 +126,9 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
 
     @Override
     public RegionInfo region(UUID regionId) {
-        return regions.find(regionId).map(r -> new RegionInfo(r.getId(), r.getName(), r.getCleaningStoreId()))
-                .orElse(new RegionInfo(regionId, "", null));
+        return regions.find(regionId).map(r -> new RegionInfo(r.getId(), r.getName(), cleaning.cleaningFsps(regionId)
+                .stream().map(FspCleaningQueries.CleaningFsp::id).toList()))
+                .orElse(new RegionInfo(regionId, "", List.of()));
     }
 
     @Override
@@ -158,9 +159,20 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     }
 
     @Override
-    public List<Slot> slots(UUID storeId, Instant from, Instant to) {
-        return schedule.schedule(store(storeId), from, to).stream().filter(slot -> slot.slotCount() > 0)
-                .map(slot -> new Slot(slot.pickupAt(), slot.occupied())).toList();
+    public Optional<Instant> lastConfirmedCleaning(Collection<UUID> fspIds, UUID userId, Instant before) {
+        return cleaning.lastConfirmedCleaning(fspIds, userId, before);
+    }
+
+    @Override
+    public List<Instant> cleaningSignupsOfUser(UUID userId, Collection<UUID> fspIds, Instant from, Instant to) {
+        return cleaning.cleaningSignupsOfUser(userId, fspIds, from, to).stream()
+                .map(FspCleaningQueries.CleaningSignup::shiftAt).toList();
+    }
+
+    @Override
+    public List<CleaningSlot> freeCleaningSlots(Collection<UUID> fspIds, Instant from, Instant to) {
+        return cleaning.freeCleaningSlots(fspIds, from, to).stream()
+                .map(slot -> new CleaningSlot(slot.at(), slot.fspId(), slot.fspName())).toList();
     }
 
     @Override
@@ -184,8 +196,8 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     }
 
     @Override
-    public String storeLink(UUID storeId) {
-        return properties.getBaseUrl().replaceFirst("/+$", "") + "/stores/" + storeId;
+    public String cleaningLink(UUID fspId) {
+        return properties.getBaseUrl().replaceFirst("/+$", "") + cleaning.cleaningPath(fspId);
     }
 
     @Override

@@ -147,6 +147,14 @@ On the original machine (Windows 11): portable Temurin 21 in `~/.jdks/jdk-21.0.1
      - Update the seed: Zürich Stadt gets a real Fairteiler with cleaning shifts instead of S-13 "Migros City".
      - Update `docs/seed-ids.md`.
    - Contract first (OpenAPI), history on every mutation, i18n in five languages, and an e2e test plus screenshot specs with the feature ID. Update the automation policy page ("Putzen" shows the region's cleaning Fairteiler).
+   - Status (2026-11-01): built as FS2 (decision 148, plan `docs/tasks/2026-11-01-fairteiler-cleaning-shifts.md`); no data was migrated (D3). Follow-ups, not built:
+     - cleaning shifts in "Meine Abholungen", the agenda, the dashboard card and the iCal feed
+     - reminder mails and jobs for cleaning shifts
+     - automatic confirmation of cleaning sign-ups by the pickup policy
+     - cleaning shifts in the profile and region pickup counts
+     - account export of cleaning sign-ups and an `AccountDeletionContributor` for future sign-ups (deletion is covered by the FK cascade)
+     - a time zone per Fairteiler (the cleaning page uses Europe/Zurich)
+     - check the Telegram and mail length of the decline text with several cleaning Fairteiler
 14. Store team (owner, 2026-10-31):
    - Sort by pickup count and by last pickup.
    - A filter (name, role; members/jumpers).

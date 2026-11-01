@@ -14,7 +14,7 @@ RequestDecision:
 PolicyRule:
   type: string
   enum: [MANUAL_DATE, PUBLIC_HOLIDAY, HOLIDAY_CALENDAR_UNAVAILABLE, RULES_SKIPPED_NEAR_PICKUP, GAP, EXPERIENCE,
-    NO_CLEANING_STORE, CLEANING_REQUIRED, CLEANING_REMINDER, CLEANING_NEW_USER, LINKED_STORE, ALL_RULES_PASSED,
+    NO_CLEANING_FAIRTEILER, CLEANING_REQUIRED, CLEANING_REMINDER, CLEANING_NEW_USER, LINKED_STORE, ALL_RULES_PASSED,
     DISTANCE, NO_ADDRESS]
 
 AdvertChannel:
@@ -291,7 +291,7 @@ AutomationPermissions:
 
 StoreAutomation:
   type: object
-  required: [adverts, extraSlotAllowed, permissions]
+  required: [adverts, extraSlotAllowed, permissions, cleaningFoodSharePoints]
   properties:
     pickupPolicy:
       $ref: './automation.yaml#/PickupPolicy'
@@ -305,9 +305,11 @@ StoreAutomation:
       $ref: './automation.yaml#/SignoutAlertSetting'
     extraSlotAllowed:
       type: boolean
-    cleaningStore:
-      description: "The cleaning store of the store's region (cleaning rule of the pickup policy); absent when none."
-      $ref: './stores.yaml#/StoreRef'
+    cleaningFoodSharePoints:
+      description: "The Fairteiler of the store's region that count for the cleaning rule of the pickup policy (FS2)."
+      type: array
+      items:
+        $ref: './food-share-points.yaml#/FspRef'
     permissions:
       $ref: './automation.yaml#/AutomationPermissions'
 
@@ -527,7 +529,7 @@ MetricKey:
     - SLOT_DECLINE_RULE.RULES_SKIPPED_NEAR_PICKUP
     - SLOT_DECLINE_RULE.GAP
     - SLOT_DECLINE_RULE.EXPERIENCE
-    - SLOT_DECLINE_RULE.NO_CLEANING_STORE
+    - SLOT_DECLINE_RULE.NO_CLEANING_FAIRTEILER
     - SLOT_DECLINE_RULE.CLEANING_REQUIRED
     - SLOT_DECLINE_RULE.CLEANING_REMINDER
     - SLOT_DECLINE_RULE.CLEANING_NEW_USER
@@ -542,7 +544,7 @@ MetricKey:
     - SLOT_SKIP_RULE.RULES_SKIPPED_NEAR_PICKUP
     - SLOT_SKIP_RULE.GAP
     - SLOT_SKIP_RULE.EXPERIENCE
-    - SLOT_SKIP_RULE.NO_CLEANING_STORE
+    - SLOT_SKIP_RULE.NO_CLEANING_FAIRTEILER
     - SLOT_SKIP_RULE.CLEANING_REQUIRED
     - SLOT_SKIP_RULE.CLEANING_REMINDER
     - SLOT_SKIP_RULE.CLEANING_NEW_USER

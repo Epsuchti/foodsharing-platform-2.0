@@ -1,0 +1,104 @@
+# Fairteiler cleaning shifts (FS2, decision 148). Mirrors the pickup shapes (pickups.yaml): the weekly schedule reuses
+# RegularPickup, taken slots reuse PickupSlot and eligibility reuses PickupEligibility (reasons NOT_VERIFIED, SLEEPING,
+# PICKUP_IN_PAST, NO_FREE_SLOT, ALREADY_SIGNED_UP).
+
+CleaningShift:
+  type: object
+  required: [fspId, shiftAt, slotCount, occupiedSlots, isAvailable, isRegular]
+  properties:
+    fspId:
+      type: string
+      format: uuid
+    shiftAt:
+      type: string
+      format: date-time
+    slotCount:
+      type: integer
+      format: int32
+    description:
+      type: string
+    occupiedSlots:
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupSlot'
+    isAvailable:
+      type: boolean
+    isRegular:
+      type: boolean
+    eligibility:
+      description: "The caller's eligibility (future shifts only)."
+      $ref: './pickups.yaml#/PickupEligibility'
+
+CleaningShiftEdit:
+  type: object
+  required: [slotCount]
+  properties:
+    slotCount:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 50
+    description:
+      type: string
+      maxLength: 100
+
+CleaningTeamMember:
+  type: object
+  required: [user, manager, shiftCount, upcomingCount]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    manager:
+      type: boolean
+    shiftCount:
+      description: 'Confirmed past shifts in the last 12 months.'
+      type: integer
+      format: int32
+    upcomingCount:
+      description: 'Upcoming sign-ups (confirmed or not).'
+      type: integer
+      format: int32
+    lastShiftAt:
+      description: 'The latest confirmed past shift (any time).'
+      type: string
+      format: date-time
+
+CleaningTeam:
+  type: object
+  required: [members, totalShifts]
+  properties:
+    members:
+      description: 'Managers first, then by shift count (desc), name and id.'
+      type: array
+      items:
+        $ref: './fsp-cleaning.yaml#/CleaningTeamMember'
+    totalShifts:
+      description: 'Confirmed past shifts in the last 12 months (all people).'
+      type: integer
+      format: int32
+
+RegionCleaningFsps:
+  type: object
+  required: [selected, candidates]
+  properties:
+    selected:
+      description: "The region's Fairteiler that count for the cleaning rule."
+      type: array
+      items:
+        $ref: './food-share-points.yaml#/FspRef'
+    candidates:
+      description: 'Active Fairteiler of the region with cleaning shifts that may be selected.'
+      type: array
+      items:
+        $ref: './food-share-points.yaml#/FspRef'
+
+RegionCleaningFspsUpdate:
+  type: object
+  required: [fspIds]
+  properties:
+    fspIds:
+      type: array
+      maxItems: 50
+      items:
+        type: string
+        format: uuid

@@ -1,0 +1,2 @@
+id,version,created_at,updated_at,created_by,updated_by,fsp_id,weekday,start_time,slot_count,description
+00000049-0004-4000-8000-000000000001,0,2026-09-01T09:00:00Z,2026-09-01T09:00:00Z,NULL,NULL,00000049-0001-4000-8000-000000000001,SATURDAY,10:00:00,2,Kühlschrank auswischen und Regal ordnen

@@ -54,4 +54,8 @@ public class FoodSharePoint extends BaseEntity {
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
+
+    /** FS2: the Fairteiler offers cleaning shifts. */
+    @Column(name = "cleaning_enabled", nullable = false)
+    private boolean cleaningEnabled;
 }

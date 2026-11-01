@@ -39,6 +39,7 @@ function fsp(overrides: Partial<Fsp> = {}): Fsp {
     followerCount: 3,
     following: { following: false, bell: false, mail: false },
     permissions: { mayEdit: false, mayDelete: false, mayActivate: false, mayPost: true, mayFollow: true },
+    cleaningEnabled: false,
     ...overrides,
   };
 }

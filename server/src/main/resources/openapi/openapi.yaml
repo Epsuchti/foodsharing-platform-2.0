@@ -121,6 +121,8 @@ tags:
     description: Food baskets.
   - name: food-share-points
     description: Food share points (Fairteiler).
+  - name: fsp-cleaning
+    description: Fairteiler cleaning shifts and the cleaning Fairteiler of a region (FS2).
   - name: map
     description: Map layers for logged-in users.
   - name: public-map
@@ -969,6 +971,23 @@ paths:
     $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall'
   /api/food-share-points/{fspId}/wall/{postId}:
     $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall~1{postId}'
+  # --- fsp-cleaning (FS2) ---
+  /api/food-share-points/{fspId}/cleaning/regular-shifts:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1regular-shifts'
+  /api/food-share-points/{fspId}/cleaning/shifts:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}~1signups'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups/{userId}:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}~1signups~1{userId}'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups/{userId}/confirm:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}~1signups~1{userId}~1confirm'
+  /api/food-share-points/{fspId}/cleaning/team:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1team'
+  /api/regions/{regionId}/cleaning-food-share-points:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1regions~1{regionId}~1cleaning-food-share-points'
   # --- map (M6) ---
   /api/map/markers/stores:
     $ref: './paths/map.yaml#/~1api~1map~1markers~1stores'

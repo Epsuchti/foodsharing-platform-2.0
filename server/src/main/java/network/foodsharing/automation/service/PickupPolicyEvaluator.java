@@ -52,13 +52,15 @@ public class PickupPolicyEvaluator {
     public record Signup(UUID storeId, UUID userId, Instant pickupAt, boolean confirmed, Instant signedUpAt) {
     }
 
-    public record Slot(Instant pickupAt, int occupied) {
+    /** A future cleaning shift with a free place (FS2). */
+    public record CleaningSlot(Instant at, UUID fspId, String fspName) {
     }
 
     public record UserInfo(UUID id, String firstName, Instant verifiedAt, Locale locale) {
     }
 
-    public record RegionInfo(UUID id, String name, UUID cleaningStoreId) {
+    /** {@code cleaningFspIds}: the region's Fairteiler that count for the cleaning rule (FS2), by name. */
+    public record RegionInfo(UUID id, String name, List<UUID> cleaningFspIds) {
     }
 
     public record Reason(PolicyRule rule, String text) {
@@ -107,8 +109,14 @@ public class PickupPolicyEvaluator {
 
         Optional<Instant> lastConfirmedPickup(UUID storeId, UUID userId, Instant before);
 
-        /** Pickups of the store's schedule with {@code from <= pickupAt < to}. */
-        List<Slot> slots(UUID storeId, Instant from, Instant to);
+        /** The user's latest confirmed cleaning shift in these Fairteiler before {@code before}. */
+        Optional<Instant> lastConfirmedCleaning(Collection<UUID> fspIds, UUID userId, Instant before);
+
+        /** The user's cleaning sign-ups (confirmed or not) in these Fairteiler with {@code from <= at < to}. */
+        List<Instant> cleaningSignupsOfUser(UUID userId, Collection<UUID> fspIds, Instant from, Instant to);
+
+        /** Cleaning shifts with a free place across these Fairteiler with {@code from <= at < to}, by time. */
+        List<CleaningSlot> freeCleaningSlots(Collection<UUID> fspIds, Instant from, Instant to);
 
         Optional<String> holidayName(UUID storeId, LocalDate date);
 
@@ -119,7 +127,8 @@ public class PickupPolicyEvaluator {
         /** Deadline extended by outages between start and deadline (A26 hook). */
         Instant extendDeadline(Instant start, Instant deadline);
 
-        String storeLink(UUID storeId);
+        /** Absolute link to the cleaning tab of a Fairteiler. */
+        String cleaningLink(UUID fspId);
 
         int cleaningBackCheckMonths();
 
@@ -236,28 +245,31 @@ public class PickupPolicyEvaluator {
     private Reason cleaningRule(UUID regionId, String storeName, Instant pickupAt, UserInfo user, Instant now,
                                 ZoneId zone, PolicyTexts t, Data data, List<Reason> reasons) {
         RegionInfo region = data.region(regionId);
-        UUID cleaningStoreId = region.cleaningStoreId();
-        if (cleaningStoreId == null) {
-            reasons.add(new Reason(PolicyRule.NO_CLEANING_STORE, t.text("no-cleaning-store", region.name())));
+        List<UUID> fspIds = region.cleaningFspIds() == null ? List.of() : region.cleaningFspIds();
+        if (fspIds.isEmpty()) {
+            reasons.add(new Reason(PolicyRule.NO_CLEANING_FAIRTEILER, t.text("no-cleaning-fairteiler", region.name())));
             return null;
         }
         long backCheckMonths = Math.max(0, data.cleaningBackCheckMonths());
         Instant threshold = now.atZone(zone).minusMonths(backCheckMonths).toInstant();
-        Instant lastCleaning = data.lastConfirmedPickup(cleaningStoreId, user.id(), now).orElse(null);
+        Instant lastCleaning = data.lastConfirmedCleaning(fspIds, user.id(), now).orElse(null);
         boolean past = lastCleaning != null && !lastCleaning.isBefore(threshold);
-        boolean future = !data.signupsOfUser(user.id(), List.of(cleaningStoreId), now, now.plus(HORIZON)).isEmpty();
+        // D5: an upcoming sign-up counts even while unconfirmed
+        boolean future = !data.cleaningSignupsOfUser(user.id(), fspIds, now, now.plus(HORIZON)).isEmpty();
         if (past || future) {
             return null;
         }
         Instant verifiedAt = user.verifiedAt();
         boolean verificationExempt = verifiedAt != null && !verifiedAt.isAfter(now) && !verifiedAt.isBefore(threshold);
-        List<Instant> freeSlots = data.slots(cleaningStoreId, now, now.plus(CLEANING_SLOT_HORIZON)).stream()
-                .filter(slot -> !slot.pickupAt().isBefore(now))
-                .filter(slot -> slot.occupied() == 0)
-                .map(Slot::pickupAt).sorted().toList();
+        List<CleaningSlot> freeSlots = data.freeCleaningSlots(fspIds, now, now.plus(CLEANING_SLOT_HORIZON)).stream()
+                .filter(slot -> !slot.at().isBefore(now))
+                .sorted(Comparator.comparing(CleaningSlot::at)).toList();
+        // D6: the next three free shifts across all cleaning Fairteiler as "date – Fairteiler"
         String openSlots = freeSlots.isEmpty() ? t.text("no-open-cleaning-slots")
-                : String.join("\n", freeSlots.stream().limit(3).map(at -> t.dateTime(at, zone)).toList());
-        String url = data.storeLink(cleaningStoreId);
+                : String.join("\n", freeSlots.stream().limit(3)
+                        .map(slot -> t.dateTime(slot.at(), zone) + " – " + slot.fspName()).toList());
+        // D6: the link goes to the Fairteiler with the earliest free shift, else the first one configured
+        String url = data.cleaningLink(freeSlots.isEmpty() ? fspIds.getFirst() : freeSlots.getFirst().fspId());
         if (!verificationExempt) {
             String history = lastCleaning == null ? t.text("no-cleaning-yet")
                     : t.text("reminder-last-cleaning", t.dateTime(lastCleaning, zone));

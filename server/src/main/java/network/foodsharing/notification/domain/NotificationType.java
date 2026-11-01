@@ -105,6 +105,10 @@ public enum NotificationType {
     SURVEY_SHARED(REGION, "clipboard-list"),
     // M6 additions (docs/plan-m6.md B1; BASKET_REQUEST_ANSWERED is listed with BASKET_REQUEST above)
     FSP_NEW_POST(REGION, "map-pin"),
+    // FS2 cleaning shifts (decision 148)
+    FSP_CLEANING_SIGNUP_UNCONFIRMED(PICKUPS, "calendar-plus"),
+    FSP_CLEANING_CONFIRMED(PICKUPS, "calendar-check"),
+    FSP_CLEANING_REMOVED(PICKUPS, "calendar-x"),
     MEDIATION_REQUEST(REGION, "scale"),
     ACHIEVEMENT_AWARDED(SYSTEM, "award"),
     EMAIL_CHANGE_REQUESTED(SYSTEM, "mail"),

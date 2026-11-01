@@ -78,6 +78,11 @@ describe('fsp.util', () => {
       const body = fspUpdateBody({ ...value, position: [47.388, 8.488], photoUploadId: 'up1' });
       expect(body).toMatchObject({ lat: 47.388, lon: 8.488, photoUploadId: 'up1', description: '' });
     });
+
+    it('carries the cleaning switch (FS2)', () => {
+      expect(fspUpdateBody({ ...value, cleaningEnabled: true }).cleaningEnabled).toBe(true);
+      expect(fspCreateBody({ ...value, cleaningEnabled: false }).cleaningEnabled).toBe(false);
+    });
   });
 
   describe('managers', () => {

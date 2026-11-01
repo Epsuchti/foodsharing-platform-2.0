@@ -1,0 +1,313 @@
+/api/food-share-points/{fspId}/cleaning/regular-shifts:
+  get:
+    tags: [fsp-cleaning]
+    operationId: getRegularCleaningShifts
+    summary: 'Weekly cleaning schedule of a Fairteiler.'
+    x-permission: 'mayView'
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/RegularPickup'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  put:
+    tags: [fsp-cleaning]
+    operationId: replaceRegularCleaningShifts
+    summary: 'Replace the weekly cleaning schedule.'
+    x-permission: 'mayEdit (Fairteiler managers, FSP group admins)'
+    x-history: FspAction.CLEANING_SCHEDULE_CHANGED
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            maxItems: 50
+            items:
+              $ref: '../schemas/pickups.yaml#/RegularPickup'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/pickups.yaml#/RegularPickup'
+      '400': {description: 'VALIDATION_FAILED, SLOT_COUNT_OUT_OF_RANGE, DESCRIPTION_TOO_LONG or DUPLICATE_PICKUP_DAY_TIME', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CLEANING_NOT_ENABLED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/food-share-points/{fspId}/cleaning/shifts:
+  get:
+    tags: [fsp-cleaning]
+    operationId: listCleaningShifts
+    summary: 'Cleaning shifts in a range (default now .. now + 8 weeks, plus later sign-ups).'
+    x-permission: 'mayView'
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/fsp-cleaning.yaml#/CleaningShift'
+      '400': {description: 'VALIDATION_FAILED or RANGE_TOO_LARGE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CLEANING_NOT_ENABLED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}:
+  patch:
+    tags: [fsp-cleaning]
+    operationId: editCleaningShift
+    summary: 'Add a one-time shift or change slot count / description of one shift (0 slots cancels it).'
+    x-permission: 'mayEdit'
+    x-history: FspAction.CLEANING_SCHEDULE_CHANGED
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: shiftAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/fsp-cleaning.yaml#/CleaningShiftEdit'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/fsp-cleaning.yaml#/CleaningShift'
+      '400': {description: 'VALIDATION_FAILED, PICKUP_IN_PAST, SLOT_COUNT_OUT_OF_RANGE or DESCRIPTION_TOO_LONG', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CLEANING_NOT_ENABLED or MORE_OCCUPIED_SLOTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups:
+  post:
+    tags: [fsp-cleaning]
+    operationId: signUpForCleaning
+    summary: 'Sign up for a cleaning shift (managers are confirmed at once).'
+    x-permission: 'verified, not sleeping'
+    x-history: FspAction.CLEANING_SIGNED_UP
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: shiftAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/SignupResult'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CLEANING_NOT_ENABLED or CLEANING_NOT_ELIGIBLE (args.reason)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups/{userId}:
+  delete:
+    tags: [fsp-cleaning]
+    operationId: signOutOfCleaning
+    summary: 'Sign out (self) or remove someone (mayEdit).'
+    x-permission: 'self or mayEdit'
+    x-history: FspAction.CLEANING_SIGNED_OUT
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: shiftAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '400': {description: 'PICKUP_IN_PAST', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND or SIGNUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups/{userId}/confirm:
+  post:
+    tags: [fsp-cleaning]
+    operationId: confirmCleaningSignup
+    summary: 'Confirm a cleaning sign-up.'
+    x-permission: 'mayEdit'
+    x-history: FspAction.CLEANING_CONFIRMED
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: shiftAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Done
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND or SIGNUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_CONFIRMED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/food-share-points/{fspId}/cleaning/team:
+  get:
+    tags: [fsp-cleaning]
+    operationId: getCleaningTeam
+    summary: 'The derived cleaning team (managers and everyone with a sign-up) with statistics.'
+    x-permission: 'mayView'
+    parameters:
+      - name: fspId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/fsp-cleaning.yaml#/CleaningTeam'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'FSP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'CLEANING_NOT_ENABLED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/regions/{regionId}/cleaning-food-share-points:
+  get:
+    tags: [fsp-cleaning]
+    operationId: getRegionCleaningFsps
+    summary: 'The Fairteiler of a region that count for the cleaning rule, with the candidates.'
+    x-permission: 'ambassador of the region or CAN_USE_AUTOMATIONS there'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/fsp-cleaning.yaml#/RegionCleaningFsps'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+  put:
+    tags: [fsp-cleaning]
+    operationId: replaceRegionCleaningFsps
+    summary: 'Set the Fairteiler of a region that count for the cleaning rule.'
+    x-permission: 'ambassador of the region or CAN_USE_AUTOMATIONS there'
+    x-history: FspAction.REGION_CLEANING_FSPS_CHANGED
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/fsp-cleaning.yaml#/RegionCleaningFspsUpdate'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/fsp-cleaning.yaml#/RegionCleaningFsps'
+      '400': {description: 'VALIDATION_FAILED or FSP_NOT_CLEANING_CANDIDATE (args.fspId)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

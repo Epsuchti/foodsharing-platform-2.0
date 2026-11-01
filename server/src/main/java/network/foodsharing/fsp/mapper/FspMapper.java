@@ -66,7 +66,8 @@ public class FspMapper {
                 .following(toFollowing(mine))
                 .permissions(new FspPermissions().mayEdit(FspRules.mayEdit(facts))
                         .mayDelete(FspRules.mayDelete(facts)).mayActivate(FspRules.mayActivate(facts))
-                        .mayPost(FspRules.mayPost(facts)).mayFollow(FspRules.mayFollow(facts)));
+                        .mayPost(FspRules.mayPost(facts)).mayFollow(FspRules.mayFollow(facts)))
+                .cleaningEnabled(fsp.isCleaningEnabled());
     }
 
     public FspFollowing toFollowing(FspFollower row) {
