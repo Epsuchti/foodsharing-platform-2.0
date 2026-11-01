@@ -181,3 +181,25 @@ test.describe('M6 pages translated', () => {
     });
   }
 });
+
+test.describe('toast gutter on phones', () => {
+  test.use({ role: 'bieb', seedReset: 'test' });
+
+  // The gutter check only bites below 640px (mobile-chrome, 412px); on desktop the helper returns nothing.
+  test('D18.3 a real success toast keeps the 16px gutter at phone width @D18.3', async ({ page }, testInfo) => {
+    if (testInfo.project.name === 'mobile-chrome') {
+      expect(page.viewportSize()?.width).toBeLessThanOrEqual(640);
+    }
+    await page.goto(`/regions/${ZH}/options`);
+    const timespan = page.locator('#opt-timespan');
+    await timespan.click();
+    await timespan.press('ControlOrMeta+a');
+    await timespan.pressSequentially('14');
+    await timespan.blur();
+    await page.getByTestId('regions.options.savePickupRule').click();
+    const toast = page.getByTestId('shell.toast').locator('.p-toast-message').first();
+    await expect(toast).toBeVisible();
+    await expect.poll(() => toast.evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(0);
+    await expectNoOverflow(page, 'success toast at phone width');
+  });
+});
