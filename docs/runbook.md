@@ -19,6 +19,7 @@ Internet ──443──▶ reverse proxy (TLS, HSTS; Caddy/nginx on the host)
 - One app container; scheduled jobs are guarded by ShedLock (`shedlock` table), so a second replica during an upgrade is harmless.
 - State lives only in Postgres (`pgdata`) and the uploads volume; both are in the backup (§7). Sessions are server-side rows, so a restart logs nobody out.
 - Management port 9090 (health, Prometheus) is never published; the proxy only forwards to 8080.
+- The proxy must serve HTTP/2 or HTTP/3 to browsers (Caddy does by default; nginx needs `http2 on;`). A first page load fetches about 50 files, which HTTP/1.1 slows down noticeably on a phone. Check it with `curl -sI --http2 https://<domain> | head -n 1`.
 
 ## 2. Build & release
 

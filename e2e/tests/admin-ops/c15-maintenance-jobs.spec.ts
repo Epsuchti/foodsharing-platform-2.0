@@ -28,8 +28,14 @@ test('C15 every §6.3 job is registered with a schedule @C15', async ({ as, apiO
   const names = jobs.map((j) => j.name);
   for (const name of JOBS) {
     expect(names, name).toContain(name);
-    expect(jobs.find((j) => j.name === name)!.locked, name).toBe(false);
   }
+  // a job holds its lock while its schedule runs it (mailbox-fetcher runs often), so wait for it to finish: none stays locked
+  await expect
+    .poll(async () => {
+      const current = await orga.getJson<{ name: string; locked: boolean }[]>('/api/admin/jobs');
+      return current.filter((j) => j.locked && JOBS.includes(j.name)).map((j) => j.name);
+    })
+    .toEqual([]);
 });
 
 test('C15 maintenance jobs run on demand and record a successful manual run @C15', async ({ as, apiOf, notifications }) => {

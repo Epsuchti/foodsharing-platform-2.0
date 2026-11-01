@@ -53,7 +53,8 @@ test.describe('logged in', () => {
   for (const target of TARGETS) {
     test(`${target.tag.slice(1)} ${target.path} shows skeleton, errors and recovers ${target.tag}`, async ({ page }) => {
       for (const { status, view } of STATUSES) {
-        const injection = await injectApiError(page, { url: target.api, status, delayMs: 400 });
+        // long enough for the two skeleton checks to see the loading state on a slow runner (400 ms lost the race on WebKit)
+        const injection = await injectApiError(page, { url: target.api, status, delayMs: 1500 });
         await page.goto(target.path);
         await expectSkeleton(page, target.testId);
         await expectErrorState(page, target.testId, { status: view, retry: view === 'error' });
