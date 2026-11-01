@@ -570,3 +570,28 @@
     white-space: nowrap !important;
   }
 }
+
+/*
+ * Controls with a fixed design size must never shrink in a flex row next to long text (the store pickup policy page
+ * showed switches 20 to 40 px wide instead of 40, leaving only the knob). Guarded by the e2e control-size sweep.
+ */
+.p-toggleswitch {
+  flex-shrink: 0;
+  min-width: 2.5rem;
+}
+.p-checkbox,
+.p-radiobutton {
+  flex-shrink: 0;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+}
+.p-avatar {
+  flex-shrink: 0;
+}
+.p-button-icon-only {
+  flex-shrink: 0;
+}
+input[type='checkbox']:not([class*='p-']),
+input[type='radio']:not([class*='p-']) {
+  flex-shrink: 0;
+}

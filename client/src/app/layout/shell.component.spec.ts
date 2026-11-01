@@ -326,3 +326,38 @@ describe('nav.config', () => {
     expect(chromeOf(null)).toBe('full');
   });
 });
+
+describe('ShellComponent first navigation', () => {
+  it('applies the minimal chrome before the first navigation ends (no flash of the side menu on /login)', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<boolean>((resolve) => {
+      release = () => resolve(true);
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting({
+          routes: [
+            {
+              path: 'login',
+              component: PageComponent,
+              data: { chrome: 'minimal' },
+              canActivate: [() => gate],
+            },
+          ],
+        }),
+        provideOptimus(),
+      ],
+    });
+    const fixture = TestBed.createComponent(ShellComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    const navigation = TestBed.inject(Router).navigateByUrl('/login');
+    // routes are recognised, the guard still holds the navigation: NavigationEnd has not fired
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(host.getAttribute('data-chrome')).toBe('minimal');
+    release();
+    await navigation;
+    await fixture.whenStable();
+    expect(host.getAttribute('data-chrome')).toBe('minimal');
+  });
+});

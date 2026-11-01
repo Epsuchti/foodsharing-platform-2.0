@@ -211,7 +211,7 @@ export { ApiClient, DevApi, CSRF_COOKIE, CSRF_HEADER, acceptPendingConsents, exp
 export { ClockControl } from './clock';
 export { MailBox, type WaitForMailOptions } from './mails';
 export { NotificationHelpers, type BellDto, type DevNotification } from './notifications';
-export { expectNoSeriousViolations } from './a11y';
+export { expectControlSizes, expectNoSeriousViolations } from './a11y';
 export * from './errors';
 export { LANGUAGES, setLanguage, expectNoMissingKeys } from './i18n';
 export { clippedTextsOn, expectNoOverflow } from './layout';

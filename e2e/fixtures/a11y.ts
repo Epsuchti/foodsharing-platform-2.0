@@ -69,3 +69,32 @@ export async function expectNoSeriousViolations(page: Page, options: A11yOptions
 
 export const a11y = { expectNoSeriousViolations };
 export type A11yHelpers = typeof a11y;
+
+/**
+ * Design sizes (px at the 16px root) of the form controls that must never shrink in a flex row next to long text.
+ * A shrunken switch is only a knob (store pickup policy page, resume item 12): global rule in client `styles.scss`.
+ */
+export const CONTROL_MIN_WIDTH: Record<string, number> = {
+  '.p-toggleswitch': 40,
+  '.p-checkbox': 20,
+  '.p-radiobutton': 20,
+};
+
+/** Fails when a visible switch, checkbox or radio renders narrower than its design size. */
+export async function expectControlSizes(page: Page): Promise<void> {
+  const narrow = await page.evaluate((sizes) => {
+    const found: string[] = [];
+    for (const [selector, min] of Object.entries(sizes)) {
+      for (const node of document.querySelectorAll<HTMLElement>(selector)) {
+        const rect = node.getBoundingClientRect();
+        if (!rect.width && !rect.height) continue; // not rendered (hidden tab, closed overlay)
+        if (rect.width < min - 0.5) {
+          const owner = node.closest('[data-testid]')?.getAttribute('data-testid') ?? node.tagName;
+          found.push(`${selector} ${Math.round(rect.width * 10) / 10}px < ${min}px (${owner})`);
+        }
+      }
+    }
+    return found;
+  }, CONTROL_MIN_WIDTH);
+  expect(narrow, 'switches/checkboxes/radios narrower than their design size').toEqual([]);
+}

@@ -10,7 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationEnd, RoutesRecognized, Router, RouterOutlet } from '@angular/router';
 import { ConfirmDialog } from '@openng/optimus-ui/confirmdialog';
 import { Toast } from '@openng/optimus-ui/toast';
 import { filter, map, take } from 'rxjs';
@@ -206,10 +206,24 @@ export class ShellComponent {
     '640px': { width: 'calc(100vw - 2rem)', left: '1rem', right: '1rem' },
   };
 
+  /**
+   * The chrome mode follows NavigationEnd, except for the very first navigation: routes are lazy, so the mode is only
+   * known once they are recognised, and waiting for NavigationEnd would render the full chrome (side menu) first and
+   * switch to the minimal layout afterwards (flash on a direct visit of /login). So the first navigation applies it
+   * at RoutesRecognized, before anything of the page is rendered.
+   */
+  private initialNavigationDone = false;
   private readonly navigationEnd = toSignal(
     this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      map(() => chromeOf(this.router.routerState.snapshot.root)),
+      filter((event) => event instanceof RoutesRecognized || event instanceof NavigationEnd),
+      filter((event) => event instanceof NavigationEnd || !this.initialNavigationDone),
+      map((event) => {
+        if (event instanceof NavigationEnd) {
+          this.initialNavigationDone = true;
+          return chromeOf(this.router.routerState.snapshot.root);
+        }
+        return chromeOf((event as RoutesRecognized).state.root);
+      }),
     ),
     { initialValue: chromeOf(this.router.routerState.snapshot.root) },
   );
