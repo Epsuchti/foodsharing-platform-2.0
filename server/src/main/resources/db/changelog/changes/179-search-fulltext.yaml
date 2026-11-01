@@ -1,0 +1,37 @@
+# Search rework (resume item 20, decision 147): store addresses in their own column (matched only for queries with two
+# or more words); on PostgreSQL a full-text vector with the fs_german configuration (unaccent + german stemming) and a
+# full-text index over forum post bodies. H2 never sees the tsvector column (the LIKE path, decision 147).
+databaseChangeLog:
+  - changeSet:
+      id: 179-1
+      author: platform
+      comment: 'Search index: normalised store address (street, postcode, town).'
+      changes:
+        - addColumn:
+            tableName: search_index
+            columns:
+              - column: {name: address_text, type: VARCHAR(500)}
+  - changeSet:
+      id: 179-2
+      author: platform
+      dbms: postgresql
+      comment: 'Full-text search: unaccent, text search configuration fs_german, search_vector + GIN index.'
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS unaccent
+        - sql:
+            sql: CREATE TEXT SEARCH CONFIGURATION fs_german (COPY = german)
+        - sql:
+            sql: ALTER TEXT SEARCH CONFIGURATION fs_german ALTER MAPPING FOR hword, hword_part, word WITH unaccent, german_stem
+        - sql:
+            sql: ALTER TABLE search_index ADD COLUMN search_vector tsvector
+        - sql:
+            sql: CREATE INDEX ix_search_index_vector ON search_index USING gin (search_vector)
+  - changeSet:
+      id: 179-3
+      author: platform
+      dbms: postgresql
+      comment: 'Full-text index over forum post bodies (global search, SEARCH_FORUM_POSTS toggle).'
+      changes:
+        - sql:
+            sql: CREATE INDEX ix_forum_post_body_fts ON forum_post USING gin (to_tsvector('fs_german'::regconfig, body))

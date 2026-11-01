@@ -151,8 +151,22 @@ public class PermissionService {
                 .anyMatch(permissions -> permissions.contains(permission));
     }
 
+    /** The regions in which the user holds the permission directly or through a function (ORGA not expanded). */
+    public Set<UUID> regionIdsWith(SessionPrincipal principal, Permission permission) {
+        if (principal == null) {
+            return Set.of();
+        }
+        Set<UUID> result = new java.util.HashSet<>();
+        resolver().permissionsByRegion(principal.userId()).forEach((regionId, granted) -> {
+            if (granted.contains(permission)) {
+                result.add(regionId);
+            }
+        });
+        return Set.copyOf(result);
+    }
+
     /**
-     * {@code SessionInfo.permissions}: {@code "<PERMISSION>@<regionId>"}, for ORGA {@code "<PERMISSION>@*"}; sorted.
+     * {@code SessionInfo.permissions}:{@code "<PERMISSION>@<regionId>"}, for ORGA {@code "<PERMISSION>@*"}; sorted.
      */
     public List<String> effectivePermissions(SessionPrincipal principal) {
         if (principal == null) {

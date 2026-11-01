@@ -37,7 +37,8 @@ class RateLimitInventoryTest {
             Map.entry("sendGroupMail", "group-mails"),
             Map.entry("createSupportTicket", "support"),
             Map.entry("sendMail", "mailbox-hourly"),
-            Map.entry("exportMyData", "data-export-cooldown"));
+            Map.entry("exportMyData", "data-export-cooldown"),
+            Map.entry("search", "search"));
 
     /** Limits that are cooldowns / quotas in the database rather than in-memory sliding windows. */
     static final Set<String> NON_METRIC_LIMITERS = Set.of("mailbox-hourly", "data-export-cooldown");

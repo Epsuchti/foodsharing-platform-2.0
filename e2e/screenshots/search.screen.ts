@@ -3,7 +3,7 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
  * Global search (plan-m7 Q12, C5): header combobox with instant index and server results, the /search page with
- * results, empty, loading and error. Baselines are generated in the end batch (decision 69:
+ * results, empty, loading, error and the rate limit (429, decision 147). Baselines are generated in the end batch (decision 69:
  * `e2e/scripts/screenshots.sh --update-snapshots`); light/German only (decision 109).
  */
 forEachVariant((variant) => {
@@ -43,6 +43,13 @@ forEachVariant((variant) => {
       await page.goto('/search?q=Wiedikon');
       await expect(page.getByTestId('search.page.state')).toHaveAttribute('data-state', 'error');
       await visual.expectScreen(page, `search-error-${variant.name}`);
+    });
+
+    screenshotTest('search page rate limited @C5 @screenshot', async ({ page, visual }) => {
+      await injectApiError(page, { url: '/api/search', status: 429, retryAfterSeconds: 42 });
+      await page.goto('/search?q=Wiedikon');
+      await expect(page.getByTestId('search.page.state')).toHaveAttribute('data-state', 'error');
+      await visual.expectScreen(page, `search-rate-limited-${variant.name}`);
     });
   });
 });
