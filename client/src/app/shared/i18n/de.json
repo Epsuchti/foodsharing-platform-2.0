@@ -205,7 +205,7 @@
   "shared.address.positionHint": "Klicke in die Karte oder ziehe die Markierung an die genaue Stelle.",
   "shared.pickupSlot.label": "{taken} von {total} Plätzen belegt",
   "shared.pickupSlot.confirmed": "{name}, bestätigt",
-  "shared.pickupSlot.unconfirmed": "{name}, noch nicht bestätigt",
+  "shared.pickupSlot.unconfirmed": "{name}, unbestätigt",
   "shared.pickupSlot.free": "Freier Platz – eintragen",
   "shared.eligibility.rule": "Abholregel des Bezirks: {count} von {limit} Abholungen in {days} Tagen, {sameDay} von {dayLimit} am selben Tag.",
   "shared.weekdayTime.weekday": "Wochentag",
@@ -264,5 +264,9 @@
   "shared.markerFilter.active": "{count} aktiv",
   "shared.pickupSlot.freeOnly": "Freier Platz",
   "shared.pickupSlot.signUp": "Eintragen",
-  "shared.pickupSlot.freeShort": "{count} frei"
+  "shared.pickupSlot.freeShort": "{count} frei",
+  "shared.pickupSlot.you": "Du",
+  "shared.pickupSlot.mineConfirmed": "Du ({name}), bestätigt – austragen",
+  "shared.pickupSlot.mineUnconfirmed": "Du ({name}), unbestätigt – austragen",
+  "shared.pickupSlot.confirmOne": "{name} bestätigen"
 }

@@ -205,7 +205,7 @@
   "shared.address.positionHint": "Klick i d Charte oder zieh d Markierig a di gnaui Stell.",
   "shared.pickupSlot.label": "{taken} vo {total} Plätz bsetzt",
   "shared.pickupSlot.confirmed": "{name}, bestätigt",
-  "shared.pickupSlot.unconfirmed": "{name}, no nöd bestätigt",
+  "shared.pickupSlot.unconfirmed": "{name}, unbestätigt",
   "shared.pickupSlot.free": "Freie Platz – iitrage",
   "shared.eligibility.rule": "Abholregle vom Bezirk: {count} vo {limit} Abholige i {days} Täg, {sameDay} vo {dayLimit} am gliiche Tag.",
   "shared.weekdayTime.weekday": "Wuchetag",
@@ -264,5 +264,9 @@
   "shared.markerFilter.active": "{count} aktiv",
   "shared.pickupSlot.freeOnly": "Freie Platz",
   "shared.pickupSlot.signUp": "Iitrage",
-  "shared.pickupSlot.freeShort": "{count} frei"
+  "shared.pickupSlot.freeShort": "{count} frei",
+  "shared.pickupSlot.you": "Du",
+  "shared.pickupSlot.mineConfirmed": "Du ({name}), bestätigt – ustrage",
+  "shared.pickupSlot.mineUnconfirmed": "Du ({name}), unbestätigt – ustrage",
+  "shared.pickupSlot.confirmOne": "{name} bestätige"
 }

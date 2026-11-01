@@ -205,7 +205,7 @@
   "shared.address.positionHint": "Clique sur la carte ou fais glisser le marqueur à l’endroit exact.",
   "shared.pickupSlot.label": "{taken} places prises sur {total}",
   "shared.pickupSlot.confirmed": "{name}, confirmé·e",
-  "shared.pickupSlot.unconfirmed": "{name}, pas encore confirmé·e",
+  "shared.pickupSlot.unconfirmed": "{name}, non confirmé·e",
   "shared.pickupSlot.free": "Place libre – s’inscrire",
   "shared.eligibility.rule": "Règle de la région : {count} collectes sur {limit} en {days} jours, {sameDay} sur {dayLimit} le même jour.",
   "shared.weekdayTime.weekday": "Jour",
@@ -264,5 +264,9 @@
   "shared.markerFilter.active": "{count} actif(s)",
   "shared.pickupSlot.freeOnly": "Place libre",
   "shared.pickupSlot.signUp": "S’inscrire",
-  "shared.pickupSlot.freeShort": "{count} libre(s)"
+  "shared.pickupSlot.freeShort": "{count} libre(s)",
+  "shared.pickupSlot.you": "Toi",
+  "shared.pickupSlot.mineConfirmed": "Toi ({name}), confirmé·e – se désinscrire",
+  "shared.pickupSlot.mineUnconfirmed": "Toi ({name}), non confirmé·e – se désinscrire",
+  "shared.pickupSlot.confirmOne": "Confirmer {name}"
 }
