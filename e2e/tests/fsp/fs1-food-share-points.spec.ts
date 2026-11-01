@@ -6,6 +6,7 @@ import {
   expect,
   expectDataState,
   expectErrorState,
+  expectNoSeriousViolations,
   injectApiError,
   regionId,
   test,
@@ -147,7 +148,12 @@ test.describe('region tab', () => {
     await expect(page).toHaveURL(new RegExp(`/food-share-points/${FSPS.wiedikon}$`));
     await expectDataState(page, 'foodSharePoints.detail.state', 'success');
     await expect(page.getByTestId('foodSharePoints.detail.addressText')).toContainText('Schlossgasse 10');
-    await expect(page.getByTestId('foodSharePoints.detail.googleMaps')).toHaveAttribute('href', /query=47\.3721,8\.5172/);
+    await page.getByTestId('foodSharePoints.detail.navigate').click();
+    await expect(page.getByTestId('foodSharePoints.detail.navigate.google')).toHaveAttribute('href', /destination=47\.3721,8\.5172/);
+    await expect(page.getByTestId('foodSharePoints.detail.navigate.apple')).toHaveAttribute('href', /daddr=47\.3721,8\.5172/);
+    await expectNoSeriousViolations(page);
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('foodSharePoints.detail.navigate')).toBeFocused();
     await expect(page.getByTestId('foodSharePoints.managers.item')).toContainText('Nina Schneider');
     await expect(page.getByTestId('foodSharePoints.detail.edit')).toHaveCount(0);
     await expect(page.getByTestId('foodSharePoints.detail.follow')).toHaveAttribute('data-following', 'true');

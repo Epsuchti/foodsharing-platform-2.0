@@ -23,6 +23,15 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `events-past-${variant.name}`);
     });
 
+    screenshotTest('event navigate menu open @E1 @screenshot', async ({ page, visual }) => {
+      await page.goto(event(1));
+      await expect(page.getByTestId('events.event.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('events.event.navigate').click();
+      await expect(page.getByTestId('events.event.navigate.google')).toBeVisible();
+      // viewport only: a full-page capture resizes the viewport, and p-popover closes on resize (desktop)
+      await visual.expectScreen(page, `events-event-navigate-${variant.name}`, { fullPage: false });
+    });
+
     screenshotTest('form, my events and error @E1 @E3 @screenshot', async ({ page, visual }) => {
       await page.goto(`/events/new?regionId=${zs}`);
       await page.getByTestId('events.form.submit').click();

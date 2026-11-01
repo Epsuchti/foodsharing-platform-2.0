@@ -53,6 +53,15 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `stores-page-member-${variant.name}`);
       });
 
+      screenshotTest('store navigate menu open @S15 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/overview`);
+        await expect(page.getByTestId('stores.overview.contact')).toBeVisible();
+        await page.getByTestId('stores.page.navigate').click();
+        await expect(page.getByTestId('stores.page.navigate.google')).toBeVisible();
+        // viewport only: a full-page capture resizes the viewport, and p-popover closes on resize (desktop)
+        await visual.expectScreen(page, `stores-page-navigate-${variant.name}`, { fullPage: false });
+      });
+
       screenshotTest('store page loading @S1 @screenshot', async ({ page, visual }) => {
         await injectApiError(page, { url: `/api/stores/${S01}`, delayMs: 30_000 });
         await page.goto(`/stores/${S01}/overview`);

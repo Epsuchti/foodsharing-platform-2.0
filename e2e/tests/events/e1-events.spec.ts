@@ -69,6 +69,22 @@ test.describe('bot', () => {
     await retry.click();
     await expectDataState(page, 'events.list.state', 'success');
   });
+
+  test('E1 offline event offers directions to its place, online event does not @E1', async ({ page }) => {
+    // seed event 01 (OFFLINE) is at Fairteiler Wiedikon, 47.3721 / 8.5172; event 02 is ONLINE
+    await page.goto(`/events/${event(1)}`);
+    await expectDataState(page, 'events.event.state', 'success');
+    await page.getByTestId('events.event.navigate').click();
+    await expect(page.getByTestId('events.event.navigate.google')).toHaveAttribute('href', /destination=47\.3721,8\.5172/);
+    await expect(page.getByTestId('events.event.navigate.apple')).toHaveAttribute('href', /daddr=47\.3721,8\.5172&q=Fairteiler/);
+    await expectNoSeriousViolations(page);
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('events.event.navigate')).toBeFocused();
+    await page.goto(`/events/${event(2)}`);
+    await expectDataState(page, 'events.event.state', 'success');
+    await expect(page.getByTestId('events.event.onlineLink')).toBeVisible();
+    await expect(page.getByTestId('events.event.navigate')).toHaveCount(0);
+  });
 });
 
 test.describe('profile (no region)', () => {

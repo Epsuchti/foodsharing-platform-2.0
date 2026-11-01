@@ -23,6 +23,15 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `baskets-detail-${variant.name}`);
     });
 
+    screenshotTest('basket navigate menu open with approximate note @B1 @screenshot', async ({ page, visual }) => {
+      await page.goto(`/baskets/${BASKETS.joghurt}`);
+      await expect(page.getByTestId('baskets.detail.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('baskets.detail.navigate').click();
+      await expect(page.getByTestId('baskets.detail.navigate.note')).toBeVisible();
+      // viewport only: a full-page capture resizes the viewport, and p-popover closes on resize (desktop)
+      await visual.expectScreen(page, `baskets-detail-navigate-${variant.name}`, { fullPage: false });
+    });
+
     screenshotTest('basket offer form @B1 @screenshot', async ({ page, visual }) => {
       await page.goto('/baskets/new');
       await expect(page.getByTestId('baskets.form.state')).toHaveAttribute('data-state', 'success');
