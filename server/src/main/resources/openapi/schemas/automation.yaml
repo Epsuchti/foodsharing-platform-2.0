@@ -172,11 +172,14 @@ GapCandidateLink:
 
 GapCandidate:
   type: object
-  required: [store, automationActive, inOtherList, links]
+  required: [store, automationActive, inOtherList, mayEdit, links]
   properties:
     store:
       $ref: './stores.yaml#/StoreRef'
     automationActive:
+      type: boolean
+    mayEdit:
+      description: 'The actor may use automations there (may add or remove it)'
       type: boolean
     inOtherList:
       description: 'The store is in another gap list (cannot be chosen)'

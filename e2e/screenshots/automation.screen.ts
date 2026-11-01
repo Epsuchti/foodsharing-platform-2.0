@@ -27,6 +27,39 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `automation-preview-${variant.name}`);
     });
 
+    screenshotTest('gap rule with a shared store list: list, warnings, preview, phone @AU1 @screenshot', async ({ page, visual }) => {
+      // seed (decision 151): S-01 + S-03, S-03 locked for bieb and without automation
+      await page.goto(`/stores/${S01}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      const card = page.getByTestId('automation.policy.gapCard');
+      await expect(card.getByTestId('automation.policy.gapMember')).toHaveCount(1);
+      await expect(card.getByTestId('automation.policy.gapPreview.day')).toHaveCount(11);
+      await visual.expectElement(card, `automation-gap-list-${variant.name}`);
+
+      // conflict: S-06 links S-05 on the same day and puts S-05 on its list (not saved)
+      await page.goto(`/stores/${S06}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('automation.policy.addLink').click();
+      const stores = page.getByTestId('automation.policy.link.0.stores');
+      await stores.click();
+      await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
+      await stores.locator('.p-multiselect-dropdown').click();
+      await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+      const picker = page.getByTestId('automation.policy.gapStores');
+      await picker.click();
+      await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
+      await picker.locator('.p-multiselect-dropdown').click();
+      await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+      await expect(page.locator('[data-testid="automation.policy.gapWarning"][data-kind="CONFLICT"]')).toBeVisible();
+      await visual.expectElement(page.getByTestId('automation.policy.gapCard'), `automation-gap-conflict-${variant.name}`);
+
+      // phone width: the 11 cells stay in one row
+      await page.setViewportSize({ width: 412, height: 915 });
+      await page.goto(`/stores/${S01}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      await visual.expectElement(page.getByTestId('automation.policy.gapCard'), `automation-gap-list-phone-${variant.name}`);
+    });
+
     screenshotTest('store decisions, adverts and sign-out alerts @AU4 @AU5 @AU8 @screenshot', async ({ page, visual }) => {
       await page.goto(`/stores/${S01}/automation/audits`);
       await expect(page.getByTestId('automation.audits.state')).toHaveAttribute('data-state', 'success');

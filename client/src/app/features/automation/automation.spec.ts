@@ -6,7 +6,17 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach, beforeAll, vi } from 'vitest';
 
-import { AdvertChannel, ApiErrorCode, OpenSlotAdvert, PickupPolicy, RequestPolicy, StoreAutomation } from '../../api';
+import {
+  AdvertChannel,
+  ApiErrorCode,
+  GapCandidate,
+  LinkedStoreWindowMode,
+  OpenSlotAdvert,
+  PickupPolicy,
+  RequestPolicy,
+  StoreAutomation,
+} from '../../api';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { AUTOMATION_ROUTES } from './automation.routes';
 import { AdvertsSection } from './sections/adverts.section';
@@ -15,6 +25,12 @@ import { RequestPolicySection } from './sections/request-policy.section';
 import { StoreAutomationContext } from './store-automation.context';
 import {
   advertValues,
+  calendarGapDays,
+  gapLinkFindings,
+  gapLinkReach,
+  gapPreview,
+  joinAll,
+  todayIn,
   appendPlaceholder,
   decisionTone,
   emptyAdvert,
@@ -57,6 +73,171 @@ describe('automation util', () => {
     expect(values['time']).toBe('19:00');
     expect(values['dateDe']).toBe('05.11.2026');
     expect(values['freeSlots']).toBe(2);
+  });
+});
+
+describe('gap list util (decision 151)', () => {
+  it('previews 11 days around the pickup with the next possible date', () => {
+    const preview = gapPreview('2026-11-08', 2);
+    expect(preview.days).toHaveLength(11);
+    // ±1 day: 0 free days, ±2: 1 free day (both < 2), ±3: 2 free days
+    expect(preview.days.map((d) => d.result).join(' ')).toBe('OK OK OK BLOCKED BLOCKED PICKUP BLOCKED BLOCKED OK OK OK');
+    expect(preview.days[0].date).toBe('2026-11-03');
+    expect(preview.next).toBe('2026-11-11');
+    expect(preview.actual).toBe(1);
+    // Monday/Wednesday = 1 free day; the same and the next day = 0
+    expect(calendarGapDays(2)).toBe(1);
+    expect(calendarGapDays(1)).toBe(0);
+    expect(gapPreview('2026-11-08', 0).days.filter((d) => d.result === 'BLOCKED')).toHaveLength(0);
+  });
+
+  it('finds blocking and partial link conflicts once per rule', () => {
+    const rule = (owner: string, storeIds: string[], before = 0, after = 0, mode = LinkedStoreWindowMode.SameDay) => ({
+      owner,
+      storeIds,
+      windowMode: mode,
+      windowDaysBefore: before,
+      windowDaysAfter: after,
+    });
+    expect(gapLinkReach(rule('a', ['b'], 3, 1, LinkedStoreWindowMode.LastDays))).toBe(2);
+    const findings = gapLinkFindings('a', ['b'], 2, [rule('a', ['b']), rule('b', ['a']), rule('a', ['b', 'c'], 1, 1, LinkedStoreWindowMode.LastDays)]);
+    expect(findings.map((f) => [f.store, f.blocking])).toEqual([
+      ['b', true],
+      ['b', false],
+    ]);
+    // a wide enough window and an empty list find nothing
+    expect(gapLinkFindings('a', ['b'], 2, [rule('a', ['b'], 3, 3, LinkedStoreWindowMode.LastDays)])).toEqual([]);
+    expect(gapLinkFindings('a', [], 2, [rule('a', ['b'])])).toEqual([]);
+  });
+
+  it('joins names and finds today in a time zone', () => {
+    expect(joinAll(['A'], 'und')).toBe('A');
+    expect(joinAll(['A', 'B', 'C'], 'und')).toBe('A, B und C');
+    expect(todayIn('Europe/Zurich', new Date('2026-11-01T23:30:00Z'))).toBe('2026-11-02');
+    expect(todayIn('America/New_York', new Date('2026-11-02T03:30:00Z'))).toBe('2026-11-01');
+  });
+});
+
+describe('pickup policy section: gap list (decision 151)', () => {
+  const S = '00000020-0001-4000-8000-000000000001';
+  const B = '00000020-0001-4000-8000-000000000003';
+  const C = '00000020-0001-4000-8000-000000000005';
+  const D = '00000020-0001-4000-8000-000000000012';
+  const automation = signal<StoreAutomation | undefined>(undefined);
+  let http: HttpTestingController;
+  let fixture: ComponentFixture<PickupPolicySection>;
+  const el = () => fixture.nativeElement as HTMLElement;
+  const all = (testId: string) => [...el().querySelectorAll(`[data-testid="${testId}"]`)] as HTMLElement[];
+  const settle = async () => {
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+  const candidates: GapCandidate[] = [
+    { store: { id: B, name: 'Migros Limmatplatz' }, automationActive: false, inOtherList: false, mayEdit: false, links: [] },
+    {
+      store: { id: C, name: 'Coop Stauffacher' },
+      automationActive: true,
+      inOtherList: false,
+      mayEdit: true,
+      links: [{ storeIds: [S], windowMode: LinkedStoreWindowMode.SameDay, windowDaysBefore: 0, windowDaysAfter: 0 }],
+    },
+    { store: { id: D, name: 'Coop Wiedikon' }, automationActive: true, inOtherList: false, mayEdit: true, links: [] },
+  ];
+  const open = async (policy: PickupPolicy) => {
+    automation.set({ pickupPolicy: policy, adverts: [], permissions: { mayEdit: true } } as unknown as StoreAutomation);
+    fixture = TestBed.createComponent(PickupPolicySection);
+    await settle();
+    http.expectOne((r) => r.url.endsWith(`/stores/${S}/automation/gap-candidates`)).flush(candidates);
+    await settle();
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting(),
+        provideOptimus(),
+        {
+          provide: StoreAutomationContext,
+          useValue: {
+            storeId: signal(S),
+            regionId: signal(undefined),
+            data: automation,
+            mayEdit: computed(() => true),
+            timeZone: signal('Europe/Zurich'),
+            store: { data: signal({ id: S, name: 'Coop Bahnhofbrücke' }) },
+            reload: vi.fn(),
+          },
+        },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+    TestBed.inject(I18nService).useCatalog({
+      'automation.policy.gapAnd': 'und',
+      'automation.policy.gapNote': 'Liste: {stores}',
+      'automation.policy.gapForbidden': 'Keine Berechtigung für {store}',
+      'automation.policy.gapPreview.message': '{date} {store} {stores} {gap} {actual}',
+    });
+  });
+
+  afterEach(() => http.verify({ ignoreCancelled: true }));
+
+  it('shows a locked member without remove button, the note, the no-automation warning and locks the days field', async () => {
+    await open({
+      ...emptyPickupPolicy(),
+      enabled: true,
+      gapRuleEnabled: true,
+      minimumGapDays: 2,
+      gapStoreIds: [B],
+      gapStores: [{ store: { id: B, name: 'Migros Limmatplatz' }, automationActive: false, mayEdit: false }],
+      version: 1,
+    });
+    const [row] = all('automation.policy.gapMember');
+    expect(row.dataset['locked']).toBe('true');
+    expect(row.querySelector('[data-testid="automation.policy.gapMember.remove"]')).toBeNull();
+    expect(all('automation.policy.gapLockedLeave')).toHaveLength(1);
+    expect(all('automation.policy.gapNote')[0].textContent).toContain('Liste: Coop Bahnhofbrücke und Migros Limmatplatz');
+    expect(all('automation.policy.gapWarning').map((w) => w.dataset['kind'])).toEqual(['NO_AUTOMATION']);
+    expect((el().querySelector('[data-testid="automation.policy.gapDays"] input') as HTMLInputElement).disabled).toBe(true);
+    expect(all('automation.policy.gapPreview.day')).toHaveLength(11);
+    expect(all('automation.policy.gapPreview.message')[0].textContent).toContain('Migros Limmatplatz');
+  });
+
+  it('a fully listed same-day link blocks save; rule off sends an empty list', async () => {
+    await open({ ...emptyPickupPolicy(), enabled: true, gapRuleEnabled: true, minimumGapDays: 2, version: 1 });
+    const component = fixture.componentInstance as unknown as { setGapMembers(ids: string[]): void; draft: WritableSignal<PickupPolicy | null> };
+    component.setGapMembers([C]);
+    await settle();
+    const warnings = all('automation.policy.gapWarning');
+    expect(warnings.map((w) => w.dataset['kind'])).toEqual(['CONFLICT']);
+    expect(warnings[0].dataset['store']).toBe(C);
+    expect((el().querySelector('[data-testid="automation.policy.save"] button') as HTMLButtonElement).disabled).toBe(true);
+
+    // switching the rule off leaves the list: no warning, save sends gapStoreIds []
+    component.draft.update((p) => ({ ...p!, gapRuleEnabled: false }));
+    await settle();
+    expect(all('automation.policy.gapWarning')).toHaveLength(0);
+    (el().querySelector('[data-testid="automation.policy.save"] button') as HTMLButtonElement).click();
+    await settle();
+    const put = http.expectOne((r) => r.method === 'PUT');
+    expect(put.request.body.gapStoreIds).toEqual([]);
+    put.flush({ ...emptyPickupPolicy(), version: 2 });
+  });
+
+  it('names the store of a 403', async () => {
+    await open({ ...emptyPickupPolicy(), enabled: true, gapRuleEnabled: true, minimumGapDays: 2, version: 1 });
+    (fixture.componentInstance as unknown as { setGapMembers(ids: string[]): void }).setGapMembers([D]);
+    await settle();
+    expect(all('automation.policy.gapWarning')).toHaveLength(0);
+    (el().querySelector('[data-testid="automation.policy.save"] button') as HTMLButtonElement).click();
+    await settle();
+    const put = http.expectOne((r) => r.method === 'PUT');
+    expect(put.request.body.gapStoreIds).toEqual([D]);
+    put.flush(apiHttpError(403, ApiErrorCode.AccessDenied, { args: { storeId: D } }).error, { status: 403, statusText: 'Forbidden' });
+    await settle();
+    const error = all('automation.policy.error')[0];
+    expect(error.dataset['code']).toBe('ACCESS_DENIED');
+    expect(error.textContent).toContain('Keine Berechtigung für Coop Wiedikon');
+    expect(all('automation.policy.gapMember')[0].dataset['error']).toBe('true');
   });
 });
 
@@ -321,6 +502,9 @@ describe('policy sections: run now uses the saved policy', () => {
   for (const c of cases) {
     it(`${c.name}: blocks run and dry run while the draft is unsaved or the save is in flight`, async () => {
       fixture = c.create();
+      await settle();
+      // the gap card loads its store candidates (decision 151)
+      http.match((r) => r.url.endsWith('/automation/gap-candidates')).forEach((r) => r.flush([]));
       await settle();
       const run = () => button(`${c.prefix}.run`);
       const runDry = () => button(`${c.prefix}.runDry`);

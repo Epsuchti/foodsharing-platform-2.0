@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
@@ -12,22 +13,56 @@ import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import {
   AutomationRunResult,
   AutomationService,
+  GapCandidate,
+  GapCandidateLink,
   LinkedStoreRule,
   LinkedStoreWindowMode,
   PickupPolicy,
   StoreListPage,
   StoresService,
 } from '../../../api';
+import { ApiErrorView } from '../../../core/data/api-error';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
-import { LINK_PLACEHOLDERS, clone, emptyLinkRule, emptyPickupPolicy, fromIsoDate, isoDate } from '../automation.util';
+import {
+  GapLinkRule,
+  LINK_PLACEHOLDERS,
+  MAX_GAP_STORES,
+  addDays,
+  clone,
+  emptyLinkRule,
+  emptyPickupPolicy,
+  fromIsoDate,
+  gapLinkFindings,
+  isoDate,
+  joinAll,
+  todayIn,
+} from '../automation.util';
+import { GapPreviewComponent } from '../components/gap-preview.component';
 import { PreviewDialogComponent } from '../components/preview-dialog.component';
 import { TemplateEditorComponent } from '../components/template-editor.component';
 import { StoreAutomationContext } from '../store-automation.context';
+
+interface GapInfo {
+  id: string;
+  name: string;
+  automationActive: boolean;
+  inOtherList: boolean;
+  mayEdit: boolean;
+  links: GapCandidateLink[];
+}
+
+interface GapWarning {
+  key: string;
+  kind: 'NO_AUTOMATION' | 'LINK' | 'CONFLICT';
+  store?: string;
+  linkIndex?: number;
+  text: string;
+}
 
 /** Own linked-store rules per policy (server: TOO_MANY_LINKED_STORES). */
 export const MAX_LINK_RULES = 2;
@@ -47,8 +82,10 @@ export const MAX_STORES_PER_LINK = 5;
     DatePicker,
     DateTimePipe,
     FormsModule,
+    GapPreviewComponent,
     InputNumber,
     MultiSelect,
+    NgTemplateOutlet,
     PreviewDialogComponent,
     RouterLink,
     SelectButton,
@@ -83,7 +120,7 @@ export const MAX_STORES_PER_LINK = 5;
       </section>
 
       <div class="rules">
-        <section class="card fs-card" data-testid="automation.policy.gapCard">
+        <section class="card fs-card gap-card" data-testid="automation.policy.gapCard">
           <div class="switch-row">
             <label class="switch-row__text" for="pp-gap"><strong>{{ 'automation.policy.gap' | t }}</strong>
               <span class="muted">{{ 'automation.policy.gapHint' | t }}</span></label>
@@ -91,9 +128,132 @@ export const MAX_STORES_PER_LINK = 5;
           </div>
           <div class="field">
             <label for="pp-gap-days">{{ 'automation.policy.gapDays' | t }}</label>
-            <p-inputnumber inputId="pp-gap-days" [(ngModel)]="p.minimumGapDays" [min]="0" [max]="60" [showButtons]="true" [disabled]="!ctx.mayEdit() || !p.gapRuleEnabled" data-testid="automation.policy.gapDays" />
+            <p-inputnumber
+              class="gap-days"
+              inputId="pp-gap-days"
+              [(ngModel)]="p.minimumGapDays"
+              [min]="gapMembers().length ? 1 : 0"
+              [max]="60"
+              [showButtons]="true"
+              [disabled]="!ctx.mayEdit() || !p.gapRuleEnabled || lockedMembers().length > 0"
+              ariaDescribedBy="pp-gap-days-hint"
+              data-testid="automation.policy.gapDays"
+            />
+            @if (p.gapRuleEnabled && lockedMembers().length) {
+              <p class="muted" id="pp-gap-days-hint" data-testid="automation.policy.gapLockedGap">
+                {{ 'automation.policy.gapLockedGap' | t: { stores: names(lockedMembers()) } }}
+              </p>
+            } @else if (p.gapRuleEnabled && gapMembers().length) {
+              <p class="muted" id="pp-gap-days-hint" [class.error-text]="p.minimumGapDays < 1">{{ 'automation.policy.gapMinWithList' | t }}</p>
+            }
           </div>
+          @if (p.gapRuleEnabled) {
+            <div class="field">
+              <label for="pp-gap-stores">{{ 'automation.policy.gapStores' | t }}</label>
+              <p class="muted" id="pp-gap-stores-hint">{{ 'automation.policy.gapStoresHint' | t }}</p>
+              @if (ctx.mayEdit()) {
+                <fs-data-state [state]="gapCandidates" skeleton="form" [skeletonRows]="1" testId="automation.policy.gapStores" data-testid="automation.policy.gapStores.state" [compact]="true">
+                  <ng-template [fsData]="gapCandidates">
+                    <p-multiselect
+                      #gapPicker
+                      (onChange)="releaseOpenGuard(gapPicker)"
+                      inputId="pp-gap-stores"
+                      [options]="gapOptions()"
+                      optionLabel="name"
+                      optionValue="id"
+                      optionDisabled="disabled"
+                      [ngModel]="gapMembers()"
+                      (ngModelChange)="setGapMembers($event)"
+                      [selectionLimit]="maxGapStores"
+                      [filter]="true"
+                      display="comma"
+                      [maxSelectedLabels]="0"
+                      [selectedItemsLabel]="'automation.policy.gapStoresSelected' | t"
+                      [placeholder]="'automation.policy.gapStoresPlaceholder' | t"
+                      [showToggleAll]="false"
+                      appendTo="body"
+                      ariaLabelledBy="pp-gap-stores-hint"
+                      data-testid="automation.policy.gapStores"
+                    >
+                      <ng-template #item let-option>
+                        <span class="gap-option" [attr.data-store]="option.id">
+                          <span class="gap-option__name">{{ option.name }}</span>
+                          <ng-container *ngTemplateOutlet="badge; context: { $implicit: option }" />
+                        </span>
+                      </ng-template>
+                    </p-multiselect>
+                  </ng-template>
+                </fs-data-state>
+              }
+            </div>
+            @if (gapMembers().length) {
+              <ul class="members" [attr.aria-label]="'automation.policy.gapStoresLabel' | t">
+                @for (member of memberRows(); track member.id) {
+                  <li
+                    class="member"
+                    data-testid="automation.policy.gapMember"
+                    [attr.data-store]="member.id"
+                    [attr.data-locked]="member.locked"
+                    [attr.data-automation]="member.automationActive"
+                    [attr.data-error]="member.error"
+                  >
+                    <i class="pi pi-shop member__icon" aria-hidden="true"></i>
+                    <span class="member__main">
+                      <span class="member__name">{{ member.name }}</span>
+                      <ng-container *ngTemplateOutlet="badge; context: { $implicit: member }" />
+                    </span>
+                    <span class="member__end">
+                      @if (member.locked) {
+                        <i class="pi pi-lock member__lock" aria-hidden="true"></i>
+                      } @else if (ctx.mayEdit()) {
+                        <p-button
+                          icon="pi pi-times"
+                          [text]="true"
+                          [rounded]="true"
+                          severity="secondary"
+                          [ariaLabel]="'automation.policy.gapRemove' | t: { store: member.name }"
+                          (onClick)="removeGapMember(member.id)"
+                          data-testid="automation.policy.gapMember.remove"
+                        />
+                      }
+                    </span>
+                  </li>
+                }
+              </ul>
+              @if (lockedMembers().length && ctx.mayEdit()) {
+                <p class="muted" data-testid="automation.policy.gapLockedLeave"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'automation.policy.gapLockedLeave' | t }}</p>
+              }
+              <p class="banner banner--info" data-testid="automation.policy.gapNote">
+                <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'automation.policy.gapNote' | t: { stores: names(gapNoteStores()) } }}
+              </p>
+            }
+            @for (warning of gapWarnings(); track warning.key; let wi = $index) {
+              <p
+                class="banner"
+                [class.banner--danger]="warning.kind === 'CONFLICT'"
+                [attr.role]="warning.kind === 'CONFLICT' ? 'alert' : 'status'"
+                [id]="'pp-gap-warning-' + wi"
+                data-testid="automation.policy.gapWarning"
+                [attr.data-kind]="warning.kind"
+                [attr.data-store]="warning.store"
+              >
+                <i class="pi" [class.pi-ban]="warning.kind === 'CONFLICT'" [class.pi-exclamation-triangle]="warning.kind !== 'CONFLICT'" aria-hidden="true"></i>{{ warning.text }}
+              </p>
+            }
+            <fs-gap-preview [pickup]="examplePickup()" [gap]="p.minimumGapDays" [storeNames]="previewNames()" />
+          }
         </section>
+        <ng-template #badge let-entry>
+          @if (entry.locked) {
+            <span class="badge badge--bad"><i class="pi pi-lock" aria-hidden="true"></i>{{ 'automation.policy.gapBadge.locked' | t }}</span>
+          } @else if (entry.inOtherList) {
+            <span class="badge"><i class="pi pi-list" aria-hidden="true"></i>{{ 'automation.policy.gapBadge.taken' | t }}</span>
+          } @else if (entry.automationActive) {
+            <span class="badge badge--ok"><i class="pi pi-check" aria-hidden="true"></i>{{ 'automation.policy.gapBadge.on' | t }}</span>
+          } @else {
+            <span class="badge badge--dry"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'automation.policy.gapBadge.off' | t }}</span>
+          }
+        </ng-template>
         <section class="card fs-card">
           <div class="switch-row">
             <label class="switch-row__text" for="pp-exp"><strong>{{ 'automation.policy.experience' | t }}</strong>
@@ -144,6 +304,17 @@ export const MAX_STORES_PER_LINK = 5;
         <p class="muted">{{ 'automation.policy.linksHint' | t }}</p>
         @for (rule of p.linkedStores; track $index; let i = $index) {
           <div class="card link" [attr.data-testid]="'automation.policy.link.' + i" [class.link--mirror]="!!rule.mirrorOf">
+            @for (warning of linkGapWarnings(i); track warning.key) {
+              <p
+                class="banner banner--sm"
+                [class.banner--danger]="warning.kind === 'CONFLICT'"
+                [attr.role]="warning.kind === 'CONFLICT' ? 'alert' : 'status'"
+                [attr.data-testid]="'automation.policy.link.' + i + '.gapWarning'"
+                [attr.data-kind]="warning.kind"
+              >
+                <i class="pi" [class.pi-ban]="warning.kind === 'CONFLICT'" [class.pi-exclamation-triangle]="warning.kind !== 'CONFLICT'" aria-hidden="true"></i>{{ warning.text }}
+              </p>
+            }
             @if (rule.mirrorOf) {
               <p class="muted" data-testid="automation.policy.link.mirror">
                 <i class="pi pi-arrows-h" aria-hidden="true"></i>
@@ -254,12 +425,19 @@ export const MAX_STORES_PER_LINK = 5;
 
       @if (save.error(); as e) {
         <p class="error-text" role="alert" data-testid="automation.policy.error" [attr.data-code]="e.code">
-          {{ 'errors.' + e.code | t }}
+          {{ saveErrorText(e) }}
         </p>
       }
       <div class="actions">
         @if (ctx.mayEdit()) {
-          <p-button [label]="'common.save' | t" icon="pi pi-save" [loading]="save.busy()" [disabled]="!dirty()" (onClick)="save.run()" data-testid="automation.policy.save" />
+          <p-button
+            [label]="'common.save' | t"
+            icon="pi pi-save"
+            [loading]="save.busy()"
+            [disabled]="!dirty() || gapBlocked()"
+            (onClick)="save.run()"
+            data-testid="automation.policy.save"
+          />
           @if (exists()) {
             <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.policy.runDry" />
             <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun || unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.policy.run" />
@@ -289,6 +467,21 @@ export const MAX_STORES_PER_LINK = 5;
     .link--mirror { background: var(--fs-surface-muted); }
     .chip-remove { margin-left: 0.25rem; border: 0; background: none; color: inherit; cursor: pointer; font-weight: 700; }
     p-multiselect { width: 100%; }
+    .rules .gap-card { grid-column: 1 / -1; }
+    .gap-days { width: 9rem; }
+    .gap-option { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; min-width: 0; }
+    .members { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+    .member {
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.2rem 0.6rem; align-items: center;
+      min-height: var(--fs-target-sm); padding: 0.35rem 0.4rem 0.35rem 0.7rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md);
+    }
+    .member[data-error='true'] { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); }
+    .member__icon, .member__lock { color: var(--fs-text-muted); }
+    .member__main { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; min-width: 0; }
+    .member__name { font-weight: 650; overflow-wrap: anywhere; }
+    .member__end { display: inline-flex; align-items: center; gap: 0.4rem; }
+    .banner--danger { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); color: var(--fs-danger); }
+    .banner--sm { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
   `,
 })
 export class PickupPolicySection {
@@ -330,6 +523,182 @@ export class PickupPolicySection {
     return listed.sort((a, b) => a.name.localeCompare(b.name));
   });
 
+  protected readonly maxGapStores = MAX_GAP_STORES;
+
+  /** Stores that can join the gap list (decision 151), with their link rules for the D7 warnings. */
+  protected readonly gapCandidates = loadResource<GapCandidate[], string>({
+    params: () => (this.ctx.mayEdit() ? this.ctx.storeId() : undefined),
+    loader: (storeId) => this.api.listGapCandidates({ storeId }),
+    isEmpty: () => false,
+  });
+
+  /** The other stores of the gap list as a signal (the multiselect needs a stable array between change detection runs). */
+  private readonly gapList = signal<string[]>([]);
+  protected readonly gapMembers = computed(() => this.gapList());
+
+  /** What the page knows about a store: candidates plus the saved list (which carries mayEdit for locked members). */
+  private readonly gapInfo = computed(() => {
+    const info = new Map<string, GapInfo>();
+    for (const c of this.gapCandidates.data() ?? []) {
+      info.set(c.store.id, { id: c.store.id, name: c.store.name, automationActive: c.automationActive, inOtherList: c.inOtherList, mayEdit: c.mayEdit, links: c.links });
+    }
+    for (const g of this.ctx.data()?.pickupPolicy?.gapStores ?? []) {
+      const known = info.get(g.store.id);
+      info.set(g.store.id, {
+        id: g.store.id,
+        name: g.store.name,
+        automationActive: g.automationActive,
+        inOtherList: false,
+        mayEdit: g.mayEdit,
+        links: known?.links ?? [],
+      });
+    }
+    return info;
+  });
+
+  protected readonly gapOptions = computed(() =>
+    [...this.gapInfo().values()]
+      .map((s) => ({ ...s, locked: !s.mayEdit, disabled: s.inOtherList || !s.mayEdit }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  );
+
+  protected readonly memberRows = computed(() => {
+    const errorStore = this.save.error()?.args?.['storeId'];
+    return this.gapMembers().map((id) => {
+      const s = this.gapInfo().get(id);
+      return {
+        id,
+        name: s?.name ?? id,
+        automationActive: s?.automationActive ?? false,
+        inOtherList: false,
+        locked: s ? !s.mayEdit : false,
+        error: errorStore === id,
+      };
+    });
+  });
+
+  protected readonly lockedMembers = computed(() => this.memberRows().filter((m) => m.locked).map((m) => m.name));
+  protected readonly selfName = computed(() => this.ctx.store.data()?.name ?? '');
+  protected readonly gapNoteStores = computed(() => [this.selfName(), ...this.memberRows().map((m) => m.name)]);
+  protected readonly previewNames = computed(() => (this.gapMembers().length ? this.gapNoteStores() : [this.selfName()]));
+  /** Example pickup: today + 7 in the region's time zone (owner). */
+  protected readonly examplePickup = computed(() => addDays(todayIn(this.ctx.timeZone() ?? undefined), 7));
+
+  protected setGapMembers(ids: string[] | null): void {
+    this.gapList.set([...(ids ?? [])]);
+    this.draft()!.gapStoreIds = this.gapList();
+  }
+
+  protected removeGapMember(id: string): void {
+    this.setGapMembers(this.gapList().filter((m) => m !== id));
+  }
+
+  protected names(list: readonly string[]): string {
+    return joinAll(list, this.i18n.t('automation.policy.gapAnd'));
+  }
+
+  private days(count: number): string {
+    return this.i18n.t('automation.policy.gapDayCount', { count });
+  }
+
+  private storeName(id: string | undefined): string | undefined {
+    if (!id) return undefined;
+    if (id === this.ctx.storeId()) return this.selfName();
+    const known = this.gapInfo().get(id)?.name;
+    if (known) return known;
+    for (const rule of this.draft()?.linkedStores ?? []) {
+      const store = (rule.stores ?? []).find((s) => s.id === id);
+      if (store) return store.name;
+    }
+    return this.storeOptions().find((s) => s.id === id)?.name;
+  }
+
+  /** The link rules for the D7 check: this store's (as edited, with the mirrors they create) first, then the listed stores'. */
+  private gapRules(policy: PickupPolicy): GapLinkRule[] {
+    const self = this.ctx.storeId() ?? '';
+    const rules: GapLinkRule[] = [];
+    policy.linkedStores.forEach((rule, linkIndex) => {
+      const lastDays = rule.windowMode === LinkedStoreWindowMode.LastDays;
+      const before = lastDays ? rule.windowDaysBefore : 0;
+      const after = lastDays ? rule.windowDaysAfter : 0;
+      rules.push({ owner: self, storeIds: rule.storeIds ?? [], windowMode: rule.windowMode, windowDaysBefore: before, windowDaysAfter: after, linkIndex });
+      if (!rule.mirrorOf && rule.bidirectional) {
+        for (const target of rule.storeIds ?? []) {
+          rules.push({ owner: target, storeIds: [self], windowMode: rule.windowMode, windowDaysBefore: after, windowDaysAfter: before, linkIndex });
+        }
+      }
+    });
+    for (const id of this.gapMembers()) {
+      for (const link of this.gapInfo().get(id)?.links ?? []) {
+        rules.push({ owner: id, storeIds: link.storeIds, windowMode: link.windowMode, windowDaysBefore: link.windowDaysBefore, windowDaysAfter: link.windowDaysAfter });
+      }
+    }
+    return rules;
+  }
+
+  /** Warnings of the gap card (re-evaluated on every change detection run: the draft is edited in place). */
+  protected gapWarnings(): GapWarning[] {
+    const p = this.draft();
+    if (!p || !p.gapRuleEnabled || !this.gapMembers().length) return [];
+    const warnings: GapWarning[] = [];
+    const noAutomation = this.memberRows().filter((m) => !m.automationActive).map((m) => m.name);
+    if (noAutomation.length) {
+      warnings.push({
+        key: 'NO_AUTOMATION',
+        kind: 'NO_AUTOMATION',
+        text: this.i18n.t('automation.policy.gapWarnNoAutomation', { stores: this.names(noAutomation) }),
+      });
+    }
+    const gap = p.minimumGapDays ?? 0;
+    for (const finding of gapLinkFindings(this.ctx.storeId() ?? '', this.gapMembers(), gap, this.gapRules(p))) {
+      const rule = finding.rule;
+      const window =
+        rule.windowMode === LinkedStoreWindowMode.LastDays
+          ? this.i18n.t('automation.policy.gapWindow.days', { before: rule.windowDaysBefore, after: rule.windowDaysAfter })
+          : this.i18n.t('automation.policy.gapWindow.sameDay');
+      const params = { store: this.storeName(finding.store) ?? '', window, gap: this.days(gap) };
+      warnings.push({
+        key: `${finding.blocking ? 'CONFLICT' : 'LINK'}:${rule.owner}:${rule.storeIds.join()}:${rule.linkIndex ?? ''}`,
+        kind: finding.blocking ? 'CONFLICT' : 'LINK',
+        store: finding.store,
+        linkIndex: rule.linkIndex,
+        text: this.i18n.t(finding.blocking ? 'automation.policy.gapConflict' : 'automation.policy.gapWarnLink', params),
+      });
+    }
+    return warnings;
+  }
+
+  protected linkGapWarnings(index: number): GapWarning[] {
+    return this.gapWarnings().filter((w) => w.linkIndex === index);
+  }
+
+  /** Save is disabled while a link conflict blocks or the gap is below 1 with a list. */
+  protected gapBlocked(): boolean {
+    const p = this.draft();
+    if (!p || !p.gapRuleEnabled || !this.gapMembers().length) return false;
+    return (p.minimumGapDays ?? 0) < 1 || this.gapWarnings().some((w) => w.kind === 'CONFLICT');
+  }
+
+  /** The save error with the store's name where the server named one (403 / taken / link conflict). */
+  protected saveErrorText(error: ApiErrorView): string {
+    const self = this.ctx.storeId();
+    const args = error.args ?? {};
+    const named = (key: string, id: string | undefined) => {
+      const store = this.storeName(id);
+      return store ? this.i18n.t(key, { store }) : this.i18n.t(`errors.${error.code}`);
+    };
+    switch (error.code) {
+      case 'ACCESS_DENIED':
+        return args['storeId'] ? named('automation.policy.gapForbidden', args['storeId']) : this.i18n.t('errors.ACCESS_DENIED');
+      case 'GAP_LIST_STORE_TAKEN':
+        return named('automation.policy.gapTaken', args['storeId']);
+      case 'GAP_LINK_CONFLICT':
+        return named('automation.policy.gapLinkConflict', args['storeId'] === self ? args['otherStoreId'] : args['storeId']);
+      default:
+        return this.i18n.t(`errors.${error.code}`);
+    }
+  }
+
   protected readonly windowModes = computed(() => [
     { value: LinkedStoreWindowMode.SameDay, label: this.i18n.t('automation.policy.sameDay') },
     { value: LinkedStoreWindowMode.LastDays, label: this.i18n.t('automation.policy.lastDays') },
@@ -345,6 +714,8 @@ export class PickupPolicySection {
   private reset(policy: PickupPolicy | undefined): void {
     const draft = policy ? clone(policy) : emptyPickupPolicy();
     draft.linkedStores.forEach((rule) => (rule.message ??= ''));
+    draft.gapStoreIds = [...(draft.gapStoreIds ?? [])];
+    this.gapList.set(draft.gapStoreIds);
     this.excluded.set([...draft.excludedDates]);
     this.draft.set(draft);
   }
@@ -441,6 +812,8 @@ export class PickupPolicySection {
           message: rule.message?.trim() || undefined,
         })),
       excludedDates: [...policy.excludedDates].sort(),
+      // rule off leaves the list (D6); the order does not matter to the server
+      gapStoreIds: policy.gapRuleEnabled ? [...(policy.gapStoreIds ?? [])].sort() : [],
       version: policy.version,
     };
   }

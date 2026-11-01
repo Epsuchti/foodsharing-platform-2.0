@@ -91,7 +91,7 @@ public class PickupPolicyService {
     }
 
     /** A store that can be put on the gap list, with its link rules (own and mirrored) for the D7 check. */
-    public record GapCandidateView(Store store, boolean automationActive, boolean inOtherList,
+    public record GapCandidateView(Store store, boolean automationActive, boolean inOtherList, boolean mayEdit,
                                    List<GapLinkConflicts.Link> links) {
     }
 
@@ -402,6 +402,7 @@ public class PickupPolicyService {
     @Transactional(readOnly = true)
     public List<GapCandidateView> gapCandidates(UUID storeId) {
         Store store = requireAutomationStore(storeId);
+        SessionPrincipal actor = currentActor.requirePrincipal();
         UUID groupId = policies.findByStoreId(storeId).map(PickupPolicy::getGapGroupId).orElse(null);
         Set<UUID> ids = stores.liveStoresInRegions(regions.subtreeIds(store.getRegionId())).stream()
                 .map(Store::getId).collect(Collectors.toCollection(LinkedHashSet::new));
@@ -419,7 +420,8 @@ public class PickupPolicyService {
                     && !policy.getGapGroupId().equals(groupId);
             List<GapLinkConflicts.Link> rules = policy == null ? List.of()
                     : linkRules(candidate.getId(), links.findByPolicyIdOrderByCreatedAtAscIdAsc(policy.getId()));
-            result.add(new GapCandidateView(candidate, policy != null && policy.isEnabled(), inOtherList, rules));
+            result.add(new GapCandidateView(candidate, policy != null && policy.isEnabled(), inOtherList,
+                    permissions.mayUseAutomations(actor, candidate), rules));
         }
         return result;
     }

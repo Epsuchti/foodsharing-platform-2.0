@@ -86,6 +86,7 @@ public class AutomationMapper {
         model.setStore(toStoreRef(view.store()));
         model.setAutomationActive(view.automationActive());
         model.setInOtherList(view.inOtherList());
+        model.setMayEdit(view.mayEdit());
         model.setLinks(view.links().stream().map(link -> {
             GapCandidateLink rule = new GapCandidateLink();
             rule.setStoreIds(link.storeIds());
