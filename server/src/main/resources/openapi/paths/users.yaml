@@ -118,8 +118,8 @@
     tags:
       - users
     operationId: searchUsers
-    summary: Name prefix search over active users (pickers).
-    x-permission: authenticated; non-ORGA only users sharing a region
+    summary: 'Name prefix search over active users (pickers); a query with @ is an exact email search (ORGA, CAN_MANAGE_USERS in the user''s region).'
+    x-permission: authenticated; non-ORGA only contacts (shared region/group, store team, conversation, confirmed buddy; decision 147)
     parameters:
       - name: q
         in: query

@@ -11,7 +11,9 @@ public enum FeatureToggle {
     PETITION_BANNER(false),
     OAUTH_PROVIDER(true),
     SUPPORT_FORM(true),
-    GLOBAL_SEARCH(true);
+    GLOBAL_SEARCH(true),
+    /** Global search also matches forum post texts (decision 147). */
+    SEARCH_FORUM_POSTS(false);
 
     private final boolean defaultEnabled;
 
