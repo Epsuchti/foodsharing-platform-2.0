@@ -1,4 +1,5 @@
 import { FeatureToggleKey, Role, SessionInfo } from '../api';
+import { homeRegion } from '../core/auth/permission.util';
 
 /** What a nav item's `visible` sees. */
 export interface NavContext {
@@ -30,8 +31,6 @@ export interface NavItem {
   visible: (ctx: NavContext) => boolean;
   /** Where the item appears: main navigation (default), user menu or footer. */
   area?: NavArea;
-  /** Shown as a tab in the mobile bottom bar (max 4 + "Menu"). */
-  mobileTab?: boolean;
   /** routerLinkActive exact matching. */
   exact?: boolean;
   /** Unread count bubble (`NavBadgesService`, loaded after the first page). */
@@ -49,11 +48,12 @@ export interface NavItem {
    */
   section?: NavSection;
   /**
-   * Extra path prefix that makes the item current in the side menu when the item route is not the prefix of its
-   * pages (`/stores/mine` → `/stores/:id`). The longest matching prefix wins (`/regions/home/verification` beats
+   * Extra path prefixes that make the item current in the side menu when the item route is not the prefix of its
+   * pages (`/stores/mine` → `/stores/:id`). A `*` segment stands for exactly one path segment (Forum matches every
+   * `/regions/<id>/forum`). The longest matching prefix wins (`/regions/home/verification` and the Forum pattern beat
    * `/regions`).
    */
-  activeMatch?: string;
+  activeMatch?: string | readonly string[];
   /** Visibility in the side menu when it differs from `visible` (the bell is a panel there, not a page). */
   sidenavVisible?: (ctx: NavContext) => boolean;
 }
@@ -212,7 +212,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-home',
     route: '/dashboard',
     visible: loggedIn,
-    mobileTab: true,
   },
   // M2: a newcomer's main item comes right after the dashboard (labelled in the compact header, design review M7 R2);
   // the flag matches the journey page's header icon
@@ -231,7 +230,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-calendar',
     route: '/pickups',
     visible: (ctx) => pickupsVisible(ctx),
-    mobileTab: true,
   }, // M3
   {
     id: 'messages',
@@ -240,19 +238,28 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-comments',
     route: '/messages',
     visible: loggedIn,
-    mobileTab: true,
     badge: 'messages',
   }, // M5
   {
     id: 'mailboxes',
-    section: 'daily',
+    section: 'community',
     labelKey: 'nav.mailboxes',
     icon: 'pi pi-envelope',
     route: '/mailboxes',
-    // A35 mayHaveMailbox; the page shows an empty state when the user reads no mailbox
-    visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.StoreManager),
+    // decision 149: readers of a mailbox and those who may create one (server flag, MailboxAccessService)
+    visible: (ctx) => ctx.isAuthenticated && ctx.session?.mailboxes === true,
     badge: 'mailboxes',
   }, // M5
+  {
+    // decision 149: the forum of the active or home region (homeRegionGuard resolves `home`)
+    id: 'forum',
+    section: 'community',
+    activeMatch: ['/regions/*/forum', '/forum'],
+    labelKey: 'nav.forum',
+    icon: 'pi pi-comments',
+    route: '/regions/home/forum',
+    visible: (ctx) => ctx.isAuthenticated && homeRegion(ctx.session) !== null,
+  },
   {
     id: 'bells',
     section: 'daily',
@@ -262,17 +269,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     visible: notYet,
     // side menu: the bell item opens the bell panel next to it (decision 133), no page
     sidenavVisible: loggedIn,
-    mobileTab: true,
   }, // M4
-  {
-    id: 'activity',
-    section: 'community',
-    labelKey: 'nav.activity',
-    icon: 'pi pi-history',
-    route: '/me/activity',
-    visible: loggedIn,
-    mobileTab: true,
-  },
   // --- M2: regions ---
   {
     id: 'regions',
@@ -292,16 +289,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/stores/mine',
     visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver),
   }, // M3
-  {
-    id: 'quizzes',
-    section: 'community',
-    // newcomers need the quizzes on their way; verified members only now and then
-    secondary: (ctx) => !!ctx.session?.user?.verified,
-    labelKey: 'nav.quizzes',
-    icon: 'pi pi-question-circle',
-    route: '/quizzes',
-    visible: when('quizzes', loggedIn),
-  },
   {
     id: 'introPickups',
     section: 'community',
@@ -391,7 +378,23 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/admin/store-categories',
     visible: isOrga,
   }, // M3
-  // --- user menu ---
+  // --- user menu (decision 149: in this order, after the profile head) ---
+  {
+    id: 'activity',
+    labelKey: 'nav.activity',
+    icon: 'pi pi-history',
+    route: '/me/activity',
+    visible: loggedIn,
+    area: 'user',
+  },
+  {
+    id: 'quizzes',
+    labelKey: 'nav.quizzes',
+    icon: 'pi pi-question-circle',
+    route: '/quizzes',
+    visible: when('quizzes', loggedIn),
+    area: 'user',
+  },
   {
     // One entry for all account pages (settings, devices, security log, profile have their own tabs).
     id: 'account',
@@ -400,7 +403,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/account',
     visible: loggedIn,
     area: 'user',
-    mobileTab: true,
+  },
+  // M4: notification settings
+  {
+    id: 'notifications',
+    labelKey: 'nav.notifications',
+    icon: 'pi pi-bell',
+    route: '/account/notifications',
+    visible: loggedIn,
+    area: 'user',
   },
   {
     id: 'passport',
@@ -408,6 +419,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pi pi-id-card',
     route: '/me/passport',
     visible: when('passport', (ctx) => ctx.isAuthenticated && !!ctx.session?.user?.verified),
+    area: 'user',
+  },
+  {
+    // C9: the support form for signed-in users (visitors find it in the footer)
+    id: 'help',
+    labelKey: 'nav.support',
+    icon: 'pi pi-question-circle',
+    route: '/support',
+    visible: whenM6('support', (ctx) => loggedIn(ctx) && featureOn(ctx, FeatureToggleKey.SupportForm)),
     area: 'user',
   },
   // --- footer (CMS pages arrive in M6) ---
@@ -454,15 +474,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/dev/gallery',
     visible: (ctx) => ctx.devMode,
     area: 'footer',
-  },
-  // --- M4: automations & notifications ---
-  {
-    id: 'notifications',
-    labelKey: 'nav.notifications',
-    icon: 'pi pi-bell',
-    route: '/account/notifications',
-    visible: loggedIn,
-    area: 'user',
   },
   // --- M4 F6: operations (ORGA) ---
   {
@@ -577,15 +588,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
       'blog',
       (ctx) => loggedIn(ctx) && isAnyAdmin(ctx) && featureOn(ctx, FeatureToggleKey.Blog),
     ),
-  },
-  {
-    // C9: the support form for signed-in users (visitors find it in the footer)
-    id: 'help',
-    labelKey: 'nav.support',
-    icon: 'pi pi-question-circle',
-    route: '/support',
-    visible: whenM6('support', (ctx) => loggedIn(ctx) && featureOn(ctx, FeatureToggleKey.SupportForm)),
-    area: 'user',
   },
   {
     id: 'adminSettings',
@@ -726,7 +728,7 @@ export const NAV_SECTIONS: readonly NavSectionDef[] = [
     icon: 'pi pi-home',
     collapsible: false,
     defaultOpen: true,
-    order: ['home', 'dashboard', 'onboarding', 'pickups', 'stores', 'messages', 'mailboxes', 'bells', 'baskets', 'map', 'statistics', 'blog'],
+    order: ['home', 'dashboard', 'onboarding', 'pickups', 'stores', 'messages', 'bells', 'baskets', 'map', 'statistics', 'blog'],
   },
   {
     id: 'community',
@@ -734,7 +736,7 @@ export const NAV_SECTIONS: readonly NavSectionDef[] = [
     icon: 'pi pi-users',
     collapsible: true,
     defaultOpen: true,
-    order: ['map', 'regions', 'introPickups', 'guide', 'events', 'polls', 'quizzes', 'activity'],
+    order: ['map', 'events', 'regions', 'polls', 'forum', 'mailboxes', 'introPickups', 'guide'],
   },
   {
     id: 'manage',
@@ -818,10 +820,20 @@ function pathOf(url: string): string {
   return end < 0 ? url : url.slice(0, end);
 }
 
-/** `prefix` is `path` or a parent path of it (`/stores` matches `/stores/12`, not `/store-chains`). */
+/**
+ * `prefix` is `path` or a parent path of it (`/stores` matches `/stores/12`, not `/store-chains`). Whole segments
+ * only; a `*` segment of the prefix matches exactly one path segment (the Forum pattern matches
+ * `/regions/12/forum/threads`, not `/regions/12/forum-like`).
+ */
 export function matchesPrefix(path: string, prefix: string): boolean {
   if (prefix === '/') return path === '/';
-  return path === prefix || path.startsWith(prefix.endsWith('/') ? prefix : prefix + '/');
+  if (!prefix.includes('*')) {
+    return path === prefix || path.startsWith(prefix.endsWith('/') ? prefix : prefix + '/');
+  }
+  const wanted = prefix.replace(/\/$/, '').split('/');
+  const actual = path.split('/');
+  if (actual.length < wanted.length) return false;
+  return wanted.every((segment, index) => segment === '*' ? actual[index] !== '' : segment === actual[index]);
 }
 
 /**
@@ -832,7 +844,8 @@ export function activeNavId(url: string, items: readonly NavItem[]): string | nu
   const path = pathOf(url) || '/';
   let best: { id: string; length: number } | null = null;
   for (const item of items) {
-    const prefixes = item.exact ? [] : [item.route, ...(item.activeMatch ? [item.activeMatch] : [])];
+    const extra = item.activeMatch === undefined ? [] : typeof item.activeMatch === 'string' ? [item.activeMatch] : item.activeMatch;
+    const prefixes = item.exact ? [] : [item.route, ...extra];
     const hits = item.exact ? (path === item.route ? [item.route] : []) : prefixes.filter((prefix) => matchesPrefix(path, prefix));
     for (const hit of hits) {
       if (!best || hit.length > best.length) best = { id: item.id, length: hit.length };
@@ -841,7 +854,26 @@ export function activeNavId(url: string, items: readonly NavItem[]): string | nu
   return best?.id ?? null;
 }
 
-/** Tabs of the mobile bottom bar (the "Menu" tab is added by the component). */
+/**
+ * Tabs of the mobile bottom bar (decision 149; the "Menu" tab is added by the component): Mein Einstieg while the
+ * journey is open, else Übersicht, then Abholungen, Betriebe and Nachrichten where visible. No filler tabs.
+ */
 export function mobileTabs(ctx: NavContext, items: readonly NavItem[] = NAV_ITEMS): NavItem[] {
-  return items.filter((item) => item.mobileTab && item.visible(ctx)).slice(0, 4);
+  const ids = [onboardingOpen(ctx) ? 'onboarding' : 'dashboard', 'pickups', 'stores', 'messages'];
+  return ids
+    .map((id) => items.find((item) => item.id === id))
+    .filter((item): item is NavItem => !!item && item.visible(ctx));
+}
+
+/**
+ * Main items of the phone menu drawer (decision 149): the side menu sections flattened in their order, without
+ * headings, then main items that have no section (search). Logged-in only; the drawer renders the bells link itself.
+ */
+export function drawerItems(ctx: NavContext, items: readonly NavItem[] = NAV_ITEMS): NavItem[] {
+  if (!ctx.isAuthenticated) return [];
+  const sectioned = sidenavSections(ctx, items)
+    .flatMap((section) => section.items)
+    .filter((item) => item.id !== 'bells');
+  const rest = visibleNavItems(ctx, 'main', items).filter((item) => !item.section);
+  return [...sectioned, ...rest];
 }

@@ -199,6 +199,37 @@ test.describe('signed in', () => {
       )
       .toBeLessThanOrEqual(0);
   });
+
+  test('D4.3 Forum opens the home region forum and is current on forum pages; no Postfächer @D4.3', async ({ page }) => {
+    await page.setViewportSize(WIDE);
+    await page.goto('/dashboard');
+    // decision 149: Postfächer only for readers and creators of a mailbox
+    await expect(page.getByTestId('nav.regions')).toBeVisible();
+    await expect(page.getByTestId('nav.mailboxes')).toHaveCount(0);
+    const forum = page.getByTestId('nav.forum');
+    await expect(forum).toHaveAttribute('data-nav-section', 'community');
+    await forum.click();
+    await expect.poll(() => path(page)).toMatch(/^\/regions\/[0-9a-f-]{36}\/forum$/);
+    await expect(forum).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByTestId('nav.regions')).not.toHaveAttribute('aria-current', 'page');
+  });
+});
+
+test.describe('mailbox reader', () => {
+  test.use({ role: 'bot' });
+
+  test('D4.3 Postfächer is in Community after Forum for a mailbox reader @D4.3', async ({ page }) => {
+    await page.setViewportSize(WIDE);
+    await page.goto('/dashboard');
+    const mailboxes = page.getByTestId('nav.mailboxes');
+    await expect(mailboxes).toHaveAttribute('data-nav-section', 'community');
+    await expect(mailboxes).toHaveAttribute('href', '/mailboxes');
+    const community = await page
+      .getByTestId('nav.sidenav')
+      .locator('a[data-nav-section="community"]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('data-testid')));
+    expect(community.indexOf('nav.mailboxes')).toBe(community.indexOf('nav.forum') + 1);
+  });
 });
 
 test.describe('orga', () => {

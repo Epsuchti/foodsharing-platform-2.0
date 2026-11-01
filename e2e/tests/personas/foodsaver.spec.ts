@@ -86,6 +86,7 @@ test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested 
     await expect(page.getByTestId('baskets.detail.requests')).toContainText(NAMES.jumper);
   });
 
-  // round 3: 14 clicks on desktop, 17 on the phone (menu drawer for stores, baskets and bells)
-  walk.finish({ steps: 5, clicks: 17, fields: 1 });
+  // round 3: 14 clicks on desktop, 17 on the phone; decision 149: Betriebe is a phone tab, 16 on the phone
+  // (menu drawer for baskets and bells)
+  walk.finish({ steps: 5, clicks: 16, fields: 1 });
 });

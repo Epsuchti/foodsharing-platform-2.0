@@ -79,6 +79,7 @@ test('D11.5.5 store manager: confirm a sign-up, edit regular slots, read the sto
     await expect(page.locator('[data-testid="stores.log.entry"][data-action="STORE.UPDATE_REGULAR_PICKUP_SETTINGS"]').first()).toBeVisible();
   });
 
-  // round 3: 11 clicks on desktop, 13 on the phone (menu drawer, "Route")
-  walk.finish({ steps: 4, clicks: 13, fields: 1 });
+  // round 3: 11 clicks on desktop, 13 on the phone (menu drawer, "Route"); decision 149: Betriebe is a phone tab,
+  // 12 on the phone
+  walk.finish({ steps: 4, clicks: 12, fields: 1 });
 });
