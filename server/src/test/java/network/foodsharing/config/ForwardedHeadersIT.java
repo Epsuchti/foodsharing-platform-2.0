@@ -80,6 +80,8 @@ class ForwardedHeadersIT {
         assertThat(get(ECHO, "X-Forwarded-For", "1.2.3.4, 5.6.7.8").body()).startsWith("5.6.7.8 ");
         // trusted proxies in the chain are skipped from the right
         assertThat(get(ECHO, "X-Forwarded-For", "1.2.3.4, 5.6.7.8, 10.0.0.3").body()).startsWith("5.6.7.8 ");
+        // only private addresses (the e2e tests' fake client IPs): the leftmost one is the client
+        assertThat(get(ECHO, "X-Forwarded-For", "10.9.8.7").body()).startsWith("10.9.8.7 ");
     }
 
     @Test
