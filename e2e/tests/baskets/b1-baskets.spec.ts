@@ -2,6 +2,7 @@ import path from 'node:path';
 import { animationsDone } from '../a11y/animations';
 import { acceptConfirm } from '../stores/_stores';
 import {
+  BASKETS,
   acceptPendingConsents,
   expect,
   expectDataState,
@@ -107,6 +108,29 @@ test.describe('foodsaver', () => {
     await expect(page.locator(`fs-basket-card[data-basket-id="${basketId}"]`)).toHaveCount(0);
     const gone = await page.request.get(`/api/baskets/${basketId}`);
     expect(gone.status()).toBe(404);
+  });
+
+  test('B1 navigate: approximate note for HOME baskets of others, generic label, rounded coordinates @B1', async ({ page }) => {
+    // bieb's HOME basket "joghurt" (seed 47.38 / 8.51): the server sends 3 decimals to non-owners (decision 72)
+    await page.goto(`/baskets/${BASKETS.joghurt}`);
+    await expectDataState(page, 'baskets.detail.state', 'success');
+    await page.getByTestId('baskets.detail.navigate').click();
+    await expect(page.getByTestId('baskets.detail.navigate.note')).toBeVisible();
+    const google = page.getByTestId('baskets.detail.navigate.google');
+    const apple = page.getByTestId('baskets.detail.navigate.apple');
+    await expect(google).toHaveAttribute('href', /destination=47\.38,8\.51$/);
+    // the Apple label is the generic word, never the (possibly personal) description
+    await expect(apple).toHaveAttribute('href', /daddr=47\.38,8\.51&q=Essenskorb$/);
+    await expectNoSeriousViolations(page);
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('baskets.detail.navigate')).toBeFocused();
+
+    // the owner's own HOME basket "brot": no note
+    await page.goto(`/baskets/${BASKETS.brot}`);
+    await expectDataState(page, 'baskets.detail.state', 'success');
+    await page.getByTestId('baskets.detail.navigate').click();
+    await expect(page.getByTestId('baskets.detail.navigate.google')).toHaveAttribute('href', /destination=47\.389,8\.548$/);
+    await expect(page.getByTestId('baskets.detail.navigate.note')).toHaveCount(0);
   });
 });
 

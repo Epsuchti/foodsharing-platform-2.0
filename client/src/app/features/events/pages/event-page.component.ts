@@ -6,7 +6,7 @@ import { Button } from '@openng/optimus-ui/button';
 import { SelectButton } from '@openng/optimus-ui/selectbutton';
 import { Textarea } from '@openng/optimus-ui/textarea';
 
-import { Event, EventsService, InvitationStatus, UserSummary } from '../../../api';
+import { Event, EventType, EventsService, InvitationStatus, UserSummary } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimeFormatter, DateTimePipe } from '../../../core/dates/date-time.pipe';
@@ -17,6 +17,8 @@ import { CalendarExportButtonComponent } from '../../../shared/calendar-export-b
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
+import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
+import { NavigationLinks, navigationLinks } from '../../../shared/navigate-button/navigate.util';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
@@ -37,6 +39,7 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
     FormsModule,
     MapViewComponent,
     MarkdownComponent,
+    NavigateButtonComponent,
     PageHeaderComponent,
     RouterLink,
     SelectButton,
@@ -66,6 +69,9 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
           <p><i class="pi pi-tag" aria-hidden="true"></i> {{ 'events.type.' + e.type | t }} @if (e.public) {· <span data-testid="events.event.public">{{ 'events.public' | t }}</span>}</p>
           @if (e.location; as loc) {
             <p data-testid="events.event.location"><i class="pi pi-map-marker" aria-hidden="true"></i> <span><strong>{{ loc.name }}</strong>@if (loc.street) {, {{ loc.street }}}@if (loc.zip || loc.city) {, {{ loc.zip }} {{ loc.city }}}</span></p>
+            @if (navigation(e); as nav) {
+              <fs-navigate-button [links]="nav" testId="events.event.navigate" />
+            }
           }
           @if (e.onlineLink) {
             <a class="p-button p-button-outlined link" [href]="e.onlineLink" target="_blank" rel="noopener noreferrer" data-testid="events.event.onlineLink"><i class="pi pi-video" aria-hidden="true"></i> {{ 'events.join' | t }}</a>
@@ -213,6 +219,13 @@ export class EventPageComponent {
   protected markers(e: Event): MapMarker[] {
     const loc = e.location;
     return loc?.lat != null && loc?.lon != null ? [{ id: e.id, kind: 'event', lat: loc.lat, lon: loc.lon, label: loc.name }] : [];
+  }
+
+  /** Directions for OFFLINE events (the ones with a place on the map), by coordinates or the address. */
+  protected navigation(e: Event): NavigationLinks | null {
+    const loc = e.location;
+    if (e.type !== EventType.Offline || !loc) return null;
+    return navigationLinks({ lat: loc.lat, lon: loc.lon, street: loc.street, postcode: loc.zip, city: loc.city, label: loc.name });
   }
 
   protected pick(user: UserSummary): void {
