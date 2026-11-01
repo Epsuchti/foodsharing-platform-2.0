@@ -1,4 +1,5 @@
 import { expect, test } from '../../fixtures';
+import { dateField } from '../../support/date-inputs';
 
 /**
  * EA16: guides link their own foodsharing calendar (iCal); its dates are offered as EinAb candidates and prefill the
@@ -34,7 +35,7 @@ test('EA16 iCal dates become EinAb candidates @EA16', async ({ page, baseURL }) 
   await items.first().getByTestId('introPickups.guide.icalUse').click();
   const form = page.getByTestId('introPickups.form');
   // 2026-11-05T17:00Z = 18:00 in Zürich
-  await expect(form.getByTestId('introPickups.form.start')).toHaveValue('2026-11-05T18:00');
+  await expect(dateField(form.getByTestId('introPickups.form.start'))).toHaveValue('05.11.2026 18:00');
   await expect(form.getByTestId('introPickups.form.businessName')).toHaveValue('Einführungsabholung Bäckerei Babu\'s');
   await expect(form.getByTestId('introPickups.form.address')).toHaveValue('Babu\'s Bakery, Löwenstrasse 1, 8001 Zürich');
   await form.getByTestId('introPickups.form.businessName').fill('Bäckerei Babu');

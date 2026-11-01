@@ -1,4 +1,5 @@
 import { expect, test } from '../../fixtures';
+import { fillDateTime } from '../../support/date-inputs';
 
 /** EA11: private info templates per category – insert, save as template, manage in the guide settings. */
 test.use({ seedReset: 'test', role: 'guide' });
@@ -16,7 +17,7 @@ test('EA11 private info templates are inserted, saved and deleted @EA11', async 
   await form.getByTestId('introPickups.form.category').click();
   await page.getByRole('option', { name: 'Vente à emporter' }).click();
   await expect(form.getByTestId('introPickups.form.useTemplate')).toHaveCount(0);
-  await form.getByTestId('introPickups.form.start').fill('2026-11-25T19:00');
+  await fillDateTime(form.getByTestId('introPickups.form.start'), '2026-11-25T19:00');
   await form.getByTestId('introPickups.form.businessName').fill('Tiny Fish Oerlikon');
   await form.getByTestId('introPickups.form.address').fill('Schaffhauserstrasse 300, 8050 Zürich');
   await form.getByTestId('introPickups.form.area').fill('Oerlikon');

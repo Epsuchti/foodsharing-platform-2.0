@@ -1,5 +1,6 @@
 import { expect, test } from '../../fixtures';
 import { ZH } from './_intro';
+import { fillDateTime } from '../../support/date-inputs';
 
 /** EA18: user managers delete unbooked EinAbs with a reason, add past EinAbs for a member and adjust counting. */
 test.use({ seedReset: 'test', role: 'bot' });
@@ -23,7 +24,7 @@ test('EA18 admin deletes unbooked with reason, creates historical, adjusts count
   await expect(page.getByTestId('introPickups.pick.choose')).toHaveCount(1);
   await page.getByTestId('introPickups.pick.choose').click();
   const form = page.getByTestId('introPickups.admin.historicalForm');
-  await form.getByTestId('introPickups.admin.historicalStart').fill('2026-10-01T10:00');
+  await fillDateTime(form.getByTestId('introPickups.admin.historicalStart'), '2026-10-01T10:00');
   await form.getByTestId('introPickups.admin.historicalBusiness').fill('Coop Altstetten');
   await page.getByTestId('introPickups.admin.historicalSave').click();
   await expect(form).toBeHidden();

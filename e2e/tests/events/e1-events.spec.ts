@@ -1,5 +1,6 @@
 import { expect, expectDataState, expectErrorState, expectNoSeriousViolations, injectApiError, test } from '../../fixtures';
 import { event } from './event-helpers';
+import { fillDateTime } from '../../support/date-inputs';
 
 /** E1 events (A37b): bot is a member/ambassador of zuerich-stadt; profile has no region. Seed clock 2026-11-02. */
 test.describe('bot', () => {
@@ -19,10 +20,10 @@ test.describe('bot', () => {
     await expect(page.getByTestId('events.form.error.name')).toBeVisible();
     await expect(page.getByTestId('events.form.error.location')).toBeVisible();
     await page.getByTestId('events.form.name').fill('Lagerräumung');
-    await page.getByTestId('events.form.startsAt').fill('2026-11-20T18:00');
-    await page.getByTestId('events.form.endsAt').fill('2026-11-20T17:00');
+    await fillDateTime(page.getByTestId('events.form.startsAt'), '2026-11-20T18:00');
+    await fillDateTime(page.getByTestId('events.form.endsAt'), '2026-11-20T17:00');
     await expect(page.getByTestId('events.form.error.endsAt')).toBeVisible();
-    await page.getByTestId('events.form.endsAt').fill('2026-11-20T20:00');
+    await fillDateTime(page.getByTestId('events.form.endsAt'), '2026-11-20T20:00');
     await page.getByTestId('events.form.locationName').fill('Lager Altstetten');
     await page.getByTestId('events.form.zip').fill('8048');
     await page.getByTestId('events.form.city').fill('Zürich');
@@ -52,8 +53,8 @@ test.describe('bot', () => {
     await page.getByTestId('events.form.type.ONLINE').click();
     await expect(page.getByTestId('events.form.locationName')).toHaveCount(0);
     await page.getByTestId('events.form.name').fill('Online-Austausch');
-    await page.getByTestId('events.form.startsAt').fill('2026-11-21T19:00');
-    await page.getByTestId('events.form.endsAt').fill('2026-11-21T20:00');
+    await fillDateTime(page.getByTestId('events.form.startsAt'), '2026-11-21T19:00');
+    await fillDateTime(page.getByTestId('events.form.endsAt'), '2026-11-21T20:00');
     await page.getByTestId('events.form.link').fill('http://meet.example.org/fs');
     await submit.click();
     await expect(page.getByTestId('events.form.error.onlineLink')).toBeVisible();
