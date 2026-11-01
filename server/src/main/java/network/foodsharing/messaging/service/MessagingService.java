@@ -333,9 +333,10 @@ public class MessagingService {
         Conversation conversation = lock(conversationId);
         ConversationMessage message = requireMessage(conversationId, messageId);
         Instant now = clock.instant();
-        MessageEditRules.Verdict verdict = MessageEditRules.edit(actor.userId(), message, now, editWindow());
+        Duration window = editWindow();
+        MessageEditRules.Verdict verdict = MessageEditRules.edit(actor.userId(), message, now, window);
         if (verdict != MessageEditRules.Verdict.ALLOWED) {
-            throw refused(verdict);
+            throw refused(verdict, window);
         }
         String original = message.getBody();
         if (original.equals(text)) {
@@ -369,8 +370,8 @@ public class MessagingService {
         boolean moderator = moderation.isModerator(actor, conversation);
         ConversationMessage message = requireMessage(conversationId, messageId);
         Instant now = clock.instant();
-        MessageEditRules.Verdict verdict = MessageEditRules.delete(actor.userId(), message, now, editWindow(),
-                moderator);
+        Duration window = editWindow();
+        MessageEditRules.Verdict verdict = MessageEditRules.delete(actor.userId(), message, now, window, moderator);
         String why = null;
         if (verdict == MessageEditRules.Verdict.ALLOWED_AS_MODERATOR) {
             why = blankToNull(reason);
@@ -378,7 +379,7 @@ public class MessagingService {
                 throw ApiException.badRequest(ApiErrorCode.DELETE_REASON_REQUIRED);
             }
         } else if (verdict != MessageEditRules.Verdict.ALLOWED) {
-            throw refused(verdict);
+            throw refused(verdict, window);
         }
         String original = message.getBody();
         message.setBody("");
@@ -408,10 +409,11 @@ public class MessagingService {
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.MESSAGE_NOT_FOUND));
     }
 
-    private static ApiException refused(MessageEditRules.Verdict verdict) {
+    private static ApiException refused(MessageEditRules.Verdict verdict, Duration window) {
         return switch (verdict) {
             case DELETED -> ApiException.conflict(ApiErrorCode.MESSAGE_DELETED);
-            case WINDOW_EXPIRED -> ApiException.conflict(ApiErrorCode.MESSAGE_EDIT_WINDOW_EXPIRED);
+            case WINDOW_EXPIRED -> ApiException.conflict(ApiErrorCode.MESSAGE_EDIT_WINDOW_EXPIRED)
+                    .withArg("hours", String.valueOf(window.toHours()));
             default -> ApiException.forbidden(ApiErrorCode.MESSAGE_NOT_EDITABLE);
         };
     }

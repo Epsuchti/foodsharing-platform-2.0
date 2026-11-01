@@ -5,9 +5,31 @@ import { ChatMessage, MessagingService, RealtimeEventType } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { RealtimeService } from '../../core/realtime/realtime.service';
 
-/** Payload of a CONVERSATION_MESSAGE realtime event (A32/A33). */
+/** Payload of a CONVERSATION_MESSAGE / CONVERSATION_MESSAGE_UPDATED realtime event (A32/A33). */
 export interface ConversationMessageEvent extends ChatMessage {
   conversationId: string;
+}
+
+/**
+ * Replaces the message with the update's id (edit or delete). A realtime update carries no viewer flags, so the
+ * loaded `mayEdit` / `mayDelete` stay unless the update has its own; a deleted message has no actions.
+ */
+export function applyMessageUpdate(list: readonly ChatMessage[], update: ChatMessage): ChatMessage[] {
+  return list.map((message) => {
+    if (message.id !== update.id) {
+      return message;
+    }
+    const deleted = !!update.deletedAt;
+    return {
+      ...message,
+      body: update.body,
+      editedAt: update.editedAt,
+      deletedAt: update.deletedAt,
+      deletedByModerator: update.deletedByModerator,
+      mayEdit: deleted ? false : (update.mayEdit ?? message.mayEdit),
+      mayDelete: deleted ? false : (update.mayDelete ?? message.mayDelete),
+    };
+  });
 }
 
 /**
@@ -57,6 +79,14 @@ export class MessagingStore {
   /** Messages after `afterSeq` (gap fill after a missed event or a reconnect). */
   after(conversationId: string, afterSeq: number): Observable<ChatMessage[]> {
     return this.api.listMessages({ conversationId, afterSeq, limit: 100 });
+  }
+
+  /**
+   * The already loaded window again (after a reconnect), so edits and deletes that happened while offline show up:
+   * the `count` newest messages up to `lastSeq` (at most 100).
+   */
+  reloadWindow(conversationId: string, lastSeq: number, count: number): Observable<ChatMessage[]> {
+    return this.api.listMessages({ conversationId, beforeSeq: lastSeq + 1, limit: Math.min(100, Math.max(1, count)) });
   }
 
   markRead(conversationId: string, lastReadSeq: number): void {
