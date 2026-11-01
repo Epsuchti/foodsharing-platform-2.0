@@ -21,7 +21,8 @@ import org.yaml.snakeyaml.Yaml;
  * D17.2 rate-limit inventory (docs/security-review.md "Rate limits"): every operation that documents 429 is backed by
  * a known limiter, every limiter is a pre-registered metric, and every anonymous operation is limited, either by the
  * per-IP filter on {@code /api/public/**} or by its own limiter listed here. A new 429 or a new anonymous endpoint
- * fails this test until it is added to the inventory.
+ * fails this test until it is added to the inventory. On top of these, the global {@code ApiRateLimitFilter} limits all
+ * of {@code /api/**} per account or per IP with escalating blocks ({@code api-user}, {@code api-ip}).
  */
 class RateLimitInventoryTest {
 
@@ -120,7 +121,7 @@ class RateLimitInventoryTest {
                 assertThat(OperationsMetrics.LIMITERS).as("limiter metric").contains(limiter);
             }
         }
-        assertThat(OperationsMetrics.LIMITERS).contains("public-api");
+        assertThat(OperationsMetrics.LIMITERS).contains("public-api", "api-ip", "api-user");
     }
 
     @Test

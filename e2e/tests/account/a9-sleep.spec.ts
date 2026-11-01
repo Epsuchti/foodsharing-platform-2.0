@@ -46,7 +46,7 @@ test('A9 user sets temporary sleep mode and the badge appears in profile, member
   await expect(member.getByTestId('shared.userChip.sleep')).toBeVisible();
 
   await openStore(bieb, 'S-01', 'team');
-  await expectDataState(bieb, 'stores.team.state', 'success');
+  await expectDataState(bieb, 'stores.team.list', 'success');
   await expect(memberRow(bieb, NAMES.foodsaver).getByTestId('stores.team.sleeping')).toBeVisible();
 
   // awake again: the moon is gone

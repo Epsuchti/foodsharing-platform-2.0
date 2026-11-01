@@ -88,10 +88,10 @@ On the original machine (Windows 11): portable Temurin 21 in `~/.jdks/jdk-21.0.1
 
 ## After the base build: agreed with the owner, not started
 1. Parallel shards: done (decision 137).
-2. Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
-3. Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
+2. Done (decision 142). Region automation metrics (`/regions/<id>/automation/metrics`): many metric labels are raw keys (`SLOT_APPROVAL.WOULD_CONFIRM`, `CANCELLATION.REPLACED`, `REQUEST.WOULD_DECLINE`, `SLOT_DECLINE_RULE.*`, `SLOT_SKIP_RULE.*`, `INTRO_PICKUP.DONE`, …). Give every metric key a label in all five languages and add a guard, so an unknown key fails the i18n check or a unit test instead of showing up raw.
+3. Done (decision 142). Same page: the chart with ~30 series as spiky daily lines is hard to read; consider grouping or bars and fewer default series.
 4. Native date inputs show `mm/dd/yyyy` in a German or Swiss-German UI, because they follow the browser locale. Check this against the app language.
-5. Bot protection: a per-IP request limit for the whole API, not only the anonymous part.
+5. Bot protection: done (decision 144, D17.2): `ApiRateLimitFilter` limits all of `/api/**` per account (with a session) or per IP (without one), 300/min each, with escalating blocks of 1, 5 and 30 minutes that ORGA can lift on the IP blocks page; client IP only from the trusted proxy (`server.forward-headers-strategy=native`). The notes below were the brief.
    - What exists today:
      - `/api/public/**` is limited to 300/min per IP (`PublicApiRateLimitFilter`, decision 86).
      - The magic link has its own per-email and per-IP limit (`LoginRateLimiter`).
@@ -152,7 +152,7 @@ On the original machine (Windows 11): portable Temurin 21 in `~/.jdks/jdk-21.0.1
    - A filter (name, role; members/jumpers).
    - Page members and jumpers on the server instead of loading the whole team (contract first; stable sort with an id tiebreaker).
    - Applies to the team tab and to "Abholungen pro Mitglied" in the store statistics.
-15. "Navigate" button for addresses (stores, Fairteiler, baskets, events): one button with a dropdown offering Google Maps and Apple Maps (deep links with the coordinates or address). It replaces the current "Route" button.
+15. Done (decision 143, `fs-navigate-button`). "Navigate" button for addresses (stores, Fairteiler, baskets, events): one button with a dropdown offering Google Maps and Apple Maps (deep links with the coordinates or address). It replaces the current "Route" button.
 16. Edit and delete your own messages in every chat (direct, group, store, region, event, basket chats; check which walls count as chats). Every edit and delete is recorded in the history with the original text, so moderators can still see it. Others see "bearbeitet" / "gelöscht". Decide on a time limit and on moderator access with the owner.
 17. The map doesn't load OpenStreetMap tiles (owner, local profile). First finding (2026-10-31): in the app's built-in browser pane every external request fails (OSM, Carto, Wikimedia; the tiles answer 504 via the service worker), while `curl` from the same machine gets the tile (200). So it is probably the browser pane's network, not the app. Confirm in a normal browser before changing code. Check the tile URL, the CSP `img-src`, the service worker and the attribution; e2e and screenshots stub the tile hosts, so no test noticed. Add a check that at least one real tile request succeeds outside the stubbed tests (smoke).
 18. Done (decision 138, `StableOrderTest`). Unstable sorting: 27 repository methods order only by a timestamp (`…OrderByCreatedAtDesc`). Rows with the same time come back in random order, and with paging an entry can appear on two pages or on none. Uploads are fixed (`…CreatedAtDescIdDesc`, 2026-10-31); found because the uploads screenshot changed between runs. Add the id tiebreaker everywhere, and guard it with an ArchUnit or unit check: every paged or sorted repository query ends with a unique key.

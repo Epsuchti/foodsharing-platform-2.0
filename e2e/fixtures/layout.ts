@@ -19,6 +19,21 @@ export async function expectNoOverflow(page: Page, label: string): Promise<void>
     })
     .toBeLessThanOrEqual(0);
   expect.soft(await clippedTextsOn(page), `${label}: text cut off sideways`).toEqual([]);
+  expect.soft(await toastsOutsideGutter(page), `${label}: toast closer than 16px to a screen edge`).toEqual([]);
+}
+
+/** Phone check: visible toast messages must keep a 16px gutter on both sides (toasts stuck out left at 412px). */
+export function toastsOutsideGutter(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    if (width > 640) {
+      return [];
+    }
+    return Array.from(document.querySelectorAll('.p-toast-message'))
+      .map((el) => ({ rect: el.getBoundingClientRect(), text: (el.textContent ?? '').trim().slice(0, 60) }))
+      .filter(({ rect }) => rect.width > 0 && (rect.left < 15.5 || width - rect.right < 15.5))
+      .map(({ rect, text }) => `"${text}" left=${Math.round(rect.left)} right=${Math.round(width - rect.right)}`);
+  });
 }
 
 /** The clipped-text findings of `expectNoOverflow` (exported for the audit's own test). */

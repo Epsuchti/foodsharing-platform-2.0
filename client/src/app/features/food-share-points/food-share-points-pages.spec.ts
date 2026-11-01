@@ -165,7 +165,11 @@ describe('food share point pages', () => {
       await open(fsp());
       expect(state('foodSharePoints.detail.state')).toBe('success');
       expect(q('[data-testid="foodSharePoints.detail.addressText"]')?.textContent).toContain('Schlossgasse 10');
-      expect(q('[data-testid="foodSharePoints.detail.googleMaps"]')?.getAttribute('href')).toContain('query=47.3721,8.5172');
+      (q('[data-testid="foodSharePoints.detail.navigate"]') as HTMLButtonElement).click();
+      await settle();
+      expect(document.querySelector('[data-testid="foodSharePoints.detail.navigate.google"]')?.getAttribute('href')).toContain(
+        'destination=47.3721,8.5172',
+      );
       expect(q('[data-testid="foodSharePoints.detail.edit"]')).toBeNull();
       expect(q('[data-testid="foodSharePoints.detail.activate"]')).toBeNull();
       expect(q('[data-testid="foodSharePoints.managers.edit"]')).toBeNull();

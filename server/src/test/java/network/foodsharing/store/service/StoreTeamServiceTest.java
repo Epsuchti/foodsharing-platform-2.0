@@ -314,6 +314,115 @@ class StoreTeamServiceTest {
         assertThat(sent(NotificationType.STORE_REQUEST_ACCEPTED).senderRegionId()).isNull();
     }
 
+    // ------------------------------------------------------------------------- team list (resume item 14)
+
+    private final java.util.Map<UUID, User> people = new java.util.LinkedHashMap<>();
+    private final java.util.Map<UUID, StorePickupInfo.MemberStats> stats = new java.util.HashMap<>();
+
+    /** A team member with a fixed id (for the id tiebreaker), pickups and last pickup (null = none). */
+    private StoreMembership person(String id, String name, StoreMembershipStatus status, boolean manager, int pickups,
+                                   String lastPickup) {
+        User u = new User();
+        u.setId(UUID.fromString("00000000-0000-4000-8000-0000000000" + id));
+        u.setDisplayName(name);
+        u.setVerified(true);
+        u.setMobilePhone("+4179000000" + id);
+        u.setLatitude(47.38);
+        u.setLongitude(8.54);
+        people.put(u.getId(), u);
+        stats.put(u.getId(), new StorePickupInfo.MemberStats(pickups, null,
+                lastPickup == null ? null : Instant.parse(lastPickup)));
+        StoreMembership m = new StoreMembership();
+        m.setStoreId(STORE);
+        m.setUserId(u.getId());
+        m.setStatus(status);
+        m.setManager(manager);
+        team.add(m);
+        return m;
+    }
+
+    private void teamFixture(StorePermissionService.Rights r) {
+        store.setLatitude(47.37);
+        store.setLongitude(8.54);
+        when(stores.requireAccess(store)).thenReturn(r);
+        when(users.findAll(any())).thenAnswer(i -> new ArrayList<>(people.values()));
+        when(pickupInfo.memberStats(STORE)).thenReturn(stats);
+        person("11", "Zora", StoreMembershipStatus.MEMBER, true, 3, "2026-10-01T08:00:00Z");
+        person("12", "anna", StoreMembershipStatus.MEMBER, false, 5, "2026-09-01T08:00:00Z");
+        person("13", "Anna", StoreMembershipStatus.MEMBER, false, 3, "2026-10-20T08:00:00Z");
+        person("14", "Émile", StoreMembershipStatus.JUMPER, false, 0, null);
+        person("15", "Bert", StoreMembershipStatus.JUMPER, false, 5, "2026-10-01T08:00:00Z");
+        person("16", "Applicant", StoreMembershipStatus.APPLIED, false, 0, null);
+        person("17", "Invited", StoreMembershipStatus.INVITED, false, 0, null);
+    }
+
+    private List<String> names(TeamListQuery.Status status, String search, TeamListQuery.Sort sort) {
+        return service.teamMembers(STORE, new TeamListQuery(status, search, sort, 0, 20)).getContent().stream()
+                .map(v -> v.user().getDisplayName() + (v.user().getId().toString().endsWith("13") ? "#13" : ""))
+                .toList();
+    }
+
+    @Test
+    void teamListDefaultOrderIsManagersFirstThenNameThenId() {
+        teamFixture(editRights());
+        assertThat(names(null, null, null)).containsExactly("Zora", "anna", "Anna#13", "Bert", "Émile");
+    }
+
+    @Test
+    void teamListSortsByPickupsAndLastPickupWithNoPickupLast() {
+        teamFixture(editRights());
+        // ties: 5 (anna, Bert) and 3 (Anna, Zora) by name then id; the manager loses the top
+        assertThat(names(null, null, TeamListQuery.Sort.PICKUP_COUNT))
+                .containsExactly("anna", "Bert", "Anna#13", "Zora", "Émile");
+        // ties on 2026-10-01 (Bert, Zora) by name; no pickup last
+        assertThat(names(null, null, TeamListQuery.Sort.LAST_PICKUP))
+                .containsExactly("Anna#13", "Bert", "Zora", "anna", "Émile");
+    }
+
+    @Test
+    void teamListFiltersByStatusAndSearch() {
+        teamFixture(editRights());
+        assertThat(names(TeamListQuery.Status.MANAGER, null, null)).containsExactly("Zora");
+        assertThat(names(TeamListQuery.Status.MEMBER, null, null)).containsExactly("Zora", "anna", "Anna#13");
+        assertThat(names(TeamListQuery.Status.JUMPER, null, null)).containsExactly("Bert", "Émile");
+        // case- and accent-insensitive, applicants and invitations never listed
+        assertThat(names(null, "EMI", null)).containsExactly("Émile");
+        assertThat(names(null, " ANNA ", null)).containsExactly("anna", "Anna#13");
+        assertThat(names(null, "applicant", null)).isEmpty();
+    }
+
+    @Test
+    void teamListPagesWithinBounds() {
+        teamFixture(editRights());
+        var second = service.teamMembers(STORE, new TeamListQuery(null, null, null, 1, 2));
+        assertThat(second.getContent()).extracting(v -> v.user().getDisplayName()).containsExactly("Anna", "Bert");
+        assertThat(second.getTotalElements()).isEqualTo(5);
+        assertThat(second.getTotalPages()).isEqualTo(3);
+        assertThat(service.teamMembers(STORE, new TeamListQuery(null, null, null, 9, 2)).getContent()).isEmpty();
+        assertThat(new TeamListQuery(null, null, null, -1, 500).size()).isEqualTo(TeamListQuery.MAX_SIZE);
+    }
+
+    @Test
+    void teamListKeepsDistanceAndPhoneVisibility() {
+        teamFixture(editRights());
+        var withRights = service.teamMembers(STORE, new TeamListQuery(null, null, null, 0, 20)).getContent().getFirst();
+        assertThat(withRights.distanceKm()).isEqualTo(1.1);
+        assertThat(withRights.withPhone()).isTrue();
+        when(stores.requireAccess(store)).thenReturn(noRights());
+        var without = service.teamMembers(STORE, new TeamListQuery(null, null, null, 0, 20)).getContent().getFirst();
+        assertThat(without.distanceKm()).isNull();
+        assertThat(without.withPhone()).isFalse();
+        assertThat(service.team(STORE).applications()).isNull();
+    }
+
+    @Test
+    void teamViewHasOnlyApplicationsAndInvitations() {
+        teamFixture(editRights());
+        var view = service.team(STORE);
+        assertThat(view.applications()).extracting(v -> v.user().getDisplayName()).containsExactly("Applicant");
+        assertThat(view.invitations()).extracting(v -> v.user().getDisplayName()).containsExactly("Invited");
+    }
+
     private StoreMembership member(StoreMembershipStatus status, boolean manager) {
         StoreMembership m = new StoreMembership();
         m.setStoreId(STORE);

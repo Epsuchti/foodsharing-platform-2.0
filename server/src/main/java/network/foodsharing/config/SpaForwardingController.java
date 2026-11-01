@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -54,12 +55,16 @@ public class SpaForwardingController {
 
     private final AppProperties properties;
     private final Map<String, Optional<String>> prerendered = new ConcurrentHashMap<>();
-    private final String shell = new ClassPathResource("static/index.csr.html").exists()
-            ? "forward:/index.csr.html"
-            : "forward:/index.html";
+    private final String staticLocation;
+    private final String shell;
 
-    public SpaForwardingController(AppProperties properties) {
+    public SpaForwardingController(
+            AppProperties properties, @Value("${app.spa.static-location:static}") String staticLocation) {
         this.properties = properties;
+        this.staticLocation = staticLocation;
+        this.shell = new ClassPathResource(staticLocation + "/index.csr.html").exists()
+                ? "forward:/index.csr.html"
+                : "forward:/index.html";
     }
 
     @GetMapping("/")
@@ -100,7 +105,7 @@ public class SpaForwardingController {
     }
 
     private Optional<String> readPrerendered(String lang) {
-        ClassPathResource resource = new ClassPathResource("static/" + lang + "/index.html");
+        ClassPathResource resource = new ClassPathResource(staticLocation + "/" + lang + "/index.html");
         if (!resource.exists()) {
             return Optional.empty();
         }

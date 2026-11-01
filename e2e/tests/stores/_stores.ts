@@ -67,6 +67,18 @@ export async function memberAction(page: Page, name: string, action: string): Pr
   await page.getByTestId(`stores.team.${action}`).click();
 }
 
+/**
+ * Asks the real team-list endpoint of a store for pages of `size` people instead of the UI's 20, so a short seed
+ * team spans several pages. Only the request's `size` changes; the server answers as usual.
+ */
+export async function pageSize(page: Page, storeId: string, size: number): Promise<void> {
+  await page.route(new RegExp(`/api/stores/${storeId}/team/members\\?`), (route) => {
+    const url = new URL(route.request().url());
+    url.searchParams.set('size', String(size));
+    return route.continue({ url: url.toString() });
+  });
+}
+
 /** Fills and confirms the required-message dialog of the team tab. */
 export async function confirmWithMessage(page: Page, message: string): Promise<void> {
   await page.getByTestId('stores.team.messageDialog.message').fill(message);

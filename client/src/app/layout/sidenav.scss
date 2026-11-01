@@ -78,7 +78,8 @@
       z-index: 2;
       right: 0;
       left: 0;
-      height: 2.5rem;
+      // short, so a section heading at the list's edge stays readable and does not look disabled
+      height: 1.25rem;
       content: '';
       opacity: 0;
       pointer-events: none;

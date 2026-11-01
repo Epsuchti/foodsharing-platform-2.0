@@ -74,8 +74,10 @@ class SecurityHeadersTest {
         Properties prod = load("application-prod.properties");
         assertThat(prod.getProperty("app.auth.cookie-secure")).isEqualTo("true");
         assertThat(prod.getProperty("server.servlet.session.cookie.secure")).isEqualTo("true");
-        assertThat(load("application.properties").getProperty("server.forward-headers-strategy"))
-                .isEqualTo("framework");
+        // D17.2: Tomcat's RemoteIpValve, trusting X-Forwarded-* only from the configured proxies (ForwardedHeadersIT)
+        Properties base = load("application.properties");
+        assertThat(base.getProperty("server.forward-headers-strategy")).isEqualTo("native");
+        assertThat(base.getProperty("server.tomcat.remoteip.internal-proxies")).startsWith("${TRUSTED_PROXIES:");
     }
 
     private static Properties load(String name) throws IOException {

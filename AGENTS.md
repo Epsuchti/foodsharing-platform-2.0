@@ -34,5 +34,6 @@ Big docs (`plan.md`, `docs/conventions.md`, `docs/decisions.md`, `docs/ledger.md
 | Needs a decision, spans layers (contract + server + client), changes the database, permissions or data protection, a visible UI change, or "done" can't be said in one sentence | `planner` → owner approves the plan (→ `designer` mockup if the owner wants one) → `implementer` → `tester` → fixes by the same `implementer` |
 
 - When in doubt, use the planner: building in the wrong direction costs more than a question round.
+- When the `designer` reports a mockup, the main session opens it for the owner right away in the built-in browser (`navigate` to `file:///…/docs/design/<slug>-mockup.html`), before relaying the designer's questions. After the designer revises it, open it again.
 - Agents can't ask the owner directly. The main session relays the planner's questions and the answers.
 - The main session merges into `main` and pushes only when the owner says so.

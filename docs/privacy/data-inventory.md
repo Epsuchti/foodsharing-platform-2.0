@@ -65,6 +65,7 @@ The account itself: `user_account` keeps its id (authored content stays attribut
 | `conversation` | `last_sender_id` | messaging | sender of the last message (preview) | kept: points at the anonymised row | `messages.json` |
 | `conversation_member` | `user_id` | messaging | chat memberships | deleted, kept: direct chats stay for the partner, group/store/region chats go (decision 71) | `messages.json` |
 | `message` | `sender_id` | messaging | chat messages | kept: authored content | `messages.json` |
+| `message` | `deleted_by` | messaging | who deleted a chat message (sender or moderator) | kept: points at the anonymised row | – |
 | `forum_thread` | `author_id` | forum | forum threads | kept: authored content | `forum.json` |
 | `forum_thread` | `last_post_author_id` | forum | author of the last post (preview) | kept | `forum.json` |
 | `forum_post` | `author_id` | forum | forum posts | kept: authored content | `forum.json` |

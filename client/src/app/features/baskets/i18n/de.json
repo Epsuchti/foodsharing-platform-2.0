@@ -57,6 +57,8 @@
   "baskets.detail.location": "Abholort",
   "baskets.detail.locationHome": "In der Nähe der Wohnadresse (ungefähr angezeigt)",
   "baskets.detail.locationCustom": "Vom Anbieter gewählter Abholort",
+  "baskets.detail.navigateApproximate": "Ungefährer Standort, auf etwa 100 m genau",
+  "baskets.detail.navigateLabel": "Essenskorb",
   "baskets.detail.mapLabel": "Karte mit dem Abholort",
   "baskets.detail.contact": "Kontakt",
   "baskets.detail.message": "Nachricht schreiben",

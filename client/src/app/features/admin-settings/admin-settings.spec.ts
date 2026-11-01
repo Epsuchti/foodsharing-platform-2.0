@@ -206,6 +206,34 @@ describe('admin settings pages', () => {
     http.expectOne('/api/admin/ip-blocks').flush(apiHttpError(503, ApiErrorCode.UnexpectedError).error, { status: 503, statusText: 'Error' });
     await settle();
     expect(state('adminSettings.ipBlocks.state')).toBe('error');
+    http.expectOne('/api/admin/rate-limit-blocks').flush([]);
+    await settle();
+    expect(state('adminSettings.ipBlocks.autoState')).toBe('empty');
+  });
+
+  it('ip blocks: automatic blocks link the account and are lifted after confirm (D17.2)', async () => {
+    await harness.navigateByUrl('/ip-blocks');
+    http.expectOne('/api/admin/ip-blocks').flush([]);
+    http.expectOne('/api/admin/rate-limit-blocks').flush([
+      { id: 'rl1', scope: 'ACCOUNT', user: BOT, level: 2, blockedAt: '2026-11-02T10:00:00Z', expiresAt: '2026-11-02T10:05:00Z' },
+      { id: 'rl2', scope: 'IP', ip: '203.0.113.7', level: 1, blockedAt: '2026-11-02T09:59:00Z', expiresAt: '2026-11-02T10:00:00Z' },
+    ]);
+    await settle();
+    expect(state('adminSettings.ipBlocks.autoState')).toBe('success');
+    const rows = qa('[data-testid="adminSettings.ipBlocks.autoRow"]');
+    expect(rows.length).toBe(2);
+    expect(rows[0].querySelector('a')?.getAttribute('href')).toBe('/profile/u11');
+    expect(rows[1].querySelector('code')?.textContent).toBe('203.0.113.7');
+
+    const confirm = vi.spyOn(TestBed.inject(ConfirmationService), 'confirm');
+    click('[data-id="rl2"] [data-testid="adminSettings.ipBlocks.autoLift"]');
+    expect(http.match((req) => req.method === 'DELETE').length).toBe(0);
+    confirm.mock.calls[0][0].accept!();
+    http.expectOne((req) => req.method === 'DELETE' && req.url === '/api/admin/rate-limit-blocks/rl2').flush(null, { status: 204, statusText: 'No Content' });
+    await settle();
+    http.expectOne('/api/admin/rate-limit-blocks').flush([]);
+    await settle();
+    expect(state('adminSettings.ipBlocks.autoState')).toBe('empty');
   });
 
   it('uploads: summary, unclaimed filter resets the page and deletes after confirm', async () => {

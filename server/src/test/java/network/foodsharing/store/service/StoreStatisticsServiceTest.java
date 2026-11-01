@@ -24,14 +24,17 @@ import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.PickupWeightCategory;
 import network.foodsharing.store.domain.Store;
+import network.foodsharing.store.domain.StoreMembership;
+import network.foodsharing.store.domain.StoreMembershipStatus;
 import network.foodsharing.store.domain.UserTeamStatus;
 import network.foodsharing.store.repository.PickupWeightCategoryRepository;
+import network.foodsharing.store.repository.StoreMembershipRepository;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Store statistics: months in Europe/Zurich, kg = pickups × average kg, per-member only with mayEditStore. */
+/** Store statistics: months in Europe/Zurich, kg = pickups × average kg, paged per-member only with mayEditStore. */
 class StoreStatisticsServiceTest {
 
     static final ZoneId ZURICH = ZoneId.of("Europe/Zurich");
@@ -45,6 +48,7 @@ class StoreStatisticsServiceTest {
     PickupWeightCategoryRepository weights = mock(PickupWeightCategoryRepository.class);
     RegionService regions = mock(RegionService.class);
     UserService users = mock(UserService.class);
+    StoreMembershipRepository memberships = mock(StoreMembershipRepository.class);
     CurrentActorService currentActor = mock(CurrentActorService.class);
     StoreStatisticsService service;
     User anna = user("Anna");
@@ -52,7 +56,7 @@ class StoreStatisticsServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new StoreStatisticsService(stores, rights, pickupInfo, weights, regions, users, currentActor,
+        service = new StoreStatisticsService(stores, rights, pickupInfo, weights, regions, users, memberships, currentActor,
                 Clock.fixed(NOW, ZoneOffset.UTC));
         Store store = new Store();
         store.setId(STORE);
@@ -94,7 +98,7 @@ class StoreStatisticsServiceTest {
     }
 
     @Test
-    void defaultRangeIsTwelveMonthsUpToNowWithKgAndPerMember() {
+    void defaultRangeIsTwelveMonthsUpToNowWithKg() {
         when(rights.rights(any(), any())).thenReturn(rights(true, true));
         when(pickupInfo.confirmedSignups(eq(STORE), eq(Instant.parse("2025-11-30T23:00:00Z")), eq(NOW)))
                 .thenReturn(List.of(new StorePickupInfo.PastSignup(anna.getId(), Instant.parse("2026-10-10T17:00:00Z")),
@@ -106,14 +110,108 @@ class StoreStatisticsServiceTest {
         assertThat(s.months()).hasSize(12);
         assertThat(s.months().get(10).pickups()).isEqualTo(2);
         assertThat(s.months().get(11).month()).isEqualTo(YearMonth.of(2026, 11));
-        assertThat(s.perMember()).extracting(m -> m.user().getDisplayName()).containsExactly("Ben", "Anna");
         assertThat(s.weightCategory().getCode()).isEqualTo("KG_10_20");
     }
 
     @Test
     void perMemberOnlyWithEditRight() {
         when(rights.rights(any(), any())).thenReturn(rights(true, false));
-        assertThat(service.statistics(STORE, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)).perMember()).isNull();
+        assertThat(codeOf(() -> service.memberPickups(STORE, null, null, query(null, null, null, 0))))
+                .isEqualTo(ApiErrorCode.ACCESS_DENIED);
+    }
+
+    static TeamListQuery query(TeamListQuery.Status status, String search, TeamListQuery.Sort sort, int page) {
+        return new TeamListQuery(status, search, sort, page, 2);
+    }
+
+    static StoreMembership membership(User user, StoreMembershipStatus status, boolean manager) {
+        StoreMembership m = new StoreMembership();
+        m.setStoreId(STORE);
+        m.setUserId(user.getId());
+        m.setStatus(status);
+        m.setManager(manager);
+        return m;
+    }
+
+    static StorePickupInfo.PastSignup signup(User user, String at) {
+        return new StorePickupInfo.PastSignup(user.getId(), Instant.parse(at));
+    }
+
+    /** Anna manager (2 pickups), Ben jumper (1, latest), Chloé former (2), Dora applicant = former (1). */
+    private void perMemberFixture(User chloe, User dora) {
+        when(rights.rights(any(), any())).thenReturn(rights(true, true));
+        when(users.findAll(any())).thenReturn(List.of(anna, ben, chloe, dora));
+        when(memberships.findByStoreId(STORE)).thenReturn(List.of(membership(anna, StoreMembershipStatus.MEMBER, true),
+                membership(ben, StoreMembershipStatus.JUMPER, false),
+                membership(dora, StoreMembershipStatus.APPLIED, false)));
+        when(pickupInfo.confirmedSignups(eq(STORE), any(), any())).thenReturn(List.of(
+                signup(anna, "2026-03-01T08:00:00Z"), signup(anna, "2026-05-01T08:00:00Z"),
+                signup(ben, "2026-06-01T08:00:00Z"),
+                signup(chloe, "2026-02-01T08:00:00Z"), signup(chloe, "2026-04-01T08:00:00Z"),
+                signup(dora, "2026-01-15T08:00:00Z")));
+    }
+
+    @Test
+    void perMemberStatusLastPickupAndDefaultSortByCount() {
+        User chloe = user("Chloé");
+        User dora = user("Dora");
+        perMemberFixture(chloe, dora);
+        var page = service.memberPickups(STORE, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 6, 30),
+                new TeamListQuery(null, null, null, 0, 20));
+        // ties (2 pickups) by name: Anna before Chloé; then Ben before Dora
+        assertThat(page.getContent()).extracting(m -> m.user().getDisplayName())
+                .containsExactly("Anna", "Chloé", "Ben", "Dora");
+        assertThat(page.getContent()).extracting(StoreStatisticsService.MemberPickups::status).containsExactly(
+                TeamListQuery.Status.MEMBER, TeamListQuery.Status.FORMER, TeamListQuery.Status.JUMPER,
+                TeamListQuery.Status.FORMER);
+        assertThat(page.getContent().getFirst().manager()).isTrue();
+        assertThat(page.getContent().getFirst().lastPickupAt()).isEqualTo(Instant.parse("2026-05-01T08:00:00Z"));
+        assertThat(page.getTotalElements()).isEqualTo(4);
+    }
+
+    @Test
+    void perMemberFiltersSortsAndPages() {
+        User chloe = user("Chloé");
+        User dora = user("Dora");
+        perMemberFixture(chloe, dora);
+        LocalDate from = LocalDate.of(2026, 1, 1);
+        LocalDate to = LocalDate.of(2026, 6, 30);
+        assertThat(service.memberPickups(STORE, from, to, query(TeamListQuery.Status.FORMER, null, null, 0))
+                .getContent()).extracting(m -> m.user().getDisplayName()).containsExactly("Chloé", "Dora");
+        assertThat(service.memberPickups(STORE, from, to, query(TeamListQuery.Status.MANAGER, null, null, 0))
+                .getContent()).extracting(m -> m.user().getDisplayName()).containsExactly("Anna");
+        assertThat(service.memberPickups(STORE, from, to, query(TeamListQuery.Status.JUMPER, null, null, 0))
+                .getContent()).extracting(m -> m.user().getDisplayName()).containsExactly("Ben");
+        assertThat(service.memberPickups(STORE, from, to, query(TeamListQuery.Status.MEMBER, null, null, 0))
+                .getContent()).extracting(m -> m.user().getDisplayName()).containsExactly("Anna");
+        // accent- and case-insensitive search
+        assertThat(service.memberPickups(STORE, from, to, query(null, "CHLOE", null, 0)).getContent())
+                .extracting(m -> m.user().getDisplayName()).containsExactly("Chloé");
+        // last pickup in the range, newest first
+        assertThat(service.memberPickups(STORE, from, to, new TeamListQuery(null, null, TeamListQuery.Sort.LAST_PICKUP,
+                0, 20)).getContent()).extracting(m -> m.user().getDisplayName())
+                .containsExactly("Ben", "Anna", "Chloé", "Dora");
+        // NAME: managers first, then name; page 2 of size 2
+        var second = service.memberPickups(STORE, from, to, query(null, null, TeamListQuery.Sort.NAME, 1));
+        assertThat(second.getContent()).extracting(m -> m.user().getDisplayName()).containsExactly("Chloé", "Dora");
+        assertThat(second.getTotalPages()).isEqualTo(2);
+        assertThat(service.memberPickups(STORE, from, to, query(null, null, TeamListQuery.Sort.NAME, 5)).getContent())
+                .isEmpty();
+    }
+
+    @Test
+    void perMemberCountsOnlyTheRange() {
+        when(rights.rights(any(), any())).thenReturn(rights(true, true));
+        when(pickupInfo.confirmedSignups(eq(STORE), eq(Instant.parse("2026-02-28T23:00:00Z")),
+                eq(Instant.parse("2026-03-31T22:00:00Z")))).thenReturn(List.of(signup(anna, "2026-03-10T08:00:00Z")));
+        var page = service.memberPickups(STORE, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31),
+                new TeamListQuery(null, null, null, 0, 20));
+        assertThat(page.getContent()).singleElement().satisfies(m -> {
+            assertThat(m.pickups()).isEqualTo(1);
+            assertThat(m.status()).isEqualTo(TeamListQuery.Status.FORMER);
+        });
+        assertThat(codeOf(() -> service.memberPickups(STORE, LocalDate.of(2026, 5, 1), LocalDate.of(2026, 4, 1),
+                new TeamListQuery(null, null, null, 0, 20)))).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
     }
 
     @Test
