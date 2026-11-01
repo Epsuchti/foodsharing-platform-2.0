@@ -9,7 +9,8 @@ import { Textarea } from '@openng/optimus-ui/textarea';
 import { Event, EventsService, InvitationStatus, UserSummary } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
-import { DateTimePipe } from '../../../core/dates/date-time.pipe';
+import { DateTimeFormatter, DateTimePipe } from '../../../core/dates/date-time.pipe';
+import { RegionContextService } from '../../../core/region/region-context.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { CalendarExportButtonComponent } from '../../../shared/calendar-export-button/calendar-export-button.component';
@@ -60,11 +61,11 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
           <p class="when" data-testid="events.event.when">
             <i class="pi pi-clock" aria-hidden="true"></i>
             <time [attr.datetime]="e.startsAt">{{ e.startsAt | fsDate: 'dateTimeLong' }}</time> –
-            <time [attr.datetime]="e.endsAt">{{ e.endsAt | fsDate: 'dateTime' }}</time>
+            <time [attr.datetime]="e.endsAt">{{ e.endsAt | fsDate: (sameDay(e) ? 'time' : 'dateTime') }}</time>
           </p>
           <p><i class="pi pi-tag" aria-hidden="true"></i> {{ 'events.type.' + e.type | t }} @if (e.public) {· <span data-testid="events.event.public">{{ 'events.public' | t }}</span>}</p>
           @if (e.location; as loc) {
-            <p data-testid="events.event.location"><i class="pi pi-map-marker" aria-hidden="true"></i> <strong>{{ loc.name }}</strong>@if (loc.street) {, {{ loc.street }}}@if (loc.zip || loc.city) {, {{ loc.zip }} {{ loc.city }}}</p>
+            <p data-testid="events.event.location"><i class="pi pi-map-marker" aria-hidden="true"></i> <span><strong>{{ loc.name }}</strong>@if (loc.street) {, {{ loc.street }}}@if (loc.zip || loc.city) {, {{ loc.zip }} {{ loc.city }}}</span></p>
           }
           @if (e.onlineLink) {
             <a class="p-button p-button-outlined link" [href]="e.onlineLink" target="_blank" rel="noopener noreferrer" data-testid="events.event.onlineLink"><i class="pi pi-video" aria-hidden="true"></i> {{ 'events.join' | t }}</a>
@@ -180,10 +181,16 @@ export class EventPageComponent {
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
+  private readonly dates = inject(DateTimeFormatter);
+  private readonly region = inject(RegionContextService);
 
   readonly eventId = input.required<string>();
   protected readonly icon = EVENT_TYPE_ICON;
   protected readonly ics = eventIcs();
+  /** An event within one day shows the date once: "Samstag, 17. Oktober 2026 um 08:00 – 11:00". */
+  protected sameDay(e: { startsAt: string; endsAt: string }): boolean {
+    return this.dates.sameDay(e.startsAt, e.endsAt, this.region.timeZone());
+  }
   protected draft = '';
   protected readonly draftLength = signal(0);
   protected readonly picked = signal<UserSummary[]>([]);

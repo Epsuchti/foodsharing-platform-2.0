@@ -31,6 +31,10 @@ test.describe('bot', () => {
     await submit.click();
     await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
     await expect(page.getByTestId('events.event.location')).toContainText('Lager Altstetten');
+    // a stray space before the comma would come from the flex gap between name and address
+    await expect(page.getByTestId('events.event.location')).not.toContainText(/\s,/);
+    // the form's start and end are on one day: the date is named once ("… 18:00 – 20:00")
+    await expect(page.getByTestId('events.event.when')).toHaveText(/\d{2}:\d{2}\s+–\s+\d{2}:\d{2}\s*$/);
     await expect(page.getByTestId('events.event.accepted')).toContainText(me.displayName);
 
     // edit keeps values and saves
