@@ -14,10 +14,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import network.foodsharing.admin.domain.ConfigurationKey;
-import network.foodsharing.admin.service.ConfigurationService;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
+import network.foodsharing.common.config.MessagingSettings;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimeEvent;
 import network.foodsharing.common.realtime.RealtimeEventType;
@@ -72,7 +71,7 @@ class MessagingServiceTest {
     private ChatModeration moderation;
 
     @MockitoBean
-    private ConfigurationService configuration;
+    private MessagingSettings settings;
 
     @Autowired
     private HistoryEntryRepository history;
@@ -88,7 +87,7 @@ class MessagingServiceTest {
         carol = users.saveAndFlush(TestUsers.user("msg-carol@test.local", Role.FOODSAVER)).getId();
         when(realtime.connectedUsers()).thenReturn(Set.of());
         when(notifications.mailOnly(any())).thenAnswer(i -> ((NotificationRequest) i.getArgument(0)).recipientIds());
-        when(configuration.integer(ConfigurationKey.MESSAGING_EDIT_WINDOW_HOURS)).thenReturn(24);
+        when(settings.editWindowHours()).thenReturn(24);
     }
 
     private static SessionPrincipal principal(UUID userId) {
@@ -252,7 +251,7 @@ class MessagingServiceTest {
                 .isInstanceOf(ApiException.class).extracting("code")
                 .isEqualTo(ApiErrorCode.MESSAGE_EDIT_WINDOW_EXPIRED);
         // the window comes from the configuration
-        when(configuration.integer(ConfigurationKey.MESSAGING_EDIT_WINDOW_HOURS)).thenReturn(48);
+        when(settings.editWindowHours()).thenReturn(48);
         assertThat(messaging.editMessage(principal(me), id, message.getId(), "Hallo zusammen").getBody())
                 .isEqualTo("Hallo zusammen");
     }

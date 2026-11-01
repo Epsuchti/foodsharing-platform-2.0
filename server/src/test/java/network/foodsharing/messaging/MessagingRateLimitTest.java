@@ -9,9 +9,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import network.foodsharing.admin.service.ConfigurationService;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
+import network.foodsharing.common.config.MessagingSettings;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimePublisher;
 import network.foodsharing.config.MutableClock;
@@ -55,7 +55,7 @@ class MessagingRateLimitTest {
     private ChatModeration moderation;
 
     @MockitoBean
-    private ConfigurationService configuration;
+    private MessagingSettings settings;
 
     @Test
     void theThirdMessageWithinAMinuteIsRejected() {

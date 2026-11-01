@@ -15,9 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import network.foodsharing.admin.domain.ConfigurationKey;
-import network.foodsharing.admin.service.ConfigurationService;
 import network.foodsharing.api.model.ApiErrorCode;
+import network.foodsharing.common.config.MessagingSettings;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimeEvent;
 import network.foodsharing.common.realtime.RealtimeEventType;
@@ -69,15 +68,15 @@ public class MessagingService {
     private final Clock clock;
     private final SlidingWindowRateLimiter sendLimiter;
     private final ChatModeration moderation;
-    private final ConfigurationService configuration;
+    private final MessagingSettings settings;
 
     public MessagingService(ConversationRepository conversations, ConversationMemberRepository members,
                             ConversationMessageRepository messages, UserService users,
                             NotificationService notifications, RealtimePublisher realtime, HistoryService history,
                             AppProperties properties, Clock clock, ChatModeration moderation,
-                            ConfigurationService configuration) {
+                            MessagingSettings settings) {
         this.moderation = moderation;
-        this.configuration = configuration;
+        this.settings = settings;
         this.conversations = conversations;
         this.members = members;
         this.messages = messages;
@@ -303,7 +302,7 @@ public class MessagingService {
 
     /** The configured edit window ({@code messaging.edit-window-hours}, default 24). */
     public Duration editWindow() {
-        return Duration.ofHours(Math.max(0, configuration.integer(ConfigurationKey.MESSAGING_EDIT_WINDOW_HOURS)));
+        return Duration.ofHours(Math.max(0, settings.editWindowHours()));
     }
 
     /** What the viewer may do with the messages of one conversation (computed once per request). */
