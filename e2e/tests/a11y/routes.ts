@@ -224,7 +224,7 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: '/admin/store-categories', role: 'orga' },
 
   // --- automation (M4)
-  ...['overview', 'audits', 'cleaning-exemptions', 'grouping', 'metrics', 'telegram', 'holidays'].map((section) => ({
+  ...['overview', 'audits', 'cleaning-fsps', 'cleaning-exemptions', 'grouping', 'metrics', 'telegram', 'holidays'].map((section) => ({
     path: `/regions/${ZH}/automation/${section}`,
     role: 'bot' as const,
     ready: 'automation.region.nav',
@@ -285,6 +285,7 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: `/food-share-points/new?regionId=${ZH}`, role: 'foodsaver', ready: 'foodSharePoints.form' },
   { path: `/food-share-points/${FSP_WIEDIKON}/edit`, role: 'bieb', ready: 'foodSharePoints.form' },
   { path: '/food-share-points/mine', role: 'foodsaver', ready: 'foodSharePoints.mine.list' },
+  { path: `/food-share-points/${FSP_WIEDIKON}/cleaning`, role: 'bieb', ready: 'fsp.cleaning.list' },
   // --- M6 reports and mediation (plan-m7 Q8): the report team (reports@local), report 03 has wall posts
   { path: `/regions/${ZH}/reports`, role: 'reports', ready: 'reports.region.list' },
   { path: `/regions/${ZH}/report-log`, role: 'reports', ready: 'reports.log.count' },
