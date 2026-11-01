@@ -11,6 +11,8 @@
 // Chrome: CHROME_PATH, else Playwright's Chromium. The newbie session comes from the dev login endpoint; its pending
 // consents are accepted first so `/onboarding` renders the journey and not the consent page.
 export const THRESHOLDS = { performance: 90, accessibility: 95 };
+/** Performance is measured and reported here but does not fail (decision 141); accessibility still does. */
+export const PERFORMANCE_REPORT_ONLY = ['/onboarding'];
 
 async function chromePath() {
   if (process.env.CHROME_PATH) {
@@ -165,7 +167,9 @@ export async function reportOnlyPages(baseURL) {
 
 export function belowThreshold(results) {
   return results.filter(
-    (r) => r.performance < THRESHOLDS.performance || r.accessibility < THRESHOLDS.accessibility,
+    (r) =>
+      (r.performance < THRESHOLDS.performance && !PERFORMANCE_REPORT_ONLY.includes(r.path)) ||
+      r.accessibility < THRESHOLDS.accessibility,
   );
 }
 

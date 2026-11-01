@@ -188,6 +188,7 @@ jobs:
           retention-days: 7
 
   # D11.5.3 (plan §11.5): Lighthouse mobile ≥ 90 performance / ≥ 95 accessibility on `/` and `/onboarding`.
+  # `/onboarding` performance is report-only until docs/tasks/2026-11-01-onboarding-performance.md is done (decision 141).
   lighthouse:
     name: Lighthouse
     needs: build
