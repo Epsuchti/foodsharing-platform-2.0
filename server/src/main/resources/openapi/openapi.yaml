@@ -737,6 +737,8 @@ paths:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}'
   /api/conversations/{conversationId}/messages:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages'
+  /api/conversations/{conversationId}/messages/{messageId}:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages~1{messageId}'
   /api/conversations/{conversationId}/read:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1read'
   /api/conversations/{conversationId}/members/{userId}:

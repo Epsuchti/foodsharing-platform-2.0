@@ -15,6 +15,7 @@ RealtimeEventType:
     - CONVERSATION_MESSAGE
     - CONVERSATION_READ
     - CONVERSATION_UPDATED
+    - CONVERSATION_MESSAGE_UPDATED
     - BELL
     - MAILBOX_MAIL
     - FORUM_POST
@@ -36,7 +37,9 @@ RealtimeEvent:
     payload:
       type: object
       additionalProperties: true
-      description: "Type-specific payload (e.g. CONVERSATION_MESSAGE: {conversationId, message: ChatMessage})."
+      description: >-
+        Type-specific payload (e.g. CONVERSATION_MESSAGE and CONVERSATION_MESSAGE_UPDATED: the ChatMessage fields plus
+        conversationId).
 
 MessagePreview:
   type: object
@@ -58,6 +61,9 @@ MessagePreview:
     at:
       type: string
       format: date-time
+    deleted:
+      type: boolean
+      description: The latest message was deleted (body is empty; the client shows "Nachricht gelöscht").
 
 ChatMessage:
   type: object
@@ -79,14 +85,31 @@ ChatMessage:
       description: Absent = system message ("foodsharing").
     body:
       type: string
-      minLength: 1
       maxLength: 32600
+      description: Empty when the message was deleted.
     sentAt:
       type: string
       format: date-time
     clientKey:
       type: string
       maxLength: 64
+    editedAt:
+      type: string
+      format: date-time
+      description: Last edit by the sender; absent = never edited.
+    deletedAt:
+      type: string
+      format: date-time
+      description: Present = deleted (body is empty).
+    deletedByModerator:
+      type: boolean
+      description: Deleted by a moderator rather than the sender.
+    mayEdit:
+      type: boolean
+      description: The viewer may edit this message now (own, not a system message, not deleted, within the window).
+    mayDelete:
+      type: boolean
+      description: The viewer may delete this message now (sender within the window, or a moderator of the chat).
 
 Conversation:
   type: object
@@ -286,6 +309,25 @@ MessageCreate:
       minLength: 1
       maxLength: 64
       description: "Idempotency key: resending returns the stored message."
+
+MessageUpdate:
+  type: object
+  required:
+    - body
+  properties:
+    body:
+      type: string
+      minLength: 1
+      maxLength: 10000
+
+MessageDelete:
+  type: object
+  description: Required with a reason when a moderator deletes someone else's message.
+  properties:
+    reason:
+      type: string
+      minLength: 10
+      maxLength: 500
 
 ConversationReadUpdate:
   type: object

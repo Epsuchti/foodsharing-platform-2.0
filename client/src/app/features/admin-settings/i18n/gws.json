@@ -83,6 +83,7 @@
   "adminSettings.configuration.key.donation_campaign_page_slugs": "Kampagnesiite",
   "adminSettings.configuration.key.statistics_public_cache_minutes": "Cache vo de öffentliche Statistik (Minute)",
   "adminSettings.configuration.key.oauth_issuer": "OAuth-Issuer-Adrässe",
+  "adminSettings.configuration.key.messaging_edit_window_hours": "Ziitfänschter zum Bearbeite vo Chat-Nachrichte (Stunde)",
   "adminSettings.donations.title": "Spände",
   "adminSettings.donations.subtitle": "Spändesiite, Kampagnecharte und Spände-Hiiwiis.",
   "adminSettings.donations.showCampaignCard": "Kampagnecharte zeige",

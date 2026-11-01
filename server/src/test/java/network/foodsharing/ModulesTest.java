@@ -36,7 +36,8 @@ class ModulesTest {
     @Test
     void communicationModulesHaveOnlyTheirAllowedDependencies() {
         java.util.Map<String, java.util.Set<String>> allowed = java.util.Map.of(
-                "messaging", java.util.Set.of("user", "region", "store", "notification", "history", "upload"),
+                // admin: ConfigurationService for messaging.edit-window-hours (resume item 16)
+                "messaging", java.util.Set.of("user", "region", "store", "notification", "history", "upload", "admin"),
                 "mailbox", java.util.Set.of("user", "region", "notification", "history", "upload"),
                 "forum", java.util.Set.of("region", "user", "notification", "history"),
                 "event", java.util.Set.of("region", "user", "notification", "history"),

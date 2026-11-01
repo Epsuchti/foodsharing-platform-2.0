@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import network.foodsharing.admin.domain.ConfigurationKey;
+import network.foodsharing.admin.service.ConfigurationService;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimeEvent;
@@ -22,12 +24,14 @@ import network.foodsharing.common.realtime.RealtimeEventType;
 import network.foodsharing.common.realtime.RealtimePublisher;
 import network.foodsharing.common.web.SlidingWindowRateLimiter;
 import network.foodsharing.config.AppProperties;
+import network.foodsharing.history.HistoryEvent;
 import network.foodsharing.history.NoHistory;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.messaging.domain.Conversation;
 import network.foodsharing.messaging.domain.ConversationKind;
 import network.foodsharing.messaging.domain.ConversationMember;
 import network.foodsharing.messaging.domain.ConversationMessage;
+import network.foodsharing.messaging.domain.MessageEditRules;
 import network.foodsharing.messaging.domain.MessagingAction;
 import network.foodsharing.messaging.repository.ConversationMemberRepository;
 import network.foodsharing.messaging.repository.ConversationMessageRepository;
@@ -35,6 +39,7 @@ import network.foodsharing.messaging.repository.ConversationRepository;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
+import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,13 +47,16 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Conversations and messages (A33): DIRECT/GROUP lookup and creation, sending with a per-conversation seq under the
  * conversation row lock, idempotent client keys, read state, group member edits, system messages, and the
- * notifications of a new message (push per message to members without a realtime connection, digest mail).
+ * notifications of a new message (push per message to members without a realtime connection, digest mail), and
+ * editing / deleting messages (sender within {@code messaging.edit-window-hours}, moderators delete with a reason).
  */
 @Service
 public class MessagingService {
 
     static final int MAX_MEMBERS = 100;
     static final int PREVIEW_LENGTH = 300;
+    /** Minimum length of a moderator's delete reason (contract MessageDelete.reason 10..500). */
+    static final int MIN_REASON_LENGTH = 10;
 
     private final ConversationRepository conversations;
     private final ConversationMemberRepository members;
@@ -60,11 +68,16 @@ public class MessagingService {
     private final AppProperties properties;
     private final Clock clock;
     private final SlidingWindowRateLimiter sendLimiter;
+    private final ChatModeration moderation;
+    private final ConfigurationService configuration;
 
     public MessagingService(ConversationRepository conversations, ConversationMemberRepository members,
                             ConversationMessageRepository messages, UserService users,
                             NotificationService notifications, RealtimePublisher realtime, HistoryService history,
-                            AppProperties properties, Clock clock) {
+                            AppProperties properties, Clock clock, ChatModeration moderation,
+                            ConfigurationService configuration) {
+        this.moderation = moderation;
+        this.configuration = configuration;
         this.conversations = conversations;
         this.members = members;
         this.messages = messages;
@@ -245,12 +258,20 @@ public class MessagingService {
         message = messages.save(message);
         conversation.setLastSeq(seq);
         conversation.setLastMessageAt(now);
-        conversation.setLastMessagePreview(text.length() > PREVIEW_LENGTH ? text.substring(0, PREVIEW_LENGTH) : text);
+        conversation.setLastMessagePreview(preview(text));
         conversation.setLastSenderId(senderId);
         List<ConversationMember> all = members.findByConversationId(conversationId);
         all.stream().filter(m -> m.getUserId().equals(senderId)).forEach(m -> m.setLastReadSeq(seq));
-        realtime.toUsers(all.stream().map(ConversationMember::getUserId).collect(Collectors.toSet()),
-                new RealtimeEvent(RealtimeEventType.CONVERSATION_MESSAGE, now, payload(message)));
+        Set<UUID> others = all.stream().map(ConversationMember::getUserId).filter(id -> !id.equals(senderId))
+                .collect(Collectors.toSet());
+        realtime.toUsers(others, new RealtimeEvent(RealtimeEventType.CONVERSATION_MESSAGE, now, payload(message)));
+        if (senderId != null) {
+            // the sender's other devices may edit and delete a message they just sent
+            Map<String, Object> own = payload(message);
+            own.put("mayEdit", true);
+            own.put("mayDelete", true);
+            realtime.toUsers(Set.of(senderId), new RealtimeEvent(RealtimeEventType.CONVERSATION_MESSAGE, now, own));
+        }
         notifyRecipients(conversation, message, all.stream().filter(m -> !m.getUserId().equals(senderId)).toList(), now);
         return message;
     }
@@ -268,7 +289,142 @@ public class MessagingService {
         if (message.getClientKey() != null) {
             payload.put("clientKey", message.getClientKey());
         }
+        if (message.getEditedAt() != null) {
+            payload.put("editedAt", message.getEditedAt().toString());
+        }
+        if (message.getDeletedAt() != null) {
+            payload.put("deletedAt", message.getDeletedAt().toString());
+            payload.put("deletedByModerator", message.isDeletedByModerator());
+        }
         return payload;
+    }
+
+    // ---------------------------------------------------------------------------------- edit / delete
+
+    /** The configured edit window ({@code messaging.edit-window-hours}, default 24). */
+    public Duration editWindow() {
+        return Duration.ofHours(Math.max(0, configuration.integer(ConfigurationKey.MESSAGING_EDIT_WINDOW_HOURS)));
+    }
+
+    /** What the viewer may do with the messages of one conversation (computed once per request). */
+    @Transactional(readOnly = true)
+    public MessagePermissions permissions(SessionPrincipal viewer, UUID conversationId) {
+        return new MessagePermissions(viewer.userId(), moderation.isModerator(viewer, conversationId), clock.instant(),
+                editWindow());
+    }
+
+    /**
+     * Edits an own message within the edit window; records the text before and after (A33 amended).
+     *
+     * @throws ApiException 400 MESSAGE_EMPTY / MESSAGE_TOO_LONG, 403 NOT_CONVERSATION_MEMBER / MESSAGE_NOT_EDITABLE,
+     *                      404 CONVERSATION_NOT_FOUND / MESSAGE_NOT_FOUND, 409 MESSAGE_EDIT_WINDOW_EXPIRED /
+     *                      MESSAGE_DELETED
+     */
+    @Transactional
+    public ConversationMessage editMessage(SessionPrincipal actor, UUID conversationId, UUID messageId, String body) {
+        requireMember(actor.userId(), conversationId);
+        String text = body == null ? "" : body.strip();
+        if (text.isEmpty()) {
+            throw ApiException.badRequest(ApiErrorCode.MESSAGE_EMPTY);
+        }
+        if (text.length() > properties.getMessaging().getMaxMessageLength()) {
+            throw ApiException.badRequest(ApiErrorCode.MESSAGE_TOO_LONG);
+        }
+        Conversation conversation = lock(conversationId);
+        ConversationMessage message = requireMessage(conversationId, messageId);
+        Instant now = clock.instant();
+        MessageEditRules.Verdict verdict = MessageEditRules.edit(actor.userId(), message, now, editWindow());
+        if (verdict != MessageEditRules.Verdict.ALLOWED) {
+            throw refused(verdict);
+        }
+        String original = message.getBody();
+        if (original.equals(text)) {
+            return message;
+        }
+        message.setBody(text);
+        message.setEditedAt(now);
+        history.record(history.event(MessagingAction.MESSAGE_EDITED, conversationId).secondarySubject(messageId)
+                .oldValue(original).newValue(text).metadata(Map.of("seq", message.getSeq())).build());
+        if (conversation.getLastSeq() == message.getSeq()) {
+            conversation.setLastMessagePreview(preview(text));
+        }
+        publishUpdate(conversationId, message, now);
+        return message;
+    }
+
+    /**
+     * Deletes a message: the sender within the edit window, or a moderator ({@link ChatModeration}) at any time with
+     * a reason of at least {@value #MIN_REASON_LENGTH} characters. The row and its seq stay, the body becomes
+     * {@code ""}; the original text goes to the history.
+     *
+     * @throws ApiException 400 DELETE_REASON_REQUIRED, 403 NOT_CONVERSATION_MEMBER / MESSAGE_NOT_EDITABLE,
+     *                      404 CONVERSATION_NOT_FOUND / MESSAGE_NOT_FOUND, 409 MESSAGE_EDIT_WINDOW_EXPIRED /
+     *                      MESSAGE_DELETED
+     */
+    @Transactional
+    public ConversationMessage deleteMessage(SessionPrincipal actor, UUID conversationId, UUID messageId,
+                                             String reason) {
+        requireMember(actor.userId(), conversationId);
+        Conversation conversation = lock(conversationId);
+        boolean moderator = moderation.isModerator(actor, conversation);
+        ConversationMessage message = requireMessage(conversationId, messageId);
+        Instant now = clock.instant();
+        MessageEditRules.Verdict verdict = MessageEditRules.delete(actor.userId(), message, now, editWindow(),
+                moderator);
+        String why = null;
+        if (verdict == MessageEditRules.Verdict.ALLOWED_AS_MODERATOR) {
+            why = blankToNull(reason);
+            if (why == null || why.length() < MIN_REASON_LENGTH) {
+                throw ApiException.badRequest(ApiErrorCode.DELETE_REASON_REQUIRED);
+            }
+        } else if (verdict != MessageEditRules.Verdict.ALLOWED) {
+            throw refused(verdict);
+        }
+        String original = message.getBody();
+        message.setBody("");
+        message.setDeletedAt(now);
+        message.setDeletedBy(actor.userId());
+        HistoryEvent.Builder event = history.event(MessagingAction.MESSAGE_DELETED, conversationId)
+                .secondarySubject(messageId).oldValue(original)
+                .metadata(Map.of("seq", message.getSeq(), "moderator", why != null));
+        if (why != null) {
+            event.reason(why);
+        }
+        history.record(event.build());
+        if (conversation.getLastSeq() == message.getSeq()) {
+            conversation.setLastMessagePreview("");
+        }
+        publishUpdate(conversationId, message, now);
+        return message;
+    }
+
+    private Conversation lock(UUID conversationId) {
+        return conversations.findForUpdate(conversationId)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.CONVERSATION_NOT_FOUND));
+    }
+
+    private ConversationMessage requireMessage(UUID conversationId, UUID messageId) {
+        return messages.findById(messageId).filter(m -> m.getConversationId().equals(conversationId))
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.MESSAGE_NOT_FOUND));
+    }
+
+    private static ApiException refused(MessageEditRules.Verdict verdict) {
+        return switch (verdict) {
+            case DELETED -> ApiException.conflict(ApiErrorCode.MESSAGE_DELETED);
+            case WINDOW_EXPIRED -> ApiException.conflict(ApiErrorCode.MESSAGE_EDIT_WINDOW_EXPIRED);
+            default -> ApiException.forbidden(ApiErrorCode.MESSAGE_NOT_EDITABLE);
+        };
+    }
+
+    /** CONVERSATION_MESSAGE_UPDATED to all members (after commit); the viewer flags stay with each client. */
+    private void publishUpdate(UUID conversationId, ConversationMessage message, Instant now) {
+        Set<UUID> ids = members.findByConversationId(conversationId).stream().map(ConversationMember::getUserId)
+                .collect(Collectors.toSet());
+        realtime.toUsers(ids, new RealtimeEvent(RealtimeEventType.CONVERSATION_MESSAGE_UPDATED, now, payload(message)));
+    }
+
+    private static String preview(String text) {
+        return text.length() > PREVIEW_LENGTH ? text.substring(0, PREVIEW_LENGTH) : text;
     }
 
     /** A33: push per message to members without a realtime connection; mail at most once per digest window. */

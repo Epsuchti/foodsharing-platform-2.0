@@ -83,6 +83,7 @@
   "adminSettings.configuration.key.donation_campaign_page_slugs": "Pages de campagne",
   "adminSettings.configuration.key.statistics_public_cache_minutes": "Cache des statistiques publiques (minutes)",
   "adminSettings.configuration.key.oauth_issuer": "Adresse de l’émetteur OAuth",
+  "adminSettings.configuration.key.messaging_edit_window_hours": "Délai de modification des messages du chat (heures)",
   "adminSettings.donations.title": "Dons",
   "adminSettings.donations.subtitle": "Page de dons, carte de campagne et fenêtre de dons.",
   "adminSettings.donations.showCampaignCard": "Afficher la carte de campagne",
