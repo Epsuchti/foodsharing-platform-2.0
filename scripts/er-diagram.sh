@@ -87,8 +87,9 @@ echo "[er-diagram] running Liquibase via $(basename "${JAR}") (profile prod) —
 ) >"${LOG}" 2>&1 &
 APP_PID=$!
 ready=false
-for _ in $(seq 1 240); do
-  if curl -fsS "http://localhost:${MANAGEMENT_PORT}/actuator/health/readiness" 2>/dev/null | grep -q '"UP"'; then ready=true; break; fi
+# Liquibase on an empty Postgres can take over 2 minutes on a slow CI runner: wait up to 5
+for _ in $(seq 1 600); do
+  if curl -fsS --max-time 5 "http://localhost:${MANAGEMENT_PORT}/actuator/health/readiness" 2>/dev/null | grep -q '"UP"'; then ready=true; break; fi
   kill -0 "${APP_PID}" 2>/dev/null || break
   sleep 0.5
 done

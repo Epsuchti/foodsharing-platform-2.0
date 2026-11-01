@@ -3,6 +3,8 @@
 Lighthouse mobile preset (performance + accessibility), `e2e/scripts/lighthouse.mjs`. Plan §11.5 / D11.5.3 gates
 two pages with hard thresholds (performance ≥ 90, accessibility ≥ 95, median of three runs after a warm-up, own CI
 job "Lighthouse"). The main M6 pages are **report only** (plan-m7 F6): measured and listed here, no thresholds.
+`/onboarding` performance is report-only too until the speed-up is done (decision 141,
+`docs/tasks/2026-11-01-onboarding-performance.md`); the job prints its score to the log and the run summary.
 
 ```
 E2E_BASE_URL=http://localhost:8080 node e2e/scripts/lighthouse.mjs            # gated pages, exit 1 below a threshold

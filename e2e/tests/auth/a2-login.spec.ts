@@ -22,9 +22,12 @@ test('A2 magic link login and logout @A2 @page', async ({ page, mails, apiOf }) 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByTestId('dashboard.page.name')).toHaveText('Sarah Müller');
 
-  // first login on this device with a link → "log in faster next time" (once per device)
-  await expect(page.getByTestId('auth.passkeyNudge')).toBeVisible();
-  await page.getByTestId('auth.passkeyNudge.dismiss').click();
+  // first login on this device with a link → "log in faster next time" (once per device); never without WebAuthn,
+  // which Playwright's Linux WebKit does not offer (WebAuthnClient.isSupported)
+  if (await page.evaluate(() => typeof window.PublicKeyCredential === 'function')) {
+    await expect(page.getByTestId('auth.passkeyNudge')).toBeVisible();
+    await page.getByTestId('auth.passkeyNudge.dismiss').click();
+  }
   await expect(page.getByTestId('auth.passkeyNudge')).toBeHidden();
 
   await logoutWithMenu(page);

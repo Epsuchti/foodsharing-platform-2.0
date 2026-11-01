@@ -241,7 +241,7 @@ chat of kochgruppe (2 messages, members from `region_membership`). Members `0002
 true for the Zürich Stadt groups `20`–`35` (and every new working group). Other store chats are created on first
 access (`GET /api/stores/{id}/conversations`, team changes, adverts) and reconciled hourly by `conversation-sync`.
 `MessagingSeedDateShift` moves seeded message/conversation times in `local`.
-Edit/delete (`178-messaging-edit-delete-seed.yaml`, decision 141): in `03` seq 6 (`0003-…21`, foodsaver) is edited and
+Edit/delete (`178-messaging-edit-delete-seed.yaml`, decision 142): in `03` seq 6 (`0003-…21`, foodsaver) is edited and
 seq 4 (`0003-…19`, guide) deleted by its sender; in the S-01 team chat `04` seq 5 (`0003-…28`, foodsaver) is deleted by
 bieb as store manager with a reason. History rows `00000041-0006-4000-8000-00000000000N`: `01` MESSAGE_EDITED, `02`/`03`
 MESSAGE_DELETED (original text readable by the chat moderators only).
