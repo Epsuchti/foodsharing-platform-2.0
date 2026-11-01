@@ -9,6 +9,8 @@
   "search.global.searching": "Searching…",
   "search.global.empty": "Nothing found for “{query}”.",
   "search.global.count": "{count, plural, =0 {No results} one {1 result} other {# results}}",
+  "search.rateLimited.title": "Too many searches",
+  "search.rateLimited.text": "You searched very often in a short time. {seconds, plural, =0 {Please wait a moment and try again.} one {Please try again in # second.} other {Please try again in # seconds.}}",
   "search.index.conversations": "Your conversations",
   "search.index.regions": "Your regions",
   "search.index.groups": "Your groups",
