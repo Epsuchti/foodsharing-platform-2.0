@@ -1,5 +1,6 @@
 import {
   CONVERSATIONS,
+  bubble,
   bubbles,
   expect,
   expectDataState,
@@ -148,6 +149,62 @@ test.describe('foodsaver', () => {
     await expectNoSeriousViolations(page);
   });
 
+  test('N1 edit and delete own messages; the other member sees edited and deleted @N1', async ({ page, as }) => {
+    await page.goto(`/messages/${CONVERSATIONS.foodsaverBot}`);
+    await expectDataState(page, 'messaging.conversation.state', 'success');
+    const composer = page.getByTestId('messaging.conversation.composer');
+    await composer.fill('Treffpunkt um 18 Uhr beim Bahnhof');
+    await composer.press('Enter');
+    await expect(page.getByTestId('messaging.conversation.pending')).toHaveCount(0);
+    await expect(bubbles(page).last()).toContainText('18 Uhr');
+    const seq = Number(await bubbles(page).last().getAttribute('data-seq'));
+    const mine = bubble(page, seq);
+
+    // edit in the composer: the draft is parked and comes back afterwards
+    await composer.fill('Noch nicht fertig');
+    await mine.hover();
+    await mine.getByTestId('messaging.conversation.messageMenu').click();
+    await page.getByTestId('messaging.conversation.edit').click();
+    await expect(page.getByTestId('messaging.conversation.editBanner')).toBeVisible();
+    await expect(composer).toHaveValue('Treffpunkt um 18 Uhr beim Bahnhof');
+    // unchanged text: nothing to save
+    await expect(page.getByTestId('messaging.conversation.editSave').locator('button')).toBeDisabled();
+    await composer.fill('Treffpunkt um 19 Uhr beim Bahnhof');
+    await composer.press('Enter');
+    await expect(page.getByTestId('messaging.conversation.editBanner')).toHaveCount(0);
+    await expect(mine.getByTestId('messaging.conversation.body')).toHaveText('Treffpunkt um 19 Uhr beim Bahnhof');
+    await expect(mine).toHaveAttribute('data-edited', 'true');
+    await expect(mine.getByTestId('messaging.conversation.edited')).toBeVisible();
+    await expect(composer).toHaveValue('Noch nicht fertig');
+
+    const botPage = await as('bot');
+    await botPage.goto(`/messages/${CONVERSATIONS.foodsaverBot}`);
+    await expectDataState(botPage, 'messaging.conversation.state', 'success');
+    const theirs = bubble(botPage, seq);
+    await expect(theirs.getByTestId('messaging.conversation.body')).toHaveText('Treffpunkt um 19 Uhr beim Bahnhof');
+    await expect(theirs.getByTestId('messaging.conversation.edited')).toBeVisible();
+    await expect(theirs.getByTestId('messaging.conversation.messageMenu')).toHaveCount(0);
+
+    // delete with confirmation: the row stays as a placeholder without actions
+    await mine.hover();
+    await mine.getByTestId('messaging.conversation.messageMenu').click();
+    await expect(page.getByTestId('messaging.conversation.delete')).toHaveAttribute('data-moderation', 'false');
+    await page.getByTestId('messaging.conversation.delete').click();
+    await page.locator('.p-confirmdialog-accept-button').click();
+    await expect(mine).toHaveAttribute('data-deleted', 'true');
+    await expect(mine.getByTestId('messaging.conversation.deleted')).toHaveAttribute('data-moderation', 'false');
+    await expect(mine.getByTestId('messaging.conversation.messageMenu')).toHaveCount(0);
+    await expect(mine.getByTestId('messaging.conversation.body')).toHaveCount(0);
+
+    await botPage.reload();
+    await expectDataState(botPage, 'messaging.conversation.state', 'success');
+    await expect(theirs.getByTestId('messaging.conversation.deleted')).toBeVisible();
+    await botPage.goto('/messages');
+    await expectDataState(botPage, 'messaging.list.state', 'success');
+    await expect(listItem(botPage, CONVERSATIONS.foodsaverBot).getByTestId('messaging.list.preview')).toHaveAttribute('data-deleted', 'true');
+    await expectNoSeriousViolations(page);
+  });
+
   test('N1 error states: list 500 with retry, send failure keeps a pending bubble with retry @N1', async ({ page }) => {
     const injection = await injectApiError(page, { url: /\/api\/conversations(\?.*)?$/, method: 'GET', status: 500 });
     await page.goto('/messages');
@@ -170,6 +227,41 @@ test.describe('foodsaver', () => {
 
     await page.goto('/messages/00000000-0000-4000-8000-00000000dead');
     await expect(page.getByTestId('messaging.conversation.state')).toHaveAttribute('data-state', /notFound|forbidden/);
+  });
+});
+
+test.describe('store manager', () => {
+  test.use({ role: 'bieb' });
+
+  test('N1 a store manager deletes a team member message with a reason; members see the moderation placeholder @N1 @S10', async ({ page, as }) => {
+    await page.goto(`/messages/${CONVERSATIONS.s01Team}`);
+    await expectDataState(page, 'messaging.conversation.state', 'success');
+    // seeded: seq 5 deleted by the store manager
+    await expect(bubble(page, 5).getByTestId('messaging.conversation.deleted')).toHaveAttribute('data-moderation', 'true');
+
+    // seq 2 "Danke für die Info!" by foodsaver: only the moderation delete, with a reason of at least 10 characters
+    const target = bubble(page, 2);
+    await target.hover();
+    await target.getByTestId('messaging.conversation.messageMenu').click();
+    await expect(page.getByTestId('messaging.conversation.edit')).toHaveCount(0);
+    await expect(page.getByTestId('messaging.conversation.delete')).toHaveAttribute('data-moderation', 'true');
+    await page.getByTestId('messaging.conversation.delete').click();
+    const reason = page.getByTestId('messaging.conversation.deleteDialog.message');
+    const confirm = page.getByTestId('messaging.conversation.deleteDialog.confirm');
+    await expect(reason).toBeVisible();
+    await reason.fill('zu kurz');
+    await confirm.click();
+    await expect(reason).toHaveAttribute('aria-invalid', 'true');
+    await reason.fill('Gehört in den Direktchat, nicht ins Team.');
+    await confirm.click();
+    await expect(reason).toBeHidden();
+    await expect(target.getByTestId('messaging.conversation.deleted')).toHaveAttribute('data-moderation', 'true');
+
+    const foodsaverPage = await as('foodsaver');
+    await foodsaverPage.goto(`/messages/${CONVERSATIONS.s01Team}`);
+    await expectDataState(foodsaverPage, 'messaging.conversation.state', 'success');
+    await expect(bubble(foodsaverPage, 2).getByTestId('messaging.conversation.deleted')).toHaveAttribute('data-moderation', 'true');
+    await expect(bubble(foodsaverPage, 2).getByTestId('messaging.conversation.messageMenu')).toHaveCount(0);
   });
 });
 
