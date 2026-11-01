@@ -234,7 +234,10 @@ export {
 } from './stores';
 export {
   CONVERSATIONS,
+  bubble,
   bubbles,
+  deleteMessage,
+  editMessage,
   getConversation,
   listItem,
   lookupConversation,

@@ -83,6 +83,7 @@
   "adminSettings.configuration.key.donation_campaign_page_slugs": "Campaign pages",
   "adminSettings.configuration.key.statistics_public_cache_minutes": "Public statistics cache (minutes)",
   "adminSettings.configuration.key.oauth_issuer": "OAuth issuer address",
+  "adminSettings.configuration.key.messaging_edit_window_hours": "Time window to edit chat messages (hours)",
   "adminSettings.donations.title": "Donations",
   "adminSettings.donations.subtitle": "Donation page, campaign card and donation pop-up.",
   "adminSettings.donations.showCampaignCard": "Show campaign card",

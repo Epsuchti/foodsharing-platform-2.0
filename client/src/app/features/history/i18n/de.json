@@ -233,6 +233,8 @@
   "history.action.CONVERSATION.RENAMED": "Unterhaltung umbenannt",
   "history.action.CONVERSATION.SYSTEM_MESSAGE_POSTED": "Systemnachricht gesendet",
   "history.action.CONVERSATION.MEMBERS_SYNCED": "Mitglieder abgeglichen",
+  "history.action.CONVERSATION.MESSAGE_EDITED": "Nachricht bearbeitet",
+  "history.action.CONVERSATION.MESSAGE_DELETED": "Nachricht gelöscht",
   "history.action.UPLOAD.UPLOADED": "Datei hochgeladen",
   "history.action.UPLOAD.CLAIMED": "Datei verwendet",
   "history.action.UPLOAD.DELETED": "Datei gelöscht",

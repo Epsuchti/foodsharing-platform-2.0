@@ -233,6 +233,8 @@
   "history.action.CONVERSATION.RENAMED": "Conversation renamed",
   "history.action.CONVERSATION.SYSTEM_MESSAGE_POSTED": "System message posted",
   "history.action.CONVERSATION.MEMBERS_SYNCED": "Members synchronised",
+  "history.action.CONVERSATION.MESSAGE_EDITED": "Message edited",
+  "history.action.CONVERSATION.MESSAGE_DELETED": "Message deleted",
   "history.action.UPLOAD.UPLOADED": "File uploaded",
   "history.action.UPLOAD.CLAIMED": "File put to use",
   "history.action.UPLOAD.DELETED": "File deleted",

@@ -3,6 +3,7 @@ package network.foodsharing.messaging;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -15,16 +16,23 @@ import java.util.Set;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
+import network.foodsharing.common.config.MessagingSettings;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.realtime.RealtimeEvent;
+import network.foodsharing.common.realtime.RealtimeEventType;
 import network.foodsharing.common.realtime.RealtimePublisher;
 import network.foodsharing.config.MutableClock;
+import network.foodsharing.history.domain.HistoryEntry;
+import network.foodsharing.history.repository.HistoryEntryRepository;
 import network.foodsharing.messaging.domain.Conversation;
 import network.foodsharing.messaging.domain.ConversationKind;
 import network.foodsharing.messaging.domain.ConversationMessage;
 import network.foodsharing.messaging.repository.ConversationMemberRepository;
+import network.foodsharing.messaging.service.ChatModeration;
 import network.foodsharing.messaging.service.MessagingService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
+import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.testsupport.JpaSliceTest;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.repository.UserRepository;
@@ -59,6 +67,15 @@ class MessagingServiceTest {
     @MockitoBean
     private RealtimePublisher realtime;
 
+    @MockitoBean
+    private ChatModeration moderation;
+
+    @MockitoBean
+    private MessagingSettings settings;
+
+    @Autowired
+    private HistoryEntryRepository history;
+
     private UUID me;
     private UUID bob;
     private UUID carol;
@@ -70,6 +87,16 @@ class MessagingServiceTest {
         carol = users.saveAndFlush(TestUsers.user("msg-carol@test.local", Role.FOODSAVER)).getId();
         when(realtime.connectedUsers()).thenReturn(Set.of());
         when(notifications.mailOnly(any())).thenAnswer(i -> ((NotificationRequest) i.getArgument(0)).recipientIds());
+        when(settings.editWindowHours()).thenReturn(24);
+    }
+
+    private static SessionPrincipal principal(UUID userId) {
+        return new SessionPrincipal(userId, UUID.randomUUID(), Role.FOODSAVER, userId + "@test.local");
+    }
+
+    private List<HistoryEntry> historyOf(UUID conversationId, String action) {
+        return history.findAll().stream()
+                .filter(e -> conversationId.equals(e.getSubjectId()) && action.equals(e.getAction())).toList();
     }
 
     @Test
@@ -172,5 +199,107 @@ class MessagingServiceTest {
         clock.fixAt(clock.instant().plus(Duration.ofMinutes(31)));
         messaging.send(me, id, "vier", null);
         verify(notifications, times(2)).mailOnly(any());
+    }
+
+    // ------------------------------------------------------------------------------ edit / delete (item 16)
+
+    @Test
+    void editRefreshesThePreviewRecordsOldAndNewTextAndPublishesTheUpdate() {
+        UUID id = messaging.lookup(me, List.of(bob)).getId();
+        ConversationMessage first = messaging.send(me, id, "Hallo Bob", null);
+        ConversationMessage last = messaging.send(me, id, "Bis morgen", null);
+        reset(realtime);
+
+        ConversationMessage edited = messaging.editMessage(principal(me), id, last.getId(), " Bis übermorgen ");
+        assertThat(edited.getBody()).isEqualTo("Bis übermorgen");
+        assertThat(edited.getEditedAt()).isEqualTo(clock.instant());
+        assertThat(messaging.lookup(me, List.of(bob)).getLastMessagePreview()).isEqualTo("Bis übermorgen");
+        assertThat(historyOf(id, "MESSAGE_EDITED")).singleElement().satisfies(entry -> {
+            assertThat(entry.getSecondarySubjectId()).isEqualTo(last.getId());
+            assertThat(entry.getOldValue()).isEqualTo("Bis morgen");
+            assertThat(entry.getNewValue()).isEqualTo("Bis übermorgen");
+        });
+        ArgumentCaptor<RealtimeEvent> event = ArgumentCaptor.forClass(RealtimeEvent.class);
+        verify(realtime).toUsers(eq(Set.of(me, bob)), event.capture());
+        assertThat(event.getValue().type()).isEqualTo(RealtimeEventType.CONVERSATION_MESSAGE_UPDATED);
+        assertThat(event.getValue().payload()).containsEntry("body", "Bis übermorgen")
+                .containsEntry("conversationId", id.toString()).containsKey("editedAt");
+
+        // an older message: the preview stays; every edit is one history entry
+        messaging.editMessage(principal(me), id, first.getId(), "Hallo Bob, wie geht's?");
+        assertThat(messaging.lookup(me, List.of(bob)).getLastMessagePreview()).isEqualTo("Bis übermorgen");
+        assertThat(historyOf(id, "MESSAGE_EDITED")).hasSize(2);
+    }
+
+    @Test
+    void editRules() {
+        UUID id = messaging.lookup(me, List.of(bob)).getId();
+        ConversationMessage message = messaging.send(me, id, "Hallo", null);
+        assertThatThrownBy(() -> messaging.editMessage(principal(bob), id, message.getId(), "x"))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.MESSAGE_NOT_EDITABLE);
+        assertThatThrownBy(() -> messaging.editMessage(principal(me), id, message.getId(), "  "))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.MESSAGE_EMPTY);
+        assertThatThrownBy(() -> messaging.editMessage(principal(carol), id, message.getId(), "x"))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.NOT_CONVERSATION_MEMBER);
+        assertThatThrownBy(() -> messaging.editMessage(principal(me), id, UUID.randomUUID(), "x"))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.MESSAGE_NOT_FOUND);
+        clock.fixAt(message.getSentAt().plus(Duration.ofHours(24)).plusSeconds(1));
+        assertThatThrownBy(() -> messaging.editMessage(principal(me), id, message.getId(), "x"))
+                .isInstanceOf(ApiException.class).extracting("code")
+                .isEqualTo(ApiErrorCode.MESSAGE_EDIT_WINDOW_EXPIRED);
+        assertThatThrownBy(() -> messaging.deleteMessage(principal(me), id, message.getId(), null))
+                .isInstanceOf(ApiException.class).extracting("code")
+                .isEqualTo(ApiErrorCode.MESSAGE_EDIT_WINDOW_EXPIRED);
+        // the window comes from the configuration
+        when(settings.editWindowHours()).thenReturn(48);
+        assertThat(messaging.editMessage(principal(me), id, message.getId(), "Hallo zusammen").getBody())
+                .isEqualTo("Hallo zusammen");
+    }
+
+    @Test
+    void deleteKeepsTheRowClearsTheBodyAndADeletedMessageCannotBeEdited() {
+        UUID id = messaging.lookup(me, List.of(bob)).getId();
+        ConversationMessage message = messaging.send(me, id, "Falscher Chat", null);
+        reset(realtime);
+        ConversationMessage deleted = messaging.deleteMessage(principal(me), id, message.getId(), null);
+        assertThat(deleted.getSeq()).isEqualTo(1);
+        assertThat(deleted.getBody()).isEmpty();
+        assertThat(deleted.isDeleted()).isTrue();
+        assertThat(deleted.isDeletedByModerator()).isFalse();
+        assertThat(messaging.lookup(me, List.of(bob)).getLastMessagePreview()).isEmpty();
+        assertThat(historyOf(id, "MESSAGE_DELETED")).singleElement().satisfies(entry -> {
+            assertThat(entry.getOldValue()).isEqualTo("Falscher Chat");
+            assertThat(entry.getReason()).isNull();
+        });
+        verify(realtime).toUsers(eq(Set.of(me, bob)), any(RealtimeEvent.class));
+        assertThatThrownBy(() -> messaging.editMessage(principal(me), id, message.getId(), "x"))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.MESSAGE_DELETED);
+        assertThatThrownBy(() -> messaging.deleteMessage(principal(me), id, message.getId(), null))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.MESSAGE_DELETED);
+    }
+
+    @Test
+    void moderatorsDeleteOtherPeoplesMessagesOnlyWithAReason() {
+        Conversation team = messaging.createLocked(ConversationKind.STORE_TEAM);
+        messaging.syncMembers(team.getId(), Set.of(me, bob));
+        ConversationMessage message = messaging.send(bob, team.getId(), "Spam", null);
+        when(moderation.isModerator(any(SessionPrincipal.class), any(Conversation.class))).thenAnswer(
+                i -> ((SessionPrincipal) i.getArgument(0)).userId().equals(me));
+        assertThatThrownBy(() -> messaging.deleteMessage(principal(me), team.getId(), message.getId(), null))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.DELETE_REASON_REQUIRED);
+        assertThatThrownBy(() -> messaging.deleteMessage(principal(me), team.getId(), message.getId(), "zu kurz"))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.DELETE_REASON_REQUIRED);
+        assertThatThrownBy(() -> messaging.editMessage(principal(me), team.getId(), message.getId(), "x"))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.MESSAGE_NOT_EDITABLE);
+        assertThatThrownBy(() -> messaging.deleteMessage(principal(carol), team.getId(), message.getId(), null))
+                .isInstanceOf(ApiException.class).extracting("code").isEqualTo(ApiErrorCode.NOT_CONVERSATION_MEMBER);
+
+        ConversationMessage deleted = messaging.deleteMessage(principal(me), team.getId(), message.getId(),
+                "Werbung gehört nicht in den Team-Chat");
+        assertThat(deleted.isDeletedByModerator()).isTrue();
+        assertThat(historyOf(team.getId(), "MESSAGE_DELETED")).singleElement().satisfies(entry -> {
+            assertThat(entry.getOldValue()).isEqualTo("Spam");
+            assertThat(entry.getReason()).isEqualTo("Werbung gehört nicht in den Team-Chat");
+        });
     }
 }

@@ -361,6 +361,136 @@
             schema:
               $ref: ../schemas/common.yaml#/ApiError
 
+/api/conversations/{conversationId}/messages/{messageId}:
+  patch:
+    tags:
+      - messaging
+    operationId: editMessage
+    summary: Edit an own message within the edit window (messaging.edit-window-hours).
+    x-permission: sender of the message, conversation member
+    x-history: MessagingAction.MESSAGE_EDITED
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: messageId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/MessageUpdate
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/ChatMessage
+      "400":
+        description: MESSAGE_EMPTY, MESSAGE_TOO_LONG, VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER, MESSAGE_NOT_EDITABLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND, MESSAGE_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: MESSAGE_EDIT_WINDOW_EXPIRED, MESSAGE_DELETED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+  delete:
+    tags:
+      - messaging
+    operationId: deleteMessage
+    summary: >-
+      Delete a message: the sender within the edit window, or a moderator of the conversation (ORGA; store managers in
+      store chats; region admins in region chats) at any time with a reason. The row stays with an empty body.
+    x-permission: sender of the message or conversation moderator
+    x-history: MessagingAction.MESSAGE_DELETED
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: messageId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/messaging.yaml#/MessageDelete
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/messaging.yaml#/ChatMessage
+      "400":
+        description: DELETE_REASON_REQUIRED, VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "403":
+        description: NOT_CONVERSATION_MEMBER, MESSAGE_NOT_EDITABLE
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "404":
+        description: CONVERSATION_NOT_FOUND, MESSAGE_NOT_FOUND
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+      "409":
+        description: MESSAGE_EDIT_WINDOW_EXPIRED, MESSAGE_DELETED
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common.yaml#/ApiError
+
 /api/conversations/{conversationId}/read:
   put:
     tags:

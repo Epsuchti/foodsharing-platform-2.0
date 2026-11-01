@@ -41,4 +41,13 @@ public class HistoryAccessPolicy {
         HistoryAccessRule rule = rules.get(subjectType);
         return rule != null && rule.canRead(actor, subjectId);
     }
+
+    /** ORGA always; otherwise the subject type's {@link HistoryAccessRule#mayReadValues} (no rule = yes). */
+    public boolean mayReadValues(SessionPrincipal actor, SubjectType subjectType, UUID subjectId) {
+        if (permissionService.isOrga(actor)) {
+            return true;
+        }
+        HistoryAccessRule rule = rules.get(subjectType);
+        return rule == null || (actor != null && subjectId != null && rule.mayReadValues(actor, subjectId));
+    }
 }

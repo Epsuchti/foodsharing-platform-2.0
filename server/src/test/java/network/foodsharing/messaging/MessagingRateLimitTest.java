@@ -11,9 +11,11 @@ import java.util.Set;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
+import network.foodsharing.common.config.MessagingSettings;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimePublisher;
 import network.foodsharing.config.MutableClock;
+import network.foodsharing.messaging.service.ChatModeration;
 import network.foodsharing.messaging.service.MessagingService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
@@ -48,6 +50,12 @@ class MessagingRateLimitTest {
 
     @MockitoBean
     private RealtimePublisher realtime;
+
+    @MockitoBean
+    private ChatModeration moderation;
+
+    @MockitoBean
+    private MessagingSettings settings;
 
     @Test
     void theThirdMessageWithinAMinuteIsRejected() {

@@ -4,7 +4,9 @@ import jakarta.persistence.criteria.Predicate;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
@@ -53,7 +55,7 @@ public class HistoryQueryService {
      */
     public Page<HistoryEntry> list(HistoryFilter filter) {
         requireReadable(filter);
-        return repository.findAll(specification(filter), PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
+        return redact(repository.findAll(specification(filter), PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST)));
     }
 
     /** Entries the current user performed or that concern them. */
@@ -61,7 +63,7 @@ public class HistoryQueryService {
         UUID userId = currentActorService.requireUserId();
         HistoryFilter own = new HistoryFilter(null, null, null, userId, filter.actions(), filter.from(), filter.to(),
                 filter.page(), filter.size());
-        return repository.findAll(specification(own), PageRequest.of(own.page(), own.size(), NEWEST_FIRST));
+        return redact(repository.findAll(specification(own), PageRequest.of(own.page(), own.size(), NEWEST_FIRST)));
     }
 
     /** History of one subject, optionally limited to some action codes (e.g. the security log). */
@@ -79,8 +81,8 @@ public class HistoryQueryService {
         HistoryFilter filter = new HistoryFilter(subjectType, null, null, null, List.copyOf(actions), from, to, page,
                 size);
         Specification<HistoryEntry> byRegion = (root, query, cb) -> cb.equal(root.get("regionId"), regionId);
-        return repository.findAll(specification(filter).and(byRegion),
-                PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
+        return redact(repository.findAll(specification(filter).and(byRegion),
+                PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST)));
     }
 
     /**
@@ -94,7 +96,8 @@ public class HistoryQueryService {
     public Page<HistoryEntry> regionLog(HistoryFilter filter) {
         requireReadable(filter);
         if (filter.subjectType() != SubjectType.REGION) {
-            return repository.findAll(specification(filter), PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
+            return redact(repository.findAll(specification(filter),
+                    PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST)));
         }
         UUID regionId = filter.subjectId();
         HistoryFilter rest = new HistoryFilter(null, null, filter.actorId(), filter.involvingUserId(), filter.actions(),
@@ -102,15 +105,55 @@ public class HistoryQueryService {
         Specification<HistoryEntry> ownOrGroups = (root, query, cb) -> cb.or(
                 cb.and(cb.equal(root.get("subjectType"), SubjectType.REGION), cb.equal(root.get("subjectId"), regionId)),
                 cb.and(cb.equal(root.get("subjectType"), SubjectType.GROUP), cb.equal(root.get("regionId"), regionId)));
-        return repository.findAll(specification(rest).and(ownOrGroups),
-                PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST));
+        return redact(repository.findAll(specification(rest).and(ownOrGroups),
+                PageRequest.of(filter.page(), filter.size(), NEWEST_FIRST)));
     }
 
     /** CSV export rows (ORGA only, at most {@code app.history.export-max-rows}). */
     public List<HistoryEntry> export(HistoryFilter filter) {
         currentActorService.requireRole(network.foodsharing.api.model.Role.ORGA);
         int max = properties.getHistory().getExportMaxRows();
-        return repository.findAll(specification(filter), PageRequest.of(0, max, NEWEST_FIRST)).getContent();
+        return redact(repository.findAll(specification(filter), PageRequest.of(0, max, NEWEST_FIRST))).getContent();
+    }
+
+    /**
+     * Clears oldValue/newValue/reason of entries whose subject's access rule hides the values from the current actor
+     * ({@link HistoryAccessPolicy#mayReadValues}, e.g. the original text of chat messages). Redacted rows are detached
+     * copies, the stored entries never change.
+     */
+    private Page<HistoryEntry> redact(Page<HistoryEntry> page) {
+        SessionPrincipal actor = currentActorService.principal().orElse(null);
+        Map<String, Boolean> readable = new HashMap<>();
+        return page.map(entry -> {
+            if (entry.getOldValue() == null && entry.getNewValue() == null && entry.getReason() == null) {
+                return entry;
+            }
+            boolean values = readable.computeIfAbsent(entry.getSubjectType() + ":" + entry.getSubjectId(),
+                    key -> accessPolicy.mayReadValues(actor, entry.getSubjectType(), entry.getSubjectId()));
+            return values ? entry : withoutValues(entry);
+        });
+    }
+
+    private static HistoryEntry withoutValues(HistoryEntry entry) {
+        HistoryEntry copy = new HistoryEntry();
+        copy.setId(entry.getId());
+        copy.setVersion(entry.getVersion());
+        copy.setCreatedAt(entry.getCreatedAt());
+        copy.setUpdatedAt(entry.getUpdatedAt());
+        copy.setCreatedBy(entry.getCreatedBy());
+        copy.setUpdatedBy(entry.getUpdatedBy());
+        copy.setOccurredAt(entry.getOccurredAt());
+        copy.setActorId(entry.getActorId());
+        copy.setActorType(entry.getActorType());
+        copy.setSubjectType(entry.getSubjectType());
+        copy.setSubjectId(entry.getSubjectId());
+        copy.setSecondarySubjectId(entry.getSecondarySubjectId());
+        copy.setAction(entry.getAction());
+        copy.setField(entry.getField());
+        copy.setMetadata(entry.getMetadata());
+        copy.setRegionId(entry.getRegionId());
+        copy.setTraceId(entry.getTraceId());
+        return copy;
     }
 
     private void requireReadable(HistoryFilter filter) {
