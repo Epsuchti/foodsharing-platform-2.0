@@ -66,7 +66,10 @@ test.describe('logged in', () => {
       await page.goto(target.path);
       await expectErrorState(page, target.testId, { status: 'offline' });
       await offline.remove();
-      await expectRecovery(page, target, true);
+      // the page keeps retrying while offline, so it may recover by itself and take the retry button away before the
+      // click; either way it has to end up with data
+      await page.getByTestId(target.testId).locator('[data-testid$=".retry"]').first().click({ timeout: 2000 }).catch(() => undefined);
+      await expect(page.getByTestId(target.testId)).toHaveAttribute('data-state', /success|empty/);
     });
   }
 

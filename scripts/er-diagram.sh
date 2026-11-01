@@ -7,8 +7,8 @@
 #
 # Output: docs/er/index.html (+ diagrams). Committed (see .gitignore): docs/er/deletionOrder.txt and
 # docs/er/diagrams/summary/ — regenerate with the plain command whenever a changelog changes. --check compares
-# deletionOrder.txt and the .dot sources (line-sorted, so a different layout order is no difference); the .svg
-# renderings are not compared.
+# deletionOrder.txt and the .dot sources (line-sorted, so a different layout order is no difference; row counts
+# ignored); the .svg renderings are not compared.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -87,9 +87,8 @@ echo "[er-diagram] running Liquibase via $(basename "${JAR}") (profile prod) —
 ) >"${LOG}" 2>&1 &
 APP_PID=$!
 ready=false
-# Liquibase on an empty Postgres can take over 2 minutes on a slow CI runner: wait up to 5
-for _ in $(seq 1 600); do
-  if curl -fsS --max-time 5 "http://localhost:${MANAGEMENT_PORT}/actuator/health/readiness" 2>/dev/null | grep -q '"UP"'; then ready=true; break; fi
+for _ in $(seq 1 240); do
+  if curl -fsS "http://localhost:${MANAGEMENT_PORT}/actuator/health/readiness" 2>/dev/null | grep -q '"UP"'; then ready=true; break; fi
   kill -0 "${APP_PID}" 2>/dev/null || break
   sleep 0.5
 done
@@ -113,14 +112,19 @@ if [[ "${CHECK}" != true ]]; then
 fi
 
 stale=false
+# Row counts are not schema: a table the app fills in the background at start-up may or may not have rows when the
+# app is stopped, so the same schema rendered "145 rows" on some CI runs and nothing on others.
+normalized() {
+  sed -E 's/>[0-9,]+ rows?</>  </' "$1" | sort
+}
 compare() {
   local committed="$1" fresh="$2"
   if [[ ! -f "${committed}" ]]; then
     echo "[er-diagram] missing: ${committed#"${REPO_DIR}/"}" >&2
     stale=true
-  elif ! diff -q <(sort "${committed}") <(sort "${fresh}") >/dev/null; then
+  elif ! diff -q <(normalized "${committed}") <(normalized "${fresh}") >/dev/null; then
     echo "[er-diagram] stale: ${committed#"${REPO_DIR}/"}" >&2
-    diff <(sort "${committed}") <(sort "${fresh}") | head -n 20 >&2 || true
+    diff <(normalized "${committed}") <(normalized "${fresh}") | head -n 20 >&2 || true
     stale=true
   fi
 }

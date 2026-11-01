@@ -48,7 +48,14 @@ export async function expectNoSeriousViolations(page: Page, options: A11yOptions
   for (const selector of options.include ?? []) builder = builder.include(selector);
   for (const selector of options.exclude ?? []) builder = builder.exclude(selector);
   if (options.disableRules?.length) builder = builder.disableRules(options.disableRules);
+  // animationsDone misses a fade that starts after it looked: on a slow WebKit runner the primary button of /baskets
+  // measured 1.9–3.5 on four attempts, white on green caught part-way. Off during the scan, the colours at rest count.
+  const noAnimations = await page.addStyleTag({
+    content: '*, *::before, *::after { animation: none !important; transition: none !important; }',
+  });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const results = await builder.analyze();
+  await noAnimations.evaluate((style) => (style as Element).remove()).catch(() => undefined);
   await test.info().attach(`axe ${page.url()}`, {
     body: JSON.stringify(results.violations, null, 2),
     contentType: 'application/json',
