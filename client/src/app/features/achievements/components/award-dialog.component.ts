@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, effect, input, model, output, signa
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
-import { InputText } from '@openng/optimus-ui/inputtext';
 import { Textarea } from '@openng/optimus-ui/textarea';
 
 import { Achievement, AwardCreate, UserSummary } from '../../../api';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { NOTICE_MAX } from '../achievements.util';
@@ -18,7 +18,7 @@ import { NOTICE_MAX } from '../achievements.util';
  */
 @Component({
   selector: 'fs-award-dialog',
-  imports: [Button, Dialog, InputText, ReactiveFormsModule, TPipe, Textarea, UserChipComponent, UserPickerComponent],
+  imports: [...DATE_INPUT_IMPORTS, Button, Dialog, ReactiveFormsModule, TPipe, Textarea, UserChipComponent, UserPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog
@@ -56,7 +56,7 @@ import { NOTICE_MAX } from '../achievements.util';
         }
         <div class="field">
           <label for="award-valid-until">{{ 'achievements.award.validUntil' | t }}</label>
-          <input pInputText id="award-valid-until" type="date" formControlName="validUntil" data-testid="achievements.award.validUntil" />
+          <fs-date-input inputId="award-valid-until" formControlName="validUntil" testId="achievements.award.validUntil" />
           <small class="hint">
             {{ (achievement()?.validityDays ? 'achievements.award.defaultEnd' : 'achievements.award.noEnd') | t: { days: achievement()?.validityDays ?? 0 } }}
           </small>

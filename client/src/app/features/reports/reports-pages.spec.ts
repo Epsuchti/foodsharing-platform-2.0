@@ -25,6 +25,7 @@ import {
 } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { typeIntoDateInput } from '../../shared/date-input/date-input.testing';
 import { ProfilePageComponent } from '../profiles/pages/profile-page.component';
 import { RegionPageContext } from '../regions/region-page.context';
 import { ReportPageComponent } from './pages/report-page.component';
@@ -353,7 +354,7 @@ describe('reports pages', () => {
       expect(q('[data-testid="reports.detail.thread"]')?.getAttribute('aria-invalid')).toBe('true');
       expect((q('[data-testid="reports.detail.save"] button') as HTMLButtonElement).disabled).toBe(true);
       type('reports.detail.thread', THREAD);
-      type('reports.detail.reminder', '2026-11-05T10:30');
+      typeIntoDateInput(q('[data-testid="reports.detail.reminder"]'), '05.11.2026 10:30');
       await settle();
       click('reports.detail.save');
       const patch = http.expectOne((req) => req.method === 'PATCH' && req.url === `/api/reports/${R1}`);

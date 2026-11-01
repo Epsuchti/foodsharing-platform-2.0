@@ -60,7 +60,7 @@ export function zonedLocalToIso(local: string, timeZone: string): string {
   return new Date(second).toISOString();
 }
 
-/** ISO instant → `2026-11-04T18:30` wall time in the region's zone (for `<input type="datetime-local">`). */
+/** ISO instant → `2026-11-04T18:30` wall time in the region's zone (the value of `fs-datetime-input`). */
 export function isoToZonedLocal(iso: string | null | undefined, timeZone: string): string {
   if (!iso) {
     return '';

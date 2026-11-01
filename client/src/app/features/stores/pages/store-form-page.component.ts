@@ -34,6 +34,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { AddressFormComponent, addressFormGroup } from '../../../shared/address-form/address-form.component';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { COOPERATION_STATUSES, TEAM_STATUSES } from '../stores.util';
@@ -53,6 +54,7 @@ const optional = () => new FormControl<string | null>(null);
 @Component({
   selector: 'fs-store-form-page',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     AddressFormComponent,
     Button,
@@ -135,7 +137,7 @@ const optional = () => new FormControl<string | null>(null);
               </div>
               <div class="field">
                 <label for="sf-start">{{ 'stores.form.cooperationStart' | t }}</label>
-                <input pInputText id="sf-start" type="date" formControlName="cooperationStart" data-testid="stores.form.cooperationStart" />
+                <fs-date-input inputId="sf-start" formControlName="cooperationStart" testId="stores.form.cooperationStart" />
               </div>
               <div class="field">
                 <label for="sf-convince">{{ 'stores.form.convinceStatus' | t }}</label>

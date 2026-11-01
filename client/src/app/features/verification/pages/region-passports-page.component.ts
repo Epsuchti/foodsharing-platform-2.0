@@ -21,6 +21,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { ProgressJobComponent } from '../../../shared/progress-job/progress-job.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
@@ -34,6 +35,7 @@ import { downloadUrl } from '../verification.resource';
 @Component({
   selector: 'fs-region-passports-page',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     Button,
     Checkbox,
@@ -134,7 +136,7 @@ import { downloadUrl } from '../verification.resource';
         @if (renew()) {
           <div class="field">
             <label for="pp-from">{{ 'verification.passports.validFrom' | t }}</label>
-            <input pInputText id="pp-from" type="date" [ngModel]="validFrom()" (ngModelChange)="validFrom.set($event)" data-testid="verification.passports.validFrom" />
+            <fs-date-input inputId="pp-from" [ngModel]="validFrom()" (ngModelChange)="validFrom.set($event)" testId="verification.passports.validFrom" />
           </div>
         }
         <div class="field">

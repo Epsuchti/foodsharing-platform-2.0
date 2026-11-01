@@ -45,7 +45,7 @@ export function eventErrors(draft: EventDraft): string[] {
   return errors;
 }
 
-/** `<input type="datetime-local">` value (local time, minutes) ↔ ISO instant. */
+/** `fs-datetime-input` value (local time, minutes) ↔ ISO instant. */
 export function toLocalInput(iso: string | undefined): string {
   if (!iso) return '';
   const date = new Date(iso);

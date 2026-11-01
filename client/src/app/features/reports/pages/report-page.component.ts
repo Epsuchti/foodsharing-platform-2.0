@@ -16,6 +16,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { WallComponent, WallPost } from '../../../shared/wall/wall.component';
@@ -39,6 +40,7 @@ import {
 @Component({
   selector: 'fs-report-page',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     Button,
     DateTimePipe,
@@ -164,16 +166,14 @@ import {
                   ></textarea>
 
                   <label for="report-reminder">{{ 'reports.detail.reminder' | t }}</label>
-                  <input
-                    pInputText
-                    type="datetime-local"
-                    id="report-reminder"
+                  <fs-datetime-input
+                    inputId="report-reminder"
                     name="reminderAt"
                     [ngModel]="draft().reminderAt"
                     (ngModelChange)="patchDraft({ reminderAt: $event })"
-                    [attr.aria-invalid]="!!errors().reminderAt"
-                    aria-describedby="report-reminder-hint"
-                    data-testid="reports.detail.reminder"
+                    [ariaInvalid]="!!errors().reminderAt"
+                    ariaDescribedBy="report-reminder-hint"
+                    testId="reports.detail.reminder"
                   />
                   <small class="hint" id="report-reminder-hint">{{ 'reports.detail.reminderHint' | t }}</small>
 

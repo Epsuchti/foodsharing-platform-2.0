@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { Checkbox } from '@openng/optimus-ui/checkbox';
-import { InputText } from '@openng/optimus-ui/inputtext';
 import { Observable } from 'rxjs';
 
 import { AuditKind, AutomationAudit, AutomationAuditPage } from '../../../api';
@@ -12,6 +11,7 @@ import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { decisionTone } from '../automation.util';
 
@@ -35,7 +35,7 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
  */
 @Component({
   selector: 'fs-automation-audit-table',
-  imports: [...DATA_STATE_IMPORTS, Button, Checkbox, DateTimePipe, FormsModule, InputText, RouterLink, TPipe, UserChipComponent],
+  imports: [...DATE_INPUT_IMPORTS, ...DATA_STATE_IMPORTS, Button, Checkbox, DateTimePipe, FormsModule, RouterLink, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="filters">
@@ -62,11 +62,11 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
       <div class="row">
         <label class="field">
           <span class="muted">{{ 'automation.common.from' | t }}</span>
-          <input pInputText type="date" [ngModel]="from()" (ngModelChange)="from.set($event || undefined)" [attr.data-testid]="testId() + '.from'" />
+          <fs-date-input [ngModel]="from()" (ngModelChange)="from.set($event || undefined)" [testId]="testId() + '.from'" />
         </label>
         <label class="field">
           <span class="muted">{{ 'automation.common.to' | t }}</span>
-          <input pInputText type="date" [ngModel]="to()" (ngModelChange)="to.set($event || undefined)" [attr.data-testid]="testId() + '.to'" />
+          <fs-date-input [ngModel]="to()" (ngModelChange)="to.set($event || undefined)" [testId]="testId() + '.to'" />
         </label>
       </div>
     </div>
