@@ -200,6 +200,7 @@
   "history.action.SYSTEM.NOTIFICATION_MAIL_SUPPRESSED": "E-mail duplicata soppressa",
   "history.action.AUTOMATION.PICKUP_POLICY_CREATED": "Automazione dei ritiri configurata",
   "history.action.AUTOMATION.PICKUP_POLICY_UPDATED": "Automazione dei ritiri modificata",
+  "history.action.AUTOMATION.GAP_LIST_CHANGED": "Elenco della distanza modificato",
   "history.action.AUTOMATION.PICKUP_POLICY_DELETED": "Automazione dei ritiri eliminata",
   "history.action.AUTOMATION.EXCLUDED_DATE_ADDED": "Data esclusa aggiunta",
   "history.action.AUTOMATION.EXCLUDED_DATE_REMOVED": "Data esclusa rimossa",

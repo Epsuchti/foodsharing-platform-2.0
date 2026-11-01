@@ -121,9 +121,71 @@ PickupPolicy:
       items:
         type: string
         format: date
+    gapStoreIds:
+      description: >-
+        The other stores of the shared gap list (decision 151): gap and gapRuleEnabled are written to all of them.
+        Empty or missing = this store alone (leaves a list, D6).
+      type: array
+      maxItems: 9
+      items:
+        type: string
+        format: uuid
+    gapStores:
+      description: 'Read only: the other live stores of the gap list, by name'
+      type: array
+      items:
+        $ref: './automation.yaml#/GapStore'
     version:
       type: integer
       format: int64
+
+GapStore:
+  type: object
+  required: [store, automationActive, mayEdit]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    automationActive:
+      description: 'The store has an enabled pickup policy (it checks sign-ups itself)'
+      type: boolean
+    mayEdit:
+      description: 'The actor may use automations there (may change or remove it)'
+      type: boolean
+
+GapCandidateLink:
+  type: object
+  required: [storeIds, windowMode, windowDaysBefore, windowDaysAfter]
+  properties:
+    storeIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    windowDaysBefore:
+      type: integer
+      format: int32
+    windowDaysAfter:
+      type: integer
+      format: int32
+
+GapCandidate:
+  type: object
+  required: [store, automationActive, inOtherList, links]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    automationActive:
+      type: boolean
+    inOtherList:
+      description: 'The store is in another gap list (cannot be chosen)'
+      type: boolean
+    links:
+      description: 'Linked-store rules of the store, own and mirrored (for the gap/link conflict check)'
+      type: array
+      items:
+        $ref: './automation.yaml#/GapCandidateLink'
 
 RequestPolicy:
   type: object

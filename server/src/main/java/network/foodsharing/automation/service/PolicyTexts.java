@@ -11,6 +11,7 @@ import org.springframework.context.MessageSource;
 public final class PolicyTexts {
 
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private final MessageSource messages;
     private final Locale locale;
@@ -39,6 +40,20 @@ public final class PolicyTexts {
 
     public String dateTime(Instant instant, ZoneId zone) {
         return instant.atZone(zone).format(DATE_TIME);
+    }
+
+    /** "dd.MM.yyyy" in the zone. */
+    public String date(Instant instant, ZoneId zone) {
+        return instant.atZone(zone).format(DATE);
+    }
+
+    /** "X", "X und Y", or "X, Y und Z". */
+    public String all(List<String> names) {
+        if (names.size() <= 1) {
+            return String.join("", names);
+        }
+        return String.join(", ", names.subList(0, names.size() - 1)) + " " + text("and") + " "
+                + names.get(names.size() - 1);
     }
 
     /** "EEEE, dd.MM.yyyy HH:mm" in this language ({{pickupDate}}). */

@@ -38,10 +38,26 @@ public class PickupPolicyEvaluator {
     static final Set<PolicyRule> ALLOWED = EnumSet.of(PolicyRule.ALL_RULES_PASSED, PolicyRule.CLEANING_REMINDER,
             PolicyRule.CLEANING_NEW_USER);
 
-    /** A policy as the rules see it. */
+    /**
+     * A policy as the rules see it. {@code gapStoreIds}: the other live stores of its shared gap list (decision 151),
+     * empty for a store alone.
+     */
     public record Spec(UUID id, UUID storeId, boolean enabled, boolean dryRun, boolean gapRuleEnabled,
                        int minimumGapDays, boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
-                       boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links) {
+                       boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links,
+                       List<UUID> gapStoreIds) {
+
+        public Spec {
+            gapStoreIds = gapStoreIds == null ? List.of() : List.copyOf(gapStoreIds);
+        }
+
+        /** A policy without a gap list. */
+        public Spec(UUID id, UUID storeId, boolean enabled, boolean dryRun, boolean gapRuleEnabled,
+                    int minimumGapDays, boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
+                    boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links) {
+            this(id, storeId, enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled,
+                    experienceRuleEnabled, publicHolidayRuleEnabled, excludedDates, links, List.of());
+        }
     }
 
     /** A linked-store rule of the policy (own or mirrored; a mirror has before/after swapped). */
@@ -180,7 +196,7 @@ public class PickupPolicyEvaluator {
         }
         List<Reason> reasons = new ArrayList<>();
         String storeName = data.storeName(storeId);
-        if (policy.gapRuleEnabled()) {
+        if (policy.gapRuleEnabled() && policy.gapStoreIds().isEmpty()) {
             data.signupsOfUser(userId, List.of(storeId), now.minus(Duration.ofDays(3)), now.plus(HORIZON)).stream()
                     .map(Signup::pickupAt)
                     .filter(date -> !date.equals(pickupAt))
@@ -191,6 +207,8 @@ public class PickupPolicyEvaluator {
                     .findFirst()
                     .ifPresent(gap -> reasons.add(new Reason(PolicyRule.GAP,
                             t.text("gap", t.days(gap), t.days(policy.minimumGapDays())))));
+        } else if (policy.gapRuleEnabled()) {
+            groupGap(policy, storeName, pickupAt, userId, now, zone, t, data).ifPresent(reasons::add);
         }
         if (policy.experienceRuleEnabled() && !hasExperience(storeId, userId, now, data)
                 && !hasExperiencedCoPickup(storeId, pickupAt, userId, now, data)) {
@@ -203,8 +221,7 @@ public class PickupPolicyEvaluator {
         }
         Reason pending = null;
         if (!policy.links().isEmpty()) {
-            Instant signedUpAt = data.signupsOfUser(userId, List.of(storeId), pickupAt, pickupAt.plusMillis(1))
-                    .stream().map(Signup::signedUpAt).filter(java.util.Objects::nonNull).findFirst().orElse(now);
+            Instant signedUpAt = ownSignedUpAt(storeId, pickupAt, userId, now, data);
             for (LinkRule rule : policy.links()) {
                 String names = t.alternatives(rule.storeIds().stream().map(data::storeName).toList());
                 List<LinkedPickup> linked = matchedLinkedPickup(storeId, rule, pickupAt, userId, now, zone, data);
@@ -239,6 +256,55 @@ public class PickupPolicyEvaluator {
         String userMessage = cleaningOverride != null && reasons.contains(cleaningOverride)
                 ? cleaningOverride.text() + "\n\n" + t.text("decline-footer") : null;
         return new Decision(onlyAllowed, false, false, List.copyOf(reasons), userMessage);
+    }
+
+    /** When the person signed up for {@code pickupAt} here; {@code now} when there is no such sign-up (preview). */
+    private static Instant ownSignedUpAt(UUID storeId, Instant pickupAt, UUID userId, Instant now, Data data) {
+        return data.signupsOfUser(userId, List.of(storeId), pickupAt, pickupAt.plusMillis(1))
+                .stream().map(Signup::signedUpAt).filter(java.util.Objects::nonNull).findFirst().orElse(now);
+    }
+
+    private record GapHit(Instant date, UUID storeId, long gap) {
+    }
+
+    /**
+     * Gap rule with a shared store list (decision 151). This store as without a list (D3: every other own pickup,
+     * pending or confirmed, except one at the same time); a pickup in another listed store (D4) counts when it is
+     * confirmed, when a sign-up time is missing, or when it was signed up no later than this one (equal times block
+     * both); a same-time pickup there counts too. Pickups in their own skip window are ignored (D2). The first blocking
+     * pickup by date gives the text.
+     */
+    private Optional<Reason> groupGap(Spec policy, String storeName, Instant pickupAt, UUID userId, Instant now,
+                                      ZoneId zone, PolicyTexts t, Data data) {
+        UUID storeId = policy.storeId();
+        int minimum = policy.minimumGapDays();
+        Instant from = now.minus(Duration.ofDays(3));
+        Instant to = now.plus(HORIZON);
+        List<GapHit> hits = new ArrayList<>();
+        for (Signup own : data.signupsOfUser(userId, List.of(storeId), from, to)) {
+            if (!own.pickupAt().equals(pickupAt) && !rulesAreSkipped(own.pickupAt(), now, zone)) {
+                hits.add(new GapHit(own.pickupAt(), storeId, calendarGapDays(own.pickupAt(), pickupAt, zone)));
+            }
+        }
+        Instant signedUpAt = ownSignedUpAt(storeId, pickupAt, userId, now, data);
+        for (Signup other : data.signupsOfUser(userId, policy.gapStoreIds(), from, to)) {
+            if (other.storeId().equals(storeId) || rulesAreSkipped(other.pickupAt(), now, zone)) {
+                continue;
+            }
+            if (other.confirmed() || other.signedUpAt() == null || !other.signedUpAt().isAfter(signedUpAt)) {
+                hits.add(new GapHit(other.pickupAt(), other.storeId(), calendarGapDays(other.pickupAt(), pickupAt,
+                        zone)));
+            }
+        }
+        return hits.stream().filter(hit -> hit.gap() < minimum)
+                .min(Comparator.comparing(GapHit::date).thenComparing(hit -> hit.storeId().equals(storeId) ? 0 : 1))
+                .map(hit -> {
+                    List<String> names = new ArrayList<>();
+                    names.add(storeName);
+                    policy.gapStoreIds().forEach(id -> names.add(data.storeName(id)));
+                    return new Reason(PolicyRule.GAP, t.text("gap.group", t.date(hit.date(), zone),
+                            data.storeName(hit.storeId()), t.all(names), t.days(minimum), t.days(hit.gap())));
+                });
     }
 
     /** Adds the cleaning reason (if any); returns the reason that allows with a message (reminder / new user). */

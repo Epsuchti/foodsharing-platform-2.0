@@ -18,6 +18,7 @@ import network.foodsharing.api.model.MetricSeries;
 import network.foodsharing.api.model.OpenSlotAdvert;
 import network.foodsharing.api.model.Pickup;
 import network.foodsharing.api.model.PickupCountGroup;
+import network.foodsharing.api.model.GapCandidate;
 import network.foodsharing.api.model.PickupPolicy;
 import network.foodsharing.api.model.PlannedAdvert;
 import network.foodsharing.api.model.PolicyDecisionPreview;
@@ -166,6 +167,11 @@ public class AutomationController implements AutomationApi {
         permissions.setMaySeeAudits(true);
         model.setPermissions(permissions);
         return ResponseEntity.ok(model);
+    }
+
+    @Override
+    public ResponseEntity<List<GapCandidate>> listGapCandidates(UUID storeId) {
+        return ResponseEntity.ok(pickupPolicies.gapCandidates(storeId).stream().map(mapper::toModel).toList());
     }
 
     @Override

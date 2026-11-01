@@ -200,6 +200,7 @@
   "history.action.SYSTEM.NOTIFICATION_MAIL_SUPPRESSED": "Duplicate e-mail suppressed",
   "history.action.AUTOMATION.PICKUP_POLICY_CREATED": "Pickup automation set up",
   "history.action.AUTOMATION.PICKUP_POLICY_UPDATED": "Pickup automation changed",
+  "history.action.AUTOMATION.GAP_LIST_CHANGED": "Gap store list changed",
   "history.action.AUTOMATION.PICKUP_POLICY_DELETED": "Pickup automation deleted",
   "history.action.AUTOMATION.EXCLUDED_DATE_ADDED": "Excluded date added",
   "history.action.AUTOMATION.EXCLUDED_DATE_REMOVED": "Excluded date removed",

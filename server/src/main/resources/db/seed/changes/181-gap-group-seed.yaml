@@ -1,0 +1,41 @@
+# Seed (AU1 gap list, decision 151): S-01 (policy 0022-0001-…-01, dry run) and S-03 (policy …-04, disabled: the
+# "no automation" member) share gap list 0022-0016-…-01 with a gap of 2 days. S-01's seeded unconfirmed sign-up
+# (foodsaver, Thursday) is not affected: foodsaver has no future pickups in S-03. Ids: docs/seed-ids.md (0022).
+databaseChangeLog:
+  - changeSet:
+      id: seed-181-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'Gap list S-01 + S-03.'
+      changes:
+        - loadUpdateData:
+            tableName: pickup_gap_group
+            file: ../automation/pickup_gap_group.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: minimum_gap_days, type: NUMERIC}
+  - changeSet:
+      id: seed-181-2
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'S-01 and S-03 join the gap list (shared gap 2, rule on).'
+      changes:
+        - update:
+            tableName: pickup_policy
+            columns:
+              - column: {name: gap_group_id, value: '00000022-0016-4000-8000-000000000001'}
+              - column: {name: gap_rule_enabled, valueBoolean: true}
+              - column: {name: minimum_gap_days, valueNumeric: 2}
+            where: "id IN ('00000022-0001-4000-8000-000000000001', '00000022-0001-4000-8000-000000000004')"

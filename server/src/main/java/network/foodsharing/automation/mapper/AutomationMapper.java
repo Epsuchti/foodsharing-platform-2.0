@@ -11,6 +11,9 @@ import network.foodsharing.api.model.AuditKind;
 import network.foodsharing.api.model.AutomationAudit;
 import network.foodsharing.api.model.AutomationRunResult;
 import network.foodsharing.api.model.CleaningExemption;
+import network.foodsharing.api.model.GapCandidate;
+import network.foodsharing.api.model.GapCandidateLink;
+import network.foodsharing.api.model.GapStore;
 import network.foodsharing.api.model.Holiday;
 import network.foodsharing.api.model.HolidayScope;
 import network.foodsharing.api.model.LinkedStoreRule;
@@ -66,7 +69,31 @@ public class AutomationMapper {
         model.setPublicHolidayRuleEnabled(p.isPublicHolidayRuleEnabled());
         model.setLinkedStores(view.links().stream().map(this::toModel).toList());
         model.setExcludedDates(view.excludedDates());
+        model.setGapStoreIds(view.gapStores().stream().map(g -> g.store().getId()).toList());
+        model.setGapStores(view.gapStores().stream().map(g -> {
+            GapStore gap = new GapStore();
+            gap.setStore(toStoreRef(g.store()));
+            gap.setAutomationActive(g.automationActive());
+            gap.setMayEdit(g.mayEdit());
+            return gap;
+        }).toList());
         model.setVersion(p.getVersion());
+        return model;
+    }
+
+    public GapCandidate toModel(PickupPolicyService.GapCandidateView view) {
+        GapCandidate model = new GapCandidate();
+        model.setStore(toStoreRef(view.store()));
+        model.setAutomationActive(view.automationActive());
+        model.setInOtherList(view.inOtherList());
+        model.setLinks(view.links().stream().map(link -> {
+            GapCandidateLink rule = new GapCandidateLink();
+            rule.setStoreIds(link.storeIds());
+            rule.setWindowMode(LinkedStoreWindowMode.valueOf(link.windowMode().name()));
+            rule.setWindowDaysBefore(link.windowDaysBefore());
+            rule.setWindowDaysAfter(link.windowDaysAfter());
+            return rule;
+        }).toList());
         return model;
     }
 
@@ -102,7 +129,8 @@ public class AutomationMapper {
                 value(model.getMinimumGapDays()), Boolean.TRUE.equals(model.getCleaningRuleEnabled()),
                 Boolean.TRUE.equals(model.getExperienceRuleEnabled()),
                 Boolean.TRUE.equals(model.getPublicHolidayRuleEnabled()), links,
-                model.getExcludedDates() == null ? List.of() : model.getExcludedDates(), model.getVersion());
+                model.getExcludedDates() == null ? List.of() : model.getExcludedDates(), model.getVersion(),
+                model.getGapStoreIds());
     }
 
     private static int value(Integer value) {

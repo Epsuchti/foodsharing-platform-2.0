@@ -97,7 +97,20 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
                 .toList();
         return new Spec(policy.getId(), policy.getStoreId(), policy.isEnabled(), policy.isDryRun(),
                 policy.isGapRuleEnabled(), policy.getMinimumGapDays(), policy.isCleaningRuleEnabled(),
-                policy.isExperienceRuleEnabled(), policy.isPublicHolidayRuleEnabled(), Set.copyOf(dates), linkRules);
+                policy.isExperienceRuleEnabled(), policy.isPublicHolidayRuleEnabled(), Set.copyOf(dates), linkRules,
+                gapStoreIds(policy));
+    }
+
+    /** The other live stores of the policy's gap list, by name (decision 151); empty without a list. */
+    List<UUID> gapStoreIds(PickupPolicy policy) {
+        if (policy.getGapGroupId() == null) {
+            return List.of();
+        }
+        List<UUID> others = policies.findByGapGroupId(policy.getGapGroupId()).stream().map(PickupPolicy::getStoreId)
+                .filter(id -> !id.equals(policy.getStoreId())).toList();
+        return stores.liveStores(others).stream()
+                .sorted(java.util.Comparator.comparing(Store::getName).thenComparing(Store::getId))
+                .map(Store::getId).toList();
     }
 
     @Override

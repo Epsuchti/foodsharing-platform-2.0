@@ -200,6 +200,7 @@
   "history.action.SYSTEM.NOTIFICATION_MAIL_SUPPRESSED": "Doppelte E-Mail unterdrückt",
   "history.action.AUTOMATION.PICKUP_POLICY_CREATED": "Abhol-Automatik eingerichtet",
   "history.action.AUTOMATION.PICKUP_POLICY_UPDATED": "Abhol-Automatik geändert",
+  "history.action.AUTOMATION.GAP_LIST_CHANGED": "Abstandsliste geändert",
   "history.action.AUTOMATION.PICKUP_POLICY_DELETED": "Abhol-Automatik gelöscht",
   "history.action.AUTOMATION.EXCLUDED_DATE_ADDED": "Ausnahmedatum hinzugefügt",
   "history.action.AUTOMATION.EXCLUDED_DATE_REMOVED": "Ausnahmedatum entfernt",

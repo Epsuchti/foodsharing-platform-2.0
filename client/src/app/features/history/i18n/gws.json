@@ -200,6 +200,7 @@
   "history.action.SYSTEM.NOTIFICATION_MAIL_SUPPRESSED": "Doppleti E-Mail unterdrückt",
   "history.action.AUTOMATION.PICKUP_POLICY_CREATED": "Abhol-Automatik igrichtet",
   "history.action.AUTOMATION.PICKUP_POLICY_UPDATED": "Abhol-Automatik gänderet",
+  "history.action.AUTOMATION.GAP_LIST_CHANGED": "Abstandslischte gänderet",
   "history.action.AUTOMATION.PICKUP_POLICY_DELETED": "Abhol-Automatik glöscht",
   "history.action.AUTOMATION.EXCLUDED_DATE_ADDED": "Usnahmedatum dezuegfüegt",
   "history.action.AUTOMATION.EXCLUDED_DATE_REMOVED": "Usnahmedatum entfernt",

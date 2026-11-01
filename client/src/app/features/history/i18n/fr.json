@@ -200,6 +200,7 @@
   "history.action.SYSTEM.NOTIFICATION_MAIL_SUPPRESSED": "E-mail en double supprimé",
   "history.action.AUTOMATION.PICKUP_POLICY_CREATED": "Automatisation des collectes configurée",
   "history.action.AUTOMATION.PICKUP_POLICY_UPDATED": "Automatisation des collectes modifiée",
+  "history.action.AUTOMATION.GAP_LIST_CHANGED": "Liste d’écart modifiée",
   "history.action.AUTOMATION.PICKUP_POLICY_DELETED": "Automatisation des collectes supprimée",
   "history.action.AUTOMATION.EXCLUDED_DATE_ADDED": "Date exclue ajoutée",
   "history.action.AUTOMATION.EXCLUDED_DATE_REMOVED": "Date exclue retirée",
