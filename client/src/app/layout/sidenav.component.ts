@@ -45,7 +45,6 @@ import {
   SidenavStateService,
   foldedSections,
   isCollapseShortcut,
-  isSearchShortcut,
   isSectionOpen,
   nextFoldCount,
   openCurrentSection,
@@ -58,7 +57,7 @@ import { UserMenuComponent } from './user-menu.component';
  * column). From 75rem it is always expanded; between 48 and 75rem a toggle (and `[`) collapses it to an icon rail.
  * Sections come from nav.config (`section`); Community is open by default, Orga closed unless its page is current.
  * In the rail the sections fold into flyouts, from the bottom up, until the rail fits the viewport (measured).
- * The region switcher, search (Ctrl/⌘ K), bell, user menu, visitor preferences and rail flyouts open as raised cards
+ * The region switcher, search, bell, user menu, visitor preferences and rail flyouts open as raised cards
  * outside the menu's right edge (SidenavPopovers); nothing is persisted.
  */
 @Component({
@@ -135,9 +134,8 @@ import { UserMenuComponent } from './user-menu.component';
             aria-haspopup="dialog"
             [attr.aria-expanded]="popovers.openId() === 'search'"
             aria-controls="sn-card-search"
-            aria-keyshortcuts="Control+K Meta+K"
             [attr.aria-label]="'layout.header.searchOpen' | t"
-            [attr.data-label]="('layout.header.searchOpen' | t) + ' (Ctrl K)'"
+            [attr.data-label]="'layout.header.searchOpen' | t"
             (click)="popovers.toggle('search', searchTile)"
             data-testid="nav.sidenav.search"
           >
@@ -158,7 +156,6 @@ import { UserMenuComponent } from './user-menu.component';
       } @else {
         <div class="sn__search sn__search--field">
           <fs-global-search popupAlign="start" />
-          <kbd class="sn-row__kbd sn__search-kbd" aria-hidden="true">Ctrl K</kbd>
         </div>
       }
     } @else if (searchPending()) {
@@ -376,19 +373,6 @@ import { UserMenuComponent } from './user-menu.component';
     </ng-template>
   `,
   styles: `
-    .sn__search--field {
-      position: relative;
-    }
-    .sn__search-kbd {
-      position: absolute;
-      top: 50%;
-      right: 0.6rem;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-    .sn__search--field:focus-within .sn__search-kbd {
-      display: none;
-    }
     .sn__whats-new-dot {
       position: absolute;
       top: 50%;
@@ -567,10 +551,6 @@ export class SidenavComponent {
       this.state.toggle();
       return;
     }
-    if (isSearchShortcut(event) && this.searchEnabled()) {
-      event.preventDefault();
-      this.focusSearch();
-    }
   }
 
   /** A click outside the open card and its trigger closes the card. */
@@ -584,16 +564,6 @@ export class SidenavComponent {
     this.popovers.close(false);
   }
 
-  private focusSearch(): void {
-    const root = this.host.nativeElement;
-    if (this.mode() === 'rail') {
-      const tile = root.querySelector<HTMLElement>('[data-testid="nav.sidenav.search"]');
-      if (tile && this.popovers.openId() !== 'search') this.popovers.toggle('search', tile);
-      // the card focuses its first control (the search field) once it is shown
-      return;
-    }
-    root.querySelector<HTMLInputElement>('.sn__search input')?.focus();
-  }
 
   private remeasure(): void {
     if (this.mode() !== 'rail') {
