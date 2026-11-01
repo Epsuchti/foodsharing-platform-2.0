@@ -1,5 +1,6 @@
 import { expect, test } from '../../fixtures';
 import { acceptConfirm } from './_intro';
+import { fillDateTime } from '../../support/date-inputs';
 
 /** EA10: guides create, edit and delete EinAbs; the form is category-driven and shows server validation. */
 test.use({ seedReset: 'test', role: 'guide' });
@@ -19,7 +20,7 @@ test('EA10 guide creates, edits, deletes EinAb with validation @EA10 @page', asy
   await expect(form.getByTestId('introPickups.form.callLink')).toBeVisible();
   await expect(form.getByTestId('introPickups.form.address')).toHaveCount(0);
   await expect(form.getByTestId('introPickups.form.slotCount')).toHaveCount(0);
-  await form.getByTestId('introPickups.form.start').fill('2026-11-20T18:30');
+  await fillDateTime(form.getByTestId('introPickups.form.start'), '2026-11-20T18:30');
   await page.getByTestId('introPickups.form.save').click();
   await expect(page.getByTestId('introPickups.form.error')).toBeVisible(); // ONLINE_CALL_LINK_REQUIRED
   await form.getByTestId('introPickups.form.callLink').fill('https://meet.jit.si/foodsharing-einab');
@@ -35,7 +36,7 @@ test('EA10 guide creates, edits, deletes EinAb with validation @EA10 @page', asy
   await page.getByTestId('introPickups.guide.create').click();
   await form.getByTestId('introPickups.form.category').click();
   await page.getByRole('option', { name: 'Marché', exact: true }).click();
-  await form.getByTestId('introPickups.form.start').fill('2026-11-21T09:15');
+  await fillDateTime(form.getByTestId('introPickups.form.start'), '2026-11-21T09:15');
   await form.getByTestId('introPickups.form.businessName').fill('Marché Helvetiaplatz');
   await page.getByTestId('introPickups.form.save').click();
   await expect(page.getByTestId('introPickups.form.error')).toBeVisible(); // address required

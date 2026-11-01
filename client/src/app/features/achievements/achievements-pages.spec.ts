@@ -20,6 +20,7 @@ import {
 } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { typeIntoDateInput } from '../../shared/date-input/date-input.testing';
 import { RegionPageContext } from '../regions/region-page.context';
 import { AdminAchievementsPageComponent } from './pages/admin-achievements-page.component';
 import { RegionAchievementsTab } from './tabs/region-achievements.tab';
@@ -293,7 +294,7 @@ describe('achievement pages', () => {
 
       click('[data-award-id="w1"] [data-testid="achievements.awards.edit"]');
       await settle();
-      type('[data-testid="achievements.awards.editValidUntil"]', '2027-06-30');
+      typeIntoDateInput(q('[data-testid="achievements.awards.editValidUntil"]'), '30.06.2027');
       type('[data-testid="achievements.awards.editNotice"]', '');
       await settle();
       click('[data-testid="achievements.awards.editSave"]');

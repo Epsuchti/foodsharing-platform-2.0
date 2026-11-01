@@ -14,6 +14,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { FoodsaverIdHelpComponent } from '../../../shared/foodsaver-id-help/foodsaver-id-help.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { PhoneInputComponent } from '../../../shared/phone/phone-input.component';
@@ -29,6 +30,7 @@ const text = (max: number) => new FormControl('', { nonNullable: true, validator
 @Component({
   selector: 'fs-profile-page',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     Button,
     DateTimePipe,

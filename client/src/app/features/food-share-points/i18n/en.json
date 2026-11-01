@@ -127,7 +127,6 @@
   "foodSharePoints.cleaning.editTitle": "Edit cleaning shift",
   "foodSharePoints.cleaning.addTitle": "One-time cleaning shift",
   "foodSharePoints.cleaning.date": "Date",
-  "foodSharePoints.cleaning.datePlaceholder": "DD.MM.YYYY",
   "foodSharePoints.cleaning.time": "Time (Swiss time)",
   "foodSharePoints.cleaning.slots": "Places",
   "foodSharePoints.cleaning.slotsHint": "0 cancels the cleaning shift.",

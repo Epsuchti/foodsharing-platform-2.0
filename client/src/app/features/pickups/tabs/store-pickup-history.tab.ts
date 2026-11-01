@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
-import { InputText } from '@openng/optimus-ui/inputtext';
 
 import { PickupHistoryPage, PickupsService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { StorePageContext } from '../../stores/store-page.context';
 import { zonedToUtc } from '../pickups.util';
@@ -28,17 +28,17 @@ interface HistoryQuery {
  */
 @Component({
   selector: 'fs-store-pickup-history-tab',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, InputText, RouterLink, TPipe, UserChipComponent],
+  imports: [...DATE_INPUT_IMPORTS, ...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, RouterLink, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="toolbar" (ngSubmit)="apply()" data-testid="stores.pickupHistory.filter">
       <label class="field">
         <span>{{ 'pickups.history.from' | t }}</span>
-        <input pInputText type="date" name="from" [(ngModel)]="fromDate" data-testid="stores.pickupHistory.from" />
+        <fs-date-input name="from" [(ngModel)]="fromDate" testId="stores.pickupHistory.from" />
       </label>
       <label class="field">
         <span>{{ 'pickups.history.to' | t }}</span>
-        <input pInputText type="date" name="to" [(ngModel)]="toDate" data-testid="stores.pickupHistory.to" />
+        <fs-date-input name="to" [(ngModel)]="toDate" testId="stores.pickupHistory.to" />
       </label>
       <p-button type="submit" [label]="'pickups.history.apply' | t" icon="pi pi-filter" size="small" data-testid="stores.pickupHistory.apply" />
       @if (ctx.may('maySeePickups')) {

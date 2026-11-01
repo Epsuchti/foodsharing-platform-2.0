@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { FSPS, acceptPendingConsents, expect, expectDataState, regionId, test } from '../../fixtures';
 import { createPickup, openAutomation, savePolicy, setSwitch, waitForAudit } from '../automation/_automation';
+import { fillDate, fillTime } from '../../support/date-inputs';
 
 /**
  * FS2 Fairteiler cleaning shifts (decision 148) and the cleaning rule (AU1). Seed (`180-fsp-cleaning-seed.yaml`):
@@ -34,10 +35,10 @@ test.describe('cleaning shifts', () => {
     await expect(page).toHaveURL(new RegExp(`/food-share-points/${FSPS.langstrasse}/cleaning$`));
     await expectDataState(page, 'fsp.cleaning.state', 'empty');
 
-    // ... and adds a one-time shift (plain text date and time)
+    // ... and adds a one-time shift (shared date and time inputs)
     await page.getByTestId('fsp.cleaning.add').click();
-    await page.getByTestId('fsp.cleaning.edit.date').fill('10.11.2026');
-    await page.getByTestId('fsp.cleaning.edit.time').fill('18:00');
+    await fillDate(page.getByTestId('fsp.cleaning.edit.date'), '2026-11-10');
+    await fillTime(page.getByTestId('fsp.cleaning.edit.time'), '18:00');
     await page.getByTestId('fsp.cleaning.edit.slots').fill('2');
     await page.getByTestId('fsp.cleaning.edit.description').fill('Regal auswischen');
     await page.getByTestId('fsp.cleaning.edit.save').locator('button').click();

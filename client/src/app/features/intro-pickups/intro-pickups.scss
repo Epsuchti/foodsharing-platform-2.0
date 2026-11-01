@@ -289,18 +289,6 @@
   gap: 0.9rem;
 }
 
-.form input[type='datetime-local'],
-.native {
-  width: 100%;
-  min-height: 2.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--fs-border-strong);
-  border-radius: var(--fs-radius-md);
-  background: var(--fs-surface);
-  color: var(--fs-text);
-  font: inherit;
-}
-
 .error-text {
   margin: 0;
   color: var(--fs-danger);

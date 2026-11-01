@@ -10,6 +10,7 @@ import {
   test,
 } from '../../fixtures';
 import { playSession, solutionKey } from '../quiz/_quiz';
+import { fillDate } from '../../support/date-inputs';
 
 /**
  * AC1 achievements (plan-m7 Q9, A52). Seed (`168-achievement-seed.yaml`): global HYGIENE_CERTIFICATE `…01` and
@@ -125,7 +126,7 @@ test.describe('region administrator', () => {
     // 30 validity days from the seed day (2026-11-02)
     await expect(item.getByTestId('achievements.awards.validUntil')).toHaveAttribute('data-valid-until', '2026-12-02');
     await item.getByTestId('achievements.awards.edit').click();
-    await item.getByTestId('achievements.awards.editValidUntil').fill('2027-03-31');
+    await fillDate(item.getByTestId('achievements.awards.editValidUntil'), '2027-03-31');
     await item.getByTestId('achievements.awards.editNotice').fill('Velotouren 2026');
     await item.getByTestId('achievements.awards.editSave').click();
     await expect(item.getByTestId('achievements.awards.validUntil')).toHaveAttribute('data-valid-until', '2027-03-31');

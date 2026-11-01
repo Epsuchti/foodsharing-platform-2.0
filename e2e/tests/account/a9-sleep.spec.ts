@@ -1,5 +1,6 @@
 import { expect, expectDataState, expectErrorState, injectApiError, test } from '../../fixtures';
 import { NAMES, ZURICH, memberRow, openStore } from '../stores/_stores';
+import { fillDate } from '../../support/date-inputs';
 
 /**
  * A9 sleep mode (plan-m7 Q3, A39): the settings card sets NONE / TEMPORARY / FULL with dates and a message; while
@@ -25,11 +26,11 @@ test('A9 user sets temporary sleep mode and the badge appears in profile, member
   await expect(page.getByTestId('account.settings.sleep.problem')).toBeVisible();
   await expect(page.getByTestId('account.settings.sleep.save').locator('button')).toBeDisabled();
   // the last day before the first one is refused before asking the server
-  await page.getByTestId('account.settings.sleep.from').fill('2026-11-10');
-  await page.getByTestId('account.settings.sleep.until').fill('2026-11-05');
+  await fillDate(page.getByTestId('account.settings.sleep.from'), '2026-11-10');
+  await fillDate(page.getByTestId('account.settings.sleep.until'), '2026-11-05');
   await expect(page.getByTestId('account.settings.sleep.problem')).toBeVisible();
-  await page.getByTestId('account.settings.sleep.from').fill('2026-11-02');
-  await page.getByTestId('account.settings.sleep.until').fill('2026-11-20');
+  await fillDate(page.getByTestId('account.settings.sleep.from'), '2026-11-02');
+  await fillDate(page.getByTestId('account.settings.sleep.until'), '2026-11-20');
   await page.getByTestId('account.settings.sleep.message').fill('Ferien im Tessin, ab dem 21. wieder dabei.');
   await expect(page.getByTestId('account.settings.sleep.problem')).toHaveCount(0);
   await page.getByTestId('account.settings.sleep.save').click();

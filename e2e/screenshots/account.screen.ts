@@ -39,6 +39,27 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('account.settings.sleep.current')).toHaveAttribute('data-status', 'TEMPORARY');
         await visual.expectElement(page.getByTestId('account.settings.sleep'), `account-sleep-temporary-${variant.name}`);
       });
+
+      screenshotTest('date input with the calendar open @AD1 @screenshot', async ({ page, apiOf, visual }) => {
+        await acceptPendingConsents(apiOf(page));
+        await page.goto('/account/settings');
+        await expect(page.getByTestId('account.settings.sleep.current')).toHaveAttribute('data-status', 'TEMPORARY');
+        await page.getByTestId('account.settings.sleep.until').locator('button.fs-date-input-trigger').click();
+        await expect(page.locator('.p-datepicker-panel')).toBeVisible();
+        // the popup is appended to the body: the capture is the viewport the user sees
+        await visual.expectScreen(page, `date-input-calendar-open-${variant.name}`, { fullPage: false });
+      });
+
+      screenshotTest('date input with unreadable text @AD1 @screenshot', async ({ page, apiOf, visual }) => {
+        await acceptPendingConsents(apiOf(page));
+        await page.goto('/account/settings');
+        await expect(page.getByTestId('account.settings.sleep.current')).toHaveAttribute('data-status', 'TEMPORARY');
+        const from = page.getByTestId('account.settings.sleep.from');
+        await from.locator('input').fill('31.02.2026');
+        await from.locator('input').press('Tab');
+        await expect(from.getByRole('alert')).toBeVisible();
+        await visual.expectElement(page.getByTestId('account.settings.sleep'), `date-input-invalid-${variant.name}`);
+      });
     });
 
     screenshotTest.describe('foodsaver', () => {

@@ -7,6 +7,7 @@ import { Select } from '@openng/optimus-ui/select';
 import { RegularPickup, Weekday } from '../../api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TPipe } from '../../core/i18n/t.pipe';
+import { validTime } from '../date-input/date-input.util';
 
 export const WEEKDAYS: readonly Weekday[] = Object.values(Weekday);
 
@@ -156,9 +157,7 @@ export class WeekdayTimePickerComponent {
     this.rows.update((rows) => rows.map((row, i) => (i === index ? { ...row, ...change } : row)));
   }
 
-  protected validTime(time: string): boolean {
-    return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-  }
+  protected readonly validTime = validTime;
 
   protected slots(event: Event): number {
     const value = Number((event.target as HTMLInputElement).value);

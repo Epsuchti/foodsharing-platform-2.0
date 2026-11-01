@@ -16,6 +16,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.component';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
@@ -40,6 +41,7 @@ interface SlotTarget {
 @Component({
   selector: 'fs-store-pickups-tab',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     Button,
     DateTimePipe,
@@ -301,11 +303,11 @@ interface SlotTarget {
         @if (!editAt()) {
           <label class="field">
             <span>{{ 'pickups.tab.date' | t }}</span>
-            <input pInputText type="date" [(ngModel)]="newDate" data-testid="stores.pickups.edit.date" />
+            <fs-date-input [(ngModel)]="newDate" testId="stores.pickups.edit.date" />
           </label>
           <label class="field">
             <span>{{ 'pickups.tab.time' | t }} ({{ tz() }})</span>
-            <input pInputText type="time" [(ngModel)]="newTime" data-testid="stores.pickups.edit.time" />
+            <fs-time-input [(ngModel)]="newTime" testId="stores.pickups.edit.time" />
           </label>
         }
         <div class="field">

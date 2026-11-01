@@ -3,7 +3,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
-import { InputText } from '@openng/optimus-ui/inputtext';
 import { Textarea } from '@openng/optimus-ui/textarea';
 
 import { Achievement, AchievementsService, Award } from '../../../api';
@@ -14,6 +13,7 @@ import { DEFAULT_TIME_ZONE } from '../../../core/dates/time-zone';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { NOTICE_MAX, awardExpired, isoDay, sortAwards, toAwardUpdate } from '../achievements.util';
 
@@ -24,7 +24,7 @@ import { NOTICE_MAX, awardExpired, isoDay, sortAwards, toAwardUpdate } from '../
  */
 @Component({
   selector: 'fs-awards-dialog',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, Dialog, InputText, ReactiveFormsModule, TPipe, Textarea, UserChipComponent],
+  imports: [...DATE_INPUT_IMPORTS, ...DATA_STATE_IMPORTS, Button, DateTimePipe, Dialog, ReactiveFormsModule, TPipe, Textarea, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog
@@ -88,7 +88,7 @@ import { NOTICE_MAX, awardExpired, isoDay, sortAwards, toAwardUpdate } from '../
                   <form class="edit" [formGroup]="editForm" (ngSubmit)="update.run(award)">
                     <div class="field">
                       <label [for]="'award-edit-until-' + award.id">{{ 'achievements.award.validUntil' | t }}</label>
-                      <input pInputText type="date" [id]="'award-edit-until-' + award.id" formControlName="validUntil" data-testid="achievements.awards.editValidUntil" />
+                      <fs-date-input [inputId]="'award-edit-until-' + award.id" formControlName="validUntil" testId="achievements.awards.editValidUntil" />
                     </div>
                     <div class="field">
                       <label [for]="'award-edit-notice-' + award.id">{{ 'achievements.award.notice' | t }}</label>

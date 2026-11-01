@@ -12,6 +12,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import {
   LanguageTabsEditorComponent,
   TranslatedText,
@@ -32,6 +33,7 @@ function mapTexts(note: ReleaseNote, field: 'title' | 'body'): TranslatedText {
 @Component({
   selector: 'fs-release-notes-admin-page',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     Button,
     DateTimePipe,
@@ -130,13 +132,7 @@ function mapTexts(note: ReleaseNote, field: 'title' | 'body'): TranslatedText {
           </div>
           <div class="field">
             <label for="rn-date">{{ 'content.releaseAdmin.releasedAt' | t }}</label>
-            <input
-              pInputText
-              id="rn-date"
-              type="date"
-              formControlName="releasedAt"
-              data-testid="content.releaseAdmin.releasedAt"
-            />
+            <fs-date-input inputId="rn-date" formControlName="releasedAt" testId="content.releaseAdmin.releasedAt" />
           </div>
         </div>
         <fs-language-tabs-editor

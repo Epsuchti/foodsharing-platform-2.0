@@ -11,6 +11,7 @@ import { ApiErrorCode, Language, Role, SleepStatus, Theme, UserProfile, UsersSer
 import { SessionService } from '../../core/auth/session.service';
 import { DataState, loadResource } from '../../core/data/data-state';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { typeIntoDateInput } from '../../shared/date-input/date-input.testing';
 import { sessionInfo, settle } from '../auth/testing';
 import {
   SleepForm,
@@ -187,8 +188,8 @@ describe('account settings cards (Q3)', () => {
         input.value = value;
         input.dispatchEvent(new Event('input'));
       };
-      set('account.settings.sleep.from', '2026-11-05');
-      set('account.settings.sleep.until', '2026-11-20');
+      typeIntoDateInput(q(host, 'account.settings.sleep.from'), '05.11.2026');
+      typeIntoDateInput(q(host, 'account.settings.sleep.until'), '20.11.2026');
       set('account.settings.sleep.message', 'Ferien im Tessin');
       await settle(fixture);
       expect(q(host, 'account.settings.sleep.problem')).toBeNull();

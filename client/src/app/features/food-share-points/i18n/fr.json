@@ -127,7 +127,6 @@
   "foodSharePoints.cleaning.editTitle": "Modifier le créneau",
   "foodSharePoints.cleaning.addTitle": "Créneau ponctuel",
   "foodSharePoints.cleaning.date": "Date",
-  "foodSharePoints.cleaning.datePlaceholder": "JJ.MM.AAAA",
   "foodSharePoints.cleaning.time": "Heure (heure suisse)",
   "foodSharePoints.cleaning.slots": "Places",
   "foodSharePoints.cleaning.slotsHint": "0 annule le créneau.",

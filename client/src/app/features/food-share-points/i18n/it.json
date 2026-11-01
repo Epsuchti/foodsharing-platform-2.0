@@ -127,7 +127,6 @@
   "foodSharePoints.cleaning.editTitle": "Modifica turno",
   "foodSharePoints.cleaning.addTitle": "Turno singolo",
   "foodSharePoints.cleaning.date": "Data",
-  "foodSharePoints.cleaning.datePlaceholder": "GG.MM.AAAA",
   "foodSharePoints.cleaning.time": "Ora (ora svizzera)",
   "foodSharePoints.cleaning.slots": "Posti",
   "foodSharePoints.cleaning.slotsHint": "0 annulla il turno.",

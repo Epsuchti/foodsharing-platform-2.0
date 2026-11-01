@@ -59,6 +59,12 @@ module.exports = tseslint.config(
   {
     files: ['**/*.html'],
     extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
-    rules: {},
+    rules: {
+      // the shared date inputs render a native <input>, so a wrapping <label> labels it (decision 150)
+      '@angular-eslint/template/label-has-associated-control': [
+        'error',
+        { controlComponents: ['fs-date-input', 'fs-datetime-input', 'fs-time-input'] },
+      ],
+    },
   },
 );

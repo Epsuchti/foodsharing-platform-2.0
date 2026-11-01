@@ -1,4 +1,5 @@
 import { expect, expectDataState, test } from '../../fixtures';
+import { fillDate } from '../../support/date-inputs';
 
 /**
  * PU6 pickup history. Store side: bieb manages S-01 and is KAM of the Coop chain (S-23 Coop Winterthur Bahnhof, not
@@ -24,8 +25,8 @@ test.describe('bieb', () => {
     await expect(page.locator('[data-testid="stores.pickupHistory.person"][data-user="Sarah Müller"]').first()).toBeVisible();
 
     // range: 1–15 October 2026
-    await page.getByTestId('stores.pickupHistory.from').fill('2026-10-01');
-    await page.getByTestId('stores.pickupHistory.to').fill('2026-10-15');
+    await fillDate(page.getByTestId('stores.pickupHistory.from'), '2026-10-01');
+    await fillDate(page.getByTestId('stores.pickupHistory.to'), '2026-10-15');
     const request = page.waitForRequest((r) => r.url().includes('/pickup-history?') && r.url().includes('from='));
     await page.getByTestId('stores.pickupHistory.apply').click();
     await request;

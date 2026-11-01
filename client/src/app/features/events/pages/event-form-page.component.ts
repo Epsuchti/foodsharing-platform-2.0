@@ -15,6 +15,7 @@ import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { eventErrors, fromLocalInput, toLocalInput } from '../events.resource';
 
@@ -24,7 +25,7 @@ import { eventErrors, fromLocalInput, toLocalInput } from '../events.resource';
  */
 @Component({
   selector: 'fs-event-form-page',
-  imports: [...DATA_STATE_IMPORTS, Button, FormsModule, InputText, PageHeaderComponent, RadioButton, Select, Textarea, ToggleSwitch, TPipe],
+  imports: [...DATE_INPUT_IMPORTS, ...DATA_STATE_IMPORTS, Button, FormsModule, InputText, PageHeaderComponent, RadioButton, Select, Textarea, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="(eventId() ? 'events.form.editTitle' : 'events.form.newTitle') | t" icon="pi pi-calendar-plus" [backLink]="backLink()" [backLabel]="'events.title' | t" />
@@ -50,11 +51,11 @@ import { eventErrors, fromLocalInput, toLocalInput } from '../events.resource';
           <div class="row">
             <span class="field">
               <label for="event-start">{{ 'events.form.startsAt' | t }}</label>
-              <input pInputText type="datetime-local" id="event-start" name="startsAt" [ngModel]="startsAt()" (ngModelChange)="startsAt.set($event)" [attr.aria-invalid]="shown('startsAt')" data-testid="events.form.startsAt" />
+              <fs-datetime-input inputId="event-start" name="startsAt" [ngModel]="startsAt()" (ngModelChange)="startsAt.set($event)" [ariaInvalid]="shown('startsAt')" testId="events.form.startsAt" />
             </span>
             <span class="field">
               <label for="event-end">{{ 'events.form.endsAt' | t }}</label>
-              <input pInputText type="datetime-local" id="event-end" name="endsAt" [ngModel]="endsAt()" (ngModelChange)="endsAt.set($event)" [attr.aria-invalid]="shown('endsAt')" data-testid="events.form.endsAt" />
+              <fs-datetime-input inputId="event-end" name="endsAt" [ngModel]="endsAt()" (ngModelChange)="endsAt.set($event)" [ariaInvalid]="shown('endsAt')" testId="events.form.endsAt" />
             </span>
           </div>
           @if (shown('endsAt') || shown('startsAt')) {<small class="error" data-testid="events.form.error.endsAt">{{ 'events.form.error.dates' | t }}</small>}

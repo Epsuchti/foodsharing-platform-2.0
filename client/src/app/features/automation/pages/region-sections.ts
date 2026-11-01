@@ -29,6 +29,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { AutomationAuditLoaders } from '../automation.resource';
@@ -333,7 +334,7 @@ export class RegionGroupingSection {
 /** Daily anonymous counts (AU9): range, key multiselect, line chart. */
 @Component({
   selector: 'fs-region-metrics',
-  imports: [...DATA_STATE_IMPORTS, DailyLineChartComponent, FormsModule, InputText, MetricTotalsComponent, SelectButton, TPipe],
+  imports: [...DATA_STATE_IMPORTS, ...DATE_INPUT_IMPORTS, DailyLineChartComponent, FormsModule, MetricTotalsComponent, SelectButton, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="card fs-card">
@@ -341,11 +342,11 @@ export class RegionGroupingSection {
       <div class="row">
         <label class="field">
           <span class="muted">{{ 'automation.common.from' | t }}</span>
-          <input pInputText type="date" [ngModel]="from()" (ngModelChange)="$event && from.set($event)" data-testid="automation.metrics.from" />
+          <fs-date-input [required]="true" [ngModel]="from()" (ngModelChange)="$event && from.set($event)" testId="automation.metrics.from" />
         </label>
         <label class="field">
           <span class="muted">{{ 'automation.common.to' | t }}</span>
-          <input pInputText type="date" [ngModel]="to()" (ngModelChange)="$event && to.set($event)" data-testid="automation.metrics.to" />
+          <fs-date-input [required]="true" [ngModel]="to()" (ngModelChange)="$event && to.set($event)" testId="automation.metrics.to" />
         </label>
       </div>
       <p-selectbutton
