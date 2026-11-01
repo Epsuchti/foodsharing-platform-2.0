@@ -5,8 +5,6 @@
 export const DATE_INPUT_TEMPLATE = `
   <p-datepicker
     [inputId]="inputId()"
-    [ngModel]="pickerValue()"
-    [ngModelOptions]="{ standalone: true }"
     [disabled]="disabled()"
     [required]="required()"
     [invalid]="invalid()"
@@ -55,6 +53,8 @@ export const DATE_INPUT_STYLES = `
   :host { display: block; min-width: 0; }
   .fs-date-input-trigger {
     display: inline-flex; align-items: center; justify-content: center;
+    /* WCAG 2.5.8 target size */
+    min-width: 1.5rem; min-height: 1.5rem; margin: -0.25rem;
     padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit;
   }
   .fs-date-input-trigger:disabled { cursor: default; opacity: 0.6; }

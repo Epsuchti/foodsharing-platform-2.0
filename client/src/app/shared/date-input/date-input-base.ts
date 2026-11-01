@@ -1,14 +1,18 @@
 import {
+  ChangeDetectorRef,
   Directive,
   ElementRef,
+  afterNextRender,
   afterRenderEffect,
   booleanAttribute,
   computed,
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ControlValueAccessor } from '@angular/forms';
+import { DatePicker } from '@openng/optimus-ui/datepicker';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { OptimusLocaleService, calendarNames } from '../../core/i18n/optimus-locale';
@@ -28,6 +32,7 @@ export abstract class DateInputBase implements ControlValueAccessor {
   protected readonly i18n = inject(I18nService);
   private readonly optimusLocale = inject(OptimusLocaleService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   /** `id` of the inner text field, so an outer `<label for>` keeps working. */
   readonly inputId = input<string>();
@@ -46,8 +51,9 @@ export abstract class DateInputBase implements ControlValueAccessor {
   /** The form value. */
   private readonly value = signal('');
   protected readonly errorId = `fs-date-input-error-${nextId++}`;
-  /** Date shown by the picker. A new object on every change so the picker always re-renders it. */
-  protected readonly pickerValue = signal<Date | null>(null);
+  private readonly picker = viewChild(DatePicker);
+  /** Date shown by the picker; written to it directly (no ngModel), so the field updates synchronously. */
+  private shown: Date | null = null;
   protected readonly disabled = signal(false);
   protected readonly parseError = signal(false);
   protected readonly invalid = computed(
@@ -73,6 +79,7 @@ export abstract class DateInputBase implements ControlValueAccessor {
   private namesReady = false;
 
   constructor() {
+    afterNextRender(() => this.picker()?.writeValue(this.shown));
     // the date picker renders its own field: pass the a11y attributes it has no input for
     afterRenderEffect(() => {
       const field = this.field();
@@ -101,9 +108,14 @@ export abstract class DateInputBase implements ControlValueAccessor {
   protected abstract defaultPlaceholder(): string;
 
   writeValue(value: string | null | undefined): void {
+    // the form echoes every value this control emitted (ngModel writes it back a tick later): re-rendering it would
+    // overwrite text typed in the meantime
+    if ((value ?? '') === this.value()) {
+      return;
+    }
     this.value.set(value ?? '');
     this.parseError.set(false);
-    this.pickerValue.set(this.toDate(this.value()));
+    this.render(this.toDate(this.value()));
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -134,6 +146,11 @@ export abstract class DateInputBase implements ControlValueAccessor {
     if (!field) {
       return;
     }
+    // unchanged since the last render (e.g. the blur when a calendar day is clicked): re-rendering now would replace
+    // the calendar under the click
+    if (field.value === (this.picker()?.inputFieldValue ?? '') && !this.parseError()) {
+      return;
+    }
     const parsed = this.parse(field.value);
     if (parsed === null) {
       this.parseError.set(true);
@@ -142,7 +159,7 @@ export abstract class DateInputBase implements ControlValueAccessor {
     this.parseError.set(false);
     this.set(parsed);
     // re-render in the display format (e.g. `1.2.26` → `01.02.2026`)
-    this.pickerValue.set(this.toDate(parsed));
+    this.render(this.toDate(parsed));
   }
 
   protected onBlur(): void {
@@ -154,20 +171,32 @@ export abstract class DateInputBase implements ControlValueAccessor {
   protected onSelect(date: Date): void {
     this.parseError.set(false);
     this.set(this.fromDate(date));
-    this.pickerValue.set(new Date(date.getTime()));
+    this.shown = date;
   }
 
   /** Clear icon or Clear button. */
   protected onClear(): void {
     this.parseError.set(false);
     this.set('');
-    this.pickerValue.set(null);
+    this.shown = null;
   }
 
   private set(value: string): void {
     if (value !== this.value()) {
       this.value.set(value);
       this.onChange(value);
+    }
+  }
+
+  /** Shows `date` in the field and the calendar right away (before the view exists: on the first render). */
+  private render(date: Date | null): void {
+    this.shown = date;
+    const picker = this.picker();
+    if (picker) {
+      picker.writeValue(date);
+      // sync the picker's `[value]` binding now: a later change detection would write the old text over what the
+      // user types next
+      this.cdr.detectChanges();
     }
   }
 

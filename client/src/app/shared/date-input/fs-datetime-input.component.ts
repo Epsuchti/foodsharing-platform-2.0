@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
-import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 
 import { DateInputBase } from './date-input-base';
@@ -12,7 +12,7 @@ import { dateToIsoDateTime, isoDateTimeToDate, parseDisplayDateTime } from './da
  */
 @Component({
   selector: 'fs-datetime-input',
-  imports: [DatePicker, FormsModule],
+  imports: [DatePicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => FsDatetimeInputComponent), multi: true }],
   host: { '[attr.data-testid]': 'testId()' },
