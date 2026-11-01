@@ -33,4 +33,25 @@ public class ConversationMessage extends BaseEntity {
 
     @Column(name = "sent_at", nullable = false)
     private Instant sentAt;
+
+    /** Last edit by the sender; {@code null} = never edited. */
+    @Column(name = "edited_at")
+    private Instant editedAt;
+
+    /** Set = deleted; the row and its seq stay, {@link #body} is {@code ""}. */
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    /** Who deleted the message (the sender or a moderator). */
+    @Column(name = "deleted_by")
+    private UUID deletedBy;
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    /** Deleted by someone other than the sender (a moderator). */
+    public boolean isDeletedByModerator() {
+        return deletedAt != null && deletedBy != null && !deletedBy.equals(senderId);
+    }
 }

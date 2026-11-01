@@ -2,7 +2,6 @@ import {
   CooperationStatus,
   RegionDetail,
   SessionInfo,
-  StoreAddress,
   StoresImportPreview,
   TeamSearchStatus,
 } from '../../api';
@@ -25,28 +24,6 @@ export const INACTIVE_COOPERATION: readonly CooperationStatus[] = [
   CooperationStatus.GivesToOtherCharity,
   CooperationStatus.PermanentlyClosed,
 ];
-
-export interface MapLinks {
-  google: string;
-  apple: string;
-}
-
-/** Navigation deep links (S15): coordinates when known, otherwise the address. */
-export function mapLinks(store: { latitude?: number; longitude?: number; address: StoreAddress; name: string }): MapLinks | null {
-  const { latitude: lat, longitude: lon, address } = store;
-  if (lat != null && lon != null) {
-    return {
-      google: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
-      apple: `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(store.name)}`,
-    };
-  }
-  const query = [address.street, address.postcode, address.city].filter(Boolean).join(' ');
-  if (!query) return null;
-  return {
-    google: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-    apple: `https://maps.apple.com/?q=${encodeURIComponent(query)}`,
-  };
-}
 
 /**
  * Whether the stores CSV import (S2) is offered: ORGA, or the server's `RegionDetail.mayCoordinateStores` (the

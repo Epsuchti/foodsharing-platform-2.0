@@ -25,6 +25,8 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
+import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
+import { NavigationLinks, navigationLinks } from '../../../shared/navigate-button/navigate.util';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { PhoneButtonComponent } from '../../../shared/phone/phone-button.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
@@ -45,6 +47,7 @@ import { REQUEST_MESSAGE_MAX, answerActions, isOpenRequest, photoVariant } from 
     Dialog,
     FormsModule,
     MapViewComponent,
+    NavigateButtonComponent,
     PageHeaderComponent,
     PhoneButtonComponent,
     RouterLink,
@@ -199,6 +202,13 @@ import { REQUEST_MESSAGE_MAX, answerActions, isOpenRequest, photoVariant } from 
             <section class="fs-card card" data-testid="baskets.detail.location">
               <h2 class="card__title"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ 'baskets.detail.location' | t }}</h2>
               <p class="muted">{{ (b.locationType === 'HOME' && !isOwner() ? 'baskets.detail.locationHome' : 'baskets.detail.locationCustom') | t }}</p>
+              @if (navigation(); as nav) {
+                <fs-navigate-button
+                  [links]="nav"
+                  testId="baskets.detail.navigate"
+                  [note]="b.locationType === 'HOME' && !isOwner() ? ('baskets.detail.navigateApproximate' | t) : undefined"
+                />
+              }
               <fs-map-view
                 [markers]="markers()"
                 [center]="center()"
@@ -333,6 +343,15 @@ export class BasketPageComponent {
   protected readonly markers = computed<MapMarker[]>(() => {
     const b = this.basket.data();
     return b ? [{ id: b.id, kind: 'basket', lat: b.lat, lon: b.lon, label: b.description }] : [];
+  });
+  /**
+   * Directions to the coordinates the server sends (rounded to about 100 m for HOME baskets of others, decision 72);
+   * the Apple label is the generic word, never the description (it can be personal).
+   */
+  protected readonly navigation = computed<NavigationLinks | null>(() => {
+    const b = this.basket.data();
+    this.i18n.language();
+    return b ? navigationLinks({ lat: b.lat, lon: b.lon, label: this.i18n.t('baskets.detail.navigateLabel') }) : null;
   });
 
   // --- request (non-owners) ---

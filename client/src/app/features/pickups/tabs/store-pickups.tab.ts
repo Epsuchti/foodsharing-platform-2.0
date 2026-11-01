@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -5,7 +6,7 @@ import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
-import { tap } from 'rxjs';
+import { concat, tap } from 'rxjs';
 
 import { AutomationService, Pickup, PickupSlot, PickupsService, RegularPickup, SignupResult } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
@@ -19,8 +20,9 @@ import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.com
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-dialog.component';
+import { PickupSummaryComponent } from '../components/pickup-summary.component';
 import { ServerClock } from '../pickups.resource';
-import { addDays, dayOf, groupByDay, zonedToUtc } from '../pickups.util';
+import { SlotSummary, addDays, dayOf, groupByDay, pickupSummary, unconfirmedCount, zonedToUtc } from '../pickups.util';
 import { StorePageContext } from '../../stores/store-page.context';
 
 type Range = 'twoWeeks' | 'all';
@@ -46,6 +48,7 @@ interface SlotTarget {
     InputText,
     PickupSignupDialogComponent,
     PickupSlotComponent,
+    PickupSummaryComponent,
     RequiredMessageDialogComponent,
     RouterLink,
     TPipe,
@@ -65,6 +68,20 @@ interface SlotTarget {
             [attr.data-testid]="'stores.pickups.range.' + r"
           >
             {{ 'pickups.tab.range.' + r | t }}
+          </button>
+        }
+        <!-- managers: only the pickups with unconfirmed sign-ups; hidden at 0 unless pressed -->
+        @if (ctx.may('mayConfirmPickups') && (pendingCount() > 0 || pendingOnly())) {
+          <button
+            type="button"
+            class="chip chip--pending"
+            [class.chip--active]="pendingOnly()"
+            [attr.aria-pressed]="pendingOnly()"
+            [attr.data-count]="pendingCount()"
+            (click)="pendingOnly.set(!pendingOnly())"
+            data-testid="stores.pickups.range.pending"
+          >
+            <i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.range.pending' | t: { count: pendingCount() } }}
           </button>
         }
       </div>
@@ -111,6 +128,9 @@ interface SlotTarget {
     >
       <ng-template [fsData]="pickups">
         <div class="stack" data-testid="stores.pickups.list">
+          @if (pendingOnly() && !days().length) {
+            <p class="muted" data-testid="stores.pickups.pendingEmpty">{{ 'pickups.tab.pendingEmpty' | t }}</p>
+          }
           @for (group of days(); track group.day) {
             <section class="fs-card card day" data-testid="stores.pickups.day" [attr.data-day]="group.day">
               <h2 class="card__title">{{ group.items[0].pickupAt | fsDate: 'weekday' : tz() }}</h2>
@@ -128,6 +148,27 @@ interface SlotTarget {
                     }
                     @if (pickup.description) {
                       <span class="pickup__desc" data-testid="stores.pickups.description">{{ pickup.description }}</span>
+                    }
+                    @if (pickup.slotCount > 0 && pickup.occupiedSlots.length > 0) {
+                      @let summary = summaryOf(pickup);
+                      <fs-pickup-summary
+                        [confirmed]="summary.confirmed"
+                        [unconfirmed]="summary.unconfirmed"
+                        [total]="summary.total"
+                        testId="stores.pickups.summary"
+                      >
+                        @if (ctx.may('mayConfirmPickups') && summary.unconfirmed >= 2) {
+                          <p-button
+                            [label]="'pickups.tab.confirmAll' | t: { count: summary.unconfirmed }"
+                            icon="pi pi-check-circle"
+                            [text]="true"
+                            size="small"
+                            [loading]="confirmAll.busy()"
+                            (onClick)="askConfirmAll(pickup)"
+                            data-testid="stores.pickups.confirmAll"
+                          />
+                        }
+                      </fs-pickup-summary>
                     }
                     @if (ctx.may('mayEditPickups')) {
                       <p-button
@@ -151,8 +192,10 @@ interface SlotTarget {
                       [myId]="myId()"
                       [freeClickable]="!isSignedUp(pickup)"
                       [slotsClickable]="ctx.may('mayConfirmPickups') || ctx.may('mayEditPickups')"
+                      [confirmable]="ctx.may('mayConfirmPickups')"
                       (freeClick)="openSignup(pickup)"
                       (slotClick)="onSlot(pickup, $event)"
+                      (confirmClick)="openSlot(pickup, $event, true)"
                       testId="stores.pickups.slot"
                     />
                   }
@@ -174,7 +217,7 @@ interface SlotTarget {
                   @if (mySlot(pickup); as mine) {
                     @if (!mine.confirmed) {
                       <p class="pending" data-testid="stores.pickups.unconfirmed">
-                        <i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waiting' | t }}
+                        <i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waitingMine' | t }}
                       </p>
                     }
                   }
@@ -196,10 +239,21 @@ interface SlotTarget {
       [closeAriaLabel]="'common.close' | t"
       [header]="slotTarget()?.slot?.user?.displayName ?? ''"
       [style]="{ width: 'min(28rem, 94vw)' }"
+      [focusOnShow]="!focusConfirm()"
+      (onShow)="onSlotDialogShown()"
       data-testid="stores.pickups.slotDialog"
     >
       @if (slotTarget(); as s) {
         <p class="muted">{{ s.pickup.pickupAt | fsDate: 'dateTimeLong' : tz() }}</p>
+        <p
+          class="slot-state"
+          [class.slot-state--unconfirmed]="!s.slot.confirmed"
+          [attr.data-confirmed]="s.slot.confirmed"
+          data-testid="stores.pickups.slotState"
+        >
+          <i class="pi" [class.pi-check]="s.slot.confirmed" [class.pi-hourglass]="!s.slot.confirmed" aria-hidden="true"></i>
+          {{ (s.slot.confirmed ? 'pickups.tab.state.confirmed' : 'pickups.tab.state.unconfirmed') | t }}
+        </p>
         <div class="dialog-actions">
           @if (!s.slot.confirmed && ctx.may('mayConfirmPickups')) {
             <p-button
@@ -328,14 +382,23 @@ interface SlotTarget {
       color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer;
     }
     .chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+    .chip--pending { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .chip--pending .pi { color: var(--fs-warning-text); font-size: 0.85em; }
     .pickup { display: grid; gap: 0.45rem; padding: 0.6rem 0; border-top: 1px solid var(--fs-border); }
     .pickup:first-of-type { border-top: 0; }
     .pickup__head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .pickup__head p-button[data-testid='stores.pickups.edit'] { margin-left: auto; }
+    /* phones: the summary takes its own line under the time, the pencil stays on the first line */
+    @media (max-width: 47.99rem) {
+      .pickup__head fs-pickup-summary { flex-basis: 100%; order: 1; }
+    }
     .pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
     .pickup__desc { color: var(--fs-text-muted); font-size: 0.88rem; }
     .badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; }
     .pending { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.88rem; font-weight: 600; }
     .muted { margin: 0; color: var(--fs-text-muted); }
+    .slot-state { display: flex; gap: 0.4rem; align-items: center; margin: 0.35rem 0 0; color: var(--fs-primary-strong); font-weight: 600; }
+    .slot-state--unconfirmed { color: var(--fs-warning-text); }
     .dialog-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
     .form { display: grid; gap: 0.85rem; }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
@@ -356,6 +419,7 @@ export class StorePickupsTab {
   private readonly i18n = inject(I18nService);
   private readonly messages = inject(MessageService);
   private readonly clock = inject(ServerClock);
+  private readonly document = inject(DOCUMENT);
 
   protected readonly ranges: Range[] = ['twoWeeks', 'all'];
   protected readonly range = signal<Range>('all');
@@ -368,13 +432,31 @@ export class StorePickupsTab {
     isEmpty: (list) => list.length === 0,
   });
 
-  /** Day groups; "next 2 weeks" counts from the server's today in the store's time zone. */
-  protected readonly days = computed(() => {
+  /** Managers: show only pickups with unconfirmed sign-ups ("Unbestätigt (n)" chip). */
+  protected readonly pendingOnly = signal(false);
+
+  /** Day groups of the selected range; "next 2 weeks" counts from the server's today in the store's time zone. */
+  private readonly rangeDays = computed(() => {
     const groups = groupByDay(this.pickups.data() ?? [], this.tz());
     if (this.range() === 'all' || !groups.length) return groups;
     const until = addDays(dayOf(this.clock.now(), this.tz()), 14);
     return groups.filter((group) => group.day < until);
   });
+
+  /** Unconfirmed sign-ups in the selected range (the chip's count). */
+  protected readonly pendingCount = computed(() => unconfirmedCount(this.rangeDays().flatMap((group) => group.items)));
+
+  protected readonly days = computed(() => {
+    const groups = this.rangeDays();
+    if (!this.pendingOnly()) return groups;
+    return groups
+      .map((group) => ({ ...group, items: group.items.filter((pickup) => unconfirmedCount([pickup]) > 0) }))
+      .filter((group) => group.items.length > 0);
+  });
+
+  protected summaryOf(pickup: Pickup): SlotSummary {
+    return pickupSummary(pickup.occupiedSlots, pickup.slotCount);
+  }
 
   protected mySlot(pickup: Pickup): PickupSlot | undefined {
     return pickup.occupiedSlots.find((slot) => slot.user.id === this.myId());
@@ -421,8 +503,20 @@ export class StorePickupsTab {
       });
       return;
     }
+    this.openSlot(pickup, slot);
+  }
+
+  /** Opens the slot dialog; from the ✓ of a split pill, "Bestätigen" gets the focus (no one-click confirm). */
+  protected openSlot(pickup: Pickup, slot: PickupSlot, focusConfirm = false): void {
+    this.focusConfirm.set(focusConfirm);
     this.slotTarget.set({ pickup, slot });
     this.slotOpen.set(true);
+  }
+
+  /** `p-dialog` (onShow) fires after the enter animation, so the focus does not race it. */
+  protected onSlotDialogShown(): void {
+    if (!this.focusConfirm()) return;
+    this.document.querySelector<HTMLElement>('[data-testid="stores.pickups.confirmSlot"] button')?.focus();
   }
 
   protected readonly signOut = runMutation(
@@ -434,6 +528,7 @@ export class StorePickupsTab {
   // --- manager: confirm / remove a slot -------------------------------------------------------------------------
 
   protected readonly slotOpen = signal(false);
+  protected readonly focusConfirm = signal(false);
   protected readonly removeOpen = signal(false);
   protected readonly slotTarget = signal<SlotTarget | null>(null);
 
@@ -452,6 +547,43 @@ export class StorePickupsTab {
       },
     },
   );
+
+  /** "Alle n bestätigen": one dialog naming the people, then one confirm call per person, one after another. */
+  protected askConfirmAll(pickup: Pickup): void {
+    const pending = pickup.occupiedSlots.filter((slot) => !slot.confirmed);
+    this.confirm.confirm({
+      header: this.i18n.t('pickups.tab.confirmAllTitle'),
+      message: this.i18n.t('pickups.tab.confirmAllText', {
+        names: pending.map((slot) => slot.user.displayName).join(', '),
+      }),
+      acceptLabel: this.i18n.t('pickups.tab.confirmAll', { count: pending.length }),
+      rejectLabel: this.i18n.t('common.cancel'),
+      rejectButtonStyleClass: 'p-button-text p-button-secondary',
+      accept: () => void this.confirmAll.run(pickup, pending),
+    });
+  }
+
+  protected readonly confirmAll = runMutation(
+    (pickup: Pickup, pending: PickupSlot[]) =>
+      concat(
+        ...pending.map((slot) =>
+          this.api.confirmSignup({ storeId: this.ctx.storeId()!, pickupAt: pickup.pickupAt, userId: slot.user.id }),
+        ),
+      ).pipe(tap({ complete: () => this.confirmedAll.set(pending.length) })),
+    {
+      onSuccess: () => {
+        this.messages.add({
+          severity: 'success',
+          summary: this.i18n.t('pickups.tab.confirmedAll', { count: this.confirmedAll() }),
+          life: 4000,
+        });
+        this.reload();
+      },
+      // a failure partway: the error toast shows, the reload keeps the people still unconfirmed visible
+      onError: () => this.reload(),
+    },
+  );
+  private readonly confirmedAll = signal(0);
 
   protected askRemove(): void {
     this.slotOpen.set(false);

@@ -33,6 +33,9 @@ class AdminSettingsIT {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     private Cookie login(SeedUsers user) throws Exception {
         var result = mvc.perform(post("/api/dev/login-as").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"userId\":\"" + user.id() + "\"}")).andExpect(status().isOk()).andReturn();
@@ -125,6 +128,50 @@ class AdminSettingsIT {
         mvc.perform(delete("/api/admin/ip-blocks/" + JsonPath.read(block, "$.id")).with(csrf()).cookie(orga))
                 .andExpect(status().isNoContent());
         mvc.perform(get("/api/admin/ip-blocks").cookie(login(SeedUsers.BOT))).andExpect(status().isForbidden());
+    }
+
+    /** D17.2: automatic blocks are listed and lifted by ORGA only; both are recorded in the history. */
+    @Test
+    void rateLimitBlocksAreListedAndLiftedByOrga() throws Exception {
+        Cookie orga = login(SeedUsers.ORGA);
+        Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        String account = mvc.perform(post("/api/dev/rate-limit-blocks").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"scope\":\"ACCOUNT\",\"userId\":\"" + SeedUsers.FOODSAVER.id() + "\"}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.level").value(1))
+                .andReturn().getResponse().getContentAsString();
+        String accountId = JsonPath.read(account, "$.id");
+        mvc.perform(post("/api/dev/rate-limit-blocks").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"scope\":\"IP\",\"ip\":\"198.51.100.23\"}"))
+                .andExpect(status().isCreated());
+        mvc.perform(post("/api/dev/rate-limit-blocks").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"scope\":\"IP\"}")).andExpect(status().isBadRequest());
+
+        mvc.perform(get("/api/admin/rate-limit-blocks").cookie(foodsaver)).andExpect(status().isForbidden());
+        mvc.perform(delete("/api/admin/rate-limit-blocks/" + accountId).with(csrf()).cookie(foodsaver))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/rate-limit-blocks").cookie(orga)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '" + accountId + "')].scope").value("ACCOUNT"))
+                .andExpect(jsonPath("$[?(@.id == '" + accountId + "')].user.id").value(SeedUsers.FOODSAVER.id().toString()))
+                .andExpect(jsonPath("$[?(@.ip == '198.51.100.23')].scope").value("IP"))
+                .andExpect(jsonPath("$[?(@.ip == '198.51.100.23')].expiresAt").exists());
+
+        mvc.perform(delete("/api/admin/rate-limit-blocks/" + accountId).with(csrf()).cookie(orga))
+                .andExpect(status().isNoContent());
+        mvc.perform(delete("/api/admin/rate-limit-blocks/" + accountId).with(csrf()).cookie(orga))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("RATE_LIMIT_BLOCK_NOT_FOUND"));
+        mvc.perform(delete("/api/admin/rate-limit-blocks/" + java.util.UUID.randomUUID()).with(csrf()).cookie(orga))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/admin/rate-limit-blocks").cookie(orga)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '" + accountId + "')]").isEmpty());
+
+        java.util.UUID blockId = java.util.UUID.fromString(accountId);
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForList("select action from history_entry "
+                + "where subject_id = ? order by occurred_at, action", String.class, blockId))
+                .containsExactly("ADMIN_RATE_LIMIT_BLOCKED", "ADMIN_RATE_LIMIT_BLOCK_LIFTED");
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject("select metadata from history_entry "
+                + "where subject_id = ? and action = 'ADMIN_RATE_LIMIT_BLOCK_LIFTED'", String.class, blockId))
+                .contains("\"scope\":\"ACCOUNT\"", "\"userId\":\"" + SeedUsers.FOODSAVER.id() + "\"",
+                        "\"level\":1", "\"until\"");
     }
 
     @Test

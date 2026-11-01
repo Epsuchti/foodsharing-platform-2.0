@@ -31,7 +31,7 @@
   "pickups.tab.regularBadge": "régulière",
   "pickups.tab.edit": "Modifier la collecte",
   "pickups.tab.cancelled": "Annulée",
-  "pickups.tab.waiting": "En attente de confirmation",
+  "pickups.tab.waiting": "Non confirmé·e",
   "pickups.tab.addExtraSlot": "Ajouter une place",
   "pickups.tab.extraSlotBy": "Place ajoutée par {name}",
   "pickups.tab.extraSlotAdded": "Place ajoutée.",
@@ -101,5 +101,16 @@
   "pickups.reminders.title": "Rappels de collecte",
   "pickups.reminders.text": "Une cloche et un e-mail 24 heures avant chacune de tes collectes.",
   "pickups.reminders.label": "Me rappeler mes collectes",
-  "pickups.reminders.saved": "Réglage des rappels enregistré."
+  "pickups.reminders.saved": "Réglage des rappels enregistré.",
+  "pickups.tab.waitingMine": "Ta place n’est pas encore confirmée",
+  "pickups.tab.summary.confirmed": "{confirmed} sur {total} confirmées",
+  "pickups.tab.summary.unconfirmed": "{count, plural, one {# non confirmée} other {# non confirmées}}",
+  "pickups.tab.confirmAll": "Confirmer les {count}",
+  "pickups.tab.confirmAllTitle": "Tout confirmer ?",
+  "pickups.tab.confirmAllText": "Confirmer pour cette collecte : {names}.",
+  "pickups.tab.confirmedAll": "{count} inscriptions confirmées.",
+  "pickups.tab.range.pending": "Non confirmées ({count})",
+  "pickups.tab.pendingEmpty": "Plus aucune inscription non confirmée.",
+  "pickups.tab.state.confirmed": "Confirmé·e",
+  "pickups.tab.state.unconfirmed": "Non confirmé·e"
 }

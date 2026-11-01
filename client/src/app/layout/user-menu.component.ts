@@ -81,14 +81,13 @@ import { SidenavStateService } from './sidenav-state';
           <div class="sn-card__sep"></div>
           <fs-display-prefs testIdPrefix="shell.userMenu" [disclosure]="true" />
           <div class="sn-card__sep"></div>
-          <h3 class="sn-card__h">{{ 'layout.sidenav.shortcuts' | t }}</h3>
-          <div class="sn-keys" data-testid="shell.userMenu.shortcuts">
-            <span><kbd>Ctrl</kbd> / <kbd>⌘</kbd> <kbd>K</kbd> {{ 'layout.sidenav.shortcutSearch' | t }}</span>
-            @if (sidenav.canCollapse()) {
+          @if (sidenav.canCollapse()) {
+            <h3 class="sn-card__h">{{ 'layout.sidenav.shortcuts' | t }}</h3>
+            <div class="sn-keys" data-testid="shell.userMenu.shortcuts">
               <span><kbd>[</kbd> {{ 'layout.sidenav.shortcutToggle' | t }}</span>
-            }
-          </div>
-          <div class="sn-card__sep"></div>
+            </div>
+            <div class="sn-card__sep"></div>
+          }
           <button type="button" class="sn-row" (click)="logoutFromCard()" data-testid="shell.userMenu.logout">
             <i class="pi pi-sign-out" aria-hidden="true"></i>
             <span class="sn-row__label">{{ 'nav.logout' | t }}</span>

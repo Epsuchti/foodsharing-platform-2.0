@@ -26,7 +26,11 @@ public final class HttpExchange {
         return response;
     }
 
-    /** Client IP as seen after forward-headers processing ({@code server.forward-headers-strategy=framework}). */
+    /**
+     * Client IP after Tomcat's {@code RemoteIpValve} ({@code server.forward-headers-strategy=native}): the last
+     * {@code X-Forwarded-For} address that is not a trusted proxy ({@code server.tomcat.remoteip.internal-proxies}),
+     * or the connection's own address when the request does not come from a trusted proxy.
+     */
     public static String clientIp(HttpServletRequest request) {
         return request.getRemoteAddr();
     }

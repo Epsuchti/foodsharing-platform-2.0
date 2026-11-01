@@ -529,9 +529,13 @@ paths:
     $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1log'
   /api/stores/{storeId}/statistics:
     $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics'
+  /api/stores/{storeId}/statistics/members:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics~1members'
   # --- store-team ---
   /api/stores/{storeId}/team:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team'
+  /api/stores/{storeId}/team/members:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1members'
   /api/stores/{storeId}/applications:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications'
   /api/stores/{storeId}/applications/me:
@@ -737,6 +741,8 @@ paths:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}'
   /api/conversations/{conversationId}/messages:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages'
+  /api/conversations/{conversationId}/messages/{messageId}:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages~1{messageId}'
   /api/conversations/{conversationId}/read:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1read'
   /api/conversations/{conversationId}/members/{userId}:
@@ -1035,6 +1041,10 @@ paths:
     $ref: './paths/admin-settings.yaml#/~1api~1admin~1ip-blocks'
   /api/admin/ip-blocks/{blockId}:
     $ref: './paths/admin-settings.yaml#/~1api~1admin~1ip-blocks~1{blockId}'
+  /api/admin/rate-limit-blocks:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1rate-limit-blocks'
+  /api/admin/rate-limit-blocks/{blockId}:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1rate-limit-blocks~1{blockId}'
   /api/admin/donations:
     $ref: './paths/admin-settings.yaml#/~1api~1admin~1donations'
   # --- public-settings (M6) ---
@@ -1122,6 +1132,8 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1search~1reindex'
   /api/dev/statistics/aggregate:
     $ref: './paths/dev.yaml#/~1api~1dev~1statistics~1aggregate'
+  /api/dev/rate-limit-blocks:
+    $ref: './paths/dev.yaml#/~1api~1dev~1rate-limit-blocks'
   /api/dev/oauth/last-code:
     $ref: './paths/dev.yaml#/~1api~1dev~1oauth~1last-code'
   # --- admin-admins (AD1) ---

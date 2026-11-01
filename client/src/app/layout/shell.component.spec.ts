@@ -21,7 +21,7 @@ import {
   splitHeaderNav,
   visibleNavItems,
 } from './nav.config';
-import { ShellComponent, chromeOf } from './shell.component';
+import { ShellComponent, TOAST_BREAKPOINTS, chromeOf } from './shell.component';
 
 @Component({
   template: '<p class="page">page</p>',
@@ -324,5 +324,49 @@ describe('nav.config', () => {
     };
     expect(chromeOf(snapshot as never)).toBe('minimal');
     expect(chromeOf(null)).toBe('full');
+  });
+});
+
+describe('ShellComponent first navigation', () => {
+  it('applies the minimal chrome before the first navigation ends (no flash of the side menu on /login)', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<boolean>((resolve) => {
+      release = () => resolve(true);
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting({
+          routes: [
+            {
+              path: 'login',
+              component: PageComponent,
+              data: { chrome: 'minimal' },
+              canActivate: [() => gate],
+            },
+          ],
+        }),
+        provideOptimus(),
+      ],
+    });
+    const fixture = TestBed.createComponent(ShellComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    const navigation = TestBed.inject(Router).navigateByUrl('/login');
+    // routes are recognised, the guard still holds the navigation: NavigationEnd has not fired
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(host.getAttribute('data-chrome')).toBe('minimal');
+    release();
+    await navigation;
+    await fixture.whenStable();
+    expect(host.getAttribute('data-chrome')).toBe('minimal');
+  });
+});
+
+describe('toast breakpoints', () => {
+  it('keeps a 16px gutter on phones: centred at 50% (the container translates by -50%), never anchored at left: 1rem', () => {
+    const phone = TOAST_BREAKPOINTS['640px'];
+    expect(phone.width).toBe('calc(100vw - 2rem)');
+    expect(phone.left).toBe('50%');
+    expect(phone.right).toBe('auto');
   });
 });

@@ -1,0 +1,135 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { PickupSlot, Role } from '../../api';
+import { provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { PickupSlotComponent, firstName } from './pickup-slot.component';
+
+const TRANSLATIONS = {
+  'shared.pickupSlot.confirmed': '{name}, bestätigt',
+  'shared.pickupSlot.unconfirmed': '{name}, unbestätigt',
+  'shared.pickupSlot.mineConfirmed': 'Du ({name}), bestätigt – austragen',
+  'shared.pickupSlot.mineUnconfirmed': 'Du ({name}), unbestätigt – austragen',
+  'shared.pickupSlot.confirmOne': '{name} bestätigen',
+  'shared.pickupSlot.you': 'Du',
+  'shared.pickupSlot.free': 'Freier Platz – eintragen',
+};
+
+const slot = (id: string, displayName: string, confirmed: boolean): PickupSlot => ({
+  user: { id, displayName, role: Role.Foodsaver, verified: true },
+  confirmed,
+});
+
+describe('PickupSlotComponent (PU3 slot states)', () => {
+  let fixture: ComponentFixture<PickupSlotComponent>;
+  const qa = (selector: string) => [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(selector)];
+  const taken = () => qa('[data-testid="t.taken"]');
+
+  async function render(inputs: Record<string, unknown>): Promise<void> {
+    TestBed.configureTestingModule({ providers: provideDataStateTesting({ translations: TRANSLATIONS }) });
+    fixture = TestBed.createComponent(PickupSlotComponent);
+    fixture.componentRef.setInput('testId', 't');
+    for (const [name, value] of Object.entries(inputs)) fixture.componentRef.setInput(name, value);
+    await fixture.whenStable();
+  }
+
+  const SLOTS = [
+    slot('a', 'Priya Sharma', true),
+    slot('b', 'Marco Bernasconi', false),
+    slot('me', 'Sarah Müller', false),
+  ];
+
+  it('gives every taken slot a ring style and a badge icon, and names the state', async () => {
+    await render({ slotCount: 4, slots: SLOTS, myId: 'me' });
+    const [confirmed, unconfirmed, mine] = taken();
+
+    expect(confirmed.classList).not.toContain('slot--unconfirmed');
+    expect(confirmed.querySelector('.slot__state .pi-check')).not.toBeNull();
+    expect(confirmed.querySelector('.slot__state')?.getAttribute('aria-hidden')).toBe('true');
+    expect(confirmed.getAttribute('aria-label')).toBe('Priya Sharma, bestätigt');
+    expect(confirmed.getAttribute('data-confirmed')).toBe('true');
+
+    expect(unconfirmed.classList).toContain('slot--unconfirmed');
+    expect(unconfirmed.querySelector('.slot__state .pi-hourglass')).not.toBeNull();
+    expect(unconfirmed.getAttribute('aria-label')).toBe('Marco Bernasconi, unbestätigt');
+    expect(unconfirmed.getAttribute('data-confirmed')).toBe('false');
+
+    expect(qa('[data-testid="t.free"]')).toHaveLength(1);
+    expect(qa('[data-testid="t.confirm"]')).toHaveLength(0);
+    expect(mine.getAttribute('data-mine')).toBe('true');
+    expect(qa('[data-mine="true"]')).toHaveLength(1);
+  });
+
+  it('shows the own slot as a "Du" pill that stays clickable and keeps .taken', async () => {
+    await render({ slotCount: 2, slots: [slot('me', 'Sarah Müller', true), slot('b', 'Marco Bernasconi', false)], myId: 'me' });
+    const mine = qa('[data-mine="true"]')[0];
+    expect(mine.getAttribute('data-testid')).toBe('t.taken');
+    expect(mine.classList).toContain('slot--pill');
+    expect(mine.querySelector('.slot__label')?.textContent?.trim()).toBe('Du');
+    expect(mine.querySelector('.slot__label')?.getAttribute('aria-hidden')).toBe('true');
+    expect(mine.querySelector('.slot__icon.pi-check')).not.toBeNull();
+    expect(mine.getAttribute('aria-label')).toBe('Du (Sarah Müller), bestätigt – austragen');
+    expect((mine as HTMLButtonElement).disabled).toBe(false);
+    // others' slots are not clickable without slotsClickable
+    expect((taken()[1] as HTMLButtonElement).disabled).toBe(true);
+
+    const clicks: PickupSlot[] = [];
+    fixture.componentInstance.slotClick.subscribe((s) => clicks.push(s));
+    mine.click();
+    expect(clicks.map((s) => s.user.id)).toEqual(['me']);
+  });
+
+  it('names an unconfirmed own slot', async () => {
+    await render({ slotCount: 1, slots: [slot('me', 'Sarah Müller', false)], myId: 'me' });
+    const mine = qa('[data-mine="true"]')[0];
+    expect(mine.classList).toContain('slot--unconfirmed');
+    expect(mine.querySelector('.slot__icon.pi-hourglass')).not.toBeNull();
+    expect(mine.getAttribute('aria-label')).toBe('Du (Sarah Müller), unbestätigt – austragen');
+  });
+
+  it('renders split pills only when confirmable, with first name and a ✓ that emits confirmClick', async () => {
+    await render({ slotCount: 3, slots: SLOTS, myId: 'me', confirmable: true, slotsClickable: true });
+    const groups = qa('.split[role="group"]');
+    expect(groups).toHaveLength(1);
+    expect(groups[0].getAttribute('aria-label')).toBe('Marco Bernasconi, unbestätigt');
+
+    const pill = groups[0].querySelector<HTMLElement>('[data-testid="t.taken"]')!;
+    expect(pill.querySelector('.slot__label')?.textContent?.trim()).toBe('Marco');
+    expect(pill.getAttribute('title')).toBe('Marco Bernasconi');
+    expect(pill.getAttribute('aria-label')).toBe('Marco Bernasconi, unbestätigt');
+
+    const confirm = qa('[data-testid="t.confirm"]');
+    expect(confirm).toHaveLength(1);
+    expect(confirm[0].getAttribute('aria-label')).toBe('Marco Bernasconi bestätigen');
+
+    const slotClicks: string[] = [];
+    const confirmClicks: string[] = [];
+    fixture.componentInstance.slotClick.subscribe((s) => slotClicks.push(s.user.id));
+    fixture.componentInstance.confirmClick.subscribe((s) => confirmClicks.push(s.user.id));
+    pill.click();
+    confirm[0].click();
+    expect(slotClicks).toEqual(['b']);
+    expect(confirmClicks).toEqual(['b']);
+
+    // the confirmed slot and the own (unconfirmed) slot stay compact / "Du"
+    expect(taken()).toHaveLength(3);
+    expect(taken()[0].classList).not.toContain('slot--pill');
+    expect(taken()[2].getAttribute('data-mine')).toBe('true');
+  });
+
+  it('keeps the free slot logic', async () => {
+    await render({ slotCount: 3, slots: [SLOTS[0]], freeClickable: true });
+    const free = qa('[data-testid="t.free"]');
+    expect(free).toHaveLength(2);
+    expect(free[0].getAttribute('aria-label')).toBe('Freier Platz – eintragen');
+    expect((free[0] as HTMLButtonElement).disabled).toBe(false);
+    let clicked = 0;
+    fixture.componentInstance.freeClick.subscribe(() => clicked++);
+    free[1].click();
+    expect(clicked).toBe(1);
+  });
+
+  it('takes the first name up to the first space', () => {
+    expect(firstName('Marco Bernasconi')).toBe('Marco');
+    expect(firstName('Priya')).toBe('Priya');
+  });
+});

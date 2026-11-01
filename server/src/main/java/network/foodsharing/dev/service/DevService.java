@@ -8,10 +8,12 @@ import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
+import network.foodsharing.admin.service.RateLimitBlockService;
 import network.foodsharing.auth.domain.LoginMethod;
 import network.foodsharing.auth.service.AuthSessionService;
 import network.foodsharing.auth.service.CreatedSession;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.MutableClock;
 import network.foodsharing.notification.mail.CapturedMail;
@@ -45,11 +47,14 @@ public class DevService {
     private final AppProperties properties;
 
     private final ObjectProvider<network.foodsharing.common.seed.InMemoryState> inMemoryStates;
+    private final RateLimitBlockService rateLimitBlocks;
 
     public DevService(DevUserCatalog catalog, UserService userService, AuthSessionService sessionService,
                       SeedResetService seedResetService, ObjectProvider<CapturingMailTransport> capturingTransport,
                       MutableClock clock, AppProperties properties,
-                      ObjectProvider<network.foodsharing.common.seed.InMemoryState> inMemoryStates) {
+                      ObjectProvider<network.foodsharing.common.seed.InMemoryState> inMemoryStates,
+                      RateLimitBlockService rateLimitBlocks) {
+        this.rateLimitBlocks = rateLimitBlocks;
         this.inMemoryStates = inMemoryStates;
         this.catalog = catalog;
         this.userService = userService;
@@ -138,7 +143,8 @@ public class DevService {
         seedResetService.reset();
         long seeded = System.nanoTime();
         clearCapturedMails();
-        // in-memory state: circuit breakers, seen Telegram chats, rate limiters (login, messages, baskets, …)
+        // in-memory state: circuit breakers, seen Telegram chats, rate limiters (login, messages, baskets, …) and the
+        // API rate-limit blocks (RateLimitBlockRegistry)
         StringBuilder states = new StringBuilder();
         inMemoryStates.orderedStream().forEach(state -> {
             long stateStarted = System.nanoTime();
@@ -150,6 +156,22 @@ public class DevService {
         setClock(properties.getClock().getFixed());
         LOG.info("Dev reset done in {} ms (database {} ms, in-memory state ms:{})",
                 (System.nanoTime() - started) / 1_000_000, (seeded - started) / 1_000_000, states);
+    }
+
+    /**
+     * Blocks an IP or account through the API rate limit at its next level (e2e: the admin list shows it). Records
+     * {@code AdminAction.RATE_LIMIT_BLOCKED}.
+     *
+     * @throws ApiException 400 VALIDATION_FAILED without the ip (IP) or the userId (ACCOUNT)
+     */
+    public RateLimitBlockRegistry.Block createRateLimitBlock(RateLimitBlockRegistry.Scope scope, String ip,
+                                                             UUID userId) {
+        String subject = scope == RateLimitBlockRegistry.Scope.IP ? (ip == null || ip.isBlank() ? null : ip.strip())
+                : (userId == null ? null : userId.toString());
+        if (subject == null) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
+        }
+        return rateLimitBlocks.create(scope, subject);
     }
 
     private User requireUser(UUID userId) {

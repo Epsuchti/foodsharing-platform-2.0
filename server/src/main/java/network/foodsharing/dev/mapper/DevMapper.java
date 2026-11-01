@@ -10,7 +10,10 @@ import network.foodsharing.api.model.DevClockState;
 import network.foodsharing.api.model.DevNotification;
 import network.foodsharing.api.model.DevNotificationChannel;
 import network.foodsharing.api.model.DevUser;
+import network.foodsharing.api.model.RateLimitBlockEntry;
+import network.foodsharing.api.model.RateLimitBlockScope;
 import network.foodsharing.common.mapper.TimeMapper;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.dev.service.DevNotificationService.DevBell;
 import network.foodsharing.dev.service.DevService.DevUserView;
 import org.springframework.context.annotation.Profile;
@@ -32,6 +35,13 @@ public class DevMapper {
         user.setRole(view.user().getRole());
         user.setDescriptionKey(view.entry().map(entry -> entry.descriptionKey()).orElse(OTHER_USER_DESCRIPTION_KEY));
         return user;
+    }
+
+    /** The dev helper's answer: an account block carries no user summary (the admin list has it). */
+    public RateLimitBlockEntry toRateLimitBlock(RateLimitBlockRegistry.Block block) {
+        return new RateLimitBlockEntry().id(block.id()).scope(RateLimitBlockScope.fromValue(block.scope().name()))
+                .ip(block.scope() == RateLimitBlockRegistry.Scope.IP ? block.subject() : null).level(block.level())
+                .blockedAt(TimeMapper.toOffset(block.blockedAt())).expiresAt(TimeMapper.toOffset(block.expiresAt()));
     }
 
     public CapturedMail toCapturedMail(network.foodsharing.notification.mail.CapturedMail mail) {

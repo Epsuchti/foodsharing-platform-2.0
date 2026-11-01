@@ -63,14 +63,13 @@ test.describe('signed in', () => {
         .evaluate((el) => getComputedStyle(el).getPropertyValue('--fs-header-h').trim()),
     ).toBe('0px');
 
-    // "[" does nothing from 75rem; Ctrl K focuses the search
+    // "[" does nothing from 75rem
     await page.getByTestId('dashboard.page.welcome').click();
     await page.keyboard.press('[');
     await expect(sidenav).toHaveAttribute('data-mode', 'sidebar');
     // the search field comes with the feature toggles, after the first page
     await expect(page.getByTestId('search.global.input')).toBeVisible();
-    await page.keyboard.press('Control+k');
-    await expect(page.getByTestId('search.global.input')).toBeFocused();
+    await page.getByTestId('search.global.input').focus();
     // while typing, "[" is text
     await page.keyboard.type('[');
     await expect(page.getByTestId('search.global.input')).toHaveValue('[');
@@ -83,7 +82,8 @@ test.describe('signed in', () => {
     await user.click();
     await expect(user).toHaveAttribute('aria-expanded', 'true');
     await expectFloatingCard(page, page.getByTestId('shell.userMenu.card'));
-    await expect(page.getByTestId('shell.userMenu.shortcuts')).toContainText('K');
+    // no shortcuts to list from 75rem: the menu is always expanded
+    await expect(page.getByTestId('shell.userMenu.shortcuts')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('shell.userMenu.card')).toBeHidden();
     await expect(user).toHaveAttribute('aria-expanded', 'false');
