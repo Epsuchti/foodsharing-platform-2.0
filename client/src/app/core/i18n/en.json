@@ -373,6 +373,7 @@
   "errors.BLOCKLIST_DUPLICATE": "This entry is already on the blocklist.",
   "errors.BLOCKLIST_ENTRY_NOT_FOUND": "This blocklist entry does not exist.",
   "errors.IP_BLOCK_NOT_FOUND": "This IP block does not exist.",
+  "errors.RATE_LIMIT_BLOCK_NOT_FOUND": "This block no longer exists.",
   "errors.BLOG_POST_NOT_FOUND": "This blog post does not exist.",
   "errors.PETITION_INACTIVE": "There is no active petition right now.",
   "errors.RELEASE_NOTE_NOT_FOUND": "This release note does not exist.",

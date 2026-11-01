@@ -373,6 +373,7 @@
   "errors.BLOCKLIST_DUPLICATE": "Cette entrée figure déjà sur la liste de blocage.",
   "errors.BLOCKLIST_ENTRY_NOT_FOUND": "Cette entrée de liste de blocage n'existe pas.",
   "errors.IP_BLOCK_NOT_FOUND": "Ce blocage IP n'existe pas.",
+  "errors.RATE_LIMIT_BLOCK_NOT_FOUND": "Ce blocage n'existe plus.",
   "errors.BLOG_POST_NOT_FOUND": "Cet article de blog n'existe pas.",
   "errors.PETITION_INACTIVE": "Aucune pétition n'est en cours actuellement.",
   "errors.RELEASE_NOTE_NOT_FOUND": "Cette note de version n'existe pas.",

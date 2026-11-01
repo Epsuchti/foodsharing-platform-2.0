@@ -220,6 +220,8 @@
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Entscheidungen archiviert",
   "history.action.AUTOMATION.FIELD_CHANGED": "Feld geändert",
   "history.action.SYSTEM.ADMIN_JOB_RUN_MANUAL": "Job manuell gestartet",
+  "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCKED": "Automatisch gesperrt (Anfragelimit)",
+  "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCK_LIFTED": "Automatische Sperre aufgehoben",
   "history.action.SYSTEM.ADMIN_INTEGRATION_PROBED": "Integration geprüft",
   "history.action.SYSTEM.ADMIN_INTEGRATION_TEST_SENT": "Testnachricht über Integration gesendet",
   "history.action.PICKUP.EXTRA_SLOT_ADDED": "Zusatzplatz geöffnet",

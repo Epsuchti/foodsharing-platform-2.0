@@ -1192,7 +1192,8 @@ seed data updated with every new entity; new text in all five languages; every f
 - Single Docker image (`eclipse-temurin:21-jre`), `SPRING_PROFILES_ACTIVE=prod`, version file, port 8080.
 - `deploy/release.sh` as in reference: Maven build → buildx multi-arch → push `:<version>` and `:latest` → git tag.
 - Environment: Postgres with daily backups (point-in-time recovery when possible), reverse proxy with TLS,
-  `server.forward-headers-strategy=framework`, mail domain with MX/SPF/DKIM/DMARC for regional mailboxes.
+  `server.forward-headers-strategy=native` (Tomcat `RemoteIpValve`, `X-Forwarded-*` trusted only from the proxy's
+  private range, env `TRUSTED_PROXIES`), mail domain with MX/SPF/DKIM/DMARC for regional mailboxes.
 - Domain is configuration (`app.domain`, `app.mail.domain`) until it is decided.
 - Secrets via env: DB, SMTP/IMAP, Google OAuth, VAPID keys, Telegram bot token (encrypted at rest with
   `app.crypto.key`, as reference `CryptoService`), wallet signing keys, upload bucket.

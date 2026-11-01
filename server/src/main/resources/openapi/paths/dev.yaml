@@ -425,3 +425,31 @@
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
     x-dev-only: true
+
+/api/dev/rate-limit-blocks:
+  post:
+    tags: [dev]
+    operationId: devCreateRateLimitBlock
+    summary: Create an automatic API rate-limit block at the next level (e2e helper, D17.2).
+    x-permission: dev profile
+    x-history: AdminAction.RATE_LIMIT_BLOCKED
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/dev.yaml#/DevRateLimitBlockCreate'
+    responses:
+      "201":
+        description: Created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/admin-settings.yaml#/RateLimitBlockEntry'
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+    x-dev-only: true

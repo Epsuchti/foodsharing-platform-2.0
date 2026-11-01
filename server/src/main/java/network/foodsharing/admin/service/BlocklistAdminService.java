@@ -3,12 +3,15 @@ package network.foodsharing.admin.service;
 import java.util.List;
 import java.util.UUID;
 import network.foodsharing.admin.domain.AdminAction;
+import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.auth.domain.EmailBlocklistEntry;
 import network.foodsharing.auth.domain.IpBlock;
 import network.foodsharing.auth.domain.IpBlockContext;
 import network.foodsharing.auth.service.EmailBlocklistService;
 import network.foodsharing.auth.service.IpBlockService;
+import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
 import org.springframework.stereotype.Service;
@@ -16,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Email blocklist and IP block administration (C12, upstream EmailBlocklistAdmin): ORGA only, every change is
- * ADMIN history; the auth module keeps the tables and the matching rules.
+ * ADMIN history; the auth module keeps the tables and the matching rules. Also the automatic blocks of the API rate
+ * limit (D17.2, in memory): list and lift.
  */
 @Service
 public class BlocklistAdminService {
@@ -25,9 +29,11 @@ public class BlocklistAdminService {
     private final IpBlockService ipBlocks;
     private final CurrentActorService actors;
     private final HistoryService history;
+    private final RateLimitBlockRegistry rateLimitBlocks;
 
     public BlocklistAdminService(EmailBlocklistService blocklist, IpBlockService ipBlocks, CurrentActorService actors,
-                                 HistoryService history) {
+                                 HistoryService history, RateLimitBlockRegistry rateLimitBlocks) {
+        this.rateLimitBlocks = rateLimitBlocks;
         this.blocklist = blocklist;
         this.ipBlocks = ipBlocks;
         this.actors = actors;
@@ -89,5 +95,25 @@ public class BlocklistAdminService {
         actors.requireRole(Role.ORGA);
         IpBlock block = ipBlocks.remove(blockId);
         history.record(history.event(AdminAction.IP_BLOCK_REMOVED, blockId).metadata("ip", block.getCidr()).build());
+    }
+
+    /** Active automatic blocks of the API rate limit, newest first. */
+    public List<RateLimitBlockRegistry.Block> rateLimitBlocks() {
+        actors.requireRole(Role.ORGA);
+        return rateLimitBlocks.list();
+    }
+
+    /**
+     * Lifts an automatic block; the account or IP starts again at level 1.
+     *
+     * @throws ApiException 404 RATE_LIMIT_BLOCK_NOT_FOUND when it does not exist or has already ended
+     */
+    @Transactional
+    public void liftRateLimitBlock(UUID blockId) {
+        actors.requireRole(Role.ORGA);
+        RateLimitBlockRegistry.Block block = rateLimitBlocks.lift(blockId)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.RATE_LIMIT_BLOCK_NOT_FOUND));
+        history.record(history.event(AdminAction.RATE_LIMIT_BLOCK_LIFTED, blockId)
+                .metadata(RateLimitBlockService.metadata(block)).build());
     }
 }

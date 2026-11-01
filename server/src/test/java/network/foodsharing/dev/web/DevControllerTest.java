@@ -126,6 +126,28 @@ class DevControllerTest {
     }
 
     @Test
+    void createRateLimitBlockIs201AndNeedsItsSubject() throws Exception {
+        var block = new network.foodsharing.common.web.RateLimitBlockRegistry.Block(UUID.randomUUID(),
+                network.foodsharing.common.web.RateLimitBlockRegistry.Scope.IP, "203.0.113.7", 1,
+                Instant.parse("2026-11-02T09:00:00Z"), Instant.parse("2026-11-02T09:01:00Z"));
+        when(devService.createRateLimitBlock(network.foodsharing.common.web.RateLimitBlockRegistry.Scope.IP,
+                "203.0.113.7", null)).thenReturn(block);
+        mvc.perform(post("/api/dev/rate-limit-blocks").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"scope\":\"IP\",\"ip\":\"203.0.113.7\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.ip").value("203.0.113.7"))
+                .andExpect(jsonPath("$.level").value(1))
+                .andExpect(jsonPath("$.expiresAt").exists());
+
+        when(devService.createRateLimitBlock(network.foodsharing.common.web.RateLimitBlockRegistry.Scope.ACCOUNT,
+                null, null)).thenThrow(ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED));
+        mvc.perform(post("/api/dev/rate-limit-blocks").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"scope\":\"ACCOUNT\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
+    @Test
     void resetSeedIs204AndRefusesNonH2With409() throws Exception {
         mvc.perform(post("/api/dev/seed/reset")).andExpect(status().isNoContent());
         verify(devService).resetAll();

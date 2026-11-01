@@ -1,6 +1,9 @@
 package network.foodsharing.dev.web;
 
 import network.foodsharing.api.model.DevOAuthCode;
+import network.foodsharing.api.model.DevRateLimitBlockCreate;
+import network.foodsharing.api.model.RateLimitBlockEntry;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.api.model.DevIncomingMail;
 import network.foodsharing.api.model.DevRealtimePing;
 import network.foodsharing.api.model.DevRealtimeSessions;
@@ -226,5 +229,13 @@ public class DevController implements DevApi {
     public ResponseEntity<Void> devReindexSearch() {
         notificationService.runJob("search-reindex");
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<RateLimitBlockEntry> devCreateRateLimitBlock(DevRateLimitBlockCreate create) {
+        RateLimitBlockRegistry.Block block = devService.createRateLimitBlock(
+                RateLimitBlockRegistry.Scope.valueOf(create.getScope().getValue()), create.getIp(), create.getUserId());
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(mapper.toRateLimitBlock(block));
     }
 }

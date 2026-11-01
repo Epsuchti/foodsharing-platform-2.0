@@ -32,6 +32,7 @@ Legend — **Req**: `yes` = the prod profile does not start without it; `opt` = 
 | `MANAGEMENT_PORT` | opt | - | default `9090` (health + Prometheus, internal only) | - | - |
 | `APP_VERSION` | opt | - | set by the image (`server/deploy/version.txt`); added to every JSON log line | - | - |
 | `APP_VERSION_FILE` | opt | - | set by the image (`/app/version.txt`) | - | - |
+| `TRUSTED_PROXIES` | opt | - | regex of the reverse proxy addresses whose `X-Forwarded-For`/`-Proto` are trusted (`server.tomcat.remoteip.internal-proxies`); default: the private ranges 10/8, 172.16/12, 192.168/16, 127/8, ::1, fc00::/7 | - | - |
 
 ## Mail (SMTP, ProtonMail)
 

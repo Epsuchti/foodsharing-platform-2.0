@@ -2,6 +2,8 @@ package network.foodsharing.testsupport;
 
 import java.util.Optional;
 import network.foodsharing.common.error.ApiErrorResponseWriter;
+import network.foodsharing.common.web.RateLimitBlockRecorder;
+import network.foodsharing.common.web.RateLimitBlockRegistry;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.SecurityConfig;
 import network.foodsharing.security.CurrentActorService;
@@ -17,17 +19,23 @@ import org.springframework.context.annotation.Primary;
 /**
  * For {@code @WebMvcTest}: the real security chain (CSRF, JSON 401/403), the real current-actor/permission services
  * and a session authenticator that knows no cookies (authenticate requests with {@link WithSeedUser} or
- * {@link TestAuth#as}). Also fixes the clock.
+ * {@link TestAuth#as}). Also fixes the clock. The API rate limit filter runs with its configured limits.
  */
 @TestConfiguration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AppProperties.class)
 @Import({SecurityConfig.class, CurrentActorService.class, PermissionService.class, SessionCookieWriter.class,
-        ApiErrorResponseWriter.class, FixedClockConfig.class})
+        ApiErrorResponseWriter.class, FixedClockConfig.class, RateLimitBlockRegistry.class})
 public class SecurityTestConfig {
 
     @Bean
     @Primary
     public SessionAuthenticator sessionAuthenticator() {
         return rawToken -> Optional.empty();
+    }
+
+    /** D17.2: the API rate limit filter is in the chain; its blocks are not recorded in slice tests. */
+    @Bean
+    public RateLimitBlockRecorder rateLimitBlockRecorder() {
+        return block -> { };
     }
 }
