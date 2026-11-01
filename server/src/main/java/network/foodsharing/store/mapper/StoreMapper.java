@@ -209,8 +209,6 @@ public class StoreMapper {
 
     public network.foodsharing.api.model.StoreTeam toTeam(network.foodsharing.store.service.StoreTeamService.TeamView v) {
         network.foodsharing.api.model.StoreTeam model = new network.foodsharing.api.model.StoreTeam();
-        model.setMembers(v.members().stream().map(this::toMember).toList());
-        model.setJumpers(v.jumpers().stream().map(this::toMember).toList());
         if (v.applications() != null) {
             model.setApplications(v.applications().stream().map(a -> {
                 network.foodsharing.api.model.StoreApplication app = new network.foodsharing.api.model.StoreApplication();
@@ -230,6 +228,45 @@ public class StoreMapper {
                 return inv;
             }).toList());
         }
+        return model;
+    }
+
+    public network.foodsharing.api.model.TeamMemberPage toTeamMemberPage(
+            org.springframework.data.domain.Page<network.foodsharing.store.service.StoreTeamService.TeamMemberView> page) {
+        network.foodsharing.api.model.TeamMemberPage model = new network.foodsharing.api.model.TeamMemberPage();
+        model.setItems(page.getContent().stream().map(this::toMember).toList());
+        model.setPage(network.foodsharing.common.mapper.PageMapper.toPageMeta(page));
+        return model;
+    }
+
+    public network.foodsharing.store.service.TeamListQuery toTeamQuery(network.foodsharing.api.model.TeamListStatus status,
+            String search, network.foodsharing.api.model.TeamSort sort, Integer page, Integer size) {
+        return network.foodsharing.store.service.TeamListQuery.of(
+                convert(status, network.foodsharing.store.service.TeamListQuery.Status.class), search,
+                convert(sort, network.foodsharing.store.service.TeamListQuery.Sort.class), page, size);
+    }
+
+    public network.foodsharing.store.service.TeamListQuery toStatisticsQuery(
+            network.foodsharing.api.model.StatisticsMemberStatus status, String search,
+            network.foodsharing.api.model.TeamSort sort, Integer page, Integer size) {
+        return network.foodsharing.store.service.TeamListQuery.of(
+                convert(status, network.foodsharing.store.service.TeamListQuery.Status.class), search,
+                convert(sort, network.foodsharing.store.service.TeamListQuery.Sort.class), page, size);
+    }
+
+    public network.foodsharing.api.model.StoreMemberPickupsPage toMemberPickupsPage(
+            org.springframework.data.domain.Page<network.foodsharing.store.service.StoreStatisticsService.MemberPickups> page) {
+        network.foodsharing.api.model.StoreMemberPickupsPage model = new network.foodsharing.api.model.StoreMemberPickupsPage();
+        model.setItems(page.getContent().stream().map(m -> {
+            network.foodsharing.api.model.StoreMemberPickups row = new network.foodsharing.api.model.StoreMemberPickups();
+            row.setUser(users.toSummary(m.user()));
+            row.setPickups(m.pickups());
+            row.setLastPickupAt(toOffset(m.lastPickupAt()));
+            row.setStatus(convert(m.status(), network.foodsharing.api.model.StatisticsPersonStatus.class));
+            row.setIsManager(m.manager());
+            return row;
+        }).toList());
+        model.setPage(network.foodsharing.common.mapper.PageMapper.toPageMeta(page));
         return model;
     }
 
@@ -312,14 +349,6 @@ public class StoreMapper {
             month.setKg(m.kg());
             return month;
         }).toList());
-        if (s.perMember() != null) {
-            model.setPerMember(s.perMember().stream().map(m -> {
-                network.foodsharing.api.model.StoreMemberPickups row = new network.foodsharing.api.model.StoreMemberPickups();
-                row.setUser(users.toSummary(m.user()));
-                row.setPickups(m.pickups());
-                return row;
-            }).toList());
-        }
         return model;
     }
 

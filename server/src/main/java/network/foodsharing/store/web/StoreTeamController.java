@@ -7,6 +7,9 @@ import network.foodsharing.api.StoreTeamApi;
 import network.foodsharing.api.model.RequiredMessage;
 import network.foodsharing.api.model.StoreApplicationCreate;
 import network.foodsharing.api.model.StoreTeam;
+import network.foodsharing.api.model.TeamListStatus;
+import network.foodsharing.api.model.TeamMemberPage;
+import network.foodsharing.api.model.TeamSort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -76,6 +79,13 @@ public class StoreTeamController implements StoreTeamApi {
     @Override
     public ResponseEntity<StoreTeam> getStoreTeam(UUID storeId) {
         return ResponseEntity.ok(mapper.toTeam(team.team(storeId)));
+    }
+
+    @Override
+    public ResponseEntity<TeamMemberPage> listStoreTeamMembers(UUID storeId, TeamListStatus status, String search,
+                                                               TeamSort sort, Integer page, Integer size) {
+        return ResponseEntity.ok(mapper.toTeamMemberPage(
+                team.teamMembers(storeId, mapper.toTeamQuery(status, search, sort, page, size))));
     }
 
     @Override
