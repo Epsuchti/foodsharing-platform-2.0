@@ -21,7 +21,7 @@ import {
   splitHeaderNav,
   visibleNavItems,
 } from './nav.config';
-import { ShellComponent, chromeOf } from './shell.component';
+import { ShellComponent, TOAST_BREAKPOINTS, chromeOf } from './shell.component';
 
 @Component({
   template: '<p class="page">page</p>',
@@ -359,5 +359,14 @@ describe('ShellComponent first navigation', () => {
     await navigation;
     await fixture.whenStable();
     expect(host.getAttribute('data-chrome')).toBe('minimal');
+  });
+});
+
+describe('toast breakpoints', () => {
+  it('keeps a 16px gutter on phones: centred at 50% (the container translates by -50%), never anchored at left: 1rem', () => {
+    const phone = TOAST_BREAKPOINTS['640px'];
+    expect(phone.width).toBe('calc(100vw - 2rem)');
+    expect(phone.left).toBe('50%');
+    expect(phone.right).toBe('auto');
   });
 });
