@@ -23,7 +23,7 @@ export function shiftsByDay(shifts: readonly CleaningShift[], timeZone: string):
 }
 
 /**
- * A typed date (`TT.MM.JJJJ` or `YYYY-MM-DD`; a plain text field, no native date input) as `YYYY-MM-DD`, or null when
+ * A date (`TT.MM.JJJJ` or `YYYY-MM-DD`, the value of `fs-date-input`) as `YYYY-MM-DD`, or null when
  * it is no real calendar day.
  */
 export function parseDay(text: string): string | null {

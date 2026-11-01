@@ -127,7 +127,6 @@
   "foodSharePoints.cleaning.editTitle": "Putzeinsatz bearbeiten",
   "foodSharePoints.cleaning.addTitle": "Einmaliger Putzeinsatz",
   "foodSharePoints.cleaning.date": "Datum",
-  "foodSharePoints.cleaning.datePlaceholder": "TT.MM.JJJJ",
   "foodSharePoints.cleaning.time": "Uhrzeit (Schweizer Zeit)",
   "foodSharePoints.cleaning.slots": "Plätze",
   "foodSharePoints.cleaning.slotsHint": "0 sagt den Putzeinsatz ab.",

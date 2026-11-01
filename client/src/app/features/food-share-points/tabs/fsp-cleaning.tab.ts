@@ -26,6 +26,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { EligibilityReasonsComponent } from '../../../shared/eligibility-reasons/eligibility-reasons.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.component';
@@ -36,7 +37,7 @@ import {
 } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { ServerClock } from '../../pickups/pickups.resource';
 import { addDays, dayOf, zonedToUtc } from '../../pickups/pickups.util';
-import { CLEANING_TIME_ZONE, formatDay, parseDay, shiftsByDay, validTime } from '../cleaning.util';
+import { CLEANING_TIME_ZONE, parseDay, shiftsByDay, validTime } from '../cleaning.util';
 
 interface SlotTarget {
   shift: CleaningShift;
@@ -54,6 +55,7 @@ interface SlotTarget {
   selector: 'fs-fsp-cleaning-tab',
   imports: [
     ...DATA_STATE_IMPORTS,
+    ...DATE_INPUT_IMPORTS,
     Button,
     DateTimePipe,
     Dialog,
@@ -404,30 +406,22 @@ interface SlotTarget {
             @if (!editAt()) {
               <label class="field">
                 <span>{{ 'foodSharePoints.cleaning.date' | t }}</span>
-                <input
-                  pInputText
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="10"
-                  [placeholder]="'foodSharePoints.cleaning.datePlaceholder' | t"
+                <fs-date-input
+                  [required]="true"
                   [ngModel]="newDateText()"
                   (ngModelChange)="newDateText.set($event)"
-                  [class.invalid]="!newDayValid()"
-                  data-testid="fsp.cleaning.edit.date"
+                  [ariaInvalid]="!newDayValid()"
+                  testId="fsp.cleaning.edit.date"
                 />
               </label>
               <label class="field">
                 <span>{{ 'foodSharePoints.cleaning.time' | t }}</span>
-                <input
-                  pInputText
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="5"
-                  placeholder="HH:MM"
+                <fs-time-input
+                  [required]="true"
                   [ngModel]="newTimeText()"
                   (ngModelChange)="newTimeText.set($event)"
-                  [class.invalid]="!newTimeValid()"
-                  data-testid="fsp.cleaning.edit.time"
+                  [ariaInvalid]="!newTimeValid()"
+                  testId="fsp.cleaning.edit.time"
                 />
               </label>
             }
@@ -861,7 +855,7 @@ export class FspCleaningTab {
     this.editAt.set(null);
     this.editSlots = 2;
     this.editDescription = '';
-    this.newDateText.set(formatDay(addDays(dayOf(this.clock.now(), this.tz), 1)));
+    this.newDateText.set(addDays(dayOf(this.clock.now(), this.tz), 1));
     this.newTimeText.set('10:00');
     this.editOpen.set(true);
   }
