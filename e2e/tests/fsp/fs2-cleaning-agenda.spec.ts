@@ -34,8 +34,9 @@ test.describe('my cleaning shifts', () => {
   test('FS2 calendar switch for cleaning shifts changes the feed link @FS2 @A11', async ({ page, apiOf }) => {
     await acceptPendingConsents(apiOf(page));
     await page.goto('/account/settings');
-    const create = page.getByTestId('account.settings.calendar.create');
-    if (await create.isVisible()) await create.click();
+    // guide has no calendar link in the seed
+    await expectDataState(page, 'account.settings.calendar.state', 'empty');
+    await page.getByTestId('account.settings.calendar.create').click();
     const url = page.getByTestId('account.settings.calendar.url');
     await expect(url).toHaveValue(/\.ics$/);
     const feed = await page.request.get(new URL(await url.inputValue()).pathname, { headers: { Accept: 'text/calendar' } });
