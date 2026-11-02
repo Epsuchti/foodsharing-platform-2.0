@@ -59,6 +59,9 @@ class FspCleaningControllerTest {
     private MockMvc mvc;
 
     @MockitoBean
+    private network.foodsharing.fsp.service.FspCleaningQueries queries;
+
+    @MockitoBean
     private FspCleaningScheduleService schedule;
 
     @MockitoBean
