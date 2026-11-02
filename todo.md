@@ -5,7 +5,7 @@ Open points only. Finished work lives in `docs/ledger.md` and `docs/decisions.md
 Last updated 2026-11-02, after merging `integration/2026-11-01` (decisions 142–152) into `main`.
 
 ## Before launch
-- **Lighthouse D11.5.3 / D18.3:** `/onboarding` scores 82–86 under load against a hard threshold of 90 (`/` scores 98–99). Measure on an idle machine or in CI. If it is still below 90, the parked branch `build/m7-perf-2` (decision 131: build-time theme, blocking first navigation) is next.
+- **Lighthouse D11.5.3 / D18.3:** `/onboarding` scored 76–79 on CI on 2026-11-01 against a hard threshold of 90 (`/` 91–94); it is report-only until it passes (decision 141). Next is step 3 of `docs/tasks/2026-11-01-onboarding-performance.md`, the build-time theme. Its old commits and the branch `build/m7-perf-2` no longer exist, so it has to be rebuilt.
 - **Final gate (plan-m7 Part D):**
   - fill in the test results in `docs/launch-report.md`
   - regenerate `docs/coverage.md`
@@ -48,5 +48,5 @@ Last updated 2026-11-02, after merging `integration/2026-11-01` (decisions 142�
 - **Windows Playwright worker crash** (exit 3221226505 / 0xC0000409): hits a random test about once per full serial run and passes on rerun. Machine infrastructure, not app code. Sharded runs turn video off, which lowers memory.
 
 ## Housekeeping
-- Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`). Keep `build/m7-perf-2`.
+- Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`).
 - `SpaForwardingControllerTest.languagePreferenceOrderIsCookieThenAcceptLanguageThenGerman` depends on a stale `static/it` in `target/classes`; run `./mvnw clean verify` first, and make the test independent of the build state instead of changing its expectation.

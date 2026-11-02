@@ -16,6 +16,11 @@ interface Score {
   performance: number;
   accessibility: number;
   runs: number[];
+  fcpMs: number;
+  lcpMs: number;
+  tbtMs: number;
+  requestsBeforeLcp: number;
+  kbBeforeLcp: number;
 }
 
 test('D11.5.3 lighthouse thresholds @D11.5.3 @chromium-only', async ({ baseURL, page }) => {
@@ -25,7 +30,7 @@ test('D11.5.3 lighthouse thresholds @D11.5.3 @chromium-only', async ({ baseURL, 
   await page.goto('/onboarding');
   const results: Score[] = await runLighthouseMedian(baseURL!, await defaultPages(baseURL!), 3);
   test.info().annotations.push({ type: 'lighthouse', description: JSON.stringify(results) });
-  const report = results.map((r) => `Lighthouse ${r.path}: performance ${r.performance} (runs ${r.runs.join(', ')}), accessibility ${r.accessibility}`);
+  const report = results.map((r) => `Lighthouse ${r.path}: performance ${r.performance} (runs ${r.runs.join(', ')}), accessibility ${r.accessibility}, FCP ${r.fcpMs} ms, LCP ${r.lcpMs} ms, TBT ${r.tbtMs} ms, ${r.requestsBeforeLcp} requests and ${r.kbBeforeLcp} KB before LCP`);
   console.log(report.join('\n'));
   if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, report.map((line) => `- ${line}\n`).join(''));
   expect(results.map((r) => r.path)).toEqual(['/', '/onboarding']);

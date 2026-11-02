@@ -101,11 +101,18 @@ export async function runLighthouse(baseURL, pages) {
           clearStorageTypes: ['file_systems', 'shader_cache', 'service_workers', 'cache_storage', 'indexeddb', 'local_storage', 'websql'],
         },
       );
-      const { categories } = run.lhr;
+      const { categories, audits } = run.lhr;
+      const observedLcp = audits.metrics?.details?.items?.[0]?.observedLargestContentfulPaint ?? 0;
+      const beforeLcp = (audits['network-requests']?.details?.items ?? []).filter((item) => item.networkEndTime <= observedLcp);
       results.push({
         path,
         performance: Math.round((categories.performance.score ?? 0) * 100),
         accessibility: Math.round((categories.accessibility.score ?? 0) * 100),
+        fcpMs: Math.round(audits['first-contentful-paint']?.numericValue ?? 0),
+        lcpMs: Math.round(audits['largest-contentful-paint']?.numericValue ?? 0),
+        tbtMs: Math.round(audits['total-blocking-time']?.numericValue ?? 0),
+        requestsBeforeLcp: beforeLcp.length,
+        kbBeforeLcp: Math.round(beforeLcp.reduce((sum, item) => sum + (item.transferSize ?? 0), 0) / 1024),
       });
     }
     return results;
@@ -131,6 +138,11 @@ export async function runLighthouseMedian(baseURL, pages, runs = 3) {
       performance: median(scores.map((s) => s.performance)),
       accessibility: median(scores.map((s) => s.accessibility)),
       runs: scores.map((s) => s.performance),
+      fcpMs: median(scores.map((s) => s.fcpMs)),
+      lcpMs: median(scores.map((s) => s.lcpMs)),
+      tbtMs: median(scores.map((s) => s.tbtMs)),
+      requestsBeforeLcp: median(scores.map((s) => s.requestsBeforeLcp)),
+      kbBeforeLcp: median(scores.map((s) => s.kbBeforeLcp)),
     };
   });
 }
