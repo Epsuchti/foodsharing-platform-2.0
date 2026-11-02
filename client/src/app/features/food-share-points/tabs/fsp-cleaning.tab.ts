@@ -671,7 +671,11 @@ export class FspCleaningTab {
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly tz = CLEANING_TIME_ZONE;
+  /** Shifts show in the Fairteiler's zone (decision 155). */
+  protected get tz(): string {
+    return this.fsp.data()?.timeZone ?? CLEANING_TIME_ZONE;
+  }
+
   protected readonly myId = computed(() => this.session.user()?.id);
   protected readonly fspId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('fspId') ?? undefined)),

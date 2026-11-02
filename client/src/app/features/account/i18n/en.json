@@ -236,5 +236,6 @@
   "account.connections.revoke": "Revoke access",
   "account.connections.revokeTitle": "Revoke access?",
   "account.connections.revokeText": "{name} will be signed out and has to ask for your consent again next time.",
-  "account.connections.revoked": "Access revoked"
+  "account.connections.revoked": "Access revoked",
+  "account.calendar.cleaningShifts": "Cleaning shifts"
 }

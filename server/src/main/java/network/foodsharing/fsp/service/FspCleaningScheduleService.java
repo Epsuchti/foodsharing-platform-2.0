@@ -35,7 +35,6 @@ import network.foodsharing.fsp.repository.FspCleaningRegularRepository;
 import network.foodsharing.fsp.repository.FspCleaningShiftRepository;
 import network.foodsharing.fsp.repository.FspCleaningSignupRepository;
 import network.foodsharing.history.service.HistoryService;
-import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.domain.User;
@@ -76,7 +75,6 @@ public class FspCleaningScheduleService {
     private final FspCleaningSignupRepository signups;
     private final FspPermissionService access;
     private final CurrentActorService actors;
-    private final RegionService regions;
     private final UserService users;
     private final HistoryService history;
     private final FeatureToggleService toggles;
@@ -84,7 +82,7 @@ public class FspCleaningScheduleService {
 
     public FspCleaningScheduleService(FoodSharePointRepository fsps, FspCleaningRegularRepository regular,
                                       FspCleaningShiftRepository shifts, FspCleaningSignupRepository signups,
-                                      FspPermissionService access, CurrentActorService actors, RegionService regions,
+                                      FspPermissionService access, CurrentActorService actors,
                                       UserService users, HistoryService history, FeatureToggleService toggles,
                                       Clock clock) {
         this.fsps = fsps;
@@ -93,7 +91,6 @@ public class FspCleaningScheduleService {
         this.signups = signups;
         this.access = access;
         this.actors = actors;
-        this.regions = regions;
         this.users = users;
         this.history = history;
         this.toggles = toggles;
@@ -120,7 +117,7 @@ public class FspCleaningScheduleService {
     }
 
     ZoneId zoneOf(FoodSharePoint fsp) {
-        return regions.zoneOf(fsp.getRegionId());
+        return ZoneId.of(fsp.getTimeZone());
     }
 
     /** The Fairteiler's shifts with {@code from <= shiftAt < to} (no permission check). */

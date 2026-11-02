@@ -308,5 +308,6 @@
   "regions.members.permissionsShort": "Rächt",
   "regions.members.removeShort": "Entferne",
   "regions.page.membershipHome": "{name} isch din Stammbezirk.",
-  "regions.page.membershipMember": "Du bisch Mitglied vo {name}."
+  "regions.page.membershipMember": "Du bisch Mitglied vo {name}.",
+  "regions.statistics.cleaning": "Putzeinsätz letschte Monet"
 }

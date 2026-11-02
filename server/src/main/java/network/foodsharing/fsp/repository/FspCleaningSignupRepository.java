@@ -45,6 +45,25 @@ public interface FspCleaningSignupRepository extends JpaRepository<FspCleaningSi
     List<TeamStatsRow> teamStats(@Param("fspId") UUID fspId, @Param("since") Instant since,
                                  @Param("now") Instant now);
 
+    /** The user's sign-ups with {@code from <= shiftAt < to}, by time. */
+    List<FspCleaningSignup> findByUserIdAndShiftAtGreaterThanEqualAndShiftAtLessThanOrderByShiftAtAscIdAsc(
+            UUID userId, Instant from, Instant to);
+
+    @Query("select s from FspCleaningSignup s where s.remindedAt is null and s.shiftAt > :from and s.shiftAt <= :to")
+    List<FspCleaningSignup> findToRemind(@Param("from") Instant from, @Param("to") Instant to);
+
+    /** The user's sign-ups from {@code from} on (account deletion). */
+    List<FspCleaningSignup> findByUserIdAndShiftAtGreaterThanEqual(UUID userId, Instant from);
+
+    /** Confirmed shifts of a user that already took place. */
+    long countByUserIdAndConfirmedTrueAndShiftAtLessThan(UUID userId, Instant now);
+
+    /** Confirmed shifts with {@code from <= shiftAt < to} in Fairteiler of these regions. */
+    @Query("select count(s) from FspCleaningSignup s, FoodSharePoint f where f.id = s.fspId "
+            + "and f.regionId in :regionIds and s.confirmed = true and s.shiftAt >= :from and s.shiftAt < :to")
+    long countConfirmedInRegions(@Param("regionIds") Collection<UUID> regionIds, @Param("from") Instant from,
+                                 @Param("to") Instant to);
+
     /** Rows of {@code [userId, count]}: upcoming sign-ups per user. */
     @Query("select s.userId, count(s) from FspCleaningSignup s where s.fspId = :fspId and s.shiftAt >= :now "
             + "group by s.userId")

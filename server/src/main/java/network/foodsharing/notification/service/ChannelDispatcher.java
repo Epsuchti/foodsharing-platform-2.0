@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import network.foodsharing.notification.domain.Bell;
 import network.foodsharing.notification.domain.NotificationChannelType;
-import network.foodsharing.notification.domain.NotificationType;
+import network.foodsharing.notification.domain.NotificationCategory;
 import network.foodsharing.user.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ public class ChannelDispatcher {
     /** @return the channels that delivered */
     public Set<NotificationChannelType> dispatch(User recipient, Bell bell, NotificationRequest request) {
         Set<NotificationChannelType> delivered = EnumSet.noneOf(NotificationChannelType.class);
-        if (request.type() == NotificationType.PICKUP_REMINDER && !recipient.isPickupRemindersEnabled()) {
+        if (request.type().category() == NotificationCategory.PICKUP_REMINDER && !recipient.isPickupRemindersEnabled()) {
             return delivered;
         }
         for (NotificationChannel channel : channels) {

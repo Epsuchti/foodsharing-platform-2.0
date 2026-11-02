@@ -4,7 +4,7 @@
   get:
     tags: [public-calendar]
     operationId: getCalendarFeed
-    summary: 'iCal feed of pickups, intro pickups and events.'
+    summary: 'iCal feed of pickups, intro pickups, cleaning shifts and events.'
     x-permission: public (token)
     parameters:
       - name: token
@@ -23,6 +23,11 @@
           type: boolean
           default: true
       - name: introPickups
+        in: query
+        schema:
+          type: boolean
+          default: true
+      - name: cleaningShifts
         in: query
         schema:
           type: boolean

@@ -60,6 +60,11 @@ public final class FspCleaningRules {
         return mayManage(facts);
     }
 
+    /** Decision 155: a sign-up that passed {@link #eligibility} is confirmed at once for managers or with the switch on. */
+    public static boolean confirmedAtSignUp(FspRules.Facts facts, boolean autoConfirm) {
+        return autoConfirm || preConfirmed(facts);
+    }
+
     /** Self sign-out, or a manager removes someone. */
     public static boolean maySignOut(FspRules.Facts facts, boolean self) {
         return self || mayManage(facts);

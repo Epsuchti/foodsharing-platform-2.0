@@ -320,5 +320,6 @@
   "stores.import.confirm": "{count, plural, one {# Betriib} other {# Betriib}} importiere",
   "stores.import.doneTitle": "Import fertig",
   "stores.import.backToList": "Zur Betriibslischte",
-  "stores.import.again": "Nöchschti Datei importiere"
+  "stores.import.again": "Nöchschti Datei importiere",
+  "stores.statistics.scrollTable": "Tabälle, siitlich scrollbar"
 }

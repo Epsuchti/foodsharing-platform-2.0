@@ -1,0 +1,7 @@
+Hello [(${displayName})],
+
+Reminder: you have a cleaning shift at [(${name})] on [(${when})].
+
+[(${link})]
+
+Your foodsharing team

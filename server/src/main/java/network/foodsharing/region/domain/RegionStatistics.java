@@ -31,6 +31,9 @@ public class RegionStatistics extends BaseEntity {
     @Column(name = "pickups_last_month", nullable = false)
     private int pickupsLastMonth;
 
+    @Column(name = "cleaning_shifts_last_month", nullable = false)
+    private int cleaningShiftsLastMonth;
+
     @Column(name = "saved_food_weight_last_month", nullable = false)
     private double savedFoodWeightLastMonth;
 

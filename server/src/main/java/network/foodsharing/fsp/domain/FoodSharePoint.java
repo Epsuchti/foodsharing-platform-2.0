@@ -58,4 +58,12 @@ public class FoodSharePoint extends BaseEntity {
     /** FS2: the Fairteiler offers cleaning shifts. */
     @Column(name = "cleaning_enabled", nullable = false)
     private boolean cleaningEnabled;
+
+    /** Decision 155: cleaning sign-ups are confirmed without a manager. */
+    @Column(name = "cleaning_auto_confirm", nullable = false)
+    private boolean cleaningAutoConfirm;
+
+    /** Decision 155: the zone of the cleaning shifts. */
+    @Column(name = "time_zone", nullable = false, length = 60)
+    private String timeZone = "Europe/Zurich";
 }

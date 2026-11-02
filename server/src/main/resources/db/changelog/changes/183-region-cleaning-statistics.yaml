@@ -1,0 +1,16 @@
+# Decision 154: confirmed cleaning shifts of the last month in the cached region statistics, next to the pickups.
+databaseChangeLog:
+  - changeSet:
+      id: 183-1
+      author: platform
+      comment: 'Cleaning shifts last month in the region statistics (decision 154).'
+      changes:
+        - addColumn:
+            tableName: region_statistics
+            columns:
+              - column:
+                  name: cleaning_shifts_last_month
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

@@ -308,5 +308,6 @@
   "regions.members.permissionsShort": "Permissions",
   "regions.members.removeShort": "Remove",
   "regions.page.membershipHome": "{name} is your home region.",
-  "regions.page.membershipMember": "You are a member of {name}."
+  "regions.page.membershipMember": "You are a member of {name}.",
+  "regions.statistics.cleaning": "Cleaning shifts last month"
 }

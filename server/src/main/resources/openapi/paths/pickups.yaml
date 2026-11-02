@@ -415,7 +415,7 @@
   get:
     tags: [pickups]
     operationId: getAgenda
-    summary: 'Pickups and EinAbs of a day.'
+    summary: 'Pickups, EinAbs and cleaning shifts of a day.'
     x-permission: 'self or mayAdministrateUser'
     parameters:
       - name: userId

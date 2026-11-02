@@ -4,16 +4,26 @@ import {
   dayOf,
   firstName,
   groupByDay,
+  mergeByTime,
   pickupSummary,
   slotState,
   unconfirmedCount,
   zonedToUtc,
 } from './pickups.util';
+import { UserPickup } from '../../api';
 
 describe('pickups util (A20)', () => {
   it('converts store-local date and time to the UTC pickupAt, across DST', () => {
     expect(zonedToUtc('2026-11-05', '19:00', 'Europe/Zurich')).toBe('2026-11-05T18:00:00Z');
     expect(zonedToUtc('2026-07-01', '19:00', 'Europe/Zurich')).toBe('2026-07-01T17:00:00Z');
+  });
+
+  it('merges pickups and cleaning shifts by the real instant (decision 154)', () => {
+    const pickup = { store: { id: 's', name: 'Coop' }, pickupAt: '2026-11-05T18:00:00Z', confirmed: true, slotCount: 1 } as UserPickup;
+    const early = { fsp: { id: 'f', name: 'Wiedikon' }, shiftAt: '2026-11-05T17:00:00+00:00', confirmed: false };
+    const late = { fsp: { id: 'f', name: 'Wiedikon' }, shiftAt: '2026-11-05T20:00:00+01:00', confirmed: true };
+    expect(mergeByTime([pickup], [late, early]).map((entry) => entry.at)).toEqual([early.shiftAt, pickup.pickupAt, late.shiftAt]);
+    expect(mergeByTime([], [])).toEqual([]);
   });
 
   it('groups pickups by local day and adds days', () => {

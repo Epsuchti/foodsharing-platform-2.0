@@ -16,6 +16,12 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         <i class="pi pi-shopping-bag" aria-hidden="true"></i><strong>{{ s.pickupCount | number }}</strong
         ><span>{{ 'profiles.stats.pickups' | t }}</span>
       </li>
+      @if (s.cleaningShiftCount) {
+        <li class="fs-card tile" data-testid="profiles.page.stat.cleaning">
+          <i class="pi pi-sparkles" aria-hidden="true"></i><strong>{{ s.cleaningShiftCount | number }}</strong
+          ><span>{{ 'profiles.stats.cleaning' | t }}</span>
+        </li>
+      }
       <li class="fs-card tile" data-testid="profiles.page.stat.kgSaved">
         <i class="pi pi-box" aria-hidden="true"></i><strong>{{ s.kgSaved | number: '1.0-0' }}</strong
         ><span>{{ 'profiles.stats.kgSaved' | t }}</span>

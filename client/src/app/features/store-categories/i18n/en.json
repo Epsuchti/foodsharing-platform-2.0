@@ -22,5 +22,6 @@
   "storeCategories.merged": "Merged.",
   "storeCategories.deleted": "Deleted.",
   "storeCategories.deleteTitle": "Delete \"{name}\"?",
-  "storeCategories.deleteText": "Only entries no store uses can be deleted. Merge used ones instead."
+  "storeCategories.deleteText": "Only entries no store uses can be deleted. Merge used ones instead.",
+  "storeCategories.scrollTable": "Table, scrolls sideways"
 }

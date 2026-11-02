@@ -3,6 +3,8 @@ package network.foodsharing.fsp.service;
 import network.foodsharing.admin.domain.FeatureToggle;
 import network.foodsharing.admin.service.FeatureToggleService;
 import java.time.Clock;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,7 +60,8 @@ public class FspService {
 
     /** Changes of an FSP; null = unchanged (update). */
     public record FspInput(String name, String description, String street, String postcode, String city, Double lat,
-                           Double lon, UUID photoUploadId, List<UUID> managerIds, Boolean cleaningEnabled) {
+                           Double lon, UUID photoUploadId, List<UUID> managerIds, Boolean cleaningEnabled,
+                           Boolean cleaningAutoConfirm, String timeZone) {
     }
 
     private final FoodSharePointRepository fsps;
@@ -138,6 +141,8 @@ public class FspService {
         fsp.setLat(in.lat());
         fsp.setLon(in.lon());
         fsp.setCleaningEnabled(Boolean.TRUE.equals(in.cleaningEnabled()));
+        fsp.setCleaningAutoConfirm(Boolean.TRUE.equals(in.cleaningAutoConfirm()));
+        fsp.setTimeZone(in.timeZone() == null ? regions.zoneOf(regionId).getId() : timeZone(in.timeZone()));
         locate(fsp);
         FoodSharePoint saved = fsps.save(fsp);
         if (in.photoUploadId() != null) {
@@ -196,7 +201,27 @@ public class FspService {
         if (in.cleaningEnabled() != null && in.cleaningEnabled() != fsp.isCleaningEnabled()) {
             setCleaning(fsp, in.cleaningEnabled());
         }
+        if (in.cleaningAutoConfirm() != null && in.cleaningAutoConfirm() != fsp.isCleaningAutoConfirm()) {
+            fsp.setCleaningAutoConfirm(in.cleaningAutoConfirm());
+            history.record(event(FspAction.CLEANING_AUTO_CONFIRM_CHANGED, fsp)
+                    .change("cleaningAutoConfirm", !in.cleaningAutoConfirm(), in.cleaningAutoConfirm()).build());
+        }
+        if (in.timeZone() != null && !timeZone(in.timeZone()).equals(fsp.getTimeZone())) {
+            String previous = fsp.getTimeZone();
+            fsp.setTimeZone(timeZone(in.timeZone()));
+            history.record(event(FspAction.TIME_ZONE_CHANGED, fsp).change("timeZone", previous, fsp.getTimeZone())
+                    .build());
+        }
         return fsp;
+    }
+
+    /** @throws ApiException 400 VALIDATION_FAILED field timeZone */
+    private static String timeZone(String value) {
+        try {
+            return ZoneId.of(value.strip()).getId();
+        } catch (DateTimeException ex) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "timeZone");
+        }
     }
 
     /** FS2: switching cleaning shifts off removes the Fairteiler from the cleaning rule of its region (D7). */

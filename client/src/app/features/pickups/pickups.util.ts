@@ -1,3 +1,5 @@
+import { UserCleaningShift, UserPickup } from '../../api';
+
 /** Date helpers of the pickup pages: pickups are UTC instants shown in the store region's time zone (A20). */
 
 /** Offset of `timeZone` from UTC at `instant`, in milliseconds. */
@@ -92,3 +94,19 @@ export function unconfirmedCount(pickups: readonly { occupiedSlots: readonly { c
 
 /** `displayName` up to the first space; lives with the slot component, which shows it in the manager's split pill. */
 export { firstName } from '../../shared/pickup-slot/pickup-slot.component';
+
+/** An entry of "My pickups": a pickup or a cleaning shift (decision 154). */
+export interface MyPickupEntry {
+  key: string;
+  at: string;
+  pickup?: UserPickup;
+  shift?: UserCleaningShift;
+}
+
+/** Pickups and cleaning shifts in one list by time; on the same instant a pickup comes first. */
+export function mergeByTime(pickups: UserPickup[], shifts: UserCleaningShift[]): MyPickupEntry[] {
+  return [
+    ...pickups.map((pickup) => ({ key: `p${pickup.store.id}${pickup.pickupAt}`, at: pickup.pickupAt, pickup })),
+    ...shifts.map((shift) => ({ key: `c${shift.fsp.id}${shift.shiftAt}`, at: shift.shiftAt, shift })),
+  ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+}

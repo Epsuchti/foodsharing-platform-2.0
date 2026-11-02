@@ -236,5 +236,6 @@
   "account.connections.revoke": "Révoquer l’accès",
   "account.connections.revokeTitle": "Révoquer l’accès ?",
   "account.connections.revokeText": "{name} sera déconnectée et devra redemander votre consentement la prochaine fois.",
-  "account.connections.revoked": "Accès révoqué"
+  "account.connections.revoked": "Accès révoqué",
+  "account.calendar.cleaningShifts": "Créneaux de nettoyage"
 }

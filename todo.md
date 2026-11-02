@@ -5,7 +5,6 @@ Open points only. Finished work lives in `docs/ledger.md` and `docs/decisions.md
 Last updated 2026-11-02, after merging `integration/2026-11-01` (decisions 142â€“152) into `main`.
 
 ## Before launch
-- **Lighthouse D11.5.3 / D18.3:** `/onboarding` scores 82â€“86 under load against a hard threshold of 90 (`/` scores 98â€“99). Measure on an idle machine or in CI. If it is still below 90, the parked branch `build/m7-perf-2` (decision 131: build-time theme, blocking first navigation) is next.
 - **Final gate (plan-m7 Part D):**
   - fill in the test results in `docs/launch-report.md`
   - regenerate `docs/coverage.md`
@@ -27,17 +26,8 @@ Last updated 2026-11-02, after merging `integration/2026-11-01` (decisions 142â€
 
 ## Open from the 2026-11-01 batch
 - **Map tiles:** the map did not load OpenStreetMap tiles in the built-in browser pane, but `curl` gets them. Probably the pane's network. Confirm in a normal browser before changing code; if real, check the tile URL, CSP `img-src`, the service worker and the attribution. e2e and screenshots stub the tile hosts, so add a smoke check that one real tile request succeeds.
-- **Fairteiler cleaning shifts (decision 148), not built:**
-  - cleaning shifts in "Meine Abholungen", the agenda, the dashboard card and the iCal feed
-  - reminder mails and jobs
-  - automatic confirmation of cleaning sign-ups by the pickup policy
-  - cleaning shifts in the profile and region pickup counts
-  - export of cleaning sign-ups in the account data export, and an `AccountDeletionContributor` for future sign-ups (deletion is covered today by the FK cascade; sign-ups are kept pointing at the anonymised user, decide if they should be removed)
-  - a time zone per Fairteiler (the cleaning page uses Europe/Zurich)
-  - check the Telegram and mail length of the decline text with several cleaning Fairteiler
 - **Native-speaker review** of the `gws`, `fr` and `it` texts of the new features, above all `gws` for the gap rule.
 - **Screenshot baselines:** only about 35 of the 436 changed images were looked at by eye. Review the rest, since differences under the 0.2% tolerance can hide in old ones. The mobile `bells-panel` capture with the drawer open only dims the first screen.
-- **Wide mobile pages (older than this batch):** polls form, intro pickups admin, store categories, store statistics are wider than the viewport at phone width.
 - **Bell panel:** the long-title overflow fix is covered by a test that fails without it; nobody has looked at the real panel with long titles in a browser.
 - **Browsers:** firefox and webkit were not run on anything.
 - **Client unit tests:** the full `ng test` was not re-run after the metrics spec fix (`e7721e2e`).
@@ -48,5 +38,5 @@ Last updated 2026-11-02, after merging `integration/2026-11-01` (decisions 142â€
 - **Windows Playwright worker crash** (exit 3221226505 / 0xC0000409): hits a random test about once per full serial run and passes on rerun. Machine infrastructure, not app code. Sharded runs turn video off, which lowers memory.
 
 ## Housekeeping
-- Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`). Keep `build/m7-perf-2`.
+- Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`).
 - `SpaForwardingControllerTest.languagePreferenceOrderIsCookieThenAcceptLanguageThenGerman` depends on a stale `static/it` in `target/classes`; run `./mvnw clean verify` first, and make the test independent of the build state instead of changing its expectation.

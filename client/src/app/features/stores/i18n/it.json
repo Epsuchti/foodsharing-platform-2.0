@@ -320,5 +320,6 @@
   "stores.import.confirm": "Importa {count, plural, one {# negozio} other {# negozi}}",
   "stores.import.doneTitle": "Importazione completata",
   "stores.import.backToList": "Alla lista dei negozi",
-  "stores.import.again": "Importa un altro file"
+  "stores.import.again": "Importa un altro file",
+  "stores.statistics.scrollTable": "Tabella, scorrevole in orizzontale"
 }

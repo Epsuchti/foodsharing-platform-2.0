@@ -976,6 +976,8 @@ paths:
   /api/food-share-points/{fspId}/wall/{postId}:
     $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall~1{postId}'
   # --- fsp-cleaning (FS2) ---
+  /api/users/me/cleaning-shifts:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1users~1me~1cleaning-shifts'
   /api/food-share-points/{fspId}/cleaning/regular-shifts:
     $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1regular-shifts'
   /api/food-share-points/{fspId}/cleaning/shifts:

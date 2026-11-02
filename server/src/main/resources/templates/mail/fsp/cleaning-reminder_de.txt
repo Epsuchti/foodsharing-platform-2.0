@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+Erinnerung: du hast am [(${when})] einen Putzeinsatz beim [(${name})].
+
+[(${link})]
+
+Dein foodsharing-Team

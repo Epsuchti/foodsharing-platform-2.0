@@ -112,5 +112,8 @@
   "pickups.tab.range.pending": "Unbestätigt ({count})",
   "pickups.tab.pendingEmpty": "Kei unbestätigti Iiträg meh.",
   "pickups.tab.state.confirmed": "Bestätigt",
-  "pickups.tab.state.unconfirmed": "Unbestätigt"
+  "pickups.tab.state.unconfirmed": "Unbestätigt",
+  "pickups.cleaning.label": "Putzeinsatz",
+  "pickups.cleaning.signoutText": "Wotsch di vo däm Putzeinsatz abmälde?",
+  "pickups.cleaning.signedOut": "Vom Putzeinsatz abgmäldet."
 }

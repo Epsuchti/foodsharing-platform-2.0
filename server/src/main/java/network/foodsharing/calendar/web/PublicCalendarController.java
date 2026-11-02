@@ -21,9 +21,10 @@ public class PublicCalendarController implements PublicCalendarApi {
 
     @Override
     public ResponseEntity<String> getCalendarFeed(String token, String events, Boolean pickups, Boolean introPickups,
-                                                  Boolean history, String reminders) {
+                                                  Boolean cleaningShifts, Boolean history, String reminders) {
         String feed = feeds.feed(token, new CalendarFeedService.Options(CalendarFeedService.EventFilter.parse(events),
-                !Boolean.FALSE.equals(pickups), !Boolean.FALSE.equals(introPickups), Boolean.TRUE.equals(history),
+                !Boolean.FALSE.equals(pickups), !Boolean.FALSE.equals(introPickups),
+                !Boolean.FALSE.equals(cleaningShifts), Boolean.TRUE.equals(history),
                 CalendarFeedService.parseReminders(reminders)));
         return ResponseEntity.ok().contentType(CALENDAR)
                 .header(HttpHeaders.CACHE_CONTROL, "private, max-age=300")

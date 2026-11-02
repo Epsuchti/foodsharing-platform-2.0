@@ -172,6 +172,7 @@ public class RegionMapper {
         statistics.setActiveHomeRegionFoodsavers(cached.getActiveHomeRegionFoodsavers());
         statistics.setActiveCooperations(cached.getActiveCooperations());
         statistics.setPickupsLastMonth(cached.getPickupsLastMonth());
+        statistics.setCleaningShiftsLastMonth(cached.getCleaningShiftsLastMonth());
         statistics.setSavedFoodWeightLastMonth(cached.getSavedFoodWeightLastMonth());
         statistics.setActiveFoodSharePoints(cached.getActiveFoodSharePoints());
         statistics.setFoodBasketsLastMonth(cached.getFoodBasketsLastMonth());

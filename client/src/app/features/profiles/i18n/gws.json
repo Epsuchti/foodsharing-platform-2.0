@@ -82,5 +82,6 @@
   "profiles.toast.buddyRequested": "Aafrog gschickt.",
   "profiles.toast.buddyAccepted": "Ihr sind jetzt Bekannti.",
   "profiles.toast.buddyDeclined": "Aafrog abglehnt.",
-  "profiles.toast.buddyRemoved": "Bekanntschaft entfärnt."
+  "profiles.toast.buddyRemoved": "Bekanntschaft entfärnt.",
+  "profiles.stats.cleaning": "Putzeinsätz"
 }

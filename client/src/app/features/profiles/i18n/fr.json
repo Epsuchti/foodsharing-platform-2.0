@@ -82,5 +82,6 @@
   "profiles.toast.buddyRequested": "Demande envoyée.",
   "profiles.toast.buddyAccepted": "Vous vous connaissez maintenant.",
   "profiles.toast.buddyDeclined": "Demande refusée.",
-  "profiles.toast.buddyRemoved": "Connaissance retirée."
+  "profiles.toast.buddyRemoved": "Connaissance retirée.",
+  "profiles.stats.cleaning": "Créneaux de nettoyage"
 }

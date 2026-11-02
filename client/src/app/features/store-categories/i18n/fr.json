@@ -22,5 +22,6 @@
   "storeCategories.merged": "Fusionné.",
   "storeCategories.deleted": "Supprimé.",
   "storeCategories.deleteTitle": "Supprimer « {name} » ?",
-  "storeCategories.deleteText": "Seules les entrées qu'aucune entreprise n'utilise peuvent être supprimées. Fusionne plutôt celles qui sont utilisées."
+  "storeCategories.deleteText": "Seules les entrées qu'aucune entreprise n'utilise peuvent être supprimées. Fusionne plutôt celles qui sont utilisées.",
+  "storeCategories.scrollTable": "Tableau, défilement horizontal"
 }
