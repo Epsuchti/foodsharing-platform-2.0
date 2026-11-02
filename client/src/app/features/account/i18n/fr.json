@@ -169,7 +169,7 @@
   "account.sleep.datesPast": "Le dernier jour ne peut pas être dans le passé.",
   "account.sleep.saved": "Mode sommeil enregistré",
   "account.calendar.title": "Abonnement au calendrier",
-  "account.calendar.text": "Tes collectes, collectes d’initiation et événements sous forme de flux iCal dans ton calendrier.",
+  "account.calendar.text": "Tes collectes, collectes d’initiation, créneaux de nettoyage et événements sous forme de flux iCal dans ton calendrier.",
   "account.calendar.none": "Tu n’as pas encore de lien de calendrier personnel.",
   "account.calendar.create": "Créer un lien de calendrier",
   "account.calendar.created": "Lien de calendrier créé",

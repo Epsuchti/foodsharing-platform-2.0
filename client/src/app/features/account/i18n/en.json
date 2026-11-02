@@ -169,7 +169,7 @@
   "account.sleep.datesPast": "The last day must not be in the past.",
   "account.sleep.saved": "Sleep mode saved",
   "account.calendar.title": "Calendar subscription",
-  "account.calendar.text": "Your pickups, intro pickups and events as an iCal feed in your calendar.",
+  "account.calendar.text": "Your pickups, intro pickups, cleaning shifts and events as an iCal feed in your calendar.",
   "account.calendar.none": "You do not have a personal calendar link yet.",
   "account.calendar.create": "Create calendar link",
   "account.calendar.created": "Calendar link created",

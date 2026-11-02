@@ -169,7 +169,7 @@
   "account.sleep.datesPast": "Der letzte Tag darf nicht in der Vergangenheit liegen.",
   "account.sleep.saved": "Schlafmütze gespeichert",
   "account.calendar.title": "Kalender-Abo",
-  "account.calendar.text": "Deine Abholungen, Einführungsabholungen und Termine als iCal-Feed in deinem Kalender.",
+  "account.calendar.text": "Deine Abholungen, Einführungsabholungen, Putzeinsätze und Termine als iCal-Feed in deinem Kalender.",
   "account.calendar.none": "Du hast noch keinen persönlichen Kalender-Link.",
   "account.calendar.create": "Kalender-Link erstellen",
   "account.calendar.created": "Kalender-Link erstellt",
