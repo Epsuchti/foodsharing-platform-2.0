@@ -46,7 +46,7 @@ class ModulesTest {
         java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
         allowed.forEach((name, permitted) -> {
             ApplicationModule module = MODULES.getModuleByName(name).orElseThrow();
-            assertThat(module.getDirectDependencies(MODULES).uniqueModules().map(ApplicationModule::getName)
+            assertThat(module.getDirectDependencies(MODULES).uniqueModules().map(dependency -> dependency.getIdentifier().toString())
                     .filter(dependency -> !shared.contains(dependency)).toList())
                     .as(name).allMatch(permitted::contains);
         });
@@ -56,8 +56,8 @@ class ModulesTest {
             java.util.Set<String> readers = "messaging".equals(communication) ? java.util.Set.of()
                     : java.util.Set.of("calendar", "map", "activity", "search");
             MODULES.stream().filter(module -> !module.equals(target))
-                    .filter(module -> !readers.contains(module.getName())).forEach(module ->
-                    assertThat(module.getDirectDependencies(MODULES).contains(target)).as(module.getName() + " → " + communication)
+                    .filter(module -> !readers.contains(module.getIdentifier().toString())).forEach(module ->
+                    assertThat(module.getDirectDependencies(MODULES).contains(target)).as(module.getIdentifier().toString() + " → " + communication)
                             .isFalse());
         }
     }
@@ -82,14 +82,14 @@ class ModulesTest {
         java.util.Set<String> shared = java.util.Set.of("config", "security", "common", "api");
         allowed.forEach((name, permitted) -> {
             ApplicationModule module = MODULES.getModuleByName(name).orElseThrow();
-            assertThat(module.getDirectDependencies(MODULES).uniqueModules().map(ApplicationModule::getName)
+            assertThat(module.getDirectDependencies(MODULES).uniqueModules().map(dependency -> dependency.getIdentifier().toString())
                     .filter(dependency -> !shared.contains(dependency)).toList())
                     .as(name).allMatch(permitted::contains);
         });
         for (String leaf : new String[] {"activity", "profile"}) {
             ApplicationModule leafModule = MODULES.getModuleByName(leaf).orElseThrow();
             MODULES.stream().forEach(module -> assertThat(module.getDirectDependencies(MODULES).contains(leafModule))
-                    .as(module.getName() + " → " + leaf).isFalse());
+                    .as(module.getIdentifier().toString() + " → " + leaf).isFalse());
         }
     }
 
