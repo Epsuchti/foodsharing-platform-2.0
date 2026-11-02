@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { ProfileStats } from '../../../api';
 import { TPipe } from '../../../core/i18n/t.pipe';
 
-/** Stat tiles of a profile (A6 `ProfileStats`): pickups, kg saved, posts, bananas, buddies, shared baskets. */
+/** Stat tiles of a profile (A6 `ProfileStats`): pickups, cleaning shifts, kg saved, posts, bananas, buddies, shared baskets. */
 @Component({
   selector: 'fs-profile-stats',
   imports: [DecimalPipe, TPipe],
@@ -46,7 +46,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
   `,
   styles: `
     :host { display: block; }
-    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
     .tile { display: grid; justify-items: start; gap: 0.15rem; padding: 0.8rem 0.9rem; margin: 0; }
     .tile .pi { color: var(--fs-primary); }
     .tile strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
@@ -55,6 +55,8 @@ import { TPipe } from '../../../core/i18n/t.pipe';
     @media (max-width: 30rem) {
       .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
       .tile { padding: 0.65rem 0.7rem; }
+      /* a seventh tile (cleaning shifts) takes its own row instead of sitting alone in a third of it */
+      .tile:last-child:nth-child(3n + 1) { grid-column: 1 / -1; }
       .tile strong { font-size: 1.15rem; }
       .tile span { font-size: 0.78rem; line-height: 1.3; overflow-wrap: anywhere; }
     }

@@ -47,7 +47,7 @@ let nextChartId = 0;
     .chart { margin: 0; }
     .chart__caption { margin-bottom: 0.5rem; font-weight: 600; }
     .chart__bars {
-      display: grid; grid-auto-flow: column; grid-auto-columns: minmax(2.2rem, 1fr); gap: 0.35rem;
+      display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0.35rem;
       margin: 0; padding: 0 0 0.25rem; list-style: none;
     }
     .chart__scroll { overflow-x: auto; border-radius: var(--fs-radius-sm); }
