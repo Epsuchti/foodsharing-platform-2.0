@@ -63,4 +63,21 @@ test.describe('bieb', () => {
     await expect(page.getByTestId('stores.statistics.member').first()).toBeVisible();
     await expectFitsPhone(page);
   });
+
+  test('store statistics month labels do not overlap on a phone @S14', async ({ page }) => {
+    await openStore(page, 'S-01', 'statistics');
+    await expectDataState(page, 'stores.statistics.state', 'success');
+    const labels = page.locator('[data-testid="stores.statistics.chart.bar"] .chart__month');
+    await expect(labels.first()).toBeVisible();
+    const boxes = await labels.evaluateAll((items) =>
+      items.map((item) => {
+        const range = document.createRange();
+        range.selectNodeContents(item);
+        const { left, right } = range.getBoundingClientRect();
+        return { left, right };
+      }),
+    );
+    expect(boxes.length).toBeGreaterThan(1);
+    for (let i = 1; i < boxes.length; i++) expect(boxes[i].left).toBeGreaterThanOrEqual(boxes[i - 1].right);
+  });
 });
