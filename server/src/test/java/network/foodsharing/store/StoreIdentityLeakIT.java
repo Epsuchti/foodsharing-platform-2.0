@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +41,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * Decision 153 (S17): walks every GET of the contract as each kind of person who may not know the stores and asserts
+ * Decision 156 (S17): walks every GET of the contract as each kind of person who may not know the stores and asserts
  * that no response holds a seeded store name, street or chain. Exceptions: flagged names on the partners list and the
  * store of one's own booking. Path ids and required query parameters come from a map: an operation that isn't mapped
  * fails, so a new endpoint has to opt in.
@@ -229,7 +230,7 @@ class StoreIdentityLeakIT {
         for (Get get : gets()) {
             String uri = get.path();
             for (String name : get.pathParams()) {
-                uri = uri.replace("{" + name + "}", pathValue(get, name));
+                uri = uri.replace("{" + name + "}", pathValue(get, name, cookie, user));
             }
             var request = get(uri);
             for (String name : get.requiredQuery()) {
@@ -259,7 +260,28 @@ class StoreIdentityLeakIT {
         }
     }
 
-    private String pathValue(Get get, String name) {
+    /** The viewer's own feed token, so the walk reads a real feed and not a 404 (anonymous has none). */
+    private String calendarToken(Cookie cookie) throws Exception {
+        String body = mvc.perform(put("/api/calendar/token").cookie(cookie).with(csrf()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        return JsonPath.read(body, "$.token");
+    }
+
+    private String pathValue(Get get, String name, Cookie cookie, SeedUsers user) throws Exception {
+        if (name.equals("token") && get.operationId().equals("getCalendarFeed") && cookie != null) {
+            return calendarToken(cookie);
+        }
+        if (name.equals("userId") && get.operationId().equals("getAgenda") && cookie != null) {
+            return user.id().toString();
+        }
+        if (name.equals("date") && get.operationId().equals("getAgenda") && cookie != null) {
+            // the day of the viewer's own sign-up, if any: an agenda of an empty day proves nothing
+            List<String> days = jdbc.queryForList("select cast(cast(max(pickup_at) as date) as varchar(10)) "
+                    + "from pickup_signup where user_id = ?", String.class, user.id());
+            if (!days.isEmpty() && days.getFirst() != null) {
+                return days.getFirst();
+            }
+        }
         if (get.operationId().endsWith("MapBubble")) {
             return name.equals("kind") ? "store" : S_01;
         }
@@ -277,7 +299,7 @@ class StoreIdentityLeakIT {
         // the seed reuses store streets for people and events: the same text is not a store's identity there
         allowed.addAll(jdbc.queryForList("select street from user_account where street is not null and id = ?",
                 String.class, user.id()));
-        if (get.operationId().matches("listRegionEvents|listMyEvents|getMyEventsIcs")) {
+        if (get.operationId().matches("listRegionEvents|listMyEvents|getMyEventsIcs|getCalendarFeed")) {
             allowed.addAll(jdbc.queryForList("select street from event_location where street is not null",
                     String.class));
         }
@@ -288,7 +310,7 @@ class StoreIdentityLeakIT {
         if (get.operationId().equals("listPublicPartnerStores")) {
             allowed.addAll(jdbc.queryForList("select name from store where publicly_named = true", String.class));
         }
-        if (get.operationId().equals("listMyBookings")) {
+        if (get.operationId().matches("listMyBookings|getCalendarFeed")) {
             allowed.addAll(jdbc.queryForList("select concat_ws(' ', p.business_name, p.private_address, "
                     + "p.public_general_location, p.private_info, p.public_info) from intro_pickup p "
                     + "join intro_pickup_slot s on s.intro_pickup_id = p.id where s.booking_user_id = ?",
