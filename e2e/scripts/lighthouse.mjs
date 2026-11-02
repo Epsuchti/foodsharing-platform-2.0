@@ -1,5 +1,5 @@
 // Lighthouse check of plan §11.5 (D11.5.3): mobile preset, `/` anonymous and `/onboarding` as newbie@local.
-// Thresholds: performance ≥ 90, accessibility ≥ 95.
+// Thresholds: performance ≥ 70, accessibility ≥ 95 (decision 153).
 //
 //   E2E_BASE_URL=http://localhost:8080 node scripts/lighthouse.mjs          (CLI, exits 1 below a threshold)
 //   import { runLighthouse } from '../scripts/lighthouse.mjs'               (tests/onboarding/d11-lighthouse.spec.ts)
@@ -10,9 +10,7 @@
 //
 // Chrome: CHROME_PATH, else Playwright's Chromium. The newbie session comes from the dev login endpoint; its pending
 // consents are accepted first so `/onboarding` renders the journey and not the consent page.
-export const THRESHOLDS = { performance: 90, accessibility: 95 };
-/** Performance is measured and reported here but does not fail (decision 141); accessibility still does. */
-export const PERFORMANCE_REPORT_ONLY = ['/onboarding'];
+export const THRESHOLDS = { performance: 70, accessibility: 95 };
 
 async function chromePath() {
   if (process.env.CHROME_PATH) {
@@ -101,11 +99,18 @@ export async function runLighthouse(baseURL, pages) {
           clearStorageTypes: ['file_systems', 'shader_cache', 'service_workers', 'cache_storage', 'indexeddb', 'local_storage', 'websql'],
         },
       );
-      const { categories } = run.lhr;
+      const { categories, audits } = run.lhr;
+      const observedLcp = audits.metrics?.details?.items?.[0]?.observedLargestContentfulPaint ?? 0;
+      const beforeLcp = (audits['network-requests']?.details?.items ?? []).filter((item) => item.networkEndTime <= observedLcp);
       results.push({
         path,
         performance: Math.round((categories.performance.score ?? 0) * 100),
         accessibility: Math.round((categories.accessibility.score ?? 0) * 100),
+        fcpMs: Math.round(audits['first-contentful-paint']?.numericValue ?? 0),
+        lcpMs: Math.round(audits['largest-contentful-paint']?.numericValue ?? 0),
+        tbtMs: Math.round(audits['total-blocking-time']?.numericValue ?? 0),
+        requestsBeforeLcp: beforeLcp.length,
+        kbBeforeLcp: Math.round(beforeLcp.reduce((sum, item) => sum + (item.transferSize ?? 0), 0) / 1024),
       });
     }
     return results;
@@ -131,6 +136,11 @@ export async function runLighthouseMedian(baseURL, pages, runs = 3) {
       performance: median(scores.map((s) => s.performance)),
       accessibility: median(scores.map((s) => s.accessibility)),
       runs: scores.map((s) => s.performance),
+      fcpMs: median(scores.map((s) => s.fcpMs)),
+      lcpMs: median(scores.map((s) => s.lcpMs)),
+      tbtMs: median(scores.map((s) => s.tbtMs)),
+      requestsBeforeLcp: median(scores.map((s) => s.requestsBeforeLcp)),
+      kbBeforeLcp: median(scores.map((s) => s.kbBeforeLcp)),
     };
   });
 }
@@ -166,11 +176,7 @@ export async function reportOnlyPages(baseURL) {
 }
 
 export function belowThreshold(results) {
-  return results.filter(
-    (r) =>
-      (r.performance < THRESHOLDS.performance && !PERFORMANCE_REPORT_ONLY.includes(r.path)) ||
-      r.accessibility < THRESHOLDS.accessibility,
-  );
+  return results.filter((r) => r.performance < THRESHOLDS.performance || r.accessibility < THRESHOLDS.accessibility);
 }
 
 async function main() {
