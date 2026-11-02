@@ -194,7 +194,8 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
     }
   `,
   styles: `
-    .mm__badge {
+    /* both classes: .tabs__badge comes later and would win with position: absolute (badge at the drawer's corner) */
+    .tabs__badge.mm__badge {
       position: static;
       margin-inline-start: auto;
     }
