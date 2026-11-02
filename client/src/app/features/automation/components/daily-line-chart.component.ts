@@ -52,34 +52,37 @@ export type ChartBucket = 'day' | 'week';
           </span>
         }
       </figcaption>
-      <table class="fs-visually-hidden" [attr.data-testid]="testId() + '.table'">
-        <caption>
-          {{ label() }}: {{ 'automation.metrics.tableCaption' | t }},
-          @if (bucket() === 'week') {
-            {{ 'automation.metrics.perWeek' | t }}
-          } @else {
-            {{ 'automation.metrics.perDay' | t }}
-          }
-        </caption>
-        <thead>
-          <tr>
-            <td></td>
-            @for (line of lines(); track line.key) {
-              <th scope="col">{{ line.label }}</th>
+      <!-- the wrapper hides the table: a table ignores the 1px width of fs-visually-hidden and widened the page -->
+      <div class="fs-visually-hidden">
+        <table [attr.data-testid]="testId() + '.table'">
+          <caption>
+            {{ label() }}: {{ 'automation.metrics.tableCaption' | t }},
+            @if (bucket() === 'week') {
+              {{ 'automation.metrics.perWeek' | t }}
+            } @else {
+              {{ 'automation.metrics.perDay' | t }}
             }
-          </tr>
-        </thead>
-        <tbody>
-          @for (day of days(); track day; let i = $index) {
+          </caption>
+          <thead>
             <tr>
-              <th scope="row">{{ day }}</th>
-              @for (s of series(); track s.key) {
-                <td>{{ s.points[i]?.value ?? 0 }}</td>
+              <td></td>
+              @for (line of lines(); track line.key) {
+                <th scope="col">{{ line.label }}</th>
               }
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (day of days(); track day; let i = $index) {
+              <tr>
+                <th scope="row">{{ day }}</th>
+                @for (s of series(); track s.key) {
+                  <td>{{ s.points[i]?.value ?? 0 }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </figure>
   `,
   styles: `
