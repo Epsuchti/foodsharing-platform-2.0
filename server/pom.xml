@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.9</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
@@ -19,19 +19,19 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring-modulith.version>2.0.9</spring-modulith.version>
+        <spring-modulith.version>2.1.2</spring-modulith.version>
         <archunit.version>1.4.1</archunit.version>
-        <webauthn4j.version>0.31.6.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.31.11.RELEASE</webauthn4j.version>
         <openapi-generator.version>7.15.0</openapi-generator.version>
-        <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+        <frontend-maven-plugin.version>2.0.2</frontend-maven-plugin.version>
         <node.version>v24.15.0</node.version>
         <npm.version>11.12.1</npm.version>
         <!-- milestone 2: passports (PDF + QR), wallets -->
         <openpdf.version>2.0.3</openpdf.version>
-        <zxing.version>3.5.3</zxing.version>
-        <pdfbox.version>3.0.5</pdfbox.version>
+        <zxing.version>3.5.4</zxing.version>
+        <pdfbox.version>3.0.8</pdfbox.version>
         <google-auth.version>1.33.0</google-auth.version>
-        <bouncycastle.version>1.80</bouncycastle.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
         <shedlock.version>7.10.1</shedlock.version>
         <web-push.version>5.1.2</web-push.version>
         <!-- set to true with -Pskip-client -->
@@ -72,12 +72,12 @@
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.21.0</version>
+            <version>0.31.0</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.17.2</version>
+            <version>1.23.2</version>
         </dependency>
         <dependency>
             <groupId>nl.martijndwars</groupId>
@@ -94,7 +94,7 @@
             <!-- web-push's JWT library (runtime there; its checked JoseException is part of PushService.send) -->
             <groupId>org.bitbucket.b_c</groupId>
             <artifactId>jose4j</artifactId>
-            <version>0.9.6</version>
+            <version>0.9.7</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
