@@ -80,7 +80,7 @@
     tags: [store-team]
     operationId: applyToStore
     summary: 'Apply to the store team.'
-    x-permission: 'AUTHENTICATED'
+    x-permission: 'verified (else 404)'
     x-history: StoreLogAction.REQUEST_TO_JOIN
     parameters:
       - name: storeId
@@ -100,8 +100,8 @@
         description: Done
       '400': {description: 'VALIDATION_FAILED or APPLICATION_TEXT_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'NOT_VERIFIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND (also when not verified) or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'ALREADY_IN_TEAM, TEAM_CLOSED, NOT_REGION_MEMBER, PROFILE_INCOMPLETE, NO_HOME_REGION, PHONE_REQUIRED or HYGIENE_CERTIFICATE_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/stores/{storeId}/applications/me:
@@ -216,7 +216,7 @@
       '204':
         description: Done
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'ACCESS_DENIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED, NOT_VERIFIED or ROLE_TOO_LOW', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'ALREADY_IN_TEAM', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   delete:

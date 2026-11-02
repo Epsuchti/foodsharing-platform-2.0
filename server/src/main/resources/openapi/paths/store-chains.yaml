@@ -3,7 +3,7 @@
     tags: [store-chains]
     operationId: listStoreChains
     summary: 'Store chains.'
-    x-permission: 'FOODSAVER'
+    x-permission: 'verified'
     parameters:
       - name: status
         in: query
@@ -35,7 +35,7 @@
             schema:
               $ref: '../schemas/store-chains.yaml#/StoreChainPage'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED (not verified)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   post:
     tags: [store-chains]
     operationId: createStoreChain
@@ -64,7 +64,7 @@
     tags: [store-chains]
     operationId: getStoreChain
     summary: 'A store chain.'
-    x-permission: 'FOODSAVER'
+    x-permission: 'verified'
     parameters:
       - name: chainId
         in: path
@@ -80,7 +80,7 @@
             schema:
               $ref: '../schemas/store-chains.yaml#/StoreChain'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED (not verified)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'CHAIN_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   patch:
     tags: [store-chains]

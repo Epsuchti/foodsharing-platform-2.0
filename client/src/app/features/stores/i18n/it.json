@@ -111,6 +111,8 @@
   "stores.form.cooperationStart": "Collabora dal",
   "stores.form.convinceStatus": "Com’è andato il primo contatto?",
   "stores.form.publicity": "Comunicazione pubblica",
+  "stores.form.publicName": "Citare il nome pubblicamente",
+  "stores.form.publicNameWarning": "Il nome e la città del negozio compaiono allora nella pagina dei partner, visibili a tutti. Attivalo solo se il negozio ha dato il suo consenso. La comunicazione pubblica deve essere consentita.",
   "stores.form.sticker": "Adesivo",
   "stores.form.contact": "Contatto nel negozio",
   "stores.form.contactHint": "Visibile solo al team.",

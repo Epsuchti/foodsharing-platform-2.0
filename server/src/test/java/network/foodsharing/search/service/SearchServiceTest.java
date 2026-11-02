@@ -70,9 +70,14 @@ class SearchServiceTest {
         when(permissions.isOrga(principal)).thenReturn(role == Role.ORGA);
     }
 
+    private boolean mayKnowStores = true;
+
     private SearchService service(int perMinute) {
         properties.getSearch().setRateLimitPerMinute(perMinute);
-        return new SearchService(index, regions, actors, permissions, toggles, properties, clock);
+        network.foodsharing.store.service.StoreVisibility visibility =
+                org.mockito.Mockito.mock(network.foodsharing.store.service.StoreVisibility.class);
+        when(visibility.mayKnowStores(org.mockito.ArgumentMatchers.any())).thenReturn(mayKnowStores);
+        return new SearchService(index, regions, actors, permissions, toggles, visibility, properties, clock);
     }
 
     @Test
@@ -84,6 +89,15 @@ class SearchServiceTest {
             verify(index).search(eq(kind), eq(List.of("backerei", "zurich")), eq(scope), eq(NOW), eq(20));
         }
         verify(index, never()).usersByEmail(any(), any(), anyInt());
+    }
+
+    @Test
+    void peopleWhoMayNotKnowStoresGetNoStoreHitsAndNoOwnStores() {
+        mayKnowStores = false;
+        var hits = service(0).search("Bäckerei Zürich", List.of());
+        assertThat(hits.get(SearchKind.STORE)).isEmpty();
+        verify(index, never()).search(eq(SearchKind.STORE), any(), any(), any(), anyInt());
+        verify(index).search(eq(SearchKind.REGION), any(), any(), any(), anyInt());
     }
 
     @Test

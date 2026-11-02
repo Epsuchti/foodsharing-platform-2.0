@@ -111,6 +111,8 @@
   "stores.form.cooperationStart": "Kooperation seit",
   "stores.form.convinceStatus": "Wie lief die Ansprache?",
   "stores.form.publicity": "Öffentlichkeitsarbeit",
+  "stores.form.publicName": "Namen öffentlich nennen",
+  "stores.form.publicNameWarning": "Der Name und der Ort des Betriebs stehen dann für alle sichtbar auf der Partnerseite. Nur einschalten, wenn der Betrieb zugestimmt hat. Geht nur, wenn die Öffentlichkeitsarbeit erlaubt ist.",
   "stores.form.sticker": "Aufkleber",
   "stores.form.contact": "Kontakt im Betrieb",
   "stores.form.contactHint": "Nur für das Team sichtbar.",

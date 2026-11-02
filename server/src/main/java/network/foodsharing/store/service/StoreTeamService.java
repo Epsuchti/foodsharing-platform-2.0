@@ -22,6 +22,7 @@ import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.store.domain.StoreApplicationReceivedEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.region.service.RegionPermissionResolver;
@@ -39,6 +40,7 @@ import network.foodsharing.store.domain.UserTeamStatus;
 import network.foodsharing.store.repository.StoreMembershipRepository;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
+import network.foodsharing.user.service.UserUnverifiedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -215,9 +217,7 @@ public class StoreTeamService {
         if (!resolver.isMember(user.getId(), store.getRegionId())) {
             throw ApiException.conflict(ApiErrorCode.NOT_REGION_MEMBER);
         }
-        if (store.isRequiresVerified() && !user.isVerified()) {
-            throw ApiException.forbidden(ApiErrorCode.NOT_VERIFIED);
-        }
+        requireVerified(user);
         if (store.isRequiresPhone() && blank(user.getMobilePhone()) && blank(user.getLandlinePhone())) {
             throw ApiException.conflict(ApiErrorCode.PHONE_REQUIRED);
         }
@@ -230,11 +230,21 @@ public class StoreTeamService {
         }
     }
 
-    /** @throws ApiException 404, 409 / 403 / 400 per {@link #checkRequirements} and ALREADY_IN_TEAM */
+    /** Unverified people can never join a store, whatever the store's settings (decision 156, S17 D7). */
+    private static void requireVerified(User user) {
+        if (!user.isVerified()) {
+            throw ApiException.forbidden(ApiErrorCode.NOT_VERIFIED);
+        }
+    }
+
+    /** @throws ApiException 404 (also when the user may not know stores), 409 / 403 / 400 per {@link #checkRequirements} and ALREADY_IN_TEAM */
     @Transactional
     public void apply(UUID storeId, String text) {
-        Store store = stores.require(storeId);
         User user = currentActor.requireUser();
+        if (!StoreVisibility.mayKnow(user)) {
+            throw ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND);
+        }
+        Store store = stores.require(storeId);
         if (rights.teamStatus(user.getId(), storeId) != UserTeamStatus.NO_MEMBER) {
             throw ApiException.conflict(ApiErrorCode.ALREADY_IN_TEAM);
         }
@@ -263,14 +273,14 @@ public class StoreTeamService {
      * A24: the request policy accepts an application onto the team (no permission check; actor AUTOMATION
      * {@code policyName}); bell STORE_REQUEST_AUTO_ACCEPTED.
      *
-     * @return false when there is no open application (nothing happens)
+     * @return false when there is no open application or the applicant is not verified (nothing happens)
      */
     @Transactional
     public boolean acceptByAutomation(UUID storeId, UUID userId, String policyName) {
         Store store = stores.require(storeId);
         StoreMembership m = memberships.findByStoreIdAndUserId(storeId, userId)
                 .filter(membership -> membership.getStatus() == StoreMembershipStatus.APPLIED).orElse(null);
-        if (m == null) {
+        if (m == null || !users.requireActive(userId).isVerified()) {
             return false;
         }
         m.setStatus(StoreMembershipStatus.MEMBER);
@@ -329,7 +339,7 @@ public class StoreTeamService {
     @Transactional
     public void accept(UUID storeId, UUID userId, boolean standby) {
         Store store = requireEditTeam(storeId);
-        users.require(userId);
+        requireVerified(users.require(userId));
         StoreMembership m = require(storeId, userId, StoreMembershipStatus.APPLIED, ApiErrorCode.NOT_APPLIED);
         m.setStatus(standby ? StoreMembershipStatus.JUMPER : StoreMembershipStatus.MEMBER);
         m.setAddedAt(clock.instant());
@@ -366,6 +376,7 @@ public class StoreTeamService {
         if (!PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)) {
             throw ApiException.forbidden(ApiErrorCode.ROLE_TOO_LOW);
         }
+        requireVerified(user);
         StoreMembership m = new StoreMembership();
         m.setStoreId(storeId);
         m.setUserId(userId);
@@ -443,6 +454,32 @@ public class StoreTeamService {
         }
     }
 
+    /**
+     * Un-verifying ends every store membership, including applications, invitations and manager roles (S17 D7): the
+     * same steps as {@link #remove}, which also leaves the team chats, without a bell or mail naming the store.
+     */
+    @EventListener
+    @Transactional
+    public void onUserUnverified(UserUnverifiedEvent event) {
+        UUID userId = event.userId();
+        List<StoreMembership> rows = memberships.findByUserId(userId);
+        Map<UUID, Store> live = stores.liveStores(rows.stream().map(StoreMembership::getStoreId).toList()).stream()
+                .collect(Collectors.toMap(Store::getId, Function.identity()));
+        for (StoreMembership m : rows) {
+            Store store = live.get(m.getStoreId());
+            if (store == null) {
+                continue;
+            }
+            StoreMembershipStatus oldStatus = m.getStatus();
+            pickupInfo.deleteFutureSignups(store.getId(), userId);
+            memberships.delete(m);
+            StoreNotifications.removeBells(events,
+                    BellService.identifier(NotificationType.STORE_INVITATION, store.getId(), userId));
+            events.publishEvent(new StoreTeamChangedEvent(store.getId(), userId, oldStatus, null, false));
+            log(StoreLogAction.REMOVED_FROM_STORE, store, userId, null);
+        }
+    }
+
     @Transactional
     public void addDirectly(UUID storeId, UUID userId, boolean standby) {
         Store store = requireEditTeam(storeId);
@@ -453,6 +490,7 @@ public class StoreTeamService {
         if (!PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)) {
             throw ApiException.forbidden(ApiErrorCode.ROLE_TOO_LOW);
         }
+        requireVerified(user);
         StoreMembership m = new StoreMembership();
         m.setStoreId(storeId);
         m.setUserId(userId);

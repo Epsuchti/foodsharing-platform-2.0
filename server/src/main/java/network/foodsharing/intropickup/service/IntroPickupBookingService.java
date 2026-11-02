@@ -52,7 +52,7 @@ public class IntroPickupBookingService {
     public record BookingCancelledByUser(UUID introPickupId, UUID userId, UUID guideId) {
     }
 
-    public record BookableView(IntroPickup pickup, User guide, int freeSlots, UUID firstFreeSlotId,
+    public record BookableView(IntroPickup pickup, User guide, String city, int freeSlots, UUID firstFreeSlotId,
                                ApiErrorCode notBookableReason) {
     }
 
@@ -67,12 +67,15 @@ public class IntroPickupBookingService {
     private final PermissionService permissions;
     private final HistoryService history;
     private final ApplicationEventPublisher events;
+    private final IntroPickupCities cities;
 
     public IntroPickupBookingService(IntroPickupRepository pickups, IntroPickupSlotRepository slots,
                                      IntroPickupViews views, RegionService regions, RegionSettingsService settings,
                                      RegionPermissionResolver resolver, UserService users,
                                      CurrentActorService currentActor, PermissionService permissions,
-                                     HistoryService history, ApplicationEventPublisher events) {
+                                     HistoryService history, ApplicationEventPublisher events,
+                                     IntroPickupCities cities) {
+        this.cities = cities;
         this.pickups = pickups;
         this.slots = slots;
         this.views = views;
@@ -92,8 +95,7 @@ public class IntroPickupBookingService {
      * @throws ApiException 404 REGION_NOT_FOUND, 403 NOT_REGION_MEMBER
      */
     @Transactional(readOnly = true)
-    public Page<BookableView> bookable(UUID regionId, String search, IntroPickupCategory category,
-                                       Boolean visitFairteiler, Integer page, Integer size) {
+    public Page<BookableView> bookable(UUID regionId, Integer page, Integer size) {
         Region region = regions.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
         if (!permissions.isOrga(actor) && !permissions.isMemberOf(actor, regionId)) {
@@ -103,20 +105,19 @@ public class IntroPickupBookingService {
         IntroPickupSettings rules = settings.read(region).introPickups();
         List<BookingRules.Booking> bookings = bookingsOf(user.getId(), regionId);
         BookingRules.Booker booker = booker(user, regionId);
-        String needle = search == null || search.isBlank() ? null : search.trim().toLowerCase(Locale.ROOT);
+        List<IntroPickup> upcoming = pickups.findUpcoming(regionId, views.now());
+        Map<UUID, String> cityById = cities.of(upcoming, region);
         List<BookableView> result = new ArrayList<>();
-        for (IntroPickupViews.PickupView view : views.pickups(pickups.findUpcoming(regionId, views.now()))) {
+        for (IntroPickupViews.PickupView view : views.pickups(upcoming)) {
             IntroPickup pickup = view.pickup();
             List<IntroPickupSlot> free = view.slots().stream().map(IntroPickupViews.SlotView::slot)
                     .filter(slot -> slot.getStatus() == SlotStatus.AVAILABLE).toList();
-            if (free.isEmpty()
-                    || (category != null && pickup.getCategory() != category)
-                    || (visitFairteiler != null && pickup.isVisitFairteiler() != visitFairteiler)
-                    || (needle != null && !matches(view, needle))) {
+            if (free.isEmpty()) {
                 continue;
             }
             ApiErrorCode reason = BookingRules.check(booker, true, pickup, bookings, rules).orElse(null);
-            result.add(new BookableView(pickup, view.guide(), pickup.isOnline() ? 1 : free.size(),
+            result.add(new BookableView(pickup, view.guide(), cityById.get(pickup.getId()),
+                    pickup.isOnline() ? 1 : free.size(),
                     free.getFirst().getId(), reason));
         }
         return IntroPickupViews.page(result, page, size);
@@ -278,13 +279,6 @@ public class IntroPickupBookingService {
         if (!guide && !permissions.isOrga(actor)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
-    }
-
-    private static boolean matches(IntroPickupViews.PickupView view, String needle) {
-        return contains(view.pickup().getBusinessName(), needle)
-                || contains(view.pickup().getPublicGeneralLocation(), needle)
-                || contains(view.pickup().getPublicInfo(), needle)
-                || (view.guide() != null && contains(view.guide().getDisplayName(), needle));
     }
 
     private static boolean contains(String value, String needle) {

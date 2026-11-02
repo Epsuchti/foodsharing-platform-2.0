@@ -56,13 +56,15 @@ public class IntroPickupNotifications {
     private final RegionService regions;
     private final UserService users;
     private final AppProperties properties;
+    private final IntroPickupCities cities;
 
     public IntroPickupNotifications(IntroPickupRepository pickups, IntroPickupSlotRepository slots,
                                     IntroPickupSubscriptionRepository subscriptions,
                                     IntroPickupBookingService booking,
                                     IntroPickupSubscriptionService subscriptionService,
                                     NotificationService notifications, MailOutboxService mails, RegionService regions,
-                                    UserService users, AppProperties properties) {
+                                    UserService users, AppProperties properties, IntroPickupCities cities) {
+        this.cities = cities;
         this.pickups = pickups;
         this.slots = slots;
         this.subscriptions = subscriptions;
@@ -157,15 +159,18 @@ public class IntroPickupNotifications {
             String unsubscribe = properties.getBaseUrl() + "/intro-pickups/unsubscribe?token="
                     + subscription.getUnsubscribeToken();
             if (subscription.getChannel() == SubscriptionChannel.EMAIL && subscription.getDeliveryEmail() != null) {
-                Map<String, Object> variables = new HashMap<>(params(pickup));
+                Map<String, Object> variables = new HashMap<>(publicParams(pickup));
+                variables.put("online", pickup.isOnline());
                 variables.put("displayName", user.getDisplayName());
                 variables.put("link", properties.getBaseUrl() + "/intro-pickups");
                 variables.put("unsubscribeLink", unsubscribe);
                 mails.enqueue(new MailDraft(subscription.getDeliveryEmail(), "intropickup/new-bookable",
                         language(subscription.getLanguage()), variables));
             }
-            notifications.notify(base(List.of(user.getId()), NotificationType.INTRO_PICKUP_NEW_BOOKABLE, pickup)
-                    .link("/intro-pickups").icon("calendar-plus").build());
+            NotificationRequest.Builder bell = NotificationRequest.to(List.of(user.getId()),
+                    NotificationType.INTRO_PICKUP_NEW_BOOKABLE);
+            publicParams(pickup).forEach(bell::param);
+            notifications.notify(bell.link("/intro-pickups").icon("calendar-plus").build());
             sent++;
         }
         return sent;
@@ -208,13 +213,30 @@ public class IntroPickupNotifications {
     }
 
     private Map<String, String> params(IntroPickup pickup) {
+        Map<String, String> params = dateParams(pickup);
+        params.put("category", pickup.getCategory().name());
+        params.put("businessName", pickup.getBusinessName() == null ? "Online" : pickup.getBusinessName());
+        return params;
+    }
+
+    /** For subscribers, who are unverified by definition: no business name or category (S17 D5). */
+    private Map<String, String> publicParams(IntroPickup pickup) {
+        Map<String, String> params = dateParams(pickup);
+        params.put("online", String.valueOf(pickup.isOnline()));
+        String city = pickup.isOnline() ? null
+                : cities.of(List.of(pickup), regions.require(pickup.getRegionId())).get(pickup.getId());
+        if (city != null) {
+            params.put("city", city);
+        }
+        return params;
+    }
+
+    private Map<String, String> dateParams(IntroPickup pickup) {
         ZoneId zone = regions.zoneOf(pickup.getRegionId());
         Map<String, String> params = new HashMap<>();
         params.put("introPickupId", pickup.getId().toString());
-        params.put("category", pickup.getCategory().name());
         params.put("startAt", pickup.getStartAt().toString());
         params.put("when", WHEN.format(pickup.getStartAt().atZone(zone)));
-        params.put("businessName", pickup.getBusinessName() == null ? "Online" : pickup.getBusinessName());
         return params;
     }
 

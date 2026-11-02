@@ -22,9 +22,26 @@ export async function setIntroSettings(ambassador: ApiClient, changes: Partial<I
   await ambassador.patchJson(path, { introPickups: { ...settings.introPickups, ...changes } });
 }
 
-/** Cards of the bookable list with the given category (in list order). */
-export function bookableCards(page: Page, category: string): Locator {
-  return page.locator(`[data-testid="introPickups.bookable.card"][data-category="${category}"]`);
+/**
+ * Zürich's upcoming seed EinAbs per category (`intropickup/intro_pickup.csv`), by date. The list itself no longer
+ * tells the category before booking (decision 156, S17 D5), so tests find cards by id.
+ */
+const SEED_CATEGORIES: Record<string, number[]> = {
+  SUPERMARKET: [1, 9],
+  TAKEOUT: [2, 13],
+  MARKET: [3, 14],
+  BAKERY: [11, 10],
+  RESTAURANT: [4, 12],
+  FAIRTEILER_CLEANING: [5],
+  MESSE: [6],
+  GROSSABHOLUNG: [7],
+  ONLINE: [8],
+};
+
+/** Cards of the bookable list with the given seed category (in list order), plus EinAbs a test created. */
+export function bookableCards(page: Page, category: string, extraIds: string[] = []): Locator {
+  const ids = [...(SEED_CATEGORIES[category] ?? []).map(einabId), ...extraIds];
+  return page.locator(ids.map((id) => `[data-testid="introPickups.bookable.card"][data-id="${id}"]`).join(', '));
 }
 
 /** Opens `/intro-pickups` and waits for the list. */

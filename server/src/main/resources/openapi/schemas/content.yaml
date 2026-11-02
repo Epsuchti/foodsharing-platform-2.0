@@ -480,3 +480,12 @@ ContentPageCreate:
         type: string
         format: uuid
       maxItems: 20
+
+PublicPartnerStore:
+  type: object
+  required: [name]
+  properties:
+    name:
+      type: string
+    city:
+      type: string

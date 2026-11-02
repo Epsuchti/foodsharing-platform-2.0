@@ -47,6 +47,22 @@ StoreMarker:
       type: string
       format: uuid
 
+StoreArea:
+  type: object
+  required: [name, latitude, longitude, count]
+  properties:
+    name:
+      type: string
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double
+    count:
+      type: integer
+      format: int32
+
 MapBubble:
   type: object
   required: [title, link, lines]

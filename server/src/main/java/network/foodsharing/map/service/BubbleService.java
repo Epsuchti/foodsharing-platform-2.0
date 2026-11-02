@@ -20,6 +20,7 @@ import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreQueryService;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Marker bubbles (M1). Lines carry data only (addresses, names, counts, ISO dates); the client renders labels.
- * Anonymous viewers get FSP, basket and region bubbles only.
+ * Anonymous viewers get FSP, basket and region bubbles only; store bubbles need {@link StoreVisibility}.
  */
 @Service
 @Transactional(readOnly = true)
@@ -48,10 +49,11 @@ public class BubbleService {
     private final UserService users;
     private final CurrentActorService actors;
     private final PermissionService permissions;
+    private final StoreVisibility visibility;
 
     public BubbleService(StoreQueryService stores, FspQueryService fsps, BasketQueryService baskets,
                          EventService events, RegionService regions, UserService users, CurrentActorService actors,
-                         PermissionService permissions) {
+                         PermissionService permissions, StoreVisibility visibility) {
         this.stores = stores;
         this.fsps = fsps;
         this.baskets = baskets;
@@ -60,6 +62,7 @@ public class BubbleService {
         this.users = users;
         this.actors = actors;
         this.permissions = permissions;
+        this.visibility = visibility;
     }
 
     /** @throws ApiException 404 NOT_FOUND for unknown kinds / ids, 403 for user bubbles of non-administrators */
@@ -79,7 +82,9 @@ public class BubbleService {
     }
 
     private Bubble store(UUID id) {
-        actors.requirePrincipal();
+        if (!visibility.mayKnowStores(actors.requirePrincipal())) {
+            throw notFound();
+        }
         Store store = stores.findLive(id).orElseThrow(BubbleService::notFound);
         return new Bubble(store.getName(), store.getCooperationStatus().name(), null, "/stores/" + id,
                 address(store.getStreet(), store.getPostcode(), store.getCity(), store.getTeamStatus().name()));

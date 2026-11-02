@@ -20,8 +20,6 @@ import network.foodsharing.store.domain.TeamSearchStatus;
 import network.foodsharing.store.domain.UserTeamStatus;
 import network.foodsharing.store.repository.StoreChainKamRepository;
 import network.foodsharing.store.repository.StoreMembershipRepository;
-import network.foodsharing.user.domain.User;
-import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +40,17 @@ public class StorePermissionService {
                          boolean mayDelete, boolean mayApply, boolean mayLeave, boolean mayChatTeam,
                          boolean mayChatJumper, boolean isKam, boolean isManager, boolean coordinate,
                          UserTeamStatus teamStatus) {
+
+        /** No right at all: people who may not know the stores, whatever rows exist for them (S17). */
+        static Rights none(UserTeamStatus teamStatus) {
+            return new Rights(false, false, false, false, false, false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false, false, false, teamStatus);
+        }
+
+        /** ORGA or this store's manager ({@code mayDeleteAnyWallPost} is the ORGA right); S17 D6. */
+        public boolean mayChangePublicNaming() {
+            return PublicNamingRules.mayChange(mayDeleteAnyWallPost, isManager);
+        }
     }
 
     private static final Set<UserTeamStatus> TEAM = Set.of(UserTeamStatus.MEMBER, UserTeamStatus.COORDINATOR);
@@ -54,19 +63,19 @@ public class StorePermissionService {
     private final RegionReadService regionReads;
     private final RegionPermissionResolver resolver;
     private final PermissionService permissions;
-    private final UserService users;
+    private final StoreVisibility visibility;
 
     public StorePermissionService(StoreMembershipRepository memberships, StoreChainKamRepository kams,
                                   RegionService regions, RegionReadService regionReads,
                                   RegionPermissionResolver resolver, PermissionService permissions,
-                                  UserService users) {
+                                  StoreVisibility visibility) {
         this.memberships = memberships;
         this.kams = kams;
         this.regions = regions;
         this.regionReads = regionReads;
         this.resolver = resolver;
         this.permissions = permissions;
-        this.users = users;
+        this.visibility = visibility;
     }
 
     public static UserTeamStatus status(Optional<StoreMembership> membership) {
@@ -109,24 +118,34 @@ public class StorePermissionService {
     /**
      * Public store page for non-members (upstream store view for foodsavers of the region): foodsavers who are
      * active members of the store's region see name, address, category, statuses, public info and requirements so
-     * they can apply; ambassadors/coordinators already have full access.
+     * they can apply; ambassadors/coordinators already have full access. Only for people who may know stores (S17).
      */
     public boolean mayViewPublic(SessionPrincipal actor, Store store) {
         return actor != null && PermissionService.isAtLeast(actor.role(), Role.FOODSAVER)
-                && permissions.isMemberOf(actor, store.getRegionId());
+                && permissions.isMemberOf(actor, store.getRegionId()) && visibility.mayKnowStores(actor);
+    }
+
+    /** A known and an unknown store id look the same to people who may not know stores (S17 D2). @throws ApiException 404 */
+    public void requireMayKnowStore(SessionPrincipal actor) {
+        if (!visibility.mayKnowStores(actor)) {
+            throw ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND);
+        }
     }
 
     public Rights rights(SessionPrincipal actor, Store store) {
         boolean orga = actor != null && permissions.isOrga(actor);
         UserTeamStatus status = teamStatus(actor == null ? null : actor.userId(), store.getId());
+        boolean verified = visibility.isVerified(actor);
+        if (!StoreVisibility.mayKnow(orga, verified)) {
+            return Rights.none(status);
+        }
         boolean coordinate = mayCoordinateRegionStores(actor, store.getRegionId());
         boolean kam = isKam(actor, store);
-        boolean verified = actor != null && users.findActive(actor.userId()).map(User::isVerified).orElse(false);
         boolean storeManagerRole = actor != null && PermissionService.isAtLeast(actor.role(), Role.STORE_MANAGER);
         boolean access = orga || ACCESS.contains(status) || kam || coordinate;
         boolean wall = orga || TEAM.contains(status) || coordinate;
         boolean edit = orga || (storeManagerRole && (status == UserTeamStatus.COORDINATOR || coordinate));
-        boolean pickups = (wall && (verified || orga)) || kam;
+        boolean pickups = wall || kam;
         boolean open = store.getTeamStatus() != TeamSearchStatus.CLOSED;
         return new Rights(access, wall, wall, orga, edit, edit, verified && wall, edit, pickups, edit, edit,
                 edit || kam, edit, coordinate, status == UserTeamStatus.NO_MEMBER && open && actor != null,

@@ -174,8 +174,9 @@ public class PickupScheduleService {
 
     /** All failing reasons for the current user plus the rule counters. */
     public PickupEligibilityRules.Result eligibility(UUID storeId, Instant pickupAt) {
-        Store store = stores.require(storeId);
         SessionPrincipal actor = currentActor.requirePrincipal();
+        rights.requireMayKnowStore(actor);
+        Store store = stores.require(storeId);
         StorePermissionService.require(PickupEligibilityRules.mayCheckEligibility(
                 rights.rights(actor, store).maySeePickups(), rights.teamStatus(actor.userId(), storeId)));
         return context(store, actor.userId()).evaluate(pickupAt, find(store, pickupAt).orElse(null));

@@ -93,12 +93,12 @@ test.describe('other roles', () => {
     expect(signUp.status()).toBe(403);
   });
 
-  // no relation to the store team at all: 403 (A19)
+  // no relation to the store team at all: 403 (A19); to an unverified person a store does not exist (decision 156)
   for (const role of ['guide', 'pending'] as const) {
     test(`PU4 ${role === 'guide' ? 'not a team member' : 'unverified user'} is refused @PU4`, async ({ as, apiOf, store }) => {
       const client = apiOf(await as(role));
       const path = `/api/stores/${store.id('S-01')}/pickups/${encodeURIComponent(S01_THURSDAY)}`;
-      expect((await client.get(`${path}/eligibility`)).status()).toBe(403);
+      expect((await client.get(`${path}/eligibility`)).status()).toBe(role === 'guide' ? 403 : 404);
       const signUp = await client.post(`${path}/signups`);
       expect(signUp.status()).toBe(403);
     });

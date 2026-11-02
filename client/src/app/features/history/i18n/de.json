@@ -157,6 +157,7 @@
   "history.action.STORE.UPDATE_REGULAR_PICKUP_INTERVAL": "Eintragungszeitraum geändert",
   "history.action.STORE.STORE_CREATED": "Betrieb angelegt",
   "history.action.STORE.STORE_UPDATED": "Betrieb bearbeitet",
+  "history.action.STORE.STORE_PUBLIC_NAMING_CHANGED": "Öffentliche Nennung geändert",
   "history.action.STORE.FIELD_CHANGED": "Feld geändert",
   "history.action.STORE.MOVED_TO_REGION": "In anderen Bezirk verschoben",
   "history.action.STORE.TEAM_STATUS_CHANGED": "Teamstatus geändert",

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
@@ -147,6 +147,13 @@ const optional = () => new FormControl<string | null>(null);
                 <label for="sf-publicity">{{ 'stores.form.publicity' | t }}</label>
                 <p-select inputId="sf-publicity" formControlName="publicity" [options]="options().publicity" optionLabel="label" optionValue="value" appendTo="body" [style]="{ width: '100%' }" data-testid="stores.form.publicity" />
               </div>
+              @if (storeId()) {
+                <div class="field">
+                  <label for="sf-public-name">{{ 'stores.form.publicName' | t }}</label>
+                  <p-toggleswitch inputId="sf-public-name" formControlName="publiclyNamed" data-testid="stores.form.publicName" />
+                  <small data-testid="stores.form.publicNameWarning">{{ 'stores.form.publicNameWarning' | t }}</small>
+                </div>
+              }
               <div class="field">
                 <label for="sf-sticker">{{ 'stores.form.sticker' | t }}</label>
                 <p-select inputId="sf-sticker" formControlName="sticker" [options]="options().sticker" optionLabel="label" optionValue="value" appendTo="body" [style]="{ width: '100%' }" data-testid="stores.form.sticker" />
@@ -330,7 +337,6 @@ export class StoreFormPageComponent {
   private readonly patched = signal<string | null>(null);
 
   protected readonly requirementControls = [
-    { control: 'requiresVerified', labelKey: 'stores.requirement.verified' },
     { control: 'requiresHygieneCertificate', labelKey: 'stores.requirement.hygiene' },
     { control: 'requiresPhone', labelKey: 'stores.requirement.phone' },
     { control: 'requiresApplicationText', labelKey: 'stores.requirement.applicationText' },
@@ -349,6 +355,7 @@ export class StoreFormPageComponent {
     cooperationStart: optional(),
     convinceStatus: new FormControl<ConvinceStatus>(ConvinceStatus.NotSet, { nonNullable: true }),
     publicity: new FormControl<PublicityStatus>(PublicityStatus.NotChosen, { nonNullable: true }),
+    publiclyNamed: new FormControl(false, { nonNullable: true }),
     sticker: new FormControl<StickerStatus>(StickerStatus.NotChosen, { nonNullable: true }),
     contact: new FormGroup({ person: optional(), phone: optional(), fax: optional(), email: optional() }),
     publicPickupTime: new FormControl<PublicPickupTime>(PublicPickupTime.NotSet, { nonNullable: true }),
@@ -356,7 +363,6 @@ export class StoreFormPageComponent {
     prefetchDays: new FormControl<number>(14, { nonNullable: true, validators: [Validators.min(1), Validators.max(42)] }),
     useRegionPickupRule: new FormControl(false, { nonNullable: true }),
     teamStatus: new FormControl<TeamSearchStatus>(TeamSearchStatus.Open, { nonNullable: true }),
-    requiresVerified: new FormControl(true, { nonNullable: true }),
     requiresHygieneCertificate: new FormControl(false, { nonNullable: true }),
     requiresPhone: new FormControl(false, { nonNullable: true }),
     requiresApplicationText: new FormControl(false, { nonNullable: true }),
@@ -426,6 +432,9 @@ export class StoreFormPageComponent {
   );
 
   constructor() {
+    this.form.controls.publicity.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.syncPublicName(this.data.data()?.store ?? undefined));
     effect(() => {
       const loaded = this.data.data();
       const key = loaded?.store?.id ?? (loaded ? 'new' : null);
@@ -499,6 +508,7 @@ export class StoreFormPageComponent {
       cooperationStart: store.cooperationStart ?? null,
       convinceStatus: store.convinceStatus ?? ConvinceStatus.NotSet,
       publicity: store.publicity ?? PublicityStatus.NotChosen,
+      publiclyNamed: !!store.publiclyNamed,
       sticker: store.sticker ?? StickerStatus.NotChosen,
       contact: {
         person: store.contact?.person ?? null,
@@ -511,13 +521,27 @@ export class StoreFormPageComponent {
       prefetchDays: store.prefetchDays,
       useRegionPickupRule: !!store.useRegionPickupRule,
       teamStatus: store.teamStatus,
-      requiresVerified: !!store.requiresVerified,
       requiresHygieneCertificate: !!store.requiresHygieneCertificate,
       requiresPhone: !!store.requiresPhone,
       requiresApplicationText: !!store.requiresApplicationText,
       specialNotes: store.specialNotes ?? null,
     });
+    this.syncPublicName(store);
     this.form.markAsPristine();
+  }
+
+  /** On only with publicity ALLOWED, for ORGA and this store's managers (S17 D6). */
+  private syncPublicName(store: StoreDetail | undefined): void {
+    const control = this.form.controls.publiclyNamed;
+    const allowed = this.form.controls.publicity.value === PublicityStatus.Allowed;
+    if (!allowed) {
+      control.setValue(false, { emitEvent: false });
+    }
+    if (allowed && store?.permissions.mayChangePublicNaming) {
+      control.enable({ emitEvent: false });
+    } else {
+      control.disable({ emitEvent: false });
+    }
   }
 
   private common(): Omit<StoreCreate, 'firstWallPost'> {
@@ -543,7 +567,6 @@ export class StoreFormPageComponent {
       prefetchDays: v.prefetchDays,
       useRegionPickupRule: v.useRegionPickupRule,
       requiresHygieneCertificate: v.requiresHygieneCertificate,
-      requiresVerified: v.requiresVerified,
       requiresPhone: v.requiresPhone,
       requiresApplicationText: v.requiresApplicationText,
       teamStatus: v.teamStatus,
@@ -561,6 +584,8 @@ export class StoreFormPageComponent {
     const regionId = this.form.controls.regionId.value;
     return {
       ...this.common(),
+      // sent only by those who may switch it; the server clears it when publicity leaves ALLOWED
+      publiclyNamed: this.form.controls.publiclyNamed.enabled ? this.form.controls.publiclyNamed.value : undefined,
       regionId: store && regionId && regionId !== store.region.id ? regionId : undefined,
       reason: this.form.controls.reason.value?.trim() || undefined,
     };

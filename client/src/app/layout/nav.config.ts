@@ -287,7 +287,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.stores',
     icon: 'pi pi-shopping-bag',
     route: '/stores/mine',
-    visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver),
+    visible: pickupsVisible,
   }, // M3
   {
     id: 'introPickups',
@@ -367,7 +367,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.storeChains',
     icon: 'pi pi-link',
     route: '/store-chains',
-    visible: (ctx) => ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver),
+    visible: pickupsVisible,
   }, // M3
   {
     id: 'storeCategories',

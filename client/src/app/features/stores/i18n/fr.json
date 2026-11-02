@@ -111,6 +111,8 @@
   "stores.form.cooperationStart": "Coopère depuis",
   "stores.form.convinceStatus": "Comment s’est passée la prise de contact ?",
   "stores.form.publicity": "Communication publique",
+  "stores.form.publicName": "Citer le nom publiquement",
+  "stores.form.publicNameWarning": "Le nom et la ville du commerce apparaissent alors sur la page des partenaires, visibles par tout le monde. À activer seulement si le commerce a donné son accord. La communication publique doit être autorisée.",
   "stores.form.sticker": "Autocollant",
   "stores.form.contact": "Contact sur place",
   "stores.form.contactHint": "Visible uniquement par l’équipe.",

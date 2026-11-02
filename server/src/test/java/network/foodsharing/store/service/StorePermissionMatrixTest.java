@@ -103,11 +103,11 @@ class StorePermissionMatrixTest {
                         false, "y y y n n y y n n y n n n"),
                 r("foodsaver, jumper", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, JUMPER, false, true, false,
                         "y n n n n n n n n n y n n"),
-                // upstream table: wall "no"; upstream code mayReadStoreWall: team members read the wall
+                // decision 156 (S17): a row that still exists gives an unverified person no right at all
                 r("foodsaver, unverified member", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, MEMBER, false, false,
-                        false, "y y y n n n n n n y n n n"),
+                        false, "n n n n n n n n n n n n n"),
                 r("foodsaver, unverified jumper", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, JUMPER, false, false,
-                        false, "y n n n n n n n n n y n n"),
+                        false, "n n n n n n n n n n n n n"),
                 r("foodsaver, applied", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, StoreMembershipStatus.APPLIED,
                         false, true, false, "n n n n n n n n n n n n n"),
                 r("foodsaver, invited", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, StoreMembershipStatus.INVITED,
@@ -152,9 +152,11 @@ class StorePermissionMatrixTest {
         SessionPrincipal actor = new SessionPrincipal(userId, UUID.randomUUID(), row.role(), "x@example.org");
 
         assertThat(service.rights(actor, store(TeamSearchStatus.CLOSED)).mayApply()).isFalse();
-        assertThat(service.rights(actor, store(TeamSearchStatus.OPEN)).mayApply()).isEqualTo(row.status() == null);
-        assertThat(service.rights(actor, store(TeamSearchStatus.OPEN)).mayLeave())
-                .isEqualTo(row.status() != null && row.status() != StoreMembershipStatus.INVITED && !row.manager());
+        boolean mayKnow = row.verified() || row.role() == Role.ORGA;
+        assertThat(service.rights(actor, store(TeamSearchStatus.OPEN)).mayApply())
+                .isEqualTo(mayKnow && row.status() == null);
+        assertThat(service.rights(actor, store(TeamSearchStatus.OPEN)).mayLeave()).isEqualTo(mayKnow
+                && row.status() != null && row.status() != StoreMembershipStatus.INVITED && !row.manager());
     }
 
     @org.junit.jupiter.api.Test
@@ -253,7 +255,8 @@ class StorePermissionMatrixTest {
         } else if (row.coordinationAdmin() == Scope.OUT_OF_DISTRICT) {
             when(resolver.isAdmin(userId, OTHER_COORDINATION)).thenReturn(true);
         }
-        return new StorePermissionService(memberships, kams, regions, regionReads, resolver, permissions, users);
+        return new StorePermissionService(memberships, kams, regions, regionReads, resolver, permissions,
+                new StoreVisibility(users));
     }
 
     private static Region region(UUID id) {

@@ -1,8 +1,9 @@
 package network.foodsharing.intropickup.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import network.foodsharing.intropickup.domain.IntroPickupCategory;
+import network.foodsharing.intropickup.domain.IntroPickup;
 import network.foodsharing.intropickup.domain.SlotStatus;
 import network.foodsharing.intropickup.repository.IntroPickupRepository;
 import network.foodsharing.region.domain.Region;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Public view of upcoming EinAbs with free places (no guide, no private address, no call link): the public list of a
+ * Public view of upcoming EinAbs with free places (date, online or on site, city, free places; S17 D5): the public list of a
  * region and the "next EinAbs" on the public region page.
  */
 @Service
@@ -22,8 +23,11 @@ public class PublicIntroPickupService implements UpcomingIntroPickups {
     private final IntroPickupRepository pickups;
     private final IntroPickupViews views;
     private final RegionService regions;
+    private final IntroPickupCities cities;
 
-    public PublicIntroPickupService(IntroPickupRepository pickups, IntroPickupViews views, RegionService regions) {
+    public PublicIntroPickupService(IntroPickupRepository pickups, IntroPickupViews views, RegionService regions,
+                                    IntroPickupCities cities) {
+        this.cities = cities;
         this.pickups = pickups;
         this.views = views;
         this.regions = regions;
@@ -31,13 +35,8 @@ public class PublicIntroPickupService implements UpcomingIntroPickups {
 
     /** @throws network.foodsharing.common.error.ApiException 404 REGION_NOT_FOUND */
     @Transactional(readOnly = true)
-    public Page<PublicIntroPickupView> list(String slug, IntroPickupCategory category, Boolean visitFairteiler,
-                                            Integer page, Integer size) {
-        Region region = regions.requireBySlug(slug);
-        List<PublicIntroPickupView> all = upcoming(region).stream()
-                .filter(v -> category == null || v.category().equals(category.name()))
-                .filter(v -> visitFairteiler == null || v.visitFairteiler() == visitFairteiler).toList();
-        return IntroPickupViews.page(all, page, size);
+    public Page<PublicIntroPickupView> list(String slug, Integer page, Integer size) {
+        return IntroPickupViews.page(upcoming(regions.requireBySlug(slug)), page, size);
     }
 
     @Override
@@ -48,11 +47,12 @@ public class PublicIntroPickupService implements UpcomingIntroPickups {
     }
 
     private List<PublicIntroPickupView> upcoming(Region region) {
-        return views.pickups(pickups.findUpcoming(region.getId(), views.now())).stream().map(view -> {
+        List<IntroPickup> upcoming = pickups.findUpcoming(region.getId(), views.now());
+        Map<UUID, String> cityById = cities.of(upcoming, region);
+        return views.pickups(upcoming).stream().map(view -> {
             int free = (int) view.slots().stream().filter(s -> s.slot().getStatus() == SlotStatus.AVAILABLE).count();
-            return new PublicIntroPickupView(view.pickup().getId(), view.pickup().getCategory().name(),
-                    view.pickup().getStartAt(), view.pickup().getPublicGeneralLocation(),
-                    view.pickup().getBusinessName(), view.pickup().getPublicInfo(), view.pickup().isVisitFairteiler(),
+            return new PublicIntroPickupView(view.pickup().getId(), view.pickup().getStartAt(),
+                    view.pickup().isOnline(), cityById.get(view.pickup().getId()),
                     view.pickup().isOnline() && free > 0 ? 1 : free, region.getSlug());
         }).filter(v -> v.freeSlots() > 0).toList();
     }

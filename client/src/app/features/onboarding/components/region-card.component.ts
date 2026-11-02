@@ -37,7 +37,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
                 @for (p of r.nextIntroPickups.slice(0, 4); track p.id) {
                   <li [attr.data-testid]="testId() + '.date'">
                     <strong>{{ p.startAt | fsDate: 'dateTime' }}</strong>
-                    <span class="muted">{{ 'common.introCategory.' + p.category | t }} · {{ 'onboarding.region.freeSlots' | t: { count: p.freeSlots } }}</span>
+                    <span class="muted">{{ p.online ? ('common.introMode.online' | t) : (p.city ?? ('common.introMode.onSite' | t)) }} · {{ 'onboarding.region.freeSlots' | t: { count: p.freeSlots } }}</span>
                   </li>
                 }
               </ul>

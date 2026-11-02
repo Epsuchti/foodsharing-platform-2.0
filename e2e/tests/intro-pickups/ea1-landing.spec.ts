@@ -20,15 +20,10 @@ test('EA1 logged-in user lands on home region list, newbie gets region picker @E
   await expect(page.locator('fs-page-header')).toContainText('Zürich');
   await expect(bookableCards(page, 'ONLINE').getByTestId('introPickups.bookable.book')).toBeVisible();
 
-  // filters narrow the list
-  await page.getByTestId('introPickups.bookable.fairteiler').click();
-  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(3);
-  await page.getByTestId('introPickups.bookable.fairteiler').click();
-  await page.getByTestId('introPickups.bookable.search').fill('Stauffacher');
-  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(2);
-  for (const card of await page.getByTestId('introPickups.bookable.card').all()) await expect(card).toContainText('Stauffacher');
-  await page.getByTestId('introPickups.bookable.search').fill('');
-  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(14);
+  // no filters: each one would let a caller test for a hidden value (decision 156, S17 D5)
+  await expect(page.getByTestId('introPickups.bookable.search')).toHaveCount(0);
+  await expect(page.getByTestId('introPickups.bookable.category')).toHaveCount(0);
+  await expect(page.getByTestId('introPickups.bookable.fairteiler')).toHaveCount(0);
 
   await page.getByTestId('introPickups.bookable.myBookings').click();
   await expect(page).toHaveURL(/\/me\/intro-pickups$/);

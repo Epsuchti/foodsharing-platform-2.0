@@ -43,7 +43,6 @@ test('EA5 Fairteiler visit by the third EinAb shows its reason @EA5', async ({ p
   // 1 done + 1 booked: the third must include a Fairteiler visit
   await expect(reasonOf(page, 'TAKEOUT')).toHaveAttribute('data-reason', 'FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP');
   const cleaning = bookableCards(page, 'FAIRTEILER_CLEANING').first();
-  await expect(cleaning.getByTestId('introPickups.card.fairteiler')).toBeVisible();
   await expect(cleaning.getByTestId('introPickups.bookable.book')).toBeVisible();
 });
 

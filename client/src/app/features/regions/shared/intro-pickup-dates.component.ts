@@ -21,15 +21,10 @@ import { TPipe } from '../../../core/i18n/t.pipe';
               <span>{{ pickup.startAt | fsDate: 'time' }}</span>
             </span>
             <span class="date__what">
-              <span class="date__category">{{ 'common.introCategory.' + pickup.category | t }}</span>
-              @if (pickup.publicGeneralLocation) {
+              <span class="date__category">{{ (pickup.online ? 'common.introMode.online' : 'common.introMode.onSite') | t }}</span>
+              @if (pickup.city) {
                 <span class="date__where">
-                  <i class="pi pi-map-marker" aria-hidden="true"></i>{{ pickup.publicGeneralLocation }}
-                </span>
-              }
-              @if (pickup.visitFairteiler) {
-                <span class="date__where">
-                  <i class="pi pi-box" aria-hidden="true"></i>{{ 'regions.intro.fairteiler' | t }}
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>{{ pickup.city }}
                 </span>
               }
             </span>
@@ -100,6 +95,20 @@ import { TPipe } from '../../../core/i18n/t.pipe';
     .date__free--full {
       background: var(--fs-surface-muted);
       color: var(--fs-text-muted);
+    }
+    /* Phones: the three columns leave the city no room, so mode and city share a row below the date. */
+    @media (max-width: 30rem) {
+      .date {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.35rem 0.85rem;
+      }
+      .date__what {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.1rem 0.6rem;
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
     }
   `,
 })

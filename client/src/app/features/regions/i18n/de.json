@@ -71,7 +71,6 @@
   "regions.overview.conferenceText": "Der Konferenzraum des Bezirks für Treffen online.",
   "regions.overview.conferenceOpen": "Konferenzraum öffnen",
   "regions.intro.none": "Zurzeit keine Termine.",
-  "regions.intro.fairteiler": "Fairteiler-Reinigung",
   "regions.intro.free": "{count, plural, one {# Platz frei} other {# Plätze frei}}",
   "regions.members.search": "Suche",
   "regions.members.searchPlaceholder": "Name oder Foodsaver-ID",

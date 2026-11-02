@@ -4,6 +4,7 @@ import {
   MapBubble,
   MapMarker as ApiMapMarker,
   MapMarkerKind,
+  StoreArea,
   StoreMarker,
   StoreMarkerHelp,
   StoreMarkerScope,
@@ -18,13 +19,16 @@ import { DataState, DataStatus } from '../../core/data/data-state';
 import { readStorage, writeStorage } from '../../core/storage';
 import { MapMarker, MapMarkerKind as ViewKind } from '../../shared/map-view/map-view.component';
 
-/** Layers of /map: the first three are public, the others need a session (users also MAP_USERS + region admin). */
-export type MapLayer = 'fsps' | 'regions' | 'baskets' | 'stores' | 'events' | 'users';
-export const PUBLIC_LAYERS: readonly MapLayer[] = ['fsps', 'regions', 'baskets'];
+/**
+ * Layers of /map: the first four are public, the others need a session (users also MAP_USERS + region admin). Store
+ * areas are for everyone who may not know the stores, stores only for those who may (decision 156, S17).
+ */
+export type MapLayer = 'fsps' | 'regions' | 'baskets' | 'storeAreas' | 'stores' | 'events' | 'users';
+export const PUBLIC_LAYERS: readonly MapLayer[] = ['fsps', 'regions', 'baskets', 'storeAreas'];
 export const MEMBER_LAYERS: readonly MapLayer[] = ['stores', 'events', 'users'];
 export const ALL_LAYERS: readonly MapLayer[] = [...PUBLIC_LAYERS, ...MEMBER_LAYERS];
 /** Shown on the first visit (nothing stored yet). */
-export const DEFAULT_LAYERS: readonly MapLayer[] = ['fsps', 'regions', 'baskets', 'stores'];
+export const DEFAULT_LAYERS: readonly MapLayer[] = ['fsps', 'regions', 'baskets', 'storeAreas', 'stores'];
 export const LAYERS_STORAGE_KEY = 'fs.map.layers';
 
 /** The remembered layers (`localStorage['fs.map.layers']`, a JSON array); unknown entries are dropped. */
@@ -66,6 +70,11 @@ export function toViewMarkers(markers: readonly ApiMapMarker[], label: (kind: Ma
 
 export function storeViewMarkers(stores: readonly StoreMarker[]): MapMarker[] {
   return stores.map((store) => ({ id: store.id, kind: 'store', lat: store.lat, lon: store.lon, label: store.name }));
+}
+
+/** The count bubbles of the store areas; the id is the area's name, which is unique per bubble. */
+export function storeAreaViewMarkers(areas: readonly StoreArea[], label: (area: StoreArea) => string): MapMarker[] {
+  return areas.map((area) => ({ id: `area:${area.name}`, kind: 'store-area', lat: area.latitude, lon: area.longitude, label: label(area), count: area.count }));
 }
 
 /** The API kind of a pin (for the bubble request, lower case as in `/bubbles/{kind}/{id}`); none for own pins. */

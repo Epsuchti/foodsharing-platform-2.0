@@ -29,6 +29,7 @@ import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
+import network.foodsharing.store.service.StoreVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Global search (C5, decision 147) over {@code search_index}. Every term (normalised like the index) must match; the
  * matching and ranking per database are in {@link SearchIndexRepository}. Visibility per actor
  * ({@link SearchPermissions}): ORGA sees everything; others see public rows (regions, groups, FSPs, public events),
- * stores / events / polls / threads of their regions, ambassador threads of the regions they administrate and the
+ * stores (only people who may know them, S17) / events / polls / threads of their regions, ambassador threads of the regions they administrate and the
  * users who are their contacts. A query with {@code @} searches users by their exact email only: ORGA all users,
  * holders of CAN_MANAGE_USERS the active members of those regions, everyone else nothing. With SEARCH_FORUM_POSTS on,
  * threads are also found through the text of their visible posts (snippet as subtitle). At most
@@ -58,14 +59,16 @@ public class SearchService {
     private final CurrentActorService currentActor;
     private final PermissionService permissions;
     private final FeatureToggleService toggles;
+    private final StoreVisibility visibility;
     private final AppProperties properties;
     private final Clock clock;
     /** Null when the limit is off ({@code app.search.rate-limit-per-minute=0}). */
     private final SlidingWindowRateLimiter limiter;
 
     public SearchService(SearchIndexRepository index, RegionService regions, CurrentActorService currentActor,
-                         PermissionService permissions, FeatureToggleService toggles, AppProperties properties,
-                         Clock clock) {
+                         PermissionService permissions, FeatureToggleService toggles, StoreVisibility visibility,
+                         AppProperties properties, Clock clock) {
+        this.visibility = visibility;
         this.index = index;
         this.regions = regions;
         this.currentActor = currentActor;
@@ -109,9 +112,11 @@ public class SearchService {
         SearchIndexRepository.Scope sqlScope = new SearchIndexRepository.Scope(principal.userId(), scope.unrestricted(),
                 scope.memberRegionIds(), scope.adminRegionIds());
         boolean email = query.contains("@");
+        boolean mayKnowStores = visibility.mayKnowStores(principal);
         Map<SearchKind, List<SearchHitRow>> result = new EnumMap<>(SearchKind.class);
         for (SearchKind kind : SearchKind.values()) {
-            boolean wanted = kinds == null || kinds.isEmpty() || kinds.contains(kind);
+            boolean wanted = (kinds == null || kinds.isEmpty() || kinds.contains(kind))
+                    && (kind != SearchKind.STORE || mayKnowStores);
             List<SearchHitRow> hits;
             if (!wanted) {
                 hits = List.of();
@@ -187,7 +192,8 @@ public class SearchService {
     @Transactional(readOnly = true)
     public Index index() {
         toggles.requireEnabled(FeatureToggle.GLOBAL_SEARCH);
-        UUID userId = currentActor.requirePrincipal().userId();
+        SessionPrincipal principal = currentActor.requirePrincipal();
+        UUID userId = principal.userId();
         List<Region> units = regions.findAll(regions.activeRegionIdsOf(userId));
         List<SearchHitRow> regionHits = units.stream().filter(r -> !r.isGroup())
                 .map(r -> new SearchHitRow(SearchKind.REGION, r.getId(), r.getName(), null, "/regions/" + r.getId(), null))
@@ -195,7 +201,8 @@ public class SearchService {
         List<SearchHitRow> groupHits = units.stream().filter(Region::isGroup)
                 .map(r -> new SearchHitRow(SearchKind.GROUP, r.getId(), r.getName(), null, "/groups/" + r.getId(), null))
                 .sorted((a, b) -> a.title().compareToIgnoreCase(b.title())).toList();
-        return new Index(regionHits, groupHits, index.ownStores(userId), index.ownFoodSharePoints(userId),
+        return new Index(regionHits, groupHits,
+                visibility.mayKnowStores(principal) ? index.ownStores(userId) : List.of(), index.ownFoodSharePoints(userId),
                 index.ownConversations(userId, 50));
     }
 

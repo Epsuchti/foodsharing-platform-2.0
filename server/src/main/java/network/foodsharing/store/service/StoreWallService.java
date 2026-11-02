@@ -179,7 +179,8 @@ public class StoreWallService {
     /** Activity feed (A19): newest wall posts of the stores whose team the user is in (member or jumper). */
     @Transactional(readOnly = true)
     public List<FeedPost> latestOfMyStores(UUID userId, java.time.Instant before, int limit) {
-        List<UUID> ids = storeService.teamStoreIds(userId);
+        List<UUID> ids = users.findActive(userId).filter(StoreVisibility::mayKnow).isPresent()
+                ? storeService.teamStoreIds(userId) : List.of();
         if (ids.isEmpty()) {
             return List.of();
         }

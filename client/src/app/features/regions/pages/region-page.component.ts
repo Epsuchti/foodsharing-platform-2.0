@@ -113,7 +113,7 @@ export class RegionPageComponent {
 
   protected readonly laterTabs = computed(() =>
     this.ctx.isMember()
-      ? LATER.map((tab) => ({
+      ? LATER.filter((tab) => tab.id !== 'stores' || this.session.mayKnowStores()).map((tab) => ({
           ...tab,
           route: tab.route ?? `later/${tab.id}`,
           labelKey: `regions.later.${tab.id}`,

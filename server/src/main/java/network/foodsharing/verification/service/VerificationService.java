@@ -16,6 +16,7 @@ import network.foodsharing.user.domain.User;
 import network.foodsharing.user.domain.UserNoteKind;
 import network.foodsharing.user.service.UserNoteService;
 import network.foodsharing.user.service.UserService;
+import network.foodsharing.user.service.UserUnverifiedEvent;
 import network.foodsharing.user.service.UserVerifiedEvent;
 import network.foodsharing.verification.domain.VerificationAction;
 import org.springframework.context.ApplicationEventPublisher;
@@ -89,6 +90,7 @@ public class VerificationService {
         User updated = users.setVerified(userId, false, null);
         notes.add(userId, UserNoteKind.VERIFICATION_MESSAGE, text);
         history.record(history.event(VerificationAction.UNVERIFIED, userId).reason(text).build());
+        events.publishEvent(new UserUnverifiedEvent(userId));
         return updated;
     }
 

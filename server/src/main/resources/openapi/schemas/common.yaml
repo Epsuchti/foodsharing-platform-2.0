@@ -143,6 +143,7 @@ ApiErrorCode:
     # --- onboarding ---
     # --- stores ---
     - STORE_NOT_FOUND
+    - PUBLICITY_NOT_ALLOWED
     - CHAIN_NOT_FOUND
     - CATEGORY_NOT_FOUND
     - STORE_DELETED

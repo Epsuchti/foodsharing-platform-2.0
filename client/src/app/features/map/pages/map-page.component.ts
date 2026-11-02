@@ -10,12 +10,13 @@ import {
   MapMarkerKind,
   MapService,
   PublicMapService,
+  StoreArea,
+  StoreCategoriesService,
+  StoreCategory,
   StoreMarker,
   StoreMarkerHelp,
   StoreMarkerScope,
   StoreMarkerStatus,
-  StoreCategoriesService,
-  StoreCategory,
   UserMarkerActivity,
   UserMarkerMember,
   UserMarkerRole,
@@ -44,6 +45,7 @@ import {
   combineStates,
   readLayers,
   storeQuery,
+  storeAreaViewMarkers,
   storeViewMarkers,
   toViewMarkers,
   toggleLayer,
@@ -59,6 +61,7 @@ const LAYER_ICONS: Record<MapLayer, string> = {
   fsps: 'pi pi-box',
   regions: 'pi pi-map',
   baskets: 'pi pi-shopping-cart',
+  storeAreas: 'pi pi-shopping-bag',
   stores: 'pi pi-shopping-bag',
   events: 'pi pi-calendar',
   users: 'pi pi-user',
@@ -71,7 +74,7 @@ interface Selected {
 
 /**
  * /map (M1, public): layer toggles remembered in `localStorage['fs.map.layers']`. Visitors see food share points,
- * regions and baskets (`listPublic*Markers`); signed-in users also stores with the filter bar
+ * regions and baskets (`listPublic*Markers`) and store counts per city; verified users stores with the filter bar
  * (`listStoreMarkers(status, help, scope, categoryId)`), events and — with MAP_USERS on, for administrators of a
  * region — that region's members (`listUserMarkers`, positions rounded by the server; the client adds no
  * precision). A pin opens its bubble (`getMapBubble` / `getPublicMapBubble`); a place search (`searchMapLocation`)
@@ -164,12 +167,6 @@ interface Selected {
           </button>
         }
       </div>
-      @if (!loggedIn()) {
-        <p class="muted" data-testid="map.page.loginHint">
-          <i class="pi pi-lock" aria-hidden="true"></i> {{ 'map.page.loginHint' | t }}
-          <a routerLink="/login" [queryParams]="{ returnUrl: '/map' }" data-testid="map.page.login">{{ 'map.page.login' | t }}</a>
-        </p>
-      }
       @if (showLayer('stores')) {
         <fs-marker-filter-bar
           [filters]="storeFilters()"
@@ -194,7 +191,7 @@ interface Selected {
       }
     </section>
 
-    <div class="stage" [class.stage--bubble]="selected()">
+    <div class="stage" [class.stage--bubble]="selected() || selectedArea()">
       <fs-map-view
         [markers]="markers()"
         [state]="layerState"
@@ -206,6 +203,14 @@ interface Selected {
         testId="map.page.map"
         (markerClick)="open($event)"
       />
+      @if (selectedArea(); as area) {
+        <aside class="fs-card bubble" [attr.aria-label]="'map.bubble.label' | t" data-kind="store-area" data-testid="map.area">
+          <button type="button" class="bubble__close" [attr.aria-label]="'map.bubble.close' | t" (click)="selectedArea.set(null)" data-testid="map.area.close">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+          <p class="bubble__title" data-testid="map.area.text">{{ area.label }}</p>
+        </aside>
+      }
       @if (selected(); as current) {
         <aside class="fs-card bubble" [attr.aria-label]="'map.bubble.label' | t" [attr.data-kind]="current.kind" data-testid="map.bubble">
           <button type="button" class="bubble__close" [attr.aria-label]="'map.bubble.close' | t" (click)="selected.set(null)" data-testid="map.bubble.close">
@@ -464,6 +469,8 @@ export class MapPageComponent {
   private readonly dates = inject(DateTimeFormatter);
 
   protected readonly loggedIn = this.session.isAuthenticated;
+  /** The open store count bubble (its text is all there is, no request and no link). */
+  protected readonly selectedArea = signal<MapMarker | null>(null);
   /** "Not filtered" values for the phone filter toggle's count (the region of the user layer is a choice, not a filter). */
   protected readonly defaultStoreFilter = DEFAULT_STORE_FILTER;
   protected readonly defaultUserFilter: Record<string, string> = {
@@ -496,7 +503,8 @@ export class MapPageComponent {
       ...(this.toggles.isEnabled(FeatureToggleKey.FoodSharePoints) ? (['fsps'] as const) : []),
       'regions',
       ...(this.toggles.isEnabled(FeatureToggleKey.Baskets) ? (['baskets'] as const) : []),
-      ...(this.loggedIn() ? (['stores', 'events'] as const) : []),
+      ...(this.session.mayKnowStores() ? (['stores'] as const) : (['storeAreas'] as const)),
+      ...(this.loggedIn() ? (['events'] as const) : []),
       ...(this.loggedIn() && this.toggles.isEnabled(FeatureToggleKey.MapUsers) && this.regionsToAdminister().length > 0 ? (['users'] as const) : []),
     ];
     return ids.map((id) => ({ id, icon: LAYER_ICONS[id] }));
@@ -522,6 +530,10 @@ export class MapPageComponent {
   private readonly baskets = loadResource<ApiMapMarker[], boolean>({
     params: () => (this.showLayer('baskets') ? this.loggedIn() : undefined),
     loader: (loggedIn) => (loggedIn ? this.mapApi.listBasketMarkers() : this.publicApi.listPublicBasketMarkers()),
+  });
+  private readonly storeAreas = loadResource<StoreArea[], true>({
+    params: () => (this.showLayer('storeAreas') ? true : undefined),
+    loader: () => this.publicApi.listPublicStoreAreas(),
   });
   private readonly stores = loadResource<StoreMarker[], StoreFilterValues>({
     params: () => (this.showLayer('stores') ? this.storeFilter() : undefined),
@@ -557,6 +569,7 @@ export class MapPageComponent {
         ['fsps', this.fsps],
         ['regions', this.regions],
         ['baskets', this.baskets],
+        ['storeAreas', this.storeAreas],
         ['stores', this.stores],
         ['events', this.events],
         ['users', this.users],
@@ -574,6 +587,9 @@ export class MapPageComponent {
       ...shown('regions', this.regions),
       ...shown('fsps', this.fsps),
       ...shown('baskets', this.baskets),
+      ...(this.showLayer('storeAreas')
+        ? storeAreaViewMarkers(this.storeAreas.data() ?? [], (area) => this.i18n.t('map.area.popup', { count: area.count, name: area.name }))
+        : []),
       ...(this.showLayer('stores') ? storeViewMarkers(this.stores.data() ?? []) : []),
       ...shown('events', this.events),
       ...shown('users', this.users),
@@ -679,6 +695,11 @@ export class MapPageComponent {
   }
 
   protected open(marker: MapMarker): void {
+    this.selectedArea.set(marker.kind === 'store-area' ? marker : null);
+    if (marker.kind === 'store-area') {
+      this.selected.set(null);
+      return;
+    }
     const kind = bubbleKind(marker.kind);
     if (!kind || (!this.loggedIn() && !PUBLIC_BUBBLE_KINDS.includes(kind))) return;
     this.selected.set({ kind, id: marker.id });

@@ -22,6 +22,12 @@ public final class ProfileRules {
     public record Permissions(boolean mayEditProfile, boolean maySeeNotes, boolean mayReport,
                               boolean maySeeHistory, boolean maySeeCommitments, boolean mayAdminister,
                               boolean maySeePickups, boolean maySeeStores, boolean mayPostWall) {
+
+        /** A viewer who may not know stores sees nobody's, not even their own rows (S17). */
+        public Permissions withoutStores() {
+            return new Permissions(mayEditProfile, maySeeNotes, mayReport, maySeeHistory, maySeeCommitments,
+                    mayAdminister, maySeePickups, false, mayPostWall);
+        }
     }
 
     private ProfileRules() {

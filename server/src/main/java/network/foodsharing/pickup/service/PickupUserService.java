@@ -30,6 +30,7 @@ import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.domain.StoreLogAction;
 import network.foodsharing.store.service.StorePermissionService;
 import network.foodsharing.store.service.StoreService;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
@@ -140,6 +141,10 @@ public class PickupUserService {
     /** Sign-ups of {@code userId} from {@code from} on, for the calendar feed (the caller checked the feed token). */
     @Transactional(readOnly = true)
     public List<CalendarPickup> calendarPickups(UUID userId, Instant from) {
+        // the feed has no viewer but its owner, and old sign-ups name stores an unverified owner may not know (S17)
+        if (users.findActive(userId).filter(StoreVisibility::mayKnow).isEmpty()) {
+            return List.of();
+        }
         return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(userId, from)).stream()
                 .map(view -> new CalendarPickup(view.store().getId(), view.store().getName(),
                         java.util.stream.Stream.of(view.store().getStreet(), java.util.stream.Stream.of(
@@ -153,7 +158,11 @@ public class PickupUserService {
     /** Upcoming pickups of the current user. */
     @Transactional(readOnly = true)
     public List<UserPickupView> myPickups() {
-        UUID userId = currentActor.requireUserId();
+        User user = currentActor.requireUser();
+        if (!StoreVisibility.mayKnow(user)) {
+            return List.of();
+        }
+        UUID userId = user.getId();
         return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(userId, clock.instant()));
     }
 
@@ -243,12 +252,14 @@ public class PickupUserService {
      */
     @Transactional(readOnly = true)
     public AgendaView agenda(UUID userId, LocalDate date) {
-        requireSelfOrAdmin(userId);
+        SessionPrincipal actor = requireSelfOrAdmin(userId);
         User user = users.require(userId);
         ZoneId zone = user.getHomeRegionId() == null ? ZoneId.of("Europe/Zurich") : regions.zoneOf(user.getHomeRegionId());
         Instant from = date.atStartOfDay(zone).toInstant();
         Instant to = date.plusDays(1).atStartOfDay(zone).toInstant();
-        List<UserPickupView> pickups = views(userId,
+        // the viewer decides: an unverified person's old sign-ups name stores they may not know (S17)
+        boolean mayKnow = users.findActive(actor.userId()).filter(StoreVisibility::mayKnow).isPresent();
+        List<UserPickupView> pickups = !mayKnow ? List.of() : views(userId,
                 signups.findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtAscIdAsc(userId, from, to));
         return new AgendaView(date, pickups, introPickups.bookingsOf(userId, from, to),
                 cleaning.shiftsOfUser(userId, from, to));

@@ -71,7 +71,6 @@
   "regions.overview.conferenceText": "De Konferenzruum vom Bezirk für Träffe online.",
   "regions.overview.conferenceOpen": "Konferenzruum öffne",
   "regions.intro.none": "Im Moment kei Termin.",
-  "regions.intro.fairteiler": "Fairteiler-Putze",
   "regions.intro.free": "{count, plural, one {# Platz frei} other {# Plätz frei}}",
   "regions.members.search": "Sueche",
   "regions.members.searchPlaceholder": "Name oder Foodsaver-ID",

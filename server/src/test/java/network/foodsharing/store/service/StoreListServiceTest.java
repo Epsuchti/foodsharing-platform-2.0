@@ -46,6 +46,7 @@ class StoreListServiceTest {
     RegionService regions = mock(RegionService.class);
     CurrentActorService currentActor = mock(CurrentActorService.class);
     PermissionService permissions = mock(PermissionService.class);
+    StoreVisibility visibility = mock(StoreVisibility.class);
     StoreQueryService service;
     SessionPrincipal actor = new SessionPrincipal(UUID.randomUUID(), UUID.randomUUID(), Role.FOODSAVER, "a@b.c");
     List<Store> inRegion = new ArrayList<>();
@@ -56,7 +57,8 @@ class StoreListServiceTest {
         service = new StoreQueryService(stores, memberships, mock(StoreCategoryRepository.class),
                 mock(StoreChainRepository.class), mock(GroceryRepository.class), mock(StoreGroceryRepository.class),
                 mock(PickupWeightCategoryRepository.class), mock(StoreService.class), rights, pickupInfo, regions,
-                currentActor, permissions);
+                currentActor, permissions, visibility);
+        when(visibility.mayKnowStores(actor)).thenReturn(true);
         when(currentActor.requirePrincipal()).thenReturn(actor);
         when(permissions.isMemberOf(actor, REGION)).thenReturn(true);
         when(regions.subtreeIds(REGION)).thenReturn(List.of(REGION, CHILD));
@@ -94,6 +96,15 @@ class StoreListServiceTest {
         assertThat(names(null, null, null, true)).contains("Child Bäckerei").hasSize(5);
         assertThat(names(null, List.of(TeamSearchStatus.CLOSED), null, true)).containsExactly("Child Bäckerei");
         assertThat(names(null, null, "  bäck ", true)).containsExactly("Child Bäckerei");
+    }
+
+    @Test
+    void theUnverifiedGetNoListsAndAStoreLooksUnknown() {
+        when(visibility.mayKnowStores(actor)).thenReturn(false);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.regionStores(REGION, null, null, null, false, null, null))
+                .isInstanceOf(network.foodsharing.common.error.ApiException.class);
+        assertThat(service.myStores(false)).isEmpty();
+        org.mockito.Mockito.verifyNoInteractions(memberships);
     }
 
     @Test

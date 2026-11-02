@@ -31,7 +31,7 @@ forEachVariant((variant) => {
         await page.goto('/intro-pickups');
         await expect(page.getByTestId('introPickups.bookable.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `intro-bookable-${variant.name}`);
-        await page.locator('[data-testid="introPickups.bookable.card"][data-category="ONLINE"]').getByTestId('introPickups.bookable.book').click();
+        await page.locator('[data-testid="introPickups.bookable.card"][data-id="00000030-0001-4000-8000-000000000008"]').getByTestId('introPickups.bookable.book').click();
         await page.locator('.p-confirmdialog-accept-button').click();
         await expect(page.getByTestId('introPickups.bookable.success')).toBeVisible();
         await visual.expectScreen(page, `intro-booked-${variant.name}`, { fullPage: false });

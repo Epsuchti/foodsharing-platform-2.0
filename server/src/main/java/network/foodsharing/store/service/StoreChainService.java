@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Store chains and key account managers (plan §13.3 S3). Everybody FOODSAVER+ reads chains; chain administrators
+ * Store chains and key account managers (plan §13.3 S3). Everybody who may know stores reads chains (S17); chain administrators
  * (ORGA or admins of a STORE_CHAINS working group, {@link StoreChainAccess}) create and edit them; a KAM of the chain
  * may edit it but not its KAM list (403 KAM_CANNOT_EDIT_KAMS). Notes are visible to administrators and the chain's KAMs.
  */
@@ -62,11 +62,13 @@ public class StoreChainService {
     private final CurrentActorService currentActor;
     private final HistoryService history;
     private final ApplicationEventPublisher events;
+    private final StoreVisibility visibility;
 
     public StoreChainService(StoreChainRepository chains, StoreChainKamRepository kams, StoreRepository stores,
                              StoreChainAccess access, UserService users, CurrentActorService currentActor,
-                             HistoryService history, ApplicationEventPublisher events) {
+                             HistoryService history, ApplicationEventPublisher events, StoreVisibility visibility) {
         this.events = events;
+        this.visibility = visibility;
         this.chains = chains;
         this.kams = kams;
         this.stores = stores;
@@ -76,10 +78,10 @@ public class StoreChainService {
         this.history = history;
     }
 
-    /** @throws ApiException 403 below FOODSAVER */
+    /** @throws ApiException 403 unless the actor may know stores */
     @Transactional(readOnly = true)
     public Page<ChainView> list(Collection<StoreChainStatus> statuses, String search, Integer page, Integer size) {
-        SessionPrincipal actor = currentActor.requireRole(Role.FOODSAVER);
+        SessionPrincipal actor = requireMayKnow();
         String needle = search == null || search.isBlank() ? null : search.strip().toLowerCase(Locale.ROOT);
         List<StoreChain> all = chains.findAllByOrderByNameAscIdAsc().stream()
                 .filter(c -> statuses == null || statuses.isEmpty() || statuses.contains(c.getStatus()))
@@ -94,11 +96,17 @@ public class StoreChainService {
         return new PageImpl<>(content, PageRequest.of(p, s), all.size());
     }
 
-    /** @throws ApiException 403 below FOODSAVER, 404 CHAIN_NOT_FOUND */
+    /** @throws ApiException 403 unless the actor may know stores, 404 CHAIN_NOT_FOUND */
     @Transactional(readOnly = true)
     public ChainView get(UUID chainId) {
-        SessionPrincipal actor = currentActor.requireRole(Role.FOODSAVER);
+        SessionPrincipal actor = requireMayKnow();
         return view(require(chainId), actor);
+    }
+
+    private SessionPrincipal requireMayKnow() {
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        StorePermissionService.require(visibility.mayKnowStores(actor));
+        return actor;
     }
 
     /** @throws ApiException 403 unless chain administrator, 400 VALIDATION_FAILED / INVALID_KAM */

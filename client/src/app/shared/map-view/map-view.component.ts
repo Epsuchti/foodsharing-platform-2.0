@@ -22,6 +22,7 @@ export type MapMarkerKind =
   | 'region-pin'
   | 'region'
   | 'store'
+  | 'store-area'
   | 'fsp'
   | 'basket'
   | 'user'
@@ -39,6 +40,8 @@ export interface MapMarker {
   lon: number;
   /** Tooltip / accessible name. */
   label: string;
+  /** Shown as a bubble with this number instead of a pin (store counts per city, S17). */
+  count?: number;
 }
 
 /** A point the map moves to (`focus` input); zoom defaults to at least 13. */
@@ -56,6 +59,7 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
   'region-pin': 'pi-map-marker',
   region: 'pi-map',
   store: 'pi-shopping-bag',
+  'store-area': 'pi-shopping-bag',
   fsp: 'pi-box',
   basket: 'pi-shopping-cart',
   user: 'pi-user',
@@ -186,6 +190,19 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
     }
     :host ::ng-deep .fs-map-marker--edit .fs-map-marker__pin {
       background: #b5532d;
+    }
+    :host ::ng-deep .fs-map-marker__count {
+      display: grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border: 2px solid var(--fs-surface);
+      border-radius: 50%;
+      background: var(--fs-primary);
+      color: var(--fs-on-primary, #fff);
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
     }
     :host ::ng-deep .fs-map-marker[data-kind='store'] .fs-map-marker__pin {
       background: #1c6f91;
@@ -357,12 +374,17 @@ export class MapViewComponent {
     for (const marker of markers) {
       const icon = L.divIcon({
         className: 'fs-map-marker',
-        html: `<span class="fs-map-marker__pin"><i class="pi ${KIND_ICON[marker.kind]}" aria-hidden="true"></i></span>`,
-        iconSize: [32, 32],
-        // the pin's tip (bottom corner of the rotated inner square) is the position
-        iconAnchor: [16, 36],
+        html:
+          marker.count === undefined
+            ? `<span class="fs-map-marker__pin"><i class="pi ${KIND_ICON[marker.kind]}" aria-hidden="true"></i></span>`
+            : `<span class="fs-map-marker__count">${marker.count}</span>`,
+        iconSize: marker.count === undefined ? [32, 32] : [36, 36],
+        // the pin's tip (bottom corner of the rotated inner square) is the position; a count bubble is centred on it
+        iconAnchor: marker.count === undefined ? [16, 36] : [18, 18],
       });
-      L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true })
+      // count bubbles stay on top: under the pins of the same city their number can't be read
+      const zIndexOffset = marker.count === undefined ? 0 : 1000;
+      L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true, zIndexOffset })
         .on('click', () => this.onMarkerClick(marker))
         // Leaflet's own Enter handler only opens popups: keyboard users open the marker like a click
         .on('keydown', (event: Leaflet.LeafletKeyboardEvent) => {

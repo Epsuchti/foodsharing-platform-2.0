@@ -1,0 +1,13 @@
+# Seed (S17, decision 156): S-01 and S-02 (both publicity ALLOWED) are named on the public partners list. No new ids.
+databaseChangeLog:
+  - changeSet:
+      id: seed-185-1
+      author: platform
+      context: seed
+      comment: 'S-01 and S-02 are publicly named.'
+      changes:
+        - update:
+            tableName: store
+            columns:
+              - column: {name: publicly_named, valueBoolean: true}
+            where: "id IN ('00000020-0001-4000-8000-000000000001', '00000020-0001-4000-8000-000000000002')"

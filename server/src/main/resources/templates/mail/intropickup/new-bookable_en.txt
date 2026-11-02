@@ -1,6 +1,6 @@
 Hi [(${displayName})],
 
-there is a new intro pickup at [(${businessName})] on [(${when})] that you can book.
+there is a new intro pickup [(${online} ? 'online' : 'in ' + ${city})] on [(${when})] that you can book.
 Unsubscribe: [(${unsubscribeLink})]
 [(${link})]
 

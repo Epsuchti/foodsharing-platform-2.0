@@ -14,6 +14,13 @@ import org.springframework.data.repository.query.Param;
 
 public interface StoreRepository extends JpaRepository<Store, UUID> {
 
+    /** Stores per region. */
+    interface RegionCount {
+        UUID getRegionId();
+
+        long getCount();
+    }
+
     @Query("select s from Store s where s.id = :id and s.deletedAt is null")
     Optional<Store> findLive(@Param("id") UUID id);
 
@@ -39,6 +46,14 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
 
     @Query("select count(s) from Store s where s.chainId = :chainId and s.deletedAt is null")
     long countLiveByChain(@Param("chainId") UUID chainId);
+
+    @Query("select s.regionId as regionId, count(s) as count from Store s where s.deletedAt is null "
+            + "and s.cooperationStatus = :status group by s.regionId")
+    List<RegionCount> countLiveByRegion(@Param("status") CooperationStatus status);
+
+    @Query("select s from Store s where s.publiclyNamed = true and s.deletedAt is null "
+            + "and s.cooperationStatus = :status order by s.name, s.id")
+    List<Store> findPartners(@Param("status") CooperationStatus status);
 
     long countByCategoryId(UUID categoryId);
 

@@ -2,7 +2,7 @@
   get:
     tags: [public-intro-pickups]
     operationId: listPublicIntroPickups
-    summary: 'Upcoming EinAbs with free slots (general area only).'
+    summary: 'Upcoming EinAbs with free slots: date, online or on site, city, free places.'
     security: []
     x-permission: 'PUBLIC'
     parameters:
@@ -11,14 +11,6 @@
         required: true
         schema:
           type: string
-      - name: category
-        in: query
-        schema:
-          $ref: '../schemas/intro-pickups.yaml#/IntroPickupCategory'
-      - name: visitFairteiler
-        in: query
-        schema:
-          type: boolean
       - name: page
         in: query
         schema:

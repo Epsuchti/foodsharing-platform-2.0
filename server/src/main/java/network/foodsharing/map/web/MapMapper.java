@@ -5,10 +5,12 @@ import network.foodsharing.api.model.GeoResult;
 import network.foodsharing.api.model.MapBubble;
 import network.foodsharing.api.model.MapMarker;
 import network.foodsharing.api.model.MapMarkerKind;
+import network.foodsharing.api.model.StoreArea;
 import network.foodsharing.api.model.StoreMarker;
 import network.foodsharing.map.service.BubbleService;
 import network.foodsharing.map.service.MapSearchService;
 import network.foodsharing.map.service.MarkerService;
+import network.foodsharing.map.service.StoreAreaRules;
 
 /** Service records → generated models (M1). */
 final class MapMapper {
@@ -19,6 +21,11 @@ final class MapMapper {
     static List<MapMarker> markers(List<MarkerService.Marker> markers) {
         return markers.stream().map(m -> new MapMarker().id(m.id()).kind(MapMarkerKind.fromValue(m.kind().name()))
                 .lat(m.lat()).lon(m.lon()).status(m.status())).toList();
+    }
+
+    static List<StoreArea> storeAreas(List<StoreAreaRules.Area> areas) {
+        return areas.stream().map(a -> new StoreArea().name(a.name()).latitude(a.latitude()).longitude(a.longitude())
+                .count(a.count())).toList();
     }
 
     static List<StoreMarker> stores(List<MarkerService.StoreMarker> markers) {

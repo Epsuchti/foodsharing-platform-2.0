@@ -5,6 +5,7 @@ import network.foodsharing.api.model.BlogPostPage;
 import network.foodsharing.api.model.DonationPage;
 import network.foodsharing.api.model.FaqEntry;
 import network.foodsharing.api.model.Petition;
+import network.foodsharing.api.model.PublicPartnerStore;
 import network.foodsharing.api.model.PublicStatistics;
 import network.foodsharing.api.model.ReleaseNote;
 import network.foodsharing.api.model.TeamGroup;
@@ -21,6 +22,7 @@ import network.foodsharing.content.service.ContentService;
 import network.foodsharing.content.service.ReleaseNoteService;
 import network.foodsharing.content.service.TeamPageService;
 import network.foodsharing.statistics.service.PublicStatisticsService;
+import network.foodsharing.store.service.StoreQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,10 +37,12 @@ public class PublicContentController implements PublicContentApi {
     private final CampaignService campaigns;
     private final ContentMapper mapper;
     private final PublicStatisticsService statistics;
+    private final StoreQueryService stores;
 
     public PublicContentController(ContentService content, BlogService blog, ReleaseNoteService releaseNotes,
                                    TeamPageService team, CampaignService campaigns, ContentMapper mapper,
-                                   PublicStatisticsService statistics) {
+                                   PublicStatisticsService statistics, StoreQueryService stores) {
+        this.stores = stores;
         this.statistics = statistics;
         this.content = content;
         this.blog = blog;
@@ -62,6 +66,12 @@ public class PublicContentController implements PublicContentApi {
     public ResponseEntity<List<LearningChapter>> listLearningChapters(Language lang) {
         return ResponseEntity.ok(content.learningChapters(ContentModels.language(lang)).stream()
                 .map(ContentModels::chapter).toList());
+    }
+
+    @Override
+    public ResponseEntity<List<PublicPartnerStore>> listPublicPartnerStores() {
+        return ResponseEntity.ok(stores.partnerStores().stream()
+                .map(s -> new PublicPartnerStore().name(s.name()).city(s.city())).toList());
     }
 
     // --- M6 (B11) ---

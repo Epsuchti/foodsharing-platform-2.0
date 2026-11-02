@@ -56,8 +56,9 @@ class StoreTeamFlowIT {
 
     @Test
     void applyAcceptStandbyRegularAndRemove() throws Exception {
+        // decision 156 (S17): to an unverified person a store does not exist
         mvc.perform(json(post(S + "05/applications").cookie(login(SeedUsers.QUIZ)), "{}"))
-                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("ROLE_TOO_LOW"));
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
         mvc.perform(json(post(S + "04/applications").cookie(login(SeedUsers.GUIDE)), "{}"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("TEAM_CLOSED"));
         mvc.perform(json(post(S + "01/applications").cookie(login(SeedUsers.FOODSAVER)), "{}"))

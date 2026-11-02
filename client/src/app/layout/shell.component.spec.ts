@@ -278,7 +278,8 @@ describe('nav.config', () => {
     it('gives each persona its tabs, without filler', () => {
       expect(ids(mobileTabs(newcomer))).toEqual(['onboarding', 'messages']);
       expect(ids(mobileTabs(foodsaver))).toEqual(['dashboard', 'pickups', 'stores', 'messages']);
-      expect(ids(mobileTabs(unverified))).toEqual(['dashboard', 'stores', 'messages']);
+      // decision 156 (S17): no store link before verification
+      expect(ids(mobileTabs(unverified))).toEqual(['dashboard', 'messages']);
       expect(mobileTabs(context())).toEqual([]);
     });
 

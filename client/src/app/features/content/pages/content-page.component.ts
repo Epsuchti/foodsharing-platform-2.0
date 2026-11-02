@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 
-import { ContentPage, Language, PublicContentService } from '../../../api';
+import { ContentPage, Language, PublicContentService, PublicPartnerStore } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -33,6 +33,25 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
         </article>
       </ng-template>
     </fs-data-state>
+    @if (slug() === 'partners') {
+      <section class="fs-card page" data-testid="content.partners">
+        <h2 class="partners__title">{{ 'content.partners.title' | t }}</h2>
+        <fs-data-state [state]="partners" skeleton="list" [compact]="true" [emptyTitle]="'content.partners.empty' | t" data-testid="content.partners.state">
+          <ng-template [fsData]="partners" let-stores>
+            <ul class="partners">
+              @for (store of stores; track store.name + store.city) {
+                <li data-testid="content.partners.store">
+                  <strong>{{ store.name }}</strong>
+                  @if (store.city) {
+                    <span class="muted"> · {{ store.city }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </ng-template>
+        </fs-data-state>
+      </section>
+    }
   `,
   styles: `
     :host {
@@ -44,6 +63,20 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
       display: grid;
       gap: 1rem;
       padding: clamp(1.1rem, 0.6rem + 2vw, 2.25rem);
+    }
+    .fs-card + .fs-card {
+      margin-top: 1rem;
+    }
+    .partners__title {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .partners {
+      display: grid;
+      gap: 0.4rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
     .page__fallback {
       display: flex;
@@ -75,5 +108,11 @@ export class ContentPageComponent {
   protected readonly page = loadResource<ContentPage, { slug: string; lang: string }>({
     params: () => ({ slug: this.slug(), lang: this.i18n.language() }),
     loader: ({ slug, lang }) => this.api.getContentPage({ slug, lang: lang as Language }),
+  });
+
+  /** Stores flagged as publicly named (decision 156, S17 D8); only the partners page asks for them. */
+  protected readonly partners = loadResource<PublicPartnerStore[], true>({
+    params: () => (this.slug() === 'partners' ? true : undefined),
+    loader: () => this.api.listPublicPartnerStores(),
   });
 }

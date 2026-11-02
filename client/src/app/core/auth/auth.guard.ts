@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateFn, Data, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, CanMatchFn, Data, Router } from '@angular/router';
 
 import { Role } from '../../api';
 import { safeReturnUrl } from './return-url';
@@ -85,6 +85,15 @@ export function routeAccess(
   const granted = session.permissions();
   return access.permissions.some((permission) => hasScopedPermission(granted, permission, scopeId));
 }
+
+/**
+ * Store pages (decision 156, S17): for a signed-in person who may not know stores the route does not match, so the
+ * not-found page shows, as for an address that doesn't exist. Logged out it matches and authGuard asks for the login.
+ */
+export const storesVisibleMatch: CanMatchFn = () => {
+  const session = inject(SessionService);
+  return !session.isAuthenticated() || session.mayKnowStores();
+};
 
 /**
  * Logged out → /login?returnUrl=<target>; logged in without the required role/permission → /forbidden.

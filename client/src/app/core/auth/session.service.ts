@@ -31,6 +31,8 @@ export class SessionService {
     this.state().authenticated ? (this.state().user ?? null) : null,
   );
   readonly isAuthenticated = computed(() => this.state().authenticated && !!this.state().user);
+  /** Verified or ORGA: the people who may know which stores work with foodsharing (decision 156, S17). */
+  readonly mayKnowStores = computed(() => !!this.user()?.verified || this.user()?.role === Role.Orga);
   readonly role = computed<Role | null>(() => this.user()?.role ?? null);
   readonly permissions = computed(() => this.state().permissions ?? []);
 

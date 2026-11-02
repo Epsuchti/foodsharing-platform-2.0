@@ -20,6 +20,7 @@ import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreService;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.survey.domain.Survey;
 import network.foodsharing.survey.domain.SurveyAction;
 import network.foodsharing.survey.domain.SurveyAnswer;
@@ -83,6 +84,7 @@ public class SurveyService {
     private final UserService users;
     private final UserSearchService userSearch;
     private final StoreService stores;
+    private final StoreVisibility visibility;
     private final NotificationService notifications;
     private final HistoryService history;
     private final ObjectMapper json;
@@ -91,7 +93,7 @@ public class SurveyService {
                          SurveyQuestionRepository questions, SurveyResponseRepository responses,
                          SurveyAnswerRepository answers, PermissionService permissions,
                          CurrentActorService currentActor, UserService users, UserSearchService userSearch,
-                         StoreService stores, NotificationService notifications, HistoryService history,
+                         StoreService stores, StoreVisibility visibility, NotificationService notifications, HistoryService history,
                          ObjectMapper json) {
         this.surveys = surveys;
         this.coauthors = coauthors;
@@ -103,6 +105,7 @@ public class SurveyService {
         this.users = users;
         this.userSearch = userSearch;
         this.stores = stores;
+        this.visibility = visibility;
         this.notifications = notifications;
         this.history = history;
         this.json = json;
@@ -256,15 +259,16 @@ public class SurveyService {
     }
 
     /**
-     * The fill form for any logged-in user; with {@code storeId} the store is resolved for the STORE question.
+     * The fill form for any logged-in user; with {@code storeId} the store is resolved for the STORE question (never for people who may not know stores, S17).
      *
      * @throws ApiException 404 SURVEY_NOT_FOUND / STORE_NOT_FOUND
      */
     @Transactional(readOnly = true)
     public FormView form(UUID surveyId, UUID storeId) {
-        UUID me = currentActor.requireUserId();
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        UUID me = actor.userId();
         Survey survey = surveys.findById(surveyId).orElseThrow(SurveyService::notFound);
-        Store store = storeId == null ? null : stores.require(storeId);
+        Store store = storeId == null || !visibility.mayKnowStores(actor) ? null : stores.require(storeId);
         return new FormView(survey, questions.findBySurveyIdOrderBySortOrderAscIdAsc(surveyId),
                 responses.existsBySurveyIdAndUserId(surveyId, me), store);
     }
@@ -289,6 +293,9 @@ public class SurveyService {
         if (hasStore) {
             if (storeId == null) {
                 throw ApiException.conflict(ApiErrorCode.STORE_ANSWER_LINK_ONLY);
+            }
+            if (!visibility.mayKnowStores(currentActor.requirePrincipal())) {
+                throw ApiException.notFound(ApiErrorCode.STORE_NOT_FOUND);
             }
             store = stores.require(storeId);
         }

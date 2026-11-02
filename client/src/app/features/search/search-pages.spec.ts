@@ -6,7 +6,8 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { SearchIndexData, SearchKind, SearchResults } from '../../api';
+import { Role, SearchIndexData, SearchKind, SearchResults, SessionInfo } from '../../api';
+import { SessionService } from '../../core/auth/session.service';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { GlobalSearchComponent } from './components/global-search.component';
 import { SearchPageComponent } from './pages/search-page.component';
@@ -207,7 +208,21 @@ describe('search', () => {
   });
 
   describe('search page', () => {
+    it('hides the stores filter and the word from people who may not know stores', async () => {
+      await harness.navigateByUrl('/search');
+      await settle();
+      expect(q('[data-testid="search.page.kind"][data-kind="STORE"]')).toBeNull();
+      expect(q('[data-testid="search.page.kind"][data-kind="USER"]')).not.toBeNull();
+      expect((q('[data-testid="search.page.input"]') as HTMLInputElement).placeholder).toContain('placeholderNoStores');
+    });
+
     it('shows a hint below two characters and loads grouped results for ?q=', async () => {
+      TestBed.inject(SessionService).applySession({
+        authenticated: true,
+        permissions: [],
+        units: [],
+        user: { id: 'me', verified: true, role: Role.Foodsaver },
+      } as unknown as SessionInfo);
       await harness.navigateByUrl('/search');
       await settle();
       expect(q('[data-testid="search.page.hint"]')).not.toBeNull();

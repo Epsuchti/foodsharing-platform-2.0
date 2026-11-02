@@ -1,17 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
-import { Checkbox } from '@openng/optimus-ui/checkbox';
 import { Dialog } from '@openng/optimus-ui/dialog';
-import { InputText } from '@openng/optimus-ui/inputtext';
-import { Select } from '@openng/optimus-ui/select';
 
 import {
   BookableIntroPickup,
   BookableIntroPickupPage,
-  IntroPickupCategory,
   IntroPickupsService,
   MyBooking,
   RegionRef,
@@ -28,18 +23,10 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
 import { RegionPickerComponent } from '../../../shared/region-picker/region-picker.component';
 import { BookedDetailsComponent } from '../components/booked-details.component';
 import { EinAbCardComponent } from '../components/einab-card.component';
-import { INTRO_CATEGORIES } from '../intro-category';
 import { introPickupIcs } from '../intro-pickups.resource';
 
-interface Filters {
-  regionId: string;
-  category: IntroPickupCategory | null;
-  fairteiler: boolean;
-  search: string;
-}
-
 /**
- * `/intro-pickups` (EA1, EA5, EA6): bookable EinAbs of the active (home) region with filters. Each card is bookable
+ * `/intro-pickups` (EA1, EA5, EA6): bookable EinAbs of the active (home) region. Each card is bookable
  * or shows the translated reason; one tap books after a confirmation, the success dialog shows the private details and
  * the calendar export. Users without a region pick one and continue on its public list.
  */
@@ -50,15 +37,11 @@ interface Filters {
     BookedDetailsComponent,
     Button,
     CalendarExportButtonComponent,
-    Checkbox,
     Dialog,
     EinAbCardComponent,
-    FormsModule,
-    InputText,
     PageHeaderComponent,
     RegionPickerComponent,
     RouterLink,
-    Select,
     TPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,40 +63,6 @@ interface Filters {
           <i class="pi pi-calendar" aria-hidden="true"></i>{{ 'introPickups.bookable.myBookings' | t }}
         </a>
       </div>
-      <div class="filters fs-card" role="search">
-        <div class="field">
-          <label for="intro-search">{{ 'introPickups.bookable.search' | t }}</label>
-          <input
-            pInputText
-            id="intro-search"
-            type="search"
-            [ngModel]="searchInput()"
-            (ngModelChange)="onSearch($event)"
-            [placeholder]="'introPickups.bookable.searchPlaceholder' | t"
-            data-testid="introPickups.bookable.search"
-          />
-        </div>
-        <div class="field">
-          <label for="intro-category">{{ 'introPickups.bookable.category' | t }}</label>
-          <p-select
-            inputId="intro-category"
-            [options]="categoryOptions()"
-            optionLabel="label"
-            optionValue="value"
-            [showClear]="true"
-            [placeholder]="'introPickups.bookable.allCategories' | t"
-            [ngModel]="category()"
-            (ngModelChange)="category.set($event ?? null)"
-            appendTo="body"
-            [style]="{ width: '100%' }"
-            data-testid="introPickups.bookable.category"
-          />
-        </div>
-        <div class="field field--inline">
-          <p-checkbox inputId="intro-fairteiler" [binary]="true" [ngModel]="fairteiler()" (ngModelChange)="fairteiler.set($event)" data-testid="introPickups.bookable.fairteiler" />
-          <label for="intro-fairteiler">{{ 'introPickups.bookable.onlyFairteiler' | t }}</label>
-        </div>
-      </div>
       <fs-data-state
         [state]="list"
         skeleton="card"
@@ -133,7 +82,6 @@ interface Filters {
                 <fs-einab-card
                   [einab]="einab"
                   [attr.data-id]="einab.id"
-                  [attr.data-category]="einab.category"
                   [attr.data-bookable]="einab.bookable"
                   data-testid="introPickups.bookable.card"
                 >
@@ -194,31 +142,9 @@ export class BookableListPageComponent {
 
   protected readonly regionId = this.context.activeRegionId;
   protected readonly regionName = computed(() => this.context.activeRegion()?.name ?? '');
-  protected readonly category = signal<IntroPickupCategory | null>(null);
-  protected readonly fairteiler = signal(false);
-  protected readonly searchInput = signal('');
-  private readonly search = signal('');
-  private searchTimer: ReturnType<typeof setTimeout> | undefined;
-
-  protected readonly categoryOptions = computed(() =>
-    INTRO_CATEGORIES.map((value) => ({ value, label: this.i18n.t('common.introCategory.' + value) })),
-  );
-
-  protected readonly list = loadResource<BookableIntroPickupPage, Filters | undefined>({
-    params: () => {
-      const regionId = this.regionId();
-      return regionId
-        ? { regionId, category: this.category(), fairteiler: this.fairteiler(), search: this.search() }
-        : undefined;
-    },
-    loader: (filters) =>
-      this.api.listBookableIntroPickups({
-        regionId: filters!.regionId,
-        category: filters!.category ?? undefined,
-        visitFairteiler: filters!.fairteiler || undefined,
-        search: filters!.search || undefined,
-        size: 100,
-      }),
+  protected readonly list = loadResource<BookableIntroPickupPage, string | undefined>({
+    params: () => this.regionId() ?? undefined,
+    loader: (regionId) => this.api.listBookableIntroPickups({ regionId: regionId!, size: 100 }),
   });
 
   protected readonly pending = signal<BookableIntroPickup | undefined>(undefined);
@@ -232,12 +158,6 @@ export class BookableListPageComponent {
     onError: () => this.list.reload(),
   });
 
-  protected onSearch(value: string): void {
-    this.searchInput.set(value);
-    clearTimeout(this.searchTimer);
-    this.searchTimer = setTimeout(() => this.search.set(value.trim()), 300);
-  }
-
   protected dateOf(iso: string): string {
     return this.dates.format(iso, 'dateTimeLong', this.context.timeZone());
   }
@@ -250,7 +170,7 @@ export class BookableListPageComponent {
     this.confirm.confirm({
       header: this.i18n.t('introPickups.bookable.confirmTitle'),
       message: this.i18n.t('introPickups.bookable.confirmText', {
-        category: this.i18n.t('common.introCategory.' + einab.category),
+        category: einab.online ? this.i18n.t('common.introMode.online') : (einab.city ?? this.i18n.t('common.introMode.onSite')),
         date: this.dateOf(einab.startAt),
         guide: einab.guide.displayName,
       }),
