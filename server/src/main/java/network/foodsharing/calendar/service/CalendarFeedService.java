@@ -19,6 +19,7 @@ import network.foodsharing.common.ics.IcsWriter;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.event.domain.InvitationStatus;
 import network.foodsharing.event.service.EventIcsService;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.intropickup.domain.IntroPickup;
 import network.foodsharing.intropickup.service.IntroPickupBookingService;
 import network.foodsharing.pickup.service.PickupUserService;
@@ -28,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Personal calendar feed (A11, upstream {@code CalendarTransactions.listAppointments}): the token owner's pickup
- * sign-ups (30 min), booked EinAbs (1 h) and events filtered by invitation status, from now on or 14 days back with
+ * sign-ups (30 min), booked EinAbs (1 h), cleaning shifts (1 h) and events filtered by invitation status, from now on or 14 days back with
  * {@code history}; one display {@code VALARM} per reminder (minutes before, comma-separated, at most 5, each
  * 0..10080). UIDs are {@code <kind>-<id>@<domain>}.
  */
@@ -39,6 +40,7 @@ public class CalendarFeedService {
     static final String CALENDAR_NAME = "foodsaving";
     static final Duration PICKUP_DURATION = Duration.ofMinutes(30);
     static final Duration INTRO_PICKUP_DURATION = Duration.ofHours(1);
+    static final Duration CLEANING_DURATION = Duration.ofHours(1);
     static final Duration HISTORY = Duration.ofDays(14);
     static final int MAX_REMINDERS = 5;
     static final int MAX_REMINDER_MINUTES = 7 * 24 * 60;
@@ -71,24 +73,28 @@ public class CalendarFeedService {
     }
 
     /** Feed options; null booleans mean the contract defaults. */
-    public record Options(EventFilter events, boolean pickups, boolean introPickups, boolean history,
+    public record Options(EventFilter events, boolean pickups, boolean introPickups, boolean cleaningShifts,
+                          boolean history,
                           List<Integer> reminders) {
     }
 
     private final CalendarTokenRepository tokens;
     private final PickupUserService pickups;
     private final IntroPickupBookingService introPickups;
+    private final FspCleaningQueries cleaning;
     private final EventIcsService events;
     private final UserService users;
     private final AppProperties properties;
     private final Clock clock;
 
     public CalendarFeedService(CalendarTokenRepository tokens, PickupUserService pickups,
-                               IntroPickupBookingService introPickups, EventIcsService events, UserService users,
+                               IntroPickupBookingService introPickups, FspCleaningQueries cleaning,
+                               EventIcsService events, UserService users,
                                AppProperties properties, Clock clock) {
         this.tokens = tokens;
         this.pickups = pickups;
         this.introPickups = introPickups;
+        this.cleaning = cleaning;
         this.events = events;
         this.users = users;
         this.properties = properties;
@@ -150,6 +156,17 @@ public class CalendarFeedService {
                         pickup.getStartAt(), pickup.getStartAt().plus(INTRO_PICKUP_DURATION), name,
                         pickup.getPublicInfo(), pickup.getOnlineCallLink() != null ? pickup.getOnlineCallLink()
                         : pickup.getPrivateAddress(), base + "/intro-pickups/" + pickup.getId(), now));
+            }
+        }
+        if (options.cleaningShifts()) {
+            for (FspCleaningQueries.UserShift shift : cleaning.shiftsOfUser(userId, from,
+                    Instant.parse("9999-12-31T00:00:00Z"))) {
+                entries.add(new IcsWriter.IcsEvent(
+                        "cleaning-" + shift.fspId() + "-" + shift.shiftAt().getEpochSecond() + "@" + domain,
+                        shift.shiftAt(), shift.shiftAt().plus(CLEANING_DURATION),
+                        "Putzeinsatz " + shift.fspName() + (shift.confirmed() ? "" : " (unbestätigt)"),
+                        shift.description(), shift.address(),
+                        base + cleaning.cleaningPath(shift.fspId()), now));
             }
         }
         for (IcsWriter.IcsEvent event : events.calendarEvents(userId, options.events().statuses, from)) {

@@ -112,5 +112,8 @@
   "pickups.tab.range.pending": "Unconfirmed ({count})",
   "pickups.tab.pendingEmpty": "No unconfirmed sign-ups left.",
   "pickups.tab.state.confirmed": "Confirmed",
-  "pickups.tab.state.unconfirmed": "Unconfirmed"
+  "pickups.tab.state.unconfirmed": "Unconfirmed",
+  "pickups.cleaning.label": "Cleaning shift",
+  "pickups.cleaning.signoutText": "Do you want to sign out of this cleaning shift?",
+  "pickups.cleaning.signedOut": "Signed out of the cleaning shift."
 }

@@ -19,6 +19,7 @@ import network.foodsharing.api.model.PickupEligibilityReason;
 import network.foodsharing.api.model.PickupSlot;
 import network.foodsharing.api.model.RegionCleaningFsps;
 import network.foodsharing.api.model.RegularPickup;
+import network.foodsharing.api.model.UserCleaningShift;
 import network.foodsharing.api.model.Weekday;
 import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.common.schedule.SlotSchedule;
@@ -27,6 +28,7 @@ import network.foodsharing.fsp.domain.FoodSharePoint;
 import network.foodsharing.fsp.domain.FspCleaningRegular;
 import network.foodsharing.fsp.domain.FspCleaningSignup;
 import network.foodsharing.fsp.service.FspCleaningRegionService;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.fsp.service.FspCleaningScheduleService;
 import network.foodsharing.fsp.service.FspCleaningSignupService;
 import network.foodsharing.fsp.service.FspCleaningTeamService;
@@ -94,6 +96,12 @@ public class FspCleaningMapper {
 
     public RegionCleaningFsps toRegion(FspCleaningRegionService.Selection selection) {
         return new RegionCleaningFsps().selected(refs(selection.selected())).candidates(refs(selection.candidates()));
+    }
+
+    public static UserCleaningShift toUserShift(FspCleaningQueries.UserShift shift) {
+        return new UserCleaningShift().fsp(new FspRef().id(shift.fspId()).name(shift.fspName()))
+                .shiftAt(TimeMapper.toOffset(shift.shiftAt())).confirmed(shift.confirmed())
+                .description(shift.description());
     }
 
     public static List<FspRef> refs(List<FoodSharePoint> fsps) {

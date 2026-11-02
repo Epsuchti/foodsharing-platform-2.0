@@ -112,5 +112,8 @@
   "pickups.tab.range.pending": "Non confirmées ({count})",
   "pickups.tab.pendingEmpty": "Plus aucune inscription non confirmée.",
   "pickups.tab.state.confirmed": "Confirmé·e",
-  "pickups.tab.state.unconfirmed": "Non confirmé·e"
+  "pickups.tab.state.unconfirmed": "Non confirmé·e",
+  "pickups.cleaning.label": "Créneau de nettoyage",
+  "pickups.cleaning.signoutText": "Veux-tu te désinscrire de ce créneau de nettoyage ?",
+  "pickups.cleaning.signedOut": "Désinscription du créneau de nettoyage effectuée."
 }

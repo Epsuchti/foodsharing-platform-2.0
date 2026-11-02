@@ -28,10 +28,8 @@ Last updated 2026-11-02, after merging `integration/2026-11-01` (decisions 142â€
 ## Open from the 2026-11-01 batch
 - **Map tiles:** the map did not load OpenStreetMap tiles in the built-in browser pane, but `curl` gets them. Probably the pane's network. Confirm in a normal browser before changing code; if real, check the tile URL, CSP `img-src`, the service worker and the attribution. e2e and screenshots stub the tile hosts, so add a smoke check that one real tile request succeeds.
 - **Fairteiler cleaning shifts (decision 148), not built:**
-  - cleaning shifts in "Meine Abholungen", the agenda, the dashboard card and the iCal feed
   - reminder mails and jobs
   - automatic confirmation of cleaning sign-ups by the pickup policy
-  - cleaning shifts in the profile and region pickup counts
   - export of cleaning sign-ups in the account data export, and an `AccountDeletionContributor` for future sign-ups (deletion is covered today by the FK cascade; sign-ups are kept pointing at the anonymised user, decide if they should be removed)
   - a time zone per Fairteiler (the cleaning page uses Europe/Zurich)
   - check the Telegram and mail length of the decline text with several cleaning Fairteiler

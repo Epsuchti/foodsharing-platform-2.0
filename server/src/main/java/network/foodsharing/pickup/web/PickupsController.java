@@ -85,6 +85,7 @@ public class PickupsController implements PickupsApi {
         day.setDate(view.date());
         day.setPickups(mapper.toUserPickups(view.pickups()));
         day.setIntroPickups(view.introPickups().stream().map(introMapper::toMyBooking).toList());
+        day.setCleaningShifts(view.cleaningShifts().stream().map(mapper::toCleaningShift).toList());
         return ResponseEntity.ok(day);
     }
 

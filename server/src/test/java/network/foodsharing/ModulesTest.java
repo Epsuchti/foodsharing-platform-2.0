@@ -65,7 +65,7 @@ class ModulesTest {
     @Test
     void m6ModulesHaveOnlyTheirAllowedDependencies() {
         java.util.Map<String, java.util.Set<String>> allowed = java.util.Map.ofEntries(
-                java.util.Map.entry("calendar", java.util.Set.of("user", "region", "event", "pickup", "intropickup", "history")),
+                java.util.Map.entry("calendar", java.util.Set.of("user", "region", "event", "pickup", "intropickup", "fsp", "history")),
                 java.util.Map.entry("basket", java.util.Set.of("user", "region", "store", "notification", "history", "upload", "admin")),
                 java.util.Map.entry("fsp", java.util.Set.of("user", "region", "notification", "history", "upload", "admin")),
                 java.util.Map.entry("map", java.util.Set.of("region", "store", "fsp", "basket", "event", "user", "pickup", "admin")),

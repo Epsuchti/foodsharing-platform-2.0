@@ -24,6 +24,7 @@ import network.foodsharing.common.ics.IcsWriter;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.event.domain.InvitationStatus;
 import network.foodsharing.event.service.EventIcsService;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.intropickup.service.IntroPickupBookingService;
 import network.foodsharing.pickup.service.PickupUserService;
 import network.foodsharing.user.domain.User;
@@ -41,6 +42,7 @@ class CalendarFeedServiceTest {
     CalendarTokenRepository tokens = mock(CalendarTokenRepository.class);
     PickupUserService pickups = mock(PickupUserService.class);
     IntroPickupBookingService intro = mock(IntroPickupBookingService.class);
+    FspCleaningQueries cleaning = mock(FspCleaningQueries.class);
     EventIcsService events = mock(EventIcsService.class);
     UserService users = mock(UserService.class);
     AppProperties properties = new AppProperties();
@@ -49,7 +51,7 @@ class CalendarFeedServiceTest {
     @BeforeEach
     void setUp() {
         properties.setBaseUrl("https://foodsharing.example");
-        service = new CalendarFeedService(tokens, pickups, intro, events, users, properties,
+        service = new CalendarFeedService(tokens, pickups, intro, cleaning, events, users, properties,
                 Clock.fixed(NOW, ZoneOffset.UTC));
         CalendarToken token = new CalendarToken();
         token.setUserId(USER);
@@ -64,8 +66,24 @@ class CalendarFeedServiceTest {
     }
 
     private CalendarFeedService.Options options(String events, boolean pickups, boolean history, String reminders) {
-        return new CalendarFeedService.Options(CalendarFeedService.EventFilter.parse(events), pickups, true, history,
-                CalendarFeedService.parseReminders(reminders));
+        return new CalendarFeedService.Options(CalendarFeedService.EventFilter.parse(events), pickups, true, pickups,
+                history, CalendarFeedService.parseReminders(reminders));
+    }
+
+    @Test
+    void feedContainsCleaningShiftsUnlessSwitchedOff() {
+        UUID fsp = UUID.randomUUID();
+        Instant at = NOW.plusSeconds(86_400);
+        when(cleaning.cleaningPath(fsp)).thenReturn("/food-share-points/" + fsp + "/cleaning");
+        when(cleaning.shiftsOfUser(eq(USER), eq(NOW), any())).thenReturn(List.of(new FspCleaningQueries.UserShift(fsp,
+                "Wiedikon", "Birmensdorferstrasse 1, 8003 Zürich", at, false, null)));
+
+        String feed = service.feed("abc", options(null, true, false, null)).replace("\r\n ", "");
+        assertThat(feed).contains("SUMMARY:Putzeinsatz Wiedikon (unbestätigt)")
+                .contains("UID:cleaning-" + fsp + "-" + at.getEpochSecond() + "@foodsharing.example")
+                .contains("/food-share-points/" + fsp + "/cleaning");
+
+        assertThat(service.feed("abc", options(null, false, false, null))).doesNotContain("Putzeinsatz");
     }
 
     @Test

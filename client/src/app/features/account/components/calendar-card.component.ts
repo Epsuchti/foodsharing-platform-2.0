@@ -242,7 +242,7 @@ export class CalendarCardComponent {
   private readonly document = inject(DOCUMENT);
   private readonly i18n = inject(I18nService);
 
-  protected readonly switches = ['pickups', 'introPickups', 'history'] as const;
+  protected readonly switches = ['pickups', 'introPickups', 'cleaningShifts', 'history'] as const;
   protected readonly reminderChoices = CALENDAR_REMINDER_CHOICES;
   protected readonly options = signal<CalendarFeedOptions>({ ...CALENDAR_FEED_DEFAULTS });
 
@@ -269,7 +269,7 @@ export class CalendarCardComponent {
     this.options.update((options) => ({ ...options, ...changes }));
   }
 
-  protected setSwitch(key: 'pickups' | 'introPickups' | 'history', value: boolean): void {
+  protected setSwitch(key: 'pickups' | 'introPickups' | 'cleaningShifts' | 'history', value: boolean): void {
     this.patch({ [key]: value });
   }
 

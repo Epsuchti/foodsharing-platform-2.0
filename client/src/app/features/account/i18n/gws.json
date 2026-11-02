@@ -236,5 +236,6 @@
   "account.connections.revoke": "Zuegriff entzieh",
   "account.connections.revokeTitle": "Zuegriff entzieh?",
   "account.connections.revokeText": "{name} wird abgmäldet und mues s nächscht Mal wieder um dini Zuestimmig froge.",
-  "account.connections.revoked": "Zuegriff entzoge"
+  "account.connections.revoked": "Zuegriff entzoge",
+  "account.calendar.cleaningShifts": "Putzeinsätz"
 }

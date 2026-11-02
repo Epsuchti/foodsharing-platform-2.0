@@ -309,5 +309,6 @@
   "regions.members.permissionsShort": "Droits",
   "regions.members.removeShort": "Retirer",
   "regions.page.membershipHome": "{name} est ta région principale.",
-  "regions.page.membershipMember": "Tu es membre de {name}."
+  "regions.page.membershipMember": "Tu es membre de {name}.",
+  "regions.statistics.cleaning": "Créneaux de nettoyage le mois dernier"
 }

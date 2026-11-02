@@ -1,6 +1,9 @@
 package network.foodsharing.fsp.service;
 
 import jakarta.persistence.EntityManager;
+import java.time.Clock;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -8,9 +11,11 @@ import java.util.UUID;
 import network.foodsharing.common.persistence.UserRows;
 import network.foodsharing.fsp.domain.FspStatus;
 import network.foodsharing.fsp.repository.FoodSharePointRepository;
+import network.foodsharing.fsp.repository.FspCleaningSignupRepository;
 import network.foodsharing.history.HistoryAccessRule;
 import network.foodsharing.history.SubjectType;
 import network.foodsharing.region.domain.RegionStatistics;
+import network.foodsharing.region.service.MemberCleaningStats;
 import network.foodsharing.region.service.RegionStatisticsContributor;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
@@ -25,20 +30,47 @@ final class FspContributors {
     private FspContributors() {
     }
 
-    /** R13: active FSPs in the region subtree. */
+    /** Decision 154: a member's confirmed past cleaning shifts, shown on the profile. */
+    @Component
+    static class MemberStats implements MemberCleaningStats {
+
+        private final FspCleaningSignupRepository cleaningSignups;
+        private final Clock clock;
+
+        MemberStats(FspCleaningSignupRepository cleaningSignups, Clock clock) {
+            this.cleaningSignups = cleaningSignups;
+            this.clock = clock;
+        }
+
+        @Override
+        public int cleaningShiftCount(UUID userId) {
+            return (int) cleaningSignups.countByUserIdAndConfirmedTrueAndShiftAtLessThan(userId, clock.instant());
+        }
+    }
+
+    /** R13: active FSPs and last month's confirmed cleaning shifts in the region subtree. */
     @Component
     static class Statistics implements RegionStatisticsContributor {
 
         private final FoodSharePointRepository fsps;
+        private final FspCleaningSignupRepository cleaningSignups;
+        private final Clock clock;
 
-        Statistics(FoodSharePointRepository fsps) {
+        Statistics(FoodSharePointRepository fsps, FspCleaningSignupRepository cleaningSignups, Clock clock) {
             this.fsps = fsps;
+            this.cleaningSignups = cleaningSignups;
+            this.clock = clock;
         }
 
         @Override
         public void contribute(UUID regionId, Set<UUID> subtreeIds, RegionStatistics statistics) {
             statistics.setActiveFoodSharePoints(subtreeIds.isEmpty() ? 0
                     : (int) fsps.countInRegions(subtreeIds, FspStatus.ACTIVE));
+            ZoneId zone = ZoneId.of("Europe/Zurich");
+            ZonedDateTime monthStart = clock.instant().atZone(zone).withDayOfMonth(1).toLocalDate().atStartOfDay(zone);
+            statistics.setCleaningShiftsLastMonth(subtreeIds.isEmpty() ? 0
+                    : (int) cleaningSignups.countConfirmedInRegions(subtreeIds, monthStart.minusMonths(1).toInstant(),
+                    monthStart.toInstant()));
         }
     }
 

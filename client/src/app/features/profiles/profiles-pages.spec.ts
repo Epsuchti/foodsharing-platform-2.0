@@ -21,7 +21,7 @@ function profile(overrides: Partial<PublicProfile> = {}): PublicProfile {
     user: { id: SARAH, displayName: 'Sarah Müller', firstName: 'Sarah', role: Role.Foodsaver, verified: true, foodsaverNumber: 100006 },
     regions: [{ id: 'r1', name: 'Zürich Stadt', type: 'CITY', admin: false }],
     groups: [],
-    stats: { pickupCount: 42, kgSaved: 310.4, postCount: 7, bananaCount: 5, buddyCount: 2, basketsSharedCount: 1 },
+    stats: { pickupCount: 42, cleaningShiftCount: 0, kgSaved: 310.4, postCount: 7, bananaCount: 5, buddyCount: 2, basketsSharedCount: 1 },
     banana: { count: 5, givenByMe: false, mayGive: true },
     buddy: { status: BuddyRelation.None },
     achievements: [],

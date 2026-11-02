@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.intropickup.service.IntroPickupBookingService;
 import network.foodsharing.intropickup.service.IntroPickupViews;
@@ -64,7 +65,8 @@ public class PickupUserService {
     }
 
     public record AgendaView(LocalDate date, List<UserPickupView> pickups,
-                             List<IntroPickupViews.BookingView> introPickups) {
+                             List<IntroPickupViews.BookingView> introPickups,
+                             List<FspCleaningQueries.UserShift> cleaningShifts) {
     }
 
     static final int MAX_HISTORY_DAYS = 366;
@@ -82,13 +84,16 @@ public class PickupUserService {
     private final Clock clock;
     private final network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots;
     private final network.foodsharing.config.AppProperties properties;
+    private final FspCleaningQueries cleaning;
 
     public PickupUserService(PickupScheduleService schedule, PickupSignupRepository signups, StoreService stores,
                              StorePermissionService rights, PermissionService permissions, UserService users,
                              RegionService regions, IntroPickupBookingService introPickups,
                              CurrentActorService currentActor, HistoryService history, Clock clock,
                              network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots,
-                             network.foodsharing.config.AppProperties properties) {
+                             network.foodsharing.config.AppProperties properties,
+                             FspCleaningQueries cleaning) {
+        this.cleaning = cleaning;
         this.extraSlots = extraSlots;
         this.properties = properties;
         this.schedule = schedule;
@@ -245,7 +250,8 @@ public class PickupUserService {
         Instant to = date.plusDays(1).atStartOfDay(zone).toInstant();
         List<UserPickupView> pickups = views(userId,
                 signups.findByUserIdAndPickupAtGreaterThanEqualAndPickupAtLessThanOrderByPickupAtAscIdAsc(userId, from, to));
-        return new AgendaView(date, pickups, introPickups.bookingsOf(userId, from, to));
+        return new AgendaView(date, pickups, introPickups.bookingsOf(userId, from, to),
+                cleaning.shiftsOfUser(userId, from, to));
     }
 
     private SessionPrincipal requireSelfOrAdmin(UUID userId) {

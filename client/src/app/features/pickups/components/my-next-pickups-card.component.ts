@@ -1,15 +1,25 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { PickupOption, PickupsService, Role, UserPickup } from '../../../api';
+import { forkJoin, map } from 'rxjs';
+
+import { FspCleaningService, PickupOption, PickupsService, Role } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 
+interface NextEntry {
+  name: string;
+  link: string[];
+  at: string;
+  confirmed: boolean;
+  cleaning: boolean;
+}
+
 /**
- * Dashboard card (A19 part of M3): my next three pickups and the number of pickups with free slots in my stores.
+ * Dashboard card (A19 part of M3, decision 154): my next three pickups or cleaning shifts and the number of pickups with free slots in my stores.
  * Only for verified foodsavers and above (same rule as the pickups navigation).
  */
 @Component({
@@ -29,10 +39,13 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
         >
           <ng-template [fsData]="mine">
             <ul class="list">
-              @for (pickup of next(); track pickup.store.id + pickup.pickupAt) {
-                <li data-testid="dashboard.pickups.pickup" [attr.data-store]="pickup.store.name">
-                  <a [routerLink]="['/stores', pickup.store.id, 'pickups']">{{ pickup.store.name }}</a>
-                  <span class="when">{{ pickup.pickupAt | fsDate: 'dateTime' }}</span>
+              @for (pickup of next(); track pickup.link + pickup.at) {
+                <li [attr.data-testid]="pickup.cleaning ? 'dashboard.pickups.cleaning' : 'dashboard.pickups.pickup'" [attr.data-store]="pickup.name">
+                  <a [routerLink]="pickup.link">{{ pickup.name }}</a>
+                  @if (pickup.cleaning) {
+                    <span class="when">{{ 'pickups.cleaning.label' | t }}</span>
+                  }
+                  <span class="when">{{ pickup.at | fsDate: 'dateTime' }}</span>
                   @if (!pickup.confirmed) {
                     <i class="pi pi-hourglass wait" role="img" [attr.aria-label]="'pickups.tab.waiting' | t"></i>
                   }
@@ -65,15 +78,34 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 })
 export class MyNextPickupsCardComponent {
   private readonly api = inject(PickupsService);
+  private readonly cleaningApi = inject(FspCleaningService);
   private readonly session = inject(SessionService);
 
   protected readonly visible = computed(
     () => this.session.hasAnyRole([Role.Foodsaver]) && !!this.session.user()?.verified,
   );
 
-  protected readonly mine = loadResource<UserPickup[], boolean>({
+  protected readonly mine = loadResource<NextEntry[], boolean>({
     params: () => (this.visible() ? true : undefined),
-    loader: () => this.api.listMyPickups(),
+    loader: () =>
+      forkJoin([this.api.listMyPickups(), this.cleaningApi.listMyCleaningShifts()]).pipe(
+        map(([pickups, shifts]) => [
+          ...pickups.map((pickup) => ({
+            name: pickup.store.name,
+            link: ['/stores', pickup.store.id, 'pickups'],
+            at: pickup.pickupAt,
+            confirmed: pickup.confirmed,
+            cleaning: false,
+          })),
+          ...shifts.map((shift) => ({
+            name: shift.fsp.name,
+            link: ['/food-share-points', shift.fsp.id, 'cleaning'],
+            at: shift.shiftAt,
+            confirmed: shift.confirmed,
+            cleaning: true,
+          })),
+        ]),
+      ),
     isEmpty: (list) => list.length === 0,
   });
 
@@ -83,7 +115,7 @@ export class MyNextPickupsCardComponent {
   });
 
   protected readonly next = computed(() =>
-    [...(this.mine.data() ?? [])].sort((a, b) => a.pickupAt.localeCompare(b.pickupAt)).slice(0, 3),
+    [...(this.mine.data() ?? [])].sort((a, b) => a.at.localeCompare(b.at)).slice(0, 3),
   );
   protected readonly freeCount = computed(
     () => (this.options.data() ?? []).filter((option) => option.occupiedSlots.length < option.slotCount).length,

@@ -309,5 +309,6 @@
   "regions.members.permissionsShort": "Rechte",
   "regions.members.removeShort": "Entfernen",
   "regions.page.membershipHome": "{name} ist dein Stammbezirk.",
-  "regions.page.membershipMember": "Du bist Mitglied von {name}."
+  "regions.page.membershipMember": "Du bist Mitglied von {name}.",
+  "regions.statistics.cleaning": "Putzeinsätze letzten Monat"
 }

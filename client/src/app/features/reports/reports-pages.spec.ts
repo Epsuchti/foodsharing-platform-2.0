@@ -80,7 +80,7 @@ function profile(overrides: Partial<PublicProfile> = {}): PublicProfile {
     user: jumper,
     regions: [],
     groups: [],
-    stats: { pickupCount: 1, kgSaved: 1, postCount: 0, bananaCount: 0, buddyCount: 0, basketsSharedCount: 0 },
+    stats: { pickupCount: 1, cleaningShiftCount: 0, kgSaved: 1, postCount: 0, bananaCount: 0, buddyCount: 0, basketsSharedCount: 0 },
     banana: { count: 0, givenByMe: false, mayGive: false },
     buddy: { status: BuddyRelation.None },
     achievements: [],

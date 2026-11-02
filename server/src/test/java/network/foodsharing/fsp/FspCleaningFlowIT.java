@@ -75,6 +75,29 @@ class FspCleaningFlowIT {
                 type);
     }
 
+    /** Decision 154: the person's own shifts, the agenda, the profile number and the calendar feed. */
+    @Test
+    @Order(0)
+    void ownShiftsAgendaAndProfileCount() throws Exception {
+        Cookie guide = login(SeedUsers.GUIDE);
+        mvc.perform(get("/api/users/me/cleaning-shifts").cookie(guide)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].fsp.id").value(WIEDIKON))
+                .andExpect(jsonPath("$[0].shiftAt").value(GUIDE_SHIFT))
+                .andExpect(jsonPath("$[0].confirmed").value(false));
+        mvc.perform(get("/api/users/me/cleaning-shifts").cookie(login(SeedUsers.FOODSAVER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        mvc.perform(get("/api/users/me/cleaning-shifts")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/users/" + SeedUsers.GUIDE.id() + "/agenda/2026-11-07").cookie(guide))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cleaningShifts[0].shiftAt").value(GUIDE_SHIFT));
+        mvc.perform(get("/api/users/" + SeedUsers.GUIDE.id() + "/agenda/2026-11-08").cookie(guide))
+                .andExpect(jsonPath("$.cleaningShifts").isEmpty());
+        // only confirmed shifts in the past count: guide's is upcoming and unconfirmed, foodsaver has one from October
+        mvc.perform(get("/api/users/" + SeedUsers.GUIDE.id() + "/profile").cookie(guide))
+                .andExpect(jsonPath("$.stats.cleaningShiftCount").value(0));
+        mvc.perform(get("/api/users/" + SeedUsers.FOODSAVER.id() + "/profile").cookie(guide))
+                .andExpect(jsonPath("$.stats.cleaningShiftCount").value(1));
+    }
+
     @Test
     @Order(1)
     void seedShiftsTeamAndEligibility() throws Exception {

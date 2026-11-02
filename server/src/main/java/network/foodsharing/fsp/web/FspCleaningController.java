@@ -12,7 +12,9 @@ import network.foodsharing.api.model.RegionCleaningFsps;
 import network.foodsharing.api.model.RegionCleaningFspsUpdate;
 import network.foodsharing.api.model.RegularPickup;
 import network.foodsharing.api.model.SignupResult;
+import network.foodsharing.api.model.UserCleaningShift;
 import network.foodsharing.fsp.mapper.FspCleaningMapper;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.fsp.service.FspCleaningRegionService;
 import network.foodsharing.fsp.service.FspCleaningScheduleService;
 import network.foodsharing.fsp.service.FspCleaningSignupService;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FspCleaningController implements FspCleaningApi {
 
+    private final FspCleaningQueries queries;
     private final FspCleaningScheduleService schedule;
     private final FspCleaningSignupService signups;
     private final FspCleaningTeamService team;
@@ -31,15 +34,21 @@ public class FspCleaningController implements FspCleaningApi {
     private final FspCleaningMapper mapper;
     private final Clock clock;
 
-    public FspCleaningController(FspCleaningScheduleService schedule, FspCleaningSignupService signups,
+    public FspCleaningController(FspCleaningQueries queries, FspCleaningScheduleService schedule, FspCleaningSignupService signups,
                                  FspCleaningTeamService team, FspCleaningRegionService regions,
                                  FspCleaningMapper mapper, Clock clock) {
+        this.queries = queries;
         this.schedule = schedule;
         this.signups = signups;
         this.team = team;
         this.regions = regions;
         this.mapper = mapper;
         this.clock = clock;
+    }
+
+    @Override
+    public ResponseEntity<List<UserCleaningShift>> listMyCleaningShifts() {
+        return ResponseEntity.ok(queries.myShifts().stream().map(FspCleaningMapper::toUserShift).toList());
     }
 
     @Override

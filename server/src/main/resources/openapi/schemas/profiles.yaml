@@ -32,9 +32,13 @@ ProfileStore:
 
 ProfileStats:
   type: object
-  required: [pickupCount, kgSaved, postCount, bananaCount, buddyCount, basketsSharedCount]
+  required: [pickupCount, cleaningShiftCount, kgSaved, postCount, bananaCount, buddyCount, basketsSharedCount]
   properties:
     pickupCount:
+      type: integer
+      format: int32
+    cleaningShiftCount:
+      description: 'Confirmed past Fairteiler cleaning shifts; not part of pickupCount (decision 154).'
       type: integer
       format: int32
     kgSaved:

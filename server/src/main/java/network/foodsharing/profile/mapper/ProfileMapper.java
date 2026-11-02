@@ -53,7 +53,7 @@ public class ProfileMapper {
                     .map(s -> new ProfileStore().id(s.id()).name(s.name()).manager(s.manager())).toList());
         }
         ProfileService.Stats s = view.stats();
-        profile.setStats(new ProfileStats().pickupCount(s.pickupCount()).kgSaved(s.kgSaved())
+        profile.setStats(new ProfileStats().pickupCount(s.pickupCount()).cleaningShiftCount(s.cleaningShiftCount()).kgSaved(s.kgSaved())
                 .postCount(s.postCount()).bananaCount(s.bananaCount()).buddyCount(s.buddyCount())
                 .basketsSharedCount(s.basketsShared()));
         profile.setBanana(new ProfileBanana().count(s.bananaCount()).givenByMe(view.bananaGivenByMe())

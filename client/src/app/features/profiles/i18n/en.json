@@ -82,5 +82,6 @@
   "profiles.toast.buddyRequested": "Buddy request sent.",
   "profiles.toast.buddyAccepted": "You are now buddies.",
   "profiles.toast.buddyDeclined": "Buddy request declined.",
-  "profiles.toast.buddyRemoved": "Buddy removed."
+  "profiles.toast.buddyRemoved": "Buddy removed.",
+  "profiles.stats.cleaning": "Cleaning shifts"
 }

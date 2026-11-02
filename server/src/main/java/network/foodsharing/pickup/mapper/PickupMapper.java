@@ -146,6 +146,14 @@ public class PickupMapper {
         return ref;
     }
 
+    public network.foodsharing.api.model.UserCleaningShift toCleaningShift(
+            network.foodsharing.fsp.service.FspCleaningQueries.UserShift shift) {
+        return new network.foodsharing.api.model.UserCleaningShift()
+                .fsp(new network.foodsharing.api.model.FspRef().id(shift.fspId()).name(shift.fspName()))
+                .shiftAt(network.foodsharing.common.mapper.TimeMapper.toOffset(shift.shiftAt())).confirmed(shift.confirmed())
+                .description(shift.description());
+    }
+
     public List<network.foodsharing.api.model.UserPickup> toUserPickups(
             List<network.foodsharing.pickup.service.PickupUserService.UserPickupView> views) {
         Map<UUID, User> byId = usersOf(views.stream().map(v -> v.slot()).toList());
