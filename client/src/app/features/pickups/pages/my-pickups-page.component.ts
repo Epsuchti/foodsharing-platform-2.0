@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
+import { forkJoin, map } from 'rxjs';
 
-import { PickupsService, UserPickup } from '../../../api';
+import { FspCleaningService, PickupsService, UserCleaningShift, UserPickup } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
@@ -12,9 +13,14 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
-import { dayOf } from '../pickups.util';
+import { dayOf, mergeByTime } from '../pickups.util';
 
-/** /pickups/mine (PU3): my upcoming pickups, confirmed or waiting for confirmation, with sign-out. */
+interface MyPickups {
+  pickups: UserPickup[];
+  cleaning: UserCleaningShift[];
+}
+
+/** /pickups/mine (PU3, decision 154): my upcoming pickups and cleaning shifts, confirmed or waiting, with sign-out. */
 @Component({
   selector: 'fs-my-pickups-page',
   imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, RouterLink, TPipe],
@@ -38,27 +44,51 @@ import { dayOf } from '../pickups.util';
     >
       <ng-template [fsData]="pickups">
         <ul class="cards">
-          @for (pickup of sorted(); track pickup.store.id + pickup.pickupAt) {
-            <li class="fs-card item" data-testid="pickups.mine.pickup" [attr.data-store]="pickup.store.name" [attr.data-confirmed]="pickup.confirmed">
-              <div class="item__main">
-                <a class="item__store" [routerLink]="['/stores', pickup.store.id, 'pickups']">{{ pickup.store.name }}</a>
-                <span>{{ pickup.pickupAt | fsDate: 'dateTimeLong' }}</span>
-                @if (pickup.confirmed) {
-                  <span class="state state--ok" data-testid="pickups.mine.confirmed"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'pickups.mine.confirmed' | t }}</span>
-                } @else {
-                  <span class="state state--wait" data-testid="pickups.mine.unconfirmed"><i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waiting' | t }}</span>
-                }
-              </div>
-              <p-button
-                [label]="'pickups.signout.confirm' | t"
-                icon="pi pi-sign-out"
-                severity="danger"
-                [text]="true"
-                size="small"
-                (onClick)="askSignOut(pickup)"
-                data-testid="pickups.mine.signOut"
-              />
-            </li>
+          @for (entry of entries(); track entry.key) {
+              @if (entry.pickup; as pickup) {
+                <li class="fs-card item" data-testid="pickups.mine.pickup" [attr.data-store]="pickup.store.name" [attr.data-confirmed]="pickup.confirmed">
+                  <div class="item__main">
+                    <a class="item__store" [routerLink]="['/stores', pickup.store.id, 'pickups']">{{ pickup.store.name }}</a>
+                    <span>{{ pickup.pickupAt | fsDate: 'dateTimeLong' }}</span>
+                    @if (pickup.confirmed) {
+                      <span class="state state--ok" data-testid="pickups.mine.confirmed"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'pickups.mine.confirmed' | t }}</span>
+                    } @else {
+                      <span class="state state--wait" data-testid="pickups.mine.unconfirmed"><i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waiting' | t }}</span>
+                    }
+                  </div>
+                  <p-button
+                    [label]="'pickups.signout.confirm' | t"
+                    icon="pi pi-sign-out"
+                    severity="danger"
+                    [text]="true"
+                    size="small"
+                    (onClick)="askSignOut(pickup)"
+                    data-testid="pickups.mine.signOut"
+                  />
+                </li>
+              } @else if (entry.shift; as shift) {
+                <li class="fs-card item item--cleaning" data-testid="pickups.mine.cleaning" [attr.data-fsp]="shift.fsp.name" [attr.data-confirmed]="shift.confirmed">
+                  <div class="item__main">
+                    <a class="item__store" [routerLink]="['/food-share-points', shift.fsp.id, 'cleaning']">{{ shift.fsp.name }}</a>
+                    <span class="kind"><i class="pi pi-sparkles" aria-hidden="true"></i>{{ 'pickups.cleaning.label' | t }}</span>
+                    <span>{{ shift.shiftAt | fsDate: 'dateTimeLong' }}</span>
+                    @if (shift.confirmed) {
+                      <span class="state state--ok"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'pickups.mine.confirmed' | t }}</span>
+                    } @else {
+                      <span class="state state--wait"><i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waiting' | t }}</span>
+                    }
+                  </div>
+                  <p-button
+                    [label]="'pickups.signout.confirm' | t"
+                    icon="pi pi-sign-out"
+                    severity="danger"
+                    [text]="true"
+                    size="small"
+                    (onClick)="askCleaningSignOut(shift)"
+                    data-testid="pickups.mine.cleaning.signOut"
+                  />
+                </li>
+              }
           }
         </ul>
       </ng-template>
@@ -71,6 +101,8 @@ import { dayOf } from '../pickups.util';
     .item { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem; }
     .item__main { display: grid; gap: 0.2rem; }
     .item__store { font-weight: 700; color: inherit; }
+    .item--cleaning { border-left: 4px solid var(--fs-primary); }
+    .kind { display: inline-flex; gap: 0.35rem; align-items: center; color: var(--fs-text-muted); font-size: 0.88rem; }
     .state { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; }
     .state--ok { color: var(--fs-primary-strong); }
     .state--wait { color: var(--fs-warning-text); }
@@ -78,20 +110,24 @@ import { dayOf } from '../pickups.util';
 })
 export class MyPickupsPageComponent {
   private readonly api = inject(PickupsService);
+  private readonly cleaningApi = inject(FspCleaningService);
   private readonly session = inject(SessionService);
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
 
-  protected readonly pickups = loadResource<UserPickup[]>({
-    loader: () => this.api.listMyPickups(),
-    isEmpty: (list) => list.length === 0,
+  protected readonly pickups = loadResource<MyPickups>({
+    loader: () =>
+      forkJoin([this.api.listMyPickups(), this.cleaningApi.listMyCleaningShifts()]).pipe(
+        map(([pickups, cleaning]) => ({ pickups, cleaning })),
+      ),
+    isEmpty: (mine) => mine.pickups.length === 0 && mine.cleaning.length === 0,
   });
 
-  protected readonly sorted = computed(() => [...(this.pickups.data() ?? [])].sort((a, b) => a.pickupAt.localeCompare(b.pickupAt)));
+  protected readonly entries = computed(() => mergeByTime(this.pickups.data()?.pickups ?? [], this.pickups.data()?.cleaning ?? []));
   /** The agenda opens on the day of the next pickup. */
   protected readonly today = computed(() => {
-    const next = this.sorted()[0];
-    return next ? dayOf(next.pickupAt, 'Europe/Zurich') : null;
+    const next = this.entries()[0];
+    return next ? dayOf(next.at, 'Europe/Zurich') : null;
   });
 
   protected readonly signOut = runMutation(
@@ -99,6 +135,24 @@ export class MyPickupsPageComponent {
       this.api.signOut({ storeId: pickup.store.id, pickupAt: pickup.pickupAt, userId: this.session.user()!.id }),
     { successToastKey: 'pickups.signout.done', onSuccess: () => this.pickups.reload() },
   );
+
+  protected readonly signOutOfCleaning = runMutation(
+    (shift: UserCleaningShift) =>
+      this.cleaningApi.signOutOfCleaning({ fspId: shift.fsp.id, shiftAt: shift.shiftAt, userId: this.session.user()!.id }),
+    { successToastKey: 'pickups.cleaning.signedOut', onSuccess: () => this.pickups.reload() },
+  );
+
+  protected askCleaningSignOut(shift: UserCleaningShift): void {
+    this.confirm.confirm({
+      header: this.i18n.t('pickups.signout.title'),
+      message: this.i18n.t('pickups.cleaning.signoutText'),
+      acceptLabel: this.i18n.t('pickups.signout.confirm'),
+      rejectLabel: this.i18n.t('common.cancel'),
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text p-button-secondary',
+      accept: () => void this.signOutOfCleaning.run(shift),
+    });
+  }
 
   protected askSignOut(pickup: UserPickup): void {
     this.confirm.confirm({

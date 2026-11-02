@@ -18,6 +18,7 @@ const STATS = {
   activeHomeRegionFoodsavers: 12,
   activeCooperations: 4,
   pickupsLastMonth: 30,
+  cleaningShiftsLastMonth: 0,
   savedFoodWeightLastMonth: 120.4,
   activeFoodSharePoints: 3,
   foodBasketsLastMonth: 9,

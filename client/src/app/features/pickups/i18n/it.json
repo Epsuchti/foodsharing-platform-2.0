@@ -112,5 +112,8 @@
   "pickups.tab.range.pending": "Non confermati ({count})",
   "pickups.tab.pendingEmpty": "Nessuna iscrizione non confermata.",
   "pickups.tab.state.confirmed": "Confermato",
-  "pickups.tab.state.unconfirmed": "Non confermato"
+  "pickups.tab.state.unconfirmed": "Non confermato",
+  "pickups.cleaning.label": "Turno di pulizia",
+  "pickups.cleaning.signoutText": "Vuoi annullare la tua iscrizione a questo turno di pulizia?",
+  "pickups.cleaning.signedOut": "Iscrizione al turno di pulizia annullata."
 }

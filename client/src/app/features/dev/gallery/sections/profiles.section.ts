@@ -43,7 +43,7 @@ const ADMIN_VIEW: PublicProfile = {
   aboutMeInternal: 'Hat 2025 die Einführung neuer Foodsaver begleitet.',
   regions: [],
   groups: [],
-  stats: { pickupCount: 128, kgSaved: 1540.5, postCount: 37, bananaCount: 5, buddyCount: 2, basketsSharedCount: 4 },
+  stats: { pickupCount: 128, cleaningShiftCount: 0, kgSaved: 1540.5, postCount: 37, bananaCount: 5, buddyCount: 2, basketsSharedCount: 4 },
   banana: { count: 5, givenByMe: false, mayGive: false },
   buddy: { status: BuddyRelation.None },
   achievements: [],

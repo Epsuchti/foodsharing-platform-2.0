@@ -29,6 +29,21 @@ CleaningShift:
       description: "The caller's eligibility (future shifts only)."
       $ref: './pickups.yaml#/PickupEligibility'
 
+UserCleaningShift:
+  description: "A cleaning shift seen from a person who signed up for it."
+  type: object
+  required: [fsp, shiftAt, confirmed]
+  properties:
+    fsp:
+      $ref: './food-share-points.yaml#/FspRef'
+    shiftAt:
+      type: string
+      format: date-time
+    confirmed:
+      type: boolean
+    description:
+      type: string
+
 CleaningShiftEdit:
   type: object
   required: [slotCount]

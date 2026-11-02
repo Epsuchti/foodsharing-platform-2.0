@@ -85,6 +85,7 @@ export interface CalendarFeedOptions {
   events: CalendarEventFilter;
   pickups: boolean;
   introPickups: boolean;
+  cleaningShifts: boolean;
   history: boolean;
   reminders: readonly number[];
 }
@@ -94,6 +95,7 @@ export const CALENDAR_FEED_DEFAULTS: CalendarFeedOptions = {
   events: 'maybe',
   pickups: true,
   introPickups: true,
+  cleaningShifts: true,
   history: false,
   reminders: [],
 };
@@ -104,7 +106,7 @@ export function calendarFeedUrl(baseUrl: string, options: CalendarFeedOptions): 
   if (options.events !== CALENDAR_FEED_DEFAULTS.events) {
     params.push(`events=${options.events}`);
   }
-  for (const key of ['pickups', 'introPickups', 'history'] as const) {
+  for (const key of ['pickups', 'introPickups', 'cleaningShifts', 'history'] as const) {
     if (options[key] !== CALENDAR_FEED_DEFAULTS[key]) {
       params.push(`${key}=${options[key]}`);
     }

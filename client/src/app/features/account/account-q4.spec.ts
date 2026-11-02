@@ -57,7 +57,7 @@ describe('account util (Q4)', () => {
   it('feed URL carries only the filters that differ from the server defaults', () => {
     expect(calendarFeedUrl(FEED, CALENDAR_FEED_DEFAULTS)).toBe(FEED);
     expect(
-      calendarFeedUrl(FEED, { events: 'accepted', pickups: false, introPickups: true, history: true, reminders: [60, 15, 60] }),
+      calendarFeedUrl(FEED, { events: 'accepted', pickups: false, introPickups: true, cleaningShifts: true, history: true, reminders: [60, 15, 60] }),
     ).toBe(`${FEED}?events=accepted&pickups=false&history=true&reminders=15,60`);
     // at most five reminders (server limit)
     expect(calendarFeedUrl(FEED, { ...CALENDAR_FEED_DEFAULTS, reminders: [1, 2, 3, 4, 5, 6] })).toBe(`${FEED}?reminders=1,2,3,4,5`);

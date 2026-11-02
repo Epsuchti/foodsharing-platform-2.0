@@ -236,5 +236,6 @@
   "account.connections.revoke": "Zugriff entziehen",
   "account.connections.revokeTitle": "Zugriff entziehen?",
   "account.connections.revokeText": "{name} wird abgemeldet und muss beim nächsten Mal wieder um deine Zustimmung bitten.",
-  "account.connections.revoked": "Zugriff entzogen"
+  "account.connections.revoked": "Zugriff entzogen",
+  "account.calendar.cleaningShifts": "Putzeinsätze"
 }

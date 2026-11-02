@@ -3,6 +3,7 @@ package network.foodsharing.profile.service;
 import java.util.List;
 import java.util.UUID;
 import network.foodsharing.profile.repository.RatingRepository;
+import network.foodsharing.region.service.MemberCleaningStats;
 import network.foodsharing.region.service.MemberPickupStats;
 import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.store.service.ProfileStoreInfo;
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProfileService {
 
-    public record Stats(int pickupCount, double kgSaved, int postCount, int bananaCount, int buddyCount,
+    public record Stats(int pickupCount, int cleaningShiftCount, double kgSaved, int postCount, int bananaCount, int buddyCount,
                         int basketsShared) {
     }
 
@@ -40,6 +41,7 @@ public class ProfileService {
     private final BuddyService buddies;
     private final UserService users;
     private final ObjectProvider<MemberPickupStats> pickupStats;
+    private final ObjectProvider<MemberCleaningStats> cleaningStats;
     private final ObjectProvider<ProfileAchievements> achievements;
     private final ObjectProvider<UserViolationCounter> reports;
     private final UserNoteService notes;
@@ -47,6 +49,7 @@ public class ProfileService {
     public ProfileService(ProfilePermissionService access, MembershipService memberships, ProfileStoreInfo stores,
                           RatingRepository ratings, BananaService bananas, BuddyService buddies, UserService users,
                           ObjectProvider<MemberPickupStats> pickupStats,
+                          ObjectProvider<MemberCleaningStats> cleaningStats,
                           ObjectProvider<ProfileAchievements> achievements,
                           ObjectProvider<UserViolationCounter> reports, UserNoteService notes) {
         this.reports = reports;
@@ -59,6 +62,7 @@ public class ProfileService {
         this.buddies = buddies;
         this.users = users;
         this.pickupStats = pickupStats;
+        this.cleaningStats = cleaningStats;
         this.achievements = achievements;
     }
 
@@ -81,7 +85,8 @@ public class ProfileService {
                 .toList();
         MemberPickupStats live = pickupStats.getIfAvailable();
         int pickups = Math.max(user.getStatPickupCount(), live == null ? 0 : live.pickupCount(userId));
-        Stats stats = new Stats(pickups, user.getStatKgSaved(), user.getStatPostCount(),
+        MemberCleaningStats cleaning = cleaningStats.getIfAvailable();
+        Stats stats = new Stats(pickups, cleaning == null ? 0 : cleaning.cleaningShiftCount(userId), user.getStatKgSaved(), user.getStatPostCount(),
                 (int) ratings.countByRecipientId(userId), user.getStatBuddyCount(), user.getStatBasketsShared());
         boolean given = !context.facts().self() && ratings.findByRecipientIdAndSenderId(userId, viewerId).isPresent();
         List<ProfileAchievements.Achievement> awards = achievements.orderedStream()

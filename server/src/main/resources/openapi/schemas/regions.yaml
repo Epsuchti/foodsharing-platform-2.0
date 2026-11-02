@@ -116,7 +116,7 @@ AgeBand:
 
 RegionStatistics:
   type: object
-  required: [activeHomeRegionFoodsavers, activeCooperations, pickupsLastMonth, savedFoodWeightLastMonth, activeFoodSharePoints, foodBasketsLastMonth, memberCount, genderCounts, ageBands]
+  required: [activeHomeRegionFoodsavers, activeCooperations, pickupsLastMonth, cleaningShiftsLastMonth, savedFoodWeightLastMonth, activeFoodSharePoints, foodBasketsLastMonth, memberCount, genderCounts, ageBands]
   properties:
     lastModified:
       type: string
@@ -128,6 +128,10 @@ RegionStatistics:
       type: integer
       format: int32
     pickupsLastMonth:
+      type: integer
+      format: int32
+    cleaningShiftsLastMonth:
+      description: 'Confirmed Fairteiler cleaning shifts; not part of pickupsLastMonth (decision 154).'
       type: integer
       format: int32
     savedFoodWeightLastMonth:

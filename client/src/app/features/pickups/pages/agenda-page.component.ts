@@ -18,7 +18,7 @@ interface AgendaQuery {
   date: string;
 }
 
-/** /pickups/agenda/:date (PU8): my pickups and intro pickups (EinAbs) of one day, with a day stepper. */
+/** /pickups/agenda/:date (PU8): my pickups, intro pickups (EinAbs) and cleaning shifts of one day, with a day stepper. */
 @Component({
   selector: 'fs-agenda-page',
   imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, RouterLink, TPipe],
@@ -44,6 +44,15 @@ interface AgendaQuery {
               <span class="entry__time">{{ pickup.pickupAt | fsDate: 'time' }}</span>
               <a [routerLink]="['/stores', pickup.store.id, 'pickups']">{{ pickup.store.name }}</a>
               @if (!pickup.confirmed) {
+                <span class="muted">{{ 'pickups.tab.waiting' | t }}</span>
+              }
+            </li>
+          }
+          @for (shift of day.cleaningShifts; track shift.fsp.id + shift.shiftAt) {
+            <li class="fs-card entry entry--intro" data-testid="pickups.agenda.cleaning" [attr.data-fsp]="shift.fsp.name">
+              <span class="entry__time">{{ shift.shiftAt | fsDate: 'time' }}</span>
+              <span>{{ 'pickups.cleaning.label' | t }} · <a [routerLink]="['/food-share-points', shift.fsp.id, 'cleaning']">{{ shift.fsp.name }}</a></span>
+              @if (!shift.confirmed) {
                 <span class="muted">{{ 'pickups.tab.waiting' | t }}</span>
               }
             </li>
@@ -85,6 +94,6 @@ export class AgendaPageComponent {
       return userId && /^\d{4}-\d{2}-\d{2}$/.test(this.date()) ? { userId, date: this.date() } : undefined;
     },
     loader: (query) => this.api.getAgenda(query),
-    isEmpty: (day) => day.pickups.length === 0 && day.introPickups.length === 0,
+    isEmpty: (day) => day.pickups.length === 0 && day.introPickups.length === 0 && day.cleaningShifts.length === 0,
   });
 }

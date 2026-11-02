@@ -56,6 +56,9 @@ interface Demographics {
           <li class="fs-card counter"><span class="counter__value number">{{ s.activeCooperations | number }}</span><span class="counter__label">{{ 'regions.statistics.cooperations' | t }}</span></li>
           <li class="fs-card counter"><span class="counter__value number">{{ s.pickupsLastMonth | number }}</span><span class="counter__label">{{ 'regions.statistics.pickups' | t }}</span></li>
           <li class="fs-card counter"><span class="counter__value number">{{ s.savedFoodWeightLastMonth | number: '1.0-0' }} kg</span><span class="counter__label">{{ 'regions.statistics.saved' | t }}</span></li>
+          @if (s.cleaningShiftsLastMonth) {
+            <li class="fs-card counter" data-testid="regions.statistics.cleaning"><span class="counter__value number">{{ s.cleaningShiftsLastMonth | number }}</span><span class="counter__label">{{ 'regions.statistics.cleaning' | t }}</span></li>
+          }
           <li class="fs-card counter" data-testid="regions.statistics.fsps"><span class="counter__value number">{{ s.activeFoodSharePoints | number }}</span><span class="counter__label">{{ 'regions.statistics.fsps' | t }}</span></li>
           <li class="fs-card counter" data-testid="regions.statistics.baskets"><span class="counter__value number">{{ s.foodBasketsLastMonth | number }}</span><span class="counter__label">{{ 'regions.statistics.baskets' | t }}</span></li>
         </ul>

@@ -15,6 +15,17 @@ screenshotTest.use({ seedReset: 'file' });
 
 forEachVariant((variant) => {
   screenshotTest.describe(`pickups ${variant.name}`, () => {
+    screenshotTest.describe('guide', () => {
+      screenshotTest.use({ variant, role: 'guide' });
+
+      screenshotTest('my pickups with a cleaning shift @FS2 @screenshot', async ({ page, visual }) => {
+        await page.goto('/pickups/mine');
+        await expect(page.getByTestId('pickups.mine.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('pickups.mine.cleaning').first()).toBeVisible();
+        await visual.expectScreen(page, `pickups-mine-cleaning-${variant.name}`);
+      });
+    });
+
     screenshotTest.describe('foodsaver', () => {
       screenshotTest.use({ variant, role: 'foodsaver' });
 

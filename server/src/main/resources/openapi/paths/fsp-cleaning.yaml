@@ -1,3 +1,20 @@
+/api/users/me/cleaning-shifts:
+  get:
+    tags: [fsp-cleaning]
+    operationId: listMyCleaningShifts
+    summary: 'Upcoming cleaning shifts of the current user, by time.'
+    x-permission: 'self'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/fsp-cleaning.yaml#/UserCleaningShift'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
 /api/food-share-points/{fspId}/cleaning/regular-shifts:
   get:
     tags: [fsp-cleaning]

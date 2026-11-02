@@ -209,7 +209,7 @@ PickupOption:
 
 AgendaDay:
   type: object
-  required: [date, pickups, introPickups]
+  required: [date, pickups, introPickups, cleaningShifts]
   properties:
     date:
       type: string
@@ -222,3 +222,7 @@ AgendaDay:
       type: array
       items:
         $ref: './intro-pickups.yaml#/MyBooking'
+    cleaningShifts:
+      type: array
+      items:
+        $ref: './fsp-cleaning.yaml#/UserCleaningShift'
