@@ -157,6 +157,7 @@
   "history.action.STORE.UPDATE_REGULAR_PICKUP_INTERVAL": "Iitragsziitruum gänderet",
   "history.action.STORE.STORE_CREATED": "Betrieb aagleit",
   "history.action.STORE.STORE_UPDATED": "Betrieb bearbeitet",
+  "history.action.STORE.STORE_PUBLIC_NAMING_CHANGED": "Öffentlichi Nännig gänderet",
   "history.action.STORE.FIELD_CHANGED": "Fäld gänderet",
   "history.action.STORE.MOVED_TO_REGION": "In andere Bezirk verschobe",
   "history.action.STORE.TEAM_STATUS_CHANGED": "Teamstatus gänderet",

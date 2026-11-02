@@ -157,6 +157,7 @@
   "history.action.STORE.UPDATE_REGULAR_PICKUP_INTERVAL": "Sign-up period changed",
   "history.action.STORE.STORE_CREATED": "Store created",
   "history.action.STORE.STORE_UPDATED": "Store edited",
+  "history.action.STORE.STORE_PUBLIC_NAMING_CHANGED": "Public naming changed",
   "history.action.STORE.FIELD_CHANGED": "Field changed",
   "history.action.STORE.MOVED_TO_REGION": "Moved to another region",
   "history.action.STORE.TEAM_STATUS_CHANGED": "Team status changed",

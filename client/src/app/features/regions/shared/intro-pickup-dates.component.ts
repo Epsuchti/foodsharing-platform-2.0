@@ -96,6 +96,20 @@ import { TPipe } from '../../../core/i18n/t.pipe';
       background: var(--fs-surface-muted);
       color: var(--fs-text-muted);
     }
+    /* Phones: the three columns leave the city no room, so mode and city share a row below the date. */
+    @media (max-width: 30rem) {
+      .date {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.35rem 0.85rem;
+      }
+      .date__what {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.1rem 0.6rem;
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+    }
   `,
 })
 export class IntroPickupDatesComponent {

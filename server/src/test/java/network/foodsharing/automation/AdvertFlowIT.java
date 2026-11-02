@@ -147,8 +147,12 @@ class AdvertFlowIT {
         mvc.perform(get("/api/users/me/pickups").cookie(bieb)).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .jsonPath("$[*].mayAddExtraSlot").exists());
-        mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.NEWBIE)))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+        // verified, no relation to the store: the flag is off
+        mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.GUIDE)))
+                .andExpect(status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .jsonPath("$.mayUseAutomations").value(false));
+        // unverified: the store does not exist for them (decision 153, S17 D2), so no permissions to report
+        mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.NEWBIE)))
+                .andExpect(status().isNotFound());
     }
 }

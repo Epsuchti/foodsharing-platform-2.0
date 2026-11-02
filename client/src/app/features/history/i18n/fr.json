@@ -157,6 +157,7 @@
   "history.action.STORE.UPDATE_REGULAR_PICKUP_INTERVAL": "Période d'inscription modifiée",
   "history.action.STORE.STORE_CREATED": "Commerce créé",
   "history.action.STORE.STORE_UPDATED": "Commerce modifié",
+  "history.action.STORE.STORE_PUBLIC_NAMING_CHANGED": "Mention publique modifiée",
   "history.action.STORE.FIELD_CHANGED": "Champ modifié",
   "history.action.STORE.MOVED_TO_REGION": "Déplacé dans une autre région",
   "history.action.STORE.TEAM_STATUS_CHANGED": "Statut de l'équipe modifié",

@@ -20,6 +20,15 @@ test('S17 anonymous visitors see count bubbles and no store @S17 @page', async (
   await expectDataState(visitor, 'map.page.map.state', 'success');
   await expect(bubbles(visitor)).toHaveCount(2);
   await expect(bubbles(visitor).first()).toContainText(/^\d+$/);
+  // on top of the pins of the same city, so the number can be read
+  for (const bubble of await bubbles(visitor).all()) {
+    const onTop = await bubble.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return !!top && element.contains(top);
+    });
+    expect(onTop).toBe(true);
+  }
   await bubbles(visitor).first().focus();
   await bubbles(visitor).first().press('Enter');
   await expect(visitor.getByTestId('map.area.text')).toContainText('Winterthur');

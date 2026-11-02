@@ -378,11 +378,13 @@ export class MapViewComponent {
           marker.count === undefined
             ? `<span class="fs-map-marker__pin"><i class="pi ${KIND_ICON[marker.kind]}" aria-hidden="true"></i></span>`
             : `<span class="fs-map-marker__count">${marker.count}</span>`,
-        iconSize: [32, 32],
-        // the pin's tip (bottom corner of the rotated inner square) is the position
-        iconAnchor: [16, 36],
+        iconSize: marker.count === undefined ? [32, 32] : [36, 36],
+        // the pin's tip (bottom corner of the rotated inner square) is the position; a count bubble is centred on it
+        iconAnchor: marker.count === undefined ? [16, 36] : [18, 18],
       });
-      L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true })
+      // count bubbles stay on top: under the pins of the same city their number can't be read
+      const zIndexOffset = marker.count === undefined ? 0 : 1000;
+      L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true, zIndexOffset })
         .on('click', () => this.onMarkerClick(marker))
         // Leaflet's own Enter handler only opens popups: keyboard users open the marker like a click
         .on('keydown', (event: Leaflet.LeafletKeyboardEvent) => {
