@@ -58,28 +58,40 @@ class IntroPickupApiIT {
         return mvc.perform(request).andReturn().getResponse().getContentAsString();
     }
 
+    private List<String> upcomingOfCategory(String category) {
+        return jdbc.queryForList("select cast(id as varchar(36)) from intro_pickup where category = ? "
+                + "and deleted_at is null and region_id = ? and start_at > current_timestamp order by start_at",
+                String.class, category, java.util.UUID.fromString(ZURICH));
+    }
+
     @Test
     void newcomersSeeWhyTheyMayNotBookAndBookCancel() throws Exception {
         Cookie einab1 = login(SeedUsers.EINAB1);
         String list = body(get("/api/regions/" + ZURICH + "/intro-pickups/bookable").param("size", "50")
                 .cookie(einab1));
         // 1 DONE + 1 BOOKED with both Zürich guides: only the ONLINE EinAb (ignored category) stays bookable
-        List<Boolean> bookable = JsonPath.read(list, "$.items[?(@.category != 'ONLINE')].bookable");
+        List<Boolean> bookable = JsonPath.read(list, "$.items[?(@.online == false)].bookable");
         assertThat(bookable).isNotEmpty().doesNotContain(true);
-        List<Boolean> online = JsonPath.read(list, "$.items[?(@.category == 'ONLINE')].bookable");
+        List<Boolean> online = JsonPath.read(list, "$.items[?(@.online == true)].bookable");
         assertThat(online).containsExactly(true);
+        // S17 D5: nothing that identifies a store before booking
+        assertThat(list).doesNotContain("businessName", "category", "publicLocation", "publicGeneralLocation",
+                "publicInfo", "visitFairteiler");
+        assertThat(JsonPath.<List<String>>read(list, "$.items[?(@.online == true)].city")).containsOnlyNulls();
+        assertThat(JsonPath.<List<String>>read(list, "$.items[?(@.online == false)].city")).isNotEmpty();
 
         Cookie quiz = login(SeedUsers.QUIZ);
-        mvc.perform(get("/api/regions/" + ZURICH + "/intro-pickups/bookable").param("category", "GROSSABHOLUNG")
-                        .cookie(quiz))
-                .andExpect(jsonPath("$.items[0].bookable").value(false))
-                .andExpect(jsonPath("$.items[0].notBookableReason").value("MINIMUM_PICKUP_COUNT_NOT_REACHED"));
-        String markets = body(get("/api/regions/" + ZURICH + "/intro-pickups/bookable").param("category", "MARKET")
-                .cookie(quiz));
-        assertThat(JsonPath.<Integer>read(markets, "$.page.totalItems")).isEqualTo(2);
-        String slotId = JsonPath.read(markets, "$.items[0].slotId");
-        String pickupId = JsonPath.read(markets, "$.items[0].id");
-        String secondSlot = JsonPath.read(markets, "$.items[1].slotId");
+        String all = body(get("/api/regions/" + ZURICH + "/intro-pickups/bookable").param("size", "50").cookie(quiz));
+        for (String gross : upcomingOfCategory("GROSSABHOLUNG")) {
+            assertThat(JsonPath.<List<String>>read(all, "$.items[?(@.id == '" + gross + "')].notBookableReason"))
+                    .containsExactly("MINIMUM_PICKUP_COUNT_NOT_REACHED");
+        }
+        List<String> markets = upcomingOfCategory("MARKET");
+        assertThat(markets).hasSize(2);
+        String pickupId = markets.get(0);
+        String slotId = JsonPath.<List<String>>read(all, "$.items[?(@.id == '" + pickupId + "')].slotId").getFirst();
+        String secondSlot = JsonPath.<List<String>>read(all, "$.items[?(@.id == '" + markets.get(1) + "')].slotId")
+                .getFirst();
 
         Cookie guide = login(SeedUsers.GUIDE);
         mvc.perform(json(post("/api/intro-pickups/slots/" + slotId + "/book").cookie(guide), ""))
@@ -261,7 +273,14 @@ class IntroPickupApiIT {
     void publicListFeedAndSubscriptions() throws Exception {
         mvc.perform(get("/api/public/regions/zuerich-stadt/intro-pickups").param("size", "50"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].regionSlug").value("zuerich-stadt"))
-                .andExpect(jsonPath("$.items[0].privateAddress").doesNotExist());
+                .andExpect(jsonPath("$.items[0].privateAddress").doesNotExist())
+                .andExpect(jsonPath("$.items[0].businessName").doesNotExist())
+                .andExpect(jsonPath("$.items[0].category").doesNotExist())
+                .andExpect(jsonPath("$.items[0].publicGeneralLocation").doesNotExist())
+                .andExpect(jsonPath("$.items[0].publicInfo").doesNotExist())
+                .andExpect(jsonPath("$.items[0].visitFairteiler").doesNotExist())
+                .andExpect(jsonPath("$.items[0].online").isBoolean())
+                .andExpect(jsonPath("$.items[?(@.online == false)].city").isNotEmpty());
         mvc.perform(get("/api/public/regions/nowhere/intro-pickups")).andExpect(status().isNotFound());
         mvc.perform(get("/api/public/intro-pickups/ical/5eedf00dc0ffee0000000000000000000000000000000010.ics"))
                 .andExpect(status().isOk()).andExpect(content().string(Matchers.containsString("BEGIN:VEVENT")));

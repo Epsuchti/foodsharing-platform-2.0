@@ -87,8 +87,18 @@ class VerificationApiIT {
                 .andExpect(jsonPath("$.items[0].action").value("VERIFIED"))
                 .andExpect(jsonPath("$.items[0].reason").value("Drei EinAbs, Ausweis geprüft"));
 
+        // S17 D7: un-verifying ends the store memberships, including the manager role, with a store log entry
+        java.util.UUID store = java.util.UUID.fromString("00000020-0001-4000-8000-000000000005");
+        jdbc.update("insert into store_membership (id, version, created_at, updated_at, store_id, user_id, status, manager) "
+                + "values (?, 0, current_timestamp, current_timestamp, ?, ?, 'MEMBER', true)",
+                java.util.UUID.randomUUID(), store, SeedUsers.PENDING.id());
         mvc.perform(json(delete(url).cookie(bot), "{\"message\":\"Versehentlich verifiziert\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.verified").value(false));
+        assertThat(jdbc.queryForObject("select count(*) from store_membership where user_id = ?", Integer.class,
+                SeedUsers.PENDING.id())).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from history_entry where action = 'REMOVED_FROM_STORE' "
+                + "and subject_id = ? and secondary_subject_id = ?", Integer.class, store, SeedUsers.PENDING.id()))
+                .isEqualTo(1);
         mvc.perform(json(delete("/api/users/" + SeedUsers.EINAB1.id() + "/verification").cookie(bot),
                         "{\"message\":\"Ist gar nicht verifiziert\"}"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NOT_VERIFIED"));

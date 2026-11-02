@@ -61,6 +61,10 @@ public class StoreQueryService {
                            List<PickupWeightCategory> weights, List<StoreChain> chains) {
     }
 
+    /** What the public partners list shows. */
+    public record PartnerStore(String name, String city) {
+    }
+
     private final StoreRepository stores;
     private final StoreMembershipRepository memberships;
     private final StoreCategoryRepository categories;
@@ -74,13 +78,15 @@ public class StoreQueryService {
     private final RegionService regions;
     private final CurrentActorService currentActor;
     private final PermissionService permissions;
+    private final StoreVisibility visibility;
 
     public StoreQueryService(StoreRepository stores, StoreMembershipRepository memberships,
                              StoreCategoryRepository categories, StoreChainRepository chains,
                              GroceryRepository groceries, StoreGroceryRepository storeGroceries,
                              PickupWeightCategoryRepository weights, StoreService storeService,
                              StorePermissionService rights, StorePickupInfo pickupInfo, RegionService regions,
-                             CurrentActorService currentActor, PermissionService permissions) {
+                             CurrentActorService currentActor, PermissionService permissions,
+                             StoreVisibility visibility) {
         this.stores = stores;
         this.memberships = memberships;
         this.categories = categories;
@@ -94,15 +100,17 @@ public class StoreQueryService {
         this.regions = regions;
         this.currentActor = currentActor;
         this.permissions = permissions;
+        this.visibility = visibility;
     }
 
-    /** FOODSAVER+. */
+    /** FOODSAVER+; no chains for people who may not know the stores (the basket form needs the groceries). */
     public Metadata metadata() {
         SessionPrincipal actor = currentActor.requirePrincipal();
         StorePermissionService.require(PermissionService.isAtLeast(actor.role(),
                 network.foodsharing.api.model.Role.FOODSAVER));
         return new Metadata(categories.findAllByOrderByNameAscIdAsc(), Map.of(), groceries.findAllByOrderByNameAscIdAsc(),
-                weights.findAllByOrderBySortOrderAscIdAsc(), chains.findAllByOrderByNameAscIdAsc());
+                weights.findAllByOrderBySortOrderAscIdAsc(),
+                visibility.mayKnowStores(actor) ? chains.findAllByOrderByNameAscIdAsc() : List.of());
     }
 
     /**
@@ -115,6 +123,7 @@ public class StoreQueryService {
                                        boolean includeSubregions, Integer page, Integer size) {
         regions.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
+        StorePermissionService.require(visibility.mayKnowStores(actor));
         StorePermissionService.require(permissions.isMemberOf(actor, regionId)
                 || rights.mayCoordinateRegionStores(actor, regionId));
         Set<CooperationStatus> wanted = statuses == null || statuses.isEmpty() ? DEFAULT_STATUSES : Set.copyOf(statuses);
@@ -137,6 +146,9 @@ public class StoreQueryService {
      */
     public List<ListItem> myStores(boolean excludeInactive) {
         SessionPrincipal actor = currentActor.requirePrincipal();
+        if (!visibility.mayKnowStores(actor)) {
+            return List.of();
+        }
         List<UUID> ids = memberships.findByUserId(actor.userId()).stream()
                 .map(StoreMembership::getStoreId).toList();
         return ids.isEmpty() ? List.of() : items(stores.findLiveIn(ids).stream()
@@ -192,10 +204,11 @@ public class StoreQueryService {
         return result;
     }
 
-    /** @throws ApiException 404 STORE_NOT_FOUND / STORE_DELETED, 403 ACCESS_DENIED */
+    /** @throws ApiException 404 STORE_NOT_FOUND / STORE_DELETED (also for people who may not know stores), 403 */
     public Detail detail(UUID storeId) {
-        Store store = storeService.require(storeId);
         SessionPrincipal actor = currentActor.requirePrincipal();
+        rights.requireMayKnowStore(actor);
+        Store store = storeService.require(storeId);
         StorePermissionService.Rights r = rights.rights(actor, store);
         // Non-members of the store's region get the limited public view (sensitive fields hidden by the mapper).
         StorePermissionService.require(r.mayAccess() || rights.mayViewPublic(actor, store));
@@ -215,12 +228,29 @@ public class StoreQueryService {
 
     /** mayUseAutomations of the current user for the store (permissions endpoint; 404 for unknown stores). */
     public boolean mayUseAutomations(UUID storeId) {
-        return rights.mayUseAutomations(currentActor.requirePrincipal(), storeService.require(storeId));
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        rights.requireMayKnowStore(actor);
+        return rights.mayUseAutomations(actor, storeService.require(storeId));
     }
 
-    /** Rights of the current user (any authenticated user; 404 for unknown stores). */
+    /** Rights of the current user (404 for unknown stores and for people who may not know stores). */
     public StorePermissionService.Rights permissionsOf(UUID storeId) {
-        return rights.rights(currentActor.requirePrincipal(), storeService.require(storeId));
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        rights.requireMayKnowStore(actor);
+        return rights.rights(actor, storeService.require(storeId));
+    }
+
+    /** Name and city of the live, flagged, established stores, by name (public partners list, S17 D8). */
+    public List<PartnerStore> partnerStores() {
+        return stores.findPartners(CooperationStatus.COOPERATION_ESTABLISHED).stream()
+                .map(s -> new PartnerStore(s.getName(), s.getCity())).toList();
+    }
+
+    /** Live established stores per region (store bubbles, S17 D3). */
+    public Map<UUID, Long> establishedCountsByRegion() {
+        return stores.countLiveByRegion(CooperationStatus.COOPERATION_ESTABLISHED).stream()
+                .collect(Collectors.toMap(StoreRepository.RegionCount::getRegionId,
+                        StoreRepository.RegionCount::getCount));
     }
 
     private static boolean matches(Store s, String needle) {

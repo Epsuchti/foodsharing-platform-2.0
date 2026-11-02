@@ -80,7 +80,7 @@ class PickupCountGroupingAndMetricsTest {
         when(regions.zoneOf(REGION)).thenReturn(ZoneId.of("Europe/Zurich"));
         AutomationAuditService audits = new AutomationAuditService(pickupAudits, requestAudits, advertAudits,
                 cancellations, pickups, null, null, regions, null, null, JsonMapper.builder().build(),
-                Clock.systemUTC());
+                Clock.systemUTC(), null);
         PickupPolicyAudit declined = new PickupPolicyAudit();
         declined.setRegionId(REGION);
         declined.setCreatedAt(OLD);

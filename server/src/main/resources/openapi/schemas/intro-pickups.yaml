@@ -31,25 +31,21 @@ PastImportReason:
   enum: [MISSING_ID, INVALID_ID, UNKNOWN_USER, INVALID_DATE, FUTURE_DATE, MISSING_STORE, UNKNOWN_CATEGORY, USER_OTHER_REGION, ALREADY_IMPORTED, DUPLICATE_IN_FILE, NOT_COUNTED, FAIRTEILER_UNKNOWN, NO_FEEDBACK, CATEGORY_MAPPED, STORE_NAME_CORRECTED]
 
 PublicIntroPickup:
+  description: 'What anyone may see before booking (S17 D5): no business name, category or location text.'
   type: object
-  required: [id, category, startAt, visitFairteiler, freeSlots]
+  required: [id, startAt, online, freeSlots]
   properties:
     id:
       type: string
       format: uuid
-    category:
-      $ref: './intro-pickups.yaml#/IntroPickupCategory'
     startAt:
       type: string
       format: date-time
-    publicGeneralLocation:
-      type: string
-    businessName:
-      type: string
-    publicInfo:
-      type: string
-    visitFairteiler:
+    online:
       type: boolean
+    city:
+      description: 'The linked store''s city, else the region''s name; absent for online pickups.'
+      type: string
     freeSlots:
       type: integer
       format: int32
@@ -68,29 +64,23 @@ PublicIntroPickupPage:
       $ref: './common.yaml#/PageMeta'
 
 BookableIntroPickup:
+  description: 'What a region member sees before booking (S17 D5): the store appears only in BookedIntroPickup.'
   type: object
-  required: [id, category, startAt, guide, visitFairteiler, freeSlots, bookable]
+  required: [id, startAt, online, guide, freeSlots, bookable]
   properties:
     id:
       type: string
       format: uuid
-    category:
-      $ref: './intro-pickups.yaml#/IntroPickupCategory'
     startAt:
       type: string
       format: date-time
+    online:
+      type: boolean
+    city:
+      description: 'The linked store''s city, else the region''s name; absent for online pickups.'
+      type: string
     guide:
       $ref: './users.yaml#/UserSummary'
-    publicLocation:
-      type: string
-    publicGeneralLocation:
-      type: string
-    businessName:
-      type: string
-    publicInfo:
-      type: string
-    visitFairteiler:
-      type: boolean
     minimumPickupCount:
       type: integer
       format: int32

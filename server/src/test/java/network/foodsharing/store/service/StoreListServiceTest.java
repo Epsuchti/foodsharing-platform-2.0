@@ -46,6 +46,7 @@ class StoreListServiceTest {
     RegionService regions = mock(RegionService.class);
     CurrentActorService currentActor = mock(CurrentActorService.class);
     PermissionService permissions = mock(PermissionService.class);
+    StoreVisibility visibility = mock(StoreVisibility.class);
     StoreQueryService service;
     SessionPrincipal actor = new SessionPrincipal(UUID.randomUUID(), UUID.randomUUID(), Role.FOODSAVER, "a@b.c");
     List<Store> inRegion = new ArrayList<>();
@@ -56,7 +57,8 @@ class StoreListServiceTest {
         service = new StoreQueryService(stores, memberships, mock(StoreCategoryRepository.class),
                 mock(StoreChainRepository.class), mock(GroceryRepository.class), mock(StoreGroceryRepository.class),
                 mock(PickupWeightCategoryRepository.class), mock(StoreService.class), rights, pickupInfo, regions,
-                currentActor, permissions);
+                currentActor, permissions, visibility);
+        when(visibility.mayKnowStores(actor)).thenReturn(true);
         when(currentActor.requirePrincipal()).thenReturn(actor);
         when(permissions.isMemberOf(actor, REGION)).thenReturn(true);
         when(regions.subtreeIds(REGION)).thenReturn(List.of(REGION, CHILD));

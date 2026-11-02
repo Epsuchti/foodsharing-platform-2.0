@@ -158,6 +158,12 @@ public class RegionService {
         return result;
     }
 
+    /** The whole tree, including working groups. */
+    @Transactional(readOnly = true)
+    public List<Region> allRegions() {
+        return regions.findAll();
+    }
+
     /** Map layer (M1): active, non-group regions with coordinates. */
     @Transactional(readOnly = true)
     public List<Region> regionsWithCoordinates() {

@@ -91,6 +91,10 @@ public class Store extends BaseEntity implements HistorySubject {
     @Column(name = "publicity", nullable = false, length = 20)
     private PublicityStatus publicity = PublicityStatus.NOT_CHOSEN;
 
+    /** Listed by name on the public partners page (S17 D6); only with publicity ALLOWED. */
+    @Column(name = "publicly_named", nullable = false)
+    private boolean publiclyNamed;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "sticker", nullable = false, length = 20)
     private StickerStatus sticker = StickerStatus.NOT_CHOSEN;

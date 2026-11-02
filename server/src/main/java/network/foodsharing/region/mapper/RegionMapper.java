@@ -393,12 +393,9 @@ public class RegionMapper {
     public PublicIntroPickup toPublicIntroPickup(UpcomingIntroPickups.PublicIntroPickupView view) {
         PublicIntroPickup model = new PublicIntroPickup();
         model.setId(view.id());
-        model.setCategory(IntroPickupCategory.fromValue(view.category()));
         model.setStartAt(TimeMapper.toOffset(view.startAt()));
-        model.setPublicGeneralLocation(view.publicGeneralLocation());
-        model.setBusinessName(view.businessName());
-        model.setPublicInfo(view.publicInfo());
-        model.setVisitFairteiler(view.visitFairteiler());
+        model.setOnline(view.online());
+        model.setCity(view.city());
         model.setFreeSlots(view.freeSlots());
         model.setRegionSlug(view.regionSlug());
         return model;

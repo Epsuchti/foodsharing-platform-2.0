@@ -29,6 +29,7 @@ import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.domain.StoreLogAction;
 import network.foodsharing.store.service.StorePermissionService;
 import network.foodsharing.store.service.StoreService;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
@@ -148,7 +149,11 @@ public class PickupUserService {
     /** Upcoming pickups of the current user. */
     @Transactional(readOnly = true)
     public List<UserPickupView> myPickups() {
-        UUID userId = currentActor.requireUserId();
+        User user = currentActor.requireUser();
+        if (!StoreVisibility.mayKnow(user)) {
+            return List.of();
+        }
+        UUID userId = user.getId();
         return views(userId, signups.findByUserIdAndPickupAtGreaterThanEqualOrderByPickupAtAscIdAsc(userId, clock.instant()));
     }
 

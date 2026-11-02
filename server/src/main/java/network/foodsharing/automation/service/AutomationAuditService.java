@@ -28,6 +28,7 @@ import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreService;
+import network.foodsharing.store.service.StoreVisibility;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -68,6 +69,7 @@ public class AutomationAuditService {
             List.of(network.foodsharing.automation.domain.CancellationStatus.REPLACED,
                     network.foodsharing.automation.domain.CancellationStatus.REJOINED);
 
+    private final StoreVisibility visibility;
     private final PickupPolicyAuditRepository pickupAudits;
     private final RequestPolicyAuditRepository requestAudits;
     private final network.foodsharing.automation.repository.OpenSlotAdvertAuditRepository advertAudits;
@@ -87,7 +89,8 @@ public class AutomationAuditService {
                                   network.foodsharing.pickup.service.PickupAutomationQueries pickupQueries,
                                   PickupPolicyService pickupPolicies, StoreService stores, RegionService regions,
                                   PermissionService permissions, CurrentActorService currentActor, ObjectMapper json,
-                                  Clock clock) {
+                                  Clock clock, StoreVisibility visibility) {
+        this.visibility = visibility;
         this.clock = clock;
         this.pickupAudits = pickupAudits;
         this.requestAudits = requestAudits;
@@ -114,6 +117,9 @@ public class AutomationAuditService {
     public Page<AuditView> regionAudits(UUID regionId, boolean onlyMine, Query query) {
         regions.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
+        if (!visibility.mayKnowStores(actor)) {
+            return Page.empty();
+        }
         boolean seesAll = permissions.mayAdministrateRegion(actor, regionId)
                 || permissions.has(actor, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS, regionId);
         if (!seesAll && !permissions.isMemberOf(actor, regionId)) {

@@ -216,7 +216,8 @@ class StoreServiceTest {
         return new StoreService.StoreInput((String) v.get("name"), null, null, null, null, null, null, null, null,
                 null, (CooperationStatus) v.get("cooperationStatus"), null, null, null, null, null, null, null, null,
                 null, null, null, (Integer) v.get("prefetchDays"), (Boolean) v.get("useRegionPickupRule"), null, null,
-                null, null, (TeamSearchStatus) v.get("teamStatus"), null, null, (UUID) v.get("regionId"), null, null);
+                null, null, (TeamSearchStatus) v.get("teamStatus"), null, null, (UUID) v.get("regionId"), null, null,
+                (Boolean) v.get("publiclyNamed"));
     }
 
     @SuppressWarnings("unchecked")

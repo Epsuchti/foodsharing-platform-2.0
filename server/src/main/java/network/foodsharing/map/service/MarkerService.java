@@ -6,11 +6,15 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.basket.service.BasketQueryService;
+import network.foodsharing.common.error.ApiException;
 import network.foodsharing.event.service.EventService;
 import network.foodsharing.fsp.service.FspQueryService;
 import network.foodsharing.map.domain.MapMarkerKind;
@@ -20,6 +24,7 @@ import network.foodsharing.map.domain.StoreMarkerStatus;
 import network.foodsharing.map.domain.UserMarkerActivity;
 import network.foodsharing.map.domain.UserMarkerMember;
 import network.foodsharing.map.domain.UserMarkerRole;
+import network.foodsharing.region.domain.Region;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
@@ -28,6 +33,7 @@ import network.foodsharing.store.domain.CooperationStatus;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.domain.TeamSearchStatus;
 import network.foodsharing.store.service.StoreQueryService;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
@@ -61,12 +67,14 @@ public class MarkerService {
     private final Clock clock;
 
     private final FeatureToggleService toggles;
+    private final StoreVisibility visibility;
 
     public MarkerService(StoreQueryService stores, FspQueryService fsps, BasketQueryService baskets,
                          EventService events, RegionService regions, UserService users, CurrentActorService actors,
                          PermissionService permissions, Clock clock,
-            FeatureToggleService toggles) {
+            FeatureToggleService toggles, StoreVisibility visibility) {
         this.toggles = toggles;
+        this.visibility = visibility;
         this.stores = stores;
         this.fsps = fsps;
         this.baskets = baskets;
@@ -95,10 +103,13 @@ public class MarkerService {
                 || help == StoreMarkerHelp.SEARCHING && store.teamStatus() == TeamSearchStatus.OPEN_SEARCHING;
     }
 
-    /** Signed-in users see every live store with coordinates, filtered. */
+    /** People who may know stores see every live store with coordinates, filtered. @throws ApiException 403 */
     public List<StoreMarker> stores(StoreMarkerStatus status, StoreMarkerHelp help, StoreMarkerScope scope,
                                     UUID categoryId) {
         SessionPrincipal actor = actors.requirePrincipal();
+        if (!visibility.mayKnowStores(actor)) {
+            throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
+        }
         Set<UUID> mine = scope == StoreMarkerScope.MEMBER ? stores.teamStoreIds(actor.userId()) : Set.of();
         Set<UUID> myRegions = scope == StoreMarkerScope.REGION ? regions.activeRegionIdsOf(actor.userId()) : Set.of();
         return stores.mapStores().stream().map(MarkerService::toMarker)
@@ -107,6 +118,14 @@ public class MarkerService {
                 .filter(m -> scope != StoreMarkerScope.MEMBER || mine.contains(m.id()))
                 .filter(m -> scope != StoreMarkerScope.REGION || myRegions.contains(m.regionId()))
                 .toList();
+    }
+
+    /** Counts of cooperating stores per city (public, {@link StoreAreaRules}). */
+    public List<StoreAreaRules.Area> storeAreas() {
+        Map<UUID, StoreAreaRules.Node> tree = regions.allRegions().stream().collect(Collectors.toMap(Region::getId,
+                r -> new StoreAreaRules.Node(r.getId(), r.getParentId(), r.getType(), r.getName(), r.getLatitude(),
+                        r.getLongitude())));
+        return StoreAreaRules.areas(stores.establishedCountsByRegion(), tree);
     }
 
     public List<Marker> fsps() {

@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 183-1
+      author: platform
+      changes:
+        - addColumn:
+            tableName: store
+            columns:
+              - column:
+                  name: publicly_named
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

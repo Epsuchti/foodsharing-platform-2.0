@@ -145,6 +145,7 @@ public class StoreMapper {
         model.setMayChatJumper(r.mayChatJumper());
         model.setIsKam(r.isKam());
         model.setIsManager(r.isManager());
+        model.setMayChangePublicNaming(r.mayChangePublicNaming());
         model.setTeamStatus(convert(r.teamStatus(), network.foodsharing.api.model.UserTeamStatus.class));
         return model;
     }
@@ -165,6 +166,7 @@ public class StoreMapper {
         model.setStatusDate(s.getStatusDate());
         model.setCooperationStart(s.getCooperationStart());
         model.setPublicity(convert(s.getPublicity(), network.foodsharing.api.model.PublicityStatus.class));
+        model.setPubliclyNamed(s.isPubliclyNamed());
         model.setSticker(convert(s.getSticker(), network.foodsharing.api.model.StickerStatus.class));
         model.setPublicInfo(s.getPublicInfo());
         model.setPublicPickupTime(convert(s.getPublicPickupTime(), network.foodsharing.api.model.PublicPickupTime.class));
@@ -304,7 +306,7 @@ public class StoreMapper {
                 c.getRequiresHygieneCertificate(), c.getRequiresVerified(), c.getRequiresPhone(),
                 c.getRequiresApplicationText(),
                 convert(c.getTeamStatus(), network.foodsharing.store.domain.TeamSearchStatus.class),
-                c.getSpecialNotes(), c.getDescription(), null, c.getFirstWallPost(), null);
+                c.getSpecialNotes(), c.getDescription(), null, c.getFirstWallPost(), null, null);
     }
 
     public StoreInput toInput(network.foodsharing.api.model.StorePatch p) {
@@ -322,7 +324,7 @@ public class StoreMapper {
                 p.getRequiresHygieneCertificate(), p.getRequiresVerified(), p.getRequiresPhone(),
                 p.getRequiresApplicationText(),
                 convert(p.getTeamStatus(), network.foodsharing.store.domain.TeamSearchStatus.class),
-                p.getSpecialNotes(), p.getDescription(), p.getRegionId(), null, p.getReason());
+                p.getSpecialNotes(), p.getDescription(), p.getRegionId(), null, p.getReason(), p.getPubliclyNamed());
     }
 
     public network.foodsharing.api.model.WallPost toWallPost(network.foodsharing.store.service.StoreWallService.PostView v) {

@@ -129,7 +129,7 @@ OnboardingState:
 
 JourneyStepPreview:
   type: object
-  required: [key, titleKey, estimatedDuration]
+  required: [key, titleKey]
   properties:
     key:
       $ref: './onboarding.yaml#/JourneyStepKey'
@@ -138,6 +138,7 @@ JourneyStepPreview:
     descriptionKey:
       type: string
     estimatedDuration:
+      description: 'ISO 8601; only for steps done online (S17 D9).'
       type: string
 
 ExplainerCounters:

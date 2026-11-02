@@ -25,6 +25,7 @@ class OpenApiContractTest {
 
     private static final Path PATHS = Path.of("src/main/resources/openapi/paths");
     private static final Set<String> MUTATING = Set.of("post", "put", "patch", "delete");
+    private static final Set<String> STORE_IDENTITY = Set.of("businessName", "storeName", "storeId", "StoreRef");
 
     @Test
     void xHistoryReferencesExistingActions() throws IOException {
@@ -65,6 +66,56 @@ class OpenApiContractTest {
         List<HistoryAction> actions = HistoryActionRegistry.scan(HistoryActionRegistry.BASE_PACKAGE);
         long distinct = actions.stream().map(action -> action.subjectType() + ":" + action.code()).distinct().count();
         assertThat(distinct).isEqualTo(actions.size());
+    }
+
+    /** Decision 153 (S17): nothing reachable without a login can carry a store's identity. */
+    @Test
+    void schemasReachableWithoutLoginHoldNoStoreIdentity() throws IOException {
+        List<String> problems = new ArrayList<>();
+        for (Map.Entry<String, Map<String, Object>> operation : operations().entrySet()) {
+            boolean open = operation.getKey().contains(" /api/public/") || (operation.getValue().get("security")
+                    instanceof List<?> security && security.isEmpty());
+            if (!open) {
+                continue;
+            }
+            Set<String> seen = new java.util.HashSet<>();
+            collect(operation.getValue().get("responses"), PATHS, seen, problems, operation.getKey());
+        }
+        assertThat(problems).isEmpty();
+    }
+
+    /** Walks a parsed YAML value: property names are checked and every $ref is followed. */
+    @SuppressWarnings("unchecked")
+    private static void collect(Object node, Path base, Set<String> seen, List<String> problems, String where)
+            throws IOException {
+        if (node instanceof List<?> list) {
+            for (Object item : list) {
+                collect(item, base, seen, problems, where);
+            }
+        } else if (node instanceof Map<?, ?> map) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) map).entrySet()) {
+                if (STORE_IDENTITY.contains(entry.getKey())) {
+                    problems.add(where + ": " + entry.getKey());
+                }
+                if ("$ref".equals(entry.getKey())) {
+                    String ref = String.valueOf(entry.getValue());
+                    int hash = ref.indexOf('#');
+                    Path file = base.resolve(ref.substring(0, hash)).normalize();
+                    String key = ref.substring(hash + 2);
+                    if (STORE_IDENTITY.contains(key)) {
+                        problems.add(where + ": " + key);
+                    }
+                    if (seen.add(file + "#" + key)) {
+                        try (InputStream in = Files.newInputStream(file)) {
+                            Map<String, Object> schemas = new Yaml().load(in);
+                            collect(schemas.get(key), file.getParent(), seen, problems, where);
+                        }
+                    }
+                } else {
+                    collect(entry.getValue(), base, seen, problems, where);
+                }
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

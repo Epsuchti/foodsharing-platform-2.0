@@ -321,6 +321,9 @@ StorePatch:
       $ref: './stores.yaml#/StoreContact'
     publicity:
       $ref: './stores.yaml#/PublicityStatus'
+    publiclyNamed:
+      description: 'List the store by name on /about/partners. On only with publicity ALLOWED; ORGA and this store''s managers.'
+      type: boolean
     sticker:
       $ref: './stores.yaml#/StickerStatus'
     publicInfo:
@@ -381,7 +384,7 @@ StoreTeamCounts:
 
 StorePermissions:
   type: object
-  required: [mayAccess, mayReadWall, mayPostWall, mayDeleteAnyWallPost, mayEditStore, mayEditTeam, maySeePhoneNumbers, maySeeMemberDistance, maySeePickups, mayEditPickups, mayConfirmPickups, maySeePickupHistory, maySeeStoreLog, mayDelete, mayApply, mayLeave, mayChatTeam, mayChatJumper, isKam, isManager, teamStatus]
+  required: [mayAccess, mayReadWall, mayPostWall, mayDeleteAnyWallPost, mayEditStore, mayEditTeam, maySeePhoneNumbers, maySeeMemberDistance, maySeePickups, mayEditPickups, mayConfirmPickups, maySeePickupHistory, maySeeStoreLog, mayDelete, mayApply, mayLeave, mayChatTeam, mayChatJumper, isKam, isManager, mayChangePublicNaming, teamStatus]
   properties:
     mayAccess:
       type: boolean
@@ -426,6 +429,8 @@ StorePermissions:
       type: boolean
     isManager:
       type: boolean
+    mayChangePublicNaming:
+      type: boolean
     teamStatus:
       $ref: './stores.yaml#/UserTeamStatus'
 
@@ -468,6 +473,8 @@ StoreDetail:
       $ref: './stores.yaml#/StoreContact'
     publicity:
       $ref: './stores.yaml#/PublicityStatus'
+    publiclyNamed:
+      type: boolean
     sticker:
       $ref: './stores.yaml#/StickerStatus'
     publicInfo:

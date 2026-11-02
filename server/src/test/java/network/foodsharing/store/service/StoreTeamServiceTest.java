@@ -159,10 +159,62 @@ class StoreTeamServiceTest {
         store.setRequiresPhone(false);
         store.setRequiresHygiene(false);
         store.setRequiresApplicationText(false);
-        user.setVerified(false);
         user.setMobilePhone(null);
         when(quizzes.hygieneValidUntil(user.getId())).thenReturn(Optional.empty());
         assertThat(check(null)).isNull();
+    }
+
+    @Test
+    void verifiedIsRequiredWhateverTheStoreAsks() {
+        store.setRequiresVerified(false);
+        user.setVerified(false);
+        assertThat(check("x")).isEqualTo(ApiErrorCode.NOT_VERIFIED);
+    }
+
+    @Test
+    void anUnverifiedApplicantSeesAStoreAsUnknown() {
+        user.setVerified(false);
+        assertThat(codeOf(() -> service.apply(STORE, "x"))).isEqualTo(ApiErrorCode.STORE_NOT_FOUND);
+    }
+
+    @Test
+    void unverifiedPeopleCannotBeInvitedAddedOrAccepted() {
+        when(rights.rights(any(), any())).thenReturn(editRights());
+        when(rights.teamStatus(user.getId(), STORE)).thenReturn(UserTeamStatus.NO_MEMBER);
+        when(users.requireActive(user.getId())).thenReturn(user);
+        when(users.require(user.getId())).thenReturn(user);
+        user.setVerified(false);
+        assertThat(codeOf(() -> service.invite(STORE, user.getId()))).isEqualTo(ApiErrorCode.NOT_VERIFIED);
+        assertThat(codeOf(() -> service.addDirectly(STORE, user.getId(), false))).isEqualTo(ApiErrorCode.NOT_VERIFIED);
+        assertThat(codeOf(() -> service.accept(STORE, user.getId(), false))).isEqualTo(ApiErrorCode.NOT_VERIFIED);
+    }
+
+    @Test
+    void automationDoesNotAcceptAnUnverifiedApplicant() {
+        StoreMembership applied = member(StoreMembershipStatus.APPLIED, false);
+        User unverified = new User();
+        unverified.setVerified(false);
+        when(users.requireActive(applied.getUserId())).thenReturn(unverified);
+        assertThat(service.acceptByAutomation(STORE, applied.getUserId(), "request-policy")).isFalse();
+        assertThat(applied.getStatus()).isEqualTo(StoreMembershipStatus.APPLIED);
+    }
+
+    @Test
+    void unverifyingEndsEveryMembershipLikeLeavingWithoutNamingTheStore() {
+        StoreMembership manager = member(StoreMembershipStatus.MEMBER, true);
+        UUID userId = manager.getUserId();
+        when(memberships.findByUserId(userId)).thenReturn(List.of(manager));
+        when(stores.liveStores(List.of(STORE))).thenReturn(List.of(store));
+        published.clear();
+
+        service.onUserUnverified(new network.foodsharing.user.service.UserUnverifiedEvent(userId));
+
+        verify(memberships).delete(manager);
+        verify(pickupInfo).deleteFutureSignups(STORE, userId);
+        assertThat(published).filteredOn(e -> e instanceof network.foodsharing.store.domain.StoreTeamChangedEvent)
+                .singleElement().isEqualTo(new network.foodsharing.store.domain.StoreTeamChangedEvent(STORE, userId,
+                        StoreMembershipStatus.MEMBER, null, false));
+        assertThat(published).noneMatch(e -> e instanceof network.foodsharing.notification.service.NotificationRequest);
     }
 
     @Test
@@ -296,6 +348,9 @@ class StoreTeamServiceTest {
     void automatedRequestDecisionsAreSentOnBehalfOfTheStoresRegion() {
         StoreMembership accepted = member(StoreMembershipStatus.APPLIED, false);
         StoreMembership declined = member(StoreMembershipStatus.APPLIED, false);
+        User verifiedApplicant = new User();
+        verifiedApplicant.setVerified(true);
+        when(users.requireActive(accepted.getUserId())).thenReturn(verifiedApplicant);
 
         assertThat(service.acceptByAutomation(STORE, accepted.getUserId(), "request-policy")).isTrue();
         assertThat(service.declineByAutomation(STORE, declined.getUserId(), "request-policy", " Team voll ")).isTrue();
@@ -310,6 +365,7 @@ class StoreTeamServiceTest {
 
         // decisions of a person are not region mails
         StoreMembership manual = member(StoreMembershipStatus.APPLIED, false);
+        when(users.require(manual.getUserId())).thenReturn(verifiedApplicant);
         service.accept(STORE, manual.getUserId(), false);
         assertThat(sent(NotificationType.STORE_REQUEST_ACCEPTED).senderRegionId()).isNull();
     }

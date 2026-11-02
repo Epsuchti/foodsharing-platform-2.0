@@ -39,11 +39,8 @@ public class PublicIntroPickupsController implements PublicIntroPickupsApi {
     }
 
     @Override
-    public ResponseEntity<PublicIntroPickupPage> listPublicIntroPickups(String slug, IntroPickupCategory category,
-                                                                       Boolean visitFairteiler, Integer page,
-                                                                       Integer size) {
-        Page<UpcomingIntroPickups.PublicIntroPickupView> result = publicPickups.list(slug,
-                IntroPickupMapper.category(category), visitFairteiler, page, size);
+    public ResponseEntity<PublicIntroPickupPage> listPublicIntroPickups(String slug, Integer page, Integer size) {
+        Page<UpcomingIntroPickups.PublicIntroPickupView> result = publicPickups.list(slug, page, size);
         PublicIntroPickupPage model = new PublicIntroPickupPage();
         model.setItems(result.getContent().stream().map(regionMapper::toPublicIntroPickup).toList());
         model.setPage(PageMapper.toPageMeta(result));

@@ -79,8 +79,9 @@ class StoreApiIT {
                 .andExpect(jsonPath("$.teamStatus").value("WAITING_LIST"))
                 .andExpect(jsonPath("$.mayAccess").value(true)).andExpect(jsonPath("$.mayReadWall").value(false))
                 .andExpect(jsonPath("$.maySeePickups").value(false));
+        // decision 153 (S17): a known and an unknown store look the same to the unverified
         mvc.perform(get(url).cookie(login(SeedUsers.NEWBIE)))
-                .andExpect(jsonPath("$.mayAccess").value(false)).andExpect(jsonPath("$.mayApply").value(true));
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
         // Zürich has a STORES_COORDINATION group: the ambassador bot does not coordinate stores he is not in
         mvc.perform(get("/api/stores/" + S01 + "/permissions").cookie(login(SeedUsers.BOT)))
                 .andExpect(jsonPath("$.mayEditStore").value(false));
@@ -100,7 +101,8 @@ class StoreApiIT {
         mvc.perform(get("/api/stores/" + S01).cookie(login(SeedUsers.JUMPER)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.contact").doesNotExist())
                 .andExpect(jsonPath("$.specialNotes").doesNotExist());
-        mvc.perform(get("/api/stores/" + S01).cookie(login(SeedUsers.NEWBIE))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/stores/" + S01).cookie(login(SeedUsers.NEWBIE))).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
         // A foodsaver of the region who is not in the team sees the public store page and may apply.
         mvc.perform(get("/api/stores/00000020-0001-4000-8000-000000000005").cookie(login(SeedUsers.FOODSAVER)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.contact").doesNotExist())

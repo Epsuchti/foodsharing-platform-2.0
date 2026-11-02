@@ -61,7 +61,7 @@ public class StoreService {
                              Integer prefetchDays, Boolean useRegionPickupRule, Boolean requiresHygiene,
                              Boolean requiresVerified, Boolean requiresPhone, Boolean requiresApplicationText,
                              TeamSearchStatus teamStatus, String specialNotes, String description, UUID regionId,
-                             String firstWallPost, String reason) {
+                             String firstWallPost, String reason, Boolean publiclyNamed) {
     }
 
     /** After commit: wall milestone / first post (B6) and the team-reopened bell. */
@@ -131,7 +131,11 @@ public class StoreService {
     /** The store and the actor's rights; 403 unless mayAccessStore. */
     @Transactional(readOnly = true)
     public StorePermissionService.Rights requireAccess(Store store) {
-        StorePermissionService.Rights r = rights.rights(currentActor.requirePrincipal(), store);
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        StorePermissionService.Rights r = rights.rights(actor, store);
+        if (!r.mayAccess()) {
+            rights.requireMayKnowStore(actor);
+        }
         StorePermissionService.require(r.mayAccess());
         return r;
     }
@@ -213,12 +217,15 @@ public class StoreService {
         CooperationStatus oldStatus = store.getCooperationStatus();
         TeamSearchStatus oldTeam = store.getTeamStatus();
         boolean oldRule = store.isUseRegionPickupRule();
+        boolean oldNamed = store.isPubliclyNamed();
         int oldPrefetch = store.getPrefetchDays();
         LocalDate oldStart = store.getCooperationStart();
         if (input.regionId() != null && !input.regionId().equals(store.getRegionId())) {
             move(store, input.regionId());
         }
         apply(store, input);
+        store.setPubliclyNamed(PublicNamingRules.resolve(oldNamed, input.publiclyNamed(), store.getPublicity(),
+                rights.rights(actor, store).mayChangePublicNaming()));
         if (input.groceryIds() != null) {
             setGroceries(store, input.groceryIds());
         }
@@ -246,6 +253,10 @@ public class StoreService {
             if (oldTeam == TeamSearchStatus.CLOSED) {
                 events.publishEvent(new TeamReopened(store.getId(), store.getRegionId()));
             }
+        }
+        if (oldNamed != store.isPubliclyNamed()) {
+            history.record(history.event(StoreLogAction.STORE_PUBLIC_NAMING_CHANGED, store.getId())
+                    .region(store.getRegionId()).change("publiclyNamed", oldNamed, store.isPubliclyNamed()).build());
         }
         if (oldRule != store.isUseRegionPickupRule()) {
             history.record(history.event(store.isUseRegionPickupRule() ? StoreLogAction.REGION_PICKUP_RULE_ENABLED

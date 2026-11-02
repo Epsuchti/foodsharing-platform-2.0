@@ -43,12 +43,15 @@ class BubbleServiceTest {
     private final CurrentActorService actors = mock(CurrentActorService.class);
     private final PermissionService permissions = mock(PermissionService.class);
     private final SessionPrincipal actor = new SessionPrincipal(UUID.randomUUID(), null, Role.FOODSAVER, "a@local");
+    private final network.foodsharing.store.service.StoreVisibility visibility =
+            mock(network.foodsharing.store.service.StoreVisibility.class);
     private BubbleService service;
 
     @BeforeEach
     void setUp() {
-        service = new BubbleService(stores, fsps, baskets, events, regions, users, actors, permissions);
+        service = new BubbleService(stores, fsps, baskets, events, regions, users, actors, permissions, visibility);
         when(actors.requirePrincipal()).thenReturn(actor);
+        when(visibility.mayKnowStores(actor)).thenReturn(true);
     }
 
     private static ApiErrorCode code(Throwable t) {

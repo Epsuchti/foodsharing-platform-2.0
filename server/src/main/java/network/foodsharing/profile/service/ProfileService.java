@@ -6,6 +6,7 @@ import network.foodsharing.profile.repository.RatingRepository;
 import network.foodsharing.region.service.MemberPickupStats;
 import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.store.service.ProfileStoreInfo;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.ProfileAchievements;
 import network.foodsharing.user.service.UserNoteService;
@@ -92,7 +93,8 @@ public class ProfileService {
                 context.permissions().maySeeStores() ? stores.teamStores(userId) : null,
                 stats, given, bananas.mayGive(context),
                 context.facts().self() ? BuddyService.Relation.NONE : buddies.relation(viewerId, userId),
-                awards, stores.kamChains(userId), context.permissions(),
+                awards, StoreVisibility.mayKnow(context.viewer()) ? stores.kamChains(userId) : List.of(),
+                context.permissions(),
                 context.facts().self() ? null : violationCount(userId),
                 context.permissions().maySeeNotes() ? notes.countAdminNotes(userId) : null);
     }

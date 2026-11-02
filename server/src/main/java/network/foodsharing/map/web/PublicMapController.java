@@ -5,12 +5,13 @@ import java.util.UUID;
 import network.foodsharing.api.PublicMapApi;
 import network.foodsharing.api.model.MapBubble;
 import network.foodsharing.api.model.MapMarker;
+import network.foodsharing.api.model.StoreArea;
 import network.foodsharing.map.service.BubbleService;
 import network.foodsharing.map.service.MarkerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Public map layers (M1): FSPs, regions, baskets (rounded) and their bubbles. */
+/** Public map layers (M1): FSPs, regions, baskets (rounded) and their bubbles; store counts per city (S17). */
 @RestController
 public class PublicMapController implements PublicMapApi {
 
@@ -35,6 +36,11 @@ public class PublicMapController implements PublicMapApi {
     @Override
     public ResponseEntity<List<MapMarker>> listPublicFspMarkers() {
         return ResponseEntity.ok(MapMapper.markers(markers.fsps()));
+    }
+
+    @Override
+    public ResponseEntity<List<StoreArea>> listPublicStoreAreas() {
+        return ResponseEntity.ok(MapMapper.storeAreas(markers.storeAreas()));
     }
 
     @Override

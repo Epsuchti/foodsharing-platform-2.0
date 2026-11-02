@@ -10,9 +10,8 @@ import java.util.UUID;
  */
 public interface UpcomingIntroPickups {
 
-    /** Public data only (no guide, no private address); {@code category} is the IntroPickupCategory name. */
-    record PublicIntroPickupView(UUID id, String category, Instant startAt, String publicGeneralLocation,
-                                 String businessName, String publicInfo, boolean visitFairteiler, int freeSlots,
+    /** Public data only (S17 D5): no guide, category, business name or location text; {@code city} null when online. */
+    record PublicIntroPickupView(UUID id, Instant startAt, boolean online, String city, int freeSlots,
                                  String regionSlug) {
     }
 

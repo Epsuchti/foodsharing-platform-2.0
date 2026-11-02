@@ -63,6 +63,34 @@ class MapIT {
                 .andExpect(status().isNotFound());
     }
 
+    /** Decision 153, S17: counts for everybody, positions and names only for people who may know stores. */
+    @Test
+    void storeAreasCountOnlyLiveEstablishedStoresAndTheUnverifiedGetNoMarkers() throws Exception {
+        Cookie unverified = login(SeedUsers.EINAB1);
+        mvc.perform(get("/api/map/markers/stores").cookie(unverified)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/map/bubbles/store/00000020-0001-4000-8000-000000000001").cookie(unverified))
+                .andExpect(status().isNotFound());
+        assertThat(winterthurCounts()).containsExactly(2);
+        String winterthur = "'00000010-0001-4000-8000-000000000041'";
+        java.util.UUID store = jdbc.queryForObject("select min(id) from store where region_id = " + winterthur
+                + " and cooperation_status = 'COOPERATION_ESTABLISHED'", java.util.UUID.class);
+        try {
+            jdbc.update("update store set cooperation_status = 'IN_NEGOTIATION' where id = ?", store);
+            assertThat(winterthurCounts()).containsExactly(1);
+            jdbc.update("update store set deleted_at = current_timestamp where region_id = " + winterthur);
+            assertThat(winterthurCounts()).isEmpty();
+        } finally {
+            jdbc.update("update store set deleted_at = null where region_id = " + winterthur);
+            jdbc.update("update store set cooperation_status = 'COOPERATION_ESTABLISHED' where id = ?", store);
+        }
+    }
+
+    private List<Integer> winterthurCounts() throws Exception {
+        String body = mvc.perform(get("/api/public/map/store-areas")).andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        return JsonPath.read(body, "$[?(@.name == 'Winterthur')].count");
+    }
+
     @Test
     void signedInLayers() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);

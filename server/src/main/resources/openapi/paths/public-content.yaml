@@ -1,3 +1,21 @@
+/api/public/partner-stores:
+  get:
+    tags: [public-content]
+    operationId: listPublicPartnerStores
+    summary: 'Stores flagged as publicly named: name and city.'
+    security: []
+    x-permission: 'PUBLIC'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/content.yaml#/PublicPartnerStore'
+      '429': {description: 'TOO_MANY_REQUESTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
 /api/public/content/learning:
   get:
     tags: [public-content]

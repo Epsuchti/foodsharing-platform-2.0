@@ -11,6 +11,7 @@ import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.service.ProfileStoreInfo;
+import network.foodsharing.store.service.StoreVisibility;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,9 @@ public class ProfilePermissionService {
         boolean manages = !self && stores.managesStoreOf(actor.userId(), userId);
         boolean report = !self && reportButtonInCommonRegion(actor.userId(), userId);
         ProfileRules.Facts facts = new ProfileRules.Facts(self, orga, administers, shareTeam, manages, report);
-        return new Context(actor, viewer, target, facts, ProfileRules.permissions(facts));
+        ProfileRules.Permissions rights = ProfileRules.permissions(facts);
+        return new Context(actor, viewer, target, facts,
+                StoreVisibility.mayKnow(viewer) ? rights : rights.withoutStores());
     }
 
     /** Lightweight context for the wall and bananas (no store or region lookups). */

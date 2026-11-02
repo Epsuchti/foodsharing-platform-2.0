@@ -70,9 +70,14 @@ class SearchServiceTest {
         when(permissions.isOrga(principal)).thenReturn(role == Role.ORGA);
     }
 
+    private boolean mayKnowStores = true;
+
     private SearchService service(int perMinute) {
         properties.getSearch().setRateLimitPerMinute(perMinute);
-        return new SearchService(index, regions, actors, permissions, toggles, properties, clock);
+        network.foodsharing.store.service.StoreVisibility visibility =
+                org.mockito.Mockito.mock(network.foodsharing.store.service.StoreVisibility.class);
+        when(visibility.mayKnowStores(org.mockito.ArgumentMatchers.any())).thenReturn(mayKnowStores);
+        return new SearchService(index, regions, actors, permissions, toggles, visibility, properties, clock);
     }
 
     @Test

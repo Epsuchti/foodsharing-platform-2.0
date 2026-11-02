@@ -11,18 +11,6 @@
         schema:
           type: string
           format: uuid
-      - name: search
-        in: query
-        schema:
-          type: string
-      - name: category
-        in: query
-        schema:
-          $ref: '../schemas/intro-pickups.yaml#/IntroPickupCategory'
-      - name: visitFairteiler
-        in: query
-        schema:
-          type: boolean
       - name: page
         in: query
         schema:

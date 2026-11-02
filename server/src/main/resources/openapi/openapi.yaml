@@ -382,6 +382,8 @@ paths:
   /api/content/pages/{slug}:
     $ref: './paths/content.yaml#/~1api~1content~1pages~1{slug}'
   # --- public-content ---
+  /api/public/partner-stores:
+    $ref: './paths/public-content.yaml#/~1api~1public~1partner-stores'
   /api/public/content/learning:
     $ref: './paths/public-content.yaml#/~1api~1public~1content~1learning'
   /api/public/content/learning/{key}:
@@ -1008,6 +1010,8 @@ paths:
     $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1food-share-points'
   /api/public/map/markers/regions:
     $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1regions'
+  /api/public/map/store-areas:
+    $ref: './paths/public-map.yaml#/~1api~1public~1map~1store-areas'
   /api/public/map/markers/baskets:
     $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1baskets'
   /api/public/map/bubbles/{kind}/{id}:

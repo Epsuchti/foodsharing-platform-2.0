@@ -5,7 +5,7 @@
     tags: [map]
     operationId: listStoreMarkers
     summary: Store markers.
-    x-permission: authenticated
+    x-permission: verified (S17)
     parameters:
       - name: status
         in: query
@@ -35,6 +35,12 @@
                 $ref: '../schemas/map.yaml#/StoreMarker'
       "400":
         description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "403":
+        description: ACCESS_DENIED (not verified)
         content:
           application/json:
             schema:
@@ -172,7 +178,7 @@
     tags: [map]
     operationId: getMapBubble
     summary: Popup content of a marker.
-    x-permission: authenticated (visibility per kind)
+    x-permission: authenticated (visibility per kind; store only when verified)
     parameters:
       - name: kind
         in: path

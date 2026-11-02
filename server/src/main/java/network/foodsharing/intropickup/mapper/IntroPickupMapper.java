@@ -85,14 +85,10 @@ public class IntroPickupMapper {
         IntroPickup pickup = view.pickup();
         BookableIntroPickup model = new BookableIntroPickup();
         model.setId(pickup.getId());
-        model.setCategory(category(pickup.getCategory()));
         model.setStartAt(toOffset(pickup.getStartAt()));
+        model.setOnline(pickup.isOnline());
+        model.setCity(view.city());
         model.setGuide(view.guide() == null ? null : users.toSummary(view.guide()));
-        model.setPublicLocation(pickup.getPublicGeneralLocation());
-        model.setPublicGeneralLocation(pickup.getPublicGeneralLocation());
-        model.setBusinessName(pickup.getBusinessName());
-        model.setPublicInfo(pickup.getPublicInfo());
-        model.setVisitFairteiler(pickup.isVisitFairteiler());
         model.setMinimumPickupCount(pickup.getMinimumPickupCount());
         model.setFreeSlots(view.freeSlots());
         model.setSlotId(view.firstFreeSlotId());

@@ -65,12 +65,9 @@ public class IntroPickupsController implements IntroPickupsApi {
     }
 
     @Override
-    public ResponseEntity<BookableIntroPickupPage> listBookableIntroPickups(UUID regionId, String search,
-                                                                           IntroPickupCategory category,
-                                                                           Boolean visitFairteiler, Integer page,
+    public ResponseEntity<BookableIntroPickupPage> listBookableIntroPickups(UUID regionId, Integer page,
                                                                            Integer size) {
-        Page<IntroPickupBookingService.BookableView> result = booking.bookable(regionId, search,
-                IntroPickupMapper.category(category), visitFairteiler, page, size);
+        Page<IntroPickupBookingService.BookableView> result = booking.bookable(regionId, page, size);
         BookableIntroPickupPage model = new BookableIntroPickupPage();
         model.setItems(result.getContent().stream().map(mapper::toBookable).toList());
         model.setPage(PageMapper.toPageMeta(result));

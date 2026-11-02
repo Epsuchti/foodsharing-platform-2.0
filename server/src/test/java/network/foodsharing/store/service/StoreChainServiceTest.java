@@ -43,7 +43,7 @@ class StoreChainServiceTest {
     org.springframework.context.ApplicationEventPublisher events =
             mock(org.springframework.context.ApplicationEventPublisher.class);
     StoreChainService service = new StoreChainService(chains, kams, mock(StoreRepository.class), access, users,
-            currentActor, history, events);
+            currentActor, history, events, new StoreVisibility(users));
     StoreChain chain = new StoreChain();
     SessionPrincipal actor;
 
@@ -65,6 +65,7 @@ class StoreChainServiceTest {
     void as(Role role) {
         actor = new SessionPrincipal(UUID.randomUUID(), UUID.randomUUID(), role, "a@b.c");
         when(currentActor.requirePrincipal()).thenReturn(actor);
+        when(users.findActive(actor.userId())).thenReturn(Optional.of(user(role, role != Role.FOODSHARER)));
         org.mockito.Mockito.doAnswer(i -> {
             if (!network.foodsharing.security.PermissionService.isAtLeast(actor.role(), i.getArgument(0))) {
                 throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
@@ -92,6 +93,13 @@ class StoreChainServiceTest {
         assertThat(service.get(CHAIN).showNotes()).isFalse();
         as(Role.FOODSHARER);
         assertThat(codeOf(() -> service.get(CHAIN))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+    }
+
+    @Test
+    void anUnverifiedFoodsaverReadsNoChains() {
+        when(users.findActive(actor.userId())).thenReturn(Optional.of(user(Role.FOODSAVER, false)));
+        assertThat(codeOf(() -> service.get(CHAIN))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(codeOf(() -> service.list(null, null, 0, 20))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
     }
 
     @Test
