@@ -72,6 +72,7 @@ export const BELL_PANEL_SIZE = 10;
       inset-inline-end: 0;
       z-index: 1000;
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.5rem;
       width: min(24rem, calc(100vw - 1rem));
       max-height: min(32rem, calc(100dvh - 5rem));
@@ -105,11 +106,16 @@ export const BELL_PANEL_SIZE = 10;
     .panel__foot {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       justify-content: space-between;
-      gap: 0.5rem;
+      gap: 0.25rem 0.5rem;
+      min-width: 0;
     }
     .panel__foot {
       justify-content: center;
+    }
+    .panel__list > li {
+      min-width: 0;
     }
     .panel__title {
       margin: 0;
@@ -117,6 +123,7 @@ export const BELL_PANEL_SIZE = 10;
     }
     .panel__list {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.125rem;
       margin: 0;
       padding: 0;

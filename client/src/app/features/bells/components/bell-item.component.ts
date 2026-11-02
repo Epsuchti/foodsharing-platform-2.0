@@ -54,6 +54,7 @@ export function bellTitleKey(bell: Bell): string {
   styles: `
     :host {
       display: flex;
+      min-width: 0;
       align-items: stretch;
       gap: 0.25rem;
       border-radius: 0.5rem;
