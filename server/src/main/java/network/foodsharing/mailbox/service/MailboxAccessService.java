@@ -140,7 +140,11 @@ public class MailboxAccessService {
         if (mayHaveMailbox(actor.role()) && !regions.adminRegionIds(actor.userId()).isEmpty()) {
             return true;
         }
-        return !visibleMailboxes(actor).isEmpty();
+        if (mailboxes.existsOwnOrMemberMailbox(actor.userId())) {
+            return true;
+        }
+        Set<UUID> adminOf = regions.adminRegionIds(actor.userId());
+        return !adminOf.isEmpty() && !mailboxes.findByOwnerTypeAndOwnerIdIn(MailboxOwnerType.REGION, adminOf).isEmpty();
     }
 
     /** Mailboxes the actor reads: own personal, ambassador regions, member of; sorted personal first, then by name. */

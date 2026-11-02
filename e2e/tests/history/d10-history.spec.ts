@@ -77,8 +77,14 @@ async function chooseActionFilter(page: Page, label: string): Promise<void> {
 async function closeOverlay(page: Page): Promise<void> {
   // a toast (e.g. "export downloaded") sits over the top of the page for 4 s and would take the click
   await expect(page.getByTestId('shell.toast').locator('.p-toast-message')).toHaveCount(0, { timeout: 15_000 });
-  await page.getByRole('heading', { level: 1 }).click();
-  await expect(page.locator('.p-overlay, .p-multiselect-overlay, .p-datepicker-panel')).toHaveCount(0);
+  const overlays = page.locator('.p-overlay, .p-multiselect-overlay, .p-datepicker-panel');
+  // under load the first outside click can land while the overlay is still opening and is swallowed: retry it
+  await expect(async () => {
+    if ((await overlays.count()) > 0) {
+      await page.getByRole('heading', { level: 1 }).click({ timeout: 2_000 });
+    }
+    await expect(overlays).toHaveCount(0, { timeout: 1_500 });
+  }).toPass({ timeout: 10_000 });
 }
 
 test.describe('as foodsaver', () => {

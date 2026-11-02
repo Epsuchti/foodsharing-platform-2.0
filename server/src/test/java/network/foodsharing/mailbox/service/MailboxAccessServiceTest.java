@@ -52,7 +52,7 @@ class MailboxAccessServiceTest {
 
         assertThat(access.showsMailboxes(orga)).isTrue();
         verify(regions, never()).adminRegionIds(any());
-        verify(members, never()).mailboxIdsOf(any());
+        verify(mailboxes, never()).existsOwnOrMemberMailbox(any());
     }
 
     @Test
@@ -61,7 +61,7 @@ class MailboxAccessServiceTest {
         when(regions.adminRegionIds(manager.userId())).thenReturn(Set.of(UUID.randomUUID()));
 
         assertThat(access.showsMailboxes(manager)).isTrue();
-        verify(members, never()).mailboxIdsOf(any());
+        verify(mailboxes, never()).existsOwnOrMemberMailbox(any());
     }
 
     @Test
@@ -75,10 +75,7 @@ class MailboxAccessServiceTest {
     @Test
     void memberReaderSeesMailboxes() {
         SessionPrincipal foodsaver = principal(Role.FOODSAVER);
-        UUID boxId = UUID.randomUUID();
-        when(members.mailboxIdsOf(foodsaver.userId())).thenReturn(List.of(boxId));
-        when(mailboxes.findAllById(List.of(boxId)))
-                .thenReturn(List.of(mailbox(MailboxOwnerType.REGION, UUID.randomUUID())));
+        when(mailboxes.existsOwnOrMemberMailbox(foodsaver.userId())).thenReturn(true);
 
         assertThat(access.showsMailboxes(foodsaver)).isTrue();
     }
@@ -86,8 +83,7 @@ class MailboxAccessServiceTest {
     @Test
     void personalMailboxOwnerSeesMailboxes() {
         SessionPrincipal manager = principal(Role.STORE_MANAGER);
-        when(mailboxes.findByOwnerTypeAndOwnerId(MailboxOwnerType.USER, manager.userId()))
-                .thenReturn(Optional.of(mailbox(MailboxOwnerType.USER, manager.userId())));
+        when(mailboxes.existsOwnOrMemberMailbox(manager.userId())).thenReturn(true);
 
         assertThat(access.showsMailboxes(manager)).isTrue();
     }
