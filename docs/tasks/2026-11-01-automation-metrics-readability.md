@@ -1,4 +1,4 @@
-# Automation metrics readability (resume.md "After the base build", items 2 and 3)
+# Automation metrics readability (todo.md "After the base build", items 2 and 3)
 
 ## Goal
 On `/regions/<id>/automation/metrics` (AU9), every metric has a readable label in all five languages, and a guard fails the build when a key has no label. The chart becomes readable: series are grouped, each group shows ranked totals, and the line chart has at most 5 lines and sums per week over long ranges.
@@ -116,7 +116,7 @@ Yes, a visible change on one page: a group switch, totals bars, a calmer chart a
 - [ ] The page shows the group switch (default Eintragungen), totals bars, at most 5 lines, weekly sums over 31 days, and a hidden table; no raw keys are visible.
 - [ ] The multiselect and its unused i18n keys are removed.
 - [ ] The client unit, server and @AU9/@AU4 e2e tests are green; the screenshot specs are updated (baseline pending).
-- [ ] `docs/resume.md` items 2 and 3 are marked done with the decision number, and there is a decision row in `docs/decisions.md`.
+- [ ] `todo.md` items 2 and 3 are marked done with the decision number, and there is a decision row in `docs/decisions.md`.
 
 ## Risks
 - The generator may name enum values containing dots oddly (`SLOT_APPROVAL_CONFIRMED`, quoted TS keys). Rely on the wire values, not the member names.

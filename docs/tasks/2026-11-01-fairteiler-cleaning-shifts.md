@@ -142,7 +142,7 @@ Yes. There is a new Fairteiler tab, a form switch, a region automation section a
 - [ ] Cleaning tab, switch, "Putzen" section and policy card work in all five languages; `i18n:check` passes
 - [ ] Every mutation writes history; bells sent
 - [ ] `@FS2` e2e passes; screenshot specs exist; ledger row FS2 added
-- [ ] Follow-ups (Scope: out) listed in `docs/resume.md`
+- [ ] Follow-ups (Scope: out) listed in `todo.md`
 
 ## Risks
 - Extracting `PickupSchedule` could change DST or override behaviour for store pickups. Keep its tests unchanged and green.

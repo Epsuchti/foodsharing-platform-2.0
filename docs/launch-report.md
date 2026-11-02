@@ -57,7 +57,7 @@ java -jar server/target/foodsharing-platform-*.jar --spring.profiles.active=loca
 - Lighthouse: `E2E_BASE_URL=http://localhost:8080 node e2e/scripts/lighthouse.mjs [--report]` or the Playwright `lighthouse` project (`docs/lighthouse.md`).
 - ER diagram: `npm run er-diagram` (summary committed in `docs/er/diagrams/summary/`); `scripts/er-diagram.sh --check` fails when it is stale (CI).
 
-### Windows developer machine (as used for the build, `docs/resume.md`)
+### Windows developer machine (as used for the build, `todo.md`)
 
 - JDK 21: portable Temurin in `~/.jdks/jdk-21.0.13+9`; prefix Java/Maven/Playwright commands with `export JAVA_HOME="$HOME/.jdks/jdk-21.0.13+9"; export PATH="$JAVA_HOME/bin:$PWD/client/node:$PATH"` (Git Bash). The system JDK 17 is not enough.
 - Node: use the Maven-installed `client/node` (system Node 24.14 is older than Angular CLI needs, ≥ 24.15).
@@ -83,7 +83,7 @@ server/deploy/release.sh --build --check                # image for amd64 + arm6
 
 Final gate (plan-m7 Part D) on `main` at _TBD commit_, _TBD date_. Earlier milestone results: M1 integration
 `./mvnw clean verify` green, Playwright chromium 94/94; last full verify before the gate green except the 13
-Docker-only ITs (`docs/resume.md`).
+Docker-only ITs (`todo.md`).
 
 | Check | Command | Result |
 |---|---|---|
@@ -113,7 +113,7 @@ Docker-only ITs (`docs/resume.md`).
 
 | Item | Why | What to do | Reference |
 |---|---|---|---|
-| Docker for the Postgres ITs | 13 Testcontainers ITs (Liquibase on Postgres, index usage, load paths, backup/restore, Zürich imports, …) cannot run on the build machine (no Docker). | Run `./mvnw clean verify` on a machine with Docker (or let CI run it) and record the result above. | `docs/resume.md`, D7.1, D16.1–D16.3, D19.2 |
+| Docker for the Postgres ITs | 13 Testcontainers ITs (Liquibase on Postgres, index usage, load paths, backup/restore, Zürich imports, …) cannot run on the build machine (no Docker). | Run `./mvnw clean verify` on a machine with Docker (or let CI run it) and record the result above. | `todo.md`, D7.1, D16.1–D16.3, D19.2 |
 | Screenshot baselines and design-round re-baselines | Baselines are generated in Docker only (decision 69); the design rounds 1–3 changed many screens and their re-baselines are pending. | `npm run e2e:screenshots -- --update-snapshots` in Docker once, review the diffs deliberately, commit; a second plain run must show 0 diffs. | D18.2, decisions 69, 109 |
 | k6 load test refresh | Needs Docker (Postgres 17 + jar + k6). | `e2e/load/run.sh`, update `docs/load-test.md`; repeat on production hardware. | D17.1 |
 | `smoke.sh` and `release.sh --check` | Both need Docker (Compose, buildx). | Run both, record above. | D19.1 |

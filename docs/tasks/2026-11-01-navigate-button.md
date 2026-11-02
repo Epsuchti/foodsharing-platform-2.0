@@ -119,7 +119,7 @@ No designer mockup (owner decision). It reuses the existing popover-menu look.
 - [ ] No old route/navigate i18n keys or test IDs are left (`grep` is clean); five languages are present; `i18n:check` is green.
 - [ ] Unit and e2e tests (`@S15`, `@FS1`, `@B1`, `@E1`) and the updated screenshot specs are green. Baselines are not updated.
 - [ ] Axe is clean on the four pages with the menu open.
-- [ ] A decision row is added in `docs/decisions.md`; `docs/resume.md` item 15 is marked done.
+- [ ] A decision row is added in `docs/decisions.md`; `todo.md` item 15 is marked done.
 
 ## Risks
 - **Popover and axe/focus:** `p-popover` attaches to the body.

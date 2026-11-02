@@ -74,7 +74,7 @@ Every `/api/**` request gets a ceiling: signed-in requests are limited per accou
 - Runbook §9.4: lifting automatic blocks and the proxy requirements.
 - `plan.md` §17: the forward-headers line.
 - `docs/ledger.md`: the D17.2 row.
-- `docs/resume.md` item 5: mark done.
+- `todo.md` item 5: mark done.
 
 ## UI
 - Yes: a new section on the existing admin IP blocks page, built from the existing table and data-state patterns. No designer mockup needed.

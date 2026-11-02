@@ -89,7 +89,7 @@ Out:
 **Docs**
 - the new decision row
 - `docs/design/sidenav-proposal.md` §1.3: a short note that decision 135 applies
-- `docs/resume.md` item 9: mark it done
+- `todo.md` item 9: mark it done
 - `docs/design-review-m7.md`: a note on the lowered persona budgets
 
 ## UI
