@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { storesVisibleMatch } from './core/auth/auth.guard';
 import { consentGuard } from './core/auth/consent.guard';
 import { catalogGuard } from './core/i18n/catalog.guard';
 
@@ -102,6 +103,7 @@ const MODULE_ROUTES: Routes = [
   },
   {
     path: 'store-chains',
+    canMatch: [storesVisibleMatch],
     loadChildren: () =>
       import('./features/store-chains/store-chains.routes').then((m) => m.STORE_CHAINS_ROUTES),
   },

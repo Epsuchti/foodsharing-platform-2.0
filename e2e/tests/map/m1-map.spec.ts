@@ -5,7 +5,7 @@ import { acceptPendingConsents, expect, expectDataState, expectErrorState, injec
  * M1 map (plan-m7 Q7, plan-m6 B7). Public layers: 5 active FSPs, 10 open baskets (HOME positions rounded by the
  * server), region pins. Signed in: stores with the filter bar, events and — with MAP_USERS on, for region
  * administrators (bot administers Zürich Stadt) — the members of a region. Layers are remembered per browser in
- * `localStorage['fs.map.layers']` (fresh per test context: fsps, regions, baskets, stores).
+ * `localStorage['fs.map.layers']` (fresh per test context: fsps, regions, baskets, storeAreas, stores).
  */
 
 interface StoreMarkerDto {
@@ -46,7 +46,7 @@ test('M1 public map shows FSP, region and basket markers; logged-in user filters
   as,
   apiOf,
 }) => {
-  // visitor: the three public layers, no stores, no search
+  // visitor: the public layers, store counts instead of stores, no search
   const visitor = await as(null);
   await visitor.goto('/map');
   await expectDataState(visitor, 'map.page.map.state', 'success');
@@ -55,7 +55,8 @@ test('M1 public map shows FSP, region and basket markers; logged-in user filters
   await expect(pins(visitor, 'region-pin').first()).toBeAttached();
   await expect(visitor.getByTestId('map.page.layer.stores')).toHaveCount(0);
   await expect(visitor.getByTestId('map.page.search')).toHaveCount(0);
-  await expect(visitor.getByTestId('map.page.loginHint')).toBeVisible();
+  await expect(visitor.getByTestId('map.page.loginHint')).toHaveCount(0);
+  await expect(visitor.getByTestId('map.page.layer.storeAreas')).toBeVisible();
   await openPin(pins(visitor, 'fsp').first());
   await expectDataState(visitor, 'map.bubble.state', 'success');
   await expect(visitor.getByTestId('map.bubble.link')).toHaveAttribute('href', /^\/food-share-points\/[0-9a-f-]{36}$/);

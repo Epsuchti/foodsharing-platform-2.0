@@ -1,8 +1,10 @@
 package network.foodsharing.store;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
@@ -179,6 +181,14 @@ class StoreIdentityLeakIT {
                     .map(p -> String.valueOf(p.get("name"))).toList();
         }
 
+        /** An optional {@code storeId} is walked too: it asks for a store by id. */
+        @SuppressWarnings("unchecked")
+        boolean takesStoreId() {
+            Object parameters = operation.get("parameters");
+            return parameters instanceof List<?> list && list.stream().map(p -> (Map<String, Object>) p)
+                    .anyMatch(p -> "query".equals(p.get("in")) && "storeId".equals(p.get("name")));
+        }
+
         List<String> pathParams() {
             List<String> names = new ArrayList<>();
             Matcher matcher = PATH_PARAM.matcher(path);
@@ -224,6 +234,9 @@ class StoreIdentityLeakIT {
             var request = get(uri);
             for (String name : get.requiredQuery()) {
                 request.param(name, QUERY_PARAMS.get(name));
+            }
+            if (get.takesStoreId()) {
+                request.param("storeId", S_01);
             }
             if (cookie != null) {
                 request.cookie(cookie);
@@ -282,6 +295,18 @@ class StoreIdentityLeakIT {
                     String.class, user.id()));
         }
         return allowed;
+    }
+
+    @Test
+    void aSurveyWithAStoreQuestionCannotBeAnsweredForAStoreByTheUnverified() throws Exception {
+        String survey = "00000046-0001-4000-8000-000000000001";
+        Cookie newbie = login(SeedUsers.NEWBIE);
+        mvc.perform(get("/api/surveys/" + survey + "/form").param("storeId", S_01).cookie(newbie))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.store").doesNotExist());
+        mvc.perform(post("/api/surveys/" + survey + "/responses").cookie(newbie).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"storeId\":\"" + S_01 + "\",\"answers\":[]}"))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
     }
 
     @Test

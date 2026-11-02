@@ -88,6 +88,13 @@ forEachVariant((variant) => {
     screenshotTest.describe('store manager', () => {
       screenshotTest.use({ variant, role: 'bieb' });
 
+      screenshotTest('store form public name switch @S17 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/edit`);
+        await expect(page.getByTestId('stores.form.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('stores.form.publicNameWarning')).toBeVisible();
+        await visual.expectScreen(page, `stores-form-public-name-${variant.name}`, { fullPage: true });
+      });
+
       screenshotTest('store form edit @S2 @screenshot', async ({ page, visual }) => {
         await page.goto(`/stores/${S01}/edit`);
         await expect(page.getByTestId('stores.form.state')).toHaveAttribute('data-state', 'success');

@@ -17,6 +17,16 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `map-public-${variant.name}`);
     });
 
+    screenshotTest('open store count bubble @S17 @screenshot', async ({ page, visual }) => {
+      await page.goto('/map');
+      await expect(page.getByTestId('map.page.map.state')).toHaveAttribute('data-state', 'success');
+      const bubble = page.getByTestId('map.page.map').locator('.fs-map-marker[data-kind="store-area"]').first();
+      await bubble.focus();
+      await bubble.press('Enter');
+      await expect(page.getByTestId('map.area.text')).toBeVisible();
+      await visual.expectScreen(page, `map-store-area-${variant.name}`);
+    });
+
     screenshotTest('map loading @M1 @screenshot', async ({ page, visual }) => {
       await injectApiError(page, { url: '/api/public/map/markers/regions', delayMs: 30_000 });
       await page.goto('/map');

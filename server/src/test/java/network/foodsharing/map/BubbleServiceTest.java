@@ -68,6 +68,14 @@ class BubbleServiceTest {
     }
 
     @Test
+    void aStoreBubbleLooksUnknownToPeopleWhoMayNotKnowStores() {
+        when(visibility.mayKnowStores(actor)).thenReturn(false);
+        assertThatThrownBy(() -> service.bubble("store", UUID.randomUUID(), false))
+                .satisfies(t -> assertThat(code(t)).isEqualTo(ApiErrorCode.MARKER_NOT_FOUND));
+        verifyNoInteractions(stores);
+    }
+
+    @Test
     void unknownKindIsAValidationError() {
         assertThatThrownBy(() -> service.bubble("planet", UUID.randomUUID(), false))
                 .satisfies(t -> assertThat(code(t)).isEqualTo(ApiErrorCode.VALIDATION_FAILED));

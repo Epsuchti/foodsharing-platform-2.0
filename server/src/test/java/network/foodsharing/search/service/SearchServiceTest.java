@@ -92,6 +92,15 @@ class SearchServiceTest {
     }
 
     @Test
+    void peopleWhoMayNotKnowStoresGetNoStoreHitsAndNoOwnStores() {
+        mayKnowStores = false;
+        var hits = service(0).search("Bäckerei Zürich", List.of());
+        assertThat(hits.get(SearchKind.STORE)).isEmpty();
+        verify(index, never()).search(eq(SearchKind.STORE), any(), any(), any(), anyInt());
+        verify(index).search(eq(SearchKind.REGION), any(), any(), any(), anyInt());
+    }
+
+    @Test
     void emailQueriesAreExactAndScopedByPermission() {
         SearchService service = service(0);
 

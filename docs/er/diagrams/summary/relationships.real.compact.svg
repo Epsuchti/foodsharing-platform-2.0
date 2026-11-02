@@ -5199,46 +5199,10 @@
 <polygon fill="#000000" stroke="#000000" points="1786.5359,-6861.9433 1794.1595,-6866.2839 1790.5179,-6862.3216 1794.5,-6862.7 1794.5,-6862.7 1794.5,-6862.7 1790.5179,-6862.3216 1794.8405,-6859.1161 1786.5359,-6861.9433 1786.5359,-6861.9433"/>
 <ellipse fill="none" stroke="#000000" cx="1783.3502" cy="-6861.6406" rx="3.2" ry="3.2"/>
 </g>
-<!-- login_token -->
-<g id="node107" class="node">
-<title>login_token</title>
-<g id="a_node107"><a xlink:href="../../tables/login_token.html" xlink:title="login_token" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="98,-7508.2 98,-7657.2 221,-7657.2 221,-7508.2 98,-7508.2"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="98.5,-7633.7 98.5,-7656.7 221.5,-7656.7 221.5,-7633.7 98.5,-7633.7"/>
-<polygon fill="none" stroke="#000000" points="98.5,-7633.7 98.5,-7656.7 221.5,-7656.7 221.5,-7633.7 98.5,-7633.7"/>
-<text text-anchor="start" x="103.5" y="-7642.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">login_token</text>
-<text text-anchor="start" x="187.0219" y="-7641.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="98.5,-7611.7 98.5,-7633.7 221.5,-7633.7 221.5,-7611.7 98.5,-7611.7"/>
-<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="103.5" y="-7628.7"/>
-<text text-anchor="start" x="127.5" y="-7618.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
-<polygon fill="#ffffff" stroke="transparent" points="98.5,-7589.7 98.5,-7611.7 221.5,-7611.7 221.5,-7589.7 98.5,-7589.7"/>
-<polygon fill="none" stroke="#000000" points="98.5,-7589.7 98.5,-7611.7 221.5,-7611.7 221.5,-7589.7 98.5,-7589.7"/>
-<text text-anchor="start" x="127.5" y="-7596.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">created_at</text>
-<polygon fill="#ffffff" stroke="transparent" points="98.5,-7567.7 98.5,-7589.7 221.5,-7589.7 221.5,-7567.7 98.5,-7567.7"/>
-<polygon fill="none" stroke="#000000" points="98.5,-7567.7 98.5,-7589.7 221.5,-7589.7 221.5,-7567.7 98.5,-7567.7"/>
-<text text-anchor="start" x="127.5" y="-7574.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">email</text>
-<polygon fill="#ffffff" stroke="transparent" points="98.5,-7545.7 98.5,-7567.7 221.5,-7567.7 221.5,-7545.7 98.5,-7545.7"/>
-<polygon fill="none" stroke="#000000" points="98.5,-7545.7 98.5,-7567.7 221.5,-7567.7 221.5,-7545.7 98.5,-7545.7"/>
-<text text-anchor="start" x="127.5" y="-7552.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">token_hash</text>
-<polygon fill="none" stroke="#000000" points="98.5,-7526.7 98.5,-7545.7 221.5,-7545.7 221.5,-7526.7 98.5,-7526.7"/>
-<text text-anchor="start" x="101.5" y="-7532.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="98.5,-7507.7 98.5,-7526.7 221.5,-7526.7 221.5,-7507.7 98.5,-7507.7"/>
-<polygon fill="none" stroke="#000000" points="98.5,-7507.7 98.5,-7526.7 221.5,-7526.7 221.5,-7507.7 98.5,-7507.7"/>
-<polygon fill="#ffffff" stroke="transparent" points="99.5,-7508.7 99.5,-7525.7 140.5,-7525.7 140.5,-7508.7 99.5,-7508.7"/>
-<text text-anchor="start" x="101.5" y="-7513.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="140.5,-7508.7 140.5,-7525.7 180.5,-7525.7 180.5,-7508.7 140.5,-7508.7"/>
-<text text-anchor="start" x="157.4431" y="-7513.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="180.5,-7508.7 180.5,-7525.7 220.5,-7525.7 220.5,-7508.7 180.5,-7508.7"/>
-<text text-anchor="start" x="212.3862" y="-7513.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#000000" stroke="#000000" points="140.5,-7508.7 140.5,-7525.7 140.5,-7525.7 140.5,-7508.7 140.5,-7508.7"/>
-<polygon fill="#000000" stroke="#000000" points="180.5,-7508.7 180.5,-7525.7 180.5,-7525.7 180.5,-7508.7 180.5,-7508.7"/>
-</a>
-</g>
-</g>
 <!-- mail_outbox -->
-<g id="node108" class="node">
+<g id="node107" class="node">
 <title>mail_outbox</title>
-<g id="a_node108"><a xlink:href="../../tables/mail_outbox.html" xlink:title="mail_outbox" target="_top">
+<g id="a_node107"><a xlink:href="../../tables/mail_outbox.html" xlink:title="mail_outbox" target="_top">
 <polygon fill="#ffffff" stroke="transparent" points="2618,-5618.2 2618,-5789.2 2768,-5789.2 2768,-5618.2 2618,-5618.2"/>
 <polygon fill="#f5f5f5" stroke="transparent" points="2618,-5765.7 2618,-5788.7 2768,-5788.7 2768,-5765.7 2618,-5765.7"/>
 <polygon fill="none" stroke="#000000" points="2618,-5765.7 2618,-5788.7 2768,-5788.7 2768,-5765.7 2618,-5765.7"/>
@@ -5271,6 +5235,42 @@
 <text text-anchor="start" x="2758.8862" y="-5623.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 <polygon fill="#000000" stroke="#000000" points="2669,-5618.7 2669,-5635.7 2669,-5635.7 2669,-5618.7 2669,-5618.7"/>
 <polygon fill="#000000" stroke="#000000" points="2718,-5618.7 2718,-5635.7 2718,-5635.7 2718,-5618.7 2718,-5618.7"/>
+</a>
+</g>
+</g>
+<!-- login_token -->
+<g id="node108" class="node">
+<title>login_token</title>
+<g id="a_node108"><a xlink:href="../../tables/login_token.html" xlink:title="login_token" target="_top">
+<polygon fill="#ffffff" stroke="transparent" points="98,-7508.2 98,-7657.2 221,-7657.2 221,-7508.2 98,-7508.2"/>
+<polygon fill="#f5f5f5" stroke="transparent" points="98.5,-7633.7 98.5,-7656.7 221.5,-7656.7 221.5,-7633.7 98.5,-7633.7"/>
+<polygon fill="none" stroke="#000000" points="98.5,-7633.7 98.5,-7656.7 221.5,-7656.7 221.5,-7633.7 98.5,-7633.7"/>
+<text text-anchor="start" x="103.5" y="-7642.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">login_token</text>
+<text text-anchor="start" x="187.0219" y="-7641.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
+<polygon fill="none" stroke="#000000" points="98.5,-7611.7 98.5,-7633.7 221.5,-7633.7 221.5,-7611.7 98.5,-7611.7"/>
+<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="103.5" y="-7628.7"/>
+<text text-anchor="start" x="127.5" y="-7618.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
+<polygon fill="#ffffff" stroke="transparent" points="98.5,-7589.7 98.5,-7611.7 221.5,-7611.7 221.5,-7589.7 98.5,-7589.7"/>
+<polygon fill="none" stroke="#000000" points="98.5,-7589.7 98.5,-7611.7 221.5,-7611.7 221.5,-7589.7 98.5,-7589.7"/>
+<text text-anchor="start" x="127.5" y="-7596.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">created_at</text>
+<polygon fill="#ffffff" stroke="transparent" points="98.5,-7567.7 98.5,-7589.7 221.5,-7589.7 221.5,-7567.7 98.5,-7567.7"/>
+<polygon fill="none" stroke="#000000" points="98.5,-7567.7 98.5,-7589.7 221.5,-7589.7 221.5,-7567.7 98.5,-7567.7"/>
+<text text-anchor="start" x="127.5" y="-7574.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">email</text>
+<polygon fill="#ffffff" stroke="transparent" points="98.5,-7545.7 98.5,-7567.7 221.5,-7567.7 221.5,-7545.7 98.5,-7545.7"/>
+<polygon fill="none" stroke="#000000" points="98.5,-7545.7 98.5,-7567.7 221.5,-7567.7 221.5,-7545.7 98.5,-7545.7"/>
+<text text-anchor="start" x="127.5" y="-7552.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">token_hash</text>
+<polygon fill="none" stroke="#000000" points="98.5,-7526.7 98.5,-7545.7 221.5,-7545.7 221.5,-7526.7 98.5,-7526.7"/>
+<text text-anchor="start" x="101.5" y="-7532.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
+<polygon fill="#ffffff" stroke="transparent" points="98.5,-7507.7 98.5,-7526.7 221.5,-7526.7 221.5,-7507.7 98.5,-7507.7"/>
+<polygon fill="none" stroke="#000000" points="98.5,-7507.7 98.5,-7526.7 221.5,-7526.7 221.5,-7507.7 98.5,-7507.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="99.5,-7508.7 99.5,-7525.7 140.5,-7525.7 140.5,-7508.7 99.5,-7508.7"/>
+<text text-anchor="start" x="101.5" y="-7513.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="140.5,-7508.7 140.5,-7525.7 180.5,-7525.7 180.5,-7508.7 140.5,-7508.7"/>
+<text text-anchor="start" x="157.4431" y="-7513.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="180.5,-7508.7 180.5,-7525.7 220.5,-7525.7 220.5,-7508.7 180.5,-7508.7"/>
+<text text-anchor="start" x="212.3862" y="-7513.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#000000" stroke="#000000" points="140.5,-7508.7 140.5,-7525.7 140.5,-7525.7 140.5,-7508.7 140.5,-7508.7"/>
+<polygon fill="#000000" stroke="#000000" points="180.5,-7508.7 180.5,-7525.7 180.5,-7525.7 180.5,-7508.7 180.5,-7508.7"/>
 </a>
 </g>
 </g>
@@ -6365,100 +6365,100 @@
 <polygon fill="#000000" stroke="#000000" points="1067.9565,-8276.0361 1074.3012,-8282.0946 1071.7283,-8277.3681 1075.5,-8278.7 1075.5,-8278.7 1075.5,-8278.7 1071.7283,-8277.3681 1076.6988,-8275.3054 1067.9565,-8276.0361 1067.9565,-8276.0361"/>
 <ellipse fill="none" stroke="#000000" cx="1064.9391" cy="-8274.9706" rx="3.2" ry="3.2"/>
 </g>
-<!-- wallet_pass -->
-<g id="node143" class="node">
-<title>wallet_pass</title>
-<g id="a_node143"><a xlink:href="../../tables/wallet_pass.html" xlink:title="wallet_pass" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="1459.5,-3498.2 1459.5,-3647.2 1602.5,-3647.2 1602.5,-3498.2 1459.5,-3498.2"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="1460,-3623.7 1460,-3646.7 1603,-3646.7 1603,-3623.7 1460,-3623.7"/>
-<polygon fill="none" stroke="#000000" points="1460,-3623.7 1460,-3646.7 1603,-3646.7 1603,-3623.7 1460,-3623.7"/>
-<text text-anchor="start" x="1465" y="-3632.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">wallet_pass</text>
-<text text-anchor="start" x="1568.0437" y="-3631.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="1460,-3601.7 1460,-3623.7 1603,-3623.7 1603,-3601.7 1460,-3601.7"/>
-<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1465" y="-3618.7"/>
-<text text-anchor="start" x="1480" y="-3608.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
-<polygon fill="#ffffff" stroke="transparent" points="1460,-3579.7 1460,-3601.7 1603,-3601.7 1603,-3579.7 1460,-3579.7"/>
-<polygon fill="none" stroke="#000000" points="1460,-3579.7 1460,-3601.7 1603,-3601.7 1603,-3579.7 1460,-3579.7"/>
-<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1465" y="-3596.7"/>
-<text text-anchor="start" x="1480" y="-3586.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">user_id</text>
-<polygon fill="#ffffff" stroke="transparent" points="1460,-3557.7 1460,-3579.7 1603,-3579.7 1603,-3557.7 1460,-3557.7"/>
-<polygon fill="none" stroke="#000000" points="1460,-3557.7 1460,-3579.7 1603,-3579.7 1603,-3557.7 1460,-3557.7"/>
-<text text-anchor="start" x="1480" y="-3564.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">wallet_type</text>
-<polygon fill="#ffffff" stroke="transparent" points="1460,-3535.7 1460,-3557.7 1603,-3557.7 1603,-3535.7 1460,-3535.7"/>
-<polygon fill="none" stroke="#000000" points="1460,-3535.7 1460,-3557.7 1603,-3557.7 1603,-3535.7 1460,-3535.7"/>
-<text text-anchor="start" x="1480" y="-3542.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">serial</text>
-<polygon fill="none" stroke="#000000" points="1460,-3516.7 1460,-3535.7 1603,-3535.7 1603,-3516.7 1460,-3516.7"/>
-<text text-anchor="start" x="1463" y="-3522.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="1460,-3497.7 1460,-3516.7 1603,-3516.7 1603,-3497.7 1460,-3497.7"/>
-<polygon fill="none" stroke="#000000" points="1460,-3497.7 1460,-3516.7 1603,-3516.7 1603,-3497.7 1460,-3497.7"/>
-<polygon fill="#ffffff" stroke="transparent" points="1461,-3498.7 1461,-3515.7 1514,-3515.7 1514,-3498.7 1461,-3498.7"/>
-<text text-anchor="start" x="1463" y="-3503.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="1514,-3498.7 1514,-3515.7 1558,-3515.7 1558,-3498.7 1514,-3498.7"/>
-<text text-anchor="start" x="1532.9431" y="-3503.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="1558,-3498.7 1558,-3515.7 1602,-3515.7 1602,-3498.7 1558,-3498.7"/>
-<text text-anchor="start" x="1593.8862" y="-3503.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#000000" stroke="#000000" points="1514,-3498.7 1514,-3515.7 1514,-3515.7 1514,-3498.7 1514,-3498.7"/>
-<polygon fill="#000000" stroke="#000000" points="1558,-3498.7 1558,-3515.7 1558,-3515.7 1558,-3498.7 1558,-3498.7"/>
-</a>
-</g>
-</g>
-<!-- wallet_pass&#45;&gt;user_account -->
-<g id="edge198" class="edge">
-<title>wallet_pass:w&#45;&gt;user_account:e</title>
-<path fill="none" stroke="#000000" d="M1445.4425,-3591.1789C1397.7048,-3594.5157 1376.1713,-3615.5273 1350,-3661.7 1296.3303,-3756.3869 1327.0909,-4532.3292 1317,-4640.7 1309.7882,-4718.1507 1368.2857,-4813.7 1290.5,-4813.7"/>
-<polygon fill="#000000" stroke="#000000" points="1452.0043,-3590.9631 1460.1184,-3594.2981 1456.0022,-3590.8316 1460,-3590.7 1460,-3590.7 1460,-3590.7 1456.0022,-3590.8316 1459.8816,-3587.1019 1452.0043,-3590.9631 1452.0043,-3590.9631"/>
-<ellipse fill="none" stroke="#000000" cx="1448.8061" cy="-3591.0684" rx="3.2" ry="3.2"/>
-</g>
 <!-- user_wall_post -->
-<g id="node144" class="node">
+<g id="node143" class="node">
 <title>user_wall_post</title>
-<g id="a_node144"><a xlink:href="../../tables/user_wall_post.html" xlink:title="user_wall_post" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="1458,-3328.2 1458,-3477.2 1604,-3477.2 1604,-3328.2 1458,-3328.2"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="1458,-3453.7 1458,-3476.7 1604,-3476.7 1604,-3453.7 1458,-3453.7"/>
-<polygon fill="none" stroke="#000000" points="1458,-3453.7 1458,-3476.7 1604,-3476.7 1604,-3453.7 1458,-3453.7"/>
-<text text-anchor="start" x="1463" y="-3462.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">user_wall_post</text>
-<text text-anchor="start" x="1569.5219" y="-3461.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="1458,-3431.7 1458,-3453.7 1604,-3453.7 1604,-3431.7 1458,-3431.7"/>
-<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1463" y="-3448.7"/>
-<text text-anchor="start" x="1487" y="-3438.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
-<polygon fill="#ffffff" stroke="transparent" points="1458,-3409.7 1458,-3431.7 1604,-3431.7 1604,-3409.7 1458,-3409.7"/>
-<polygon fill="none" stroke="#000000" points="1458,-3409.7 1458,-3431.7 1604,-3431.7 1604,-3409.7 1458,-3409.7"/>
-<text text-anchor="start" x="1487" y="-3416.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">created_at</text>
-<polygon fill="#ffffff" stroke="transparent" points="1458,-3387.7 1458,-3409.7 1604,-3409.7 1604,-3387.7 1458,-3387.7"/>
-<polygon fill="none" stroke="#000000" points="1458,-3387.7 1458,-3409.7 1604,-3409.7 1604,-3387.7 1458,-3387.7"/>
-<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1463" y="-3404.7"/>
-<text text-anchor="start" x="1487" y="-3394.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">user_id</text>
-<polygon fill="none" stroke="#000000" points="1458,-3365.7 1458,-3387.7 1604,-3387.7 1604,-3365.7 1458,-3365.7"/>
-<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1463" y="-3382.7"/>
-<text text-anchor="start" x="1487" y="-3372.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">author_id</text>
-<polygon fill="none" stroke="#000000" points="1458,-3346.7 1458,-3365.7 1604,-3365.7 1604,-3346.7 1458,-3346.7"/>
-<text text-anchor="start" x="1461" y="-3352.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="1458,-3327.7 1458,-3346.7 1604,-3346.7 1604,-3327.7 1458,-3327.7"/>
-<polygon fill="none" stroke="#000000" points="1458,-3327.7 1458,-3346.7 1604,-3346.7 1604,-3327.7 1458,-3327.7"/>
-<polygon fill="#ffffff" stroke="transparent" points="1459,-3328.7 1459,-3345.7 1513,-3345.7 1513,-3328.7 1459,-3328.7"/>
-<text text-anchor="start" x="1461" y="-3333.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
-<polygon fill="#ffffff" stroke="transparent" points="1513,-3328.7 1513,-3345.7 1558,-3345.7 1558,-3328.7 1513,-3328.7"/>
-<text text-anchor="start" x="1532.4431" y="-3333.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="1558,-3328.7 1558,-3345.7 1603,-3345.7 1603,-3328.7 1558,-3328.7"/>
-<text text-anchor="start" x="1594.8862" y="-3333.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#000000" stroke="#000000" points="1513,-3328.7 1513,-3345.7 1513,-3345.7 1513,-3328.7 1513,-3328.7"/>
-<polygon fill="#000000" stroke="#000000" points="1558,-3328.7 1558,-3345.7 1558,-3345.7 1558,-3328.7 1558,-3328.7"/>
+<g id="a_node143"><a xlink:href="../../tables/user_wall_post.html" xlink:title="user_wall_post" target="_top">
+<polygon fill="#ffffff" stroke="transparent" points="1458,-3498.2 1458,-3647.2 1604,-3647.2 1604,-3498.2 1458,-3498.2"/>
+<polygon fill="#f5f5f5" stroke="transparent" points="1458,-3623.7 1458,-3646.7 1604,-3646.7 1604,-3623.7 1458,-3623.7"/>
+<polygon fill="none" stroke="#000000" points="1458,-3623.7 1458,-3646.7 1604,-3646.7 1604,-3623.7 1458,-3623.7"/>
+<text text-anchor="start" x="1463" y="-3632.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">user_wall_post</text>
+<text text-anchor="start" x="1569.5219" y="-3631.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
+<polygon fill="none" stroke="#000000" points="1458,-3601.7 1458,-3623.7 1604,-3623.7 1604,-3601.7 1458,-3601.7"/>
+<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1463" y="-3618.7"/>
+<text text-anchor="start" x="1487" y="-3608.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
+<polygon fill="#ffffff" stroke="transparent" points="1458,-3579.7 1458,-3601.7 1604,-3601.7 1604,-3579.7 1458,-3579.7"/>
+<polygon fill="none" stroke="#000000" points="1458,-3579.7 1458,-3601.7 1604,-3601.7 1604,-3579.7 1458,-3579.7"/>
+<text text-anchor="start" x="1487" y="-3586.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">created_at</text>
+<polygon fill="#ffffff" stroke="transparent" points="1458,-3557.7 1458,-3579.7 1604,-3579.7 1604,-3557.7 1458,-3557.7"/>
+<polygon fill="none" stroke="#000000" points="1458,-3557.7 1458,-3579.7 1604,-3579.7 1604,-3557.7 1458,-3557.7"/>
+<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1463" y="-3574.7"/>
+<text text-anchor="start" x="1487" y="-3564.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">user_id</text>
+<polygon fill="none" stroke="#000000" points="1458,-3535.7 1458,-3557.7 1604,-3557.7 1604,-3535.7 1458,-3535.7"/>
+<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1463" y="-3552.7"/>
+<text text-anchor="start" x="1487" y="-3542.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">author_id</text>
+<polygon fill="none" stroke="#000000" points="1458,-3516.7 1458,-3535.7 1604,-3535.7 1604,-3516.7 1458,-3516.7"/>
+<text text-anchor="start" x="1461" y="-3522.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
+<polygon fill="#ffffff" stroke="transparent" points="1458,-3497.7 1458,-3516.7 1604,-3516.7 1604,-3497.7 1458,-3497.7"/>
+<polygon fill="none" stroke="#000000" points="1458,-3497.7 1458,-3516.7 1604,-3516.7 1604,-3497.7 1458,-3497.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="1459,-3498.7 1459,-3515.7 1513,-3515.7 1513,-3498.7 1459,-3498.7"/>
+<text text-anchor="start" x="1461" y="-3503.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
+<polygon fill="#ffffff" stroke="transparent" points="1513,-3498.7 1513,-3515.7 1558,-3515.7 1558,-3498.7 1513,-3498.7"/>
+<text text-anchor="start" x="1532.4431" y="-3503.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="1558,-3498.7 1558,-3515.7 1603,-3515.7 1603,-3498.7 1558,-3498.7"/>
+<text text-anchor="start" x="1594.8862" y="-3503.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#000000" stroke="#000000" points="1513,-3498.7 1513,-3515.7 1513,-3515.7 1513,-3498.7 1513,-3498.7"/>
+<polygon fill="#000000" stroke="#000000" points="1558,-3498.7 1558,-3515.7 1558,-3515.7 1558,-3498.7 1558,-3498.7"/>
 </a>
 </g>
 </g>
 <!-- user_wall_post&#45;&gt;user_account -->
 <g id="edge196" class="edge">
 <title>user_wall_post:w&#45;&gt;user_account:e</title>
-<path fill="none" stroke="#000000" d="M1443.4979,-3376.9125C1232.1156,-3383.4897 1415.9194,-3548.2929 1317,-4640.7 1309.9851,-4718.1688 1368.2857,-4813.7 1290.5,-4813.7"/>
-<polygon fill="#000000" stroke="#000000" points="1450.0009,-3376.8173 1458.0528,-3380.2996 1454.0004,-3376.7586 1458,-3376.7 1458,-3376.7 1458,-3376.7 1454.0004,-3376.7586 1457.9472,-3373.1004 1450.0009,-3376.8173 1450.0009,-3376.8173"/>
-<ellipse fill="none" stroke="#000000" cx="1446.8012" cy="-3376.8642" rx="3.2" ry="3.2"/>
+<path fill="none" stroke="#000000" d="M1443.5395,-3547.2749C1258.8676,-3562.6171 1387.2699,-3886.0357 1317,-4640.7 1309.7882,-4718.1507 1368.2857,-4813.7 1290.5,-4813.7"/>
+<polygon fill="#000000" stroke="#000000" points="1450.0063,-3547.0179 1458.143,-3550.2972 1454.0032,-3546.8589 1458,-3546.7 1458,-3546.7 1458,-3546.7 1454.0032,-3546.8589 1457.857,-3543.1028 1450.0063,-3547.0179 1450.0063,-3547.0179"/>
+<ellipse fill="none" stroke="#000000" cx="1446.8088" cy="-3547.145" rx="3.2" ry="3.2"/>
 </g>
 <!-- user_wall_post&#45;&gt;user_account -->
 <g id="edge197" class="edge">
 <title>user_wall_post:w&#45;&gt;user_account:e</title>
-<path fill="none" stroke="#000000" d="M1443.5434,-3398.9439C1210.3293,-3407.183 1408.7024,-3627.9927 1317,-4640.7 1309.9851,-4718.1688 1368.2857,-4813.7 1290.5,-4813.7"/>
-<polygon fill="#000000" stroke="#000000" points="1450.0011,-3398.835 1458.0608,-3402.2995 1454.0006,-3398.7675 1458,-3398.7 1458,-3398.7 1458,-3398.7 1454.0006,-3398.7675 1457.9392,-3395.1005 1450.0011,-3398.835 1450.0011,-3398.835"/>
-<ellipse fill="none" stroke="#000000" cx="1446.8016" cy="-3398.889" rx="3.2" ry="3.2"/>
+<path fill="none" stroke="#000000" d="M1443.474,-3569.2358C1240.7504,-3584.7843 1382.3577,-3938.7902 1317,-4640.7 1309.7882,-4718.1507 1368.2857,-4813.7 1290.5,-4813.7"/>
+<polygon fill="#000000" stroke="#000000" points="1450.0054,-3568.995 1458.1327,-3572.2976 1454.0027,-3568.8475 1458,-3568.7 1458,-3568.7 1458,-3568.7 1454.0027,-3568.8475 1457.8673,-3565.1024 1450.0054,-3568.995 1450.0054,-3568.995"/>
+<ellipse fill="none" stroke="#000000" cx="1446.8076" cy="-3569.1129" rx="3.2" ry="3.2"/>
+</g>
+<!-- wallet_pass -->
+<g id="node144" class="node">
+<title>wallet_pass</title>
+<g id="a_node144"><a xlink:href="../../tables/wallet_pass.html" xlink:title="wallet_pass" target="_top">
+<polygon fill="#ffffff" stroke="transparent" points="1459.5,-3328.2 1459.5,-3477.2 1602.5,-3477.2 1602.5,-3328.2 1459.5,-3328.2"/>
+<polygon fill="#f5f5f5" stroke="transparent" points="1460,-3453.7 1460,-3476.7 1603,-3476.7 1603,-3453.7 1460,-3453.7"/>
+<polygon fill="none" stroke="#000000" points="1460,-3453.7 1460,-3476.7 1603,-3476.7 1603,-3453.7 1460,-3453.7"/>
+<text text-anchor="start" x="1465" y="-3462.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">wallet_pass</text>
+<text text-anchor="start" x="1568.0437" y="-3461.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
+<polygon fill="none" stroke="#000000" points="1460,-3431.7 1460,-3453.7 1603,-3453.7 1603,-3431.7 1460,-3431.7"/>
+<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1465" y="-3448.7"/>
+<text text-anchor="start" x="1480" y="-3438.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
+<polygon fill="#ffffff" stroke="transparent" points="1460,-3409.7 1460,-3431.7 1603,-3431.7 1603,-3409.7 1460,-3409.7"/>
+<polygon fill="none" stroke="#000000" points="1460,-3409.7 1460,-3431.7 1603,-3431.7 1603,-3409.7 1460,-3409.7"/>
+<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="1465" y="-3426.7"/>
+<text text-anchor="start" x="1480" y="-3416.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">user_id</text>
+<polygon fill="#ffffff" stroke="transparent" points="1460,-3387.7 1460,-3409.7 1603,-3409.7 1603,-3387.7 1460,-3387.7"/>
+<polygon fill="none" stroke="#000000" points="1460,-3387.7 1460,-3409.7 1603,-3409.7 1603,-3387.7 1460,-3387.7"/>
+<text text-anchor="start" x="1480" y="-3394.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">wallet_type</text>
+<polygon fill="#ffffff" stroke="transparent" points="1460,-3365.7 1460,-3387.7 1603,-3387.7 1603,-3365.7 1460,-3365.7"/>
+<polygon fill="none" stroke="#000000" points="1460,-3365.7 1460,-3387.7 1603,-3387.7 1603,-3365.7 1460,-3365.7"/>
+<text text-anchor="start" x="1480" y="-3372.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">serial</text>
+<polygon fill="none" stroke="#000000" points="1460,-3346.7 1460,-3365.7 1603,-3365.7 1603,-3346.7 1460,-3346.7"/>
+<text text-anchor="start" x="1463" y="-3352.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
+<polygon fill="#ffffff" stroke="transparent" points="1460,-3327.7 1460,-3346.7 1603,-3346.7 1603,-3327.7 1460,-3327.7"/>
+<polygon fill="none" stroke="#000000" points="1460,-3327.7 1460,-3346.7 1603,-3346.7 1603,-3327.7 1460,-3327.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="1461,-3328.7 1461,-3345.7 1514,-3345.7 1514,-3328.7 1461,-3328.7"/>
+<text text-anchor="start" x="1463" y="-3333.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
+<polygon fill="#ffffff" stroke="transparent" points="1514,-3328.7 1514,-3345.7 1558,-3345.7 1558,-3328.7 1514,-3328.7"/>
+<text text-anchor="start" x="1532.9431" y="-3333.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="1558,-3328.7 1558,-3345.7 1602,-3345.7 1602,-3328.7 1558,-3328.7"/>
+<text text-anchor="start" x="1593.8862" y="-3333.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#000000" stroke="#000000" points="1514,-3328.7 1514,-3345.7 1514,-3345.7 1514,-3328.7 1514,-3328.7"/>
+<polygon fill="#000000" stroke="#000000" points="1558,-3328.7 1558,-3345.7 1558,-3345.7 1558,-3328.7 1558,-3328.7"/>
+</a>
+</g>
+</g>
+<!-- wallet_pass&#45;&gt;user_account -->
+<g id="edge198" class="edge">
+<title>wallet_pass:w&#45;&gt;user_account:e</title>
+<path fill="none" stroke="#000000" d="M1445.3483,-3421.1343C1398.4042,-3424.1027 1376.1661,-3442.6465 1350,-3487.7 1317.8167,-3543.114 1322.7791,-4576.8793 1317,-4640.7 1309.9851,-4718.1688 1368.2857,-4813.7 1290.5,-4813.7"/>
+<polygon fill="#000000" stroke="#000000" points="1452.0035,-3420.9371 1460.1067,-3424.2984 1456.0018,-3420.8185 1460,-3420.7 1460,-3420.7 1460,-3420.7 1456.0018,-3420.8185 1459.8933,-3417.1016 1452.0035,-3420.9371 1452.0035,-3420.9371"/>
+<ellipse fill="none" stroke="#000000" cx="1448.8049" cy="-3421.0319" rx="3.2" ry="3.2"/>
 </g>
 <!-- pickup -->
 <g id="node145" class="node">

@@ -99,6 +99,15 @@ class StoreListServiceTest {
     }
 
     @Test
+    void theUnverifiedGetNoListsAndAStoreLooksUnknown() {
+        when(visibility.mayKnowStores(actor)).thenReturn(false);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.regionStores(REGION, null, null, null, false, null, null))
+                .isInstanceOf(network.foodsharing.common.error.ApiException.class);
+        assertThat(service.myStores(false)).isEmpty();
+        org.mockito.Mockito.verifyNoInteractions(memberships);
+    }
+
+    @Test
     void outsidersOfTheRegionAreRejectedUnlessCoordinating() {
         when(permissions.isMemberOf(actor, REGION)).thenReturn(false);
         assertThat(StoreServiceTest.codeOf(() -> names(null, null, null, false))).isEqualTo(ApiErrorCode.ACCESS_DENIED);

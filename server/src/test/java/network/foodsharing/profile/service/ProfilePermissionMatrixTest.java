@@ -63,6 +63,17 @@ class ProfilePermissionMatrixTest {
     }
 
     @Test
+    void withoutStoresTakesOnlyTheStoresAway() {
+        ProfileRules.Permissions self = ProfileRules.permissions(new ProfileRules.Facts(true, false, false, false, false,
+                false));
+        assertThat(self.maySeeStores()).isTrue();
+        ProfileRules.Permissions gated = self.withoutStores();
+        assertThat(gated.maySeeStores()).isFalse();
+        assertThat(gated.mayEditProfile()).isEqualTo(self.mayEditProfile());
+        assertThat(gated.maySeePickups()).isEqualTo(self.maySeePickups());
+    }
+
+    @Test
     void wallRules() {
         assertThat(ProfileRules.mayWriteWall(true)).isTrue();
         assertThat(ProfileRules.mayWriteWall(false)).isFalse();

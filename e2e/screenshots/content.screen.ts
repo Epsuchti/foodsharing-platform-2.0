@@ -10,6 +10,16 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 screenshotTest.use({ seedReset: 'test' });
 
 forEachVariant((variant) => {
+  screenshotTest.describe(`partners ${variant.name}`, () => {
+    screenshotTest.use({ variant });
+
+    screenshotTest('partners page with the named stores @S17 @screenshot', async ({ page, visual }) => {
+      await page.goto('/about/partners');
+      await expect(page.getByTestId('content.partners.state')).toHaveAttribute('data-state', 'success');
+      await visual.expectScreen(page, `partners-${variant.name}`);
+    });
+  });
+
   screenshotTest.describe(`content ${variant.name}`, () => {
     screenshotTest.describe('newbie', () => {
       screenshotTest.use({ variant, role: 'newbie' });

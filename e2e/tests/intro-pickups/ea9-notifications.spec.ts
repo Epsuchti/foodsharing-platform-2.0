@@ -30,6 +30,9 @@ test('EA9 subscribe, new bookable EinAb notifies by mail, unsubscribe link, veri
     publicGeneralLocation: 'Kreis 4',
   });
   const mail = await mails.waitForMail({ to: 'einab1@local' });
+  // subscribers are unverified by definition: the city, never the business (decision 153, S17 D5)
+  expect(JSON.stringify(mail)).toContain('Zürich Stadt');
+  expect(JSON.stringify(mail)).not.toContain('Restaurant Lokal');
   const unsubscribe = mails.extractPath(mail, /intro-pickups\/unsubscribe/);
 
   const anonymous = await as(null);
