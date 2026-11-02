@@ -24,7 +24,7 @@ export async function setIntroSettings(ambassador: ApiClient, changes: Partial<I
 
 /**
  * Zürich's upcoming seed EinAbs per category (`intropickup/intro_pickup.csv`), by date. The list itself no longer
- * tells the category before booking (decision 153, S17 D5), so tests find cards by id.
+ * tells the category before booking (decision 156, S17 D5), so tests find cards by id.
  */
 const SEED_CATEGORIES: Record<string, number[]> = {
   SUPERMARKET: [1, 9],

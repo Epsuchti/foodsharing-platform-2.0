@@ -11,7 +11,7 @@ import network.foodsharing.map.service.StoreAreaRules.Node;
 import network.foodsharing.region.domain.UnitType;
 import org.junit.jupiter.api.Test;
 
-/** Decision 153, S17 D3. Non-established and deleted stores never reach the counts: see {@code MapIT}. */
+/** Decision 156, S17 D3. Non-established and deleted stores never reach the counts: see {@code MapIT}. */
 class StoreAreaRulesTest {
 
     private final Map<UUID, Node> tree = new HashMap<>();

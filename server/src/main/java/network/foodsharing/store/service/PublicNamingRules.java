@@ -5,7 +5,7 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.store.domain.PublicityStatus;
 
 /**
- * The {@code publicly_named} flag of a store (decision 153, S17 D6). ORGA and this store's managers switch it, on
+ * The {@code publicly_named} flag of a store (decision 156, S17 D6). ORGA and this store's managers switch it, on
  * only with {@code publicity = ALLOWED}. Moving {@code publicity} off ALLOWED clears it, whoever does that.
  */
 public final class PublicNamingRules {

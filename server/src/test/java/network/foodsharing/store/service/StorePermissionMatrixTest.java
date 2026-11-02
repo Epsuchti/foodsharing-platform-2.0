@@ -103,7 +103,7 @@ class StorePermissionMatrixTest {
                         false, "y y y n n y y n n y n n n"),
                 r("foodsaver, jumper", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, JUMPER, false, true, false,
                         "y n n n n n n n n n y n n"),
-                // decision 153 (S17): a row that still exists gives an unverified person no right at all
+                // decision 156 (S17): a row that still exists gives an unverified person no right at all
                 r("foodsaver, unverified member", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, MEMBER, false, false,
                         false, "n n n n n n n n n n n n n"),
                 r("foodsaver, unverified jumper", Role.FOODSAVER, Scope.NONE, Scope.NONE, false, JUMPER, false, false,

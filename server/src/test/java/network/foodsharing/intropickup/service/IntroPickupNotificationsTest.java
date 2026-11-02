@@ -37,7 +37,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.support.StaticMessageSource;
 
-/** Subscribers are unverified by definition: "new bookable" names no business (decision 153, S17 D5). */
+/** Subscribers are unverified by definition: "new bookable" names no business (decision 156, S17 D5). */
 class IntroPickupNotificationsTest {
 
     private final IntroPickupRepository pickups = mock(IntroPickupRepository.class);

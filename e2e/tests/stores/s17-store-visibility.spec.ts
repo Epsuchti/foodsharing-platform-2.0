@@ -3,7 +3,7 @@ import { acceptPendingConsents, expect, expectDataState, test } from '../../fixt
 import { acceptConfirm, openBookable } from '../intro-pickups/_intro';
 
 /**
- * S17 (decision 153): nobody unverified learns which stores work with foodsharing. They see exact counts per city as
+ * S17 (decision 156): nobody unverified learns which stores work with foodsharing. They see exact counts per city as
  * bubbles; the store of an EinAb appears only after booking it; flagged stores are named on the partners page.
  */
 test.use({ seedReset: 'test' });

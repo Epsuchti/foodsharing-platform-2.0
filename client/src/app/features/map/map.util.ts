@@ -21,7 +21,7 @@ import { MapMarker, MapMarkerKind as ViewKind } from '../../shared/map-view/map-
 
 /**
  * Layers of /map: the first four are public, the others need a session (users also MAP_USERS + region admin). Store
- * areas are for everyone who may not know the stores, stores only for those who may (decision 153, S17).
+ * areas are for everyone who may not know the stores, stores only for those who may (decision 156, S17).
  */
 export type MapLayer = 'fsps' | 'regions' | 'baskets' | 'storeAreas' | 'stores' | 'events' | 'users';
 export const PUBLIC_LAYERS: readonly MapLayer[] = ['fsps', 'regions', 'baskets', 'storeAreas'];

@@ -8,7 +8,7 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.store.domain.PublicityStatus;
 import org.junit.jupiter.api.Test;
 
-/** Decision 153, S17 D6. */
+/** Decision 156, S17 D6. */
 class PublicNamingRulesTest {
 
     private static ApiErrorCode code(Runnable call) {

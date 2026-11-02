@@ -230,7 +230,7 @@ public class StoreTeamService {
         }
     }
 
-    /** Unverified people can never join a store, whatever the store's settings (decision 153, S17 D7). */
+    /** Unverified people can never join a store, whatever the store's settings (decision 156, S17 D7). */
     private static void requireVerified(User user) {
         if (!user.isVerified()) {
             throw ApiException.forbidden(ApiErrorCode.NOT_VERIFIED);

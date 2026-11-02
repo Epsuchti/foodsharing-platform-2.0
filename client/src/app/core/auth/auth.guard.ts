@@ -87,7 +87,7 @@ export function routeAccess(
 }
 
 /**
- * Store pages (decision 153, S17): for a signed-in person who may not know stores the route does not match, so the
+ * Store pages (decision 156, S17): for a signed-in person who may not know stores the route does not match, so the
  * not-found page shows, as for an address that doesn't exist. Logged out it matches and authGuard asks for the login.
  */
 export const storesVisibleMatch: CanMatchFn = () => {

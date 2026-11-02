@@ -157,7 +157,7 @@ export class SearchPageComponent {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly session = inject(SessionService);
-  /** The stores filter only for people who may know stores (decision 153, S17). */
+  /** The stores filter only for people who may know stores (decision 156, S17). */
   protected readonly groups = computed(() =>
     SEARCH_GROUPS.filter((group) => group.key !== 'stores' || this.session.mayKnowStores()),
   );

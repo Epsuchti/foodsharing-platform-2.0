@@ -11,7 +11,7 @@ test('EA2 public slots show only date, mode, city and free places and notify-me 
   await expect(first.getByTestId('introPickups.card.mode')).toBeVisible();
   await expect(first.getByTestId('introPickups.card.city')).toHaveText('Zürich Stadt');
   await expect(first.getByTestId('introPickups.card.free')).toBeVisible();
-  // no category, business, area text, exact address, guide or private info (decision 153, S17 D5)
+  // no category, business, area text, exact address, guide or private info (decision 156, S17 D5)
   await expect(page.getByTestId('introPickups.card.category')).toHaveCount(0);
   await expect(page.getByTestId('introPickups.card.location')).toHaveCount(0);
   await expect(page.getByText('Kreis 4')).toHaveCount(0);

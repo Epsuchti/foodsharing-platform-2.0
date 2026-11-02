@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The city people see on an EinAb before booking it (decision 153, S17 D5): the linked store's city, else the region's
+ * The city people see on an EinAb before booking it (decision 156, S17 D5): the linked store's city, else the region's
  * name, nothing when online. Free text is never parsed.
  */
 @Component

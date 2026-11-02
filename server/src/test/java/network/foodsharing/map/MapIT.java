@@ -63,7 +63,7 @@ class MapIT {
                 .andExpect(status().isNotFound());
     }
 
-    /** Decision 153, S17: counts for everybody, positions and names only for people who may know stores. */
+    /** Decision 156, S17: counts for everybody, positions and names only for people who may know stores. */
     @Test
     void storeAreasCountOnlyLiveEstablishedStoresAndTheUnverifiedGetNoMarkers() throws Exception {
         Cookie unverified = login(SeedUsers.EINAB1);

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Who may know which stores work with foodsharing (decision 153, S17): ORGA and verified people, nobody else. The
+ * Who may know which stores work with foodsharing (decision 156, S17): ORGA and verified people, nobody else. The
  * check is {@code User.verified}, not the role: the quiz raises the role and un-verifying leaves it, so FOODSAVER and
  * unverified occur together. {@code verified} is not in the session and verifying does not revoke sessions, so it is
  * read live.

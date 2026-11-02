@@ -79,7 +79,7 @@ class StoreApiIT {
                 .andExpect(jsonPath("$.teamStatus").value("WAITING_LIST"))
                 .andExpect(jsonPath("$.mayAccess").value(true)).andExpect(jsonPath("$.mayReadWall").value(false))
                 .andExpect(jsonPath("$.maySeePickups").value(false));
-        // decision 153 (S17): a known and an unknown store look the same to the unverified
+        // decision 156 (S17): a known and an unknown store look the same to the unverified
         mvc.perform(get(url).cookie(login(SeedUsers.NEWBIE)))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
         // Zürich has a STORES_COORDINATION group: the ambassador bot does not coordinate stores he is not in

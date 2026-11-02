@@ -8,7 +8,7 @@ import { CATEGORY_ICONS } from '../intro-category';
 
 /**
  * What an EinAb card shows. Before booking (public, bookable): date, online or on site, city, free places. The
- * category, business and location text exist only on the person's own booking (decision 153, S17).
+ * category, business and location text exist only on the person's own booking (decision 156, S17).
  */
 export interface EinAbCardData {
   category?: IntroPickupCategory;

@@ -68,7 +68,7 @@ class OpenApiContractTest {
         assertThat(distinct).isEqualTo(actions.size());
     }
 
-    /** Decision 153 (S17): nothing reachable without a login can carry a store's identity. */
+    /** Decision 156 (S17): nothing reachable without a login can carry a store's identity. */
     @Test
     void schemasReachableWithoutLoginHoldNoStoreIdentity() throws IOException {
         List<String> problems = new ArrayList<>();

@@ -12,7 +12,7 @@ import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.Test;
 
-/** Decision 153, S17 D1: {@code User.verified}, never the role; ORGA is exempt. */
+/** Decision 156, S17 D1: {@code User.verified}, never the role; ORGA is exempt. */
 class StoreVisibilityTest {
 
     private final UserService users = mock(UserService.class);

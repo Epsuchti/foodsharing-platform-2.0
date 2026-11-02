@@ -151,7 +151,7 @@ class AdvertFlowIT {
         mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.GUIDE)))
                 .andExpect(status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .jsonPath("$.mayUseAutomations").value(false));
-        // unverified: the store does not exist for them (decision 153, S17 D2), so no permissions to report
+        // unverified: the store does not exist for them (decision 156, S17 D2), so no permissions to report
         mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.NEWBIE)))
                 .andExpect(status().isNotFound());
     }

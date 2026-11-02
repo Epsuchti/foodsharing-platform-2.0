@@ -110,7 +110,7 @@ export class ContentPageComponent {
     loader: ({ slug, lang }) => this.api.getContentPage({ slug, lang: lang as Language }),
   });
 
-  /** Stores flagged as publicly named (decision 153, S17 D8); only the partners page asks for them. */
+  /** Stores flagged as publicly named (decision 156, S17 D8); only the partners page asks for them. */
   protected readonly partners = loadResource<PublicPartnerStore[], true>({
     params: () => (this.slug() === 'partners' ? true : undefined),
     loader: () => this.api.listPublicPartnerStores(),

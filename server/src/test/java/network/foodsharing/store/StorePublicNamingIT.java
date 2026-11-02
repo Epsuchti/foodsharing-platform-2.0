@@ -21,7 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** The {@code publicly_named} flag through the API (decision 153, S17 D6, D8). */
+/** The {@code publicly_named} flag through the API (decision 156, S17 D6, D8). */
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:store-naming-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "app.scheduling.enabled=false"})

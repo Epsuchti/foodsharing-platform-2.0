@@ -93,7 +93,7 @@ test.describe('other roles', () => {
     expect(signUp.status()).toBe(403);
   });
 
-  // no relation to the store team at all: 403 (A19); to an unverified person a store does not exist (decision 153)
+  // no relation to the store team at all: 403 (A19); to an unverified person a store does not exist (decision 156)
   for (const role of ['guide', 'pending'] as const) {
     test(`PU4 ${role === 'guide' ? 'not a team member' : 'unverified user'} is refused @PU4`, async ({ as, apiOf, store }) => {
       const client = apiOf(await as(role));

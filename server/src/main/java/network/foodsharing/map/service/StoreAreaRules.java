@@ -12,7 +12,7 @@ import java.util.UUID;
 import network.foodsharing.region.domain.UnitType;
 
 /**
- * Store counts per city for people who may not know the stores (decision 153, S17 D3). One bubble per CITY or
+ * Store counts per city for people who may not know the stores (decision 156, S17 D3). One bubble per CITY or
  * BIG_CITY with at least one store, with the exact count. PART_OF_TOWN and DISTRICT roll up into their city. A store
  * without a city at or above its region, or whose city has no coordinates, counts at the nearest coarser region with
  * coordinates, up to COUNTRY; with none it is in no bubble. The position is the region's own, never a store's.

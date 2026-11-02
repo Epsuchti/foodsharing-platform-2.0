@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-/** Decision 153, S17 D5: the linked store's city, else the region's name, nothing when online. */
+/** Decision 156, S17 D5: the linked store's city, else the region's name, nothing when online. */
 class IntroPickupCitiesTest {
 
     @Test

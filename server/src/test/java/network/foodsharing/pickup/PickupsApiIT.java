@@ -115,7 +115,7 @@ class PickupsApiIT {
                 .andExpect(jsonPath("$.reasons", Matchers.hasItem("JUMPER_CANNOT_PICKUP")));
         mvc.perform(get(S + "01/pickups/2026-11-09T18:00:00Z/eligibility").cookie(login(SeedUsers.GUIDE)))
                 .andExpect(status().isForbidden());
-        // decision 153 (S17): unverified people get the same answer as for an unknown store
+        // decision 156 (S17): unverified people get the same answer as for an unknown store
         mvc.perform(get(S + "01/pickups/2026-11-09T18:00:00Z/eligibility").cookie(login(SeedUsers.NEWBIE)))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("STORE_NOT_FOUND"));
         mvc.perform(get(S + "01/regular-pickups").cookie(foodsaver)).andExpect(status().isOk())

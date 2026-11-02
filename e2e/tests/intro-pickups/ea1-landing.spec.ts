@@ -20,7 +20,7 @@ test('EA1 logged-in user lands on home region list, newbie gets region picker @E
   await expect(page.locator('fs-page-header')).toContainText('Zürich');
   await expect(bookableCards(page, 'ONLINE').getByTestId('introPickups.bookable.book')).toBeVisible();
 
-  // no filters: each one would let a caller test for a hidden value (decision 153, S17 D5)
+  // no filters: each one would let a caller test for a hidden value (decision 156, S17 D5)
   await expect(page.getByTestId('introPickups.bookable.search')).toHaveCount(0);
   await expect(page.getByTestId('introPickups.bookable.category')).toHaveCount(0);
   await expect(page.getByTestId('introPickups.bookable.fairteiler')).toHaveCount(0);

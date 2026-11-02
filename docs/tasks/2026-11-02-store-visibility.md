@@ -4,7 +4,7 @@
 Nobody unverified, anonymous or signed in, can get a store's name, address, position or chain from any endpoint, mail or bell. Exceptions: the one store of an intro pickup they booked, and stores flagged as publicly named. They see exact store counts per city as bubbles, with no explanation that anything is withheld. Verified members keep the full map. The public-site redesign is a separate plan.
 
 ## Decisions
-Owner decisions 1–7 (2026-11-02) and the owner's later answers are binding; the answers replace the minimum count in decision 1. Record them as decision 153, ledger row S17. It amends 73 (the limited store view now needs `User.verified`) and A19 (`checkEligibility` for an unverified member).
+Owner decisions 1–7 (2026-11-02) and the owner's later answers are binding; the answers replace the minimum count in decision 1. Record them as decision 156, ledger row S17. It amends 73 (the limited store view now needs `User.verified`) and A19 (`checkEligibility` for an unverified member).
 - D1 **The check is `User.verified`, never role.** `QuizSessionService:392` raises the role on quiz confirmation and `VerificationService.unverify` leaves it, so FOODSAVER and unverified can occur together. ORGA is exempt. `SessionPrincipal` has no `verified`, and `verify()` does not revoke sessions, so read it live as `StorePermissionService.rights` does today.
 - D2 **Denial shape.** Lists and markers: 403. A single store: 404 `STORE_NOT_FOUND`, so a known and an unknown id look the same. Empty results where the schema requires a field (`kamChains`, search hits, metadata chains).
 - D3 **Areas (owner).** One bubble per CITY-level region (CITY or BIG_CITY) with at least one store, with the exact count: no minimum, no rounding, no merging by count, no hiding. PART_OF_TOWN and DISTRICT roll up into their city. A store with no city-level region at or above its own region, or whose city has no coordinates, counts at the nearest coarser region with coordinates, up to COUNTRY (planner's choice, owner recommended it); with none, it appears in no bubble. Never WORKING_GROUP or CONTINENT. The position is the region's own coordinates, never derived from store coordinates. Only live `COOPERATION_ESTABLISHED` stores count.
@@ -45,8 +45,8 @@ Out: public-site redesign, shell, stepper, `/how-it-works`; scanning or filterin
 - `store/service/StoreService.java`: flag rules (D6) as a pure `PublicNamingRules`; history `StoreLogAction.STORE_PUBLIC_NAMING_CHANGED` on every change (with `publicity` clearing). New read-only partner query: live, flagged, established, sorted by name.
 
 **Database**
-- `db/changelog/changes/183-store-publicly-named.yaml`: `addColumn` BOOLEAN NOT NULL `defaultValueBoolean: false` (PostgreSQL and H2).
-- `db/seed/changes/183-store-publicly-named-seed.yaml`, context `seed`: S-01 and S-02 true (both have `publicity = ALLOWED`). No new ids, note in `docs/seed-ids.md`. No new seed user: tests get an unverified FOODSAVER through `UserService.changeRole` (IT) or the dev role API (e2e).
+- `db/changelog/changes/185-store-publicly-named.yaml`: `addColumn` BOOLEAN NOT NULL `defaultValueBoolean: false` (PostgreSQL and H2).
+- `db/seed/changes/185-store-publicly-named-seed.yaml`, context `seed`: S-01 and S-02 true (both have `publicity = ALLOWED`). No new ids, note in `docs/seed-ids.md`. No new seed user: tests get an unverified FOODSAVER through `UserService.changeRole` (IT) or the dev role API (e2e).
 
 **Client** (`client/src/app/`, generated API only)
 - `features/map/map.util.ts`, `pages/map-page.component.ts`: new layer `storeAreas` for everyone not verified, in the defaults; `stores` only when `session.user.verified`; events stay for signed-in. Bubble with the count; popup "n Betriebe · Zürich" without link. Delete the `loginHint` paragraph (lines 167–172, including its link). A stored `fs.map.layers` with `stores` stays harmless.
@@ -85,7 +85,7 @@ Visible changes: map bubbles, reduced pickup cards, store form toggle, partners 
 - [ ] The public explainer no longer sends `P21D` or `P7D`.
 - [ ] Flag: default false on both databases, warning shown, history recorded, partners list follows it.
 - [ ] Copy replaced in five languages, `i18n:check` passes, no text mentions withheld stores.
-- [ ] Decision 153 and ledger S17 recorded by the main session; 73 and A19 marked as amended.
+- [ ] Decision 156 and ledger S17 recorded by the main session; 73 and A19 marked as amended.
 
 ## Risks
 - **A count of 1 in a small town can hint at a store.** The owner accepted this. The same goes for a public pickup's city.
