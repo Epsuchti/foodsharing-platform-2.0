@@ -14,7 +14,7 @@ RequestDecision:
 PolicyRule:
   type: string
   enum: [MANUAL_DATE, PUBLIC_HOLIDAY, HOLIDAY_CALENDAR_UNAVAILABLE, RULES_SKIPPED_NEAR_PICKUP, GAP, EXPERIENCE,
-    NO_CLEANING_STORE, CLEANING_REQUIRED, CLEANING_REMINDER, CLEANING_NEW_USER, LINKED_STORE, ALL_RULES_PASSED,
+    NO_CLEANING_FAIRTEILER, CLEANING_REQUIRED, CLEANING_REMINDER, CLEANING_NEW_USER, LINKED_STORE, ALL_RULES_PASSED,
     DISTANCE, NO_ADDRESS]
 
 AdvertChannel:
@@ -121,9 +121,84 @@ PickupPolicy:
       items:
         type: string
         format: date
+    gapStoreIds:
+      description: >-
+        The other stores of the shared gap list (decisions 151, 152): only the group gap (groupMinimumGapDays) is
+        shared; each store keeps its own gapRuleEnabled and minimumGapDays. Empty or missing = this store alone
+        (leaves a list).
+      type: array
+      maxItems: 9
+      items:
+        type: string
+        format: uuid
+    groupMinimumGapDays:
+      description: >-
+        The group gap (decision 152): checks the person's pickups in all stores of the gap list, independent of
+        gapRuleEnabled. Required (1-60) with a non-empty gapStoreIds (else VALIDATION_FAILED, field
+        groupMinimumGapDays); missing in responses without a list.
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 60
+    gapStores:
+      description: 'Read only: the other live stores of the gap list, by name'
+      type: array
+      items:
+        $ref: './automation.yaml#/GapStore'
     version:
       type: integer
       format: int64
+
+GapStore:
+  type: object
+  required: [store, automationActive, mayEdit]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    automationActive:
+      description: 'The store has an enabled pickup policy (it checks sign-ups itself)'
+      type: boolean
+    mayEdit:
+      description: 'The actor may use automations there (may change or remove it)'
+      type: boolean
+
+GapCandidateLink:
+  type: object
+  required: [storeIds, windowMode, windowDaysBefore, windowDaysAfter]
+  properties:
+    storeIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    windowDaysBefore:
+      type: integer
+      format: int32
+    windowDaysAfter:
+      type: integer
+      format: int32
+
+GapCandidate:
+  type: object
+  required: [store, automationActive, inOtherList, mayEdit, links]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    automationActive:
+      type: boolean
+    mayEdit:
+      description: 'The actor may use automations there (may add or remove it)'
+      type: boolean
+    inOtherList:
+      description: 'The store is in another gap list (cannot be chosen)'
+      type: boolean
+    links:
+      description: 'Linked-store rules of the store, own and mirrored (for the gap/link conflict check)'
+      type: array
+      items:
+        $ref: './automation.yaml#/GapCandidateLink'
 
 RequestPolicy:
   type: object
@@ -291,7 +366,7 @@ AutomationPermissions:
 
 StoreAutomation:
   type: object
-  required: [adverts, extraSlotAllowed, permissions]
+  required: [adverts, extraSlotAllowed, permissions, cleaningFoodSharePoints]
   properties:
     pickupPolicy:
       $ref: './automation.yaml#/PickupPolicy'
@@ -305,9 +380,11 @@ StoreAutomation:
       $ref: './automation.yaml#/SignoutAlertSetting'
     extraSlotAllowed:
       type: boolean
-    cleaningStore:
-      description: "The cleaning store of the store's region (cleaning rule of the pickup policy); absent when none."
-      $ref: './stores.yaml#/StoreRef'
+    cleaningFoodSharePoints:
+      description: "The Fairteiler of the store's region that count for the cleaning rule of the pickup policy (FS2)."
+      type: array
+      items:
+        $ref: './food-share-points.yaml#/FspRef'
     permissions:
       $ref: './automation.yaml#/AutomationPermissions'
 
@@ -507,12 +584,74 @@ MetricPoint:
       type: integer
       format: int64
 
+MetricKey:
+  # Keys of MetricSeries (AU9), in display-group order. Every value needs automation.metric.<KEY with '.' -> '_'>
+  # in all five languages (client/scripts/check-i18n.mjs); MetricKeyCoverageTest keeps it equal to the keys
+  # MetricArchiveService produces.
+  type: string
+  enum:
+    # --- pickup slot decisions (DEFERRED writes no audit, so it has no key) ---
+    - SLOT_APPROVAL.CONFIRMED
+    - SLOT_APPROVAL.DECLINED
+    - SLOT_APPROVAL.WOULD_CONFIRM
+    - SLOT_APPROVAL.WOULD_DECLINE
+    - SLOT_APPROVAL.SKIPPED
+    - SLOT_APPROVAL.FAILED
+    # --- decline reasons (DECLINED and WOULD_DECLINE), one per PolicyRule ---
+    - SLOT_DECLINE_RULE.MANUAL_DATE
+    - SLOT_DECLINE_RULE.PUBLIC_HOLIDAY
+    - SLOT_DECLINE_RULE.HOLIDAY_CALENDAR_UNAVAILABLE
+    - SLOT_DECLINE_RULE.RULES_SKIPPED_NEAR_PICKUP
+    - SLOT_DECLINE_RULE.GAP
+    - SLOT_DECLINE_RULE.EXPERIENCE
+    - SLOT_DECLINE_RULE.NO_CLEANING_FAIRTEILER
+    - SLOT_DECLINE_RULE.CLEANING_REQUIRED
+    - SLOT_DECLINE_RULE.CLEANING_REMINDER
+    - SLOT_DECLINE_RULE.CLEANING_NEW_USER
+    - SLOT_DECLINE_RULE.LINKED_STORE
+    - SLOT_DECLINE_RULE.ALL_RULES_PASSED
+    - SLOT_DECLINE_RULE.DISTANCE
+    - SLOT_DECLINE_RULE.NO_ADDRESS
+    # --- skip reasons, one per PolicyRule ---
+    - SLOT_SKIP_RULE.MANUAL_DATE
+    - SLOT_SKIP_RULE.PUBLIC_HOLIDAY
+    - SLOT_SKIP_RULE.HOLIDAY_CALENDAR_UNAVAILABLE
+    - SLOT_SKIP_RULE.RULES_SKIPPED_NEAR_PICKUP
+    - SLOT_SKIP_RULE.GAP
+    - SLOT_SKIP_RULE.EXPERIENCE
+    - SLOT_SKIP_RULE.NO_CLEANING_FAIRTEILER
+    - SLOT_SKIP_RULE.CLEANING_REQUIRED
+    - SLOT_SKIP_RULE.CLEANING_REMINDER
+    - SLOT_SKIP_RULE.CLEANING_NEW_USER
+    - SLOT_SKIP_RULE.LINKED_STORE
+    - SLOT_SKIP_RULE.ALL_RULES_PASSED
+    - SLOT_SKIP_RULE.DISTANCE
+    - SLOT_SKIP_RULE.NO_ADDRESS
+    # --- store requests, one per RequestDecision ---
+    - REQUEST.APPROVED
+    - REQUEST.DECLINED
+    - REQUEST.WOULD_APPROVE
+    - REQUEST.WOULD_DECLINE
+    - REQUEST.SKIPPED
+    - REQUEST.FAILED
+    # --- short-notice sign-outs, one per CancellationStatus ---
+    - CANCELLATION.OPEN
+    - CANCELLATION.REPLACED
+    - CANCELLATION.NOT_REPLACED
+    - CANCELLATION.REJOINED
+    - CANCELLATION.UNKNOWN
+    # --- adverts, extra slots, intro pickups ---
+    - ADVERT.SENT
+    - ADVERT.FILLED_AFTER_ADVERT
+    - EXTRA_SLOT.ADDED
+    - INTRO_PICKUP.DONE
+
 MetricSeries:
   type: object
   required: [key, points]
   properties:
     key:
-      type: string
+      $ref: './automation.yaml#/MetricKey'
     points:
       type: array
       items:

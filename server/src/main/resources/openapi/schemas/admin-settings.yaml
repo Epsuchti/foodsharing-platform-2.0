@@ -2,7 +2,7 @@
 
 FeatureToggleKey:
   type: string
-  enum: [BASKETS, FOOD_SHARE_POINTS, MAP_USERS, RESOURCES, BLOG, DONATION_MODAL, PETITION_BANNER, OAUTH_PROVIDER, SUPPORT_FORM, GLOBAL_SEARCH]
+  enum: [BASKETS, FOOD_SHARE_POINTS, MAP_USERS, RESOURCES, BLOG, DONATION_MODAL, PETITION_BANNER, OAUTH_PROVIDER, SUPPORT_FORM, GLOBAL_SEARCH, SEARCH_FORUM_POSTS]
 
 FeatureToggleState:
   type: object
@@ -124,6 +124,36 @@ IpBlockEntry:
       format: date-time
     createdBy:
       $ref: './users.yaml#/UserSummary'
+
+RateLimitBlockScope:
+  type: string
+  enum: [IP, ACCOUNT]
+
+RateLimitBlockEntry:
+  type: object
+  description: 'An automatic block of the API rate limit (D17.2): IP blocks carry ip, account blocks carry user.'
+  required: [id, scope, level, blockedAt, expiresAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    scope:
+      $ref: './admin-settings.yaml#/RateLimitBlockScope'
+    ip:
+      type: string
+    user:
+      $ref: './users.yaml#/UserSummary'
+    level:
+      type: integer
+      format: int32
+      minimum: 1
+      description: 'Escalation level, 1-based (1, 5, then 30 minutes by default).'
+    blockedAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
 
 IpBlockCreate:
   type: object

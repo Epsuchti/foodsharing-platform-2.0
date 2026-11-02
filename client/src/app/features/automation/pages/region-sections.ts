@@ -3,13 +3,16 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
-import { MultiSelect } from '@openng/optimus-ui/multiselect';
 import { Select } from '@openng/optimus-ui/select';
+import { SelectButton } from '@openng/optimus-ui/selectbutton';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
 import {
   AutomationService,
   CleaningExemption,
+  FspCleaningService,
+  FspRef,
+  RegionCleaningFsps,
   Holiday,
   MetricSeries,
   PickupCountGroup,
@@ -26,13 +29,19 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { AutomationAuditLoaders } from '../automation.resource';
 import { addDays, fillDays, isoDate } from '../automation.util';
 import { AuditLoader, AuditTableComponent } from '../components/audit-table.component';
-import { ChartSeries, DailyLineChartComponent } from '../components/daily-line-chart.component';
+import { ChartBucket, ChartSeries, DailyLineChartComponent } from '../components/daily-line-chart.component';
+import { MetricTotal, MetricTotalsComponent } from '../components/metric-totals.component';
+import { bucketWeeks, METRIC_GROUPS, MetricGroupId, metricLabelKey, seriesTotal, topSeries } from '../metric-groups';
 import { RegionAutomationContext } from '../region-automation.context';
+
+/** Lines of the metrics chart; the totals list shows every series of the group. */
+const MAX_LINES = 5;
 
 /** Overview: store × pickup policy / dry run / auto-accept / adverts / alerts with links (AU1–AU5). */
 @Component({
@@ -178,6 +187,96 @@ export class RegionExemptionsSection {
   );
 }
 
+/**
+ * "Putzen" (FS2, decision 148): the region's Fairteiler that count for the cleaning rule of the pickup policies. Only
+ * active Fairteiler of the region with cleaning shifts can be chosen (D7); same gate as the cleaning exemptions (D8).
+ */
+@Component({
+  selector: 'fs-region-cleaning-fsps',
+  imports: [...DATA_STATE_IMPORTS, Button, FormsModule, RouterLink, ToggleSwitch, TPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <section class="card fs-card">
+      <h2>{{ 'automation.region.section.cleaning-fsps' | t }}</h2>
+      <p class="muted">{{ 'automation.cleaningFsps.intro' | t }}</p>
+      <fs-data-state
+        [state]="selection"
+        skeleton="list"
+        [emptyTitle]="'automation.cleaningFsps.empty' | t"
+        [emptyText]="'automation.cleaningFsps.emptyText' | t"
+        testId="automation.cleaningFsps.state"
+        data-testid="automation.cleaningFsps.state"
+      >
+        <ng-template [fsData]="selection">
+          <ul class="list" data-testid="automation.cleaningFsps.list">
+            @for (fsp of candidates(); track fsp.id) {
+              <li class="row" data-testid="automation.cleaningFsps.row" [attr.data-fsp]="fsp.name" [attr.data-selected]="isSelected(fsp)">
+                <p-toggleswitch
+                  [inputId]="'cf-' + fsp.id"
+                  [ngModel]="isSelected(fsp)"
+                  (ngModelChange)="toggle(fsp, $event)"
+                  data-testid="automation.cleaningFsps.toggle"
+                />
+                <label class="grow" [for]="'cf-' + fsp.id">{{ fsp.name }}</label>
+                <a [routerLink]="['/food-share-points', fsp.id, 'cleaning']" data-testid="automation.cleaningFsps.link">{{ 'automation.cleaningFsps.open' | t }}</a>
+              </li>
+            }
+          </ul>
+          <div class="actions">
+            <p-button [label]="'common.save' | t" icon="pi pi-save" [disabled]="!dirty()" [loading]="save.busy()" (onClick)="save.run()" data-testid="automation.cleaningFsps.save" />
+          </div>
+        </ng-template>
+      </fs-data-state>
+    </section>
+  `,
+  styleUrl: '../automation.scss',
+})
+export class RegionCleaningFspsSection {
+  private readonly ctx = inject(RegionAutomationContext);
+  private readonly api = inject(FspCleaningService);
+  protected readonly draft = signal<string[]>([]);
+
+  protected readonly selection = loadResource<RegionCleaningFsps, string>({
+    params: () => this.ctx.regionId(),
+    loader: (regionId) => this.api.getRegionCleaningFsps({ regionId }),
+    isEmpty: (s) => s.candidates.length === 0 && s.selected.length === 0,
+  });
+
+  /** The candidates, plus selected Fairteiler that stopped qualifying (shown so they can be dropped). */
+  protected readonly candidates = computed<FspRef[]>(() => {
+    const s = this.selection.data();
+    if (!s) return [];
+    const ids = new Set(s.candidates.map((f) => f.id));
+    return [...s.candidates, ...s.selected.filter((f) => !ids.has(f.id))];
+  });
+
+  constructor() {
+    // copy the stored selection into the editable draft whenever it (re)loads
+    effect(() => {
+      const data = this.selection.data();
+      untracked(() => this.draft.set((data?.selected ?? []).map((f) => f.id)));
+    });
+  }
+
+  protected isSelected(fsp: FspRef): boolean {
+    return this.draft().includes(fsp.id);
+  }
+
+  protected toggle(fsp: FspRef, on: boolean): void {
+    this.draft.update((ids) => (on ? [...ids.filter((id) => id !== fsp.id), fsp.id] : ids.filter((id) => id !== fsp.id)));
+  }
+
+  protected dirty(): boolean {
+    const saved = (this.selection.data()?.selected ?? []).map((f) => f.id).sort();
+    return JSON.stringify([...this.draft()].sort()) !== JSON.stringify(saved);
+  }
+
+  protected readonly save = runMutation(
+    () => this.api.replaceRegionCleaningFsps({ regionId: this.ctx.regionId()!, regionCleaningFspsUpdate: { fspIds: this.draft() } }),
+    { successToastKey: 'automation.cleaningFsps.saved', onSuccess: () => this.selection.reload() },
+  );
+}
+
 /** Future pickup users grouped by pickup count (AU7, CAN_SEE_USER_PICKUP_COUNT_GROUPING or region admins). */
 @Component({
   selector: 'fs-region-pickup-grouping',
@@ -235,7 +334,7 @@ export class RegionGroupingSection {
 /** Daily anonymous counts (AU9): range, key multiselect, line chart. */
 @Component({
   selector: 'fs-region-metrics',
-  imports: [...DATA_STATE_IMPORTS, DailyLineChartComponent, FormsModule, InputText, MultiSelect, TPipe],
+  imports: [...DATA_STATE_IMPORTS, ...DATE_INPUT_IMPORTS, DailyLineChartComponent, FormsModule, MetricTotalsComponent, SelectButton, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="card fs-card">
@@ -243,26 +342,43 @@ export class RegionGroupingSection {
       <div class="row">
         <label class="field">
           <span class="muted">{{ 'automation.common.from' | t }}</span>
-          <input pInputText type="date" [ngModel]="from()" (ngModelChange)="$event && from.set($event)" data-testid="automation.metrics.from" />
+          <fs-date-input [required]="true" [ngModel]="from()" (ngModelChange)="$event && from.set($event)" testId="automation.metrics.from" />
         </label>
         <label class="field">
           <span class="muted">{{ 'automation.common.to' | t }}</span>
-          <input pInputText type="date" [ngModel]="to()" (ngModelChange)="$event && to.set($event)" data-testid="automation.metrics.to" />
+          <fs-date-input [required]="true" [ngModel]="to()" (ngModelChange)="$event && to.set($event)" testId="automation.metrics.to" />
         </label>
-        <div class="field grow">
-          <label for="metric-keys" class="muted">{{ 'automation.metrics.keys' | t }}</label>
-          <p-multiselect inputId="metric-keys" [options]="keyOptions()" optionLabel="label" optionValue="key" [ngModel]="selected()" (ngModelChange)="selected.set($event)" display="chip" [placeholder]="'automation.metrics.allKeys' | t" data-testid="automation.metrics.keys" />
-        </div>
       </div>
+      <p-selectbutton
+        [options]="groupOptions()"
+        optionLabel="label"
+        optionValue="id"
+        [allowEmpty]="false"
+        [ngModel]="group()"
+        (ngModelChange)="$event && group.set($event)"
+        [ariaLabel]="'automation.metrics.groupLabel' | t"
+        data-testid="automation.metrics.group"
+      >
+        <ng-template #item let-option>
+          <span [attr.data-testid]="'automation.metrics.group.' + option.id">{{ option.label }}</span>
+        </ng-template>
+      </p-selectbutton>
       <fs-data-state [state]="metrics" skeleton="card" [emptyTitle]="'automation.metrics.empty' | t" testId="automation.metrics.state" data-testid="automation.metrics.state">
         <ng-template [fsData]="metrics">
-          <fs-daily-line-chart [series]="series()" [label]="'automation.region.section.metrics' | t" testId="automation.metrics.chart" />
+          @if (totals().length) {
+            <fs-metric-totals [totals]="totals()" [label]="'automation.metrics.totals' | t" testId="automation.metrics.totals" />
+            <fs-daily-line-chart [series]="chartSeries()" [bucket]="bucket()" [label]="groupLabel()" testId="automation.metrics.chart" />
+          } @else {
+            <p class="muted" data-testid="automation.metrics.groupEmpty">{{ 'automation.metrics.groupEmpty' | t }}</p>
+          }
         </ng-template>
       </fs-data-state>
     </section>
   `,
   styleUrl: '../automation.scss',
-  styles: `p-multiselect { width: 100%; }`,
+  styles: `
+    p-selectbutton { display: flex; flex-wrap: wrap; justify-self: start; max-width: 100%; }
+  `,
 })
 export class RegionMetricsSection {
   private readonly ctx = inject(RegionAutomationContext);
@@ -270,7 +386,7 @@ export class RegionMetricsSection {
   private readonly i18n = inject(I18nService);
   protected readonly to = signal(isoDate(new Date()));
   protected readonly from = signal(addDays(isoDate(new Date()), -89));
-  protected readonly selected = signal<string[]>([]);
+  protected readonly group = signal<MetricGroupId>('PICKUP');
 
   protected readonly metrics = loadResource<MetricSeries[], { regionId: string; from: string; to: string }>({
     params: () => {
@@ -281,19 +397,42 @@ export class RegionMetricsSection {
     isEmpty: (list) => list.every((s) => s.points.length === 0),
   });
 
-  protected readonly keyOptions = computed(() =>
-    (this.metrics.data() ?? []).map((s) => ({ key: s.key, label: this.keyLabel(s.key) })),
+  protected readonly groupOptions = computed(() =>
+    METRIC_GROUPS.map((g) => ({ id: g.id, label: this.i18n.t(`automation.metrics.group.${g.id}`) })),
   );
 
-  protected readonly series = computed<ChartSeries[]>(() => {
-    const chosen = this.selected();
-    return (this.metrics.data() ?? [])
-      .filter((s) => chosen.length === 0 || chosen.includes(s.key))
-      .map((s) => ({ key: s.key, label: this.keyLabel(s.key), points: fillDays(s.points, this.from(), this.to()) }));
+  protected readonly groupLabel = computed(() => this.i18n.t(`automation.metrics.group.${this.group()}`));
+
+  /** Series of the selected group with a total above 0, largest total first. */
+  protected readonly groupSeries = computed<ChartSeries[]>(() => {
+    const keys: readonly string[] = METRIC_GROUPS.find((g) => g.id === this.group())?.keys ?? [];
+    const series = (this.metrics.data() ?? [])
+      .filter((s) => keys.includes(s.key) && seriesTotal(s) > 0)
+      .map((s) => ({ key: s.key, label: this.keyLabel(s.key), points: s.points }));
+    return topSeries(series, series.length);
+  });
+
+  protected readonly totals = computed<MetricTotal[]>(() =>
+    this.groupSeries().map((s) => ({ key: s.key, label: s.label, total: seriesTotal(s) })),
+  );
+
+  /** Weekly points when the range is longer than 31 days, daily points otherwise. */
+  protected readonly bucket = computed<ChartBucket>(() => (fillDays([], this.from(), this.to()).length > 31 ? 'week' : 'day'));
+
+  /** At most 5 lines (the largest totals), filled per day, summed per week over long ranges. */
+  protected readonly chartSeries = computed<ChartSeries[]>(() => {
+    const from = this.from();
+    const to = this.to();
+    const weekly = this.bucket() === 'week';
+    return topSeries(this.groupSeries(), MAX_LINES).map((s) => {
+      const days = fillDays(s.points, from, to);
+      return { ...s, points: weekly ? bucketWeeks(days, from, to) : days };
+    });
   });
 
   private keyLabel(key: string): string {
-    const i18nKey = `automation.metric.${key.replace('.', '_')}`;
+    const i18nKey = metricLabelKey(key);
+    // the raw key is only a runtime fallback; check-i18n.mjs requires a label for every MetricKey
     return this.i18n.has(i18nKey) ? this.i18n.t(i18nKey) : key;
   }
 }

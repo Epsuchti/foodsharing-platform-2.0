@@ -26,7 +26,9 @@ public enum AutomationAction implements HistoryAction {
     EXTRA_SLOT_ADDED,
     DRY_RUN_EXECUTED,
     AUDITS_ARCHIVED,
-    FIELD_CHANGED;
+    FIELD_CHANGED,
+    /** Shared gap list changed (decision 151); metadata storeId, storeIds, minimumGapDays. */
+    GAP_LIST_CHANGED;
 
     @Override
     public String code() {

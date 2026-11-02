@@ -34,7 +34,6 @@ databaseChangeLog:
               - column: {name: prevent_duplicate_guide_bookings, type: BOOLEAN}
               - column: {name: prevent_duplicate_category_bookings, type: BOOLEAN}
               - column: {name: require_fairteiler_visit_by_third, type: BOOLEAN}
-              - column: {name: cleaning_store_id, type: UUID}
               - column: {name: learning_pages_mandatory, type: BOOLEAN}
               - column: {name: latitude, type: NUMERIC}
               - column: {name: longitude, type: NUMERIC}

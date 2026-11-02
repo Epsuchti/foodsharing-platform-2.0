@@ -16,16 +16,20 @@ import java.util.stream.Collectors;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.automation.domain.AutomationAction;
 import network.foodsharing.automation.domain.LinkedStoreWindowMode;
+import network.foodsharing.automation.domain.PickupGapGroup;
 import network.foodsharing.automation.domain.PickupPolicy;
 import network.foodsharing.automation.domain.PickupPolicyExcludedDate;
 import network.foodsharing.automation.domain.PickupPolicyLinkedStore;
 import network.foodsharing.automation.domain.PickupPolicyLinkedStoreMember;
+import network.foodsharing.automation.repository.PickupGapGroupRepository;
 import network.foodsharing.automation.repository.PickupPolicyExcludedDateRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreMemberRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreRepository;
 import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.history.service.HistoryService;
+import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
@@ -48,6 +52,8 @@ public class PickupPolicyService {
     static final int MAXIMUM_STORES_PER_LINK = 5;
     static final int MAXIMUM_WINDOW_DAYS = 30;
     static final int MAXIMUM_GAP_DAYS = 60;
+    /** Stores per gap list, the saving store included (decision 151). */
+    static final int MAXIMUM_GAP_STORES = 10;
     static final Set<String> PLACEHOLDERS = Set.of("name", "storeName", "linkedStoreName", "pickupDate", "requirement",
             "graceMinutes");
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{\\s*([^}\\s]+)\\s*}}");
@@ -57,16 +63,45 @@ public class PickupPolicyService {
                             UUID mirrorOf) {
     }
 
+    /**
+     * {@code gapRuleEnabled}/{@code minimumGapDays}: the store's own gap. {@code gapStoreIds}: the other stores of the
+     * shared gap list (decision 151); empty or missing = alone. {@code groupMinimumGapDays}: the gap of that list
+     * (decision 152), required with a list.
+     */
     public record PolicyInput(boolean enabled, boolean dryRun, boolean gapRuleEnabled, int minimumGapDays,
                               boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                               boolean publicHolidayRuleEnabled, List<LinkInput> links, List<LocalDate> excludedDates,
-                              Long version) {
+                              Long version, List<UUID> gapStoreIds, Integer groupMinimumGapDays) {
+
+        public PolicyInput {
+            gapStoreIds = gapStoreIds == null ? List.of() : List.copyOf(gapStoreIds);
+        }
+
+        /** Without a gap list. */
+        public PolicyInput(boolean enabled, boolean dryRun, boolean gapRuleEnabled, int minimumGapDays,
+                           boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
+                           boolean publicHolidayRuleEnabled, List<LinkInput> links, List<LocalDate> excludedDates,
+                           Long version) {
+            this(enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
+                    publicHolidayRuleEnabled, links, excludedDates, version, List.of(), null);
+        }
     }
 
     public record LinkView(PickupPolicyLinkedStore link, List<Store> stores) {
     }
 
-    public record PolicyView(PickupPolicy policy, List<LinkView> links, List<LocalDate> excludedDates) {
+    /** Another store of the gap list: whether it checks sign-ups itself and whether the actor may change it. */
+    public record GapStoreView(Store store, boolean automationActive, boolean mayEdit) {
+    }
+
+    /** A store that can be put on the gap list, with its link rules (own and mirrored) for the D7 check. */
+    public record GapCandidateView(Store store, boolean automationActive, boolean inOtherList, boolean mayEdit,
+                                   List<GapLinkConflicts.Link> links) {
+    }
+
+    /** {@code groupMinimumGapDays}: the gap of the store's gap list (decision 152); null without other live stores. */
+    public record PolicyView(PickupPolicy policy, List<LinkView> links, List<LocalDate> excludedDates,
+                             List<GapStoreView> gapStores, Integer groupMinimumGapDays) {
     }
 
     private final PickupPolicyRepository policies;
@@ -77,14 +112,19 @@ public class PickupPolicyService {
     private final StorePermissionService permissions;
     private final CurrentActorService currentActor;
     private final HistoryService history;
-    private final network.foodsharing.region.service.RegionService regions;
+    private final FspCleaningQueries cleaning;
+    private final PickupGapGroupRepository gapGroups;
+    private final RegionService regions;
 
     public PickupPolicyService(PickupPolicyRepository policies, PickupPolicyLinkedStoreRepository links,
                                PickupPolicyLinkedStoreMemberRepository members,
                                PickupPolicyExcludedDateRepository excludedDates, StoreService stores,
                                StorePermissionService permissions, CurrentActorService currentActor,
-                               HistoryService history, network.foodsharing.region.service.RegionService regions) {
+                               HistoryService history, FspCleaningQueries cleaning,
+                               PickupGapGroupRepository gapGroups, RegionService regions) {
+        this.gapGroups = gapGroups;
         this.regions = regions;
+        this.cleaning = cleaning;
         this.policies = policies;
         this.links = links;
         this.members = members;
@@ -95,11 +135,10 @@ public class PickupPolicyService {
         this.history = history;
     }
 
-    /** The live cleaning store of the store's region (cleaning rule), empty when the region has none. */
+    /** The Fairteiler of the store's region that count for the cleaning rule (FS2), by name. */
     @Transactional(readOnly = true)
-    public Optional<Store> cleaningStoreOf(Store store) {
-        return regions.find(store.getRegionId()).map(region -> region.getCleaningStoreId())
-                .flatMap(id -> stores.liveStores(List.of(id)).stream().findFirst());
+    public List<FspCleaningQueries.CleaningFsp> cleaningFoodSharePointsOf(Store store) {
+        return cleaning.cleaningFsps(store.getRegionId());
     }
 
     /** The store, after checking mayUseAutomations. @throws ApiException 404, 403 */
@@ -147,8 +186,39 @@ public class PickupPolicyService {
         if (dates.size() > 366) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "excludedDates");
         }
+        List<UUID> wantedGap = gapList(storeId, input);
+        // decision 152: the own switch no longer decides membership; an empty list leaves
+        boolean grouped = !wantedGap.isEmpty();
+        int groupGap = grouped ? groupGap(input) : 0;
+        PickupGapGroup group = existing.map(PickupPolicy::getGapGroupId).flatMap(gapGroups::lockById).orElse(null);
+        Map<UUID, PickupPolicy> groupMembers = group == null ? Map.of() : policies.findByGapGroupId(group.getId())
+                .stream().filter(p -> !p.getStoreId().equals(storeId))
+                .collect(Collectors.toMap(PickupPolicy::getStoreId, p -> p));
+        Set<UUID> liveOthers = stores.liveStores(groupMembers.keySet()).stream().map(Store::getId)
+                .collect(Collectors.toSet());
+        if (grouped) {
+            validateGapList(actor, store, group, liveOthers, wantedGap, groupGap);
+            Set<UUID> list = new LinkedHashSet<>(wantedGap);
+            list.add(storeId);
+            GapLinkConflicts.firstBlocking(list, groupGap, linksOf(storeId, existing.orElse(null),
+                    own, wantedGap)).ifPresent(conflict -> {
+                        throw ApiException.badRequest(ApiErrorCode.GAP_LINK_CONFLICT)
+                                .withArg("storeId", conflict.storeId().toString())
+                                .withArg("otherStoreId", conflict.otherStoreId().toString());
+                    });
+        }
         PickupPolicy policy = existing.orElseGet(PickupPolicy::new);
         boolean created = existing.isEmpty();
+        boolean gapChanged = grouped != (group != null) || (grouped && (group.getMinimumGapDays() != groupGap
+                || !liveOthers.equals(new HashSet<>(wantedGap))));
+        if (grouped && group == null) {
+            group = new PickupGapGroup();
+        }
+        if (grouped) {
+            group.setMinimumGapDays(groupGap);
+            group = gapGroups.saveAndFlush(group);
+        }
+        PickupGapGroup leftGroup = !grouped ? group : null;
         policy.setStoreId(storeId);
         policy.setRegionId(store.getRegionId());
         policy.setEnabled(input.enabled());
@@ -158,13 +228,218 @@ public class PickupPolicyService {
         policy.setCleaningRuleEnabled(input.cleaningRuleEnabled());
         policy.setExperienceRuleEnabled(input.experienceRuleEnabled());
         policy.setPublicHolidayRuleEnabled(input.publicHolidayRuleEnabled());
+        policy.setGapGroupId(grouped ? group.getId() : null);
         policy = policies.saveAndFlush(policy);
         replaceOwnLinks(policy, own);
         replaceExcludedDates(policy, dates, store);
+        if (grouped) {
+            writeGapList(policy, group, groupMembers, liveOthers, wantedGap, gapChanged);
+        } else if (leftGroup != null) {
+            leaveGapList(policy, leftGroup);
+        }
         history.record(history.event(created ? AutomationAction.PICKUP_POLICY_CREATED
                 : AutomationAction.PICKUP_POLICY_UPDATED, policy.getId()).region(store.getRegionId())
                 .metadata("storeId", storeId.toString()).build());
         return view(policy);
+    }
+
+    /** The other stores of the requested gap list, without duplicates. @throws ApiException 400 */
+    private static List<UUID> gapList(UUID storeId, PolicyInput input) {
+        List<UUID> wanted = List.copyOf(new LinkedHashSet<>(input.gapStoreIds()));
+        if (wanted.contains(storeId)) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "gapStoreIds");
+        }
+        if (wanted.size() + 1 > MAXIMUM_GAP_STORES) {
+            throw ApiException.badRequest(ApiErrorCode.GAP_LIST_TOO_LARGE);
+        }
+        return wanted;
+    }
+
+    /** The group gap of a non-empty list: 1..60 (decision 152). @throws ApiException 400 */
+    private static int groupGap(PolicyInput input) {
+        Integer gap = input.groupMinimumGapDays();
+        if (gap == null || gap < 1 || gap > MAXIMUM_GAP_DAYS) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "groupMinimumGapDays");
+        }
+        return gap;
+    }
+
+    /**
+     * D1/D6: every store live and a candidate (region subtree or already listed), in no other list, and the actor may
+     * use automations on every store whose membership changes, and on every store when the group gap changes
+     * (decision 152). @throws ApiException 400, 403, 404
+     */
+    private void validateGapList(SessionPrincipal actor, Store store, PickupGapGroup group, Set<UUID> liveOthers,
+                                 List<UUID> wanted, int groupGap) {
+        boolean gapChanges = group == null || group.getMinimumGapDays() != groupGap;
+        Set<UUID> candidates = stores.liveStoresInRegions(regions.subtreeIds(store.getRegionId())).stream()
+                .map(Store::getId).collect(Collectors.toCollection(HashSet::new));
+        candidates.addAll(liveOthers);
+        Map<UUID, PickupPolicy> byStore = policies.findByStoreIdIn(wanted).stream()
+                .collect(Collectors.toMap(PickupPolicy::getStoreId, p -> p));
+        for (UUID id : wanted) {
+            Store listed = stores.require(id);
+            if (!candidates.contains(id)) {
+                throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "gapStoreIds")
+                        .withArg("storeId", id.toString());
+            }
+            PickupPolicy policy = byStore.get(id);
+            if (policy != null && policy.getGapGroupId() != null
+                    && (group == null || !policy.getGapGroupId().equals(group.getId()))) {
+                throw ApiException.badRequest(ApiErrorCode.GAP_LIST_STORE_TAKEN).withArg("storeId", id.toString());
+            }
+            boolean changes = gapChanges || !liveOthers.contains(id) || policy == null;
+            if (changes && !permissions.mayUseAutomations(actor, listed)) {
+                throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());
+            }
+        }
+        for (UUID removed : liveOthers) {
+            if (!wanted.contains(removed) && !permissions.mayUseAutomations(actor, stores.require(removed))) {
+                throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", removed.toString());
+            }
+        }
+    }
+
+    /**
+     * The link rules that matter for the D7 check: this store's rules as they will be saved (with the mirrors they
+     * create) and the mirrors it holds, plus every rule of the other listed stores except mirrors of this store's old
+     * rules (they are replaced).
+     */
+    private List<GapLinkConflicts.Link> linksOf(UUID storeId, PickupPolicy existing, List<LinkInput> own,
+                                                List<UUID> others) {
+        List<GapLinkConflicts.Link> result = new ArrayList<>();
+        for (LinkInput input : own) {
+            LinkedStoreWindowMode mode = input.windowMode() == null ? LinkedStoreWindowMode.SAME_DAY
+                    : input.windowMode();
+            result.add(new GapLinkConflicts.Link(storeId, input.storeIds(), mode, input.windowDaysBefore(),
+                    input.windowDaysAfter()));
+            if (input.bidirectional()) {
+                for (UUID target : input.storeIds()) {
+                    result.add(new GapLinkConflicts.Link(target, List.of(storeId), mode, input.windowDaysAfter(),
+                            input.windowDaysBefore()));
+                }
+            }
+        }
+        Set<UUID> ownRuleIds = existing == null ? Set.of() : links.findByPolicyIdOrderByCreatedAtAscIdAsc(
+                existing.getId()).stream().filter(l -> l.getMirrorOf() == null).map(PickupPolicyLinkedStore::getId)
+                .collect(Collectors.toSet());
+        if (existing != null) {
+            result.addAll(linkRules(storeId, links.findByPolicyIdOrderByCreatedAtAscIdAsc(existing.getId()).stream()
+                    .filter(l -> l.getMirrorOf() != null).toList()));
+        }
+        for (PickupPolicy other : policies.findByStoreIdIn(others)) {
+            result.addAll(linkRules(other.getStoreId(), links.findByPolicyIdOrderByCreatedAtAscIdAsc(other.getId())
+                    .stream().filter(l -> l.getMirrorOf() == null || !ownRuleIds.contains(l.getMirrorOf())).toList()));
+        }
+        return result;
+    }
+
+    private List<GapLinkConflicts.Link> linkRules(UUID ownerStoreId, List<PickupPolicyLinkedStore> rules) {
+        Map<UUID, List<UUID>> storeIds = members.findByLinkIdIn(rules.stream().map(PickupPolicyLinkedStore::getId)
+                .toList()).stream().collect(Collectors.groupingBy(PickupPolicyLinkedStoreMember::getLinkId,
+                Collectors.mapping(PickupPolicyLinkedStoreMember::getStoreId, Collectors.toList())));
+        return rules.stream().map(rule -> new GapLinkConflicts.Link(ownerStoreId,
+                storeIds.getOrDefault(rule.getId(), List.of()), rule.getWindowMode(), rule.getWindowDaysBefore(),
+                rule.getWindowDaysAfter())).toList();
+    }
+
+    /**
+     * Writes the list: every listed store gets the group (a store without a policy gets one, off, in dry run and with
+     * its own rule off); each store keeps its own gap and switch (decision 152), only the group row holds the group
+     * gap. Live stores taken off the list leave it. History on every affected policy when the list or the group gap
+     * changed.
+     */
+    private void writeGapList(PickupPolicy policy, PickupGapGroup group, Map<UUID, PickupPolicy> groupMembers,
+                              Set<UUID> liveOthers, List<UUID> wanted, boolean changed) {
+        List<PickupPolicy> affected = new ArrayList<>();
+        affected.add(policy);
+        for (UUID id : wanted) {
+            PickupPolicy member = groupMembers.containsKey(id) ? groupMembers.get(id)
+                    : policies.findByStoreId(id).orElseGet(() -> newPolicy(id));
+            member.setRegionId(stores.require(id).getRegionId());
+            member.setGapGroupId(group.getId());
+            affected.add(policies.saveAndFlush(member));
+        }
+        for (UUID id : liveOthers) {
+            if (!wanted.contains(id)) {
+                PickupPolicy member = groupMembers.get(id);
+                member.setRegionId(stores.require(id).getRegionId());
+                member.setGapGroupId(null);
+                policies.saveAndFlush(member);
+                recordGapList(member, List.of(), group.getMinimumGapDays());
+            }
+        }
+        if (changed) {
+            List<UUID> storeIds = affected.stream().map(PickupPolicy::getStoreId).toList();
+            affected.forEach(member -> recordGapList(member, storeIds, group.getMinimumGapDays()));
+        }
+    }
+
+    /**
+     * This store leaves its list; a store left alone drops out too (D6). Every store keeps its own gap and switch
+     * (decision 152); history carries the gap of the list that was left.
+     */
+    private void leaveGapList(PickupPolicy policy, PickupGapGroup group) {
+        recordGapList(policy, List.of(), group.getMinimumGapDays());
+        List<PickupPolicy> remaining = policies.findByGapGroupId(group.getId()).stream()
+                .filter(p -> !p.getId().equals(policy.getId())).toList();
+        if (remaining.size() > 1) {
+            List<UUID> storeIds = remaining.stream().map(PickupPolicy::getStoreId).toList();
+            remaining.forEach(member -> recordGapList(member, storeIds, group.getMinimumGapDays()));
+            return;
+        }
+        for (PickupPolicy member : remaining) {
+            member.setRegionId(stores.storesById(List.of(member.getStoreId())).stream().findFirst()
+                    .map(Store::getRegionId).orElse(null));
+            member.setGapGroupId(null);
+            policies.saveAndFlush(member);
+            recordGapList(member, List.of(), group.getMinimumGapDays());
+        }
+        gapGroups.delete(group);
+        gapGroups.flush();
+    }
+
+    private void recordGapList(PickupPolicy policy, List<UUID> storeIds, int minimumGapDays) {
+        history.record(history.event(AutomationAction.GAP_LIST_CHANGED, policy.getId()).region(policy.getRegionId())
+                .metadata("storeId", policy.getStoreId().toString())
+                .metadata("storeIds", String.join(",", storeIds.stream().map(UUID::toString).toList()))
+                .metadata("minimumGapDays", String.valueOf(minimumGapDays)).build());
+    }
+
+    private PickupPolicy newPolicy(UUID storeId) {
+        PickupPolicy created = new PickupPolicy();
+        created.setStoreId(storeId);
+        created.setEnabled(false);
+        created.setDryRun(true);
+        return created;
+    }
+
+    /** Stores that may join the gap list of the store (D6). @throws ApiException 403, 404 */
+    @Transactional(readOnly = true)
+    public List<GapCandidateView> gapCandidates(UUID storeId) {
+        Store store = requireAutomationStore(storeId);
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        UUID groupId = policies.findByStoreId(storeId).map(PickupPolicy::getGapGroupId).orElse(null);
+        Set<UUID> ids = stores.liveStoresInRegions(regions.subtreeIds(store.getRegionId())).stream()
+                .map(Store::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        if (groupId != null) {
+            policies.findByGapGroupId(groupId).forEach(p -> ids.add(p.getStoreId()));
+        }
+        ids.remove(storeId);
+        List<Store> candidates = stores.liveStores(ids);
+        Map<UUID, PickupPolicy> byStore = policies.findByStoreIdIn(ids).stream()
+                .collect(Collectors.toMap(PickupPolicy::getStoreId, p -> p));
+        List<GapCandidateView> result = new ArrayList<>();
+        for (Store candidate : candidates) {
+            PickupPolicy policy = byStore.get(candidate.getId());
+            boolean inOtherList = policy != null && policy.getGapGroupId() != null
+                    && !policy.getGapGroupId().equals(groupId);
+            List<GapLinkConflicts.Link> rules = policy == null ? List.of()
+                    : linkRules(candidate.getId(), links.findByPolicyIdOrderByCreatedAtAscIdAsc(policy.getId()));
+            result.add(new GapCandidateView(candidate, policy != null && policy.isEnabled(), inOtherList,
+                    permissions.mayUseAutomations(actor, candidate), rules));
+        }
+        return result;
     }
 
     /** Deletes the policy with its rules, their mirrors and excluded dates. @throws ApiException 403, 404 */
@@ -172,6 +447,16 @@ public class PickupPolicyService {
     public void delete(UUID storeId) {
         Store store = requireAutomationStore(storeId);
         PickupPolicy policy = require(storeId);
+        if (policy.getGapGroupId() != null) {
+            // leaving is always allowed (D6)
+            PickupGapGroup group = gapGroups.lockById(policy.getGapGroupId()).orElse(null);
+            policy.setRegionId(store.getRegionId());
+            policy.setGapGroupId(null);
+            policy = policies.saveAndFlush(policy);
+            if (group != null) {
+                leaveGapList(policy, group);
+            }
+        }
         List<PickupPolicyLinkedStore> all = links.findByPolicyIdOrderByCreatedAtAscIdAsc(policy.getId());
         deleteLinks(all.stream().filter(l -> l.getMirrorOf() == null).toList());
         deleteLinkRows(all.stream().filter(l -> l.getMirrorOf() != null).toList());
@@ -374,7 +659,25 @@ public class PickupPolicyService {
             views.add(new LinkView(rule, storeIdsByLink.getOrDefault(rule.getId(), List.of()).stream()
                     .map(byId::get).filter(java.util.Objects::nonNull).toList()));
         }
+        List<GapStoreView> gapStores = gapStores(policy);
+        Integer groupGap = gapStores.isEmpty() ? null : gapGroups.findById(policy.getGapGroupId())
+                .map(PickupGapGroup::getMinimumGapDays).orElse(null);
         return new PolicyView(policy, views, excludedDates.findByPolicyIdOrderByExcludedDate(policy.getId()).stream()
-                .map(PickupPolicyExcludedDate::getExcludedDate).toList());
+                .map(PickupPolicyExcludedDate::getExcludedDate).toList(), gapStores, groupGap);
+    }
+
+    /** The other live stores of the policy's gap list, by name. */
+    private List<GapStoreView> gapStores(PickupPolicy policy) {
+        if (policy.getGapGroupId() == null) {
+            return List.of();
+        }
+        Map<UUID, PickupPolicy> byStore = policies.findByGapGroupId(policy.getGapGroupId()).stream()
+                .filter(p -> !p.getStoreId().equals(policy.getStoreId()))
+                .collect(Collectors.toMap(PickupPolicy::getStoreId, p -> p));
+        SessionPrincipal actor = currentActor.principal().orElse(null);
+        return stores.liveStores(byStore.keySet()).stream()
+                .map(s -> new GapStoreView(s, byStore.get(s.getId()).isEnabled(),
+                        permissions.mayUseAutomations(actor, s)))
+                .toList();
     }
 }

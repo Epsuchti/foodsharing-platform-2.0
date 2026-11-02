@@ -51,6 +51,10 @@ public class PickupPolicy extends BaseEntity implements HistorySubject {
     @Column(name = "public_holiday_rule_enabled", nullable = false)
     private boolean publicHolidayRuleEnabled;
 
+    /** Shared gap list (decision 151); {@code null} = this store alone. */
+    @Column(name = "gap_group_id")
+    private UUID gapGroupId;
+
     /** Region of the store, set by the service for history (not stored). */
     @Transient
     private UUID regionId;

@@ -12,4 +12,13 @@ public interface HistoryAccessRule {
     SubjectType subjectType();
 
     boolean canRead(SessionPrincipal actor, UUID subjectId);
+
+    /**
+     * Whether a reader of the subject also sees the recorded values ({@code oldValue}, {@code newValue},
+     * {@code reason}); when false they are cleared in every history read (lists, own activity, export). ORGA always
+     * sees them.
+     */
+    default boolean mayReadValues(SessionPrincipal actor, UUID subjectId) {
+        return true;
+    }
 }

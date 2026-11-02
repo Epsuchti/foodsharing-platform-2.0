@@ -1,5 +1,6 @@
 import { expect, expectDataState, test } from '../../fixtures';
 import { ZURICH, center, chooseOption, chooseOptions, openStore } from './_stores';
+import { fillDate } from '../../support/date-inputs';
 
 /** S2 create and edit stores. bieb@local is STORE_MANAGER in Zürich Stadt and manager of Coop Bahnhofbrücke (S-01). */
 
@@ -25,7 +26,7 @@ test.describe('store manager', () => {
     await page.getByTestId('stores.form.address.map').click();
     await expect(page.getByTestId('stores.form.address.coordinates')).toHaveText(/\d+\.\d{5}, \d+\.\d{5}/);
     await chooseOption(page, 'stores.form.cooperationStatus', 'Kooperiert');
-    await page.getByTestId('stores.form.cooperationStart').fill('2026-10-01');
+    await fillDate(page.getByTestId('stores.form.cooperationStart'), '2026-10-01');
     await chooseOption(page, 'stores.form.convinceStatus', 'Ganz unkompliziert');
     await chooseOption(page, 'stores.form.publicity', 'Erlaubt');
     await chooseOption(page, 'stores.form.sticker', 'Aufkleber hängt');

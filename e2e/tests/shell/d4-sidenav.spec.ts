@@ -63,14 +63,13 @@ test.describe('signed in', () => {
         .evaluate((el) => getComputedStyle(el).getPropertyValue('--fs-header-h').trim()),
     ).toBe('0px');
 
-    // "[" does nothing from 75rem; Ctrl K focuses the search
+    // "[" does nothing from 75rem
     await page.getByTestId('dashboard.page.welcome').click();
     await page.keyboard.press('[');
     await expect(sidenav).toHaveAttribute('data-mode', 'sidebar');
     // the search field comes with the feature toggles, after the first page
     await expect(page.getByTestId('search.global.input')).toBeVisible();
-    await page.keyboard.press('Control+k');
-    await expect(page.getByTestId('search.global.input')).toBeFocused();
+    await page.getByTestId('search.global.input').focus();
     // while typing, "[" is text
     await page.keyboard.type('[');
     await expect(page.getByTestId('search.global.input')).toHaveValue('[');
@@ -83,7 +82,8 @@ test.describe('signed in', () => {
     await user.click();
     await expect(user).toHaveAttribute('aria-expanded', 'true');
     await expectFloatingCard(page, page.getByTestId('shell.userMenu.card'));
-    await expect(page.getByTestId('shell.userMenu.shortcuts')).toContainText('K');
+    // no shortcuts to list from 75rem: the menu is always expanded
+    await expect(page.getByTestId('shell.userMenu.shortcuts')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('shell.userMenu.card')).toBeHidden();
     await expect(user).toHaveAttribute('aria-expanded', 'false');
@@ -198,6 +198,37 @@ test.describe('signed in', () => {
         ),
       )
       .toBeLessThanOrEqual(0);
+  });
+
+  test('D4.3 Forum opens the home region forum and is current on forum pages; no Postfächer @D4.3', async ({ page }) => {
+    await page.setViewportSize(WIDE);
+    await page.goto('/dashboard');
+    // decision 149: Postfächer only for readers and creators of a mailbox
+    await expect(page.getByTestId('nav.regions')).toBeVisible();
+    await expect(page.getByTestId('nav.mailboxes')).toHaveCount(0);
+    const forum = page.getByTestId('nav.forum');
+    await expect(forum).toHaveAttribute('data-nav-section', 'community');
+    await forum.click();
+    await expect.poll(() => path(page)).toMatch(/^\/regions\/[0-9a-f-]{36}\/forum$/);
+    await expect(forum).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByTestId('nav.regions')).not.toHaveAttribute('aria-current', 'page');
+  });
+});
+
+test.describe('mailbox reader', () => {
+  test.use({ role: 'bot' });
+
+  test('D4.3 Postfächer is in Community after Forum for a mailbox reader @D4.3', async ({ page }) => {
+    await page.setViewportSize(WIDE);
+    await page.goto('/dashboard');
+    const mailboxes = page.getByTestId('nav.mailboxes');
+    await expect(mailboxes).toHaveAttribute('data-nav-section', 'community');
+    await expect(mailboxes).toHaveAttribute('href', '/mailboxes');
+    const community = await page
+      .getByTestId('nav.sidenav')
+      .locator('a[data-nav-section="community"]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('data-testid')));
+    expect(community.indexOf('nav.mailboxes')).toBe(community.indexOf('nav.forum') + 1);
   });
 });
 

@@ -186,7 +186,6 @@ describe('regions pages', () => {
         preventDuplicateCategoryBookings: true,
         requireFairteilerVisitByThirdIntroPickup: false,
         ignoredCategories: [IntroPickupCategory.Online],
-        cleaningStoreId: 'store-1',
       },
       onboarding: {
         learningPagesMandatory: true,
@@ -216,7 +215,6 @@ describe('regions pages', () => {
       ['FIRST', 2],
     ]);
     // fields the form does not edit are kept
-    expect(body.introPickups.cleaningStoreId).toBe('store-1');
     expect(body.introPickups.ignoredCategories).toEqual([IntroPickupCategory.Online]);
   });
 });

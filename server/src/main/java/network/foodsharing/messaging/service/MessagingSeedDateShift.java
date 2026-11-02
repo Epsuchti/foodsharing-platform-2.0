@@ -27,6 +27,8 @@ public class MessagingSeedDateShift implements SeedDateShiftContributor {
         shiftColumn("conversation", "last_message_at", delta);
         shiftColumn("conversation_member", "joined_at", delta);
         shiftColumn("message", "sent_at", delta);
+        shiftColumn("message", "edited_at", delta);
+        shiftColumn("message", "deleted_at", delta);
     }
 
     private void shiftColumn(String table, String column, Duration delta) {

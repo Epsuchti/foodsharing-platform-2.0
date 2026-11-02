@@ -11,6 +11,7 @@ import {
   seedStore,
   test,
 } from '../../fixtures';
+import { fillDateTime } from '../../support/date-inputs';
 
 /**
  * G1 reports and D10.3 report log (plan-m7 Q8, A51). Seed (`e2e/fixtures/reports.ts`): seven reports in
@@ -95,7 +96,7 @@ test.describe('report team', () => {
     // status, consequence and a reminder at 12:00 Zürich time (11:00Z) in one save
     await pickOption(team, 'reports.detail.statusSelect', 'IN_PROGRESS');
     await team.getByTestId('reports.detail.consequence').fill('Gespräch mit Jonas geführt, Verwarnung ausgesprochen.');
-    await team.getByTestId('reports.detail.reminder').fill('2026-11-02T12:00');
+    await fillDateTime(team.getByTestId('reports.detail.reminder'), '2026-11-02T12:00');
     await team.getByTestId('reports.detail.save').click();
     await expect(team.getByTestId('reports.detail.status')).toHaveAttribute('data-status', 'IN_PROGRESS');
     await expect(team.getByTestId('reports.detail.save').locator('button')).toBeDisabled();

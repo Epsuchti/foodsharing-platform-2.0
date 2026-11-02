@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
-import { InputText } from '@openng/optimus-ui/inputtext';
 import { Textarea } from '@openng/optimus-ui/textarea';
 
 import { SleepStatus, UserProfile, UsersService } from '../../../api';
@@ -11,6 +10,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { DEFAULT_TIME_ZONE } from '../../../core/dates/time-zone';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import {
   SLEEP_MESSAGE_MAX,
   SleepForm,
@@ -33,7 +33,7 @@ const STATUSES: readonly { value: SleepStatus; icon: string }[] = [
  */
 @Component({
   selector: 'fs-sleep-mode-card',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, InputText, Textarea, TPipe],
+  imports: [...DATE_INPUT_IMPORTS, ...DATA_STATE_IMPORTS, Button, DateTimePipe, FormsModule, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="fs-card card" aria-labelledby="sleep-title" data-testid="account.settings.sleep">
@@ -91,27 +91,23 @@ const STATUSES: readonly { value: SleepStatus; icon: string }[] = [
               <div class="dates">
                 <div class="field">
                   <label for="sleep-from">{{ 'account.sleep.from' | t }}</label>
-                  <input
-                    pInputText
-                    id="sleep-from"
-                    type="date"
+                  <fs-date-input
+                    inputId="sleep-from"
                     [ngModel]="form().from"
                     (ngModelChange)="patch({ from: $event ?? '' })"
                     name="from"
-                    data-testid="account.settings.sleep.from"
+                    testId="account.settings.sleep.from"
                   />
                 </div>
                 <div class="field">
                   <label for="sleep-until">{{ 'account.sleep.until' | t }}</label>
-                  <input
-                    pInputText
-                    id="sleep-until"
-                    type="date"
+                  <fs-date-input
+                    inputId="sleep-until"
                     [min]="form().from || today()"
                     [ngModel]="form().until"
                     (ngModelChange)="patch({ until: $event ?? '' })"
                     name="until"
-                    data-testid="account.settings.sleep.until"
+                    testId="account.settings.sleep.until"
                   />
                 </div>
               </div>

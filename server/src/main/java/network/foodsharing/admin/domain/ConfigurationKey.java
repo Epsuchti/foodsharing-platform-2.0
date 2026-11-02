@@ -20,7 +20,8 @@ public enum ConfigurationKey {
     DONATION_IFRAME_SELF_SERVICE_URL("donation.iframe-self-service-url", Type.URL, ""),
     DONATION_CAMPAIGN_PAGE_SLUGS("donation.campaign-page-slugs", Type.LIST, ""),
     STATISTICS_PUBLIC_CACHE_MINUTES("statistics.public-cache-minutes", Type.INTEGER, "60"),
-    OAUTH_ISSUER("oauth.issuer", Type.URL, "");
+    OAUTH_ISSUER("oauth.issuer", Type.URL, ""),
+    MESSAGING_EDIT_WINDOW_HOURS("messaging.edit-window-hours", Type.INTEGER, "24");
 
     /** Value types; empty values are allowed for URL and LIST (= not set). */
     public enum Type {

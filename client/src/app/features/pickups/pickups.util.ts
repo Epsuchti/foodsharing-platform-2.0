@@ -56,3 +56,39 @@ export function groupByDay<T extends { pickupAt: string }>(items: readonly T[], 
   }
   return groups;
 }
+
+// --- slot states (pickup slots proposal §2) --------------------------------------------------------------------
+
+export type SlotState = 'confirmed' | 'unconfirmed' | 'mineConfirmed' | 'mineUnconfirmed';
+
+/** State of a taken slot as the viewer sees it: own slots are "mine", the rest confirmed or unconfirmed. */
+export function slotState(slot: { user: { id: string }; confirmed: boolean }, myId: string | null | undefined): SlotState {
+  const mine = !!myId && slot.user.id === myId;
+  if (mine) return slot.confirmed ? 'mineConfirmed' : 'mineUnconfirmed';
+  return slot.confirmed ? 'confirmed' : 'unconfirmed';
+}
+
+export interface SlotSummary {
+  confirmed: number;
+  unconfirmed: number;
+  total: number;
+}
+
+/** Counts from `taken` and `confirmed` sign-ups (the options page only has the counts); never below 0. */
+export function countSummary(taken: number, confirmed: number, total: number): SlotSummary {
+  const safeConfirmed = Math.max(0, Math.min(confirmed, taken));
+  return { confirmed: safeConfirmed, unconfirmed: Math.max(0, taken - safeConfirmed), total };
+}
+
+/** Summary of one pickup: "✓ 2 von 3 bestätigt · ⧗ 1 unbestätigt". */
+export function pickupSummary(slots: readonly { confirmed: boolean }[], slotCount: number): SlotSummary {
+  return countSummary(slots.length, slots.filter((slot) => slot.confirmed).length, slotCount);
+}
+
+/** Unconfirmed sign-ups across pickups (the manager's "Unbestätigt (n)" chip). */
+export function unconfirmedCount(pickups: readonly { occupiedSlots: readonly { confirmed: boolean }[] }[]): number {
+  return pickups.reduce((sum, pickup) => sum + pickup.occupiedSlots.filter((slot) => !slot.confirmed).length, 0);
+}
+
+/** `displayName` up to the first space; lives with the slot component, which shows it in the manager's split pill. */
+export { firstName } from '../../shared/pickup-slot/pickup-slot.component';

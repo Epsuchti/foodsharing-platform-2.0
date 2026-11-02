@@ -48,8 +48,28 @@ public class SearchIndexer {
         return stripped.toLowerCase(Locale.ROOT).replaceAll("\\s+", " ").trim();
     }
 
-    static String textOf(Source source) {
-        return normalize(String.join(" ", nz(source.title()), nz(source.subtitle()), nz(source.extraText())));
+    /**
+     * The searchable text: title, subtitle and extra text. Sources with an address (stores) leave the subtitle (their
+     * town) out: the address is matched separately and only for queries with two or more terms (decision 147).
+     */
+    public static String textOf(Source source) {
+        String subtitle = source.addressText() == null ? nz(source.subtitle()) : "";
+        return withFoldedWords(normalize(String.join(" ", nz(source.title()), subtitle, nz(source.extraText()))));
+    }
+
+    /**
+     * Appends the ae/oe/ue-folded spelling of every word that has one ("baeckereien" → "+ backereien"), so a search
+     * for "Bäckerei" (normalised "backerei") also finds the transliterated spelling on both database paths.
+     */
+    static String withFoldedWords(String normalized) {
+        StringBuilder out = new StringBuilder(normalized);
+        for (String word : normalized.split(" ")) {
+            String folded = SearchIndexRepository.fold(word);
+            if (!folded.equals(word)) {
+                out.append(' ').append(folded);
+            }
+        }
+        return out.toString();
     }
 
     /** Rebuilds the whole index. */
@@ -64,11 +84,14 @@ public class SearchIndexer {
         return count;
     }
 
-    /** Rebuilds when the index is empty (first start, fresh seed); otherwise nothing. */
+    /**
+     * Rebuilds when the index is empty (first start, fresh seed) or holds rows written before changelog 179 (no store
+     * address, on PostgreSQL no search vector); otherwise nothing.
+     */
     @Transactional
     @NoHistory(reason = "derived index built on application start; explicit rebuilds record SEARCH REINDEXED")
     public boolean rebuildIfEmpty() {
-        if (index.count() > 0) {
+        if (index.count() > 0 && !index.needsRebuild()) {
             return false;
         }
         rebuildWithoutHistory();
@@ -100,15 +123,19 @@ public class SearchIndexer {
     private int write(List<Source> sources, Instant now) {
         List<Source> keep = new ArrayList<>();
         Map<Source, String> texts = new HashMap<>();
+        Map<Source, String> addresses = new HashMap<>();
         for (Source source : sources) {
             if (source.indexable() && source.title() != null && !source.title().isBlank()) {
                 keep.add(source);
                 texts.put(source, textOf(source));
+                if (source.addressText() != null) {
+                    addresses.put(source, normalize(source.addressText()));
+                }
             } else {
                 index.remove(source.kind(), source.entityId());
             }
         }
-        index.upsert(keep, texts, now);
+        index.upsert(keep, texts, addresses, now);
         return keep.size();
     }
 

@@ -1,0 +1,18 @@
+# AU1 (decision 152): a gap list gets its own group gap, separate from each store's own gap. The own gap checks
+# pickups in that store only; the group gap (pickup_gap_group.minimum_gap_days) checks pickups in all stores of the
+# list, also when a store's own rule is off. Each group takes the gap its members use today (the largest one, at
+# least 1). The members' own gap and switch stay as they are, and from now on the store's own value applies again
+# on its own: on deploy it equals the group value, so nothing is rejected differently. After the first later edit it
+# can: lowering the group gap does not lower the members' own gaps (their own-store pickups are still rejected at the
+# old value), and an own gap set above the group gap rejects that store's own pickups at the higher value.
+databaseChangeLog:
+  - changeSet:
+      id: 182-1
+      author: platform
+      comment: 'Group gap of each gap list from its members (decision 152); members untouched.'
+      changes:
+        - sql:
+            sql: >-
+              UPDATE pickup_gap_group g SET minimum_gap_days = GREATEST(1, (SELECT MAX(p.minimum_gap_days)
+              FROM pickup_policy p WHERE p.gap_group_id = g.id))
+              WHERE EXISTS (SELECT 1 FROM pickup_policy p WHERE p.gap_group_id = g.id)

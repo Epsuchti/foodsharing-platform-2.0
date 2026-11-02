@@ -23,6 +23,7 @@ public final class SessionInfoBuilder {
     private final Set<String> extraPermissions = new LinkedHashSet<>();
     private Boolean onboardingComplete;
     private String onboardingCurrentStep;
+    private Boolean mailboxes;
 
     public SessionInfoBuilder homeRegionId(UUID regionId) {
         this.homeRegionId = regionId;
@@ -50,6 +51,11 @@ public final class SessionInfoBuilder {
         return this;
     }
 
+    public SessionInfoBuilder mailboxes(boolean mailboxes) {
+        this.mailboxes = mailboxes;
+        return this;
+    }
+
     public UUID homeRegionId() {
         return homeRegionId;
     }
@@ -72,5 +78,9 @@ public final class SessionInfoBuilder {
 
     public String onboardingCurrentStep() {
         return onboardingCurrentStep;
+    }
+
+    public Boolean mailboxes() {
+        return mailboxes;
     }
 }

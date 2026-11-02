@@ -30,13 +30,16 @@ test('D11.5.5 store manager: confirm a sign-up, edit regular slots, read the sto
     await expect(page.getByTestId('stores.page.name')).toHaveText(S01.name);
     await expect(page.getByTestId('stores.page.edit')).toBeVisible();
     if (isPhone(page)) {
-      // the hero leaves room for the tabs on the first screen (one "Route" button instead of two map links)
+      // the hero leaves room for the tabs on the first screen (one "Navigate" dropdown instead of two map links)
       const tabs = (await page.getByTestId('stores.page.tabs').boundingBox())!;
       expect(tabs.y + tabs.height, 'store tabs on the first phone screen').toBeLessThanOrEqual(page.viewportSize()!.height);
-      await expect(page.getByTestId('stores.page.navigate')).toBeHidden();
-      await walk.click(page.getByTestId('stores.page.route'));
-      await expect(page.getByTestId('stores.page.navigate')).toBeVisible();
-      await expect(page.getByTestId('stores.page.navigateApple')).toBeVisible();
+      await expect(page.getByTestId('stores.page.navigate.google')).toBeHidden();
+      await walk.click(page.getByTestId('stores.page.navigate'));
+      await expect(page.getByTestId('stores.page.navigate.google')).toBeVisible();
+      await expect(page.getByTestId('stores.page.navigate.apple')).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(page.getByTestId('stores.page.navigate.google')).toBeHidden();
+      await expect(page.getByTestId('stores.page.navigate')).toBeFocused();
     }
   });
 
@@ -76,6 +79,7 @@ test('D11.5.5 store manager: confirm a sign-up, edit regular slots, read the sto
     await expect(page.locator('[data-testid="stores.log.entry"][data-action="STORE.UPDATE_REGULAR_PICKUP_SETTINGS"]').first()).toBeVisible();
   });
 
-  // round 3: 11 clicks on desktop, 13 on the phone (menu drawer, "Route")
-  walk.finish({ steps: 4, clicks: 13, fields: 1 });
+  // round 3: 11 clicks on desktop, 13 on the phone (menu drawer, "Route"); decision 149: Betriebe is a phone tab,
+  // 12 on the phone
+  walk.finish({ steps: 4, clicks: 12, fields: 1 });
 });

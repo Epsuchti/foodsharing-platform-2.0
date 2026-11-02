@@ -1,7 +1,8 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import {
   type ApiClient,
   acceptPendingConsents,
+  collapseSidenav,
   type BellDto,
   LANGUAGES,
   expect,
@@ -43,6 +44,66 @@ async function openBells(page: Page): Promise<string> {
   return 'bells.panel.item';
 }
 
+/** Fails when the element or any descendant is wider than its box (clipped or overflowing content). */
+async function expectNoHorizontalOverflow(root: Locator): Promise<void> {
+  const overflow = await root.evaluate((el) =>
+    [el, ...Array.from(el.querySelectorAll('*'))]
+      .map((node) => ({ node: `${node.tagName}.${String((node as HTMLElement).className)}`, over: node.scrollWidth - node.clientWidth }))
+      .filter((entry) => entry.over > 0),
+  );
+  expect(overflow, 'elements with horizontally clipped content').toEqual([]);
+}
+
+/**
+ * The seed has no long bell titles, so the list response is rewritten: the first items get the longest German titles
+ * of the owner's report. The panel, its card, every item and the "mark all read" button stay inside the 22rem card.
+ */
+async function expectLongTitlesInsideCard(page: Page, collapse: boolean): Promise<void> {
+  await page.route(
+    (url) => url.pathname === '/api/bells',
+    async (route) => {
+      const response = await route.fetch();
+      const body = await response.json();
+      const keys = ['bell.STORE_MANAGER_APPOINTED', 'bell.PICKUP_SIGNUP_UNCONFIRMED', 'bell.FSP_CLEANING_SIGNUP_UNCONFIRMED'];
+      body.items.slice(0, keys.length).forEach((item: BellDto, index: number) => {
+        item.titleKey = keys[index];
+        item.type = keys[index].replace('bell.', '');
+      });
+      await route.fulfill({ response, json: body });
+    },
+  );
+  await page.goto('/dashboard');
+  if (collapse) await collapseSidenav(page);
+  await page.getByTestId('bells.button').click();
+  await expect(page.getByTestId('bells.panel.state')).toHaveAttribute('data-state', 'success');
+  await expect(page.getByTestId('bells.panel.item.title').first()).toHaveText('Du bist jetzt Betriebsverantwortliche·r');
+  const panel = page.getByTestId('bell.ui.panel');
+  const card = page.locator('#sn-card-bells');
+  await expectNoHorizontalOverflow(card);
+  await expectNoHorizontalOverflow(panel);
+  const cardBox = (await card.boundingBox())!;
+  const inside = [panel, page.getByTestId('bells.panel.markAllRead'), ...(await page.getByTestId('bells.panel.item').all())];
+  for (const locator of inside) {
+    const box = (await locator.boundingBox())!;
+    expect(box.x, 'inside the card (left)').toBeGreaterThanOrEqual(cardBox.x - 0.5);
+    expect(box.x + box.width, 'inside the card (right)').toBeLessThanOrEqual(cardBox.x + cardBox.width + 0.5);
+  }
+}
+
+test('N3 long bell titles stay inside the side menu card @N3 @page', async ({ as }) => {
+  const page = await as('foodsaver');
+  if (isMobile(page)) return; // the panel lives in the side menu card from 48rem; phones use /bells
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expectLongTitlesInsideCard(page, false);
+});
+
+test('N3 long bell titles stay inside the card opened from the collapsed rail @N3 @page', async ({ as }) => {
+  const page = await as('foodsaver');
+  if (isMobile(page)) return;
+  await page.setViewportSize({ width: 1000, height: 800 });
+  await expectLongTitlesInsideCard(page, true);
+});
+
 test('N3 header badge counts unread bells and panel marks read on click @N3 @page', async ({ as, apiOf }) => {
   const page = await as('foodsaver');
   const api = apiOf(page);
@@ -59,7 +120,7 @@ test('N3 header badge counts unread bells and panel marks read on click @N3 @pag
   const bells = (await api.getJson<{ items: BellDto[] }>('/api/bells?size=10')).items;
   const target = bells.find((bell) => !bell.readAt && bell.link)!;
   await page.locator(`[data-testid="${item}"][data-id="${target.id}"]`).getByTestId(`${item}.open`).click();
-  await expect(page.getByTestId('bells.panel')).toHaveCount(0);
+  await expect(page.getByTestId('bell.ui.panel')).toHaveCount(0);
   await expect(page).toHaveURL(new RegExp(`${target.link!.split('?')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
   await expect(badge(page)).toHaveText(String(before - 1));
   await expect.poll(() => unread(api)).toBe(before - 1);
@@ -73,7 +134,7 @@ test('N3 header badge counts unread bells and panel marks read on click @N3 @pag
     await page.getByTestId('bells.panel.markAllRead').click();
     await expect(page.locator('[data-testid="bells.panel.item"][data-unread="true"]')).toHaveCount(0);
     await page.keyboard.press('Escape');
-    await expect(page.getByTestId('bells.panel')).toHaveCount(0);
+    await expect(page.getByTestId('bell.ui.panel')).toHaveCount(0);
   }
   await expect(badge(page)).toHaveCount(0);
   expect(await unread(api)).toBe(0);

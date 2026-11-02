@@ -17,7 +17,9 @@ import network.foodsharing.automation.domain.PickupPolicy;
 import network.foodsharing.automation.domain.PickupPolicyExcludedDate;
 import network.foodsharing.automation.domain.PickupPolicyLinkedStore;
 import network.foodsharing.automation.domain.PickupPolicyLinkedStoreMember;
+import network.foodsharing.automation.domain.PickupGapGroup;
 import network.foodsharing.automation.repository.CleaningRuleExemptionRepository;
+import network.foodsharing.automation.repository.PickupGapGroupRepository;
 import network.foodsharing.automation.repository.PickupPolicyExcludedDateRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreMemberRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreRepository;
@@ -25,15 +27,15 @@ import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.LinkRule;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.RegionInfo;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Signup;
-import network.foodsharing.automation.service.PickupPolicyEvaluator.Slot;
+import network.foodsharing.automation.service.PickupPolicyEvaluator.CleaningSlot;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Spec;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.UserInfo;
 import network.foodsharing.common.integration.Integration;
 import network.foodsharing.common.integration.IntegrationRegistry;
 import network.foodsharing.config.AppProperties;
+import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.service.PickupAutomationQueries;
-import network.foodsharing.pickup.service.PickupScheduleService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.store.domain.Store;
 import network.foodsharing.store.service.StoreService;
@@ -54,18 +56,20 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     private final RegionService regions;
     private final UserService users;
     private final PickupAutomationQueries signups;
-    private final PickupScheduleService schedule;
+    private final FspCleaningQueries cleaning;
     private final HolidayCalendarService holidays;
     private final IntegrationRegistry integrations;
     private final AppProperties properties;
     private final Clock clock;
+    private final PickupGapGroupRepository gapGroups;
 
     public PickupPolicyData(PickupPolicyRepository policies, PickupPolicyExcludedDateRepository excludedDates,
                             PickupPolicyLinkedStoreRepository links, PickupPolicyLinkedStoreMemberRepository linkMembers,
                             CleaningRuleExemptionRepository exemptions, StoreService stores, RegionService regions,
-                            UserService users, PickupAutomationQueries signups, PickupScheduleService schedule,
+                            UserService users, PickupAutomationQueries signups, FspCleaningQueries cleaning,
                             HolidayCalendarService holidays, IntegrationRegistry integrations,
-                            AppProperties properties, Clock clock) {
+                            AppProperties properties, Clock clock, PickupGapGroupRepository gapGroups) {
+        this.gapGroups = gapGroups;
         this.policies = policies;
         this.excludedDates = excludedDates;
         this.links = links;
@@ -75,14 +79,14 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
         this.regions = regions;
         this.users = users;
         this.signups = signups;
-        this.schedule = schedule;
+        this.cleaning = cleaning;
         this.holidays = holidays;
         this.integrations = integrations;
         this.properties = properties;
         this.clock = clock;
     }
 
-    /** The policy with its excluded dates and link rules (own and mirrored). */
+    /** The policy with its excluded dates, link rules (own and mirrored) and gap list with the group gap. */
     public Spec spec(PickupPolicy policy) {
         Set<LocalDate> dates = excludedDates.findByPolicyIdOrderByExcludedDate(policy.getId()).stream()
                 .map(PickupPolicyExcludedDate::getExcludedDate).collect(Collectors.toCollection(HashSet::new));
@@ -95,9 +99,29 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
                 .map(rule -> new LinkRule(members.get(rule.getId()), rule.getWindowMode(), rule.getWindowDaysBefore(),
                         rule.getWindowDaysAfter(), rule.getGraceMinutes(), rule.getMessage()))
                 .toList();
+        List<UUID> gapStoreIds = gapStoreIds(policy);
         return new Spec(policy.getId(), policy.getStoreId(), policy.isEnabled(), policy.isDryRun(),
                 policy.isGapRuleEnabled(), policy.getMinimumGapDays(), policy.isCleaningRuleEnabled(),
-                policy.isExperienceRuleEnabled(), policy.isPublicHolidayRuleEnabled(), Set.copyOf(dates), linkRules);
+                policy.isExperienceRuleEnabled(), policy.isPublicHolidayRuleEnabled(), Set.copyOf(dates), linkRules,
+                gapStoreIds, gapStoreIds.isEmpty() ? 0 : groupMinimumGapDays(policy));
+    }
+
+    /** The gap of the policy's gap list (decision 152); 0 without a list. */
+    int groupMinimumGapDays(PickupPolicy policy) {
+        return policy.getGapGroupId() == null ? 0
+                : gapGroups.findById(policy.getGapGroupId()).map(PickupGapGroup::getMinimumGapDays).orElse(0);
+    }
+
+    /** The other live stores of the policy's gap list, by name (decision 151); empty without a list. */
+    List<UUID> gapStoreIds(PickupPolicy policy) {
+        if (policy.getGapGroupId() == null) {
+            return List.of();
+        }
+        List<UUID> others = policies.findByGapGroupId(policy.getGapGroupId()).stream().map(PickupPolicy::getStoreId)
+                .filter(id -> !id.equals(policy.getStoreId())).toList();
+        return stores.liveStores(others).stream()
+                .sorted(java.util.Comparator.comparing(Store::getName).thenComparing(Store::getId))
+                .map(Store::getId).toList();
     }
 
     @Override
@@ -126,8 +150,9 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
 
     @Override
     public RegionInfo region(UUID regionId) {
-        return regions.find(regionId).map(r -> new RegionInfo(r.getId(), r.getName(), r.getCleaningStoreId()))
-                .orElse(new RegionInfo(regionId, "", null));
+        return regions.find(regionId).map(r -> new RegionInfo(r.getId(), r.getName(), cleaning.cleaningFsps(regionId)
+                .stream().map(FspCleaningQueries.CleaningFsp::id).toList()))
+                .orElse(new RegionInfo(regionId, "", List.of()));
     }
 
     @Override
@@ -158,9 +183,20 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     }
 
     @Override
-    public List<Slot> slots(UUID storeId, Instant from, Instant to) {
-        return schedule.schedule(store(storeId), from, to).stream().filter(slot -> slot.slotCount() > 0)
-                .map(slot -> new Slot(slot.pickupAt(), slot.occupied())).toList();
+    public Optional<Instant> lastConfirmedCleaning(Collection<UUID> fspIds, UUID userId, Instant before) {
+        return cleaning.lastConfirmedCleaning(fspIds, userId, before);
+    }
+
+    @Override
+    public List<Instant> cleaningSignupsOfUser(UUID userId, Collection<UUID> fspIds, Instant from, Instant to) {
+        return cleaning.cleaningSignupsOfUser(userId, fspIds, from, to).stream()
+                .map(FspCleaningQueries.CleaningSignup::shiftAt).toList();
+    }
+
+    @Override
+    public List<CleaningSlot> freeCleaningSlots(Collection<UUID> fspIds, Instant from, Instant to) {
+        return cleaning.freeCleaningSlots(fspIds, from, to).stream()
+                .map(slot -> new CleaningSlot(slot.at(), slot.fspId(), slot.fspName())).toList();
     }
 
     @Override
@@ -184,8 +220,8 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     }
 
     @Override
-    public String storeLink(UUID storeId) {
-        return properties.getBaseUrl().replaceFirst("/+$", "") + "/stores/" + storeId;
+    public String cleaningLink(UUID fspId) {
+        return properties.getBaseUrl().replaceFirst("/+$", "") + cleaning.cleaningPath(fspId);
     }
 
     @Override

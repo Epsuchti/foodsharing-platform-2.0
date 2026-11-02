@@ -2,8 +2,9 @@ import { S07_WEDNESDAY, injectApiError, seedStore } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Pickup screens (M3 F4): store pickups tab (day list), sign-up dialog eligible / not eligible, regular editor,
- * one-time pickup dialog, options, my pickups, agenda, dashboard card, loading and error. Baselines in the end batch
+ * Pickup screens (M3 F4): store pickups tab (day list; as manager with split pills, the "Unbestätigt (n)" chip and the
+ * summary), sign-up dialog eligible / not eligible, regular editor, one-time pickup dialog, options, my pickups,
+ * agenda, dashboard card, loading and error. Baselines in the end batch
  * (decision 69).
  */
 const S01 = seedStore('S-01').id;
@@ -95,6 +96,15 @@ forEachVariant((variant) => {
         await page.getByTestId('stores.pickups.add').click();
         await expect(page.getByTestId('stores.pickups.edit.date')).toBeVisible();
         await visual.expectScreen(page, `pickups-one-time-${variant.name}`);
+      });
+
+      screenshotTest('pickups tab as manager: split pill, chip, summary @PU3 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('stores.pickups.range.pending')).toBeVisible();
+        await expect(page.getByTestId('stores.pickups.slot.confirm').first()).toBeVisible();
+        await expect(page.getByTestId('stores.pickups.summary').first()).toBeVisible();
+        await visual.expectScreen(page, `pickups-tab-manager-${variant.name}`);
       });
     });
   });

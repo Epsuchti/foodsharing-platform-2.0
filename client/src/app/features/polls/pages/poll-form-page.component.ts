@@ -14,6 +14,7 @@ import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { fromLocalInput, toLocalInput } from '../../events/events.resource';
 import { datesValid, optionErrors } from '../polls.resource';
@@ -25,7 +26,7 @@ import { datesValid, optionErrors } from '../polls.resource';
  */
 @Component({
   selector: 'fs-poll-form-page',
-  imports: [...DATA_STATE_IMPORTS, Button, FormsModule, InputText, PageHeaderComponent, Select, Textarea, ToggleSwitch, TPipe],
+  imports: [...DATE_INPUT_IMPORTS, ...DATA_STATE_IMPORTS, Button, FormsModule, InputText, PageHeaderComponent, Select, Textarea, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="(pollId() ? 'polls.form.editTitle' : 'polls.form.newTitle') | t" icon="pi pi-chart-bar" [backLink]="backLink()" [backLabel]="'polls.title' | t" />
@@ -44,11 +45,11 @@ import { datesValid, optionErrors } from '../polls.resource';
             <div class="row">
               <span class="field">
                 <label for="poll-start">{{ 'polls.form.startsAt' | t }}</label>
-                <input pInputText type="datetime-local" id="poll-start" name="startsAt" [ngModel]="startsAt()" (ngModelChange)="startsAt.set($event)" data-testid="polls.form.startsAt" />
+                <fs-datetime-input inputId="poll-start" name="startsAt" [ngModel]="startsAt()" (ngModelChange)="startsAt.set($event)" testId="polls.form.startsAt" />
               </span>
               <span class="field">
                 <label for="poll-end">{{ 'polls.form.endsAt' | t }}</label>
-                <input pInputText type="datetime-local" id="poll-end" name="endsAt" [ngModel]="endsAt()" (ngModelChange)="endsAt.set($event)" data-testid="polls.form.endsAt" />
+                <fs-datetime-input inputId="poll-end" name="endsAt" [ngModel]="endsAt()" (ngModelChange)="endsAt.set($event)" testId="polls.form.endsAt" />
               </span>
             </div>
             <small [class.error]="submitted() && !datesOk()" class="hint" data-testid="polls.form.datesHint">{{ 'polls.form.leadTime' | t }}</small>

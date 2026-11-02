@@ -1,0 +1,17 @@
+# Seed (AU1, decision 152): S-03 (policy 0022-0001-…-04, disabled) stays in gap list 0022-0016-…-01 (group gap 2) but
+# with its own gap rule off and own gap 0: the "own rule off, group on" case. S-01 keeps own gap 2, rule on. S-03's
+# policy is disabled, so no seeded outcome changes. No new ids (docs/seed-ids.md, 0022).
+databaseChangeLog:
+  - changeSet:
+      id: seed-182-1
+      author: platform
+      context: seed
+      runOnChange: true
+      comment: 'S-03: own gap rule off, still in the gap list.'
+      changes:
+        - update:
+            tableName: pickup_policy
+            columns:
+              - column: {name: gap_rule_enabled, valueBoolean: false}
+              - column: {name: minimum_gap_days, valueNumeric: 0}
+            where: "id = '00000022-0001-4000-8000-000000000004'"

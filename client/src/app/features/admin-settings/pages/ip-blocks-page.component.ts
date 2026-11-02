@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { Select } from '@openng/optimus-ui/select';
 
-import { AdminSettingsService, IpBlockContext, IpBlockEntry } from '../../../api';
+import { AdminSettingsService, IpBlockContext, IpBlockEntry, RateLimitBlockEntry } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
@@ -21,11 +22,12 @@ const PERMANENT = 0;
 
 /**
  * `/admin/ip-blocks` (C12, ORGA): blocked addresses or CIDR ranges for login, registration or both, with an
- * optional duration. Login checks LOGIN+ALL, registration REGISTRATION+ALL, magic links any (A53).
+ * optional duration. Login checks LOGIN+ALL, registration REGISTRATION+ALL, magic links any (A53). Below, the automatic
+ * blocks of the API rate limit (D17.2, in memory): per account or per IP, escalating 1/5/30 min; ORGA can lift them.
  */
 @Component({
   selector: 'fs-ip-blocks-page',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, InputText, PageHeaderComponent, ReactiveFormsModule, Select, SettingsTabsComponent, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, InputText, PageHeaderComponent, ReactiveFormsModule, RouterLink, Select, SettingsTabsComponent, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'adminSettings.ipBlocks.title' | t" [subtitle]="'adminSettings.ipBlocks.subtitle' | t" icon="pi pi-shield" />
@@ -125,6 +127,63 @@ const PERMANENT = 0;
         </div>
       </ng-template>
     </fs-data-state>
+
+    <h2 class="section-title" id="rate-limit-blocks-title">{{ 'adminSettings.ipBlocks.auto.title' | t }}</h2>
+    <p class="muted">{{ 'adminSettings.ipBlocks.auto.hint' | t }}</p>
+    <fs-data-state
+      [state]="autoBlocks"
+      skeleton="table"
+      [skeletonRows]="3"
+      emptyIcon="pi pi-check-circle"
+      [emptyTitle]="'adminSettings.ipBlocks.auto.empty' | t"
+      testId="adminSettings.ipBlocks.autoState"
+      data-testid="adminSettings.ipBlocks.autoState"
+    >
+      <ng-template [fsData]="autoBlocks" let-list>
+        <div class="table-wrap fs-card">
+          <table class="table" aria-labelledby="rate-limit-blocks-title" data-testid="adminSettings.ipBlocks.autoTable">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'adminSettings.ipBlocks.auto.scope' | t }}</th>
+                <th scope="col">{{ 'adminSettings.ipBlocks.auto.subject' | t }}</th>
+                <th scope="col">{{ 'adminSettings.ipBlocks.auto.level' | t }}</th>
+                <th scope="col">{{ 'adminSettings.ipBlocks.until' | t }}</th>
+                <th scope="col"><span class="fs-visually-hidden">{{ 'adminSettings.actions' | t }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (block of list; track block.id) {
+                <tr data-testid="adminSettings.ipBlocks.autoRow" [attr.data-id]="block.id" [attr.data-scope]="block.scope">
+                  <td><span class="chip">{{ 'adminSettings.ipBlocks.auto.scope.' + block.scope | t }}</span></td>
+                  <td>
+                    @if (block.user; as user) {
+                      <a [routerLink]="['/profile', user.id]">{{ user.displayName }}</a>
+                    } @else if (block.ip) {
+                      <code>{{ block.ip }}</code>
+                    } @else {
+                      <span class="muted">{{ 'adminSettings.ipBlocks.auto.unknownUser' | t }}</span>
+                    }
+                  </td>
+                  <td>{{ block.level }}</td>
+                  <td>{{ block.expiresAt | fsDate: 'dateTime' }}</td>
+                  <td class="actions">
+                    <p-button
+                      icon="pi pi-lock-open"
+                      severity="danger"
+                      [text]="true"
+                      [rounded]="true"
+                      [ariaLabel]="'adminSettings.ipBlocks.auto.liftFor' | t: { subject: subjectLabel(block) }"
+                      (onClick)="confirmLift(block)"
+                      data-testid="adminSettings.ipBlocks.autoLift"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </ng-template>
+    </fs-data-state>
   `,
   styleUrl: '../admin-settings.scss',
 })
@@ -183,6 +242,32 @@ export class IpBlocksPageComponent {
     successToastKey: 'adminSettings.ipBlocks.removed',
     onSuccess: () => this.blocks.reload(),
   });
+
+  protected readonly autoBlocks = loadResource<RateLimitBlockEntry[]>({
+    loader: () => this.api.listRateLimitBlocks(),
+  });
+
+  protected readonly lift = runMutation((block: RateLimitBlockEntry) => this.api.liftRateLimitBlock({ blockId: block.id }), {
+    successToastKey: 'adminSettings.ipBlocks.auto.lifted',
+    onSuccess: () => this.autoBlocks.reload(),
+  });
+
+  protected subjectLabel(block: RateLimitBlockEntry): string {
+    return block.user?.displayName ?? block.ip ?? '';
+  }
+
+  protected confirmLift(block: RateLimitBlockEntry): void {
+    this.confirm.confirm({
+      header: this.i18n.t('adminSettings.ipBlocks.auto.liftTitle'),
+      message: this.i18n.t('adminSettings.ipBlocks.auto.liftText', { subject: this.subjectLabel(block) }),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.i18n.t('adminSettings.ipBlocks.auto.lift'),
+      rejectLabel: this.i18n.t('common.cancel'),
+      acceptButtonProps: { severity: 'danger' },
+      rejectButtonProps: { severity: 'secondary', text: true },
+      accept: () => void this.lift.run(block),
+    });
+  }
 
   protected confirmRemove(block: IpBlockEntry): void {
     this.confirm.confirm({

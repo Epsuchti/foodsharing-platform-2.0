@@ -69,6 +69,9 @@ navigation, and the list fades at the edge behind which more items wait (a verti
 
 ### 1.3 Information architecture
 
+> Decision 135 (menu priorities) and its build, decision 149, replace the item order below: Meine Aktivität and Quiz
+> are in the user menu, Postfächer and the new Forum item are in Community, the order is fixed in `NAV_SECTIONS`.
+
 Items come from `nav.config.ts` as today. Each main item gets a `section`; the order inside a section is the
 declared order, with `secondary` items last (the existing `orderHeaderNav` rule, reused). Sections appear only
 when they contain at least one visible item, so the groups per role fall out of the existing `visible` rules:

@@ -96,6 +96,10 @@ class PermissionServiceTest {
         assertThat(service.hasAnywhere(member, Permission.CAN_MANAGE_USERS)).isFalse();
         assertThat(service.mayAdministrateUser(member, USER_ID)).isTrue();
         assertThat(service.effectivePermissions(member)).containsExactly("CAN_GIVE_INTRO_PICKUPS@" + REGION);
+        assertThat(service.regionIdsWith(member, Permission.CAN_GIVE_INTRO_PICKUPS)).containsExactly(REGION);
+        assertThat(service.regionIdsWith(member, Permission.CAN_MANAGE_USERS)).isEmpty();
+        assertThat(service.regionIdsWith(stranger, Permission.CAN_GIVE_INTRO_PICKUPS)).isEmpty();
+        assertThat(service.regionIdsWith(null, Permission.CAN_GIVE_INTRO_PICKUPS)).isEmpty();
 
         assertThat(service.isMemberOf(stranger, REGION)).isFalse();
         assertThat(service.mayAdministrateUser(stranger, USER_ID)).isFalse();

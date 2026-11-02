@@ -14,6 +14,7 @@ import {
   SearchOptionGroup,
   countHits,
   filterIndex,
+  isSearchRateLimited,
   moveActive,
   resultGroups,
 } from '../search.util';
@@ -133,6 +134,17 @@ const ALL_KEY = '\u0000all';
                   <p class="gs__status" role="status" data-testid="search.global.empty">{{ 'search.global.empty' | t: { query: query().trim() } }}</p>
                 }
               </ng-template>
+              <ng-template fsError let-error let-retry="retry">
+                <fs-error-state
+                  [error]="error"
+                  [compact]="true"
+                  [heading]="isRateLimited(error) ? ('search.rateLimited.title' | t) : undefined"
+                  [description]="isRateLimited(error) ? ('search.rateLimited.text' | t: { seconds: error?.retryAfterSeconds ?? 0 }) : undefined"
+                  [retryable]="isRateLimited(error) ? true : undefined"
+                  testId="search.global.state"
+                  (retry)="retry()"
+                />
+              </ng-template>
               <ng-template [fsData]="remote" let-loaded>
                 <p class="fs-visually-hidden" role="status">{{ 'search.global.count' | t: { count: count(loaded) } }}</p>
               </ng-template>
@@ -208,6 +220,8 @@ export class GlobalSearchComponent {
   protected readonly listboxId = `fs-global-search-${nextId}-list`;
   protected readonly hintId = `fs-global-search-${nextId++}-hint`;
   protected readonly minLength = SEARCH_MIN_LENGTH;
+  /** 429: the search rate limit (decision 147) gets its own text with the wait time. */
+  protected readonly isRateLimited = isSearchRateLimited;
   /** Edge the results popup aligns with: the header field (end) or the side menu field (start). */
   readonly popupAlign = input<'end' | 'start'>('end');
 

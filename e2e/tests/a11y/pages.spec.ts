@@ -1,4 +1,4 @@
-import { acceptPendingConsents, collapseSidenav, expect, expectNoSeriousViolations, test } from '../../fixtures';
+import { acceptPendingConsents, collapseSidenav, expect, expectControlSizes, expectNoSeriousViolations, test } from '../../fixtures';
 import { devices, type Page } from '@playwright/test';
 import type { ApiClient } from '../../fixtures/api';
 import { animationsDone } from './animations';
@@ -82,6 +82,8 @@ async function sweep({ as, apiOf }: SweepFixtures, route: RouteCase, theme: 'lig
   if (theme === 'dark') await expect(page.locator('html')).toHaveClass(/fs-dark/);
   await animationsDone(page);
   await expectNoSeriousViolations(page);
+  // AD1: no switch/checkbox/radio shrunk below its design size (flex rows next to long text), desktop and phone
+  await expectControlSizes(page);
 }
 
 for (const theme of ['light', 'dark'] as const) {

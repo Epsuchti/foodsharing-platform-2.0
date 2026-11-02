@@ -121,7 +121,7 @@ export function handlingPatch(report: Report, draft: ReportHandlingDraft): Repor
   return patch;
 }
 
-/** `<input type="datetime-local">` value (local time, minutes) ↔ ISO instant. */
+/** `fs-datetime-input` value (local time, minutes) ↔ ISO instant. */
 export function toLocalInput(iso: string | undefined | null): string {
   if (!iso) return '';
   const date = new Date(iso);

@@ -30,6 +30,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { SessionService } from '../../../core/auth/session.service';
 import { RegionContextService } from '../../../core/region/region-context.service';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
@@ -47,6 +48,7 @@ type Tab = 'einabs' | 'bookings' | 'guides';
 @Component({
   selector: 'fs-admin-intro-pickups-page',
   imports: [
+    ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
     Button,
     Checkbox,
@@ -257,7 +259,7 @@ type Tab = 'einabs' | 'bookings' | 'guides';
           </div>
           <div class="field">
             <label for="hist-start">{{ 'introPickups.form.start' | t }}</label>
-            <input id="hist-start" type="datetime-local" class="native" [(ngModel)]="hist.start" data-testid="introPickups.admin.historicalStart" />
+            <fs-datetime-input inputId="hist-start" [(ngModel)]="hist.start" testId="introPickups.admin.historicalStart" />
           </div>
         </div>
         <div class="field">

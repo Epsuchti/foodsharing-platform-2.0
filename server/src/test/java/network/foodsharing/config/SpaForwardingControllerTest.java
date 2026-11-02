@@ -16,11 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(SpaForwardingController.class)
 @Import(SecurityTestConfig.class)
 @ActiveProfiles("test")
+// own fixture location: a full client build in target/classes/static (all five languages) must not change the result
+@TestPropertySource(properties = "app.spa.static-location=spa-fixture")
 class SpaForwardingControllerTest {
 
     @Autowired

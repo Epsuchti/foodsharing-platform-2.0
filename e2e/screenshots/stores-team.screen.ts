@@ -1,10 +1,12 @@
 import { injectApiError, seedStore } from '../fixtures';
+import { pageSize } from '../tests/stores/_stores';
 import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup';
 
 /**
- * Store team screens (M3 F3): team tab as manager and member, row menu, required-message dialog, invite dialog,
- * apply dialog with a refusal, invitations on /stores/mine, loading and error. Baselines in the end batch
- * (decision 69).
+ * Store team screens (M3 F3, resume item 14): team tab as manager and member, filtered by status, empty filter,
+ * page 2, row menu, required-message dialog, invite dialog, apply dialog with a refusal, invitations on /stores/mine,
+ * loading and error; the per-member statistics card filtered to former members and with an empty filter. Baselines
+ * in the end batch (decision 69).
  */
 const ZURICH = '00000010-0001-4000-8000-000000000040';
 const S01 = seedStore('S-01').id;
@@ -20,7 +22,49 @@ forEachVariant((variant) => {
       screenshotTest('team tab as manager @S5 @screenshot', async ({ page, visual }) => {
         await page.goto(`/stores/${S01}/team`);
         await expect(page.getByTestId('stores.team.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `stores-team-manager-${variant.name}`);
+      });
+
+      screenshotTest('team tab filtered to jumpers @S9 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/team`);
+        await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.team.filter.jumper').click();
+        await expect(page.locator('[data-testid="stores.team.member"][data-status="MEMBER"]')).toHaveCount(0);
+        await visual.expectScreen(page, `stores-team-filtered-${variant.name}`);
+      });
+
+      screenshotTest('team tab with an empty filter @S9 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/team`);
+        await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.team.search').fill('zzz');
+        await tickFixedClock(page); // the search is debounced; the fixed page clock never fires its timer
+        await expect(page.getByTestId('stores.team.emptyFilter')).toBeVisible();
+        await visual.expectScreen(page, `stores-team-empty-filter-${variant.name}`);
+      });
+
+      screenshotTest('team tab page 2 @S9 @screenshot', async ({ page, visual }) => {
+        await pageSize(page, S01, 2);
+        await page.goto(`/stores/${S01}/team`);
+        await page.getByTestId('stores.team.paginator').locator('.p-paginator-next').click();
+        await expect(page.getByTestId('stores.team.paginator').locator('[aria-current="page"]')).toHaveText('2');
+        await visual.expectScreen(page, `stores-team-page2-${variant.name}`);
+      });
+
+      screenshotTest('statistics per member: former and empty filter @S14 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/statistics`);
+        await expect(page.getByTestId('stores.statistics.members.state')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.statistics.range.all').click();
+        await page.getByTestId('stores.statistics.members.filter.former').click();
+        await expect(page.getByTestId('stores.statistics.members.filter.former')).toHaveAttribute('aria-pressed', 'true');
+        await visual.expectElement(page.getByTestId('stores.statistics.members'), `stores-statistics-members-former-${variant.name}`);
+        await page.getByTestId('stores.statistics.members.search').fill('zzz');
+        await tickFixedClock(page);
+        await expect(page.getByTestId('stores.statistics.members.emptyFilter')).toBeVisible();
+        await visual.expectElement(
+          page.getByTestId('stores.statistics.members'),
+          `stores-statistics-members-empty-filter-${variant.name}`,
+        );
       });
 
       screenshotTest('team row menu and message dialog @S8 @screenshot', async ({ page, visual }) => {
@@ -45,12 +89,12 @@ forEachVariant((variant) => {
       });
 
       screenshotTest('team tab loading and error @S5 @screenshot', async ({ page, visual }) => {
-        const delay = await injectApiError(page, { url: `/api/stores/${S01}/team`, delayMs: 30_000 });
+        const delay = await injectApiError(page, { url: `/api/stores/${S01}/team*`, delayMs: 30_000 });
         await page.goto(`/stores/${S01}/team`);
         await expect(page.getByTestId('stores.team.state')).toHaveAttribute('data-state', 'loading');
         await visual.expectScreen(page, `stores-team-loading-${variant.name}`, { waitForData: false });
         await delay.remove();
-        await injectApiError(page, { url: `/api/stores/${S01}/team`, status: 500 });
+        await injectApiError(page, { url: `/api/stores/${S01}/team*`, status: 500 });
         await page.reload();
         await expect(page.getByTestId('stores.team.state')).toHaveAttribute('data-state', 'error');
         await visual.expectScreen(page, `stores-team-error-${variant.name}`);
@@ -63,6 +107,7 @@ forEachVariant((variant) => {
       screenshotTest('team tab as member @S5 @S9 @screenshot', async ({ page, visual }) => {
         await page.goto(`/stores/${S01}/team`);
         await expect(page.getByTestId('stores.team.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `stores-team-member-${variant.name}`);
       });
     });

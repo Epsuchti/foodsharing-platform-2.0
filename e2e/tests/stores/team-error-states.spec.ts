@@ -1,5 +1,5 @@
 import { expect, expectDataState, expectErrorState, injectApiError, test } from '../../fixtures';
-import { NAMES, ZURICH, confirmWithMessage, memberAction, openStore } from './_stores';
+import { NAMES, ZURICH, confirmWithMessage, memberAction, memberRow, openStore } from './_stores';
 
 /** Error, retry, forbidden and conflict states of the F3 team tab and dialogs. */
 
@@ -20,6 +20,17 @@ test.describe('bieb', () => {
     await forbidden.remove();
   });
 
+  test('team list: 500 shows retry and recovers, the filter bar stays usable @S9', async ({ page }) => {
+    const injection = await injectApiError(page, { url: /\/api\/stores\/[0-9a-f-]+\/team\/members\?/, status: 500 });
+    await openStore(page, 'S-01', 'team');
+    const { retry } = await expectErrorState(page, 'stores.team.list');
+    await expect(page.getByTestId('stores.team.search')).toBeEnabled();
+    await injection.remove();
+    await retry.click();
+    await expectDataState(page, 'stores.team.list', 'success');
+    await expect(memberRow(page, NAMES.foodsaver)).toBeVisible();
+  });
+
   test('team: 409 on standby keeps the dialog data and shows the reason @S8', async ({ page }) => {
     const injection = await injectApiError(page, {
       url: /\/api\/stores\/[0-9a-f-]+\/team\/[0-9a-f-]+\/standby$/,
@@ -34,7 +45,7 @@ test.describe('bieb', () => {
     await expect(page.getByTestId('stores.team.messageDialog.message')).toHaveValue(/pausieren/);
     await injection.remove();
     await confirmWithMessage(page, 'Bitte eine Weile pausieren, danke dir.');
-    await expect(page.getByTestId('stores.team.jumpers')).toContainText(NAMES.foodsaver);
+    await expect(memberRow(page, NAMES.foodsaver)).toHaveAttribute('data-status', 'JUMPER');
   });
 });
 

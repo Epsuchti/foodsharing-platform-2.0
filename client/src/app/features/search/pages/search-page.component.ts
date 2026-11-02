@@ -10,7 +10,7 @@ import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
-import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, resultGroups } from '../search.util';
+import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, isSearchRateLimited, resultGroups } from '../search.util';
 
 /**
  * /search?q= (C5): the full server search (`search`, up to 20 hits per kind, only what the user may see, A55),
@@ -71,6 +71,16 @@ import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, resultGroups } from '../se
         emptyIcon="pi pi-search"
         data-testid="search.page.state"
       >
+        <ng-template fsError let-error let-retry="retry">
+          <fs-error-state
+            [error]="error"
+            [heading]="isRateLimited(error) ? ('search.rateLimited.title' | t) : undefined"
+            [description]="isRateLimited(error) ? ('search.rateLimited.text' | t: { seconds: error?.retryAfterSeconds ?? 0 }) : undefined"
+            [retryable]="isRateLimited(error) ? true : undefined"
+            testId="search.page.state"
+            (retry)="retry()"
+          />
+        </ng-template>
         <ng-template [fsData]="results" let-loaded>
           @let shown = visibleGroups(loaded);
           @if (shown.length) {
@@ -163,6 +173,8 @@ export class SearchPageComponent {
   });
 
   protected readonly visibleGroups = (loaded: SearchResults) => resultGroups(loaded, new Set(), this.kinds());
+  /** 429: the search rate limit (decision 147) gets its own text with the wait time. */
+  protected readonly isRateLimited = isSearchRateLimited;
 
   constructor() {
     effect(() => this.draft.set(this.q()));

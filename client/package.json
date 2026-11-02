@@ -7,7 +7,7 @@
     "build": "npm run i18n:build && npm run openapi:generate && ng build && node scripts/preload-initial.mjs && node scripts/precompress.mjs",
     "watch": "ng build --watch --configuration development",
     "openapi:generate": "node scripts/generate-api.mjs && node scripts/mark-api-pure.mjs",
-    "lint": "eslint \"src/**/*.{ts,html}\" && node scripts/check-data-state.mjs && node scripts/check-theme-tokens.mjs",
+    "lint": "eslint \"src/**/*.{ts,html}\" && node scripts/check-data-state.mjs && node scripts/check-theme-tokens.mjs && node scripts/check-date-inputs.mjs",
     "i18n:build": "node scripts/build-i18n.mjs",
     "i18n:check": "node scripts/build-i18n.mjs && node scripts/check-i18n.mjs",
     "pretest": "npm run i18n:build && npm run openapi:generate",

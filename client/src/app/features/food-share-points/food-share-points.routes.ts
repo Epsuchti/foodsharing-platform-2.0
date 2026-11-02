@@ -7,7 +7,8 @@ import { featureGuard } from '../../core/feature-toggles/feature.guard';
 /**
  * Mounted at `food-share-points` in app.routes.ts (plan-m7 Q6, FS1), behind the FOOD_SHARE_POINTS feature toggle
  * (A43; off → /not-found): `/food-share-points/mine`, `/food-share-points/new?regionId=`,
- * `/food-share-points/:fspId` (detail; the FSP_ACTIVATE / FSP_NEW_POST bells link here) and `…/:fspId/edit`. The
+ * `/food-share-points/:fspId` (detail; the FSP_ACTIVATE / FSP_NEW_POST bells link here), `…/:fspId/edit` and
+ * `…/:fspId/cleaning` (FS2 cleaning shifts; the FSP_CLEANING_* bells and the cleaning rule link here). The
  * region tab `/regions/:regionId/food-share-points` is a child route of the region page (regions.routes.ts).
  */
 export const FOOD_SHARE_POINTS_ROUTES: Routes = [
@@ -30,6 +31,11 @@ export const FOOD_SHARE_POINTS_ROUTES: Routes = [
         path: ':fspId/edit',
         title: 'foodSharePoints.form.editTitle',
         loadComponent: () => import('./pages/fsp-form-page.component').then((m) => m.FspFormPageComponent),
+      },
+      {
+        path: ':fspId/cleaning',
+        title: 'foodSharePoints.cleaning.title',
+        loadComponent: () => import('./tabs/fsp-cleaning.tab').then((m) => m.FspCleaningTab),
       },
       {
         path: ':fspId',

@@ -1,4 +1,5 @@
 import { expect, expectDataState, expectNoSeriousViolations, SEED_NOW, test, type ApiClient } from '../../fixtures';
+import { fillDateTime } from '../../support/date-inputs';
 
 /** V1 polls (A36/A37c): bot administrates the zuerich-stadt VOTING group; seed clock 2026-11-02 09:00 UTC. */
 const poll = (n: number) => `00000045-0001-4000-8000-${String(n).padStart(12, '0')}`;
@@ -35,9 +36,8 @@ test.describe('bot', () => {
     const inputs = page.getByTestId('polls.form.optionInput');
     await inputs.nth(0).fill('Ja');
     await inputs.nth(1).fill('ja ');
-    await page.getByTestId('polls.form.startsAt').fill(local(at(0.5)));
-    await page.getByTestId('polls.form.endsAt').fill(local(at(48)));
-    await page.getByTestId('polls.form.endsAt').blur();
+    await fillDateTime(page.getByTestId('polls.form.startsAt'), local(at(0.5)));
+    await fillDateTime(page.getByTestId('polls.form.endsAt'), local(at(48)));
     await page.getByTestId('polls.form.submit').scrollIntoViewIfNeeded();
     await page.getByTestId('polls.form.submit').click();
     await expect(page.getByTestId('polls.form.optionsError')).toHaveAttribute('data-code', 'duplicate');
@@ -57,7 +57,7 @@ test.describe('bot', () => {
     });
     expect(tooEarly.status()).toBe(400);
     expect(await tooEarly.text()).toContain('POLL_DATES_INVALID');
-    await page.getByTestId('polls.form.startsAt').fill(local(at(3)));
+    await fillDateTime(page.getByTestId('polls.form.startsAt'), local(at(3)));
     await expectNoSeriousViolations(page);
     await page.getByTestId('polls.form.submit').click();
     await expect(page).toHaveURL(/\/polls\/[0-9a-f-]{36}$/);

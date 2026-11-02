@@ -1,0 +1,39 @@
+# AU1 extension (decision 151): a shared gap list. Stores in one pickup_gap_group share the minimum gap and the gap
+# rule switch; a pending sign-up is also checked against the person's pickups in the other stores of the group.
+databaseChangeLog:
+  - changeSet:
+      id: 181-1
+      author: platform
+      comment: 'Shared gap list of pickup policies.'
+      changes:
+        - createTable:
+            tableName: pickup_gap_group
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_gap_group, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: minimum_gap_days, type: INT, constraints: {nullable: false}}
+  - changeSet:
+      id: 181-2
+      author: platform
+      comment: 'Gap list membership of a pickup policy (NULL = this store alone).'
+      changes:
+        - addColumn:
+            tableName: pickup_policy
+            columns:
+              - column: {name: gap_group_id, type: UUID}
+        - addForeignKeyConstraint:
+            baseTableName: pickup_policy
+            baseColumnNames: gap_group_id
+            constraintName: fk_pickup_policy_gap_group_id
+            referencedTableName: pickup_gap_group
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: pickup_policy
+            indexName: ix_pickup_policy_gap_group_id
+            columns:
+              - column: {name: gap_group_id}

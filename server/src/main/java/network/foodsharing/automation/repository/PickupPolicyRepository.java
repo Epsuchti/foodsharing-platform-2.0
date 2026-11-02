@@ -14,4 +14,7 @@ public interface PickupPolicyRepository extends JpaRepository<PickupPolicy, UUID
     List<PickupPolicy> findByStoreIdIn(Collection<UUID> storeIds);
 
     List<PickupPolicy> findByEnabledTrue();
+
+    /** The policies of a shared gap list (decision 151). */
+    List<PickupPolicy> findByGapGroupId(UUID gapGroupId);
 }

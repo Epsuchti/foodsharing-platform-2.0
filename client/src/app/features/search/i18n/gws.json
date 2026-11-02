@@ -9,6 +9,8 @@
   "search.global.searching": "Am Sueche…",
   "search.global.empty": "Nüüt gfunde für «{query}».",
   "search.global.count": "{count, plural, =0 {Kei Träffer} one {1 Träffer} other {# Träffer}}",
+  "search.rateLimited.title": "Z vill Suechaafrage",
+  "search.rateLimited.text": "Du hesch i churzer Ziit sehr oft gsuecht. {seconds, plural, =0 {Wart en Momänt und probier's dänn nomal.} one {Probier's i # Sekunde nomal.} other {Probier's i # Sekunde nomal.}}",
   "search.index.conversations": "Dini Unterhaltige",
   "search.index.regions": "Dini Bezirk",
   "search.index.groups": "Dini Gruppe",

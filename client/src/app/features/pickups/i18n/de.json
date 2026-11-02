@@ -31,7 +31,7 @@
   "pickups.tab.regularBadge": "regelmässig",
   "pickups.tab.edit": "Abholung bearbeiten",
   "pickups.tab.cancelled": "Abgesagt",
-  "pickups.tab.waiting": "Wartet auf Bestätigung",
+  "pickups.tab.waiting": "Unbestätigt",
   "pickups.tab.addExtraSlot": "Einen Zusatzplatz hinzufügen",
   "pickups.tab.extraSlotBy": "Zusatzplatz von {name}",
   "pickups.tab.extraSlotAdded": "Zusatzplatz hinzugefügt.",
@@ -101,5 +101,16 @@
   "pickups.reminders.title": "Abholerinnerungen",
   "pickups.reminders.text": "Eine Glocke und eine E-Mail 24 Stunden vor jeder deiner Abholungen.",
   "pickups.reminders.label": "An meine Abholungen erinnern",
-  "pickups.reminders.saved": "Erinnerungseinstellung gespeichert."
+  "pickups.reminders.saved": "Erinnerungseinstellung gespeichert.",
+  "pickups.tab.waitingMine": "Dein Platz ist noch unbestätigt",
+  "pickups.tab.summary.confirmed": "{confirmed} von {total} bestätigt",
+  "pickups.tab.summary.unconfirmed": "{count} unbestätigt",
+  "pickups.tab.confirmAll": "Alle {count} bestätigen",
+  "pickups.tab.confirmAllTitle": "Alle bestätigen?",
+  "pickups.tab.confirmAllText": "Für diese Abholung bestätigen: {names}.",
+  "pickups.tab.confirmedAll": "{count} Einträge bestätigt.",
+  "pickups.tab.range.pending": "Unbestätigt ({count})",
+  "pickups.tab.pendingEmpty": "Keine unbestätigten Einträge mehr.",
+  "pickups.tab.state.confirmed": "Bestätigt",
+  "pickups.tab.state.unconfirmed": "Unbestätigt"
 }

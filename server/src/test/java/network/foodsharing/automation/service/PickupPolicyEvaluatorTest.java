@@ -23,7 +23,7 @@ import network.foodsharing.automation.service.PickupPolicyEvaluator.LinkRule;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Reason;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.RegionInfo;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Signup;
-import network.foodsharing.automation.service.PickupPolicyEvaluator.Slot;
+import network.foodsharing.automation.service.PickupPolicyEvaluator.CleaningSlot;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Spec;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.UserInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +38,7 @@ class PickupPolicyEvaluatorTest {
     static final UUID STORE = UUID.randomUUID();
     static final UUID LINKED = UUID.randomUUID();
     static final UUID CLEANING = UUID.randomUUID();
+    static final UUID CLEANING_2 = UUID.randomUUID();
     static final UUID REGION = UUID.randomUUID();
     static final UUID USER = UUID.randomUUID();
     static final UUID OTHER = UUID.randomUUID();
@@ -166,6 +167,270 @@ class PickupPolicyEvaluatorTest {
                 .isEqualTo(2);
     }
 
+    // ---------------------------------------------------------------- gap with a shared store list (decision 151)
+
+    static final UUID CHAIN = UUID.randomUUID();
+    static final UUID CHAIN_2 = UUID.randomUUID();
+
+    Spec listed(int minGap, UUID... others) {
+        data.names.put(CHAIN, "Coop Stauffacher");
+        data.names.put(CHAIN_2, "Coop Wiedikon");
+        return grouped(true, minGap, minGap, others);
+    }
+
+    /** This store with its own gap (rule {@code ownOn}) and a list with the group gap (decision 152). */
+    Spec grouped(boolean ownOn, int ownGap, int groupGap, UUID... others) {
+        data.names.put(CHAIN, "Coop Stauffacher");
+        data.names.put(CHAIN_2, "Coop Wiedikon");
+        return new Spec(UUID.randomUUID(), STORE, true, false, ownOn, ownGap, false, false, false, Set.of(), List.of(),
+                List.of(others), others.length == 0 ? 0 : groupGap);
+    }
+
+    /** The person's own pending sign-up for {@code pickup} here, made at {@code signedUpAt}. */
+    void own(Instant pickup, Instant signedUpAt) {
+        data.signups.add(new Signup(STORE, USER, pickup, false, signedUpAt));
+    }
+
+    @Test
+    void mondayAndWednesdayAreOneDayApartSameAndNextDayZero() {
+        assertThat(PickupPolicyEvaluator.calendarGapDays(at("2026-11-09T19:00"), at("2026-11-11T19:00"), ZURICH))
+                .isEqualTo(1);
+        assertThat(PickupPolicyEvaluator.calendarGapDays(at("2026-11-09T08:00"), at("2026-11-09T19:00"), ZURICH))
+                .isZero();
+        assertThat(PickupPolicyEvaluator.calendarGapDays(at("2026-11-09T19:00"), at("2026-11-10T08:00"), ZURICH))
+                .isZero();
+    }
+
+    @Test
+    void confirmedPickupInAListedStoreDeclinesWithTheGroupText() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-09T19:00"), true, NOW.plusSeconds(60)));
+        Decision d = evaluator.evaluate(listed(2, CHAIN, CHAIN_2), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).isEqualTo("Du hast bereits am 09.11.2026 eine Abholung bei Coop "
+                + "Stauffacher. Zwischen zwei Abholungen bei Store GmbH, Coop Stauffacher und Coop Wiedikon müssen "
+                + "mindestens 2 Tage liegen; hier wären es nur 1 Tag.");
+    }
+
+    @Test
+    void earlierPendingSignupInAListedStoreBlocksALaterOneDoesNot() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW.minusSeconds(600));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), false, NOW.minusSeconds(900)));
+        assertThat(rules(evaluator.evaluate(listed(2, CHAIN), pickup, USER, data))).containsExactly(PolicyRule.GAP);
+        data.signups.removeIf(s -> s.storeId().equals(CHAIN));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), false, NOW.minusSeconds(300)));
+        assertThat(evaluator.evaluate(listed(2, CHAIN), pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void equalSignupTimesBlockBothSides() {
+        Instant signedUp = NOW.minusSeconds(600);
+        Instant here = at("2026-11-11T19:00");
+        Instant there = at("2026-11-10T19:00");
+        own(here, signedUp);
+        data.signups.add(new Signup(CHAIN, USER, there, false, signedUp));
+        assertThat(rules(evaluator.evaluate(listed(2, CHAIN), here, USER, data))).containsExactly(PolicyRule.GAP);
+        // seen from the other store of the list
+        Spec chain = new Spec(UUID.randomUUID(), CHAIN, true, false, true, 2, false, false, false, Set.of(),
+                List.of(), List.of(STORE), 2);
+        assertThat(rules(evaluator.evaluate(chain, there, USER, data))).containsExactly(PolicyRule.GAP);
+    }
+
+    @Test
+    void missingSignupTimeInAListedStoreBlocks() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW.minusSeconds(600));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-12T19:00"), false, null));
+        assertThat(rules(evaluator.evaluate(listed(2, CHAIN), pickup, USER, data))).containsExactly(PolicyRule.GAP);
+    }
+
+    @Test
+    void sameInstantInAListedStoreCounts() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, pickup, true, NOW));
+        Decision d = evaluator.evaluate(listed(1, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).contains("hier wären es nur 0 Tage");
+    }
+
+    @Test
+    void ownStoreStillCountsPendingAndConfirmedButNotTheSameTime() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW.minusSeconds(600));
+        // a later own sign-up still blocks (D3: no tie-break in this store)
+        own(at("2026-11-12T19:00"), NOW);
+        Decision d = evaluator.evaluate(listed(2, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).contains("am 12.11.2026 eine Abholung bei Store GmbH");
+    }
+
+    @Test
+    void pastAndNearPickupsInListedStoresAreIgnored() {
+        Instant pickup = at("2026-11-06T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-01T19:00"), true, NOW.minusSeconds(86_400 * 5)));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-04T19:00"), true, NOW.minusSeconds(60)));
+        assertThat(evaluator.evaluate(listed(3, CHAIN), pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void aListedStoreWithoutAutomationBlocksWithItsPickups() {
+        // CHAIN has no enabled policy (data.policies is empty): its pickups count all the same
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-13T19:00"), true, NOW));
+        assertThat(data.enabledPolicy(CHAIN)).isEmpty();
+        assertThat(rules(evaluator.evaluate(listed(2, CHAIN), pickup, USER, data))).containsExactly(PolicyRule.GAP);
+    }
+
+    @Test
+    void theFirstBlockingPickupByDateGivesTheText() {
+        Instant pickup = at("2026-11-12T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN_2, USER, at("2026-11-13T19:00"), true, NOW));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-11T08:00"), true, NOW));
+        Decision d = evaluator.evaluate(listed(2, CHAIN, CHAIN_2), pickup, USER, data);
+        assertThat(d.reasons().getFirst().text()).contains("am 11.11.2026 eine Abholung bei Coop Stauffacher");
+    }
+
+    @Test
+    void groupTextInEveryLanguage() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
+        for (String language : List.of("de", "en", "fr", "it", "gws")) {
+            data.locale = Locale.forLanguageTag(language);
+            String text = evaluator.evaluate(listed(2, CHAIN), pickup, USER, data).reasons().getFirst().text();
+            assertThat(text).as(language).contains("10.11.2026").contains("Coop Stauffacher").doesNotContain("{");
+        }
+        data.locale = Locale.forLanguageTag("en");
+        assertThat(evaluator.evaluate(listed(2, CHAIN), pickup, USER, data).reasons().getFirst().text())
+                .contains("Store GmbH and Coop Stauffacher");
+    }
+
+    // ---------------------------------------------------------------- own gap and group gap (decision 152)
+
+    static final String OWN_TEXT = "Zwischen den Abholungen liegt nur";
+    static final String GROUP_TEXT = "Zwischen zwei Abholungen bei";
+
+    @Test
+    void ownGapOnlyAppliesToThisStoreWhenTheGroupGapIsMet() {
+        // own 3 / group 1: an own pickup 1 day away fails the own check only
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-13T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).isEqualTo(
+                "Zwischen den Abholungen liegt nur 1 Tag Abstand; erforderlich sind mindestens 3 Tage.");
+        // a pickup in a listed store 1 day away meets the group gap of 1 and is not checked with the own gap
+        data.signups.removeIf(s -> s.storeId().equals(STORE) && !s.pickupAt().equals(pickup));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-13T19:00"), true, NOW));
+        assertThat(evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void groupGapOnlyChecksWithTheOwnRuleOff() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
+        Decision other = evaluator.evaluate(grouped(false, 0, 2, CHAIN), pickup, USER, data);
+        assertThat(rules(other)).containsExactly(PolicyRule.GAP);
+        assertThat(other.reasons().getFirst().text()).contains("am 10.11.2026 eine Abholung bei Coop Stauffacher")
+                .contains(GROUP_TEXT).doesNotContain(OWN_TEXT);
+        // an own-store pickup is checked by the group gap as well
+        data.signups.removeIf(s -> s.storeId().equals(CHAIN));
+        own(at("2026-11-12T19:00"), NOW);
+        Decision self = evaluator.evaluate(grouped(false, 0, 2, CHAIN), pickup, USER, data);
+        assertThat(rules(self)).containsExactly(PolicyRule.GAP);
+        assertThat(self.reasons().getFirst().text()).contains("am 12.11.2026 eine Abholung bei Store GmbH")
+                .doesNotContain(OWN_TEXT);
+    }
+
+    @Test
+    void groupGapLargerThanTheOwnGapRejectsWhatTheOwnGapAllows() {
+        // own 1 / group 3: an own pickup 1 day away passes the own check, fails the group check
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-13T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 1, 3, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).startsWith("Du hast bereits am 13.11.2026").contains("mindestens 3 Tage")
+                .doesNotContain(OWN_TEXT);
+        // the same pickup without the list passes
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 1, false, false, false, Set.of(),
+                List.of());
+        assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void bothFailWithOwnGapAtMostTheGroupGapGiveOnlyTheGroupSentence() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-12T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 2, 3, CHAIN), pickup, USER, data);
+        assertThat(d.reasons()).hasSize(1);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).contains(GROUP_TEXT).doesNotContain(OWN_TEXT).doesNotContain("\n");
+    }
+
+    @Test
+    void bothFailWithOwnGapAboveTheGroupGapGiveBothSentencesInOneReason() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-12T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER, data);
+        assertThat(d.reasons()).hasSize(1);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        String[] lines = d.reasons().getFirst().text().split("\n");
+        assertThat(lines).hasSize(2);
+        assertThat(lines[0]).isEqualTo(
+                "Zwischen den Abholungen liegt nur 0 Tage Abstand; erforderlich sind mindestens 3 Tage.");
+        assertThat(lines[1]).startsWith("Du hast bereits am 12.11.2026").contains("mindestens 1 Tag liegen");
+    }
+
+    @Test
+    void aGroupWithoutLiveMembersRunsTheOwnCheckOnly() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-14T19:00"), NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-12T19:00"), true, NOW));
+        // the group row says 5, but no other live store is left: only the own gap of 2 applies
+        Spec lonely = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+                List.of(), List.of(), 5);
+        assertThat(evaluator.evaluate(lonely, pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void anEmptyListBehavesAsBeforeAndIgnoresOtherStores() {
+        Instant pickup = at("2026-11-11T19:00");
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+                List.of(), List.of(), 0);
+        assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
+        data.signups.add(new Signup(STORE, USER, at("2026-11-12T19:00"), true, NOW));
+        Decision d = evaluator.evaluate(alone, pickup, USER, data);
+        assertThat(d.reasons().getFirst().text()).isEqualTo(
+                "Zwischen den Abholungen liegt nur 0 Tage Abstand; erforderlich sind mindestens 2 Tage.");
+    }
+
+    @Test
+    void calendarDaysOfTheListUseTheStoresZone() {
+        // New York: the pickups are on the 11th and the 12th (0 days in between); in Zurich on the 11th and the 13th
+        data.zone = ZoneId.of("America/New_York");
+        Instant pickup = Instant.parse("2026-11-13T04:00:00Z");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, Instant.parse("2026-11-11T20:00:00Z"), true, NOW));
+        Decision d = evaluator.evaluate(listed(1, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).contains("am 11.11.2026").contains("nur 0 Tage");
+        data.zone = ZURICH;
+        assertThat(evaluator.evaluate(listed(1, CHAIN), pickup, USER, data).allowed()).isTrue();
+    }
+
     // ---------------------------------------------------------------- experience
 
     @Test
@@ -199,16 +464,17 @@ class PickupPolicyEvaluatorTest {
 
     void freeCleaningSlots(int count) {
         for (int i = 0; i < count; i++) {
-            data.slots.add(new Slot(at("2026-11-10T18:00").plus(Duration.ofDays(i)), 0));
+            data.cleaningSlots.add(new CleaningSlot(at("2026-11-10T18:00").plus(Duration.ofDays(i)), CLEANING,
+                    "Fairteiler Wiedikon"));
         }
-        data.slots.add(new Slot(at("2026-11-09T18:00"), 1));
     }
 
     @Test
-    void noCleaningStoreDeclines() {
-        data.cleaningStore = null;
+    void noCleaningFairteilerDeclines() {
+        data.cleaningFsps = List.of();
         Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
-        assertThat(rules(d)).containsExactly(PolicyRule.NO_CLEANING_STORE);
+        assertThat(rules(d)).containsExactly(PolicyRule.NO_CLEANING_FAIRTEILER);
+        assertThat(d.reasons().getFirst().text()).contains("Zürich");
         assertThat(d.allowed()).isFalse();
     }
 
@@ -225,10 +491,51 @@ class PickupPolicyEvaluatorTest {
                 .containsExactly(PolicyRule.ALL_RULES_PASSED);
     }
 
+    /** D5: an upcoming cleaning sign-up counts while it is still unconfirmed. */
     @Test
     void plannedCleaningPasses() {
         data.signups.add(new Signup(CLEANING, USER, at("2026-11-20T10:00"), false, NOW));
         assertThat(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void cleaningAtAnyOfTheRegionsFairteilerCounts() {
+        data.cleaningFsps = List.of(CLEANING, CLEANING_2);
+        data.signups.add(new Signup(CLEANING_2, USER, at("2026-05-01T10:00"), true, NOW));
+        freeCleaningSlots(5);
+        assertThat(rules(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data)))
+                .containsExactly(PolicyRule.ALL_RULES_PASSED);
+    }
+
+    @Test
+    void cleaningAtAFairteilerOutsideTheRegionListDoesNotCount() {
+        data.signups.add(new Signup(CLEANING_2, USER, at("2026-05-01T10:00"), true, NOW));
+        freeCleaningSlots(5);
+        assertThat(rules(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data)))
+                .containsExactly(PolicyRule.CLEANING_REQUIRED);
+    }
+
+    /** D6: the next three free shifts across all cleaning Fairteiler; the link goes to the earliest one's tab. */
+    @Test
+    void declineListsFreeShiftsAcrossFairteilerAndLinksTheEarliest() {
+        data.cleaningFsps = List.of(CLEANING, CLEANING_2);
+        data.cleaningSlots.add(new CleaningSlot(at("2026-11-09T18:00"), CLEANING_2, "Fairteiler Langstrasse"));
+        freeCleaningSlots(4);
+        Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.CLEANING_REQUIRED);
+        String text = d.reasons().getFirst().text();
+        assertThat(text).contains("09.11.2026 18:00 – Fairteiler Langstrasse\n10.11.2026 18:00 – Fairteiler Wiedikon"
+                + "\n11.11.2026 18:00 – Fairteiler Wiedikon").doesNotContain("12.11.2026 18:00")
+                .contains("/food-share-points/" + CLEANING_2 + "/cleaning");
+    }
+
+    /** D6: without a free shift the link goes to the first configured Fairteiler. */
+    @Test
+    void withoutFreeShiftsTheLinkGoesToTheFirstFairteiler() {
+        data.cleaningFsps = List.of(CLEANING_2, CLEANING);
+        Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.CLEANING_REMINDER);
+        assertThat(d.userMessage()).contains("/food-share-points/" + CLEANING_2 + "/cleaning");
     }
 
     @Test
@@ -239,7 +546,8 @@ class PickupPolicyEvaluatorTest {
         assertThat(d.allowed()).isTrue();
         assertThat(rules(d)).containsExactly(PolicyRule.CLEANING_REMINDER);
         assertThat(d.userMessage()).startsWith("Hey Sarah").contains("01.06.2025").contains("nur noch 3 freie")
-                .contains("10.11.2026 18:00").contains("/stores/" + CLEANING)
+                .contains("10.11.2026 18:00 – Fairteiler Wiedikon")
+                .contains("/food-share-points/" + CLEANING + "/cleaning")
                 .endsWith("wende dich an die Betriebsverantwortlichen.");
     }
 
@@ -422,14 +730,16 @@ class PickupPolicyEvaluatorTest {
     static class FakeData implements PickupPolicyEvaluator.Data {
 
         final List<Signup> signups = new ArrayList<>();
-        final List<Slot> slots = new ArrayList<>();
+        final List<CleaningSlot> cleaningSlots = new ArrayList<>();
         final Map<LocalDate, String> holidays = new HashMap<>();
         final Map<UUID, Spec> policies = new HashMap<>();
         final Map<UUID, String> names = new HashMap<>(Map.of(STORE, "Store GmbH", LINKED, "Linked AG", CLEANING,
                 "Fairteiler"));
         boolean holidayDown;
         boolean exempt;
-        UUID cleaningStore = CLEANING;
+        ZoneId zone = ZURICH;
+        Locale locale = Locale.GERMAN;
+        List<UUID> cleaningFsps = List.of(CLEANING);
         Instant verifiedAt = Instant.parse("2020-01-01T00:00:00Z");
         Duration outage = Duration.ZERO;
 
@@ -440,7 +750,7 @@ class PickupPolicyEvaluatorTest {
 
         @Override
         public ZoneId zone(UUID storeId) {
-            return ZURICH;
+            return zone;
         }
 
         @Override
@@ -455,12 +765,12 @@ class PickupPolicyEvaluatorTest {
 
         @Override
         public RegionInfo region(UUID regionId) {
-            return new RegionInfo(REGION, "Zürich", cleaningStore);
+            return new RegionInfo(REGION, "Zürich", cleaningFsps);
         }
 
         @Override
         public UserInfo user(UUID userId) {
-            return new UserInfo(userId, "Sarah", verifiedAt, Locale.GERMAN);
+            return new UserInfo(userId, "Sarah", verifiedAt, locale);
         }
 
         @Override
@@ -484,8 +794,21 @@ class PickupPolicyEvaluatorTest {
         }
 
         @Override
-        public List<Slot> slots(UUID storeId, Instant from, Instant to) {
-            return storeId.equals(CLEANING) ? slots : List.of();
+        public Optional<Instant> lastConfirmedCleaning(Collection<UUID> fspIds, UUID userId, Instant before) {
+            return signups.stream().filter(s -> fspIds.contains(s.storeId()) && s.userId().equals(userId)
+                    && s.confirmed() && s.pickupAt().isBefore(before)).map(Signup::pickupAt)
+                    .max(Instant::compareTo);
+        }
+
+        @Override
+        public List<Instant> cleaningSignupsOfUser(UUID userId, Collection<UUID> fspIds, Instant from, Instant to) {
+            return signupsOfUser(userId, fspIds, from, to).stream().map(Signup::pickupAt).toList();
+        }
+
+        @Override
+        public List<CleaningSlot> freeCleaningSlots(Collection<UUID> fspIds, Instant from, Instant to) {
+            return cleaningSlots.stream().filter(s -> fspIds.contains(s.fspId()) && !s.at().isBefore(from)
+                    && s.at().isBefore(to)).sorted(java.util.Comparator.comparing(CleaningSlot::at)).toList();
         }
 
         @Override
@@ -512,8 +835,8 @@ class PickupPolicyEvaluatorTest {
         }
 
         @Override
-        public String storeLink(UUID storeId) {
-            return "http://localhost:4200/stores/" + storeId;
+        public String cleaningLink(UUID fspId) {
+            return "http://localhost:4200/food-share-points/" + fspId + "/cleaning";
         }
 
         @Override

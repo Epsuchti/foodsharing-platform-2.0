@@ -1,5 +1,6 @@
 import { S01_THURSDAY, expect, test, zurichPickupAt } from '../../fixtures';
 import { openPickups, pickupRow } from './_pickups';
+import { fillDate, fillTime } from '../../support/date-inputs';
 
 /** PU2 one-time pickups. Seed: S-01 (manager bieb), Thursday 2026-11-05 19:00 has 3 slots, 2 taken. */
 
@@ -9,8 +10,8 @@ test('PU2 add one-time pickup, change slots and description, cancel with zero sl
   const at = zurichPickupAt(8, '10:00');
   await openPickups(page, 'S-01');
   await page.getByTestId('stores.pickups.add').click();
-  await page.getByTestId('stores.pickups.edit.date').fill('2026-11-10');
-  await page.getByTestId('stores.pickups.edit.time').fill('10:00');
+  await fillDate(page.getByTestId('stores.pickups.edit.date'), '2026-11-10');
+  await fillTime(page.getByTestId('stores.pickups.edit.time'), '10:00');
   await page.getByTestId('stores.pickups.edit.description').fill('Sonderabholung Inventur');
   await page.getByTestId('stores.pickups.edit.save').click();
   const row = pickupRow(page, at);

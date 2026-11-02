@@ -26,9 +26,8 @@ class BookingRulesTest {
     private static final UUID GUIDE_B = UUID.randomUUID();
     private static final UUID GUIDE_C = UUID.randomUUID();
     private static final Booker OK = new Booker(true, true, false);
-    private static final IntroPickupSettings STRICT = new IntroPickupSettings(3, true, true, true, Set.of("ONLINE"),
-            null);
-    private static final IntroPickupSettings LOOSE = new IntroPickupSettings(3, false, false, false, Set.of(), null);
+    private static final IntroPickupSettings STRICT = new IntroPickupSettings(3, true, true, true, Set.of("ONLINE"));
+    private static final IntroPickupSettings LOOSE = new IntroPickupSettings(3, false, false, false, Set.of());
 
     private static IntroPickup pickup(IntroPickupCategory category, UUID guide, boolean visit, Integer minimum) {
         IntroPickup pickup = new IntroPickup();

@@ -121,6 +121,8 @@ tags:
     description: Food baskets.
   - name: food-share-points
     description: Food share points (Fairteiler).
+  - name: fsp-cleaning
+    description: Fairteiler cleaning shifts and the cleaning Fairteiler of a region (FS2).
   - name: map
     description: Map layers for logged-in users.
   - name: public-map
@@ -529,9 +531,13 @@ paths:
     $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1log'
   /api/stores/{storeId}/statistics:
     $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics'
+  /api/stores/{storeId}/statistics/members:
+    $ref: './paths/stores.yaml#/~1api~1stores~1{storeId}~1statistics~1members'
   # --- store-team ---
   /api/stores/{storeId}/team:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team'
+  /api/stores/{storeId}/team/members:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1team~1members'
   /api/stores/{storeId}/applications:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications'
   /api/stores/{storeId}/applications/me:
@@ -669,6 +675,8 @@ paths:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation'
   /api/stores/{storeId}/automation/pickup-policy:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy'
+  /api/stores/{storeId}/automation/gap-candidates:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1gap-candidates'
   /api/stores/{storeId}/automation/pickup-policy/run:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy~1run'
   /api/stores/{storeId}/automation/pickup-policy/preview:
@@ -737,6 +745,8 @@ paths:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}'
   /api/conversations/{conversationId}/messages:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages'
+  /api/conversations/{conversationId}/messages/{messageId}:
+    $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1messages~1{messageId}'
   /api/conversations/{conversationId}/read:
     $ref: './paths/messaging.yaml#/~1api~1conversations~1{conversationId}~1read'
   /api/conversations/{conversationId}/members/{userId}:
@@ -963,6 +973,23 @@ paths:
     $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall'
   /api/food-share-points/{fspId}/wall/{postId}:
     $ref: './paths/food-share-points.yaml#/~1api~1food-share-points~1{fspId}~1wall~1{postId}'
+  # --- fsp-cleaning (FS2) ---
+  /api/food-share-points/{fspId}/cleaning/regular-shifts:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1regular-shifts'
+  /api/food-share-points/{fspId}/cleaning/shifts:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}~1signups'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups/{userId}:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}~1signups~1{userId}'
+  /api/food-share-points/{fspId}/cleaning/shifts/{shiftAt}/signups/{userId}/confirm:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1shifts~1{shiftAt}~1signups~1{userId}~1confirm'
+  /api/food-share-points/{fspId}/cleaning/team:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1food-share-points~1{fspId}~1cleaning~1team'
+  /api/regions/{regionId}/cleaning-food-share-points:
+    $ref: './paths/fsp-cleaning.yaml#/~1api~1regions~1{regionId}~1cleaning-food-share-points'
   # --- map (M6) ---
   /api/map/markers/stores:
     $ref: './paths/map.yaml#/~1api~1map~1markers~1stores'
@@ -1035,6 +1062,10 @@ paths:
     $ref: './paths/admin-settings.yaml#/~1api~1admin~1ip-blocks'
   /api/admin/ip-blocks/{blockId}:
     $ref: './paths/admin-settings.yaml#/~1api~1admin~1ip-blocks~1{blockId}'
+  /api/admin/rate-limit-blocks:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1rate-limit-blocks'
+  /api/admin/rate-limit-blocks/{blockId}:
+    $ref: './paths/admin-settings.yaml#/~1api~1admin~1rate-limit-blocks~1{blockId}'
   /api/admin/donations:
     $ref: './paths/admin-settings.yaml#/~1api~1admin~1donations'
   # --- public-settings (M6) ---
@@ -1122,6 +1153,8 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1search~1reindex'
   /api/dev/statistics/aggregate:
     $ref: './paths/dev.yaml#/~1api~1dev~1statistics~1aggregate'
+  /api/dev/rate-limit-blocks:
+    $ref: './paths/dev.yaml#/~1api~1dev~1rate-limit-blocks'
   /api/dev/oauth/last-code:
     $ref: './paths/dev.yaml#/~1api~1dev~1oauth~1last-code'
   # --- admin-admins (AD1) ---

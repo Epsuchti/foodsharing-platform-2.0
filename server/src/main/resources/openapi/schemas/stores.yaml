@@ -572,13 +572,65 @@ StoreStatisticsMonth:
 
 StoreMemberPickups:
   type: object
-  required: [user, pickups]
+  required: [user, pickups, status, isManager]
   properties:
     user:
       $ref: './users.yaml#/UserSummary'
     pickups:
       type: integer
       format: int32
+    status:
+      $ref: './stores.yaml#/StatisticsPersonStatus'
+    isManager:
+      type: boolean
+    lastPickupAt:
+      description: 'Last pickup within the range.'
+      type: string
+      format: date-time
+
+StatisticsPersonStatus:
+  description: 'MEMBER or JUMPER of the team today; FORMER = picked up in the range but no longer in the team.'
+  type: string
+  enum: [MEMBER, JUMPER, FORMER]
+
+StatisticsMemberStatus:
+  description: 'Filter of the per-member statistics; ALL includes former members, MANAGER = members with isManager.'
+  type: string
+  enum: [ALL, MANAGER, MEMBER, JUMPER, FORMER]
+  default: ALL
+
+StoreMemberPickupsPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreMemberPickups'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+TeamListStatus:
+  description: 'Filter of the team list; MEMBER includes managers, MANAGER = members with isManager.'
+  type: string
+  enum: [ALL, MANAGER, MEMBER, JUMPER]
+  default: ALL
+
+TeamSort:
+  description: 'NAME: managers first, then name. PICKUP_COUNT and LAST_PICKUP descending, no pickup last. Ties: name, then user id.'
+  type: string
+  enum: [NAME, PICKUP_COUNT, LAST_PICKUP]
+
+TeamMemberPage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './stores.yaml#/TeamMember'
+    page:
+      $ref: './common.yaml#/PageMeta'
 
 StoreStatistics:
   type: object
@@ -596,11 +648,6 @@ StoreStatistics:
       type: array
       items:
         $ref: './stores.yaml#/StoreStatisticsMonth'
-    perMember:
-      description: 'Only with mayEditStore'
-      type: array
-      items:
-        $ref: './stores.yaml#/StoreMemberPickups'
 
 TeamMember:
   type: object
@@ -664,17 +711,9 @@ StoreInvitation:
       format: date-time
 
 StoreTeam:
+  description: 'Applications and invitations; the members and jumpers are paged in listStoreTeamMembers.'
   type: object
-  required: [members, jumpers]
   properties:
-    members:
-      type: array
-      items:
-        $ref: './stores.yaml#/TeamMember'
-    jumpers:
-      type: array
-      items:
-        $ref: './stores.yaml#/TeamMember'
     applications:
       description: 'Only with mayEditTeam'
       type: array

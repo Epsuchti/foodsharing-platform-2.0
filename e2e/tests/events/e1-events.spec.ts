@@ -1,5 +1,6 @@
 import { expect, expectDataState, expectErrorState, expectNoSeriousViolations, injectApiError, test } from '../../fixtures';
 import { event } from './event-helpers';
+import { fillDateTime } from '../../support/date-inputs';
 
 /** E1 events (A37b): bot is a member/ambassador of zuerich-stadt; profile has no region. Seed clock 2026-11-02. */
 test.describe('bot', () => {
@@ -19,10 +20,10 @@ test.describe('bot', () => {
     await expect(page.getByTestId('events.form.error.name')).toBeVisible();
     await expect(page.getByTestId('events.form.error.location')).toBeVisible();
     await page.getByTestId('events.form.name').fill('Lagerräumung');
-    await page.getByTestId('events.form.startsAt').fill('2026-11-20T18:00');
-    await page.getByTestId('events.form.endsAt').fill('2026-11-20T17:00');
+    await fillDateTime(page.getByTestId('events.form.startsAt'), '2026-11-20T18:00');
+    await fillDateTime(page.getByTestId('events.form.endsAt'), '2026-11-20T17:00');
     await expect(page.getByTestId('events.form.error.endsAt')).toBeVisible();
-    await page.getByTestId('events.form.endsAt').fill('2026-11-20T20:00');
+    await fillDateTime(page.getByTestId('events.form.endsAt'), '2026-11-20T20:00');
     await page.getByTestId('events.form.locationName').fill('Lager Altstetten');
     await page.getByTestId('events.form.zip').fill('8048');
     await page.getByTestId('events.form.city').fill('Zürich');
@@ -31,6 +32,10 @@ test.describe('bot', () => {
     await submit.click();
     await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
     await expect(page.getByTestId('events.event.location')).toContainText('Lager Altstetten');
+    // a stray space before the comma would come from the flex gap between name and address
+    await expect(page.getByTestId('events.event.location')).not.toContainText(/\s,/);
+    // the form's start and end are on one day: the date is named once ("… 18:00 – 20:00")
+    await expect(page.getByTestId('events.event.when')).toHaveText(/\d{2}:\d{2}\s+–\s+\d{2}:\d{2}\s*$/);
     await expect(page.getByTestId('events.event.accepted')).toContainText(me.displayName);
 
     // edit keeps values and saves
@@ -48,8 +53,8 @@ test.describe('bot', () => {
     await page.getByTestId('events.form.type.ONLINE').click();
     await expect(page.getByTestId('events.form.locationName')).toHaveCount(0);
     await page.getByTestId('events.form.name').fill('Online-Austausch');
-    await page.getByTestId('events.form.startsAt').fill('2026-11-21T19:00');
-    await page.getByTestId('events.form.endsAt').fill('2026-11-21T20:00');
+    await fillDateTime(page.getByTestId('events.form.startsAt'), '2026-11-21T19:00');
+    await fillDateTime(page.getByTestId('events.form.endsAt'), '2026-11-21T20:00');
     await page.getByTestId('events.form.link').fill('http://meet.example.org/fs');
     await submit.click();
     await expect(page.getByTestId('events.form.error.onlineLink')).toBeVisible();
@@ -68,6 +73,22 @@ test.describe('bot', () => {
     await injection.remove();
     await retry.click();
     await expectDataState(page, 'events.list.state', 'success');
+  });
+
+  test('E1 offline event offers directions to its place, online event does not @E1', async ({ page }) => {
+    // seed event 01 (OFFLINE) is at Fairteiler Wiedikon, 47.3721 / 8.5172; event 02 is ONLINE
+    await page.goto(`/events/${event(1)}`);
+    await expectDataState(page, 'events.event.state', 'success');
+    await page.getByTestId('events.event.navigate').click();
+    await expect(page.getByTestId('events.event.navigate.google')).toHaveAttribute('href', /destination=47\.3721,8\.5172/);
+    await expect(page.getByTestId('events.event.navigate.apple')).toHaveAttribute('href', /daddr=47\.3721,8\.5172&q=Fairteiler/);
+    await expectNoSeriousViolations(page);
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('events.event.navigate')).toBeFocused();
+    await page.goto(`/events/${event(2)}`);
+    await expectDataState(page, 'events.event.state', 'success');
+    await expect(page.getByTestId('events.event.onlineLink')).toBeVisible();
+    await expect(page.getByTestId('events.event.navigate')).toHaveCount(0);
   });
 });
 

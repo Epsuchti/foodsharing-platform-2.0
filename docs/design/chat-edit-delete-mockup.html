@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat: Nachrichten bearbeiten und löschen – Mockup</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4; --fs-on-danger: #ffffff;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-text: #6e4108;
+  --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04);
+  --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08); --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-surface-raised: #ffffff; --fs-target-sm: 2.25rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3); --fs-on-danger: #1a201a;
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-text: #f6d79b;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  --fs-surface-raised: #262e26;
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { min-height: 100vh; background: var(--fs-bg); color: var(--fs-text); font: 1rem/1.5 var(--fs-font); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl { position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm); }
+.ctl strong { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ctl .reset { margin-left: auto; padding: 0.3rem 0.7rem; border: 1px solid var(--fs-border); border-radius: 999px; background: transparent; }
+.hint { max-width: 60rem; margin: 0.75rem auto 0; padding: 0 1rem; color: var(--fs-text-muted); font-size: 0.82rem; }
+.hint code { font-size: 0.78rem; }
+
+/* ---- frame ---- */
+.frame { position: relative; margin: 1rem auto 2rem; width: min(100% - 2rem, 56rem); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); background: var(--fs-surface); box-shadow: var(--fs-shadow-md); overflow: hidden; transition: width 200ms ease; }
+.frame[data-viewport="phone"] { width: 412px; }
+.frame__size { position: absolute; top: 0.4rem; left: 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.6; pointer-events: none; }
+.view { display: flex; flex-direction: column; padding: 0.75rem 1rem 1rem; }
+
+/* ---- the real component's styles (conversation-view.component.ts) ---- */
+.head { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.25rem 0.75rem; border-bottom: 1px solid var(--fs-border); }
+.head__icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--fs-surface-muted); color: var(--fs-text-muted); }
+.head__text { display: grid; flex: 1; min-width: 0; }
+.head__name { overflow: hidden; margin: 0; font-size: 1.1rem; text-overflow: ellipsis; white-space: nowrap; }
+.head__meta { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--fs-text-muted); font-size: 0.85rem; }
+.ibtn { display: inline-grid; place-items: center; width: var(--fs-target-sm); height: var(--fs-target-sm); border: 0; border-radius: 50%; background: transparent; color: var(--fs-text-muted); }
+.ibtn:hover { background: var(--fs-surface-muted); color: var(--fs-text); }
+.ibtn--danger { color: var(--fs-danger); }
+.ibtn--danger:hover { background: var(--fs-danger-soft); color: var(--fs-danger); }
+.ibtn--primary { background: var(--fs-primary); color: var(--fs-on-primary); border-radius: var(--fs-radius-sm); }
+.ibtn--primary:hover { background: var(--fs-primary-strong); color: var(--fs-on-primary); }
+.ibtn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.ibtn--primary:disabled:hover { background: var(--fs-primary); }
+
+.list { display: flex; flex-direction: column; gap: 0.4rem; min-height: 16rem; max-height: min(65vh, 40rem); padding: 0.75rem 0.25rem; overflow-y: auto; }
+.older { display: flex; justify-content: center; }
+.older button { display: inline-flex; align-items: center; gap: 0.3rem; min-height: var(--fs-target-sm); padding: 0 0.6rem; border: 0; border-radius: var(--fs-radius-sm); background: transparent; color: var(--fs-primary-strong); font-size: 0.85rem; font-weight: 600; }
+.day { align-self: center; margin: 0.5rem 0 0.25rem; padding: 0.1rem 0.75rem; border-radius: 999px; background: var(--fs-surface-muted); color: var(--fs-text-muted); font-size: 0.8rem; }
+.msg { position: relative; display: flex; align-items: flex-end; gap: 0.4rem; max-width: min(85%, 36rem); }
+.msg--own { align-self: flex-end; }
+.msg--system { align-self: center; max-width: 90%; }
+.avatar { display: grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-size: 0.7rem; font-weight: 700; }
+.bubble { display: grid; gap: 0.15rem; min-width: 0; padding: 0.45rem 0.7rem; border: 1px solid var(--fs-border); border-radius: 0.9rem 0.9rem 0.9rem 0.25rem; background: var(--fs-surface); overflow-wrap: anywhere; }
+.msg--own .bubble { border-color: transparent; border-radius: 0.9rem 0.9rem 0.25rem 0.9rem; background: var(--fs-primary-soft); }
+.msg--system .bubble { border-style: dashed; border-radius: 0.6rem; background: transparent; color: var(--fs-text-muted); font-size: 0.9rem; }
+.msg--pending .bubble { opacity: 0.75; }
+.bubble__sender { color: var(--fs-primary-strong); font-size: 0.8rem; font-weight: 700; }
+.bubble__body { white-space: pre-wrap; }
+.bubble__foot { display: flex; justify-content: flex-end; align-items: center; gap: 0.3rem; color: var(--fs-text-muted); font-size: 0.75rem; }
+.bubble__foot .i { width: 0.85em; height: 0.85em; }
+
+/* ---- NEW: edited marker ---- */
+.bubble__edited { cursor: help; }
+.bubble__edited::before { content: '·'; margin-right: 0.3rem; }
+
+/* ---- NEW: deleted placeholder ---- */
+.msg--deleted .bubble, .msg--own.msg--deleted .bubble { border: 1px dashed var(--fs-border-strong); background: transparent; }
+.bubble__deleted { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--fs-text-muted); font-size: 0.9rem; font-style: italic; }
+.bubble__deleted .i { width: 0.95em; height: 0.95em; }
+
+/* ---- NEW: message menu trigger ---- */
+.msg__menu { opacity: 0; transition: opacity 120ms ease; }
+.msg:hover .msg__menu, .msg:focus-within .msg__menu, .msg__menu[aria-expanded="true"] { opacity: 1; }
+:root.touch .msg__menu { opacity: 1; }
+.msg--own .msg__menu { order: -1; }
+.msg--editing .bubble { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
+
+/* ---- NEW: popover menu ---- */
+.menu { position: absolute; z-index: 50; bottom: 100%; min-width: 13rem; margin-bottom: 0.25rem; padding: 0.3rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); background: var(--fs-surface-raised); box-shadow: var(--fs-shadow-md); }
+.msg--own .menu { right: 0; }
+.msg:not(.msg--own) .menu { left: 2.1rem; }
+.menu[hidden] { display: none; }
+.menu button { display: flex; align-items: center; gap: 0.6rem; width: 100%; min-height: var(--fs-target-sm); padding: 0.3rem 0.6rem; border: 0; border-radius: var(--fs-radius-sm); background: transparent; text-align: left; }
+.menu button:hover, .menu button:focus-visible { background: var(--fs-surface-muted); }
+.menu button.danger { color: var(--fs-danger); }
+.menu .i { width: 1.05em; height: 1.05em; }
+.menu__hint { display: block; padding: 0 0.6rem 0.3rem 2.25rem; color: var(--fs-text-muted); font-size: 0.78rem; line-height: 1.3; }
+
+/* ---- composer ---- */
+.composer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem; align-items: end; padding-top: 0.5rem; border-top: 1px solid var(--fs-border); }
+.composer textarea { width: 100%; min-height: 2.5rem; max-height: 12rem; padding: 0.5rem 0.75rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); color: var(--fs-text); font: inherit; resize: none; }
+.composer textarea:focus { outline: 2px solid var(--fs-primary); outline-offset: -1px; border-color: transparent; }
+
+/* ---- NEW: edit banner above the textarea ---- */
+.composer__edit { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.3rem 0.4rem 0.6rem; border-left: 3px solid var(--fs-primary); border-radius: var(--fs-radius-sm); background: var(--fs-primary-soft); }
+.composer__edit[hidden] { display: none; }
+.composer__edit .i { color: var(--fs-primary-strong); }
+.composer__editText { display: grid; flex: 1; min-width: 0; }
+.composer__editTitle { color: var(--fs-primary-strong); font-size: 0.85rem; font-weight: 650; }
+.composer__editQuote { overflow: hidden; color: var(--fs-text-muted); font-size: 0.8rem; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- dialogs (Optimus p-dialog look) ---- */
+.scrim { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 1rem; background: rgb(17 22 17 / 0.4); }
+.scrim[hidden] { display: none; }
+.dialog { width: min(28rem, calc(100vw - 2rem)); padding: 1.25rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); box-shadow: var(--fs-shadow-lg); }
+.dialog--wide { width: min(36rem, 94vw); }
+.dialog h2 { margin: 0 0 0.75rem; font-size: 1.15rem; }
+.dialog p { margin: 0 0 1rem; color: var(--fs-text-muted); }
+.dialog blockquote { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-left: 3px solid var(--fs-border-strong); border-radius: 0 var(--fs-radius-sm) var(--fs-radius-sm) 0; background: var(--fs-surface-muted); font-size: 0.9rem; }
+.dialog label { display: block; margin-bottom: 0.35rem; font-weight: 650; }
+.dialog textarea { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); color: var(--fs-text); font: inherit; resize: vertical; }
+.dialog textarea[aria-invalid="true"] { border-color: var(--fs-danger); }
+.dialog small { display: block; margin-top: 0.35rem; color: var(--fs-text-muted); font-size: 0.82rem; }
+.dialog small.err { color: var(--fs-danger); font-weight: 600; }
+.actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.btn { min-height: var(--fs-target-sm); padding: 0 1rem; border: 0; border-radius: var(--fs-radius-sm); font-weight: 600; }
+.btn--text { background: transparent; color: var(--fs-text-muted); }
+.btn--text:hover { background: var(--fs-surface-muted); color: var(--fs-text); }
+.btn--danger { background: var(--fs-danger); color: var(--fs-on-danger); }
+.btn--danger:hover { filter: brightness(0.92); }
+
+/* ---- toast ---- */
+.toast { position: fixed; right: 1rem; bottom: 1rem; z-index: 400; padding: 0.6rem 0.9rem; border-left: 4px solid var(--fs-primary); border-radius: var(--fs-radius-sm); background: var(--fs-surface-raised); box-shadow: var(--fs-shadow-md); font-size: 0.9rem; }
+.toast[hidden] { display: none; }
+
+/* ---- "Heute" view: hide everything new ---- */
+.frame[data-today="1"] .msg__menu, .frame[data-today="1"] .bubble__edited { display: none; }
+</style>
+</head>
+<body>
+
+<div class="ctl" aria-label="Mockup-Steuerung">
+  <fieldset><strong>Ansicht</strong>
+    <label><input type="radio" name="today" value="0" checked> Vorschlag</label>
+    <label><input type="radio" name="today" value="1"> Heute</label>
+  </fieldset>
+  <fieldset><strong>Rolle</strong>
+    <label><input type="radio" name="role" value="sarah" checked> Sarah Müller (Foodsaverin)</label>
+    <label><input type="radio" name="role" value="nina"> Nina Schneider (Betriebsverantwortliche)</label>
+    <label><input type="radio" name="role" value="jonas"> Jonas Weber (Mitglied)</label>
+  </fieldset>
+  <fieldset><strong>Theme</strong>
+    <label><input type="radio" name="theme" value="light" checked> Hell</label>
+    <label><input type="radio" name="theme" value="dark"> Dunkel</label>
+  </fieldset>
+  <fieldset><strong>Breite</strong>
+    <label><input type="radio" name="viewport" value="desktop" checked> Desktop</label>
+    <label><input type="radio" name="viewport" value="phone"> Phone 412 px</label>
+  </fieldset>
+  <button type="button" class="reset" id="reset">Zurücksetzen</button>
+</div>
+<p class="hint">Team-Chat (STORE_TEAM) von S-01. Die Nachrichten von gestern sind älter als 24 h: Absender:innen sehen dort kein Menü, nur die Moderation (Nina) darf sie noch löschen. Desktop: «···» erscheint bei Hover oder Tastaturfokus auf der Nachricht; Phone: immer sichtbar. Enter speichert, Escape bricht ab. «Heute» zeigt die Blase ohne Menü und Markierungen.</p>
+
+<div class="frame" id="frame" data-viewport="desktop" data-today="0">
+  <span class="frame__size" id="size">desktop</span>
+  <div class="view">
+    <header class="head" data-testid="messaging.conversation.header">
+      <span class="head__icon" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg></span>
+      <div class="head__text">
+        <h2 class="head__name" data-testid="messaging.conversation.name">Team Bio-Markt Wiedikon</h2>
+        <span class="head__meta"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>4 Mitglieder</span>
+      </div>
+      <button type="button" class="ibtn" aria-label="Mitglieder anzeigen" data-testid="messaging.conversation.members"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4.5-6.2"/></svg></button>
+    </header>
+
+    <div class="list" id="list" role="log" tabindex="0" aria-label="Nachrichten" data-testid="messaging.conversation.messages">
+      <div class="older"><button type="button" data-testid="messaging.conversation.loadOlder"><svg class="i" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>Ältere Nachrichten laden</button></div>
+      <div id="messages"></div>
+    </div>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="composer__edit" id="editBanner" hidden role="status" data-testid="messaging.conversation.editBanner">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4"/></svg>
+        <span class="composer__editText">
+          <span class="composer__editTitle">Nachricht bearbeiten</span>
+          <span class="composer__editQuote" id="editQuote"></span>
+        </span>
+        <button type="button" class="ibtn" id="editCancel" aria-label="Bearbeiten abbrechen" data-testid="messaging.conversation.editCancel"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <label class="vh" for="composerText" id="composerLabel">Nachricht</label>
+      <textarea id="composerText" rows="1" maxlength="10000" placeholder="Nachricht schreiben … (@ erwähnt jemanden)" data-testid="messaging.conversation.composer"></textarea>
+      <button type="submit" class="ibtn ibtn--primary" id="sendBtn" aria-label="Senden" disabled data-testid="messaging.conversation.send"><svg class="i" id="sendIcon" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2 15 22l-4-9-9-4z"/></svg></button>
+    </form>
+  </div>
+</div>
+
+<!-- own delete: ConfirmationService dialog -->
+<div class="scrim" id="confirmDelete" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="cdTitle" aria-describedby="cdText">
+    <h2 id="cdTitle">Nachricht löschen?</h2>
+    <p id="cdText">Die Nachricht wird für alle entfernt. An ihrer Stelle steht «Nachricht gelöscht».</p>
+    <div class="actions">
+      <button type="button" class="btn btn--text" data-close>Abbrechen</button>
+      <button type="button" class="btn btn--danger" id="cdConfirm">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- moderator delete: fs-required-message-dialog -->
+<div class="scrim" id="modDelete" hidden>
+  <div class="dialog dialog--wide" role="dialog" aria-modal="true" aria-labelledby="mdTitle" data-testid="messaging.conversation.deleteDialog">
+    <h2 id="mdTitle">Nachricht von <span id="mdName"></span> löschen</h2>
+    <p>Alle sehen stattdessen «Von der Moderation gelöscht». Dein Grund wird im Verlauf gespeichert und ist nur für die Moderation sichtbar.</p>
+    <blockquote id="mdQuote"></blockquote>
+    <label for="mdReason">Grund</label>
+    <textarea id="mdReason" rows="4" maxlength="500" aria-describedby="mdHint" data-testid="messaging.conversation.deleteDialog.message"></textarea>
+    <small id="mdHint">0 Zeichen (mindestens 10)</small>
+    <div class="actions">
+      <button type="button" class="btn btn--text" data-close data-testid="messaging.conversation.deleteDialog.cancel">Abbrechen</button>
+      <button type="button" class="btn btn--danger" id="mdConfirm" data-testid="messaging.conversation.deleteDialog.confirm">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- discard changes -->
+<div class="scrim" id="discard" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dsTitle">
+    <h2 id="dsTitle">Änderungen verwerfen?</h2>
+    <div class="actions">
+      <button type="button" class="btn btn--text" data-close>Weiter bearbeiten</button>
+      <button type="button" class="btn btn--danger" id="dsConfirm">Verwerfen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+  const USERS = {
+    sarah: { name: 'Sarah Müller', initials: 'SM', moderator: false },
+    nina:  { name: 'Nina Schneider', initials: 'NS', moderator: true },
+    jonas: { name: 'Jonas Weber', initials: 'JW', moderator: false },
+    priya: { name: 'Priya Sharma', initials: 'PS', moderator: false },
+  };
+  // old = older than the 24 h window (the server would send mayEdit=false for the sender)
+  const seed = () => [
+    { id: 1, day: 'Samstag, 31. Oktober 2026', sender: 'nina',  time: '17:05', old: true,  body: 'Hallo zusammen, morgen kommt eine grosse Brotlieferung. Wer kann um 19:00?' },
+    { id: 2, day: 'Samstag, 31. Oktober 2026', sender: 'sarah', time: '17:12', old: true,  body: 'Ich bin dabei!' },
+    { id: 3, day: 'Sonntag, 1. November 2026', sender: null,    time: '09:30', old: false, body: 'Priya Sharma ist dem Team beigetreten' },
+    { id: 4, day: 'Sonntag, 1. November 2026', sender: 'jonas', time: '10:02', old: false, body: 'Ich auch, bringe zwei Kisten mit.', editedAt: '1. Nov. 2026, 10:04' },
+    { id: 5, day: 'Sonntag, 1. November 2026', sender: 'priya', time: '10:15', old: false, body: 'Ruft mich an: 079 123 45 67', deleted: 'moderation' },
+    { id: 6, day: 'Sonntag, 1. November 2026', sender: 'sarah', time: '10:20', old: false, body: 'Super, dann treffen wir uns um 18:45 vor dem Laden.' },
+    { id: 7, day: 'Sonntag, 1. November 2026', sender: 'jonas', time: '10:21', old: false, body: '(Tippfehler)', deleted: 'sender' },
+    { id: 8, day: 'Sonntag, 1. November 2026', sender: 'nina',  time: '10:40', old: false, body: 'Danke euch! Ich stelle die Kisten bereit.' },
+  ];
+  let messages = seed();
+  let me = 'sarah';
+  let openMenu = null;
+  let editing = null; // message id
+  let parkedDraft = '';
+  let target = null;
+
+  const $ = (s) => document.querySelector(s);
+  const frame = $('#frame'), list = $('#messages'), text = $('#composerText'), send = $('#sendBtn'), banner = $('#editBanner');
+  const ICON = {
+    dots: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg>',
+    pencil: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4"/></svg>',
+    trash: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+    ban: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>',
+    check: '<path d="m5 12 5 5L20 7"/>',
+    sendp: '<path d="M22 2 11 13M22 2 15 22l-4-9-9-4z"/>',
+  };
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // what the server would send: mayEdit / mayDelete for the viewer
+  function flags(m) {
+    const today = frame.dataset.today === '1';
+    if (today || !m.sender || m.deleted) return { mayEdit: false, mayDelete: false, moderation: false };
+    const own = m.sender === me;
+    const mod = USERS[me].moderator;
+    if (own && !m.old) return { mayEdit: true, mayDelete: true, moderation: false };
+    if (mod) return { mayEdit: false, mayDelete: true, moderation: true };
+    return { mayEdit: false, mayDelete: false, moderation: false };
+  }
+
+  function render() {
+    const today = frame.dataset.today === '1';
+    let html = '', lastDay = null;
+    for (const m of messages) {
+      if (m.day !== lastDay) { html += `<div class="day" role="separator">${m.day}</div>`; lastDay = m.day; }
+      const own = m.sender === me, system = !m.sender, f = flags(m);
+      const deleted = !today && m.deleted;
+      const cls = ['msg', own && 'msg--own', system && 'msg--system', deleted && 'msg--deleted', editing === m.id && 'msg--editing'].filter(Boolean).join(' ');
+      html += `<div class="${cls}" data-testid="messaging.conversation.message" data-seq="${m.id}" data-own="${own}" data-deleted="${!!deleted}" data-edited="${!!m.editedAt && !today}" data-id="${m.id}">`;
+      if (!own && !system) html += `<span class="avatar" aria-hidden="true">${USERS[m.sender].initials}</span>`;
+      html += '<div class="bubble">';
+      if (!own && !system) html += `<span class="bubble__sender">${USERS[m.sender].name}</span>`;
+      if (deleted) {
+        const label = m.deleted === 'moderation' ? 'Von der Moderation gelöscht' : 'Nachricht gelöscht';
+        html += `<span class="bubble__deleted" data-testid="messaging.conversation.deleted" data-moderation="${m.deleted === 'moderation'}">${ICON.ban}${label}</span>`;
+      } else {
+        html += `<span class="bubble__body" data-testid="messaging.conversation.body">${esc(m.body)}</span>`;
+      }
+      if (!system) {
+        html += `<span class="bubble__foot"><time datetime="2026-11-01T${m.time}">${m.time}</time>`;
+        if (m.editedAt && !deleted) html += `<span class="bubble__edited" title="Bearbeitet am ${m.editedAt}" aria-label="Bearbeitet am ${m.editedAt}" data-testid="messaging.conversation.edited">bearbeitet</span>`;
+        html += '</span>';
+      }
+      html += '</div>';
+      if ((f.mayEdit || f.mayDelete) && editing !== m.id) {
+        const open = openMenu === m.id;
+        html += `<button type="button" class="ibtn msg__menu" aria-label="Nachrichtenoptionen" aria-haspopup="menu" aria-expanded="${open}" data-menu="${m.id}" data-testid="messaging.conversation.messageMenu">${ICON.dots}</button>`;
+        html += `<div class="menu" role="menu" aria-label="Nachrichtenoptionen" ${open ? '' : 'hidden'}>`;
+        if (f.mayEdit) html += `<button type="button" role="menuitem" data-act="edit" data-id="${m.id}" data-testid="messaging.conversation.edit">${ICON.pencil}Bearbeiten</button>`;
+        if (f.mayDelete && !f.moderation) html += `<button type="button" role="menuitem" class="danger" data-act="delete" data-id="${m.id}" data-testid="messaging.conversation.delete">${ICON.trash}Löschen</button>`;
+        if (f.moderation) html += `<button type="button" role="menuitem" class="danger" data-act="moderate" data-id="${m.id}" data-testid="messaging.conversation.delete" data-moderation="true">${ICON.trash}Löschen (Moderation)</button><span class="menu__hint">Mit Begründung, nur für die Moderation sichtbar</span>`;
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    // optimistic pending bubble (no menu until the server confirms)
+    html += `<div class="msg msg--own msg--pending" data-testid="messaging.conversation.pending"><div class="bubble"><span class="bubble__body">Bis morgen!</span><span class="bubble__foot"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Wird gesendet …</span></div></div>`;
+    list.innerHTML = html;
+  }
+
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => (t.hidden = true), 2500); }
+  const show = (id) => { $(id).hidden = false; $(id).querySelector('textarea, button:not([data-close])')?.focus(); };
+  const hide = (id) => { $(id).hidden = true; };
+  const byId = (id) => messages.find((m) => m.id === id);
+
+  function updateSend() {
+    const v = text.value.trim();
+    send.disabled = editing ? !v || v === byId(editing).body : !v;
+  }
+  function startEdit(id) {
+    if (editing && text.value.trim() !== byId(editing).body) { target = { next: id }; show('#discard'); return; }
+    if (!editing) parkedDraft = text.value;
+    editing = id; openMenu = null;
+    const m = byId(id);
+    banner.hidden = false; $('#editQuote').textContent = m.body;
+    $('#composerLabel').textContent = 'Nachricht bearbeiten';
+    text.value = m.body; send.setAttribute('aria-label', 'Speichern'); send.dataset.testid = 'messaging.conversation.editSave';
+    $('#sendIcon').innerHTML = ICON.check;
+    render(); updateSend(); text.focus(); text.setSelectionRange(text.value.length, text.value.length);
+  }
+  function endEdit(save) {
+    const id = editing;
+    if (save) { const m = byId(id); m.body = text.value.trim(); m.editedAt = '1. Nov. 2026, 10:52'; toast('Nachricht gespeichert'); }
+    editing = null; banner.hidden = true; $('#composerLabel').textContent = 'Nachricht';
+    text.value = parkedDraft; parkedDraft = '';
+    send.setAttribute('aria-label', 'Senden'); send.dataset.testid = 'messaging.conversation.send'; $('#sendIcon').innerHTML = ICON.sendp;
+    render(); updateSend();
+    list.querySelector(`[data-menu="${id}"]`)?.focus();
+  }
+
+  // interactions
+  list.addEventListener('click', (e) => {
+    const trig = e.target.closest('[data-menu]');
+    if (trig) { const id = +trig.dataset.menu; openMenu = openMenu === id ? null : id; render(); if (openMenu) list.querySelector('.menu [role=menuitem]')?.focus(); else list.querySelector(`[data-menu="${id}"]`)?.focus(); return; }
+    const act = e.target.closest('[data-act]');
+    if (!act) return;
+    const id = +act.dataset.id; openMenu = null;
+    if (act.dataset.act === 'edit') startEdit(id);
+    if (act.dataset.act === 'delete') { target = { id }; render(); show('#confirmDelete'); }
+    if (act.dataset.act === 'moderate') { target = { id }; render(); const m = byId(id); $('#mdName').textContent = USERS[m.sender].name; $('#mdQuote').textContent = m.body; $('#mdReason').value = ''; $('#mdReason').removeAttribute('aria-invalid'); hint(); show('#modDelete'); }
+  });
+  list.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openMenu) { const id = openMenu; openMenu = null; render(); list.querySelector(`[data-menu="${id}"]`)?.focus(); }
+    const items = [...list.querySelectorAll('.menu:not([hidden]) [role=menuitem]')];
+    if (items.length && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); const i = items.indexOf(document.activeElement); items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus(); }
+  });
+  document.addEventListener('click', (e) => { if (openMenu && !e.target.closest('.msg')) { openMenu = null; render(); } });
+
+  $('#cdConfirm').addEventListener('click', () => { byId(target.id).deleted = 'sender'; hide('#confirmDelete'); toast('Nachricht gelöscht'); render(); });
+  function hint() { const n = $('#mdReason').value.trim().length; const h = $('#mdHint'); h.className = ''; h.textContent = `${n} Zeichen (mindestens 10)`; }
+  $('#mdReason').addEventListener('input', hint);
+  $('#mdConfirm').addEventListener('click', () => {
+    const n = $('#mdReason').value.trim().length;
+    if (n < 10) { $('#mdReason').setAttribute('aria-invalid', 'true'); const h = $('#mdHint'); h.className = 'err'; h.textContent = 'Bitte schreib mindestens 10 Zeichen.'; $('#mdReason').focus(); return; }
+    byId(target.id).deleted = 'moderation'; hide('#modDelete'); toast('Nachricht gelöscht'); render();
+  });
+  // discard: reset the text to the original so the "unsaved" check passes, then cancel or switch to the next message
+  $('#dsConfirm').addEventListener('click', () => { hide('#discard'); text.value = byId(editing).body; const next = target?.next; target = null; if (next) startEdit(next); else endEdit(false); });
+  document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { b.closest('.scrim').hidden = true; render(); }));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.scrim:not([hidden])').forEach((s) => (s.hidden = true)); });
+
+  $('#editCancel').addEventListener('click', () => { if (text.value.trim() !== byId(editing).body) { target = {}; show('#discard'); } else endEdit(false); });
+  text.addEventListener('input', updateSend);
+  text.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editing) { e.preventDefault(); $('#editCancel').click(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#composer').requestSubmit(); }
+  });
+  $('#composer').addEventListener('submit', (e) => { e.preventDefault(); if (send.disabled) return; if (editing) endEdit(true); else { text.value = ''; updateSend(); toast('(Senden – unverändert)'); } });
+
+  // mockup controls
+  document.querySelectorAll('input[name=today]').forEach((r) => r.addEventListener('change', () => { frame.dataset.today = r.value; if (editing) endEdit(false); openMenu = null; render(); }));
+  document.querySelectorAll('input[name=role]').forEach((r) => r.addEventListener('change', () => { me = r.value; if (editing) endEdit(false); openMenu = null; render(); }));
+  document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => document.documentElement.classList.toggle('fs-dark', r.value === 'dark')));
+  document.querySelectorAll('input[name=viewport]').forEach((r) => r.addEventListener('change', () => { frame.dataset.viewport = r.value; document.documentElement.classList.toggle('touch', r.value === 'phone'); $('#size').textContent = r.value === 'phone' ? '412 px · touch' : 'desktop'; }));
+  $('#reset').addEventListener('click', () => { messages = seed(); if (editing) endEdit(false); openMenu = null; render(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

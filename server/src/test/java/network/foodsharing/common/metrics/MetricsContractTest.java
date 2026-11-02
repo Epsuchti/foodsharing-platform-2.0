@@ -57,7 +57,8 @@ class MetricsContractTest {
         used.addAll(metricNames(Files.readString(MONITORING.resolve("alerts.yml"), StandardCharsets.UTF_8)));
         used.addAll(metricNames(Files.readString(MONITORING.resolve("grafana-dashboard.json"), StandardCharsets.UTF_8)));
         assertThat(used).contains("fs_outbox_pending", "fs_circuit_breaker_state", "fs_job_last_success_timestamp_seconds",
-                "fs_rate_limit_rejections_total", "fs_login_failures_total", "http_server_requests_seconds_bucket");
+                "fs_rate_limit_rejections_total", "fs_rate_limit_blocks_total", "fs_login_failures_total",
+                "http_server_requests_seconds_bucket");
         used.removeAll(SYNTHETIC);
         assertThat(exported).containsAll(used);
     }
@@ -94,6 +95,7 @@ class MetricsContractTest {
         OperationsMetrics.rateLimited("support");
         OperationsMetrics.loginFailed("invalid-token");
         OperationsMetrics.deliveryFailed("push");
+        OperationsMetrics.rateLimitBlocked("ACCOUNT", 4);
 
         String scrape = scrape();
         assertThat(scrape).containsPattern("fs_job_last_success_timestamp_seconds\\{[^}]*name=\"" + job
@@ -102,6 +104,8 @@ class MetricsContractTest {
                 + "\"[^}]*outcome=\"OK\"[^}]*} [1-9]");
         assertThat(scrape).containsPattern("fs_rate_limit_rejections_total\\{[^}]*limiter=\"support\"[^}]*} [1-9]");
         assertThat(scrape).containsPattern("fs_login_failures_total\\{[^}]*reason=\"invalid-token\"[^}]*} [1-9]");
+        assertThat(scrape).containsPattern("fs_rate_limit_blocks_total\\{[^}]*level=\"3\\+\"[^}]*scope=\"account\"[^}]*} [1-9]");
+        assertThat(scrape).containsPattern("fs_rate_limit_blocks_total\\{[^}]*level=\"1\"[^}]*scope=\"ip\"[^}]*} [0-9]");
         assertThat(scrape).containsPattern("fs_notification_delivery_failures_total\\{[^}]*channel=\"push\"[^}]*} [1-9]");
         assertThat(scrape).containsPattern("fs_circuit_breaker_state\\{[^}]*integration=\"SMTP\"[^}]*} 0");
         assertThat(scrape).contains("fs_outbox_pending ", "fs_websocket_connected_users ", "fs_async_jobs_running ");

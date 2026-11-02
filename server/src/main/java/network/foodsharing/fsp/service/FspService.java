@@ -58,7 +58,7 @@ public class FspService {
 
     /** Changes of an FSP; null = unchanged (update). */
     public record FspInput(String name, String description, String street, String postcode, String city, Double lat,
-                           Double lon, UUID photoUploadId, List<UUID> managerIds) {
+                           Double lon, UUID photoUploadId, List<UUID> managerIds, Boolean cleaningEnabled) {
     }
 
     private final FoodSharePointRepository fsps;
@@ -77,14 +77,15 @@ public class FspService {
     private final Clock clock;
 
     private final FeatureToggleService toggles;
+    private final FspCleaningRegionService cleaningRegions;
 
     public FspService(FoodSharePointRepository fsps, FspFollowerRepository followers, FspWallPostRepository posts,
                       FspPermissionService access, CurrentActorService actors, RegionService regions,
                       GeocodingClient geocoding, UploadService uploads, NotificationService notifications,
                       MailOutboxService mails, UserService users, HistoryService history, AppProperties properties,
-                      Clock clock,
-            FeatureToggleService toggles) {
+                      Clock clock, FeatureToggleService toggles, FspCleaningRegionService cleaningRegions) {
         this.toggles = toggles;
+        this.cleaningRegions = cleaningRegions;
         this.fsps = fsps;
         this.followers = followers;
         this.posts = posts;
@@ -136,6 +137,7 @@ public class FspService {
         fsp.setCity(required(in.city(), "city"));
         fsp.setLat(in.lat());
         fsp.setLon(in.lon());
+        fsp.setCleaningEnabled(Boolean.TRUE.equals(in.cleaningEnabled()));
         locate(fsp);
         FoodSharePoint saved = fsps.save(fsp);
         if (in.photoUploadId() != null) {
@@ -143,7 +145,8 @@ public class FspService {
         }
         List<UUID> managers = in.managerIds() == null || in.managerIds().isEmpty() ? List.of(actor.userId())
                 : in.managerIds();
-        history.record(event(FspAction.CREATED, saved).metadata("status", status.name()).build());
+        history.record(event(FspAction.CREATED, saved).metadata("status", status.name())
+                .metadata("cleaningEnabled", saved.isCleaningEnabled()).build());
         applyManagers(saved, managers);
         if (status == FspStatus.INACTIVE) {
             Set<UUID> recipients = access.activators(regionId);
@@ -190,7 +193,20 @@ public class FspService {
         if (changed) {
             history.record(event.build());
         }
+        if (in.cleaningEnabled() != null && in.cleaningEnabled() != fsp.isCleaningEnabled()) {
+            setCleaning(fsp, in.cleaningEnabled());
+        }
         return fsp;
+    }
+
+    /** FS2: switching cleaning shifts off removes the Fairteiler from the cleaning rule of its region (D7). */
+    private void setCleaning(FoodSharePoint fsp, boolean enabled) {
+        fsp.setCleaningEnabled(enabled);
+        history.record(event(enabled ? FspAction.CLEANING_ENABLED : FspAction.CLEANING_DISABLED, fsp)
+                .change("cleaningEnabled", !enabled, enabled).build());
+        if (!enabled) {
+            cleaningRegions.removeLinks(fsp, "cleaning switched off");
+        }
     }
 
     /** Soft delete (mayAdd). @throws ApiException 404, 403 ACCESS_DENIED */
@@ -202,6 +218,7 @@ public class FspService {
         FspPermissionService.require(FspRules.mayDelete(access.requireVisible(actor, fsp)));
         history.record(event(FspAction.DELETED, fsp).build());
         fsp.setDeletedAt(clock.instant());
+        cleaningRegions.removeLinks(fsp, "deleted");
         notifications.removeBells(activateBell(fspId));
         notifications.removeBells(postBell(fspId));
     }
@@ -222,6 +239,8 @@ public class FspService {
             fsp.setStatus(status);
             if (status == FspStatus.ACTIVE) {
                 notifications.removeBells(activateBell(fspId));
+            } else {
+                cleaningRegions.removeLinks(fsp, "deactivated");
             }
         }
         return fsp;

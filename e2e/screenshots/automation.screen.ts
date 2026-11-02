@@ -27,6 +27,50 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `automation-preview-${variant.name}`);
     });
 
+    screenshotTest('gap rule with a shared store list: list, warnings, previews, leave, phone @AU1 @screenshot', async ({ page, visual }) => {
+      // seed (decisions 151, 152): S-01 (own gap 2) + S-03 (own rule off, without automation), group gap 2
+      await page.goto(`/stores/${S01}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      const card = page.getByTestId('automation.policy.gapCard');
+      await expect(card.getByTestId('automation.policy.gapMember')).toHaveCount(1);
+      await expect(card.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'on');
+      await expect(card.getByTestId('automation.policy.gapPreview.day')).toHaveCount(11);
+      await expect(card.getByTestId('automation.policy.groupGapPreview.day')).toHaveCount(11);
+      await visual.expectElement(card, `automation-gap-list-${variant.name}`);
+
+      // own rule off: the group stays, the leave action shows (not saved)
+      await card.getByTestId('automation.policy.gapEnabled').click();
+      await expect(card.getByTestId('automation.policy.gapLeave')).toBeVisible();
+      await expect(card.getByTestId('automation.policy.gapPreview')).toHaveCount(0);
+      await visual.expectElement(card, `automation-gap-leave-${variant.name}`);
+
+      // conflict: S-06 links S-05 on the same day and puts S-05 on its list (not saved)
+      await page.goto(`/stores/${S06}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('automation.policy.addLink').click();
+      const stores = page.getByTestId('automation.policy.link.0.stores');
+      await stores.click();
+      await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
+      await stores.locator('.p-multiselect-dropdown').click();
+      await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+      const picker = page.getByTestId('automation.policy.gapStores');
+      await picker.click();
+      await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
+      // close the list with a click outside it (Escape does not reach the picker on touch)
+      await expect(async () => {
+        await page.locator('#pp-gap-stores-hint').dispatchEvent('click');
+        await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0, { timeout: 1_000 });
+      }).toPass();
+      await expect(page.locator('[data-testid="automation.policy.gapWarning"][data-kind="CONFLICT"]')).toBeVisible();
+      await visual.expectElement(page.getByTestId('automation.policy.gapCard'), `automation-gap-conflict-${variant.name}`);
+
+      // phone width: the 11 cells stay in one row
+      await page.setViewportSize({ width: 412, height: 915 });
+      await page.goto(`/stores/${S01}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      await visual.expectElement(page.getByTestId('automation.policy.gapCard'), `automation-gap-list-phone-${variant.name}`);
+    });
+
     screenshotTest('store decisions, adverts and sign-out alerts @AU4 @AU5 @AU8 @screenshot', async ({ page, visual }) => {
       await page.goto(`/stores/${S01}/automation/audits`);
       await expect(page.getByTestId('automation.audits.state')).toHaveAttribute('data-state', 'success');
@@ -53,6 +97,9 @@ forEachVariant((variant) => {
       await page.goto(`/regions/${ZH}/automation/metrics`);
       await expect(page.getByTestId('automation.metrics.state')).toHaveAttribute('data-state', 'success');
       await visual.expectScreen(page, `automation-metrics-${variant.name}`);
+      await page.getByTestId('automation.metrics.group.DECLINE_REASONS').click();
+      await expect(page.locator('[data-testid="automation.metrics.totals.row"][data-key^="SLOT_DECLINE_RULE."]').first()).toBeVisible();
+      await visual.expectScreen(page, `automation-metrics-decline-reasons-${variant.name}`);
     });
   });
 });

@@ -1,5 +1,6 @@
 package network.foodsharing.config;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -544,6 +545,8 @@ public class AppProperties {
         private int minLength = 2;
         /** Incremental index refresh interval (B12). */
         private int refreshSeconds = 120;
+        /** Global searches per user and minute (decision 147); 0 = no limit (test, e2e). Restart to change. */
+        private int rateLimitPerMinute = 60;
     }
 
     /** Resource mosaic (C9). */
@@ -593,6 +596,24 @@ public class AppProperties {
          */
         @Setter
         private int publicApiRequestsPerMinutePerIp = 300;
+        /** Escalating blocks for all of {@code /api/**} (D17.2, {@code ApiRateLimitFilter}). */
+        private final ApiRateLimit apiRateLimit = new ApiRateLimit();
+
+        /**
+         * D17.2: per-account (with a session) and per-IP (without one) limit on {@code /api/**}; going over blocks the
+         * account or IP for the next of {@link #blockSteps} (the last step repeats). Changes need a restart; a limit
+         * of 0 turns that part off.
+         */
+        @Getter
+        @Setter
+        public static class ApiRateLimit {
+            private int requestsPerMinutePerUser = 300;
+            private int requestsPerMinutePerIp = 300;
+            private List<Duration> blockSteps = new ArrayList<>(List.of(Duration.ofMinutes(1), Duration.ofMinutes(5),
+                    Duration.ofMinutes(30)));
+            /** The escalation level starts again at 1 when the last block ended longer ago than this. */
+            private Duration quietReset = Duration.ofHours(24);
+        }
 
         /** Content-Security-Policy; script hashes are computed from the SPA HTML at startup. */
         @Getter

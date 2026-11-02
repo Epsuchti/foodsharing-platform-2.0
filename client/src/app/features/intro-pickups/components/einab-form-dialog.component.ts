@@ -18,6 +18,7 @@ import {
 import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { INTRO_CATEGORIES, isOnline, isoToZonedLocal, zonedLocalToIso } from '../intro-category';
 
 /** Prefill for a new EinAb (e.g. from an iCal candidate). */
@@ -64,7 +65,7 @@ const EMPTY: FormModel = {
  */
 @Component({
   selector: 'fs-einab-form-dialog',
-  imports: [Button, Checkbox, Dialog, FormsModule, InputNumber, InputText, Select, Textarea, TPipe],
+  imports: [...DATE_INPUT_IMPORTS, Button, Checkbox, Dialog, FormsModule, InputNumber, InputText, Select, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog [closeAriaLabel]="'common.close' | t"
@@ -83,7 +84,7 @@ const EMPTY: FormModel = {
           </div>
           <div class="field">
             <label for="ea-start">{{ 'introPickups.form.start' | t }}</label>
-            <input id="ea-start" name="start" type="datetime-local" class="native" [(ngModel)]="m.start" (ngModelChange)="touch()" required data-testid="introPickups.form.start" />
+            <fs-datetime-input inputId="ea-start" name="start" [(ngModel)]="m.start" (ngModelChange)="touch()" required testId="introPickups.form.start" />
           </div>
         </div>
         @if (!online()) {

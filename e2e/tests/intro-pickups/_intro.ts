@@ -13,7 +13,6 @@ export interface IntroSettings {
   preventDuplicateCategoryBookings: boolean;
   requireFairteilerVisitByThirdIntroPickup: boolean;
   ignoredCategories: string[];
-  cleaningStoreId?: string;
 }
 
 /** Changes Zürich's EinAb booking rules (EA22) through the region settings API; `ambassador` must be bot or orga. */

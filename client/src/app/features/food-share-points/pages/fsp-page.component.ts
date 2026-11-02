@@ -16,16 +16,19 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
+import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
+import { navigationLinks } from '../../../shared/navigate-button/navigate.util';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { WallComponent, WallPost } from '../../../shared/wall/wall.component';
-import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } from '../fsp.util';
+import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.util';
 
 /**
  * /food-share-points/:fspId (FS1; the FSP_ACTIVATE and FSP_NEW_POST bells link here): photo, description, address
  * with navigation links and map, managers, follow switches (bell / mail), wall (`fs-wall`). FSP admins activate an
- * INACTIVE FSP and delete; editors (FSP admins and managers) edit and replace the managers. The server decides every
+ * INACTIVE FSP and delete; editors (FSP admins and managers) edit and replace the managers. With cleaning shifts on
+ * (FS2) a card links to `…/cleaning`. The server decides every
  * right (`Fsp.permissions`); a hidden or unknown FSP renders the not-found state.
  */
 @Component({
@@ -36,6 +39,7 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
     DateTimePipe,
     FormsModule,
     MapViewComponent,
+    NavigateButtonComponent,
     PageHeaderComponent,
     RouterLink,
     ToggleSwitch,
@@ -121,14 +125,7 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
               </address>
               @if (links(); as l) {
                 <div class="links">
-                  <a class="link" [href]="l.google" target="_blank" rel="noopener noreferrer" data-testid="foodSharePoints.detail.googleMaps">
-                    <i class="pi pi-directions" aria-hidden="true"></i> {{ 'foodSharePoints.detail.googleMaps' | t }}
-                    <span class="fs-visually-hidden">{{ 'foodSharePoints.detail.newTab' | t }}</span>
-                  </a>
-                  <a class="link" [href]="l.apple" target="_blank" rel="noopener noreferrer" data-testid="foodSharePoints.detail.appleMaps">
-                    <i class="pi pi-directions" aria-hidden="true"></i> {{ 'foodSharePoints.detail.appleMaps' | t }}
-                    <span class="fs-visually-hidden">{{ 'foodSharePoints.detail.newTab' | t }}</span>
-                  </a>
+                  <fs-navigate-button [links]="l" testId="foodSharePoints.detail.navigate" />
                 </div>
               }
               @if (center(); as c) {
@@ -143,6 +140,16 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
                 />
               }
             </section>
+
+            @if (f.cleaningEnabled) {
+              <section class="fs-card card" data-testid="foodSharePoints.detail.cleaning">
+                <h2 class="card__title"><i class="pi pi-sparkles" aria-hidden="true"></i> {{ 'foodSharePoints.cleaning.title' | t }}</h2>
+                <p class="muted">{{ 'foodSharePoints.cleaning.teaser' | t }}</p>
+                <div>
+                  <p-button [label]="'foodSharePoints.cleaning.open' | t" icon="pi pi-calendar" [routerLink]="['/food-share-points', f.id, 'cleaning']" data-testid="fsp.cleaning.open" />
+                </div>
+              </section>
+            }
 
             @if (f.following.following || f.permissions.mayFollow) {
               <section class="fs-card card" data-testid="foodSharePoints.detail.follow" [attr.data-following]="f.following.following">
@@ -276,7 +283,6 @@ import { MANAGERS_MAX, addManager, fspMapLinks, photoVariant, removeManager } fr
     .inactive__text { display: flex; gap: 0.5rem; align-items: center; margin: 0; }
     .address { font-style: normal; line-height: 1.5; }
     .links { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
-    .link { display: inline-flex; gap: 0.35rem; align-items: center; font-weight: 600; }
     .switch { display: flex; gap: 0.75rem; align-items: center; }
     .managers { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
     .manager { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; min-width: 0; }
@@ -305,7 +311,7 @@ export class FspPageComponent {
   protected readonly photo = computed(() => photoVariant(this.fsp.data()?.photoUrl, 'lg'));
   protected readonly links = computed(() => {
     const f = this.fsp.data();
-    return f ? fspMapLinks(f) : null;
+    return f ? navigationLinks({ lat: f.lat, lon: f.lon, ...f.address, label: f.name }) : null;
   });
   protected readonly center = computed<[number, number] | undefined>(() => {
     const f = this.fsp.data();
