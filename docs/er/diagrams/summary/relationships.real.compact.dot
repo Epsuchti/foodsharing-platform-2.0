@@ -189,19 +189,6 @@ digraph "compactRelationshipsDiagram" {
     target="_top"
     tooltip="event_location"
   ];
-  "newsletter" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="78" HEIGHT="16"><B>newsletter</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="119" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="status" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="119" HEIGHT="16">status</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">1 &gt;</TD></TR></TABLE></TD></TR>
-    </TABLE>>
-    URL="../../tables/newsletter.html"
-    target="_top"
-    tooltip="newsletter"
-  ];
   "metric_daily_count" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -216,6 +203,19 @@ digraph "compactRelationshipsDiagram" {
     URL="../../tables/metric_daily_count.html"
     target="_top"
     tooltip="metric_daily_count"
+  ];
+  "newsletter" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="78" HEIGHT="16"><B>newsletter</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="119" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="status" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="119" HEIGHT="16">status</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">1 &gt;</TD></TR></TABLE></TD></TR>
+    </TABLE>>
+    URL="../../tables/newsletter.html"
+    target="_top"
+    tooltip="newsletter"
   ];
   "pickup_policy_linked_store_member" [
    label=<
@@ -1038,19 +1038,6 @@ digraph "compactRelationshipsDiagram" {
     target="_top"
     tooltip="achievement"
   ];
-  "quiz" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="30" HEIGHT="16"><B>quiz</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="179" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="kind" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="179" HEIGHT="16">kind</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">3 &gt;</TD></TR></TABLE></TD></TR>
-    </TABLE>>
-    URL="../../tables/quiz.html"
-    target="_top"
-    tooltip="quiz"
-  ];
   "pickup_signup" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -1065,6 +1052,19 @@ digraph "compactRelationshipsDiagram" {
     URL="../../tables/pickup_signup.html"
     target="_top"
     tooltip="pickup_signup"
+  ];
+  "quiz" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="30" HEIGHT="16"><B>quiz</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="179" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="kind" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="179" HEIGHT="16">kind</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">3 &gt;</TD></TR></TABLE></TD></TR>
+    </TABLE>>
+    URL="../../tables/quiz.html"
+    target="_top"
+    tooltip="quiz"
   ];
   "event_invitation" [
    label=<
@@ -1489,20 +1489,6 @@ digraph "compactRelationshipsDiagram" {
     target="_top"
     tooltip="user_account"
   ];
-  "region_option" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16"><B>region_option</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="region_id" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16">region_id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="option_key" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16">option_key</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 1</TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR></TABLE></TD></TR>
-    </TABLE>>
-    URL="../../tables/region_option.html"
-    target="_top"
-    tooltip="region_option"
-  ];
   "region_function" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -1517,6 +1503,20 @@ digraph "compactRelationshipsDiagram" {
     URL="../../tables/region_function.html"
     target="_top"
     tooltip="region_function"
+  ];
+  "region_option" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16"><B>region_option</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="region_id" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16">region_id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="option_key" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="100" HEIGHT="16">option_key</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 1</TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR></TABLE></TD></TR>
+    </TABLE>>
+    URL="../../tables/region_option.html"
+    target="_top"
+    tooltip="region_option"
   ];
   "resource_favorite" [
    label=<
@@ -1563,6 +1563,20 @@ digraph "compactRelationshipsDiagram" {
     target="_top"
     tooltip="mail_outbox"
   ];
+  "pickup_policy_linked_store" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16"><B>pickup_policy_linked_store</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="policy_id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16">policy_id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="mirror_of" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16">mirror_of</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 1</TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">1 &gt;</TD></TR></TABLE></TD></TR>
+    </TABLE>>
+    URL="../../tables/pickup_policy_linked_store.html"
+    target="_top"
+    tooltip="pickup_policy_linked_store"
+  ];
   "pickup_extra_slot" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -1578,20 +1592,6 @@ digraph "compactRelationshipsDiagram" {
     URL="../../tables/pickup_extra_slot.html"
     target="_top"
     tooltip="pickup_extra_slot"
-  ];
-  "pickup_policy_linked_store" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16"><B>pickup_policy_linked_store</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="policy_id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16">policy_id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="mirror_of" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="194" HEIGHT="16">mirror_of</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 1</TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">1 &gt;</TD></TR></TABLE></TD></TR>
-    </TABLE>>
-    URL="../../tables/pickup_policy_linked_store.html"
-    target="_top"
-    tooltip="pickup_policy_linked_store"
   ];
   "survey_answer" [
    label=<
@@ -1811,20 +1811,6 @@ digraph "compactRelationshipsDiagram" {
     target="_top"
     tooltip="content_page"
   ];
-  "region_admin" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16"><B>region_admin</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="user_id" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16">user_id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="region_id" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16">region_id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR></TABLE></TD></TR>
-    </TABLE>>
-    URL="../../tables/region_admin.html"
-    target="_top"
-    tooltip="region_admin"
-  ];
   "quiz_question_comment" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -1838,6 +1824,20 @@ digraph "compactRelationshipsDiagram" {
     URL="../../tables/quiz_question_comment.html"
     target="_top"
     tooltip="quiz_question_comment"
+  ];
+  "region_admin" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16"><B>region_admin</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="user_id" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16">user_id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="region_id" COLSPAN="3" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="99" HEIGHT="16">region_id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" CELLPADDING="0" BGCOLOR="#ffffff" COLSPAN="3" ><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><VR/><TD ALIGN="CENTER" BGCOLOR="#ffffff">  </TD><VR/><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR></TABLE></TD></TR>
+    </TABLE>>
+    URL="../../tables/region_admin.html"
+    target="_top"
+    tooltip="region_admin"
   ];
   "mailbox" [
    label=<
