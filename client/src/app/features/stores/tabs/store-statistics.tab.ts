@@ -135,37 +135,39 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
               <p class="muted" aria-live="polite" data-testid="stores.statistics.members.count">
                 {{ 'stores.team.count' | t: { count: result.page.totalItems } }}
               </p>
-              <table class="members">
-                <thead>
-                  <tr>
-                    <th scope="col">{{ 'stores.statistics.member' | t }}</th>
-                    <th scope="col" class="num">{{ 'stores.statistics.metric.pickups' | t }}</th>
-                    <th scope="col" class="num">{{ 'stores.statistics.lastPickup' | t }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of result.items; track row.user.id) {
-                    <tr data-testid="stores.statistics.member" [attr.data-user]="row.user.displayName" [attr.data-status]="row.status">
-                      <td>
-                        <div class="cell">
-                          <fs-user-chip [name]="row.user.displayName" [userId]="row.user.id" [avatarUrl]="row.user.avatarUrl" />
-                          @if (row.isManager) {
-                            <span class="flag flag--manager"><i class="pi pi-crown" aria-hidden="true"></i>{{ 'stores.team.manager' | t }}</span>
-                          }
-                          @if (row.status === 'JUMPER') {
-                            <span class="flag" data-testid="stores.statistics.jumperBadge"><i class="pi pi-clock" aria-hidden="true"></i>{{ 'stores.team.jumper' | t }}</span>
-                          }
-                          @if (row.status === 'FORMER') {
-                            <span class="flag flag--former" data-status="FORMER" data-testid="stores.statistics.formerBadge"><i class="pi pi-sign-out" aria-hidden="true"></i>{{ 'stores.statistics.former' | t }}</span>
-                          }
-                        </div>
-                      </td>
-                      <td class="num">{{ row.pickups | number }}</td>
-                      <td class="num date">{{ row.lastPickupAt ? (row.lastPickupAt | fsDate: 'date') : '–' }}</td>
+              <div class="table-wrap" tabindex="0" role="region" [attr.aria-label]="'stores.statistics.scrollTable' | t">
+                <table class="members">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{ 'stores.statistics.member' | t }}</th>
+                      <th scope="col" class="num">{{ 'stores.statistics.metric.pickups' | t }}</th>
+                      <th scope="col" class="num">{{ 'stores.statistics.lastPickup' | t }}</th>
                     </tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    @for (row of result.items; track row.user.id) {
+                      <tr data-testid="stores.statistics.member" [attr.data-user]="row.user.displayName" [attr.data-status]="row.status">
+                        <td>
+                          <div class="cell">
+                            <fs-user-chip [name]="row.user.displayName" [userId]="row.user.id" [avatarUrl]="row.user.avatarUrl" />
+                            @if (row.isManager) {
+                              <span class="flag flag--manager"><i class="pi pi-crown" aria-hidden="true"></i>{{ 'stores.team.manager' | t }}</span>
+                            }
+                            @if (row.status === 'JUMPER') {
+                              <span class="flag" data-testid="stores.statistics.jumperBadge"><i class="pi pi-clock" aria-hidden="true"></i>{{ 'stores.team.jumper' | t }}</span>
+                            }
+                            @if (row.status === 'FORMER') {
+                              <span class="flag flag--former" data-status="FORMER" data-testid="stores.statistics.formerBadge"><i class="pi pi-sign-out" aria-hidden="true"></i>{{ 'stores.statistics.former' | t }}</span>
+                            }
+                          </div>
+                        </td>
+                        <td class="num">{{ row.pickups | number }}</td>
+                        <td class="num date">{{ row.lastPickupAt ? (row.lastPickupAt | fsDate: 'date') : '–' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
               @if (result.page.totalPages > 1) {
                 <p-paginator
                   [first]="result.page.page * result.page.size"
@@ -200,7 +202,7 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
     }
   `,
   styles: `
-    :host { display: grid; gap: 1rem; }
+    :host { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
     .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; }
     .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .chip {
@@ -213,11 +215,12 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
     .tile { display: grid; gap: 0.2rem; padding: 1rem; }
     .tile__value { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
     .tile__label { color: var(--fs-text-muted); }
-    .card { display: grid; gap: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+    .card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
     .card__title { margin: 0; font-size: 1.05rem; }
     .hint { display: flex; gap: 0.4rem; align-items: baseline; margin: 0; color: var(--fs-text-muted); font-size: 0.88rem; }
-    .list { display: grid; gap: 0.6rem; }
+    .list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
+    .table-wrap { position: relative; overflow-x: auto; }
     .members { width: 100%; border-collapse: collapse; }
     .members th, .members td { padding: 0.45rem 0.25rem; border-bottom: 1px solid var(--fs-border); text-align: left; vertical-align: middle; }
     .members th { color: var(--fs-text-muted); font-size: 0.85rem; }

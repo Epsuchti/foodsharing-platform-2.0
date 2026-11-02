@@ -318,5 +318,6 @@
   "stores.import.confirm": "Importer {count, plural, one {# commerce} other {# commerces}}",
   "stores.import.doneTitle": "Import terminé",
   "stores.import.backToList": "Vers la liste des commerces",
-  "stores.import.again": "Importer un autre fichier"
+  "stores.import.again": "Importer un autre fichier",
+  "stores.statistics.scrollTable": "Tableau, défilement horizontal"
 }

@@ -318,5 +318,6 @@
   "stores.import.confirm": "Import {count, plural, one {# store} other {# stores}}",
   "stores.import.doneTitle": "Import finished",
   "stores.import.backToList": "To the store list",
-  "stores.import.again": "Import another file"
+  "stores.import.again": "Import another file",
+  "stores.statistics.scrollTable": "Table, scrolls sideways"
 }

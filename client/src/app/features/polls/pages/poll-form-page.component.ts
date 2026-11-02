@@ -95,7 +95,7 @@ import { datesValid, optionErrors } from '../polls.resource';
     .form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; padding: 1rem; min-width: 0; }
     .form input, .form textarea { width: 100%; min-width: 0; box-sizing: border-box; }
     label, legend { margin-top: 0.4rem; font-weight: 600; }
-    fieldset { display: grid; gap: 0.4rem; margin: 0; padding: 0; border: 0; }
+    fieldset { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; min-width: 0; margin: 0; padding: 0; border: 0; }
     .option { display: flex; align-items: center; gap: 0.25rem; }
     .option input { flex: 1; width: auto; }
     .option label { flex: none; }
