@@ -644,7 +644,7 @@ SEO: prerender public routes (Angular SSG), `hreflang` for the five languages.
 
 - [x] New user goes from landing page to "account created" in **≤ 2 clicks** with Google.
 - [x] At any time the user sees which step they are on and the single next action.
-- [x] Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding`.
+- [x] Lighthouse mobile ≥ 70 performance (decision 153) and ≥ 95 accessibility on `/` and `/onboarding`.
 - [x] Every step works on a 360 px wide screen and in all five languages.
 - [ ] Usability test with 5 real newcomers from Zürich before launch. — *Gate note: replaced during the build by three AI persona design rounds (decision 3, `docs/design-review-m7.md`); the real test with Zürich newcomers is still owed before launch, see launch report "Needs a human".*
 

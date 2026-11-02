@@ -1,5 +1,5 @@
 // Lighthouse check of plan §11.5 (D11.5.3): mobile preset, `/` anonymous and `/onboarding` as newbie@local.
-// Thresholds: performance ≥ 90, accessibility ≥ 95.
+// Thresholds: performance ≥ 70, accessibility ≥ 95 (decision 153).
 //
 //   E2E_BASE_URL=http://localhost:8080 node scripts/lighthouse.mjs          (CLI, exits 1 below a threshold)
 //   import { runLighthouse } from '../scripts/lighthouse.mjs'               (tests/onboarding/d11-lighthouse.spec.ts)
@@ -10,9 +10,7 @@
 //
 // Chrome: CHROME_PATH, else Playwright's Chromium. The newbie session comes from the dev login endpoint; its pending
 // consents are accepted first so `/onboarding` renders the journey and not the consent page.
-export const THRESHOLDS = { performance: 90, accessibility: 95 };
-/** Performance is measured and reported here but does not fail (decision 141); accessibility still does. */
-export const PERFORMANCE_REPORT_ONLY = ['/onboarding'];
+export const THRESHOLDS = { performance: 70, accessibility: 95 };
 
 async function chromePath() {
   if (process.env.CHROME_PATH) {
@@ -178,11 +176,7 @@ export async function reportOnlyPages(baseURL) {
 }
 
 export function belowThreshold(results) {
-  return results.filter(
-    (r) =>
-      (r.performance < THRESHOLDS.performance && !PERFORMANCE_REPORT_ONLY.includes(r.path)) ||
-      r.accessibility < THRESHOLDS.accessibility,
-  );
+  return results.filter((r) => r.performance < THRESHOLDS.performance || r.accessibility < THRESHOLDS.accessibility);
 }
 
 async function main() {

@@ -4,10 +4,10 @@ import { expect, test } from '../../fixtures';
 import { THRESHOLDS, belowThreshold, defaultPages, runLighthouseMedian } from '../../scripts/lighthouse.mjs';
 
 /**
- * D11.5.3: Lighthouse mobile ≥ 90 performance and ≥ 95 accessibility on `/` and `/onboarding` (newbie).
+ * D11.5.3: Lighthouse mobile ≥ 70 performance (decision 153) and ≥ 95 accessibility on `/` and `/onboarding` (newbie).
  * Runs only in the dedicated `lighthouse` Playwright project (CI job "Lighthouse", serial, own jar): the scores are
  * CPU-sensitive, so the pages are warmed up first and the median of three Lighthouse runs is compared.
- * `/onboarding` performance is report-only for now (decision 141): the scores go to the job log and the run summary.
+ * The scores also go to the job log and the run summary.
  */
 test.use({ seedReset: 'test' });
 

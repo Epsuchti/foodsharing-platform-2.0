@@ -1,5 +1,7 @@
 # `/onboarding` speed-up (D11.5.3, D18.3)
 
+**Paused (decision 153, 2026-11-02):** the goal is now 70, which `/onboarding` already meets on CI (76–79). Pick this up again only if the owner wants a higher goal; the goal of 90 below is the old one.
+
 ## Goal
 `/onboarding` reaches a Lighthouse mobile performance median of at least 90 on the CI runner, so the exception from decision 141 can end. The real aim is a faster first visit on a mid-range phone on 4G, which also helps the other signed-in pages that share the start-up path.
 
