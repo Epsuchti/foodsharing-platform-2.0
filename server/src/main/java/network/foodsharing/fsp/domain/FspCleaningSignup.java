@@ -33,4 +33,8 @@ public class FspCleaningSignup extends BaseEntity {
 
     @Column(name = "confirmed_at")
     private Instant confirmedAt;
+
+    /** Set by the reminder job (decision 155). */
+    @Column(name = "reminded_at")
+    private Instant remindedAt;
 }

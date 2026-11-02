@@ -135,5 +135,10 @@
   "foodSharePoints.cleaning.saved": "Turno salvato.",
   "foodSharePoints.cleaning.regularTitle": "Turni regolari",
   "foodSharePoints.cleaning.regularIntro": "Turni settimanali in ora svizzera. Le iscrizioni esistenti restano.",
-  "foodSharePoints.cleaning.regularSaved": "Piano salvato."
+  "foodSharePoints.cleaning.regularSaved": "Piano salvato.",
+  "foodSharePoints.form.autoConfirmLabel": "Conferma automaticamente le iscrizioni",
+  "foodSharePoints.form.autoConfirmHint": "Chi può iscriversi è confermato subito. I responsabili possono comunque rimuovere le persone.",
+  "foodSharePoints.form.timeZone": "Fuso orario",
+  "foodSharePoints.form.timeZoneRegion": "Fuso orario della regione",
+  "foodSharePoints.form.timeZoneHint": "I turni regolari seguono questo fuso orario. Le iscrizioni esistenti mantengono il loro orario esatto."
 }

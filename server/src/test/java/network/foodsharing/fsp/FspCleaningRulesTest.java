@@ -42,6 +42,14 @@ class FspCleaningRulesTest {
         return new Facts(mayAdd, true, manager, manager, false, FspStatus.ACTIVE);
     }
 
+    /** Decision 155. */
+    @Test
+    void autoConfirmSwitchConfirmsAtSignUpLikeAManager() {
+        assertThat(FspCleaningRules.confirmedAtSignUp(facts(false, false), true)).isTrue();
+        assertThat(FspCleaningRules.confirmedAtSignUp(facts(false, false), false)).isFalse();
+        assertThat(FspCleaningRules.confirmedAtSignUp(facts(false, true), false)).isTrue();
+    }
+
     @Test
     void verifiedAwakeFoodsaverWithAFreePlaceMaySignUp() {
         assertThat(FspCleaningRules.eligibility(ok(), FUTURE, NOW, slot(2, UUID.randomUUID()))).isEmpty();

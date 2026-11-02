@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+Rappel : tu as un créneau de nettoyage à [(${name})] le [(${when})].
+
+[(${link})]
+
+Ton équipe foodsharing

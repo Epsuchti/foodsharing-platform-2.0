@@ -135,5 +135,10 @@
   "foodSharePoints.cleaning.saved": "Putzeinsatz gspeicheret.",
   "foodSharePoints.cleaning.regularTitle": "Regelmässigi Putzeinsätz",
   "foodSharePoints.cleaning.regularIntro": "Wöchentlichi Putzeinsätz i Schwiizer Ziit. Bestehendi Iitragige bliibed.",
-  "foodSharePoints.cleaning.regularSaved": "Putzplan gspeicheret."
+  "foodSharePoints.cleaning.regularSaved": "Putzplan gspeicheret.",
+  "foodSharePoints.form.autoConfirmLabel": "Iiträg automatisch bestätige",
+  "foodSharePoints.form.autoConfirmHint": "Wer sich iitrage dörf, isch sofort bestätigt. D Verantwortliche chönd Lüüt wiiterhin entfärne.",
+  "foodSharePoints.form.timeZone": "Zitzone",
+  "foodSharePoints.form.timeZoneRegion": "Zitzone vom Bezirk",
+  "foodSharePoints.form.timeZoneHint": "Regelmässigi Putzeinsätz folged dere Zitzone. Bestehendi Iiträg bhaltet ihre Zitpunkt."
 }

@@ -4,11 +4,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
+import { Select } from '@openng/optimus-ui/select';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import { firstValueFrom, map } from 'rxjs';
 
 import { ApiErrorCode, FoodSharePointsService, Fsp, RegionDetail, RegionsService, Upload, UploadsService } from '../../../api';
+import { TIME_ZONES } from '../../../core/dates/time-zone';
 import { ApiErrorView } from '../../../core/data/api-error';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
@@ -56,7 +58,7 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
  */
 @Component({
   selector: 'fs-fsp-form-page',
-  imports: [...DATA_STATE_IMPORTS, Button, ImageCropComponent, InputText, MapViewComponent, PageHeaderComponent, ReactiveFormsModule, RouterLink, Textarea, ToggleSwitch, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, ImageCropComponent, InputText, MapViewComponent, PageHeaderComponent, ReactiveFormsModule, Select, RouterLink, Textarea, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header
@@ -168,6 +170,18 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
                 <label for="ff-cleaning">{{ 'foodSharePoints.form.cleaningLabel' | t }}</label>
               </div>
               <p class="muted">{{ 'foodSharePoints.form.cleaningHint' | t }}</p>
+              @if (formValue().cleaningEnabled) {
+                <div class="switch">
+                  <p-toggleswitch inputId="ff-auto-confirm" formControlName="cleaningAutoConfirm" data-testid="foodSharePoints.form.autoConfirm" />
+                  <label for="ff-auto-confirm">{{ 'foodSharePoints.form.autoConfirmLabel' | t }}</label>
+                </div>
+                <p class="muted">{{ 'foodSharePoints.form.autoConfirmHint' | t }}</p>
+                <div class="field">
+                  <label for="ff-time-zone">{{ 'foodSharePoints.form.timeZone' | t }}</label>
+                  <p-select inputId="ff-time-zone" formControlName="timeZone" [options]="timeZones()" optionLabel="label" optionValue="value" [placeholder]="'foodSharePoints.form.timeZoneRegion' | t" appendTo="body" data-testid="foodSharePoints.form.timeZone" />
+                  <p class="muted">{{ 'foodSharePoints.form.timeZoneHint' | t }}</p>
+                </div>
+              }
             </section>
 
             @if (save.error(); as error) {
@@ -246,8 +260,16 @@ export class FspFormPageComponent {
     postcode: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(POSTCODE_MAX)] }),
     city: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(CITY_MAX)] }),
     cleaningEnabled: new FormControl(false, { nonNullable: true }),
+    cleaningAutoConfirm: new FormControl(false, { nonNullable: true }),
+    timeZone: new FormControl<string | null>(null),
   });
-  private readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  protected readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+
+  /** The known zones, plus the Fairteiler's own if it has another one. */
+  protected readonly timeZones = computed(() => {
+    const current = this.formValue().timeZone;
+    return [...new Set(current ? [...TIME_ZONES, current] : TIME_ZONES)].map((zone) => ({ value: zone, label: zone }));
+  });
 
   protected readonly position = signal<[number, number] | null>(null);
   protected readonly photoUploadId = signal<string | null>(null);
@@ -350,6 +372,8 @@ export class FspFormPageComponent {
       postcode: fsp.address.postcode,
       city: fsp.address.city,
       cleaningEnabled: fsp.cleaningEnabled,
+      cleaningAutoConfirm: fsp.cleaningAutoConfirm,
+      timeZone: fsp.timeZone,
     });
     if (fsp.lat != null && fsp.lon != null) this.position.set([fsp.lat, fsp.lon]);
   }

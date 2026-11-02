@@ -44,7 +44,8 @@ public class FoodSharePointsController implements FoodSharePointsApi {
     public ResponseEntity<Fsp> createFoodSharePoint(UUID regionId, FspCreate body) {
         FoodSharePoint fsp = service.create(regionId, new FspInput(body.getName(), body.getDescription(),
                 body.getStreet(), body.getPostcode(), body.getCity(), body.getLat(), body.getLon(),
-                body.getPhotoUploadId(), body.getManagerIds(), body.getCleaningEnabled()));
+                body.getPhotoUploadId(), body.getManagerIds(), body.getCleaningEnabled(),
+                body.getCleaningAutoConfirm(), body.getTimeZone()));
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toFsp(queries.get(fsp.getId())));
     }
 
@@ -118,7 +119,7 @@ public class FoodSharePointsController implements FoodSharePointsApi {
     public ResponseEntity<Fsp> updateFoodSharePoint(UUID fspId, FspUpdate body) {
         service.update(fspId, new FspInput(body.getName(), body.getDescription(), body.getStreet(),
                 body.getPostcode(), body.getCity(), body.getLat(), body.getLon(), body.getPhotoUploadId(), null,
-                body.getCleaningEnabled()));
+                body.getCleaningEnabled(), body.getCleaningAutoConfirm(), body.getTimeZone()));
         return ResponseEntity.ok(mapper.toFsp(queries.get(fspId)));
     }
 }

@@ -86,6 +86,7 @@
   "bell.FSP_NEW_POST": "Nouveau message sur un point de partage",
   "bell.FSP_CLEANING_SIGNUP_UNCONFIRMED": "Inscription non confirmée à un créneau de nettoyage",
   "bell.FSP_CLEANING_CONFIRMED": "Ton créneau de nettoyage a été confirmé",
+  "bell.FSP_CLEANING_REMINDER": "Rappel de ton créneau de nettoyage",
   "bell.FSP_CLEANING_REMOVED": "Tu as été retiré·e d'un créneau de nettoyage",
   "bell.MEDIATION_REQUEST": "Nouvelle demande de médiation",
   "bell.ACHIEVEMENT_AWARDED": "Tu as reçu une distinction",

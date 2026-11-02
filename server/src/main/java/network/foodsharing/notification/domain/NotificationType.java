@@ -108,6 +108,7 @@ public enum NotificationType {
     // FS2 cleaning shifts (decision 148)
     FSP_CLEANING_SIGNUP_UNCONFIRMED(PICKUPS, "calendar-plus"),
     FSP_CLEANING_CONFIRMED(PICKUPS, "calendar-check"),
+    FSP_CLEANING_REMINDER(NotificationCategory.PICKUP_REMINDER, "alarm-clock"),
     FSP_CLEANING_REMOVED(PICKUPS, "calendar-x"),
     MEDIATION_REQUEST(REGION, "scale"),
     ACHIEVEMENT_AWARDED(SYSTEM, "award"),

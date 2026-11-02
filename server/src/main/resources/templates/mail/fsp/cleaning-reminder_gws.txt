@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+Erinnerig: du hesch am [(${when})] en Putzeinsatz bim [(${name})].
+
+[(${link})]
+
+Dis foodsharing-Team

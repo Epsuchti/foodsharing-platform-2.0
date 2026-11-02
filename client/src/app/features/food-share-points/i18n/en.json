@@ -135,5 +135,10 @@
   "foodSharePoints.cleaning.saved": "Cleaning shift saved.",
   "foodSharePoints.cleaning.regularTitle": "Regular cleaning shifts",
   "foodSharePoints.cleaning.regularIntro": "Weekly cleaning shifts in Swiss time. Existing sign-ups are kept.",
-  "foodSharePoints.cleaning.regularSaved": "Cleaning schedule saved."
+  "foodSharePoints.cleaning.regularSaved": "Cleaning schedule saved.",
+  "foodSharePoints.form.autoConfirmLabel": "Confirm sign-ups automatically",
+  "foodSharePoints.form.autoConfirmHint": "Anyone allowed to sign up is confirmed at once. Managers can still remove people.",
+  "foodSharePoints.form.timeZone": "Time zone",
+  "foodSharePoints.form.timeZoneRegion": "The region's time zone",
+  "foodSharePoints.form.timeZoneHint": "Regular cleaning shifts follow this time zone. Existing sign-ups keep their exact time."
 }

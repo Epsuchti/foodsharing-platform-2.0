@@ -491,6 +491,20 @@ class PickupPolicyEvaluatorTest {
                 .containsExactly(PolicyRule.ALL_RULES_PASSED);
     }
 
+    /** Decision 155: the decline text lists at most three shifts, so names at their limit stay within mail and Telegram. */
+    @Test
+    void declineTextWithLongNamesStaysWithinTheChannelLimits() {
+        String longName = "F".repeat(200);
+        data.cleaningFsps = List.of(CLEANING, CLEANING_2);
+        for (int i = 0; i < 20; i++) {
+            data.cleaningSlots.add(new CleaningSlot(at("2026-11-10T18:00").plus(Duration.ofDays(i)), CLEANING, longName));
+        }
+        Decision d = evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data);
+        assertThat(d.allowed()).isFalse();
+        assertThat(d.reasonText().length() + evaluator.texts(java.util.Locale.GERMAN).text("decline-footer").length() + 2)
+                .isLessThanOrEqualTo(4000);
+    }
+
     /** D5: an upcoming cleaning sign-up counts while it is still unconfirmed. */
     @Test
     void plannedCleaningPasses() {

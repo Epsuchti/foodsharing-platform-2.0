@@ -23,10 +23,8 @@ import {
   LanguageTabsEditorComponent,
   TranslatedText,
 } from '../../../shared/language-tabs-editor/language-tabs-editor.component';
+import { TIME_ZONES } from '../../../core/dates/time-zone';
 import { RegionPageContext } from '../region-page.context';
-
-/** Zones of the regions foodsharing runs in (others can be typed by ORGA in the region admin). */
-export const TIME_ZONES = ['Europe/Zurich', 'Europe/Berlin', 'Europe/Vienna', 'Europe/Luxembourg', 'Europe/Rome', 'Europe/Paris'];
 
 type StepForm = FormGroup<{
   id: FormControl<string | null>;
