@@ -29,4 +29,9 @@ public interface MailboxRepository extends JpaRepository<Mailbox, UUID> {
             + "or lower(m.emailName) like :pattern or lower(m.name) like :pattern) order by m.emailName, m.id")
     Page<Mailbox> adminSearch(@Param("ownerType") MailboxOwnerType ownerType, @Param("pattern") String pattern,
                               Pageable pageable);
+
+    /** Does the user own a personal mailbox or is a member of any mailbox? One statement for the menu check. */
+    @Query("select count(m) > 0 from Mailbox m where (m.ownerType = network.foodsharing.mailbox.domain.MailboxOwnerType.USER "
+            + "and m.ownerId = :userId) or m.id in (select mm.mailboxId from MailboxMember mm where mm.userId = :userId)")
+    boolean existsOwnOrMemberMailbox(@Param("userId") UUID userId);
 }

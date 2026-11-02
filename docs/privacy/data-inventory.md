@@ -107,7 +107,7 @@ The account itself: `user_account` keeps its id (authored content stays attribut
 | `basket_request` | `requester_id` | basket | basket requests | deleted | `baskets.json` |
 | `food_share_point` | `created_by_user_id` | fsp | food share points created | kept: public place, not personal | `foodSharePoints.json` |
 | `fsp_follower` | `user_id` | fsp | followed / managed food share points | deleted | `foodSharePoints.json` |
-| `fsp_cleaning_signup` | `user_id` | fsp | who signed up for a food share point cleaning shift | deleted: the foreign key cascades, the signup goes with the account | – |
+| `fsp_cleaning_signup` | `user_id` | fsp | who signed up for a food share point cleaning shift | kept: points at the anonymised row (the account row is anonymised, not removed, so the cascade never fires) | – |
 | `fsp_cleaning_signup` | `confirmed_by` | fsp | which food share point manager confirmed a cleaning signup | kept: points at the anonymised row | – |
 | `fsp_wall_post` | `author_id` | fsp | food share point wall posts | kept: authored content | `foodSharePoints.json` |
 | `report` | `reporter_id` | report | reports filed | kept: case file (decision 74) | `reports.json` |
