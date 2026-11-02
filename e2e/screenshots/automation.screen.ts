@@ -27,14 +27,22 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `automation-preview-${variant.name}`);
     });
 
-    screenshotTest('gap rule with a shared store list: list, warnings, preview, phone @AU1 @screenshot', async ({ page, visual }) => {
-      // seed (decision 151): S-01 + S-03, S-03 locked for bieb and without automation
+    screenshotTest('gap rule with a shared store list: list, warnings, previews, leave, phone @AU1 @screenshot', async ({ page, visual }) => {
+      // seed (decisions 151, 152): S-01 (own gap 2) + S-03 (own rule off, without automation), group gap 2
       await page.goto(`/stores/${S01}/automation/policy`);
       await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
       const card = page.getByTestId('automation.policy.gapCard');
       await expect(card.getByTestId('automation.policy.gapMember')).toHaveCount(1);
+      await expect(card.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'on');
       await expect(card.getByTestId('automation.policy.gapPreview.day')).toHaveCount(11);
+      await expect(card.getByTestId('automation.policy.groupGapPreview.day')).toHaveCount(11);
       await visual.expectElement(card, `automation-gap-list-${variant.name}`);
+
+      // own rule off: the group stays, the leave action shows (not saved)
+      await card.getByTestId('automation.policy.gapEnabled').click();
+      await expect(card.getByTestId('automation.policy.gapLeave')).toBeVisible();
+      await expect(card.getByTestId('automation.policy.gapPreview')).toHaveCount(0);
+      await visual.expectElement(card, `automation-gap-leave-${variant.name}`);
 
       // conflict: S-06 links S-05 on the same day and puts S-05 on its list (not saved)
       await page.goto(`/stores/${S06}/automation/policy`);
