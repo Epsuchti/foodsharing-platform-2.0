@@ -11,23 +11,26 @@ const WORDS: Record<GapDayResult, string> = {
   OK: 'automation.policy.gapPreview.ok',
 };
 
+let nextId = 0;
+
 /**
- * Live preview of the gap rule (decision 151): 11 days around an example pickup with the verdict for a second
- * sign-up on each day, the next possible pickup and the decline message (single-store or group text).
+ * Live preview of the gap rule (decisions 151, 152): 11 days around an example pickup with the verdict for a second
+ * sign-up on each day, the next possible pickup and the decline message (single-store text for one name, group text
+ * for more). The card shows one for the own gap and one for the group gap, told apart by `testId`.
  */
 @Component({
   selector: 'fs-gap-preview',
   imports: [TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="gap-preview" data-testid="automation.policy.gapPreview" aria-labelledby="gap-preview-title">
-      <h4 class="gap-preview__title" id="gap-preview-title"><i class="pi pi-eye" aria-hidden="true"></i>{{ 'automation.policy.gapPreview.title' | t }}</h4>
+    <section class="gap-preview" [attr.data-testid]="testId()" [attr.aria-labelledby]="titleId">
+      <h4 class="gap-preview__title" [id]="titleId"><i class="pi pi-eye" aria-hidden="true"></i>{{ 'automation.policy.gapPreview.title' | t }}</h4>
       <p class="muted">{{ 'automation.policy.gapPreview.intro' | t: { date: long(pickup()) } }}</p>
       <ol class="days" [attr.aria-label]="'automation.policy.gapPreview.label' | t">
         @for (day of preview().days; track day.date) {
           <li
             class="day"
-            data-testid="automation.policy.gapPreview.day"
+            [attr.data-testid]="testId() + '.day'"
             [attr.data-date]="day.date"
             [attr.data-result]="day.result"
             [attr.aria-current]="day.result === 'PICKUP' ? 'date' : null"
@@ -47,10 +50,10 @@ const WORDS: Record<GapDayResult, string> = {
         <span><i class="pi pi-times"></i>{{ 'automation.policy.gapPreview.legendBlocked' | t }}</span>
         <span><i class="pi pi-check"></i>{{ 'automation.policy.gapPreview.legendOk' | t }}</span>
       </p>
-      <p class="next" data-testid="automation.policy.gapPreview.next">
+      <p class="next" [attr.data-testid]="testId() + '.next'">
         <i class="pi pi-calendar" aria-hidden="true"></i>{{ 'automation.policy.gapPreview.next' | t: { date: long(preview().next) } }}
       </p>
-      <div class="preview" data-testid="automation.policy.gapPreview.message">
+      <div class="preview" [attr.data-testid]="testId() + '.message'">
         <span class="preview__t">{{ 'automation.policy.gapPreview.messageTitle' | t }}</span>{{ message() }}
       </div>
     </section>
@@ -100,6 +103,10 @@ export class GapPreviewComponent {
   readonly gap = input.required<number>();
   /** This store first, then the other listed stores. */
   readonly storeNames = input.required<string[]>();
+  /** Test id of the preview; its parts get `.day`, `.next` and `.message`. */
+  readonly testId = input('automation.policy.gapPreview');
+
+  protected readonly titleId = `gap-preview-title-${nextId++}`;
 
   protected readonly icons = ICONS;
   protected readonly words = WORDS;

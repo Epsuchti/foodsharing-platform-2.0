@@ -118,7 +118,7 @@ describe('gap list util (decision 151)', () => {
   });
 });
 
-describe('pickup policy section: gap list (decision 151)', () => {
+describe('pickup policy section: gap list (decisions 151, 152)', () => {
   const S = '00000020-0001-4000-8000-000000000001';
   const B = '00000020-0001-4000-8000-000000000003';
   const C = '00000020-0001-4000-8000-000000000005';
@@ -174,6 +174,7 @@ describe('pickup policy section: gap list (decision 151)', () => {
     TestBed.inject(I18nService).useCatalog({
       'automation.policy.gapAnd': 'und',
       'automation.policy.gapNote': 'Liste: {stores}',
+      'automation.policy.gapOwnAlso': 'Eigener Abstand zusätzlich.',
       'automation.policy.gapForbidden': 'Keine Berechtigung für {store}',
       'automation.policy.gapPreview.message': '{date} {store} {stores} {gap} {actual}',
     });
@@ -181,45 +182,122 @@ describe('pickup policy section: gap list (decision 151)', () => {
 
   afterEach(() => http.verify({ ignoreCancelled: true }));
 
-  it('shows a locked member without remove button, the note, the no-automation warning and locks the days field', async () => {
-    await open({
-      ...emptyPickupPolicy(),
-      enabled: true,
-      gapRuleEnabled: true,
-      minimumGapDays: 2,
-      gapStoreIds: [B],
-      gapStores: [{ store: { id: B, name: 'Migros Limmatplatz' }, automationActive: false, mayEdit: false }],
-      version: 1,
-    });
+  interface Section { setGapMembers(ids: string[]): void; draft: WritableSignal<PickupPolicy | null> }
+  const section = () => fixture.componentInstance as unknown as Section;
+  const saveButton = () => el().querySelector('[data-testid="automation.policy.save"] button') as HTMLButtonElement;
+  const input = (testId: string) => el().querySelector(`[data-testid="${testId}"] input`) as HTMLInputElement;
+  const lockedGroup: PickupPolicy = {
+    ...emptyPickupPolicy(),
+    enabled: true,
+    gapRuleEnabled: true,
+    minimumGapDays: 3,
+    gapStoreIds: [B],
+    groupMinimumGapDays: 2,
+    gapStores: [{ store: { id: B, name: 'Migros Limmatplatz' }, automationActive: false, mayEdit: false }],
+    version: 1,
+  };
+
+  it('shows a locked member without remove button, the note, the no-automation warning and locks the group gap only', async () => {
+    await open(lockedGroup);
     const [row] = all('automation.policy.gapMember');
     expect(row.dataset['locked']).toBe('true');
     expect(row.querySelector('[data-testid="automation.policy.gapMember.remove"]')).toBeNull();
     expect(all('automation.policy.gapLockedLeave')).toHaveLength(1);
     expect(all('automation.policy.gapNote')[0].textContent).toContain('Liste: Coop Bahnhofbrücke und Migros Limmatplatz');
+    expect(all('automation.policy.gapNote')[0].textContent).toContain('Eigener Abstand zusätzlich.');
     expect(all('automation.policy.gapWarning').map((w) => w.dataset['kind'])).toEqual(['NO_AUTOMATION']);
-    expect((el().querySelector('[data-testid="automation.policy.gapDays"] input') as HTMLInputElement).disabled).toBe(true);
+    // the own gap is never locked by members; the group gap is
+    expect(input('automation.policy.gapDays').disabled).toBe(false);
+    expect(input('automation.policy.groupGapDays').disabled).toBe(true);
+    // two previews: own (single-store text, own gap 3) and group (group text, group gap 2)
     expect(all('automation.policy.gapPreview.day')).toHaveLength(11);
-    expect(all('automation.policy.gapPreview.message')[0].textContent).toContain('Migros Limmatplatz');
+    expect(all('automation.policy.gapPreview.day').filter((d) => d.dataset['result'] === 'BLOCKED')).toHaveLength(6);
+    expect(all('automation.policy.groupGapPreview.day').filter((d) => d.dataset['result'] === 'BLOCKED')).toHaveLength(4);
+    expect(all('automation.policy.gapPreview.message')[0].textContent).not.toContain('Migros Limmatplatz');
+    expect(all('automation.policy.groupGapPreview.message')[0].textContent).toContain('Migros Limmatplatz');
+    expect(all('automation.policy.gapStatus')[0].dataset['status']).toBe('on');
+    // a locked member: the leave action is offered even with the own rule on
+    expect(all('automation.policy.gapLeave')).toHaveLength(1);
   });
 
-  it('a fully listed same-day link blocks save; rule off sends an empty list', async () => {
+  it('a fully listed same-day link blocks save, also with the own rule off; the list is still sent', async () => {
     await open({ ...emptyPickupPolicy(), enabled: true, gapRuleEnabled: true, minimumGapDays: 2, version: 1 });
-    const component = fixture.componentInstance as unknown as { setGapMembers(ids: string[]): void; draft: WritableSignal<PickupPolicy | null> };
-    component.setGapMembers([C]);
+    section().setGapMembers([C]);
     await settle();
     const warnings = all('automation.policy.gapWarning');
     expect(warnings.map((w) => w.dataset['kind'])).toEqual(['CONFLICT']);
     expect(warnings[0].dataset['store']).toBe(C);
-    expect((el().querySelector('[data-testid="automation.policy.save"] button') as HTMLButtonElement).disabled).toBe(true);
+    expect(saveButton().disabled).toBe(true);
 
-    // switching the rule off leaves the list: no warning, save sends gapStoreIds []
-    component.draft.update((p) => ({ ...p!, gapRuleEnabled: false }));
+    // decision 152: switching the own rule off keeps the list, so the conflict stays
+    section().draft.update((p) => ({ ...p!, gapRuleEnabled: false }));
     await settle();
-    expect(all('automation.policy.gapWarning')).toHaveLength(0);
-    (el().querySelector('[data-testid="automation.policy.save"] button') as HTMLButtonElement).click();
+    expect(all('automation.policy.gapWarning').map((w) => w.dataset['kind'])).toEqual(['CONFLICT']);
+    expect(all('automation.policy.gapMember')).toHaveLength(1);
+    expect(saveButton().disabled).toBe(true);
+
+    // with D instead of C: the list and the group gap are sent with the own rule off
+    section().setGapMembers([D]);
+    await settle();
+    saveButton().click();
+    await settle();
+    const put = http.expectOne((r) => r.method === 'PUT');
+    expect(put.request.body.gapRuleEnabled).toBe(false);
+    expect(put.request.body.gapStoreIds).toEqual([D]);
+    expect(put.request.body.groupMinimumGapDays).toBe(2);
+    put.flush({ ...emptyPickupPolicy(), version: 2 });
+  });
+
+  it('prefills the group gap with max(1, own gap) and shows the status badge', async () => {
+    await open({ ...emptyPickupPolicy(), gapRuleEnabled: false, minimumGapDays: 0, version: 1 });
+    expect(all('automation.policy.gapStatus')[0].dataset['status']).toBe('off');
+    expect(all('automation.policy.gapPreview')).toHaveLength(0);
+    section().setGapMembers([D]);
+    await settle();
+    expect(section().draft()!.groupMinimumGapDays).toBe(1);
+    expect(all('automation.policy.gapStatus')[0].dataset['status']).toBe('on');
+    expect(all('automation.policy.groupGapPreview')).toHaveLength(1);
+    // the own gap does not follow later
+    section().draft.update((p) => ({ ...p!, minimumGapDays: 4 }));
+    section().setGapMembers([D, C]);
+    expect(section().draft()!.groupMinimumGapDays).toBe(1);
+    // a new group starts from the own gap
+    section().setGapMembers([]);
+    section().setGapMembers([D]);
+    expect(section().draft()!.groupMinimumGapDays).toBe(4);
+  });
+
+  it('a group gap below 1 blocks save, whatever the own switch says', async () => {
+    await open({ ...emptyPickupPolicy(), gapRuleEnabled: false, minimumGapDays: 0, version: 1 });
+    section().setGapMembers([D]);
+    section().draft.update((p) => ({ ...p!, groupMinimumGapDays: 0 }));
+    await settle();
+    expect(saveButton().disabled).toBe(true);
+    section().draft.update((p) => ({ ...p!, groupMinimumGapDays: 1 }));
+    await settle();
+    expect(saveButton().disabled).toBe(false);
+  });
+
+  it('offers the leave action in a saved group with the own rule off; it empties the list', async () => {
+    const saved: PickupPolicy = {
+      ...lockedGroup,
+      gapStores: [{ store: { id: B, name: 'Migros Limmatplatz' }, automationActive: false, mayEdit: true }],
+    };
+    await open(saved);
+    expect(all('automation.policy.gapLeave')).toHaveLength(0);
+    section().draft.update((p) => ({ ...p!, gapRuleEnabled: false }));
+    await settle();
+    const leave = all('automation.policy.gapLeave');
+    expect(leave).toHaveLength(1);
+    (leave[0].querySelector('button') as HTMLButtonElement).click();
+    await settle();
+    expect(all('automation.policy.gapMember')).toHaveLength(0);
+    expect(all('automation.policy.gapLeave')).toHaveLength(0);
+    saveButton().click();
     await settle();
     const put = http.expectOne((r) => r.method === 'PUT');
     expect(put.request.body.gapStoreIds).toEqual([]);
+    expect('groupMinimumGapDays' in put.request.body).toBe(false);
     put.flush({ ...emptyPickupPolicy(), version: 2 });
   });
 

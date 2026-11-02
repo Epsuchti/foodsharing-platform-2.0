@@ -70,7 +70,8 @@ export const MAX_LINK_RULES = 2;
 export const MAX_STORES_PER_LINK = 5;
 
 /**
- * Pickup sign-up automation of a store (AU1): enabled / dry run, rule cards (gap, experience, cleaning, holidays),
+ * Pickup sign-up automation of a store (AU1): enabled / dry run, rule cards (gap with its own part and the group part
+ * of decision 152, experience, cleaning, holidays),
  * linked-store rules, excluded dates, save, run now (dry run / live) and the preview dialog.
  */
 @Component({
@@ -121,33 +122,41 @@ export const MAX_STORES_PER_LINK = 5;
 
       <div class="rules">
         <section class="card fs-card gap-card" data-testid="automation.policy.gapCard">
-          <div class="switch-row">
-            <label class="switch-row__text" for="pp-gap"><strong>{{ 'automation.policy.gap' | t }}</strong>
-              <span class="muted">{{ 'automation.policy.gapHint' | t }}</span></label>
-            <p-toggleswitch inputId="pp-gap" [(ngModel)]="p.gapRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.gapEnabled" />
+          <div class="gap-head">
+            <h3>{{ 'automation.policy.gap' | t }}</h3>
+            <span
+              class="badge"
+              [class.badge--ok]="gapActive()"
+              data-testid="automation.policy.gapStatus"
+              [attr.data-status]="gapActive() ? 'on' : 'off'"
+            >{{ (gapActive() ? 'automation.policy.gapStatus.on' : 'automation.policy.gapStatus.off') | t }}</span>
           </div>
-          <div class="field">
-            <label for="pp-gap-days">{{ 'automation.policy.gapDays' | t }}</label>
-            <p-inputnumber
-              class="gap-days"
-              inputId="pp-gap-days"
-              [(ngModel)]="p.minimumGapDays"
-              [min]="gapMembers().length ? 1 : 0"
-              [max]="60"
-              [showButtons]="true"
-              [disabled]="!ctx.mayEdit() || !p.gapRuleEnabled || lockedMembers().length > 0"
-              ariaDescribedBy="pp-gap-days-hint"
-              data-testid="automation.policy.gapDays"
-            />
-            @if (p.gapRuleEnabled && lockedMembers().length) {
-              <p class="muted" id="pp-gap-days-hint" data-testid="automation.policy.gapLockedGap">
-                {{ 'automation.policy.gapLockedGap' | t: { stores: names(lockedMembers()) } }}
-              </p>
-            } @else if (p.gapRuleEnabled && gapMembers().length) {
-              <p class="muted" id="pp-gap-days-hint" [class.error-text]="p.minimumGapDays < 1">{{ 'automation.policy.gapMinWithList' | t }}</p>
+          <div class="gap-part" data-testid="automation.policy.gapOwn">
+            <h4 class="gap-part__title">{{ 'automation.policy.gapOwnTitle' | t }}</h4>
+            <div class="switch-row">
+              <label class="switch-row__text" for="pp-gap"><strong>{{ 'automation.policy.gapOwnEnabled' | t }}</strong>
+                <span class="muted">{{ 'automation.policy.gapHint' | t }}</span></label>
+              <p-toggleswitch inputId="pp-gap" [(ngModel)]="p.gapRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.gapEnabled" />
+            </div>
+            <div class="field">
+              <label for="pp-gap-days">{{ 'automation.policy.gapDays' | t }}</label>
+              <p-inputnumber
+                class="gap-days"
+                inputId="pp-gap-days"
+                [(ngModel)]="p.minimumGapDays"
+                [min]="0"
+                [max]="60"
+                [showButtons]="true"
+                [disabled]="!ctx.mayEdit() || !p.gapRuleEnabled"
+                data-testid="automation.policy.gapDays"
+              />
+            </div>
+            @if (p.gapRuleEnabled) {
+              <fs-gap-preview [pickup]="examplePickup()" [gap]="p.minimumGapDays" [storeNames]="[selfName()]" testId="automation.policy.gapPreview" />
             }
           </div>
-          @if (p.gapRuleEnabled) {
+          <div class="gap-part" data-testid="automation.policy.gapGroup">
+            <h4 class="gap-part__title">{{ 'automation.policy.gapGroupTitle' | t }}</h4>
             <div class="field">
               <label for="pp-gap-stores">{{ 'automation.policy.gapStores' | t }}</label>
               <p class="muted" id="pp-gap-stores-hint">{{ 'automation.policy.gapStoresHint' | t }}</p>
@@ -220,11 +229,33 @@ export const MAX_STORES_PER_LINK = 5;
                   </li>
                 }
               </ul>
+              <div class="field">
+                <label for="pp-group-gap-days">{{ 'automation.policy.groupGapDays' | t }}</label>
+                <p-inputnumber
+                  class="gap-days"
+                  inputId="pp-group-gap-days"
+                  [(ngModel)]="p.groupMinimumGapDays"
+                  [min]="1"
+                  [max]="60"
+                  [showButtons]="true"
+                  [disabled]="!ctx.mayEdit() || lockedMembers().length > 0"
+                  ariaDescribedBy="pp-group-gap-days-hint"
+                  data-testid="automation.policy.groupGapDays"
+                />
+                @if (lockedMembers().length) {
+                  <p class="muted" id="pp-group-gap-days-hint" data-testid="automation.policy.gapLockedGap">
+                    {{ 'automation.policy.gapLockedGap' | t: { stores: names(lockedMembers()) } }}
+                  </p>
+                } @else {
+                  <p class="muted" id="pp-group-gap-days-hint" [class.error-text]="(p.groupMinimumGapDays ?? 0) < 1">{{ 'automation.policy.gapMinWithList' | t }}</p>
+                }
+              </div>
               @if (lockedMembers().length && ctx.mayEdit()) {
                 <p class="muted" data-testid="automation.policy.gapLockedLeave"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'automation.policy.gapLockedLeave' | t }}</p>
               }
               <p class="banner banner--info" data-testid="automation.policy.gapNote">
-                <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'automation.policy.gapNote' | t: { stores: names(gapNoteStores()) } }}
+                <i class="pi pi-info-circle" aria-hidden="true"></i
+                ><span>{{ 'automation.policy.gapNote' | t: { stores: names(gapNoteStores()) } }} {{ 'automation.policy.gapOwnAlso' | t }}</span>
               </p>
             }
             @for (warning of gapWarnings(); track warning.key; let wi = $index) {
@@ -240,8 +271,23 @@ export const MAX_STORES_PER_LINK = 5;
                 <i class="pi" [class.pi-ban]="warning.kind === 'CONFLICT'" [class.pi-exclamation-triangle]="warning.kind !== 'CONFLICT'" aria-hidden="true"></i>{{ warning.text }}
               </p>
             }
-            <fs-gap-preview [pickup]="examplePickup()" [gap]="p.minimumGapDays" [storeNames]="previewNames()" />
-          }
+            @if (showLeave()) {
+              <div class="actions">
+                <p-button
+                  [label]="'automation.policy.gapLeave' | t"
+                  icon="pi pi-sign-out"
+                  severity="danger"
+                  [outlined]="true"
+                  size="small"
+                  (onClick)="leaveGroup()"
+                  data-testid="automation.policy.gapLeave"
+                />
+              </div>
+            }
+            @if (gapMembers().length) {
+              <fs-gap-preview [pickup]="examplePickup()" [gap]="p.groupMinimumGapDays ?? 0" [storeNames]="gapNoteStores()" testId="automation.policy.groupGapPreview" />
+            }
+          </div>
         </section>
         <ng-template #badge let-entry>
           @if (entry.locked) {
@@ -469,6 +515,10 @@ export const MAX_STORES_PER_LINK = 5;
     p-multiselect { width: 100%; }
     .rules .gap-card { grid-column: 1 / -1; }
     .gap-days { width: 9rem; }
+    .gap-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.75rem; }
+    .gap-head h3 { margin: 0; }
+    .gap-part { display: grid; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--fs-border); }
+    .gap-part__title { margin: 0; font-size: 1rem; font-weight: 650; }
     .gap-option { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; min-width: 0; }
     .members { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
     .member {
@@ -580,13 +630,40 @@ export class PickupPolicySection {
   protected readonly lockedMembers = computed(() => this.memberRows().filter((m) => m.locked).map((m) => m.name));
   protected readonly selfName = computed(() => this.ctx.store.data()?.name ?? '');
   protected readonly gapNoteStores = computed(() => [this.selfName(), ...this.memberRows().map((m) => m.name)]);
-  protected readonly previewNames = computed(() => (this.gapMembers().length ? this.gapNoteStores() : [this.selfName()]));
   /** Example pickup: today + 7 in the region's time zone (owner). */
   protected readonly examplePickup = computed(() => addDays(todayIn(this.ctx.timeZone() ?? undefined), 7));
 
   protected setGapMembers(ids: string[] | null): void {
+    const draft = this.draft()!;
+    const wasEmpty = !this.gapList().length;
     this.gapList.set([...(ids ?? [])]);
-    this.draft()!.gapStoreIds = this.gapList();
+    draft.gapStoreIds = this.gapList();
+    // a new group starts with this store's own gap, at least 1 day (decision 152, D8)
+    if (wasEmpty && this.gapList().length) {
+      draft.groupMinimumGapDays = Math.max(1, draft.minimumGapDays ?? 0);
+    }
+  }
+
+  /** Header badge: on while the own rule is on or the store is in a group (decision 152, D8). */
+  protected gapActive(): boolean {
+    const p = this.draft();
+    return !!p && (p.gapRuleEnabled || this.gapMembers().length > 0);
+  }
+
+  /**
+   * "Remove this store from the group" (decision 152, D5): shown while the store is in a saved group and still listed
+   * in the draft, when its own rule is off or a member is locked (that member cannot be removed one by one).
+   */
+  protected showLeave(): boolean {
+    const p = this.draft();
+    const saved = this.ctx.data()?.pickupPolicy?.gapStoreIds ?? [];
+    return !!p && this.ctx.mayEdit() && saved.length > 0 && this.gapMembers().length > 0
+      && (!p.gapRuleEnabled || this.lockedMembers().length > 0);
+  }
+
+  /** Clears the list in the draft; saving sends an empty list and leaves the group (always allowed). */
+  protected leaveGroup(): void {
+    this.setGapMembers([]);
   }
 
   protected removeGapMember(id: string): void {
@@ -639,7 +716,7 @@ export class PickupPolicySection {
   /** Warnings of the gap card (re-evaluated on every change detection run: the draft is edited in place). */
   protected gapWarnings(): GapWarning[] {
     const p = this.draft();
-    if (!p || !p.gapRuleEnabled || !this.gapMembers().length) return [];
+    if (!p || !this.gapMembers().length) return [];
     const warnings: GapWarning[] = [];
     const noAutomation = this.memberRows().filter((m) => !m.automationActive).map((m) => m.name);
     if (noAutomation.length) {
@@ -649,7 +726,7 @@ export class PickupPolicySection {
         text: this.i18n.t('automation.policy.gapWarnNoAutomation', { stores: this.names(noAutomation) }),
       });
     }
-    const gap = p.minimumGapDays ?? 0;
+    const gap = p.groupMinimumGapDays ?? 0;
     for (const finding of gapLinkFindings(this.ctx.storeId() ?? '', this.gapMembers(), gap, this.gapRules(p))) {
       const rule = finding.rule;
       const window =
@@ -672,11 +749,11 @@ export class PickupPolicySection {
     return this.gapWarnings().filter((w) => w.linkIndex === index);
   }
 
-  /** Save is disabled while a link conflict blocks or the gap is below 1 with a list. */
+  /** Save is disabled while a link conflict blocks or the group gap is below 1 with a list. */
   protected gapBlocked(): boolean {
     const p = this.draft();
-    if (!p || !p.gapRuleEnabled || !this.gapMembers().length) return false;
-    return (p.minimumGapDays ?? 0) < 1 || this.gapWarnings().some((w) => w.kind === 'CONFLICT');
+    if (!p || !this.gapMembers().length) return false;
+    return (p.groupMinimumGapDays ?? 0) < 1 || this.gapWarnings().some((w) => w.kind === 'CONFLICT');
   }
 
   /** The save error with the store's name where the server named one (403 / taken / link conflict). */
@@ -812,8 +889,9 @@ export class PickupPolicySection {
           message: rule.message?.trim() || undefined,
         })),
       excludedDates: [...policy.excludedDates].sort(),
-      // rule off leaves the list (D6); the order does not matter to the server
-      gapStoreIds: policy.gapRuleEnabled ? [...(policy.gapStoreIds ?? [])].sort() : [],
+      // decision 152: the list is sent whatever the own switch says (empty = leave); the order does not matter
+      gapStoreIds: [...(policy.gapStoreIds ?? [])].sort(),
+      ...(policy.gapStoreIds?.length ? { groupMinimumGapDays: policy.groupMinimumGapDays } : {}),
       version: policy.version,
     };
   }
