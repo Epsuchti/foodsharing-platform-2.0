@@ -54,6 +54,12 @@ test('N3 header badge counts unread bells and panel marks read on click @N3 @pag
   const item = await openBells(page);
   if (!isMobile(page)) {
     expect(await page.getByTestId(item).count()).toBeLessThanOrEqual(10);
+    // long titles and the head wrap: neither the panel nor its card has horizontally clipped content
+    const overflow = await page.getByTestId('bells.panel').evaluate((panel) => {
+      const card = panel.closest('.sn-card') ?? panel;
+      return [panel, card].map((el) => el.scrollWidth - el.clientWidth);
+    });
+    expect(Math.max(...overflow)).toBeLessThanOrEqual(0);
   }
   // the newest unread bell with a link: click → read and opened
   const bells = (await api.getJson<{ items: BellDto[] }>('/api/bells?size=10')).items;
