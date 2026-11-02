@@ -44,6 +44,7 @@ region_membership
 region_function
 region_conversation
 region_closure
+region_cleaning_fsp
 region_admin
 rating
 quiz_session
@@ -60,6 +61,7 @@ intro_pickup_subscription
 group_application
 fsp_wall_post
 fsp_follower
+fsp_cleaning_signup
 forum_thread_follow
 forum_post_reaction
 forum_follow
@@ -110,6 +112,8 @@ legal_acceptance
 learning_progress
 intro_pickup_store_alias
 guide_profile
+fsp_cleaning_shift
+fsp_cleaning_regular
 email_change
 content_page_i18n
 calendar_token
@@ -129,15 +133,15 @@ quiz_answer
 pickup_policy_linked_store
 mail_message
 event
-food_share_point
 region_onboarding_step
 achievement
 resource
 poll
 basket
+food_share_point
 intro_pickup
-forum_thread
 pickup_policy
+forum_thread
 survey
 store
 user_account
@@ -145,6 +149,7 @@ region
 quiz_question
 store_category
 release_note
+pickup_gap_group
 newsletter
 legal_document_version
 event_location
