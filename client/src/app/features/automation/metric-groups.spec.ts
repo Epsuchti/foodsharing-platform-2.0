@@ -129,7 +129,8 @@ describe('region metrics section (AU9)', () => {
     // 90 days (from = today - 89) are summed per week: 13 or 14 buckets depending on the weekday
     const table = q('[data-testid="automation.metrics.chart.table"]') as HTMLTableElement;
     expect(table).toBeTruthy();
-    expect(table.classList).toContain('fs-visually-hidden');
+    // the wrapper carries the class: a table ignores the 1px width of fs-visually-hidden and widened the page
+    expect(table.parentElement?.classList).toContain('fs-visually-hidden');
     const weeks = table.querySelectorAll('tbody tr').length;
     expect(weeks).toBeGreaterThanOrEqual(13);
     expect(weeks).toBeLessThanOrEqual(14);
