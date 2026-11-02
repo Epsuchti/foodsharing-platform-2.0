@@ -56,38 +56,40 @@ interface MergeTarget {
           </form>
           <fs-data-state [state]="state(kind)" skeleton="table" [emptyTitle]="'storeCategories.empty' | t" [testId]="'storeCategories.' + kind + '.state'" [attr.data-testid]="'storeCategories.' + kind + '.state'">
             <ng-template [fsData]="state(kind)" let-items>
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th scope="col">{{ 'storeCategories.name' | t }}</th>
-                    <th scope="col" class="num">{{ 'storeCategories.stores' | t }}</th>
-                    <th scope="col"><span class="sr-only">{{ 'storeCategories.actions' | t }}</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (item of items; track item.id) {
-                    <tr [attr.data-testid]="'storeCategories.' + kind + '.row'" [attr.data-name]="item.name">
-                      <td>
-                        @if (editing() === item.id) {
-                          <form class="rename" (ngSubmit)="rename.run(kind, item)">
-                            <input pInputText name="rename" [(ngModel)]="renameValue" maxlength="100" [attr.aria-label]="'storeCategories.rename' | t" [attr.data-testid]="'storeCategories.' + kind + '.renameInput'" />
-                            <p-button type="submit" icon="pi pi-check" size="small" [ariaLabel]="'storeCategories.save' | t" [attr.data-testid]="'storeCategories.' + kind + '.renameSave'" />
-                            <p-button icon="pi pi-times" size="small" severity="secondary" [text]="true" [ariaLabel]="'common.cancel' | t" (onClick)="editing.set(null)" />
-                          </form>
-                        } @else {
-                          {{ item.name }}
-                        }
-                      </td>
-                      <td class="num" [attr.data-testid]="'storeCategories.' + kind + '.count'">{{ item.storeCount ?? 0 }}</td>
-                      <td class="row-actions">
-                        <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.rename' | t" (onClick)="startRename(item)" [attr.data-testid]="'storeCategories.' + kind + '.rename'" />
-                        <p-button icon="pi pi-arrow-right-arrow-left" size="small" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.merge' | t" (onClick)="openMerge(kind, item)" [attr.data-testid]="'storeCategories.' + kind + '.merge'" />
-                        <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.delete' | t" (onClick)="askDelete(kind, item)" [attr.data-testid]="'storeCategories.' + kind + '.delete'" />
-                      </td>
+              <div class="table-wrap" tabindex="0" role="region" [attr.aria-label]="'storeCategories.scrollTable' | t">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{ 'storeCategories.name' | t }}</th>
+                      <th scope="col" class="num">{{ 'storeCategories.stores' | t }}</th>
+                      <th scope="col"><span class="sr-only">{{ 'storeCategories.actions' | t }}</span></th>
                     </tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    @for (item of items; track item.id) {
+                      <tr [attr.data-testid]="'storeCategories.' + kind + '.row'" [attr.data-name]="item.name">
+                        <td>
+                          @if (editing() === item.id) {
+                            <form class="rename" (ngSubmit)="rename.run(kind, item)">
+                              <input pInputText name="rename" [(ngModel)]="renameValue" maxlength="100" [attr.aria-label]="'storeCategories.rename' | t" [attr.data-testid]="'storeCategories.' + kind + '.renameInput'" />
+                              <p-button type="submit" icon="pi pi-check" size="small" [ariaLabel]="'storeCategories.save' | t" [attr.data-testid]="'storeCategories.' + kind + '.renameSave'" />
+                              <p-button icon="pi pi-times" size="small" severity="secondary" [text]="true" [ariaLabel]="'common.cancel' | t" (onClick)="editing.set(null)" />
+                            </form>
+                          } @else {
+                            {{ item.name }}
+                          }
+                        </td>
+                        <td class="num" [attr.data-testid]="'storeCategories.' + kind + '.count'">{{ item.storeCount ?? 0 }}</td>
+                        <td class="row-actions">
+                          <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.rename' | t" (onClick)="startRename(item)" [attr.data-testid]="'storeCategories.' + kind + '.rename'" />
+                          <p-button icon="pi pi-arrow-right-arrow-left" size="small" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.merge' | t" (onClick)="openMerge(kind, item)" [attr.data-testid]="'storeCategories.' + kind + '.merge'" />
+                          <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.delete' | t" (onClick)="askDelete(kind, item)" [attr.data-testid]="'storeCategories.' + kind + '.delete'" />
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
             </ng-template>
           </fs-data-state>
         </section>
@@ -129,10 +131,11 @@ interface MergeTarget {
   styles: `
     :host { display: block; width: min(100%, 64rem); margin: 0 auto; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 1rem; }
-    .card { display: grid; gap: 0.75rem; align-content: start; padding: 1rem; }
+    .card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; align-content: start; padding: 1rem; }
     .card__title { margin: 0; font-size: 1.05rem; }
     .add, .rename { display: flex; gap: 0.4rem; align-items: center; }
     .add input, .rename input { flex: 1; min-width: 0; }
+    .table-wrap { position: relative; overflow-x: auto; }
     .table { width: 100%; border-collapse: collapse; }
     .table th, .table td { padding: 0.35rem 0.25rem; border-bottom: 1px solid var(--fs-border); text-align: left; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }

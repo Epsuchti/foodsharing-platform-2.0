@@ -22,5 +22,6 @@
   "storeCategories.merged": "Zämegfüert.",
   "storeCategories.deleted": "Glöscht.",
   "storeCategories.deleteTitle": "«{name}» lösche?",
-  "storeCategories.deleteText": "Nur Iiträg, wo kein Betrieb bruucht, chönd glöscht werde. Bruuchti stattdesse zämefüere."
+  "storeCategories.deleteText": "Nur Iiträg, wo kein Betrieb bruucht, chönd glöscht werde. Bruuchti stattdesse zämefüere.",
+  "storeCategories.scrollTable": "Tabälle, siitlich scrollbar"
 }

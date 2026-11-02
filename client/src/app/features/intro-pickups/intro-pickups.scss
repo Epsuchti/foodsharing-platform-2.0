@@ -233,6 +233,8 @@
 }
 
 .table-wrap {
+  // Contains the absolutely positioned visually hidden headers, which would otherwise widen the page past the scroll box.
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--fs-border);
   border-radius: var(--fs-radius-lg);

@@ -22,5 +22,6 @@
   "storeCategories.merged": "Unito.",
   "storeCategories.deleted": "Eliminato.",
   "storeCategories.deleteTitle": "Eliminare «{name}»?",
-  "storeCategories.deleteText": "Si possono eliminare solo le voci che nessuna azienda usa. Unisci invece quelle in uso."
+  "storeCategories.deleteText": "Si possono eliminare solo le voci che nessuna azienda usa. Unisci invece quelle in uso.",
+  "storeCategories.scrollTable": "Tabella, scorrevole in orizzontale"
 }

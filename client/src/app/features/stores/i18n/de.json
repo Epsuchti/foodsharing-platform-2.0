@@ -318,5 +318,6 @@
   "stores.import.confirm": "{count, plural, one {# Betrieb} other {# Betriebe}} importieren",
   "stores.import.doneTitle": "Import abgeschlossen",
   "stores.import.backToList": "Zur Betriebsliste",
-  "stores.import.again": "Weitere Datei importieren"
+  "stores.import.again": "Weitere Datei importieren",
+  "stores.statistics.scrollTable": "Tabelle, seitlich scrollbar"
 }

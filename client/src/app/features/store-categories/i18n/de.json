@@ -22,5 +22,6 @@
   "storeCategories.merged": "Zusammengeführt.",
   "storeCategories.deleted": "Gelöscht.",
   "storeCategories.deleteTitle": "«{name}» löschen?",
-  "storeCategories.deleteText": "Nur Einträge, die kein Betrieb nutzt, können gelöscht werden. Genutzte stattdessen zusammenführen."
+  "storeCategories.deleteText": "Nur Einträge, die kein Betrieb nutzt, können gelöscht werden. Genutzte stattdessen zusammenführen.",
+  "storeCategories.scrollTable": "Tabelle, seitlich scrollbar"
 }
