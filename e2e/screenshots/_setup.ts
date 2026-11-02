@@ -204,8 +204,19 @@ const pendingRequests = new WeakMap<Page, Set<Request>>();
 function trackPendingRequests(page: Page): void {
   const pending = new Set<Request>();
   pendingRequests.set(page, pending);
+  // A request the previous document started shortly before a page load replaced it does not always report
+  // `requestfailed` (a resize right before `page.goto` loads a chunk and the release notes, AU1 phone step): it stayed
+  // "running" for good and the quiet check timed out. When a new document commits in the main frame after a document
+  // request (a real page load, not an SPA route change), what the old document left is dropped.
+  let documentRequested = false;
   page.on('request', (request) => {
+    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentRequested = true;
     if (PENDING_TYPES.has(request.resourceType())) pending.add(request);
+  });
+  page.on('framenavigated', (frame) => {
+    if (frame !== page.mainFrame() || !documentRequested) return;
+    documentRequested = false;
+    for (const request of pending) if (!(request.isNavigationRequest() && request.frame() === frame)) pending.delete(request);
   });
   const done = (request: Request): void => void pending.delete(request);
   page.on('requestfinished', done);
@@ -310,10 +321,31 @@ const screen: ScreenHelpers = {
     await settle(locator.page(), options);
     await assertInter(locator.page());
     await fixedOrigin(locator.page());
-    await expect(locator).toHaveScreenshot(`${name}.png`, {
-      mask: [locator.page().locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
-      maskColor: await maskColor(locator.page()),
+    // An element taller than the viewport (AU1 gap card) is scrolled into view and captured beyond the viewport, and
+    // the sticky bars (header, store tabs, sub-navigation) and the fixed tab bar were painted over it at a spot that
+    // depends on the scroll position of the moment: two consecutive captures differed. Such an element is captured in
+    // a viewport that holds it from the top of the page: no scroll, the sticky bars stay above it in the flow and the
+    // fixed tab bar below it. Only the height changes (a width change closes open side menu cards).
+    const page = locator.page();
+    const viewport = page.viewportSize();
+    const box = await locator.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return { bottom: rect.bottom + window.scrollY, height: rect.height };
     });
+    const restore = viewport !== null && box.height > viewport.height ? viewport : null;
+    if (restore) {
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await page.setViewportSize({ width: restore.width, height: Math.ceil(box.bottom) + 120 });
+      await settle(page, { waitForData: false });
+    }
+    try {
+      await expect(locator).toHaveScreenshot(`${name}.png`, {
+        mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
+        maskColor: await maskColor(page),
+      });
+    } finally {
+      if (restore) await page.setViewportSize(restore);
+    }
   },
 };
 
