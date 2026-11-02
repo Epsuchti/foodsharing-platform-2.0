@@ -194,22 +194,27 @@ class PickupPolicyFlowIT {
     @Test
     @Order(7)
     void sharedGapListDeclinesAcrossStoresFirstInDryRunThenLive() throws Exception {
-        // decision 151: S-01 and S-03 share a gap of 2 days; foodsaver has a confirmed S-03 pickup on Tuesday 10.11.
+        // decisions 151/152: S-01 and S-03 share a group gap of 2 days while S-01's own gap rule is off (own rule off,
+        // group on); foodsaver has a confirmed S-03 pickup on Tuesday 10.11.
         Cookie orga = login(SeedUsers.ORGA);
         String policy = """
-                {"enabled":true,"dryRun":%s,"gapRuleEnabled":true,"minimumGapDays":2,"cleaningRuleEnabled":false,
+                {"enabled":true,"dryRun":%s,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":false,
                  "experienceRuleEnabled":false,"publicHolidayRuleEnabled":false,"linkedStores":[],"excludedDates":[],
-                 "gapStoreIds":["00000020-0001-4000-8000-000000000003"]}""";
+                 "groupMinimumGapDays":2,"gapStoreIds":["00000020-0001-4000-8000-000000000003"]}""";
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("true")))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gapRuleEnabled").value(false))
+                .andExpect(jsonPath("$.groupMinimumGapDays").value(2))
                 .andExpect(jsonPath("$.gapStoreIds[0]").value("00000020-0001-4000-8000-000000000003"))
                 .andExpect(jsonPath("$.gapStores[0].store.name").isNotEmpty())
                 .andExpect(jsonPath("$.gapStores[0].automationActive").value(false))
                 .andExpect(jsonPath("$.gapStores[0].mayEdit").value(true));
         mvc.perform(get(S + "03/automation").cookie(orga)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.pickupPolicy.gapStoreIds[0]").value(S01_ID))
-                .andExpect(jsonPath("$.pickupPolicy.minimumGapDays").value(2))
-                .andExpect(jsonPath("$.pickupPolicy.gapRuleEnabled").value(true));
+                .andExpect(jsonPath("$.pickupPolicy.groupMinimumGapDays").value(2))
+                // seed 182: S-03's own rule is off; saving the list never writes a member's own gap or switch
+                .andExpect(jsonPath("$.pickupPolicy.minimumGapDays").value(0))
+                .andExpect(jsonPath("$.pickupPolicy.gapRuleEnabled").value(false));
         mvc.perform(get(S01 + "/automation/gap-candidates").cookie(orga)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.store.id == '00000020-0001-4000-8000-000000000003')].inOtherList")
                         .value(Matchers.contains(false)));
@@ -248,13 +253,15 @@ class PickupPolicyFlowIT {
         assertThat(count("select count(*) from history_entry where action = 'AUTO_DECLINED' and subject_id = ?",
                 SeedUsers.FOODSAVER.id())).isEqualTo(declinedBefore + 1);
 
-        // leaving: S-01 switches the rule off, S-03 is left alone and drops out with its gap
+        // leaving: S-01 sends an empty list (decision 152), S-03 is left alone and drops out with its own gap
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("true")
-                .replace("\"gapRuleEnabled\":true", "\"gapRuleEnabled\":false"))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.gapStoreIds").isEmpty());
+                .replace("\"groupMinimumGapDays\":2,", "")
+                .replace("[\"00000020-0001-4000-8000-000000000003\"]", "[]"))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.gapStoreIds").isEmpty())
+                .andExpect(jsonPath("$.groupMinimumGapDays").doesNotExist());
         mvc.perform(get(S + "03/automation").cookie(orga))
                 .andExpect(jsonPath("$.pickupPolicy.gapStoreIds").isEmpty())
-                .andExpect(jsonPath("$.pickupPolicy.minimumGapDays").value(2));
+                .andExpect(jsonPath("$.pickupPolicy.minimumGapDays").value(0));
         assertThat(count("select count(*) from pickup_gap_group")).isZero();
     }
 

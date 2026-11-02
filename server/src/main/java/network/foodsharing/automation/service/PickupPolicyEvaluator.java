@@ -39,13 +39,14 @@ public class PickupPolicyEvaluator {
             PolicyRule.CLEANING_NEW_USER);
 
     /**
-     * A policy as the rules see it. {@code gapStoreIds}: the other live stores of its shared gap list (decision 151),
-     * empty for a store alone.
+     * A policy as the rules see it. {@code gapRuleEnabled}/{@code minimumGapDays}: the store's own gap (this store's
+     * pickups only). {@code gapStoreIds}: the other live stores of its shared gap list (decision 151), empty for a
+     * store alone; {@code groupMinimumGapDays}: the gap of that list (decision 152), 0 without a list.
      */
     public record Spec(UUID id, UUID storeId, boolean enabled, boolean dryRun, boolean gapRuleEnabled,
                        int minimumGapDays, boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                        boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links,
-                       List<UUID> gapStoreIds) {
+                       List<UUID> gapStoreIds, int groupMinimumGapDays) {
 
         public Spec {
             gapStoreIds = gapStoreIds == null ? List.of() : List.copyOf(gapStoreIds);
@@ -56,7 +57,7 @@ public class PickupPolicyEvaluator {
                     int minimumGapDays, boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                     boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links) {
             this(id, storeId, enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled,
-                    experienceRuleEnabled, publicHolidayRuleEnabled, excludedDates, links, List.of());
+                    experienceRuleEnabled, publicHolidayRuleEnabled, excludedDates, links, List.of(), 0);
         }
     }
 
@@ -196,20 +197,7 @@ public class PickupPolicyEvaluator {
         }
         List<Reason> reasons = new ArrayList<>();
         String storeName = data.storeName(storeId);
-        if (policy.gapRuleEnabled() && policy.gapStoreIds().isEmpty()) {
-            data.signupsOfUser(userId, List.of(storeId), now.minus(Duration.ofDays(3)), now.plus(HORIZON)).stream()
-                    .map(Signup::pickupAt)
-                    .filter(date -> !date.equals(pickupAt))
-                    .filter(date -> !rulesAreSkipped(date, now, zone))
-                    .sorted()
-                    .map(date -> calendarGapDays(date, pickupAt, zone))
-                    .filter(gap -> gap < policy.minimumGapDays())
-                    .findFirst()
-                    .ifPresent(gap -> reasons.add(new Reason(PolicyRule.GAP,
-                            t.text("gap", t.days(gap), t.days(policy.minimumGapDays())))));
-        } else if (policy.gapRuleEnabled()) {
-            groupGap(policy, storeName, pickupAt, userId, now, zone, t, data).ifPresent(reasons::add);
-        }
+        gapReason(policy, storeName, pickupAt, userId, now, zone, t, data).ifPresent(reasons::add);
         if (policy.experienceRuleEnabled() && !hasExperience(storeId, userId, now, data)
                 && !hasExperiencedCoPickup(storeId, pickupAt, userId, now, data)) {
             reasons.add(new Reason(PolicyRule.EXPERIENCE, t.text("experience")));
@@ -268,16 +256,50 @@ public class PickupPolicyEvaluator {
     }
 
     /**
+     * The gap rule (decision 152): two independent checks. The own check (this store's pickups, own gap) runs when the
+     * own rule is on; the group check (decision 151 D3/D4, group gap) runs whenever the store has another live store
+     * in its gap list. One GAP reason: when both fail and the own gap is at most the group gap, the group sentence
+     * alone (it already covers this store's pickups); otherwise both sentences.
+     */
+    private Optional<Reason> gapReason(Spec policy, String storeName, Instant pickupAt, UUID userId, Instant now,
+                                       ZoneId zone, PolicyTexts t, Data data) {
+        Optional<String> own = policy.gapRuleEnabled() ? ownGap(policy, pickupAt, userId, now, zone, t, data)
+                : Optional.empty();
+        Optional<String> group = policy.gapStoreIds().isEmpty() ? Optional.empty()
+                : groupGap(policy, storeName, pickupAt, userId, now, zone, t, data);
+        if (own.isPresent() && group.isPresent()) {
+            return Optional.of(new Reason(PolicyRule.GAP, policy.minimumGapDays() <= policy.groupMinimumGapDays()
+                    ? group.get() : own.get() + "\n" + group.get()));
+        }
+        return own.or(() -> group).map(text -> new Reason(PolicyRule.GAP, text));
+    }
+
+    /** Own gap: every other pickup of the person in this store (pending or confirmed) outside its skip window. */
+    private Optional<String> ownGap(Spec policy, Instant pickupAt, UUID userId, Instant now, ZoneId zone,
+                                    PolicyTexts t, Data data) {
+        return data.signupsOfUser(userId, List.of(policy.storeId()), now.minus(Duration.ofDays(3)), now.plus(HORIZON))
+                .stream()
+                .map(Signup::pickupAt)
+                .filter(date -> !date.equals(pickupAt))
+                .filter(date -> !rulesAreSkipped(date, now, zone))
+                .sorted()
+                .map(date -> calendarGapDays(date, pickupAt, zone))
+                .filter(gap -> gap < policy.minimumGapDays())
+                .findFirst()
+                .map(gap -> t.text("gap", t.days(gap), t.days(policy.minimumGapDays())));
+    }
+
+    /**
      * Gap rule with a shared store list (decision 151). This store as without a list (D3: every other own pickup,
      * pending or confirmed, except one at the same time); a pickup in another listed store (D4) counts when it is
      * confirmed, when a sign-up time is missing, or when it was signed up no later than this one (equal times block
      * both); a same-time pickup there counts too. Pickups in their own skip window are ignored (D2). The first blocking
-     * pickup by date gives the text.
+     * pickup by date gives the text. Uses the group gap (decision 152).
      */
-    private Optional<Reason> groupGap(Spec policy, String storeName, Instant pickupAt, UUID userId, Instant now,
+    private Optional<String> groupGap(Spec policy, String storeName, Instant pickupAt, UUID userId, Instant now,
                                       ZoneId zone, PolicyTexts t, Data data) {
         UUID storeId = policy.storeId();
-        int minimum = policy.minimumGapDays();
+        int minimum = policy.groupMinimumGapDays();
         Instant from = now.minus(Duration.ofDays(3));
         Instant to = now.plus(HORIZON);
         List<GapHit> hits = new ArrayList<>();
@@ -302,8 +324,8 @@ public class PickupPolicyEvaluator {
                     List<String> names = new ArrayList<>();
                     names.add(storeName);
                     policy.gapStoreIds().forEach(id -> names.add(data.storeName(id)));
-                    return new Reason(PolicyRule.GAP, t.text("gap.group", t.date(hit.date(), zone),
-                            data.storeName(hit.storeId()), t.all(names), t.days(minimum), t.days(hit.gap())));
+                    return t.text("gap.group", t.date(hit.date(), zone), data.storeName(hit.storeId()), t.all(names),
+                            t.days(minimum), t.days(hit.gap()));
                 });
     }
 

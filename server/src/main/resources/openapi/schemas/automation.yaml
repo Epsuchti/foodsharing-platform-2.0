@@ -123,13 +123,23 @@ PickupPolicy:
         format: date
     gapStoreIds:
       description: >-
-        The other stores of the shared gap list (decision 151): gap and gapRuleEnabled are written to all of them.
-        Empty or missing = this store alone (leaves a list, D6).
+        The other stores of the shared gap list (decisions 151, 152): only the group gap (groupMinimumGapDays) is
+        shared; each store keeps its own gapRuleEnabled and minimumGapDays. Empty or missing = this store alone
+        (leaves a list).
       type: array
       maxItems: 9
       items:
         type: string
         format: uuid
+    groupMinimumGapDays:
+      description: >-
+        The group gap (decision 152): checks the person's pickups in all stores of the gap list, independent of
+        gapRuleEnabled. Required (1-60) with a non-empty gapStoreIds (else VALIDATION_FAILED, field
+        groupMinimumGapDays); missing in responses without a list.
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 60
     gapStores:
       description: 'Read only: the other live stores of the gap list, by name'
       type: array

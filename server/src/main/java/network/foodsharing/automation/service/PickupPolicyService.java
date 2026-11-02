@@ -63,11 +63,15 @@ public class PickupPolicyService {
                             UUID mirrorOf) {
     }
 
-    /** {@code gapStoreIds}: the other stores of the shared gap list (decision 151); empty or missing = alone. */
+    /**
+     * {@code gapRuleEnabled}/{@code minimumGapDays}: the store's own gap. {@code gapStoreIds}: the other stores of the
+     * shared gap list (decision 151); empty or missing = alone. {@code groupMinimumGapDays}: the gap of that list
+     * (decision 152), required with a list.
+     */
     public record PolicyInput(boolean enabled, boolean dryRun, boolean gapRuleEnabled, int minimumGapDays,
                               boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                               boolean publicHolidayRuleEnabled, List<LinkInput> links, List<LocalDate> excludedDates,
-                              Long version, List<UUID> gapStoreIds) {
+                              Long version, List<UUID> gapStoreIds, Integer groupMinimumGapDays) {
 
         public PolicyInput {
             gapStoreIds = gapStoreIds == null ? List.of() : List.copyOf(gapStoreIds);
@@ -79,7 +83,7 @@ public class PickupPolicyService {
                            boolean publicHolidayRuleEnabled, List<LinkInput> links, List<LocalDate> excludedDates,
                            Long version) {
             this(enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
-                    publicHolidayRuleEnabled, links, excludedDates, version, List.of());
+                    publicHolidayRuleEnabled, links, excludedDates, version, List.of(), null);
         }
     }
 
@@ -95,8 +99,9 @@ public class PickupPolicyService {
                                    List<GapLinkConflicts.Link> links) {
     }
 
+    /** {@code groupMinimumGapDays}: the gap of the store's gap list (decision 152); null without other live stores. */
     public record PolicyView(PickupPolicy policy, List<LinkView> links, List<LocalDate> excludedDates,
-                             List<GapStoreView> gapStores) {
+                             List<GapStoreView> gapStores, Integer groupMinimumGapDays) {
     }
 
     private final PickupPolicyRepository policies;
@@ -182,7 +187,9 @@ public class PickupPolicyService {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "excludedDates");
         }
         List<UUID> wantedGap = gapList(storeId, input);
-        boolean grouped = input.gapRuleEnabled() && !wantedGap.isEmpty();
+        // decision 152: the own switch no longer decides membership; an empty list leaves
+        boolean grouped = !wantedGap.isEmpty();
+        int groupGap = grouped ? groupGap(input) : 0;
         PickupGapGroup group = existing.map(PickupPolicy::getGapGroupId).flatMap(gapGroups::lockById).orElse(null);
         Map<UUID, PickupPolicy> groupMembers = group == null ? Map.of() : policies.findByGapGroupId(group.getId())
                 .stream().filter(p -> !p.getStoreId().equals(storeId))
@@ -190,10 +197,10 @@ public class PickupPolicyService {
         Set<UUID> liveOthers = stores.liveStores(groupMembers.keySet()).stream().map(Store::getId)
                 .collect(Collectors.toSet());
         if (grouped) {
-            validateGapList(actor, store, group, liveOthers, wantedGap, input.minimumGapDays());
+            validateGapList(actor, store, group, liveOthers, wantedGap, groupGap);
             Set<UUID> list = new LinkedHashSet<>(wantedGap);
             list.add(storeId);
-            GapLinkConflicts.firstBlocking(list, input.minimumGapDays(), linksOf(storeId, existing.orElse(null),
+            GapLinkConflicts.firstBlocking(list, groupGap, linksOf(storeId, existing.orElse(null),
                     own, wantedGap)).ifPresent(conflict -> {
                         throw ApiException.badRequest(ApiErrorCode.GAP_LINK_CONFLICT)
                                 .withArg("storeId", conflict.storeId().toString())
@@ -202,13 +209,13 @@ public class PickupPolicyService {
         }
         PickupPolicy policy = existing.orElseGet(PickupPolicy::new);
         boolean created = existing.isEmpty();
-        boolean gapChanged = grouped != (group != null) || (grouped && (group.getMinimumGapDays()
-                != input.minimumGapDays() || !liveOthers.equals(new HashSet<>(wantedGap))));
+        boolean gapChanged = grouped != (group != null) || (grouped && (group.getMinimumGapDays() != groupGap
+                || !liveOthers.equals(new HashSet<>(wantedGap))));
         if (grouped && group == null) {
             group = new PickupGapGroup();
         }
         if (grouped) {
-            group.setMinimumGapDays(input.minimumGapDays());
+            group.setMinimumGapDays(groupGap);
             group = gapGroups.saveAndFlush(group);
         }
         PickupGapGroup leftGroup = !grouped ? group : null;
@@ -248,15 +255,23 @@ public class PickupPolicyService {
         return wanted;
     }
 
+    /** The group gap of a non-empty list: 1..60 (decision 152). @throws ApiException 400 */
+    private static int groupGap(PolicyInput input) {
+        Integer gap = input.groupMinimumGapDays();
+        if (gap == null || gap < 1 || gap > MAXIMUM_GAP_DAYS) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "groupMinimumGapDays");
+        }
+        return gap;
+    }
+
     /**
-     * D1/D6: gap ≥ 1, every store live and a candidate (region subtree or already listed), in no other list, and the
-     * actor may use automations on every store whose membership or gap changes. @throws ApiException 400, 403, 404
+     * D1/D6: every store live and a candidate (region subtree or already listed), in no other list, and the actor may
+     * use automations on every store whose membership changes, and on every store when the group gap changes
+     * (decision 152). @throws ApiException 400, 403, 404
      */
     private void validateGapList(SessionPrincipal actor, Store store, PickupGapGroup group, Set<UUID> liveOthers,
-                                 List<UUID> wanted, int minimumGapDays) {
-        if (minimumGapDays < 1) {
-            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "minimumGapDays");
-        }
+                                 List<UUID> wanted, int groupGap) {
+        boolean gapChanges = group == null || group.getMinimumGapDays() != groupGap;
         Set<UUID> candidates = stores.liveStoresInRegions(regions.subtreeIds(store.getRegionId())).stream()
                 .map(Store::getId).collect(Collectors.toCollection(HashSet::new));
         candidates.addAll(liveOthers);
@@ -273,8 +288,7 @@ public class PickupPolicyService {
                     && (group == null || !policy.getGapGroupId().equals(group.getId()))) {
                 throw ApiException.badRequest(ApiErrorCode.GAP_LIST_STORE_TAKEN).withArg("storeId", id.toString());
             }
-            boolean changes = !liveOthers.contains(id) || policy == null || !policy.isGapRuleEnabled()
-                    || policy.getMinimumGapDays() != minimumGapDays;
+            boolean changes = gapChanges || !liveOthers.contains(id) || policy == null;
             if (changes && !permissions.mayUseAutomations(actor, listed)) {
                 throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());
             }
@@ -330,9 +344,10 @@ public class PickupPolicyService {
     }
 
     /**
-     * Writes the list: every listed store gets the group, the gap and "rule on" (a store without a policy gets one,
-     * off and in dry run); live stores taken off the list leave it and keep their gap. History on every affected
-     * policy when the list or the gap changed.
+     * Writes the list: every listed store gets the group (a store without a policy gets one, off, in dry run and with
+     * its own rule off); each store keeps its own gap and switch (decision 152), only the group row holds the group
+     * gap. Live stores taken off the list leave it. History on every affected policy when the list or the group gap
+     * changed.
      */
     private void writeGapList(PickupPolicy policy, PickupGapGroup group, Map<UUID, PickupPolicy> groupMembers,
                               Set<UUID> liveOthers, List<UUID> wanted, boolean changed) {
@@ -343,8 +358,6 @@ public class PickupPolicyService {
                     : policies.findByStoreId(id).orElseGet(() -> newPolicy(id));
             member.setRegionId(stores.require(id).getRegionId());
             member.setGapGroupId(group.getId());
-            member.setGapRuleEnabled(true);
-            member.setMinimumGapDays(group.getMinimumGapDays());
             affected.add(policies.saveAndFlush(member));
         }
         for (UUID id : liveOthers) {
@@ -353,7 +366,7 @@ public class PickupPolicyService {
                 member.setRegionId(stores.require(id).getRegionId());
                 member.setGapGroupId(null);
                 policies.saveAndFlush(member);
-                recordGapList(member, List.of(), member.getMinimumGapDays());
+                recordGapList(member, List.of(), group.getMinimumGapDays());
             }
         }
         if (changed) {
@@ -362,9 +375,12 @@ public class PickupPolicyService {
         }
     }
 
-    /** This store leaves its list; a store left alone drops out too and keeps its gap (D6). */
+    /**
+     * This store leaves its list; a store left alone drops out too (D6). Every store keeps its own gap and switch
+     * (decision 152); history carries the gap of the list that was left.
+     */
     private void leaveGapList(PickupPolicy policy, PickupGapGroup group) {
-        recordGapList(policy, List.of(), policy.getMinimumGapDays());
+        recordGapList(policy, List.of(), group.getMinimumGapDays());
         List<PickupPolicy> remaining = policies.findByGapGroupId(group.getId()).stream()
                 .filter(p -> !p.getId().equals(policy.getId())).toList();
         if (remaining.size() > 1) {
@@ -377,7 +393,7 @@ public class PickupPolicyService {
                     .map(Store::getRegionId).orElse(null));
             member.setGapGroupId(null);
             policies.saveAndFlush(member);
-            recordGapList(member, List.of(), member.getMinimumGapDays());
+            recordGapList(member, List.of(), group.getMinimumGapDays());
         }
         gapGroups.delete(group);
         gapGroups.flush();
@@ -643,8 +659,11 @@ public class PickupPolicyService {
             views.add(new LinkView(rule, storeIdsByLink.getOrDefault(rule.getId(), List.of()).stream()
                     .map(byId::get).filter(java.util.Objects::nonNull).toList()));
         }
+        List<GapStoreView> gapStores = gapStores(policy);
+        Integer groupGap = gapStores.isEmpty() ? null : gapGroups.findById(policy.getGapGroupId())
+                .map(PickupGapGroup::getMinimumGapDays).orElse(null);
         return new PolicyView(policy, views, excludedDates.findByPolicyIdOrderByExcludedDate(policy.getId()).stream()
-                .map(PickupPolicyExcludedDate::getExcludedDate).toList(), gapStores(policy));
+                .map(PickupPolicyExcludedDate::getExcludedDate).toList(), gapStores, groupGap);
     }
 
     /** The other live stores of the policy's gap list, by name. */

@@ -70,6 +70,7 @@ public class AutomationMapper {
         model.setLinkedStores(view.links().stream().map(this::toModel).toList());
         model.setExcludedDates(view.excludedDates());
         model.setGapStoreIds(view.gapStores().stream().map(g -> g.store().getId()).toList());
+        model.setGroupMinimumGapDays(view.groupMinimumGapDays());
         model.setGapStores(view.gapStores().stream().map(g -> {
             GapStore gap = new GapStore();
             gap.setStore(toStoreRef(g.store()));
@@ -131,7 +132,7 @@ public class AutomationMapper {
                 Boolean.TRUE.equals(model.getExperienceRuleEnabled()),
                 Boolean.TRUE.equals(model.getPublicHolidayRuleEnabled()), links,
                 model.getExcludedDates() == null ? List.of() : model.getExcludedDates(), model.getVersion(),
-                model.getGapStoreIds());
+                model.getGapStoreIds(), model.getGroupMinimumGapDays());
     }
 
     private static int value(Integer value) {

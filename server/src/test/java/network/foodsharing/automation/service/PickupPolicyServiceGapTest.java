@@ -52,8 +52,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Shared gap list of {@link PickupPolicyService} (decision 151, D1/D6/D7) on in-memory repositories: limits, minimum
- * gap, taken stores, permissions (403 naming the store), leaving, dissolving and the link conflict on both save paths.
+ * Shared gap list of {@link PickupPolicyService} (decisions 151 D1/D6/D7 and 152) on in-memory repositories: limits,
+ * group gap, taken stores, permissions (403 naming the store), leaving, dissolving and the link conflict on both save
+ * paths.
  */
 class PickupPolicyServiceGapTest {
 
@@ -122,6 +123,7 @@ class PickupPolicyServiceGapTest {
             return policy;
         });
         when(gapGroups.lockById(any())).thenAnswer(inv -> Optional.ofNullable(groups.get(inv.<UUID>getArgument(0))));
+        when(gapGroups.findById(any())).thenAnswer(inv -> Optional.ofNullable(groups.get(inv.<UUID>getArgument(0))));
         when(gapGroups.saveAndFlush(any())).thenAnswer(inv -> {
             PickupGapGroup group = inv.getArgument(0);
             if (group.getId() == null) {
@@ -215,8 +217,17 @@ class PickupPolicyServiceGapTest {
         linkMembers.put(link.getId(), List.of(storeIds));
     }
 
+    /** Own gap and group gap both {@code gap} (the state right after migration 182). */
     static PolicyInput input(boolean gapOn, int gap, List<UUID> list, List<LinkInput> links) {
-        return new PolicyInput(true, true, gapOn, gap, false, false, false, links, List.of(), null, list);
+        return input(gapOn, gap, list.isEmpty() ? null : gap, list, links);
+    }
+
+    static PolicyInput input(boolean ownOn, int ownGap, Integer groupGap, List<UUID> list, List<LinkInput> links) {
+        return new PolicyInput(true, true, ownOn, ownGap, false, false, false, links, List.of(), null, list, groupGap);
+    }
+
+    static PolicyInput input(boolean ownOn, int ownGap, Integer groupGap, List<UUID> list) {
+        return input(ownOn, ownGap, groupGap, list, List.of());
     }
 
     static PolicyInput input(boolean gapOn, int gap, List<UUID> list) {
@@ -258,12 +269,18 @@ class PickupPolicyServiceGapTest {
     }
 
     @Test
-    void aListNeedsAGapOfAtLeastOneDay() {
-        ApiException ex = error(() -> service.put(a, input(true, 0, List.of(b))));
-        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
-        assertThat(ex.getArgs()).containsEntry("field", "minimumGapDays");
-        // without a list 0 stays allowed (today's behaviour)
-        assertThatCode(() -> service.put(a, input(true, 0, List.of()))).doesNotThrowAnyException();
+    void aListNeedsAGroupGapOfOneToSixtyDays() {
+        for (Integer groupGap : java.util.Arrays.asList(null, 0, 61)) {
+            ApiException ex = error(() -> service.put(a, input(true, 2, groupGap, List.of(b))));
+            assertThat(ex.getCode()).as("group gap %s", groupGap).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+            assertThat(ex.getArgs()).containsEntry("field", "groupMinimumGapDays");
+        }
+        // the own gap may stay 0 with a list (decision 152), and without a list 0 stays allowed
+        assertThatCode(() -> service.put(a, input(true, 0, 60, List.of(b)))).doesNotThrowAnyException();
+        assertThatCode(() -> service.put(c, input(true, 0, List.of()))).doesNotThrowAnyException();
+        // the own gap keeps its own range
+        assertThat(error(() -> service.put(d, input(true, 61, 2, List.of()))).getArgs())
+                .containsEntry("field", "minimumGapDays");
     }
 
     @Test
@@ -303,21 +320,27 @@ class PickupPolicyServiceGapTest {
     // ------------------------------------------------------------------ create, write, taken
 
     @Test
-    void savingWritesGapAndRuleOnToEveryListedStoreWithHistory() {
+    void savingWritesOnlyTheGroupRowAndMembershipWithHistory() {
         policy(b, true, 5, false);
-        var view = service.put(a, input(true, 3, List.of(b, c)));
+        var view = service.put(a, input(true, 4, 3, List.of(b, c)));
         UUID groupId = policyOf(a).getGapGroupId();
         assertThat(groupId).isNotNull();
         assertThat(groups.get(groupId).getMinimumGapDays()).isEqualTo(3);
+        assertThat(view.groupMinimumGapDays()).isEqualTo(3);
         for (UUID id : List.of(b, c)) {
             assertThat(policyOf(id).getGapGroupId()).isEqualTo(groupId);
-            assertThat(policyOf(id).getMinimumGapDays()).isEqualTo(3);
-            assertThat(policyOf(id).isGapRuleEnabled()).isTrue();
         }
-        // B keeps its own switches; C had no policy: created off and in dry run
+        // every store keeps its own gap and switch (decision 152)
+        assertThat(policyOf(a).getMinimumGapDays()).isEqualTo(4);
+        assertThat(policyOf(a).isGapRuleEnabled()).isTrue();
+        assertThat(policyOf(b).getMinimumGapDays()).isEqualTo(5);
+        assertThat(policyOf(b).isGapRuleEnabled()).isFalse();
+        // B keeps its own switches; C had no policy: created off, in dry run and with its own rule off
         assertThat(policyOf(b).isEnabled()).isTrue();
         assertThat(policyOf(c).isEnabled()).isFalse();
         assertThat(policyOf(c).isDryRun()).isTrue();
+        assertThat(policyOf(c).isGapRuleEnabled()).isFalse();
+        assertThat(policyOf(c).getMinimumGapDays()).isZero();
         assertThat(view.gapStores()).extracting(g -> g.store().getId()).containsExactly(b, c);
         assertThat(view.gapStores()).extracting(PickupPolicyService.GapStoreView::automationActive)
                 .containsExactly(true, false);
@@ -360,6 +383,20 @@ class PickupPolicyServiceGapTest {
     }
 
     @Test
+    void permissionOnTheOthersIsNeededOnlyWhenTheGroupGapOrMembershipChanges() {
+        group(a, b);
+        allowed.remove(b);
+        // this store's own gap and switch change: B is not touched
+        assertThatCode(() -> service.put(a, input(false, 7, 2, List.of(b)))).doesNotThrowAnyException();
+        assertThat(policyOf(a).getMinimumGapDays()).isEqualTo(7);
+        assertThat(policyOf(b).getMinimumGapDays()).isEqualTo(2);
+        // the group gap changes B's checks
+        ApiException ex = error(() -> service.put(a, input(false, 7, 3, List.of(b))));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getArgs()).containsEntry("storeId", b.toString());
+    }
+
+    @Test
     void existingMembersStayAndAddedOnesJoin() {
         UUID groupId = group(a, b);
         service.put(a, input(true, 2, List.of(b, c)));
@@ -370,15 +407,30 @@ class PickupPolicyServiceGapTest {
     // ------------------------------------------------------------------ leaving
 
     @Test
-    void ruleOffLeavesEvenWithoutPermissionOnTheOthers() {
+    void ruleOffKeepsTheGroupWithoutPermissionOnTheOthers() {
         UUID groupId = group(a, b, c);
         allowed.removeAll(List.of(b, c));
-        service.put(a, input(false, 2, List.of(b, c)));
-        assertThat(policyOf(a).getGapGroupId()).isNull();
+        var view = service.put(a, input(false, 2, List.of(b, c)));
+        assertThat(policyOf(a).getGapGroupId()).isEqualTo(groupId);
         assertThat(policyOf(a).isGapRuleEnabled()).isFalse();
         assertThat(policyOf(a).getMinimumGapDays()).isEqualTo(2);
         assertThat(policyOf(b).getGapGroupId()).isEqualTo(groupId);
         assertThat(policyOf(c).getGapGroupId()).isEqualTo(groupId);
+        assertThat(groups.get(groupId).getMinimumGapDays()).isEqualTo(2);
+        assertThat(view.gapStores()).hasSize(2);
+        verify(history, never()).event(AutomationAction.GAP_LIST_CHANGED, policyOf(b).getId());
+    }
+
+    @Test
+    void anEmptyListWithALockedMemberLeavesAndKeepsEveryOwnRule() {
+        UUID groupId = group(a, b, c);
+        allowed.removeAll(List.of(b, c));
+        policyOf(a).setGapRuleEnabled(false);
+        service.put(a, input(false, 0, List.of()));
+        assertThat(policyOf(a).getGapGroupId()).isNull();
+        assertThat(policyOf(b).getGapGroupId()).isEqualTo(groupId);
+        assertThat(policyOf(b).isGapRuleEnabled()).isTrue();
+        assertThat(policyOf(b).getMinimumGapDays()).isEqualTo(2);
         verify(history, atLeastOnce()).event(AutomationAction.GAP_LIST_CHANGED, policyOf(b).getId());
     }
 
@@ -460,6 +512,17 @@ class PickupPolicyServiceGapTest {
         assertThat(ex.getArgs()).containsEntry("storeId", b.toString()).containsEntry("otherStoreId", a.toString());
         // the same rule is fine with gap 1
         assertThatCode(() -> service.put(a, input(true, 1, List.of(b)))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void linkConflictUsesTheGroupGapNotTheOwnGap() {
+        // B's own rule asks for a pickup in A within 2 days around: reach 1
+        link(b, LinkedStoreWindowMode.LAST_DAYS, 2, 2, a);
+        // group gap 2 with the own rule off and own gap 0: blocks
+        ApiException ex = error(() -> service.put(a, input(false, 0, 2, List.of(b))));
+        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.GAP_LINK_CONFLICT);
+        // own gap 5 with group gap 1: no conflict
+        assertThatCode(() -> service.put(a, input(true, 5, 1, List.of(b)))).doesNotThrowAnyException();
     }
 
     @Test

@@ -17,7 +17,9 @@ import network.foodsharing.automation.domain.PickupPolicy;
 import network.foodsharing.automation.domain.PickupPolicyExcludedDate;
 import network.foodsharing.automation.domain.PickupPolicyLinkedStore;
 import network.foodsharing.automation.domain.PickupPolicyLinkedStoreMember;
+import network.foodsharing.automation.domain.PickupGapGroup;
 import network.foodsharing.automation.repository.CleaningRuleExemptionRepository;
+import network.foodsharing.automation.repository.PickupGapGroupRepository;
 import network.foodsharing.automation.repository.PickupPolicyExcludedDateRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreMemberRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreRepository;
@@ -59,13 +61,15 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     private final IntegrationRegistry integrations;
     private final AppProperties properties;
     private final Clock clock;
+    private final PickupGapGroupRepository gapGroups;
 
     public PickupPolicyData(PickupPolicyRepository policies, PickupPolicyExcludedDateRepository excludedDates,
                             PickupPolicyLinkedStoreRepository links, PickupPolicyLinkedStoreMemberRepository linkMembers,
                             CleaningRuleExemptionRepository exemptions, StoreService stores, RegionService regions,
                             UserService users, PickupAutomationQueries signups, FspCleaningQueries cleaning,
                             HolidayCalendarService holidays, IntegrationRegistry integrations,
-                            AppProperties properties, Clock clock) {
+                            AppProperties properties, Clock clock, PickupGapGroupRepository gapGroups) {
+        this.gapGroups = gapGroups;
         this.policies = policies;
         this.excludedDates = excludedDates;
         this.links = links;
@@ -82,7 +86,7 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
         this.clock = clock;
     }
 
-    /** The policy with its excluded dates and link rules (own and mirrored). */
+    /** The policy with its excluded dates, link rules (own and mirrored) and gap list with the group gap. */
     public Spec spec(PickupPolicy policy) {
         Set<LocalDate> dates = excludedDates.findByPolicyIdOrderByExcludedDate(policy.getId()).stream()
                 .map(PickupPolicyExcludedDate::getExcludedDate).collect(Collectors.toCollection(HashSet::new));
@@ -95,10 +99,17 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
                 .map(rule -> new LinkRule(members.get(rule.getId()), rule.getWindowMode(), rule.getWindowDaysBefore(),
                         rule.getWindowDaysAfter(), rule.getGraceMinutes(), rule.getMessage()))
                 .toList();
+        List<UUID> gapStoreIds = gapStoreIds(policy);
         return new Spec(policy.getId(), policy.getStoreId(), policy.isEnabled(), policy.isDryRun(),
                 policy.isGapRuleEnabled(), policy.getMinimumGapDays(), policy.isCleaningRuleEnabled(),
                 policy.isExperienceRuleEnabled(), policy.isPublicHolidayRuleEnabled(), Set.copyOf(dates), linkRules,
-                gapStoreIds(policy));
+                gapStoreIds, gapStoreIds.isEmpty() ? 0 : groupMinimumGapDays(policy));
+    }
+
+    /** The gap of the policy's gap list (decision 152); 0 without a list. */
+    int groupMinimumGapDays(PickupPolicy policy) {
+        return policy.getGapGroupId() == null ? 0
+                : gapGroups.findById(policy.getGapGroupId()).map(PickupGapGroup::getMinimumGapDays).orElse(0);
     }
 
     /** The other live stores of the policy's gap list, by name (decision 151); empty without a list. */

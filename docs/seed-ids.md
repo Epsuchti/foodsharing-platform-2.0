@@ -208,8 +208,10 @@ seed anchor (`AutomationSeedDateShift`). Table codes: `pickup_policy` 0001, `pic
 `pickup_policy_audit` 0006, `request_policy` 0007, `request_policy_audit` 0008, `open_slot_advert` 0009, `open_slot_advert_audit` 0010, `signout_alert_setting` 0011,
 `signout_cancellation` 0012, `pickup_extra_slot` 0013, `metric_daily_count` 0014, `holiday_calendar` 0015,
 `pickup_gap_group` 0016. Gap list `0016-…01` (decision 151, `seed/changes/181-gap-group-seed.yaml`): S-01 (`…-01`) and
-S-03 (`…-04`, off: the "no automation" member) share a gap of 2 days (S-03's gap rule on); foodsaver has no future
-S-03 pickup, so S-01's seeded sign-ups decide as before.
+S-03 (`…-04`, off: the "no automation" member) share a group gap of 2 days; foodsaver has no future S-03 pickup, so
+S-01's seeded sign-ups decide as before. Since decision 152 (`seed/changes/182-gap-group-own-gap-seed.yaml`, no new
+ids) S-03's own gap rule is off (own gap 0) while it stays in the list: the "own rule off, group on" case; S-01 keeps
+its own gap 2, rule on.
 `pickup_policy` `…-01` S-01 (enabled, **dry run**, gap 2, experience, holiday — its seeded unconfirmed sign-ups belong to M3 scenarios and must not be decided by `automation-evaluate`, which runs in local/e2e), `…-05` S-06 Babu's Bakery (same rules, **live**; no M3 scenario uses it, no seeded unconfirmed sign-ups), `…-02` S-02 (enabled, dry run, cleaning),
 `…-03` S-04 (enabled, dry run, link `0003-…01` → S-01 `SAME_DAY`, grace 30, **one-way**: S-01 Mon/Thu and S-04
 Wed/Sat never share a day, a bidirectional mirror would decline every S-01 sign-up), `…-04` S-03 (disabled).

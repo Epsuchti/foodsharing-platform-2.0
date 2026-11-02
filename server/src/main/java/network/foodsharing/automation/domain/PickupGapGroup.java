@@ -8,8 +8,9 @@ import lombok.Setter;
 import network.foodsharing.common.persistence.BaseEntity;
 
 /**
- * Shared gap list (AU1, decision 151): the pickup policies with this {@code gap_group_id} share the minimum gap and the
- * gap rule switch, and a pending sign-up in one store is also checked against the person's pickups in the others.
+ * Shared gap list (AU1, decisions 151 and 152): a pending sign-up in one store of the pickup policies with this
+ * {@code gap_group_id} is also checked against the person's pickups in the others, with this row's group gap. Each
+ * policy keeps its own gap and gap rule switch for its own pickups.
  */
 @Getter
 @Setter

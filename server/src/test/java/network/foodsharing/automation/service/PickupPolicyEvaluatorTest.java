@@ -175,8 +175,15 @@ class PickupPolicyEvaluatorTest {
     Spec listed(int minGap, UUID... others) {
         data.names.put(CHAIN, "Coop Stauffacher");
         data.names.put(CHAIN_2, "Coop Wiedikon");
-        return new Spec(UUID.randomUUID(), STORE, true, false, true, minGap, false, false, false, Set.of(), List.of(),
-                List.of(others));
+        return grouped(true, minGap, minGap, others);
+    }
+
+    /** This store with its own gap (rule {@code ownOn}) and a list with the group gap (decision 152). */
+    Spec grouped(boolean ownOn, int ownGap, int groupGap, UUID... others) {
+        data.names.put(CHAIN, "Coop Stauffacher");
+        data.names.put(CHAIN_2, "Coop Wiedikon");
+        return new Spec(UUID.randomUUID(), STORE, true, false, ownOn, ownGap, false, false, false, Set.of(), List.of(),
+                List.of(others), others.length == 0 ? 0 : groupGap);
     }
 
     /** The person's own pending sign-up for {@code pickup} here, made at {@code signedUpAt}. */
@@ -227,7 +234,7 @@ class PickupPolicyEvaluatorTest {
         assertThat(rules(evaluator.evaluate(listed(2, CHAIN), here, USER, data))).containsExactly(PolicyRule.GAP);
         // seen from the other store of the list
         Spec chain = new Spec(UUID.randomUUID(), CHAIN, true, false, true, 2, false, false, false, Set.of(),
-                List.of(), List.of(STORE));
+                List.of(), List.of(STORE), 2);
         assertThat(rules(evaluator.evaluate(chain, there, USER, data))).containsExactly(PolicyRule.GAP);
     }
 
@@ -304,12 +311,105 @@ class PickupPolicyEvaluatorTest {
                 .contains("Store GmbH and Coop Stauffacher");
     }
 
+    // ---------------------------------------------------------------- own gap and group gap (decision 152)
+
+    static final String OWN_TEXT = "Zwischen den Abholungen liegt nur";
+    static final String GROUP_TEXT = "Zwischen zwei Abholungen bei";
+
+    @Test
+    void ownGapOnlyAppliesToThisStoreWhenTheGroupGapIsMet() {
+        // own 3 / group 1: an own pickup 1 day away fails the own check only
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-13T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).isEqualTo(
+                "Zwischen den Abholungen liegt nur 1 Tag Abstand; erforderlich sind mindestens 3 Tage.");
+        // a pickup in a listed store 1 day away meets the group gap of 1 and is not checked with the own gap
+        data.signups.removeIf(s -> s.storeId().equals(STORE) && !s.pickupAt().equals(pickup));
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-13T19:00"), true, NOW));
+        assertThat(evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void groupGapOnlyChecksWithTheOwnRuleOff() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
+        Decision other = evaluator.evaluate(grouped(false, 0, 2, CHAIN), pickup, USER, data);
+        assertThat(rules(other)).containsExactly(PolicyRule.GAP);
+        assertThat(other.reasons().getFirst().text()).contains("am 10.11.2026 eine Abholung bei Coop Stauffacher")
+                .contains(GROUP_TEXT).doesNotContain(OWN_TEXT);
+        // an own-store pickup is checked by the group gap as well
+        data.signups.removeIf(s -> s.storeId().equals(CHAIN));
+        own(at("2026-11-12T19:00"), NOW);
+        Decision self = evaluator.evaluate(grouped(false, 0, 2, CHAIN), pickup, USER, data);
+        assertThat(rules(self)).containsExactly(PolicyRule.GAP);
+        assertThat(self.reasons().getFirst().text()).contains("am 12.11.2026 eine Abholung bei Store GmbH")
+                .doesNotContain(OWN_TEXT);
+    }
+
+    @Test
+    void groupGapLargerThanTheOwnGapRejectsWhatTheOwnGapAllows() {
+        // own 1 / group 3: an own pickup 1 day away passes the own check, fails the group check
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-13T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 1, 3, CHAIN), pickup, USER, data);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).startsWith("Du hast bereits am 13.11.2026").contains("mindestens 3 Tage")
+                .doesNotContain(OWN_TEXT);
+        // the same pickup without the list passes
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 1, false, false, false, Set.of(),
+                List.of());
+        assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
+    }
+
+    @Test
+    void bothFailWithOwnGapAtMostTheGroupGapGiveOnlyTheGroupSentence() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-12T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 2, 3, CHAIN), pickup, USER, data);
+        assertThat(d.reasons()).hasSize(1);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        assertThat(d.reasons().getFirst().text()).contains(GROUP_TEXT).doesNotContain(OWN_TEXT).doesNotContain("\n");
+    }
+
+    @Test
+    void bothFailWithOwnGapAboveTheGroupGapGiveBothSentencesInOneReason() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-12T19:00"), NOW);
+        Decision d = evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER, data);
+        assertThat(d.reasons()).hasSize(1);
+        assertThat(rules(d)).containsExactly(PolicyRule.GAP);
+        String[] lines = d.reasons().getFirst().text().split("\n");
+        assertThat(lines).hasSize(2);
+        assertThat(lines[0]).isEqualTo(
+                "Zwischen den Abholungen liegt nur 0 Tage Abstand; erforderlich sind mindestens 3 Tage.");
+        assertThat(lines[1]).startsWith("Du hast bereits am 12.11.2026").contains("mindestens 1 Tag liegen");
+    }
+
+    @Test
+    void aGroupWithoutLiveMembersRunsTheOwnCheckOnly() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-14T19:00"), NOW);
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-12T19:00"), true, NOW));
+        // the group row says 5, but no other live store is left: only the own gap of 2 applies
+        Spec lonely = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+                List.of(), List.of(), 5);
+        assertThat(evaluator.evaluate(lonely, pickup, USER, data).allowed()).isTrue();
+    }
+
     @Test
     void anEmptyListBehavesAsBeforeAndIgnoresOtherStores() {
         Instant pickup = at("2026-11-11T19:00");
         data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
         Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
-                List.of(), List.of());
+                List.of(), List.of(), 0);
         assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
         data.signups.add(new Signup(STORE, USER, at("2026-11-12T19:00"), true, NOW));
         Decision d = evaluator.evaluate(alone, pickup, USER, data);
