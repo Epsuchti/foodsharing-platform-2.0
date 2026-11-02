@@ -135,5 +135,10 @@
   "foodSharePoints.cleaning.saved": "Créneau enregistré.",
   "foodSharePoints.cleaning.regularTitle": "Créneaux réguliers",
   "foodSharePoints.cleaning.regularIntro": "Créneaux hebdomadaires en heure suisse. Les inscriptions existantes sont conservées.",
-  "foodSharePoints.cleaning.regularSaved": "Planning enregistré."
+  "foodSharePoints.cleaning.regularSaved": "Planning enregistré.",
+  "foodSharePoints.form.autoConfirmLabel": "Confirmer les inscriptions automatiquement",
+  "foodSharePoints.form.autoConfirmHint": "Toute personne autorisée à s'inscrire est confirmée immédiatement. Les responsables peuvent toujours retirer des personnes.",
+  "foodSharePoints.form.timeZone": "Fuseau horaire",
+  "foodSharePoints.form.timeZoneRegion": "Fuseau horaire de la région",
+  "foodSharePoints.form.timeZoneHint": "Les créneaux réguliers suivent ce fuseau horaire. Les inscriptions existantes gardent leur heure exacte."
 }

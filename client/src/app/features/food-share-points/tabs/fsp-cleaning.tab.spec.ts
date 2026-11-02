@@ -31,6 +31,8 @@ function fsp(overrides: Partial<Fsp> = {}): Fsp {
   return {
     id: F1,
     name: 'Fairteiler Wiedikon',
+    cleaningAutoConfirm: false,
+    timeZone: 'Europe/Zurich',
     region: { id: ZH, slug: 'zuerich-stadt', name: 'Zürich Stadt', type: UnitType.BigCity },
     address: { street: 'Schlossgasse 10', postcode: '8003', city: 'Zürich' },
     status: FspStatus.Active,

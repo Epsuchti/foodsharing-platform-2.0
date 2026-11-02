@@ -74,21 +74,27 @@ final class FspContributors {
         }
     }
 
-    /** A40: follower/manager rows are removed; wall posts and created FSPs stay with the anonymised account. */
+    /**
+     * A40: follower/manager rows and future cleaning sign-ups are removed; wall posts, created FSPs and past cleaning
+     * sign-ups stay with the anonymised account (decision 155).
+     */
     @Component
     static class AccountData implements AccountDeletionContributor, DataExportContributor {
 
         private final FspService service;
+        private final FspCleaningSignupService cleaning;
         private final EntityManager em;
 
-        AccountData(FspService service, EntityManager em) {
+        AccountData(FspService service, FspCleaningSignupService cleaning, EntityManager em) {
             this.service = service;
+            this.cleaning = cleaning;
             this.em = em;
         }
 
         @Override
         public void onAccountDeleted(UUID userId) {
             service.removeUser(userId);
+            cleaning.removeFutureSignups(userId);
         }
 
         @Override
@@ -105,6 +111,8 @@ final class FspContributors {
                     "mail", "createdAt"));
             data.put("wallPosts", UserRows.read(em, "FspWallPost", "authorId", userId, "fspId", "body", "createdAt",
                     "deletedAt"));
+            data.put("cleaningSignups", UserRows.read(em, "FspCleaningSignup", "userId", userId, "fspId", "shiftAt",
+                    "confirmed", "confirmedAt", "createdAt"));
             return data;
         }
     }

@@ -86,6 +86,7 @@
   "bell.FSP_NEW_POST": "Neuer Beitrag an einem Fairteiler",
   "bell.FSP_CLEANING_SIGNUP_UNCONFIRMED": "Unbestätigte Eintragung für einen Putzeinsatz",
   "bell.FSP_CLEANING_CONFIRMED": "Dein Putzeinsatz wurde bestätigt",
+  "bell.FSP_CLEANING_REMINDER": "Erinnerung an deinen Putzeinsatz",
   "bell.FSP_CLEANING_REMOVED": "Du wurdest von einem Putzeinsatz ausgetragen",
   "bell.MEDIATION_REQUEST": "Neue Mediationsanfrage",
   "bell.ACHIEVEMENT_AWARDED": "Du hast eine Auszeichnung erhalten",

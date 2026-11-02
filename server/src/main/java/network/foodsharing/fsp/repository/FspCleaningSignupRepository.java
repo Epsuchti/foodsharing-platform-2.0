@@ -49,6 +49,12 @@ public interface FspCleaningSignupRepository extends JpaRepository<FspCleaningSi
     List<FspCleaningSignup> findByUserIdAndShiftAtGreaterThanEqualAndShiftAtLessThanOrderByShiftAtAscIdAsc(
             UUID userId, Instant from, Instant to);
 
+    @Query("select s from FspCleaningSignup s where s.remindedAt is null and s.shiftAt > :from and s.shiftAt <= :to")
+    List<FspCleaningSignup> findToRemind(@Param("from") Instant from, @Param("to") Instant to);
+
+    /** The user's sign-ups from {@code from} on (account deletion). */
+    List<FspCleaningSignup> findByUserIdAndShiftAtGreaterThanEqual(UUID userId, Instant from);
+
     /** Confirmed shifts of a user that already took place. */
     long countByUserIdAndConfirmedTrueAndShiftAtLessThan(UUID userId, Instant now);
 

@@ -135,5 +135,10 @@
   "foodSharePoints.cleaning.saved": "Putzeinsatz gespeichert.",
   "foodSharePoints.cleaning.regularTitle": "Regelmässige Putzeinsätze",
   "foodSharePoints.cleaning.regularIntro": "Wöchentliche Putzeinsätze in Schweizer Zeit. Bestehende Eintragungen bleiben erhalten.",
-  "foodSharePoints.cleaning.regularSaved": "Putzplan gespeichert."
+  "foodSharePoints.cleaning.regularSaved": "Putzplan gespeichert.",
+  "foodSharePoints.form.autoConfirmLabel": "Anmeldungen automatisch bestätigen",
+  "foodSharePoints.form.autoConfirmHint": "Wer sich eintragen darf, ist sofort bestätigt. Die Verantwortlichen können Personen weiterhin entfernen.",
+  "foodSharePoints.form.timeZone": "Zeitzone",
+  "foodSharePoints.form.timeZoneRegion": "Zeitzone des Bezirks",
+  "foodSharePoints.form.timeZoneHint": "Regelmässige Putzeinsätze folgen dieser Zeitzone. Bestehende Anmeldungen behalten ihren Zeitpunkt."
 }

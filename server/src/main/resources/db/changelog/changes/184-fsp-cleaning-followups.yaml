@@ -1,0 +1,43 @@
+# Decision 155: time zone and automatic confirmation per Fairteiler, reminder marker on cleaning sign-ups.
+databaseChangeLog:
+  - changeSet:
+      id: 184-1
+      author: platform
+      comment: 'Fairteiler time zone and automatic confirmation; existing Fairteiler take the zone of their region.'
+      changes:
+        - addColumn:
+            tableName: food_share_point
+            columns:
+              - column:
+                  name: time_zone
+                  type: VARCHAR(60)
+                  defaultValue: Europe/Zurich
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cleaning_auto_confirm
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >-
+              UPDATE food_share_point SET time_zone =
+              (SELECT r.time_zone FROM region r WHERE r.id = food_share_point.region_id)
+  - changeSet:
+      id: 184-2
+      author: platform
+      comment: 'Marker of the cleaning reminder job and the index it reads.'
+      changes:
+        - addColumn:
+            tableName: fsp_cleaning_signup
+            columns:
+              - column:
+                  name: reminded_at
+                  type: TIMESTAMP WITH TIME ZONE
+        - createIndex:
+            tableName: fsp_cleaning_signup
+            indexName: idx_fsp_cleaning_signup_shift_at
+            columns:
+              - column:
+                  name: shift_at

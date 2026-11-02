@@ -37,6 +37,10 @@ export interface FspFormValue {
   photoUploadId: string | null;
   /** FS2: cleaning shifts on/off (undefined = unchanged). */
   cleaningEnabled?: boolean;
+  /** Decision 155: sign-ups confirmed automatically (undefined = unchanged). */
+  cleaningAutoConfirm?: boolean;
+  /** Decision 155: zone of the shifts (null = the region's on create, unchanged on update). */
+  timeZone?: string | null;
 }
 
 /**
@@ -55,6 +59,8 @@ export function fspUpdateBody(value: FspFormValue): FspUpdate {
     lon: value.position ? value.position[1] : undefined,
     photoUploadId: value.photoUploadId ?? undefined,
     cleaningEnabled: value.cleaningEnabled,
+    cleaningAutoConfirm: value.cleaningAutoConfirm,
+    timeZone: value.timeZone ?? undefined,
   };
 }
 

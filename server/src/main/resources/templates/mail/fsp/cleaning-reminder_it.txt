@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+Promemoria: hai un turno di pulizia presso [(${name})] il [(${when})].
+
+[(${link})]
+
+Il tuo team foodsharing

@@ -54,6 +54,15 @@ class FspCleaningFlowIT {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private network.foodsharing.config.MutableClock clock;
+
+    @Autowired
+    private network.foodsharing.fsp.service.FspCleaningReminderJob reminders;
+
+    @Autowired
+    private network.foodsharing.fsp.service.FspCleaningSignupService cleaningSignups;
+
     private Cookie login(SeedUsers user) throws Exception {
         var result = mvc.perform(post("/api/dev/login-as").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"userId\":\"" + user.id() + "\"}")).andExpect(status().isOk()).andReturn();
@@ -73,6 +82,54 @@ class FspCleaningFlowIT {
     private int bells(SeedUsers user, String type) {
         return count("select count(*) from bell where user_id = ? and type = ? and deleted_at is null", user.id(),
                 type);
+    }
+
+    /** Decision 155: auto-confirm, zone validation, reminders once, account deletion frees future places only. */
+    @Test
+    @Order(90)
+    void autoConfirmZoneRemindersAndDeletion() throws Exception {
+        Cookie bieb = login(SeedUsers.BIEB);
+        mvc.perform(patch("/api/food-share-points/" + WIEDIKON).with(csrf()).cookie(bieb)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"cleaningEnabled\":true,\"timeZone\":\"Mars/Base\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.args.field").value("timeZone"));
+        mvc.perform(patch("/api/food-share-points/" + WIEDIKON).with(csrf()).cookie(bieb)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cleaningEnabled\":true,\"cleaningAutoConfirm\":true,\"timeZone\":\"Europe/Paris\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cleaningAutoConfirm").value(true))
+                .andExpect(jsonPath("$.timeZone").value("Europe/Paris"));
+        assertThat(history("TIME_ZONE_CHANGED")).isEqualTo(1);
+        assertThat(history("CLEANING_AUTO_CONFIRM_CHANGED")).isEqualTo(1);
+
+        String shift = "2026-12-05T09:00:00Z";
+        mvc.perform(patch(BASE + "/shifts/" + shift).with(csrf()).cookie(bieb).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"slotCount\":2}")).andExpect(status().isOk());
+        mvc.perform(post(BASE + "/shifts/" + shift + "/signups").with(csrf()).cookie(login(SeedUsers.JUMPER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.confirmed").value(true));
+        assertThat(count("select count(*) from fsp_cleaning_signup where user_id = ? and confirmed_by is null and confirmed = true",
+                SeedUsers.JUMPER.id())).isEqualTo(1);
+
+        // the shift is 24 h ahead of the job's clock: one reminder, and none on the second run
+        java.time.Instant dayBefore = java.time.Instant.parse(shift).minus(java.time.Duration.ofHours(24));
+        java.time.Instant before = clock.instant();
+        clock.fixAt(dayBefore);
+        try {
+            assertThat(reminders.remind()).isGreaterThanOrEqualTo(1);
+            assertThat(bells(SeedUsers.JUMPER, "FSP_CLEANING_REMINDER")).isEqualTo(1);
+            reminders.remind();
+            assertThat(bells(SeedUsers.JUMPER, "FSP_CLEANING_REMINDER")).isEqualTo(1);
+        } finally {
+            clock.fixAt(before);
+        }
+
+        // deletion contributor: future sign-ups go, past ones stay
+        int past = count("select count(*) from fsp_cleaning_signup where user_id = ? and shift_at < ?",
+                SeedUsers.BOT.id(), java.sql.Timestamp.from(java.time.Instant.parse("2026-11-01T00:00:00Z")));
+        assertThat(cleaningSignups.removeFutureSignups(SeedUsers.JUMPER.id())).isEqualTo(1);
+        assertThat(count("select count(*) from fsp_cleaning_signup where user_id = ? and shift_at = ?",
+                SeedUsers.JUMPER.id(), java.sql.Timestamp.from(java.time.Instant.parse(shift)))).isZero();
+        cleaningSignups.removeFutureSignups(SeedUsers.BOT.id());
+        assertThat(count("select count(*) from fsp_cleaning_signup where user_id = ? and shift_at < ?",
+                SeedUsers.BOT.id(), java.sql.Timestamp.from(java.time.Instant.parse("2026-11-01T00:00:00Z")))).isEqualTo(past);
     }
 
     /** Decision 154: the person's own shifts, the agenda, the profile number and the calendar feed. */

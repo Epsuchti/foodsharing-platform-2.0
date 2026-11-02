@@ -82,7 +82,7 @@ FspPermissions:
 Fsp:
   type: object
   required: [id, name, region, address, status, managers, createdAt, followerCount, following, permissions,
-             cleaningEnabled]
+             cleaningEnabled, cleaningAutoConfirm, timeZone]
   properties:
     id:
       type: string
@@ -124,6 +124,12 @@ Fsp:
     cleaningEnabled:
       description: 'The Fairteiler offers cleaning shifts (FS2).'
       type: boolean
+    cleaningAutoConfirm:
+      description: 'Cleaning sign-ups are confirmed automatically (decision 155).'
+      type: boolean
+    timeZone:
+      description: 'Zone of the cleaning shifts (decision 155).'
+      type: string
 
 FspCreate:
   type: object
@@ -165,6 +171,13 @@ FspCreate:
     cleaningEnabled:
       description: 'Cleaning shifts on (FS2); switching off removes the Fairteiler from the regions cleaning rule.'
       type: boolean
+    cleaningAutoConfirm:
+      description: 'Confirm cleaning sign-ups automatically (decision 155).'
+      type: boolean
+    timeZone:
+      description: "IANA zone of the cleaning shifts; on create the default is the region's zone (decision 155)."
+      type: string
+      maxLength: 60
 
 FspUpdate:
   type: object
@@ -200,6 +213,13 @@ FspUpdate:
     cleaningEnabled:
       description: 'Cleaning shifts on (FS2); switching off removes the Fairteiler from the regions cleaning rule.'
       type: boolean
+    cleaningAutoConfirm:
+      description: 'Confirm cleaning sign-ups automatically (decision 155).'
+      type: boolean
+    timeZone:
+      description: "IANA zone of the cleaning shifts; on create the default is the region's zone (decision 155)."
+      type: string
+      maxLength: 60
 
 FspStatusUpdate:
   type: object

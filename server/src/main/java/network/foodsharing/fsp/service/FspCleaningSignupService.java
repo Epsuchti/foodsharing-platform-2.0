@@ -16,6 +16,7 @@ import network.foodsharing.fsp.domain.FspCleaningShift;
 import network.foodsharing.fsp.domain.FspCleaningSignup;
 import network.foodsharing.fsp.domain.FspFollower;
 import network.foodsharing.fsp.domain.FspFollowerRole;
+import network.foodsharing.fsp.repository.FoodSharePointRepository;
 import network.foodsharing.fsp.repository.FspCleaningShiftRepository;
 import network.foodsharing.fsp.repository.FspCleaningSignupRepository;
 import network.foodsharing.fsp.repository.FspFollowerRepository;
@@ -43,6 +44,7 @@ public class FspCleaningSignupService {
     private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     private final FspCleaningScheduleService schedule;
+    private final FoodSharePointRepository fsps;
     private final FspCleaningShiftRepository shifts;
     private final FspCleaningSignupRepository signups;
     private final FspFollowerRepository followers;
@@ -53,11 +55,13 @@ public class FspCleaningSignupService {
     private final HistoryService history;
     private final Clock clock;
 
-    public FspCleaningSignupService(FspCleaningScheduleService schedule, FspCleaningShiftRepository shifts,
+    public FspCleaningSignupService(FspCleaningScheduleService schedule, FoodSharePointRepository fsps,
+                                    FspCleaningShiftRepository shifts,
                                     FspCleaningSignupRepository signups, FspFollowerRepository followers,
                                     FspPermissionService access, CurrentActorService actors, UserService users,
                                     NotificationService notifications, HistoryService history, Clock clock) {
         this.schedule = schedule;
+        this.fsps = fsps;
         this.shifts = shifts;
         this.signups = signups;
         this.followers = followers;
@@ -104,19 +108,21 @@ public class FspCleaningSignupService {
             row.setDescription(slot.description());
             shifts.save(row);
         }
-        boolean confirmed = FspCleaningRules.preConfirmed(facts);
+        boolean confirmed = FspCleaningRules.confirmedAtSignUp(facts, fsp.isCleaningAutoConfirm());
         FspCleaningSignup signup = new FspCleaningSignup();
         signup.setFspId(fspId);
         signup.setUserId(actor.userId());
         signup.setShiftAt(shiftAt);
         signup.setConfirmed(confirmed);
         if (confirmed) {
-            signup.setConfirmedBy(actor.userId());
+            // automatic confirmation has no confirming person
+            signup.setConfirmedBy(FspCleaningRules.preConfirmed(facts) ? actor.userId() : null);
             signup.setConfirmedAt(now);
         }
         signups.save(signup);
         history.record(event(FspAction.CLEANING_SIGNED_UP, fsp, actor.userId(), shiftAt)
-                .metadata("confirmed", confirmed).build());
+                .metadata("confirmed", confirmed)
+                .metadata("autoConfirmed", confirmed && !FspCleaningRules.preConfirmed(facts)).build());
         if (!confirmed) {
             List<UUID> managers = followers.findByFspIdAndRole(fspId, FspFollowerRole.MANAGER).stream()
                     .map(FspFollower::getUserId).filter(id -> !id.equals(actor.userId())).toList();
@@ -174,6 +180,24 @@ public class FspCleaningSignupService {
                     schedule.zoneOf(fsp)).build());
         }
         removeUnconfirmedBellWhenDone(fspId);
+    }
+
+    /**
+     * Decision 155: a deleted account gives up its places in future shifts; past sign-ups stay with the anonymised
+     * user, so team numbers and the statistics stay right.
+     *
+     * @return number of sign-ups removed
+     */
+    @Transactional
+    public int removeFutureSignups(UUID userId) {
+        List<FspCleaningSignup> rows = signups.findByUserIdAndShiftAtGreaterThanEqual(userId, clock.instant());
+        for (FspCleaningSignup row : rows) {
+            signups.delete(row);
+            fsps.findById(row.getFspId()).ifPresent(fsp -> history.record(event(FspAction.CLEANING_REMOVED, fsp,
+                    userId, row.getShiftAt()).reason("account deleted").build()));
+        }
+        rows.stream().map(FspCleaningSignup::getFspId).distinct().forEach(this::removeUnconfirmedBellWhenDone);
+        return rows.size();
     }
 
     /** The contract's reason names (PickupEligibilityReason) for the cleaning reasons. */

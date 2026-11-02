@@ -40,6 +40,8 @@ function fsp(overrides: Partial<Fsp> = {}): Fsp {
     following: { following: false, bell: false, mail: false },
     permissions: { mayEdit: false, mayDelete: false, mayActivate: false, mayPost: true, mayFollow: true },
     cleaningEnabled: false,
+    cleaningAutoConfirm: false,
+    timeZone: 'Europe/Zurich',
     ...overrides,
   };
 }

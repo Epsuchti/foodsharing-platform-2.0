@@ -67,7 +67,8 @@ public class FspMapper {
                 .permissions(new FspPermissions().mayEdit(FspRules.mayEdit(facts))
                         .mayDelete(FspRules.mayDelete(facts)).mayActivate(FspRules.mayActivate(facts))
                         .mayPost(FspRules.mayPost(facts)).mayFollow(FspRules.mayFollow(facts)))
-                .cleaningEnabled(fsp.isCleaningEnabled());
+                .cleaningEnabled(fsp.isCleaningEnabled()).cleaningAutoConfirm(fsp.isCleaningAutoConfirm())
+                .timeZone(fsp.getTimeZone());
     }
 
     public FspFollowing toFollowing(FspFollower row) {
