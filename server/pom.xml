@@ -513,7 +513,7 @@
             </properties>
         </profile>
         <!-- D17.2: OWASP dependency-check (scheduled CI job .github/workflows/security.yml, off the PR path because the
-             NVD download takes minutes). ./mvnw -Pskip-client,security verify -DskipTests; NVD_API_KEY speeds it up. -->
+             first NVD download takes about 100 minutes without a key). ./mvnw -Pskip-client,security verify -DskipTests; NVD_API_KEY speeds it up. -->
         <profile>
             <id>security</id>
             <build>
