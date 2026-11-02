@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
@@ -10,6 +10,7 @@ import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { SessionService } from '../../../core/auth/session.service';
 import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, isSearchRateLimited, resultGroups } from '../search.util';
 
 /**
@@ -21,7 +22,7 @@ import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, isSearchRateLimited, resul
   imports: [...DATA_STATE_IMPORTS, Button, InputText, PageHeaderComponent, RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fs-page-header [title]="'search.page.title' | t" [subtitle]="'search.page.subtitle' | t" icon="pi pi-search" />
+    <fs-page-header [title]="'search.page.title' | t" [subtitle]="(session.mayKnowStores() ? 'search.page.subtitle' : 'search.page.subtitleNoStores') | t" icon="pi pi-search" />
 
     <form class="bar" role="search" (submit)="submit($event)" [attr.aria-label]="'search.page.title' | t">
       <label class="fs-visually-hidden" for="search-page-input">{{ 'search.page.label' | t }}</label>
@@ -34,14 +35,14 @@ import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, isSearchRateLimited, resul
         autocomplete="off"
         [value]="draft()"
         (input)="draft.set($any($event.target).value)"
-        [placeholder]="'search.global.placeholder' | t"
+        [placeholder]="(session.mayKnowStores() ? 'search.global.placeholder' : 'search.global.placeholderNoStores') | t"
         data-testid="search.page.input"
       />
       <p-button type="submit" [label]="'search.page.submit' | t" icon="pi pi-search" data-testid="search.page.submit" />
     </form>
 
     <div class="kinds" role="group" [attr.aria-label]="'search.page.filter' | t">
-      @for (group of groups; track group.kind) {
+      @for (group of groups(); track group.kind) {
         <button
           type="button"
           class="kind"
@@ -155,7 +156,11 @@ export class SearchPageComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly groups = SEARCH_GROUPS;
+  protected readonly session = inject(SessionService);
+  /** The stores filter only for people who may know stores (decision 153, S17). */
+  protected readonly groups = computed(() =>
+    SEARCH_GROUPS.filter((group) => group.key !== 'stores' || this.session.mayKnowStores()),
+  );
   protected readonly minLength = SEARCH_MIN_LENGTH;
 
   /** The query in the URL (`?q=`). */

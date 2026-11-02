@@ -4,6 +4,7 @@ import { map } from 'rxjs';
 
 import { SearchIndexData, SearchResults, SearchService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
+import { SessionService } from '../../../core/auth/session.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
@@ -66,7 +67,7 @@ const ALL_KEY = '\u0000all';
           [attr.aria-controls]="open() ? listboxId : null"
           [attr.aria-activedescendant]="activeOptionId()"
           [attr.aria-describedby]="hintId"
-          [placeholder]="'search.global.placeholder' | t"
+          [placeholder]="(session.mayKnowStores() ? 'search.global.placeholder' : 'search.global.placeholderNoStores') | t"
           (input)="onInput($any($event.target).value)"
           (focus)="onFocus()"
           (keydown)="onKeydown($event)"
@@ -212,6 +213,7 @@ const ALL_KEY = '\u0000all';
 })
 export class GlobalSearchComponent {
   private readonly api = inject(SearchService);
+  protected readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly changeDetector = inject(ChangeDetectorRef);

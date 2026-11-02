@@ -300,6 +300,7 @@ const NEW = 'new';
           />
           @if (!valid()) {
             <small class="hint">{{ 'content.editor.saveHint' | t }}</small>
+            <small class="hint" data-testid="content.editor.storeNamesHint">{{ 'content.editor.storeNamesHint' | t }}</small>
           }
         </aside>
       </form>

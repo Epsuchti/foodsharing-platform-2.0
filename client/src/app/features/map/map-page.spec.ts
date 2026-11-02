@@ -15,6 +15,7 @@ const F1 = '00000049-0001-4000-8000-000000000001';
 
 const TOGGLES = '/api/public/feature-toggles';
 const PUBLIC = '/api/public/map/markers';
+const AREAS = '/api/public/map/store-areas';
 const tick = () => new Promise((resolve) => setTimeout(resolve));
 
 interface MapPageApi {
@@ -49,11 +50,11 @@ describe('map page', () => {
     localStorage.removeItem(LAYERS_STORAGE_KEY);
   });
 
-  function login(admin = false, role: Role = Role.Foodsaver): void {
+  function login(admin = false, role: Role = Role.Foodsaver, verified = true): void {
     TestBed.inject(SessionService).applySession({
       authenticated: true,
       permissions: [],
-      user: { id: ME, email: 'foodsaver@local', displayName: 'Sarah', role, language: Language.De, theme: Theme.System, verified: true, homeRegionId: ZH },
+      user: { id: ME, email: 'foodsaver@local', displayName: 'Sarah', role, language: Language.De, theme: Theme.System, verified, homeRegionId: ZH },
       units: [{ id: ZH, name: 'Zürich Stadt', slug: 'zuerich-stadt', type: UnitType.BigCity, member: true, admin, homeRegion: true }],
     });
   }
@@ -65,14 +66,16 @@ describe('map page', () => {
     http.expectOne(`${PUBLIC}/food-share-points`).flush([{ id: F1, kind: MapMarkerKind.Fsp, lat: 47.37, lon: 8.51 }]);
     http.expectOne(`${PUBLIC}/regions`).flush([{ id: ZH, kind: MapMarkerKind.RegionPin, lat: 47.37, lon: 8.54, status: 'ACTIVE' }]);
     http.expectOne(`${PUBLIC}/baskets`).flush([]);
+    http.expectOne(AREAS).flush([{ name: 'Zürich Stadt', latitude: 47.37, longitude: 8.54, count: 16 }]);
     await settle();
     http.expectNone((req) => req.url.startsWith('/api/map/'));
     expect(state('map.page.map.state')).toBe('success');
-    expect(all('[data-testid="map.page.layers"] button').length).toBe(3);
+    expect(all('[data-testid="map.page.layers"] button').length).toBe(4);
+    expect(q('[data-testid="map.page.layer.storeAreas"]')).not.toBeNull();
     expect(q('[data-testid="map.page.layer.stores"]')).toBeNull();
     expect(q('[data-testid="map.page.search"]')).toBeNull();
-    expect(q('[data-testid="map.page.loginHint"]')).not.toBeNull();
-    expect(all('fs-map-view .fs-visually-hidden li').length).toBe(2);
+    expect(q('[data-testid="map.page.loginHint"]')).toBeNull();
+    expect(all('fs-map-view .fs-visually-hidden li').length).toBe(3);
 
     page().open({ id: F1, kind: 'fsp', lat: 47.37, lon: 8.51, label: 'FSP' });
     await settle();
@@ -89,7 +92,39 @@ describe('map page', () => {
     // switching a layer off is remembered
     (q('[data-testid="map.page.layer.baskets"]') as HTMLButtonElement).click();
     await settle();
-    expect(JSON.parse(localStorage.getItem(LAYERS_STORAGE_KEY)!)).toEqual(['fsps', 'regions', 'stores']);
+    expect(JSON.parse(localStorage.getItem(LAYERS_STORAGE_KEY)!)).toEqual(['fsps', 'regions', 'storeAreas', 'stores']);
+  });
+
+  it('an unverified member gets the count bubbles, whose popup has no link, and never asks for store markers', async () => {
+    login(false, Role.Foodsaver, false);
+    localStorage.setItem(LAYERS_STORAGE_KEY, '["stores","storeAreas"]');
+    await harness.navigateByUrl('/map');
+    http.expectOne(TOGGLES).flush({});
+    await settle();
+    http.expectOne(AREAS).flush([{ name: 'Winterthur', latitude: 47.5, longitude: 8.72, count: 2 }]);
+    await settle();
+    http.expectNone((req) => req.url.includes('/markers/stores'));
+    expect(q('[data-testid="map.page.layer.stores"]')).toBeNull();
+    expect(q('[data-testid="map.page.layer.events"]')).not.toBeNull();
+
+    page().open({ id: 'area:Winterthur', kind: 'store-area', lat: 47.5, lon: 8.72, label: '2 Betriebe · Winterthur' });
+    await settle();
+    expect(q('[data-testid="map.area.text"]')?.textContent).toContain('2 Betriebe · Winterthur');
+    expect(q('[data-testid="map.area"] a')).toBeNull();
+    http.expectNone((req) => req.url.includes('/bubbles/'));
+  });
+
+  it('a verified member gets the full store layer and no count bubbles', async () => {
+    login();
+    localStorage.setItem(LAYERS_STORAGE_KEY, '["stores","storeAreas"]');
+    await harness.navigateByUrl('/map');
+    http.expectOne(TOGGLES).flush({});
+    await settle();
+    http.expectNone(AREAS);
+    expect(q('[data-testid="map.page.layer.storeAreas"]')).toBeNull();
+    http.expectOne((req) => req.url === '/api/map/markers/stores').flush([]);
+    http.match((req) => req.url.includes('categories')).forEach((req) => req.flush([]));
+    await settle();
   });
 
   it('loads stores with the filter bar for signed-in users and searches a place', async () => {

@@ -21,15 +21,10 @@ import { TPipe } from '../../../core/i18n/t.pipe';
               <span>{{ pickup.startAt | fsDate: 'time' }}</span>
             </span>
             <span class="date__what">
-              <span class="date__category">{{ 'common.introCategory.' + pickup.category | t }}</span>
-              @if (pickup.publicGeneralLocation) {
+              <span class="date__category">{{ (pickup.online ? 'common.introMode.online' : 'common.introMode.onSite') | t }}</span>
+              @if (pickup.city) {
                 <span class="date__where">
-                  <i class="pi pi-map-marker" aria-hidden="true"></i>{{ pickup.publicGeneralLocation }}
-                </span>
-              }
-              @if (pickup.visitFairteiler) {
-                <span class="date__where">
-                  <i class="pi pi-box" aria-hidden="true"></i>{{ 'regions.intro.fairteiler' | t }}
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>{{ pickup.city }}
                 </span>
               }
             </span>

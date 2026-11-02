@@ -13,10 +13,12 @@ import {
   TeamSearchStatus,
   UnitType,
   UserTeamStatus,
+  PublicityStatus,
 } from '../../api';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { MyStoresPageComponent } from './pages/my-stores-page.component';
 import { RegionStoresPageComponent } from './pages/region-stores-page.component';
+import { StoreFormPageComponent } from './pages/store-form-page.component';
 import { StorePageComponent } from './pages/store-page.component';
 import { navigationLinks } from '../../shared/navigate-button/navigate.util';
 import { isInTeam } from './tabs/store-overview.tab';
@@ -49,6 +51,7 @@ const item = (over: Partial<StoreListItem>): StoreListItem => ({
 
 const permissions = (over: Partial<StorePermissions> = {}): StorePermissions => ({
   mayAccess: true,
+  mayChangePublicNaming: false,
   mayReadWall: false,
   mayPostWall: false,
   mayDeleteAnyWallPost: false,
@@ -105,6 +108,7 @@ describe('stores pages', () => {
           routes: [
             { path: 'stores/mine', component: MyStoresPageComponent },
             { path: 'regions/:regionId/stores', component: RegionStoresPageComponent },
+            { path: 'stores/:storeId/edit', component: StoreFormPageComponent },
             { path: 'stores/:storeId', component: StorePageComponent, children: [{ path: '**', children: [] }] },
             { path: '**', children: [] },
           ],
@@ -163,6 +167,40 @@ describe('stores pages', () => {
     req.flush({ items: [item({ name: 'X' })], page: { page: 0, size: 200, totalItems: 1, totalPages: 1 } });
     await settle();
     expect(qa('[data-testid="stores.region.row"]')).toHaveLength(1);
+  });
+
+  const openForm = async (over: Partial<StoreDetail>) => {
+    await harness.navigateByUrl('/stores/s1/edit');
+    http.expectOne('/api/store-metadata').flush({ categories: [], groceries: [], weightCategories: [], chains: [] });
+    http.expectOne('/api/stores/s1').flush(detail(over));
+    await new Promise((resolve) => setTimeout(resolve));
+    await settle();
+    return q('#sf-public-name') as HTMLInputElement;
+  };
+
+  it('store form: the public name switch is for managers and ORGA, with a warning, and only with publicity ALLOWED', async () => {
+    const manager = await openForm({
+      publicity: PublicityStatus.Allowed,
+      publiclyNamed: true,
+      permissions: permissions({ mayEditStore: true, mayChangePublicNaming: true }),
+    });
+    expect(manager.disabled).toBe(false);
+    expect(manager.checked).toBe(true);
+    expect(q('[data-testid="stores.form.publicNameWarning"]')).not.toBeNull();
+    expect(q('[data-testid="stores.form.requiresVerified"]')).toBeNull();
+  });
+
+  it('store form: a coordinator who does not manage the store sees the switch disabled', async () => {
+    const input = await openForm({ publicity: PublicityStatus.Allowed, permissions: permissions({ mayEditStore: true }) });
+    expect(input.disabled).toBe(true);
+  });
+
+  it('store form: the switch stays off while publicity is not allowed', async () => {
+    const input = await openForm({
+      publicity: PublicityStatus.NotChosen,
+      permissions: permissions({ mayEditStore: true, mayChangePublicNaming: true }),
+    });
+    expect(input.disabled).toBe(true);
   });
 
   it('store page: jumpers see only the overview, team and statistics tabs, no edit, no contact call', async () => {

@@ -71,7 +71,6 @@
   "regions.overview.conferenceText": "La salle de conférence de la région pour les réunions en ligne.",
   "regions.overview.conferenceOpen": "Ouvrir la salle",
   "regions.intro.none": "Aucune date pour le moment.",
-  "regions.intro.fairteiler": "Nettoyage du point de partage",
   "regions.intro.free": "{count, plural, one {# place libre} other {# places libres}}",
   "regions.members.search": "Recherche",
   "regions.members.searchPlaceholder": "Nom ou ID foodsaver",

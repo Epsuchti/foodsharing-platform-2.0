@@ -55,7 +55,7 @@ import { EinAbCardComponent } from '../components/einab-card.component';
             <ul class="grid">
               @for (einab of page.items; track einab.id) {
                 <li>
-                  <fs-einab-card [einab]="einab" [timeZone]="r.timeZone" [attr.data-category]="einab.category" data-testid="introPickups.public.card" />
+                  <fs-einab-card [einab]="einab" [timeZone]="r.timeZone" data-testid="introPickups.public.card" />
                 </li>
               }
             </ul>

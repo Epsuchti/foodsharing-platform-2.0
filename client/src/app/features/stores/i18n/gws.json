@@ -111,6 +111,8 @@
   "stores.form.cooperationStart": "Kooperation sit",
   "stores.form.convinceStatus": "Wie isch d Aasprach gloffe?",
   "stores.form.publicity": "Öffentlichkeitsarbet",
+  "stores.form.publicName": "Name öffentlich nänne",
+  "stores.form.publicNameWarning": "De Name und de Ort vom Betriib stönd dänn für alli sichtbar uf de Partnersiite. Nur iischalte, wänn de Betriib zuegstimmt hät. Gaht nur, wänn d Öffentlichkeitsarbet erlaubt isch.",
   "stores.form.sticker": "Chläber",
   "stores.form.contact": "Kontakt im Betriib",
   "stores.form.contactHint": "Nur fürs Team sichtbar.",

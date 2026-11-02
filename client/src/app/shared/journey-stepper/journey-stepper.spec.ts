@@ -56,6 +56,16 @@ describe('JourneyStepperComponent', () => {
     expect(el.querySelectorAll('[data-status="DONE"]')).toHaveLength(5);
   });
 
+  it('preview: a step without a duration shows none (S17 D9)', async () => {
+    const { el } = await create({
+      mode: 'preview',
+      preview: DEMO_JOURNEY_PREVIEW.map((step) => (step.key === 'INTRO_PICKUPS' ? { ...step, estimatedDuration: undefined } : step)),
+    });
+    const steps = [...el.querySelectorAll('li')];
+    const meta = steps.filter((step) => step.querySelector('.step__meta'));
+    expect(meta.length).toBe(steps.length - 1);
+  });
+
   it('shows who a waiting step waits for', async () => {
     const { el } = await create({ journey: DEMO_JOURNEY_WAITING });
     const waiting = el.querySelector('[data-step="ID_CHECK"]') as HTMLElement;

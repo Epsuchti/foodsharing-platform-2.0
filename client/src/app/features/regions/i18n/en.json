@@ -71,7 +71,6 @@
   "regions.overview.conferenceText": "The region’s conference room for online meetings.",
   "regions.overview.conferenceOpen": "Open conference room",
   "regions.intro.none": "No dates at the moment.",
-  "regions.intro.fairteiler": "Food-share point cleaning",
   "regions.intro.free": "{count, plural, one {# place left} other {# places left}}",
   "regions.members.search": "Search",
   "regions.members.searchPlaceholder": "Name or foodsaver ID",

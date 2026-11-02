@@ -37,10 +37,10 @@ const problem = (code: string, status: number) => ({ status, code, message: code
 function einab(id: string, bookable: boolean, reason?: string): BookableIntroPickup {
   return {
     id,
-    category: IntroPickupCategory.Supermarket,
     startAt: '2026-11-04T17:00:00Z',
+    online: false,
+    city: 'Zürich',
     guide: { id: 'g', displayName: 'Julien', role: Role.Foodsaver, verified: true },
-    visitFairteiler: false,
     freeSlots: 2,
     slotId: 's-' + id,
     bookable,
@@ -123,6 +123,13 @@ describe('intro pickup pages', () => {
     expect(qa('[data-testid="introPickups.bookable.card"]').length).toBe(2);
     expect(qa('[data-testid="introPickups.bookable.book"]').length).toBe(1);
     expect(q('[data-testid="introPickups.bookable.reason"]')?.getAttribute('data-reason')).toBe('USER_ALREADY_BOOKED_WITH_GUIDE');
+    // S17 D5: on site or online and the city, no filters
+    expect(q('[data-testid="introPickups.card.mode"]')?.textContent).toContain('common.introMode.onSite');
+    expect(q('[data-testid="introPickups.card.city"]')?.textContent).toContain('Zürich');
+    expect(q('[data-testid="introPickups.card.category"]')).toBeNull();
+    expect(q('[data-testid="introPickups.bookable.search"]')).toBeNull();
+    expect(q('[data-testid="introPickups.bookable.category"]')).toBeNull();
+    expect(q('[data-testid="introPickups.bookable.fairteiler"]')).toBeNull();
   });
 
   it('bookable: empty list offers notifications, errors offer a retry', async () => {

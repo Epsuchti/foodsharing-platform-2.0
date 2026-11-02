@@ -49,6 +49,7 @@ class PublicNamingRulesTest {
             if (other != PublicityStatus.ALLOWED) {
                 assertThat(PublicNamingRules.resolve(true, null, other, false)).isFalse();
                 assertThat(PublicNamingRules.resolve(true, true, other, false)).isFalse();
+                assertThat(PublicNamingRules.resolve(true, false, other, false)).isFalse();
             }
         }
     }

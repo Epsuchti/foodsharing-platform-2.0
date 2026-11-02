@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { Role } from '../../api';
-import { authGuard } from '../../core/auth/auth.guard';
+import { authGuard, storesVisibleMatch } from '../../core/auth/auth.guard';
 
 const tab = (path: string, load: () => Promise<unknown>) => ({
   path,
@@ -16,13 +16,14 @@ const tab = (path: string, load: () => Promise<unknown>) => ({
 export const STORES_ROUTES: Routes = [
   {
     path: 'stores/mine',
+    canMatch: [storesVisibleMatch],
     canActivate: [authGuard],
-    data: { roles: [Role.Foodsaver] },
     title: 'stores.mine.pageTitle',
     loadComponent: () => import('./pages/my-stores-page.component').then((m) => m.MyStoresPageComponent),
   },
   {
     path: 'stores/new',
+    canMatch: [storesVisibleMatch],
     canActivate: [authGuard],
     data: { roles: [Role.StoreManager] },
     title: 'stores.form.createTitle',
@@ -30,12 +31,14 @@ export const STORES_ROUTES: Routes = [
   },
   {
     path: 'stores/:storeId/edit',
+    canMatch: [storesVisibleMatch],
     canActivate: [authGuard],
     title: 'stores.form.editTitle',
     loadComponent: () => import('./pages/store-form-page.component').then((m) => m.StoreFormPageComponent),
   },
   {
     path: 'stores/:storeId',
+    canMatch: [storesVisibleMatch],
     canActivate: [authGuard],
     loadComponent: () => import('./pages/store-page.component').then((m) => m.StorePageComponent),
     children: [
@@ -65,16 +68,16 @@ export const STORES_ROUTES: Routes = [
   {
     // S2 / D16.2: CSV import for the store coordination of the region (the page checks the permission)
     path: 'regions/:regionId/stores/import',
+    canMatch: [storesVisibleMatch],
     canActivate: [authGuard],
-    data: { roles: [Role.Foodsaver] },
     title: 'stores.import.pageTitle',
     loadComponent: () =>
       import('./pages/region-stores-import-page.component').then((m) => m.RegionStoresImportPageComponent),
   },
   {
     path: 'regions/:regionId/stores',
+    canMatch: [storesVisibleMatch],
     canActivate: [authGuard],
-    data: { roles: [Role.Foodsaver] },
     title: 'stores.region.pageTitle',
     loadComponent: () =>
       import('./pages/region-stores-page.component').then((m) => m.RegionStoresPageComponent),

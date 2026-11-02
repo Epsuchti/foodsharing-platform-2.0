@@ -92,7 +92,9 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                 @if (step.descriptionKey) {
                   <p class="step__text">{{ step.descriptionKey | t }}</p>
                 }
-                <p class="step__meta"><i class="pi pi-clock" aria-hidden="true"></i> {{ durationText(step.estimatedDuration) }}</p>
+                @if (step.estimatedDuration; as duration) {
+                  <p class="step__meta"><i class="pi pi-clock" aria-hidden="true"></i> {{ durationText(duration) }}</p>
+                }
               </div>
             </li>
           }

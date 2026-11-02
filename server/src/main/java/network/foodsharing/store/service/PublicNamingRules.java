@@ -28,15 +28,14 @@ public final class PublicNamingRules {
      */
     public static boolean resolve(boolean current, Boolean requested, PublicityStatus publicity, boolean mayChange) {
         boolean wanted = requested == null ? current : requested;
-        if (wanted != current && !mayChange) {
+        boolean switchedOn = wanted && !current;
+        boolean allowed = publicity == PublicityStatus.ALLOWED;
+        if (!mayChange && (switchedOn || (wanted != current && allowed))) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
-        if (publicity == PublicityStatus.ALLOWED) {
-            return wanted;
-        }
-        if (wanted && !current) {
+        if (switchedOn && !allowed) {
             throw ApiException.conflict(ApiErrorCode.PUBLICITY_NOT_ALLOWED);
         }
-        return false;
+        return allowed && wanted;
     }
 }

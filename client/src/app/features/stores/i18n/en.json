@@ -111,6 +111,8 @@
   "stores.form.cooperationStart": "Cooperating since",
   "stores.form.convinceStatus": "How did the approach go?",
   "stores.form.publicity": "Publicity",
+  "stores.form.publicName": "Name it publicly",
+  "stores.form.publicNameWarning": "The store’s name and city then appear on the partners page for everyone to see. Only switch this on if the store has agreed. Needs publicity to be allowed.",
   "stores.form.sticker": "Sticker",
   "stores.form.contact": "Store contact",
   "stores.form.contactHint": "Only visible to the team.",

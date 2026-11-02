@@ -1,23 +1,20 @@
 import { ChangeDetectionStrategy, Component, Type } from '@angular/core';
 
-import { IntroPickupCategory, PublicIntroPickup } from '../../../../api';
+import { PublicIntroPickup } from '../../../../api';
 import { IntroPickupDatesComponent } from '../../../regions/shared/intro-pickup-dates.component';
 
 const PICKUPS: PublicIntroPickup[] = [
   {
     id: 'p1',
-    category: IntroPickupCategory.Bakery,
     startAt: '2026-11-03T17:30:00Z',
-    publicGeneralLocation: 'Kreis 4',
-    visitFairteiler: false,
+    online: false,
+    city: 'Zürich',
     freeSlots: 2,
   },
   {
     id: 'p2',
-    category: IntroPickupCategory.FairteilerCleaning,
     startAt: '2026-11-05T09:00:00Z',
-    publicGeneralLocation: 'Kreis 8',
-    visitFairteiler: true,
+    online: true,
     freeSlots: 1,
   },
 ];
