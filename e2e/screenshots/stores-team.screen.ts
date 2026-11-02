@@ -38,6 +38,7 @@ forEachVariant((variant) => {
         await page.goto(`/stores/${S01}/team`);
         await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
         await page.getByTestId('stores.team.search').fill('zzz');
+        await tickFixedClock(page); // the search is debounced; the fixed page clock never fires its timer
         await expect(page.getByTestId('stores.team.emptyFilter')).toBeVisible();
         await visual.expectScreen(page, `stores-team-empty-filter-${variant.name}`);
       });
@@ -58,6 +59,7 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('stores.statistics.members.filter.former')).toHaveAttribute('aria-pressed', 'true');
         await visual.expectElement(page.getByTestId('stores.statistics.members'), `stores-statistics-members-former-${variant.name}`);
         await page.getByTestId('stores.statistics.members.search').fill('zzz');
+        await tickFixedClock(page);
         await expect(page.getByTestId('stores.statistics.members.emptyFilter')).toBeVisible();
         await visual.expectElement(
           page.getByTestId('stores.statistics.members'),
