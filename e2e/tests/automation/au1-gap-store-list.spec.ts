@@ -12,15 +12,19 @@ const S02 = seedStore('S-02');
 const S03 = seedStore('S-03');
 const S05 = seedStore('S-05');
 
-/** Picks a store in the gap list picker; the list overlays the field (appendTo body), so Escape closes it. */
+/**
+ * Picks a store in the gap list picker and closes the list with a click outside it (the overlay closes on any document
+ * click outside itself). Escape does not close it on touch, and depending on the viewport the list covers the field or
+ * the hint, so the click is dispatched on the hint instead of at screen coordinates.
+ */
 async function pickGapStore(page: Page, name: string): Promise<void> {
   await page.getByTestId('automation.policy.gapStores').click();
   const overlay = page.locator('.p-multiselect-overlay');
   await overlay.getByText(name, { exact: true }).click();
   await expect(page.locator(`[data-testid="automation.policy.gapMember"]`).filter({ hasText: name })).toHaveCount(1);
-  // the overlay may still be animating in when the first Escape arrives
+  // the overlay may still be animating in when the first outside click arrives
   await expect(async () => {
-    await page.keyboard.press('Escape');
+    await page.locator('#pp-gap-stores-hint').dispatchEvent('click');
     await expect(overlay).toHaveCount(0, { timeout: 1_000 });
   }).toPass();
 }
