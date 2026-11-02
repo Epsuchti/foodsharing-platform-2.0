@@ -198,10 +198,10 @@ import { MessagingStore } from '../messaging.resource';
       flex: 1;
       min-width: 0;
     }
-    .item__name,
     .item__preview--deleted {
       font-style: italic;
     }
+    .item__name,
     .item__preview {
       overflow: hidden;
       text-overflow: ellipsis;
