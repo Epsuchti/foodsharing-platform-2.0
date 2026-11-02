@@ -1,6 +1,6 @@
 # Agent Notes
 
-Single source of truth: `plan.md`. Open points: `todo.md`. Build state: `docs/ledger.md`. Decisions: `docs/decisions.md`. Detailed conventions: `docs/conventions.md`.
+Single source of truth: `plan.md`. Open points: `todo.md`; ones that need a person: `todo-eric.md`. Build state: `docs/ledger.md`. Decisions: `docs/decisions.md`. Detailed conventions: `docs/conventions.md`.
 Environment: start every shell with `source scripts/env.sh`; requirements, commands and OS notes are in `docs/dev-environment.md`.
 Big docs (`plan.md`, `docs/conventions.md`, `docs/decisions.md`, `docs/ledger.md`): never read them in full. Use their contents section or search for the ID (`A3.`, `| 133 |`, `| S6 |`) and read only those parts.
 
