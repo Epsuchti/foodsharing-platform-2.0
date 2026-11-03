@@ -303,7 +303,7 @@ Deliverables:
 - [x] Split spec skeleton with `common.yaml` and the `auth`, `public`, `onboarding` tags.
 - [x] ArchUnit test: every `@RestController` implements exactly one interface from `network.foodsharing.api`.
 - [x] ESLint rule banning `HttpClient` outside `core/`/`api/`.
-- [ ] CI job running spec validation and `oasdiff breaking`. — *Gate note: built (`scripts/check-openapi.mjs`, `oasdiff.sh`, CI workflow) and green locally; never run on a Git remote (no remote configured), see launch report "Needs a human".*
+- [x] CI job running spec validation and `oasdiff breaking`. — *Gate note: green on GitHub (run 41538613759, launch report). On `main`, `oasdiff` has nothing to compare until the first `v*` tag.*
 
 ---
 
