@@ -88,6 +88,11 @@
                     <groupId>org.bouncycastle</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
+                <!-- only PushAsyncService uses it; WebPushClient uses PushService (Apache HttpClient). CVE-2026-45300 -->
+                <exclusion>
+                    <groupId>org.asynchttpclient</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -513,7 +518,7 @@
             </properties>
         </profile>
         <!-- D17.2: OWASP dependency-check (scheduled CI job .github/workflows/security.yml, off the PR path because the
-             first NVD download takes about 100 minutes without a key). ./mvnw -Pskip-client,security verify -DskipTests; NVD_API_KEY speeds it up. -->
+             first NVD download takes 40 to 100 minutes without a key). ./mvnw -Pskip-client,security verify -DskipTests; NVD_API_KEY speeds it up. -->
         <profile>
             <id>security</id>
             <build>

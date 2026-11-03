@@ -3,7 +3,7 @@ name: Security
 # D17.2: OWASP dependency-check of the server's runtime dependencies (CVSS >= 7 fails) and npm audit of the
 # production dependencies, weekly and on demand. npm audit also runs on every PR in ci.yml (fast); the NVD-based
 # dependency-check stays off the PR path (it downloads the NVD database). Without NVD_API_KEY the first download
-# takes about 100 minutes of rate-limited requests (60 % after an hour on 2026-11-02), hence the timeout; later runs
+# is rate-limited and varies a lot (37 minutes, and 60 % after an hour, on 2026-11-02), hence the timeout; later runs
 # only fetch updates from the cached database.
 on:
   workflow_dispatch:

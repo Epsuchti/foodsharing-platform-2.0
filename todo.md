@@ -12,7 +12,7 @@ Last updated 2026-11-02, after moving the human tasks to `todo-eric.md`.
   - regenerate `docs/coverage.md`
   - set M7 done in the ledger
   - tick `plan.md`
-- **Load and Security workflows:** run both once after the fixes for the k6 results folder and the OWASP timeout. The Load thresholds have never been evaluated on a shared runner, and the first OWASP run takes about two hours without an API key.
+- **Load and Security workflows:** Load is green on the fix branch; merge the fix so the weekly runs use it. Security needs a green run after the suppressions.
 
 ## Not tested from the 2026-11-01 batch
 - The commit-order race on the gap rule, and time zones other than Europe/Zurich.

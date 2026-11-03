@@ -133,7 +133,7 @@ The checklist to work through is `todo-eric.md`; this table holds the details.
 | Telegram bot | Bot creation via BotFather; token stored encrypted. | Create the bot, set `TELEGRAM_BOT_TOKEN` and the webhook. | N5, AU10 |
 | Mail provider + regional mailboxes | SMTP/IMAP (or inbound webhook) for `<region>@<domain>`. | Choose the provider, configure `MAILBOX_*`. | §13.6 |
 | Alertmanager recipients and SMTP password | `server/deploy/monitoring/alertmanager.yml` sends to placeholder addresses. | Set the on-call addresses; put the SMTP password into `server/deploy/monitoring/smtp_password` (not committed). | D19.3 |
-| `NVD_API_KEY` CI secret | The weekly OWASP dependency-check downloads the NVD database; without a key the first download takes about 100 minutes (the job's timeout allows for it). | Optional: request a key at NVD, add it as a repository secret. | D17.2 |
+| `NVD_API_KEY` CI secret | The weekly OWASP dependency-check downloads the NVD database; without a key the first download takes 40 to 100 minutes (the job's timeout allows for it). | Optional: request a key at NVD, add it as a repository secret. | D17.2 |
 | Native-speaker review of gws, fr, it (and en) | Translations are machine-made during the build. | Native speakers review the catalogs (`client/src/**/i18n`). | §17, §20 M7 |
 | Passport layout approval | Plan §21 #5: layout checked and approved by our admins. | Admins review `docs/passport-layout.md` / `docs/passport-sample.png`. | Ve3 |
 | Retention periods | `docs/privacy/retention.md` (decision 87) should be confirmed against the privacy policy text. | The association confirms or adjusts the periods. | §17, D17.3 |
