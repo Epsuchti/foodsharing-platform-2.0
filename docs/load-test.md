@@ -52,6 +52,8 @@ k6 exit code: 99 (thresholds failed).
 
 This table is the second of two runs on this Mac at `56c556b1`. Both ended with k6 exit code 99, with 3 and then 9 `dial: i/o timeout` errors between k6 and the app across Docker Desktop's networking. One failed request breaks the 0.1 % limit on a low-volume endpoint such as `send-message` (1 of about 180). The server log has no errors and p95 stayed under 25 ms, which points at the connection path rather than the app, but the cause is not confirmed. The same test on GitHub's runner is recorded in `docs/launch-report.md`.
 
+A third run at `5952f93e` on a quiet machine (load average 4 on 16 cores, nothing else in Docker) failed the same way: 4 timeouts in 59,440 requests (0.01 %), spread over `pickups`, `map-markers`, `my-pickups` and `send-message`, and the one on `send-message` (1 of 192, 0.52 %) broke its threshold. Overall p95 was 22.6 ms. The first run on 2026-10-29 already had 5 such timeouts (see below), so they happen on every run on this Mac, with or without other load, and only whether one lands on a low-volume endpoint decides pass or fail. Next suspect: Docker Desktop's port forwarding to `host.docker.internal` (not confirmed).
+
 ## Findings and fixes (D17.1, first run 2026-10-29)
 
 The first runs failed far above the 0.1 % threshold; both causes were real bugs that only show on PostgreSQL or

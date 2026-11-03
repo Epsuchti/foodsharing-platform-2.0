@@ -6,7 +6,7 @@ Last updated 2026-11-03, after the final gate run.
 
 ## Before launch
 - **Final gate:** merge `fix/load-and-security-workflows` and confirm CI is green on the merge commit; then record that commit in `docs/launch-report.md`.
-- **Load test on this Mac:** `e2e/load/run.sh` failed twice on 2026-11-03 with `dial: i/o timeout` between k6 and the app (`docs/load-test.md`). Find out whether it is Docker Desktop or the machine, without weakening the thresholds.
+- **Load test on this Mac:** `e2e/load/run.sh` failed three times on 2026-11-03 with `dial: i/o timeout` between k6 and the app, the third time on a quiet machine; every run since 2026-10-29 has had a few (`docs/load-test.md`). Suspect Docker Desktop's port forwarding to `host.docker.internal`: try k6 on the host or the app in the same Docker network. Don't weaken the thresholds.
 - **`oasdiff`:** it has nothing to compare on `main` until the first `v*` tag; check that it runs after the first release.
 
 ## Not tested from the 2026-11-01 batch

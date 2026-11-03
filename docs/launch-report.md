@@ -98,7 +98,7 @@ Final gate (plan-m7 Part D) on 2026-11-03. Everything marked CI comes from [run 
 | Smoke test | `server/deploy/smoke.sh` | this Mac | all 9 checks OK on image version 44 |
 | Security workflow | `security.yml` | GitHub, `56c556b1` | passed; OWASP findings dealt with in decision 157 |
 | Load test | `load.yml` (`e2e/load/run.sh`) | GitHub, `3a463f39` and `56c556b1` | passed twice; latest 60,636 requests, p95 17.1 ms, 0.00 % failed, 100 VUs |
-| Load test | `e2e/load/run.sh` | this Mac | **failed twice**: 3 and 9 connection timeouts between k6 and the app broke the failure threshold of low-volume endpoints (`docs/load-test.md`, `todo.md`) |
+| Load test | `e2e/load/run.sh` | this Mac | **failed three times**: 3, 9 and (on a quiet machine) 4 connection timeouts between k6 and the app broke the failure threshold of low-volume endpoints (`docs/load-test.md`, `todo.md`) |
 
 ## Needs a human before launch
 
