@@ -81,7 +81,8 @@ SCALE=1
 [[ "${QUICK}" == true ]] && SCALE=0.1
 echo "==> k6 (${K6_IMAGE}, duration scale ${SCALE})"
 set +e
-docker run --rm --add-host=host.docker.internal:host-gateway \
+# run as the caller: the k6 image's own user may not write to the bind-mounted results directory on Linux
+docker run --rm --user "$(id -u):$(id -g)" --add-host=host.docker.internal:host-gateway \
   -v "${LOAD_DIR}/k6:/scripts:ro" -v "${OUT}:/out" \
   -e BASE_URL="http://host.docker.internal:${LOAD_PORT}" -e DURATION_SCALE="${SCALE}" -e OUT_DIR=/out \
   "${K6_IMAGE}" run --quiet --no-color "/scripts/${LOAD_SCRIPT:-main.js}"

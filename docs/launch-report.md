@@ -1,24 +1,23 @@
 # Launch report — Foodsharing Platform 2.0
 
-Status: **final-gate draft** (plan-m7 Part D). Sections marked _TBD_ are filled by the integrator from the final
-runs. Build state per feature: `docs/ledger.md`; coverage: `docs/coverage.md`; decisions: `docs/decisions.md`;
+Status: **final gate run** (plan-m7 Part D), 2026-11-03. What still stands before launch is under "Needs a human". Build state per feature: `docs/ledger.md`; coverage: `docs/coverage.md`; decisions: `docs/decisions.md`;
 design review: `docs/design-review-m7.md`; Lighthouse: `docs/lighthouse.md`; history views: `docs/d10-3-audit.md`.
 
 ## What is built (by milestone)
 
 Every feature of plan §13 and §14 has a backend, a frontend and at least one Playwright test tagged with its ID
-(`feature-coverage.mjs --strict`: 150 / 150 features, decision 126). Rows still open in the ledger are listed under
+(`feature-coverage.mjs --strict`: 152 / 152 features, decision 126). Rows still open in the ledger are listed under
 "Open rows" below.
 
 | Milestone | State | Backend | Frontend |
 |---|---|---|---|
-| M1 Foundations | done (CI on a remote pending: D5.4) | Single jar (Spring Boot 4 + Angular 22 / Optimus UI), split OpenAPI contract with ArchUnit rules, history module with `@Tracked` listener and the "every mutation records history" rule, cookie sessions + CSRF, Google (OIDC) / magic link / passkey login, mail outbox, seed data + dev user switcher, fake OIDC provider. | Shell, `DataState`/`fs-data-state` and error handling, 5 languages, theme switcher, login/sign-up, account security (sessions, security log), "my activity" timeline; Playwright e2e + screenshot infrastructure. |
+| M1 Foundations | done | Single jar (Spring Boot 4 + Angular 22 / Optimus UI), split OpenAPI contract with ArchUnit rules, history module with `@Tracked` listener and the "every mutation records history" rule, cookie sessions + CSRF, Google (OIDC) / magic link / passkey login, mail outbox, seed data + dev user switcher, fake OIDC provider. | Shell, `DataState`/`fs-data-state` and error handling, 5 languages, theme switcher, login/sign-up, account security (sessions, security log), "my activity" timeline; Playwright e2e + screenshot infrastructure. |
 | M2 Regions & onboarding | done | Region tree with closure table, memberships, ambassadors/admins, functions and permissions, working groups with applications, onboarding journey (explainer, chapters, region steps, nudges), quizzes + editor, legal agreements, verification and passports (PDF, batch, wallets), EinAb intro pickups with guides, iCal import, past-EinAb CSV import, newcomer funnel. | Explainer `/`, journey `/onboarding` with progress, region pages (tabs, settings, history), my regions, working groups, quizzes (sessions, history, editor), verification queue, passports, EinAb booking / my bookings / guide dashboard / admin / funnel / import, user administration. |
 | M3 Stores & pickups | done | Stores with all §15.2 fields, chains, KAMs, categories with merge, teams (members, jumpers, invitations, applications), regular and one-time pickups, sign-up with confirmation and eligibility reasons, region pickup rule, wall with milestones, store log (27 actions), statistics, ICS feed. | Store list / my stores, store page (overview, team, pickups, wall, log, statistics, edit), chains and categories admin, pickups (options, mine, agenda, history), eligibility explanations. |
 | M4 Automations & notifications | done | Pickup and request policies (gap, cleaning, experience, holiday rules, dry run), open-slot adverts, sign-out alerts, extra slots, audit archive with anonymous daily metrics; bells, mail outbox with retry, web push, Telegram, newsletters / info mail, settings matrix, ShedLock jobs with admin job and integration pages, outage circuit breaker. | Store automation pages (policy, auto-accept, adverts, sign-out alerts, decisions), region automation (decisions, metrics, fairness, Telegram, message accounts), bells panel, notification settings, push opt-in, Telegram linking, newsletters, admin jobs/integrations, offline banner. |
 | M5 Communication | done | Messaging (direct, group, store, region chats over WebSocket), forums with moderation and moderation log, events with RSVP and ICS, polls (all types and scopes), surveys, regional mailboxes (IMAP/webhook, sanitised HTML, bounces), activity feed. | Messages with realtime delivery and unread badges, forum (threads, posts, reactions, moderation, follow, search), events, polls, surveys (incl. fill page without menu), mailboxes with rich-text editor (Quill in its own chunk), nav unread badges. |
-| M6 Community & governance | done except C5 (in progress, see "Open rows") | Account lifecycle (email change, photo, export zip, deletion with anonymisation and archive), baskets, food share points, map layers, reports and mediation, achievements, feature toggles, content pages / blog / release notes / team page, donations / petition, support tickets, statistics, global search, resources, OAuth2/OIDC provider. | Built as queue F tasks Q1–Q14 (`docs/plan-m7-queue-f.md`, decision 91): Q1 scaffolding + shared components, Q2 public profile + buddies + bananas, Q3/Q4 account completion (photo crop, sleep mode, email change, calendar feed, business card, data export, deletion, bounce banner, admin user page), Q5 baskets, Q6 food share points, Q7 map + dashboard feed + region statistics, Q8 reports / mediation / report log, Q9 achievements, Q10 public content pages / FAQ / team / statistics / release notes / petition, Q11 blog / donations / support, Q12 global search + resources, Q13 admin settings (toggles, configuration, blocklists, IP blocks, uploads, admins list), Q14 OAuth consent / connections / client admin. |
-| M7 Launch readiness | backend done; end batch: design rounds 1–2 done, round 3 in progress, baselines pending (Docker) | Zürich data files + CSV imports (regions, stores, past EinAbs) over the admin API (`scripts/import-csv.mjs`); production profile, image, secrets inventory, release script; runbook, backups with verified restore; Prometheus / Alertmanager / Grafana; k6 load test; security review (OWASP Top 10 + ASVS L2); privacy review (data inventory, retention, deletion walk); CI hardening (strict coverage, oasdiff vs last tag, ER check, shellcheck, dependency review, tag release). | F1 stores CSV import page (dry-run preview, confirm); F2 screenshot specs for every route (baselines need Docker, decision 69/109); F3 design round 1 — function & flow (decision 121); F4 design round 2 — visual polish (decision 124); F5 design round 3 — scripted persona walkthroughs (`e2e/tests/personas`, in progress); F6 full-route axe sweep in both themes + Pixel 7, five-language smoke, M6 translation sweep, Lighthouse report (decision 120); start-up performance (decisions 122, 123). |
+| M6 Community & governance | done | Account lifecycle (email change, photo, export zip, deletion with anonymisation and archive), baskets, food share points, map layers, reports and mediation, achievements, feature toggles, content pages / blog / release notes / team page, donations / petition, support tickets, statistics, global search, resources, OAuth2/OIDC provider. | Built as queue F tasks Q1–Q14 (`docs/plan-m7-queue-f.md`, decision 91): Q1 scaffolding + shared components, Q2 public profile + buddies + bananas, Q3/Q4 account completion (photo crop, sleep mode, email change, calendar feed, business card, data export, deletion, bounce banner, admin user page), Q5 baskets, Q6 food share points, Q7 map + dashboard feed + region statistics, Q8 reports / mediation / report log, Q9 achievements, Q10 public content pages / FAQ / team / statistics / release notes / petition, Q11 blog / donations / support, Q12 global search + resources, Q13 admin settings (toggles, configuration, blocklists, IP blocks, uploads, admins list), Q14 OAuth consent / connections / client admin. |
+| M7 Launch readiness | done; automated gate passed, launch still needs the items under "Needs a human" | Zürich data files + CSV imports (regions, stores, past EinAbs) over the admin API (`scripts/import-csv.mjs`); production profile, image, secrets inventory, release script; runbook, backups with verified restore; Prometheus / Alertmanager / Grafana; k6 load test; security review (OWASP Top 10 + ASVS L2); privacy review (data inventory, retention, deletion walk); CI hardening (strict coverage, oasdiff vs last tag, ER check, shellcheck, dependency review, tag release). | F1 stores CSV import page (dry-run preview, confirm); F2 screenshot specs for every route (baselines need Docker, decision 69/109); F3 design round 1 — function & flow (decision 121); F4 design round 2 — visual polish (decision 124); F5 design round 3 — scripted persona walkthroughs (`e2e/tests/personas`, in progress); F6 full-route axe sweep in both themes + Pixel 7, five-language smoke, M6 translation sweep, Lighthouse report (decision 120); start-up performance (decisions 122, 123). |
 
 ### Design rounds (plan §18.5, §20)
 
@@ -30,19 +29,11 @@ listed under "Needs a human".
 |---|---|---|
 | 1 — function & flow (F3) | five personas (newcomer, foodsaver, store manager, ambassador, orga) + visitor, desktop and Pixel 7 | 22 findings (2 blockers, 8 majors, 12 minors); both blockers and 7 majors fixed (decision 121) |
 | 2 — visual polish (F4) | same journeys, light and dark | fixed per `docs/design-review-m7.md`; left for round 3 listed there (decision 124) |
-| 3 — persona walkthroughs (F5) | scripted persona e2e specs `e2e/tests/personas` | _TBD (integrator, after the round-3 merge)_ |
+| 3 — persona walkthroughs (F5) | scripted persona e2e specs `e2e/tests/personas` | five personas walk their main journeys on chromium and mobile-chrome with step, click and field budgets (decision 127); green in the gate run |
 
 ### Open rows (ledger)
 
-| ID | State | What is missing |
-|---|---|---|
-| C5 Global search | in progress | _TBD — per ledger at the gate_ |
-| AD1 Admin & operations | in progress | waiting for the test worker to see its tagged tests pass on main (decision 106) |
-| D5.4 CI job (spec validation, oasdiff) | in progress | never run on a remote — "Needs a human" |
-| D18.1 CI hardening | in progress | never run on a remote — "Needs a human" |
-| D18.2 Screenshot baselines + three design rounds | todo | baselines and re-baselines need Docker — "Needs a human" |
-| D18.3 Final axe sweep, 5-language smoke, Lighthouse | todo | sweeps built (F6); closes with the final gate runs |
-| D11.5.5 Usability test with 5 Zürich newcomers | todo | replaced by AI personas (decision 3) — "Needs a human" |
+No ledger row is open. D11.5.5 is done through the persona walkthroughs (decision 3); the real usability test is still owed under "Needs a human", so its `plan.md` box stays unticked.
 
 ## How to run
 
@@ -81,44 +72,40 @@ server/deploy/release.sh --build --check                # image for amd64 + arm6
 
 ## Test results
 
-Final gate (plan-m7 Part D) on `main` at _TBD commit_, _TBD date_. Earlier milestone results: M1 integration
-`./mvnw clean verify` green, Playwright chromium 94/94; last full verify before the gate green except the 13
-Docker-only ITs (`todo.md`).
+Final gate (plan-m7 Part D) on 2026-11-03. Everything marked CI comes from [run 41538613759](https://github.com/Epsuchti/foodsharing-platform-2.0/actions/runs/41538613759) on `main` at `86cafd04`: 30 jobs passed, 2 did not apply (Dependency review runs on PRs, Release image on tags). The other checks ran on `fix/load-and-security-workflows` at `56c556b1`, which adds the workflow fixes and removes `async-http-client` (decision 157).
 
-| Check | Command | Result |
-|---|---|---|
-| OpenAPI validation + oasdiff | `node scripts/check-openapi.mjs`; `oasdiff.sh` | _TBD_ |
-| Server unit tests | `./mvnw clean verify` (surefire) | _TBD_ tests, _TBD_ failures |
-| Server ITs (H2) | `./mvnw clean verify` (failsafe) | _TBD_ ITs, _TBD_ failures |
-| Server ITs (Postgres, Testcontainers) | same, needs Docker | _TBD_ (13 ITs; not runnable on the Windows machine) |
-| Client unit tests | `ng test` (in `mvn verify`) | _TBD_ |
-| Lint, i18n check, theme tokens | `npm run lint`, `npm run i18n:check` (in `mvn verify`) | _TBD_ |
-| E2E typecheck | `npm run e2e:typecheck` | _TBD_ |
-| Playwright chromium | `npm run e2e -- --project=chromium` | _TBD_ passed / _TBD_ total |
-| Playwright firefox | `--project=firefox` | _TBD_ |
-| Playwright webkit | `--project=webkit` | _TBD_ |
-| Playwright mobile-chrome | `--project=mobile-chrome` | _TBD_ |
-| Playwright mobile-safari | `--project=mobile-safari` | _TBD_ |
-| Playwright lighthouse (D11.5.3) | `--project=lighthouse` | `/` perf _TBD_ / a11y _TBD_; `/onboarding` perf _TBD_ / a11y _TBD_ |
-| Screenshots (desktop + mobile, decision 109) | `npm run e2e:screenshots` in Docker, second run 0 diffs | _TBD_ (needs Docker) |
-| Feature coverage | `feature-coverage.mjs --strict` | _TBD_ (150 / 150 features expected) |
-| Axe route sweep | `e2e/tests/a11y` (light + dark + Pixel 7), `a11y:routes` | _TBD_ |
-| Five-language smoke | `e2e/tests/shell/i18n-smoke.spec.ts` | _TBD_ |
-| ER diagram check | `scripts/er-diagram.sh --check` | _TBD_ |
-| Release check | `server/deploy/release.sh --check` (Docker buildx) | _TBD_ |
-| Smoke test | `server/deploy/smoke.sh` (Docker Compose) | _TBD_ |
-| Load test | `e2e/load/run.sh` (Docker) | _TBD_ (last: `docs/load-test.md`) |
+| Check | Command | Where | Result |
+|---|---|---|---|
+| OpenAPI validation | `node scripts/check-openapi.mjs` | CI | no validation issues |
+| oasdiff | `oasdiff.sh` | CI | not compared on `main`: there is no `v*` tag yet |
+| Server unit tests | `./mvnw clean verify` (surefire) | CI | 1353 tests, 0 failures, 0 skipped |
+| Server ITs (H2 and Postgres) | `./mvnw clean verify` (failsafe) | CI | 304 ITs, 0 failures, 0 skipped; includes the 9 Testcontainers classes on Postgres |
+| Client unit tests | `ng test` (in `mvn verify`) | CI | 784 tests in 102 files passed |
+| Lint, i18n check, theme tokens | `npm run lint`, `npm run i18n:check` (in `mvn verify`) | CI | passed; 5654 keys in 5 languages |
+| E2E typecheck | `npm run e2e:typecheck` | CI | passed |
+| Playwright chromium | `--project=chromium` | CI | 1066 passed |
+| Playwright firefox | `--project=firefox` | CI | 1064 passed, 1 flaky (`r7-region-admin.spec.ts:10`, passed on retry) |
+| Playwright webkit | `--project=webkit` | CI | 1065 passed |
+| Playwright mobile-chrome | `--project=mobile-chrome` | CI | 1066 passed |
+| Playwright mobile-safari | `--project=mobile-safari` | CI | 1065 passed |
+| Playwright lighthouse (D11.5.3) | `--project=lighthouse` | CI | `/` perf 93 / a11y 100; `/onboarding` perf 75 / a11y 100 (goal 70 and 95, decision 153) |
+| Screenshots (desktop + mobile, decision 109) | `screenshots.sh` | CI | 609 passed, 0 failed, 1 flaky (`pages.screen.ts:71`, offline shell light-de, passed on retry) |
+| Feature coverage | `feature-coverage.mjs --strict` | CI | 152 / 152 features, 0 untagged tests; 27 of 37 deliverables have a tagged test |
+| Axe route sweep | `e2e/tests/a11y`, `a11y:routes` | CI | passed |
+| Five-language smoke | `e2e/tests/shell/i18n-smoke.spec.ts` | CI | passed |
+| ER diagram check | `scripts/er-diagram.sh --check` | CI | up to date |
+| Release check | `server/deploy/release.sh --build --check` | this Mac | builds for linux/amd64 and linux/arm64 |
+| Smoke test | `server/deploy/smoke.sh` | this Mac | all 9 checks OK on image version 44 |
+| Security workflow | `security.yml` | GitHub, `56c556b1` | passed; OWASP findings dealt with in decision 157 |
+| Load test | `load.yml` (`e2e/load/run.sh`) | GitHub, `3a463f39` and `56c556b1` | passed twice; latest 60,636 requests, p95 17.1 ms, 0.00 % failed, 100 VUs |
+| Load test | `e2e/load/run.sh` | this Mac | **failed three times**: 3, 9 and (on a quiet machine) 4 connection timeouts between k6 and the app broke the failure threshold of low-volume endpoints (`docs/load-test.md`, `todo.md`) |
 
 ## Needs a human before launch
 
+The checklist to work through is `todo-eric.md`; this table holds the details.
+
 | Item | Why | What to do | Reference |
 |---|---|---|---|
-| Docker for the Postgres ITs | 13 Testcontainers ITs (Liquibase on Postgres, index usage, load paths, backup/restore, Zürich imports, …) cannot run on the build machine (no Docker). | Run `./mvnw clean verify` on a machine with Docker (or let CI run it) and record the result above. | `todo.md`, D7.1, D16.1–D16.3, D19.2 |
-| Screenshot baselines and design-round re-baselines | Baselines are generated in Docker only (decision 69); the design rounds 1–3 changed many screens and their re-baselines are pending. | `npm run e2e:screenshots -- --update-snapshots` in Docker once, review the diffs deliberately, commit; a second plain run must show 0 diffs. | D18.2, decisions 69, 109 |
-| k6 load test refresh | Needs Docker (Postgres 17 + jar + k6). | `e2e/load/run.sh`, update `docs/load-test.md`; repeat on production hardware. | D17.1 |
-| `smoke.sh` and `release.sh --check` | Both need Docker (Compose, buildx). | Run both, record above. | D19.1 |
-| CI on a Git remote | `.github/workflows/*.yml` (ci, load, security) are complete but have never run (no remote configured). | Push to the remote, enable Actions, set secrets (`NVD_API_KEY`), check the first runs. | D5.4, D18.1, decision 126 |
-| Push to a remote | All work lives in a local repository only. | Create the repository (GitHub org), push `main` and tags. | D5.4 |
 | Usability test with 5 Zürich newcomers | Replaced during the build by AI persona walkthroughs (decision 3, three design rounds in `docs/design-review-m7.md`). | Run a short moderated test (3–5 newcomers, plus foodsavers, store managers, ambassadors) on staging; fix the top findings. | D11.5.5, §11.5, §18.5, §20 M7 |
 | Product question: verification requires a confirmed identity? | The server allows verification without the identity check; the UI only nudges reviewers. | Decide; if yes: server rule + journey + e2e (small change). | decision 124, `docs/design-review-m7.md` |
 | Zürich regions and stores data | `docs/data/zuerich/regions.csv` is a model (sub-regions after foodsharing.network) and `stores.csv` an anonymised model, both pending ambassador confirmation. | Ambassadors confirm or correct the files; import with `scripts/import-csv.mjs` (runbook §4). | D16.1, D16.2, plan §16, §21 |
@@ -131,7 +118,7 @@ Docker-only ITs (`todo.md`).
 | Telegram bot | Bot creation via BotFather; token stored encrypted. | Create the bot, set `TELEGRAM_BOT_TOKEN` and the webhook. | N5, AU10 |
 | Mail provider + regional mailboxes | SMTP/IMAP (or inbound webhook) for `<region>@<domain>`. | Choose the provider, configure `MAILBOX_*`. | §13.6 |
 | Alertmanager recipients and SMTP password | `server/deploy/monitoring/alertmanager.yml` sends to placeholder addresses. | Set the on-call addresses; put the SMTP password into `server/deploy/monitoring/smtp_password` (not committed). | D19.3 |
-| `NVD_API_KEY` CI secret | The weekly OWASP dependency-check downloads the NVD database; without a key it is very slow and may time out. | Request a key at NVD, add it as a repository secret. | D17.2 |
+| `NVD_API_KEY` CI secret | The weekly OWASP dependency-check downloads the NVD database; without a key the first download takes 40 to 100 minutes (the job's timeout allows for it). | Optional: request a key at NVD, add it as a repository secret. | D17.2 |
 | Native-speaker review of gws, fr, it (and en) | Translations are machine-made during the build. | Native speakers review the catalogs (`client/src/**/i18n`). | §17, §20 M7 |
 | Passport layout approval | Plan §21 #5: layout checked and approved by our admins. | Admins review `docs/passport-layout.md` / `docs/passport-sample.png`. | Ve3 |
 | Retention periods | `docs/privacy/retention.md` (decision 87) should be confirmed against the privacy policy text. | The association confirms or adjusts the periods. | §17, D17.3 |
