@@ -2,11 +2,9 @@
 
 Open tasks an agent can do. Tasks that need a person are in `todo-eric.md`. Finished work lives in `docs/ledger.md` and `docs/decisions.md`. Update this file when you close or find something.
 
-Last updated 2026-11-03, after the final gate run.
+Last updated 2026-11-03, after the final gate was merged (`dc970052`).
 
 ## Before launch
-- **Final gate:** merge `fix/load-and-security-workflows` and confirm CI is green on the merge commit; then record that commit in `docs/launch-report.md`.
-- **Load test on this Mac:** `e2e/load/run.sh` failed three times on 2026-11-03 with `dial: i/o timeout` between k6 and the app, the third time on a quiet machine; every run since 2026-10-29 has had a few (`docs/load-test.md`). Suspect Docker Desktop's port forwarding to `host.docker.internal`: try k6 on the host or the app in the same Docker network. Don't weaken the thresholds.
 - **`oasdiff`:** it has nothing to compare on `main` until the first `v*` tag; check that it runs after the first release.
 
 ## Not tested from the 2026-11-01 batch
@@ -24,5 +22,6 @@ Last updated 2026-11-03, after the final gate run.
 - **Windows Playwright worker crash** (exit 3221226505 / 0xC0000409): hits a random test about once per full serial run and passes on rerun. Machine infrastructure, not app code. Sharded runs turn video off, which lowers memory.
 
 ## Housekeeping
+- **Load test on this Mac (optional, does not block launch):** `e2e/load/run.sh` failed three times on 2026-11-03 with `dial: i/o timeout` between k6 and the app, the third time on a quiet machine; every run since 2026-10-29 has had a few (`docs/load-test.md`). Suspect Docker Desktop's port forwarding to `host.docker.internal`: try k6 on the host or the app in the same Docker network. Don't weaken the thresholds.
 - Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`).
 - `SpaForwardingControllerTest.languagePreferenceOrderIsCookieThenAcceptLanguageThenGerman` depends on a stale `static/it` in `target/classes`; run `./mvnw clean verify` first, and make the test independent of the build state instead of changing its expectation.
