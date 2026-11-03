@@ -15,9 +15,9 @@
         <cve>CVE-2026-42154</cve>
     </suppress>
     <suppress until="2027-05-03Z">
-        <notes>False positive, reviewed by Claude on 2026-11-03. The CVE is in Liquibase before 4.8.0. This jar is Spring
-            Boot's Liquibase integration, matched by its own version 4.1.2; the app's liquibase-core is 5.0.4.</notes>
-        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring-boot-liquibase@.*$</packageUrl>
+        <notes>False positive, reviewed by Claude on 2026-11-03. The CVE is in Liquibase before 4.8.0. These jars are Spring
+            Boot's Liquibase integration and starter, matched by their own version 4.1.2; the app's liquibase-core is 5.0.4.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring-boot(-starter)?-liquibase@.*$</packageUrl>
         <cve>CVE-2022-0839</cve>
     </suppress>
 </suppressions>
