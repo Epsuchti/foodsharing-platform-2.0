@@ -69,14 +69,14 @@ class EventFlowIT {
     void membersSeeUpcomingEventsAndStrangersOnlyPublicOnes() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         String list = body(get("/api/regions/" + ZUERICH_STADT + "/events").cookie(foodsaver));
-        assertThat((List<String>) JsonPath.read(list, "$[*].id")).hasSize(6).contains(BRUNCH, INFO_EVENING)
+        assertThat(JsonPath.<List<String>>read(list, "$[*].id")).hasSize(6).contains(BRUNCH, INFO_EVENING)
                 .doesNotContain(AUTUMN_CLEANUP);
         String all = body(get("/api/regions/" + ZUERICH_STADT + "/events?includePast=true").cookie(foodsaver));
-        assertThat((List<String>) JsonPath.read(all, "$[*].id")).hasSize(8);
+        assertThat(JsonPath.<List<String>>read(all, "$[*].id")).hasSize(8);
 
         Cookie newbie = login(SeedUsers.NEWBIE);
         String strangers = body(get("/api/regions/" + ZUERICH_STADT + "/events").cookie(newbie));
-        assertThat((List<String>) JsonPath.read(strangers, "$[*].id")).containsExactly(BRUNCH);
+        assertThat(JsonPath.<List<String>>read(strangers, "$[*].id")).containsExactly(BRUNCH);
         mvc.perform(get("/api/events/" + BRUNCH).cookie(newbie)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.permissions.mayEdit").value(false))
                 .andExpect(jsonPath("$.permissions.mayRsvp").value(true));
@@ -116,7 +116,7 @@ class EventFlowIT {
         assertThat((Boolean) JsonPath.read(created, "$.permissions.mayEdit")).isTrue();
         Cookie jumper = login(SeedUsers.JUMPER);
         assertThat(bellTypes(jumper)).contains("EVENT_INVITATION");
-        assertThat((List<String>) JsonPath.read(body(get("/api/events/mine").cookie(jumper)), "$[*].id")).contains(id);
+        assertThat(JsonPath.<List<String>>read(body(get("/api/events/mine").cookie(jumper)), "$[*].id")).contains(id);
 
         // jumper accepts, bieb changes the time → jumper gets EVENT_UPDATED
         body(json(put("/api/events/" + id + "/invitation"), "{\"status\":\"ACCEPTED\"}").cookie(jumper));
@@ -146,7 +146,7 @@ class EventFlowIT {
         String answered = body(json(put("/api/events/" + BRUNCH + "/invitation"), "{\"status\":\"MAYBE\"}")
                 .cookie(foodsaver));
         assertThat((String) JsonPath.read(answered, "$.myStatus")).isEqualTo("MAYBE");
-        assertThat((List<String>) JsonPath.read(answered, "$.participants.maybe[*].displayName"))
+        assertThat(JsonPath.<List<String>>read(answered, "$.participants.maybe[*].displayName"))
                 .contains("Sarah Müller");
         // past event ended more than 24 h ago
         mvc.perform(json(put("/api/events/" + AUTUMN_CLEANUP + "/invitation"), "{\"status\":\"ACCEPTED\"}")

@@ -198,8 +198,6 @@
   "introPickups.admin.reason": "Reason",
   "introPickups.admin.guideStats": "{count, plural, one {1 intro pickup} other {# intro pickups}}",
   "introPickups.admin.manager": "Manages newcomers",
-  "introPickups.admin.active": "Active",
-  "introPickups.admin.inactive": "Paused",
   "introPickups.admin.enable": "Enable",
   "introPickups.admin.disable": "Pause",
   "introPickups.admin.enableText": "Change guiding for {name}. The reason is recorded.",

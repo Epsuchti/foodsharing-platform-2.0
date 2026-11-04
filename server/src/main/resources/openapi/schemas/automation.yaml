@@ -219,13 +219,6 @@ RequestPolicy:
       type: integer
       format: int64
 
-AdvertMessages:
-  type: array
-  maxItems: 10
-  items:
-    type: string
-    maxLength: 1000
-
 OpenSlotAdvert:
   type: object
   required: [enabled, dryRun, triggerHoursBefore, channels, storeMessages, pushMessages, telegramMessages,
@@ -253,11 +246,23 @@ OpenSlotAdvert:
       type: string
       maxLength: 40
     storeMessages:
-      $ref: './automation.yaml#/AdvertMessages'
+      type: array
+      maxItems: 10
+      items:
+        type: string
+        maxLength: 1000
     pushMessages:
-      $ref: './automation.yaml#/AdvertMessages'
+      type: array
+      maxItems: 10
+      items:
+        type: string
+        maxLength: 1000
     telegramMessages:
-      $ref: './automation.yaml#/AdvertMessages'
+      type: array
+      maxItems: 10
+      items:
+        type: string
+        maxLength: 1000
     sendLateCancellationMessage:
       type: boolean
     lateCancellationMessage:

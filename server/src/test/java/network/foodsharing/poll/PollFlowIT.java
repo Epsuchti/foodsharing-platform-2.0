@@ -91,7 +91,7 @@ class PollFlowIT {
     void seedListingStatusesAndHiddenResults() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         String list = body(get("/api/regions/" + ZUERICH_STADT + "/polls").cookie(foodsaver));
-        assertThat((List<String>) JsonPath.read(list, "$[*].status"))
+        assertThat(JsonPath.<List<String>>read(list, "$[*].status"))
                 .containsExactlyInAnyOrder("RUNNING", "ENDED", "UPCOMING", "CANCELLED");
         mvc.perform(get("/api/polls/" + RUNNING).cookie(foodsaver)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.mayVote").value(true)).andExpect(jsonPath("$.voted").value(false))
@@ -105,7 +105,7 @@ class PollFlowIT {
         mvc.perform(get("/api/polls/" + RUNNING).cookie(login(SeedUsers.BOT))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.eligibleCount").value(9));
         mvc.perform(get("/api/polls/" + RUNNING).cookie(login(SeedUsers.NEWBIE))).andExpect(status().isForbidden());
-        assertThat((List<String>) JsonPath.read(body(get("/api/polls/mine").cookie(foodsaver)), "$[*].id"))
+        assertThat(JsonPath.<List<String>>read(body(get("/api/polls/mine").cookie(foodsaver)), "$[*].id"))
                 .containsExactly(KOCH_RUNNING, RUNNING);
     }
 
@@ -114,9 +114,9 @@ class PollFlowIT {
     void createRulesAndScopeCounts() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         String counts = body(get("/api/regions/" + ZUERICH_STADT + "/polls/scope-counts").cookie(bot));
-        assertThat((List<Integer>) JsonPath.read(counts, "$[?(@.scope=='FOODSAVERS')].count")).containsExactly(9);
-        assertThat((List<Integer>) JsonPath.read(counts, "$[?(@.scope=='STORE_MANAGERS')].count")).containsExactly(5);
-        assertThat((List<Integer>) JsonPath.read(counts, "$[?(@.scope=='AMBASSADORS')].count")).hasSize(1);
+        assertThat(JsonPath.<List<Integer>>read(counts, "$[?(@.scope=='FOODSAVERS')].count")).containsExactly(9);
+        assertThat(JsonPath.<List<Integer>>read(counts, "$[?(@.scope=='STORE_MANAGERS')].count")).containsExactly(5);
+        assertThat(JsonPath.<List<Integer>>read(counts, "$[?(@.scope=='AMBASSADORS')].count")).hasSize(1);
         mvc.perform(get("/api/regions/" + ZUERICH_STADT + "/polls/scope-counts").cookie(login(SeedUsers.FOODSAVER)))
                 .andExpect(status().isForbidden());
         String base = "{\"regionId\":\"" + ZUERICH_STADT + "\",\"name\":\"X\",\"type\":\"SELECT_ONE\","
@@ -136,7 +136,7 @@ class PollFlowIT {
         assertThat(bellTypes(jumper)).contains("POLL_NEW");
         String updated = body(json(patch("/api/polls/" + id), "{\"options\":[\"Ja\",\"Nein\"],\"name\":\"Neu\"}")
                 .cookie(bot));
-        assertThat((List<String>) JsonPath.read(updated, "$.options[*].text")).containsExactly("Ja", "Nein");
+        assertThat(JsonPath.<List<String>>read(updated, "$.options[*].text")).containsExactly("Ja", "Nein");
         mvc.perform(json(patch("/api/polls/" + id), "{\"name\":\"Fremd\"}").cookie(jumper))
                 .andExpect(status().isForbidden());
     }
@@ -172,10 +172,10 @@ class PollFlowIT {
         clock.fixAt(Instant.parse("2026-11-06T10:00:00Z"));
         String result = body(get("/api/polls/" + score).cookie(bieb));
         assertThat((String) JsonPath.read(result, "$.status")).isEqualTo("ENDED");
-        assertThat((List<Integer>) JsonPath.read(result, "$.options[0].values[?(@.value==3)].votes")).containsExactly(1);
-        assertThat((List<Integer>) JsonPath.read(result, "$.options[2].values[?(@.value==-3)].votes")).containsExactly(1);
+        assertThat(JsonPath.<List<Integer>>read(result, "$.options[0].values[?(@.value==3)].votes")).containsExactly(1);
+        assertThat(JsonPath.<List<Integer>>read(result, "$.options[2].values[?(@.value==-3)].votes")).containsExactly(1);
         String multiResult = body(get("/api/polls/" + multi).cookie(bieb));
-        assertThat((List<Integer>) JsonPath.read(multiResult, "$.options[*].values[0].votes")).containsExactly(1, 0, 1);
+        assertThat(JsonPath.<List<Integer>>read(multiResult, "$.options[*].values[0].votes")).containsExactly(1, 0, 1);
         String history = body(get("/api/history?subjectType=POLL&subjectId=" + one).cookie(login(SeedUsers.ORGA)));
         assertThat(history).contains("VOTE_CAST").doesNotContain("\"values\"");
         clock.fixAt(SEED_NOW);

@@ -411,7 +411,7 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'NOT_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
-/api/users/{userId}/agenda/{date}:
+/api/users/{userId}/agenda/{day}:
   get:
     tags: [pickups]
     operationId: getAgenda
@@ -424,7 +424,7 @@
         schema:
           type: string
           format: uuid
-      - name: date
+      - name: day
         in: path
         required: true
         schema:

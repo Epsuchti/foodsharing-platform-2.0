@@ -84,7 +84,7 @@ class ForumFlowIT {
         assertThat((Integer) JsonPath.read(list, "$.page.totalItems")).isEqualTo(13);
         assertThat((Boolean) JsonPath.read(list, "$.items[0].sticky")).isTrue();
         assertThat((Boolean) JsonPath.read(list, "$.items[1].sticky")).isTrue();
-        assertThat((List<String>) JsonPath.read(list, "$.items[*].id")).doesNotContain(INACTIVE_THREAD);
+        assertThat(JsonPath.<List<String>>read(list, "$.items[*].id")).doesNotContain(INACTIVE_THREAD);
         mvc.perform(get("/api/forum/threads/" + INACTIVE_THREAD).cookie(foodsaver)).andExpect(status().isNotFound());
         mvc.perform(get("/api/regions/" + ZUERICH_STADT + "/forum/threads?ambassadorForum=true").cookie(foodsaver))
                 .andExpect(status().isForbidden());
@@ -97,7 +97,7 @@ class ForumFlowIT {
 
         String thread = body(get("/api/forum/threads/" + DISPUTE_THREAD).cookie(foodsaver));
         assertThat((String) JsonPath.read(thread, "$.posts[1].hidden.reason")).isEqualTo("Beleidigung");
-        assertThat((List<Object>) JsonPath.read(thread, "$.posts[?(@.id == '" + HIDDEN_POST + "')].body")).containsOnlyNulls();
+        assertThat(JsonPath.<List<Object>>read(thread, "$.posts[?(@.id == '" + HIDDEN_POST + "')].body")).containsOnlyNulls();
         assertThat((Boolean) JsonPath.read(thread, "$.permissions.mayModerate")).isFalse();
         mvc.perform(get("/api/forum/threads/" + DISPUTE_THREAD).cookie(bot))
                 .andExpect(jsonPath("$.posts[1].body").exists())
@@ -146,7 +146,7 @@ class ForumFlowIT {
         mvc.perform(get("/api/forum/threads/" + threadId).cookie(foodsaver)).andExpect(jsonPath("$.postCount").value(2));
 
         String log = body(get("/api/regions/" + ZUERICH_STADT + "/moderation-log?size=50").cookie(bot));
-        assertThat((List<String>) JsonPath.read(log, "$.items[*].action")).contains("THREAD_ACTIVATED", "POST_HIDDEN");
+        assertThat(JsonPath.<List<String>>read(log, "$.items[*].action")).contains("THREAD_ACTIVATED", "POST_HIDDEN");
         mvc.perform(get("/api/regions/" + ZUERICH_STADT + "/moderation-log").cookie(foodsaver))
                 .andExpect(status().isForbidden());
     }
@@ -172,7 +172,7 @@ class ForumFlowIT {
         mvc.perform(put("/api/forum/posts/" + WELCOME_POST_BOT + "/reactions/100").with(csrf()).cookie(foodsaver))
                 .andExpect(status().isNoContent());
         String thread = body(get("/api/forum/threads/" + WELCOME_THREAD).cookie(foodsaver));
-        assertThat((List<String>) JsonPath.read(thread, "$.posts[0].reactions[*].key")).contains("thumbsup", "100");
+        assertThat(JsonPath.<List<String>>read(thread, "$.posts[0].reactions[*].key")).contains("thumbsup", "100");
         mvc.perform(delete("/api/forum/posts/" + WELCOME_POST_BOT + "/reactions/100").with(csrf()).cookie(foodsaver))
                 .andExpect(status().isNoContent());
 

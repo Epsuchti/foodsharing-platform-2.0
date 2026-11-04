@@ -61,7 +61,7 @@ class AdvertFlowIT {
         Instant pickupAt = null;
         for (JsonNode pickup : JsonMapper.builder().build().readTree(body)) {
             if (pickup.get("occupiedSlots").size() < pickup.get("slotCount").asInt()) {
-                pickupAt = Instant.parse(pickup.get("pickupAt").asText());
+                pickupAt = Instant.parse(pickup.get("pickupAt").asString());
                 break;
             }
         }
@@ -99,7 +99,7 @@ class AdvertFlowIT {
         Instant pickupAt = null;
         for (JsonNode pickup : JsonMapper.builder().build().readTree(body)) {
             if (pickup.get("occupiedSlots").size() < pickup.get("slotCount").asInt()) {
-                pickupAt = Instant.parse(pickup.get("pickupAt").asText());
+                pickupAt = Instant.parse(pickup.get("pickupAt").asString());
                 break;
             }
         }

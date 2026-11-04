@@ -198,8 +198,6 @@
   "introPickups.admin.reason": "Begründung",
   "introPickups.admin.guideStats": "{count, plural, one {1 Einführung} other {# Einführungen}}",
   "introPickups.admin.manager": "Verwaltet Neue",
-  "introPickups.admin.active": "Aktiv",
-  "introPickups.admin.inactive": "Pausiert",
   "introPickups.admin.enable": "Freischalten",
   "introPickups.admin.disable": "Pausieren",
   "introPickups.admin.enableText": "Begleitung von {name} ändern. Die Begründung wird festgehalten.",

@@ -65,10 +65,10 @@ class SurveyFlowIT {
     void managersSeeTheirSurveysOthersDoNot() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         String list = body(get("/api/surveys").cookie(bot));
-        assertThat((List<String>) JsonPath.read(list, "$[*].id")).containsExactly(SATISFACTION);
+        assertThat(JsonPath.<List<String>>read(list, "$[*].id")).containsExactly(SATISFACTION);
         assertThat((Integer) JsonPath.read(list, "$[0].responseCount")).isEqualTo(6);
         Cookie orga = login(SeedUsers.ORGA);
-        assertThat((List<String>) JsonPath.read(body(get("/api/surveys").cookie(orga)), "$[*].id"))
+        assertThat(JsonPath.<List<String>>read(body(get("/api/surveys").cookie(orga)), "$[*].id"))
                 .containsExactlyInAnyOrder(SATISFACTION, MENU);
         mvc.perform(get("/api/surveys/" + MENU).cookie(bot)).andExpect(status().isNotFound());
         mvc.perform(get("/api/surveys").cookie(login(SeedUsers.FOODSAVER))).andExpect(status().isForbidden());
@@ -110,7 +110,7 @@ class SurveyFlowIT {
     void createShareEditAndDelete() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         String candidates = body(get("/api/surveys/coauthor-candidates?q=Dan").cookie(bot));
-        assertThat((List<String>) JsonPath.read(candidates, "$[*].id")).contains(SeedUsers.ORGA.id().toString());
+        assertThat(JsonPath.<List<String>>read(candidates, "$[*].id")).contains(SeedUsers.ORGA.id().toString());
         String write = "{\"title\":\"Neue Umfrage\",\"questions\":[{\"type\":\"TEXT\",\"label\":\"Frage\","
                 + "\"required\":true,\"options\":[]}],\"coauthorIds\":[\"" + SeedUsers.ORGA.id() + "\"]}";
         mvc.perform(json(post("/api/surveys"), write.replace(SeedUsers.ORGA.id().toString(),
@@ -119,13 +119,13 @@ class SurveyFlowIT {
         String id = JsonPath.read(created, "$.id");
         String questionId = JsonPath.read(created, "$.questions[0].id");
         Cookie orga = login(SeedUsers.ORGA);
-        assertThat((List<String>) JsonPath.read(body(get("/api/bells?size=100").cookie(orga)), "$.items[*].type"))
+        assertThat(JsonPath.<List<String>>read(body(get("/api/bells?size=100").cookie(orga)), "$.items[*].type"))
                 .contains("SURVEY_SHARED");
         String updated = body(json(put("/api/surveys/" + id), "{\"title\":\"Umbenannt\",\"questions\":[{\"id\":\""
                 + questionId + "\",\"type\":\"TEXT\",\"label\":\"Frage 1\",\"required\":false,\"options\":[]},"
                 + "{\"type\":\"BOOLEAN\",\"label\":\"Ja?\",\"required\":false,\"options\":[]}]}").cookie(orga));
         assertThat((String) JsonPath.read(updated, "$.questions[0].id")).isEqualTo(questionId);
-        assertThat((List<String>) JsonPath.read(updated, "$.coauthors[*].id")).containsExactly(SeedUsers.ORGA.id().toString());
+        assertThat(JsonPath.<List<String>>read(updated, "$.coauthors[*].id")).containsExactly(SeedUsers.ORGA.id().toString());
         mvc.perform(delete("/api/surveys/" + id).with(csrf()).cookie(orga)).andExpect(status().isNotFound());
         mvc.perform(delete("/api/surveys/" + id).with(csrf()).cookie(bot)).andExpect(status().isNoContent());
         mvc.perform(get("/api/surveys/" + id).cookie(bot)).andExpect(status().isNotFound());

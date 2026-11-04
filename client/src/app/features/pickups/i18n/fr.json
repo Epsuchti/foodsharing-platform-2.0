@@ -60,7 +60,6 @@
   "pickups.options.free": "{free} places libres sur {total}",
   "pickups.options.signUp": "M’inscrire",
   "pickups.mine.title": "Mes collectes",
-  "pickups.mine.subtitle": "Tes prochaines collectes.",
   "pickups.mine.empty": "Aucune collecte prévue",
   "pickups.mine.emptyText": "Regarde plus bas où il reste des places.",
   "pickups.mine.confirmed": "Confirmée",
