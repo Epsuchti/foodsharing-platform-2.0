@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import network.foodsharing.store.domain.UserTeamStatus;
 import org.junit.jupiter.api.Test;
 
-/** PU3 day chat (decision 164): team members of the store or people signed up that day. */
+/** PU3 day chat (decision 165): team members of the store or people signed up that day. */
 class DayChatRuleTest {
 
     @Test

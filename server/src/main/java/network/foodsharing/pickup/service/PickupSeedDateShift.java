@@ -33,7 +33,7 @@ public class PickupSeedDateShift implements SeedDateShiftContributor {
         shiftColumn("pickup_signup", "pickup_at", delta);
         shiftColumn("pickup_signup", "confirmed_at", delta);
         shiftColumn("pickup_signup", "reminded_at", delta);
-        // the seeded day chat follows its pickup day (decision 164)
+        // the seeded day chat follows its pickup day (decision 165)
         network.foodsharing.common.seed.SeedDateShifts.shift(jdbc, SEED_PREFIX, delta,
                 java.util.Map.of("pickup_day_conversation", List.of("pickup_date:date")));
     }

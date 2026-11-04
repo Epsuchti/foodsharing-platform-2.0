@@ -5,7 +5,7 @@ import java.util.UUID;
 
 /**
  * SPI (pattern A22, like {@link TeamChatPort}): the pickup module creates and fills the day chats of a store (PU3,
- * decision 164) only through this port; the messaging module implements it (nobody depends on messaging).
+ * decision 165) only through this port; the messaging module implements it (nobody depends on messaging).
  */
 public interface DayChatPort {
 

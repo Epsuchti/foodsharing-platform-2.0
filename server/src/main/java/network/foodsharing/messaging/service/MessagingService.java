@@ -524,7 +524,7 @@ public class MessagingService {
 
     /**
      * Adds those of {@code userIds} who aren't members of the GROUP conversation yet, without a member as actor (day
-     * chats of a store, decision 164); nobody is removed. New members start with everything read.
+     * chats of a store, decision 165); nobody is removed. New members start with everything read.
      *
      * @return how many were added
      * @throws ApiException 404 CONVERSATION_NOT_FOUND, 409 CONVERSATION_NOT_GROUP, 400 TOO_MANY_MEMBERS

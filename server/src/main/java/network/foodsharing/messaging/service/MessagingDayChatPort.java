@@ -7,7 +7,7 @@ import network.foodsharing.store.service.DayChatPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** The {@link DayChatPort}: day chats of a store are plain named GROUP conversations (decision 164). */
+/** The {@link DayChatPort}: day chats of a store are plain named GROUP conversations (decision 165). */
 @Service
 public class MessagingDayChatPort implements DayChatPort {
 

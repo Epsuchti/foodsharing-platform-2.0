@@ -13,7 +13,7 @@ import { StoreAutomationContext } from '../store-automation.context';
 /** Contract maximum of ExtraSlotSetting.maxExtraSlots; the server still caps every pickup at maxSlotsPerPickup. */
 export const MAX_EXTRA_SLOTS = 50;
 
-/** Extra slots (AU6, decision 164): how many extra slots the first person of a pickup may add (0 = off), and the audit. */
+/** Extra slots (AU6, decision 165): how many extra slots the first person of a pickup may add (0 = off), and the audit. */
 @Component({
   selector: 'fs-extra-slot-section',
   imports: [AuditTableComponent, Button, FormsModule, InputNumber, TPipe],

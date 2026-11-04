@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import network.foodsharing.common.persistence.BaseEntity;
 
-/** The named group chat of a store's pickup day (PU3, decision 164): one per store and day in the store's zone. */
+/** The named group chat of a store's pickup day (PU3, decision 165): one per store and day in the store's zone. */
 @Getter
 @Setter
 @Entity

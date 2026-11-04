@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /**
- * Changelog 187 (AU6, decision 164) on H2: {@code extra_slot_allowed} true becomes {@code max_extra_slots} 1, false
+ * Changelog 187 (AU6, decision 165) on H2: {@code extra_slot_allowed} true becomes {@code max_extra_slots} 1, false
  * becomes 0, and a pickup may get several extra slots. 187-2 is run again on prepared data by restoring the old column
  * and removing its row from the changelog table. PostgreSQL runs the same changelog in LiquibasePostgresIT (CI).
  */

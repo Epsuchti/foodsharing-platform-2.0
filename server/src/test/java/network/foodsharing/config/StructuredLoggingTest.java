@@ -64,14 +64,14 @@ class StructuredLoggingTest {
             assertThat(line.strip()).as(line).startsWith("{").endsWith("}");
             lines.add(JSON.readTree(line));
         }
-        JsonNode probe = lines.stream().filter(n -> n.path("message").asText().equals("structured probe 1"))
+        JsonNode probe = lines.stream().filter(n -> n.path("message").asString().equals("structured probe 1"))
                 .findFirst().orElseThrow();
-        assertThat(probe.path("level").asText()).isEqualTo("WARN");
-        assertThat(probe.path("logger_name").asText()).isEqualTo("network.foodsharing.LogProbe");
-        assertThat(probe.path("traceId").asText()).isEqualTo("abcdef123456");
-        assertThat(probe.path("@timestamp").asText()).isNotBlank();
-        assertThat(probe.path("app").asText()).isEqualTo("foodsharing-platform");
-        assertThat(probe.path("version").asText()).isEqualTo("42");
+        assertThat(probe.path("level").asString()).isEqualTo("WARN");
+        assertThat(probe.path("logger_name").asString()).isEqualTo("network.foodsharing.LogProbe");
+        assertThat(probe.path("traceId").asString()).isEqualTo("abcdef123456");
+        assertThat(probe.path("@timestamp").asString()).isNotBlank();
+        assertThat(probe.path("app").asString()).isEqualTo("foodsharing-platform");
+        assertThat(probe.path("version").asString()).isEqualTo("42");
     }
 
     private static ConfigurableApplicationContext run(Map<String, Object> props) {

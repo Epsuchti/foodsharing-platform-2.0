@@ -198,8 +198,6 @@
   "introPickups.admin.reason": "Begründig",
   "introPickups.admin.guideStats": "{count, plural, one {1 Iifüehrig} other {# Iifüehrige}}",
   "introPickups.admin.manager": "Verwaltet Neui",
-  "introPickups.admin.active": "Aktiv",
-  "introPickups.admin.inactive": "Pausiert",
   "introPickups.admin.enable": "Freischalte",
   "introPickups.admin.disable": "Pausiere",
   "introPickups.admin.enableText": "Begleitig vo {name} ändere. D Begründig wird festghalte.",

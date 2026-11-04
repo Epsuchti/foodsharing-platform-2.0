@@ -228,7 +228,7 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     await settle();
   });
 
-  it('lists every extra slot of a pickup (AU6, decision 164)', async () => {
+  it('lists every extra slot of a pickup (AU6, decision 165)', async () => {
     const withExtras = [
       {
         ...pickup(THU, 4, [{ user: PRIYA, confirmed: true }]),
@@ -245,7 +245,7 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
   });
 });
 
-describe('store pickups tab: slot dialog modes and day chat (PU3, decision 164)', () => {
+describe('store pickups tab: slot dialog modes and day chat (PU3, decision 165)', () => {
   let http: HttpTestingController;
   let harness: RouterTestingHarness;
   const qa = (selector: string) => [...harness.routeNativeElement!.querySelectorAll<HTMLElement>(selector)];

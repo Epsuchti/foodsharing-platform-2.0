@@ -37,7 +37,7 @@ forEachVariant((variant) => {
       });
 
       screenshotTest('slot dialog rich (co-pickup) and short (team) @PU3 @screenshot', async ({ page, visual }) => {
-        // decision 164: compact day cards, "Chat öffnen", rich dialog for co-pickups, short one for the team
+        // decision 165: compact day cards, "Chat öffnen", rich dialog for co-pickups, short one for the team
         await page.goto(`/stores/${S01}/pickups`);
         await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
         await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${S01_THURSDAY}"] [data-testid="stores.pickups.slot.taken"][data-user="Marco Bernasconi"]`).click();

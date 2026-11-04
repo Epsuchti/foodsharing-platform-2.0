@@ -1,4 +1,4 @@
-# UI feedback batch 2 (PU3, AU6, decision 164): one named group chat per store and pickup day, and a configurable
+# UI feedback batch 2 (PU3, AU6, decision 165): one named group chat per store and pickup day, and a configurable
 # number of extra slots per pickup instead of the on/off switch (true -> 1, false -> 0).
 databaseChangeLog:
   - changeSet:

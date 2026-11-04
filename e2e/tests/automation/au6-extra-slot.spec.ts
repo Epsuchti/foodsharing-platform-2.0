@@ -2,7 +2,7 @@ import { expect, test, zurichPickupAt } from '../../fixtures';
 import { openPickups, pickupRow } from '../pickups/_pickups';
 import { openAutomation } from './_automation';
 
-/** AU6: extra slots. Seed: S-06 allows 2 (maxExtraSlots, decision 164); Tuesday 3 Nov 19:00 is empty (2 slots). */
+/** AU6: extra slots. Seed: S-06 allows 2 (maxExtraSlots, decision 165); Tuesday 3 Nov 19:00 is empty (2 slots). */
 test.use({ seedReset: 'test' });
 
 test('AU6 first sign-up adds up to two extra slots; second person cannot @AU6 @page', async ({ as, store }) => {

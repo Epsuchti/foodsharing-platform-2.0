@@ -71,7 +71,7 @@ test.describe('foodsaver', () => {
     const shown = await page.getByTestId('pickups.past.pickup').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-pickup-at')!));
     expect(shown).toEqual([...shown].sort().reverse());
 
-    // decision 164: no "sign out of all my future pickups" on the own history
+    // decision 165: no "sign out of all my future pickups" on the own history
     await expect(page.getByTestId('pickups.past.deleteFuture')).toHaveCount(0);
 
     // admins: the user page links to the user's pickups, where they delete all future pickups with a reason

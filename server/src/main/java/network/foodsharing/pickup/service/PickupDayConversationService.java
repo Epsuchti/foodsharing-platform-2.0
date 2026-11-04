@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * PU3 day chat (decision 164): one named group chat per store and calendar day (store time zone). Opening it finds or
+ * PU3 day chat (decision 165): one named group chat per store and calendar day (store time zone). Opening it finds or
  * creates the chat and adds the caller and everyone signed up that day who isn't a member yet; nobody is removed.
  */
 @Service

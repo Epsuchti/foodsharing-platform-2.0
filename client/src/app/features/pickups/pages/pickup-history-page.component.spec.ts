@@ -10,7 +10,7 @@ import { PickupHistoryPageComponent } from './pickup-history-page.component';
 const ME = 'u-me';
 const OTHER = 'u-other';
 
-describe('PickupHistoryPageComponent: delete all future pickups (PU6, decision 164)', () => {
+describe('PickupHistoryPageComponent: delete all future pickups (PU6, decision 165)', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {

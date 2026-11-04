@@ -24,7 +24,7 @@ interface DetailParams {
 }
 
 /**
- * PU3 slot dialog (decision 164, docs/design/ui-feedback-batch-2-proposal.md §3): a taken slot of someone else.
+ * PU3 slot dialog (decision 165, docs/design/ui-feedback-batch-2-proposal.md §3): a taken slot of someone else.
  * Rich mode shows the person with phone (S9, only when the server sends it), quick actions (profile, message, call,
  * copy), the sign-up state and time, counts at this store and the upcoming slots here; managers get Bestätigen /
  * Austragen in the footer. Short mode: avatar, name, state and a profile link.

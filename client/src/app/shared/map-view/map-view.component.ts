@@ -374,9 +374,8 @@ export class MapViewComponent {
   }
 
   private async init(): Promise<void> {
-    // Leaflet is CommonJS: the browser build exposes it as `default`, the test runner as named exports
-    const module = (await import('leaflet')) as typeof Leaflet & { default?: typeof Leaflet };
-    const L = module.default ?? module;
+    // the ESM build of Leaflet (named exports); the `leaflet` main entry is CommonJS (src/types/leaflet-esm.d.ts)
+    const L: typeof Leaflet = await import('leaflet/dist/leaflet-src.esm.js');
     this.leaflet = L;
     const rasterUrl = this.tileUrl() ?? (globalThis as { __fsTileUrl?: string }).__fsTileUrl;
     this.map = L.map(this.mapEl().nativeElement, {

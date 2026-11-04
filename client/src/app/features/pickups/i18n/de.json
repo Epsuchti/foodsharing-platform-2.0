@@ -60,7 +60,6 @@
   "pickups.options.free": "{free} von {total} Plätzen frei",
   "pickups.options.signUp": "Eintragen",
   "pickups.mine.title": "Meine Abholungen",
-  "pickups.mine.subtitle": "Deine kommenden Abholungen.",
   "pickups.mine.empty": "Keine Abholungen geplant",
   "pickups.mine.emptyText": "Schau unten, wo noch Plätze frei sind.",
   "pickups.mine.confirmed": "Bestätigt",

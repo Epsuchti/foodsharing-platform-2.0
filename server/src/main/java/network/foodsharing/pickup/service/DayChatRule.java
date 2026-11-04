@@ -2,7 +2,7 @@ package network.foodsharing.pickup.service;
 
 import network.foodsharing.store.domain.UserTeamStatus;
 
-/** PU3 day chat (decision 164): who may open (find or create) the chat of a store's pickup day. */
+/** PU3 day chat (decision 165): who may open (find or create) the chat of a store's pickup day. */
 public final class DayChatRule {
 
     private DayChatRule() {

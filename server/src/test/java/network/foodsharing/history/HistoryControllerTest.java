@@ -30,6 +30,7 @@ import network.foodsharing.testsupport.WithSeedUser;
 import network.foodsharing.user.service.UserHistoryAccessRule;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -74,7 +75,7 @@ class HistoryControllerTest {
         HistoryEntry entry = HistoryQueryServiceTest.entry(SubjectType.USER, ME, "LOGIN", null, FixedClockConfig.SEED_NOW);
         entry.setId(UUID.randomUUID());
         entry.setMetadata("{\"method\":\"GOOGLE\"}");
-        when(repository.findAll(any(Specification.class), any(Pageable.class)))
+        when(repository.findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), any(Pageable.class)))
                 .thenAnswer(invocation -> new PageImpl<>(List.of(entry), invocation.getArgument(1), 41));
 
         mvc.perform(get("/api/history")
@@ -102,7 +103,7 @@ class HistoryControllerTest {
                 List.of("LOGIN", "LOGOUT"), Instant.parse("2026-11-01T00:00:00Z"),
                 Instant.parse("2026-11-02T09:00:00Z"), 2, 20));
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
-        verify(repository).findAll(any(Specification.class), pageable.capture());
+        verify(repository).findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), pageable.capture());
         assertThat(pageable.getValue().getPageNumber()).isEqualTo(2);
         assertThat(pageable.getValue().getSort().getOrderFor("occurredAt").isDescending()).isTrue();
     }
@@ -121,13 +122,13 @@ class HistoryControllerTest {
                         .param("subjectId", new UUID(0, 0).toString()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("HISTORY_SUBJECT_NOT_READABLE"));
-        verify(repository, never()).findAll(any(Specification.class), any(Pageable.class));
+        verify(repository, never()).findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), any(Pageable.class));
     }
 
     @Test
     @WithSeedUser("orga")
     void orgaReadsAnyHistory() throws Exception {
-        when(repository.findAll(any(Specification.class), any(Pageable.class)))
+        when(repository.findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
         mvc.perform(get("/api/history").param("subjectType", "USER").param("subjectId", SeedUsers.NEWBIE.id().toString()))
@@ -155,7 +156,7 @@ class HistoryControllerTest {
     @Test
     @WithSeedUser("foodsaver")
     void myActivityUsesTheCurrentUser() throws Exception {
-        when(repository.findAll(any(Specification.class), any(Pageable.class)))
+        when(repository.findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
         mvc.perform(get("/api/history/me").param("actions", "LOGIN")).andExpect(status().isOk());
@@ -186,7 +187,7 @@ class HistoryControllerTest {
         mvc.perform(get("/api/history/export"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
-        verify(repository, never()).findAll(any(Specification.class), any(Pageable.class));
+        verify(repository, never()).findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), any(Pageable.class));
     }
 
     @Test
@@ -197,7 +198,7 @@ class HistoryControllerTest {
         entry.setField("displayName");
         entry.setOldValue("=cmd()");
         entry.setNewValue("Anna, \"the\" saver");
-        when(repository.findAll(any(Specification.class), any(Pageable.class)))
+        when(repository.findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(entry)));
 
         String csv = mvc.perform(get("/api/history/export").param("subjectType", "USER").param("subjectId", ME.toString()))
@@ -210,7 +211,7 @@ class HistoryControllerTest {
         assertThat(csv).contains("2026-11-02T09:00:00Z,SYSTEM,,,USER," + ME + ",,FIELD_CHANGED,displayName,'=cmd(),"
                 + "\"Anna, \"\"the\"\" saver\"");
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
-        verify(repository).findAll(any(Specification.class), pageable.capture());
+        verify(repository).findAll(ArgumentMatchers.<Specification<HistoryEntry>>any(), pageable.capture());
         assertThat(pageable.getValue().getPageSize()).isEqualTo(10_000);
     }
 }

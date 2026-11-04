@@ -99,7 +99,7 @@ class StoreTeamServiceTest {
         when(quizzes.hygieneValidUntil(org.mockito.ArgumentMatchers.<java.util.Collection<UUID>>any()))
                 .thenAnswer(i -> {
                     java.util.Map<UUID, java.time.Instant> valid = new java.util.HashMap<>();
-                    ((java.util.Collection<UUID>) i.getArgument(0)).forEach(id -> valid.put(id,
+                    i.<java.util.Collection<UUID>>getArgument(0).forEach(id -> valid.put(id,
                             NOW.plus(30, ChronoUnit.DAYS)));
                     return valid;
                 });

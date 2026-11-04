@@ -44,7 +44,7 @@ interface SlotTarget {
 }
 
 /**
- * /stores/:storeId/pickups (PU1–PU5): pickups grouped by compact day cards (date tile, one column, decision 164) with
+ * /stores/:storeId/pickups (PU1–PU5): pickups grouped by compact day cards (date tile, one column, decision 165) with
  * their slots. Free slot → eligibility + sign-up; own slot → sign out; another person's slot → slot dialog (rich for
  * managers and co-pickups, short for the team); managers: confirm/remove others (message), edit a pickup
  * (slots/description), add a one-time pickup and edit the regular schedule. "Chat öffnen" finds or creates the named
@@ -164,7 +164,7 @@ interface SlotTarget {
               <div class="day__head">
                 <h2 class="day__title" [id]="'stores-pickups-day-' + group.day">{{ first.pickupAt | fsDate: 'weekday' : tz() }}</h2>
                 @if (mayOpenDayChat(group.items)) {
-                  <!-- decision 164: text on desktop, icon only on phones; the text is the accessible name -->
+                  <!-- decision 165: text on desktop, icon only on phones; the text is the accessible name -->
                   <button
                     type="button"
                     class="day__chat"
@@ -408,7 +408,7 @@ interface SlotTarget {
     .chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
     .chip--pending { display: inline-flex; align-items: center; gap: 0.35rem; }
     .chip--pending .pi { color: var(--fs-warning-text); font-size: 0.85em; }
-    /* compact day cards (decision 164, ui-feedback-batch-2-proposal §3): one column on all widths */
+    /* compact day cards (decision 165, ui-feedback-batch-2-proposal §3): one column on all widths */
     .stack { display: grid; gap: 0.6rem; }
     .day {
       --fs-date-tile: 3.25rem;
@@ -543,12 +543,12 @@ export class StorePickupsTab {
     return this.ctx.may('mayConfirmPickups') || this.ctx.may('mayEditPickups');
   }
 
-  /** Slots open the dialog for managers, team members and people signed up for this pickup (decision 164). */
+  /** Slots open the dialog for managers, team members and people signed up for this pickup (decision 165). */
   protected slotsClickable(pickup: Pickup): boolean {
     return this.isManager() || this.isTeam() || this.isSignedUp(pickup);
   }
 
-  // --- day chat (PU3, decision 164) ------------------------------------------------------------------------------
+  // --- day chat (PU3, decision 165) ------------------------------------------------------------------------------
 
   /** Someone other than me is signed up that day, and I'm in the team or signed up that day myself. */
   protected mayOpenDayChat(items: Pickup[]): boolean {

@@ -206,7 +206,7 @@ changelog("108-automation-signout-seed.yaml", "# Seed (M4 B5): S-06 sign-out ale
                   ("immediate_notified_at", S), ("final_checked_at", S), ("final_notified_at", S),
                   ("dry_run", B), ("message", S), ("error", S)]))
 changelog("109-automation-extra-slot-seed.yaml", "# Seed (M4 B5): S-06 allows the extra slot; two added extra slots.\n",
-          "  # seed-109-1 (S-06 extra_slot_allowed = true) was removed when changelog 187 dropped the column (decision 164, as\n"
+          "  # seed-109-1 (S-06 extra_slot_allowed = true) was removed when changelog 187 dropped the column (decision 165, as\n"
           "  # seed-105-7 in decision 148); seed-187-1 sets S-06 max_extra_slots = 2 instead.\n"
           + load("seed-109-2", "Extra slots.", "pickup_extra_slot",
                  [("store_id", U), ("region_id", U), ("pickup_at", S), ("user_id", U),

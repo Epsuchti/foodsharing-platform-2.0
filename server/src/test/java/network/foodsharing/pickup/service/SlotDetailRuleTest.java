@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-/** PU3 slot dialog (decision 164): rich details for managers and co-pickups only. */
+/** PU3 slot dialog (decision 165): rich details for managers and co-pickups only. */
 class SlotDetailRuleTest {
 
     @Test

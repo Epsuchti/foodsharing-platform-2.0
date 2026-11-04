@@ -60,7 +60,6 @@
   "pickups.options.free": "{free} posti liberi su {total}",
   "pickups.options.signUp": "Iscriviti",
   "pickups.mine.title": "I miei ritiri",
-  "pickups.mine.subtitle": "I tuoi prossimi ritiri.",
   "pickups.mine.empty": "Nessun ritiro previsto",
   "pickups.mine.emptyText": "Guarda qui sotto dove ci sono ancora posti liberi.",
   "pickups.mine.confirmed": "Confermato",

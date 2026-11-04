@@ -2,7 +2,7 @@ import { expect, test } from '../../fixtures';
 import { openPickups } from './_pickups';
 
 /**
- * PU3 / M5 day chat (decision 164). Seed S-01 "Coop Bahnhofbrücke": Thursday 2026-11-05 foodsaver + sleepy signed up;
+ * PU3 / M5 day chat (decision 165). Seed S-01 "Coop Bahnhofbrücke": Thursday 2026-11-05 foodsaver + sleepy signed up;
  * S-04 Wednesday 2026-11-04 only foodsaver. "Chat öffnen" finds or creates one named chat per store and day.
  */
 test.use({ seedReset: 'test' });

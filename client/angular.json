@@ -25,6 +25,7 @@
             "outputPath": "dist/client",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
+            "allowedCommonJsDependencies": ["rbush", "quill-delta"],
             "inlineStyleLanguage": "scss",
             "index": {
               "input": "src/index.html",

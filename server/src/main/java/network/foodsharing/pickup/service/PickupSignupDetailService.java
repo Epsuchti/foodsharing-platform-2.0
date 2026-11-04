@@ -19,7 +19,7 @@ import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** PU3 slot dialog (decision 164): details of one sign-up for managers and co-pickups ({@link SlotDetailRule}). */
+/** PU3 slot dialog (decision 165): details of one sign-up for managers and co-pickups ({@link SlotDetailRule}). */
 @Service
 @Transactional(readOnly = true)
 public class PickupSignupDetailService {

@@ -2,7 +2,7 @@ import { S01_THURSDAY, expect, expectDataState, test, zurichPickupAt } from '../
 import { openPickups, pickupRow } from './_pickups';
 
 /**
- * PU3 slot dialog (decision 164). Seed S-01: Thursday 2026-11-05 19:00 foodsaver unconfirmed + sleepy confirmed,
+ * PU3 slot dialog (decision 165). Seed S-01: Thursday 2026-11-05 19:00 foodsaver unconfirmed + sleepy confirmed,
  * Monday 2026-11-09 19:00 sleepy unconfirmed + bieb confirmed; bieb manages S-01, foodsaver and sleepy are members.
  */
 const S01_MONDAY = zurichPickupAt(7, '19:00');

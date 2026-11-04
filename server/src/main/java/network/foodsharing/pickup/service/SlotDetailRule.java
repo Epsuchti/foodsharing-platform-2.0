@@ -1,6 +1,6 @@
 package network.foodsharing.pickup.service;
 
-/** PU3 slot dialog (decision 164): who may load the rich details of a sign-up. */
+/** PU3 slot dialog (decision 165): who may load the rich details of a sign-up. */
 public final class SlotDetailRule {
 
     private SlotDetailRule() {

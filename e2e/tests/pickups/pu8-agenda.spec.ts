@@ -20,7 +20,7 @@ test('PU8 agenda shows pickups and EinAbs of a day @PU8 @page', async ({ page })
   await page.getByTestId('pickups.agenda.next').click();
   await expectDataState(page, 'pickups.agenda.state', 'empty');
 
-  // decision 164: the header leads back to the pickups page
+  // decision 165: the header leads back to the pickups page
   await page.getByTestId('shared.pageHeader.back').click();
   await expect(page).toHaveURL(/\/pickups$/);
 });

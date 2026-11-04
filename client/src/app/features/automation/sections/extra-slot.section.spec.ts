@@ -8,7 +8,7 @@ import { provideDataStateTesting } from '../../../core/testing/data-state-testin
 import { StoreAutomationContext } from '../store-automation.context';
 import { ExtraSlotSection } from './extra-slot.section';
 
-describe('ExtraSlotSection: number of extra slots (AU6, decision 164)', () => {
+describe('ExtraSlotSection: number of extra slots (AU6, decision 165)', () => {
   let http: HttpTestingController;
   const data = signal<{ maxExtraSlots: number; permissions: { mayEdit: boolean } } | undefined>(undefined);
   const reload = vi.fn();

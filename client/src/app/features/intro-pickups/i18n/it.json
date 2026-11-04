@@ -198,8 +198,6 @@
   "introPickups.admin.reason": "Motivazione",
   "introPickups.admin.guideStats": "{count, plural, one {1 introduzione} other {# introduzioni}}",
   "introPickups.admin.manager": "Gestisce i nuovi",
-  "introPickups.admin.active": "Attivo",
-  "introPickups.admin.inactive": "In pausa",
   "introPickups.admin.enable": "Abilita",
   "introPickups.admin.disable": "Metti in pausa",
   "introPickups.admin.enableText": "Modifica l’accompagnamento di {name}. La motivazione viene registrata.",

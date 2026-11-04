@@ -1,4 +1,4 @@
-# Seed (PU3, AU6, decision 164): S-06 allows 2 extra slots (replaces seed-109-1, whose column changelog 187 drops);
+# Seed (PU3, AU6, decision 165): S-06 allows 2 extra slots (replaces seed-109-1, whose column changelog 187 drops);
 # the day chat of S-02 on Saturday 2026-11-07 (bieb, jumper signed up). Ids in docs/seed-ids.md (0021 code 0005,
 # 0041 conversation 07 and members 08/09).
 databaseChangeLog:

@@ -13,7 +13,7 @@ public enum PickupAction implements HistoryAction {
     AUTO_CONFIRMED,
     /** Sign-up removed by the pickup policy (actor AUTOMATION). */
     AUTO_DECLINED,
-    /** The day chat of a store was opened: found or created, missing signers added (PU3, decision 164). */
+    /** The day chat of a store was opened: found or created, missing signers added (PU3, decision 165). */
     DAY_CONVERSATION_OPENED;
 
     @Override

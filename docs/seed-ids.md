@@ -43,7 +43,7 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | verification | 0014 | `passport_issue`, `passport_request`, `wallet_pass` | 0001–0003 | T16 |
 | onboarding | 0015 | `learning_progress`, `user_onboarding_step_done`, `onboarding_nudge` | 0001–0003 | T22 |
 | store | 0020 | `store`, `store_category`, `store_chain`, `store_chain_kam`, `grocery`, `store_grocery`, `store_membership`, `store_wall_post` | 0001–0008 | M3 (B2, B3, B6); `changes/185-store-publicly-named-seed.yaml` (S17): S-01 and S-02 `publicly_named`, no new ids |
-| pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category`, `pickup_day_conversation` (0005) | 0001–0005 | M3 (B2, B4); day chat `changes/187-pickup-day-conversation-seed.yaml` (decision 164) |
+| pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category`, `pickup_day_conversation` (0005) | 0001–0005 | M3 (B2, B4); day chat `changes/187-pickup-day-conversation-seed.yaml` (decision 165) |
 | automation | 0022 | `pickup_policy`, `pickup_policy_excluded_date`, `pickup_policy_linked_store`, `pickup_policy_linked_store_member`, `cleaning_rule_exemption`, `pickup_policy_audit`, `request_policy`, `request_policy_audit`, `open_slot_advert`, `open_slot_advert_audit`, `signout_alert_setting`, `signout_cancellation`, `pickup_extra_slot`, `metric_daily_count`, `holiday_calendar`, `pickup_gap_group` | 0001–0016 | M4 (B4, B5; seed files `changes/105…111-automation-*.yaml`; 0016: `changes/181-gap-group-seed.yaml`) |
 | intropickup | 0030 | `intro_pickup`, `intro_pickup_slot`, `intro_pickup_comment`, `guide_profile`, `private_info_template`, `intro_pickup_subscription`, `intro_pickup_store_alias` | 0001–0007 | T15 |
 | upload | 0040 | `upload` | 0001 | M5 B1/B4 (`130`; seed rows in `133-mailbox-seed`, bytes in `db/seed/upload/files/`) |
@@ -198,7 +198,7 @@ unconfirmed + sleepy confirmed (1 free), S-04 Wednesday 2026-11-04 18:30 foodsav
 pickup rule 2 per 7 days blocks a third sign-up of foodsaver in S-01/S-04), S-02 Saturday 2026-11-07 18:00 full (bieb,
 jumper). foodsaver has no other future sign-ups; S-07 Wednesday 2026-11-04 20:30 is free for sign-up tests. Only 14
 seed users exist, so the plan's "≈ 650 past rows" became 93 with the per-user counts above.
-Day chat (`187-pickup-day-conversation-seed.yaml`, decision 164): `pickup_day_conversation` `00000021-0005-…-01` maps
+Day chat (`187-pickup-day-conversation-seed.yaml`, decision 165): `pickup_day_conversation` `00000021-0005-…-01` maps
 S-02 Saturday 2026-11-07 to the GROUP conversation `00000041-0001-…-07` "Abholung Bäckerei Vohdin, Sa 7.11." (members
 `00000041-0002-…-08` bieb, `…-09` jumper, no messages); `PickupSeedDateShift` moves its day in `local`.
 
@@ -232,7 +232,7 @@ messages, late-cancellation message on), `0009-…02` #2 6 h TELEGRAM to `-1002`
 1–6 days back): SENT filled, SENT, SENT with Telegram message 4711 (deleted), OCCUPIED_AT_TRIGGER foodsaver,
 LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT jumper, LATE_CANCELLATION_NO_ACTION sleepy. Sign-out alert
 `0011-…01` S-06 (enabled, live, BELL+TELEGRAM, cutoff 72 h) with cancellations `0012-…01`–`05`: OPEN sleepy (in 2 days),
-REPLACED foodsaver, NOT_REPLACED jumper, REJOINED sleepy, UNKNOWN guide. S-06 `store.max_extra_slots` = 2 (`seed-187-1`; `seed-109-1` with the old switch was removed, decision 164);
+REPLACED foodsaver, NOT_REPLACED jumper, REJOINED sleepy, UNKNOWN guide. S-06 `store.max_extra_slots` = 2 (`seed-187-1`; `seed-109-1` with the old switch was removed, decision 165);
 extra slots `0013-…01`/`02` by bieb (3 and 10 days ago, 2 → 3). Metrics `0014-…`: 60 days (SEED_NOW − 8 … − 67) for
 zuerich-stadt, keys SLOT_APPROVAL.CONFIRMED/DECLINED, SLOT_DECLINE_RULE.GAP, REQUEST.APPROVED, ADVERT.SENT,
 ADVERT.FILLED_AFTER_ADVERT, CANCELLATION.NOT_REPLACED, EXTRA_SLOT.ADDED. `AutomationSeedDateShift` moves all of them

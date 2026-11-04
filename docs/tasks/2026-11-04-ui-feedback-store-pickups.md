@@ -6,7 +6,7 @@ Branch `feat/ui-feedback-batch-2`, one PR with group B. Steps marked **[mockup]*
 ## Goal
 Simplify and enrich the store pickups tab: remove the own "delete all future pickups" button, give the agenda a back button, show slot details (rich for managers and co-pickups, short for the rest of the team), a named day chat per store and day, a configurable number of extra slots, and compact day cards.
 
-## Decisions (owner answers; record as decision 164 on merge)
+## Decisions (owner answers; record as decision 165 on merge)
 1. Remove only the own button "Aus allen meinen künftigen Abholungen austragen" (`/me/pickups/history`); the admin variant on `/users/:id/pickups` and the endpoint stay.
 2. The Tagesübersicht (PU8 agenda page + `getAgenda`) stays; it gets a back link to `/pickups`.
 3. Slot click: **rich dialog** for managers (`mayConfirmPickups`/`mayEditPickups`) **and** people signed up for the same pickup; **short dialog** (avatar, name, profile link) for every other team member. Phone only under the existing S9 rule (`maySeePhoneNumbers`). "Slots hier"/"Letzter Termin hier" = confirmed past pickups at this store; "Aktuell belegte Slots" = the person's future slots at this store (expandable). Bestätigen/Austragen only for managers. Own slot keeps the sign-out confirm.
@@ -62,7 +62,7 @@ Yes. Designer mockup `docs/design/ui-feedback-batch-2-mockup.html` (shared run) 
 - [ ] Day chat find-or-create is named, idempotent per store+day, adds new signers, never removes.
 - [ ] `maxExtraSlots` setting migrated and enforced; AU6 shows all extra slots.
 - [ ] Compact cards match the approved mockup.
-- [ ] Contract regenerated, ArchUnit/history rules green, seed + `docs/seed-ids.md` updated, i18n check green, e2e + screenshots updated in CI and reviewed; ledger PU3/AU6 and decision 164 updated.
+- [ ] Contract regenerated, ArchUnit/history rules green, seed + `docs/seed-ids.md` updated, i18n check green, e2e + screenshots updated in CI and reviewed; ledger PU3/AU6 and decision 165 updated.
 
 ## Risks
 - Changelog number clash with group B (same branch) — agree on 187/188 before committing.
