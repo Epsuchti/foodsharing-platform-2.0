@@ -73,11 +73,15 @@ public final class SlotSchedule {
 
     /**
      * Merges regular occurrences, one-time rows and sign-ups. Sign-ups at times without an occurrence still show up
-     * (slot count = number of sign-ups); sign-ups are ordered by {@code signedUpAt} (nulls last). Cancelled slots
-     * without sign-ups are dropped. Sorted by time.
+     * (slot count = number of sign-ups); sign-ups are ordered by {@code signedUpAt} (nulls last), ties by {@code id}
+     * so the order never depends on the database row order. Cancelled slots without sign-ups are dropped. Sorted by
+     * time.
      */
-    public static <S> List<Slot<S>> merge(List<Slot<S>> regular, Collection<OneTime> oneTime, Collection<S> signups,
-                                          Function<S, Instant> at, Function<S, Instant> signedUpAt) {
+    public static <S, K extends Comparable<? super K>> List<Slot<S>> merge(List<Slot<S>> regular,
+                                                                         Collection<OneTime> oneTime,
+                                                                         Collection<S> signups, Function<S, Instant> at,
+                                                                         Function<S, Instant> signedUpAt,
+                                                                         Function<S, K> id) {
         Map<Instant, Slot<S>> byTime = new TreeMap<>();
         for (Slot<S> slot : regular) {
             byTime.put(slot.at(), slot);
@@ -93,7 +97,8 @@ public final class SlotSchedule {
         }
         for (Map.Entry<Instant, List<S>> e : signupsByTime.entrySet()) {
             List<S> list = e.getValue();
-            list.sort(Comparator.comparing(signedUpAt, Comparator.nullsLast(Comparator.naturalOrder())));
+            list.sort(Comparator.comparing(signedUpAt, Comparator.nullsLast(Comparator.<Instant>naturalOrder()))
+                    .thenComparing(id, Comparator.nullsLast(Comparator.<K>naturalOrder())));
             Slot<S> slot = byTime.get(e.getKey());
             byTime.put(e.getKey(), slot == null
                     ? new Slot<>(e.getKey(), list.size(), null, false, List.copyOf(list))

@@ -289,7 +289,7 @@ public class FspCleaningScheduleService {
                                                             Collection<FspCleaningSignup> signupRows) {
         return SlotSchedule.merge(occurrences, rows.stream().map(r -> new SlotSchedule.OneTime(r.getShiftAt(),
                         r.getSlotCount(), r.getDescription())).toList(), signupRows, FspCleaningSignup::getShiftAt,
-                FspCleaningSignup::getCreatedAt);
+                FspCleaningSignup::getCreatedAt, FspCleaningSignup::getId);
     }
 
     static List<FspCleaningRegular> validate(UUID fspId, List<Entry> entries) {
