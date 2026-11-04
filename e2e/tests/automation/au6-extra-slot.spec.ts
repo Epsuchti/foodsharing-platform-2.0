@@ -35,11 +35,11 @@ test('AU6 the number of extra slots is set in Automatisierung; 0 switches it off
   await openAutomation(bieb, 'S-06', 'extra-slot');
   const input = bieb.getByTestId('automation.extraSlot.max').locator('input');
   await expect(input).toHaveValue('2');
-  await expect(bieb.getByTestId('automation.extraSlot.save')).toBeDisabled();
+  await expect(bieb.getByTestId('automation.extraSlot.save').locator('button')).toBeDisabled();
   await input.fill('0');
   await input.blur();
-  await bieb.getByTestId('automation.extraSlot.save').click();
-  await expect(bieb.getByTestId('automation.extraSlot.save')).toBeDisabled();
+  await bieb.getByTestId('automation.extraSlot.save').locator('button').click();
+  await expect(bieb.getByTestId('automation.extraSlot.save').locator('button')).toBeDisabled();
   await bieb.reload();
   await expect(bieb.getByTestId('automation.extraSlot.max').locator('input')).toHaveValue('0');
 });

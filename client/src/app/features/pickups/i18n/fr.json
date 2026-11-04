@@ -120,5 +120,20 @@
   "pickups.mine.signOutLabel": "Me désinscrire : {store}, {date}",
   "pickups.options.signUpLabel": "M’inscrire : {store}, {date}",
   "pickups.dashboard.help": "On a bientôt besoin d’aide",
-  "pickups.dashboard.helpAll": "{count, plural, one {La # collecte} other {Les # collectes}} avec des places libres"
+  "pickups.dashboard.helpAll": "{count, plural, one {La # collecte} other {Les # collectes}} avec des places libres",
+  "pickups.dayChat.open": "Ouvrir le chat",
+  "pickups.dayChat.name": "Collecte {store}, {date}",
+  "pickups.dayChat.opened": "Chat « {name} » ouvert.",
+  "pickups.slotDetail.actions": "Actions",
+  "pickups.slotDetail.profile": "Profil",
+  "pickups.slotDetail.message": "Message",
+  "pickups.slotDetail.call": "Appeler",
+  "pickups.slotDetail.copy": "Copier le numéro",
+  "pickups.slotDetail.copied": "Numéro copié.",
+  "pickups.slotDetail.signedUpAt": "inscrit·e {date}",
+  "pickups.slotDetail.pickupCount": "Créneaux ici",
+  "pickups.slotDetail.lastPickup": "Dernière collecte ici",
+  "pickups.slotDetail.never": "aucune",
+  "pickups.slotDetail.upcoming": "Créneaux réservés ({count})",
+  "pickups.slotDetail.thisOne": "cette collecte"
 }

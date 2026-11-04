@@ -120,5 +120,20 @@
   "pickups.mine.signOutLabel": "Sign out: {store}, {date}",
   "pickups.options.signUpLabel": "Sign up: {store}, {date}",
   "pickups.dashboard.help": "Help needed soon",
-  "pickups.dashboard.helpAll": "All {count, plural, one {# pickup} other {# pickups}} with free slots"
+  "pickups.dashboard.helpAll": "All {count, plural, one {# pickup} other {# pickups}} with free slots",
+  "pickups.dayChat.open": "Open chat",
+  "pickups.dayChat.name": "Pickup {store}, {date}",
+  "pickups.dayChat.opened": "Chat “{name}” opened.",
+  "pickups.slotDetail.actions": "Actions",
+  "pickups.slotDetail.profile": "Profile",
+  "pickups.slotDetail.message": "Message",
+  "pickups.slotDetail.call": "Call",
+  "pickups.slotDetail.copy": "Copy number",
+  "pickups.slotDetail.copied": "Number copied.",
+  "pickups.slotDetail.signedUpAt": "signed up {date}",
+  "pickups.slotDetail.pickupCount": "Slots here",
+  "pickups.slotDetail.lastPickup": "Last pickup here",
+  "pickups.slotDetail.never": "none yet",
+  "pickups.slotDetail.upcoming": "Current slots ({count})",
+  "pickups.slotDetail.thisOne": "this pickup"
 }

@@ -120,5 +120,20 @@
   "pickups.mine.signOutLabel": "Ustrage: {store}, {date}",
   "pickups.options.signUpLabel": "Iitrage: {store}, {date}",
   "pickups.dashboard.help": "Bald Hilf gsuecht",
-  "pickups.dashboard.helpAll": "Alli {count, plural, one {# Abholig} other {# Abholige}} mit freie Plätz"
+  "pickups.dashboard.helpAll": "Alli {count, plural, one {# Abholig} other {# Abholige}} mit freie Plätz",
+  "pickups.dayChat.open": "Chat ufmache",
+  "pickups.dayChat.name": "Abholig {store}, {date}",
+  "pickups.dayChat.opened": "Chat „{name}“ ufgmacht.",
+  "pickups.slotDetail.actions": "Aktione",
+  "pickups.slotDetail.profile": "Profil",
+  "pickups.slotDetail.message": "Nachricht",
+  "pickups.slotDetail.call": "Aalüüte",
+  "pickups.slotDetail.copy": "Nummere kopiere",
+  "pickups.slotDetail.copied": "Nummere kopiert.",
+  "pickups.slotDetail.signedUpAt": "iitreit {date}",
+  "pickups.slotDetail.pickupCount": "Slots da",
+  "pickups.slotDetail.lastPickup": "Letschte Termin da",
+  "pickups.slotDetail.never": "no keine",
+  "pickups.slotDetail.upcoming": "Aktuell beleiti Slots ({count})",
+  "pickups.slotDetail.thisOne": "dä Termin"
 }

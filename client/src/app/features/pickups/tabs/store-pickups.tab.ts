@@ -1,18 +1,27 @@
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { concat, tap } from 'rxjs';
 
-import { AutomationService, Pickup, PickupSlot, PickupsService, RegularPickup, SignupResult } from '../../../api';
+import {
+  AutomationService,
+  Pickup,
+  PickupDayConversation,
+  PickupSlot,
+  PickupsService,
+  RegularPickup,
+  SignupResult,
+  UserTeamStatus,
+} from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
-import { DateTimePipe } from '../../../core/dates/date-time.pipe';
+import { DateTimeFormatter, DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
@@ -22,6 +31,7 @@ import { RequiredMessageDialogComponent } from '../../../shared/required-message
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-dialog.component';
 import { PickupSummaryComponent } from '../components/pickup-summary.component';
+import { SlotDetailDialogComponent, SlotDetailMode } from '../components/slot-detail-dialog.component';
 import { ServerClock } from '../pickups.resource';
 import { SlotSummary, addDays, dayOf, groupByDay, pickupSummary, unconfirmedCount, zonedToUtc } from '../pickups.util';
 import { StorePageContext } from '../../stores/store-page.context';
@@ -34,9 +44,11 @@ interface SlotTarget {
 }
 
 /**
- * /stores/:storeId/pickups (PU1–PU5): pickups grouped by day with their slots. Free slot → eligibility + sign-up;
- * own slot → sign out; managers: confirm/remove others (message), edit a pickup (slots/description), add a one-time
- * pickup and edit the regular schedule.
+ * /stores/:storeId/pickups (PU1–PU5): pickups grouped by compact day cards (date tile, one column, decision 164) with
+ * their slots. Free slot → eligibility + sign-up; own slot → sign out; another person's slot → slot dialog (rich for
+ * managers and co-pickups, short for the team); managers: confirm/remove others (message), edit a pickup
+ * (slots/description), add a one-time pickup and edit the regular schedule. "Chat öffnen" finds or creates the named
+ * day chat when someone else is signed up that day.
  */
 @Component({
   selector: 'fs-store-pickups-tab',
@@ -53,6 +65,7 @@ interface SlotTarget {
     PickupSummaryComponent,
     RequiredMessageDialogComponent,
     RouterLink,
+    SlotDetailDialogComponent,
     TPipe,
     WeekdayTimePickerComponent,
   ],
@@ -134,8 +147,39 @@ interface SlotTarget {
             <p class="muted" data-testid="stores.pickups.pendingEmpty">{{ 'pickups.tab.pendingEmpty' | t }}</p>
           }
           @for (group of days(); track group.day) {
-            <section class="fs-card card day" data-testid="stores.pickups.day" [attr.data-day]="group.day">
-              <h2 class="card__title">{{ group.items[0].pickupAt | fsDate: 'weekday' : tz() }}</h2>
+            @let first = group.items[0];
+            <section
+              class="day"
+              [class.day--today]="group.day === today()"
+              data-testid="stores.pickups.day"
+              [attr.data-day]="group.day"
+              [attr.aria-labelledby]="'stores-pickups-day-' + group.day"
+            >
+              <div class="date" aria-hidden="true">
+                <span class="date__wd">{{ first.pickupAt | fsDate: 'weekdayShort' : tz() }}</span>
+                <span class="date__d">{{ first.pickupAt | fsDate: 'dayNumber' : tz() }}</span>
+                <span class="date__m">{{ first.pickupAt | fsDate: 'monthShort' : tz() }}</span>
+              </div>
+              <div class="day__body">
+              <div class="day__head">
+                <h2 class="day__title" [id]="'stores-pickups-day-' + group.day">{{ first.pickupAt | fsDate: 'weekday' : tz() }}</h2>
+                @if (mayOpenDayChat(group.items)) {
+                  <!-- decision 164: text on desktop, icon only on phones; the text is the accessible name -->
+                  <button
+                    type="button"
+                    class="day__chat"
+                    [attr.aria-label]="'pickups.dayChat.open' | t"
+                    [attr.title]="'pickups.dayChat.open' | t"
+                    [attr.aria-describedby]="'stores-pickups-day-' + group.day"
+                    [disabled]="openDayChat.busy()"
+                    (click)="openDayChat.run(group.day, first.pickupAt)"
+                    data-testid="stores.pickups.dayChat"
+                  >
+                    <i class="pi pi-comments" aria-hidden="true"></i>
+                    <span class="day__chatLabel" aria-hidden="true">{{ 'pickups.dayChat.open' | t }}</span>
+                  </button>
+                }
+              </div>
               @for (pickup of group.items; track pickup.pickupAt) {
                 <div
                   class="pickup"
@@ -146,10 +190,16 @@ interface SlotTarget {
                   <div class="pickup__head">
                     <span class="pickup__time">{{ pickup.pickupAt | fsDate: 'time' : tz() }}</span>
                     @if (pickup.isRegular) {
-                      <span class="badge" data-testid="stores.pickups.regularBadge">{{ 'pickups.tab.regularBadge' | t }}</span>
+                      <span
+                        class="pickup__reg"
+                        role="img"
+                        [attr.aria-label]="'pickups.tab.regularBadge' | t"
+                        [attr.title]="'pickups.tab.regularBadge' | t"
+                        data-testid="stores.pickups.regularBadge"
+                      ><i class="pi pi-replay" aria-hidden="true"></i></span>
                     }
                     @if (pickup.description) {
-                      <span class="pickup__desc" data-testid="stores.pickups.description">{{ pickup.description }}</span>
+                      <span class="pickup__desc" [attr.title]="pickup.description" data-testid="stores.pickups.description">{{ pickup.description }}</span>
                     }
                     @if (pickup.slotCount > 0 && pickup.occupiedSlots.length > 0) {
                       @let summary = summaryOf(pickup);
@@ -186,14 +236,14 @@ interface SlotTarget {
                     }
                   </div>
                   @if (pickup.slotCount === 0) {
-                    <p class="muted" data-testid="stores.pickups.cancelled">{{ 'pickups.tab.cancelled' | t }}</p>
+                    <p class="pickup__cancelled" data-testid="stores.pickups.cancelled">{{ 'pickups.tab.cancelled' | t }}</p>
                   } @else {
                     <fs-pickup-slot
                       [slotCount]="pickup.slotCount"
                       [slots]="pickup.occupiedSlots"
                       [myId]="myId()"
                       [freeClickable]="!isSignedUp(pickup)"
-                      [slotsClickable]="ctx.may('mayConfirmPickups') || ctx.may('mayEditPickups')"
+                      [slotsClickable]="slotsClickable(pickup)"
                       [confirmable]="ctx.may('mayConfirmPickups')"
                       (freeClick)="openSignup(pickup)"
                       (slotClick)="onSlot(pickup, $event)"
@@ -214,7 +264,7 @@ interface SlotTarget {
                     />
                   }
                   @for (extra of pickup.extraSlots ?? []; track extra.addedAt) {
-                    <p class="muted" data-testid="stores.pickups.extraSlot">{{ 'pickups.tab.extraSlotBy' | t: { name: extra.byUser.displayName } }}</p>
+                    <p class="pickup__extra" data-testid="stores.pickups.extraSlot">{{ 'pickups.tab.extraSlotBy' | t: { name: extra.byUser.displayName } }}</p>
                   }
                   @if (mySlot(pickup); as mine) {
                     @if (!mine.confirmed) {
@@ -225,6 +275,7 @@ interface SlotTarget {
                   }
                 </div>
               }
+              </div>
             </section>
           }
         </div>
@@ -233,50 +284,21 @@ interface SlotTarget {
 
     <fs-pickup-signup-dialog [(visible)]="signupOpen" [target]="signupTarget()" (signedUp)="afterSignup($event)" />
 
-    <p-dialog
-      [visible]="slotOpen()"
-      (visibleChange)="slotOpen.set($event)"
-      [modal]="true"
-      [draggable]="false"
-      [closeAriaLabel]="'common.close' | t"
-      [header]="slotTarget()?.slot?.user?.displayName ?? ''"
-      [style]="{ width: 'min(28rem, 94vw)' }"
-      [focusOnShow]="!focusConfirm()"
-      (onShow)="onSlotDialogShown()"
-      data-testid="stores.pickups.slotDialog"
-    >
-      @if (slotTarget(); as s) {
-        <p class="muted">{{ s.pickup.pickupAt | fsDate: 'dateTimeLong' : tz() }}</p>
-        <p
-          class="slot-state"
-          [class.slot-state--unconfirmed]="!s.slot.confirmed"
-          [attr.data-confirmed]="s.slot.confirmed"
-          data-testid="stores.pickups.slotState"
-        >
-          <i class="pi" [class.pi-check]="s.slot.confirmed" [class.pi-hourglass]="!s.slot.confirmed" aria-hidden="true"></i>
-          {{ (s.slot.confirmed ? 'pickups.tab.state.confirmed' : 'pickups.tab.state.unconfirmed') | t }}
-        </p>
-        <div class="dialog-actions">
-          @if (!s.slot.confirmed && ctx.may('mayConfirmPickups')) {
-            <p-button
-              [label]="'pickups.tab.confirmSlot' | t"
-              icon="pi pi-check"
-              [loading]="confirmSlot.busy()"
-              (onClick)="confirmSlot.run(s)"
-              data-testid="stores.pickups.confirmSlot"
-            />
-          }
-          <p-button
-            [label]="'pickups.tab.removeSlot' | t"
-            icon="pi pi-user-minus"
-            severity="danger"
-            [outlined]="true"
-            (onClick)="askRemove()"
-            data-testid="stores.pickups.removeSlot"
-          />
-        </div>
-      }
-    </p-dialog>
+    <fs-slot-detail-dialog
+      [(visible)]="slotOpen"
+      [storeId]="ctx.storeId() ?? undefined"
+      [pickupAt]="slotTarget()?.pickup?.pickupAt"
+      [slot]="slotTarget()?.slot"
+      [mode]="slotMode()"
+      [timeZone]="tz()"
+      [mayConfirm]="ctx.may('mayConfirmPickups')"
+      [mayRemove]="ctx.may('mayEditPickups')"
+      [confirmBusy]="confirmSlot.busy()"
+      [focusConfirm]="focusConfirm()"
+      (confirmed)="confirmSlot.run(slotTarget()!)"
+      (remove)="askRemove()"
+      (shown)="onSlotDialogShown()"
+    />
 
     <fs-required-message-dialog
       [(visible)]="removeOpen"
@@ -386,22 +408,62 @@ interface SlotTarget {
     .chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
     .chip--pending { display: inline-flex; align-items: center; gap: 0.35rem; }
     .chip--pending .pi { color: var(--fs-warning-text); font-size: 0.85em; }
-    .pickup { display: grid; gap: 0.45rem; padding: 0.6rem 0; border-top: 1px solid var(--fs-border); }
+    /* compact day cards (decision 164, ui-feedback-batch-2-proposal §3): one column on all widths */
+    .stack { display: grid; gap: 0.6rem; }
+    .day {
+      --fs-date-tile: 3.25rem;
+      display: grid; grid-template-columns: var(--fs-date-tile) minmax(0, 1fr); gap: 0 0.75rem;
+      padding: 0.55rem 0.65rem 0.55rem 0.55rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md);
+      background: var(--fs-surface); box-shadow: var(--fs-shadow-sm);
+    }
+    .day--today { border-color: color-mix(in srgb, var(--fs-primary) 45%, var(--fs-border)); }
+    .date {
+      display: grid; justify-items: center; align-content: start; align-self: start; width: var(--fs-date-tile);
+      padding: 0.3rem 0 0.35rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); line-height: 1.05;
+    }
+    .date__wd { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fs-text-muted); }
+    .date__d { font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .date__m { font-size: 0.68rem; font-weight: 600; color: var(--fs-text-muted); }
+    .day--today .date { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+    .day--today .date__wd, .day--today .date__m { color: var(--fs-primary-strong); }
+    .day__body { display: grid; min-width: 0; }
+    .day__head { display: flex; align-items: center; gap: 0.5rem; min-height: 1.9rem; }
+    .day__title { margin: 0; font-size: 0.95rem; font-weight: 650; }
+    .day__chat {
+      display: inline-flex; align-items: center; gap: 0.35rem; margin-left: auto; min-height: 1.9rem;
+      padding: 0.2rem 0.65rem 0.2rem 0.5rem; border: 0; border-radius: 999px; background: transparent;
+      color: var(--fs-primary-strong); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .day__chat:hover { background: var(--fs-primary-soft); }
+    .day__chat:disabled { opacity: 0.6; cursor: default; }
+    .pickup { display: grid; gap: 0.3rem; padding: 0.35rem 0; border-top: 1px solid var(--fs-border); }
     .pickup:first-of-type { border-top: 0; }
-    .pickup__head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .pickup__head { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; align-items: center; min-height: 1.9rem; }
+    .pickup__head fs-pickup-summary { margin-left: auto; }
     .pickup__head p-button[data-testid='stores.pickups.edit'] { margin-left: auto; }
+    .pickup__head fs-pickup-summary + p-button[data-testid='stores.pickups.edit'] { margin-left: 0; }
+    .pickup__reg {
+      display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 999px;
+      background: var(--fs-surface-muted); color: var(--fs-text-muted);
+    }
+    .pickup__reg .pi { font-size: 0.7rem; }
+    .pickup__cancelled { margin: 0; color: var(--fs-text-muted); font-size: 0.85rem; font-style: italic; }
+    .pickup__extra { margin: 0; color: var(--fs-text-muted); font-size: 0.78rem; }
+    @media (max-width: 47.99rem) {
+      .day { --fs-date-tile: 2.75rem; gap: 0 0.6rem; }
+      .date__d { font-size: 1.15rem; }
+      .day__chat { justify-content: center; min-width: var(--fs-target-sm); min-height: var(--fs-target-sm); padding: 0; }
+      .day__chatLabel { display: none; }
+      .pickup__desc { white-space: normal; }
+    }
     /* phones: the summary takes its own line under the time, the pencil stays on the first line */
     @media (max-width: 47.99rem) {
       .pickup__head fs-pickup-summary { flex-basis: 100%; order: 1; }
     }
     .pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .pickup__desc { color: var(--fs-text-muted); font-size: 0.88rem; }
-    .badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; }
-    .pending { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.88rem; font-weight: 600; }
+    .pickup__desc { min-width: 0; max-width: 100%; overflow: hidden; color: var(--fs-text-muted); font-size: 0.85rem; text-overflow: ellipsis; white-space: nowrap; }
+    .pending { display: flex; gap: 0.35rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.82rem; font-weight: 600; }
     .muted { margin: 0; color: var(--fs-text-muted); }
-    .slot-state { display: flex; gap: 0.4rem; align-items: center; margin: 0.35rem 0 0; color: var(--fs-primary-strong); font-weight: 600; }
-    .slot-state--unconfirmed { color: var(--fs-warning-text); }
-    .dialog-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
     .form { display: grid; gap: 0.85rem; }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .field small { font-weight: 400; }
@@ -422,11 +484,20 @@ export class StorePickupsTab {
   private readonly messages = inject(MessageService);
   private readonly clock = inject(ServerClock);
   private readonly document = inject(DOCUMENT);
+  private readonly router = inject(Router);
+  private readonly dates = inject(DateTimeFormatter);
 
   protected readonly ranges: Range[] = ['twoWeeks', 'all'];
   protected readonly range = signal<Range>('all');
   protected readonly myId = computed(() => this.session.user()?.id);
   protected readonly tz = computed(() => this.ctx.timeZone());
+  /** Today in the store's time zone (the "today" day card). */
+  protected readonly today = computed(() => dayOf(this.clock.now(), this.tz()));
+  /** Team member of the store (managers included): may open slots (short dialog) and the day chat. */
+  protected readonly isTeam = computed(() => {
+    const status = this.ctx.permissions()?.teamStatus;
+    return status === UserTeamStatus.Member || status === UserTeamStatus.Coordinator;
+  });
 
   protected readonly pickups = loadResource<Pickup[], string>({
     params: () => (this.ctx.may('maySeePickups') ? (this.ctx.storeId() ?? undefined) : undefined),
@@ -468,6 +539,46 @@ export class StorePickupsTab {
     return !!this.mySlot(pickup);
   }
 
+  private isManager(): boolean {
+    return this.ctx.may('mayConfirmPickups') || this.ctx.may('mayEditPickups');
+  }
+
+  /** Slots open the dialog for managers, team members and people signed up for this pickup (decision 164). */
+  protected slotsClickable(pickup: Pickup): boolean {
+    return this.isManager() || this.isTeam() || this.isSignedUp(pickup);
+  }
+
+  // --- day chat (PU3, decision 164) ------------------------------------------------------------------------------
+
+  /** Someone other than me is signed up that day, and I'm in the team or signed up that day myself. */
+  protected mayOpenDayChat(items: Pickup[]): boolean {
+    const me = this.myId();
+    const others = items.some((pickup) => pickup.occupiedSlots.some((slot) => slot.user.id !== me));
+    return others && (this.isTeam() || items.some((pickup) => this.isSignedUp(pickup)));
+  }
+
+  protected readonly openDayChat = runMutation(
+    (day: string, pickupAt: string) =>
+      this.api.openPickupDayConversation({
+        storeId: this.ctx.storeId()!,
+        date: day,
+        pickupDayConversationOpen: {
+          name: this.i18n
+            .t('pickups.dayChat.name', {
+              store: this.ctx.data()?.name ?? '',
+              date: this.dates.format(pickupAt, 'dayShort', this.tz()),
+            })
+            .slice(0, 200),
+        },
+      }),
+    {
+      onSuccess: (chat: PickupDayConversation) => {
+        this.messages.add({ severity: 'success', summary: this.i18n.t('pickups.dayChat.opened', { name: chat.name }), life: 3000 });
+        void this.router.navigate(['/messages', chat.conversationId]);
+      },
+    },
+  );
+
   private reload(): void {
     this.pickups.reload();
   }
@@ -508,8 +619,12 @@ export class StorePickupsTab {
     this.openSlot(pickup, slot);
   }
 
-  /** Opens the slot dialog; from the ✓ of a split pill, "Bestätigen" gets the focus (no one-click confirm). */
+  /**
+   * Opens the slot dialog: rich for managers and co-pickups, short for the rest of the team; from the ✓ of a split
+   * pill, "Bestätigen" gets the focus (no one-click confirm).
+   */
   protected openSlot(pickup: Pickup, slot: PickupSlot, focusConfirm = false): void {
+    this.slotMode.set(this.isManager() || this.isSignedUp(pickup) ? 'rich' : 'short');
     this.focusConfirm.set(focusConfirm);
     this.slotTarget.set({ pickup, slot });
     this.slotOpen.set(true);
@@ -530,6 +645,7 @@ export class StorePickupsTab {
   // --- manager: confirm / remove a slot -------------------------------------------------------------------------
 
   protected readonly slotOpen = signal(false);
+  protected readonly slotMode = signal<SlotDetailMode>('short');
   protected readonly focusConfirm = signal(false);
   protected readonly removeOpen = signal(false);
   protected readonly slotTarget = signal<SlotTarget | null>(null);

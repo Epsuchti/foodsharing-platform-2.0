@@ -1,10 +1,13 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { ConfirmationService, Confirmation, MessageService } from '@openng/optimus-ui/api';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach, vi } from 'vitest';
 
+import { Language, Role, Theme } from '../../../api';
+import { SessionService } from '../../../core/auth/session.service';
 import { provideDataStateTesting } from '../../../core/testing/data-state-testing';
 import { StorePageComponent } from '../../stores/pages/store-page.component';
 import { StorePickupsTab } from './store-pickups.tab';
@@ -57,12 +60,28 @@ function detail(permissions: Record<string, boolean>): Record<string, unknown> {
 
 const MANAGER = { mayConfirmPickups: true, mayEditPickups: true };
 
+/** The tab asks the server clock once (today's day card). */
+function answerClock(http: HttpTestingController): void {
+  http
+    .match((r) => r.url.endsWith('/api/public/app-info'))
+    .forEach((r) => r.flush({ serverTime: '2030-11-06T08:00:00Z' }));
+}
+
+const signupDetail = (u: unknown, confirmed: boolean) => ({
+  user: u,
+  confirmed,
+  signedUpAt: '2030-11-01T10:00:00Z',
+  pickupCount: 3,
+  upcomingSlots: [],
+});
+
 describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
   let http: HttpTestingController;
   let harness: RouterTestingHarness;
   const qa = (selector: string) => [...harness.routeNativeElement!.querySelectorAll<HTMLElement>(selector)];
   const settle = () => harness.fixture.whenStable();
   const pickupsUrl = '/api/stores/s1/pickups';
+  const detailUrl = (at: string, userId: string) => `/api/stores/s1/pickups/${encodeURIComponent(at)}/signups/${userId}`;
   const confirmUrl = (at: string, userId: string) => `/api/stores/s1/pickups/${encodeURIComponent(at)}/signups/${userId}/confirm`;
 
   beforeEach(async () => {
@@ -82,13 +101,17 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     harness = await RouterTestingHarness.create();
   });
 
-  afterEach(() => http.verify({ ignoreCancelled: true }));
+  afterEach(() => {
+    answerClock(http);
+    http.verify({ ignoreCancelled: true });
+  });
 
   const open = async (permissions: Record<string, boolean>, list: unknown[] = LIST) => {
     await harness.navigateByUrl('/stores/s1/pickups');
     http.expectOne('/api/stores/s1').flush(detail(permissions));
     await settle();
     http.expectOne(pickupsUrl).flush(list);
+    answerClock(http);
     await settle();
   };
 
@@ -136,6 +159,8 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
 
     // confirm Tom via the ✓ → dialog → "Bestätigen"
     qa('[data-testid="stores.pickups.slot.confirm"]')[0].click();
+    await settle();
+    http.expectOne(detailUrl(FRI, 'd')).flush(signupDetail(TOM, false));
     await settle();
     expect(qa('[data-testid="stores.pickups.slotState"]')[0]?.getAttribute('data-confirmed')).toBe('false');
     qa('[data-testid="stores.pickups.confirmSlot"] button')[0].click();
@@ -217,5 +242,131 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     await open({}, withExtras);
     expect(pickupEl(THU).querySelectorAll('[data-testid="stores.pickups.extraSlot"]')).toHaveLength(2);
     expect(pickupEl(FRI).querySelectorAll('[data-testid="stores.pickups.extraSlot"]')).toHaveLength(0);
+  });
+});
+
+describe('store pickups tab: slot dialog modes and day chat (PU3, decision 164)', () => {
+  let http: HttpTestingController;
+  let harness: RouterTestingHarness;
+  const qa = (selector: string) => [...harness.routeNativeElement!.querySelectorAll<HTMLElement>(selector)];
+  const settle = () => harness.fixture.whenStable();
+  const detailUrl = (at: string, userId: string) => `/api/stores/s1/pickups/${encodeURIComponent(at)}/signups/${userId}`;
+  const ME = user('me', 'Sarah Müller');
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        ...provideDataStateTesting({
+          routes: [
+            { path: 'stores/:storeId', component: StorePageComponent, children: [{ path: 'pickups', component: StorePickupsTab }] },
+            { path: 'messages/:id', children: [] },
+          ],
+        }),
+        provideOptimus(),
+      ],
+    });
+    TestBed.inject(SessionService).applySession({
+      authenticated: true,
+      permissions: [],
+      user: {
+        id: 'me',
+        email: 'x@local',
+        displayName: 'Sarah Müller',
+        role: Role.Foodsaver,
+        language: Language.De,
+        theme: Theme.System,
+        verified: true,
+      },
+    });
+    http = TestBed.inject(HttpTestingController);
+    harness = await RouterTestingHarness.create();
+  });
+
+  afterEach(() => {
+    answerClock(http);
+    http.verify({ ignoreCancelled: true });
+  });
+
+  const open = async (permissions: Record<string, boolean>, list: unknown[]) => {
+    await harness.navigateByUrl('/stores/s1/pickups');
+    http.expectOne('/api/stores/s1').flush(detail(permissions));
+    await settle();
+    http.expectOne('/api/stores/s1/pickups').flush(list);
+    answerClock(http);
+    await settle();
+  };
+  const dayEl = (day: string) => qa(`[data-testid="stores.pickups.day"][data-day="${day}"]`)[0];
+  const takenOf = (at: string, name: string) =>
+    qa(
+      `[data-testid="stores.pickups.pickup"][data-pickup-at="${at}"] [data-testid="stores.pickups.slot.taken"][data-user="${name}"]`,
+    )[0] as HTMLButtonElement;
+  const dialog = () => qa('[data-testid="stores.pickups.slotDialog"]')[0];
+
+  it('team members open the short dialog without a request', async () => {
+    await open({}, [pickup(THU, 3, [{ user: PRIYA, confirmed: true }])]);
+    const slot = takenOf(THU, 'Priya Sharma');
+    expect(slot.disabled).toBe(false);
+    slot.click();
+    await settle();
+    http.expectNone(detailUrl(THU, 'a'));
+    expect(dialog()?.getAttribute('data-mode')).toBe('short');
+    expect(qa('[data-testid="stores.pickups.slotDetail.profile"]')[0]?.getAttribute('href')).toBe('/profile/a');
+    expect(qa('[data-testid="stores.pickups.slotDetail.message"]')).toHaveLength(0);
+    expect(qa('[data-testid="stores.pickups.confirmSlot"]')).toHaveLength(0);
+  });
+
+  it('co-pickups get the rich dialog with counts but no manager actions; no phone without S9', async () => {
+    await open({}, [pickup(THU, 3, [{ user: ME, confirmed: true }, { user: MARCO, confirmed: false }])]);
+    takenOf(THU, 'Marco Bernasconi').click();
+    await settle();
+    expect(dialog()?.getAttribute('data-mode')).toBe('rich');
+    http.expectOne(detailUrl(THU, 'b')).flush({ ...signupDetail(MARCO, false), pickupCount: 7, upcomingSlots: [THU, FRI] });
+    await settle();
+    expect(qa('[data-testid="stores.pickups.slotDetail.pickupCount"] dd')[0]?.textContent?.trim()).toBe('7');
+    expect(qa('[data-testid="stores.pickups.slotDetail.upcomingItem"]')).toHaveLength(2);
+    expect(qa('[data-testid="stores.pickups.slotDetail.message"]')).toHaveLength(1);
+    expect(qa('[data-testid="stores.pickups.slotDetail.call"]')).toHaveLength(0);
+    expect(qa('[data-testid="stores.pickups.confirmSlot"]')).toHaveLength(0);
+    expect(qa('[data-testid="stores.pickups.removeSlot"]')).toHaveLength(0);
+  });
+
+  it('managers get Bestätigen and Austragen; the phone shows when the server sends it (S9)', async () => {
+    await open(MANAGER, [pickup(THU, 3, [{ user: MARCO, confirmed: false }])]);
+    takenOf(THU, 'Marco Bernasconi').click();
+    await settle();
+    http.expectOne(detailUrl(THU, 'b')).flush({ ...signupDetail(MARCO, false), phone: '+41 79 123 45 67' });
+    await settle();
+    expect(qa('[data-testid="stores.pickups.slotDetail.call"]')[0]?.getAttribute('href')).toBe('tel:+41791234567');
+    expect(qa('[data-testid="stores.pickups.confirmSlot"]')).toHaveLength(1);
+    expect(qa('[data-testid="stores.pickups.removeSlot"]')).toHaveLength(1);
+  });
+
+  it('rich dialog: loading, then the error state when the request fails', async () => {
+    await open({}, [pickup(THU, 3, [{ user: ME, confirmed: true }, { user: MARCO, confirmed: false }])]);
+    takenOf(THU, 'Marco Bernasconi').click();
+    await settle();
+    const state = () => qa('fs-data-state[testid="stores.pickups.slotDetail.state"], [data-state]').find((el) =>
+      el.closest('[data-testid="stores.pickups.slotDialog"]'),
+    );
+    expect(state()?.getAttribute('data-state')).toBe('loading');
+    http
+      .expectOne(detailUrl(THU, 'b'))
+      .flush({ code: 'UNEXPECTED_ERROR', message: 'x' }, { status: 500, statusText: 'Server Error' });
+    await settle();
+    expect(state()?.getAttribute('data-state')).toBe('error');
+  });
+
+  it('shows "Chat öffnen" only when someone else is signed up that day, and opens the named chat', async () => {
+    await open({}, [pickup(THU, 3, [{ user: PRIYA, confirmed: true }]), pickup(FRI, 2, [{ user: ME, confirmed: true }])]);
+    expect(dayEl('2030-11-08').querySelector('[data-testid="stores.pickups.dayChat"]')).toBeNull();
+    const button = dayEl('2030-11-07').querySelector<HTMLButtonElement>('[data-testid="stores.pickups.dayChat"]')!;
+    expect(button.getAttribute('aria-label')).toBe('pickups.dayChat.open');
+    button.click();
+    const req = http.expectOne('/api/stores/s1/pickup-days/2030-11-07/conversation');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body.name).toBe('pickups.dayChat.name');
+    req.flush({ conversationId: 'c1', name: 'Abholung Coop', created: true, addedMembers: 2 });
+    await settle();
+    expect(TestBed.inject(Router).url).toBe('/messages/c1');
   });
 });

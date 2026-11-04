@@ -120,5 +120,20 @@
   "pickups.mine.signOutLabel": "Annulla iscrizione: {store}, {date}",
   "pickups.options.signUpLabel": "Iscriviti: {store}, {date}",
   "pickups.dashboard.help": "Serve aiuto a breve",
-  "pickups.dashboard.helpAll": "{count, plural, one {Il # ritiro} other {Tutti i # ritiri}} con posti liberi"
+  "pickups.dashboard.helpAll": "{count, plural, one {Il # ritiro} other {Tutti i # ritiri}} con posti liberi",
+  "pickups.dayChat.open": "Apri chat",
+  "pickups.dayChat.name": "Ritiro {store}, {date}",
+  "pickups.dayChat.opened": "Chat «{name}» aperta.",
+  "pickups.slotDetail.actions": "Azioni",
+  "pickups.slotDetail.profile": "Profilo",
+  "pickups.slotDetail.message": "Messaggio",
+  "pickups.slotDetail.call": "Chiama",
+  "pickups.slotDetail.copy": "Copia numero",
+  "pickups.slotDetail.copied": "Numero copiato.",
+  "pickups.slotDetail.signedUpAt": "iscritto/a {date}",
+  "pickups.slotDetail.pickupCount": "Turni qui",
+  "pickups.slotDetail.lastPickup": "Ultimo ritiro qui",
+  "pickups.slotDetail.never": "ancora nessuno",
+  "pickups.slotDetail.upcoming": "Turni attuali ({count})",
+  "pickups.slotDetail.thisOne": "questo ritiro"
 }

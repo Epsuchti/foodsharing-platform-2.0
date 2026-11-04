@@ -120,5 +120,20 @@
   "pickups.mine.signOutLabel": "Austragen: {store}, {date}",
   "pickups.options.signUpLabel": "Eintragen: {store}, {date}",
   "pickups.dashboard.help": "Bald Hilfe gesucht",
-  "pickups.dashboard.helpAll": "Alle {count, plural, one {# Abholung} other {# Abholungen}} mit freien Plätzen"
+  "pickups.dashboard.helpAll": "Alle {count, plural, one {# Abholung} other {# Abholungen}} mit freien Plätzen",
+  "pickups.dayChat.open": "Chat öffnen",
+  "pickups.dayChat.name": "Abholung {store}, {date}",
+  "pickups.dayChat.opened": "Chat „{name}“ geöffnet.",
+  "pickups.slotDetail.actions": "Aktionen",
+  "pickups.slotDetail.profile": "Profil",
+  "pickups.slotDetail.message": "Nachricht",
+  "pickups.slotDetail.call": "Anrufen",
+  "pickups.slotDetail.copy": "Nummer kopieren",
+  "pickups.slotDetail.copied": "Nummer kopiert.",
+  "pickups.slotDetail.signedUpAt": "eingetragen {date}",
+  "pickups.slotDetail.pickupCount": "Slots hier",
+  "pickups.slotDetail.lastPickup": "Letzter Termin hier",
+  "pickups.slotDetail.never": "noch keiner",
+  "pickups.slotDetail.upcoming": "Aktuell belegte Slots ({count})",
+  "pickups.slotDetail.thisOne": "dieser Termin"
 }
