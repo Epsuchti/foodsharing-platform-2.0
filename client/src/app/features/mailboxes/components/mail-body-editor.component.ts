@@ -36,6 +36,14 @@ import { TPipe } from '../../../core/i18n/t.pipe';
   `,
   styles: `
     :host { display: block; min-width: 0; }
+    /* Quill's snow theme sizes the toolbar buttons only once Quill has loaded and added .ql-toolbar.ql-snow; until then
+       they were 12×6 px (axe target-size) and the toolbar jumped. Their own size from the start: */
+    .ql-formats button {
+      box-sizing: border-box;
+      width: 28px;
+      height: 24px;
+      padding: 3px 5px;
+    }
   `,
 })
 export class MailBodyEditorComponent {
