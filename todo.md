@@ -6,6 +6,7 @@ Last updated 2026-11-03, after the final gate was merged (`dc970052`).
 
 ## Before launch
 - **Map tile baselines (MT1):** the attribution text changed on every map and `map.screen.ts` has two new vector screens (light, dark): regenerate in the end batch (decision 69) and check the dark map's contrast with the marker colours by eye.
+- **MT2: tile alerts** (owner 2026-11-04: none for now, decision 163): a PrometheusRule in the hosting repo for a failed or stale build (no success for 35 days, `kube_job_status_failed`), an OOM-killed build pod, the tile server down, and the file missing (`caddy_http_request_duration_seconds_count{code="404"}` on the tile path, or a probe). Until then the dashboard "Map Tiles" is checked by hand after the 1st of each month.
 - **`oasdiff`:** it has nothing to compare on `main` until the first `v*` tag; check that it runs after the first release.
 
 ## Not tested from the 2026-11-01 batch

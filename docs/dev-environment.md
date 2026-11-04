@@ -49,6 +49,14 @@ source scripts/env.sh
   Protomaps world build, or `--method=planetiler` for our own run, about 3 GB of downloads). `ng serve` proxies
   `/tiles` to the jar like `/api`. Screenshots draw a raster stub instead
   (`window.__fsTileUrl`, `e2e/screenshots/_setup.ts`).
+- Map tile builder (MT2, decision 163): `server/deploy/tiles.sh` and so `scripts/tiles-fixture.sh` run the build in
+  the image `ghcr.io/epsuchti/foodsharing-tiles-builder:<server/deploy/tiles-builder/version.txt>`. It is pulled
+  when missing; if the pull fails (not published yet, no GHCR access) or with `tiles.sh --build-image` it is built
+  locally from `server/deploy/tiles-builder/` (the first build compiles the Protomaps profile with Maven, a few
+  minutes). Bump `version.txt` with every change of that folder: the `tiles-image.yml` workflow publishes it on
+  `main` and refuses to overwrite an existing version. Try the script directly with
+  `docker run --rm -v "$PWD/tmp-tiles:/tiles" <image> --method=extract --area=europe/switzerland --bbox=8.53,47.36,8.55,47.38 --maxzoom=10 --min-size-mb=0 --min-free-gb=1`
+  (`--memory=4g` shows the fallback `WARN`).
 
 ## Windows only
 - Use Git Bash, not PowerShell, for the commands above.
