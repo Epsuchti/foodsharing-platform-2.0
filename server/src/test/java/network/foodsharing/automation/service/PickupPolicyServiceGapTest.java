@@ -155,7 +155,7 @@ class PickupPolicyServiceGapTest {
         });
 
         service = new PickupPolicyService(policies, links, members, mock(PickupPolicyExcludedDateRepository.class),
-                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions);
+                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions, mock(PickupPolicyData.class));
 
         a = store("A Store");
         b = store("B Store");
@@ -311,7 +311,7 @@ class PickupPolicyServiceGapTest {
         when(actor.requirePrincipal()).thenReturn(ACTOR);
         PickupPolicyService narrow = new PickupPolicyService(policies, links,
                 mock(PickupPolicyLinkedStoreMemberRepository.class), mock(PickupPolicyExcludedDateRepository.class),
-                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions);
+                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions, mock(PickupPolicyData.class));
         ApiException ex = error(() -> narrow.put(a, input(true, 2, List.of(elsewhere))));
         assertThat(ex.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
         assertThat(ex.getArgs()).containsEntry("storeId", elsewhere.toString());

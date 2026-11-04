@@ -13,5 +13,7 @@ public enum PickupEligibilityReason {
     NO_FREE_SLOT,
     ALREADY_SIGNED_UP,
     REGION_RULE_TIMESPAN_LIMIT,
-    REGION_RULE_DAY_LIMIT
+    REGION_RULE_DAY_LIMIT,
+    /** An active store rule blocks the sign-up (decision 165 S2); details in the rule blocks. */
+    AUTOMATION_RULE
 }

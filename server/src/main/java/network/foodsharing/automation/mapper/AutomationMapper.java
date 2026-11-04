@@ -234,6 +234,23 @@ public class AutomationMapper {
         return new network.foodsharing.api.model.FspRef().id(fsp.id()).name(fsp.name());
     }
 
+    /** The member summary of a store's rules (decision 165 S2). */
+    public network.foodsharing.api.model.StoreRuleSummary toModel(PickupPolicyService.RuleSummary summary) {
+        var model = new network.foodsharing.api.model.StoreRuleSummary()
+                .enabled(summary.enabled()).gapDays(summary.gapDays()).experience(summary.experience())
+                .cleaningMonths(summary.cleaningMonths()).manualDates(summary.manualDates())
+                .holidays(summary.holidays())
+                .links(summary.links().stream().map(link -> new network.foodsharing.api.model.StoreRuleLink()
+                        .stores(link.stores().stream().map(AutomationMapper::toStoreRef).toList())
+                        .windowMode(LinkedStoreWindowMode.fromValue(link.windowMode().name()))
+                        .before(link.before()).after(link.after())).toList());
+        if (summary.groupDays() != null) {
+            model.setGroup(new network.foodsharing.api.model.StoreRuleGroup().days(summary.groupDays())
+                    .stores(summary.groupStores().stream().map(AutomationMapper::toStoreRef).toList()));
+        }
+        return model;
+    }
+
     public static StoreRef toStoreRef(Store store) {
         StoreRef ref = new StoreRef();
         ref.setId(store.getId());

@@ -740,6 +740,89 @@ class PickupPolicyEvaluatorTest {
         assertThat(evaluator.texts(Locale.ENGLISH).text("linked-store.requirement.same-day")).isEqualTo("on the same day");
     }
 
+    // ---------------------------------------------------------------- params for the UI (decision 165 S2)
+
+    static PickupPolicyEvaluator.Params params(Decision decision, PolicyRule rule) {
+        return decision.reasons().stream().filter(r -> r.rule() == rule).findFirst().orElseThrow().params();
+    }
+
+    @Test
+    void gapParamsNameTheClosePickupTheGapAndTheNextDayThatKeepsEveryGap() {
+        data.signups.add(new Signup(STORE, USER, at("2026-11-10T19:00"), true, NOW.minusSeconds(3600)));
+        data.signups.add(new Signup(STORE, USER, at("2026-11-15T19:00"), false, NOW.minusSeconds(60)));
+        Decision d = evaluator.evaluate(policy(true, 2, false, false, false, Set.of(), List.of()),
+                at("2026-11-12T19:00"), USER, data);
+        PickupPolicyEvaluator.Params p = params(d, PolicyRule.GAP);
+        assertThat(p.lastPickupAt()).isEqualTo(at("2026-11-10T19:00"));
+        assertThat(p.gapDays()).isEqualTo(2);
+        assertThat(p.storeIds()).isEmpty();
+        // 13.11. is far enough from 10.11. but too close to 15.11.; 18.11. keeps both
+        assertThat(p.nextPossibleAt()).isEqualTo(at("2026-11-18T00:00"));
+    }
+
+    @Test
+    void groupGapParamsNameTheOtherStoreOfTheList() {
+        Instant pickup = at("2026-11-11T19:00");
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
+        Decision d = evaluator.evaluate(grouped(false, 0, 2, CHAIN), pickup, USER, data);
+        PickupPolicyEvaluator.Params p = params(d, PolicyRule.GAP);
+        assertThat(p.lastPickupAt()).isEqualTo(at("2026-11-10T19:00"));
+        assertThat(p.storeIds()).containsExactly(CHAIN);
+        assertThat(p.gapDays()).isEqualTo(2);
+        assertThat(p.nextPossibleAt()).isEqualTo(at("2026-11-13T00:00"));
+    }
+
+    @Test
+    void gapParamsFollowTheSentenceWhenBothChecksFail() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-12T19:00"), NOW);
+        PickupPolicyEvaluator.Params ownWins = params(evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER,
+                data), PolicyRule.GAP);
+        assertThat(ownWins.gapDays()).isEqualTo(3);
+        assertThat(ownWins.lastPickupAt()).isEqualTo(at("2026-11-12T19:00"));
+        // own 3 days after 12.11. → 16.11.; the group gap of 1 day is kept there too
+        assertThat(ownWins.nextPossibleAt()).isEqualTo(at("2026-11-16T00:00"));
+        PickupPolicyEvaluator.Params groupWins = params(evaluator.evaluate(grouped(true, 2, 3, CHAIN), pickup, USER,
+                data), PolicyRule.GAP);
+        assertThat(groupWins.gapDays()).isEqualTo(3);
+    }
+
+    @Test
+    void linkedStoreParamsCarryTheStoresAndTheWindowDays() {
+        Instant pickup = at("2026-11-12T19:00");
+        data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofHours(1))));
+        LinkRule window = new LinkRule(List.of(LINKED), LinkedStoreWindowMode.LAST_DAYS, 1, 3, 20, null);
+        PickupPolicyEvaluator.Params p = params(evaluator.evaluate(linked(window), pickup, USER, data),
+                PolicyRule.LINKED_STORE);
+        assertThat(p.storeIds()).containsExactly(LINKED);
+        assertThat(p.windowMode()).isEqualTo(LinkedStoreWindowMode.LAST_DAYS);
+        assertThat(p.before()).isEqualTo(1);
+        assertThat(p.after()).isEqualTo(3);
+        assertThat(p.from()).isEqualTo(at("2026-11-11T00:00"));
+        assertThat(p.to()).isEqualTo(at("2026-11-15T00:00"));
+    }
+
+    @Test
+    void cleaningParamsCarryTheMonthsAndTheFairteilerOfTheEarliestShift() {
+        freeCleaningSlots(5);
+        PickupPolicyEvaluator.Params never = params(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data),
+                PolicyRule.CLEANING_REQUIRED);
+        assertThat(never.monthsAgo()).isNull();
+        assertThat(never.monthsRequired()).isEqualTo(12);
+        assertThat(never.fspId()).isEqualTo(CLEANING);
+        data.signups.add(new Signup(CLEANING, USER, at("2025-09-01T10:00"), true, NOW));
+        assertThat(params(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data),
+                PolicyRule.CLEANING_REQUIRED).monthsAgo()).isEqualTo(14);
+    }
+
+    @Test
+    void experienceAndAllowingReasonsHaveNoParams() {
+        Decision d = evaluator.evaluate(policy(false, 0, false, true, false, Set.of(), List.of()),
+                at("2026-11-12T19:00"), USER, data);
+        assertThat(params(d, PolicyRule.EXPERIENCE)).isEqualTo(PickupPolicyEvaluator.Params.NONE);
+    }
+
     /** In-memory data. */
     static class FakeData implements PickupPolicyEvaluator.Data {
 

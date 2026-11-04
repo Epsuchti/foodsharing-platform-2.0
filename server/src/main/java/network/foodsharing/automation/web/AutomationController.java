@@ -165,6 +165,11 @@ public class AutomationController implements AutomationApi {
     }
 
     @Override
+    public ResponseEntity<network.foodsharing.api.model.StoreRuleSummary> getStoreRules(UUID storeId) {
+        return ResponseEntity.ok(mapper.toModel(pickupPolicies.rules(storeId)));
+    }
+
+    @Override
     public ResponseEntity<List<GapCandidate>> listGapCandidates(UUID storeId) {
         return ResponseEntity.ok(pickupPolicies.gapCandidates(storeId).stream().map(mapper::toModel).toList());
     }

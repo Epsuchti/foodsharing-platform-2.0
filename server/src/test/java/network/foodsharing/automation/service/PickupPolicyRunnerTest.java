@@ -37,7 +37,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Runner paths: event vs job, dry run, deferred (no audit), repeated decisions, failures (M4 B4). */
+/** Runner paths: event (confirm only, decision 165 S2) vs job, deferred (no audit), repeated decisions, failures (M4 B4). */
 class PickupPolicyRunnerTest {
 
     static final UUID STORE = UUID.randomUUID();
@@ -123,14 +123,27 @@ class PickupPolicyRunnerTest {
     }
 
     @Test
-    void declineRemovesWithReasonsAndFooter() {
+    void eventPathLeavesADeclineToTheJob() {
+        // decision 165 S2: rule violations are refused before the sign-up is stored; after commit the runner only
+        // confirms, a decline (race between two sign-ups) is left to the job
         decide(declined());
         signUp();
+        verify(pickups, never()).removeByAutomation(any(), any(), any(), any(), any());
+        verify(audits, never()).save(any());
+    }
+
+    @Test
+    void jobPathDeclineRemovesWithReasonsAndFooter() {
+        decide(declined());
+        assertThat(runner.runAll().declined()).isEqualTo(1);
         ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
         verify(pickups).removeByAutomation(eq(STORE), eq(PICKUP), eq(USER), eq(PickupPolicyRunner.ACTOR),
                 message.capture());
         assertThat(message.getValue()).startsWith("Zu wenig Abstand.\n\nDiese Aktion wurde automatisch ausgeführt.");
-        assertThat(savedAudit().getDecision()).isEqualTo(PickupPolicyDecision.DECLINED);
+        PickupPolicyAudit audit = savedAudit();
+        assertThat(audit.getDecision()).isEqualTo(PickupPolicyDecision.DECLINED);
+        // audits store rule and text only (the params serve the UI)
+        assertThat(audit.getReasons()).isEqualTo("[{\"rule\":\"GAP\",\"text\":\"Zu wenig Abstand.\"}]");
     }
 
     @Test

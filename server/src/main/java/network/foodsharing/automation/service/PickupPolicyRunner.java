@@ -39,6 +39,9 @@ import tools.jackson.databind.ObjectMapper;
  * only), and from the {@code automation-evaluate} job (deferred cases). Each sign-up is decided in its
  * own transaction; a failure writes a FAILED audit. No dry run (decision 165): audits are written with
  * {@code dry_run = false}. DEFERRED writes no audit; on the job path a repeated SKIPPED decision is not audited again.
+ * Rule violations are refused before the sign-up is stored ({@link PickupRuleGateImpl}, decision 165 S2), so the
+ * after-commit path only confirms or skips; a decline it would make (a race between two sign-ups) is left to the job,
+ * which keeps the decline path for sign-ups that existed before the rules were switched on.
  */
 @Service
 public class PickupPolicyRunner {
@@ -93,7 +96,7 @@ public class PickupPolicyRunner {
             return;
         }
         process(policy.get(), new Signup(event.storeId(), event.userId(), event.pickupAt(), false,
-                event.signedUpAt()), false, new ArrayList<>());
+                event.signedUpAt()), false, true, new ArrayList<>());
     }
 
     /** Job path: every unconfirmed future sign-up of every enabled policy. */
@@ -117,7 +120,7 @@ public class PickupPolicyRunner {
         for (Signup signup : open == null ? List.<Signup>of() : open) {
             PickupPolicy policy = byStore.get(signup.storeId());
             evaluated++;
-            PickupPolicyDecision decision = process(policy, signup, true, messages);
+            PickupPolicyDecision decision = process(policy, signup, true, false, messages);
             counts[decision.ordinal()]++;
         }
         return new RunResult(evaluated, counts[PickupPolicyDecision.CONFIRMED.ordinal()],
@@ -126,9 +129,10 @@ public class PickupPolicyRunner {
                 messages);
     }
 
-    private PickupPolicyDecision process(PickupPolicy policy, Signup signup, boolean dedupe, List<String> messages) {
+    private PickupPolicyDecision process(PickupPolicy policy, Signup signup, boolean dedupe, boolean confirmOnly,
+                                         List<String> messages) {
         try {
-            return tx.execute(status -> decideAndAct(policy, signup, dedupe));
+            return tx.execute(status -> decideAndAct(policy, signup, dedupe, confirmOnly));
         } catch (RuntimeException ex) {
             log.error("Pickup policy failed for store {} pickupAt={} user={}", signup.storeId(), signup.pickupAt(),
                     signup.userId(), ex);
@@ -143,7 +147,8 @@ public class PickupPolicyRunner {
         }
     }
 
-    private PickupPolicyDecision decideAndAct(PickupPolicy policy, Signup signup, boolean dedupe) {
+    private PickupPolicyDecision decideAndAct(PickupPolicy policy, Signup signup, boolean dedupe,
+                                              boolean confirmOnly) {
         Spec spec = data.spec(policy);
         Decision decision = evaluator.evaluate(spec, signup.pickupAt(), signup.userId(), data);
         if (decision.deferred()) {
@@ -161,6 +166,11 @@ public class PickupPolicyRunner {
             audit(policy, signup, PickupPolicyDecision.CONFIRMED, decision.reasons(), decision.userMessage(), null,
                     dedupe);
             return PickupPolicyDecision.CONFIRMED;
+        }
+        if (confirmOnly) {
+            log.debug("Pickup policy leaves a declined sign-up to the job store={} pickupAt={} user={}",
+                    signup.storeId(), signup.pickupAt(), signup.userId());
+            return PickupPolicyDecision.DEFERRED;
         }
         String footer = evaluator.texts(data.user(signup.userId()).locale()).text("decline-footer");
         String message = decision.reasonText() + "\n\n" + footer;
@@ -187,7 +197,7 @@ public class PickupPolicyRunner {
         audit.setPickupAt(signup.pickupAt());
         audit.setDryRun(false);
         audit.setDecision(decision);
-        audit.setReasons(truncate(json.writeValueAsString(reasons), 32600));
+        audit.setReasons(truncate(json.writeValueAsString(storedReasons(reasons)), 32600));
         audit.setUserMessage(truncate(userMessage, 4000));
         audit.setError(error);
         audits.save(audit);
@@ -195,6 +205,14 @@ public class PickupPolicyRunner {
                 .secondarySubject(signup.userId()).region(regionId).metadata("storeId", signup.storeId().toString())
                 .metadata("pickupAt", signup.pickupAt().toString()).metadata("decision", decision.name())
                 .build());
+    }
+
+    /** How a reason is stored in an audit: rule and text (the params serve the UI only). */
+    record StoredReason(network.foodsharing.automation.domain.PolicyRule rule, String text) {
+    }
+
+    static List<StoredReason> storedReasons(List<Reason> reasons) {
+        return reasons.stream().map(reason -> new StoredReason(reason.rule(), reason.text())).toList();
     }
 
     static String truncate(String value, int max) {

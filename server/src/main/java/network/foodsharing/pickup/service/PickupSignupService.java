@@ -15,6 +15,7 @@ import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.pickup.domain.PickupAction;
 import network.foodsharing.pickup.domain.PickupDate;
+import network.foodsharing.pickup.domain.PickupEligibilityReason;
 import network.foodsharing.pickup.domain.PickupEvents;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.repository.PickupDateRepository;
@@ -55,11 +56,14 @@ public class PickupSignupService {
     private final ApplicationEventPublisher events;
     private final AppProperties properties;
     private final Clock clock;
+    private final PickupRuleGate ruleGate;
 
     public PickupSignupService(PickupScheduleService schedule, PickupDateRepository dates,
                                PickupSignupRepository signups, PickupExtraSlotRepository extraSlots, StoreService stores,
                                StorePermissionService rights, UserService users, CurrentActorService currentActor, HistoryService history,
-                               ApplicationEventPublisher events, AppProperties properties, Clock clock) {
+                               ApplicationEventPublisher events, AppProperties properties, Clock clock,
+                               PickupRuleGate ruleGate) {
+        this.ruleGate = ruleGate;
         this.schedule = schedule;
         this.dates = dates;
         this.signups = signups;
@@ -86,12 +90,22 @@ public class PickupSignupService {
         stores.require(storeId);
         Store store = stores.lock(storeId);
         SessionPrincipal actor = currentActor.requirePrincipal();
-        StorePermissionService.require(rights.rights(actor, store).maySeePickups());
+        StorePermissionService.Rights actorRights = rights.rights(actor, store);
+        StorePermissionService.require(actorRights.maySeePickups());
         PickupSchedule.Slot slot = schedule.find(store, pickupAt).orElse(null);
         PickupEligibilityRules.Result result = schedule.context(store, actor.userId()).evaluate(pickupAt, slot);
         if (!result.eligible()) {
             throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.PICKUP_NOT_ELIGIBLE,
                     List.of(), Map.of("reason", result.reasons().getFirst().name()));
+        }
+        // decision 165 S2: an active store rule refuses the sign-up before it is stored
+        List<PickupRuleGate.RuleBlock> blocks = schedule.ruleBlocks(store, actor.userId(), actorRights,
+                List.of(pickupAt)).getOrDefault(pickupAt, List.of());
+        if (!blocks.isEmpty()) {
+            ruleGate.refused(storeId, actor.userId(), pickupAt, blocks);
+            throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.PICKUP_NOT_ELIGIBLE,
+                    List.of(), Map.of("reason", PickupEligibilityReason.AUTOMATION_RULE.name(),
+                    "rule", blocks.getFirst().rule()));
         }
         if (dates.findByStoreIdAndPickupAt(storeId, pickupAt).isEmpty()) {
             PickupDate date = new PickupDate();

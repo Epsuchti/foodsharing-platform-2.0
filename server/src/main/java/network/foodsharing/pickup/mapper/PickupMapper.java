@@ -34,10 +34,12 @@ public class PickupMapper {
 
     private final UserMapper userMapper;
     private final UserService users;
+    private final network.foodsharing.store.service.StoreService stores;
 
-    public PickupMapper(UserMapper userMapper, UserService users) {
+    public PickupMapper(UserMapper userMapper, UserService users, network.foodsharing.store.service.StoreService stores) {
         this.userMapper = userMapper;
         this.users = users;
+        this.stores = stores;
     }
 
     public static OffsetDateTime time(Instant instant) {
@@ -76,8 +78,10 @@ public class PickupMapper {
         if (!extraUsers.isEmpty()) {
             users.findAll(extraUsers).forEach(u -> all.put(u.getId(), u));
         }
+        Map<UUID, network.foodsharing.store.domain.Store> blockStores = blockStores(views.stream()
+                .map(PickupScheduleService.PickupView::eligibility).filter(java.util.Objects::nonNull).toList());
         return views.stream().map(v -> {
-            Pickup model = toModel(v.slot(), v.available(), v.eligibility(), all);
+            Pickup model = toModel(v.slot(), v.available(), v.eligibility(), all, blockStores);
             model.setMayAddExtraSlot(v.mayAddExtraSlot());
             if (v.extraSlot() != null && all.containsKey(v.extraSlot().getUserId())) {
                 network.foodsharing.api.model.PickupExtraSlot extra = new network.foodsharing.api.model.PickupExtraSlot();
@@ -90,7 +94,16 @@ public class PickupMapper {
     }
 
     public Pickup toModel(PickupSchedule.Slot slot, boolean available) {
-        return toModel(slot, available, null, usersOf(List.of(slot)));
+        return toModel(slot, available, null, usersOf(List.of(slot)), Map.of());
+    }
+
+    /** The stores named in rule blocks (one query for all pickups). */
+    private Map<UUID, network.foodsharing.store.domain.Store> blockStores(
+            Collection<PickupEligibilityRules.Result> results) {
+        List<UUID> ids = results.stream().flatMap(r -> r.ruleBlocks().stream())
+                .flatMap(b -> b.params().storeIds().stream()).distinct().toList();
+        return ids.isEmpty() ? Map.of() : stores.storesById(ids).stream()
+                .collect(Collectors.toMap(network.foodsharing.store.domain.Store::getId, Function.identity()));
     }
 
     private Map<UUID, User> usersOf(Collection<PickupSchedule.Slot> slots) {
@@ -101,7 +114,7 @@ public class PickupMapper {
     }
 
     private Pickup toModel(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
-                           Map<UUID, User> byId) {
+                           Map<UUID, User> byId, Map<UUID, network.foodsharing.store.domain.Store> blockStores) {
         Pickup model = new Pickup();
         model.setStoreId(slot.storeId());
         model.setPickupAt(time(slot.pickupAt()));
@@ -110,12 +123,20 @@ public class PickupMapper {
         model.setOccupiedSlots(slots(slot, byId));
         model.setIsAvailable(available);
         model.setIsRegular(slot.regular());
-        model.setEligibility(eligibility == null ? null : toModel(eligibility));
+        model.setEligibility(eligibility == null ? null : toModel(eligibility, blockStores));
         return model;
     }
 
     public PickupEligibility toModel(PickupEligibilityRules.Result result) {
+        return toModel(result, blockStores(List.of(result)));
+    }
+
+    private PickupEligibility toModel(PickupEligibilityRules.Result result,
+                                      Map<UUID, network.foodsharing.store.domain.Store> blockStores) {
         PickupEligibility model = new PickupEligibility();
+        if (!result.ruleBlocks().isEmpty()) {
+            model.setRuleBlocks(result.ruleBlocks().stream().map(block -> toBlock(block, blockStores)).toList());
+        }
         model.setEligible(result.eligible());
         model.setReasons(result.reasons().stream()
                 .map(r -> network.foodsharing.api.model.PickupEligibilityReason.fromValue(r.name())).toList());
@@ -134,6 +155,25 @@ public class PickupMapper {
             model.setRegionRule(state);
         }
         return model;
+    }
+
+    private static network.foodsharing.api.model.PolicyBlock toBlock(
+            network.foodsharing.pickup.service.PickupRuleGate.RuleBlock block,
+            Map<UUID, network.foodsharing.store.domain.Store> blockStores) {
+        var p = block.params();
+        var params = new network.foodsharing.api.model.PolicyBlockParams()
+                .lastPickupAt(time(p.lastPickupAt())).nextPossibleAt(time(p.nextPossibleAt())).gapDays(p.gapDays())
+                .windowMode(p.windowMode() == null ? null
+                        : network.foodsharing.api.model.LinkedStoreWindowMode.fromValue(p.windowMode()))
+                .before(p.before()).after(p.after()).from(time(p.from())).to(time(p.to()))
+                .monthsAgo(p.monthsAgo()).monthsRequired(p.monthsRequired()).fspId(p.fspId());
+        if (!p.storeIds().isEmpty()) {
+            params.setStores(p.storeIds().stream().map(blockStores::get).filter(java.util.Objects::nonNull)
+                    .map(store -> new network.foodsharing.api.model.StoreRef().id(store.getId()).name(store.getName())
+                            .regionId(store.getRegionId())).toList());
+        }
+        return new network.foodsharing.api.model.PolicyBlock()
+                .rule(network.foodsharing.api.model.PolicyRule.fromValue(block.rule())).params(params);
     }
 
     public network.foodsharing.api.model.StoreRef toStoreRef(network.foodsharing.store.domain.Store store,
@@ -191,7 +231,7 @@ public class PickupMapper {
 
     public List<Pickup> toPastModels(List<PickupSchedule.Slot> slots) {
         Map<UUID, User> byId = usersOf(slots);
-        return slots.stream().map(s -> toModel(s, false, null, byId)).toList();
+        return slots.stream().map(s -> toModel(s, false, null, byId, Map.of())).toList();
     }
 
     private List<PickupSlot> slots(PickupSchedule.Slot slot, Map<UUID, User> byId) {

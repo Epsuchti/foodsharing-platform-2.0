@@ -204,6 +204,21 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
         return holidays.holidayName(date, holidays.placeOf(regionId(storeId)));
     }
 
+    /** The holiday place of the store's region (cached per request by {@link CachingPolicyData}). */
+    HolidayCalendarService.Place holidayPlace(UUID storeId) {
+        return holidays.placeOf(regionId(storeId));
+    }
+
+    /** All holidays of a year at the place. */
+    List<HolidayCalendarService.Holiday> holidays(int year, HolidayCalendarService.Place place) {
+        return holidays.holidays(year, place);
+    }
+
+    /** Those of the users with a confirmed pickup in the store before {@code before}. */
+    Set<UUID> usersWithConfirmedPickup(UUID storeId, Collection<UUID> userIds, Instant before) {
+        return signups.usersWithConfirmedPickup(storeId, userIds, before);
+    }
+
     @Override
     public boolean cleaningExempt(UUID regionId, UUID userId) {
         return exemptions.existsByRegionIdAndUserId(regionId, userId);

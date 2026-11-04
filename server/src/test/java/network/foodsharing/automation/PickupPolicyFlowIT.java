@@ -95,7 +95,9 @@ class PickupPolicyFlowIT {
 
     @Test
     @Order(2)
-    void gapViolationRemovesTheSignupWithBellAndMail() throws Exception {
+    void gapViolationIsRefusedUpFrontAndShownToTheMember() throws Exception {
+        // decision 165 S2: the rule blocks before the sign-up is stored; the member sees why in the list, the summary
+        // and the 409; the attempt is audited as DECLINED without bell or mail
         Cookie bieb = login(SeedUsers.BIEB);
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(bieb), """
                 {"enabled":true,"gapRuleEnabled":true,"minimumGapDays":3,"cleaningRuleEnabled":false,
@@ -104,18 +106,43 @@ class PickupPolicyFlowIT {
                 .andExpect(jsonPath("$.minimumGapDays").value(3)).andExpect(jsonPath("$.excludedDates[0]")
                         .value("2026-11-08"));
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        String blocked = "$[?(@.pickupAt == '2026-11-09T18:00:00Z')].eligibility";
+        // the confirmed pickup of Thursday 12.11. (order 1) is 2 days away
+        mvc.perform(get(S01 + "/pickups").cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath(blocked + ".reasons[*]").value(Matchers.hasItem("AUTOMATION_RULE")))
+                .andExpect(jsonPath(blocked + ".ruleBlocks[0].rule").value(Matchers.contains("GAP")))
+                .andExpect(jsonPath(blocked + ".ruleBlocks[0].params.lastPickupAt")
+                        .value(Matchers.contains("2026-11-12T18:00:00Z")))
+                .andExpect(jsonPath(blocked + ".ruleBlocks[0].params.gapDays").value(Matchers.contains(3)));
+        mvc.perform(get(S01 + "/pickups/2026-11-09T18:00:00Z/eligibility").cookie(foodsaver))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.eligible").value(false))
+                .andExpect(jsonPath("$.ruleBlocks[0].rule").value("GAP"));
         mvc.perform(post(S01 + "/pickups/2026-11-09T18:00:00Z/signups").cookie(foodsaver).with(csrf()))
-                .andExpect(status().isOk());
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("PICKUP_NOT_ELIGIBLE"))
+                .andExpect(jsonPath("$.args.reason").value("AUTOMATION_RULE"))
+                .andExpect(jsonPath("$.args.rule").value("GAP"));
         assertThat(count("select count(*) from pickup_signup where store_id = ? and user_id = ? and pickup_at = ?",
                 java.util.UUID.fromString(S01_ID), SeedUsers.FOODSAVER.id(),
                 java.sql.Timestamp.from(java.time.Instant.parse("2026-11-09T18:00:00Z")))).isZero();
         assertThat(count("select count(*) from pickup_policy_audit where user_id = ? and decision = 'DECLINED' and pickup_at = '2026-11-09 18:00:00+00' "
-                + "and reasons like '%\"GAP\"%' and user_message like '%automatisch ausgeführt%'",
-                SeedUsers.FOODSAVER.id())).isEqualTo(1);
+                + "and reasons like '%\"GAP\"%'", SeedUsers.FOODSAVER.id())).isEqualTo(1);
         assertThat(count("select count(*) from bell where user_id = ? and type = 'PICKUP_AUTO_DECLINED'",
-                SeedUsers.FOODSAVER.id())).isEqualTo(1);
-        assertThat(count("select count(*) from mail_outbox where user_id = ?", SeedUsers.FOODSAVER.id()))
-                .isPositive();
+                SeedUsers.FOODSAVER.id())).isZero();
+        // the pickup options (/pickups, home card) leave the blocked pickup out
+        mvc.perform(get("/api/users/me/pickups/options").cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.store.id == '" + S01_ID + "' && @.pickupAt == '2026-11-09T18:00:00Z')]")
+                        .isEmpty());
+        // the member summary
+        mvc.perform(get(S01 + "/automation/rules").cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(true)).andExpect(jsonPath("$.gapDays").value(3))
+                .andExpect(jsonPath("$.experience").value(true)).andExpect(jsonPath("$.holidays").value(true))
+                .andExpect(jsonPath("$.manualDates[0]").value("2026-11-08"))
+                .andExpect(jsonPath("$.cleaningMonths").doesNotExist())
+                .andExpect(jsonPath("$.group").doesNotExist());
+        mvc.perform(get(S01 + "/automation/rules").cookie(login(SeedUsers.GUIDE))).andExpect(status().isForbidden());
+        // store managers are pre-confirmed and never blocked
+        mvc.perform(get(S01 + "/pickups").cookie(bieb)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].eligibility.ruleBlocks[*]").value(Matchers.empty()));
     }
 
     @Test

@@ -61,7 +61,7 @@ class ExtraSlotTest {
         service = new PickupSignupService(schedule, dates, mock(PickupSignupRepository.class), extraSlots, stores,
                 mock(StorePermissionService.class), mock(UserService.class), actor,
                 mock(HistoryService.class, RETURNS_DEEP_STUBS), mock(ApplicationEventPublisher.class),
-                new AppProperties(), Clock.fixed(NOW, ZoneOffset.UTC));
+                new AppProperties(), Clock.fixed(NOW, ZoneOffset.UTC), (storeId, userId, at) -> java.util.Map.of());
         store.setId(STORE);
         store.setRegionId(UUID.randomUUID());
         store.setName("Bäckerei");

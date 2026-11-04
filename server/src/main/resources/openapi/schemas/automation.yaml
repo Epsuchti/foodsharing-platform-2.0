@@ -382,6 +382,70 @@ StoreAutomation:
     permissions:
       $ref: './automation.yaml#/AutomationPermissions'
 
+StoreRuleSummary:
+  type: object
+  description: 'The rules that apply when the policy is on (enabled); everything else is empty while it is off.'
+  required: [enabled, links, experience, manualDates, holidays]
+  properties:
+    enabled:
+      type: boolean
+    gapDays:
+      description: 'Own gap in days between two pickups here; missing when the own gap rule is off.'
+      type: integer
+      format: int32
+    group:
+      $ref: './automation.yaml#/StoreRuleGroup'
+    links:
+      type: array
+      items:
+        $ref: './automation.yaml#/StoreRuleLink'
+    experience:
+      type: boolean
+    cleaningMonths:
+      description: 'A cleaning shift in a cleaning Fairteiler of the region within this many months; missing when the rule is off.'
+      type: integer
+      format: int32
+    manualDates:
+      description: 'Upcoming excluded dates (the managers decide).'
+      type: array
+      items:
+        type: string
+        format: date
+    holidays:
+      description: 'On public holidays the managers decide.'
+      type: boolean
+
+StoreRuleGroup:
+  type: object
+  description: 'The shared gap list (decision 151/152): all its live stores, this one included, by name.'
+  required: [days, stores]
+  properties:
+    days:
+      type: integer
+      format: int32
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+
+StoreRuleLink:
+  type: object
+  description: 'A linked-store rule (own or mirrored): one pickup in any of the stores within the window is needed.'
+  required: [stores, windowMode, before, after]
+  properties:
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    before:
+      type: integer
+      format: int32
+    after:
+      type: integer
+      format: int32
+
 AutomationRunResult:
   type: object
   required: [evaluated, confirmed, declined, skipped, deferred, failed, messages]

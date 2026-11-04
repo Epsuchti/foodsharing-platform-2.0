@@ -36,6 +36,7 @@ class QueryCountIT {
 
     private static final String ZUERICH = "00000010-0001-4000-8000-000000000040";
     private static final String STORE_S01 = "00000020-0001-4000-8000-000000000001";
+    private static final String STORE_S06 = "00000020-0001-4000-8000-000000000006";
     private static final String THREAD = "00000043-0001-4000-8000-000000000001";
 
     @Autowired
@@ -68,6 +69,9 @@ class QueryCountIT {
         "FOODSAVER|/api/users/me/stores|13",
         "FOODSAVER|/api/map/markers/stores|3",
         "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|26",
+        // decision 165 S2: S-06's live rules (gap, experience, holidays) are evaluated for every pickup in one query set
+        "SLEEPY|/api/stores/" + STORE_S06 + "/pickups|30",
+        "SLEEPY|/api/users/me/pickups/options|26",
         // FS2: the cleaning shifts of Fairteiler Wiedikon (one query per table, not per shift)
         "FOODSAVER|/api/food-share-points/00000049-0001-4000-8000-000000000001/cleaning/shifts|20",
         "FOODSAVER|/api/search?q=brot|4",

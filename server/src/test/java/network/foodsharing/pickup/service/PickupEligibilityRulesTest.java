@@ -169,4 +169,35 @@ class PickupEligibilityRulesTest {
         }
         assertThat(PickupEligibilityRules.mayCheckEligibility(false, null)).isFalse();
     }
+
+    /** Decision 165 S2: store rule blocks add AUTOMATION_RULE (last) and travel with the result. */
+    @Test
+    void ruleBlocksMakeTheResultIneligibleWithAutomationRuleLast() {
+        var eligible = PickupEligibilityRules.combine(List.of(), List.of(), null);
+        assertThat(eligible.withRuleBlocks(List.of())).isSameAs(eligible);
+        assertThat(eligible.withRuleBlocks(null)).isSameAs(eligible);
+        var block = new PickupRuleGate.RuleBlock("GAP", new PickupRuleGate.BlockParams(null, null, 2, null, null,
+                null, null, null, null, null, null, null), "text");
+        var blocked = eligible.withRuleBlocks(List.of(block));
+        assertThat(blocked.eligible()).isFalse();
+        assertThat(blocked.reasons()).containsExactly(PickupEligibilityReason.AUTOMATION_RULE);
+        assertThat(blocked.ruleBlocks()).containsExactly(block);
+        assertThat(PickupEligibilityReason.values()[PickupEligibilityReason.values().length - 1])
+                .isEqualTo(PickupEligibilityReason.AUTOMATION_RULE);
+    }
+
+    /** Store managers (pre-confirmed or mayConfirmPickups) are never blocked by the store rules. */
+    @Test
+    void managersAreExemptFromTheStoreRules() {
+        assertThat(PickupScheduleService.isRuleExempt(rights(false, UserTeamStatus.COORDINATOR))).isTrue();
+        assertThat(PickupScheduleService.isRuleExempt(rights(true, UserTeamStatus.MEMBER))).isTrue();
+        assertThat(PickupScheduleService.isRuleExempt(rights(false, UserTeamStatus.MEMBER))).isFalse();
+    }
+
+    private static network.foodsharing.store.service.StorePermissionService.Rights rights(boolean confirm,
+                                                                                       UserTeamStatus status) {
+        return new network.foodsharing.store.service.StorePermissionService.Rights(true, true, true, false, false,
+                false, false, false, true, false, confirm, false, false, false, false, false, true, false, false,
+                false, false, status);
+    }
 }

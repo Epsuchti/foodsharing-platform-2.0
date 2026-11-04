@@ -115,13 +115,16 @@ public class PickupPolicyService {
     private final FspCleaningQueries cleaning;
     private final PickupGapGroupRepository gapGroups;
     private final RegionService regions;
+    private final PickupPolicyData policyData;
 
     public PickupPolicyService(PickupPolicyRepository policies, PickupPolicyLinkedStoreRepository links,
                                PickupPolicyLinkedStoreMemberRepository members,
                                PickupPolicyExcludedDateRepository excludedDates, StoreService stores,
                                StorePermissionService permissions, CurrentActorService currentActor,
                                HistoryService history, FspCleaningQueries cleaning,
-                               PickupGapGroupRepository gapGroups, RegionService regions) {
+                               PickupGapGroupRepository gapGroups, RegionService regions,
+                               PickupPolicyData policyData) {
+        this.policyData = policyData;
         this.gapGroups = gapGroups;
         this.regions = regions;
         this.cleaning = cleaning;
@@ -149,6 +152,56 @@ public class PickupPolicyService {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         return store;
+    }
+
+    /** A linked-store rule for members: the stores (any of them) and the window. */
+    public record RuleLink(List<Store> stores, LinkedStoreWindowMode windowMode, int before, int after) {
+    }
+
+    /**
+     * The active rules of a store as the member summary shows them (decision 165 S2); {@code enabled} false and
+     * everything empty while the policy is off or missing. {@code groupStores}: the gap list with this store, by name.
+     */
+    public record RuleSummary(boolean enabled, Integer gapDays, Integer groupDays, List<Store> groupStores,
+                              List<RuleLink> links, boolean experience, Integer cleaningMonths,
+                              List<LocalDate> manualDates, boolean holidays) {
+
+        static RuleSummary off() {
+            return new RuleSummary(false, null, null, List.of(), List.of(), false, null, List.of(), false);
+        }
+    }
+
+    /** The store's active rules for its members. @throws ApiException 404, 403 unless maySeePickups */
+    @Transactional(readOnly = true)
+    public RuleSummary rules(UUID storeId) {
+        Store store = stores.require(storeId);
+        StorePermissionService.require(permissions.rights(currentActor.requirePrincipal(), store).maySeePickups());
+        Optional<PickupPolicy> policy = policies.findByStoreId(storeId).filter(PickupPolicy::isEnabled);
+        if (policy.isEmpty()) {
+            return RuleSummary.off();
+        }
+        PickupPolicyEvaluator.Spec spec = policyData.spec(policy.get());
+        Set<UUID> ids = new LinkedHashSet<>(spec.gapStoreIds());
+        spec.links().forEach(link -> ids.addAll(link.storeIds()));
+        Map<UUID, Store> byId = stores.liveStores(ids).stream().collect(Collectors.toMap(Store::getId, s -> s));
+        List<Store> group = new ArrayList<>();
+        if (!spec.gapStoreIds().isEmpty()) {
+            group.add(store);
+            spec.gapStoreIds().stream().map(byId::get).filter(java.util.Objects::nonNull).forEach(group::add);
+            group.sort(java.util.Comparator.comparing(Store::getName).thenComparing(Store::getId));
+        }
+        List<RuleLink> ruleLinks = spec.links().stream()
+                .map(link -> new RuleLink(link.storeIds().stream().map(byId::get).filter(java.util.Objects::nonNull)
+                        .toList(), link.windowMode(), link.windowMode() == LinkedStoreWindowMode.LAST_DAYS
+                        ? link.windowDaysBefore() : 0, link.windowMode() == LinkedStoreWindowMode.LAST_DAYS
+                        ? link.windowDaysAfter() : 0))
+                .filter(link -> !link.stores().isEmpty()).toList();
+        LocalDate today = policyData.now().atZone(policyData.zone(storeId)).toLocalDate();
+        return new RuleSummary(true, spec.gapRuleEnabled() ? spec.minimumGapDays() : null,
+                group.size() > 1 ? spec.groupMinimumGapDays() : null, group.size() > 1 ? group : List.of(), ruleLinks,
+                spec.experienceRuleEnabled(), spec.cleaningRuleEnabled() ? policyData.cleaningBackCheckMonths() : null,
+                spec.excludedDates().stream().filter(date -> !date.isBefore(today)).sorted().toList(),
+                spec.publicHolidayRuleEnabled());
     }
 
     @Transactional(readOnly = true)

@@ -5,7 +5,8 @@ Weekday:
 
 PickupEligibilityReason:
   type: string
-  enum: [NOT_TEAM_MEMBER, JUMPER_CANNOT_PICKUP, NOT_VERIFIED, HYGIENE_CERTIFICATE_REQUIRED, PHONE_REQUIRED, SLEEPING, PICKUP_IN_PAST, SIGNUP_NOT_YET_OPEN, NO_FREE_SLOT, ALREADY_SIGNED_UP, REGION_RULE_TIMESPAN_LIMIT, REGION_RULE_DAY_LIMIT]
+  enum: [NOT_TEAM_MEMBER, JUMPER_CANNOT_PICKUP, NOT_VERIFIED, HYGIENE_CERTIFICATE_REQUIRED, PHONE_REQUIRED, SLEEPING, PICKUP_IN_PAST, SIGNUP_NOT_YET_OPEN, NO_FREE_SLOT, ALREADY_SIGNED_UP, REGION_RULE_TIMESPAN_LIMIT, REGION_RULE_DAY_LIMIT, AUTOMATION_RULE]
+  description: 'AUTOMATION_RULE: an active rule of the store blocks the sign-up (details in PickupEligibility.ruleBlocks; decision 165 S2).'
 
 RegularPickup:
   type: object
@@ -72,6 +73,62 @@ PickupEligibility:
         $ref: './pickups.yaml#/PickupEligibilityReason'
     regionRule:
       $ref: './pickups.yaml#/RegionPickupRuleState'
+    ruleBlocks:
+      description: 'The store rules that block this sign-up for the caller (reason AUTOMATION_RULE). Never filled for store managers; the client renders its own sentences from the params.'
+      type: array
+      items:
+        $ref: './pickups.yaml#/PolicyBlock'
+
+PolicyBlock:
+  type: object
+  description: 'One store rule that blocks a sign-up (decision 165 S2).'
+  required: [rule, params]
+  properties:
+    rule:
+      $ref: './automation.yaml#/PolicyRule'
+    params:
+      $ref: './pickups.yaml#/PolicyBlockParams'
+
+PolicyBlockParams:
+  type: object
+  description: 'The person''s own data behind a block, per rule. GAP: lastPickupAt (the pickup that is too close, past or upcoming), stores (its store when it is another store of the gap list), gapDays (the gap that applies), nextPossibleAt (start of the first later day that keeps the gap). LINKED_STORE: stores, windowMode, before, after, from and to (start of the first and of the last day of the window). CLEANING_REQUIRED: monthsAgo (null = never), monthsRequired, fspId (the Fairteiler with the earliest free shift). EXPERIENCE, NO_CLEANING_FAIRTEILER: none.'
+  properties:
+    lastPickupAt:
+      type: string
+      format: date-time
+    nextPossibleAt:
+      type: string
+      format: date-time
+    gapDays:
+      type: integer
+      format: int32
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    before:
+      type: integer
+      format: int32
+    after:
+      type: integer
+      format: int32
+    from:
+      type: string
+      format: date-time
+    to:
+      type: string
+      format: date-time
+    monthsAgo:
+      type: integer
+      format: int32
+    monthsRequired:
+      type: integer
+      format: int32
+    fspId:
+      type: string
+      format: uuid
 
 Pickup:
   type: object

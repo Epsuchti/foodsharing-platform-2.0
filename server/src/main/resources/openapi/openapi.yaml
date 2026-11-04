@@ -679,6 +679,8 @@ paths:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy'
   /api/stores/{storeId}/automation/gap-candidates:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1gap-candidates'
+  /api/stores/{storeId}/automation/rules:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1rules'
   /api/stores/{storeId}/automation/request-policy:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1request-policy'
   /api/stores/{storeId}/automation/adverts/planned:

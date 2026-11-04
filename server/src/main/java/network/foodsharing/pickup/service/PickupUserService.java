@@ -209,7 +209,8 @@ public class PickupUserService {
 
     /**
      * Upstream {@code getPickupOptions}: pickups within each store's prefetch horizon in all stores where the current
-     * user is a regular member; full ones only when the user is in them. Sorted by time.
+     * user is a regular member; full ones only when the user is in them, and none that the store rules block for the
+     * user (decision 165 S2). Sorted by time.
      *
      * @throws ApiException 403 NOT_VERIFIED unless a verified foodsaver
      */
@@ -225,14 +226,29 @@ public class PickupUserService {
         int maxPrefetch = mine.stream().mapToInt(Store::getPrefetchDays).max().orElse(0);
         Map<UUID, List<PickupSchedule.Slot>> all = schedule.schedules(mine, now,
                 now.plus(Duration.ofDays(maxPrefetch)));
+        // decision 165 S2: free pickups the store rules block for the user are not offered (same gate as sign-up)
+        Map<UUID, List<Instant>> candidates = new java.util.HashMap<>();
+        for (Store store : mine) {
+            Instant horizon = now.plus(Duration.ofDays(store.getPrefetchDays()));
+            candidates.put(store.getId(), all.getOrDefault(store.getId(), List.of()).stream()
+                    .filter(slot -> !slot.pickupAt().isAfter(horizon) && slot.slotCount() > 0
+                            && slot.occupied() < slot.slotCount() && !slot.hasSignup(user.getId()))
+                    .map(PickupSchedule.Slot::pickupAt).toList());
+        }
+        Map<UUID, java.util.Set<Instant>> blocked = schedule.blockedPickups(currentActor.requirePrincipal(), mine,
+                candidates);
         for (Store store : mine) {
             Instant horizon = now.plus(Duration.ofDays(store.getPrefetchDays()));
             ZoneId zone = schedule.zoneOf(store);
+            java.util.Set<Instant> blockedHere = blocked.getOrDefault(store.getId(), java.util.Set.of());
             for (PickupSchedule.Slot slot : all.getOrDefault(store.getId(), List.of())) {
                 if (slot.pickupAt().isAfter(horizon) || slot.slotCount() == 0) {
                     continue;
                 }
                 boolean in = slot.hasSignup(user.getId());
+                if (!in && blockedHere.contains(slot.pickupAt())) {
+                    continue;
+                }
                 if (slot.occupied() < slot.slotCount() || in) {
                     Boolean confirmed = in ? slot.signups().stream().filter(s -> s.getUserId().equals(user.getId()))
                             .findFirst().map(PickupSignup::isConfirmed).orElse(null) : null;
