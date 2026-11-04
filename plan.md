@@ -138,7 +138,7 @@ Mirrors `foodsharing-einab-tabelle`, upgraded where the UI library requires it.
 | Push | Web Push (VAPID, `nl.martijndwars:web-push`) + Telegram Bot API | Both channels at launch. |
 | Frontend | Angular 22, standalone components, signals, zoneless | Optimus UI 2.x requires Angular ≥ 22. |
 | UI library | `@openng/optimus-ui` 2.x + `@openng/optimus-ui-themes` (Aura preset) + `@openng/icons` | MIT fork of PrimeNG 21; same API as the reference app's PrimeNG, so reference components port 1:1 (`migrate-from-primeng` schematic). |
-| Maps | Leaflet + OpenStreetMap tiles; Photon/Nominatim geocoding | |
+| Maps | Leaflet + `protomaps-leaflet` drawing a self-hosted PMTiles basemap (OpenStreetMap data, `/tiles/basemap.pmtiles`, rebuilt monthly); Photon/Nominatim geocoding | Decision 158 (MT1): no third-party tile host at runtime. |
 | PDF | OpenPDF (passports, business cards) | |
 | Wallet passes | Apple PassKit (`.pkpass`), Google Wallet API | |
 | Build | Maven wrapper + `frontend-maven-plugin` (Node 24 LTS) | One `./mvnw clean package` builds everything. |

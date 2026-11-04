@@ -18,6 +18,7 @@ Internet ──443──▶ reverse proxy (TLS, HSTS; Caddy/nginx on the host)
 
 - One app container; scheduled jobs are guarded by ShedLock (`shedlock` table), so a second replica during an upgrade is harmless.
 - State lives only in Postgres (`pgdata`) and the uploads volume; both are in the backup (§7). Sessions are server-side rows, so a restart logs nobody out.
+- The map basemap is a read-only host folder (`TILES_DIR` → `/tiles`), rebuilt monthly by `tiles.sh` and not backed up (§10).
 - Management port 9090 (health, Prometheus) is never published; the proxy only forwards to 8080.
 - The proxy must serve HTTP/2 or HTTP/3 to browsers (Caddy does by default; nginx needs `http2 on;`). A first page load fetches about 50 files, which HTTP/1.1 slows down noticeably on a phone. Check it with `curl -sI --http2 https://<domain> | head -n 1`.
 
@@ -256,3 +257,57 @@ Automatic blocks (D17.2): more than 300 API requests a minute block the account 
 4. Data loss or corruption: stop the app, take a backup of the current state, then restore (§7.2) — never restore over the only copy.
 5. Security incident (leaked secret, account takeover): rotate the secrets (`docs/secrets.md`), revoke sessions (Admin → Users → deactivate), inform the data protection team within 72 h if personal data is affected.
 6. Write the post-mortem (cause, timeline, follow-up tasks) into the incident log.
+
+## 10. Map tiles (MT1, decision 158)
+Every map draws its background from one PMTiles file, `basemap.pmtiles` (Protomaps basemap v4 schema), that the app serves as `GET /tiles/basemap.pmtiles` with HTTP range requests (206). Browsers talk to no other host for the map. The file lives in the host folder `TILES_DIR` (default `server/deploy/tiles`), mounted read-only at `/tiles` (`app.map.tiles-dir`). It is not in the backup (§7) because `tiles.sh` can rebuild it at any time. The folder and file must be readable by uid 10001 (`tiles.sh` writes mode 644).
+
+### 10.1 Monthly build (`server/deploy/tiles.sh`)
+- `tiles.sh` (defaults: `--area=europe/dach --method=auto`, output `${TILES_DIR}`, work and source files in `TILES_WORK_DIR`, default `server/deploy/tiles-work`) picks the method from `MemAvailable`:
+  - 16 GB or more: Planetiler with the pinned Protomaps profile (tiles 4.15.2, image `fs-protomaps-basemaps:<commit>`, built once from `protomaps/basemaps` at the pinned commit) in memory.
+  - 8–16 GB: the same with `--storage=mmap` (slower).
+  - Under 8 GB, or a failed or killed (exit 137, OOM) Planetiler run: `pmtiles extract` of the DACH bbox from the Protomaps daily world build (`build.protomaps.com`, schema checked to be 4.x). That is a third-party download at build time only. Every fallback logs `WARN` with the reason; a host that falls back every month needs more RAM.
+  - `--method=planetiler|extract` forces one; `TILES_MEM_AVAILABLE_MB=4000` fakes the RAM reading to test the switch.
+- It checks 50 GB free disk first, downloads `dach-latest.osm.pbf` (about 5.5 GB) fresh each run and checks its `.md5`. Planetiler also downloads its other sources (water and land polygons, Natural Earth, landcover, QRank; a few GB) into `tiles-work/sources` once and reuses them.
+- The build runs under `nice` with half the CPU cores (`--cpus`). It writes `basemap-<date>.pmtiles`, checks the `PMTiles` magic, version 3 and at least 1000 MB, hard-links the current file to `basemap.previous.pmtiles` and renames the new one over `basemap.pmtiles` (atomic; open sessions see the new ETag and reload). Any failure leaves the current file in place. A lock (`tiles-work/.tiles.lock`) prevents overlapping runs.
+- Install the timer (1st of the month, 03:30; the output goes to the journal):
+
+```ini
+# /etc/systemd/system/fs-tiles.service
+[Unit]
+Description=Rebuild the foodsharing map basemap (MT1)
+[Service]
+Type=oneshot
+User=foodsharing
+Environment=TILES_DIR=/opt/foodsharing/server/deploy/tiles
+ExecStart=/opt/foodsharing/server/deploy/tiles.sh
+
+# /etc/systemd/system/fs-tiles.timer
+[Unit]
+Description=Monthly map basemap build
+[Timer]
+OnCalendar=*-*-01 03:30:00
+Persistent=true
+[Install]
+WantedBy=timers.target
+```
+
+`systemctl daemon-reload && systemctl enable --now fs-tiles.timer`; first build by hand: `systemctl start fs-tiles.service` and `journalctl -u fs-tiles -f`. The user needs Docker access. Set the same `TILES_DIR` in `.env` for compose.
+
+### 10.2 Check, roll back
+- Check: `curl -s -o /dev/null -w '%{http_code}\n' -r 0-126 https://<domain>/tiles/basemap.pmtiles` gives `206`; `curl -s -r 0-7 https://<domain>/tiles/basemap.pmtiles | od -c` starts with `P M T i l e s 003`. `server/deploy/smoke.sh` runs the same check against the fixture.
+- Roll back: `cd "$TILES_DIR" && ln -f basemap.previous.pmtiles basemap.pmtiles.tmp && mv -f basemap.pmtiles.tmp basemap.pmtiles`. No restart is needed.
+- No file (fresh host before the first build): maps show the tile-error overlay with retry, markers keep working.
+- Never add `/tiles/` to the service worker's asset groups (`client/ngsw-config.json`): a 10 GB file must not be cached; today the worker passes the requests through.
+- The file is served with `Cache-Control: public, max-age=86400`, a strong ETag and the media type `application/vnd.pmtiles`, which is not in `server.compression.mime-types`. Don't add it there: a gzipped response breaks the byte ranges. Requests under `/tiles/` don't count towards the `/api/**` rate limit.
+- Optional: if Tomcat threads get busy at peaks, let the proxy serve the folder directly, for example in Caddy `handle_path /tiles/* { root * /opt/foodsharing/server/deploy/tiles; file_server }` with the same `Cache-Control` header.
+
+### 10.3 Needs (estimates until the first DACH build is measured)
+| | DACH (`europe/dach`) |
+|---|---|
+| File | about 8–10 GB (z0–15) |
+| RAM | 16 GB free for the in-memory build on top of app and Postgres, so a host with 24–32 GB; below that the fallback |
+| Disk | about 50 GB free: extract 5.5, Planetiler temp about 10, new, current and previous file 10 each, plus the reusable sources |
+| Time | about 1 h with half the cores |
+| Traffic | 0.3–1 MB per map view in 20–40 range requests (100k views a month: 30–100 GB) |
+
+Measured so far: the Zurich fixture (`scripts/tiles-fixture.sh`, extract method, 2026-11-04) is 3.0 MB and takes about 10 s; the automatic switch to the extract under faked low RAM works. The DACH build with both methods and a killed Planetiler run are still to be measured on a test host (`todo-eric.md`); record file size, RAM, disk and time here.
