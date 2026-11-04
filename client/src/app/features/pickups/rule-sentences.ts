@@ -1,4 +1,15 @@
-import { LinkedStoreWindowMode, PolicyBlock, PolicyRule, StoreRef, StoreRuleLink, StoreRuleSummary } from '../../api';
+import {
+  LinkedOption,
+  LinkedOptionRule,
+  LinkedStoreWindowMode,
+  PickupEligibility,
+  PickupEligibilityReason,
+  PolicyBlock,
+  PolicyRule,
+  StoreRef,
+  StoreRuleLink,
+  StoreRuleSummary,
+} from '../../api';
 
 /**
  * The member's view of a store's pickup rules (decision 165 S2): summary lines for the card on the Pickups tab and the
@@ -33,7 +44,7 @@ export interface RuleLine extends RuleSentence {
 export type BlockAction =
   | { kind: 'jump'; at: string; label: RuleSentence }
   | { kind: 'cleaning'; fspId: string; label: RuleSentence }
-  | { kind: 'store'; store: StoreRef; label: RuleSentence };
+  | { kind: 'linked'; store: StoreRef; label: RuleSentence };
 
 /** One reason of the dialog: rule chip, the sentence with the person's data, the fix and an action. */
 export interface BlockReason {
@@ -142,12 +153,17 @@ export function blockReason(block: PolicyBlock, fmt: RuleFormat, now: Date): Blo
           to: p.to ? fmt.day(p.to) : '',
         },
       };
-      // until the linked step of the sign-up dialog exists (S3), the action opens the linked store's pickups
+      // decision 165 S3: the linked step of the sign-up dialog books the linked pickup together with this one
       return stores.length
         ? {
             ...base,
             text,
-            action: { kind: 'store', store: stores[0], label: { key: 'pickups.blocked.LINKED_STORE.action', params: { store: stores[0].name } } },
+            fix: { key: 'pickups.blocked.LINKED_STORE.fix', params: {} },
+            action: {
+              kind: 'linked',
+              store: stores[0],
+              label: { key: 'pickups.blocked.LINKED_STORE.action', params: { store: fmt.list(names(stores), 'or') } },
+            },
           }
         : { ...base, text };
     }
@@ -172,6 +188,49 @@ export function blockReason(block: PolicyBlock, fmt: RuleFormat, now: Date): Blo
     default:
       return { ...base, text: { key: 'pickups.blocked.other', params: {} } };
   }
+}
+
+// --- linked-store step of the sign-up dialog (decision 165 S3) ------------------------------------------------------
+
+/** Only missing linked-store pickups keep the person out: the sign-up dialog books them in the same step. */
+export function onlyLinkMissing(e: PickupEligibility | null | undefined): boolean {
+  const blocks = e?.ruleBlocks ?? [];
+  return (
+    !!e &&
+    !e.eligible &&
+    e.reasons.every((reason) => reason === PickupEligibilityReason.AutomationRule) &&
+    blocks.length > 0 &&
+    blocks.every((block) => block.rule === PolicyRule.LinkedStore)
+  );
+}
+
+/** Rule blocks that keep a free place locked: a missing linked pickup alone does not (the dialog books it). */
+export function lockingBlocks(blocks: PolicyBlock[] | undefined): PolicyBlock[] {
+  const all = blocks ?? [];
+  return all.some((block) => block.rule !== PolicyRule.LinkedStore) ? all : [];
+}
+
+const storeKey = (stores: StoreRef[] | undefined) =>
+  (stores ?? [])
+    .map((store) => store.id)
+    .sort()
+    .join(',');
+
+/**
+ * The rules that need a choice, one step each: those without a satisfying pickup that block the sign-up (`blocks`), or
+ * every unsatisfied one when repairing a sign-up whose linked pickup was signed out.
+ */
+export function linkedSteps(rules: LinkedOptionRule[], blocks: PolicyBlock[] | undefined, repair: boolean): LinkedOptionRule[] {
+  const open = rules.filter((rule) => !rule.satisfiedBy);
+  if (repair) return open;
+  const blocked = new Set((blocks ?? []).filter((b) => b.rule === PolicyRule.LinkedStore).map((b) => storeKey(b.params.stores)));
+  const matching = open.filter((rule) => blocked.has(storeKey(rule.stores)));
+  return matching.length || !blocked.size ? matching : open;
+}
+
+/** A linked pickup the person can take: no eligibility reason and no rule of that store against it. */
+export function bookable(option: LinkedOption): boolean {
+  return !option.reasons.length && !option.ruleBlocks.length;
 }
 
 /** The {@link RuleFormat} of the UI: `t` translates, days in the store's time zone, lists in the UI language. */

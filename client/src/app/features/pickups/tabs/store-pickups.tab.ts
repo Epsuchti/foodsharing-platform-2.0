@@ -15,7 +15,6 @@ import {
   PickupSlot,
   PickupsService,
   RegularPickup,
-  SignupResult,
 } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
@@ -30,9 +29,10 @@ import { RequiredMessageDialogComponent } from '../../../shared/required-message
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { BlockedReasonDialogComponent } from '../components/blocked-reason-dialog.component';
 import { RuleSummaryCardComponent } from '../components/rule-summary-card.component';
-import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-dialog.component';
+import { PickupSignupDialogComponent, SignupDone, SignupTarget } from '../components/signup-dialog.component';
 import { PickupSummaryComponent } from '../components/pickup-summary.component';
 import { ServerClock } from '../pickups.resource';
+import { lockingBlocks } from '../rule-sentences';
 import { SlotSummary, addDays, dayOf, groupByDay, pickupSummary, unconfirmedCount, zonedToUtc } from '../pickups.util';
 import { StorePageContext } from '../../stores/store-page.context';
 
@@ -242,6 +242,26 @@ interface SlotTarget {
                         <i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waitingMine' | t }}
                       </p>
                     }
+                    @if (mine.linkMissingUntil; as until) {
+                      <!-- decision 165 S3: the linked pickup was signed out; choose a new one before the deadline -->
+                      <button
+                        type="button"
+                        class="link-missing"
+                        aria-haspopup="dialog"
+                        [attr.aria-label]="'pickups.linked.missingLabel' | t: { until: (until | fsDate: 'dateTime' : tz()) }"
+                        (click)="openRepair(pickup, until)"
+                        data-testid="stores.pickups.linkMissing"
+                      >
+                        <i class="pi pi-hourglass" aria-hidden="true"></i>
+                        <span aria-hidden="true">{{ 'pickups.linked.missing' | t: { until: (until | fsDate: 'dateTime' : tz()) } }}</span>
+                      </button>
+                    }
+                  }
+                  @for (slot of othersMissingLink(pickup); track slot.user.id) {
+                    <p class="pending" data-testid="stores.pickups.linkMissingOther">
+                      <i class="pi pi-hourglass" aria-hidden="true"></i>
+                      {{ 'pickups.linked.missingOther' | t: { name: slot.user.displayName, until: (slot.linkMissingUntil! | fsDate: 'dateTime' : tz()) } }}
+                    </p>
                   }
                 </div>
               }
@@ -259,6 +279,7 @@ interface SlotTarget {
       (jump)="jumpTo($event)"
       (seeRules)="ruleCard()?.reveal()"
       (signUp)="signupOpen.set(true)"
+      (linked)="signupOpen.set(true)"
     />
 
     <p-dialog
@@ -426,6 +447,13 @@ interface SlotTarget {
     .pickup__desc { color: var(--fs-text-muted); font-size: 0.88rem; }
     .badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; }
     .pending { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.88rem; font-weight: 600; }
+    .link-missing {
+      display: inline-flex; gap: 0.4rem; align-items: center; align-self: start; min-height: var(--fs-target-sm, 2.75rem);
+      padding: 0.2rem 0.75rem; border: 1px solid var(--fs-warning-border, var(--fs-border-strong)); border-radius: 999px;
+      background: var(--fs-surface-muted); color: var(--fs-warning-text); font: inherit; font-size: 0.88rem; font-weight: 600;
+      cursor: pointer;
+    }
+    .link-missing:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
     .muted { margin: 0; color: var(--fs-text-muted); }
     .slot-state { display: flex; gap: 0.4rem; align-items: center; margin: 0.35rem 0 0; color: var(--fs-primary-strong); font-weight: 600; }
     .slot-state--unconfirmed { color: var(--fs-warning-text); }
@@ -512,6 +540,25 @@ export class StorePickupsTab {
     this.signupOpen.set(true);
   }
 
+  /** "Verknüpfung fehlt": the same dialog books a new linked pickup for the own sign-up (decision 165 S3). */
+  protected openRepair(pickup: Pickup, until: string): void {
+    const store = this.ctx.data();
+    if (!store) return;
+    this.signupTarget.set({
+      storeId: store.id,
+      storeName: store.name,
+      pickupAt: pickup.pickupAt,
+      timeZone: this.tz(),
+      linkMissingUntil: until,
+    });
+    this.signupOpen.set(true);
+  }
+
+  /** Other people's sign-ups waiting for a new linked pickup (store managers see them). */
+  protected othersMissingLink(pickup: Pickup): PickupSlot[] {
+    return pickup.occupiedSlots.filter((slot) => slot.user.id !== this.myId() && !!slot.linkMissingUntil);
+  }
+
   // --- blocked for this person (decision 165 S2) -------------------------------------------------------------------
 
   protected readonly blockedOpen = signal(false);
@@ -527,7 +574,8 @@ export class StorePickupsTab {
         reason !== PickupEligibilityReason.AlreadySignedUp &&
         reason !== PickupEligibilityReason.NoFreeSlot,
     ).length;
-    const rules = e.reasons.includes(PickupEligibilityReason.AutomationRule) ? (e.ruleBlocks?.length ?? 0) : 0;
+    // decision 165 S3: a missing linked pickup alone is no lock, the sign-up dialog books it in the same step
+    const rules = e.reasons.includes(PickupEligibilityReason.AutomationRule) ? lockingBlocks(e.ruleBlocks).length : 0;
     return others + rules;
   }
 
@@ -560,10 +608,14 @@ export class StorePickupsTab {
     });
   }
 
-  protected afterSignup(result: SignupResult): void {
+  protected afterSignup(result: SignupDone): void {
+    const store = this.ctx.data();
+    const linked = result.linkedStores ?? [];
     this.messages.add({
       severity: 'success',
-      summary: this.i18n.t(result.confirmed ? 'pickups.signup.doneConfirmed' : 'pickups.signup.doneUnconfirmed'),
+      summary: linked.length
+        ? this.i18n.t('pickups.linked.done', { stores: [...(store && !this.signupTarget()?.linkMissingUntil ? [store.name] : []), ...linked].join(', ') })
+        : this.i18n.t(result.confirmed ? 'pickups.signup.doneConfirmed' : 'pickups.signup.doneUnconfirmed'),
     });
     this.reload();
   }

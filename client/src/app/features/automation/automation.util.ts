@@ -94,7 +94,8 @@ export function emptyLinkRule(): LinkedStoreRule {
     windowMode: LinkedStoreWindowMode.SameDay,
     windowDaysBefore: 0,
     windowDaysAfter: 0,
-    graceMinutes: 30,
+    // decision 165 S3 (Q4): "Frist nach Austragung" in the linked store, 2 hours by default
+    graceMinutes: 120,
     message: '',
   };
 }

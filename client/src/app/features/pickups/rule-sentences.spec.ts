@@ -1,5 +1,22 @@
-import { LinkedStoreWindowMode, PolicyBlock, PolicyRule, StoreRuleSummary } from '../../api';
-import { RuleFormat, blockReason, linkWindow, ruleCount, summaryLines } from './rule-sentences';
+import {
+  LinkedOptionRule,
+  LinkedStoreWindowMode,
+  PickupEligibilityReason,
+  PolicyBlock,
+  PolicyRule,
+  StoreRuleSummary,
+} from '../../api';
+import {
+  RuleFormat,
+  blockReason,
+  bookable,
+  linkWindow,
+  linkedSteps,
+  lockingBlocks,
+  onlyLinkMissing,
+  ruleCount,
+  summaryLines,
+} from './rule-sentences';
 
 /** Formatting stub: days and dates as given, lists joined with the kind, nested parts as "key(params)". */
 const fmt: RuleFormat = {
@@ -98,7 +115,7 @@ describe('rule sentences (decision 165 S2)', () => {
     });
   });
 
-  it('linked store: stores, window and dates, the action opens the linked store', () => {
+  it('linked store: stores, window and dates, the action opens the linked step of the sign-up (S3)', () => {
     const reason = blockReason(
       {
         rule: PolicyRule.LinkedStore,
@@ -120,7 +137,12 @@ describe('rule sentences (decision 165 S2)', () => {
       from: 'day(2026-11-08)',
       to: 'day(2026-11-11)',
     });
-    expect(reason.action).toMatchObject({ kind: 'store', store: { id: 'y' } });
+    expect(reason.action).toMatchObject({
+      kind: 'linked',
+      store: { id: 'y' },
+      label: { key: 'pickups.blocked.LINKED_STORE.action', params: { store: "Babu's Bakery or Bäckerei Vohdin" } },
+    });
+    expect(reason.fix).toEqual({ key: 'pickups.blocked.LINKED_STORE.fix', params: {} });
   });
 
   it('experience, cleaning and unknown rules', () => {
@@ -136,5 +158,48 @@ describe('rule sentences (decision 165 S2)', () => {
       chip: 'pickups.blocked.rule.other',
       text: { key: 'pickups.blocked.other' },
     });
+  });
+});
+
+describe('linked-store step (decision 165 S3)', () => {
+  const linkBlock = (ids: string[]): PolicyBlock => ({
+    rule: PolicyRule.LinkedStore,
+    params: { stores: ids.map((id) => store(id, id)) },
+  });
+  const gap: PolicyBlock = { rule: PolicyRule.Gap, params: { gapDays: 2 } };
+  const rule = (ids: string[], satisfied = false): LinkedOptionRule => ({
+    stores: ids.map((id) => store(id, id)),
+    windowMode: LinkedStoreWindowMode.SameDay,
+    before: 0,
+    after: 0,
+    from: '2026-11-12T23:00:00Z',
+    to: '2026-11-12T23:00:00Z',
+    options: [],
+    notMember: [],
+    ...(satisfied ? { satisfiedBy: { store: store(ids[0], ids[0]), pickupAt: '2026-11-13T17:00:00Z' } } : {}),
+  });
+
+  it('a missing linked pickup alone is booked in the dialog, not a lock', () => {
+    const e = { eligible: false, reasons: [PickupEligibilityReason.AutomationRule], ruleBlocks: [linkBlock(['y'])] };
+    expect(onlyLinkMissing(e)).toBe(true);
+    expect(lockingBlocks(e.ruleBlocks)).toEqual([]);
+    expect(onlyLinkMissing({ ...e, ruleBlocks: [linkBlock(['y']), gap] })).toBe(false);
+    expect(lockingBlocks([linkBlock(['y']), gap])).toHaveLength(2);
+    expect(onlyLinkMissing({ ...e, reasons: [PickupEligibilityReason.AutomationRule, PickupEligibilityReason.NotTeamMember] })).toBe(false);
+    expect(onlyLinkMissing({ eligible: true, reasons: [] })).toBe(false);
+  });
+
+  it('one step per blocking rule without a satisfying pickup; all open rules when repairing', () => {
+    const rules = [rule(['y', 'z']), rule(['w'], true), rule(['v'])];
+    expect(linkedSteps(rules, [linkBlock(['z', 'y'])], false)).toEqual([rules[0]]);
+    expect(linkedSteps(rules, [], true)).toEqual([rules[0], rules[2]]);
+    expect(linkedSteps(rules, [], false)).toEqual([]);
+  });
+
+  it('an option is bookable without reasons and rule blocks there', () => {
+    const option = { store: store('y', 'y'), pickupAt: '2026-11-12T17:00:00Z', freeCount: 2, reasons: [], ruleBlocks: [] };
+    expect(bookable(option)).toBe(true);
+    expect(bookable({ ...option, ruleBlocks: [gap] })).toBe(false);
+    expect(bookable({ ...option, reasons: [PickupEligibilityReason.HygieneCertificateRequired] })).toBe(false);
   });
 });

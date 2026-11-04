@@ -264,4 +264,38 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     expect(qa('[data-testid="stores.pickups.slot.blocked"]')).toHaveLength(0);
     expect(qa('[data-testid="stores.pickups.slot.free"]')).toHaveLength(1);
   });
+
+  // ---- decision 165 S3: linked-store step and "Verknüpfung fehlt" -------------------------------------------------
+
+  const linkOnly = {
+    ...pickup(SAT, 2, []),
+    eligibility: {
+      eligible: false,
+      reasons: ['AUTOMATION_RULE'],
+      ruleBlocks: [{ rule: 'LINKED_STORE', params: { stores: [{ id: 'y', name: 'Babu' }] } }],
+    },
+  };
+
+  it('members: a pickup that only misses its linked pickup stays a free place (the dialog books both)', async () => {
+    await open({}, [linkOnly], RULES_ON);
+    expect(qa('[data-testid="stores.pickups.slot.blocked"]')).toHaveLength(0);
+    expect(qa('[data-testid="stores.pickups.slot.free"]')).toHaveLength(1);
+  });
+
+  it('members: together with another rule the missing linked pickup is locked and counted', async () => {
+    const both = {
+      ...linkOnly,
+      eligibility: { ...linkOnly.eligibility, ruleBlocks: [...linkOnly.eligibility.ruleBlocks, ...blockedPickup.eligibility.ruleBlocks] },
+    };
+    await open({}, [both], RULES_ON);
+    expect(qa('[data-testid="stores.pickups.slot.blocked"]')[0].getAttribute('data-rules')).toBe('2');
+  });
+
+  it('managers see whose sign-up misses its linked pickup and until when', async () => {
+    const waiting = pickup(THU, 3, [{ user: PRIYA, confirmed: true, linkMissingUntil: '2030-11-06T11:00:00Z' } as { user: unknown; confirmed: boolean }]);
+    await open(MANAGER, [waiting], RULES_ON);
+    const line = qa('[data-testid="stores.pickups.linkMissingOther"]');
+    expect(line).toHaveLength(1);
+    expect(line[0].textContent).toContain('pickups.linked.missingOther');
+  });
 });

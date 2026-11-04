@@ -27,6 +27,8 @@ export const LUCIDE_TO_PI: Readonly<Record<string, string>> = {
   scale: 'sliders-h',
   award: 'trophy',
   'life-buoy': 'question-circle',
+  // decision 165 S3: PICKUP_LINK_MISSING (the font has no broken link)
+  unlink: 'link',
   // achievement icons (seed and upstream data)
   'cooking-pot': 'shopping-bag',
   cpu: 'microchip',
