@@ -42,7 +42,7 @@ const ROUTES: RouteCase[] = [
   { path: `/regions/${ZUERICH_STADT}/stores`, role: 'foodsaver' },
   { path: '/stores/mine', role: 'foodsaver' },
   { path: `/stores/${STORE_S01}`, role: 'foodsaver' },
-  { path: '/pickups/mine', role: 'foodsaver' },
+  { path: '/pickups', role: 'foodsaver' },
   { path: '/me/pickups/history', role: 'foodsaver' },
   { path: '/quizzes', role: 'foodsaver' },
   { path: '/mailboxes', role: 'bieb' },

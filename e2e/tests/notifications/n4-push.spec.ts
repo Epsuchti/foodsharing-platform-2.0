@@ -54,7 +54,7 @@ test('N4 opt-in card appears once and can be dismissed @N4', async ({ as }) => {
   await stubPush(page);
   // first session: no card yet
   await page.goto('/dashboard');
-  await expect(page.getByTestId('dashboard.page.nextStep')).toBeVisible();
+  await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
   await expect(page.getByTestId('notifications.optIn.card')).toHaveCount(0);
   await expect.poll(() => counted(page)).toBe('1');
 
@@ -69,7 +69,7 @@ test('N4 opt-in card appears once and can be dismissed @N4', async ({ as }) => {
   // never again on this device
   await page.evaluate(() => sessionStorage.clear());
   await page.reload();
-  await expect(page.getByTestId('dashboard.page.nextStep')).toBeVisible();
+  await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('fs.pushPrompt') ?? '{}').done)).toBe('dismissed');
   await expect(page.getByTestId('notifications.optIn.card')).toHaveCount(0);
 });

@@ -214,8 +214,8 @@ export const SWEEP_ROUTES: RouteCase[] = [
   })),
   { path: `/regions/${ZH}/stores`, role: 'foodsaver', ready: 'stores.region.filters' },
   { path: `/regions/${ZH}/stores/import`, role: 'orga', ready: 'stores.import.columns' },
+  // one page since 2026-11-04 (/pickups/mine redirects to /pickups#mine)
   { path: '/pickups', role: 'foodsaver', ready: 'pickups.options.state', mobile: true },
-  { path: '/pickups/mine', role: 'foodsaver', ready: 'pickups.mine.state' },
   { path: '/pickups/agenda/2026-11-05', role: 'foodsaver', ready: 'pickups.agenda.day' },
   { path: '/me/pickups/history', role: 'foodsaver', ready: 'pickups.past.state' },
   { path: `/users/${FOODSAVER}/pickups`, role: 'bot', ready: 'pickups.past.state' },

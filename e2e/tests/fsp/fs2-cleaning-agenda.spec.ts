@@ -15,7 +15,7 @@ test.describe('my cleaning shifts', () => {
     await page.goto('/dashboard');
     await expect(page.getByTestId('dashboard.pickups.cleaning').first()).toBeVisible();
 
-    await page.goto('/pickups/mine');
+    await page.goto('/pickups');
     await expectDataState(page, 'pickups.mine.state', 'success');
     const shift = page.locator(`[data-testid="pickups.mine.cleaning"][data-fsp="${WIEDIKON_NAME}"]`);
     await expect(shift).toHaveAttribute('data-confirmed', 'false');
@@ -25,7 +25,7 @@ test.describe('my cleaning shifts', () => {
     await expectDataState(page, 'pickups.agenda.state', 'success');
     await expect(page.locator(`[data-testid="pickups.agenda.cleaning"][data-fsp="${WIEDIKON_NAME}"]`)).toBeVisible();
 
-    await page.goto('/pickups/mine');
+    await page.goto('/pickups');
     await shift.getByTestId('pickups.mine.cleaning.signOut').click();
     await page.locator('.p-confirmdialog-accept-button').click();
     await expect(shift).toHaveCount(0);
@@ -70,7 +70,7 @@ test.describe('automatic confirmation and time zone', () => {
     const signup = await api.post(`/api/food-share-points/${FSPS.wiedikon}/cleaning/shifts/${free.shiftAt}/signups`);
     expect(signup.ok()).toBe(true);
     expect((await signup.json()).confirmed).toBe(true);
-    await foodsaver.goto('/pickups/mine');
+    await foodsaver.goto('/pickups');
     await expect(foodsaver.locator('[data-testid="pickups.mine.cleaning"]').first()).toHaveAttribute('data-confirmed', 'true');
   });
 });

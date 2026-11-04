@@ -2,8 +2,9 @@ import { injectApiError } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Dashboard (plan-m7 Q7, A19): activity feed with filter chips, nearby baskets card, the card without a profile
- * address, feed loading and error × light/dark × de/fr. Baselines are generated in Docker in the end batch
+ * Dashboard (plan-m7 Q7, A19, home rework 2026-11-04): activity feed with filter chips, nearby baskets card, the card
+ * without a profile address, feed loading and error, the date-tile pickups card and the new home cards (help needed,
+ * waiting for you, upcoming events, your stores; help loading and error) × light/dark × de/fr. Baselines are generated in Docker in the end batch
  * (decision 69: `e2e/scripts/screenshots.sh --update-snapshots`).
  */
 forEachVariant((variant) => {
@@ -28,6 +29,33 @@ forEachVariant((variant) => {
       await page.goto('/dashboard');
       await expect(page.getByTestId('dashboard.activity.state')).toHaveAttribute('data-state', 'loading');
       await visual.expectElement(page.getByTestId('dashboard.activity'), `dashboard-activity-loading-${variant.name}`, { waitForData: false });
+    });
+
+    screenshotTest('home cards: next pickups, help needed, waiting, events, stores @A19 @screenshot', async ({ page, visual }) => {
+      await page.goto('/dashboard');
+      await expect(page.getByTestId('dashboard.pickups.state')).toHaveAttribute('data-state', 'success');
+      await visual.expectElement(page.getByTestId('dashboard.pickups'), `dashboard-pickups-tiles-${variant.name}`);
+      for (const card of ['help', 'waiting', 'events', 'stores']) {
+        const element = page.getByTestId(`dashboard.${card}`);
+        await element.scrollIntoViewIfNeeded();
+        await expect(page.getByTestId(`dashboard.${card}.state`)).toHaveAttribute('data-state', 'success');
+        await visual.expectElement(element, `dashboard-${card}-${variant.name}`);
+      }
+    });
+
+    screenshotTest('help needed card loading and error @screenshot', async ({ page, visual }) => {
+      const delay = await injectApiError(page, { url: '/api/users/me/pickups/options', delayMs: 30_000 });
+      await page.goto('/dashboard');
+      const card = page.getByTestId('dashboard.help');
+      await card.scrollIntoViewIfNeeded();
+      await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'loading');
+      await visual.expectElement(card, `dashboard-help-loading-${variant.name}`, { waitForData: false });
+      await delay.remove();
+      await injectApiError(page, { url: '/api/users/me/pickups/options', status: 503 });
+      await page.reload();
+      await page.getByTestId('dashboard.help').scrollIntoViewIfNeeded();
+      await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'error');
+      await visual.expectElement(page.getByTestId('dashboard.help'), `dashboard-help-error-${variant.name}`);
     });
 
     screenshotTest('activity feed error @A19 @screenshot', async ({ page, visual }) => {
