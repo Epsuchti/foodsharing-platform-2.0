@@ -1,4 +1,14 @@
+import type { Page } from '@playwright/test';
 import { expect, expectDataState, test } from '../../fixtures';
+
+/** Cards below the fold load when their placeholder comes into view (`@defer (on viewport)`): scroll to it first. */
+async function reveal(page: Page, card: 'help' | 'events' | 'stores') {
+  const placeholder = page.locator(`.defer-slot.o-${card}`);
+  if (await placeholder.count()) await placeholder.scrollIntoViewIfNeeded();
+  const element = page.getByTestId(`dashboard.${card}`);
+  await element.scrollIntoViewIfNeeded();
+  return element;
+}
 
 /**
  * Home cards (owner feedback 2026-11-04): help needed soon, waiting for you, upcoming events, your stores. Seed:
@@ -16,26 +26,24 @@ test('A19 home cards link to their pages and help signs up inline @A19 @PU7', as
   await expect(waiting.getByTestId('dashboard.waiting.unread')).toHaveAttribute('data-count', '2');
   await expect(waiting.getByTestId('dashboard.waiting.unconfirmed')).toHaveAttribute('href', '/pickups#mine');
 
-  const help = page.getByTestId('dashboard.help');
-  await help.scrollIntoViewIfNeeded();
+  const help = await reveal(page, 'help');
   await expectDataState(page, 'dashboard.help.state', 'success');
   await expect(help.getByTestId('dashboard.help.option')).toHaveCount(3);
   await expect(help.getByTestId('dashboard.help.all')).toHaveAttribute('href', '/pickups#options');
 
-  const events = page.getByTestId('dashboard.events');
-  await events.scrollIntoViewIfNeeded();
+  const events = await reveal(page, 'events');
   await expectDataState(page, 'dashboard.events.state', 'success');
   await expect(events.getByTestId('dashboard.events.event')).toHaveCount(3);
   await expect(events.locator('[data-testid="dashboard.events.event"][data-status="WONT_JOIN"]')).toHaveCount(0);
 
-  const stores = page.getByTestId('dashboard.stores');
-  await stores.scrollIntoViewIfNeeded();
+  const stores = await reveal(page, 'stores');
   await expectDataState(page, 'dashboard.stores.state', 'success');
   const statuses = await stores.getByTestId('dashboard.stores.store').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-status')));
   expect(statuses.length).toBeGreaterThan(0);
   expect(statuses.indexOf('RED')).toBe(0);
 
   // sign up from the help card: the same dialog as /pickups
+  await help.scrollIntoViewIfNeeded();
   await help.getByTestId('dashboard.help.signUp').first().click();
   await expectDataState(page, 'pickups.signup.state', 'success');
   await expect(page.getByTestId('pickups.signup.confirm')).toBeVisible();

@@ -36,6 +36,9 @@ forEachVariant((variant) => {
       await expect(page.getByTestId('dashboard.pickups.state')).toHaveAttribute('data-state', 'success');
       await visual.expectElement(page.getByTestId('dashboard.pickups'), `dashboard-pickups-tiles-${variant.name}`);
       for (const card of ['help', 'waiting', 'events', 'stores']) {
+        // help, events and stores load on viewport: scroll their placeholder into view first
+        const placeholder = page.locator(`.defer-slot.o-${card}`);
+        if (await placeholder.count()) await placeholder.scrollIntoViewIfNeeded();
         const element = page.getByTestId(`dashboard.${card}`);
         await element.scrollIntoViewIfNeeded();
         await expect(page.getByTestId(`dashboard.${card}.state`)).toHaveAttribute('data-state', 'success');
@@ -46,6 +49,7 @@ forEachVariant((variant) => {
     screenshotTest('help needed card loading and error @screenshot', async ({ page, visual }) => {
       const delay = await injectApiError(page, { url: '/api/users/me/pickups/options', delayMs: 30_000 });
       await page.goto('/dashboard');
+      await page.locator('.defer-slot.o-help').scrollIntoViewIfNeeded();
       const card = page.getByTestId('dashboard.help');
       await card.scrollIntoViewIfNeeded();
       await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'loading');
@@ -53,6 +57,7 @@ forEachVariant((variant) => {
       await delay.remove();
       await injectApiError(page, { url: '/api/users/me/pickups/options', status: 503 });
       await page.reload();
+      await page.locator('.defer-slot.o-help').scrollIntoViewIfNeeded();
       await page.getByTestId('dashboard.help').scrollIntoViewIfNeeded();
       await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'error');
       await visual.expectElement(page.getByTestId('dashboard.help'), `dashboard-help-error-${variant.name}`);

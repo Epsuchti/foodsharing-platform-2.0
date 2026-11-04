@@ -189,5 +189,11 @@ export const FoodsharingPreset = definePreset(LeanAura, {
         borderRadius: '1.25rem',
       },
     },
+    // the input group addon ("kg" of the basket weight) is text, not an icon: Aura's field icon colour is below 4.5:1
+    inputgroup: {
+      addon: {
+        color: '{form.field.color}',
+      },
+    },
   },
 });
