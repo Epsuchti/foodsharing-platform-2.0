@@ -29,7 +29,8 @@ import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.testsupport.JpaSliceTest;
 import network.foodsharing.testsupport.TestUsers;
-import network.foodsharing.upload.service.DiskUploadStorage;
+import network.foodsharing.upload.repository.UploadBlobRepository;
+import network.foodsharing.upload.service.DbUploadStorage;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
@@ -45,7 +46,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @JpaSliceTest
 @Import({IncomingMailProcessor.class, MailService.class, MailboxService.class, MailboxAccessService.class,
         MailAttachmentStore.class, MailHtmlSanitizer.class, UserService.class, UploadService.class,
-        DiskUploadStorage.class})
+        DbUploadStorage.class, UploadBlobRepository.class})
 class IncomingMailProcessorTest {
 
     @Autowired

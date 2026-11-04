@@ -123,6 +123,15 @@ final class ArchitectureRules {
             .or().areDeclaredInClassesThat().haveFullyQualifiedName(BaseEntity.class.getName())
             .should(bePortableColumns());
 
+    // 7b. (decision 158) No entity maps bytes: upload bytes live in upload_blob_chunk, read and written with JdbcClient
+    // by UploadBlobRepository only, so loading an entity never loads a file.
+    static final ArchRule ENTITIES_HAVE_NO_BYTE_ARRAYS = fields()
+            .that().areDeclaredInClassesThat().areAnnotatedWith(Entity.class)
+            .or().areDeclaredInClassesThat().haveFullyQualifiedName(BaseEntity.class.getName())
+            .should().notHaveRawType(byte[].class)
+            .andShould().notHaveRawType(Byte[].class)
+            .because("binary content is stored only in upload_blob_chunk (decision 158)");
+
     // 8. @Scheduled only in *Job classes.
     static final ArchRule SCHEDULED_ONLY_IN_JOBS = methods()
             .that().areAnnotatedWith(Scheduled.class)
@@ -145,6 +154,7 @@ final class ArchitectureRules {
         return List.of(CONTROLLERS_IMPLEMENT_ONE_GENERATED_API, WEB_DOES_NOT_ACCESS_REPOSITORIES, WEB_DOES_NOT_USE_JPA,
                 GENERATED_MODELS_ONLY_AT_THE_EDGE, MUTATING_SERVICES_RECORD_HISTORY, NO_SYSTEM_CLOCK,
                 DEV_CLASSES_ONLY_IN_DEV_PROFILES, ENTITIES_EXTEND_BASE_ENTITY, ENTITY_FIELDS_ARE_PORTABLE,
+                ENTITIES_HAVE_NO_BYTE_ARRAYS,
                 SCHEDULED_ONLY_IN_JOBS, SCHEDULED_JOBS_ARE_LOCKED, NO_FOREIGN_REPOSITORIES);
     }
 

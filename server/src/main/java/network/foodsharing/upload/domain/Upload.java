@@ -10,8 +10,8 @@ import lombok.Setter;
 import network.foodsharing.common.persistence.BaseEntity;
 
 /**
- * An uploaded file (A34). Bytes live in the {@code UploadStorage} under {@link #storageKey}; until a module claims it
- * ({@link #usageCount} &gt; 0) only the owner may read it and it expires at {@link #expiresAt}.
+ * An uploaded file (A34). Bytes live in the {@code UploadStorage} ({@code upload_blob}, decision 158), keyed by the id;
+ * until a module claims it ({@link #usageCount} &gt; 0) only the owner may read it and it expires at {@link #expiresAt}.
  */
 @Getter
 @Setter
@@ -34,6 +34,7 @@ public class Upload extends BaseEntity {
     @Column(name = "sha256", nullable = false, length = 64)
     private String sha256;
 
+    /** Legacy disk path {@code <yy>/<mm>/<uuid>} (seeded rows: {@code seed/<file>}); only the disk import reads it. */
     @Column(name = "storage_key", nullable = false, length = 200)
     private String storageKey;
 
@@ -59,7 +60,7 @@ public class Upload extends BaseEntity {
     @Column(name = "height")
     private Integer height;
 
-    /** Whether the sm/md/lg variants exist in the store as {@code <storage_key>_<size>}. */
+    /** Whether the sm/md/lg variants are stored (blob variants {@code sm|md|lg}). */
     @Column(name = "variants", nullable = false)
     private boolean variants;
 

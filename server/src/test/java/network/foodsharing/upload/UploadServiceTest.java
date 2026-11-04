@@ -14,7 +14,8 @@ import network.foodsharing.testsupport.JpaSliceTest;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.upload.domain.Upload;
 import network.foodsharing.upload.repository.UploadRepository;
-import network.foodsharing.upload.service.DiskUploadStorage;
+import network.foodsharing.upload.repository.UploadBlobRepository;
+import network.foodsharing.upload.service.DbUploadStorage;
 import network.foodsharing.upload.service.UploadAccessRule;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.upload.service.UploadUsage;
@@ -26,9 +27,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
-/** A34: size and type limits, owner-only until claimed, access through the claiming module's rule, expiry. */
+/**
+ * A34: size and type limits, owner-only until claimed, access through the claiming module's rule, expiry; bytes in the
+ * database (decision 158): written with the row, rolled back with it, deleted with it.
+ */
 @JpaSliceTest
-@Import({UploadService.class, DiskUploadStorage.class, UploadServiceTest.Rules.class})
+@Import({UploadService.class, DbUploadStorage.class, UploadBlobRepository.class, UploadServiceTest.Rules.class})
 class UploadServiceTest {
 
     static final UUID READABLE_OWNER = UUID.fromString("00000000-0000-0000-0000-00000000abcd");
@@ -71,6 +75,12 @@ class UploadServiceTest {
 
     @Autowired
     private network.foodsharing.upload.service.UploadStorage storage;
+
+    @Autowired
+    private UploadBlobRepository blobs;
+
+    @Autowired
+    private org.springframework.transaction.PlatformTransactionManager transactions;
 
     private UUID me;
     private UUID other;
@@ -181,21 +191,35 @@ class UploadServiceTest {
     }
 
     @Test
-    void orphanVariantFilesAreRemoved() throws Exception {
-        Upload kept = pdf(me);
-        String orphan = "orphan/" + UUID.randomUUID();
-        storage.write(kept.getStorageKey() + "_sm", new byte[] {1});
-        storage.write(orphan + "_md", new byte[] {1});
-        storage.write(orphan + "_original", new byte[] {1});
-        java.time.Instant later = java.time.Instant.parse("2999-01-01T00:00:00Z");
-        assertThat(uploads.deleteOrphanVariants(later)).isPositive();
-        storage.open(kept.getStorageKey() + "_sm").close();
-        storage.open(orphan + "_original").close();
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> storage.open(orphan + "_md"))
-                .isInstanceOf(java.io.IOException.class);
+    void bytesGoWithTheRow() {
+        Upload upload = pdf(me);
+        assertThat(blobs.exists(upload.getId(), "orig")).isTrue();
+        assertThat(blobs.find(upload.getId(), "orig").orElseThrow().sha256()).isEqualTo(upload.getSha256());
+        uploads.delete(upload);
+        repository.flush();
+        assertThat(blobs.exists(upload.getId(), "orig")).isFalse();
+        assertThat(blobs.chunk(upload.getId(), "orig", 0)).isEmpty();
     }
 
-    /** Seed reset re-inserts image rows with variants=false while their variant files stay: reuse, else render. */
+    @Test
+    void aRolledBackStoreLeavesNoBytes() {
+        java.util.concurrent.atomic.AtomicReference<UUID> id = new java.util.concurrent.atomic.AtomicReference<>();
+        var inner = new org.springframework.transaction.support.TransactionTemplate(transactions);
+        inner.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        assertThatThrownBy(() -> inner.executeWithoutResult(status -> {
+            // system upload (no owner): the outer test transaction's users are invisible here
+            id.set(uploads.store(null, new UploadService.NewFile("a.pdf", "application/pdf",
+                    "%PDF-1.4 x".getBytes())).getId());
+            assertThat(blobs.exists(id.get(), "orig")).isTrue();
+            throw new IllegalStateException("roll back");
+        })).hasMessage("roll back");
+        Boolean blobLeft = inner.execute(status -> blobs.exists(id.get(), "orig"));
+        Boolean rowLeft = inner.execute(status -> repository.existsById(id.get()));
+        assertThat(blobLeft).isFalse();
+        assertThat(rowLeft).isFalse();
+    }
+
+    /** A row without variants whose variant blobs exist is marked; without them its variants are rendered. */
     @Test
     void missingVariantsAreReusedWhenStoredElseRendered() throws Exception {
         java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(400, 300,
@@ -204,24 +228,44 @@ class UploadServiceTest {
         javax.imageio.ImageIO.write(image, "png", png);
         Upload upload = uploads.store(me, new UploadService.NewFile("a.png", "image/png", png.toByteArray()));
         assertThat(upload.isVariants()).isTrue();
-        String md = upload.getStorageKey() + "_md";
         byte[] marker = {1, 2, 3};
-        storage.write(md, marker);
+        storage.write(upload.getId(), "md", "image/jpeg", new java.io.ByteArrayInputStream(marker));
 
         upload.setVariants(false);
         assertThat(uploads.renderMissingVariants()).isGreaterThanOrEqualTo(1);
         assertThat(upload.isVariants()).isTrue();
-        try (InputStream in = storage.open(md)) {
+        try (InputStream in = storage.open(upload.getId(), "md").orElseThrow().stream()) {
             assertThat(in.readAllBytes()).isEqualTo(marker); // reused, not rendered again
         }
 
-        storage.delete(upload.getStorageKey() + "_sm");
-        upload.setVariants(false);
-        uploads.renderMissingVariants();
-        assertThat(upload.isVariants()).isTrue();
-        try (InputStream in = storage.open(upload.getStorageKey() + "_sm")) {
+        Upload bare = uploads.store(me, new UploadService.NewFile("b.png", "image/png", png.toByteArray()));
+        assertThat(uploads.restoreBytes(bare.getId(), png.toByteArray(), java.util.Map.of()))
+                .containsOnlyKeys("sm", "md", "lg"); // rendered
+        try (InputStream in = storage.open(bare.getId(), "sm").orElseThrow().stream()) {
             assertThat(in.readAllBytes()).startsWith((byte) 0xFF, (byte) 0xD8);
         }
-        assertThat(uploads.open(upload, "md").mimeType()).isEqualTo("image/jpeg");
+        UploadService.Download md = uploads.open(bare, "md");
+        assertThat(md.mimeType()).isEqualTo("image/jpeg");
+        assertThat(md.sha256()).isNotEqualTo(bare.getSha256());
+        assertThat(uploads.open(bare, null).sha256()).isEqualTo(bare.getSha256());
+    }
+
+    @Test
+    void restoreBytesUsesGivenVariantsWhenComplete() throws Exception {
+        java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(40, 30,
+                java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(image, "png", png);
+        Upload upload = uploads.store(me, new UploadService.NewFile("c.png", "image/png", png.toByteArray()));
+        upload.setWidth(null); // a seeded row without dimensions: they come from the image header
+        upload.setHeight(null);
+        java.util.Map<String, byte[]> given = java.util.Map.of("sm", new byte[] {1}, "md", new byte[] {2},
+                "lg", new byte[] {3});
+        assertThat(uploads.restoreBytes(upload.getId(), png.toByteArray(), given)).isSameAs(given);
+        assertThat(upload.getWidth()).isEqualTo(40);
+        assertThat(upload.getHeight()).isEqualTo(30);
+        try (InputStream in = uploads.open(upload, "lg").stream()) {
+            assertThat(in.readAllBytes()).containsExactly(3);
+        }
     }
 }

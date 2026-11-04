@@ -76,6 +76,11 @@ class LiquibasePostgresIT {
                 + "where constraint_type = 'FOREIGN KEY' and table_name = 'intro_pickup' "
                 + "and constraint_name like '%store%'", Integer.class)).isEqualTo(1);
 
+        // decision 158: upload bytes as bytea, stored out of line without compression (STORAGE EXTERNAL = 'e')
+        assertThat(jdbc.queryForObject("select format_type(atttypid, atttypmod) || '|' || attstorage::text from pg_attribute "
+                + "where attrelid = 'upload_blob_chunk'::regclass and attname = 'bytes'", String.class))
+                .isEqualTo("bytea|e");
+
         List<String> tables =jdbc.queryForList("select table_name from information_schema.tables "
                 + "where table_schema = 'public'", String.class);
         if (tables.contains("auth_identity")) {

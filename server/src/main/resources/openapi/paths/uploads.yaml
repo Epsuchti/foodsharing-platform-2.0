@@ -56,7 +56,7 @@
     tags:
       - uploads
     operationId: downloadUpload
-    summary: Download a file.
+    summary: Download a file (ETag + conditional GET, decision 158).
     x-permission: owner, the owning module access rule, or public (A41)
     parameters:
       - name: uploadId
@@ -71,14 +71,35 @@
         schema:
           type: string
           enum: [sm, md, lg]
+      - name: If-None-Match
+        in: header
+        description: 'ETag of a cached copy (decision 158); a match answers 304 without a body.'
+        schema:
+          type: string
     responses:
       "200":
         description: File
+        headers:
+          ETag:
+            description: 'Quoted sha256 of the served bytes (original or variant); the content never changes.'
+            schema:
+              type: string
+          Cache-Control:
+            description: 'public, max-age=604800, immutable for public uploads; private, no-cache otherwise.'
+            schema:
+              type: string
         content:
           application/octet-stream:
             schema:
               type: string
               format: binary
+      "304":
+        description: Not modified (If-None-Match matched the ETag)
+        headers:
+          ETag:
+            description: 'Quoted sha256 of the served bytes.'
+            schema:
+              type: string
       "401":
         description: AUTHENTICATION_REQUIRED
         content:
