@@ -122,13 +122,13 @@ class AccountFlowIT {
         assertThat(outbox.enqueue(draft)).isNull();
         String page = mvc.perform(get("/api/admin/users/bounced").cookie(login(SeedUsers.ORGA)))
                 .andReturn().getResponse().getContentAsString();
-        assertThat((java.util.List<String>) JsonPath.read(page, "$.items[*].user.id"))
+        assertThat(JsonPath.<java.util.List<String>>read(page, "$.items[*].user.id"))
                 .contains(SeedUsers.BIEB.id().toString());
         mvc.perform(delete("/api/users/" + SeedUsers.BIEB.id() + "/email-bounce").with(csrf())
                 .cookie(login(SeedUsers.BIEB))).andExpect(status().isNoContent());
         page = mvc.perform(get("/api/admin/users/bounced").cookie(login(SeedUsers.ORGA)))
                 .andReturn().getResponse().getContentAsString();
-        assertThat((java.util.List<String>) JsonPath.read(page, "$.items[*].user.id"))
+        assertThat(JsonPath.<java.util.List<String>>read(page, "$.items[*].user.id"))
                 .doesNotContain(SeedUsers.BIEB.id().toString());
     }
 }

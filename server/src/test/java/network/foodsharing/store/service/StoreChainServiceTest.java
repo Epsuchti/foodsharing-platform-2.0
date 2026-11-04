@@ -29,6 +29,7 @@ import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 /** Chain rights (ORGA / STORE_CHAINS admins / KAM / foodsaver), KAM validation and KAM history. */
 class StoreChainServiceTest {
@@ -119,7 +120,7 @@ class StoreChainServiceTest {
         User unverified = user(Role.STORE_MANAGER, false);
         User foodsaver = user(Role.FOODSAVER, true);
         User manager = user(Role.STORE_MANAGER, true);
-        when(users.findActive(any(java.util.Collection.class))).thenReturn(List.of(unverified, foodsaver, manager));
+        when(users.findActive(ArgumentMatchers.<java.util.Collection<UUID>>any())).thenReturn(List.of(unverified, foodsaver, manager));
         assertThat(codeOf(() -> service.update(CHAIN, input(null, List.of(unverified.getId())))))
                 .isEqualTo(ApiErrorCode.INVALID_KAM);
         assertThat(codeOf(() -> service.update(CHAIN, input(null, List.of(foodsaver.getId())))))
@@ -140,7 +141,7 @@ class StoreChainServiceTest {
         old.setUserId(UUID.randomUUID());
         when(kams.findByChainId(CHAIN)).thenReturn(List.of(old));
         User manager = user(Role.STORE_MANAGER, true);
-        when(users.findActive(any(java.util.Collection.class))).thenReturn(List.of(manager));
+        when(users.findActive(ArgumentMatchers.<java.util.Collection<UUID>>any())).thenReturn(List.of(manager));
         service.update(CHAIN, input(null, List.of(manager.getId())));
         verify(kams).delete(old);
         verify(history).event(StoreChainAction.KAM_REMOVED, CHAIN);

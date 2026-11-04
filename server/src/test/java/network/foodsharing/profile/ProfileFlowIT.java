@@ -115,7 +115,7 @@ class ProfileFlowIT {
     void commitmentsForSelf() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         String json = body(get("/api/users/" + SeedUsers.FOODSAVER.id() + "/commitments?weeks=8").cookie(foodsaver));
-        assertThat((List<Object>) JsonPath.read(json, "$.weeks")).hasSize(8);
+        assertThat(JsonPath.<List<Object>>read(json, "$.weeks")).hasSize(8);
         assertThat((String) JsonPath.read(json, "$.weeks[7].weekStart")).isEqualTo("2026-11-02");
     }
 
@@ -138,9 +138,9 @@ class ProfileFlowIT {
         Cookie jumper = login(SeedUsers.JUMPER);
         assertThat(bellTypes(jumper)).contains("BANANA_GIVEN");
         String received = body(get("/api/users/" + target + "/bananas?direction=received").cookie(jumper));
-        assertThat((List<Object>) JsonPath.read(received, "$")).hasSize(2);
+        assertThat(JsonPath.<List<Object>>read(received, "$")).hasSize(2);
         String sent = body(get("/api/users/" + SeedUsers.FOODSAVER.id() + "/bananas?direction=sent").cookie(jumper));
-        assertThat((List<Object>) JsonPath.read(sent, "$")).hasSize(3);
+        assertThat(JsonPath.<List<Object>>read(sent, "$")).hasSize(3);
 
         Cookie newbie = login(SeedUsers.NEWBIE);
         mvc.perform(delete("/api/users/" + target + "/bananas/" + SeedUsers.GUIDE.id()).with(csrf()).cookie(newbie))
@@ -157,11 +157,11 @@ class ProfileFlowIT {
     void buddyRequestAcceptRemove() throws Exception {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         String requests = body(get("/api/users/me/buddies/requests").cookie(foodsaver));
-        assertThat((List<String>) JsonPath.read(requests, "$[*].id")).containsExactly(SeedUsers.JUMPER.id().toString());
+        assertThat(JsonPath.<List<String>>read(requests, "$[*].id")).containsExactly(SeedUsers.JUMPER.id().toString());
         mvc.perform(post("/api/users/" + SeedUsers.JUMPER.id() + "/buddies").with(csrf()).cookie(foodsaver))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONFIRMED"));
         String mine = body(get("/api/users/me/buddies").cookie(foodsaver));
-        assertThat((List<Object>) JsonPath.read(mine, "$")).hasSize(3);
+        assertThat(JsonPath.<List<Object>>read(mine, "$")).hasSize(3);
 
         Cookie guide = login(SeedUsers.GUIDE);
         mvc.perform(post("/api/users/" + SeedUsers.ORGA.id() + "/buddies").with(csrf()).cookie(guide))
@@ -183,7 +183,7 @@ class ProfileFlowIT {
         String wall = "/api/users/" + SeedUsers.FOODSAVER.id() + "/wall";
         Cookie bieb = login(SeedUsers.BIEB);
         String page = body(get(wall).cookie(bieb));
-        assertThat((List<Object>) JsonPath.read(page, "$.items")).hasSize(6);
+        assertThat(JsonPath.<List<Object>>read(page, "$.items")).hasSize(6);
         mvc.perform(json(post(wall), "{\"body\":\"Hallo\"}").cookie(bieb)).andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("WALL_NOT_ACCESSIBLE"));
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
