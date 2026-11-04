@@ -602,6 +602,12 @@ learning pages are mandatory, extra region-specific steps (e.g. "attend newcomer
 
 ### 11.2 Public explainer page (`/`, logged out)
 
+> Amended by decision 160 (C17, 2026-11-04): `/` is Variant D of `docs/design/landing-page-proposal.md`. E-Mail is the
+> primary CTA and Google second; four static start steps instead of the journey preview; the postcode search shows a
+> result card (active cooperations, members, nearest Fairteiler) and a tile-free map preview instead of the region
+> card with ambassadors, next EinAb dates and the map; businesses get "Partner werden" (→ `/support`) instead of a
+> contact form. The list below is the original plan.
+
 Clear, warm, fast (static content + one public stats call), in all five languages. Sections:
 
 1. **Hero**: one sentence ("Rette Lebensmittel in deiner Nähe"), primary CTA **"Mit Google mitmachen"**,
