@@ -31,6 +31,7 @@ mediation_request
 intro_pickup_comment
 awarded_achievement
 user_wall_post
+upload_blob_chunk
 survey_coauthor
 survey_answer
 store_grocery
@@ -127,12 +128,12 @@ intro_pickup_slot
 survey_response
 oauth_authorization_request
 forum_post
-upload
 survey_question
 quiz_answer
 pickup_policy_linked_store
 mail_message
 event
+upload_blob
 region_onboarding_step
 achievement
 resource
@@ -142,6 +143,7 @@ food_share_point
 intro_pickup
 pickup_policy
 forum_thread
+upload
 survey
 store
 user_account
