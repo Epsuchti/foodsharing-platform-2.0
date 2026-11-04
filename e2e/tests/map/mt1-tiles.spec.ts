@@ -5,12 +5,13 @@ import { openStore } from '../stores/_stores';
 /**
  * MT1 self-hosted map tiles (decision 159): every map draws the vector basemap from /tiles/basemap.pmtiles on our
  * own origin (e2e serves the committed Zurich fixture, e2e/fixtures/tiles). A missing file shows the tile error with
- * retry while the markers stay usable; the dark theme gets the dark flavor.
+ * retry while the markers stay usable; the dark theme gets the dark flavor. MT2 (decision 163) moves the file to its own
+ * tile server behind the same path, so the range request contract below is also its browser-facing test.
  */
 
 const map = (page: Page) => page.getByTestId('map.page.map');
 
-test('MT1 the basemap answers a range request with 206 and the PMTiles v3 magic @MT1', async ({ page }) => {
+test('MT1 the basemap answers a range request with 206 and the PMTiles v3 magic @MT1 @MT2', async ({ page }) => {
   const response = await page.request.get('/tiles/basemap.pmtiles', { headers: { Range: 'bytes=0-126' } });
   expect(response.status()).toBe(206);
   expect(response.headers()['content-range']).toMatch(/^bytes 0-126\/\d+$/);
