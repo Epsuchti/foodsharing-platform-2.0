@@ -1,5 +1,5 @@
 import { type ApiClient, expect, expectDataState, seedStore, test } from '../../fixtures';
-import { type AuditDto, S06, S06_A, S06_B, createPickup, openAutomation, savePolicy, setSwitch, typeNumber, waitForAudit } from './_automation';
+import { type AuditDto, S06, S06_A, S06_B, createPickup, openAutomation, pickLinkedStore, savePolicy, setSwitch, typeNumber, waitForAudit } from './_automation';
 
 /** AU1: pickup sign-up automation per store (one switch, rules, excluded dates, linked stores; no dry run: decision 165). */
 test.use({ role: 'bieb', seedReset: 'test' });
@@ -92,11 +92,9 @@ test('AU1 linked-store editor saves a bidirectional rule with message preview, m
   await page.getByTestId('automation.policy.addLink').click();
   const link = page.getByTestId('automation.policy.link.0');
   await link.getByTestId('automation.policy.link.0.bidirectional').click();
-  const stores = link.getByTestId('automation.policy.link.0.stores');
-  await stores.click();
-  await page.locator('.p-multiselect-overlay').getByText(seedStore('S-01').name, { exact: true }).click();
-  await stores.locator('.p-multiselect-dropdown').click();
-  await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+  // decision 165 S4: stores come from the cross-region picker; bieb manages S-01, so both ways stays possible
+  await pickLinkedStore(page, 0, seedStore('S-01').name);
+  await expect(link.getByTestId('automation.policy.link.0.bidirectional').locator('input')).toBeChecked();
   await link.getByTestId('automation.policy.link.0.message.placeholder.linkedStoreName').click();
   await expect(link.getByTestId('automation.policy.link.0.message.preview')).toContainText(seedStore('S-01').name);
   await savePolicy(page);

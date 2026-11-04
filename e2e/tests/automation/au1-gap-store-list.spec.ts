@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { type ApiClient, expect, expectDataState, seedStore, test } from '../../fixtures';
-import { type AuditDto, S06, S06_A, S06_B, createPickup, openAutomation, savePolicy, setSwitch, typeNumber } from './_automation';
+import { type AuditDto, S06, S06_A, S06_B, createPickup, openAutomation, pickLinkedStore, savePolicy, setSwitch, typeNumber } from './_automation';
 
 /**
  * AU1 gap rule with a shared store list (decisions 151, 152). Seed: S-01 (own gap 2, rule on) and S-03 (own rule off)
@@ -233,11 +233,7 @@ test('AU1 gap list: a same-day link to a listed store blocks save, in both cards
   await openAutomation(page, 'S-06', 'policy');
   await setSwitch(page.getByTestId('automation.policy.gapEnabled'), true);
   await page.getByTestId('automation.policy.addLink').click();
-  const stores = page.getByTestId('automation.policy.link.0.stores');
-  await stores.click();
-  await page.locator('.p-multiselect-overlay').getByText(S05.name, { exact: true }).click();
-  await stores.locator('.p-multiselect-dropdown').click();
-  await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+  await pickLinkedStore(page, 0, S05.name);
 
   await expectDataState(page, 'automation.policy.gapStores.state', 'success');
   await pickGapStore(page, S05.name);

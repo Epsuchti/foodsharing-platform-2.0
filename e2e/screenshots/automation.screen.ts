@@ -1,10 +1,11 @@
 import { seedRegion, seedStore } from '../fixtures';
+import { pickLinkedStore } from '../tests/automation/_automation';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Automation screens (M4 F3/F4, AU1–AU10): store policy form (one switch, decision 165), linked-store editor, decisions,
- * adverts, sign-out alerts, region overview, grouping, metrics — × light/dark × de/fr. Baselines are generated in
- * Docker at the end of the batch (decision 69).
+ * Automation screens (M4 F3/F4, AU1–AU10): store policy form with the status strip and rule cards (one switch,
+ * decision 165), linked-store editor, store picker, Kanäle, decisions, adverts, sign-out alerts, region overview,
+ * grouping, metrics — × light/dark × de/fr. Baselines are generated in CI (decision 161).
  */
 screenshotTest.use({ seedReset: 'test' });
 
@@ -46,11 +47,7 @@ forEachVariant((variant) => {
       await page.goto(`/stores/${S06}/automation/policy`);
       await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
       await page.getByTestId('automation.policy.addLink').click();
-      const stores = page.getByTestId('automation.policy.link.0.stores');
-      await stores.click();
-      await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
-      await stores.locator('.p-multiselect-dropdown').click();
-      await expect(page.locator('.p-multiselect-overlay')).toHaveCount(0);
+      await pickLinkedStore(page, 0, seedStore('S-05').name);
       const picker = page.getByTestId('automation.policy.gapStores');
       await picker.click();
       await page.locator('.p-multiselect-overlay').getByText(seedStore('S-05').name, { exact: true }).click();
@@ -67,6 +64,51 @@ forEachVariant((variant) => {
       await page.goto(`/stores/${S01}/automation/policy`);
       await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
       await visual.expectElement(page.getByTestId('automation.policy.gapCard'), `automation-gap-list-phone-${variant.name}`);
+    });
+
+    screenshotTest('store picker: results across regions, locked both ways, empty, loading, error @AU1 @screenshot', async ({ page, visual }) => {
+      await page.goto(`/stores/${S06}/automation/policy`);
+      await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('automation.policy.addLink').click();
+      await page.getByTestId('automation.policy.link.0').getByTestId('automation.policy.pickStore').locator('button').click();
+      const dialog = page.locator('.p-dialog').filter({ has: page.getByTestId('automation.picker.search') });
+      await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'idle');
+      await page.getByTestId('automation.picker.search').fill('coop');
+      await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'success');
+      await visual.expectElement(dialog, `automation-picker-results-${variant.name}`);
+      await page.getByTestId('automation.picker.search').fill('Spar Oerlikon');
+      await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'empty');
+      await visual.expectElement(dialog, `automation-picker-empty-${variant.name}`);
+      // loading and error (the search request held, then failed)
+      let release: () => void = () => undefined;
+      const held = new Promise<void>((resolve) => (release = resolve));
+      await page.route('**/automation/link-candidates?*', async (route) => {
+        await held;
+        await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true, fieldErrors: [] }) });
+      });
+      await page.getByTestId('automation.picker.search').fill('Winterthur');
+      await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'loading');
+      await visual.expectElement(dialog, `automation-picker-loading-${variant.name}`);
+      release();
+      await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'error');
+      await visual.expectElement(dialog, `automation-picker-error-${variant.name}`);
+      await page.unroute('**/automation/link-candidates?*');
+      await page.getByTestId('automation.picker.search').fill('winterthur');
+      await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('automation.picker.result').filter({ hasText: seedStore('S-23').name }).getByTestId('automation.picker.select').click();
+      await page.getByTestId('automation.picker.done').locator('button').click();
+      await expect(page.getByTestId('automation.policy.link.0.bidiLocked')).toBeVisible();
+      await visual.expectElement(page.getByTestId('automation.policy.link.0'), `automation-link-locked-${variant.name}`);
+    });
+
+    screenshotTest('Kanäle: store chats and who sends here, empty @AU10 @screenshot', async ({ page, visual }) => {
+      await page.goto(`/stores/${S01}/automation/channels`);
+      await expect(page.getByTestId('automation.channels.state')).toHaveAttribute('data-state', 'success');
+      await visual.expectScreen(page, `automation-channels-${variant.name}`, { fullPage: true });
+      await page.goto(`/stores/${S06}/automation/channels`);
+      await expect(page.getByTestId('automation.channels.state')).toHaveAttribute('data-state', 'success');
+      await expect(page.getByTestId('automation.channels.none')).toBeVisible();
+      await visual.expectScreen(page, `automation-channels-empty-${variant.name}`, { fullPage: true });
     });
 
     screenshotTest('store decisions, adverts and sign-out alerts @AU4 @AU5 @AU8 @screenshot', async ({ page, visual }) => {

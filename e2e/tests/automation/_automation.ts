@@ -89,3 +89,20 @@ export async function saveSection(page: Page, prefix: 'automation.policy' | 'aut
   await expect(page.getByTestId(`${prefix}.root`)).toHaveAttribute('data-unsaved', 'false');
   await expect(page.getByTestId(`${prefix}.save`).locator('button')).toBeDisabled();
 }
+
+/**
+ * Links a store to rule `index` with the "Betrieb verknüpfen" picker (decision 165 S4): search, tick the result, take
+ * it over.
+ */
+export async function pickLinkedStore(page: Page, index: number, name: string, query = name): Promise<void> {
+  await page.getByTestId(`automation.policy.link.${index}`).getByTestId('automation.policy.pickStore').locator('button').click();
+  const search = page.getByTestId('automation.picker.search');
+  await expect(search).toBeVisible();
+  await search.fill(query);
+  await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'success');
+  const result = page.getByTestId('automation.picker.result').filter({ hasText: name }).first();
+  await result.getByTestId('automation.picker.select').click();
+  await page.getByTestId('automation.picker.done').locator('button').click();
+  await expect(search).toBeHidden();
+  await expect(page.getByTestId(`automation.policy.link.${index}.stores`)).toContainText(name);
+}
