@@ -9,8 +9,12 @@
 //  - errors.<CODE> is missing for a value of ApiErrorCode in server/.../openapi/schemas/common.yaml
 //  - automation.metric.<KEY with '.' -> '_'> is missing for a value of MetricKey in server/.../schemas/automation.yaml
 //    (except the legacy WOULD_* keys, decision 165)
-// Unused keys are reported as warnings.
-import { readFile } from 'node:fs/promises';
+// Unused keys are reported as warnings. A key counts as used when code names it (the patterns above, or any quoted
+// literal equal to the key), when it starts with a dynamic prefix ('foo.bar.' + x, `foo.bar.${x}`, a prefix of two
+// or more segments passed as an argument, DYNAMIC_PREFIXES), or when a string literal in the server's Java sources
+// equals it exactly (keys the server hands to the client, e.g. JourneyCalculator's onboarding.* actions).
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import {
   GLOBAL_PREFIXES,
@@ -25,8 +29,12 @@ const COMMON_YAML = '../server/src/main/resources/openapi/schemas/common.yaml';
 const AUTOMATION_YAML = '../server/src/main/resources/openapi/schemas/automation.yaml';
 /** Client-side error codes that are not part of ApiErrorCode. */
 const CLIENT_ERROR_CODES = ['NETWORK', 'UNKNOWN', 'CLIENT_ERROR'];
-/** Prefixes resolved at runtime (errors.<code>, lang.<lang>, theme.<mode>, automation.metric.<key>); never reported as unused. */
-const DYNAMIC_PREFIXES = ['errors.', 'lang.', 'theme.', 'automation.metric.'];
+const SERVER_JAVA = '../server/src/main/java';
+/**
+ * Prefixes resolved at runtime (errors.<code>, lang.<lang>, theme.<mode>, automation.metric.<key>, dev.users.<name>
+ * from the server's DevUserCatalog, which builds "dev.users." + name); never reported as unused.
+ */
+const DYNAMIC_PREFIXES = ['errors.', 'lang.', 'theme.', 'automation.metric.', 'dev.users.'];
 
 const errors = [];
 const warnings = [];
@@ -120,7 +128,12 @@ const usagePatterns = [
   new RegExp(`\\w+Key['"]?\\s*[:=]\\s*['"]${KEY}['"]`, 'g'), // labelKey: 'key', titleKey="key"
   new RegExp(`\\btitle\\s*:\\s*['"]${KEY}['"]`, 'g'), // route titles (I18nTitleStrategy)
 ];
-const dynamicPrefixPatterns = [/['"`]([a-zA-Z][\w.]*\.)['"`]\s*\+/g, /`([a-zA-Z][\w.]*\.)\$\{/g];
+const dynamicPrefixPatterns = [
+  /['"`]([a-zA-Z][\w.]*\.)['"`]\s*\+/g, // 'foo.bar.' + x
+  /`([a-zA-Z][\w.]*\.)\$\{/g, // `foo.bar.${x}`
+  // a prefix of two or more segments passed as an argument: opts(values, 'stores.convince.'); not 'stores.'
+  /['"`]([a-zA-Z]\w*\.[\w.]*\.)['"`]\s*[,)]/g,
+];
 
 const files = (await sourceFiles()).filter(
   (file) => !file.endsWith('.spec.ts') && !/[\\/]testing[\\/]/.test(file),
@@ -129,10 +142,14 @@ const used = new Set();
 const dynamicPrefixes = new Set(DYNAMIC_PREFIXES);
 let allSource = '';
 
-/** Doc comments contain example keys; only code counts. */
+/**
+ * Doc comments contain example keys; only code counts. A block comment only starts at a `/*` that is not glued to a
+ * word character, quote, `/` or `*`: otherwise `accept="image/*"` in a template would swallow everything up to the
+ * next `* /` (and with it the keys used in between).
+ */
 function stripComments(source) {
   return source
-    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^\w'"`/*])\/\*[\s\S]*?\*\//g, '$1')
     .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/^\s*\/\/.*$/gm, '');
 }
@@ -162,6 +179,32 @@ for (const file of files) {
           `${file}: key "${key}" belongs to ${owner} and may not be used from ${fileModule ?? 'outside a module'}`,
         );
       }
+    }
+  }
+}
+
+// --- server-provided keys ------------------------------------------------------------------------
+/** All .java files below dir. */
+async function javaFiles(dir) {
+  const result = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      result.push(...(await javaFiles(path)));
+    } else if (entry.name.endsWith('.java')) {
+      result.push(path);
+    }
+  }
+  return result;
+}
+
+// Only exact matches count: Java prefixes ("automation.rule." + x) belong to server message bundles and would hide
+// unused client keys.
+for (const file of await javaFiles(SERVER_JAVA)) {
+  const source = await readFile(file, 'utf8');
+  for (const match of source.matchAll(/"([a-zA-Z][\w-]*(?:\.[\w-]+)+)"/g)) {
+    if (keysByLang.de.has(match[1])) {
+      used.add(match[1]);
     }
   }
 }

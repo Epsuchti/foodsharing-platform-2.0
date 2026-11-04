@@ -60,7 +60,6 @@
   "pickups.options.free": "{free} of {total} slots free",
   "pickups.options.signUp": "Sign up",
   "pickups.mine.title": "My pickups",
-  "pickups.mine.subtitle": "Your upcoming pickups.",
   "pickups.mine.empty": "No pickups planned",
   "pickups.mine.emptyText": "See below where slots are still free.",
   "pickups.mine.confirmed": "Confirmed",

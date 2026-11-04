@@ -590,8 +590,8 @@ paths:
     $ref: './paths/pickups.yaml#/~1api~1users~1{userId}~1pickups'
   /api/users/me/pickups/options:
     $ref: './paths/pickups.yaml#/~1api~1users~1me~1pickups~1options'
-  /api/users/{userId}/agenda/{date}:
-    $ref: './paths/pickups.yaml#/~1api~1users~1{userId}~1agenda~1{date}'
+  /api/users/{userId}/agenda/{day}:
+    $ref: './paths/pickups.yaml#/~1api~1users~1{userId}~1agenda~1{day}'
   # --- store-chains ---
   /api/store-chains:
     $ref: './paths/store-chains.yaml#/~1api~1store-chains'

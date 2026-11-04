@@ -198,8 +198,6 @@
   "introPickups.admin.reason": "Justification",
   "introPickups.admin.guideStats": "{count, plural, one {1 introduction} other {# introductions}}",
   "introPickups.admin.manager": "Gère les nouveaux",
-  "introPickups.admin.active": "Actif",
-  "introPickups.admin.inactive": "En pause",
   "introPickups.admin.enable": "Activer",
   "introPickups.admin.disable": "Mettre en pause",
   "introPickups.admin.enableText": "Modifier l’accompagnement de {name}. La justification est enregistrée.",
