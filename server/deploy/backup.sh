@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Backup of the production stack (D19.2, runbook §7): PostgreSQL custom-format dump, row counts, uploads archive and
-# SHA-256 checksums in BACKUP_DIR (default server/deploy/backups), then removal of own backups older than KEEP_DAYS.
+# Backup of the production stack (D19.2, runbook §7): PostgreSQL custom-format dump (uploads included:
+# upload_blob, decision 158), row counts and SHA-256 checksums in BACKUP_DIR (default server/deploy/backups), then removal of own backups older than KEEP_DAYS.
 #
 #   backup.sh                       run from cron, e.g. "15 2 * * * /opt/foodsharing/server/deploy/backup.sh"
 #
@@ -32,10 +32,7 @@ mv "${DUMP}.partial" "${DUMP}"
 docker compose exec -T postgres psql -U "${DB_USER}" -d "${DB_NAME}" -At -v ON_ERROR_STOP=1 \
   < "${DEPLOY_DIR}/lib/table-counts.sql" > "${BACKUP_DIR}/${NAME}.counts"
 
-echo "==> Archiving uploads"
-docker compose exec -T app tar -C /data -czf - uploads > "${BACKUP_DIR}/${NAME}.uploads.tar.gz"
-
-(cd "${BACKUP_DIR}" && sha256 "${NAME}.dump" "${NAME}.counts" "${NAME}.uploads.tar.gz" > "${NAME}.sha256")
+(cd "${BACKUP_DIR}" && sha256 "${NAME}.dump" "${NAME}.counts" > "${NAME}.sha256")
 
 TABLES="$(wc -l < "${BACKUP_DIR}/${NAME}.counts" | tr -d ' ')"
 ROWS="$(awk -F'|' '{s += $2} END {print s + 0}' "${BACKUP_DIR}/${NAME}.counts")"

@@ -27,7 +27,7 @@ Legend — **Req**: `yes` = the prod profile does not start without it; `opt` = 
 | `GOOGLE_CLIENT_ID` | yes | - | Google Cloud console → OAuth client (web), redirect `https://<APP_DOMAIN>/login/oauth2/code/google` | - | Google login fails until a new client is configured |
 | `GOOGLE_CLIENT_SECRET` | yes | S | same console | create a second secret, deploy, delete the old one | Google login fails |
 | `MAIL_FROM` | opt | - | default `noreply@foodsharing.network` | - | - |
-| `UPLOADS_DIR` | opt | - | default `/data/uploads` (the `uploads` volume) | - | - |
+| `UPLOADS_IMPORT_DIR` | opt | - | empty (off). Only for the one-time import of the old upload volume into the database (decision 158): `/data/uploads` while the volume is still mounted, then remove it | - | - |
 | `PHOTON_URL` | opt | - | default `https://photon.komoot.io` | - | - |
 | `MANAGEMENT_PORT` | opt | - | default `9090` (health + Prometheus, internal only) | - | - |
 | `APP_VERSION` | opt | - | set by the image (`server/deploy/version.txt`); added to every JSON log line | - | - |

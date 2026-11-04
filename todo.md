@@ -23,6 +23,10 @@ Last updated 2026-11-03, after the final gate run.
 - Watch for `mb2-folders.spec.ts:85`, `events.screen.ts:26`, `history.screen.ts:20` and focus or border differences in screenshots under load.
 - **Windows Playwright worker crash** (exit 3221226505 / 0xC0000409): hits a random test about once per full serial run and passes on rerun. Machine infrastructure, not app code. Sharded runs turn video off, which lowers memory.
 
+## After the uploads cut-over (decision 158)
+- Once the hosting cut-over in `todo-eric.md` is done and verified: remove `UploadDiskImport`, `app.uploads.import-dir`/`UPLOADS_IMPORT_DIR` and `UploadBlobRepository.idsWithoutOriginal`, and drop `upload.storage_key` in a new changelog (seeded rows are looked up by it in `UploadSeedFiles`; switch that to the fixed seed ids first).
+- Follow-up (plan Q5, changes A41): don't store `lg` when the original is already at most 1280 px; serve the original instead (saves ~40 % of image bytes).
+
 ## Housekeeping
 - Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`).
 - `SpaForwardingControllerTest.languagePreferenceOrderIsCookieThenAcceptLanguageThenGerman` depends on a stale `static/it` in `target/classes`; run `./mvnw clean verify` first, and make the test independent of the build state instead of changing its expectation.
