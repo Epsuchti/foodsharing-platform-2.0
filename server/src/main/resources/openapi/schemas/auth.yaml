@@ -34,7 +34,7 @@ SessionInfo:
     capabilities:
       type: array
       description: >-
-        Menu capabilities computed on the server from the same rules the endpoints check (decision 161). Filled by
+        Menu capabilities computed on the server from the same rules the endpoints check (decision 162). Filled by
         one SessionInfoEnricher per module; the client shows the matching menu items only for these.
       items:
         $ref: './auth.yaml#/NavCapability'

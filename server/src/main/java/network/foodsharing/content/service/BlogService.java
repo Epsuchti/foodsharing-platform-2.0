@@ -287,7 +287,7 @@ public class BlogService {
                 || regions.isFunctionGroupAdminAnywhere(principal.userId(), WorkingGroupFunction.PR);
     }
 
-    /** What the menu shows of the blog and content administration (decision 161). */
+    /** What the menu shows of the blog and content administration (decision 162). */
     public enum MenuRights { NONE, POSTS, EDITOR }
 
     /**

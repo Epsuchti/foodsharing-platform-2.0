@@ -22,7 +22,7 @@ const SERVER_ICONS = [
   'shopping-basket', 'store', 'trash', 'unlock', 'user-minus', 'user-plus', 'users', 'vote',
 ];
 
-describe('lucide icons → icon font (decision 161)', () => {
+describe('lucide icons → icon font (decision 162)', () => {
   const font = fontIconNames();
   const exists = (cls: string) => font.has(cls.replace(/^pi pi-/, ''));
 

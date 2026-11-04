@@ -30,7 +30,7 @@ import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.Test;
 
-/** Decision 161: the menu item Quizze bearbeiten follows QuizEditorService.mayEdit for any quiz kind. */
+/** Decision 162: the menu item Quizze bearbeiten follows QuizEditorService.mayEdit for any quiz kind. */
 class QuizEditorCapabilityTest {
 
     private final RegionService regions = mock(RegionService.class);

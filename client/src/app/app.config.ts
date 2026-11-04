@@ -4,7 +4,7 @@ import {
   withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
-import { PlatformLocation, isPlatformServer } from '@angular/common';
+import { DOCUMENT, PlatformLocation, isPlatformServer } from '@angular/common';
 import {
   ApplicationConfig,
   ErrorHandler,
@@ -31,6 +31,7 @@ import { AppInfoService } from './core/app-info.service';
 import { AuthFacadeService } from './core/auth/auth-facade.service';
 import { SessionService } from './core/auth/session.service';
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
+import { installClickFocus } from './core/focus/click-focus';
 import { provideBufferedOverlayServices } from './core/overlays/buffered-overlay.services';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
@@ -56,6 +57,7 @@ async function initializeApp(): Promise<void> {
     return;
   }
   warmInitialRoute(inject(PlatformLocation).pathname);
+  installClickFocus(inject(DOCUMENT));
   const session = inject(SessionService);
   const appInfo = inject(AppInfoService);
   const i18n = inject(I18nService);

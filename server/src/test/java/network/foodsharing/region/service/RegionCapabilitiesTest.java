@@ -12,7 +12,7 @@ import network.foodsharing.security.SessionInfoBuilder;
 import network.foodsharing.security.SessionPrincipal;
 import org.junit.jupiter.api.Test;
 
-/** Decision 161: Neulinge, Verifizierung, Mitglieder in the menu only for those who manage users. */
+/** Decision 162: Neulinge, Verifizierung, Mitglieder in the menu only for those who manage users. */
 class RegionCapabilitiesTest {
 
     private static final UUID HOME = UUID.randomUUID();

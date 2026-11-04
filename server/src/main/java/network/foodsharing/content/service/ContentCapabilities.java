@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
 /**
- * SessionInfo.capabilities of the content module (decision 161): BLOG_MANAGE for blog editors and ambassadors of a
+ * SessionInfo.capabilities of the content module (decision 162): BLOG_MANAGE for blog editors and ambassadors of a
  * region, CONTENT_EDIT for ORGA and PR group admins.
  */
 @Configuration(proxyBeanMethods = false)

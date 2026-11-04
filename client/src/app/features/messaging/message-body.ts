@@ -48,7 +48,7 @@ function tokenName(name: string): string {
 }
 
 /**
- * Replaces the trailing `@query` with the plain `@Name` and a space (decision 161: the composer shows plain text; the
+ * Replaces the trailing `@query` with the plain `@Name` and a space (decision 162: the composer shows plain text; the
  * tokens are built on send by {@link encodeMentions}).
  */
 export function insertMention(text: string, name: string): string {

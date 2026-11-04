@@ -24,7 +24,7 @@ import network.foodsharing.security.WorkingGroupFunction;
 import network.foodsharing.upload.service.UploadService;
 import org.junit.jupiter.api.Test;
 
-/** Decision 161: Blog verwalten for editors and region ambassadors, Inhalte for ORGA and PR group admins. */
+/** Decision 162: Blog verwalten for editors and region ambassadors, Inhalte for ORGA and PR group admins. */
 class ContentCapabilitiesTest {
 
     private final RegionService regions = mock(RegionService.class);

@@ -376,7 +376,7 @@ describe('nav.config', () => {
       expect(about).toHaveLength(12);
       expect(ids(context(), 'footer')).toEqual(expect.arrayContaining(about));
       expect(ids(foodsaver, 'footer').filter((id) => about.includes(id))).toEqual([]);
-      // Q11: blog management with the server capability BLOG_MANAGE (decision 161: editors and region ambassadors,
+      // Q11: blog management with the server capability BLOG_MANAGE (decision 162: editors and region ambassadors,
       // not every unit admin), support in the user menu; both and the footer entries of blog and support follow their
       // feature toggles (BLOG, SUPPORT_FORM)
       expect(ids(orga)).toContain('blogManage');

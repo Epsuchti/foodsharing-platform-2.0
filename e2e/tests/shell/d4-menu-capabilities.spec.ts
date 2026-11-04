@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { expect, test } from '../../fixtures';
 
 /**
- * Menu visibility from server capabilities (owner feedback 2026-11-04, decision 161): admin of a working group is not
+ * Menu visibility from server capabilities (owner feedback 2026-11-04, decision 162): admin of a working group is not
  * enough. Nina (bieb, admin of "Betriebskoordination Zürich") sees only Betriebsketten under Verwalten and no Orga.
  */
 

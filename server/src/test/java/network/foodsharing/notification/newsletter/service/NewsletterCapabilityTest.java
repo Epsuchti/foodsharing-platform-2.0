@@ -11,7 +11,7 @@ import network.foodsharing.security.SessionInfoBuilder;
 import network.foodsharing.security.SessionPrincipal;
 import org.junit.jupiter.api.Test;
 
-/** Decision 161: Newsletter in the menu for those who may create one (ORGA, region administrators). */
+/** Decision 162: Newsletter in the menu for those who may create one (ORGA, region administrators). */
 class NewsletterCapabilityTest {
 
     private final PermissionService permissions = mock(PermissionService.class);
