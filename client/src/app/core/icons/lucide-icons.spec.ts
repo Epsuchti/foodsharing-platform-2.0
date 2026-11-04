@@ -40,6 +40,8 @@ describe('lucide icons → icon font (decision 159)', () => {
   it('maps Lucide names, passes font names through and falls back for unknown ones', () => {
     expect(piIcon('mail', 'bell')).toBe('pi pi-envelope');
     expect(piIcon('store', 'bell')).toBe('pi pi-shop');
+    // seed bells use an older Lucide name
+    expect(piIcon('message-circle', 'bell')).toBe('pi pi-comment');
     expect(piIcon('user-plus', 'bell')).toBe('pi pi-user-plus');
     expect(piIcon('pi-truck', 'trophy')).toBe('pi pi-truck');
     expect(piIcon('pi pi-truck', 'trophy')).toBe('pi pi-truck');

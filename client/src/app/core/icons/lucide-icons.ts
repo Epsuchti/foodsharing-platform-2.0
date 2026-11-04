@@ -16,6 +16,7 @@ export const LUCIDE_TO_PI: Readonly<Record<string, string>> = {
   newspaper: 'file',
   'plug-zap': 'bolt',
   'message-square': 'comment',
+  'message-circle': 'comment',
   'at-sign': 'at',
   'eye-off': 'eye-slash',
   vote: 'chart-bar',
