@@ -5,7 +5,8 @@
 #
 # Starts postgres + mailpit + app (prod profile, throwaway secrets in .env.local), waits for readiness on the
 # management port and checks: / answers 200 with the SPA, app-info reports version.txt, dev endpoints are 404,
-# health/Prometheus are not served on the public port but on the management port, the logs are JSON lines.
+# health/Prometheus are not served on the public port but on the management port, the logs are JSON lines, and the
+# map basemap answers a range request with 206 and the PMTiles v3 magic (MT1).
 # --keep leaves the stack running (backup/restore rehearsal); otherwise it is removed with its volumes.
 set -euo pipefail
 
@@ -87,6 +88,12 @@ for path in /api/dev/seed/reset /api/dev/mails /dev/oidc/jwks /h2-console; do
   [[ "${code}" == "404" ]] || fail "dev endpoint ${path} answered ${code}"
 done
 ok "dev endpoints 404"
+
+TILES_STATUS="$(curl -s -o /dev/null -w '%{http_code}' -r 0-126 "${BASE}/tiles/basemap.pmtiles")"
+[[ "${TILES_STATUS}" == "206" ]] || fail "/tiles/basemap.pmtiles range request answered ${TILES_STATUS}, not 206"
+TILES_MAGIC="$(curl -s -r 0-7 "${BASE}/tiles/basemap.pmtiles" | od -An -c | tr -d ' \n')"
+[[ "${TILES_MAGIC}" == 'PMTiles003' ]] || fail "/tiles/basemap.pmtiles is not PMTiles v3: ${TILES_MAGIC}"
+ok "map tiles: range request 206, PMTiles v3"
 
 for path in /actuator/health /actuator/prometheus; do
   code="$(status_of "${BASE}${path}")"

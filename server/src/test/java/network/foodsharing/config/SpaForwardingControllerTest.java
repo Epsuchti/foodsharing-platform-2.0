@@ -86,6 +86,9 @@ class SpaForwardingControllerTest {
         mvc.perform(get("/h2-console/login.do")).andExpect(forwardedUrl(null));
         mvc.perform(get("/assets/icons/logo.svg")).andExpect(status().isNotFound()).andExpect(forwardedUrl(null));
         mvc.perform(get("/fonts/inter.woff2")).andExpect(forwardedUrl(null));
+        // MT1: /tiles/** belongs to the PMTiles resource handler, never to the SPA
+        mvc.perform(get("/tiles/basemap.pmtiles")).andExpect(forwardedUrl(null));
+        mvc.perform(get("/tiles")).andExpect(forwardedUrl(null));
         mvc.perform(get("/some/deep/file.png"))
                 .andExpect(status().isNotFound())
                 .andExpect(forwardedUrl(null))

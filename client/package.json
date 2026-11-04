@@ -36,6 +36,8 @@
     "dompurify": "^3.4.17",
     "leaflet": "^1.9.4",
     "marked": "^18.1.2",
+    "pmtiles": "3.2.1",
+    "protomaps-leaflet": "5.1.0",
     "quill": "2.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"

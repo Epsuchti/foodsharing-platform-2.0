@@ -32,6 +32,9 @@ services:
         condition: service_healthy
     ports:
       - "${HTTP_BIND:-127.0.0.1:8080}:8080"
+    volumes:
+      # MT1: the PMTiles basemap built by tiles.sh (host folder, not in backup.sh; rebuildable at any time)
+      - ${TILES_DIR:-./tiles}:/tiles:ro
     networks: [backend]
     read_only: true
     tmpfs:

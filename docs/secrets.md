@@ -85,6 +85,7 @@ Legend — **Req**: `yes` = the prod profile does not start without it; `opt` = 
 | `IMAGE` | opt | - | default `ghcr.io/epsuchti/foodsharing-platform` | - | - |
 | `VERSION` | yes | - | image tag to run (`server/deploy/version.txt` of the release) | change + `docker compose up -d app` = upgrade / rollback | - |
 | `HTTP_BIND` | opt | - | default `127.0.0.1:8080` (reverse proxy in front) | - | - |
+| `TILES_DIR` | opt | - | default `./tiles`: host folder with `basemap.pmtiles`, mounted read-only at `/tiles` and written by `tiles.sh` (MT1, runbook §10) | - | maps show the tile error until `tiles.sh` rebuilds it |
 | `GRAFANA_ADMIN_PASSWORD` | opt | S | `openssl rand -hex 16` (only with `compose.monitoring.yaml`) | change in Grafana and `.env` | reset with `grafana cli admin reset-admin-password` |
 
 The Alertmanager SMTP token lives in `server/deploy/monitoring/smtp_password` (file, `chmod 600`, git-ignored).

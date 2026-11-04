@@ -43,6 +43,13 @@ source scripts/env.sh
 - Lighthouse (`npx playwright test --project=lighthouse` in `e2e/`) uses Playwright's Chromium. Where the full
   browser can't be started, point `CHROME_PATH` at Playwright's headless shell.
 
+- Maps (MT1): local dev and e2e serve the committed Zurich basemap `e2e/fixtures/tiles/basemap.pmtiles` (3 MB,
+  central Zurich up to zoom 13, `app.map.tiles-dir=../e2e/fixtures/tiles/`, relative to `server/`). Outside the box
+  only the low zooms have data. Rebuild it with `scripts/tiles-fixture.sh` (Docker and network; extract from the
+  Protomaps world build, or `--method=planetiler` for our own run, about 3 GB of downloads). `ng serve` proxies
+  `/tiles` to the jar like `/api`. Screenshots draw a raster stub instead
+  (`window.__fsTileUrl`, `e2e/screenshots/_setup.ts`).
+
 ## Windows only
 - Use Git Bash, not PowerShell, for the commands above.
 - A running app locks `server/target/*.jar`. Stop it before `./mvnw clean package`.
