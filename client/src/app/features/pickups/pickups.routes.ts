@@ -1,11 +1,13 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 
 import { Role } from '../../api';
 import { authGuard } from '../../core/auth/auth.guard';
 
 /**
- * Mounted at '' in app.routes.ts (full paths inside, M3): `pickups` (where can I help), `pickups/mine`,
- * `pickups/agenda/:date`, `me/pickups/history` and `users/:userId/pickups` (admins).
+ * Mounted at '' in app.routes.ts (full paths inside, M3): `pickups` (my pickups and where can I help, one page since
+ * 2026-11-04; `pickups/mine` redirects to `pickups#mine`), `pickups/agenda/:date`, `me/pickups/history` and
+ * `users/:userId/pickups` (admins).
  */
 export const PICKUPS_ROUTES: Routes = [
   {
@@ -13,15 +15,14 @@ export const PICKUPS_ROUTES: Routes = [
     pathMatch: 'full',
     canActivate: [authGuard],
     data: { roles: [Role.Foodsaver] },
-    title: 'pickups.options.title',
-    loadComponent: () => import('./pages/pickup-options-page.component').then((m) => m.PickupOptionsPageComponent),
+    title: 'pickups.page.title',
+    loadComponent: () => import('./pages/pickups-page.component').then((m) => m.PickupsPageComponent),
   },
   {
+    // deep link of the former "My pickups" page: the section of the combined page
     path: 'pickups/mine',
-    canActivate: [authGuard],
-    data: { roles: [Role.Foodsaver] },
-    title: 'pickups.mine.title',
-    loadComponent: () => import('./pages/my-pickups-page.component').then((m) => m.MyPickupsPageComponent),
+    pathMatch: 'full',
+    redirectTo: () => inject(Router).createUrlTree(['/pickups'], { fragment: 'mine' }),
   },
   {
     path: 'pickups/agenda/:date',

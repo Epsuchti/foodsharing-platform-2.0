@@ -271,5 +271,6 @@
   "shared.pickupSlot.you": "Tu",
   "shared.pickupSlot.mineConfirmed": "Tu ({name}), confermato – cancellati",
   "shared.pickupSlot.mineUnconfirmed": "Tu ({name}), non confermato – cancellati",
-  "shared.pickupSlot.confirmOne": "Conferma {name}"
+  "shared.pickupSlot.confirmOne": "Conferma {name}",
+  "shared.dateTile.today": "Oggi"
 }

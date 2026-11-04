@@ -62,7 +62,7 @@
   "pickups.mine.title": "Mes collectes",
   "pickups.mine.subtitle": "Tes prochaines collectes.",
   "pickups.mine.empty": "Aucune collecte prévue",
-  "pickups.mine.emptyText": "Regarde où il reste des places.",
+  "pickups.mine.emptyText": "Regarde plus bas où il reste des places.",
   "pickups.mine.confirmed": "Confirmée",
   "pickups.agenda.title": "Aperçu du jour",
   "pickups.agenda.stepper": "Choisir le jour",
@@ -73,7 +73,6 @@
   "pickups.dashboard.title": "Mes prochaines collectes",
   "pickups.dashboard.empty": "Aucune collecte prévue",
   "pickups.dashboard.all": "Toutes mes collectes",
-  "pickups.dashboard.free": "{count, plural, one {# collecte avec des places libres} other {# collectes avec des places libres}}",
   "pickups.history.link": "Historique",
   "pickups.history.from": "Du",
   "pickups.history.to": "Au",
@@ -115,5 +114,12 @@
   "pickups.tab.state.unconfirmed": "Non confirmé·e",
   "pickups.cleaning.label": "Créneau de nettoyage",
   "pickups.cleaning.signoutText": "Veux-tu te désinscrire de ce créneau de nettoyage ?",
-  "pickups.cleaning.signedOut": "Désinscription du créneau de nettoyage effectuée."
+  "pickups.cleaning.signedOut": "Désinscription du créneau de nettoyage effectuée.",
+  "pickups.page.title": "Collectes",
+  "pickups.page.subtitle": "Tes prochaines collectes, et où tes commerces ont encore besoin de monde.",
+  "pickups.page.showMore": "Afficher {count} de plus",
+  "pickups.mine.signOutLabel": "Me désinscrire : {store}, {date}",
+  "pickups.options.signUpLabel": "M’inscrire : {store}, {date}",
+  "pickups.dashboard.help": "On a bientôt besoin d’aide",
+  "pickups.dashboard.helpAll": "{count, plural, one {La # collecte} other {Les # collectes}} avec des places libres"
 }

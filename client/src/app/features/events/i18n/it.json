@@ -69,5 +69,7 @@
   "events.form.error.name": "Inserisci un nome.",
   "events.form.error.dates": "La fine deve essere dopo l’inizio.",
   "events.form.error.location": "Gli eventi in presenza richiedono il nome del luogo.",
-  "events.form.error.link": "Inserisci un link https://."
+  "events.form.error.link": "Inserisci un link https://.",
+  "events.dashboard.title": "Prossimi appuntamenti",
+  "events.dashboard.all": "Tutti i miei appuntamenti"
 }

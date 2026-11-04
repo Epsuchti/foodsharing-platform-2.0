@@ -271,5 +271,6 @@
   "shared.pickupSlot.you": "You",
   "shared.pickupSlot.mineConfirmed": "You ({name}), confirmed – sign out",
   "shared.pickupSlot.mineUnconfirmed": "You ({name}), unconfirmed – sign out",
-  "shared.pickupSlot.confirmOne": "Confirm {name}"
+  "shared.pickupSlot.confirmOne": "Confirm {name}",
+  "shared.dateTile.today": "Today"
 }

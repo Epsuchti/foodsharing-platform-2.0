@@ -218,6 +218,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'pickups',
     section: 'daily',
+    // the pickup history belongs to the pickups page (its header action)
+    activeMatch: '/me/pickups',
     labelKey: 'nav.pickups',
     icon: 'pi pi-calendar',
     route: '/pickups',

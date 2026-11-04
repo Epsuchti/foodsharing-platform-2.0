@@ -69,5 +69,7 @@
   "events.form.error.name": "Please enter a name.",
   "events.form.error.dates": "The end must be after the start.",
   "events.form.error.location": "Events on site need a location name.",
-  "events.form.error.link": "Please enter an https:// link."
+  "events.form.error.link": "Please enter an https:// link.",
+  "events.dashboard.title": "Upcoming events",
+  "events.dashboard.all": "All my events"
 }

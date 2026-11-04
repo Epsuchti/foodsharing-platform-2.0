@@ -95,6 +95,15 @@ export function unconfirmedCount(pickups: readonly { occupiedSlots: readonly { c
 /** `displayName` up to the first space; lives with the slot component, which shows it in the manager's split pill. */
 export { firstName } from '../../shared/pickup-slot/pickup-slot.component';
 
+/** Pickups with at least one free slot, by time (PU7: full pickups are never offered; /pickups and the home card). */
+export function openOptions<T extends { pickupAt: string; slotCount: number; occupiedSlots: readonly unknown[] }>(
+  options: readonly T[],
+): T[] {
+  return options
+    .filter((option) => option.occupiedSlots.length < option.slotCount)
+    .sort((a, b) => a.pickupAt.localeCompare(b.pickupAt));
+}
+
 /** An entry of "My pickups": a pickup or a cleaning shift (decision 154). */
 export interface MyPickupEntry {
   key: string;

@@ -69,5 +69,7 @@
   "events.form.error.name": "Merci d’indiquer un nom.",
   "events.form.error.dates": "La fin doit être après le début.",
   "events.form.error.location": "Les événements sur place ont besoin d’un nom de lieu.",
-  "events.form.error.link": "Merci d’indiquer un lien https://."
+  "events.form.error.link": "Merci d’indiquer un lien https://.",
+  "events.dashboard.title": "Prochains rendez-vous",
+  "events.dashboard.all": "Tous mes rendez-vous"
 }

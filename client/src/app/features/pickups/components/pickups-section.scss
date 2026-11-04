@@ -1,0 +1,13 @@
+// Shared section layout of /pickups (docs/design/ui-polish-batch-proposal.md §3): "My pickups" and "Where can I help?".
+:host { display: block; }
+.section { display: grid; gap: 0.75rem; scroll-margin-top: 1rem; }
+.section__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; }
+.section__title { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.2rem; font-weight: 700; }
+.section__title .pi { color: var(--fs-primary-strong); }
+.section__count { color: var(--fs-text-muted); font-weight: 600; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.section__sub { flex-basis: 100%; margin: 0; color: var(--fs-text-muted); font-size: 0.92rem; }
+.cards { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.more { justify-self: start; margin-top: 0.6rem; }
+@media (max-width: 40rem) {
+  .more { width: 100%; min-height: 2.75rem; justify-content: center; }
+}

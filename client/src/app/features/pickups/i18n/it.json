@@ -62,7 +62,7 @@
   "pickups.mine.title": "I miei ritiri",
   "pickups.mine.subtitle": "I tuoi prossimi ritiri.",
   "pickups.mine.empty": "Nessun ritiro previsto",
-  "pickups.mine.emptyText": "Guarda dove ci sono ancora posti liberi.",
+  "pickups.mine.emptyText": "Guarda qui sotto dove ci sono ancora posti liberi.",
   "pickups.mine.confirmed": "Confermato",
   "pickups.agenda.title": "Panoramica del giorno",
   "pickups.agenda.stepper": "Scegli il giorno",
@@ -73,7 +73,6 @@
   "pickups.dashboard.title": "I miei prossimi ritiri",
   "pickups.dashboard.empty": "Nessun ritiro previsto",
   "pickups.dashboard.all": "Tutti i miei ritiri",
-  "pickups.dashboard.free": "{count, plural, one {# ritiro con posti liberi} other {# ritiri con posti liberi}}",
   "pickups.history.link": "Storico",
   "pickups.history.from": "Dal",
   "pickups.history.to": "Al",
@@ -115,5 +114,12 @@
   "pickups.tab.state.unconfirmed": "Non confermato",
   "pickups.cleaning.label": "Turno di pulizia",
   "pickups.cleaning.signoutText": "Vuoi annullare la tua iscrizione a questo turno di pulizia?",
-  "pickups.cleaning.signedOut": "Iscrizione al turno di pulizia annullata."
+  "pickups.cleaning.signedOut": "Iscrizione al turno di pulizia annullata.",
+  "pickups.page.title": "Ritiri",
+  "pickups.page.subtitle": "I tuoi prossimi ritiri e dove i tuoi negozi hanno ancora bisogno di persone.",
+  "pickups.page.showMore": "Mostra altri {count}",
+  "pickups.mine.signOutLabel": "Annulla iscrizione: {store}, {date}",
+  "pickups.options.signUpLabel": "Iscriviti: {store}, {date}",
+  "pickups.dashboard.help": "Serve aiuto a breve",
+  "pickups.dashboard.helpAll": "{count, plural, one {Il # ritiro} other {Tutti i # ritiri}} con posti liberi"
 }

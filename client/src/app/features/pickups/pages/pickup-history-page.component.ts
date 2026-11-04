@@ -27,7 +27,7 @@ const PAGE_SIZE = 25;
       [title]="(own() ? 'pickups.past.title' : 'pickups.past.adminTitle') | t"
       [subtitle]="'pickups.past.subtitle' | t"
       icon="pi pi-history"
-      [backLink]="own() ? '/pickups/mine' : ['/users', targetId()]"
+      [backLink]="own() ? '/pickups' : ['/users', targetId()]"
       [backLabel]="'common.back' | t"
     />
     <div class="toolbar">
