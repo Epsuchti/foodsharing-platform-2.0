@@ -26,7 +26,7 @@ jobs:
           java-version: '21'
           cache: maven
       - name: Restore the NVD database
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: nvd-${{ github.run_id }}
@@ -40,7 +40,7 @@ jobs:
       # cancelled or timed-out run, whose database may be half written
       - name: Save the NVD database
         if: ${{ !cancelled() }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: nvd-${{ github.run_id }}
