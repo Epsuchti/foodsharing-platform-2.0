@@ -137,7 +137,7 @@ new `stores.pickups.dayChat`, `stores.pickups.slotDetail.{profile,message,call,c
 ## Owner decisions (2026-11-04)
 1. Day cards: **one column** on all widths (no 2-column grid), easier to read.
 2. "regelmässig": ↻ icon marker with tooltip/aria-label.
-3. Tageschat button: text on desktop, icon on phones.
+3. Day chat button: label "Chat öffnen" (en "Open chat", plus gws/fr/it), not "Tageschat"; text on desktop, icon on phones.
 4. Co-pickup people see the full rich dialog (phone S9-gated), as decided.
 5. Team card: 2 lines everywhere.
 6. Mention ring when you are the one mentioned: yes.
