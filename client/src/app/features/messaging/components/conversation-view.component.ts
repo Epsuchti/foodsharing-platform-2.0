@@ -43,7 +43,7 @@ import { RequiredMessageDialogComponent } from '../../../shared/required-message
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
-import { bodySegments, insertMention, mentionQuery } from '../message-body';
+import { bodySegments, decodeMentions, encodeMentions, insertMention, mentionQuery } from '../message-body';
 import { ConversationMessageEvent, MessagingStore, applyMessageUpdate } from '../messaging.resource';
 
 interface PendingMessage {
@@ -770,6 +770,12 @@ export class ConversationViewComponent {
   protected readonly editing = signal<ChatMessage | null>(null);
   /** The draft typed before "Bearbeiten", restored after the edit. */
   private parkedDraft = '';
+  /**
+   * People picked in the mention autocomplete (name → user id, decision 159): the composer shows plain `@Name`, the
+   * tokens are built on send and on saving an edit.
+   */
+  private readonly pickedMentions = signal<ReadonlyMap<string, string>>(new Map());
+  private parkedMentions: ReadonlyMap<string, string> = new Map();
   /** The message a moderator is deleting (reason dialog). */
   protected readonly moderating = signal<ChatMessage | null>(null);
   protected readonly moderateOpen = signal(false);
@@ -818,8 +824,7 @@ export class ConversationViewComponent {
         this.messages.set(detail?.messages ?? []);
         if (this.editing() && !detail?.messages.some((m) => m.id === this.editing()?.id && !m.deletedAt)) {
           this.editing.set(null);
-          this.draft.set(this.parkedDraft);
-          this.parkedDraft = '';
+          this.restoreParkedDraft();
         }
         this.oldestReached.set(false);
         this.lastMarkedSeq = detail?.lastReadSeq ?? 0;
@@ -906,10 +911,22 @@ export class ConversationViewComponent {
       this.send();
       return;
     }
-    const body = this.draft().trim();
+    const body = this.encodedDraft();
     if (body && body !== editing.body) {
       void this.editMutation.run(editing, body);
     }
+  }
+
+  /** The trimmed composer text with the picked mentions as tokens (what is sent or saved). */
+  private encodedDraft(): string {
+    return encodeMentions(this.draft().trim(), this.pickedMentions());
+  }
+
+  private restoreParkedDraft(): void {
+    this.draft.set(this.parkedDraft);
+    this.pickedMentions.set(this.parkedMentions);
+    this.parkedDraft = '';
+    this.parkedMentions = new Map();
   }
 
   /** Message text as one plain line (mention tokens as "@Name"), for the edit banner and the reason dialog. */
@@ -955,9 +972,13 @@ export class ConversationViewComponent {
     this.messageMenu()?.hide();
     if (!this.editing()) {
       this.parkedDraft = this.draft();
+      this.parkedMentions = this.pickedMentions();
     }
     this.editing.set(message);
-    this.draft.set(message.body);
+    // tokens back to plain @Name; saving encodes them again
+    const { text, picked } = decodeMentions(message.body);
+    this.draft.set(text);
+    this.pickedMentions.set(picked);
     setTimeout(() => this.composer()?.nativeElement.focus());
   }
 
@@ -967,7 +988,7 @@ export class ConversationViewComponent {
     if (!editing) {
       return;
     }
-    if (this.draft().trim() === editing.body) {
+    if (this.encodedDraft() === editing.body) {
       this.endEdit();
       return;
     }
@@ -985,8 +1006,7 @@ export class ConversationViewComponent {
   private endEdit(): void {
     const id = this.editing()?.id;
     this.editing.set(null);
-    this.draft.set(this.parkedDraft);
-    this.parkedDraft = '';
+    this.restoreParkedDraft();
     setTimeout(() => {
       const trigger = this.list()?.nativeElement.querySelector<HTMLElement>(
         `[data-message-id="${id}"] [data-testid="messaging.conversation.messageMenu"]`,
@@ -1071,15 +1091,17 @@ export class ConversationViewComponent {
   }
 
   protected pickMention(user: UserSummary): void {
-    this.draft.set(insertMention(this.draft(), user.displayName, user.id));
+    this.draft.set(insertMention(this.draft(), user.displayName));
+    this.pickedMentions.update((picked) => new Map([...picked, [user.displayName.replace(/[[\]\n]/g, ''), user.id]]));
   }
 
   protected send(): void {
-    const body = this.draft().trim();
+    const body = this.encodedDraft();
     if (!body) {
       return;
     }
     this.draft.set('');
+    this.pickedMentions.set(new Map());
     const message: PendingMessage = { clientKey: crypto.randomUUID(), body, failed: false };
     this.pending.update((list) => [...list, message]);
     this.scrollToEnd();
