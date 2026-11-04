@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home – mockup (UI polish batch #4–#9)</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4; --fs-on-danger: #ffffff;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108; --fs-accent: #f2b84b;
+  --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem; --fs-radius-xl: 1.5rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04); --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08);
+  --fs-target-sm: 2.25rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* ---- new token of this proposal ---- */
+  --fs-date-tile: 3.25rem;            /* width of fs-date-tile (pickups, events) */
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3); --fs-on-danger: #1a201a;
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b;
+  --fs-accent: #9c7a3c; --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--fs-primary-strong); font-weight: 600; text-underline-offset: 0.18em; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl { position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm); }
+.ctl strong { font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.note { margin: 0.75rem auto 1.5rem; width: min(100% - 2rem, 1216px); color: var(--fs-text-muted); font-size: 0.82rem; }
+
+/* ---- app frame ---- */
+.frame { position: relative; margin: 1rem auto; width: min(100% - 2rem, 1216px); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
+.frame[data-viewport="phone"] { width: min(100% - 2rem, 412px); }
+.frame__size { position: absolute; top: 0.4rem; left: 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.6; pointer-events: none; }
+.page { padding: 1.75rem clamp(1rem, 0.6rem + 2vw, 2rem) 2rem; }
+
+/* ---- dashboard grid: two columns on desktop; one column on phones with the DOM order ---- */
+.dash { display: grid; gap: 1.25rem; }
+.main, .side { display: grid; gap: 1.25rem; min-width: 0; align-content: start; }
+.frame[data-viewport="desktop"] .dash { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; column-gap: 1.5rem; }
+/* phone: the wrappers vanish (display: contents) and every card has an `order`, so actionable cards come first */
+.frame[data-viewport="phone"] .main, .frame[data-viewport="phone"] .side { display: contents; }
+.frame[data-viewport="phone"] .dash > * { order: 50; }
+[data-order="1"] { order: 1 !important; } [data-order="2"] { order: 2 !important; } [data-order="3"] { order: 3 !important; }
+[data-order="4"] { order: 4 !important; } [data-order="5"] { order: 5 !important; } [data-order="6"] { order: 6 !important; }
+[data-order="7"] { order: 7 !important; } [data-order="8"] { order: 8 !important; } [data-order="9"] { order: 9 !important; }
+[data-order="10"] { order: 10 !important; }
+
+/* ---- welcome (unchanged except: no role hint) ---- */
+.welcome { display: flex; align-items: center; gap: 1.25rem; padding: clamp(1.25rem, 1rem + 1.5vw, 2rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-xl);
+  background: radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--fs-accent) 22%, transparent), transparent 55%), linear-gradient(135deg, var(--fs-primary-soft), var(--fs-surface)); }
+.welcome__avatar { position: relative; display: grid; flex: none; width: 4.5rem; height: 4.5rem; place-items: center; border-radius: 50%; background: #3a8f6f; color: #fff; font-size: 1.4rem; font-weight: 700; }
+.welcome__avatar::after { content: ''; position: absolute; right: 0.1rem; bottom: 0.1rem; width: 0.9rem; height: 0.9rem; border-radius: 50%; border: 2px solid var(--fs-surface); background: var(--fs-primary); }
+.welcome__text { display: grid; min-width: 0; gap: 0.15rem; }
+.welcome__greeting { margin: 0; color: var(--fs-text-muted); font-weight: 600; }
+.welcome__name { margin: 0; font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem); font-weight: 800; letter-spacing: -0.03em; }
+.welcome__chips { display: flex; flex-wrap: wrap; gap: 0.4rem 0.5rem; margin-top: 0.35rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.65rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); font-size: 0.8rem; font-weight: 650; }
+.chip--role { border-color: color-mix(in srgb, var(--fs-primary) 30%, transparent); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 700; }
+.chip .i { color: var(--fs-primary-strong); font-size: 0.75rem; }
+.welcome__hint { max-width: 34rem; margin: 0.35rem 0 0; color: var(--fs-text-muted); font-size: 0.9rem; }
+
+/* ---- cards ---- */
+.card { display: grid; gap: 0.75rem; padding: 1.1rem 1.2rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.card__title { display: flex; gap: 0.5rem; align-items: center; margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
+.card__title .count { margin-left: auto; color: var(--fs-text-muted); font-size: 0.85rem; font-weight: 600; }
+.card__links { display: flex; flex-wrap: wrap; gap: 0 1rem; font-weight: 600; }
+.frame[data-viewport="phone"] .card__links a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.list { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.muted { color: var(--fs-text-muted); font-size: 0.88rem; }
+
+/* next step (unchanged visual) */
+.next { padding: 1.5rem; gap: 0.5rem; }
+.next__icon { display: grid; width: 3rem; height: 3rem; place-items: center; border-radius: var(--fs-radius-md); background: var(--fs-primary); color: var(--fs-on-primary); font-size: 1.3rem; }
+.next__eyebrow { margin: 0.5rem 0 -0.35rem; color: var(--fs-primary-strong); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.next h2 { margin: 0.5rem 0 0; font-size: 1.2rem; }
+.next p { margin: 0; color: var(--fs-text-muted); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: var(--fs-target-sm); padding: 0.55rem 1.1rem; border: 1px solid var(--fs-primary); border-radius: 0.75rem; background: var(--fs-primary); color: var(--fs-on-primary); font-size: 0.95rem; font-weight: 650; line-height: 1.2; text-decoration: none; white-space: nowrap; }
+.btn--sm { padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+.btn--text { border-color: transparent; background: transparent; color: var(--fs-primary-strong); }
+.next .btn { justify-self: start; margin-top: 0.75rem; }
+
+/* ---- fs-date-tile (new shared component) ---- */
+.row { display: grid; grid-template-columns: var(--fs-date-tile) minmax(0, 1fr) auto; align-items: center; gap: 0.8rem; }
+.row--2 { grid-template-columns: var(--fs-date-tile) minmax(0, 1fr); }
+.tile { display: grid; justify-items: center; align-content: center; width: var(--fs-date-tile); min-height: 3.4rem; padding: 0.3rem 0.2rem; border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-primary-strong); line-height: 1.05; }
+.tile__wd { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tile__d { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; color: var(--fs-text); }
+.tile__m { font-size: 0.66rem; font-weight: 650; }
+.tile--today { background: var(--fs-primary); color: var(--fs-on-primary); }
+.tile--today .tile__d { color: var(--fs-on-primary); }
+.row__body { display: grid; gap: 0.1rem; min-width: 0; }
+.row__title { font-weight: 700; color: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.6rem; font-size: 0.88rem; color: var(--fs-text-muted); font-variant-numeric: tabular-nums; }
+.state { display: inline-flex; gap: 0.3rem; align-items: center; font-weight: 600; }
+.state--ok { color: var(--fs-primary-strong); }
+.state--wait { color: var(--fs-warning-text); }
+.kind { display: inline-flex; gap: 0.3rem; align-items: center; }
+
+/* ---- waiting for you ---- */
+.wait { display: grid; margin: 0; padding: 0; list-style: none; }
+.wait__row { display: flex; align-items: center; gap: 0.8rem; min-height: var(--fs-target-sm); padding: 0.55rem 0; color: var(--fs-text); text-decoration: none; }
+.wait__row + .wait__row { border-top: 1px solid var(--fs-border); }
+.wait__icon { display: grid; flex: none; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: var(--fs-radius-sm); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.wait__icon--warn { background: var(--fs-warning-soft); color: var(--fs-warning); }
+.wait__text { flex: 1; min-width: 0; font-weight: 600; }
+.wait__count { display: inline-grid; place-items: center; min-width: 1.5rem; height: 1.5rem; padding: 0 0.4rem; border-radius: 999px; background: var(--fs-primary); color: var(--fs-on-primary); font-size: 0.8rem; font-weight: 700; }
+.wait__count--warn { background: var(--fs-warning); color: #fff; }
+:root.fs-dark .wait__count--warn { color: #1a201a; }
+.wait__chev { color: var(--fs-text-muted); font-size: 0.8rem; }
+
+/* ---- your stores ---- */
+.store { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.5rem 0.8rem; padding: 0.45rem 0; }
+.store + .store { border-top: 1px solid var(--fs-border); }
+.dot { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: middle; }
+.dot--RED { background: var(--fs-danger); } .dot--ORANGE { background: var(--fs-warning); } .dot--YELLOW { background: var(--fs-accent); } .dot--GREEN { background: var(--fs-primary); }
+
+/* ---- baskets (unchanged) + activity (unchanged, abbreviated) ---- */
+.basket { display: flex; gap: 0.8rem; padding: 0.75rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); }
+.basket__img { flex: none; width: 4.5rem; height: 4.5rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); }
+.basket__t { font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.fchip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.2rem 0.75rem; border: 1px solid var(--fs-primary); border-radius: 999px; background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-size: 0.85rem; font-weight: 650; }
+.act { display: flex; gap: 0.8rem; padding: 0.7rem 0; border-top: 1px solid var(--fs-border); }
+.act__icon { display: grid; flex: none; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: var(--fs-radius-sm); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.act p { margin: 0; }
+
+/* ---- today-only: quick links + admin card ---- */
+.links { display: grid; overflow: hidden; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.link { display: flex; align-items: center; gap: 0.9rem; padding: 1rem 1.25rem; color: var(--fs-text); text-decoration: none; }
+.link + .link { border-top: 1px solid var(--fs-border); }
+.link__icon { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; border-radius: var(--fs-radius-sm); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.link__text { display: grid; flex: 1; } .link__text span { color: var(--fs-text-muted); font-size: 0.88rem; }
+.card--admin { border-style: dashed; background: var(--fs-surface-muted); box-shadow: none; }
+
+/* ---- data states (shared/data-state, compact) ---- */
+.sk { display: grid; gap: 0.75rem; }
+.sk__row { display: flex; gap: 0.8rem; align-items: center; }
+.sk__t { width: var(--fs-date-tile); height: 3.4rem; border-radius: var(--fs-radius-md); }
+.sk__c { width: 2.25rem; height: 2.25rem; border-radius: 50%; }
+.sk__lines { display: grid; flex: 1; gap: 0.5rem; }
+.sk__b { height: 0.8rem; border-radius: 0.4rem; }
+.sk__t, .sk__c, .sk__b { background: linear-gradient(90deg, var(--fs-surface-muted) 25%, color-mix(in srgb, var(--fs-border) 60%, var(--fs-surface)) 50%, var(--fs-surface-muted) 75%); background-size: 200% 100%; animation: sk 1.4s infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+.empty { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; border: 1px dashed var(--fs-border-strong); border-radius: var(--fs-radius-lg); background: var(--fs-surface-muted); }
+.empty__icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: 50%; background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.empty h3 { margin: 0; font-size: 0.95rem; } .empty p { margin: 0; color: var(--fs-text-muted); font-size: 0.88rem; }
+.error { display: flex; gap: 0.75rem; padding: 0.85rem 1rem; border: 1px solid var(--fs-danger-border); border-radius: var(--fs-radius-lg); background: var(--fs-danger-soft); }
+.error__icon { display: grid; flex: none; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: 50%; background: var(--fs-surface); color: var(--fs-danger); box-shadow: var(--fs-shadow-sm); }
+.error h3 { margin: 0; font-size: 0.95rem; } .error p { margin: 0.1rem 0 0.5rem; color: var(--fs-text-muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-hour" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M8 3v3.5a4 4 0 0 0 1.6 3.2L12 12l-2.4 2.3A4 4 0 0 0 8 17.5V21M16 3v3.5a4 4 0 0 1-1.6 3.2L12 12l2.4 2.3a4 4 0 0 1 1.6 3.2V21"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-shop" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9M3 9h18v11H3zM9 20v-6h6v6"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13l2.5-8h13L21 13v6H3zM3 13h5l1.5 3h5l1.5-3h5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M13 10l3 3"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.5a1 1 0 0 0 1 .8H19a1 1 0 0 0 1-.8L22 7H6"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3L2 20h20zM12 9v5M12 17h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+  <symbol id="i-desktop" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-sitemap" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="2" y="16" width="6" height="5" rx="1"/><rect x="16" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M5 16v-4h14v4"/></symbol>
+</svg>
+
+<div class="ctl" aria-label="Mockup controls">
+  <fieldset><strong>Theme</strong>
+    <label><input type="radio" name="theme" value="light" checked>Light</label>
+    <label><input type="radio" name="theme" value="dark">Dark</label>
+  </fieldset>
+  <fieldset><strong>Viewport</strong>
+    <label><input type="radio" name="vp" value="desktop" checked>Desktop</label>
+    <label><input type="radio" name="vp" value="phone">Phone 412</label>
+  </fieldset>
+  <fieldset><strong>Role</strong>
+    <label><input type="radio" name="role" value="foodsaver" checked>Foodsaver (Sarah)</label>
+    <label><input type="radio" name="role" value="manager">Store manager (Nina)</label>
+    <label><input type="radio" name="role" value="foodsharer">Foodsharer (Tom)</label>
+  </fieldset>
+  <fieldset><strong>Profile</strong>
+    <label><input type="radio" name="profile" value="complete" checked>Complete</label>
+    <label><input type="radio" name="profile" value="missing">No phone</label>
+  </fieldset>
+  <fieldset><strong>State</strong>
+    <label><input type="radio" name="state" value="data" checked>Data</label>
+    <label><input type="radio" name="state" value="loading">Loading</label>
+    <label><input type="radio" name="state" value="empty">Empty</label>
+    <label><input type="radio" name="state" value="error">Error</label>
+  </fieldset>
+  <fieldset><strong>View</strong>
+    <label><input type="radio" name="view" value="proposal" checked>Proposal</label>
+    <label><input type="radio" name="view" value="today">Today</label>
+  </fieldset>
+</div>
+
+<div class="frame" id="frame" data-viewport="desktop">
+  <span class="frame__size" id="size"></span>
+  <div class="page"><div class="dash" id="dash"></div></div>
+</div>
+<p class="note" id="note"></p>
+
+<script>
+const icon = (id, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+const USERS = {
+  foodsaver: { name: 'Sarah Müller', ini: 'SM', role: 'Foodsaver', region: 'Zürich Stadt', verified: true },
+  manager:   { name: 'Nina Schneider', ini: 'NS', role: 'Store manager', region: 'Zürich Stadt', verified: true },
+  foodsharer:{ name: 'Tom Keller', ini: 'TK', role: 'Foodsharer', region: 'Zürich Stadt', verified: false },
+};
+const PICKUPS = [
+  { wd: 'Wed', d: 4, m: 'Nov', today: true, store: 'Bäckerei Vohdin', time: '18:00', confirmed: false },
+  { wd: 'Fri', d: 6, m: 'Nov', store: 'Denner Langstrasse', time: '18:30', confirmed: true },
+  { wd: 'Sun', d: 8, m: 'Nov', store: 'Fairteiler Kanzlei', time: '10:00', confirmed: true, cleaning: true },
+];
+const HELP = [
+  { store: 'Denner Langstrasse', at: 'Wed, 4 Nov, 18:30', free: 2, total: 2 },
+  { store: 'Hiltl', at: 'Wed, 4 Nov, 20:30', free: 2, total: 2 },
+  { store: 'Migros Limmatplatz', at: 'Thu, 5 Nov, 18:30', free: 5, total: 5 },
+];
+const EVENTS = [
+  { wd: 'Thu', d: 5, m: 'Nov', name: 'Foodsaver meetup Zürich', time: '19:00', where: 'Kanzlei', status: 'ACCEPTED' },
+  { wd: 'Sat', d: 14, m: 'Nov', name: 'Hygiene briefing', time: '10:00', where: 'Online', status: 'INVITED' },
+  { wd: 'Mon', d: 1, m: 'Dec', name: 'Regional assembly', time: '18:30', where: 'Volkshaus', status: 'MAYBE' },
+];
+const STORES = [
+  { name: 'Migros Limmatplatz', status: 'RED', free: 8, next: 'Thu 18:30' },
+  { name: 'Coop Bahnhofbrücke', status: 'ORANGE', free: 3, next: 'Thu 19:00' },
+  { name: 'Hiltl', status: 'YELLOW', free: 2, next: 'Wed 20:30' },
+];
+const STATUS = { INVITED: 'Invited', ACCEPTED: 'Attending', MAYBE: 'Maybe' };
+
+const tile = (e) => `<span class="tile${e.today ? ' tile--today' : ''}" aria-hidden="true"><span class="tile__wd">${e.wd}</span><span class="tile__d">${e.d}</span><span class="tile__m">${e.m}</span></span>`;
+const card = (id, title, iconId, body, links = '', extra = '') => `<section class="card" data-testid="${id}" aria-labelledby="${id}-title" ${extra}><h2 class="card__title" id="${id}-title">${icon(iconId)}${title}</h2>${body}${links ? `<div class="card__links">${links}</div>` : ''}</section>`;
+const skeleton = (n, tiles) => `<div class="sk" aria-hidden="true">${Array.from({ length: n }, () => `<div class="sk__row"><div class="${tiles ? 'sk__t' : 'sk__c'}"></div><div class="sk__lines"><div class="sk__b" style="width:55%"></div><div class="sk__b" style="width:35%"></div></div></div>`).join('')}</div>`;
+const empty = (title, text) => `<div class="empty" role="status"><div class="empty__icon" aria-hidden="true">${icon('i-cal')}</div><div><h3>${title}</h3>${text ? `<p>${text}</p>` : ''}</div></div>`;
+const error = () => `<div class="error" role="alert"><div class="error__icon" aria-hidden="true">${icon('i-warn')}</div><div><h3>Something went wrong</h3><p>The server did not answer.</p><button class="btn btn--sm">${icon('i-refresh')}Try again</button></div></div>`;
+const stateOr = (state, render, { rows = 2, tiles = false, emptyTitle, emptyText, hideWhenEmpty = false } = {}) => {
+  if (state === 'loading') return skeleton(rows, tiles);
+  if (state === 'error') return error();
+  if (state === 'empty') return hideWhenEmpty ? null : empty(emptyTitle, emptyText);
+  return render();
+};
+
+function render() {
+  const v = (n) => document.querySelector(`input[name=${n}]:checked`).value;
+  const role = v('role'), state = v('state'), today = v('view') === 'today', user = USERS[role];
+  const pickupsRole = user.verified;
+  const main = [], side = [];
+
+  // 1 welcome: role chip + region chip stay; the role sentence goes (all roles)
+  main.push(`<section class="welcome" data-testid="dashboard.page.welcome" data-order="1">
+    <div class="welcome__avatar" aria-hidden="true">${user.ini}</div>
+    <div class="welcome__text"><p class="welcome__greeting">Good morning</p><h1 class="welcome__name" data-testid="dashboard.page.name">${user.name}</h1>
+      <div class="welcome__chips"><span class="chip chip--role" data-testid="dashboard.page.role">${user.role}</span><span class="chip" data-testid="dashboard.page.homeRegion">${icon('i-pin')}${user.region}</span></div>
+      ${today ? `<p class="welcome__hint" data-testid="dashboard.page.roleHint">As a ${user.role.toLowerCase()} you pick up food from businesses and pass it on.</p>` : ''}
+    </div></section>`);
+
+  // 2 next step: only when something is missing (foodsharer: passkey; others: avatar or phone missing)
+  const step = role === 'foodsharer'
+    ? { id: 'passkey', icon: 'i-key', title: 'Log in in seconds', text: 'With a passkey you no longer need an email link – your fingerprint or face is enough.', action: 'Add a passkey' }
+    : (v('profile') === 'missing' || today) ? { id: 'profile', icon: 'i-user', title: 'Complete your profile', text: 'Your name and contact details help your team reach you for pickups.', action: 'Edit profile' } : null;
+  if (step) main.push(`<section class="card next" data-testid="dashboard.page.nextStep" data-step="${step.id}" data-order="2">
+    <div class="next__icon" aria-hidden="true">${icon(step.icon)}</div><p class="next__eyebrow">Your next step</p><h2>${step.title}</h2><p>${step.text}</p>
+    <a class="btn" href="#" data-testid="dashboard.page.nextStepAction">${step.action}${icon('i-arrow')}</a></section>`);
+
+  // 3 waiting for you (side, but second on phones)
+  const waitRows = [];
+  if (pickupsRole) waitRows.push(['i-shop', 'Store invitations', 2, '/stores/mine', 'dashboard.waiting.invitations', false]);
+  waitRows.push(['i-mail', 'Unread conversations', 3, '/messages', 'dashboard.waiting.unread', false]);
+  if (pickupsRole) waitRows.push(['i-hour', 'Your pickups still unconfirmed', 2, '/pickups#mine', 'dashboard.waiting.unconfirmed', true]);
+  if (role === 'foodsaver') waitRows.push(['i-inbox', 'Your store applications pending', 1, '/stores/mine', 'dashboard.waiting.applications', true]);
+  const waitBody = stateOr(state, () => `<ul class="wait">${waitRows.map(([ic, text, n, href, tid, warn]) =>
+    `<li><a class="wait__row" href="${href}" data-testid="${tid}"><span class="wait__icon${warn ? ' wait__icon--warn' : ''}" aria-hidden="true">${icon(ic)}</span><span class="wait__text">${text}</span><span class="wait__count${warn ? ' wait__count--warn' : ''}"><span class="vh">${n} </span>${n}</span>${icon('i-chev', 'wait__chev')}</a></li>`).join('')}</ul>`,
+    { rows: 3, hideWhenEmpty: true });
+  if (waitBody && !today) side.push(card('dashboard.waiting', 'Waiting for you', 'i-inbox', waitBody, '', 'data-order="3"'));
+
+  // 4 my next pickups (date tiles)
+  if (pickupsRole) {
+    const body = today
+      ? `<ul class="list">${PICKUPS.map((p) => `<li><a href="#">${p.store}</a> <span class="muted">0${p.d}.11.2026, ${p.time}</span>${p.confirmed ? '' : ' ' + icon('i-hour')}</li>`).join('')}</ul>`
+      : stateOr(state, () => `<ul class="list" data-testid="dashboard.pickups.list">${PICKUPS.map((p) => `<li class="row row--2" data-testid="${p.cleaning ? 'dashboard.pickups.cleaning' : 'dashboard.pickups.pickup'}" data-store="${p.store}" data-confirmed="${p.confirmed}">
+          ${tile(p)}<div class="row__body"><a class="row__title" href="#">${p.store}</a>
+          <span class="row__meta"><time datetime="2026-11-0${p.d}T${p.time}"><span class="vh">${p.wd} ${p.d} ${p.m}, </span>${p.time}</time>${p.cleaning ? `<span class="kind">${icon('i-spark')}Cleaning shift</span>` : ''}
+          ${p.confirmed ? `<span class="state state--ok" data-testid="dashboard.pickups.confirmed">${icon('i-check')}Confirmed</span>` : `<span class="state state--wait" data-testid="dashboard.pickups.unconfirmed">${icon('i-hour')}Unconfirmed</span>`}</span></div></li>`).join('')}</ul>`,
+        { rows: 3, tiles: true, emptyTitle: 'No pickups planned', emptyText: 'See where slots are still free.' });
+    const links = today ? `<a href="#">All my pickups</a><a href="#">29 pickups with free slots</a>` : `<a href="/pickups#mine" data-testid="dashboard.pickups.all">All my pickups</a>`;
+    main.push(card('dashboard.pickups', 'My next pickups', 'i-cal', body, links, 'data-order="4"'));
+  }
+
+  // 5 help needed soon (hidden when empty)
+  if (pickupsRole && !today) {
+    const body = stateOr(state, () => `<ul class="list" data-testid="dashboard.help.list">${HELP.map((h) => `<li class="row" style="grid-template-columns: minmax(0,1fr) auto" data-testid="dashboard.help.option" data-store="${h.store}">
+        <div class="row__body"><a class="row__title" href="#">${h.store}</a><span class="row__meta"><span>${h.at}</span><span>${h.free} of ${h.total} slots free</span></span></div>
+        <button class="btn btn--sm" data-testid="dashboard.help.signUp" aria-label="Sign up: ${h.store}, ${h.at}">${icon('i-plus')}Sign up</button></li>`).join('')}</ul>`, { rows: 3, hideWhenEmpty: true });
+    if (body) main.push(card('dashboard.help', 'Help needed soon', 'i-plus', body, `<a href="/pickups#options" data-testid="dashboard.help.all">All 13 pickups with free slots</a>`, 'data-order="5"'));
+  }
+
+  // 6 upcoming events (hidden when empty)
+  if (!today) {
+    const body = stateOr(state, () => `<ul class="list" data-testid="dashboard.events.list">${EVENTS.map((e) => `<li class="row row--2" data-testid="dashboard.events.event">${tile(e)}<div class="row__body"><a class="row__title" href="#">${e.name}</a>
+        <span class="row__meta"><time><span class="vh">${e.wd} ${e.d} ${e.m}, </span>${e.time}</time><span>${e.where}</span><span class="state ${e.status === 'INVITED' ? 'state--wait' : 'state--ok'}">${icon(e.status === 'INVITED' ? 'i-hour' : 'i-check')}${STATUS[e.status]}</span></span></div></li>`).join('')}</ul>`, { rows: 2, tiles: true, hideWhenEmpty: true });
+    if (body) side.push(card('dashboard.events', 'Upcoming events', 'i-cal', body, `<a href="/events/mine" data-testid="dashboard.events.all">All my events</a>`, 'data-order="6"'));
+  }
+
+  // 7 your stores: teams with free slots in the next 7 days (hidden when empty)
+  if (pickupsRole && !today) {
+    const body = stateOr(state, () => `<ul class="list" style="gap:0" data-testid="dashboard.stores.list">${STORES.map((s) => `<li class="store" data-testid="dashboard.stores.store" data-status="${s.status}">
+        <div class="row__body"><a class="row__title" href="#">${s.name}</a><span class="row__meta"><span><span class="dot dot--${s.status}" aria-hidden="true"></span>${s.free} free slots in the next 7 days</span><span>Next ${s.next}</span></span></div>
+        <a class="btn btn--text btn--sm" href="#">Pickups${icon('i-chev')}</a></li>`).join('')}</ul>`, { rows: 3, hideWhenEmpty: true });
+    if (body) side.push(card('dashboard.stores', 'Your stores', 'i-shop', body, `<a href="/stores/mine" data-testid="dashboard.stores.all">All my stores</a>`, 'data-order="7"'));
+  }
+
+  // 8 baskets (unchanged)
+  side.push(card('dashboard.baskets', 'Food baskets near you', 'i-cart', `<ul class="list">${[['Zwei Brote und Gipfeli vom Vortag', '0.0 km away'], ['Gemüsekiste: Rüebli, Lauch, Kartoffeln', '1.4 km away']].map(([t, d]) => `<li class="basket"><div class="basket__img" aria-hidden="true"></div><div><div class="basket__t">${t}</div><div class="muted">${icon('i-pin')} ${d} · Available until 02.01.2100</div></div></li>`).join('')}</ul>`, `<a href="#">All food baskets</a><a href="#">Offer a basket</a>`, 'data-order="8"'));
+
+  // today-only: quick links + admin card
+  if (today) {
+    side.unshift(`<nav class="links" aria-label="Quick links" data-order="3">${[['i-desktop', 'Signed-in devices', 'See where you’re signed in and sign devices out.'], ['i-hist', 'My activity', 'Everything you did – traceable.'], ['i-cog', 'Settings', 'Language, appearance and login methods.']].map(([ic, t, s]) => `<a class="link" href="#"><span class="link__icon">${icon(ic)}</span><span class="link__text"><strong>${t}</strong><span>${s}</span></span>${icon('i-chev')}</a>`).join('')}</nav>`);
+    if (role === 'manager') main.push(`<section class="card card--admin" data-order="6"><h2 class="card__title">${icon('i-sitemap')}Administration</h2><p class="muted">Soon you’ll manage your region’s members, verification and newcomers right here.</p></section>`);
+  }
+
+  // 9 activity feed (unchanged, abbreviated; last on phones)
+  main.push(card('dashboard.activity', "What's happening", 'i-bolt', `<div class="chips">${['Forum', 'Stores', 'Mailboxes', 'Events', 'Food share points', 'Buddies'].map((c) => `<button class="fchip" aria-pressed="true">${c}</button>`).join('')}</div>
+    <div>${[['Coop Bahnhofbrücke', 'Willkommen an alle Neuen im Team!', 'Nina Schneider · 18 hours ago'], ['Hiltl', 'Bitte denkt daran, Kisten mitzubringen.', 'Priya Sharma · 5 days ago']].map(([t, x, m]) => `<div class="act"><span class="act__icon">${icon('i-shop')}</span><div><a href="#">${t}</a><p>${x}</p><p class="muted">Stores · ${m}</p></div></div>`).join('')}</div>
+    <button class="btn btn--text btn--sm" style="justify-self:start">Load more</button>`, '', 'data-order="10"'));
+
+  document.getElementById('dash').innerHTML = `<div class="main">${main.join('')}</div><div class="side">${side.join('')}</div>`;
+  document.getElementById('note').innerHTML = today
+    ? 'Today: role sentence under the chips, "Complete your profile" for every foodsaver, quick links (devices / activity / settings) and the admin placeholder. The pickups card lists dates as text.'
+    : `Phone order: welcome → next step (only if something is missing) → Waiting for you → My next pickups → Help needed soon → Upcoming events → Your stores → Baskets → What's happening. Cards marked "hidden when empty" (Waiting for you, Help needed soon, Upcoming events, Your stores) show a compact skeleton while loading and render nothing when empty; errors stay visible with retry. ${role === 'foodsharer' ? 'Foodsharers (not verified) get no pickup, help or store cards.' : ''}`;
+}
+function apply() {
+  const v = (n) => document.querySelector(`input[name=${n}]:checked`).value;
+  document.documentElement.classList.toggle('fs-dark', v('theme') === 'dark');
+  document.documentElement.classList.toggle('touch', v('vp') === 'phone');
+  document.getElementById('frame').dataset.viewport = v('vp');
+  document.getElementById('size').textContent = v('vp') === 'phone' ? '412 px' : '1216 px';
+  render();
+}
+document.querySelectorAll('.ctl input').forEach((i) => i.addEventListener('change', apply));
+apply();
+</script>
+</body>
+</html>

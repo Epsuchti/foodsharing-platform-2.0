@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pickups page – mockup (UI polish batch #3, #12)</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108; --fs-accent: #f2b84b;
+  --fs-on-warning: #ffffff; --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04); --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08);
+  --fs-target-sm: 2.25rem; --fs-slot-size: 2.4rem; --fs-slot-ring: 2px; --fs-slot-badge: 1.05rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3);
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b;
+  --fs-accent: #9c7a3c; --fs-on-warning: #1a201a; --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; --fs-slot-size: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--fs-primary-strong); font-weight: 600; text-underline-offset: 0.18em; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl { position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm); }
+.ctl strong { font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.note { margin: 0.75rem auto 0; width: min(100% - 2rem, 960px); color: var(--fs-text-muted); font-size: 0.82rem; }
+
+/* ---- app frame ---- */
+.frame { position: relative; margin: 1rem auto; width: min(100% - 2rem, 960px); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
+.frame[data-viewport="phone"] { width: min(100% - 2rem, 412px); }
+.frame__size { position: absolute; top: 0.4rem; left: 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.6; pointer-events: none; }
+.page { width: min(100%, 56rem); margin: 0 auto; padding: 1.5rem clamp(1rem, 0.6rem + 2vw, 2rem) 2rem; }
+.frame[data-viewport="phone"] .page { padding-top: 1.75rem; }
+
+/* ---- page header (shared/page-header) ---- */
+.ph { display: grid; gap: 0.75rem; margin-bottom: 1.5rem; }
+.ph__row { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.25rem; }
+.ph__icon { display: grid; width: 3rem; height: 3rem; flex: none; place-items: center; border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-size: 1.3rem; }
+.ph__text { display: grid; flex: 1 1 16rem; min-width: 0; gap: 0.25rem; }
+.ph__title { margin: 0; font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem); font-weight: 750; letter-spacing: -0.025em; line-height: 1.15; }
+.ph__subtitle { margin: 0; color: var(--fs-text-muted); }
+.ph__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.frame[data-viewport="phone"] .ph { gap: 0.5rem; margin-bottom: 1.1rem; }
+.frame[data-viewport="phone"] .ph__row { align-items: flex-start; gap: 0.75rem 0.85rem; }
+.frame[data-viewport="phone"] .ph__icon { width: 2.5rem; height: 2.5rem; font-size: 1.1rem; }
+.frame[data-viewport="phone"] .ph__actions { flex-basis: 100%; }
+
+/* ---- buttons (Optimus look) ---- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: var(--fs-target-sm); padding: 0.45rem 0.95rem; border: 1px solid var(--fs-border-strong); border-radius: 0.75rem; background: var(--fs-surface); font-size: 0.9rem; font-weight: 650; line-height: 1.2; white-space: nowrap; }
+.btn--primary { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); }
+.btn--text { border-color: transparent; background: transparent; color: var(--fs-primary-strong); }
+.btn--text.btn--secondary { color: var(--fs-text-muted); }
+.btn--text.btn--danger { color: var(--fs-danger); }
+.btn--text:hover { background: var(--fs-primary-soft); }
+.btn--text.btn--danger:hover { background: var(--fs-danger-soft); }
+.btn--sm { padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+
+/* ---- sections ---- */
+.section { display: grid; gap: 0.75rem; }
+.section + .section { margin-top: 2rem; }
+.section__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; }
+.section__title { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+.section__count { color: var(--fs-text-muted); font-weight: 600; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.section__sub { flex-basis: 100%; margin: 0; color: var(--fs-text-muted); font-size: 0.92rem; }
+.cards { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.card { padding: 0.9rem 1rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; }
+.item__main { display: grid; gap: 0.15rem; min-width: 0; }
+.item__store { font-weight: 700; color: inherit; }
+.item__when { font-variant-numeric: tabular-nums; }
+.item--cleaning { border-left: 4px solid var(--fs-primary); }
+.kind, .muted { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--fs-text-muted); font-size: 0.88rem; }
+.state { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; }
+.state--ok { color: var(--fs-primary-strong); }
+.state--wait { color: var(--fs-warning-text); }
+.item__slots { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.75rem; row-gap: 0.15rem; }
+.summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.45rem; font-size: 0.82rem; color: var(--fs-text-muted); font-variant-numeric: tabular-nums; }
+.summary__part { display: inline-flex; align-items: center; gap: 0.3rem; }
+.summary__part--ok { color: var(--fs-primary-strong); }
+.summary__part--pending { color: var(--fs-warning-text); font-weight: 650; }
+.summary__sep { color: var(--fs-border-strong); }
+.more { justify-self: start; }
+.frame[data-viewport="phone"] .more { width: 100%; }
+
+/* ---- data states (shared/data-state) ---- */
+.sk { display: grid; gap: 0.6rem; }
+.sk .card { display: flex; gap: 0.9rem; align-items: center; }
+.sk__c { width: 2.75rem; height: 2.75rem; border-radius: 50%; }
+.sk__t { display: grid; flex: 1; gap: 0.5rem; }
+.sk__b { height: 0.85rem; border-radius: 0.4rem; }
+.sk__c, .sk__b { background: linear-gradient(90deg, var(--fs-surface-muted) 25%, color-mix(in srgb, var(--fs-border) 60%, var(--fs-surface)) 50%, var(--fs-surface-muted) 75%); background-size: 200% 100%; animation: sk 1.4s infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+.empty { display: grid; justify-items: center; gap: 0.75rem; padding: 2rem 1.5rem; border: 1px dashed var(--fs-border-strong); border-radius: var(--fs-radius-lg); background: var(--fs-surface-muted); text-align: center; }
+.empty__icon { display: grid; width: 4rem; height: 4rem; place-items: center; border-radius: 50%; background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-size: 1.6rem; }
+.empty h3 { margin: 0; font-size: 1.1rem; }
+.empty p { margin: 0; color: var(--fs-text-muted); }
+.error { display: flex; gap: 1rem; padding: 1.25rem 1.5rem; border: 1px solid var(--fs-danger-border); border-radius: var(--fs-radius-lg); background: var(--fs-danger-soft); }
+.error__icon { display: grid; flex: none; width: 3rem; height: 3rem; place-items: center; border-radius: 50%; background: var(--fs-surface); color: var(--fs-danger); font-size: 1.2rem; box-shadow: var(--fs-shadow-sm); }
+.error h3 { margin: 0; font-size: 1.05rem; }
+.error p { margin: 0.2rem 0 0.6rem; color: var(--fs-text-muted); }
+
+/* ---- slot row (shared/pickup-slot), for the one-chip rule (#12) ---- */
+.demo { margin: 2.5rem auto 1rem; width: min(100% - 2rem, 960px); }
+.demo h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+.demo p { margin: 0 0 0.75rem; color: var(--fs-text-muted); font-size: 0.88rem; }
+.demo__grid { display: grid; gap: 0.75rem; }
+@media (min-width: 48rem) { .demo__grid { grid-template-columns: 1fr 1fr; } }
+.demo__panel { padding: 1rem 1.25rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); }
+.demo__panel h3 { margin: 0 0 0.6rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fs-text-muted); }
+.pickup { display: grid; gap: 0.45rem; padding: 0.6rem 0; border-top: 1px solid var(--fs-border); }
+.pickup:first-of-type { border-top: 0; }
+.pickup__head { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; align-items: center; }
+.pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; }
+.slots { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.slot { position: relative; display: inline-grid; place-items: center; width: var(--fs-slot-size); height: var(--fs-slot-size); padding: 0; border-radius: 999px; border: var(--fs-slot-ring) solid transparent; background: none; }
+.av { display: inline-grid; place-items: center; width: calc(var(--fs-slot-size) - 2 * var(--fs-slot-ring) - 4px); height: calc(var(--fs-slot-size) - 2 * var(--fs-slot-ring) - 4px); border-radius: 999px; color: #fff; font-size: 0.72rem; font-weight: 700; }
+.av--xs { width: 1.75rem; height: 1.75rem; font-size: 0.68rem; }
+.slot--taken { border-color: var(--fs-primary); }
+.slot--unconfirmed { border-style: dashed; border-color: var(--fs-warning); }
+.slot__state { position: absolute; right: -0.2rem; bottom: -0.2rem; display: grid; place-items: center; width: var(--fs-slot-badge); height: var(--fs-slot-badge); border-radius: 999px; border: 2px solid var(--fs-surface); background: var(--fs-primary); color: var(--fs-on-primary); }
+.slot__state .i { width: 0.62rem; height: 0.62rem; stroke-width: 3; }
+.slot--unconfirmed .slot__state { background: var(--fs-warning); color: var(--fs-on-warning); }
+.slot--pill { display: inline-flex; gap: 0.35rem; align-items: center; width: auto; padding: 0 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 650; }
+.slot--mine { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.slot--mine.slot--unconfirmed { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.slot--free { border: var(--fs-slot-ring) dashed var(--fs-border); color: var(--fs-text-muted); background: var(--fs-surface); }
+.slot--free:not(:disabled) { color: var(--fs-primary-strong); border-color: color-mix(in srgb, var(--fs-primary) 55%, var(--fs-border)); }
+.slot--free:not(:disabled):hover { background: var(--fs-primary-soft); }
+.slot--labelled { display: inline-flex; gap: 0.35rem; width: auto; padding: 0 0.8rem; font-size: 0.85rem; font-weight: 650; }
+.pending { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.88rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-hour" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M8 3v3.5a4 4 0 0 0 1.6 3.2L12 12l-2.4 2.3A4 4 0 0 0 8 17.5V21M16 3v3.5a4 4 0 0 1-1.6 3.2L12 12l2.4 2.3a4 4 0 0 1 1.6 3.2V21"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5M15 8l4 4-4 4M19 12H9"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3L2 20h20zM12 9v5M12 17h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+</svg>
+
+<div class="ctl" aria-label="Mockup controls">
+  <fieldset><strong>Theme</strong>
+    <label><input type="radio" name="theme" value="light" checked>Light</label>
+    <label><input type="radio" name="theme" value="dark">Dark</label>
+  </fieldset>
+  <fieldset><strong>Viewport</strong>
+    <label><input type="radio" name="vp" value="desktop" checked>Desktop</label>
+    <label><input type="radio" name="vp" value="phone">Phone 412</label>
+  </fieldset>
+  <fieldset><strong>State</strong>
+    <label><input type="radio" name="state" value="data" checked>Data</label>
+    <label><input type="radio" name="state" value="mine-empty">Mine empty</label>
+    <label><input type="radio" name="state" value="loading">Loading</label>
+    <label><input type="radio" name="state" value="empty">Both empty</label>
+    <label><input type="radio" name="state" value="error">Error</label>
+  </fieldset>
+  <fieldset><strong>View</strong>
+    <label><input type="radio" name="view" value="proposal" checked>Proposal</label>
+    <label><input type="radio" name="view" value="today">Today</label>
+  </fieldset>
+</div>
+
+<div class="frame" id="frame" data-viewport="desktop">
+  <span class="frame__size" id="size"></span>
+
+  <!-- ===================== TODAY: two pages ===================== -->
+  <div class="page" id="today" hidden>
+    <header class="ph">
+      <div class="ph__row">
+        <div class="ph__icon"><svg class="i"><use href="#i-cal"/></svg></div>
+        <div class="ph__text"><h1 class="ph__title">Where can I help?</h1><p class="ph__subtitle">Pickups with free slots in your stores.</p></div>
+        <div class="ph__actions"><a class="btn" href="#"><svg class="i"><use href="#i-cal"/></svg>My pickups</a></div>
+      </div>
+    </header>
+    <ul class="cards" id="today-options"></ul>
+    <p class="note" style="width:auto;margin:1.5rem 0 0.5rem">Today <code>/pickups/mine</code> is a second page ("My pickups") with its own toolbar: Where can I help? · History · Day overview. The two pages become one.</p>
+  </div>
+
+  <!-- ===================== PROPOSAL: /pickups ===================== -->
+  <div class="page" id="proposal">
+    <header class="ph" data-testid="pickups.page.header">
+      <div class="ph__row">
+        <div class="ph__icon" aria-hidden="true"><svg class="i"><use href="#i-cal"/></svg></div>
+        <div class="ph__text">
+          <h1 class="ph__title">Pickups</h1>
+          <p class="ph__subtitle">Your upcoming pickups, and where your stores still need people.</p>
+        </div>
+        <div class="ph__actions">
+          <a class="btn btn--text btn--secondary" href="#" data-testid="pickups.mine.history"><svg class="i"><use href="#i-hist"/></svg>History</a>
+          <a class="btn btn--text btn--secondary" href="#" data-testid="pickups.mine.agenda"><svg class="i"><use href="#i-list"/></svg>Day overview</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ---- section 1: my pickups (fragment #mine) ---- -->
+    <section class="section" id="mine" aria-labelledby="mine-title">
+      <div class="section__head">
+        <h2 class="section__title" id="mine-title"><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg>My pickups</h2>
+        <span class="section__count" id="mine-count" data-testid="pickups.mine.count"></span>
+      </div>
+      <div data-testid="pickups.mine.state" id="mine-state"></div>
+    </section>
+
+    <!-- ---- section 2: where can I help (fragment #options) ---- -->
+    <section class="section" id="options" aria-labelledby="options-title">
+      <div class="section__head">
+        <h2 class="section__title" id="options-title"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Where can I help?</h2>
+        <span class="section__count" id="options-count" data-testid="pickups.options.count"></span>
+        <p class="section__sub">Pickups with free slots in your stores.</p>
+      </div>
+      <div data-testid="pickups.options.state" id="options-state"></div>
+    </section>
+  </div>
+</div>
+<p class="note">Sign out and Sign up open the existing dialogs. "Show N more" is client-side; nothing is reloaded. <code>/pickups/mine</code> redirects to <code>/pickups#mine</code>; the home card links to <code>#mine</code> and <code>#options</code>.</p>
+
+<!-- ===================== #12: one free-slot chip per pickup ===================== -->
+<section class="demo" aria-labelledby="demo-title">
+  <h2 id="demo-title">#12 Free slots: one chip per pickup (shared <code>fs-pickup-slot</code>, store tab / agenda / intro pickups)</h2>
+  <p>Taken slots stay as they are. Free slots collapse to <strong>one</strong> chip: "+ Sign up" when you may sign up (accessible name "Free slot – sign up, 2 free"), "2 free" when you are already in this pickup. Cleaning shifts use the same rule.</p>
+  <div class="demo__grid">
+    <div class="demo__panel">
+      <h3>Today</h3>
+      <div class="pickup"><div class="pickup__head"><span class="pickup__time">18:00</span><span class="badge">regular</span></div>
+        <ul class="slots"><li><button class="slot slot--free slot--labelled"><svg class="i"><use href="#i-plus"/></svg>Sign up</button></li><li><button class="slot slot--free"><svg class="i"><use href="#i-plus"/></svg></button></li><li><button class="slot slot--free"><svg class="i"><use href="#i-plus"/></svg></button></li></ul></div>
+      <div class="pickup"><div class="pickup__head"><span class="pickup__time">18:30</span>
+        <span class="summary"><span class="summary__part summary__part--ok"><svg class="i"><use href="#i-check"/></svg>0 of 3 confirmed</span><span class="summary__sep">·</span><span class="summary__part summary__part--pending"><svg class="i"><use href="#i-hour"/></svg>1 unconfirmed</span></span></div>
+        <ul class="slots"><li><button class="slot slot--taken slot--pill slot--mine slot--unconfirmed"><span class="av av--xs" style="background:#3a8f6f">SM</span><span>You</span><svg class="i"><use href="#i-hour"/></svg></button></li><li><button class="slot slot--free slot--labelled" disabled>2 free</button></li><li><button class="slot slot--free" disabled></button></li></ul>
+        <p class="pending"><svg class="i"><use href="#i-hour"/></svg>Your slot is still unconfirmed</p></div>
+    </div>
+    <div class="demo__panel">
+      <h3>Proposal</h3>
+      <div class="pickup"><div class="pickup__head"><span class="pickup__time">18:00</span><span class="badge">regular</span></div>
+        <ul class="slots" aria-label="0 of 3 slots taken"><li><button class="slot slot--free slot--labelled" aria-label="Free slot – sign up, 3 free" data-testid="stores.pickups.slot.free"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Sign up</button></li></ul></div>
+      <div class="pickup"><div class="pickup__head"><span class="pickup__time">18:30</span>
+        <span class="summary"><span class="summary__part summary__part--ok"><svg class="i"><use href="#i-check"/></svg>0 of 3 confirmed</span><span class="summary__sep">·</span><span class="summary__part summary__part--pending"><svg class="i"><use href="#i-hour"/></svg>1 unconfirmed</span></span></div>
+        <ul class="slots" aria-label="1 of 3 slots taken"><li><button class="slot slot--taken slot--pill slot--mine slot--unconfirmed" aria-label="You (Sarah Müller), unconfirmed – sign out"><span class="av av--xs" style="background:#3a8f6f">SM</span><span aria-hidden="true">You</span><svg class="i" aria-hidden="true"><use href="#i-hour"/></svg></button></li><li><button class="slot slot--free slot--labelled" disabled aria-label="2 free">2 free</button></li></ul>
+        <p class="pending"><svg class="i"><use href="#i-hour"/></svg>Your slot is still unconfirmed</p></div>
+    </div>
+  </div>
+</section>
+
+<script>
+const ME = 'Sarah Müller';
+const mine = [
+  { store: 'Bäckerei Vohdin', at: 'Wednesday, 4 November 2026 at 18:00', confirmed: false },
+  { store: 'Denner Langstrasse', at: 'Friday, 6 November 2026 at 18:30', confirmed: true },
+  { store: 'Coop Bahnhofbrücke', at: 'Saturday, 7 November 2026 at 19:00', confirmed: false },
+  { store: 'Fairteiler Kanzlei', at: 'Sunday, 8 November 2026 at 10:00', confirmed: true, cleaning: true },
+  { store: 'Hiltl', at: 'Wednesday, 11 November 2026 at 20:30', confirmed: true },
+  { store: 'Migros Limmatplatz', at: 'Thursday, 12 November 2026 at 18:30', confirmed: true },
+  { store: 'Bäckerei Vohdin', at: 'Saturday, 14 November 2026 at 18:00', confirmed: true },
+];
+const options = [
+  ['Bäckerei Vohdin', 'Wednesday, 4 November 2026 at 18:00', 1, 2, 0, 1],
+  ['Denner Langstrasse', 'Wednesday, 4 November 2026 at 18:30', 2, 2, 0, 0],
+  ['Hiltl', 'Wednesday, 4 November 2026 at 20:30', 2, 2, 0, 0],
+  ['Migros Limmatplatz', 'Thursday, 5 November 2026 at 18:30', 5, 5, 0, 0],
+  ['Coop Bahnhofbrücke', 'Thursday, 5 November 2026 at 19:00', 3, 3, 0, 0],
+  ['Denner Langstrasse', 'Friday, 6 November 2026 at 18:30', 1, 2, 1, 0],
+  ['Migros Limmatplatz', 'Friday, 6 November 2026 at 18:30', 3, 3, 0, 0],
+  ['Hiltl', 'Friday, 6 November 2026 at 19:00', 2, 2, 0, 0],
+  ['Bäckerei Vohdin', 'Saturday, 7 November 2026 at 18:00', 2, 2, 0, 0],
+  ['Coop Bahnhofbrücke', 'Saturday, 7 November 2026 at 19:00', 1, 3, 1, 1],
+  ['Migros Limmatplatz', 'Sunday, 8 November 2026 at 18:30', 4, 5, 1, 0],
+  ['Denner Langstrasse', 'Monday, 9 November 2026 at 18:30', 2, 2, 0, 0],
+  ['Hiltl', 'Tuesday, 10 November 2026 at 20:30', 1, 2, 1, 0],
+].map(([store, at, free, total, confirmed, pending]) => ({ store, at, free, total, confirmed, pending }));
+
+const MINE_PAGE = 5, OPTIONS_PAGE = 10;
+const shown = { mine: MINE_PAGE, options: OPTIONS_PAGE };
+const icon = (id) => `<svg class="i" aria-hidden="true"><use href="#${id}"/></svg>`;
+
+function mineRow(p) {
+  const state = p.confirmed
+    ? `<span class="state state--ok" data-testid="pickups.mine.confirmed">${icon('i-check')}Confirmed</span>`
+    : `<span class="state state--wait" data-testid="pickups.mine.unconfirmed">${icon('i-hour')}Unconfirmed</span>`;
+  const kind = p.cleaning ? `<span class="kind">${icon('i-spark')}Cleaning shift</span>` : '';
+  const tid = p.cleaning ? 'pickups.mine.cleaning' : 'pickups.mine.pickup';
+  return `<li class="card item${p.cleaning ? ' item--cleaning' : ''}" data-testid="${tid}" data-store="${p.store}" data-confirmed="${p.confirmed}">
+    <div class="item__main"><a class="item__store" href="#">${p.store}</a>${kind}<span class="item__when">${p.at}</span>${state}</div>
+    <button class="btn btn--text btn--danger btn--sm" data-testid="${p.cleaning ? 'pickups.mine.cleaning.signOut' : 'pickups.mine.signOut'}" aria-label="Sign out of ${p.store}, ${p.at}">${icon('i-out')}Sign out</button></li>`;
+}
+function optionRow(o) {
+  const taken = o.total - o.free;
+  let summary = '';
+  if (taken > 0) {
+    summary = `<span class="summary" data-testid="pickups.options.summary"><span class="summary__part summary__part--ok">${icon('i-check')}${o.confirmed} of ${o.total} confirmed</span>`
+      + (o.pending ? `<span class="summary__sep" aria-hidden="true">·</span><span class="summary__part summary__part--pending">${icon('i-hour')}${o.pending} unconfirmed</span>` : '') + '</span>';
+  }
+  return `<li class="card item" data-testid="pickups.options.option" data-store="${o.store}">
+    <div class="item__main"><a class="item__store" href="#">${o.store}</a><span class="item__when">${o.at}</span>
+      <span class="item__slots"><span class="muted" data-testid="pickups.options.free">${o.free} of ${o.total} slots free</span>${summary}</span></div>
+    <button class="btn btn--primary btn--sm" data-testid="pickups.options.signUp" aria-label="Sign up: ${o.store}, ${o.at}">${icon('i-plus')}Sign up</button></li>`;
+}
+function more(key, rest, tid) {
+  return rest > 0 ? `<button class="btn btn--text more" data-more="${key}" data-testid="${tid}" aria-controls="${key}-list">${icon('i-down')}Show ${rest} more</button>` : '';
+}
+const skeleton = (n) => `<div class="sk" aria-hidden="true">${Array.from({ length: n }, () => `<div class="card"><div class="sk__c"></div><div class="sk__t"><div class="sk__b" style="width:45%"></div><div class="sk__b" style="width:75%"></div></div></div>`).join('')}</div>`;
+const empty = (title, text, action) => `<div class="empty" role="status"><div class="empty__icon" aria-hidden="true">${icon('i-cal')}</div><div><h3>${title}</h3><p>${text}</p></div>${action ?? ''}</div>`;
+const error = () => `<div class="error" role="alert"><div class="error__icon" aria-hidden="true">${icon('i-warn')}</div><div><h3>Something went wrong</h3><p>The server did not answer. Please try again.</p><button class="btn btn--primary btn--sm">${icon('i-refresh')}Try again</button></div></div>`;
+
+function render() {
+  const state = document.querySelector('input[name=state]:checked').value;
+  const mineEl = document.getElementById('mine-state'), optEl = document.getElementById('options-state');
+  const mineCount = document.getElementById('mine-count'), optCount = document.getElementById('options-count');
+  mineCount.textContent = ''; optCount.textContent = '';
+  if (state === 'loading') { mineEl.innerHTML = skeleton(3); optEl.innerHTML = skeleton(4); }
+  else if (state === 'error') { mineEl.innerHTML = error(); optEl.innerHTML = error(); }
+  else {
+    if (state === 'empty' || state === 'mine-empty') {
+      mineEl.innerHTML = empty('No pickups planned', 'See below where slots are still free.', state === 'mine-empty' ? '<a class="btn" href="#options">Where can I help?</a>' : '');
+    } else {
+      mineCount.textContent = mine.length;
+      const list = mine.slice(0, shown.mine).map(mineRow).join('');
+      mineEl.innerHTML = `<div class="section"><ul class="cards" id="mine-list">${list}</ul>${more('mine', mine.length - shown.mine, 'pickups.mine.showMore')}</div>`;
+    }
+    if (state === 'empty') { optEl.innerHTML = empty('All covered', 'No free slots in your stores right now.'); }
+    else {
+      optCount.textContent = options.length;
+      const list = options.slice(0, shown.options).map(optionRow).join('');
+      optEl.innerHTML = `<div class="section"><ul class="cards" id="options-list">${list}</ul>${more('options', options.length - shown.options, 'pickups.options.showMore')}</div>`;
+    }
+  }
+  // today view: the old options page with the "My pickups" header button
+  document.getElementById('today-options').innerHTML = options.slice(0, 6).map(optionRow).join('');
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-more]');
+  if (!b) return;
+  shown[b.dataset.more] += b.dataset.more === 'mine' ? MINE_PAGE : OPTIONS_PAGE;
+  render();
+  // focus moves to the first newly shown card's link (keyboard users keep their place)
+  const list = document.getElementById(b.dataset.more + '-list');
+  const idx = b.dataset.more === 'mine' ? shown.mine - MINE_PAGE : shown.options - OPTIONS_PAGE;
+  list?.children[idx]?.querySelector('a')?.focus();
+});
+function apply() {
+  const v = (n) => document.querySelector(`input[name=${n}]:checked`).value;
+  document.documentElement.classList.toggle('fs-dark', v('theme') === 'dark');
+  document.documentElement.classList.toggle('touch', v('vp') === 'phone');
+  document.getElementById('frame').dataset.viewport = v('vp');
+  document.getElementById('today').hidden = v('view') !== 'today';
+  document.getElementById('proposal').hidden = v('view') === 'today';
+  document.getElementById('size').textContent = v('vp') === 'phone' ? '412 px' : '960 px';
+  render();
+}
+document.querySelectorAll('.ctl input').forEach((i) => i.addEventListener('change', () => { if (i.name === 'state') { shown.mine = MINE_PAGE; shown.options = OPTIONS_PAGE; } apply(); }));
+apply();
+</script>
+</body>
+</html>
