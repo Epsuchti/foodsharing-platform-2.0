@@ -22,7 +22,7 @@
         <spring-modulith.version>2.1.2</spring-modulith.version>
         <archunit.version>1.4.1</archunit.version>
         <webauthn4j.version>0.31.11.RELEASE</webauthn4j.version>
-        <openapi-generator.version>7.15.0</openapi-generator.version>
+        <openapi-generator.version>7.26.0</openapi-generator.version>
         <frontend-maven-plugin.version>2.0.2</frontend-maven-plugin.version>
         <node.version>v24.15.0</node.version>
         <npm.version>11.12.1</npm.version>
@@ -338,9 +338,12 @@
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useTags>true</useTags>
-                                <useSpringBoot3>true</useSpringBoot3>
+                                <useSpringBoot4>true</useSpringBoot4>
+                                <useJspecify>true</useJspecify>
                                 <skipDefaultInterface>true</skipDefaultInterface>
                                 <openApiNullable>false</openApiNullable>
+                                <generateJsonIncludeAnnotations>false</generateJsonIncludeAnnotations>
+                                <generateJsonSetterNullsAnnotations>false</generateJsonSetterNullsAnnotations>
                                 <containerDefaultToNull>true</containerDefaultToNull>
                                 <dateLibrary>java8</dateLibrary>
                                 <useBeanValidation>true</useBeanValidation>
