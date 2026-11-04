@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.service.MembershipService;
+import network.foodsharing.region.service.RegionMembersService;
 import network.foodsharing.region.service.RegionPermissionResolver;
 import network.foodsharing.region.service.RegionReadService;
 import network.foodsharing.security.CurrentActorService;
@@ -54,9 +55,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StoreTeamService {
 
+    /**
+     * One team row. {@code appointBlocker} is only set for viewers with mayEditTeam (null otherwise and when the member
+     * may be appointed); {@code mayBeAppointed} is true only for such viewers and when nothing blocks (S9).
+     */
     public record TeamMemberView(User user, StoreMembership membership, Instant hygieneUntil,
-                                 StorePickupInfo.MemberStats stats, Double distanceKm, boolean withPhone) {
+                                 StorePickupInfo.MemberStats stats, Double distanceKm, boolean withPhone,
+                                 ApiErrorCode appointBlocker, boolean mayBeAppointed) {
     }
+
+    /** Most region-member pages {@link #inviteCandidates} reads before it returns what it found. */
+    static final int CANDIDATE_PAGES = 5;
 
     /** Applications and invitations (null without mayEditTeam); the team itself is paged in {@link #teamMembers}. */
     public record TeamView(List<TeamMemberView> applications, List<TeamMemberView> invitations,
@@ -75,6 +84,7 @@ public class StoreTeamService {
     private final MembershipService regionMemberships;
     private final RegionPermissionResolver resolver;
     private final RegionReadService regionReads;
+    private final RegionMembersService regionMembers;
     private final ApplicationEventPublisher events;
     private final CurrentActorService currentActor;
     private final HistoryService history;
@@ -85,9 +95,9 @@ public class StoreTeamService {
     public StoreTeamService(StoreService stores, StoreMembershipRepository memberships, StorePermissionService rights,
                             StorePickupInfo pickupInfo, UserService users, QuizSessionService quizzes,
                             MembershipService regionMemberships, RegionPermissionResolver resolver,
-                            RegionReadService regionReads, ApplicationEventPublisher events,
-                            CurrentActorService currentActor, HistoryService history, AppProperties properties,
-                            Clock clock, TeamChatPort teamChat) {
+                            RegionReadService regionReads, RegionMembersService regionMembers,
+                            ApplicationEventPublisher events, CurrentActorService currentActor,
+                            HistoryService history, AppProperties properties, Clock clock, TeamChatPort teamChat) {
         this.stores = stores;
         this.memberships = memberships;
         this.rights = rights;
@@ -97,6 +107,7 @@ public class StoreTeamService {
         this.regionMemberships = regionMemberships;
         this.resolver = resolver;
         this.regionReads = regionReads;
+        this.regionMembers = regionMembers;
         this.events = events;
         this.currentActor = currentActor;
         this.history = history;
@@ -170,15 +181,20 @@ public class StoreTeamService {
                 .collect(Collectors.toMap(User::getId, Function.identity()));
         Map<UUID, StorePickupInfo.MemberStats> stats = pickupInfo.memberStats(store.getId());
         Map<UUID, Instant> hygiene = quizzes.hygieneValidUntil(all.stream().map(StoreMembership::getUserId).toList());
+        boolean coordinator = r.mayEditTeam() && currentActor.principal()
+                .map(p -> rights.mayCoordinateRegionStores(p, store.getRegionId())).orElse(false);
+        int managers = r.mayEditTeam() ? managerIds(store.getId()).size() : 0;
         List<TeamMemberView> views = new ArrayList<>();
         for (StoreMembership m : all) {
             User user = byId.get(m.getUserId());
             if (user == null) {
                 continue;
             }
+            ApiErrorCode blocker = r.mayEditTeam() ? appointBlocker(m, user, coordinator, managers).orElse(null) : null;
             views.add(new TeamMemberView(user, m, hygiene.get(user.getId()),
                     stats.getOrDefault(user.getId(), new StorePickupInfo.MemberStats(0, null, null)),
-                    r.maySeeMemberDistance() ? distance(user, store) : null, r.maySeePhoneNumbers()));
+                    r.maySeeMemberDistance() ? distance(user, store) : null, r.maySeePhoneNumbers(), blocker,
+                    r.mayEditTeam() && blocker == null));
         }
         return new Rows(views, byId);
     }
@@ -366,17 +382,58 @@ public class StoreTeamService {
 
     // ------------------------------------------------------------------------------------- invitations
 
+    /**
+     * Why {@code user} cannot be invited into the store's team, in the order {@link #invite} checks it: ALREADY_IN_TEAM
+     * (any membership row, also applications and invitations), ROLE_TOO_LOW (below FOODSAVER) and NOT_VERIFIED.
+     */
+    Optional<ApiErrorCode> inviteBlocker(UUID storeId, User user) {
+        if (rights.teamStatus(user.getId(), storeId) != UserTeamStatus.NO_MEMBER) {
+            return Optional.of(ApiErrorCode.ALREADY_IN_TEAM);
+        }
+        if (!PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)) {
+            return Optional.of(ApiErrorCode.ROLE_TOO_LOW);
+        }
+        if (!user.isVerified()) {
+            return Optional.of(ApiErrorCode.NOT_VERIFIED);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * S7: verified, active members of the store's region matching {@code search} whom {@link #invite} would accept.
+     * Reads at most {@link #CANDIDATE_PAGES} region-member pages, so fewer than {@code size} people may come back.
+     *
+     * @throws ApiException 404, 403 unless mayEditTeam
+     */
+    @Transactional(readOnly = true)
+    public List<User> inviteCandidates(UUID storeId, String search, int size) {
+        Store store = requireEditTeam(storeId);
+        int limit = Math.min(Math.max(size, 1), 20);
+        List<User> result = new ArrayList<>();
+        for (int page = 0; page < CANDIDATE_PAGES && result.size() < limit; page++) {
+            Page<RegionMembersService.MemberView> members = regionMembers.members(store.getRegionId(), search, true,
+                    null, null, page, limit);
+            for (RegionMembersService.MemberView member : members.getContent()) {
+                if (result.size() < limit && inviteBlocker(storeId, member.user()).isEmpty()) {
+                    result.add(member.user());
+                }
+            }
+            if (!members.hasNext()) {
+                break;
+            }
+        }
+        return result;
+    }
+
     @Transactional
     public void invite(UUID storeId, UUID userId) {
         Store store = requireEditTeam(storeId);
         User user = users.requireActive(userId);
-        if (rights.teamStatus(userId, storeId) != UserTeamStatus.NO_MEMBER) {
-            throw ApiException.conflict(ApiErrorCode.ALREADY_IN_TEAM);
+        Optional<ApiErrorCode> blocker = inviteBlocker(storeId, user);
+        if (blocker.isPresent()) {
+            throw blocker.get() == ApiErrorCode.ALREADY_IN_TEAM ? ApiException.conflict(blocker.get())
+                    : ApiException.forbidden(blocker.get());
         }
-        if (!PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)) {
-            throw ApiException.forbidden(ApiErrorCode.ROLE_TOO_LOW);
-        }
-        requireVerified(user);
         StoreMembership m = new StoreMembership();
         m.setStoreId(storeId);
         m.setUserId(userId);
@@ -534,18 +591,12 @@ public class StoreTeamService {
     public void appointManager(UUID storeId, UUID userId) {
         Store store = requireEditTeam(storeId);
         User user = users.require(userId);
-        StoreMembership m = memberships.findByStoreIdAndUserId(storeId, userId)
-                .filter(x -> x.getStatus() == StoreMembershipStatus.MEMBER || x.getStatus() == StoreMembershipStatus.JUMPER)
-                .orElseThrow(() -> ApiException.conflict(ApiErrorCode.NOT_TEAM_MEMBER));
-        if (m.isManager()) {
-            throw ApiException.conflict(ApiErrorCode.ALREADY_MANAGER);
-        }
-        if (!PermissionService.isAtLeast(user.getRole(), Role.STORE_MANAGER)) {
-            throw ApiException.forbidden(ApiErrorCode.ROLE_TOO_LOW);
-        }
+        StoreMembership m = memberships.findByStoreIdAndUserId(storeId, userId).orElse(null);
         boolean coordinator = rights.mayCoordinateRegionStores(currentActor.requirePrincipal(), store.getRegionId());
-        if (!coordinator && managerIds(storeId).size() >= properties.getStore().getMaxManagers()) {
-            throw ApiException.conflict(ApiErrorCode.TOO_MANY_MANAGERS);
+        Optional<ApiErrorCode> blocker = appointBlocker(m, user, coordinator, managerIds(storeId).size());
+        if (blocker.isPresent()) {
+            throw blocker.get() == ApiErrorCode.ROLE_TOO_LOW ? ApiException.forbidden(blocker.get())
+                    : ApiException.conflict(blocker.get());
         }
         StoreMembershipStatus before = m.getStatus();
         m.setStatus(StoreMembershipStatus.MEMBER);
@@ -571,6 +622,27 @@ public class StoreTeamService {
         notify(List.of(userId), NotificationType.STORE_MANAGER_REMOVED, store, text, null, null,
                 "store/manager-removed");
         direct(userId, text);
+    }
+
+    /**
+     * A19: why {@code user} cannot be appointed as store manager, in the order {@link #appointManager} checks it:
+     * NOT_TEAM_MEMBER (no member / jumper row), ALREADY_MANAGER, ROLE_TOO_LOW (below STORE_MANAGER) and
+     * TOO_MANY_MANAGERS (coordinators are exempt from the limit).
+     */
+    Optional<ApiErrorCode> appointBlocker(StoreMembership m, User user, boolean coordinator, int managerCount) {
+        if (m == null || (m.getStatus() != StoreMembershipStatus.MEMBER && m.getStatus() != StoreMembershipStatus.JUMPER)) {
+            return Optional.of(ApiErrorCode.NOT_TEAM_MEMBER);
+        }
+        if (m.isManager()) {
+            return Optional.of(ApiErrorCode.ALREADY_MANAGER);
+        }
+        if (!PermissionService.isAtLeast(user.getRole(), Role.STORE_MANAGER)) {
+            return Optional.of(ApiErrorCode.ROLE_TOO_LOW);
+        }
+        if (!coordinator && managerCount >= properties.getStore().getMaxManagers()) {
+            return Optional.of(ApiErrorCode.TOO_MANY_MANAGERS);
+        }
+        return Optional.empty();
     }
 
     // ------------------------------------------------------------------------------------- helpers

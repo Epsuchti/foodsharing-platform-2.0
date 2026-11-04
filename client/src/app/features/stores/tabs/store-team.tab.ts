@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { ConfirmationService } from '@openng/optimus-ui/api';
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Paginator, PaginatorState } from '@openng/optimus-ui/paginator';
 import { Popover } from '@openng/optimus-ui/popover';
@@ -8,6 +8,7 @@ import { Popover } from '@openng/optimus-ui/popover';
 import { StoreTeam, StoreTeamService, TeamListStatus, TeamMember, TeamMemberPage, TeamSort } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
+import { errorParams } from '../../../core/data/api-error';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -347,9 +348,20 @@ interface TeamQuery {
             <button type="button" class="menu__item" (click)="menuAsk('removeManager', member)" data-testid="stores.team.removeManager">
               <i class="pi pi-star" aria-hidden="true"></i>{{ 'stores.team.removeManager' | t }}
             </button>
-          } @else {
+          } @else if (member.mayBeAppointed) {
             <button type="button" class="menu__item" (click)="menuAppoint(member)" data-testid="stores.team.appointManager">
               <i class="pi pi-star-fill" aria-hidden="true"></i>{{ 'stores.team.appointManager' | t }}
+            </button>
+          } @else if (member.appointBlocker === 'TOO_MANY_MANAGERS') {
+            <!-- possible again once a manager is removed, so it stays visible with the reason (S9) -->
+            <button type="button" class="menu__item" disabled aria-describedby="store-team-appoint-hint" data-testid="stores.team.appointManager">
+              <i class="pi pi-star-fill" aria-hidden="true"></i>
+              <span class="menu__text">
+                {{ 'stores.team.appointManager' | t }}
+                <small id="store-team-appoint-hint" class="menu__hint" data-testid="stores.team.appointBlocked">
+                  {{ 'stores.team.appointBlocked.TOO_MANY_MANAGERS' | t }}
+                </small>
+              </span>
             </button>
           }
           @if (member.status === 'JUMPER') {
@@ -382,7 +394,7 @@ interface TeamQuery {
     }
 
     @if (ctx.data(); as store) {
-      <fs-store-invite-dialog [(visible)]="inviteOpen" [storeId]="store.id" [regionId]="store.region.id" (invited)="refresh()" />
+      <fs-store-invite-dialog [(visible)]="inviteOpen" [storeId]="store.id" (invited)="refresh()" />
     }
   `,
   styleUrl: '../stores.scss',
@@ -437,6 +449,9 @@ interface TeamQuery {
     }
     .menu__item:hover, .menu__item:focus-visible { background: var(--fs-surface-muted); }
     .menu__item--danger { color: var(--fs-danger); }
+    .menu__item:disabled { color: var(--fs-text-muted); cursor: default; background: none; }
+    .menu__text { display: grid; gap: 0.1rem; }
+    .menu__hint { font-size: 0.78rem; }
   `,
 })
 export class StoreTeamTab {
@@ -445,6 +460,7 @@ export class StoreTeamTab {
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
   private readonly session = inject(SessionService);
+  private readonly messages = inject(MessageService);
 
   protected readonly myId = computed(() => this.session.user()?.id);
   protected readonly mayEditTeam = computed(() => this.ctx.may('mayEditTeam'));
@@ -537,7 +553,24 @@ export class StoreTeamTab {
 
   protected readonly appoint = runMutation(
     (userId: string) => this.api.appointManager({ storeId: this.ctx.storeId()!, userId }),
-    { successToastKey: 'stores.team.appointed', onSuccess: () => this.refresh() },
+    {
+      successToastKey: 'stores.team.appointed',
+      onSuccess: () => this.refresh(),
+      // the menu only offers appointable members; ROLE_TOO_LOW here means the role changed meanwhile (S9)
+      errorToast: false,
+      onError: (error) => {
+        this.messages.add({
+          severity: 'error',
+          summary: this.i18n.t('common.error.title'),
+          detail:
+            error.code === 'ROLE_TOO_LOW'
+              ? this.i18n.t('stores.team.appointError.ROLE_TOO_LOW')
+              : this.i18n.error(error.code, errorParams(error)),
+          life: 8000,
+        });
+        this.refresh();
+      },
+    },
   );
 
   protected readonly toRegular = runMutation(

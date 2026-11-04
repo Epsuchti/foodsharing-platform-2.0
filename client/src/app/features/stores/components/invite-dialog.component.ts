@@ -1,24 +1,33 @@
 import { ChangeDetectionStrategy, Component, inject, input, model, output, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { debounceTime } from 'rxjs';
 
-import { RegionMemberPage, RegionsService, StoreTeamService } from '../../../api';
+import { InviteCandidateList, StoreTeamService, UserSummary } from '../../../api';
+import { errorParams } from '../../../core/data/api-error';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 
 interface InviteQuery {
-  regionId: string;
+  storeId: string;
   search: string;
 }
 
-/** Invite a member of the store's region into the team (S7): user search over `listRegionMembers`. */
+/** Codes the server answers when someone in the list can no longer be invited (race with another manager). */
+const NOT_ELIGIBLE = new Set(['ROLE_TOO_LOW', 'NOT_VERIFIED', 'ALREADY_IN_TEAM']);
+
+/**
+ * Invite a member of the store's region into the team (S7). The list comes from `listInviteCandidates`: only people
+ * the server would accept (verified, at least foodsaver, not in the team yet).
+ */
 @Component({
   selector: 'fs-store-invite-dialog',
   imports: [...DATA_STATE_IMPORTS, Button, Dialog, FormsModule, InputText, TPipe, UserChipComponent],
@@ -54,20 +63,20 @@ interface InviteQuery {
         >
           <ng-template [fsData]="results" let-page>
             <ul class="results">
-              @for (member of page.items; track member.user.id) {
-                <li class="result" data-testid="stores.invite.result" [attr.data-user]="member.user.displayName">
+              @for (user of page.items; track user.id) {
+                <li class="result" data-testid="stores.invite.result" [attr.data-user]="user.displayName">
                   <fs-user-chip
-                    [name]="member.user.displayName"
-                    [userId]="member.user.id"
-                    [avatarUrl]="member.user.avatarUrl"
-                    [verified]="member.user.verified"
+                    [name]="user.displayName"
+                    [userId]="user.id"
+                    [avatarUrl]="user.avatarUrl"
+                    [verified]="user.verified"
                   />
                   <p-button
                     [label]="'stores.invite.send' | t"
                     icon="pi pi-envelope"
                     size="small"
                     [loading]="invite.busy()"
-                    (onClick)="invite.run(member.user.id)"
+                    (onClick)="invite.run(user)"
                     data-testid="stores.invite.send"
                   />
                 </li>
@@ -89,32 +98,52 @@ interface InviteQuery {
   `,
 })
 export class StoreInviteDialogComponent {
-  private readonly regionsApi = inject(RegionsService);
   private readonly api = inject(StoreTeamService);
+  private readonly messages = inject(MessageService);
+  private readonly i18n = inject(I18nService);
 
   readonly visible = model(false);
   readonly storeId = input.required<string>();
-  readonly regionId = input.required<string>();
   readonly invited = output<void>();
 
   protected readonly search = signal('');
+  /** The person of the running invitation, named in the not-eligible toast. */
+  private lastInvited?: UserSummary;
   private readonly debounced = toSignal(toObservable(this.search).pipe(debounceTime(250)), { initialValue: '' });
 
   protected query(): InviteQuery | undefined {
     const search = this.debounced().trim();
-    return this.visible() && search.length >= 2 ? { regionId: this.regionId(), search } : undefined;
+    return this.visible() && search.length >= 2 ? { storeId: this.storeId(), search } : undefined;
   }
 
-  protected readonly results = loadResource<RegionMemberPage, InviteQuery>({
+  protected readonly results = loadResource<InviteCandidateList, InviteQuery>({
     params: () => this.query(),
-    loader: ({ regionId, search }) => this.regionsApi.listRegionMembers({ regionId, search, size: 10 }),
+    loader: ({ storeId, search }) => this.api.listInviteCandidates({ storeId, search, size: 10 }),
     isEmpty: (page) => page.items.length === 0,
   });
 
   protected readonly invite = runMutation(
-    (userId: string) => this.api.inviteUser({ storeId: this.storeId(), userId }),
+    (user: UserSummary) => {
+      this.lastInvited = user;
+      return this.api.inviteUser({ storeId: this.storeId(), userId: user.id });
+    },
     {
       successToastKey: 'stores.invite.sent',
+      errorToast: false,
+      onError: (error) => {
+        this.messages.add({
+          severity: 'error',
+          summary: this.i18n.t('common.error.title'),
+          detail: NOT_ELIGIBLE.has(error.code)
+            ? this.i18n.t('stores.invite.notEligible', {
+                name: this.lastInvited?.displayName ?? '',
+                reason: this.i18n.error(error.code, errorParams(error)),
+              })
+            : this.i18n.error(error.code, errorParams(error)),
+          life: 8000,
+        });
+        this.results.reload();
+      },
       onSuccess: () => {
         this.visible.set(false);
         this.search.set('');

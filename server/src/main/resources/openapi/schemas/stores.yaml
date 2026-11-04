@@ -692,6 +692,28 @@ TeamMember:
     phone:
       description: 'Mobile number in E.164; only when the viewer may see the member''s contact details (S9).'
       type: string
+    mayBeAppointed:
+      description: 'True when the viewer may appoint this member as store manager right now (A19, S9); false without mayEditTeam.'
+      type: boolean
+    appointBlocker:
+      $ref: './stores.yaml#/TeamAppointBlocker'
+
+TeamAppointBlocker:
+  description: >-
+    Why this member cannot be appointed as store manager (the ApiErrorCode appointManager would answer); only filled
+    for viewers with mayEditTeam. TOO_MANY_MANAGERS clears once a manager is removed.
+  type: string
+  enum: [ROLE_TOO_LOW, NOT_TEAM_MEMBER, ALREADY_MANAGER, TOO_MANY_MANAGERS]
+
+InviteCandidateList:
+  description: 'Verified members of the store''s region who may be invited into its team (S7); at most `size` entries.'
+  type: object
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './users.yaml#/UserSummary'
 
 StoreApplication:
   type: object

@@ -4,6 +4,7 @@ import network.foodsharing.store.service.StoreTeamService;
 import network.foodsharing.store.mapper.StoreMapper;
 import java.util.UUID;
 import network.foodsharing.api.StoreTeamApi;
+import network.foodsharing.api.model.InviteCandidateList;
 import network.foodsharing.api.model.RequiredMessage;
 import network.foodsharing.api.model.StoreApplicationCreate;
 import network.foodsharing.api.model.StoreTeam;
@@ -86,6 +87,12 @@ public class StoreTeamController implements StoreTeamApi {
                                                                TeamSort sort, Integer page, Integer size) {
         return ResponseEntity.ok(mapper.toTeamMemberPage(
                 team.teamMembers(storeId, mapper.toTeamQuery(status, search, sort, page, size))));
+    }
+
+    @Override
+    public ResponseEntity<InviteCandidateList> listInviteCandidates(UUID storeId, String search, Integer size) {
+        return ResponseEntity.ok(mapper.toInviteCandidates(
+                team.inviteCandidates(storeId, search, size == null ? 10 : size)));
     }
 
     @Override

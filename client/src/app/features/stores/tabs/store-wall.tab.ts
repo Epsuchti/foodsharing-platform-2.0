@@ -27,7 +27,8 @@ const MILESTONE_ICONS: Record<WallMilestone, string> = {
 
 /**
  * /stores/:storeId/wall (S11): the team's notes. Composer for members (mayPostWall), milestone cards (store created,
- * cooperation started, status changes) styled apart from posts, delete per post (`mayDelete`, decision 54) and
+ * cooperation started, status changes) styled apart from posts, delete per post (`mayDelete`: author, ORGA, the
+ * store's managers and its region's coordinators at any age; decision 54 as amended) and
  * "load more" paging.
  */
 @Component({

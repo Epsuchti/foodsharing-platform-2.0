@@ -26,6 +26,7 @@ import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.service.MembershipService;
+import network.foodsharing.region.service.RegionMembersService;
 import network.foodsharing.region.service.RegionPermissionResolver;
 import network.foodsharing.region.service.RegionReadService;
 import network.foodsharing.security.CurrentActorService;
@@ -58,6 +59,7 @@ class StoreTeamServiceTest {
     MembershipService regionMemberships = mock(MembershipService.class);
     RegionPermissionResolver resolver = mock(RegionPermissionResolver.class);
     RegionReadService regionReads = mock(RegionReadService.class);
+    RegionMembersService regionMembers = mock(RegionMembersService.class);
     CurrentActorService currentActor = mock(CurrentActorService.class);
     HistoryService history = mock(HistoryService.class, RETURNS_DEEP_STUBS);
     TeamChatPort teamChat = mock(TeamChatPort.class);
@@ -72,7 +74,8 @@ class StoreTeamServiceTest {
     @BeforeEach
     void setUp() {
         service = new StoreTeamService(stores, memberships, rights, pickupInfo, users, quizzes, regionMemberships,
-                resolver, regionReads, events, currentActor, history, properties, Clock.fixed(NOW, ZoneOffset.UTC), teamChat);
+                resolver, regionReads, regionMembers, events, currentActor, history, properties,
+                Clock.fixed(NOW, ZoneOffset.UTC), teamChat);
         store = new Store();
         store.setId(STORE);
         store.setName("Coop");
@@ -272,6 +275,96 @@ class StoreTeamServiceTest {
         UUID outsider = UUID.randomUUID();
         when(users.require(outsider)).thenReturn(appointee);
         assertThat(codeOf(() -> service.appointManager(STORE, outsider))).isEqualTo(ApiErrorCode.NOT_TEAM_MEMBER);
+    }
+
+    @Test
+    void appointBlockerNamesEachReasonInTheOrderAppointManagerChecks() {
+        User appointee = new User();
+        appointee.setRole(Role.STORE_MANAGER);
+        StoreMembership m = new StoreMembership();
+        m.setStatus(StoreMembershipStatus.MEMBER);
+        assertThat(service.appointBlocker(null, appointee, false, 0)).contains(ApiErrorCode.NOT_TEAM_MEMBER);
+        m.setStatus(StoreMembershipStatus.APPLIED);
+        assertThat(service.appointBlocker(m, appointee, true, 0)).contains(ApiErrorCode.NOT_TEAM_MEMBER);
+        m.setStatus(StoreMembershipStatus.INVITED);
+        assertThat(service.appointBlocker(m, appointee, true, 0)).contains(ApiErrorCode.NOT_TEAM_MEMBER);
+        m.setStatus(StoreMembershipStatus.JUMPER);
+        assertThat(service.appointBlocker(m, appointee, false, 0)).isEmpty();
+        m.setStatus(StoreMembershipStatus.MEMBER);
+        assertThat(service.appointBlocker(m, appointee, false, 2)).isEmpty();
+        assertThat(service.appointBlocker(m, appointee, false, 3)).contains(ApiErrorCode.TOO_MANY_MANAGERS);
+        assertThat(service.appointBlocker(m, appointee, true, 3)).isEmpty();
+        appointee.setRole(Role.FOODSAVER);
+        assertThat(service.appointBlocker(m, appointee, false, 3)).contains(ApiErrorCode.ROLE_TOO_LOW);
+        assertThat(service.appointBlocker(m, appointee, true, 0)).contains(ApiErrorCode.ROLE_TOO_LOW);
+        m.setManager(true);
+        assertThat(service.appointBlocker(m, appointee, true, 0)).contains(ApiErrorCode.ALREADY_MANAGER);
+    }
+
+    @Test
+    void teamListCarriesTheAppointBlockerOnlyForTeamEditors() {
+        teamFixture(editRights());
+        people.values().forEach(u -> u.setRole(Role.FOODSAVER));
+        people.get(UUID.fromString("00000000-0000-4000-8000-000000000013")).setRole(Role.STORE_MANAGER);
+        var rows = service.teamMembers(STORE, new TeamListQuery(null, null, null, 0, 20)).getContent();
+        assertThat(rows).extracting(v -> v.user().getDisplayName() + ":" + v.appointBlocker() + ":" + v.mayBeAppointed())
+                .containsExactly("Zora:ALREADY_MANAGER:false", "anna:ROLE_TOO_LOW:false", "Anna:null:true",
+                        "Bert:ROLE_TOO_LOW:false", "Émile:ROLE_TOO_LOW:false");
+        when(stores.requireAccess(store)).thenReturn(noRights());
+        assertThat(service.teamMembers(STORE, new TeamListQuery(null, null, null, 0, 20)).getContent())
+                .allSatisfy(v -> {
+                    assertThat(v.appointBlocker()).isNull();
+                    assertThat(v.mayBeAppointed()).isFalse();
+                });
+    }
+
+    @Test
+    void inviteBlockerNamesEachReasonInTheOrderInviteChecks() {
+        assertThat(service.inviteBlocker(STORE, user)).isEmpty();
+        user.setVerified(false);
+        assertThat(service.inviteBlocker(STORE, user)).contains(ApiErrorCode.NOT_VERIFIED);
+        user.setRole(Role.FOODSHARER);
+        assertThat(service.inviteBlocker(STORE, user)).contains(ApiErrorCode.ROLE_TOO_LOW);
+        for (UserTeamStatus status : List.of(UserTeamStatus.APPLIED, UserTeamStatus.INVITED, UserTeamStatus.MEMBER,
+                UserTeamStatus.WAITING_LIST, UserTeamStatus.COORDINATOR)) {
+            when(rights.teamStatus(user.getId(), STORE)).thenReturn(status);
+            assertThat(service.inviteBlocker(STORE, user)).as(status.name()).contains(ApiErrorCode.ALREADY_IN_TEAM);
+        }
+    }
+
+    private RegionMembersService.MemberView regionMember(String name, Role role, boolean verified) {
+        User u = new User();
+        u.setId(UUID.randomUUID());
+        u.setDisplayName(name);
+        u.setRole(role);
+        u.setVerified(verified);
+        return new RegionMembersService.MemberView(u, null, false, java.util.Set.of(), true, false);
+    }
+
+    @Test
+    void inviteCandidatesAreRegionMembersInviteWouldAccept() {
+        RegionMembersService.MemberView ok = regionMember("Sarah", Role.FOODSAVER, true);
+        RegionMembersService.MemberView sharer = regionMember("Lea", Role.FOODSHARER, true);
+        RegionMembersService.MemberView unverified = regionMember("Chiara", Role.FOODSAVER, false);
+        RegionMembersService.MemberView inTeam = regionMember("Nina", Role.STORE_MANAGER, true);
+        when(rights.teamStatus(inTeam.user().getId(), STORE)).thenReturn(UserTeamStatus.COORDINATOR);
+        when(regionMembers.members(REGION, "a", true, null, null, 0, 10)).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(List.of(sharer, unverified, inTeam, ok),
+                        org.springframework.data.domain.PageRequest.of(0, 10), 4));
+        assertThat(service.inviteCandidates(STORE, "a", 10)).extracting(User::getDisplayName).containsExactly("Sarah");
+        when(rights.rights(any(), any())).thenReturn(noRights());
+        assertThat(codeOf(() -> service.inviteCandidates(STORE, "a", 10))).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+    }
+
+    @Test
+    void inviteCandidatesReadABoundedNumberOfPages() {
+        RegionMembersService.MemberView sharer = regionMember("Lea", Role.FOODSHARER, true);
+        when(regionMembers.members(any(), any(), any(), any(), any(), org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.anyInt())).thenAnswer(i -> new org.springframework.data.domain.PageImpl<>(
+                List.of(sharer), org.springframework.data.domain.PageRequest.of(i.getArgument(5), 1), 1000));
+        assertThat(service.inviteCandidates(STORE, "le", 1)).isEmpty();
+        verify(regionMembers, org.mockito.Mockito.times(StoreTeamService.CANDIDATE_PAGES)).members(any(), any(),
+                any(), any(), any(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyInt());
     }
 
     @Test
