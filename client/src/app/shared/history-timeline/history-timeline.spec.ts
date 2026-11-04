@@ -32,6 +32,14 @@ const TRANSLATIONS: Record<string, string> = {
   'common.role.FOODSAVER': 'Foodsaver',
   'common.role.FOODSHARER': 'Foodsharer',
   'errors.LOGIN_TOKEN_EXPIRED_OR_USED': 'Link abgelaufen',
+  'history.action.STORE.PICKUP_SLOTS_CHANGED': 'Anzahl Plätze geändert',
+  'shared.historyTimeline.detail.action': 'Aktion',
+  'shared.historyTimeline.meta.pickupAt': 'Abholung',
+  'shared.historyTimeline.meta.previousCount': 'Bisherige Anzahl',
+  'shared.historyTimeline.value.true': 'Ja',
+  'shared.historyTimeline.value.false': 'Nein',
+  'shared.historyTimeline.value.channel.PUSH': 'Push',
+  'shared.store.cooperation.IN_NEGOTIATION': 'In Verhandlung',
 };
 
 function entry(partial: Partial<HistoryEntry> & Pick<HistoryEntry, 'action'>): HistoryEntry {
@@ -120,6 +128,47 @@ describe('HistoryLabeler', () => {
       entry({ action: 'LOGIN_FAILED', metadata: { method: 'EMAIL', reason: 'LOGIN_TOKEN_EXPIRED_OR_USED', sessionId: 'x' } }),
     );
     expect(facts).toEqual([{ key: 'reason', label: 'Grund', value: 'Link abgelaufen' }]);
+  });
+
+  it('hides pure id keys and shows dates, booleans and enum values in words', () => {
+    const facts = labeler.metadata(
+      entry({
+        action: 'PICKUP_SLOTS_CHANGED',
+        metadata: {
+          storeId: 's1',
+          id: 'x',
+          storeIds: 'a,b',
+          traceId: 't',
+          pickupAt: '2026-11-05T17:30:00Z',
+          validUntil: '2027-01-31',
+          previousCount: 2,
+          test: true,
+          channel: 'PUSH',
+          status: 'IN_NEGOTIATION',
+          kind: 'SOMETHING_NEW',
+        },
+      }),
+    );
+    expect(facts.map((fact) => fact.key)).toEqual([
+      'pickupAt',
+      'validUntil',
+      'previousCount',
+      'test',
+      'channel',
+      'status',
+      'kind',
+    ]);
+    const value = (key: string) => facts.find((fact) => fact.key === key)?.value;
+    expect(value('pickupAt')).toBe('05.11.2026, 18:30');
+    expect(value('validUntil')).toBe('31.01.2027');
+    expect(value('previousCount')).toBe('2');
+    expect(value('test')).toBe('Ja');
+    expect(value('channel')).toBe('Push');
+    expect(value('status')).toBe('In Verhandlung');
+    expect(value('kind')).toBe('SOMETHING_NEW');
+    expect(facts.find((fact) => fact.key === 'previousCount')?.label).toBe('Bisherige Anzahl');
+    expect(labeler.value('cooperationStatus', 'IN_NEGOTIATION')).toBe('In Verhandlung');
+    expect(labeler.value('active', 'false')).toBe('Nein');
   });
 
   it('chooses icons by action with suffix rules for new actions', () => {
@@ -306,6 +355,24 @@ describe('HistoryTimelineComponent', () => {
     fixture.componentRef.setInput('csvExport', undefined);
     await fixture.whenStable();
     expect(el.querySelector('[data-testid="test.history.filter.actions"]')).toBeNull();
+  });
+
+  it('names the action in words in the details, never as a code', async () => {
+    const slots = entry({
+      action: 'PICKUP_SLOTS_CHANGED',
+      subjectType: HistorySubjectType.Store,
+      metadata: { previousCount: 2, storeId: 's1' },
+    });
+    const { fixture, el } = await create(() => of(demoPage([slots])));
+    await fixture.whenStable();
+    (el.querySelector('[data-testid="test.history.entry.details"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    const panel = el.querySelector('[data-testid="test.history.entry.detailsPanel"]') as HTMLElement;
+    expect(panel.querySelector('[data-testid="test.history.entry.action"]')?.textContent?.trim()).toBe(
+      'Anzahl Plätze geändert',
+    );
+    expect(panel.textContent).not.toContain('STORE.');
+    expect(panel.textContent).not.toContain('s1');
   });
 
   it('says "by you" for the viewer’s own actions', async () => {
