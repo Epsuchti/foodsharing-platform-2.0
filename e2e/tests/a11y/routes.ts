@@ -340,4 +340,5 @@ export const SWEEP_EXCLUDED: Exclusion[] = [
   { pattern: '/reports', reason: 'redirect to /dashboard' },
   { pattern: '/resources', reason: 'redirect to /resources/mine' },
   { pattern: '/admin/settings', reason: 'redirect to /admin/feature-toggles' },
+  { pattern: '/pickups/mine', reason: 'redirect to /pickups#mine (swept as /pickups)' },
 ];
