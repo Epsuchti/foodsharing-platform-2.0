@@ -1,10 +1,11 @@
-import { S07_WEDNESDAY, injectApiError, seedStore } from '../fixtures';
+import { type ApiClient, S07_WEDNESDAY, injectApiError, seedStore, zurichPickupAt } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
  * Pickup screens (M3 F4): store pickups tab (day list; as manager with split pills, the "Unbestätigt (n)" chip and the
  * summary), sign-up dialog eligible / not eligible, regular editor, one-time pickup dialog, options, my pickups,
- * agenda, dashboard card, loading and error. Baselines in the end batch
+ * agenda, dashboard card, loading and error; the store rules card, the "Gesperrt" chip and its reason dialog
+ * (decision 165 S2). Baselines in the end batch
  * (decision 69).
  */
 const S01 = seedStore('S-01').id;
@@ -88,11 +89,65 @@ forEachVariant((variant) => {
     screenshotTest.describe('jumper', () => {
       screenshotTest.use({ variant, role: 'jumper' });
 
-      screenshotTest('eligibility dialog with reasons @PU4 @screenshot', async ({ page, visual }) => {
+      screenshotTest('eligibility reasons behind the "Gesperrt" chip @PU4 @screenshot', async ({ page, visual }) => {
+        // decision 165 S2: eligibility reasons use the same lock chip and reason dialog as the store rules
         await page.goto(`/stores/${S02}/pickups`);
-        await page.getByTestId('stores.pickups.slot.free').first().click();
+        await page.getByTestId('stores.pickups.slot.blocked').first().click();
         await expect(page.getByTestId('shared.eligibility.reason').first()).toBeVisible();
         await visual.expectScreen(page, `pickups-signup-reasons-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('sleepy with store rules', () => {
+      // S-06's live policy with a 3-day gap; sleepy has Friday (confirmed) and the seeded Tuesday, so Sunday is blocked
+      screenshotTest.use({ variant, role: 'sleepy', seedReset: 'test' });
+
+      const S06 = seedStore('S-06').id;
+      const FRIDAY = zurichPickupAt(4, '19:00');
+      const SUNDAY = zurichPickupAt(6, '19:00');
+
+      async function gapRule(bieb: ApiClient): Promise<void> {
+        const current = await bieb.getJson<{ pickupPolicy: Record<string, unknown> }>(`/api/stores/${S06}/automation`);
+        await bieb.putJson(`/api/stores/${S06}/automation/pickup-policy`, {
+          ...current.pickupPolicy,
+          enabled: true,
+          experienceRuleEnabled: false,
+          gapRuleEnabled: true,
+          minimumGapDays: 3,
+        });
+        for (const at of [FRIDAY, SUNDAY]) {
+          await bieb.putJson(`/api/stores/${S06}/pickups/${encodeURIComponent(at)}`, { slotCount: 2 });
+        }
+      }
+
+      screenshotTest('rules card, Gesperrt chip and reason dialog @AU1 @PU3 @screenshot', async ({ page, as, apiOf, store, visual }) => {
+        await gapRule(apiOf(await as('bieb')));
+        await store.signUp('sleepy', 'S-06', FRIDAY);
+        await page.goto(`/stores/${S06}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.pickups.rules.toggle').click();
+        await expect(page.getByTestId('stores.pickups.rules.line').first()).toBeVisible();
+        await expect(page.getByTestId('stores.pickups.slot.blocked')).toBeVisible();
+        await visual.expectScreen(page, `pickups-rules-blocked-${variant.name}`);
+        await page.getByTestId('stores.pickups.slot.blocked').click();
+        await expect(page.getByTestId('pickups.blocked.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('pickups.blocked.reason').first()).toBeVisible();
+        await visual.expectScreen(page, `pickups-blocked-dialog-${variant.name}`);
+      });
+
+      screenshotTest('rules card loading and error @AU1 @screenshot', async ({ page, as, apiOf, visual }) => {
+        await gapRule(apiOf(await as('bieb')));
+        const delay = await injectApiError(page, { url: `/api/stores/${S06}/automation/rules`, delayMs: 30_000 });
+        await page.goto(`/stores/${S06}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.pickups.rules.toggle').click();
+        await expect(page.getByTestId('stores.pickups.rules')).toHaveAttribute('data-state', 'loading');
+        await visual.expectScreen(page, `pickups-rules-loading-${variant.name}`, { waitForData: false });
+        await delay.remove();
+        await injectApiError(page, { url: `/api/stores/${S06}/automation/rules`, status: 500 });
+        await page.reload();
+        await expect(page.getByTestId('stores.pickups.rules')).toHaveAttribute('data-state', 'error');
+        await visual.expectScreen(page, `pickups-rules-error-${variant.name}`);
       });
     });
 

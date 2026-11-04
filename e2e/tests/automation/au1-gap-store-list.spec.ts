@@ -46,6 +46,7 @@ function member(page: Page, storeId: string): Locator {
 
 interface SignUpRunner {
   signUp(role: 'jumper' | 'sleepy', key: string, pickupAt: string): Promise<unknown>;
+  trySignUp(role: 'jumper' | 'sleepy', key: string, pickupAt: string): Promise<boolean>;
   withRole<T>(role: 'jumper' | 'sleepy', action: (client: ApiClient) => Promise<T>): Promise<T>;
 }
 
@@ -90,12 +91,12 @@ async function pickupAudits(api: ApiClient, pickupAt: string): Promise<AuditDto[
 }
 
 /**
- * `role` signs up for `pickupAt` at S-06; returns the GAP reason of the new decision (declined: the sign-up is removed
- * again), or undefined when it passed (confirmed).
+ * `role` signs up for `pickupAt` at S-06; returns the GAP reason of the new decision (declined: refused before it is
+ * stored, decision 165 S2), or undefined when it passed (confirmed).
  */
 async function signUpGapReason(api: ApiClient, store: SignUpRunner, role: 'jumper' | 'sleepy', pickupAt: string): Promise<string | undefined> {
   const before = new Set((await pickupAudits(api, pickupAt)).map((a) => a.id));
-  await store.signUp(role, 'S-06', pickupAt);
+  const stored = await store.trySignUp(role, 'S-06', pickupAt);
   // the e2e clock is fixed, so audits cannot be told apart by time: take the one that is new
   let decision: AuditDto | undefined;
   await expect
@@ -108,6 +109,8 @@ async function signUpGapReason(api: ApiClient, store: SignUpRunner, role: 'jumpe
     )
     .toBeTruthy();
   lastDecision = decision!;
+  // refused up front ⇔ declined; stored ⇔ confirmed by the rules
+  expect(stored).toBe(decision!.status !== 'DECLINED');
   return decision!.reasons.find((r) => r.rule === 'GAP')?.text;
 }
 

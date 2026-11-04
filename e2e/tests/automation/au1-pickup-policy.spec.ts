@@ -17,7 +17,7 @@ async function configureS06(page: import('@playwright/test').Page, api: ApiClien
   await savePolicy(page);
 }
 
-test('AU1 manager enables gap rule; second sign-up two days later is auto-declined with message, audit shows GAP @AU1 @D10.3 @page', async ({
+test('AU1 manager enables gap rule; a second sign-up two days later is refused up front, audit shows GAP @AU1 @D10.3 @page', async ({
   page,
   store,
   api,
@@ -25,20 +25,21 @@ test('AU1 manager enables gap rule; second sign-up two days later is auto-declin
   await configureS06(page, api, 3);
   await store.signUp('sleepy', 'S-06', S06_A);
   expect((await waitForAudit(api, 'S-06', S06_A)).status).toBe('CONFIRMED');
-  await store.signUp('sleepy', 'S-06', S06_B);
+  // changed on purpose (decision 165 S2): the rule refuses before the sign-up is stored (409), no later decline
+  expect(await store.trySignUp('sleepy', 'S-06', S06_B)).toBe(false);
   const declined = await waitForAudit(api, 'S-06', S06_B);
   expect(declined.status).toBe('DECLINED');
   expect(declined.reasons.map((r) => r.rule)).toContain('GAP');
 
-  // the decline is visible in the decisions list with rule chip and the user's message
+  // the refusal is visible in the protocol as "Gesperrt" with the rule chip
   await page.getByTestId('automation.store.nav.audits').click();
   await expectDataState(page, 'automation.audits.state', 'success');
   const row = page.locator(`[data-testid="automation.audits.row"][data-status="DECLINED"]`).first();
+  await expect(row.getByTestId('automation.audits.status')).toHaveText('Gesperrt');
   await row.getByTestId('automation.audits.toggle').click();
   await expect(row.locator('[data-testid="automation.audits.reason"][data-rule="GAP"]')).toBeVisible();
-  await expect(row.getByTestId('automation.audits.message')).not.toBeEmpty();
 
-  // the second sign-up was removed from the pickup
+  // the second sign-up was never stored
   const pickups = await store.pickupsOf(api, 'S-06');
   const second = pickups.find((p) => p.pickupAt === S06_B)!;
   expect(second.occupiedSlots.map((s) => s.user.displayName)).not.toContain('Marco Bernasconi');
@@ -80,7 +81,8 @@ test('AU1 cleaning rule decides a sign-up without cleaning by the cleaning rule 
   await expect(page.getByTestId('automation.policy.exemptionsLink')).toBeVisible();
   await savePolicy(page);
   await createPickup(api, 'S-06', S06_A);
-  await store.signUp('sleepy', 'S-06', S06_A);
+  // stored with a reminder or refused up front (CLEANING_REQUIRED, decision 165 S2): either way the cleaning rule decides
+  await store.trySignUp('sleepy', 'S-06', S06_A);
   const audit = await waitForAudit(api, 'S-06', S06_A);
   expect(audit.reasons.map((r) => r.rule).some((rule) => rule.startsWith('CLEANING'))).toBe(true);
 });

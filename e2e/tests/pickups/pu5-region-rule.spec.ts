@@ -1,5 +1,5 @@
 import { expect, expectStatus, test, zurichPickupAt } from '../../fixtures';
-import { openPickups, openSignup, reasonsOf } from './_pickups';
+import { openBlocked, openPickups, reasonsOf } from './_pickups';
 
 /**
  * PU5 region pickup rule (Zürich: 2 pickups per 7 days, used by S-01 and S-04). Seed: foodsaver has S-04 Wednesday
@@ -12,10 +12,11 @@ const S04_SATURDAY = zurichPickupAt(5, '19:30');
 
 test('PU5 third pickup within 7 days refused; allowed within 24 h of pickup @PU5', async ({ page, api, clock }) => {
   await openPickups(page, 'S-04');
-  await openSignup(page, S04_SATURDAY);
+  // decision 165 S2: a free place the person cannot take is a "Gesperrt" chip; its dialog says why
+  await openBlocked(page, S04_SATURDAY);
   await expect(page.locator('[data-testid="shared.eligibility.reason"][data-reason="REGION_RULE_TIMESPAN_LIMIT"]')).toBeVisible();
   await expect(page.getByTestId('shared.eligibility.rule')).toBeVisible();
-  await expect(page.getByTestId('pickups.signup.confirm')).toHaveCount(0);
+  await expect(page.getByTestId('pickups.blocked.signUp')).toHaveCount(0);
 
   // on Saturday morning (< 24 h before the pickup) the rule no longer applies
   await clock.fixServer('2026-11-07T07:00:00Z');

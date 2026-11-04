@@ -23,6 +23,17 @@ export async function openSignup(page: Page, pickupAt: string): Promise<void> {
   await expectDataState(page, 'pickups.signup.state', 'success');
 }
 
+/**
+ * Clicks the "Gesperrt" chip of a pickup (a free place the viewer cannot take: store rules or eligibility reasons,
+ * decision 165 S2) and waits for the reasons in the dialog.
+ */
+export async function openBlocked(page: Page, pickupAt: string): Promise<void> {
+  const row = pickupRow(page, pickupAt);
+  await row.scrollIntoViewIfNeeded();
+  await row.getByTestId('stores.pickups.slot.blocked').click();
+  await expectDataState(page, 'pickups.blocked.state', 'success');
+}
+
 /** Eligibility reasons of `client` for a pickup (`GET …/eligibility`). */
 export async function reasonsOf(client: ApiClient, key: string, pickupAt: string): Promise<string[]> {
   const result = await client.getJson<{ eligible: boolean; reasons: string[] }>(
