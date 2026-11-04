@@ -10,7 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Menu capabilities of the region module (decision 159): Neulinge, Verifizierung and Mitglieder for those who
+ * Menu capabilities of the region module (decision 161): Neulinge, Verifizierung and Mitglieder for those who
  * administrate their home region (ambassador, FSMANAGEMENT admin, ORGA) or hold CAN_MANAGE_USERS somewhere. Admins
  * of other working groups get none of them.
  */

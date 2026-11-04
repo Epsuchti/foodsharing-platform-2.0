@@ -165,7 +165,7 @@ export function hasPermissionAnywhere(ctx: NavContext, permission: string): bool
   );
 }
 /**
- * Menu capability computed by the server from the rules its endpoints check (SessionInfo.capabilities, decision 159).
+ * Menu capability computed by the server from the rules its endpoints check (SessionInfo.capabilities, decision 161).
  * Admin of some unit is not enough: Nina admins a working group and sees none of these items.
  */
 export function hasCapability(ctx: NavContext, capability: NavCapability): boolean {

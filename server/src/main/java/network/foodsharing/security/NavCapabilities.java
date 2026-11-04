@@ -1,7 +1,7 @@
 package network.foodsharing.security;
 
 /**
- * Names of the {@code NavCapability} enum of {@code SessionInfo.capabilities} (decision 159). Each module adds the
+ * Names of the {@code NavCapability} enum of {@code SessionInfo.capabilities} (decision 161). Each module adds the
  * capabilities whose rule it owns through a {@link SessionInfoEnricher}; plain strings because generated models stay
  * in {@code web}/{@code mapper} (ArchUnit rule 3).
  */

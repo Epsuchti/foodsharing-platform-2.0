@@ -71,7 +71,7 @@ public final class SessionInfoBuilder {
         return this;
     }
 
-    /** A menu capability ({@code NavCapability} enum name, decision 159); added by the module that owns the rule. */
+    /** A menu capability ({@code NavCapability} enum name, decision 161); added by the module that owns the rule. */
     public SessionInfoBuilder capability(String capability) {
         capabilities.add(capability);
         return this;

@@ -29,12 +29,13 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Have the association confirm the retention periods against the privacy policy (`docs/privacy/retention.md`).
 - [ ] Run a real usability test on staging with 3–5 Zürich newcomers, plus foodsavers, store managers and ambassadors.
 - [ ] Have native speakers review the `gws`, `fr`, `it` and `en` texts, above all `gws` for the gap rule.
+- [ ] Have native speakers check the new landing page texts (C17, decision 160) in `gws`, `fr` and `it`: `client/src/app/features/public/i18n/` and `content.support.subjectPreset.partner`.
 - [ ] Have the admins approve the passport layout (`docs/passport-layout.md`, `docs/passport-sample.png`).
 - [ ] Have the ambassadors confirm or correct the Zürich regions and stores (`docs/data/zuerich/`).
 - [ ] Name the first ambassadors and guides for staging.
 
 ## Quick check
-- [ ] Open the map in a normal browser and say whether the OpenStreetMap tiles load. They did not load in the built-in browser pane, though `curl` gets them. If they fail for you too, an agent takes it from there (`todo.md`).
+- [ ] Map background loads on the server (MT1, runbook §10): after the first `tiles.sh` run, open `/map` and a store page in light and dark mode and say whether the map background shows. Before that, run the DACH build once on a test host with both methods (`--method=planetiler`, `--method=extract`), let the automatic switch fall back (`TILES_MEM_AVAILABLE_MB=4000`, and a Planetiler run stopped with `docker kill fs-tiles-planetiler`), and record file size, RAM, disk and time in runbook §10.3.
 
 ## Launch day
 - [ ] Announce the switch-over (users re-register), import the EinAbs (`docs/runbook.md` §4) and switch off the old einab-tabelle.

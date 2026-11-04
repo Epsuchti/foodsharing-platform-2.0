@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
-/** SessionInfo.capabilities QUIZ_EDIT: the menu item Quizze bearbeiten (decision 159). */
+/** SessionInfo.capabilities QUIZ_EDIT: the menu item Quizze bearbeiten (decision 161). */
 @Configuration(proxyBeanMethods = false)
 public class QuizIntegrations {
 

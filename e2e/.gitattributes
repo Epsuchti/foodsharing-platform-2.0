@@ -1,2 +1,4 @@
 # Shell scripts also run inside the Linux Playwright container from the mounted Windows checkout: always LF.
 *.sh text eol=lf
+# MT1 map tile fixture
+*.pmtiles binary

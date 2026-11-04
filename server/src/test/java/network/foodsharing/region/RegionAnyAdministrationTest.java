@@ -22,7 +22,7 @@ import network.foodsharing.region.service.RegionPermissionResolver;
 import network.foodsharing.security.WorkingGroupFunction;
 import org.junit.jupiter.api.Test;
 
-/** Decision 159: "administrates a region" (newsletters menu item) excludes admins of plain working groups. */
+/** Decision 161: "administrates a region" (newsletters menu item) excludes admins of plain working groups. */
 class RegionAnyAdministrationTest {
 
     private static final UUID USER = UUID.randomUUID();

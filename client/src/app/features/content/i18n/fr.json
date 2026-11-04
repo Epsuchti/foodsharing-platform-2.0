@@ -194,6 +194,7 @@
   "content.support.firstName": "Prénom",
   "content.support.email": "Adresse e-mail",
   "content.support.subject": "Objet",
+  "content.support.subjectPreset.partner": "Devenir partenaire : faire collecter des aliments",
   "content.support.body": "Ton message",
   "content.support.attachments": "Pièces jointes (images ou PDF, 5 au maximum)",
   "content.support.context": "Envoyé automatiquement",

@@ -48,7 +48,7 @@ export const TEST_TARGET: Partial<Record<Integration, string>> = { TELEGRAM: 'ch
                   <dd>{{ item.nextProbeAt | fsDate: 'dateTime' }}</dd>
                 }
                 <dt>{{ 'adminOps.integrations.failures' | t }}</dt>
-                <dd>{{ item.failureCount ?? 0 }}</dd>
+                <dd>{{ item.failureCount }}</dd>
               </dl>
               @if (item.lastError) {
                 <details class="error">

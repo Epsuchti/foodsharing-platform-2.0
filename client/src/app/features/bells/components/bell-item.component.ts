@@ -7,7 +7,7 @@ import { piIcon } from '../../../core/icons/lucide-icons';
 
 /** `pi pi-*` class of a bell icon (`icon` is a PrimeIcons name without prefix; GENERIC falls back to the bell). */
 export function bellIconClass(bell: Bell): string {
-  // server icons are Lucide names; the font lacks half of them (decision 159)
+  // server icons are Lucide names; the font lacks half of them (decision 161)
   return piIcon(bell.icon, 'bell');
 }
 

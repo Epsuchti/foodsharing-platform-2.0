@@ -36,6 +36,9 @@ docs/er/diagrams/*
 server/deploy/.env
 server/deploy/.env.local
 server/deploy/backups/
+# MT1: the host's basemap build (tiles.sh) and its sources
+server/deploy/tiles/
+server/deploy/tiles-work/
 server/deploy/monitoring/smtp_password
 server/.idea/
 e2e/load/results/

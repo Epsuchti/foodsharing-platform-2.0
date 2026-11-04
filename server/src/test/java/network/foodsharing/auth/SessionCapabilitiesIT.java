@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Decision 159: SessionInfo.capabilities on the seed (menu items Verwalten / Orga). */
+/** Decision 161: SessionInfo.capabilities on the seed (menu items Verwalten / Orga). */
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:session-capabilities-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "app.scheduling.enabled=false"})

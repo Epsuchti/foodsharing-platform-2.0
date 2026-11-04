@@ -138,7 +138,7 @@ Mirrors `foodsharing-einab-tabelle`, upgraded where the UI library requires it.
 | Push | Web Push (VAPID, `nl.martijndwars:web-push`) + Telegram Bot API | Both channels at launch. |
 | Frontend | Angular 22, standalone components, signals, zoneless | Optimus UI 2.x requires Angular ≥ 22. |
 | UI library | `@openng/optimus-ui` 2.x + `@openng/optimus-ui-themes` (Aura preset) + `@openng/icons` | MIT fork of PrimeNG 21; same API as the reference app's PrimeNG, so reference components port 1:1 (`migrate-from-primeng` schematic). |
-| Maps | Leaflet + OpenStreetMap tiles; Photon/Nominatim geocoding | |
+| Maps | Leaflet + `protomaps-leaflet` drawing a self-hosted PMTiles basemap (OpenStreetMap data, `/tiles/basemap.pmtiles`, rebuilt monthly); Photon/Nominatim geocoding | Decision 159 (MT1): no third-party tile host at runtime. |
 | PDF | OpenPDF (passports, business cards) | |
 | Wallet passes | Apple PassKit (`.pkpass`), Google Wallet API | |
 | Build | Maven wrapper + `frontend-maven-plugin` (Node 24 LTS) | One `./mvnw clean package` builds everything. |
@@ -601,6 +601,12 @@ Region admins configure: required EinAb count, Fairteiler requirement, ignored c
 learning pages are mandatory, extra region-specific steps (e.g. "attend newcomer meeting").
 
 ### 11.2 Public explainer page (`/`, logged out)
+
+> Amended by decision 160 (C17, 2026-11-04): `/` is Variant D of `docs/design/landing-page-proposal.md`. E-Mail is the
+> primary CTA and Google second; four static start steps instead of the journey preview; the postcode search shows a
+> result card (active cooperations, members, nearest Fairteiler) and a tile-free map preview instead of the region
+> card with ambassadors, next EinAb dates and the map; businesses get "Partner werden" (→ `/support`) instead of a
+> contact form. The list below is the original plan.
 
 Clear, warm, fast (static content + one public stats call), in all five languages. Sections:
 

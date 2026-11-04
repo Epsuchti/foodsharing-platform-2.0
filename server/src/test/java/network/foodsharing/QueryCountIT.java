@@ -61,7 +61,7 @@ class QueryCountIT {
         "BIEB|/api/users/me/pickups|20",
         // D17.1 load-test paths (per-kind loops of the journey/session are constant, not per row)
         "FOODSAVER|/api/auth/session|50",
-        // decision 159: an ambassador pays the menu capability checks (54 measured), everybody else skips them
+        // decision 161: an ambassador pays the menu capability checks (54 measured), everybody else skips them
         "BOT|/api/auth/session|56",
         "FOODSAVER|/api/onboarding/journey|40",
         "FOODSAVER|/api/activity|30",

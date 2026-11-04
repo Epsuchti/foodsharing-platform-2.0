@@ -187,7 +187,7 @@ describe('ConversationViewComponent edit/delete (item 16)', () => {
     expect((q('[data-testid="messaging.conversation.composer"]') as HTMLTextAreaElement).value).toBe('');
   });
 
-  it('shows a picked mention as plain @Name and sends it as a token (decision 159)', async () => {
+  it('shows a picked mention as plain @Name and sends it as a token (decision 161)', async () => {
     await open([message(1)]);
     const composer = q('[data-testid="messaging.conversation.composer"]') as HTMLTextAreaElement;
     composer.value = 'Hallo @Ni';

@@ -72,7 +72,7 @@ server/deploy/release.sh --build --check                # image for amd64 + arm6
 
 ## Test results
 
-Final gate (plan-m7 Part D) on 2026-11-03. Everything marked CI comes from [run 41538613759](https://github.com/Epsuchti/foodsharing-platform-2.0/actions/runs/41538613759) on `main` at `86cafd04`: 30 jobs passed, 2 did not apply (Dependency review runs on PRs, Release image on tags). The other checks ran on `fix/load-and-security-workflows` at `56c556b1`, which adds the workflow fixes and removes `async-http-client` (decision 157).
+Final gate (plan-m7 Part D) on 2026-11-03. Everything marked CI comes from [run 41538613759](https://github.com/Epsuchti/foodsharing-platform-2.0/actions/runs/41538613759) on `main` at `86cafd04`: 30 jobs passed, 2 did not apply (Dependency review runs on PRs, Release image on tags). The other checks ran on `fix/load-and-security-workflows` at `56c556b1`, which adds the workflow fixes and removes `async-http-client` (decision 157). That branch was merged as `dc970052` (PR 28); CI on the merge commit, [run 41648293837](https://github.com/Epsuchti/foodsharing-platform-2.0/actions/runs/41648293837), passed with 30 jobs, 2 did not apply. The local load test failing on this Mac does not block the gate (owner's decision, 2026-11-03).
 
 | Check | Command | Where | Result |
 |---|---|---|---|

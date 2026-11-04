@@ -6,7 +6,7 @@ One branch, one PR. Owner screenshots 1–10 are described per item.
 ## Goal
 Fix 15 owner points: bell icons, basket form, Pickups page redesign, home screen rework, stores list, pickup slots, chat mentions, menu visibility.
 
-## Decisions (owner answers; record as decision 159 on merge)
+## Decisions (owner answers; record as decision 161 on merge)
 1. Pickups: **one page** `/pickups`: "My pickups" on top (first 5, "show more"), "Where can I help?" below (first 10, "show more"). No tabs. History and agenda become header actions. `/pickups/mine` stays as a deep link (redirect to `/pickups#mine`).
 2. Home: role subtitle removed for **all** roles; "Your next step" only when something is missing (profile: no avatar or no phone; foodsharer: passkey); ambassador "activity" step and the stale admin placeholder card removed; the whole quick-link block (devices, my activity, settings) removed. New cards (existing endpoints only) listed under Changes.
 3. Menu: server-computed nav capabilities in `SessionInfo` (precedent: `mailboxes`, decision 149). Betriebsketten from STORE_MANAGER up.
@@ -113,7 +113,7 @@ Free-slot chip (#12): one `.slot--free.slot--labelled` per pickup; clickable →
 - [ ] Slot order stable by sign-up time (tested)
 - [ ] Composer shows `@Name`; sent/edited messages keep mention tokens
 - [ ] Menu items driven by server capabilities; Nina sees only Betriebsketten under Verwalten
-- [ ] Lint, i18n:check, unit, server tests, ArchUnit, targeted e2e green; decision 159 drafted
+- [ ] Lint, i18n:check, unit, server tests, ArchUnit, targeted e2e green; decision 161 drafted
 
 ## Risks
 - Capabilities enrichers add queries to every session bootstrap; keep each to one query and cover with `QueryCountIT`.

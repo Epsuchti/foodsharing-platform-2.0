@@ -1,0 +1,301 @@
+<div class="landing">
+  <section #hero class="hero" data-testid="public.landing.hero">
+    <div class="hero__text">
+      <p class="eyebrow">{{ 'public.landing.eyebrow' | t }}</p>
+      <h1 class="hero__title">{{ 'public.landing.title' | t }}</h1>
+      <p class="hero__lead">{{ 'public.landing.lead' | t }}</p>
+      <div class="actions">
+        <a
+          class="fs-btn fs-btn--lg"
+          routerLink="/login"
+          [queryParams]="{ method: 'email' }"
+          data-testid="public.landing.joinEmail"
+        >
+          <i class="pi pi-envelope" aria-hidden="true"></i>
+          <span>{{ 'public.landing.joinEmail' | t }}</span>
+        </a>
+        <a
+          class="fs-btn fs-btn--lg fs-btn--google"
+          [href]="googleUrl"
+          data-testid="public.landing.joinGoogle"
+        >
+          <fs-google-logo />
+          <span>{{ 'public.landing.joinGoogle' | t }}</span>
+        </a>
+      </div>
+      <p class="hero__login">
+        {{ 'public.landing.haveAccount' | t }}
+        <a routerLink="/login" data-testid="public.landing.login">{{
+          'public.landing.login' | t
+        }}</a>
+      </p>
+    </div>
+    <fs-landing-bubble kind="hero" />
+  </section>
+
+  <section
+    class="split split--flip"
+    data-testid="public.landing.mission"
+    aria-labelledby="landing-mission"
+  >
+    <div>
+      <h2 id="landing-mission" class="title">{{ 'public.landing.mission.title' | t }}</h2>
+      <p class="lead">{{ 'public.landing.mission.text' | t }}</p>
+      <ul class="rows">
+        @for (way of ways; track way.id) {
+          <li class="row" [attr.data-testid]="'public.landing.way.' + way.id">
+            <i class="pi {{ way.icon }}" aria-hidden="true"></i>
+            <div>
+              <strong>{{ 'public.landing.way.' + way.id + '.title' | t }}</strong>
+              <span>{{ 'public.landing.way.' + way.id + '.text' | t }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+    <fs-landing-bubble kind="mission" size="sm" />
+  </section>
+
+  <section aria-labelledby="landing-impact">
+    <h2 id="landing-impact" class="fs-visually-hidden">{{ 'public.explainer.impactTitle' | t }}</h2>
+    <fs-data-state [state]="explainer" data-testid="public.explainer.state">
+      <ng-template fsSkeleton>
+        <p-skeleton height="9rem" borderRadius="1.125rem" />
+      </ng-template>
+      <ng-template [fsData]="explainer" let-e>
+        <ul class="strip" data-testid="public.explainer.counters">
+          <li>
+            <fs-count-up [value]="e.counters.kgSaved" testId="public.explainer.counter.kgSaved" />
+            <span>{{ 'public.explainer.counter.kgSaved' | t }}</span>
+          </li>
+          <li>
+            <fs-count-up [value]="e.counters.pickups" testId="public.explainer.counter.pickups" />
+            <span>{{ 'public.explainer.counter.pickups' | t }}</span>
+          </li>
+          <li>
+            <fs-count-up
+              [value]="e.counters.foodsavers"
+              testId="public.explainer.counter.foodsavers"
+            />
+            <span>{{ 'public.explainer.counter.foodsavers' | t }}</span>
+          </li>
+          <li>
+            <fs-count-up [value]="e.counters.stores" testId="public.explainer.counter.stores" />
+            <span>{{ 'public.explainer.counter.stores' | t }}</span>
+          </li>
+        </ul>
+      </ng-template>
+    </fs-data-state>
+  </section>
+
+  <section data-testid="public.explainer.journey" aria-labelledby="landing-journey">
+    <h2 id="landing-journey" class="title">{{ 'public.explainer.journeyTitle' | t }}</h2>
+    <p class="lead">{{ 'public.explainer.journeyLead' | t }}</p>
+    <fs-landing-journey />
+  </section>
+
+  <section data-testid="public.landing.near" aria-labelledby="landing-near">
+    <h2 id="landing-near" class="title">{{ 'public.landing.near.title' | t }}</h2>
+    <p class="lead">{{ 'public.landing.near.lead' | t }}</p>
+    @defer (on viewport) {
+      <div class="near">
+        <fs-landing-near />
+        <fs-landing-map-preview />
+      </div>
+    } @placeholder {
+      <div class="near near--placeholder"></div>
+    }
+  </section>
+
+  <section class="split" data-testid="public.landing.fairteiler" aria-labelledby="landing-fsp">
+    <fs-landing-bubble kind="fsp" size="sm" />
+    <div>
+      <h2 id="landing-fsp" class="title">{{ 'public.landing.fairteiler.title' | t }}</h2>
+      <p class="lead">{{ 'public.landing.fairteiler.text' | t }}</p>
+      <ul class="chips">
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>{{ 'public.landing.fairteiler.rule1' | t }}
+        </li>
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>{{ 'public.landing.fairteiler.rule2' | t }}
+        </li>
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>{{ 'public.landing.fairteiler.rule3' | t }}
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="biz" data-testid="public.explainer.business" aria-labelledby="landing-business">
+    <div class="card biz__card">
+      <p class="eyebrow">{{ 'public.landing.business.eyebrow' | t }}</p>
+      <h2 id="landing-business" class="title title--sm">
+        {{ 'public.explainer.businessTitle' | t }}
+      </h2>
+      <p class="muted">{{ 'public.landing.business.lead' | t }}</p>
+      <div>
+        <a
+          class="fs-btn fs-btn--lg"
+          routerLink="/support"
+          [queryParams]="partnerQuery"
+          data-testid="public.landing.business.cta"
+        >
+          <i class="pi pi-shop" aria-hidden="true"></i>
+          <span>{{ 'public.landing.business.cta' | t }}</span>
+        </a>
+      </div>
+      <ul class="rows rows--grid">
+        @for (benefit of benefits; track benefit.id) {
+          <li class="row" [attr.data-testid]="'public.landing.business.benefit.' + benefit.id">
+            <i class="pi {{ benefit.icon }}" aria-hidden="true"></i>
+            <div>
+              <strong>{{ 'public.landing.business.benefit.' + benefit.id + '.title' | t }}</strong>
+              <span>{{ 'public.landing.business.benefit.' + benefit.id + '.text' | t }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+      <p class="muted biz__tag">
+        <i class="pi pi-sparkles" aria-hidden="true"></i> {{ 'public.landing.business.tag' | t }}
+      </p>
+    </div>
+    <div class="biz__panel">
+      <fs-landing-bubble kind="business" size="sm" />
+      <blockquote class="biz__quote" data-testid="public.landing.business.quote">
+        <p>{{ 'public.landing.business.quote' | t }}</p>
+        <footer>{{ 'public.landing.business.quoteBy' | t }}</footer>
+      </blockquote>
+    </div>
+  </section>
+
+  <section
+    class="split split--flip"
+    data-testid="public.landing.moreWays"
+    aria-labelledby="landing-ways"
+  >
+    <div>
+      <h2 id="landing-ways" class="title">{{ 'public.landing.moreWays.title' | t }}</h2>
+      <p class="lead">{{ 'public.landing.moreWays.lead' | t }}</p>
+      <ul class="rows">
+        @for (way of moreWays; track way.id) {
+          <li class="row" [attr.data-testid]="'public.landing.moreWays.' + way.id">
+            <i class="pi {{ way.icon }}" aria-hidden="true"></i>
+            <div>
+              <strong>{{ 'public.landing.moreWays.' + way.id + '.title' | t }}</strong>
+              <span>{{ 'public.landing.moreWays.' + way.id + '.text' | t }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+    <fs-landing-bubble kind="ways" size="sm" />
+  </section>
+
+  <section data-testid="public.landing.duties" aria-labelledby="landing-duties">
+    <h2 id="landing-duties" class="title">{{ 'public.landing.duties.title' | t }}</h2>
+    <p class="lead">{{ 'public.landing.duties.lead' | t }}</p>
+    <div class="duties">
+      <div class="card">
+        <h3>{{ 'public.landing.duties.yesTitle' | t }}</h3>
+        <ul class="rows">
+          @for (duty of duties; track duty.id) {
+            <li class="row" [attr.data-testid]="'public.landing.duties.' + duty.id">
+              <i class="pi {{ duty.icon }}" aria-hidden="true"></i>
+              <div>
+                <strong>{{ 'public.landing.duties.' + duty.id + '.title' | t }}</strong>
+                <span>{{ 'public.landing.duties.' + duty.id + '.text' | t }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+        <p class="duties__foot">
+          <i class="pi pi-book" aria-hidden="true"></i>
+          <a [href]="rulesUrl" data-testid="public.landing.duties.rules">{{
+            'public.landing.duties.rules' | t
+          }}</a>
+        </p>
+      </div>
+      <div class="card card--soft">
+        <h3>{{ 'public.landing.duties.noTitle' | t }}</h3>
+        <ul class="rows">
+          @for (id of notDuties; track id) {
+            <li class="row" [attr.data-testid]="'public.landing.duties.not.' + id">
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <div>
+                <strong>{{ 'public.landing.duties.not.' + id + '.title' | t }}</strong>
+                <span>{{ 'public.landing.duties.not.' + id + '.text' | t }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section data-testid="public.explainer.faq" aria-labelledby="landing-faq">
+    <h2 id="landing-faq" class="title">{{ 'public.explainer.faqTitle' | t }}</h2>
+    <div class="faq-groups">
+      @for (group of faqGroups; track group.id) {
+        <div class="faq-group" [attr.data-testid]="'public.explainer.faq.group.' + group.id">
+          <h3 [id]="'landing-faq-' + group.id">
+            {{ 'public.explainer.faq.group.' + group.id | t }}
+          </h3>
+          <div class="faq">
+            @for (id of group.items; track id) {
+              <details [attr.data-testid]="'public.explainer.faq.' + id">
+                <summary>{{ 'public.explainer.faq.' + id + '.q' | t }}</summary>
+                <p>{{ 'public.explainer.faq.' + id + '.a' | t }}</p>
+              </details>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    <p class="muted faq-more">
+      {{ 'public.explainer.faq.moreBefore' | t }}
+      <a [href]="wikiUrl" data-testid="public.explainer.faq.wiki">{{
+        'public.explainer.faq.wiki' | t
+      }}</a>
+      {{ 'public.explainer.faq.moreOr' | t }}
+      <a
+        routerLink="/support"
+        [queryParams]="{ from: '/' }"
+        data-testid="public.explainer.faq.support"
+        >{{ 'public.explainer.faq.support' | t }}</a
+      >.
+    </p>
+  </section>
+
+  <section class="band" data-testid="public.landing.band" aria-labelledby="landing-band">
+    <h2 id="landing-band" class="title">{{ 'public.landing.band.title' | t }}</h2>
+    <p class="muted">{{ 'public.landing.band.text' | t }}</p>
+    <div class="actions">
+      <a
+        class="fs-btn fs-btn--lg"
+        routerLink="/login"
+        [queryParams]="{ method: 'email' }"
+        data-testid="public.landing.band.joinEmail"
+      >
+        <i class="pi pi-envelope" aria-hidden="true"></i>
+        <span>{{ 'public.landing.joinEmail' | t }}</span>
+      </a>
+      <a
+        class="fs-btn fs-btn--lg fs-btn--google"
+        [href]="googleUrl"
+        data-testid="public.landing.band.joinGoogle"
+      >
+        <fs-google-logo />
+        <span>{{ 'public.landing.joinGoogle' | t }}</span>
+      </a>
+    </div>
+  </section>
+</div>
+
+@if (showSticky()) {
+  <div class="sticky" data-testid="public.landing.stickyJoin">
+    <a class="fs-btn" routerLink="/login" [queryParams]="{ method: 'email' }">
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <span>{{ 'public.landing.sticky.join' | t }}</span>
+    </a>
+  </div>
+}

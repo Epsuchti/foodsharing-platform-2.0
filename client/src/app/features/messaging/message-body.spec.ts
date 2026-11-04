@@ -22,7 +22,7 @@ describe('message body', () => {
     expect(mentionQuery('hello @')).toBe('');
     expect(mentionQuery('mail@an')).toBeNull();
     expect(mentionQuery('hello an')).toBeNull();
-    // decision 159: the composer shows the plain name, the token is built on send
+    // decision 161: the composer shows the plain name, the token is built on send
     expect(insertMention('hello @an', 'Ana')).toBe('hello @Ana ');
     expect(insertMention('@', 'A [b]')).toBe('@A b ');
     expect(insertMention('price $& @x', 'Ana $1')).toBe('price $& @Ana $1 ');

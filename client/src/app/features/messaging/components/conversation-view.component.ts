@@ -771,7 +771,7 @@ export class ConversationViewComponent {
   /** The draft typed before "Bearbeiten", restored after the edit. */
   private parkedDraft = '';
   /**
-   * People picked in the mention autocomplete (name → user id, decision 159): the composer shows plain `@Name`, the
+   * People picked in the mention autocomplete (name → user id, decision 161): the composer shows plain `@Name`, the
    * tokens are built on send and on saving an edit.
    */
   private readonly pickedMentions = signal<ReadonlyMap<string, string>>(new Map());

@@ -194,6 +194,7 @@
   "content.support.firstName": "First name",
   "content.support.email": "Email address",
   "content.support.subject": "Subject",
+  "content.support.subjectPreset.partner": "Become a partner: have food picked up",
   "content.support.body": "Your message",
   "content.support.attachments": "Attachments (images or PDF, at most 5)",
   "content.support.context": "Sent along automatically",

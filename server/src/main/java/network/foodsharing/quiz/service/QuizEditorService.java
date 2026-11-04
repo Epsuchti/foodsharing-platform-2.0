@@ -115,7 +115,7 @@ public class QuizEditorService {
         return editorGroups(kind).stream().anyMatch(group -> permissions.isAmbassador(actor, group.getId()));
     }
 
-    /** {@link #mayEdit} for at least one quiz kind (menu item Quizze bearbeiten, decision 159); two queries at most. */
+    /** {@link #mayEdit} for at least one quiz kind (menu item Quizze bearbeiten, decision 161); two queries at most. */
     @Transactional(readOnly = true)
     public boolean mayEditAny(SessionPrincipal actor) {
         if (permissions.isOrga(actor)) {

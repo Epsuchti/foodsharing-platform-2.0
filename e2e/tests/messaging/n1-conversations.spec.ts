@@ -116,7 +116,7 @@ test.describe('foodsaver', () => {
     await expect(item.getByTestId('messaging.list.unread')).toHaveCount(0);
     await expect.poll(async () => (await getConversation(api, CONVERSATIONS.foodsaverBieb)).unreadCount).toBe(0);
 
-    // mention autocomplete inserts the plain @Name (decision 159); the token is built on send and the sent bubble
+    // mention autocomplete inserts the plain @Name (decision 161); the token is built on send and the sent bubble
     // renders a chip
     const bieb = await dev.user('bieb');
     await page.getByTestId('messaging.conversation.composer').fill('Super, @');

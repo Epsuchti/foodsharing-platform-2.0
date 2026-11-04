@@ -63,7 +63,7 @@ describe('side menu nav.config (decision 133)', () => {
     });
   });
 
-  it('shows a working-group admin without server capabilities only the store chains under Verwalten (decision 159)', () => {
+  it('shows a working-group admin without server capabilities only the store chains under Verwalten (decision 161)', () => {
     // Nina: store manager, admin of the working group Betriebskoordination Zürich
     const nina = context({
       isAuthenticated: true,

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
 /**
- * SessionInfo.capabilities NEWSLETTERS (decision 159): ORGA and those who administrate a region, the scope that
+ * SessionInfo.capabilities NEWSLETTERS (decision 161): ORGA and those who administrate a region, the scope that
  * {@link NewsletterService} lets create newsletters (requireRegion). Working-group admins cannot create any.
  */
 @Configuration(proxyBeanMethods = false)

@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 
 import { JobProgress, JobStatus } from '../api';
 import { provideDataStateTesting } from '../core/testing/data-state-testing';
+import { ThemeService } from '../core/theme/theme.service';
 import { CalendarExportButtonComponent } from './calendar-export-button/calendar-export-button.component';
 import { CsvDropzoneComponent, CsvFile } from './csv-dropzone/csv-dropzone.component';
 import { LanguageTabsEditorComponent, TranslatedText } from './language-tabs-editor/language-tabs-editor.component';
@@ -171,8 +172,9 @@ describe('CalendarExportButtonComponent', () => {
 });
 
 describe('MapViewComponent', () => {
-  it('draws typed markers and shows a tile failure with retry', async () => {
+  it('draws typed markers and shows a tile failure with retry (raster mode)', async () => {
     const fixture = TestBed.createComponent(MapViewComponent);
+    fixture.componentRef.setInput('tileUrl', '/stub/{z}/{x}/{y}.png');
     fixture.componentRef.setInput('markers', [
       { id: 'a', kind: 'store', lat: 47.37, lon: 8.54, label: 'Bäckerei' },
       { id: 'b', kind: 'region-pin', lat: 47.38, lon: 8.55, label: 'Zürich' },
@@ -191,5 +193,59 @@ describe('MapViewComponent', () => {
     (el.querySelector('[data-testid="t.map.tileError"] button') as HTMLElement).click();
     await fixture.whenStable();
     expect(el.getAttribute('data-tiles')).toBe('loading');
+    expect(el.getAttribute('data-basemap')).toBe('raster');
+  });
+
+  /** MT1: the vector basemap; `probeBasemap` reads the PMTiles header of /tiles/basemap.pmtiles. */
+  interface Probe { probeBasemap(): Promise<{ archive: unknown; maxZoom: number }> }
+
+  it('shows the tile error when the basemap probe fails, keeps the markers and probes again on retry', async () => {
+    const probe = vi
+      .spyOn(MapViewComponent.prototype as unknown as Probe, 'probeBasemap')
+      .mockRejectedValue(new Error('404'));
+    const fixture = TestBed.createComponent(MapViewComponent);
+    fixture.componentRef.setInput('markers', [{ id: 'a', kind: 'store', lat: 47.37, lon: 8.54, label: 'Bäckerei' }]);
+    fixture.componentRef.setInput('testId', 't.map');
+    const el = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.getAttribute('data-tiles')).toBe('error');
+    });
+    expect(el.querySelector('.fs-map-marker[data-kind="store"]')).not.toBeNull();
+    expect(probe).toHaveBeenCalledTimes(1);
+
+    (el.querySelector('[data-testid="t.map.tileError"] button') as HTMLElement).click();
+    await vi.waitFor(() => expect(probe).toHaveBeenCalledTimes(2));
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.getAttribute('data-tiles')).toBe('error');
+    });
+    probe.mockRestore();
+  });
+
+  it('draws the vector basemap in the flavor of the theme', async () => {
+    const probe = vi
+      .spyOn(MapViewComponent.prototype as unknown as Probe, 'probeBasemap')
+      .mockResolvedValue({ archive: { getZxy: () => Promise.resolve(undefined) }, maxZoom: 13 });
+    // jsdom has no canvas; protomaps-leaflet only measures labels with it
+    const canvas = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    const theme = TestBed.inject(ThemeService);
+    theme.preference.set('light');
+    const fixture = TestBed.createComponent(MapViewComponent);
+    const el = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.getAttribute('data-basemap')).toBe('light');
+    });
+    expect(el.getAttribute('data-tiles')).not.toBe('error');
+
+    theme.preference.set('dark');
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.getAttribute('data-basemap')).toBe('dark');
+    });
+    expect(probe).toHaveBeenCalledTimes(1);
+    probe.mockRestore();
+    canvas.mockRestore();
   });
 });

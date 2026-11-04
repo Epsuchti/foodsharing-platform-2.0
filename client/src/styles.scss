@@ -84,6 +84,11 @@
   --fs-accent: #f2b84b;
   --fs-header-bg: rgb(255 255 255 / 0.86);
   --fs-header-border: rgb(199 212 194 / 0.7);
+  /* stylised map of the landing page preview (C17, decision 160): no tiles, only these four fills */
+  --fs-pub-map-land: #eef1e8;
+  --fs-pub-map-water: #c6dfe4;
+  --fs-pub-map-park: #d8e8cf;
+  --fs-pub-map-line: #d5dccf;
 
   --fs-radius-sm: 0.625rem;
   --fs-radius-md: 0.875rem;
@@ -151,6 +156,10 @@
   --fs-accent: #9c7a3c;
   --fs-header-bg: rgb(17 22 17 / 0.82);
   --fs-header-border: rgb(61 71 59 / 0.7);
+  --fs-pub-map-land: #1d241c;
+  --fs-pub-map-water: #1d3a42;
+  --fs-pub-map-park: #24351f;
+  --fs-pub-map-line: #2f3a2d;
   --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
   --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
   --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
