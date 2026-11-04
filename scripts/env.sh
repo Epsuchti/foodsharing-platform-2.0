@@ -17,6 +17,9 @@ fs_java_major() {
 
 fs_find_jdk() {
   local candidate major
+  # zsh aborts the loop below on the first pattern that matches nothing; drop such patterns instead (bash keeps
+  # them as literal words, which the -x test skips)
+  if [ -n "${ZSH_VERSION:-}" ]; then setopt local_options null_glob; fi
   # 1. an explicit JAVA_HOME wins when it is 21+
   if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/java" ]; then
     major="$(fs_java_major "$JAVA_HOME/bin/java")"
