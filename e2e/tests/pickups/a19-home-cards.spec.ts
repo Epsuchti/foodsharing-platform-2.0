@@ -1,11 +1,16 @@
 import type { Page } from '@playwright/test';
 import { expect, expectDataState, test } from '../../fixtures';
 
-/** Cards below the fold load when their placeholder comes into view (`@defer (on viewport)`): scroll to it first. */
+/**
+ * Cards below the fold load when their placeholder comes into view (`@defer (on viewport)`). The placeholder is
+ * replaced as soon as it is seen, possibly while it is being scrolled to, so retry until the card exists.
+ */
 async function reveal(page: Page, card: 'help' | 'events' | 'stores') {
-  const placeholder = page.locator(`.defer-slot.o-${card}`);
-  if (await placeholder.count()) await placeholder.scrollIntoViewIfNeeded();
   const element = page.getByTestId(`dashboard.${card}`);
+  await expect(async () => {
+    if (!(await element.count())) await page.locator(`.defer-slot.o-${card}`).scrollIntoViewIfNeeded({ timeout: 1_000 });
+    await expect(element).toBeAttached({ timeout: 1_000 });
+  }).toPass();
   await element.scrollIntoViewIfNeeded();
   return element;
 }

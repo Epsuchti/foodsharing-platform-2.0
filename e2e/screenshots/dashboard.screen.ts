@@ -1,5 +1,20 @@
 import { injectApiError } from '../fixtures';
+import type { Page } from '@playwright/test';
 import { expect, forEachVariant, screenshotTest } from './_setup';
+
+/**
+ * Brings a home card into view. Help, events and stores load on `@defer (on viewport)`: their 1px placeholder is
+ * replaced by the card as soon as it is seen, possibly while it is being scrolled to, so retry until the card exists.
+ */
+async function revealCard(page: Page, card: string) {
+  const element = page.getByTestId(`dashboard.${card}`);
+  await expect(async () => {
+    if (!(await element.count())) await page.locator(`.defer-slot.o-${card}`).scrollIntoViewIfNeeded({ timeout: 1_000 });
+    await expect(element).toBeAttached({ timeout: 1_000 });
+  }).toPass();
+  await element.scrollIntoViewIfNeeded();
+  return element;
+}
 
 /**
  * Dashboard (plan-m7 Q7, A19, home rework 2026-11-04): activity feed with filter chips, nearby baskets card, the card
@@ -36,11 +51,7 @@ forEachVariant((variant) => {
       await expect(page.getByTestId('dashboard.pickups.state')).toHaveAttribute('data-state', 'success');
       await visual.expectElement(page.getByTestId('dashboard.pickups'), `dashboard-pickups-tiles-${variant.name}`);
       for (const card of ['help', 'waiting', 'events', 'stores']) {
-        // help, events and stores load on viewport: scroll their placeholder into view first
-        const placeholder = page.locator(`.defer-slot.o-${card}`);
-        if (await placeholder.count()) await placeholder.scrollIntoViewIfNeeded();
-        const element = page.getByTestId(`dashboard.${card}`);
-        await element.scrollIntoViewIfNeeded();
+        const element = await revealCard(page, card);
         await expect(page.getByTestId(`dashboard.${card}.state`)).toHaveAttribute('data-state', 'success');
         await visual.expectElement(element, `dashboard-${card}-${variant.name}`);
       }
@@ -49,16 +60,13 @@ forEachVariant((variant) => {
     screenshotTest('help needed card loading and error @screenshot', async ({ page, visual }) => {
       const delay = await injectApiError(page, { url: '/api/users/me/pickups/options', delayMs: 30_000 });
       await page.goto('/dashboard');
-      await page.locator('.defer-slot.o-help').scrollIntoViewIfNeeded();
-      const card = page.getByTestId('dashboard.help');
-      await card.scrollIntoViewIfNeeded();
+      const card = await revealCard(page, 'help');
       await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'loading');
       await visual.expectElement(card, `dashboard-help-loading-${variant.name}`, { waitForData: false });
       await delay.remove();
       await injectApiError(page, { url: '/api/users/me/pickups/options', status: 503 });
       await page.reload();
-      await page.locator('.defer-slot.o-help').scrollIntoViewIfNeeded();
-      await page.getByTestId('dashboard.help').scrollIntoViewIfNeeded();
+      await revealCard(page, 'help');
       await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'error');
       await visual.expectElement(page.getByTestId('dashboard.help'), `dashboard-help-error-${variant.name}`);
     });
