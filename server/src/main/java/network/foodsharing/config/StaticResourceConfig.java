@@ -62,7 +62,9 @@ public class StaticResourceConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/fonts/**")
                 .addResourceLocations("classpath:/static/fonts/")
                 .setCacheControl(CacheControl.noCache());
-        String tilesDir = properties.getMap().getTilesDir();
+        // null-safe: WebMvc slice tests mock AppProperties
+        AppProperties.MapTiles map = properties.getMap();
+        String tilesDir = map == null ? null : map.getTilesDir();
         if (tilesDir != null && !tilesDir.isBlank()) {
             String location = Path.of(tilesDir).toAbsolutePath().normalize().toUri().toString();
             registry.addResourceHandler("/tiles/**")
