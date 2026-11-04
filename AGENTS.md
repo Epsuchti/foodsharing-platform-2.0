@@ -23,6 +23,7 @@ Big docs (`plan.md`, `docs/conventions.md`, `docs/decisions.md`, `docs/ledger.md
 - New UI text in all five languages (`de`, `en`, `gws`, `fr`, `it`); `npm run i18n:check` must pass.
 - Seed data updated with every new entity (`db/seed/`, context `seed`, fixed UUIDs, see `docs/seed-ids.md`).
 - Every feature gets a Playwright e2e test tagged with its feature ID (`@S6`) and screenshot specs for its states. Baselines are generated in batch at the end, not per task (decision 69). Screenshot baselines are only updated deliberately (`e2e/scripts/screenshots.sh --update-snapshots`), never to make a failing test pass by accident.
+- Screenshot baselines are regenerated in CI, not locally (decision 161): when a task that changes visible UI is done, push its branch and run `gh workflow run screenshots-update.yml --ref <branch>` (optional `-f grep=@S6`, `-f mode=all`), wait with `gh run watch`, then `git pull` the bot commit. Review every changed PNG (`git show --stat HEAD`, open them with Read) against the intended change and report unexpected diffs instead of accepting them. Never run it on `main`.
 - Tests are never skipped, disabled or weakened to get green. Fix the code.
 - `data-testid="<module>.<page>.<element>"` on interactive elements.
 
