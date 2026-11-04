@@ -221,6 +221,7 @@
   "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Simulation exécutée",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Décisions archivées",
   "history.action.AUTOMATION.FIELD_CHANGED": "Champ modifié",
+  "history.action.AUTOMATION.LINK_MISSING": "Lien manquant",
   "history.action.SYSTEM.ADMIN_JOB_RUN_MANUAL": "Tâche lancée manuellement",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCKED": "Bloqué automatiquement (limite de requêtes)",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCK_LIFTED": "Blocage automatique levé",

@@ -221,6 +221,7 @@
   "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Teschtlauf usgfüehrt",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Entscheidige archiviert",
   "history.action.AUTOMATION.FIELD_CHANGED": "Fäld gänderet",
+  "history.action.AUTOMATION.LINK_MISSING": "Verchnüpfig fählt",
   "history.action.SYSTEM.ADMIN_JOB_RUN_MANUAL": "Job vo Hand gstartet",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCKED": "Automatisch gsperrt (Aafroglimit)",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCK_LIFTED": "Automatischi Sperri ufghobe",
