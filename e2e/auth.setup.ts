@@ -9,8 +9,11 @@ import { AUTH_DIR } from './support/env';
  * Specs should prefer `test.use({ role })` / `as(role)` (fresh login after the per-file seed reset); the stored
  * states are for tools (`npx playwright codegen --load-storage=e2e/.auth/orga.json <url>`) and for tests that
  * explicitly do not reset the seed. Running this project first also fails fast when a seed user is missing.
+ *
+ * It resets the seed first: a sharded slot runs later chunks on a jar earlier specs have changed (e.g. a3 changes
+ * profile@local's address), and the sessions stored here must belong to the seed state anyway.
  */
-test.use({ seedReset: 'off' });
+test.use({ seedReset: 'file' });
 
 test('dev switcher logs in every seed role and stores its session', async ({ baseURL, dev }) => {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
