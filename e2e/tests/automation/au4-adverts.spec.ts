@@ -73,9 +73,12 @@ async function filledTotal(api: ApiClient): Promise<number> {
   return (series.find((s) => s.key === 'ADVERT.FILLED_AFTER_ADVERT')?.points ?? []).reduce((n, p) => n + p.value, 0);
 }
 
-test('AU4 filled slot after the advert counts in the filled-after-advert metric @AU4 @AU9 @page', async ({ page, api, clock, notifications }) => {
+test('AU4 filled slot after the advert counts in the filled-after-advert metric @AU4 @AU9 @page', async ({ api, as, apiOf, clock, notifications }) => {
+  // the region metrics are for ambassadors and ORGA (decision 165): bot reads them, bieb runs the store
+  const bot = await as('bot');
+  const botApi = apiOf(bot);
   await onePlacePickup(api, FILL_PICKUP);
-  const before = await filledTotal(api);
+  const before = await filledTotal(botApi);
   // 23.5 h before the pickup: the 24 h trigger has passed and the slot is free → advert SENT
   await clock.fixServer(after(FILL_PICKUP, -23.5));
   await notifications.runJob('open-slot-adverts');
@@ -84,12 +87,12 @@ test('AU4 filled slot after the advert counts in the filled-after-advert metric 
   const signup = await api.post(`/api/stores/${S06.id}/pickups/${encodeURIComponent(FILL_PICKUP)}/signups`);
   expect(signup.ok(), await signup.text()).toBe(true);
   await notifications.runJob('open-slot-adverts');
-  await expect.poll(() => filledTotal(api)).toBe(before + 1);
+  await expect.poll(() => filledTotal(botApi)).toBe(before + 1);
 
-  await page.goto(`/regions/${seedRegion('zuerich-stadt').id}/automation/metrics`);
-  await expectDataState(page, 'automation.metrics.state', 'success');
-  await page.getByTestId('automation.metrics.group.ADVERTS').click();
-  await expect(page.locator('[data-testid="automation.metrics.chart.legend"][data-key="ADVERT.FILLED_AFTER_ADVERT"]')).not.toHaveAttribute('data-total', '0');
+  await bot.goto(`/regions/${seedRegion('zuerich-stadt').id}/automation/metrics`);
+  await expectDataState(bot, 'automation.metrics.state', 'success');
+  await bot.getByTestId('automation.metrics.group.ADVERTS').click();
+  await expect(bot.locator('[data-testid="automation.metrics.chart.legend"][data-key="ADVERT.FILLED_AFTER_ADVERT"]')).not.toHaveAttribute('data-total', '0');
   await clock.fixServer();
 });
 

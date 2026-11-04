@@ -3,7 +3,7 @@ import { S06, openAutomation, typeNumber } from './_automation';
 
 /** AU2: who may open a store's automation; error states of the automation tab. */
 
-test('AU2 foodsaver cannot open automation, CAN_USE_AUTOMATIONS holder can @AU2', async ({ as }) => {
+test('AU2 foodsaver and the former CAN_USE_AUTOMATIONS holder are forbidden, the store manager configures @AU2', async ({ as }) => {
   // foodsaver: team member of S-01 without edit rights → no tab, direct URL is forbidden
   const foodsaver = await as('foodsaver');
   await foodsaver.goto(`/stores/${seedStore('S-01').id}/overview`);
@@ -12,13 +12,21 @@ test('AU2 foodsaver cannot open automation, CAN_USE_AUTOMATIONS holder can @AU2'
   await foodsaver.goto(`/stores/${seedStore('S-01').id}/automation/policy`);
   await expectDataState(foodsaver, 'automation.store.state', 'forbidden');
 
-  // bot holds CAN_USE_AUTOMATIONS in zuerich-stadt (not in S-06's team): tab and policy are available
+  // bot held CAN_USE_AUTOMATIONS in zuerich-stadt (not in S-06's team, no mayEditStore): decision 165 removed it
   const bot = await as('bot');
   await bot.goto(`/stores/${S06.id}/overview`);
-  await bot.getByTestId('stores.page.tab.automation').click();
-  await expectDataState(bot, 'automation.store.state', 'success');
-  await expect(bot.getByTestId('automation.policy.root')).toHaveAttribute('data-enabled', 'true');
-  await expect(bot.getByTestId('automation.policy.save')).toBeVisible();
+  await expect(bot.getByTestId('stores.page.tabs')).toBeVisible();
+  await expect(bot.getByTestId('stores.page.tab.automation')).toHaveCount(0);
+  await bot.goto(`/stores/${S06.id}/automation/policy`);
+  await expectDataState(bot, 'automation.store.state', 'forbidden');
+
+  // bieb manages S-06 and has no region permission: tab and policy are available
+  const bieb = await as('bieb');
+  await bieb.goto(`/stores/${S06.id}/overview`);
+  await bieb.getByTestId('stores.page.tab.automation').click();
+  await expectDataState(bieb, 'automation.store.state', 'success');
+  await expect(bieb.getByTestId('automation.policy.root')).toHaveAttribute('data-enabled', 'true');
+  await expect(bieb.getByTestId('automation.policy.save')).toBeVisible();
 });
 
 test.describe('error states', () => {

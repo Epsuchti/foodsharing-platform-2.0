@@ -4,7 +4,8 @@ import { type ApiClient, expect, expectDataState, seedStore, zurichPickupAt } fr
 /**
  * Shared helpers of the automation specs (M4 F3/F4). Seed (docs/seed-ids.md "Automation", decision 60): S-06 Babu's
  * Bakery has the live pickup policy (gap 2, experience, holiday; team bieb manager + sleepy), Tuesdays 19:00;
- * S-01's policy and adverts are dry run; S-07 request policy dry run (welcome manager, guide applied).
+ * S-01's policy and adverts and the S-07 request policy (welcome manager, guide applied) are off (former dry run,
+ * changeset 188, decision 165).
  */
 export const S06 = seedStore('S-06');
 /**
@@ -46,6 +47,7 @@ export interface AuditDto {
   id: string;
   kind: string;
   status: string;
+  /** Always false since decision 165 (legacy rows may still say true). */
   dryRun: boolean;
   pickupAt?: string;
   user?: { id: string; displayName: string };
@@ -77,7 +79,7 @@ export async function savePolicy(page: Page): Promise<void> {
   await saveSection(page, 'automation.policy');
 }
 
-/** Saves a policy section and waits for the PUT and the reloaded saved state (run buttons are usable again). */
+/** Saves a policy section and waits for the PUT and the reloaded saved state. */
 export async function saveSection(page: Page, prefix: 'automation.policy' | 'automation.request'): Promise<void> {
   const saved = page.waitForResponse(
     (r) => r.request().method() === 'PUT' && /\/automation\/(pickup|request)-policy$/.test(new URL(r.url()).pathname),

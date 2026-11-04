@@ -1,11 +1,11 @@
 import { type ApiClient, expect, expectDataState, seedStore, test } from '../../fixtures';
-import { S06, S06_A, S06_B, createPickup, openAutomation, savePolicy, setSwitch, typeNumber, waitForAudit } from './_automation';
+import { type AuditDto, S06, S06_A, S06_B, createPickup, openAutomation, savePolicy, setSwitch, typeNumber, waitForAudit } from './_automation';
 
-/** AU1: pickup sign-up automation per store (rules, dry run, excluded dates, holidays, linked stores, run now, preview). */
+/** AU1: pickup sign-up automation per store (one switch, rules, excluded dates, linked stores; no dry run: decision 165). */
 test.use({ role: 'bieb', seedReset: 'test' });
 
-/** bieb sets S-06's policy: experience off, gap `gap` days, optional dry run. */
-async function configureS06(page: import('@playwright/test').Page, api: ApiClient, gap: number, dryRun: boolean): Promise<void> {
+/** bieb sets S-06's policy: experience off, gap `gap` days, rules on or off. */
+async function configureS06(page: import('@playwright/test').Page, api: ApiClient, gap: number, enabled = true): Promise<void> {
   await createPickup(api, 'S-06', S06_A);
   await createPickup(api, 'S-06', S06_B);
   await openAutomation(page, 'S-06', 'policy');
@@ -13,8 +13,7 @@ async function configureS06(page: import('@playwright/test').Page, api: ApiClien
   await setSwitch(page.getByTestId('automation.policy.experience'), false);
   await setSwitch(page.getByTestId('automation.policy.gapEnabled'), true);
   await typeNumber(page.getByTestId('automation.policy.gapDays'), gap);
-  await setSwitch(page.getByTestId('automation.policy.dryRun'), dryRun);
-  await expect(page.getByTestId('automation.policy.dryRunBanner')).toHaveCount(dryRun ? 1 : 0);
+  await setSwitch(page.getByTestId('automation.policy.enabled'), enabled);
   await savePolicy(page);
 }
 
@@ -23,7 +22,7 @@ test('AU1 manager enables gap rule; second sign-up two days later is auto-declin
   store,
   api,
 }) => {
-  await configureS06(page, api, 3, false);
+  await configureS06(page, api, 3);
   await store.signUp('sleepy', 'S-06', S06_A);
   expect((await waitForAudit(api, 'S-06', S06_A)).status).toBe('CONFIRMED');
   await store.signUp('sleepy', 'S-06', S06_B);
@@ -45,22 +44,18 @@ test('AU1 manager enables gap rule; second sign-up two days later is auto-declin
   expect(second.occupiedSlots.map((s) => s.user.displayName)).not.toContain('Marco Bernasconi');
 });
 
-test('AU1 dry run records WOULD_DECLINE and keeps the sign-up @AU1', async ({ page, store, api }) => {
-  await configureS06(page, api, 3, true);
+test('AU1 rules switched off: sign-ups wait for confirmation, nothing is decided or audited @AU1', async ({ page, store, api }) => {
+  await configureS06(page, api, 3, false);
+  await expect(page.getByTestId('automation.policy.root')).toHaveAttribute('data-enabled', 'false');
   await store.signUp('sleepy', 'S-06', S06_A);
   await store.signUp('sleepy', 'S-06', S06_B);
-  const audit = await waitForAudit(api, 'S-06', S06_B);
-  expect(audit.status).toBe('WOULD_DECLINE');
-  expect(audit.dryRun).toBe(true);
   const second = (await store.pickupsOf(api, 'S-06')).find((p) => p.pickupAt === S06_B)!;
   expect(second.occupiedSlots.map((s) => s.user.displayName)).toContain('Marco Bernasconi');
-
-  await page.getByTestId('automation.store.nav.audits').click();
-  await page.getByTestId('automation.audits.kind.PICKUP').click();
-  await expect(page.locator('[data-testid="automation.audits.row"][data-status="WOULD_DECLINE"]').first().getByTestId('automation.audits.dryRun')).toBeVisible();
+  const audits = await api.getJson<{ items: AuditDto[] }>(`/api/stores/${S06.id}/automation/audits?kind=PICKUP&size=50`);
+  expect(audits.items.filter((a) => a.pickupAt === S06_A || a.pickupAt === S06_B)).toEqual([]);
 });
 
-test('AU1 excluded date and holiday skip automatic confirmation @AU1', async ({ page, store, api }) => {
+test('AU1 excluded date skips automatic confirmation @AU1', async ({ page, store, api }) => {
   // excluded date through the API (the multi-date picker is covered by the chip list below)
   const policyUrl = `/api/stores/${S06.id}/automation/pickup-policy`;
   const automation = await api.getJson<{ pickupPolicy: Record<string, unknown> }>(`/api/stores/${S06.id}/automation`);
@@ -75,17 +70,6 @@ test('AU1 excluded date and holiday skip automatic confirmation @AU1', async ({ 
   const skipped = await waitForAudit(api, 'S-06', S06_A);
   expect(skipped.status).toBe('SKIPPED');
   expect(skipped.reasons.map((r) => r.rule)).toContain('MANUAL_DATE');
-
-  // Christmas (CH national holiday) lies outside the sign-up window: the preview shows the holiday rule
-  const christmas = '2026-12-25T18:00:00Z';
-  await api.putJson(`/api/stores/${S06.id}/pickups/${encodeURIComponent(christmas)}`, { slotCount: 2 });
-  const sleepy = await store.withRole('sleepy', (c) => c.getJson<{ user: { id: string } }>('/api/auth/session'));
-  const holiday = await api.postJson<{ decision: string; reasons: { rule: string }[] }>(`/api/stores/${S06.id}/automation/pickup-policy/preview`, {
-    userId: sleepy.user.id,
-    pickupAt: christmas,
-  });
-  expect(holiday.decision).toBe('SKIPPED');
-  expect(holiday.reasons.map((r) => r.rule)).toContain('PUBLIC_HOLIDAY');
 });
 
 test('AU1 cleaning rule decides a sign-up without cleaning by the cleaning rule @AU1', async ({ page, store, api }) => {
@@ -120,20 +104,17 @@ test('AU1 linked-store editor saves a bidirectional rule with message preview, m
   await expect(page.getByTestId('automation.policy.link.mirror')).toContainText(S06.name);
 });
 
-test('AU1 run now and preview decision @AU1', async ({ page }) => {
+test('AU1 one switch "Regeln anwenden": the former dry-run policy of S-01 is off, no test mode, run or preview @AU1', async ({ page }) => {
+  // decision 165 / changeset 188: dry-run policies became disabled
   await openAutomation(page, 'S-01', 'policy');
-  await expect(page.getByTestId('automation.policy.root')).toHaveAttribute('data-dry-run', 'true');
-  const runDry = page.getByTestId('automation.policy.runDry').locator('button');
-  await expect(runDry).toBeEnabled();
-  await runDry.click();
-  await expect(page.getByTestId('automation.policy.runResult')).toBeVisible();
-
-  await page.getByTestId('automation.policy.preview').click();
-  const dialog = page.getByTestId('automation.preview.dialog');
-  await dialog.getByTestId('automation.preview.user.search').fill('Marco');
-  await dialog.getByTestId('automation.preview.user.add').first().click();
-  await dialog.getByTestId('automation.preview.pickup').click();
-  await page.locator('.p-select-overlay .p-select-option').first().click();
-  await dialog.getByTestId('automation.preview.run').click();
-  await expect(dialog.getByTestId('automation.preview.result')).toHaveAttribute('data-decision', /[A-Z_]+/);
+  const root = page.getByTestId('automation.policy.root');
+  await expect(root).toHaveAttribute('data-enabled', 'false');
+  await expect(page.getByTestId('automation.policy.enabled').locator('input')).not.toBeChecked();
+  await expect(page.getByTestId('automation.policy.enabledHint')).not.toBeEmpty();
+  for (const gone of ['dryRun', 'dryRunBanner', 'runDry', 'run', 'runResult', 'preview', 'saveFirst']) {
+    await expect(page.getByTestId(`automation.policy.${gone}`)).toHaveCount(0);
+  }
+  const offHint = await page.getByTestId('automation.policy.enabledHint').textContent();
+  await setSwitch(page.getByTestId('automation.policy.enabled'), true);
+  await expect(page.getByTestId('automation.policy.enabledHint')).not.toHaveText(offHint ?? '');
 });

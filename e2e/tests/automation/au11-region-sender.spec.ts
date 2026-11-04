@@ -57,15 +57,15 @@ test('AU11 automated store request decline is sent as the store region @AU11', a
   const region = await api.getJson<{ name: string }>(`/api/regions/${detail.region.id}`);
   const sender = `foodsharing ${region.name}`;
 
-  // S-07's seeded request policy is a dry run; a live one with 0 km declines guide's open application
+  // S-07's seeded request policy is off (changeset 188); switched on with 0 km it declines guide's open application
   await api.putJson(`/api/stores/${s07}/automation/request-policy`, {
     enabled: true,
-    dryRun: false,
     distanceRuleEnabled: true,
     maximumDistanceKm: 0,
   });
-  const run = await api.postJson<{ declined: number }>(`/api/stores/${s07}/automation/request-policy/run?dryRun=false`);
-  expect(run.declined).toBeGreaterThan(0);
+  await notifications.runJob('request-automation');
+  const audits = await api.getJson<{ items: { status: string }[] }>(`/api/stores/${s07}/automation/audits?kind=REQUEST&size=50`);
+  expect(audits.items.some((a) => a.status === 'DECLINED')).toBe(true);
   await notifications.runJob('mail-outbox');
 
   const mail = await mails.waitForMail({ to: 'guide@local' });

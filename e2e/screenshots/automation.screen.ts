@@ -2,7 +2,7 @@ import { seedRegion, seedStore } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Automation screens (M4 F3/F4, AU1–AU10): store policy form, linked-store editor, preview dialog, decisions,
+ * Automation screens (M4 F3/F4, AU1–AU10): store policy form (one switch, decision 165), linked-store editor, decisions,
  * adverts, sign-out alerts, region overview, grouping, metrics — × light/dark × de/fr. Baselines are generated in
  * Docker at the end of the batch (decision 69).
  */
@@ -16,15 +16,13 @@ forEachVariant((variant) => {
   screenshotTest.describe(`automation ${variant.name}`, () => {
     screenshotTest.use({ variant, role: 'bieb' });
 
-    screenshotTest('store policy, linked-store editor and preview @AU1 @screenshot', async ({ page, visual }) => {
+    screenshotTest('store policy and linked-store editor @AU1 @screenshot', async ({ page, visual }) => {
       await page.goto(`/stores/${S01}/automation/policy`);
       await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
       await visual.expectScreen(page, `automation-policy-${variant.name}`, { fullPage: true });
       await page.getByTestId('automation.policy.addLink').click();
       await expect(page.getByTestId('automation.policy.link.0')).toBeVisible();
       await visual.expectElement(page.getByTestId('automation.policy.links'), `automation-links-${variant.name}`);
-      await page.getByTestId('automation.policy.preview').click();
-      await visual.expectScreen(page, `automation-preview-${variant.name}`);
     });
 
     screenshotTest('gap rule with a shared store list: list, warnings, previews, leave, phone @AU1 @screenshot', async ({ page, visual }) => {
