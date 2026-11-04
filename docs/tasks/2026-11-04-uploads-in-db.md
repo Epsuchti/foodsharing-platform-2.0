@@ -1,5 +1,7 @@
 # Uploads in PostgreSQL (C10 / A34 / A41)
 
+**Status:** approved by the owner on 2026-11-04, all open questions answered with the recommendations below.
+
 ## Goal
 Upload bytes (originals and `sm`/`md`/`lg` variants) live in PostgreSQL instead of `app.uploads.dir`. The nightly
 `pg_dump` then backs them up, the RWO `/data` PVC goes away and the app can run more than one replica. Upload ids,
@@ -148,6 +150,8 @@ No UI change, no mockup. The admin upload summary keeps its numbers (from `uploa
   later S3 backend a one-class change.
 
 ## Open questions for the owner
+Answered 2026-11-04: the owner accepted every recommendation as is.
+
 1. Keep files in PostgreSQL at all? **Recommendation: yes, now**; revisit S3/B2 at ~20 GB or 30-min dumps.
 2. Chunked rows (1 MiB) or one `bytea` row per file? **Recommendation: chunked** (bounded heap, streaming, short connection use).
 3. Import the existing demo files from `/data/uploads`, or start empty since the platform isn't live?
