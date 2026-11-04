@@ -448,7 +448,8 @@ interface TeamQuery {
       color: var(--fs-text-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; line-height: 1.3;
     }
     .tm__stats div { display: inline-flex; align-items: center; gap: 0.3rem; }
-    .tm__stats dd { margin: 0; }
+    /* number, word and value are separate nodes: the gap keeps "5 Abholungen" apart (whitespace between tags is dropped) */
+    .tm__stats dd { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.25em; margin: 0; }
     .tm__stats .pi { font-size: 0.8rem; opacity: 0.8; }
     .tm__stats .sep { color: var(--fs-border-strong); }
     .tm__stats b { color: var(--fs-text); font-weight: 650; }
