@@ -159,7 +159,7 @@ public class AutomationController implements AutomationApi {
         requestPolicies.find(storeId).ifPresent(policy -> model.setRequestPolicy(mapper.toModel(policy)));
         model.setAdverts(adverts.list(storeId).stream().map(mapper::toModel).toList());
         signoutAlerts.find(storeId).ifPresent(view -> model.setSignoutAlert(mapper.toModel(view)));
-        model.setExtraSlotAllowed(store.isExtraSlotAllowed());
+        model.setMaxExtraSlots(store.getMaxExtraSlots());
         model.setCleaningFoodSharePoints(pickupPolicies.cleaningFoodSharePointsOf(store).stream()
                 .map(AutomationMapper::toFspRef).toList());
         AutomationPermissions permissions = new AutomationPermissions();
@@ -270,9 +270,9 @@ public class AutomationController implements AutomationApi {
     }
 
     @Override
-    public ResponseEntity<ExtraSlotSetting> setExtraSlotAllowed(UUID storeId, ExtraSlotSetting extraSlotSetting) {
+    public ResponseEntity<ExtraSlotSetting> setMaxExtraSlots(UUID storeId, ExtraSlotSetting extraSlotSetting) {
         ExtraSlotSetting body = new ExtraSlotSetting();
-        body.setAllowed(extraSlots.setAllowed(storeId, Boolean.TRUE.equals(extraSlotSetting.getAllowed())));
+        body.setMaxExtraSlots(extraSlots.setMaxExtraSlots(storeId, extraSlotSetting.getMaxExtraSlots()));
         return ResponseEntity.ok(body);
     }
 }

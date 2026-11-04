@@ -580,6 +580,8 @@ paths:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups~1{userId}'
   /api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}/confirm:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups~1{userId}~1confirm'
+  /api/stores/{storeId}/pickup-days/{date}/conversation:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickup-days~1{date}~1conversation'
   /api/stores/{storeId}/pickup-history:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickup-history'
   /api/users/me/pickups:

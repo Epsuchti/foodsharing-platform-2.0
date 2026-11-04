@@ -48,11 +48,24 @@ public class PickupScheduleService {
 
     /** A pickup with the caller's eligibility (null when not computed, e.g. for past pickups). */
     public record PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
-                             network.foodsharing.pickup.domain.PickupExtraSlot extraSlot, boolean mayAddExtraSlot) {
+                             List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlots,
+                             boolean mayAddExtraSlot) {
 
         public PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility) {
-            this(slot, available, eligibility, null, false);
+            this(slot, available, eligibility, List.of(), false);
         }
+    }
+
+    /** Extra-slot rows grouped by pickup time, each list oldest first (AU6). */
+    public static Map<Instant, List<network.foodsharing.pickup.domain.PickupExtraSlot>> byPickup(
+            java.util.Collection<network.foodsharing.pickup.domain.PickupExtraSlot> rows) {
+        return rows.stream().sorted(java.util.Comparator.comparing(
+                        network.foodsharing.pickup.domain.PickupExtraSlot::getCreatedAt,
+                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                        .thenComparing(network.foodsharing.pickup.domain.PickupExtraSlot::getId,
+                                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+                .collect(Collectors.groupingBy(network.foodsharing.pickup.domain.PickupExtraSlot::getPickupAt,
+                        java.util.LinkedHashMap::new, Collectors.toList()));
     }
 
     private final RegularPickupRepository regular;
@@ -67,6 +80,7 @@ public class PickupScheduleService {
     private final UserService users;
     private final CurrentActorService currentActor;
     private final java.time.Clock clock;
+    private final network.foodsharing.config.AppProperties properties;
 
     public PickupScheduleService(RegularPickupRepository regular, PickupDateRepository dates,
                                  PickupSignupRepository signups,
@@ -74,7 +88,8 @@ public class PickupScheduleService {
                                  StoreService stores, StorePermissionService rights,
                                  RegionService regions, RegionOptionsService regionOptions,
                                  QuizSessionService quizzes, UserService users, CurrentActorService currentActor,
-                                 java.time.Clock clock) {
+                                 java.time.Clock clock, network.foodsharing.config.AppProperties properties) {
+        this.properties = properties;
         this.regular = regular;
         this.dates = dates;
         this.signups = signups;
@@ -160,13 +175,14 @@ public class PickupScheduleService {
             }
         }
         EligibilityContext context = context(store, actor.userId());
-        Map<Instant, network.foodsharing.pickup.domain.PickupExtraSlot> extras = slots.isEmpty() ? Map.of()
-                : extraSlots.findByStoreIdAndPickupAtIn(storeId, slots.stream().map(PickupSchedule.Slot::pickupAt)
-                        .toList()).stream().collect(Collectors.toMap(e -> e.getPickupAt(), e -> e, (a, b) -> a));
+        Map<Instant, List<network.foodsharing.pickup.domain.PickupExtraSlot>> extras = slots.isEmpty() ? Map.of()
+                : byPickup(extraSlots.findByStoreIdAndPickupAtIn(storeId, slots.stream()
+                        .map(PickupSchedule.Slot::pickupAt).toList()));
+        int maxSlots = properties.getStore().getMaxSlotsPerPickup();
         return slots.stream().map(s -> {
-            var extra = extras.get(s.pickupAt());
-            boolean mayAdd = store.isExtraSlotAllowed() && extra == null && s.pickupAt().isAfter(now)
-                    && PickupSignupService.isFirstSignup(s, actor.userId());
+            var extra = extras.getOrDefault(s.pickupAt(), List.of());
+            boolean mayAdd = ExtraSlotRule.mayAdd(store.getMaxExtraSlots(), extra.size(), s.slotCount(), maxSlots,
+                    PickupSignupService.isFirstSignup(s, actor.userId()), s.pickupAt().isAfter(now));
             return new PickupView(s, s.isAvailable(now),
                     s.pickupAt().isBefore(now) ? null : context.evaluate(s.pickupAt(), s), extra, mayAdd);
         }).toList();

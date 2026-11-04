@@ -522,6 +522,49 @@ public class MessagingService {
         return conversation;
     }
 
+    /**
+     * Adds those of {@code userIds} who aren't members of the GROUP conversation yet, without a member as actor (day
+     * chats of a store, decision 164); nobody is removed. New members start with everything read.
+     *
+     * @return how many were added
+     * @throws ApiException 404 CONVERSATION_NOT_FOUND, 409 CONVERSATION_NOT_GROUP, 400 TOO_MANY_MEMBERS
+     */
+    @Transactional
+    public int addMissingMembers(UUID conversationId, Collection<UUID> userIds) {
+        Conversation conversation = conversations.findById(conversationId)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.CONVERSATION_NOT_FOUND));
+        if (conversation.getKind() != ConversationKind.GROUP) {
+            throw ApiException.conflict(ApiErrorCode.CONVERSATION_NOT_GROUP);
+        }
+        Set<UUID> present = members.findByConversationId(conversationId).stream().map(ConversationMember::getUserId)
+                .collect(Collectors.toSet());
+        Set<UUID> active = users.findActive(userIds).stream().map(network.foodsharing.user.domain.User::getId)
+                .collect(Collectors.toSet());
+        List<UUID> missing = userIds.stream().distinct().filter(id -> !present.contains(id) && active.contains(id))
+                .toList();
+        if (missing.isEmpty()) {
+            return 0;
+        }
+        if (present.size() + missing.size() > MAX_MEMBERS) {
+            throw ApiException.badRequest(ApiErrorCode.TOO_MANY_MEMBERS);
+        }
+        Instant now = clock.instant();
+        for (UUID userId : missing) {
+            ConversationMember member = member(conversation, userId, now);
+            member.setLastReadSeq(conversation.getLastSeq());
+            members.save(member);
+            history.record(history.event(MessagingAction.MEMBER_ADDED, conversationId).secondarySubject(userId).build());
+        }
+        updated(conversation);
+        return missing.size();
+    }
+
+    /** The conversation's own name (null when unnamed). */
+    @Transactional(readOnly = true)
+    public String nameOf(UUID conversationId) {
+        return conversations.findById(conversationId).map(Conversation::getName).orElse(null);
+    }
+
     /** Removes a member; removing oneself = leaving. */
     @Transactional
     public void removeMember(UUID actorId, UUID conversationId, UUID userId) {

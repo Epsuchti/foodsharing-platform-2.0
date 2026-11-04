@@ -350,10 +350,14 @@ Cancellation:
 
 ExtraSlotSetting:
   type: object
-  required: [allowed]
+  required: [maxExtraSlots]
   properties:
-    allowed:
-      type: boolean
+    maxExtraSlots:
+      description: 'How many extra slots the earliest sign-up of a pickup may add (0 = off); still capped by maxSlotsPerPickup (AU6).'
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 50
 
 AutomationPermissions:
   type: object
@@ -366,7 +370,7 @@ AutomationPermissions:
 
 StoreAutomation:
   type: object
-  required: [adverts, extraSlotAllowed, permissions, cleaningFoodSharePoints]
+  required: [adverts, maxExtraSlots, permissions, cleaningFoodSharePoints]
   properties:
     pickupPolicy:
       $ref: './automation.yaml#/PickupPolicy'
@@ -378,8 +382,9 @@ StoreAutomation:
         $ref: './automation.yaml#/OpenSlotAdvert'
     signoutAlert:
       $ref: './automation.yaml#/SignoutAlertSetting'
-    extraSlotAllowed:
-      type: boolean
+    maxExtraSlots:
+      type: integer
+      format: int32
     cleaningFoodSharePoints:
       description: "The Fairteiler of the store's region that count for the cleaning rule of the pickup policy (FS2)."
       type: array

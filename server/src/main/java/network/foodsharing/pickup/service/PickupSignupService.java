@@ -300,19 +300,19 @@ public class PickupSignupService {
     }
 
     /**
-     * AU6: the earliest sign-up of a future pickup adds one extra slot (store switch {@code extra_slot_allowed}, once
-     * per pickup). Store log UPDATE_SLOT_COUNT + {@link PickupAction#EXTRA_SLOT_ADDED}; bell PICKUP_EXTRA_SLOT_ADDED to
+     * AU6: the earliest sign-up of a future pickup adds one extra slot (up to the store's {@code max_extra_slots} per
+     * pickup, {@link ExtraSlotRule}). Store log UPDATE_SLOT_COUNT + {@link PickupAction#EXTRA_SLOT_ADDED}; bell PICKUP_EXTRA_SLOT_ADDED to
      * the managers.
      *
      * @throws ApiException 404, 400 PICKUP_IN_PAST, 403 NOT_FIRST_SIGNUP, 409 EXTRA_SLOT_NOT_ALLOWED /
-     *                      EXTRA_SLOT_ALREADY_ADDED, 400 SLOT_COUNT_OUT_OF_RANGE
+     *                      EXTRA_SLOT_LIMIT_REACHED, 400 SLOT_COUNT_OUT_OF_RANGE
      */
     @Transactional
     public PickupSchedule.Slot addExtraSlot(UUID storeId, Instant pickupAt) {
         stores.require(storeId);
         Store store = stores.lock(storeId);
         UUID actorId = currentActor.requirePrincipal().userId();
-        if (!store.isExtraSlotAllowed()) {
+        if (store.getMaxExtraSlots() <= 0) {
             throw ApiException.conflict(ApiErrorCode.EXTRA_SLOT_NOT_ALLOWED);
         }
         if (!pickupAt.isAfter(clock.instant())) {
@@ -322,12 +322,14 @@ public class PickupSignupService {
         if (current == null || !isFirstSignup(current, actorId)) {
             throw ApiException.forbidden(ApiErrorCode.NOT_FIRST_SIGNUP);
         }
-        if (extraSlots.findByStoreIdAndPickupAt(storeId, pickupAt).isPresent()) {
-            throw ApiException.conflict(ApiErrorCode.EXTRA_SLOT_ALREADY_ADDED);
+        int added = extraSlots.findByStoreIdAndPickupAt(storeId, pickupAt).size();
+        if (added >= store.getMaxExtraSlots()) {
+            throw ApiException.conflict(ApiErrorCode.EXTRA_SLOT_LIMIT_REACHED);
         }
         int previousCount = current.slotCount();
         int newCount = previousCount + 1;
-        if (newCount > properties.getStore().getMaxSlotsPerPickup()) {
+        int maxSlots = properties.getStore().getMaxSlotsPerPickup();
+        if (!ExtraSlotRule.mayAdd(store.getMaxExtraSlots(), added, previousCount, maxSlots, true, true)) {
             throw ApiException.badRequest(ApiErrorCode.SLOT_COUNT_OUT_OF_RANGE);
         }
         PickupDate date = dates.findByStoreIdAndPickupAt(storeId, pickupAt).orElseGet(() -> {
@@ -366,14 +368,13 @@ public class PickupSignupService {
                 .map(s -> s.getUserId().equals(userId)).orElse(false);
     }
 
-    /** Extra slots added to these pickups of a store (by pickup time). */
+    /** Extra slots added to these pickups of a store (by pickup time, oldest first). */
     @Transactional(readOnly = true)
-    public Map<Instant, PickupExtraSlot> extraSlots(UUID storeId, java.util.Collection<Instant> pickupAts) {
+    public Map<Instant, List<PickupExtraSlot>> extraSlots(UUID storeId, java.util.Collection<Instant> pickupAts) {
         if (pickupAts.isEmpty()) {
             return Map.of();
         }
-        return extraSlots.findByStoreIdAndPickupAtIn(storeId, pickupAts).stream()
-                .collect(java.util.stream.Collectors.toMap(PickupExtraSlot::getPickupAt, e -> e, (a, b) -> a));
+        return PickupScheduleService.byPickup(extraSlots.findByStoreIdAndPickupAtIn(storeId, pickupAts));
     }
 
     private NotificationRequest.Builder request(List<UUID> recipients, NotificationType type, Store store,
