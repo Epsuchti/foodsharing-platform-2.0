@@ -28,6 +28,7 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Have the association confirm the retention periods against the privacy policy (`docs/privacy/retention.md`).
 - [ ] Run a real usability test on staging with 3–5 Zürich newcomers, plus foodsavers, store managers and ambassadors.
 - [ ] Have native speakers review the `gws`, `fr`, `it` and `en` texts, above all `gws` for the gap rule.
+- [ ] Have native speakers check the new landing page texts (C17, decision 159) in `gws`, `fr` and `it`: `client/src/app/features/public/i18n/` and `content.support.subjectPreset.partner`.
 - [ ] Have the admins approve the passport layout (`docs/passport-layout.md`, `docs/passport-sample.png`).
 - [ ] Have the ambassadors confirm or correct the Zürich regions and stores (`docs/data/zuerich/`).
 - [ ] Name the first ambassadors and guides for staging.
