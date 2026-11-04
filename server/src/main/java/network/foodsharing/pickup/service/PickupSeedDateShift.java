@@ -38,6 +38,12 @@ public class PickupSeedDateShift implements SeedDateShiftContributor {
     private void shiftColumn(String table, String column, Duration delta) {
         List<Object[]> rows = jdbc.query("select id, " + column + " from " + table + " where " + column
                 + " is not null", (rs, n) -> new Object[] {rs.getObject(1, UUID.class), rs.getTimestamp(2)});
+        // Latest first when moving forward (earliest first when moving back), so a row never lands on the instant of
+        // a not yet shifted row of the same store (unique store_id + pickup_at).
+        rows.sort(java.util.Comparator.comparing((Object[] r) -> ((Timestamp) r[1]).toInstant()));
+        if (!delta.isNegative()) {
+            java.util.Collections.reverse(rows);
+        }
         for (Object[] row : rows) {
             if (!row[0].toString().startsWith(SEED_PREFIX)) {
                 continue;
