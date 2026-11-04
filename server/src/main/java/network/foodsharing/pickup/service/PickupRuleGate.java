@@ -54,6 +54,26 @@ public interface PickupRuleGate {
         return result;
     }
 
+    /** A pickup the person books in the same request as another one (decision 165 S3, linked stores). */
+    record Planned(UUID storeId, Instant pickupAt) {
+    }
+
+    /**
+     * The blocks of one sign-up when {@code planned} pickups (in other stores) are booked in the same request: they
+     * count as the person's unconfirmed sign-ups, so a linked-store rule they satisfy does not block (decision 165 S3).
+     */
+    default List<RuleBlock> check(UUID storeId, UUID userId, Instant pickupAt, Collection<Planned> planned) {
+        return blocks(storeId, userId, List.of(pickupAt)).getOrDefault(pickupAt, List.of());
+    }
+
+    /**
+     * Sign-ups of the store with {@code from <= pickupAt < to} whose linked-store pickup was signed out: pickup time →
+     * person → until when another one may be booked (decision 165 S3, "Verknüpfung fehlt").
+     */
+    default Map<Instant, Map<UUID, Instant>> linkMissing(UUID storeId, Instant from, Instant to) {
+        return Map.of();
+    }
+
     /**
      * A sign-up was refused because of {@code blocks}: the implementation records the attempt once the current
      * transaction has ended (the refusal rolls it back).

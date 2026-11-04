@@ -28,7 +28,12 @@ public enum AutomationAction implements HistoryAction {
     AUDITS_ARCHIVED,
     FIELD_CHANGED,
     /** Shared gap list changed (decision 151); metadata storeId, storeIds, minimumGapDays. */
-    GAP_LIST_CHANGED;
+    GAP_LIST_CHANGED,
+    /**
+     * A sign-up lost its linked-store pickup (decision 165 S3); subject = policy, secondary = person, metadata storeId,
+     * pickupAt, linkedStoreId, deadlineAt.
+     */
+    LINK_MISSING;
 
     @Override
     public String code() {

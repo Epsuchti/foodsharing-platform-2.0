@@ -35,6 +35,10 @@ PickupSlot:
       $ref: './users.yaml#/UserSummary'
     confirmed:
       type: boolean
+    linkMissingUntil:
+      description: 'The linked-store pickup of this sign-up was signed out (decision 165 S3): until then the person may book another one, afterwards the slot is freed. Only on the caller''s own slot and for the store''s managers.'
+      type: string
+      format: date-time
 
 RegionPickupRuleState:
   type: object
@@ -191,6 +195,27 @@ SignupResult:
   properties:
     confirmed:
       type: boolean
+
+SignupRequest:
+  type: object
+  properties:
+    linkedPickups:
+      description: 'Pickups in linked stores to book together with this one (decision 165 S3).'
+      type: array
+      maxItems: 5
+      items:
+        $ref: './pickups.yaml#/LinkedPickupChoice'
+
+LinkedPickupChoice:
+  type: object
+  required: [storeId, pickupAt]
+  properties:
+    storeId:
+      type: string
+      format: uuid
+    pickupAt:
+      type: string
+      format: date-time
 
 PickupHistoryPage:
   type: object

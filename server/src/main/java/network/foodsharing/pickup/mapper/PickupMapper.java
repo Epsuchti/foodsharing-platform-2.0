@@ -42,6 +42,16 @@ public class PickupMapper {
         this.stores = stores;
     }
 
+    /** The linked pickups of a sign-up request (decision 165 S3); none without a body. */
+    public static List<network.foodsharing.pickup.service.PickupRuleGate.Planned> linkedPickups(
+            network.foodsharing.api.model.SignupRequest request) {
+        if (request == null || request.getLinkedPickups() == null) {
+            return List.of();
+        }
+        return request.getLinkedPickups().stream().map(choice -> new network.foodsharing.pickup.service.PickupRuleGate
+                .Planned(choice.getStoreId(), instant(choice.getPickupAt()))).toList();
+    }
+
     public static OffsetDateTime time(Instant instant) {
         return instant == null ? null : instant.atOffset(ZoneOffset.UTC);
     }
@@ -83,6 +93,14 @@ public class PickupMapper {
         return views.stream().map(v -> {
             Pickup model = toModel(v.slot(), v.available(), v.eligibility(), all, blockStores);
             model.setMayAddExtraSlot(v.mayAddExtraSlot());
+            if (!v.linkMissing().isEmpty()) {
+                for (PickupSlot slot : model.getOccupiedSlots()) {
+                    Instant until = v.linkMissing().get(slot.getUser().getId());
+                    if (until != null) {
+                        slot.setLinkMissingUntil(time(until));
+                    }
+                }
+            }
             if (v.extraSlot() != null && all.containsKey(v.extraSlot().getUserId())) {
                 network.foodsharing.api.model.PickupExtraSlot extra = new network.foodsharing.api.model.PickupExtraSlot();
                 extra.setByUser(userMapper.toSummary(all.get(v.extraSlot().getUserId())));
@@ -157,7 +175,7 @@ public class PickupMapper {
         return model;
     }
 
-    private static network.foodsharing.api.model.PolicyBlock toBlock(
+    public static network.foodsharing.api.model.PolicyBlock toBlock(
             network.foodsharing.pickup.service.PickupRuleGate.RuleBlock block,
             Map<UUID, network.foodsharing.store.domain.Store> blockStores) {
         var p = block.params();

@@ -8,10 +8,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import network.foodsharing.automation.domain.PickupLinkPending;
 import network.foodsharing.automation.domain.PickupPolicy;
 import network.foodsharing.automation.domain.PickupPolicyAudit;
 import network.foodsharing.automation.domain.PickupPolicyDecision;
 import network.foodsharing.automation.domain.PolicyRule;
+import network.foodsharing.automation.repository.PickupLinkPendingRepository;
 import network.foodsharing.automation.repository.PickupPolicyAuditRepository;
 import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.Decision;
@@ -34,8 +36,9 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * The pickup policy as a gate before the sign-up is stored (decision 165 S2): the same {@link PickupPolicyEvaluator}
  * as the runner, without audits, over a {@link CachingPolicyData} so a whole pickup list costs one set of queries. A
- * pickup is blocked when the evaluation declines it; skipped days (excluded date, holiday), the last two days before a
- * pickup and a linked store still within its grace are not blocked (the runner decides those after the sign-up). A
+ * pickup is blocked when the evaluation declines it; skipped days (excluded date, holiday) and the last two days before a
+ * pickup are not blocked (the runner decides those after the sign-up). A missing linked-store pickup blocks unless it
+ * is booked in the same request ({@link #check}, decision 165 S3). A
  * refused sign-up gets a DECLINED audit once its transaction has rolled back (audit only, no history: no state
  * changed).
  */
@@ -53,10 +56,13 @@ public class PickupRuleGateImpl implements PickupRuleGate {
     private final ObjectMapper json;
     private final TransactionTemplate readTx;
     private final TransactionTemplate writeTx;
+    private final PickupLinkPendingRepository linkPending;
 
     public PickupRuleGateImpl(PickupPolicyRepository policies, PickupPolicyAuditRepository audits,
                               PickupPolicyEvaluator evaluator, PickupPolicyData data, AppProperties properties,
-                              ObjectMapper json, PlatformTransactionManager transactionManager) {
+                              ObjectMapper json, PlatformTransactionManager transactionManager,
+                              PickupLinkPendingRepository linkPending) {
+        this.linkPending = linkPending;
         this.policies = policies;
         this.audits = audits;
         this.evaluator = evaluator;
@@ -101,9 +107,49 @@ public class PickupRuleGateImpl implements PickupRuleGate {
         return result == null ? Map.of() : result;
     }
 
+    @Override
+    public List<RuleBlock> check(UUID storeId, UUID userId, Instant pickupAt, Collection<Planned> planned) {
+        return blocks(storeId, userId, List.of(pickupAt), planned).getOrDefault(pickupAt, List.of());
+    }
+
+    /** {@link #blocks(UUID, UUID, Collection)} with {@code planned} pickups counted as booked (decision 165 S3). */
+    Map<Instant, List<RuleBlock>> blocks(UUID storeId, UUID userId, Collection<Instant> pickupAts,
+                                         Collection<Planned> planned) {
+        if (pickupAts.isEmpty() || !properties.getAutomation().isEnabled()) {
+            return Map.of();
+        }
+        Map<Instant, List<RuleBlock>> result = readTx.execute(status -> policies.findByStoreId(storeId)
+                .filter(PickupPolicy::isEnabled).map(policy -> evaluate(policy, userId, pickupAts, planned))
+                .orElse(Map.of()));
+        return result == null ? Map.of() : result;
+    }
+
+    @Override
+    public Map<Instant, Map<UUID, Instant>> linkMissing(UUID storeId, Instant from, Instant to) {
+        Map<Instant, Map<UUID, Instant>> result = readTx.execute(status -> {
+            Map<Instant, Map<UUID, Instant>> byPickup = new HashMap<>();
+            for (PickupLinkPending row : linkPending.findByStoreIdAndPickupAtGreaterThanEqualAndPickupAtLessThan(
+                    storeId, from, to)) {
+                byPickup.computeIfAbsent(row.getPickupAt(), at -> new HashMap<>()).put(row.getUserId(),
+                        data.extendDeadline(row.getCreatedAt(), row.getDeadlineAt()));
+            }
+            return byPickup;
+        });
+        return result == null ? Map.of() : result;
+    }
+
     private Map<Instant, List<RuleBlock>> evaluate(PickupPolicy policy, UUID userId, Collection<Instant> pickupAts) {
+        return evaluate(policy, userId, pickupAts, List.of());
+    }
+
+    private Map<Instant, List<RuleBlock>> evaluate(PickupPolicy policy, UUID userId, Collection<Instant> pickupAts,
+                                                   Collection<Planned> planned) {
         Spec spec = data.spec(policy);
-        CachingPolicyData cached = new CachingPolicyData(data);
+        Instant signedUpAt = data.now();
+        CachingPolicyData cached = new CachingPolicyData(data, planned.stream()
+                .filter(p -> !p.storeId().equals(policy.getStoreId()) || !pickupAts.contains(p.pickupAt()))
+                .map(p -> new PickupPolicyEvaluator.Signup(p.storeId(), userId, p.pickupAt(), false, signedUpAt))
+                .toList());
         Instant now = cached.now();
         List<Instant> future = pickupAts.stream().filter(at -> at.isAfter(now)).distinct().sorted().toList();
         if (future.isEmpty()) {

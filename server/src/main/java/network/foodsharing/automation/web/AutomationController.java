@@ -65,6 +65,7 @@ public class AutomationController implements AutomationApi {
     private final PickupCountGroupingService grouping;
     private final MetricArchiveService metrics;
     private final network.foodsharing.pickup.mapper.PickupMapper pickupMapper;
+    private final network.foodsharing.automation.service.LinkedOptionsService linkedOptions;
 
     public AutomationController(PickupPolicyService pickupPolicies, RequestPolicyService requestPolicies,
                                 AutomationAuditService audits,
@@ -72,7 +73,9 @@ public class AutomationController implements AutomationApi {
                                 AutomationMapper mapper, java.time.Clock clock, OpenSlotAdvertService adverts,
                                 OpenSlotAdvertRunner advertRunner, SignoutAlertService signoutAlerts,
                                 ExtraSlotService extraSlots, PickupCountGroupingService grouping,
-                                MetricArchiveService metrics, network.foodsharing.pickup.mapper.PickupMapper pickupMapper) {
+                                MetricArchiveService metrics, network.foodsharing.pickup.mapper.PickupMapper pickupMapper,
+                                network.foodsharing.automation.service.LinkedOptionsService linkedOptions) {
+        this.linkedOptions = linkedOptions;
         this.adverts = adverts;
         this.advertRunner = advertRunner;
         this.signoutAlerts = signoutAlerts;
@@ -167,6 +170,13 @@ public class AutomationController implements AutomationApi {
     @Override
     public ResponseEntity<network.foodsharing.api.model.StoreRuleSummary> getStoreRules(UUID storeId) {
         return ResponseEntity.ok(mapper.toModel(pickupPolicies.rules(storeId)));
+    }
+
+    @Override
+    public ResponseEntity<network.foodsharing.api.model.LinkedOptions> getLinkedOptions(UUID storeId,
+                                                                                    java.time.OffsetDateTime pickupAt) {
+        return ResponseEntity.ok(mapper.toLinkedOptions(linkedOptions.linkedOptions(storeId,
+                network.foodsharing.pickup.mapper.PickupMapper.instant(pickupAt))));
     }
 
     @Override

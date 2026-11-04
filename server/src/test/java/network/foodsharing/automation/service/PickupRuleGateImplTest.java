@@ -65,7 +65,8 @@ class PickupRuleGateImplTest {
         messages.setDefaultEncoding("UTF-8");
         messages.setFallbackToSystemLocale(false);
         gate = new PickupRuleGateImpl(policies, audits, new PickupPolicyEvaluator(messages), data, properties,
-                JsonMapper.builder().build(), mock(PlatformTransactionManager.class));
+                JsonMapper.builder().build(), mock(PlatformTransactionManager.class),
+                mock(network.foodsharing.automation.repository.PickupLinkPendingRepository.class));
         policy.setId(UUID.randomUUID());
         policy.setStoreId(STORE);
         policy.setEnabled(true);
@@ -80,6 +81,50 @@ class PickupRuleGateImplTest {
         when(data.signupsOfUser(eq(USER), anyCollection(), any(), any())).thenReturn(List.of(
                 new Signup(STORE, USER, at("2026-11-10T19:00"), true, NOW.minusSeconds(3600))));
         when(data.signups(eq(STORE), any(), any())).thenReturn(List.of());
+    }
+
+    static final UUID LINKED = UUID.randomUUID();
+
+    /** Only a link rule: a pickup in LINKED on the same day up to 2 days after. */
+    void linkRule() {
+        when(data.spec(policy)).thenReturn(new Spec(policy.getId(), STORE, true, false, 0, false, false, false,
+                Set.of(), List.of(new PickupPolicyEvaluator.LinkRule(List.of(LINKED),
+                        network.foodsharing.automation.domain.LinkedStoreWindowMode.LAST_DAYS, 0, 2, 120, null))));
+        when(data.zone(LINKED)).thenReturn(ZURICH);
+        when(data.storeName(LINKED)).thenReturn("Linked AG");
+        when(data.signupsOfUser(eq(USER), anyCollection(), any(), any())).thenReturn(List.of());
+    }
+
+    @Test
+    void aMissingLinkedPickupBlocksUpFrontWithTheWindow() {
+        linkRule();
+        Map<Instant, List<RuleBlock>> blocks = gate.blocks(STORE, USER, List.of(at("2026-11-11T19:00")));
+        RuleBlock block = blocks.get(at("2026-11-11T19:00")).getFirst();
+        assertThat(block.rule()).isEqualTo("LINKED_STORE");
+        assertThat(block.params().storeIds()).containsExactly(LINKED);
+        assertThat(block.params().from()).isEqualTo(at("2026-11-11T00:00"));
+        assertThat(block.params().to()).isEqualTo(at("2026-11-13T00:00"));
+    }
+
+    @Test
+    void aLinkedPickupBookedInTheSameRequestSatisfiesTheRule() {
+        linkRule();
+        Instant pickup = at("2026-11-11T19:00");
+        assertThat(gate.check(STORE, USER, pickup, List.of(new network.foodsharing.pickup.service.PickupRuleGate
+                .Planned(LINKED, at("2026-11-12T18:30"))))).isEmpty();
+        // outside the window it does not count
+        assertThat(gate.check(STORE, USER, pickup, List.of(new network.foodsharing.pickup.service.PickupRuleGate
+                .Planned(LINKED, at("2026-11-14T18:30"))))).extracting(RuleBlock::rule).containsExactly("LINKED_STORE");
+    }
+
+    @Test
+    void aSignedOutLinkWithinItsDeadlineDoesNotBlockAfterwardsItDoes() {
+        linkRule();
+        Instant pickup = at("2026-11-11T19:00");
+        when(data.linkPendingDeadlines(STORE, USER)).thenReturn(Map.of(pickup, NOW.plusSeconds(600)));
+        assertThat(gate.blocks(STORE, USER, List.of(pickup))).isEmpty();
+        when(data.linkPendingDeadlines(STORE, USER)).thenReturn(Map.of(pickup, NOW.minusSeconds(1)));
+        assertThat(gate.blocks(STORE, USER, List.of(pickup))).containsOnlyKeys(pickup);
     }
 
     void rules(boolean gap, boolean experience, Set<LocalDate> excluded) {

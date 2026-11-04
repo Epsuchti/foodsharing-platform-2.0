@@ -1,5 +1,6 @@
 package network.foodsharing.automation.service;
 
+import java.util.List;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import network.foodsharing.common.jobs.JobRun;
 import network.foodsharing.common.jobs.JobRunner;
@@ -10,8 +11,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * {@code automation-evaluate} (every 5 min): re-evaluates every unconfirmed future sign-up of enabled pickup policies —
- * the cases deferred by the linked-store rule and sign-ups that came in while a policy was off. New sign-ups are decided
- * instantly by {@link PickupPolicyRunner#onSignedUp}.
+ * the cases deferred by the linked-store rule and sign-ups that came in while a policy was off — and frees the sign-ups
+ * whose deadline to book another linked pickup has passed ({@link LinkPendingService#freeExpired}, decision 165 S3).
+ * New sign-ups are decided instantly by {@link PickupPolicyRunner#onSignedUp}.
  */
 @Component
 public class AutomationEvaluateJob implements RunnableJob {
@@ -20,11 +22,14 @@ public class AutomationEvaluateJob implements RunnableJob {
 
     private final JobRunner jobRunner;
     private final PickupPolicyRunner runner;
+    private final LinkPendingService linkPending;
     private final AppProperties properties;
 
-    public AutomationEvaluateJob(JobRunner jobRunner, PickupPolicyRunner runner, AppProperties properties) {
+    public AutomationEvaluateJob(JobRunner jobRunner, PickupPolicyRunner runner, LinkPendingService linkPending,
+                                 AppProperties properties) {
         this.jobRunner = jobRunner;
         this.runner = runner;
+        this.linkPending = linkPending;
         this.properties = properties;
     }
 
@@ -47,9 +52,12 @@ public class AutomationEvaluateJob implements RunnableJob {
     @Override
     public void runNow() {
         PickupPolicyRunner.RunResult result = runner.runAll();
-        if (result.failed() > 0) {
-            throw new IllegalStateException(result.failed() + " pickup policy decisions failed: "
-                    + String.join("; ", result.messages()));
+        List<String> linkFailures = linkPending.freeExpired();
+        if (result.failed() > 0 || !linkFailures.isEmpty()) {
+            List<String> messages = new java.util.ArrayList<>(result.messages());
+            messages.addAll(linkFailures);
+            throw new IllegalStateException((result.failed() + linkFailures.size())
+                    + " pickup policy decisions failed: " + String.join("; ", messages));
         }
     }
 }

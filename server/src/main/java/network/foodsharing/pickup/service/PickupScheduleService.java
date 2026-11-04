@@ -46,9 +46,23 @@ public class PickupScheduleService {
      */
     static final Instant OPEN_END = Instant.parse("9999-12-31T23:59:59Z");
 
-    /** A pickup with the caller's eligibility (null when not computed, e.g. for past pickups). */
+    /**
+     * A pickup with the caller's eligibility (null when not computed, e.g. for past pickups). {@code linkMissing}:
+     * sign-ups whose linked-store pickup was signed out → deadline (decision 165 S3; only the caller's own one unless
+     * the caller manages the store).
+     */
     public record PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
-                             network.foodsharing.pickup.domain.PickupExtraSlot extraSlot, boolean mayAddExtraSlot) {
+                             network.foodsharing.pickup.domain.PickupExtraSlot extraSlot, boolean mayAddExtraSlot,
+                             Map<UUID, Instant> linkMissing) {
+
+        public PickupView {
+            linkMissing = linkMissing == null ? Map.of() : Map.copyOf(linkMissing);
+        }
+
+        public PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
+                          network.foodsharing.pickup.domain.PickupExtraSlot extraSlot, boolean mayAddExtraSlot) {
+            this(slot, available, eligibility, extraSlot, mayAddExtraSlot, Map.of());
+        }
 
         public PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility) {
             this(slot, available, eligibility, null, false);
@@ -174,13 +188,20 @@ public class PickupScheduleService {
         }
         Map<Instant, List<PickupRuleGate.RuleBlock>> blocks = ruleBlocks(store, actor.userId(), actorRights,
                 eligibility.entrySet().stream().filter(e -> e.getValue().eligible()).map(Map.Entry::getKey).toList());
+        boolean manager = isRuleExempt(actorRights);
+        Map<Instant, Map<UUID, Instant>> linkMissing = slots.stream().noneMatch(s -> !s.pickupAt().isBefore(now)
+                && (manager || s.hasSignup(actor.userId()))) ? Map.of()
+                : ruleGate.linkMissing(storeId, now, OPEN_END);
         return slots.stream().map(s -> {
+            Map<UUID, Instant> missing = linkMissing.getOrDefault(s.pickupAt(), Map.of()).entrySet().stream()
+                    .filter(e -> manager || e.getKey().equals(actor.userId()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             var extra = extras.get(s.pickupAt());
             boolean mayAdd = store.isExtraSlotAllowed() && extra == null && s.pickupAt().isAfter(now)
                     && PickupSignupService.isFirstSignup(s, actor.userId());
             PickupEligibilityRules.Result result = eligibility.get(s.pickupAt());
             return new PickupView(s, s.isAvailable(now),
-                    result == null ? null : result.withRuleBlocks(blocks.get(s.pickupAt())), extra, mayAdd);
+                    result == null ? null : result.withRuleBlocks(blocks.get(s.pickupAt())), extra, mayAdd, missing);
         }).toList();
     }
 
@@ -198,8 +219,29 @@ public class PickupScheduleService {
     }
 
     /**
+     * The store rules that block {@code userId}'s sign-up for one pickup when {@code planned} pickups in linked stores
+     * are booked in the same request (decision 165 S3); none for store managers.
+     */
+    public List<PickupRuleGate.RuleBlock> ruleCheck(Store store, UUID userId, StorePermissionService.Rights actorRights,
+                                                    Instant pickupAt, Collection<PickupRuleGate.Planned> planned) {
+        if (isRuleExempt(actorRights)) {
+            return List.of();
+        }
+        return ruleGate.check(store.getId(), userId, pickupAt, planned);
+    }
+
+    /** Only a missing linked-store pickup blocks: the sign-up dialog books it in the same step (decision 165 S3). */
+    public static boolean onlyLinkMissing(Collection<PickupRuleGate.RuleBlock> blocks) {
+        return !blocks.isEmpty() && blocks.stream().allMatch(b -> LINKED_STORE.equals(b.rule()));
+    }
+
+    /** {@code PolicyRule.LINKED_STORE} (the pickup module does not know the automation enum). */
+    public static final String LINKED_STORE = "LINKED_STORE";
+
+    /**
      * Pickup options (decision 165 S2): the pickups of these stores that the store rules block for the actor; stores
-     * the actor manages are exempt (rights are only resolved for stores with blocks).
+     * the actor manages are exempt (rights are only resolved for stores with blocks). A pickup that only misses its
+     * linked-store pickup stays offered: the sign-up dialog books both (decision 165 S3).
      */
     public Map<UUID, java.util.Set<Instant>> blockedPickups(SessionPrincipal actor, Collection<Store> storeList,
                                                             Map<UUID, List<Instant>> pickupsByStore) {
@@ -209,8 +251,13 @@ public class PickupScheduleService {
         Map<UUID, java.util.Set<Instant>> result = new HashMap<>();
         for (Store store : storeList) {
             Map<Instant, List<PickupRuleGate.RuleBlock>> ofStore = blocks.get(store.getId());
-            if (ofStore != null && !ofStore.isEmpty() && !isRuleExempt(rights.rights(actor, store))) {
-                result.put(store.getId(), ofStore.keySet());
+            if (ofStore == null) {
+                continue;
+            }
+            java.util.Set<Instant> blocked = ofStore.entrySet().stream().filter(e -> !onlyLinkMissing(e.getValue()))
+                    .map(Map.Entry::getKey).collect(Collectors.toSet());
+            if (!blocked.isEmpty() && !isRuleExempt(rights.rights(actor, store))) {
+                result.put(store.getId(), blocked);
             }
         }
         return result;

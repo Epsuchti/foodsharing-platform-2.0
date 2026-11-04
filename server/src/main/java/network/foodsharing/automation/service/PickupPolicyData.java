@@ -20,6 +20,7 @@ import network.foodsharing.automation.domain.PickupPolicyLinkedStoreMember;
 import network.foodsharing.automation.domain.PickupGapGroup;
 import network.foodsharing.automation.repository.CleaningRuleExemptionRepository;
 import network.foodsharing.automation.repository.PickupGapGroupRepository;
+import network.foodsharing.automation.repository.PickupLinkPendingRepository;
 import network.foodsharing.automation.repository.PickupPolicyExcludedDateRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreMemberRepository;
 import network.foodsharing.automation.repository.PickupPolicyLinkedStoreRepository;
@@ -62,14 +63,17 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     private final AppProperties properties;
     private final Clock clock;
     private final PickupGapGroupRepository gapGroups;
+    private final PickupLinkPendingRepository linkPending;
 
     public PickupPolicyData(PickupPolicyRepository policies, PickupPolicyExcludedDateRepository excludedDates,
                             PickupPolicyLinkedStoreRepository links, PickupPolicyLinkedStoreMemberRepository linkMembers,
                             CleaningRuleExemptionRepository exemptions, StoreService stores, RegionService regions,
                             UserService users, PickupAutomationQueries signups, FspCleaningQueries cleaning,
                             HolidayCalendarService holidays, IntegrationRegistry integrations,
-                            AppProperties properties, Clock clock, PickupGapGroupRepository gapGroups) {
+                            AppProperties properties, Clock clock, PickupGapGroupRepository gapGroups,
+                            PickupLinkPendingRepository linkPending) {
         this.gapGroups = gapGroups;
+        this.linkPending = linkPending;
         this.policies = policies;
         this.excludedDates = excludedDates;
         this.links = links;
@@ -232,6 +236,20 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
     @Override
     public Instant extendDeadline(Instant start, Instant deadline) {
         return integrations.breaker(Integration.SMTP).extendDeadline(start, deadline);
+    }
+
+    @Override
+    public Optional<Instant> linkPendingDeadline(UUID storeId, Instant pickupAt, UUID userId) {
+        return linkPending.findByStoreIdAndPickupAtAndUserId(storeId, pickupAt, userId)
+                .map(row -> extendDeadline(row.getCreatedAt(), row.getDeadlineAt()));
+    }
+
+    /** The person's pending links in the store: pickup time → deadline (extended by outages); one query. */
+    Map<Instant, Instant> linkPendingDeadlines(UUID storeId, UUID userId) {
+        Map<Instant, Instant> result = new java.util.HashMap<>();
+        linkPending.findByStoreIdAndUserId(storeId, userId).forEach(row -> result.put(row.getPickupAt(),
+                extendDeadline(row.getCreatedAt(), row.getDeadlineAt())));
+        return result;
     }
 
     @Override

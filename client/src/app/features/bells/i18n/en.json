@@ -40,6 +40,7 @@
   "bell.PICKUP_REMINDER": "Reminder of your pickup",
   "bell.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE": "Pickup confirmed automatically – with a note",
   "bell.PICKUP_AUTO_DECLINED": "Sign-up declined automatically",
+  "bell.PICKUP_LINK_MISSING": "Linked pickup missing – choose a new one",
   "bell.STORE_REQUEST_AUTO_ACCEPTED": "Your request was accepted automatically",
   "bell.STORE_REQUEST_AUTO_DECLINED": "Your request was declined automatically",
   "bell.PICKUP_OPEN_SLOT": "Free slot at a pickup",

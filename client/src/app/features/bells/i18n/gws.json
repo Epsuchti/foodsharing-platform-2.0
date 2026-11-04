@@ -40,6 +40,7 @@
   "bell.PICKUP_REMINDER": "Erinnerig a dini Abholig",
   "bell.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE": "Abholig automatisch bestätigt – mit Hiiwiis",
   "bell.PICKUP_AUTO_DECLINED": "Iitragig automatisch abglehnt",
+  "bell.PICKUP_LINK_MISSING": "Verchnüpfti Abholig fehlt – wähl en neue",
   "bell.STORE_REQUEST_AUTO_ACCEPTED": "Dini Aafrog isch automatisch aagnoh worde",
   "bell.STORE_REQUEST_AUTO_DECLINED": "Dini Aafrog isch automatisch abglehnt worde",
   "bell.PICKUP_OPEN_SLOT": "Freie Platz binere Abholig",

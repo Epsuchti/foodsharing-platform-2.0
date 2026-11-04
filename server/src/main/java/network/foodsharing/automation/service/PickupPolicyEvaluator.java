@@ -182,6 +182,14 @@ public class PickupPolicyEvaluator {
         /** Deadline extended by outages between start and deadline (A26 hook). */
         Instant extendDeadline(Instant start, Instant deadline);
 
+        /**
+         * Until when the person may book another linked pickup for this sign-up after the linked one was signed out
+         * (decision 165 S3, {@code pickup_link_pending}, extended by outages); empty when nothing is pending.
+         */
+        default Optional<Instant> linkPendingDeadline(UUID storeId, Instant pickupAt, UUID userId) {
+            return Optional.empty();
+        }
+
         /** Absolute link to the cleaning tab of a Fairteiler. */
         String cleaningLink(UUID fspId);
 
@@ -247,7 +255,6 @@ public class PickupPolicyEvaluator {
         }
         Reason pending = null;
         if (!policy.links().isEmpty()) {
-            Instant signedUpAt = ownSignedUpAt(storeId, pickupAt, userId, now, data);
             for (LinkRule rule : policy.links()) {
                 String names = t.alternatives(rule.storeIds().stream().map(data::storeName).toList());
                 List<LinkedPickup> linked = matchedLinkedPickup(storeId, rule, pickupAt, userId, now, zone, data);
@@ -260,12 +267,12 @@ public class PickupPolicyEvaluator {
                     pending = new Reason(PolicyRule.LINKED_STORE, t.text("linked-store.awaiting-confirmation", names));
                     continue;
                 }
-                // Time during which an integration was down does not count (A26 hook).
-                Instant deadline = data.extendDeadline(signedUpAt, signedUpAt.plus(
-                        Duration.ofMinutes(Math.max(MINIMUM_GRACE_MINUTES, rule.graceMinutes()))));
-                if (now.isBefore(deadline)) {
+                // Decision 165 S3: a missing linked pickup blocks, unless the linked one was signed out and the
+                // person is still within the deadline to book another (pickup_link_pending, Q4).
+                Optional<Instant> deadline = data.linkPendingDeadline(storeId, pickupAt, userId);
+                if (deadline.isPresent() && now.isBefore(deadline.get())) {
                     pending = new Reason(PolicyRule.LINKED_STORE, t.text("linked-store.pending",
-                            t.dateTime(deadline, zone), names, requirement(rule, t)));
+                            t.dateTime(deadline.get(), zone), names, requirement(rule, t)));
                     continue;
                 }
                 reasons.add(new Reason(PolicyRule.LINKED_STORE,
@@ -491,6 +498,25 @@ public class PickupPolicyEvaluator {
     }
 
     private record LinkedPickup(UUID storeId, Instant date, boolean confirmed) {
+    }
+
+    /** The person's linked pickup that satisfies a link rule ({@code confirmed}: confirmed or already past). */
+    public record LinkMatch(UUID storeId, Instant pickupAt, boolean confirmed) {
+    }
+
+    /**
+     * Per link rule of the policy (in its order) the person's linked pickup matched to {@code pickupAt} — one linked
+     * pickup never covers two pickups here — or empty (decision 165 S3: linked options, pending link tracking).
+     */
+    public List<Optional<LinkMatch>> linkMatches(Spec policy, Instant pickupAt, UUID userId, Data data) {
+        Instant now = data.now();
+        ZoneId zone = data.zone(policy.storeId());
+        List<Optional<LinkMatch>> result = new ArrayList<>();
+        for (LinkRule rule : policy.links()) {
+            result.add(matchedLinkedPickup(policy.storeId(), rule, pickupAt, userId, now, zone, data).stream()
+                    .findFirst().map(l -> new LinkMatch(l.storeId(), l.date(), l.confirmed())));
+        }
+        return result;
     }
 
     /**

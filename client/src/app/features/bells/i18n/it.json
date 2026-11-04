@@ -40,6 +40,7 @@
   "bell.PICKUP_REMINDER": "Promemoria del tuo ritiro",
   "bell.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE": "Ritiro confermato automaticamente – con una nota",
   "bell.PICKUP_AUTO_DECLINED": "Iscrizione rifiutata automaticamente",
+  "bell.PICKUP_LINK_MISSING": "Manca il ritiro collegato – scegline uno nuovo",
   "bell.STORE_REQUEST_AUTO_ACCEPTED": "La tua richiesta è stata accettata automaticamente",
   "bell.STORE_REQUEST_AUTO_DECLINED": "La tua richiesta è stata rifiutata automaticamente",
   "bell.PICKUP_OPEN_SLOT": "Posto libero per un ritiro",

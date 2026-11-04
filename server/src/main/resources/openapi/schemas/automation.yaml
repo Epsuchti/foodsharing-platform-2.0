@@ -446,6 +446,87 @@ StoreRuleLink:
       type: integer
       format: int32
 
+LinkedOptions:
+  type: object
+  description: 'The linked-store rules of the store for one pickup, in the order of LINKED_PICKUP_REQUIRED args.rule; empty while the rules are off, for store managers and without link rules.'
+  required: [rules]
+  properties:
+    rules:
+      type: array
+      items:
+        $ref: './automation.yaml#/LinkedOptionRule'
+
+LinkedOptionRule:
+  type: object
+  description: 'One linked-store rule: any of its stores within the window satisfies it.'
+  required: [stores, windowMode, before, after, from, to, options, notMember]
+  properties:
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    before:
+      type: integer
+      format: int32
+    after:
+      type: integer
+      format: int32
+    from:
+      description: 'Start of the first day of the window.'
+      type: string
+      format: date-time
+    to:
+      description: 'Start of the last day of the window.'
+      type: string
+      format: date-time
+    satisfiedBy:
+      $ref: './automation.yaml#/LinkedPickupRef'
+    options:
+      description: 'Future pickups with a free slot in the stores of the rule where the caller is in the team, by time (empty when satisfied).'
+      type: array
+      items:
+        $ref: './automation.yaml#/LinkedOption'
+    notMember:
+      description: 'Stores of the rule where the caller cannot sign up (not in the team or a jumper).'
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+
+LinkedPickupRef:
+  type: object
+  required: [store, pickupAt]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupAt:
+      type: string
+      format: date-time
+
+LinkedOption:
+  type: object
+  required: [store, pickupAt, freeCount, reasons, ruleBlocks]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupAt:
+      type: string
+      format: date-time
+    freeCount:
+      type: integer
+      format: int32
+    reasons:
+      description: 'Eligibility reasons of that store that refuse the caller (hygiene, region rule, …); empty when bookable.'
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupEligibilityReason'
+    ruleBlocks:
+      description: 'The rules of that store that block the caller there ("Gesperrt dort"), counting this pickup as booked.'
+      type: array
+      items:
+        $ref: './pickups.yaml#/PolicyBlock'
+
 AutomationRunResult:
   type: object
   required: [evaluated, confirmed, declined, skipped, deferred, failed, messages]

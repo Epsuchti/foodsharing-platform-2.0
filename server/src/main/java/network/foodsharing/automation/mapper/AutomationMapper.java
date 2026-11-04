@@ -251,6 +251,35 @@ public class AutomationMapper {
         return model;
     }
 
+    /** The linked-store step of the sign-up dialog (decision 165 S3). */
+    public network.foodsharing.api.model.LinkedOptions toLinkedOptions(
+            network.foodsharing.automation.service.LinkedOptionsService.View view) {
+        Map<UUID, Store> named = view.blockStores();
+        return new network.foodsharing.api.model.LinkedOptions().rules(view.rules().stream().map(rule -> {
+            boolean lastDays = rule.rule().windowMode()
+                    == network.foodsharing.automation.domain.LinkedStoreWindowMode.LAST_DAYS;
+            var model = new network.foodsharing.api.model.LinkedOptionRule()
+                    .stores(rule.stores().stream().map(AutomationMapper::toStoreRef).toList())
+                    .windowMode(LinkedStoreWindowMode.fromValue(rule.rule().windowMode().name()))
+                    .before(lastDays ? rule.rule().windowDaysBefore() : 0)
+                    .after(lastDays ? rule.rule().windowDaysAfter() : 0)
+                    .from(network.foodsharing.pickup.mapper.PickupMapper.time(rule.from()))
+                    .to(network.foodsharing.pickup.mapper.PickupMapper.time(rule.to()))
+                    .notMember(rule.notMember().stream().map(AutomationMapper::toStoreRef).toList())
+                    .options(rule.options().stream().map(o -> new network.foodsharing.api.model.LinkedOption()
+                            .store(toStoreRef(o.store())).pickupAt(network.foodsharing.pickup.mapper.PickupMapper.time(o.pickupAt())).freeCount(o.freeCount())
+                            .reasons(o.reasons().stream().map(r -> network.foodsharing.api.model.PickupEligibilityReason
+                                    .fromValue(r.name())).toList())
+                            .ruleBlocks(o.blocks().stream().map(b -> network.foodsharing.pickup.mapper.PickupMapper
+                                    .toBlock(b, named)).toList())).toList());
+            if (rule.satisfiedStore() != null) {
+                model.setSatisfiedBy(new network.foodsharing.api.model.LinkedPickupRef()
+                        .store(toStoreRef(rule.satisfiedStore())).pickupAt(network.foodsharing.pickup.mapper.PickupMapper.time(rule.satisfiedAt())));
+            }
+            return model;
+        }).toList());
+    }
+
     public static StoreRef toStoreRef(Store store) {
         StoreRef ref = new StoreRef();
         ref.setId(store.getId());

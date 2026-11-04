@@ -181,6 +181,46 @@ public class PickupPolicyRunner {
         return PickupPolicyDecision.DECLINED;
     }
 
+    /**
+     * Decision 165 S3 (Q4): the deadline to book another linked pickup has passed. When the link is still missing the
+     * slot is freed with the rule's message (DECLINED audit, only the linked-store reasons); otherwise (booked again,
+     * rules skipped near the pickup) nothing happens. Own transaction; a failure writes a FAILED audit.
+     */
+    public PickupPolicyDecision freeLinkMissing(PickupPolicy policy, Signup signup, List<String> messages) {
+        try {
+            PickupPolicyDecision result = tx.execute(status -> {
+                Decision decision = evaluator.evaluate(data.spec(policy), signup.pickupAt(), signup.userId(), data);
+                if (decision.deferred()) {
+                    return PickupPolicyDecision.DEFERRED;
+                }
+                List<Reason> linked = decision.allowed() || decision.skipped() ? List.of()
+                        : decision.reasons().stream().filter(r -> r.rule()
+                                == network.foodsharing.automation.domain.PolicyRule.LINKED_STORE).toList();
+                if (linked.isEmpty()) {
+                    return PickupPolicyDecision.CONFIRMED;
+                }
+                String footer = evaluator.texts(data.user(signup.userId()).locale()).text("decline-footer");
+                String message = String.join("\n", linked.stream().map(Reason::text).toList()) + "\n\n" + footer;
+                pickups.removeByAutomation(signup.storeId(), signup.pickupAt(), signup.userId(), ACTOR,
+                        truncate(message, 4000));
+                audit(policy, signup, PickupPolicyDecision.DECLINED, linked, message, null, false);
+                return PickupPolicyDecision.DECLINED;
+            });
+            return result == null ? PickupPolicyDecision.FAILED : result;
+        } catch (RuntimeException ex) {
+            log.error("Freeing a sign-up without its linked pickup failed store={} pickupAt={} user={}",
+                    signup.storeId(), signup.pickupAt(), signup.userId(), ex);
+            messages.add(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
+            try {
+                tx.executeWithoutResult(status -> audit(policy, signup, PickupPolicyDecision.FAILED, List.of(), null,
+                        truncate(String.valueOf(ex.getMessage()), 2000), false));
+            } catch (RuntimeException auditFailure) {
+                log.error("Could not write the FAILED audit", auditFailure);
+            }
+            return PickupPolicyDecision.FAILED;
+        }
+    }
+
     private void audit(PickupPolicy policy, Signup signup, PickupPolicyDecision decision,
                        List<Reason> reasons, String userMessage, String error, boolean dedupe) {
         if (dedupe && REPEATABLE.contains(decision) && audits.findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDescIdDesc(

@@ -57,6 +57,7 @@ The account itself: `user_account` keeps its id (authored content stays attribut
 | `pickup_policy_audit` | `user_id` | automation | automatic pickup decisions | anonymised: user id cleared (decision 71), archived as counts by `AuditRetentionJob` | `automation.json` |
 | `request_policy_audit` | `user_id` | automation | automatic team request decisions | anonymised: user id cleared, archived by `AuditRetentionJob` | `automation.json` |
 | `open_slot_advert_audit` | `user_id` | automation | open-slot adverts sent | anonymised: user id cleared, archived by `AuditRetentionJob` | `automation.json` |
+| `pickup_link_pending` | `user_id` | automation | sign-up waiting for a new linked-store pickup (decision 165 S3) | deleted | `automation.json` |
 | `signout_cancellation` | `user_id` | automation | late sign-outs | kept: needed for the store's results (decision 71), removed by `AuditRetentionJob` after 180 days | `automation.json` |
 | `cleaning_rule_exemption` | `user_id` | automation | exemption from a cleaning rule | deleted | `automation.json` |
 | `mailbox` | `owner_id` | mailbox | personal mailbox (address) or region mailbox | deleted, kept: the personal mailbox goes with its mails (decision 87), region mailboxes stay | `mailboxes.json` |

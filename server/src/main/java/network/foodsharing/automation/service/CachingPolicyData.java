@@ -53,9 +53,34 @@ final class CachingPolicyData implements PickupPolicyEvaluator.Data {
         }
     }
 
+    /** Pickups the person books in the same request (decision 165 S3): counted as their unconfirmed sign-ups. */
+    private final List<Signup> planned;
+
     CachingPolicyData(PickupPolicyData delegate) {
+        this(delegate, List.of());
+    }
+
+    CachingPolicyData(PickupPolicyData delegate, List<Signup> planned) {
         this.delegate = delegate;
         this.now = delegate.now();
+        this.planned = List.copyOf(planned);
+    }
+
+    /** This cache's sign-ups plus the planned ones in range that are not stored yet. */
+    private List<Signup> withPlanned(List<Signup> stored, java.util.function.Predicate<Signup> matches, Instant from,
+                                     Instant to) {
+        if (planned.isEmpty()) {
+            return stored;
+        }
+        List<Signup> result = new java.util.ArrayList<>(stored);
+        for (Signup signup : planned) {
+            boolean known = stored.stream().anyMatch(s -> s.storeId().equals(signup.storeId())
+                    && s.userId().equals(signup.userId()) && s.pickupAt().equals(signup.pickupAt()));
+            if (!known && matches.test(signup) && !signup.pickupAt().isBefore(from) && signup.pickupAt().isBefore(to)) {
+                result.add(signup);
+            }
+        }
+        return result;
     }
 
     /** Loads the store's sign-ups for these pickups once (co-pickup experience check). */
@@ -105,8 +130,8 @@ final class CachingPolicyData implements PickupPolicyEvaluator.Data {
 
     @Override
     public List<Signup> signups(UUID storeId, Instant from, Instant to) {
-        return window(List.of("store", storeId), from, to,
-                (f, t) -> delegate.signups(storeId, f, t), Duration.ZERO);
+        return withPlanned(window(List.of("store", storeId), from, to,
+                (f, t) -> delegate.signups(storeId, f, t), Duration.ZERO), s -> s.storeId().equals(storeId), from, to);
     }
 
     @Override
@@ -115,8 +140,9 @@ final class CachingPolicyData implements PickupPolicyEvaluator.Data {
             return List.of();
         }
         Set<UUID> stores = Set.copyOf(storeIds);
-        return window(List.of("user", userId, stores), from, to,
-                (f, t) -> delegate.signupsOfUser(userId, stores, f, t), MARGIN);
+        return withPlanned(window(List.of("user", userId, stores), from, to,
+                (f, t) -> delegate.signupsOfUser(userId, stores, f, t), MARGIN),
+                s -> s.userId().equals(userId) && stores.contains(s.storeId()), from, to);
     }
 
     private interface Loader {
@@ -205,6 +231,13 @@ final class CachingPolicyData implements PickupPolicyEvaluator.Data {
     @Override
     public Instant extendDeadline(Instant start, Instant deadline) {
         return delegate.extendDeadline(start, deadline);
+    }
+
+    @Override
+    public Optional<Instant> linkPendingDeadline(UUID storeId, Instant pickupAt, UUID userId) {
+        Map<Instant, Instant> deadlines = cached(List.of("linkPending", storeId, userId),
+                () -> delegate.linkPendingDeadlines(storeId, userId));
+        return Optional.ofNullable(deadlines.get(pickupAt));
     }
 
     @Override

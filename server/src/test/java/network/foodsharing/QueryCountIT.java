@@ -45,6 +45,9 @@ class QueryCountIT {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource(delimiter = '|', value = {
         "BOT|/api/bells|4",
@@ -119,6 +122,24 @@ class QueryCountIT {
         long many = count(session, path + "?size=20");
         // constant cost (+1 tolerated for a batch query that a one-row page may skip)
         assertThat(many).as("statements for %s?size=20 vs size=1", path).isLessThanOrEqualTo(one + 1);
+    }
+
+    /**
+     * Decision 165 S3: the linked-store step costs one query set for the rule's stores, not one per offered pickup.
+     * S-04's seeded link rule (to S-01) is switched on for the measurement only.
+     */
+    @org.junit.jupiter.api.Test
+    void linkedOptionsStayWithinTheirStatementBudget() throws Exception {
+        String s04 = "00000020-0001-4000-8000-000000000004";
+        jdbc.update("update pickup_policy set enabled = true where store_id = ?", java.util.UUID.fromString(s04));
+        try {
+            Cookie session = login(SeedUsers.FOODSAVER);
+            String path = "/api/stores/" + s04 + "/automation/linked-options?pickupAt=2026-11-11T17:30:00Z";
+            long statements = count(session, path);
+            assertThat(statements).as("Hibernate statements for GET %s", path).isLessThanOrEqualTo(26);
+        } finally {
+            jdbc.update("update pickup_policy set enabled = false where store_id = ?", java.util.UUID.fromString(s04));
+        }
     }
 
     private long count(Cookie session, String path) throws Exception {
