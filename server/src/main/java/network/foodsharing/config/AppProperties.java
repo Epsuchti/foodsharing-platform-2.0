@@ -37,6 +37,7 @@ public class AppProperties {
     private final Permissions permissions = new Permissions();
     private final Region region = new Region();
     private final Geocoding geocoding = new Geocoding();
+    private final MapTiles map = new MapTiles();
     private final Quiz quiz = new Quiz();
     private final Intropickup intropickup = new Intropickup();
     private final Store store = new Store();
@@ -225,6 +226,14 @@ public class AppProperties {
         /** Consecutive failures that open the circuit breaker, and how long it stays open. */
         private int failureThreshold = 5;
         private int openSeconds = 60;
+    }
+
+    /** MT1 (decision 158): the self-hosted PMTiles basemap, served as {@code /tiles/**} with HTTP range requests. */
+    @Getter
+    @Setter
+    public static class MapTiles {
+        /** Folder holding {@code basemap.pmtiles}; empty means {@code /tiles/**} is not served (404). */
+        private String tilesDir = "";
     }
 
     @Getter
@@ -620,8 +629,8 @@ public class AppProperties {
         @Setter
         public static class Csp {
             private boolean enabled = true;
-            /** Extra img-src sources (map tiles). */
-            private String imgSrc = "https://tile.openstreetmap.org";
+            /** Extra img-src sources; empty, since the map tiles come from our own origin (MT1). */
+            private String imgSrc = "";
             /** Extra connect-src sources. */
             private String connectSrc = "";
             /**

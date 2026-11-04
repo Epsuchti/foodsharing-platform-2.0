@@ -46,7 +46,7 @@ public class SpaForwardingController {
     static final String UNSUBSCRIBE_PREFIX = "/newsletter/unsubscribe/";
 
     private static final String FIRST_SEGMENT =
-            "^(?!api$|actuator$|error$|assets$|media$|fonts$|images$|i18n$|h2-console$|oauth2$|webauthn$|ws$)[^.]*$";
+            "^(?!api$|actuator$|error$|assets$|media$|fonts$|images$|i18n$|tiles$|h2-console$|oauth2$|webauthn$|ws$)[^.]*$";
 
     private static final List<String> BACKEND_PREFIXES = List.of(
             "/dev/oidc", "/dev/oauth-callback", "/login/oauth2", "/login/webauthn",

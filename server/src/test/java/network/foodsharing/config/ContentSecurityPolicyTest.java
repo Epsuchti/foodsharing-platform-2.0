@@ -33,7 +33,9 @@ class ContentSecurityPolicyTest {
 
         assertThat(scriptSrc).isEqualTo("script-src 'self' 'sha256-abc' 'unsafe-hashes' 'sha256-def'");
         assertThat(policy).contains("object-src 'none'", "base-uri 'self'", "frame-ancestors 'self'",
-                "img-src 'self' data: blob: https://tile.openstreetmap.org", "connect-src 'self';");
+                "img-src 'self' data: blob:;", "connect-src 'self';");
+        // MT1: the map tiles come from our own origin, so no tile host is allowed
+        assertThat(policy).doesNotContain("openstreetmap");
         assertThat(ContentSecurityPolicy.policy(csp, Set.of(), Set.of())).contains("script-src 'self';")
                 .doesNotContain("unsafe-hashes").doesNotContain("unsafe-eval");
     }
