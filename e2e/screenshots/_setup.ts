@@ -133,7 +133,11 @@ export function forEachVariant(define: (variant: Variant) => void, matrix: Varia
 
 const TILE = fs.readFileSync(path.join(__dirname, 'fixtures', 'tile.png'));
 const AVATAR = fs.readFileSync(path.join(__dirname, 'fixtures', 'avatar.svg'));
-const TILE_HOSTS = /(^|\.)(tile\.openstreetmap\.org|tile\.osm\.org|basemaps\.cartocdn\.com|tiles\.stadiamaps\.com)$/;
+/**
+ * MT1 (decision 158): screenshots draw the map from this raster stub (`window.__fsTileUrl`), not the vector basemap,
+ * so the baselines stay the same in every engine. `useVectorBasemap` switches a test back to the real basemap.
+ */
+const STUB_TILE_PATH = '/__fs-stub-tile/';
 const AVATAR_HOSTS = /(^|\.)(googleusercontent\.com|gravatar\.com)$/;
 
 export interface ExpectScreenOptions {
@@ -355,6 +359,13 @@ const screen: ScreenHelpers = {
  * (debounced searches), and the fake `requestIdleCallback` never reports idle time (`@defer (on idle)` blocks). Call
  * this after the step that starts such work; it moves the fixed time on by `ms`, so the work runs on its next check.
  */
+/** MT1: this page draws the self-hosted vector basemap instead of the raster stub (call before `goto`). */
+export async function useVectorBasemap(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    delete (window as unknown as { __fsTileUrl?: string }).__fsTileUrl;
+  });
+}
+
 export async function tickFixedClock(page: Page, ms = 1_000): Promise<void> {
   const now = await page.evaluate(() => Date.now());
   await page.clock.setFixedTime(new Date(now + ms));
@@ -367,8 +378,11 @@ export const screenshotTest = test.extend<{ variant: Variant | undefined; visual
     await pinInter(page);
     trackPendingRequests(page);
     await page.clock.setFixedTime(new Date(SEED_NOW));
+    await page.addInitScript((template) => {
+      (window as unknown as { __fsTileUrl?: string }).__fsTileUrl = template;
+    }, `${STUB_TILE_PATH}{z}/{x}/{y}.png`);
     await page.route(
-      (url) => TILE_HOSTS.test(url.hostname),
+      (url) => url.pathname.startsWith(STUB_TILE_PATH),
       (route) => route.fulfill({ status: 200, contentType: 'image/png', body: TILE }),
     );
     await page.route(

@@ -1,10 +1,11 @@
 import { injectApiError } from '../fixtures';
-import { expect, forEachVariant, screenshotTest } from './_setup';
+import { expect, forEachVariant, screenshotTest, useVectorBasemap, variants } from './_setup';
 
 /**
  * Map (plan-m7 Q7, M1): public layers as a visitor, the signed-in map with the store filter bar and an open bubble,
- * a search result, loading and error × light/dark × de/fr. OSM tiles are stubbed by `_setup.ts`. Baselines are
- * generated in Docker in the end batch (decision 69: `e2e/scripts/screenshots.sh --update-snapshots`).
+ * a search result, loading and error × light/dark × de/fr. Map tiles are a raster stub (`_setup.ts`), except in the
+ * MT1 screens, which draw the self-hosted vector basemap (the Zurich fixture) light and dark. Baselines are generated
+ * in Docker in the end batch (decision 69: `e2e/scripts/screenshots.sh --update-snapshots`).
  */
 forEachVariant((variant) => {
   screenshotTest.describe(`map visitor ${variant.name}`, () => {
@@ -65,3 +66,22 @@ forEachVariant((variant) => {
     });
   });
 });
+
+/** MT1 (decision 158): the vector basemap itself, light and dark. */
+forEachVariant(
+  (variant) => {
+    screenshotTest.describe(`map basemap ${variant.name}`, () => {
+      screenshotTest.use({ variant });
+
+      screenshotTest('vector basemap @MT1 @screenshot', async ({ page, visual }) => {
+        await useVectorBasemap(page);
+        await page.goto('/map');
+        await expect(page.getByTestId('map.page.map')).toHaveAttribute('data-basemap', variant.theme);
+        await expect(page.getByTestId('map.page.map')).toHaveAttribute('data-tiles', 'ok');
+        await expect(page.getByTestId('map.page.map.state')).toHaveAttribute('data-state', 'success');
+        await visual.expectScreen(page, `map-basemap-${variant.name}`);
+      });
+    });
+  },
+  variants(['light', 'dark']),
+);
