@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Checkbox } from '@openng/optimus-ui/checkbox';
@@ -43,7 +44,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
  */
 @Component({
   selector: 'fs-adverts-section',
-  imports: [...DATA_STATE_IMPORTS, Button, Checkbox, DateTimePipe, FormsModule, InputNumber, Select, TemplateEditorComponent, ToggleSwitch, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, Checkbox, DateTimePipe, FormsModule, RouterLink, InputNumber, Select, TemplateEditorComponent, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="card fs-card">
@@ -101,6 +102,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
               [disabled]="!ctx.mayEdit()"
               data-testid="automation.adverts.telegramChat"
             />
+            <a class="manage" [routerLink]="['..', 'channels']" data-testid="automation.channels.manage"><i class="pi pi-cog" aria-hidden="true"></i> {{ 'automation.channels.manage' | t }}</a>
           </div>
         }
         @for (channel of advert.channels; track channel) {

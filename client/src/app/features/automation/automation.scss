@@ -200,3 +200,47 @@ th {
   flex: 1;
   min-width: 10rem;
 }
+
+// Status pills (decision 165 S4, proposal §4): An = shield on primary soft, Aus = circle on muted; icon + word.
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  padding: 0.15rem 0.65rem;
+  border: 1px solid var(--fs-border);
+  border-radius: 999px;
+  background: var(--fs-surface-raised);
+  color: var(--fs-text);
+  font-size: 0.82rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.pill--on {
+  border-color: transparent;
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+}
+
+.pill--off {
+  background: var(--fs-surface-muted);
+  color: var(--fs-text-muted);
+}
+
+// The member sentence of a rule card: what members read on the Pickups tab (proposal §3.1, §4).
+.member-line {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-surface-muted);
+  font-size: 0.9rem;
+}
+
+.member-line .pi {
+  margin-top: 0.15rem;
+  color: var(--fs-primary-strong);
+}
