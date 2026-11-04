@@ -35,6 +35,16 @@ test.describe('bieb', () => {
     await expect(entry(page, 'MOVED_TO_TEAM').first()).toBeVisible();
     await expect(entry(page, 'SLOT_CONFIRMED').first()).toBeVisible();
 
+    // details name the action in words: no SUBJECT.ACTION codes, no raw ids or ISO timestamps
+    const confirmed = entry(page, 'SLOT_CONFIRMED').first();
+    await confirmed.getByTestId(`${ENTRY}.details`).click();
+    const details = confirmed.getByTestId(`${ENTRY}.detailsPanel`);
+    await expect(details.getByTestId(`${ENTRY}.action`)).toHaveText(/^[^_.]+$/);
+    await expect(details).not.toContainText('STORE.');
+    await expect(details).not.toContainText('SLOT_CONFIRMED');
+    await expect(details).not.toContainText(/\d{4}-\d{2}-\d{2}T/);
+    await confirmed.getByTestId(`${ENTRY}.details`).click();
+
     // action groups
     await page.getByTestId('stores.log.preset.pickups').click();
     await expectDataState(page, LIST, 'success');

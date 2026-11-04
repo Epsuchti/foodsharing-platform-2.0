@@ -73,7 +73,7 @@ interface FeedEntry {
                     <span>{{ entry.item.source.name }}</span>
                     @if (entry.item.author; as author) {
                       <span class="item__author">
-                        <fs-user-avatar [name]="author.displayName" [avatarUrl]="author.avatarUrl" [role]="author.role" [colorSeed]="author.id" size="xs" />
+                        <fs-user-avatar [name]="author.displayName" [avatarUrl]="author.avatarUrl" [role]="author.role" [colorSeed]="author.id" [userId]="author.id" link="profile" size="xs" />
                         {{ author.displayName }}
                       </span>
                     }

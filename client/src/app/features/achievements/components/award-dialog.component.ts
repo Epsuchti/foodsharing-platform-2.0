@@ -34,7 +34,7 @@ import { NOTICE_MAX } from '../achievements.util';
       <form class="form" [formGroup]="form" (ngSubmit)="submit()">
         @if (recipient(); as user) {
           <div class="recipient" data-testid="achievements.award.recipient" [attr.data-user-id]="user.id">
-            <fs-user-chip [name]="user.displayName" [userId]="user.id" [avatarUrl]="user.avatarUrl" />
+            <fs-user-chip [name]="user.displayName" [userId]="user.id" [avatarUrl]="user.avatarUrl" [link]="null" />
             <p-button
               icon="pi pi-times"
               size="small"

@@ -3,7 +3,7 @@ import { expect, expectDataState, test } from '../../fixtures';
 import { acceptConfirm, openStore } from './_stores';
 
 /**
- * S11 store wall (decision 54). Seed S-01 (docs/seed-ids.md, store wall): milestones STORE_CREATED and
+ * S11 store wall (decision 54 as amended: managers delete any post at any age). Seed S-01 (docs/seed-ids.md, store wall): milestones STORE_CREATED and
  * COOPERATION_STARTED, `…-83` by foodsaver (40 days old), `…-84` by bieb (1 day old). jumper is a JUMPER of S-01.
  */
 const OLD_FOODSAVER_POST = '00000020-0008-4000-8000-000000000083';
@@ -19,6 +19,8 @@ test.describe('foodsaver', () => {
     await expectDataState(page, 'stores.wall.state', 'success');
     await expect(page.locator('[data-testid="stores.wall.post"][data-milestone="COOPERATION_STARTED"]')).toHaveCount(1);
     await expect(page.locator('[data-testid="stores.wall.post"][data-milestone="STORE_CREATED"]')).toHaveCount(1);
+    // milestones never show raw codes (the seed stores COOPERATION_ESTABLISHED as text)
+    await expect(page.getByTestId('stores.wall.list')).not.toContainText('COOPERATION_ESTABLISHED');
     await expect(page.getByTestId('stores.wall.milestone').first()).toBeVisible();
 
     const text = `Schlüssel liegt beim Hintereingang ${Date.now()}`;
@@ -39,7 +41,7 @@ test.describe('foodsaver', () => {
     await expect(jumper.getByTestId('stores.wall.composer')).toHaveCount(0);
   });
 
-  test('S11 delete rules: own, manager older than month, orga any @S11', async ({ page, as }) => {
+  test('S11 delete rules: own, manager any post, orga any @S11', async ({ page, as }) => {
     await openStore(page, 'S-01', 'wall');
     await expectDataState(page, 'stores.wall.state', 'success');
     // foodsaver: own old post yes, bieb's fresh post no
@@ -47,7 +49,7 @@ test.describe('foodsaver', () => {
     await expect(post(page, NEW_BIEB_POST)).toBeVisible();
     await expect(post(page, NEW_BIEB_POST).getByTestId('stores.wall.delete')).toHaveCount(0);
 
-    // manager bieb: foodsaver's post older than 30 days yes; deletes it
+    // manager bieb: foodsaver's old post yes; deletes it
     const bieb = await as('bieb');
     await openStore(bieb, 'S-01', 'wall');
     await expectDataState(bieb, 'stores.wall.state', 'success');
@@ -56,7 +58,7 @@ test.describe('foodsaver', () => {
     await acceptConfirm(bieb);
     await expect(post(bieb, OLD_FOODSAVER_POST)).toHaveCount(0);
 
-    // a fresh post of foodsaver: bieb (manager, younger than 30 days) may not delete it, orga may
+    // a fresh post of foodsaver: bieb (manager) deletes it too
     const text = `Neue Notiz ${Date.now()}`;
     await page.reload();
     await page.getByTestId('stores.wall.text').fill(text);
@@ -65,7 +67,9 @@ test.describe('foodsaver', () => {
     await bieb.reload();
     const fresh = bieb.getByTestId('stores.wall.post').first();
     await expect(fresh.getByTestId('stores.wall.postText')).toHaveText(text);
-    await expect(fresh.getByTestId('stores.wall.delete')).toHaveCount(0);
+    await fresh.getByTestId('stores.wall.delete').click();
+    await acceptConfirm(bieb);
+    await expect(bieb.getByTestId('stores.wall.postText').filter({ hasText: text })).toHaveCount(0);
 
     const orga = await as('orga');
     await openStore(orga, 'S-01', 'wall');

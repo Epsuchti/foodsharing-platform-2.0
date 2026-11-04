@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
-import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
@@ -55,7 +54,7 @@ class StoreWallServiceTest {
     @BeforeEach
     void setUp() {
         service = new StoreWallService(posts, stores, storeService, rights, permissions, mock(UserService.class),
-                currentActor, history, new AppProperties(), Clock.fixed(NOW, ZoneOffset.UTC));
+                currentActor, history, Clock.fixed(NOW, ZoneOffset.UTC));
         store.setId(STORE);
         when(storeService.require(STORE)).thenReturn(store);
         when(currentActor.requirePrincipal()).thenReturn(new SessionPrincipal(ACTOR, UUID.randomUUID(), Role.FOODSAVER,
@@ -83,7 +82,7 @@ class StoreWallServiceTest {
         return p;
     }
 
-    /** actor, own post, age in days → may delete. */
+    /** actor, own post, age in days → may delete. Managers and region coordinators delete any post at any age. */
     @ParameterizedTest
     @CsvSource({
             "ORGA, false, 1, true",
@@ -92,10 +91,11 @@ class StoreWallServiceTest {
             "MEMBER, true, 40, true",
             "MEMBER, false, 1, false",
             "MEMBER, false, 40, false",
-            "COORDINATOR, false, 1, false",
-            "COORDINATOR, false, 29, false",
+            "COORDINATOR, false, 0, true",
+            "COORDINATOR, false, 1, true",
             "COORDINATOR, false, 31, true",
-            "AMBASSADOR_OF_REGION, false, 1, false",
+            "AMBASSADOR_OF_REGION, false, 0, true",
+            "AMBASSADOR_OF_REGION, false, 1, true",
             "AMBASSADOR_OF_REGION, false, 40, true",
             "AMBASSADOR_OF_REGION, true, 1, true",
             "AMBASSADOR_ELSEWHERE_IN_TEAM, false, 40, false",

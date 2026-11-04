@@ -48,9 +48,15 @@ export function quotePost(name: string, body: string, wroteLabel: string, existi
   return `${prefix}${quote}\n\n`;
 }
 
-/** Mention tokens `@[Name](user:<uuid>)` (A37a) as bold markdown names, so `fs-markdown` renders them safely. */
+/**
+ * Mention tokens `@[Name](user:<uuid>)` (A37a) as markdown links `[@Name](/profile/<uuid>)`; `fs-markdown` gives
+ * them the `fs-mention` pill look and opens them in the app (same pill as in chat).
+ */
 export function renderMentions(body: string): string {
-  return body.replace(/@\[([^\]\n]{1,100})\]\(user:[0-9a-f-]{36}\)/g, (_m, name: string) => `**@${name}**`);
+  return body.replace(
+    /@\[([^\]\n]{1,100})\]\(user:([0-9a-f-]{36})\)/g,
+    (_m, name: string, id: string) => `[@${name.replace(/[\\`*_[\]<>]/g, '\\$&')}](/profile/${id})`,
+  );
 }
 
 /** Highlights search terms in a snippet: returns text pieces with a `match` flag (no HTML injection). */

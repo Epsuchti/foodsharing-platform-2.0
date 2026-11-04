@@ -41,7 +41,7 @@ export const EMAIL_NAME = /^[a-z0-9][a-z0-9.-]{1,62}$/;
       } @else {
         @if (user(); as u) {
           <div class="picked" data-testid="mailboxes.create.user">
-            <fs-user-chip [name]="u.displayName" [userId]="u.id" [avatarUrl]="u.avatarUrl" />
+            <fs-user-chip [name]="u.displayName" [userId]="u.id" [avatarUrl]="u.avatarUrl" [link]="null" />
             <p-button icon="pi pi-times" size="small" [text]="true" [rounded]="true" [ariaLabel]="'mailboxes.new.change' | t" (onClick)="user.set(null)" />
           </div>
         } @else {

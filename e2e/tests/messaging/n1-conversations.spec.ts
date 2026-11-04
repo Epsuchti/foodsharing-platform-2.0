@@ -99,7 +99,7 @@ test.describe('foodsaver', () => {
     expect(locked.status()).toBeGreaterThanOrEqual(400);
   });
 
-  test('N1 mark read clears badge, mentions render as chips @N1', async ({ page, api, dev, apiOf, as }) => {
+  test('N1 mark read clears badge, mentions render as @Name links to the profile @N1', async ({ page, api, dev, apiOf, as }) => {
     const me = await dev.user('foodsaver');
     const biebPage = await as('bieb');
     const biebApi = apiOf(biebPage);
@@ -111,13 +111,17 @@ test.describe('foodsaver', () => {
     await item.click();
     await expectDataState(page, 'messaging.conversation.state', 'success');
     const last = bubbles(page).last();
-    await expect(last.getByTestId('messaging.conversation.mention')).toContainText(me.displayName);
+    const mention = last.getByTestId('messaging.conversation.mention');
+    await expect(mention).toHaveText(`@${me.displayName}`);
+    await expect(mention).toHaveAttribute('href', `/profile/${me.id}`);
+    // the viewer is the one mentioned: ring
+    await expect(mention).toHaveClass(/fs-mention--me/);
     await expect(last.getByRole('link', { name: 'https://foodsharing.network/info' })).toHaveAttribute('rel', /noopener/);
     await expect(item.getByTestId('messaging.list.unread')).toHaveCount(0);
     await expect.poll(async () => (await getConversation(api, CONVERSATIONS.foodsaverBieb)).unreadCount).toBe(0);
 
     // mention autocomplete inserts the plain @Name (decision 162); the token is built on send and the sent bubble
-    // renders a chip
+    // renders the @Name pill (not the viewer: no ring)
     const bieb = await dev.user('bieb');
     await page.getByTestId('messaging.conversation.composer').fill('Super, @');
     await expect(page.getByTestId('messaging.conversation.mentionPick')).toHaveCount(1);
@@ -128,7 +132,8 @@ test.describe('foodsaver', () => {
     await page.getByTestId('messaging.conversation.composer').press('End');
     await page.getByTestId('messaging.conversation.composer').pressSequentially('bis bald');
     await page.getByTestId('messaging.conversation.send').click();
-    await expect(bubbles(page).last().getByTestId('messaging.conversation.mention')).toBeVisible();
+    await expect(bubbles(page).last().getByTestId('messaging.conversation.mention')).toHaveAttribute('href', `/profile/${bieb.id}`);
+    await expect(bubbles(page).last().getByTestId('messaging.conversation.mention')).not.toHaveClass(/fs-mention--me/);
     await expect(bubbles(page).last()).toContainText('bis bald');
     const lastBody = async () =>
       (await api.getJson<{ messages: { body: string }[] }>(`/api/conversations/${CONVERSATIONS.foodsaverBieb}`)).messages.at(-1)?.body;

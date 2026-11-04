@@ -39,6 +39,23 @@ test.describe('bieb', () => {
     await expect(foodsaver.getByTestId('stores.team.menu')).toHaveCount(0);
   });
 
+  test('S9 appoint is only offered where the server allows it; names open the profile @S9', async ({ page, api, store }) => {
+    const all = await teamList(api, store.id('S-01'));
+    await openStore(page, 'S-01', 'team');
+    await expectDataState(page, 'stores.team.list', 'success');
+    // Sarah is a foodsaver (role below store manager): no "appoint" at all
+    await memberRow(page, NAMES.foodsaver).getByTestId('stores.team.menu').click();
+    await expect(page.getByTestId('stores.team.remove')).toBeVisible();
+    await expect(page.getByTestId('stores.team.appointManager')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    // the menu follows the server's appointBlocker for every row
+    const appointable = all.items.filter((m) => (m as Member & { mayBeAppointed?: boolean }).mayBeAppointed);
+    expect(appointable.every((m) => !m.isManager)).toBe(true);
+
+    await memberRow(page, NAMES.foodsaver).getByTestId('stores.team.name').click();
+    await expect(page).toHaveURL(/\/profile\/[0-9a-f-]{36}/);
+  });
+
   test('S9 one list: status chips, search and empty filter @S9', async ({ page, api, store }) => {
     const all = await teamList(api, store.id('S-01'));
     await openStore(page, 'S-01', 'team');

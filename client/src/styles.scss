@@ -588,6 +588,32 @@
     clip: rect(0 0 0 0) !important;
     white-space: nowrap !important;
   }
+
+  /* "@Name" mention pill (fs-user-mention in chat, fs-markdown in the forum; mockup part 4) */
+  .fs-mention {
+    display: inline;
+    padding: 0.02em 0.4em;
+    border-radius: 0.45em;
+    background: var(--fs-primary-soft);
+    color: var(--fs-primary-strong);
+    font-weight: 650;
+    text-decoration: none;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .fs-mention:hover,
+  .fs-mention:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+  }
+  .msg--own .fs-mention {
+    background: color-mix(in srgb, var(--fs-on-primary) 22%, transparent);
+    color: var(--fs-on-primary);
+  }
+  .fs-mention--me {
+    outline: 1.5px solid color-mix(in srgb, var(--fs-primary) 60%, transparent);
+    outline-offset: 0;
+  }
 }
 
 /*

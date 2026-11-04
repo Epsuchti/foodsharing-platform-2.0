@@ -5,7 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { StoreMembershipStatus, StoreTeam, TeamMember, TeamMemberPage, Role } from '../../api';
+import { Role, StoreMembershipStatus, StoreTeam, TeamAppointBlocker, TeamMember, TeamMemberPage } from '../../api';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { ApplyTarget, StoreApplyDialogComponent } from './components/apply-dialog.component';
 import { StorePageComponent } from './pages/store-page.component';
@@ -138,6 +138,38 @@ describe('store team tab (S5, S9)', () => {
     expect(qa('[data-testid="stores.team.application"]')).toHaveLength(1);
     expect(qa('[data-testid="stores.team.invite"]')).toHaveLength(1);
     expect(qa('[data-testid="stores.team.distance"]')).toHaveLength(1);
+  });
+
+  it('offers "appoint" only as the server allows it: hidden, disabled with the reason, or enabled', async () => {
+    await open(
+      detail({ mayEditTeam: true, isManager: true }),
+      page([
+        member('Nina', { isManager: true, appointBlocker: TeamAppointBlocker.AlreadyManager }),
+        member('Sarah', { appointBlocker: TeamAppointBlocker.RoleTooLow }),
+        member('Tom', { appointBlocker: TeamAppointBlocker.TooManyManagers }),
+        member('Uli', { mayBeAppointed: true }),
+      ]),
+    );
+    /** Opens the row menu of the index-th member (a click on an open menu closes it first). */
+    const menuFor = async (index: number) => {
+      for (let i = 0; i < 2 && !document.body.querySelector('[data-testid="stores.team.remove"]'); i++) {
+        (qa('[data-testid="stores.team.menu"] button')[index] as HTMLButtonElement).click();
+        await settle();
+      }
+      expect(document.body.querySelector('[data-testid="stores.team.remove"]')).not.toBeNull();
+      const item = document.body.querySelector('[data-testid="stores.team.appointManager"]') as HTMLButtonElement | null;
+      const hint = document.body.querySelector('[data-testid="stores.team.appointBlocked"]')?.textContent ?? null;
+      (qa('[data-testid="stores.team.menu"] button')[index] as HTMLButtonElement).click();
+      await settle();
+      return { item, hint };
+    };
+    expect((await menuFor(1)).item).toBeNull();
+    const allowed = await menuFor(3);
+    expect(allowed.item?.disabled).toBe(false);
+    expect(allowed.hint).toBeNull();
+    const blocked = await menuFor(2);
+    expect(blocked.item?.disabled).toBe(true);
+    expect(blocked.hint).toContain('stores.team.appointBlocked.TOO_MANY_MANAGERS');
   });
 
   it('members see the team without actions', async () => {
