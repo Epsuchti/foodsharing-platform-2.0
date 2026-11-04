@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing Page – drei Varianten – Mockup</title>
+<style>
+/* ---- app tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg:#f6f8f4; --fs-surface:#fff; --fs-surface-muted:#f3f6f1; --fs-border:#e1e8dd; --fs-border-strong:#c7d4c2;
+  --fs-text:#1a2a20; --fs-text-muted:#5c6b60; --fs-primary:#25834a; --fs-on-primary:#fff; --fs-primary-strong:#195d35;
+  --fs-primary-soft:#e3f3e7; --fs-primary-200:#b4e7c2; --fs-accent:#f2b84b; --fs-danger:#b53c35; --fs-danger-soft:#fdf1ef; --fs-danger-border:#f2c9c4;
+  --fs-radius-sm:.625rem; --fs-radius-md:.875rem; --fs-radius-lg:1.125rem; --fs-radius-xl:1.5rem;
+  --fs-shadow-sm:0 1px 2px rgb(26 42 32/.05),0 2px 8px rgb(26 42 32/.04); --fs-shadow-md:0 6px 20px rgb(26 42 32/.08); --fs-shadow-lg:0 18px 44px rgb(26 42 32/.12);
+  --fs-header-bg:rgb(255 255 255/.86); --fs-header-border:rgb(199 212 194/.7); --fs-header-h:4rem;
+  --fs-font:'Inter Variable',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  /* public tokens of the public-site round: only the stylised map */
+  --fs-pub-map-land:#eef1e8; --fs-pub-map-water:#c6dfe4; --fs-pub-map-park:#d8e8cf; --fs-pub-map-line:#d5dccf;
+  color-scheme:light;
+}
+:root.fs-dark {
+  --fs-bg:#111611; --fs-surface:#1a201a; --fs-surface-muted:#212821; --fs-border:#2c352b; --fs-border-strong:#3d473b;
+  --fs-text:#ecf2ea; --fs-text-muted:#a3b09f; --fs-primary:#4cba70; --fs-on-primary:#0d1f13; --fs-primary-strong:#82d59b;
+  --fs-primary-soft:rgb(76 186 112/.14); --fs-primary-200:#1f4a2f; --fs-accent:#9c7a3c; --fs-danger:#f08a80; --fs-danger-soft:rgb(240 138 128/.1); --fs-danger-border:rgb(240 138 128/.3);
+  --fs-shadow-sm:0 1px 2px rgb(0 0 0/.3); --fs-shadow-md:0 6px 20px rgb(0 0 0/.35); --fs-shadow-lg:0 18px 44px rgb(0 0 0/.45);
+  --fs-header-bg:rgb(17 22 17/.82); --fs-header-border:rgb(61 71 59/.7);
+  --fs-pub-map-land:#1d241c; --fs-pub-map-water:#1d3a42; --fs-pub-map-park:#24351f; --fs-pub-map-line:#2f3a2d;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:#2a3034;color:var(--fs-text);font-family:var(--fs-font);font-size:1rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+h1,h2,h3,h4,p,ul,ol,figure,blockquote{margin:0}
+ul,ol{padding:0;list-style:none}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--fs-primary) 45%,transparent);outline-offset:2px}
+.vh{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+.ico{width:1.1em;height:1.1em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em}
+.muted{color:var(--fs-text-muted)}
+.ill{width:7rem;height:5.5rem;flex:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- mockup controls (not part of the design) ---- */
+.bar{position:sticky;top:0;z-index:60;display:flex;flex-wrap:wrap;gap:.4rem 1rem;align-items:center;padding:.5rem .75rem;background:#20262a;color:#f2f2f2;font-size:.78rem;line-height:1.2}
+.bar b{font-weight:700;opacity:.65;margin-right:.3rem}
+.seg{display:flex;flex-wrap:wrap;align-items:center;gap:2px}
+.seg button{border:0;background:#363d42;color:#f2f2f2;padding:.3rem .55rem;border-radius:.35rem}
+.seg button[aria-pressed=true]{background:#fff;color:#1a1a1a;font-weight:700}
+.vp{container:vp/inline-size;margin:0 auto;width:100%;background:var(--fs-bg);min-height:90vh;position:relative;--gut:clamp(1rem,.6rem + 2cqi,2rem)}
+.w-412 .vp{max-width:412px;box-shadow:0 0 0 1px var(--fs-border-strong)}
+.wrap{max-width:74rem;margin-inline:auto;padding-inline:var(--gut)}
+.mock-note{display:flex;gap:.5rem;padding:.5rem var(--gut);background:var(--fs-surface-muted);color:var(--fs-text-muted);font-size:.82rem;border-bottom:1px solid var(--fs-border)}
+.opt-tag{display:inline-flex;align-items:center;gap:.3rem;padding:.1rem .5rem;border:1px dashed var(--fs-border-strong);border-radius:999px;color:var(--fs-text-muted);font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;margin-left:.5rem}
+.optional{position:relative}
+.no-optional .optional{display:none}
+
+/* ---- buttons / chips (today's fs-btn classes) ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:2.75rem;padding:.55rem 1.1rem;border:1.5px solid transparent;border-radius:var(--fs-radius-md);font-weight:700;text-decoration:none;white-space:normal;text-align:center;background:none;color:var(--fs-text)}
+.btn-solid{background:var(--fs-primary);color:var(--fs-on-primary)}
+.btn-solid:hover{filter:brightness(.93)}
+.btn-line{border-color:var(--fs-border-strong);color:var(--fs-text);background:var(--fs-surface)}
+.btn-line:hover{border-color:var(--fs-primary);background:var(--fs-primary-soft);color:var(--fs-primary-strong)}
+.btn-accent{background:var(--fs-accent);color:#1a2a20}
+.fs-dark .btn-accent{color:#ecf2ea}
+.btn-lg{min-height:3.25rem;padding:.75rem 1.5rem;font-size:1.05rem}
+.btn-sm{min-height:2.25rem;padding:.3rem .8rem;font-size:.9rem}
+.link{color:var(--fs-primary-strong);font-weight:650;text-underline-offset:.2em}
+.chip{display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .6rem;border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-size:.78rem;font-weight:700}
+.chip-accent{background:var(--fs-accent);color:#1a2a20}
+.fs-dark .chip-accent{color:#ecf2ea}
+.g-logo{width:1.1em;height:1.1em}
+.field{display:flex;gap:.5rem;align-items:stretch}
+.field input{flex:1;min-width:0;min-height:2.75rem;padding:.5rem .9rem;border:1.5px solid var(--fs-border-strong);border-radius:var(--fs-radius-md);background:var(--fs-surface)}
+.field input:focus{border-color:var(--fs-primary)}
+.field-label{display:block;font-weight:650;font-size:.9rem;margin-bottom:.35rem}
+
+/* ---- header (today's logged-out header, mirrored) ---- */
+.hdr{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:1rem;height:var(--fs-header-h);padding-inline:var(--gut);background:var(--fs-header-bg);border-bottom:1px solid var(--fs-header-border);backdrop-filter:blur(10px)}
+.brand{display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;font-weight:800;letter-spacing:-.02em;flex:none}
+.brand svg{width:2rem;height:2rem}
+.brand span span{color:var(--fs-primary)}
+.hdr nav{display:flex;gap:.25rem;flex:1}
+.hdr nav a{padding:.4rem .7rem;border-radius:var(--fs-radius-sm);text-decoration:none;font-weight:600;color:var(--fs-text-muted);font-size:.95rem}
+.hdr nav a[aria-current]{color:var(--fs-primary-strong);background:var(--fs-primary-soft)}
+.hdr-actions{display:flex;align-items:center;gap:.4rem;margin-left:auto}
+.hdr-btn{display:inline-grid;place-items:center;width:2.25rem;height:2.25rem;border:0;background:none;border-radius:var(--fs-radius-sm);color:var(--fs-text-muted)}
+@container vp (max-width:700px){.hdr nav{display:none}}
+
+/* ---- footer (today's four-column footer, abbreviated) ---- */
+.foot{margin-top:4rem;padding:2rem var(--gut) 5rem;border-top:1px solid var(--fs-border);color:var(--fs-text-muted);font-size:.85rem}
+.foot .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:1rem}
+.foot b{display:block;color:var(--fs-text);margin-bottom:.3rem}
+
+/* ---- common sections ---- */
+.sec{padding-block:clamp(2.5rem,2rem + 3cqi,4.5rem)}
+.sec-title{font-size:clamp(1.5rem,1.1rem + 1.4cqi,2.1rem);font-weight:800;letter-spacing:-.03em;line-height:1.15;text-wrap:balance}
+.sec-lead{max-width:44rem;color:var(--fs-text-muted);font-size:1.05rem;margin-top:.6rem}
+.eyebrow{display:inline-flex;padding:.3rem .8rem;border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-size:.8rem;font-weight:700}
+.card{padding:1.4rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);box-shadow:var(--fs-shadow-sm)}
+.grid3{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
+.grid2{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))}
+.icon-tile{display:grid;place-items:center;width:2.75rem;height:2.75rem;border-radius:var(--fs-radius-md);background:var(--fs-primary-soft);color:var(--fs-primary-strong);margin-bottom:.8rem}
+.icon-tile .ico{width:1.4rem;height:1.4rem}
+.h3{font-size:1.1rem;font-weight:750;margin-bottom:.3rem}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.2rem}
+.hero-actions .btn{flex:1 1 14rem}
+@container vp (min-width:640px){.hero-actions .btn{flex:0 0 auto}}
+.login-line{margin-top:.8rem;color:var(--fs-text-muted);font-size:.95rem}
+
+/* counters */
+.counters{display:grid;gap:1rem;grid-template-columns:repeat(2,1fr)}
+@container vp (min-width:700px){.counters{grid-template-columns:repeat(4,1fr)}}
+.counter{display:grid;gap:.2rem;padding:1.2rem;border-radius:var(--fs-radius-lg);background:var(--fs-primary-soft)}
+.counter .num{color:var(--fs-primary-strong);font-size:clamp(1.7rem,1.3rem + 1.6cqi,2.6rem);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1.1}
+.counter .lbl{color:var(--fs-text);font-size:.92rem}
+
+/* stepper (shared pieces) */
+.steps{display:grid;gap:.75rem;counter-reset:s}
+.step{border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);overflow:hidden}
+.step-h{display:flex;align-items:center;gap:.8rem;width:100%;padding:1rem 1.1rem;border:0;background:none;text-align:left}
+.step-n{display:grid;place-items:center;flex:none;width:2.2rem;height:2.2rem;border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-weight:800}
+.step[aria-current=step] .step-n{background:var(--fs-primary);color:var(--fs-on-primary)}
+.step-t{flex:1;font-weight:750}
+.step-body{display:none;padding:0 1.1rem 1.1rem 4.1rem;color:var(--fs-text-muted)}
+.step[aria-current=step] .step-body{display:grid;gap:.6rem}
+.step-body ul{display:grid;gap:.25rem;padding-left:1.1rem;list-style:disc}
+.step-nav{display:flex;gap:.5rem;justify-content:space-between;margin-top:.8rem}
+
+/* FAQ */
+.faq{display:grid;gap:.5rem}
+.faq details{padding:.85rem 1rem;border:1px solid var(--fs-border);border-radius:.75rem;background:var(--fs-surface)}
+.faq summary{cursor:pointer;font-weight:650}
+.faq p{margin-top:.6rem;color:var(--fs-text-muted)}
+
+/* business */
+.benefits{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
+.benefit{display:flex;gap:.7rem;align-items:flex-start}
+.benefit .ico{width:1.5rem;height:1.5rem;color:var(--fs-primary);margin-top:.15rem}
+.benefit b{display:block}
+.benefit span{color:var(--fs-text-muted);font-size:.93rem}
+.quote{position:relative;padding:1.4rem 1.4rem 1.4rem 2.2rem;border-left:4px solid var(--fs-accent);background:var(--fs-surface);border-radius:0 var(--fs-radius-lg) var(--fs-radius-lg) 0;font-size:1.05rem}
+.quote footer{margin-top:.6rem;color:var(--fs-text-muted);font-size:.9rem}
+
+/* sticky mobile CTA */
+.sticky{display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;padding:.6rem var(--gut);background:var(--fs-header-bg);border-top:1px solid var(--fs-header-border);backdrop-filter:blur(10px)}
+.sticky .btn{width:100%}
+.w-412 .vp[data-scrolled] .sticky{display:block}
+.w-412 .vp{padding-bottom:0}
+
+/* data states */
+.ds-skel{background:linear-gradient(90deg,var(--fs-surface-muted),var(--fs-border),var(--fs-surface-muted));background-size:200% 100%;animation:sh 1.4s linear infinite;border-radius:var(--fs-radius-md)}
+@keyframes sh{to{background-position:-200% 0}}
+.ds-msg{display:grid;justify-items:start;gap:.6rem;padding:1.4rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface)}
+.ds-msg.err{border-color:var(--fs-danger-border);background:var(--fs-danger-soft)}
+.ds-msg b{display:flex;align-items:center;gap:.5rem}
+
+/* ---- map ---- */
+.map{position:relative;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-pub-map-water);overflow:hidden;min-height:22rem;height:30rem}
+.map svg.land{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:.3rem;border:0;padding:0;background:none;z-index:2}
+.pin .glyph{display:grid;place-items:center;width:1.9rem;height:1.9rem;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--fs-shadow-md);border:2px solid #fff}
+.fs-dark .pin .glyph{border-color:#1a201a}
+.pin .glyph .ico{transform:rotate(45deg);width:1rem;height:1rem;stroke-width:2.2}
+.pin-region .glyph{background:var(--fs-primary);color:#fff}
+.pin-fsp .glyph{background:var(--fs-accent);color:#1a2a20}
+.pin .name{position:absolute;left:50%;top:100%;transform:translate(-50%,.15rem);white-space:nowrap;font-size:.72rem;font-weight:700;color:var(--fs-text);background:color-mix(in srgb,var(--fs-surface) 85%,transparent);padding:0 .35rem;border-radius:.3rem;pointer-events:none}
+.pin[aria-expanded=true] .glyph{outline:3px solid color-mix(in srgb,var(--fs-text) 50%,transparent);outline-offset:1px}
+.cluster{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:50%;border:3px solid #fff;background:var(--fs-primary-strong);color:#fff;font-weight:800;font-size:.9rem;box-shadow:var(--fs-shadow-md);z-index:2}
+.fs-dark .cluster{border-color:#1a201a;color:#0d1f13}
+.cluster.c-fsp{background:var(--fs-accent);color:#1a2a20}
+.map-ctl{position:absolute;right:.6rem;top:.6rem;display:grid;gap:.3rem;z-index:3}
+.map-ctl button{width:2.2rem;height:2.2rem;border:1px solid var(--fs-border-strong);border-radius:var(--fs-radius-sm);background:var(--fs-surface);font-weight:800}
+.legend{position:absolute;left:.6rem;bottom:.6rem;display:flex;gap:.8rem;padding:.35rem .6rem;border-radius:var(--fs-radius-sm);background:color-mix(in srgb,var(--fs-surface) 90%,transparent);font-size:.78rem;font-weight:650;z-index:3}
+.legend i{display:inline-block;width:.75rem;height:.75rem;border-radius:50%;margin-right:.3rem;vertical-align:-1px}
+.legend .lr{background:var(--fs-primary)}.legend .lf{background:var(--fs-accent)}
+.popup{position:absolute;z-index:5;width:min(20rem,calc(100% - 1.2rem));padding:1rem 1rem 1rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);box-shadow:var(--fs-shadow-lg);display:grid;gap:.4rem}
+.popup .close{position:absolute;right:.4rem;top:.4rem;width:2rem;height:2rem;border:0;background:none;border-radius:50%;color:var(--fs-text-muted)}
+.popup h3{font-size:1.05rem;padding-right:2rem}
+.popup .kind{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--fs-text-muted)}
+.popup .facts{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-size:.92rem}
+.popup .facts b{font-weight:750}
+.w-412 .popup{left:.6rem!important;right:.6rem!important;top:auto!important;bottom:.6rem;width:auto}
+.map-activate{position:absolute;inset:0;z-index:4;display:none;place-items:center;background:color-mix(in srgb,var(--fs-bg) 35%,transparent)}
+.w-412 .map:not([data-active]) .map-activate{display:grid}
+.map-search{display:grid;gap:.35rem;margin-bottom:1rem}
+.map-search .field{max-width:26rem}
+.map-hint{font-size:.9rem;color:var(--fs-text-muted);min-height:1.3em}
+.map-list{margin-top:1rem}
+.map-list ul{display:grid;gap:.4rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))}
+.map-list li{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-md);background:var(--fs-surface);font-size:.92rem}
+.map-list li i{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;flex:none}
+.map-list .lr{background:var(--fs-primary)}.map-list .lf{background:var(--fs-accent)}
+.map-list a{margin-left:auto}
+
+/* ---- Variant A: Karte zuerst ---- */
+.A .hero-map{position:relative;min-height:34rem;background:var(--fs-pub-map-water);border-bottom:1px solid var(--fs-border)}
+.A .hero-map .map{position:absolute;inset:0;border:0;border-radius:0;height:auto;min-height:0}
+.A .hero-card{position:relative;z-index:6;max-width:30rem;margin:clamp(1.5rem,1rem + 3cqi,4rem) var(--gut);padding:1.6rem;border-radius:var(--fs-radius-xl);background:color-mix(in srgb,var(--fs-surface) 94%,transparent);border:1px solid var(--fs-border);box-shadow:var(--fs-shadow-lg);backdrop-filter:blur(8px)}
+.A .hero-card h1{font-size:clamp(1.9rem,1.1rem + 3.4cqi,3rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-top:.8rem;text-wrap:balance}
+.A .hero-card .lead{margin-top:.8rem;color:var(--fs-text-muted);font-size:1.05rem}
+.A .hero-card .map-search{margin:1.1rem 0 0}
+.A .hero-card .hero-actions{margin-top:1rem}
+.A .hero-card .btn{flex:1 1 auto}
+.A .counters-strip{display:grid;gap:1rem;grid-template-columns:repeat(2,1fr);padding:1.4rem;border-radius:var(--fs-radius-lg);background:var(--fs-primary-strong);color:#fff}
+.fs-dark .A .counters-strip{background:var(--fs-primary-soft);color:var(--fs-text)}
+@container vp (min-width:700px){.A .counters-strip{grid-template-columns:repeat(4,1fr)}}
+.A .counters-strip .num{font-size:clamp(1.6rem,1.2rem + 1.6cqi,2.4rem);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.fs-dark .A .counters-strip .num{color:var(--fs-primary-strong)}
+.A .counters-strip .lbl{font-size:.9rem;opacity:.9}
+.A .hsteps{display:grid;gap:.75rem}
+@container vp (min-width:900px){.A .hsteps{grid-template-columns:repeat(4,1fr)} .A .hsteps .step-body{padding-left:1.1rem} .A .hsteps .step-h{flex-direction:column;align-items:flex-start} .A .hsteps .step{display:grid;align-content:start}}
+@container vp (max-width:700px){.A .hero-map{min-height:0;display:grid} .A .hero-map .map{position:relative;height:14rem;order:2} .A .hero-card{margin:1rem var(--gut)}}
+.A .cta-band{display:grid;gap:1rem;justify-items:start;padding:2rem;border-radius:var(--fs-radius-xl);background:var(--fs-primary-soft)}
+
+/* ---- Variant B: Scroll-Reise ---- */
+.B .hero{padding:clamp(3rem,2rem + 5cqi,7rem) 0 clamp(2rem,1rem + 3cqi,4rem)}
+.B .hero h1{font-size:clamp(2.6rem,1.4rem + 5.4cqi,5.2rem);font-weight:850;letter-spacing:-.045em;line-height:.98;max-width:16ch;text-wrap:balance}
+.B .hero h1 em{font-style:normal;background:linear-gradient(transparent 62%,var(--fs-accent) 62%)}
+.B .hero .lead{max-width:36rem;margin-top:1.4rem;font-size:clamp(1.1rem,1rem + .6cqi,1.35rem);color:var(--fs-text-muted);line-height:1.5}
+.B .hero .map-search{margin-top:1.4rem}
+.B .chapter{padding-block:clamp(3rem,2rem + 4cqi,6rem);border-top:1px solid var(--fs-border)}
+.B .chapter-h{display:grid;gap:.4rem;grid-template-columns:auto 1fr;align-items:baseline;column-gap:1.2rem;margin-bottom:1.6rem}
+.B .chapter-n{font-size:clamp(2.6rem,2rem + 3cqi,4.6rem);font-weight:850;letter-spacing:-.05em;line-height:1;color:var(--fs-accent)}
+.B .chapter-h h2{font-size:clamp(1.8rem,1.3rem + 2.2cqi,3rem);font-weight:800;letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
+.B .chapter-h p{grid-column:2;max-width:40rem;color:var(--fs-text-muted);font-size:1.08rem}
+.B .bignum{display:grid;gap:.2rem;padding:1.6rem 0}
+.B .bignum .num{font-size:clamp(3rem,2rem + 6cqi,6rem);font-weight:850;letter-spacing:-.05em;line-height:1;color:var(--fs-primary-strong);font-variant-numeric:tabular-nums}
+.B .ways{display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
+.B .way{display:grid;gap:.4rem;padding-top:1rem;border-top:3px solid var(--fs-primary)}
+.B .way .h3{font-size:1.25rem}
+.B .timeline{display:grid;gap:0;position:relative}
+.B .tl-step{display:grid;grid-template-columns:3rem 1fr;gap:1rem;position:relative;padding-bottom:2rem}
+.B .tl-step::before{content:"";position:absolute;left:1.45rem;top:3rem;bottom:0;width:2px;background:var(--fs-border-strong)}
+.B .tl-step:last-child::before{display:none}
+.B .tl-step .step-n{width:3rem;height:3rem;font-size:1.1rem}
+.B .tl-step[aria-current=step] .step-n{background:var(--fs-primary);color:var(--fs-on-primary)}
+.B .tl-body{display:grid;gap:.6rem;grid-template-columns:1fr auto;align-items:start}
+.B .tl-body .step-h{padding:0;display:block}
+.B .tl-body .step-t{font-size:1.25rem;display:block;margin:.4rem 0 .3rem}
+.B .tl-body .ill{grid-row:1/3;width:7rem;height:5.5rem}
+.B .tl-step .step-body{padding:0;grid-column:1;display:grid;gap:.6rem}
+.B .tl-step:not([aria-current=step]) .step-body ul,.B .tl-step:not([aria-current=step]) .step-body .step-nav{display:none}
+.B .story{padding:1.5rem 0;font-size:clamp(1.2rem,1rem + 1cqi,1.6rem);font-weight:650;letter-spacing:-.02em;line-height:1.35;max-width:38rem}
+.B .story footer{margin-top:.6rem;font-size:1rem;font-weight:500;color:var(--fs-text-muted)}
+.B .join-band{display:grid;gap:1rem;justify-items:start;padding:2.5rem;border-radius:var(--fs-radius-xl);background:var(--fs-primary);color:var(--fs-on-primary)}
+.B .join-band h2{font-size:clamp(1.6rem,1.2rem + 1.6cqi,2.4rem);font-weight:800;letter-spacing:-.03em}
+.B .join-band .btn-solid{background:var(--fs-surface);color:var(--fs-primary-strong)}
+@container vp (max-width:700px){.B .chapter-h{grid-template-columns:1fr} .B .chapter-h p{grid-column:1} .B .tl-body{grid-template-columns:1fr} .B .tl-body .ill{grid-row:auto;width:5rem;height:4rem}}
+
+/* ---- Variant C: Bento ---- */
+.C .bento{display:grid;gap:1rem;grid-template-columns:repeat(12,1fr);grid-auto-rows:minmax(7rem,auto);padding-block:1.5rem}
+.C .tile{padding:1.4rem;border-radius:var(--fs-radius-xl);background:var(--fs-surface);border:1px solid var(--fs-border);box-shadow:var(--fs-shadow-sm);display:grid;align-content:start;gap:.5rem;min-width:0}
+.C .t-title{grid-column:span 7;grid-row:span 2}
+.C .t-title h1{font-size:clamp(2rem,1.2rem + 3.6cqi,3.6rem);font-weight:850;letter-spacing:-.045em;line-height:1;text-wrap:balance}
+.C .t-title .lead{color:var(--fs-text-muted);font-size:1.05rem;max-width:34rem}
+.C .t-cta{grid-column:span 5;grid-row:span 2;background:var(--fs-accent);color:#1a2a20;border:0}
+.fs-dark .C .t-cta{color:#ecf2ea}
+.C .t-cta h2{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.C .t-cta .btn-solid{background:#1a2a20;color:#fff}
+.fs-dark .C .t-cta .btn-solid{background:#ecf2ea;color:#111611}
+.C .t-cta .btn-line{background:transparent;border-color:rgb(0 0 0/.3);color:inherit}
+.C .t-map{grid-column:span 7;grid-row:span 3;padding:0;overflow:hidden}
+.C .t-map .map{border:0;border-radius:0;height:100%;min-height:24rem}
+.C .t-stat{grid-column:span 5;display:grid;align-content:end}
+.C .t-stat .num{font-size:clamp(1.9rem,1.4rem + 2cqi,3rem);font-weight:850;letter-spacing:-.04em;line-height:1;color:var(--fs-primary-strong);font-variant-numeric:tabular-nums}
+.C .t-stat.alt{background:var(--fs-primary-strong);color:#fff;border:0}
+.C .t-stat.alt .num{color:#fff}
+.fs-dark .C .t-stat.alt{background:var(--fs-primary-soft);color:var(--fs-text)}
+.fs-dark .C .t-stat.alt .num{color:var(--fs-primary-strong)}
+.C .t-mission{grid-column:span 12}
+.C .t-search{grid-column:span 5}
+.C .t-step{grid-column:span 3;cursor:pointer}
+.C .t-step .step-n{width:2.6rem;height:2.6rem;font-size:1.1rem}
+.C .t-step[aria-current=step]{border-color:var(--fs-primary);box-shadow:inset 0 0 0 2px var(--fs-primary)}
+.C .t-step .step-h{padding:0;display:grid;gap:.5rem;justify-items:start}
+.C .t-step .step-body{padding:0}
+.C .t-stepdetail{grid-column:span 12;background:var(--fs-primary-soft);border:0}
+.C .t-business{grid-column:span 8}
+.C .t-quote{grid-column:span 4;background:var(--fs-accent);border:0;color:#1a2a20}
+.fs-dark .C .t-quote{color:#ecf2ea}
+.C .t-fsp{grid-column:span 6}
+.C .t-ways{grid-column:span 6}
+.C .t-faq{grid-column:span 12}
+.C .t-faq .faq{grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))}
+.C .t-h{font-size:1.3rem;font-weight:800;letter-spacing:-.03em}
+.C .benefits{gap:.6rem}
+.C .chips{display:flex;flex-wrap:wrap;gap:.4rem}
+@container vp (max-width:900px){.C .bento>*{grid-column:span 12!important;grid-row:auto!important} .C .t-step{grid-column:span 6!important} .C .t-map .map{min-height:20rem}}
+@container vp (max-width:500px){.C .t-step{grid-column:span 12!important}}
+
+/* ---- accent toggle: "ohne" swaps the warm accent for a soft green ---- */
+.no-accent{--fs-accent:#b4e7c2}
+.no-accent.fs-dark{--fs-accent:#2f6b45}
+
+/* ---- Variant D: today's hero + bubbles ---- */
+.D .hero{display:grid;gap:2.5rem;align-items:center;padding:clamp(.5rem,2cqi,2rem) 0 1rem}
+@container vp (min-width:900px){.D .hero{grid-template-columns:1.15fr 1fr}}
+.D .hero h1{font-size:clamp(2.1rem,1.4rem + 3.2cqi,3.6rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;text-wrap:balance;margin-top:1.1rem}
+.D .hero .lead{max-width:34rem;margin-top:1rem;color:var(--fs-text-muted);font-size:clamp(1.02rem,.95rem + .4cqi,1.2rem);line-height:1.6}
+.D .hero .map-search{margin-top:1.2rem}
+/* bubble illustration: blob a (green), blob b (warm), floating mini cards; aria-hidden, never a control */
+.bub{position:relative;min-height:20rem;pointer-events:none;user-select:none}
+.bub-sm{min-height:13rem}
+.bub .blob{position:absolute;border-radius:50%;filter:blur(2px)}
+.bub .blob-a{inset:8% 10% 6% 12%;background:radial-gradient(circle at 30% 30%,var(--fs-primary-200),var(--fs-primary-soft) 70%);border-radius:42% 58% 55% 45%/48% 42% 58% 52%}
+.bub .blob-b{right:4%;bottom:4%;width:34%;height:34%;background:color-mix(in srgb,var(--fs-accent) 45%,transparent)}
+.bub .fc{position:absolute;display:grid;gap:.3rem;padding:1rem 1.2rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);box-shadow:var(--fs-shadow-lg);font-size:.95rem}
+.bub .fc .ico{color:var(--fs-primary);width:1.4rem;height:1.4rem}
+.bub .fc span{color:var(--fs-text-muted);font-size:.85rem}
+.bub .fc strong{font-weight:750}
+.bub .ex{justify-self:start;padding:.1rem .5rem;border-radius:999px;background:var(--fs-surface-muted);color:var(--fs-text-muted);font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.bub .fc-main{top:22%;left:14%;width:15rem;transform:rotate(-3deg)}
+.bub .fc-side{right:8%;bottom:16%;transform:rotate(4deg);grid-auto-flow:column;align-items:center;gap:.6rem}
+.bub .fc-side .ico{color:#d0583c}
+.bub .fc-top{top:8%;right:10%;transform:rotate(2deg);grid-auto-flow:column;align-items:center;gap:.5rem}
+.bub-sm .fc-main{top:14%;left:6%;width:13rem}
+.bub-sm .fc-side{bottom:10%;right:4%}
+.bub-sm .fc-top{top:4%;right:4%}
+.bub .pins{position:absolute;inset:0}
+.bub .pins .pin{pointer-events:none}
+/* phone: bubbles shrink and sit below the text; nothing overflows */
+@container vp (max-width:899px){.bub{min-height:14rem;overflow:hidden;border-radius:var(--fs-radius-xl)} .bub .fc{font-size:.85rem;padding:.7rem .9rem} .bub .fc-main{left:4%;top:16%;width:12rem} .bub .fc-side{right:3%;bottom:8%} .bub .fc-top{right:3%;top:5%} .bub .blob-a{inset:6% 6% 6% 6%}}
+.D .split{display:grid;gap:2rem;align-items:center}
+@container vp (min-width:900px){.D .split{grid-template-columns:1fr 1fr} .D .split.flip>.bub{order:-1}}
+/* numbers strip (from A) */
+.D .strip{display:grid;gap:1rem;grid-template-columns:repeat(2,1fr);padding:1.6rem;border-radius:var(--fs-radius-lg);background:var(--fs-primary-strong);color:#fff}
+.fs-dark .D .strip{background:var(--fs-primary-soft);color:var(--fs-text)}
+@container vp (min-width:700px){.D .strip{grid-template-columns:repeat(4,1fr)}}
+.D .duties{display:grid;gap:1rem}
+@container vp (min-width:900px){.D .duties{grid-template-columns:1.35fr 1fr}}
+.D .duty-card{padding:1.4rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg,1.1rem);background:var(--fs-surface)}
+.D .duty-card.soft{background:var(--fs-primary-soft);border-color:transparent}
+.D .duty-card h3{font-size:1.1rem;margin-bottom:.9rem}
+.D .duty-card ul{display:grid;gap:.85rem}
+.D .duty-card .benefit .ico.x{color:var(--fs-text-muted)}
+.D .duty-foot{margin-top:1rem;font-size:.9rem}
+.D .duty-foot a,.D .faq-more a{color:var(--fs-primary-strong);font-weight:650}
+.D .faq-groups{display:grid;gap:1.6rem;margin-top:1.2rem}
+@container vp (min-width:900px){.D .faq-groups{grid-template-columns:repeat(3,1fr);align-items:start}}
+.D .faq-group h3{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fs-primary-strong);margin-bottom:.6rem}
+.D .faq details[open]{border-color:var(--fs-border-strong)}
+.D .faq-more{margin-top:1.2rem;font-size:.95rem}
+.D .strip .num{font-size:clamp(1.7rem,1.2rem + 1.8cqi,2.6rem);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+.fs-dark .D .strip .num{color:var(--fs-primary-strong)}
+.D .strip .lbl{font-size:.9rem;opacity:.9}
+/* horizontal stepper (today's preview look): phases above, circles on a line */
+.D .jp{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:0 .6rem;margin-top:1.4rem}
+.D .jp .ph{grid-row:1;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fs-primary-strong);padding-bottom:.5rem;border-bottom:2px solid var(--fs-primary-200);margin-bottom:1rem}
+.D .jp .ph-online{grid-column:1/4}.D .jp .ph-onsite{grid-column:4}.D .jp .ph-in{grid-column:5}
+.D .jp .js{grid-row:2;position:relative;display:grid;gap:.4rem;align-content:start;padding:0 .2rem}
+.D .jp .js::before{content:"";position:absolute;left:1.3rem;right:-.8rem;top:1.3rem;height:2px;background:var(--fs-border-strong)}
+.D .jp .js.last::before{display:none}
+.D .jp .js .step-n{width:2.6rem;height:2.6rem;position:relative;z-index:1;border:2px solid var(--fs-surface)}
+.D .jp .js[aria-current=step] .step-n{background:var(--fs-primary);color:var(--fs-on-primary)}
+.D .jp .js.done .step-n{background:var(--fs-primary-soft)}
+.D .jp .js .jt{font-weight:750;margin-top:.3rem}
+.D .jp .js .jx{color:var(--fs-text-muted);font-size:.93rem}
+.D .jp .js .chip{justify-self:start}
+.D .jp .js .step-h{padding:0;display:contents}
+.D .jp .end{grid-row:2;display:grid;gap:.4rem;align-content:start;justify-items:center;text-align:center;font-size:.85rem;color:var(--fs-text-muted);min-width:5rem}
+.D .jp .end .step-n{background:var(--fs-primary-soft);color:var(--fs-primary-strong);border:2px solid var(--fs-surface)}
+.D .jdetail{margin-top:1.2rem;padding:1.2rem 1.4rem;border-radius:var(--fs-radius-lg);background:var(--fs-primary-soft);display:grid;gap:.6rem}
+.D .jdetail ul{padding-left:1.1rem;list-style:disc;display:grid;gap:.25rem}
+@container vp (max-width:760px){
+  .D .jp{grid-template-columns:auto 1fr;gap:.4rem .9rem}
+  .D .jp .ph{grid-row:auto;grid-column:1/3!important;margin:0;padding-top:.6rem}
+  .D .jp .js{grid-row:auto;grid-column:1/3;grid-template-columns:2.6rem 1fr;grid-template-areas:"n t" "n x" "n c";gap:.2rem .8rem;padding:0 0 1.4rem}
+  .D .jp .js::before{left:1.3rem;right:auto;top:2.6rem;bottom:0;width:2px;height:auto}
+  .D .jp .js .step-n{grid-area:n}.D .jp .js .jt{grid-area:t;margin:0}.D .jp .js .jx{grid-area:x}.D .jp .js .chip{grid-area:c}
+  .D .jp .end{grid-row:auto;grid-column:1/3;grid-template-columns:2.6rem 1fr;justify-items:start;text-align:left;gap:.2rem .8rem}
+  /* vertical order: phase label, its steps, next phase label */
+  .D .jp .ph-online{order:0}.D .jp .js:not(.last){order:1}.D .jp .ph-onsite{order:2}.D .jp .js.last{order:3}.D .jp .ph-in{order:4}.D .jp .end{order:5}
+  .D .jp .js:nth-child(6)::before{display:none}
+}
+/* near you */
+.D .near{display:grid;gap:1.5rem}
+@container vp (min-width:900px){.D .near{grid-template-columns:1fr 1fr;align-items:start}}
+.D .rcard{display:grid;gap:.5rem;padding:1.2rem 1.4rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);box-shadow:var(--fs-shadow-sm)}
+.D .rcard .facts{display:flex;flex-wrap:wrap;gap:.4rem 1rem;font-size:.95rem}
+.D .rcard .facts b{font-weight:750}
+.D .preview{position:relative;min-height:18rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);overflow:hidden;background:var(--fs-pub-map-water)}
+.D .preview svg.land{position:absolute;inset:0;width:100%;height:100%}
+.D .preview .over{position:absolute;inset:0;display:grid;place-items:end start;padding:1rem;background:linear-gradient(transparent 55%,color-mix(in srgb,var(--fs-surface) 80%,transparent))}
+.D .preview .over p{font-size:.85rem;color:var(--fs-text-muted);margin-bottom:.5rem}
+.D .loadph{display:grid;place-items:center;gap:.6rem;min-height:18rem;border:1px dashed var(--fs-border-strong);border-radius:var(--fs-radius-lg);background:var(--fs-surface-muted);text-align:center;padding:1.4rem}
+.D .loadph p{font-size:.9rem;color:var(--fs-text-muted);max-width:26rem}
+.D .opt-tabs{display:inline-flex;gap:2px;padding:2px;border-radius:999px;background:var(--fs-surface-muted);border:1px solid var(--fs-border);margin-bottom:.8rem}
+.D .opt-tabs button{border:0;background:none;padding:.3rem .8rem;border-radius:999px;font-size:.82rem;font-weight:700;color:var(--fs-text-muted)}
+.D .opt-tabs button[aria-pressed=true]{background:var(--fs-surface);color:var(--fs-text);box-shadow:var(--fs-shadow-sm)}
+/* business card (from C) */
+.D .bizcard{display:grid;gap:1rem;grid-template-columns:1fr}
+@container vp (min-width:900px){.D .bizcard{grid-template-columns:1.4fr 1fr;align-items:stretch}}
+.D .bizcard .card{display:grid;gap:.9rem;align-content:start}
+.D .bizcard .benefits{gap:.7rem}
+.D .bizcard .benefit span{font-size:.9rem}
+.D .bizpanel{display:grid;align-content:center;padding:1.2rem;border-radius:var(--fs-radius-lg);background:var(--fs-primary-soft)}
+.D .cta-band{display:grid;gap:1rem;justify-items:start;padding:2rem;border-radius:var(--fs-radius-xl);background:var(--fs-primary-soft)}
+
+/* ---- Today ---- */
+.T .hero{display:grid;gap:1rem;padding:2rem 0}
+.T .hero h1{font-size:clamp(2.1rem,1.4rem + 3.2cqi,3.6rem);font-weight:800;letter-spacing:-.035em;line-height:1.05}
+.T .values{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr))}
+.T .today-steps{display:grid;gap:.4rem;max-width:34rem}
+.T .today-steps li{display:flex;gap:.6rem;align-items:center;padding:.5rem .8rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-md);background:var(--fs-surface);font-size:.95rem}
+.T .today-steps .step-n{width:1.6rem;height:1.6rem;font-size:.8rem}
+.T .region{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))}
+.T .contact{padding:1.5rem;border-radius:1rem;background:var(--fs-surface-muted);display:grid;gap:.6rem;justify-items:start}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div id="root"></div>
+
+<script>
+/* ============ mockup state ============ */
+const S={variant:'D',dark:false,width:'win',data:'ok',optional:true,accent:'sparsam',step:1,zoom:null,popup:null,mapActive:false,list:false,mapOpt:'static',mapLoaded:false,near:null,nearPc:'',nearHint:''};
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ============ icons (inline SVG, no CDN) ============ */
+const I={
+  bag:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  home:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>',
+  store:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9M3 9h18M5 9v11h14V9M9 20v-6h6v6"/></svg>',
+  users:'<svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 13.5a6 6 0 0 1 3.5 6.5"/></svg>',
+  fridge:'<svg class="ico" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="1.5"/><path d="M6 10h12M9 6v2M9 13v3"/></svg>',
+  pin:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  mail:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  check:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 7"/></svg>',
+  x:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  search:'<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  globe:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>',
+  sun:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>',
+  login:'<svg class="ico" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M13 3h6v18h-6"/></svg>',
+  warn:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3l10 18H2zM12 10v5M12 18v.5"/></svg>',
+  wifi:'<svg class="ico" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0M12 19.5v.5"/></svg>',
+  heart:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg>',
+  code:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>',
+  basket:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 10h18l-2 10H5zM7 10l3-6M17 10l-3-6M9 14v3M15 14v3"/></svg>',
+  clock:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  shield:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  leaf:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 20C6 10 12 5 21 4c-1 9-6 15-16 16M4 20l7-7"/></svg>',
+  truck:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>',
+  trash:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg>',
+  cal:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  id:'<svg class="ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.3"/><path d="M13 10h6M13 14h4"/></svg>',
+  book:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>',
+  quiz:'<svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+  google:'<svg class="g-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.5 3.1-7.6z"/><path fill="#34A853" d="M12 22c2.8 0 5.1-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1-2.7 0-5-1.8-5.8-4.3H2.7v2.7A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.2 13.6a6 6 0 0 1 0-3.8V7.1H2.7a10 10 0 0 0 0 9z"/><path fill="#EA4335" d="M12 6c1.5 0 2.9.5 3.9 1.5l2.9-2.9A10 10 0 0 0 2.7 7.1l3.5 2.7C7 7.8 9.3 6 12 6z"/></svg>'
+};
+/* step illustrations (line art) */
+const ILL={
+  1:'<svg viewBox="0 0 120 90" class="ill" aria-hidden="true"><rect x="35" y="8" width="50" height="76" rx="8" fill="var(--fs-primary-soft)" stroke="var(--fs-primary)" stroke-width="2"/><rect x="45" y="22" width="30" height="6" rx="3" fill="var(--fs-primary)"/><rect x="45" y="34" width="30" height="6" rx="3" fill="var(--fs-border-strong)"/><rect x="45" y="52" width="30" height="10" rx="5" fill="var(--fs-accent)"/><circle cx="60" cy="76" r="3" fill="var(--fs-primary)"/></svg>',
+  2:'<svg viewBox="0 0 120 90" class="ill" aria-hidden="true"><path d="M15 20h40a6 6 0 0 1 6 6v50a4 4 0 0 0-4-4H15z" fill="var(--fs-primary-soft)" stroke="var(--fs-primary)" stroke-width="2"/><path d="M105 20H65a6 6 0 0 0-6 6v50a4 4 0 0 1 4-4h42z" fill="var(--fs-surface)" stroke="var(--fs-primary)" stroke-width="2"/><path d="M24 32h22M24 42h22M24 52h16M72 32h22M72 42h22" stroke="var(--fs-border-strong)" stroke-width="3" stroke-linecap="round"/><circle cx="92" cy="58" r="8" fill="var(--fs-accent)"/></svg>',
+  3:'<svg viewBox="0 0 120 90" class="ill" aria-hidden="true"><rect x="25" y="10" width="70" height="72" rx="8" fill="var(--fs-surface)" stroke="var(--fs-primary)" stroke-width="2"/><rect x="35" y="22" width="50" height="7" rx="3" fill="var(--fs-border-strong)"/><circle cx="41" cy="44" r="5" fill="var(--fs-primary)"/><circle cx="41" cy="60" r="5" fill="none" stroke="var(--fs-border-strong)" stroke-width="2"/><path d="M50 44h32M50 60h26" stroke="var(--fs-border-strong)" stroke-width="3" stroke-linecap="round"/><path d="M38 44l2 2 4-4" stroke="#fff" stroke-width="2" fill="none"/><circle cx="92" cy="18" r="9" fill="var(--fs-accent)"/><path d="M88 18l3 3 5-6" stroke="#1a2a20" stroke-width="2" fill="none"/></svg>',
+  4:'<svg viewBox="0 0 120 90" class="ill" aria-hidden="true"><rect x="12" y="24" width="68" height="44" rx="6" fill="var(--fs-primary-soft)" stroke="var(--fs-primary)" stroke-width="2"/><circle cx="30" cy="46" r="8" fill="var(--fs-primary)"/><path d="M44 40h26M44 50h18" stroke="var(--fs-primary-strong)" stroke-width="3" stroke-linecap="round"/><path d="M84 60l8-8 6 6 14-14" stroke="var(--fs-accent)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M90 20l-4 10h14l-4 10" stroke="var(--fs-border-strong)" stroke-width="2" fill="none"/></svg>'
+};
+
+/* ============ content (de; i18n keys in the proposal) ============ */
+const C={
+  eyebrow:'Gemeinsam gegen Lebensmittelverschwendung',
+  join:'Jetzt mitmachen', joinGoogle:'Mit Google mitmachen', haveAccount:'Schon dabei?', login:'Anmelden',
+  mission:{title:'Worum es geht',text:'Jeden Tag landen gute Lebensmittel in der Tonne – in Läden, Bäckereien, Restaurants und zu Hause. Du holst sie ab, bevor das passiert, und teilst sie mit Menschen in deiner Nähe. Ohne Geld, ohne Verpflichtung, mit vielen anderen. Seit 2012, ehrenamtlich, werbefrei und open source.'},
+  ways:[
+    {ic:'bag',t:'Als Foodsaver:in',x:'Du holst bei Betrieben ab, was nicht mehr verkauft wird, und bringst es dorthin, wo es gegessen wird.'},
+    {ic:'home',t:'Zu Hause',x:'Du hast zu viel gekocht oder fährst in die Ferien? Stell einen Essenskorb ein oder bring es in einen Fairteiler.'},
+    {ic:'store',t:'Als Betrieb',x:'Du führst einen Laden oder ein Restaurant? Wir holen zuverlässig ab – kostenlos und mit Haftungsfreistellung.'}
+  ],
+  map:{title:'In deiner Nähe',lead:'Bezirke sind unsere lokalen Gruppen, Fairteiler öffentliche Kühlschränke und Regale. Finde beides um die Ecke.',search:'Finde deinen Bezirk',ph:'Postleitzahl, z. B. 8004',submit:'Suchen',list:'Als Liste',map:'Als Karte',activate:'Karte aktivieren'},
+  steps:[
+    {t:'Konto erstellen',d:'ca. 2 Minuten',x:'Mit E-Mail-Link, Google oder Passkey. Kein Passwort nötig.',pts:['Name und Bezirk reichen zum Start','Du bestätigst deine E-Mail-Adresse per Link','Danach siehst du deinen Weg Schritt für Schritt']},
+    {t:'Grundlagen lernen',d:'ca. 20 Minuten',x:'Kurze Lernseiten zu Abholungen, Hygiene und dem Verhalten im Betrieb.',pts:['Wie eine Abholung abläuft','Was du annehmen darfst und was nicht','Wie du im Betrieb auftrittst – freundlich, leise, zuverlässig']},
+    {t:'Foodsaver-Quiz',d:'ca. 30 Minuten',x:'Online, wann du willst. Mehrere Versuche sind okay.',pts:['Fragen zu den Lernseiten','Du siehst sofort, was du richtig hattest','Bestanden? Dann geht es nach draussen']},
+    {t:'Einführungsabholungen & Ausweis',d:'nach Terminen in deinem Bezirk',x:'Mindestens drei Abholungen mit erfahrenen Foodsaver:innen. Deine Botschafter:in prüft einmal deinen Ausweis – dann bekommst du deinen Foodsaver-Ausweis.',pts:['Du wählst Termine in deinem Bezirk','Erfahrene Foodsaver:innen zeigen dir alles vor Ort','Ausweis geprüft, Foodsaver-Ausweis da: du holst selbstständig ab']}
+  ],
+  stepsTitle:'So wirst du Foodsaver:in', stepsLead:'Vier Schritte. Die ersten drei online, wann du willst.',
+  impactTitle:'Was wir gemeinsam bewegen',
+  counters:[{k:'kgSaved',v:1842300,l:'kg gerettet'},{k:'pickups',v:96420,l:'Abholungen'},{k:'foodsavers',v:12480,l:'Foodsaver:innen'},{k:'stores',v:1930,l:'Partnerbetriebe'}],
+  biz:{title:'Für Betriebe: Partner werden',lead:'Du führst einen Laden, eine Bäckerei, ein Restaurant oder einen Grossmarkt? Wir holen ab, was du nicht mehr verkaufen kannst – ohne Kosten und ohne Mehrarbeit für dein Team.',cta:'Partner werden',
+    benefits:[
+      {ic:'heart',t:'Kostenlos',x:'Keine Gebühren, keine Verträge mit Laufzeit.'},
+      {ic:'trash',t:'Weniger Entsorgungskosten',x:'Weniger Abfall, weniger Container, weniger Gebühren.'},
+      {ic:'users',t:'Weniger Aufwand fürs Team',x:'Foodsaver:innen sortieren und tragen selbst weg.'},
+      {ic:'basket',t:'Wir nehmen fast alles',x:'Abgelaufenes MHD, Milchprodukte, beschädigte Verpackungen.'},
+      {ic:'clock',t:'Zuverlässig und flexibel',x:'Auch am Wochenende, früh morgens oder spät abends.'},
+      {ic:'shield',t:'Haftungsfreistellung',x:'Jede Foodsaver:in unterschreibt sie vor der ersten Abholung.'},
+      {ic:'leaf',t:'Sichtbar nachhaltig',x:'Aufkleber für die Tür und ein Platz auf unserer Partnerseite.'}
+    ],
+    quote:'«Seit wir mit foodsharing arbeiten, ist der Container abends halb leer – und das Team geht pünktlich nach Hause.»',quoteBy:'Inhaberin einer Bäckerei in Zürich (Beispielzitat)'},
+  fsp:{title:'Was ist ein Fairteiler?',text:'Ein Fairteiler ist ein öffentlicher Kühlschrank oder ein Regal. Alle dürfen Lebensmittel bringen und nehmen – ohne Konto, ohne Fragen. Foodsaver:innen füllen ihn mit Gerettetem und halten ihn sauber.',rules:['Bring, was du selbst noch essen würdest','Nimm, was du brauchst','Kein rohes Fleisch, kein Alkohol']},
+  ways2:{title:'Weitere Wege zu helfen',items:[
+    {ic:'basket',t:'Essenskörbe',x:'Zu viel gekocht? Biete einen Essenskorb an – jemand aus der Nachbarschaft holt ihn ab.'},
+    {ic:'heart',t:'Spenden',x:'foodsharing ist ehrenamtlich und werbefrei. Deine Spende zahlt Server, Versicherung und Material.'},
+    {ic:'code',t:'IT & Mitarbeit',x:'Die Plattform ist open source. Code, Design, Übersetzung oder Pressearbeit – du bist willkommen.'}
+  ]},
+  stories:{title:'Stimmen aus der Community',items:[
+    {q:'Ich dachte, das ist viel Aufwand. Jetzt hole ich dienstags nach der Arbeit ab und kenne halb Wiedikon.',by:'Lea, Foodsaverin seit 2024 (Beispiel)'},
+    {q:'Das Quiz war ernsthaft, aber fair. Bei der ersten Abholung war jemand dabei – das hat alle Nervosität genommen.',by:'Samuel, Foodsaver seit 2025 (Beispiel)'}
+  ]},
+  faqTitle:'Häufige Fragen',
+  faqGroups:[
+    {id:'join',t:'Mitmachen',items:[
+      {id:'what',q:'Was macht eine Foodsaver:in?',a:'Du holst bei Betrieben Lebensmittel ab, die sonst im Müll landen würden – und sorgst dafür, dass sie gegessen werden: von dir, deinen Nachbar:innen oder über einen Fairteiler.'},
+      {id:'who',q:'Wer kann mitmachen?',a:'Alle ab 18 Jahren mit einem amtlichen Ausweis. Vorwissen brauchst du keines – du lernst alles auf dem Weg.'},
+      {id:'cost',q:'Kostet das etwas?',a:'Nein. foodsharing ist ehrenamtlich, kostenlos und werbefrei. Du zahlst nichts, und du bekommst auch nichts bezahlt.'},
+      {id:'time',q:'Wie viel Zeit brauche ich?',a:'Die drei Online-Schritte dauern zusammen etwa eine Stunde. Danach entscheidest du selbst, wann und wie oft du abholst.'},
+      {id:'id',q:'Was brauche ich für den Start?',a:'Eine E-Mail-Adresse oder ein Google-Konto. Für den Foodsaver-Ausweis prüft deine Botschafter:in einmal deinen amtlichen Ausweis – eine Kopie behält niemand.'}]},
+    {id:'pickup',t:'Abholen',items:[
+      {id:'duties',q:'Was sind meine Verpflichtungen?',a:'Kurz: zuverlässig sein, alles nehmen, nichts verkaufen, freundlich auftreten. Die ganze Liste steht oben unter «Deine Verpflichtungen».'},
+      {id:'cancel',q:'Was, wenn ich eine Abholung nicht schaffe?',a:'Trag dich so früh wie möglich aus und sag deinem Team Bescheid. Weniger als 24 Stunden vorher rufst du zusätzlich an, damit jemand einspringt.'},
+      {id:'all',q:'Muss ich alles mitnehmen?',a:'Ja, alles Essbare, was der Betrieb dir gibt – sofern nichts anderes abgemacht ist. Was du nicht brauchst, gibst du weiter.'},
+      {id:'safe',q:'Ist das Essen sicher?',a:'Gerettet wird nur, was noch essbar ist. In den Lernseiten und im Quiz lernst du, worauf du achtest: Kühlkette, Haltbarkeit, Verpackung.'}]},
+    {id:'share',t:'Teilen ohne Konto',items:[
+      {id:'fairteiler',q:'Was ist ein Fairteiler?',a:'Ein öffentlicher Kühlschrank oder ein Regal. Alle dürfen Lebensmittel hineinlegen oder mitnehmen – ganz ohne Konto.'},
+      {id:'basket',q:'Kann ich auch ohne Abholungen mitmachen?',a:'Ja. Mit einem Essenskorb bietest du eigene Lebensmittel an oder holst welche bei anderen ab. Dafür brauchst du nur ein Konto, kein Quiz.'},
+      {id:'business',q:'Ich habe einen Betrieb – wie werde ich Partner?',a:'Über «Partner werden» oben schreibst du uns. Dein Bezirk meldet sich und bespricht mit dir Zeiten und Abläufe.'}]}
+  ],
+  duties:{
+    title:'Deine Verpflichtungen',
+    lead:'Foodsharing funktioniert, weil sich Betriebe auf uns verlassen können. Darum versprichst du ein paar Dinge – mehr nicht.',
+    yes:[
+      {id:'reliable',ic:'clock',t:'Zuverlässig sein',x:'Du trägst dich nur ein, wenn du sicher kommst. Klappt es nicht, trägst du dich früh aus und suchst Ersatz.'},
+      {id:'take',ic:'basket',t:'Alles nehmen, nichts wegwerfen',x:'Du nimmst alles Essbare mit und gibst weiter, was du nicht brauchst – an Menschen oder an einen Fairteiler.'},
+      {id:'nosale',ic:'heart',t:'Nichts verkaufen',x:'Gerettete Lebensmittel werden verschenkt, nie verkauft oder getauscht.'},
+      {id:'conduct',ic:'store',t:'Im Betrieb freundlich auftreten',x:'Pünktlich, mit Foodsaver-Ausweis, ohne Diskussion über Menge oder Art – und du hinterlässt alles sauber.'},
+      {id:'privacy',ic:'shield',t:'Vertraulich bleiben',x:'Daten anderer Foodsaver:innen und interne Infos gibst du nicht weiter.'}],
+    no:[
+      {id:'min',t:'Keine Mindestzahl an Abholungen',x:'Du entscheidest selbst, wie oft du dabei bist.'},
+      {id:'money',t:'Keine Kosten, kein Vertrag',x:'Du kannst jederzeit pausieren oder aufhören.'},
+      {id:'alone',t:'Nie allein am Anfang',x:'Die ersten Abholungen machst du mit erfahrenen Foodsaver:innen.'}],
+    rulesLink:'Alle Regeln im Wiki lesen'
+  }
+};
+C.faq=C.faqGroups.flatMap(g=>g.items);
+
+/* ============ map data (seed regions + Fairteiler; coordinates in the stylised DACH frame) ============ */
+const REGIONS=[
+  {id:'40',slug:'zuerich-stadt',n:'Zürich Stadt',x:287,y:369,stores:38,members:1240,pc:/^80[0-9]{2}$/},
+  {id:'41',slug:'winterthur',n:'Winterthur',x:297,y:357,stores:9,members:210,pc:/^84[01][0-9]$/},
+  {id:'60',slug:'basel',n:'Basel',x:252,y:349,stores:21,members:640,pc:/^40[0-9]{2}$/},
+  {id:'61',slug:'bern',n:'Bern',x:256,y:386,stores:17,members:530,pc:/^30[0-9]{2}$/},
+  {id:'62',slug:'genf',n:'Genf',x:207,y:407,stores:12,members:410,pc:/^12[0-9]{2}$/},
+  {id:'63',slug:'luzern',n:'Luzern',x:278,y:383,stores:8,members:190,pc:/^60[0-9]{2}$/},
+  {id:'50',slug:'berlin',n:'Berlin',x:420,y:118,stores:310,members:9800,pc:/^1[0-4][0-9]{3}$/},
+  {id:'51',slug:'hamburg',n:'Hamburg',x:332,y:62,stores:140,members:4100,pc:/^2[0-2][0-9]{3}$/},
+  {id:'64',slug:'koeln',n:'Köln',x:242,y:192,stores:120,members:3600,pc:/^5[01][0-9]{3}$/},
+  {id:'65',slug:'muenchen',n:'München',x:372,y:308,stores:160,members:4900,pc:/^8[0-1][0-9]{3}$/},
+  {id:'66',slug:'leipzig',n:'Leipzig',x:400,y:180,stores:70,members:2200,pc:/^04[0-9]{3}$/},
+  {id:'52',slug:'wien',n:'Wien',x:532,y:354,stores:95,members:3100,pc:/^1[0-2][0-9]{2}$/},
+  {id:'67',slug:'graz',n:'Graz',x:502,y:388,stores:22,members:700,pc:/^80[0-9]{2}$/},
+  {id:'68',slug:'salzburg',n:'Salzburg',x:422,y:368,stores:14,members:420,pc:/^50[0-9]{2}$/}
+];
+const FSPS=[
+  {id:'f1',n:'Fairteiler Wiedikon',loc:'Wiedikon, Zürich',x:283,y:373},
+  {id:'f2',n:'Fairteiler Langstrasse',loc:'Kreis 4, Zürich',x:286,y:369.5},
+  {id:'f3',n:'Fairteiler Oerlikon',loc:'Oerlikon, Zürich',x:289,y:364},
+  {id:'f4',n:'Fairteiler Hottingen',loc:'Hottingen, Zürich',x:291,y:371},
+  {id:'f7',n:'Fairteiler Winterthur Bahnhof',loc:'beim Hauptbahnhof, Winterthur',x:299,y:356},
+  {id:'f8',n:'Fairteiler Matthäikirchplatz',loc:'Kleinbasel, Basel',x:254,y:347},
+  {id:'f9',n:'Fairteiler Breitenrain',loc:'Breitenrain, Bern',x:258,y:384},
+  {id:'f10',n:'Fairteiler Neukölln',loc:'Neukölln, Berlin',x:423,y:121},
+  {id:'f11',n:'Fairteiler Wedding',loc:'Wedding, Berlin',x:418,y:115},
+  {id:'f12',n:'Fairteiler Ottakring',loc:'Ottakring, Wien',x:529,y:356},
+  {id:'f13',n:'Fairteiler Altona',loc:'Altona, Hamburg',x:329,y:64}
+];
+const OVERVIEW={x:170,y:20,w:410,h:420};
+const LAND=`<svg class="land" viewBox="${OVERVIEW.x} ${OVERVIEW.y} ${OVERVIEW.w} ${OVERVIEW.h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+ <g fill="var(--fs-pub-map-land)" stroke="var(--fs-pub-map-line)" stroke-width="1.5" stroke-linejoin="round">
+  <path d="M250 40 L300 28 L340 34 L380 58 L402 108 L440 148 L432 222 L470 282 L452 318 L430 332 L380 342 L330 334 L300 352 L252 330 L230 282 L198 250 L212 182 L190 122 L232 80Z"/>
+  <path d="M330 350 L380 346 L430 334 L482 328 L542 344 L566 368 L526 398 L462 404 L400 398 L358 390 L326 378Z"/>
+  <path d="M232 344 L282 350 L330 354 L326 384 L300 410 L262 422 L220 408 L198 382 L206 360Z"/>
+ </g>
+ <g fill="var(--fs-pub-map-park)"><circle cx="290" cy="380" r="7"/><circle cx="360" cy="300" r="12"/><circle cx="300" cy="200" r="10"/><circle cx="440" cy="380" r="9"/><circle cx="240" cy="160" r="8"/></g>
+ <g fill="none" stroke="var(--fs-pub-map-water)" stroke-width="3" stroke-linecap="round"><path d="M250 330 C262 300 300 260 330 200 S380 100 402 60"/><path d="M280 372 c6 -2 12 -1 16 2"/><path d="M420 370 c20 -4 40 -4 60 -8"/></g>
+ <g fill="var(--fs-pub-map-water)"><ellipse cx="294" cy="371" rx="4" ry="1.6" transform="rotate(35 294 371)"/><ellipse cx="300" cy="320" rx="9" ry="3.5"/><ellipse cx="214" cy="410" rx="10" ry="3"/></g>
+ <g font-family="var(--fs-font)" font-size="11" font-weight="700" fill="var(--fs-text-muted)" opacity=".55"><text x="300" y="150">DE</text><text x="470" y="372">AT</text><text x="240" y="380">CH</text></g>
+</svg>`;
+
+/* ============ small helpers ============ */
+const fmt=n=>new Intl.NumberFormat('de-CH',{maximumFractionDigits:0}).format(n);
+const pcMatch=pc=>REGIONS.find(r=>r.pc.test(pc));
+
+function header(){
+  return `<header class="hdr" data-testid="shell.header">
+    <a class="brand" href="#" data-testid="shell.brand" aria-label="foodsharing – Start">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#25834a"/><path d="M32 50c-9.5-5.6-16-12.2-16-20.2C16 23.3 20.6 19 26 19c2.6 0 4.6 1 6 2.8C33.4 20 35.4 19 38 19c5.4 0 10 4.3 10 10.8C48 37.8 41.5 44.4 32 50z" fill="#fff"/><path d="M32 21.5c.4-3.6 2.4-6.6 6-8.3" stroke="#d8f3df" stroke-width="3" stroke-linecap="round" fill="none"/></svg>
+      <span>food<span>sharing</span></span></a>
+    <nav aria-label="Hauptnavigation"><a href="#" aria-current="page" data-testid="nav.home">Start</a><a href="#" data-testid="nav.map">Karte</a><a href="#" data-testid="nav.vision">Über uns</a><a href="#" data-testid="nav.statistics">Statistik</a></nav>
+    <div class="hdr-actions">
+      <button class="hdr-btn" aria-label="Sprache: Deutsch" data-testid="shell.language">${I.globe}</button>
+      <button class="hdr-btn" aria-label="Darstellung" data-testid="shell.theme">${I.sun}</button>
+      <a class="btn btn-line btn-sm" href="#" data-testid="shell.login">${I.login}<span>Anmelden</span></a>
+    </div></header>`;
+}
+function footer(){
+  return `<footer class="foot"><div class="wrap">
+    <div><b>foodsharing</b>Über uns<br>Team<br>Presse<br>Blog</div>
+    <div><b>Mitmachen</b>Bezirke<br>Fairteiler<br>Spenden<br>Partner werden</div>
+    <div><b>Hilfe</b>FAQ<br>Support<br>Release Notes</div>
+    <div><b>Rechtliches</b>Datenschutz<br>Impressum<br>Nutzungsbedingungen</div>
+  </div></footer>`;
+}
+function ctaButtons(primaryClass='btn-solid'){
+  return `<div class="hero-actions">
+    <a class="btn btn-lg ${primaryClass}" href="#" data-testid="public.landing.joinEmail">${I.mail}<span>${C.join}</span></a>
+    <a class="btn btn-lg btn-line" href="#" data-testid="public.landing.joinGoogle">${I.google}<span>${C.joinGoogle}</span></a>
+  </div><p class="login-line">${C.haveAccount} <a class="link" href="#" data-testid="public.landing.login">${C.login}</a></p>`;
+}
+function stateBox(kind,what,testid){
+  if(kind==='skeleton') return `<div class="ds-skel" style="height:${what==='map'?'30rem':'7rem'}" data-testid="${testid}" aria-busy="true" aria-label="Lädt"></div>`;
+  if(kind==='error') return `<div class="ds-msg err" data-testid="${testid}"><b>${I.warn} ${what==='map'?'Die Karte konnte nicht geladen werden.':'Die Zahlen konnten nicht geladen werden.'}</b><span class="muted">Versuch es gleich noch einmal.</span><button class="btn btn-line btn-sm" onclick="setData('ok')">Erneut versuchen</button></div>`;
+  if(kind==='offline') return `<div class="ds-msg" data-testid="${testid}"><b>${I.wifi} Du bist offline.</b><span class="muted">${what==='map'?'Die Karte braucht eine Verbindung. Die Liste darunter bleibt, wenn sie schon geladen war.':'Die Zahlen kommen, sobald du wieder online bist.'}</span><button class="btn btn-line btn-sm" onclick="setData('ok')">Erneut versuchen</button></div>`;
+  if(kind==='empty') return `<div class="ds-msg" data-testid="${testid}"><b>${I.pin} ${what==='map'?'Noch keine Bezirke auf der Karte.':'Noch keine Zahlen.'}</b><span class="muted">${what==='map'?'Werde die erste Foodsaver:in in deiner Gegend.':'Sobald die erste Abholung gezählt ist, erscheinen sie hier.'}</span>${what==='map'?`<a class="btn btn-solid btn-sm" href="#">${C.join}</a>`:''}</div>`;
+  return '';
+}
+
+/* ---- counters ---- */
+function counters(cls='counter',numCls='num'){
+  if(S.data!=='ok') return stateBox(S.data,'counters','public.explainer.state');
+  return `<ul class="counters" data-testid="public.explainer.counters">${C.counters.map(c=>`<li class="${cls}"><span class="${numCls} cu" data-value="${c.v}" data-testid="public.explainer.counter.${c.k}">0</span><span class="lbl">${c.l}</span></li>`).join('')}</ul>`;
+}
+
+/* ---- map ---- */
+function mapSearch(id='pc'){
+  return `<form class="map-search" onsubmit="return search(event)" role="search">
+    <label class="field-label" for="${id}">${C.map.search}</label>
+    <div class="field"><input id="${id}" name="pc" inputmode="numeric" placeholder="${C.map.ph}" autocomplete="postal-code" data-testid="public.landing.map.search" aria-describedby="${id}-hint"><button class="btn btn-accent" type="submit" data-testid="public.landing.map.search.submit">${I.search}<span>${C.map.submit}</span></button></div>
+    <p class="map-hint" id="${id}-hint" aria-live="polite" data-hint></p></form>`;
+}
+function mapBlock(withSearch=true,extraClass=''){
+  const state=S.data!=='ok'?stateBox(S.data,'map','public.landing.map.state'):`<div class="map ${extraClass}" id="map" data-testid="public.landing.map" ${S.mapActive?'data-active':''} role="region" aria-label="Karte: Bezirke und Fairteiler">${LAND}
+      <div id="pins"></div>
+      <div class="map-ctl"><button aria-label="Vergrössern" onclick="zoomBy(1)">+</button><button aria-label="Verkleinern" onclick="zoomBy(-1)">−</button><button aria-label="Ganze Karte" onclick="zoomTo(null)">⌂</button></div>
+      <div class="legend" aria-hidden="true"><span><i class="lr"></i>Bezirk</span><span><i class="lf"></i>Fairteiler</span></div>
+      <div class="map-activate"><button class="btn btn-solid" onclick="S.mapActive=true;render()">${I.pin}<span>${C.map.activate}</span></button></div>
+      <div id="popup"></div></div>`;
+  const list=`<div class="map-list" data-testid="public.landing.map.list" ${S.list?'':'hidden'}>
+      <ul>${REGIONS.map(r=>`<li><i class="lr"></i><span><b>${r.n}</b> · ${r.stores} Kooperationen · ${fmt(r.members)} Mitglieder</span><a class="link" href="#/r/${r.slug}">Bezirksseite</a></li>`).join('')}
+      ${FSPS.map(f=>`<li><i class="lf"></i><span><b>${f.n}</b> · ${f.loc}</span></li>`).join('')}</ul></div>`;
+  return `${withSearch?mapSearch():''}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btn-line btn-sm" aria-pressed="${S.list}" onclick="S.list=!S.list;render()" data-testid="public.landing.map.listToggle">${S.list?C.map.map:C.map.list}</button></div>
+    ${S.list?'':state}${list}`;
+}
+let view={...OVERVIEW};
+function project(x,y){return{l:(x-view.x)/view.w*100,t:(y-view.y)/view.h*100}}
+function drawPins(){
+  const el=$('#pins'); if(!el) return;
+  const k=OVERVIEW.w/view.w;
+  const out=[];
+  REGIONS.forEach(r=>{const p=project(r.x,r.y); if(p.l<-5||p.l>105||p.t<-5||p.t>105) return;
+    out.push(`<button class="pin pin-region" style="left:${p.l}%;top:${p.t}%" aria-label="Bezirk ${r.n}" aria-expanded="${S.popup==='r'+r.id}" onclick="openPopup('r','${r.id}',this)" data-testid="public.landing.map.pin.region.${r.slug}"><span class="glyph">${I.users}</span>${k>3?`<span class="name">${r.n}</span>`:''}</button>`);});
+  /* Fairteiler cluster per ~12 units at overview, singles when zoomed in */
+  const radius=12/k; const used=new Set();
+  FSPS.forEach((f,i)=>{if(used.has(i)) return; const grp=[f]; used.add(i);
+    FSPS.forEach((g,j)=>{if(!used.has(j)&&Math.hypot(g.x-f.x,g.y-f.y)<radius){grp.push(g);used.add(j);}});
+    const cx=grp.reduce((a,b)=>a+b.x,0)/grp.length, cy=grp.reduce((a,b)=>a+b.y,0)/grp.length; const p=project(cx,cy);
+    if(p.l<-5||p.l>105||p.t<-5||p.t>105) return;
+    if(grp.length>1) out.push(`<button class="cluster c-fsp" style="left:${p.l}%;top:${p.t}%" aria-label="${grp.length} Fairteiler, zum Vergrössern" onclick="zoomTo({x:${cx},y:${cy},w:${Math.max(20,view.w/3)}})" data-testid="public.landing.map.cluster">${grp.length}</button>`);
+    else out.push(`<button class="pin pin-fsp" style="left:${p.l}%;top:${p.t}%" aria-label="${f.n}" aria-expanded="${S.popup==='f'+f.id}" onclick="openPopup('f','${f.id}',this)" data-testid="public.landing.map.pin.fsp.${f.id}"><span class="glyph">${I.fridge}</span>${k>3?`<span class="name">${f.n.replace('Fairteiler ','')}</span>`:''}</button>`);
+  });
+  el.innerHTML=out.join('');
+}
+function setView(v){view=v; const svg=$('#map svg.land'); if(svg) svg.setAttribute('viewBox',`${v.x} ${v.y} ${v.w} ${v.h}`); drawPins();}
+function zoomTo(t){
+  const target=t?{w:t.w,h:t.w*OVERVIEW.h/OVERVIEW.w,x:t.x-t.w/2,y:t.y-(t.w*OVERVIEW.h/OVERVIEW.w)/2}:{...OVERVIEW};
+  S.popup=null; $('#popup')&&($('#popup').innerHTML='');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced){setView(target);return;}
+  const from={...view}, t0=performance.now(), dur=350;
+  const step=now=>{const u=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-u,3);
+    setView({x:from.x+(target.x-from.x)*e,y:from.y+(target.y-from.y)*e,w:from.w+(target.w-from.w)*e,h:from.h+(target.h-from.h)*e});
+    if(u<1) requestAnimationFrame(step);};
+  requestAnimationFrame(step);
+}
+function zoomBy(d){const w=d>0?view.w/1.8:Math.min(OVERVIEW.w,view.w*1.8); zoomTo({x:view.x+view.w/2,y:view.y+view.h/2,w});}
+function openPopup(kind,id,btn){
+  const key=kind+id; if(S.popup===key){closePopup();return;}
+  S.popup=key; drawPins();
+  const host=$('#popup'); if(!host) return;
+  let html;
+  if(kind==='r'){const r=REGIONS.find(r=>r.id===id);
+    html=`<span class="kind">Bezirk</span><h3 id="pp-t">${r.n}</h3><div class="facts"><span><b>${r.stores}</b> aktive Kooperationen</span><span><b>${fmt(r.members)}</b> Mitglieder</span></div><a class="link" href="#/r/${r.slug}" data-testid="public.landing.map.popup.link">Zur Bezirksseite →</a>`;
+  } else {const f=FSPS.find(f=>f.id===id);
+    html=`<span class="kind">Fairteiler</span><h3 id="pp-t">${f.n}</h3><p class="muted" style="font-size:.92rem">${I.pin} ${f.loc}</p><p style="font-size:.95rem">Alle dürfen Lebensmittel bringen und nehmen – ohne Konto.</p>`;}
+  /* position next to the pin (desktop); the phone CSS pins it to the bottom */
+  const map=$('#map'), b=btn.getBoundingClientRect(), m=map.getBoundingClientRect();
+  let left=b.left-m.left+20, top=b.top-m.top-10; if(left>m.width-340) left=Math.max(10,b.left-m.left-330); if(top<10) top=10; if(top>m.height-170) top=m.height-170;
+  host.innerHTML=`<div class="popup" role="dialog" aria-labelledby="pp-t" style="left:${left}px;top:${top}px" data-testid="public.landing.map.popup"><button class="close" aria-label="Schliessen" onclick="closePopup()">${I.x}</button>${html}</div>`;
+  host.querySelector('.close').focus();
+}
+function closePopup(){S.popup=null; const h=$('#popup'); if(h) h.innerHTML=''; drawPins();}
+function search(e){e.preventDefault(); const f=e.target, pc=f.pc.value.trim(), hint=f.querySelector('[data-hint]');
+  if(!/^\d{4,5}$/.test(pc)){hint.textContent='Bitte eine Postleitzahl mit 4 oder 5 Ziffern.';return false;}
+  const r=pcMatch(pc);
+  if(!r){hint.textContent='Noch kein Bezirk in deiner Nähe – gründe einen, wir helfen dir dabei.';return false;}
+  hint.innerHTML=`Dein Bezirk: <b>${r.n}</b> · ${r.stores} Kooperationen · <a class="link" href="#/r/${r.slug}">Bezirksseite</a>`;
+  const map=$('#map'); if(map){S.mapActive=true; map.setAttribute('data-active',''); map.scrollIntoView({behavior:'smooth',block:'center'});}
+  zoomTo({x:r.x,y:r.y,w:40}); return false;}
+
+/* ---- stepper (shared data, three layouts) ---- */
+function stepBody(i,s){return `<div class="step-body"><p>${s.x}</p><ul>${s.pts.map(p=>`<li>${p}</li>`).join('')}</ul>
+  <div class="step-nav"><button class="btn btn-line btn-sm" ${i===0?'disabled':''} onclick="goStep(${i})" data-testid="public.landing.journey.prev">Zurück</button>${i<3?`<button class="btn btn-solid btn-sm" onclick="goStep(${i+2})" data-testid="public.landing.journey.next">Weiter</button>`:`<a class="btn btn-solid btn-sm" href="#" data-testid="public.landing.journey.join">${C.join}</a>`}</div></div>`;}
+function goStep(n){S.step=Math.min(4,Math.max(1,n)); render(); const el=$('[aria-current=step]'); el&&el.querySelector('button,[tabindex]')?.focus();}
+function stepperAccordion(cls='steps'){
+  return `<ol class="${cls}" data-testid="public.explainer.preview">${C.steps.map((s,i)=>`<li class="step" ${S.step===i+1?'aria-current="step"':''} data-testid="public.landing.journey.step.${i+1}">
+    <button class="step-h" aria-expanded="${S.step===i+1}" onclick="goStep(${i+1})"><span class="step-n" aria-hidden="true">${i+1}</span><span class="step-t">${s.t}</span><span class="chip">${s.d}</span></button>${stepBody(i,s)}</li>`).join('')}</ol>`;
+}
+function stepperTimeline(){
+  return `<ol class="timeline" data-testid="public.explainer.preview">${C.steps.map((s,i)=>`<li class="tl-step" ${S.step===i+1?'aria-current="step"':''} data-testid="public.landing.journey.step.${i+1}">
+    <span class="step-n" aria-hidden="true">${i+1}</span>
+    <div class="tl-body"><button class="step-h" aria-expanded="${S.step===i+1}" onclick="goStep(${i+1})"><span class="chip">${s.d}</span><span class="step-t">${s.t}</span></button>${ILL[i+1]}${stepBody(i,s)}</div></li>`).join('')}</ol>`;
+}
+function stepperTiles(){
+  const i=S.step-1, s=C.steps[i];
+  return `<ol style="display:contents" data-testid="public.explainer.preview">`+C.steps.map((st,j)=>`<li class="tile t-step" ${S.step===j+1?'aria-current="step"':''} data-testid="public.landing.journey.step.${j+1}"><button class="step-h" aria-expanded="${S.step===j+1}" onclick="goStep(${j+1})"><span class="step-n" aria-hidden="true">${j+1}</span><span class="step-t">${st.t}</span><span class="chip ${S.step===j+1?'chip-accent':''}">${st.d}</span></button></li>`).join('')+`</ol>`+
+  `<div class="tile t-stepdetail" aria-live="polite"><div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start"><div><p class="t-h">Schritt ${S.step}: ${s.t}</p><p class="muted" style="margin:.4rem 0 .6rem">${s.x}</p><ul style="padding-left:1.1rem;list-style:disc;display:grid;gap:.25rem">${s.pts.map(p=>`<li>${p}</li>`).join('')}</ul>
+    <div class="step-nav" style="justify-content:flex-start"><button class="btn btn-line btn-sm" ${i===0?'disabled':''} onclick="goStep(${i})" data-testid="public.landing.journey.prev">Zurück</button>${i<3?`<button class="btn btn-solid btn-sm" onclick="goStep(${i+2})" data-testid="public.landing.journey.next">Weiter</button>`:`<a class="btn btn-solid btn-sm" href="#" data-testid="public.landing.journey.join">${C.join}</a>`}</div></div>${ILL[S.step]}</div></div>`;
+}
+
+/* ---- shared sections ---- */
+function missionBlock(){return `<section class="sec" data-testid="public.landing.mission" aria-labelledby="m-t"><div class="wrap"><h2 class="sec-title" id="m-t">${C.mission.title}</h2><p class="sec-lead">${C.mission.text}</p>
+  <div class="grid3" style="margin-top:1.6rem">${C.ways.map((w,i)=>`<article class="card" data-testid="public.landing.way.${['member','home','business'][i]}"><div class="icon-tile">${I[w.ic]}</div><h3 class="h3">${w.t}</h3><p class="muted">${w.x}</p></article>`).join('')}</div></div></section>`;}
+function benefits(){return `<ul class="benefits">${C.biz.benefits.map((b,i)=>`<li class="benefit" data-testid="public.landing.business.benefit.${['free','cost','staff','accept','reliable','liability','image'][i]}">${I[b.ic]}<div><b>${b.t}</b><span>${b.x}</span></div></li>`).join('')}</ul>`;}
+function bizCta(){return `<a class="btn btn-solid btn-lg" href="#/support?from=/&subject=partner" data-testid="public.landing.business.cta">${I.store}<span>${C.biz.cta}</span></a>`;}
+function bizQuote(){return `<blockquote class="quote optional" data-testid="public.landing.business.quote"><p>${C.biz.quote}</p><footer>${C.biz.quoteBy}<span class="opt-tag">optional</span></footer></blockquote>`;}
+function businessBlock(){return `<section class="sec" data-testid="public.explainer.business" aria-labelledby="b-t"><div class="wrap"><span class="eyebrow">Für Betriebe</span><h2 class="sec-title" id="b-t" style="margin-top:.8rem">${C.biz.title}</h2><p class="sec-lead">${C.biz.lead}</p>
+  <div class="grid2" style="margin-top:1.6rem;align-items:start"><div class="card">${benefits()}<div style="margin-top:1.2rem">${bizCta()}</div></div>${bizQuote()}</div></div></section>`;}
+function fspBlock(){return `<section class="sec optional" data-testid="public.landing.fairteiler" aria-labelledby="f-t"><div class="wrap"><div class="card" style="display:grid;gap:1rem;grid-template-columns:auto 1fr;align-items:start"><div class="icon-tile" style="width:3.5rem;height:3.5rem;background:var(--fs-accent);color:#1a2a20">${I.fridge}</div><div><h2 class="sec-title" id="f-t" style="font-size:1.5rem">${C.fsp.title}<span class="opt-tag">optional</span></h2><p class="muted" style="margin-top:.5rem">${C.fsp.text}</p><ul style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem">${C.fsp.rules.map(r=>`<li class="chip">${I.check} ${r}</li>`).join('')}</ul></div></div></div></section>`;}
+function waysBlock(){return `<section class="sec optional" data-testid="public.landing.moreWays" aria-labelledby="w-t"><div class="wrap"><h2 class="sec-title" id="w-t">${C.ways2.title}<span class="opt-tag">optional</span></h2><p class="sec-lead">foodsharing ist ehrenamtlich, unabhängig, werbefrei und open source. Es gibt mehr als einen Weg, dabei zu sein.</p>
+  <div class="grid3" style="margin-top:1.4rem">${C.ways2.items.map((w,i)=>`<article class="card" data-testid="public.landing.moreWays.${['basket','donate','it'][i]}"><div class="icon-tile">${I[w.ic]}</div><h3 class="h3">${w.t}</h3><p class="muted">${w.x}</p></article>`).join('')}</div></div></section>`;}
+function storiesBlock(){return `<section class="sec optional" data-testid="public.landing.stories" aria-labelledby="s-t"><div class="wrap"><h2 class="sec-title" id="s-t">${C.stories.title}<span class="opt-tag">optional</span></h2><div class="grid2" style="margin-top:1.2rem">${C.stories.items.map(s=>`<blockquote class="quote"><p>«${s.q}»</p><footer>${s.by}</footer></blockquote>`).join('')}</div></div></section>`;}
+function faqBlock(){return `<section class="sec" data-testid="public.explainer.faq" aria-labelledby="q-t"><div class="wrap"><h2 class="sec-title" id="q-t">${C.faqTitle}</h2><div class="faq" style="margin-top:1.2rem;max-width:48rem">${C.faq.map(f=>`<details data-testid="public.explainer.faq.${f.id}"><summary>${f.q}</summary><p>${f.a}</p></details>`).join('')}</div></div></section>`;}
+function sticky(){return `<div class="sticky" data-testid="public.landing.stickyJoin"><a class="btn btn-solid" href="#">${I.mail}<span>${C.join}</span></a></div>`;}
+
+/* ============ Variant A: Karte zuerst ============ */
+function pageA(){
+  return `<div class="A">${header()}
+  <section class="hero-map" data-testid="public.landing.hero">
+    ${S.data==='ok'?`<div class="map" id="map" data-testid="public.landing.map" data-active role="region" aria-label="Karte: Bezirke und Fairteiler">${LAND}<div id="pins"></div>
+      <div class="map-ctl"><button aria-label="Vergrössern" onclick="zoomBy(1)">+</button><button aria-label="Verkleinern" onclick="zoomBy(-1)">−</button><button aria-label="Ganze Karte" onclick="zoomTo(null)">⌂</button></div>
+      <div class="legend" aria-hidden="true"><span><i class="lr"></i>Bezirk</span><span><i class="lf"></i>Fairteiler</span></div><div id="popup"></div></div>`
+    :`<div class="map" style="display:grid;place-items:center;padding:1rem">${stateBox(S.data,'map','public.landing.map.state')}</div>`}
+    <div class="hero-card">
+      <span class="eyebrow">${C.eyebrow}</span>
+      <h1>Rette Lebensmittel. Direkt bei dir um die Ecke.</h1>
+      <p class="lead">Du holst ab, was Läden und Bäckereien sonst wegwerfen, und teilst es in deiner Nachbarschaft. Kostenlos, ehrenamtlich, mit vielen anderen.</p>
+      ${mapSearch('pcA')}
+      ${ctaButtons()}
+    </div>
+  </section>
+  <div class="wrap" style="margin-top:1rem"><div style="display:flex;justify-content:flex-end"><button class="btn btn-line btn-sm" aria-pressed="${S.list}" onclick="S.list=!S.list;render()" data-testid="public.landing.map.listToggle">${S.list?'Liste ausblenden':'Karte als Liste'}</button></div>
+    <div class="map-list" data-testid="public.landing.map.list" ${S.list?'':'hidden'}><ul>${REGIONS.map(r=>`<li><i class="lr"></i><span><b>${r.n}</b> · ${r.stores} Kooperationen · ${fmt(r.members)} Mitglieder</span><a class="link" href="#/r/${r.slug}">Bezirksseite</a></li>`).join('')}${FSPS.map(f=>`<li><i class="lf"></i><span><b>${f.n}</b> · ${f.loc}</span></li>`).join('')}</ul></div></div>
+  ${missionBlock()}
+  <section class="sec" style="padding-top:0" aria-labelledby="i-t" data-testid="public.explainer.counters.section"><div class="wrap"><h2 class="vh" id="i-t">${C.impactTitle}</h2>${S.data==='ok'?`<div class="counters-strip" data-testid="public.explainer.counters">${C.counters.map(c=>`<div><div class="num cu" data-value="${c.v}" data-testid="public.explainer.counter.${c.k}">0</div><div class="lbl">${c.l}</div></div>`).join('')}</div>`:stateBox(S.data,'counters','public.explainer.state')}</div></section>
+  <section class="sec" data-testid="public.explainer.journey" aria-labelledby="j-t"><div class="wrap"><h2 class="sec-title" id="j-t">${C.stepsTitle}</h2><p class="sec-lead">${C.stepsLead}</p><div style="margin-top:1.4rem">${stepperAccordion('steps hsteps')}</div></div></section>
+  ${fspBlock()}
+  ${businessBlock()}
+  ${storiesBlock()}
+  ${waysBlock()}
+  ${faqBlock()}
+  <section class="sec" style="padding-top:0"><div class="wrap"><div class="cta-band"><h2 class="sec-title">Bereit? Dein Bezirk wartet.</h2><p class="muted">Konto in zwei Minuten, der Rest Schritt für Schritt.</p>${ctaButtons()}</div></div></section>
+  ${footer()}${sticky()}</div>`;
+}
+
+/* ============ Variant B: Scroll-Reise ============ */
+function pageB(){
+  const chapter=(n,t,lead,body,extra='')=>`<section class="chapter" ${extra}><div class="wrap"><div class="chapter-h"><span class="chapter-n" aria-hidden="true">${n}</span><h2>${t}</h2>${lead?`<p>${lead}</p>`:''}</div>${body}</div></section>`;
+  return `<div class="B">${header()}
+  <section class="hero" data-testid="public.landing.hero"><div class="wrap">
+    <span class="eyebrow">${C.eyebrow}</span>
+    <h1 style="margin-top:1rem">Zu gut für die Tonne. <em>Zu gut, um es allein zu essen.</em></h1>
+    <p class="lead">Jeden Abend bleibt in deiner Strasse Brot übrig, Gemüse, Joghurt. Mit foodsharing holst du es ab, bevor es weggeworfen wird – und teilst es mit Leuten, die es brauchen können. Kein Geld, keine Pflicht. Nur du, ein Rucksack und eine Nachbarschaft, die mitmacht.</p>
+    ${ctaButtons()}
+    ${mapSearch('pcB')}
+  </div></section>
+  ${chapter('01','Das Problem ist gross. Die Lösung fängt bei dir an.','Ein Drittel aller Lebensmittel wird nie gegessen. Nicht wegen eines einzelnen Fehlers – sondern weil niemand da ist, der sie rechtzeitig abholt.',
+    `<div class="bignum" data-testid="public.explainer.counters.section"><h3 class="vh">${C.impactTitle}</h3>${S.data==='ok'?`<span class="num cu" data-value="${C.counters[0].v}" data-testid="public.explainer.counter.kgSaved">0</span><span class="muted" style="font-size:1.1rem">kg Lebensmittel haben Foodsaver:innen bei uns schon gerettet.</span>`:stateBox(S.data,'counters','public.explainer.state')}</div>
+     ${S.data==='ok'?`<ul class="counters" data-testid="public.explainer.counters" style="margin-top:1rem">${C.counters.slice(1).map(c=>`<li class="counter"><span class="num cu" data-value="${c.v}" data-testid="public.explainer.counter.${c.k}">0</span><span class="lbl">${c.l}</span></li>`).join('')}</ul>`:''}`)}
+  ${chapter('02','Die Idee: teilen statt wegwerfen.',C.mission.text,
+    `<div class="ways" data-testid="public.landing.mission">${C.ways.map((w,i)=>`<article class="way" data-testid="public.landing.way.${['member','home','business'][i]}"><div class="icon-tile">${I[w.ic]}</div><h3 class="h3">${w.t}</h3><p class="muted">${w.x}</p></article>`).join('')}</div>`)}
+  ${chapter('03',C.stepsTitle,C.stepsLead,stepperTimeline()+`<div style="margin-top:.5rem">${ctaButtons()}</div>`,'data-testid="public.explainer.journey"')}
+  <section class="chapter optional" style="padding-block:2rem" data-testid="public.landing.stories"><div class="wrap"><blockquote class="story"><p>«${C.stories.items[0].q}»</p><footer>${C.stories.items[0].by}<span class="opt-tag">optional</span></footer></blockquote></div></section>
+  ${chapter('04',C.map.title,C.map.lead,mapBlock(true))}
+  ${fspBlock()}
+  ${chapter('05',C.biz.title,C.biz.lead,`<div class="grid2" style="align-items:start"><div>${benefits()}<div style="margin-top:1.4rem">${bizCta()}</div></div>${bizQuote()}</div>`,'data-testid="public.explainer.business"')}
+  ${waysBlock()}
+  ${chapter('06',C.faqTitle,'',`<div class="faq" style="max-width:48rem" data-testid="public.explainer.faq">${C.faq.map(f=>`<details data-testid="public.explainer.faq.${f.id}"><summary>${f.q}</summary><p>${f.a}</p></details>`).join('')}</div>`)}
+  <section class="sec" style="padding-top:0"><div class="wrap"><div class="join-band"><h2>Fang heute an. Dein Bezirk wartet.</h2><p>Konto in zwei Minuten – der Rest Schritt für Schritt, in deinem Tempo.</p><div class="hero-actions"><a class="btn btn-lg btn-solid" href="#">${I.mail}<span>${C.join}</span></a></div></div></div></section>
+  ${footer()}${sticky()}</div>`;
+}
+
+/* ============ Variant C: Bento ============ */
+function pageC(){
+  const stat=(c,alt)=>S.data==='ok'?`<div class="tile t-stat ${alt?'alt':''}"><span class="num cu" data-value="${c.v}" data-testid="public.explainer.counter.${c.k}">0</span><span class="lbl">${c.l}</span></div>`:'';
+  return `<div class="C">${header()}
+  <main class="wrap"><div class="bento">
+    <section class="tile t-title" data-testid="public.landing.hero"><span class="eyebrow">${C.eyebrow}</span><h1>Rette Lebensmittel.<br>Direkt bei dir um die Ecke.</h1><p class="lead">Du holst ab, was Läden sonst wegwerfen, und teilst es in deiner Nachbarschaft. Kostenlos, ehrenamtlich, mit vielen anderen.</p><p class="login-line" style="margin-top:auto">${C.haveAccount} <a class="link" href="#" data-testid="public.landing.login">${C.login}</a></p></section>
+    <section class="tile t-cta"><h2>Konto in 2 Minuten.</h2><p>E-Mail-Link, Google oder Passkey. Kein Passwort.</p><div style="display:grid;gap:.5rem;margin-top:auto"><a class="btn btn-lg btn-solid" href="#" data-testid="public.landing.joinEmail">${I.mail}<span>${C.join}</span></a><a class="btn btn-line" href="#" data-testid="public.landing.joinGoogle">${I.google}<span>${C.joinGoogle}</span></a></div></section>
+    <section class="tile t-map" aria-labelledby="c-map">${S.data==='ok'?`<h2 class="vh" id="c-map">${C.map.title}</h2><div class="map" id="map" data-testid="public.landing.map" ${S.mapActive?'data-active':''} role="region" aria-label="Karte: Bezirke und Fairteiler">${LAND}<div id="pins"></div><div class="map-ctl"><button aria-label="Vergrössern" onclick="zoomBy(1)">+</button><button aria-label="Verkleinern" onclick="zoomBy(-1)">−</button><button aria-label="Ganze Karte" onclick="zoomTo(null)">⌂</button></div><div class="legend" aria-hidden="true"><span><i class="lr"></i>Bezirk</span><span><i class="lf"></i>Fairteiler</span></div><div class="map-activate"><button class="btn btn-solid" onclick="S.mapActive=true;render()">${I.pin}<span>${C.map.activate}</span></button></div><div id="popup"></div></div>`:`<div style="padding:1.4rem">${stateBox(S.data,'map','public.landing.map.state')}</div>`}</section>
+    <section class="tile t-search"><h2 class="t-h">${C.map.title}</h2><p class="muted" style="font-size:.95rem">${C.map.lead}</p>${mapSearch('pcC')}<button class="btn btn-line btn-sm" style="justify-self:start" aria-pressed="${S.list}" onclick="S.list=!S.list;render()" data-testid="public.landing.map.listToggle">${S.list?'Liste ausblenden':C.map.list}</button></section>
+    ${stat(C.counters[0],true)}${stat(C.counters[1],false)}
+    ${S.data!=='ok'?`<div class="tile" style="grid-column:span 5">${stateBox(S.data,'counters','public.explainer.state')}</div>`:''}
+    ${S.list?`<section class="tile" style="grid-column:span 12"><div class="map-list" data-testid="public.landing.map.list" style="margin:0"><ul>${REGIONS.map(r=>`<li><i class="lr"></i><span><b>${r.n}</b> · ${r.stores} Kooperationen · ${fmt(r.members)} Mitglieder</span><a class="link" href="#/r/${r.slug}">Bezirksseite</a></li>`).join('')}${FSPS.map(f=>`<li><i class="lf"></i><span><b>${f.n}</b> · ${f.loc}</span></li>`).join('')}</ul></div></section>`:''}
+    <section class="tile t-mission" data-testid="public.landing.mission"><h2 class="t-h">${C.mission.title}</h2><p class="muted" style="max-width:60rem">${C.mission.text}</p><div class="grid3" style="margin-top:.8rem">${C.ways.map((w,i)=>`<article data-testid="public.landing.way.${['member','home','business'][i]}" style="display:grid;gap:.3rem;padding:1rem;border-radius:var(--fs-radius-lg);background:var(--fs-surface-muted)"><div class="icon-tile" style="margin:0">${I[w.ic]}</div><h3 class="h3" style="margin-top:.4rem">${w.t}</h3><p class="muted" style="font-size:.93rem">${w.x}</p></article>`).join('')}</div></section>
+    ${S.data==='ok'?`<div class="tile" style="grid-column:span 12;background:var(--fs-primary-soft);border:0"><h2 class="t-h">${C.impactTitle}</h2><div class="counters" data-testid="public.explainer.counters" style="margin-top:.4rem">${C.counters.slice(2).map(c=>`<div class="counter" style="background:var(--fs-surface)"><span class="num cu" data-value="${c.v}" data-testid="public.explainer.counter.${c.k}">0</span><span class="lbl">${c.l}</span></div>`).join('')}<div class="counter" style="background:var(--fs-surface);align-content:center"><span class="muted" style="font-size:.9rem">ehrenamtlich · werbefrei · open source · seit 2012</span></div></div></div>`:''}
+    <div class="tile" style="grid-column:span 12;background:none;border:0;box-shadow:none;padding:0 0 .2rem" data-testid="public.explainer.journey"><h2 class="t-h">${C.stepsTitle}</h2><p class="muted">${C.stepsLead}</p></div>
+    ${stepperTiles()}
+    <section class="tile t-business" data-testid="public.explainer.business"><span class="chip chip-accent" style="justify-self:start">Für Betriebe</span><h2 class="t-h">${C.biz.title}</h2><p class="muted" style="font-size:.95rem">${C.biz.lead}</p>${benefits()}<div style="margin-top:.6rem">${bizCta()}</div></section>
+    <section class="tile t-quote optional" data-testid="public.landing.business.quote"><p style="font-size:1.15rem;font-weight:650;letter-spacing:-.01em;line-height:1.35">${C.biz.quote}</p><p style="margin-top:auto;font-size:.9rem">${C.biz.quoteBy}<span class="opt-tag" style="border-color:currentColor;color:inherit">optional</span></p></section>
+    <section class="tile t-fsp optional" data-testid="public.landing.fairteiler"><div class="icon-tile" style="background:var(--fs-accent);color:#1a2a20">${I.fridge}</div><h2 class="t-h">${C.fsp.title}<span class="opt-tag">optional</span></h2><p class="muted" style="font-size:.95rem">${C.fsp.text}</p><div class="chips">${C.fsp.rules.map(r=>`<span class="chip">${I.check} ${r}</span>`).join('')}</div></section>
+    <section class="tile t-ways optional" data-testid="public.landing.moreWays"><h2 class="t-h">${C.ways2.title}<span class="opt-tag">optional</span></h2>${C.ways2.items.map((w,i)=>`<div class="benefit" data-testid="public.landing.moreWays.${['basket','donate','it'][i]}">${I[w.ic]}<div><b>${w.t}</b><span>${w.x}</span></div></div>`).join('')}</section>
+    <section class="tile t-faq" data-testid="public.explainer.faq"><h2 class="t-h">${C.faqTitle}</h2><div class="faq" style="display:grid;gap:.5rem;margin-top:.4rem">${C.faq.map(f=>`<details data-testid="public.explainer.faq.${f.id}"><summary>${f.q}</summary><p>${f.a}</p></details>`).join('')}</div></section>
+  </div></main>
+  ${footer()}${sticky()}</div>`;
+}
+
+/* ============ Variant D: today's hero + bubbles ============ */
+const BIZ_D={
+  title:'Für Betriebe: Partner werden',
+  lead:'Wir holen ab, was du nicht mehr verkaufen kannst. Du stellst es bereit – alles andere übernehmen geprüfte Foodsaver:innen aus deiner Nähe.',
+  cta:'Partner werden', tag:'Aufkleber für die Tür inklusive',
+  benefits:[
+    {id:'free',ic:'heart',t:'Kostenlos',x:'Keine Gebühren, kein Vertrag mit Laufzeit. Nichts wird weiterverkauft – die Lebensmittel werden verschenkt.'},
+    {id:'cost',ic:'trash',t:'Weniger Entsorgungskosten',x:'Weniger im Container, weniger Leerungen, weniger Gebühren.'},
+    {id:'staff',ic:'users',t:'Kein Mehraufwand für dein Team',x:'Foodsaver:innen sortieren, packen und tragen selbst weg.'},
+    {id:'accept',ic:'basket',t:'Wir nehmen fast alles',x:'Abgelaufenes MHD, Milchprodukte, Brot vom Vortag, beschädigte Verpackungen.'},
+    {id:'reliable',ic:'clock',t:'Zuverlässig – auch am Wochenende',x:'Feste Abholzeiten, früh oder spät, samstags und sonntags. Fällt jemand aus, springt das Team ein.'},
+    {id:'liability',ic:'shield',t:'Haftungsfreistellung',x:'Jede Foodsaver:in unterschreibt sie in unserer Rechtsvereinbarung – vor der ersten Abholung.'}
+  ]
+};
+/* bubble illustration (aria-hidden): blob a + blob b + floating example cards */
+function bubble(kind,small=false){
+  const cards={
+    hero:`<div class="fc fc-main"><span class="ex">Beispiel</span>${I.bag}<strong>Abholung Bäckerei</strong><span>Heute, 18:30 · 2 Plätze frei</span></div><div class="fc fc-side">${I.heart}<span>12 kg gerettet</span></div>`,
+    mission:`<div class="fc fc-main"><span class="ex">Beispiel</span>${I.store}<strong>Bäckerei an der Ecke</strong><span>4 Brote, 2 kg Gemüse, 6 Joghurts</span></div><div class="fc fc-side">${I.users}<span>geteilt mit 3 Nachbar:innen</span></div>`,
+    fsp:`<div class="fc fc-main"><span class="ex">Beispiel</span>${I.fridge}<strong>Fairteiler Wiedikon</strong><span>Offen für alle · kein Konto nötig</span></div><div class="fc fc-side">${I.basket}<span>Heute drin: Brot, Äpfel, Salat</span></div>`,
+    district:`<div class="fc fc-main"><span class="ex">Beispiel</span>${I.pin}<strong>Zürich Stadt</strong><span>38 Kooperationen · 1 240 Mitglieder</span></div><div class="fc fc-side">${I.cal}<span>Nächste Einführung: Di, 18:00</span></div>`,
+    business:`<div class="fc fc-main"><span class="ex">Beispiel</span>${I.truck}<strong>Abholung Mo–Sa, 18:30</strong><span>Dein Team: nur bereitstellen</span></div><div class="fc fc-side">${I.shield}<span>Haftungsfreistellung unterschrieben</span></div>`,
+    ways:`<div class="fc fc-main"><span class="ex">Beispiel</span>${I.basket}<strong>Essenskorb: Lasagne, 4 Portionen</strong><span>Abholung heute Abend, Kreis 4</span></div><div class="fc fc-side">${I.code}<span>open source · werbefrei</span></div>`
+  };
+  return `<div class="bub ${small?'bub-sm':''}" aria-hidden="true"><div class="blob blob-a"></div><div class="blob blob-b"></div>${cards[kind]}</div>`;
+}
+function stepperHorizontal(){
+  const node=(st,i)=>`<li class="js ${i===3?'last':''}" data-testid="public.landing.journey.step.${i+1}"><div class="step-h"><span class="step-n" aria-hidden="true">${i+1}</span><span class="jt">${st.t}</span><span class="jx">${st.x}</span><span class="chip">${st.d}</span></div></li>`;
+  return `<ol class="jp" data-testid="public.explainer.preview">
+    <li class="ph ph-online">Online</li><li class="ph ph-onsite">Vor Ort</li><li class="ph ph-in">Dabei</li>
+    ${C.steps.map(node).join('')}
+    <li class="end"><span class="step-n" aria-hidden="true">${I.bag}</span><span>Du holst selbst ab</span></li></ol>
+    `;
+}
+function nearYou(){
+  const r=S.near;
+  const result=r?`<div class="rcard" data-testid="public.landing.near.result" aria-live="polite"><span class="kind muted" style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Dein Bezirk</span><h3 class="h3" style="font-size:1.25rem">${r.n}</h3>
+      <div class="facts"><span><b>${r.stores}</b> aktive Kooperationen</span><span><b>${fmt(r.members)}</b> Mitglieder</span></div>
+      ${(()=>{const f=FSPS.filter(f=>Math.hypot(f.x-r.x,f.y-r.y)<8).slice(0,2);return f.length?`<p style="font-size:.95rem">${I.fridge} Fairteiler in der Nähe: ${f.map(f=>f.n.replace('Fairteiler ','')).join(', ')}</p>`:`<p class="muted" style="font-size:.95rem">${I.fridge} Noch kein Fairteiler in der Nähe.</p>`})()}
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem"><a class="btn btn-solid btn-sm" href="#/r/${r.slug}" data-testid="public.landing.near.regionLink">Zur Bezirksseite</a><a class="btn btn-line btn-sm" href="#/map" data-testid="public.landing.near.openMap">${I.pin}<span>Karte öffnen</span></a></div></div>`
+    :`<div class="rcard" style="background:var(--fs-surface-muted);border-style:dashed;box-shadow:none"><p class="muted" style="font-size:.95rem">Gib deine Postleitzahl ein. Du siehst, wie viele Betriebe und Mitglieder dein Bezirk hat und wo der nächste Fairteiler steht.</p></div>`;
+  const search=`<form class="map-search" onsubmit="return searchD(event)" role="search" style="margin:0 0 1rem">
+    <label class="field-label" for="pcD">${C.map.search}</label>
+    <div class="field"><input id="pcD" name="pc" inputmode="numeric" placeholder="${C.map.ph}" autocomplete="postal-code" data-testid="public.landing.near.search" aria-describedby="pcD-hint" value="${S.nearPc||''}"><button class="btn btn-solid" type="submit" data-testid="public.landing.near.search.submit">${I.search}<span>${C.map.submit}</span></button></div>
+    <p class="map-hint" id="pcD-hint" aria-live="polite" data-hint>${S.nearHint||''}</p></form>`;
+  const previewStatic=`<div class="preview" data-testid="public.landing.near.preview" role="img" aria-label="Schematische Karte: Bezirke und Fairteiler in der Schweiz, Deutschland und Österreich">${LAND}
+      <div class="pins" aria-hidden="true">${REGIONS.map(x=>{const p={l:(x.x-OVERVIEW.x)/OVERVIEW.w*100,t:(x.y-OVERVIEW.y)/OVERVIEW.h*100};return `<span class="pin pin-region" style="left:${p.l}%;top:${p.t}%"><span class="glyph">${I.users}</span></span>`}).join('')}
+      ${[0,7,9,10,11].map(i=>FSPS[i]).filter(Boolean).map(x=>{const p={l:(x.x-OVERVIEW.x)/OVERVIEW.w*100,t:(x.y-OVERVIEW.y)/OVERVIEW.h*100};return `<span class="pin pin-fsp" style="left:${p.l}%;top:${p.t}%"><span class="glyph">${I.fridge}</span></span>`}).join('')}</div>
+      <div class="over"><div><p>${REGIONS.length} Bezirke · ${FSPS.length} Fairteiler. Die echte Karte lädt erst auf der Kartenseite.</p><a class="btn btn-solid" href="#/map" data-testid="public.landing.near.openMap">${I.pin}<span>Karte öffnen</span></a></div></div></div>`;
+  const previewLoad=S.mapLoaded
+    ?`<div class="map" id="map" data-testid="public.landing.map" data-active role="region" aria-label="Karte: Bezirke und Fairteiler" style="height:22rem;min-height:0">${LAND}<div id="pins"></div><div class="map-ctl"><button aria-label="Vergrössern" onclick="zoomBy(1)">+</button><button aria-label="Verkleinern" onclick="zoomBy(-1)">−</button><button aria-label="Ganze Karte" onclick="zoomTo(null)">⌂</button></div><div class="legend" aria-hidden="true"><span><i class="lr"></i>Bezirk</span><span><i class="lf"></i>Fairteiler</span></div><div id="popup"></div></div><p class="muted" style="font-size:.8rem;margin-top:.4rem">Im Mockup steht die Skizze für die echten Kacheln; in der Umsetzung lädt hier die MapView erst nach dem Klick.</p>`
+    :`<div class="loadph" data-testid="public.landing.map.load">${I.pin}<b>Karte laden</b><p>Die Karte holt Kartenbilder von einem externen Anbieter. Sie wird erst geladen, wenn du es möchtest.</p><button class="btn btn-solid" onclick="S.mapLoaded=true;render()">Karte laden</button></div>`;
+  return `<div class="opt-tabs" role="group" aria-label="Mockup: Kartenoption"><button aria-pressed="${S.mapOpt==='static'}" onclick="S.mapOpt='static';render()">Option 1: statische Vorschau (empfohlen)</button><button aria-pressed="${S.mapOpt==='load'}" onclick="S.mapOpt='load';render()">Option 2: Karte laden</button></div>
+    <div class="near"><div>${search}${S.data!=='ok'&&r?stateBox(S.data,'counters','public.landing.near.state').replace('Die Zahlen konnten','Dein Bezirk konnte').replace('Die Zahlen kommen','Dein Bezirk kommt'):result}</div><div>${S.mapOpt==='static'?previewStatic:(S.data!=='ok'&&S.mapLoaded?stateBox(S.data,'map','public.landing.map.state'):previewLoad)}</div></div>`;
+}
+function searchD(e){e.preventDefault(); const pc=e.target.pc.value.trim(); S.nearPc=pc;
+  if(!/^\d{4,5}$/.test(pc)){S.nearHint='Bitte eine Postleitzahl mit 4 oder 5 Ziffern.';S.near=null;render();return false;}
+  const r=pcMatch(pc); S.near=r||null; S.nearHint=r?'':'Noch kein Bezirk in deiner Nähe – gründe einen, wir helfen dir dabei.';
+  render(); if(r&&S.mapLoaded&&$('#map')) zoomTo({x:r.x,y:r.y,w:40}); const el=$('[data-testid="public.landing.near.result"]'); el&&el.scrollIntoView({behavior:'smooth',block:'nearest'}); return false;}
+function pageD(){
+  return `<div class="D">${header()}<main class="wrap">
+  <section class="hero" data-testid="public.landing.hero">
+    <div><span class="eyebrow">${C.eyebrow}</span><h1>Retten statt wegwerfen.</h1>
+      <p class="lead">Du holst bei Bäckereien, Läden und Restaurants in deiner Nähe ab, was sonst in der Tonne landet – und teilst es mit Menschen um dich herum. Freiwillig, kostenlos, gemeinsam mit vielen anderen.</p>
+      <div class="hero-actions"><a class="btn btn-lg btn-line" href="#" data-testid="public.landing.joinGoogle">${I.google}<span>${C.joinGoogle}</span></a><a class="btn btn-lg btn-solid" href="#" data-testid="public.landing.joinEmail">${I.mail}<span>Mit E-Mail mitmachen</span></a></div>
+      <p class="login-line">${C.haveAccount} <a class="link" href="#" data-testid="public.landing.login">${C.login}</a></p></div>
+    ${bubble('hero')}
+  </section>
+  <section class="sec" data-testid="public.landing.mission" aria-labelledby="d-m"><div class="split flip"><div><h2 class="sec-title" id="d-m">${C.mission.title}</h2><p class="sec-lead">${C.mission.text}</p>
+      <ul style="display:grid;gap:.7rem;margin-top:1.2rem">${C.ways.map((w,i)=>`<li class="benefit" data-testid="public.landing.way.${['member','home','business'][i]}">${I[w.ic]}<div><b>${w.t}</b><span>${w.x}</span></div></li>`).join('')}</ul></div>${bubble('mission',true)}</div></section>
+  <section class="sec" style="padding-top:0" aria-labelledby="d-i" data-testid="public.explainer.counters.section"><h2 class="vh" id="d-i">${C.impactTitle}</h2>${S.data==='ok'?`<div class="strip" data-testid="public.explainer.counters">${C.counters.map(c=>`<div><div class="num cu" data-value="${c.v}" data-testid="public.explainer.counter.${c.k}">0</div><div class="lbl">${c.l}</div></div>`).join('')}</div>`:stateBox(S.data,'counters','public.explainer.state')}</section>
+  <section class="sec" style="padding-top:0" data-testid="public.explainer.journey" aria-labelledby="d-j"><h2 class="sec-title" id="d-j">Der Start dauert nur 2 Minuten.</h2><p class="sec-lead">Vier Schritte. Die ersten drei online, wann du willst – dann geht es mit erfahrenen Foodsaver:innen nach draussen.</p>${stepperHorizontal()}</section>
+  <section class="sec" style="padding-top:0" data-testid="public.landing.near" aria-labelledby="d-n"><h2 class="sec-title" id="d-n">${C.map.title}</h2><p class="sec-lead">${C.map.lead}</p><div style="margin-top:1.2rem">${nearYou()}</div></section>
+  <section class="sec optional" style="padding-top:0" data-testid="public.landing.fairteiler" aria-labelledby="d-f"><div class="split">${bubble('fsp',true)}<div><h2 class="sec-title" id="d-f">${C.fsp.title}<span class="opt-tag">optional</span></h2><p class="sec-lead">${C.fsp.text}</p><ul style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.9rem">${C.fsp.rules.map(r=>`<li class="chip">${I.check} ${r}</li>`).join('')}</ul></div></div></section>
+  <section class="sec" style="padding-top:0" data-testid="public.explainer.business" aria-labelledby="d-b"><div class="bizcard"><div class="card"><span class="eyebrow">Für Betriebe</span><h2 class="sec-title" id="d-b" style="font-size:1.6rem">${BIZ_D.title}</h2><p class="muted">${BIZ_D.lead}</p><div>${`<a class="btn btn-solid btn-lg" href="#/support?from=/&subject=partner" data-testid="public.landing.business.cta">${I.store}<span>${BIZ_D.cta}</span></a>`}</div>
+      <ul class="benefits">${BIZ_D.benefits.map(b=>`<li class="benefit" data-testid="public.landing.business.benefit.${b.id}">${I[b.ic]}<div><b>${b.t}</b><span>${b.x}</span></div></li>`).join('')}</ul><p class="muted" style="font-size:.85rem">${I.leaf} ${BIZ_D.tag}</p></div>
+    <div class="bizpanel">${bubble('business',true)}<blockquote class="optional" data-testid="public.landing.business.quote" style="margin-top:.5rem;font-size:.98rem"><p>${C.biz.quote}</p><footer class="muted" style="font-size:.85rem;margin-top:.4rem">${C.biz.quoteBy}<span class="opt-tag">optional</span></footer></blockquote></div></div></section>
+  <section class="sec optional" style="padding-top:0" data-testid="public.landing.moreWays" aria-labelledby="d-w"><div class="split flip"><div><h2 class="sec-title" id="d-w">${C.ways2.title}<span class="opt-tag">optional</span></h2><p class="sec-lead">foodsharing ist ehrenamtlich, unabhängig, werbefrei und open source. Es gibt mehr als einen Weg, dabei zu sein.</p><ul style="display:grid;gap:.7rem;margin-top:1.2rem">${C.ways2.items.map((w,i)=>`<li class="benefit" data-testid="public.landing.moreWays.${['basket','donate','it'][i]}">${I[w.ic]}<div><b>${w.t}</b><span>${w.x}</span></div></li>`).join('')}</ul></div>${bubble('ways',true)}</div></section>
+  <section class="sec" style="padding-top:0" data-testid="public.landing.duties" aria-labelledby="d-du"><h2 class="sec-title" id="d-du">${C.duties.title}</h2><p class="sec-lead">${C.duties.lead}</p>
+    <div class="duties" style="margin-top:1.4rem"><div class="duty-card"><h3>Das versprichst du</h3><ul>${C.duties.yes.map(d=>`<li class="benefit" data-testid="public.landing.duties.${d.id}">${I[d.ic]}<div><b>${d.t}</b><span>${d.x}</span></div></li>`).join('')}</ul>
+      <p class="duty-foot">${I.book} <a href="https://wiki.foodsharing.network/wiki/Verhaltensregeln" data-testid="public.landing.duties.rules">${C.duties.rulesLink}</a></p></div>
+      <div class="duty-card soft"><h3>Das musst du nicht</h3><ul>${C.duties.no.map(d=>`<li class="benefit" data-testid="public.landing.duties.not.${d.id}">${I.check}<div><b>${d.t}</b><span>${d.x}</span></div></li>`).join('')}</ul></div></div></section>
+  <section class="sec" style="padding-top:0" data-testid="public.explainer.faq" aria-labelledby="d-q"><h2 class="sec-title" id="d-q">${C.faqTitle}</h2>
+    <div class="faq-groups">${C.faqGroups.map(g=>`<div class="faq-group" data-testid="public.explainer.faq.group.${g.id}"><h3 id="fq-${g.id}">${g.t}</h3><div class="faq" role="list" aria-labelledby="fq-${g.id}">${g.items.map(f=>`<details role="listitem" data-testid="public.explainer.faq.${f.id}"><summary>${f.q}</summary><p>${f.a}</p></details>`).join('')}</div></div>`).join('')}</div>
+    <p class="faq-more muted">Noch etwas offen? <a href="https://wiki.foodsharing.network/wiki/Foodsharer" data-testid="public.explainer.faq.wiki">Im Wiki nachlesen</a> oder <a href="#/support" data-testid="public.explainer.faq.support">uns schreiben</a>.</p></section>
+  <section class="sec" style="padding-top:0"><div class="cta-band"><h2 class="sec-title">Bereit? Dein Bezirk wartet.</h2><p class="muted">Konto in zwei Minuten, der Rest Schritt für Schritt.</p><div class="hero-actions"><a class="btn btn-lg btn-solid" href="#">${I.mail}<span>Mit E-Mail mitmachen</span></a><a class="btn btn-lg btn-line" href="#">${I.google}<span>${C.joinGoogle}</span></a></div></div></section>
+  </main>${footer()}${sticky()}</div>`;
+}
+
+/* ============ Today (rough sketch of the current page) ============ */
+function pageT(){
+  const todaySteps=['Konto erstellen','Profil & Bezirk','Grundlagen lernen','Vereinbarung','Foodsaver-Quiz','Einführungsabholungen','Ausweis prüfen','Foodsaver-Ausweis'];
+  return `<div class="T">${header()}<main class="wrap">
+  <div class="mock-note">Heute: grobe Skizze der aktuellen Seite (<code>landing-page.component.ts</code>) zum Vergleich.</div>
+  <section class="hero" data-testid="public.landing.hero"><span class="eyebrow">Gemeinsam gegen Lebensmittelverschwendung</span><h1>Retten statt wegwerfen.</h1><p class="muted" style="max-width:34rem">Mit foodsharing holst du überschüssige Lebensmittel bei Betrieben in deiner Nähe ab und teilst sie – freiwillig, kostenlos und gemeinsam mit vielen anderen.</p>
+    <div class="hero-actions"><a class="btn btn-lg btn-line" href="#">${I.google}<span>Mit Google mitmachen</span></a><a class="btn btn-lg btn-line" href="#">${I.mail}<span>Mit E-Mail mitmachen</span></a></div><p class="login-line">Schon dabei? <a class="link" href="#">Anmelden</a></p></section>
+  <section class="values">${[['bag','Lebensmittel abholen','Bäckereien, Läden und Restaurants geben uns, was sie nicht mehr verkaufen können.'],['home','Teilen statt wegwerfen','Gerettetes landet bei dir, deinen Nachbar:innen oder in einem Fair-Teiler.'],['users','Eine starke Gemeinschaft','Tausende Freiwillige in der ganzen Schweiz – wir zeigen dir Schritt für Schritt, wie es geht.']].map(v=>`<article class="card"><div class="icon-tile">${I[v[0]]}</div><h2 class="h3">${v[1]}</h2><p class="muted">${v[2]}</p></article>`).join('')}</section>
+  <section class="sec"><h2 class="sec-title">Was wir gemeinsam bewegen</h2><ul class="counters" style="margin-top:1rem">${[['12 480','Foodsaver:innen'],['14','aktive Bezirke'],['0','kooperierende Betriebe'],['0','kg gerettet']].map(c=>`<li class="counter"><span class="num">${c[0]}</span><span class="lbl">${c[1]}</span></li>`).join('')}</ul></section>
+  <section class="sec" style="padding-top:0"><h2 class="sec-title">So wirst du Foodsaver:in</h2><p class="sec-lead">Acht Schritte, die meisten davon online. Du siehst jederzeit, wo du stehst.</p><ol class="today-steps" style="margin-top:1rem">${todaySteps.map((s,i)=>`<li><span class="step-n">${i+1}</span>${s}</li>`).join('')}</ol></section>
+  <section class="sec" style="padding-top:0"><h2 class="sec-title">Finde deinen Bezirk</h2><p class="sec-lead">Gib deine Postleitzahl ein und sieh die nächsten Einführungstermine.</p><div class="region" style="margin-top:1rem"><div class="card"><label class="field-label">Postleitzahl oder Ort</label><div class="field"><input placeholder="8004"><button class="btn btn-solid">Suchen</button></div></div><div class="card muted">(Bezirkskarte erscheint nach Auswahl: Botschafter:innen, nächste Einführungstermine)</div></div></section>
+  <section class="sec" style="padding-top:0"><h2 class="sec-title">Häufige Fragen</h2><div class="faq" style="margin-top:1rem;max-width:48rem">${C.faq.slice(0,5).map(f=>`<details><summary>${f.q}</summary><p>${f.a}</p></details>`).join('')}</div></section>
+  <section class="sec" style="padding-top:0"><div class="contact"><h2 class="sec-title">Für Betriebe</h2><p class="muted">Sie möchten Lebensmittel retten lassen? Wir holen zuverlässig und kostenlos ab.</p><a class="btn btn-line" href="#">${I.mail}<span>Kontakt aufnehmen</span></a></div></section>
+  </main>${footer()}</div>`;
+}
+
+/* ============ bar + render ============ */
+function bar(){
+  const seg=(label,key,opts)=>`<span class="seg"><b>${label}</b>${opts.map(([v,l])=>`<button aria-pressed="${S[key]===v}" onclick="set('${key}',${JSON.stringify(v).replace(/"/g,'&quot;')})">${l}</button>`).join('')}</span>`;
+  $('#bar').innerHTML=seg('Variante','variant',[['D','D · Neu (Hero + Bubbles)'],['A','A'],['B','B'],['C','C'],['T','Heute']])
+    +seg('Thema','dark',[[false,'Hell'],[true,'Dunkel']])
+    +seg('Breite','width',[['win','Fenster'],['412','412 px']])
+    +seg('Akzent','accent',[['sparsam','sparsam'],['ohne','ohne']])
+    +seg('Daten','data',[['ok','OK'],['skeleton','Skeleton'],['error','Fehler'],['empty','Leer'],['offline','Offline']])
+    +seg('Optionale Sektionen','optional',[[true,'An'],[false,'Aus']])
+    +`<span class="seg" style="margin-left:auto;opacity:.7">PLZ 8004 / 8400 / 4051 / 10115 / 1160 · Schritte 1–4 · A–C: Klick auf Pins</span>`;
+}
+function set(k,v){S[k]=v; if(k==='variant'){S.popup=null;S.list=false;} render();}
+function setData(v){S.data=v;render();}
+function render(){
+  bar();
+  document.documentElement.classList.toggle('fs-dark',S.dark);
+  document.documentElement.classList.toggle('no-accent',S.accent==='ohne');
+  document.body.className=(S.width==='412'?'w-412 ':'')+(S.optional?'':'no-optional');
+  const root=$('#root');
+  root.innerHTML=`<div class="vp" id="vp">${({A:pageA,B:pageB,C:pageC,D:pageD,T:pageT})[S.variant]()}</div>`;
+  view={...view}; if(!$('#map')) view={...OVERVIEW}; setView(view);
+  countUp();
+}
+function countUp(){
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.cu').forEach(el=>{const target=+el.dataset.value; if(reduced){el.textContent=fmt(target);return;}
+    const t0=performance.now(), dur=1200; const step=now=>{const u=Math.min(1,(now-t0)/dur); el.textContent=fmt(target*(1-Math.pow(1-u,3))); if(u<1) requestAnimationFrame(step);}; requestAnimationFrame(step);});
+}
+addEventListener('scroll',()=>{const vp=$('#vp'); if(!vp) return; if(scrollY>420) vp.setAttribute('data-scrolled',''); else vp.removeAttribute('data-scrolled');});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&S.popup) closePopup();});
+render();
+</script>
+</body>
+</html>
