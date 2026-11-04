@@ -272,5 +272,7 @@
   "shared.pickupSlot.mineConfirmed": "Tu ({name}), confermato – cancellati",
   "shared.pickupSlot.mineUnconfirmed": "Tu ({name}), non confermato – cancellati",
   "shared.pickupSlot.confirmOne": "Conferma {name}",
-  "shared.dateTile.today": "Oggi"
+  "shared.dateTile.today": "Oggi",
+  "shared.pickupSlot.blocked": "Bloccato",
+  "shared.pickupSlot.blockedLabel": "Bloccato per te, {count} liberi – mostra perché ({rules, plural, one {# motivo} other {# motivi}})"
 }

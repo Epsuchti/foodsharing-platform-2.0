@@ -272,5 +272,7 @@
   "shared.pickupSlot.mineConfirmed": "Du ({name}), bestätigt – ustrage",
   "shared.pickupSlot.mineUnconfirmed": "Du ({name}), unbestätigt – ustrage",
   "shared.pickupSlot.confirmOne": "{name} bestätige",
-  "shared.dateTile.today": "Hüt"
+  "shared.dateTile.today": "Hüt",
+  "shared.pickupSlot.blocked": "Gsperrt",
+  "shared.pickupSlot.blockedLabel": "Für dich gsperrt, {count} frei – Grund aazeige ({rules, plural, one {# Grund} other {# Gründ}})"
 }

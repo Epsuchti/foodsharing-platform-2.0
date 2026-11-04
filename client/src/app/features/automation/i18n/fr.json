@@ -50,6 +50,7 @@
   "automation.common.to": "Au",
   "automation.decision.ADDED": "Ajoutée",
   "automation.decision.APPROVED": "Accepté",
+  "automation.decision.BLOCKED": "Bloqué",
   "automation.decision.CONFIRMED": "Confirmé",
   "automation.decision.DECLINED": "Refusé",
   "automation.decision.DEFERRED": "Reporté",

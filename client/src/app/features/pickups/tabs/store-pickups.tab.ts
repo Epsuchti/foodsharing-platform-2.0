@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
@@ -8,7 +8,15 @@ import { Dialog } from '@openng/optimus-ui/dialog';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { concat, tap } from 'rxjs';
 
-import { AutomationService, Pickup, PickupSlot, PickupsService, RegularPickup, SignupResult } from '../../../api';
+import {
+  AutomationService,
+  Pickup,
+  PickupEligibilityReason,
+  PickupSlot,
+  PickupsService,
+  RegularPickup,
+  SignupResult,
+} from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
@@ -20,6 +28,8 @@ import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.component';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
+import { BlockedReasonDialogComponent } from '../components/blocked-reason-dialog.component';
+import { RuleSummaryCardComponent } from '../components/rule-summary-card.component';
 import { PickupSignupDialogComponent, SignupTarget } from '../components/signup-dialog.component';
 import { PickupSummaryComponent } from '../components/pickup-summary.component';
 import { ServerClock } from '../pickups.resource';
@@ -43,6 +53,7 @@ interface SlotTarget {
   imports: [
     ...DATE_INPUT_IMPORTS,
     ...DATA_STATE_IMPORTS,
+    BlockedReasonDialogComponent,
     Button,
     DateTimePipe,
     Dialog,
@@ -53,6 +64,7 @@ interface SlotTarget {
     PickupSummaryComponent,
     RequiredMessageDialogComponent,
     RouterLink,
+    RuleSummaryCardComponent,
     TPipe,
     WeekdayTimePickerComponent,
   ],
@@ -120,6 +132,11 @@ interface SlotTarget {
       </div>
     </div>
 
+    @if (ctx.may('maySeePickups') && ctx.storeId(); as storeId) {
+      <!-- decision 165 S2: the store's active rules for members (hidden while they are off) -->
+      <fs-rule-summary-card [storeId]="storeId" [timeZone]="tz()" />
+    }
+
     <fs-data-state
       [state]="pickups"
       skeleton="list"
@@ -135,7 +152,7 @@ interface SlotTarget {
           }
           @for (group of days(); track group.day) {
             <section class="fs-card card day" data-testid="stores.pickups.day" [attr.data-day]="group.day">
-              <h2 class="card__title">{{ group.items[0].pickupAt | fsDate: 'weekday' : tz() }}</h2>
+              <h2 class="card__title" tabindex="-1">{{ group.items[0].pickupAt | fsDate: 'weekday' : tz() }}</h2>
               @for (pickup of group.items; track pickup.pickupAt) {
                 <div
                   class="pickup"
@@ -195,6 +212,9 @@ interface SlotTarget {
                       [freeClickable]="!isSignedUp(pickup)"
                       [slotsClickable]="ctx.may('mayConfirmPickups') || ctx.may('mayEditPickups')"
                       [confirmable]="ctx.may('mayConfirmPickups')"
+                      [blocked]="isBlocked(pickup)"
+                      [blockedRuleCount]="blockedCount(pickup)"
+                      (blockedClick)="openBlocked(pickup)"
                       (freeClick)="openSignup(pickup)"
                       (slotClick)="onSlot(pickup, $event)"
                       (confirmClick)="openSlot(pickup, $event, true)"
@@ -232,6 +252,14 @@ interface SlotTarget {
     </fs-data-state>
 
     <fs-pickup-signup-dialog [(visible)]="signupOpen" [target]="signupTarget()" (signedUp)="afterSignup($event)" />
+
+    <fs-blocked-reason-dialog
+      [(visible)]="blockedOpen"
+      [target]="signupTarget()"
+      (jump)="jumpTo($event)"
+      (seeRules)="ruleCard()?.reveal()"
+      (signUp)="signupOpen.set(true)"
+    />
 
     <p-dialog
       [visible]="slotOpen()"
@@ -482,6 +510,54 @@ export class StorePickupsTab {
     if (!store) return;
     this.signupTarget.set({ storeId: store.id, storeName: store.name, pickupAt: pickup.pickupAt, timeZone: this.tz() });
     this.signupOpen.set(true);
+  }
+
+  // --- blocked for this person (decision 165 S2) -------------------------------------------------------------------
+
+  protected readonly blockedOpen = signal(false);
+  protected readonly ruleCard = viewChild(RuleSummaryCardComponent);
+
+  /** Reasons that block a free place for the viewer (none for managers or when already signed up / full). */
+  private blockingReasons(pickup: Pickup): number {
+    const e = pickup.eligibility;
+    if (!e || e.eligible || this.ctx.may('mayConfirmPickups') || this.isSignedUp(pickup)) return 0;
+    const others = e.reasons.filter(
+      (reason) =>
+        reason !== PickupEligibilityReason.AutomationRule &&
+        reason !== PickupEligibilityReason.AlreadySignedUp &&
+        reason !== PickupEligibilityReason.NoFreeSlot,
+    ).length;
+    const rules = e.reasons.includes(PickupEligibilityReason.AutomationRule) ? (e.ruleBlocks?.length ?? 0) : 0;
+    return others + rules;
+  }
+
+  protected isBlocked(pickup: Pickup): boolean {
+    return this.blockingReasons(pickup) > 0;
+  }
+
+  protected blockedCount(pickup: Pickup): number {
+    return this.blockingReasons(pickup);
+  }
+
+  protected openBlocked(pickup: Pickup): void {
+    const store = this.ctx.data();
+    if (!store) return;
+    this.signupTarget.set({ storeId: store.id, storeName: store.name, pickupAt: pickup.pickupAt, timeZone: this.tz() });
+    this.blockedOpen.set(true);
+  }
+
+  /** "Zum … springen": shows all pickups and scrolls to the first day on or after `at`. */
+  protected jumpTo(at: string): void {
+    this.range.set('all');
+    this.pendingOnly.set(false);
+    const day = dayOf(at, this.tz());
+    setTimeout(() => {
+      const target = [...this.document.querySelectorAll<HTMLElement>('[data-testid="stores.pickups.day"]')].find(
+        (element) => (element.dataset['day'] ?? '') >= day,
+      );
+      target?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      target?.querySelector<HTMLElement>('h2')?.focus();
+    });
   }
 
   protected afterSignup(result: SignupResult): void {

@@ -50,6 +50,7 @@
   "automation.common.to": "To",
   "automation.decision.ADDED": "Added",
   "automation.decision.APPROVED": "Accepted",
+  "automation.decision.BLOCKED": "Blocked",
   "automation.decision.CONFIRMED": "Confirmed",
   "automation.decision.DECLINED": "Declined",
   "automation.decision.DEFERRED": "Deferred",

@@ -272,5 +272,7 @@
   "shared.pickupSlot.mineConfirmed": "Toi ({name}), confirmé·e – se désinscrire",
   "shared.pickupSlot.mineUnconfirmed": "Toi ({name}), non confirmé·e – se désinscrire",
   "shared.pickupSlot.confirmOne": "Confirmer {name}",
-  "shared.dateTile.today": "Aujourd’hui"
+  "shared.dateTile.today": "Aujourd’hui",
+  "shared.pickupSlot.blocked": "Bloqué",
+  "shared.pickupSlot.blockedLabel": "Bloqué pour toi, {count} libre(s) – voir pourquoi ({rules, plural, one {# raison} other {# raisons}})"
 }

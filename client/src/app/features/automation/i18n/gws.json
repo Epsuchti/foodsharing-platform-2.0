@@ -50,6 +50,7 @@
   "automation.common.to": "Bis",
   "automation.decision.ADDED": "Hinzuegfüegt",
   "automation.decision.APPROVED": "Aagnoh",
+  "automation.decision.BLOCKED": "Gsperrt",
   "automation.decision.CONFIRMED": "Bestätigt",
   "automation.decision.DECLINED": "Abglehnt",
   "automation.decision.DEFERRED": "Zruggstellt",

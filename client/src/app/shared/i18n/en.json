@@ -272,5 +272,7 @@
   "shared.pickupSlot.mineConfirmed": "You ({name}), confirmed – sign out",
   "shared.pickupSlot.mineUnconfirmed": "You ({name}), unconfirmed – sign out",
   "shared.pickupSlot.confirmOne": "Confirm {name}",
-  "shared.dateTile.today": "Today"
+  "shared.dateTile.today": "Today",
+  "shared.pickupSlot.blocked": "Blocked",
+  "shared.pickupSlot.blockedLabel": "Blocked for you, {count} free – show why ({rules, plural, one {# reason} other {# reasons}})"
 }

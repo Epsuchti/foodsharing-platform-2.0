@@ -201,6 +201,8 @@ export class AuditTableComponent {
   protected tone = decisionTone;
 
   protected statusLabel(audit: AutomationAudit): string {
+    // decision 165 S2: a declined sign-up was blocked by the rules ("Gesperrt"); request declines keep "Abgelehnt"
+    if (audit.kind === AuditKind.Pickup && audit.status === 'DECLINED') return 'automation.decision.BLOCKED';
     return `automation.decision.${audit.status}`;
   }
 
