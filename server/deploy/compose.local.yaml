@@ -32,6 +32,9 @@ services:
       SMTP_PASSWORD: smoke
       PUSH_VAPID_PUBLIC: ${PUSH_VAPID_PUBLIC:-}
       PUSH_VAPID_PRIVATE: ${PUSH_VAPID_PRIVATE:-}
+    volumes:
+      # MT1: the committed Zurich fixture instead of the host's DACH build
+      - ../../e2e/fixtures/tiles:/tiles:ro
     ports: !override
       - "127.0.0.1:${HTTP_PORT:-18080}:8080"
       - "127.0.0.1:${MANAGEMENT_HTTP_PORT:-19090}:9090"
