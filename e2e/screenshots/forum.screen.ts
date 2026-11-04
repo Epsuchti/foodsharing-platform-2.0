@@ -1,4 +1,5 @@
 import { injectApiError, regionId } from '../fixtures';
+import { postCard, replyVia } from '../tests/forum/forum-helpers';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /** Forum screens (M5 F1–F5, G3): list, thread, hidden post, new thread, moderation log, empty/error. Baselines later (decision 69). */
@@ -18,6 +19,23 @@ forEachVariant((variant) => {
       await page.goto(thread(3));
       await expect(page.getByTestId('forum.thread.state')).toHaveAttribute('data-state', 'success');
       await visual.expectScreen(page, `forum-thread-${variant.name}`);
+    });
+
+    screenshotTest('post with @Name mentions, one of them me (ring) @F3 @screenshot', async ({ page, apiOf, dev, visual }) => {
+      const me = await dev.user('bot');
+      const bieb = await dev.user('bieb');
+      const threadId = thread(3).split('/').pop()!;
+      const postId = await replyVia(
+        apiOf(page),
+        threadId,
+        `Merci @[${bieb.displayName}](user:${bieb.id})! Ich (@[${me.displayName}](user:${me.id})) übernehme den Rest.`,
+      );
+      await page.goto(thread(3));
+      await expect(page.getByTestId('forum.thread.state')).toHaveAttribute('data-state', 'success');
+      const card = postCard(page, postId);
+      await expect(card.getByTestId('shared.markdown.mention')).toHaveCount(2);
+      await expect(card.locator('.fs-mention--me')).toHaveCount(1);
+      await visual.expectElement(card, `forum-post-mentions-${variant.name}`);
     });
 
     screenshotTest('hidden post and moderation log @G3 @D10.3 @screenshot', async ({ page, visual }) => {

@@ -271,6 +271,7 @@
   "shared.calendar.add": "Zum Kaländer hinzuefüege",
   "shared.calendar.subscribe": "Kaländer abonniere",
   "shared.userChip.verified": "Verifiziert",
+  "shared.userMention.label": "{name} erwähnt – Profil öffne",
   "shared.userChip.foodsaverNumber": "ID {number}",
   "shared.userChip.foodsaverNumberHelp": "Foodsaver-ID: staht uf em Uswiis und hilft bim Nachträge vo Iifüehrigsabholige.",
   "shared.foodsaverId.help": "Was isch mini Foodsaver-ID?",

@@ -271,6 +271,7 @@
   "shared.calendar.add": "Zum Kalender hinzufügen",
   "shared.calendar.subscribe": "Kalender abonnieren",
   "shared.userChip.verified": "Verifiziert",
+  "shared.userMention.label": "{name} erwähnt – Profil öffnen",
   "shared.userChip.foodsaverNumber": "ID {number}",
   "shared.userChip.foodsaverNumberHelp": "Foodsaver-ID: steht auf dem Ausweis und hilft beim Nachtragen von Einführungsabholungen.",
   "shared.foodsaverId.help": "Was ist meine Foodsaver-ID?",

@@ -43,4 +43,25 @@ test.describe('bieb', () => {
     await openStore(page, 'S-08', 'team');
     await expect(page.getByTestId('stores.team.invitation')).toHaveCount(0);
   });
+
+  test('S7 the invite dialog lists only people who can be invited @S7', async ({ page, api, store }) => {
+    const team = await api.getJson<{ items: { user: { displayName: string } }[] }>(
+      `/api/stores/${store.id('S-08')}/team/members?size=100`,
+    );
+    const teamMember = team.items.map((m) => m.user.displayName).find((name) => name !== NAMES.bieb)!;
+    await openStore(page, 'S-08', 'team');
+    await page.getByTestId('stores.team.invite').click();
+    const search = page.getByTestId('stores.invite.search');
+    const results = page.getByTestId('stores.invite.result');
+
+    // a verified foodsaver of the region who is not in the team
+    await search.fill('Julien');
+    await expect(page.locator(`[data-testid="stores.invite.result"][data-user="${NAMES.guide}"]`)).toBeVisible();
+    // foodsharers / unverified people (Lea, Chiara, Amélie) and team members are never offered
+    for (const name of ['Lea', 'Chiara', 'Amélie', teamMember.split(' ')[0]]) {
+      await search.fill(name);
+      await expectDataState(page, 'stores.invite.state', 'empty');
+      await expect(results).toHaveCount(0);
+    }
+  });
 });

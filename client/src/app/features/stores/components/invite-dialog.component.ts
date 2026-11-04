@@ -70,6 +70,7 @@ const NOT_ELIGIBLE = new Set(['ROLE_TOO_LOW', 'NOT_VERIFIED', 'ALREADY_IN_TEAM']
                     [userId]="user.id"
                     [avatarUrl]="user.avatarUrl"
                     [verified]="user.verified"
+                    [link]="null"
                   />
                   <p-button
                     [label]="'stores.invite.send' | t"

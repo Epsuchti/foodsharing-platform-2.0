@@ -208,7 +208,7 @@ export class HistoryLabeler {
     if (ISO_DATE.test(value)) {
       return this.dates.format(value, 'date', 'UTC');
     }
-    let lookup: string | null = null;
+    let lookup: string | null;
     switch (key) {
       case 'method':
       case 'provider':

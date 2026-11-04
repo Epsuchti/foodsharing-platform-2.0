@@ -34,7 +34,7 @@ import { StoreAutomationContext } from '../store-automation.context';
           <span>{{ 'automation.preview.user' | t }}</span>
           @if (user(); as u) {
             <div class="row">
-              <fs-user-chip [name]="u.displayName" [avatarUrl]="u.avatarUrl" [userId]="u.id" />
+              <fs-user-chip [name]="u.displayName" [avatarUrl]="u.avatarUrl" [userId]="u.id" [link]="null" />
               <p-button icon="pi pi-times" [text]="true" size="small" [ariaLabel]="'automation.common.remove' | t" (onClick)="user.set(null)" />
             </div>
           } @else {
