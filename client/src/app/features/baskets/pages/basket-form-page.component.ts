@@ -3,6 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
+import { InputGroup } from '@openng/optimus-ui/inputgroup';
+import { InputGroupAddon } from '@openng/optimus-ui/inputgroupaddon';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { MultiSelect } from '@openng/optimus-ui/multiselect';
 import { Textarea } from '@openng/optimus-ui/textarea';
@@ -67,6 +69,8 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
     ...DATA_STATE_IMPORTS,
     Button,
     ImageCropComponent,
+    InputGroup,
+    InputGroupAddon,
     InputText,
     MapViewComponent,
     MultiSelect,
@@ -122,9 +126,11 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
                 <legend class="field__label">{{ 'baskets.form.kinds' | t }}</legend>
                 <div class="kinds">
                   @for (kind of kinds; track kind) {
+                    <!-- toggle chip: the native checkbox stays focusable and covers the chip, only visually hidden -->
                     <label class="kind" [class.kind--on]="hasKind(kind)">
-                      <input type="checkbox" [checked]="hasKind(kind)" (change)="toggleKind(kind)" [attr.data-testid]="'baskets.form.kind.' + kind" />
-                      {{ 'baskets.kind.' + kind | t }}
+                      <input type="checkbox" class="kind__input" [checked]="hasKind(kind)" (change)="toggleKind(kind)" [attr.data-testid]="'baskets.form.kind.' + kind" />
+                      <i class="pi kind__icon" [class.pi-check]="hasKind(kind)" [class.pi-plus]="!hasKind(kind)" aria-hidden="true"></i>
+                      <span>{{ 'baskets.kind.' + kind | t }}</span>
                     </label>
                   }
                 </div>
@@ -132,7 +138,10 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
               <div class="form-grid">
                 <div class="field">
                   <label for="bf-weight">{{ 'baskets.form.weight' | t }}</label>
-                  <input pInputText id="bf-weight" type="number" min="0" max="100" step="0.1" inputmode="decimal" formControlName="weightKg" data-testid="baskets.form.weight" />
+                  <p-inputgroup>
+                    <input pInputText id="bf-weight" type="number" min="0" max="100" step="0.1" inputmode="decimal" formControlName="weightKg" data-testid="baskets.form.weight" />
+                    <p-inputgroup-addon>kg</p-inputgroup-addon>
+                  </p-inputgroup>
                 </div>
                 @if (!loaded.basket) {
                   <div class="field">
@@ -278,26 +287,36 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
     .card__title { display: flex; gap: 0.5rem; align-items: center; margin: 0; font-size: 1.05rem; }
     .card__title .pi { color: var(--fs-primary-strong); }
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
-    .field { display: grid; gap: 0.35rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+    .field { display: grid; gap: 0.35rem; align-content: start; min-width: 0; margin: 0; padding: 0; border: 0; }
     .field > label, .field__label { padding: 0; font-size: 0.85rem; font-weight: 650; }
     .field__hint { color: var(--fs-text-muted); font-size: 0.82rem; }
     .field__hint.block { display: block; }
     .field--wide { grid-column: 1 / -1; }
-    .form-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+    /* fields of a row start at the same line even when one has a hint below (owner feedback #2) */
+    .form-grid { display: grid; gap: 1rem; align-items: start; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
     .error { color: var(--fs-danger); margin: 0; }
-    .kinds { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .kinds { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .kind {
+      position: relative;
       display: inline-flex;
       gap: 0.4rem;
       align-items: center;
-      padding: 0.3rem 0.75rem;
+      min-height: var(--fs-target-sm);
+      padding: 0.3rem 0.85rem;
       border: 1px solid var(--fs-border);
       border-radius: 999px;
+      background: var(--fs-surface);
+      color: var(--fs-text);
       cursor: pointer;
       font-size: 0.9rem;
+      font-weight: 600;
     }
-    .kind--on { border-color: var(--fs-primary); background: var(--fs-primary-soft); }
-    .kind input, .radio input { accent-color: var(--fs-primary); }
+    .kind:hover { border-color: var(--fs-primary); }
+    .kind--on { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+    .kind__icon { font-size: 0.8rem; }
+    .kind__input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .kind:has(.kind__input:focus-visible) { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
+    .radio input { accent-color: var(--fs-primary); }
     .radio { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.95rem; }
     .radio input { margin-top: 0.25rem; }
     .checks { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }

@@ -90,7 +90,7 @@
   "baskets.form.descriptionHint": "Ce qu'il y a dans le panier, la quantité et jusqu'à quand cela se conserve.",
   "baskets.form.descriptionRequired": "Décris le contenu du panier.",
   "baskets.form.count": "{count} / {max} caractères",
-  "baskets.form.weight": "Poids en kg (facultatif)",
+  "baskets.form.weight": "Poids (facultatif)",
   "baskets.form.kinds": "Types d'aliments",
   "baskets.form.groceries": "Aliments (facultatif)",
   "baskets.form.photo": "Photo",

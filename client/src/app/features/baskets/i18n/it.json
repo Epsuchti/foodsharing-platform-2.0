@@ -90,7 +90,7 @@
   "baskets.form.descriptionHint": "Cosa c'è nel cesto, quanto e fino a quando si conserva.",
   "baskets.form.descriptionRequired": "Descrivi il contenuto del cesto.",
   "baskets.form.count": "{count} / {max} caratteri",
-  "baskets.form.weight": "Peso in kg (facoltativo)",
+  "baskets.form.weight": "Peso (facoltativo)",
   "baskets.form.kinds": "Tipi di alimenti",
   "baskets.form.groceries": "Alimenti (facoltativo)",
   "baskets.form.photo": "Foto",

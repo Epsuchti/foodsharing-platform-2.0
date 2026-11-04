@@ -90,7 +90,7 @@
   "baskets.form.descriptionHint": "Was im Korb ist, wie viel, und wie lange es haltbar ist.",
   "baskets.form.descriptionRequired": "Beschreibe, was im Korb ist.",
   "baskets.form.count": "{count} / {max} Zeichen",
-  "baskets.form.weight": "Gewicht in kg (optional)",
+  "baskets.form.weight": "Gewicht (optional)",
   "baskets.form.kinds": "Lebensmittelarten",
   "baskets.form.groceries": "Lebensmittel (optional)",
   "baskets.form.photo": "Foto",

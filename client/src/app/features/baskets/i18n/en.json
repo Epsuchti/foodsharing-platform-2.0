@@ -90,7 +90,7 @@
   "baskets.form.descriptionHint": "What is in the basket, how much, until when it keeps.",
   "baskets.form.descriptionRequired": "Describe what is in the basket.",
   "baskets.form.count": "{count} / {max} characters",
-  "baskets.form.weight": "Weight in kg (optional)",
+  "baskets.form.weight": "Weight (optional)",
   "baskets.form.kinds": "Kinds of food",
   "baskets.form.groceries": "Groceries (optional)",
   "baskets.form.photo": "Photo",
