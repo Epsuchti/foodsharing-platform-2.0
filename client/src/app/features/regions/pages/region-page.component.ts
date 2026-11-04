@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs';
 
 import { AuthService, FeatureToggleKey, RegionsService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
-import { hasPermission } from '../../../core/auth/permission.util';
+import { isAmbassador } from '../../../core/auth/permission.util';
 import { runMutation } from '../../../core/data/mutation';
 import { FeatureToggleService } from '../../../core/feature-toggles/feature-toggle.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -55,12 +55,8 @@ export class RegionPageComponent {
   private readonly i18n = inject(I18nService);
   private readonly toggles = inject(FeatureToggleService);
 
-  /** Automation permission holders of this region (M4 F4). */
-  private readonly automation = computed(() =>
-    ['CAN_USE_AUTOMATIONS', 'CAN_SEE_ALL_AUTOMATION_DECISIONS', 'CAN_SEE_USER_PICKUP_COUNT_GROUPING'].some((permission) =>
-      hasPermission(this.session.session(), permission, this.ctx.regionId()),
-    ),
-  );
+  /** Region automation pages (M4 F4): ambassadors of the region and ORGA (decision 165: no automation permissions). */
+  private readonly automation = computed(() => isAmbassador(this.session.session(), this.ctx.regionId()));
 
   /** Report handlers (`RegionDetail.mayHandleReports`; the server decides). */
   private readonly reportHandler = computed(

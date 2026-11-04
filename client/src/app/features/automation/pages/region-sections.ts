@@ -51,7 +51,7 @@ const MAX_LINES = 5;
   template: `
     <section class="card fs-card">
       <h2>{{ 'automation.region.section.overview' | t }}</h2>
-      <fs-data-state [state]="overview" skeleton="table" [emptyTitle]="'automation.region.noStores' | t" testId="automation.region.overview" data-testid="automation.region.overview">
+      <fs-data-state [state]="overview" skeleton="table" [emptyTitle]="'automation.region.noStores' | t" testId="automation.region.overview" data-testid="automation.region.overview" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="overview" let-o>
           <div class="table-wrap" tabindex="0">
             <table>
@@ -69,11 +69,7 @@ const MAX_LINES = 5;
                   <tr data-testid="automation.region.overviewRow" [attr.data-store]="row.store.name">
                     <td><a [routerLink]="['/stores', row.store.id, 'automation']">{{ row.store.name }}</a></td>
                     <td>
-                      @if (row.pickupPolicyEnabled) {
-                        <span [class]="row.dryRun ? 'badge badge--dry' : 'badge badge--ok'">{{ (row.dryRun ? 'automation.common.dryRunTag' : 'automation.common.live') | t }}</span>
-                      } @else {
-                        <span class="muted">–</span>
-                      }
+                      <span [class]="row.pickupPolicyEnabled ? 'badge badge--ok' : 'badge'" data-testid="automation.region.overviewRules" [attr.data-enabled]="row.pickupPolicyEnabled">{{ (row.pickupPolicyEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</span>
                     </td>
                     <td>{{ (row.requestPolicyEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</td>
                     <td>{{ row.advertCount }}</td>
@@ -99,7 +95,7 @@ export class RegionOverviewSection {
   });
 }
 
-/** All decisions of the region (AU8): coordinators and CAN_SEE_ALL_AUTOMATION_DECISIONS see all, members their own stores. */
+/** All decisions of the region (AU8): ambassadors and ORGA see all, everyone else their own (decision 165). */
 @Component({
   selector: 'fs-region-automation-audits',
   imports: [AuditTableComponent, TPipe],
@@ -136,7 +132,7 @@ export class RegionAuditsSection {
         <input pInputText class="grow" [placeholder]="'automation.exemptions.reason' | t" [attr.aria-label]="'automation.exemptions.reason' | t" [(ngModel)]="reason" maxlength="500" data-testid="automation.exemptions.reason" />
         <p-button [label]="'automation.exemptions.add' | t" icon="pi pi-plus" [disabled]="!user()" [loading]="add.busy()" (onClick)="add.run()" data-testid="automation.exemptions.add" />
       </div>
-      <fs-data-state [state]="list" skeleton="list" [emptyTitle]="'automation.exemptions.empty' | t" testId="automation.exemptions.state" data-testid="automation.exemptions.state">
+      <fs-data-state [state]="list" skeleton="list" [emptyTitle]="'automation.exemptions.empty' | t" testId="automation.exemptions.state" data-testid="automation.exemptions.state" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="list" let-rows>
           <ul class="list">
             @for (row of rows; track row.id) {
@@ -206,6 +202,7 @@ export class RegionExemptionsSection {
         [emptyText]="'automation.cleaningFsps.emptyText' | t"
         testId="automation.cleaningFsps.state"
         data-testid="automation.cleaningFsps.state"
+        [askWho]="'automation.region.askWho' | t"
       >
         <ng-template [fsData]="selection">
           <ul class="list" data-testid="automation.cleaningFsps.list">
@@ -277,7 +274,7 @@ export class RegionCleaningFspsSection {
   );
 }
 
-/** Future pickup users grouped by pickup count (AU7, CAN_SEE_USER_PICKUP_COUNT_GROUPING or region admins). */
+/** Future pickup users grouped by pickup count (AU7, region admins and ORGA). */
 @Component({
   selector: 'fs-region-pickup-grouping',
   imports: [...DATA_STATE_IMPORTS, FormsModule, RouterLink, Select, TPipe, UserChipComponent],
@@ -290,7 +287,7 @@ export class RegionCleaningFspsSection {
         <p-select inputId="grp-days" [options]="dayOptions" [ngModel]="days()" (ngModelChange)="days.set($event)" data-testid="automation.grouping.days" />
       </div>
       <p class="muted">{{ 'automation.grouping.intro' | t: { days: days() } }}</p>
-      <fs-data-state [state]="groups" skeleton="list" [emptyTitle]="'automation.grouping.empty' | t" testId="automation.grouping.state" data-testid="automation.grouping.state" [askWho]="'automation.grouping.askWho' | t">
+      <fs-data-state [state]="groups" skeleton="list" [emptyTitle]="'automation.grouping.empty' | t" testId="automation.grouping.state" data-testid="automation.grouping.state" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="groups" let-rows>
           @for (group of rows; track group.pickupCount) {
             <section class="group" data-testid="automation.grouping.group" [attr.data-count]="group.pickupCount">
@@ -363,7 +360,7 @@ export class RegionGroupingSection {
           <span [attr.data-testid]="'automation.metrics.group.' + option.id">{{ option.label }}</span>
         </ng-template>
       </p-selectbutton>
-      <fs-data-state [state]="metrics" skeleton="card" [emptyTitle]="'automation.metrics.empty' | t" testId="automation.metrics.state" data-testid="automation.metrics.state">
+      <fs-data-state [state]="metrics" skeleton="card" [emptyTitle]="'automation.metrics.empty' | t" testId="automation.metrics.state" data-testid="automation.metrics.state" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="metrics">
           @if (totals().length) {
             <fs-metric-totals [totals]="totals()" [label]="'automation.metrics.totals' | t" testId="automation.metrics.totals" />
@@ -446,7 +443,7 @@ export class RegionMetricsSection {
     <section class="card fs-card">
       <h2>{{ 'automation.region.section.telegram' | t }}</h2>
       <p class="muted">{{ 'automation.telegram.intro' | t }}</p>
-      <fs-data-state [state]="config" skeleton="list" testId="automation.telegram.state" data-testid="automation.telegram.state">
+      <fs-data-state [state]="config" skeleton="list" testId="automation.telegram.state" data-testid="automation.telegram.state" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="config">
           <ul class="list">
             @for (chat of draft(); track chat.chatId) {

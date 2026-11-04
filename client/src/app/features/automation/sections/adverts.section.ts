@@ -64,10 +64,6 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
             <label [for]="'ad-en-' + advert.advertNumber">{{ 'automation.adverts.enabled' | t }}</label>
             <p-toggleswitch [inputId]="'ad-en-' + advert.advertNumber" [(ngModel)]="advert.enabled" [disabled]="!ctx.mayEdit()" data-testid="automation.adverts.enabled" />
           </div>
-          <div class="switch-row">
-            <label [for]="'ad-dry-' + advert.advertNumber">{{ 'automation.common.dryRun' | t }}</label>
-            <p-toggleswitch [inputId]="'ad-dry-' + advert.advertNumber" [(ngModel)]="advert.dryRun" [disabled]="!ctx.mayEdit()" data-testid="automation.adverts.dryRun" />
-          </div>
           <div class="field">
             <label [for]="'ad-h-' + advert.advertNumber">{{ 'automation.adverts.trigger' | t }}</label>
             <p-inputnumber [inputId]="'ad-h-' + advert.advertNumber" [(ngModel)]="advert.triggerHoursBefore" [min]="1" [max]="168" [showButtons]="true" suffix=" h" [disabled]="!ctx.mayEdit()" data-testid="automation.adverts.trigger" />
@@ -176,8 +172,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
       <div class="row">
         <h3 class="grow">{{ 'automation.adverts.plannedTitle' | t }}</h3>
         @if (ctx.mayEdit() && ctx.data()?.adverts?.length) {
-          <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.adverts.runDry" />
-          <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.adverts.run" />
+          <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run()" data-testid="automation.adverts.run" />
         }
       </div>
       @if (ctx.mayEdit() && ctx.data()?.adverts?.length && unsaved()) {
@@ -374,7 +369,7 @@ export class AdvertsSection {
     });
   }
 
-  protected readonly run = runMutation((dryRun: boolean) => this.api.runAdverts({ storeId: this.ctx.storeId()!, dryRun }), {
+  protected readonly run = runMutation(() => this.api.runAdverts({ storeId: this.ctx.storeId()! }), {
     successToastKey: 'automation.common.ran',
     onSuccess: (result) => {
       this.lastRun.set(result);

@@ -76,7 +76,6 @@ export function advertValues(
 export function emptyPickupPolicy(): PickupPolicy {
   return {
     enabled: false,
-    dryRun: true,
     gapRuleEnabled: false,
     minimumGapDays: 2,
     cleaningRuleEnabled: false,
@@ -101,14 +100,13 @@ export function emptyLinkRule(): LinkedStoreRule {
 }
 
 export function emptyRequestPolicy(): RequestPolicy {
-  return { enabled: false, dryRun: true, distanceRuleEnabled: true, maximumDistanceKm: 5 };
+  return { enabled: false, distanceRuleEnabled: true, maximumDistanceKm: 5 };
 }
 
 export function emptyAdvert(advertNumber: number): OpenSlotAdvert {
   return {
     advertNumber,
     enabled: false,
-    dryRun: true,
     triggerHoursBefore: 24,
     channels: [AdvertChannel.Push],
     storeMessages: [],

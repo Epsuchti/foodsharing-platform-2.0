@@ -9,10 +9,18 @@ export interface MetricGroup {
   keys: readonly MetricKey[];
 }
 
-const values = Object.values(MetricKey) as MetricKey[];
+/** Legacy dry-run keys (decision 165): still in the contract for old rows, never shown. */
+export function isLegacyMetricKey(key: string): boolean {
+  return key.includes('WOULD_');
+}
+
+const values = (Object.values(MetricKey) as MetricKey[]).filter((key) => !isLegacyMetricKey(key));
 const byPrefix = (...prefixes: string[]) => values.filter((key) => prefixes.some((prefix) => key.startsWith(prefix)));
 
-/** The metric groups in display order; every MetricKey is in exactly one group (contract order inside a group). */
+/**
+ * The metric groups in display order; every MetricKey except the legacy WOULD_* keys is in exactly one group (contract
+ * order inside a group).
+ */
 export const METRIC_GROUPS: readonly MetricGroup[] = [
   { id: 'PICKUP', keys: byPrefix('SLOT_APPROVAL.') },
   { id: 'DECLINE_REASONS', keys: byPrefix('SLOT_DECLINE_RULE.') },

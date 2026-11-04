@@ -420,7 +420,6 @@ describe('adverts section: run now uses the saved adverts', () => {
   const saved: OpenSlotAdvert = {
     ...emptyAdvert(1),
     enabled: true,
-    dryRun: false,
     channels: [AdvertChannel.Telegram],
     telegramMessages: ['Noch Platz bei {{storeName}}'],
   };
@@ -430,7 +429,6 @@ describe('adverts section: run now uses the saved adverts', () => {
   let fixture: ComponentFixture<AdvertsSection>;
   const q = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector(selector);
   const runButton = () => q('[data-testid="automation.adverts.run"] button') as HTMLButtonElement;
-  const runDryButton = () => q('[data-testid="automation.adverts.runDry"] button') as HTMLButtonElement;
   const settle = async () => {
     await fixture.whenStable();
     fixture.detectChanges();
@@ -468,16 +466,16 @@ describe('adverts section: run now uses the saved adverts', () => {
 
   afterEach(() => http.verify({ ignoreCancelled: true }));
 
-  it('blocks run and dry run while a draft is unsaved or the save is in flight', async () => {
+  it('blocks run while a draft is unsaved or the save is in flight; there is no dry run (decision 165)', async () => {
     expect(runButton().disabled).toBe(false);
-    expect(runDryButton().disabled).toBe(false);
+    expect(q('[data-testid="automation.adverts.runDry"]')).toBeNull();
+    expect(q('[data-testid="automation.adverts.dryRun"]')).toBeNull();
     expect(q('[data-testid="automation.adverts.saveFirst"]')).toBeNull();
 
     // the user changes the trigger: unsaved
     section().drafts.update((list) => list.map((a) => ({ ...a, triggerHoursBefore: 48 })));
     await settle();
     expect(runButton().disabled).toBe(true);
-    expect(runDryButton().disabled).toBe(true);
     expect(q('[data-testid="automation.adverts.saveFirst"]')).not.toBeNull();
 
     // save in flight: still blocked
@@ -498,19 +496,30 @@ describe('adverts section: run now uses the saved adverts', () => {
     automation.set(state({ ...saved, triggerHoursBefore: 48 }));
     await settle();
     expect(runButton().disabled).toBe(false);
-    expect(runDryButton().disabled).toBe(false);
     expect(q('[data-testid="automation.adverts.saveFirst"]')).toBeNull();
+  });
+
+  it('run now sends without a dryRun parameter', async () => {
+    runButton().click();
+    await settle();
+    const run = http.expectOne((r) => r.method === 'POST' && r.url === `/api/stores/${S}/automation/adverts/run`);
+    expect(run.request.params.keys()).toEqual([]);
+    run.flush({ evaluated: 1, confirmed: 1, declined: 0, skipped: 0, deferred: 0, failed: 0, messages: [] });
+    await settle();
+    http.match((r) => r.url === `/api/stores/${S}/automation/adverts/planned`).forEach((r) => r.flush([]));
+    await settle();
+    expect(q('[data-testid="automation.adverts.runResult"]')).not.toBeNull();
   });
 });
 
 /**
- * Pickup policy and request policy (resume item 6): dry run and run evaluate the saved policy, so they are blocked
- * while the draft is unsaved, while the save is in flight and until the saved state is reloaded (same rule as AU4).
+ * Pickup policy and request policy (decision 165): one An/Aus switch, no dry run, no "test" / "run now"; the draft is
+ * unsaved while it differs, while the save is in flight and until the saved state is reloaded.
  */
-describe('policy sections: run now uses the saved policy', () => {
+describe('policy sections: one switch, no dry run', () => {
   const S = '00000020-0001-4000-8000-000000000006';
-  const savedPickup: PickupPolicy = { ...emptyPickupPolicy(), enabled: true, dryRun: false, gapRuleEnabled: true, version: 1 };
-  const savedRequest: RequestPolicy = { ...emptyRequestPolicy(), enabled: true, dryRun: false };
+  const savedPickup: PickupPolicy = { ...emptyPickupPolicy(), enabled: true, gapRuleEnabled: true, version: 1 };
+  const savedRequest: RequestPolicy = { ...emptyRequestPolicy(), enabled: true };
   const automation = signal<StoreAutomation | undefined>(undefined);
   const reload = vi.fn();
   let http: HttpTestingController;
@@ -578,44 +587,54 @@ describe('policy sections: run now uses the saved policy', () => {
   ];
 
   for (const c of cases) {
-    it(`${c.name}: blocks run and dry run while the draft is unsaved or the save is in flight`, async () => {
+    it(`${c.name}: has no dry run and no run buttons; saving sends no dryRun`, async () => {
       fixture = c.create();
       await settle();
       // the gap card loads its store candidates (decision 151)
       http.match((r) => r.url.endsWith('/automation/gap-candidates')).forEach((r) => r.flush([]));
       await settle();
-      const run = () => button(`${c.prefix}.run`);
-      const runDry = () => button(`${c.prefix}.runDry`);
-      const hint = () => q(`[data-testid="${c.prefix}.saveFirst"]`);
-      expect(run().disabled).toBe(false);
-      expect(runDry().disabled).toBe(false);
-      expect(hint()).toBeNull();
+      const root = () => q(`[data-testid="${c.prefix}.root"]`) as HTMLElement;
+      for (const gone of ['dryRun', 'dryRunBanner', 'run', 'runDry', 'runResult', 'saveFirst', 'preview']) {
+        expect(q(`[data-testid="${c.prefix}.${gone}"]`), gone).toBeNull();
+      }
+      expect(q(`[data-testid="${c.prefix}.enabled"]`)).not.toBeNull();
+      expect(root().dataset['unsaved']).toBe('false');
 
       // the user changes a rule: unsaved
       c.edit();
       await settle();
-      expect(run().disabled).toBe(true);
-      expect(runDry().disabled).toBe(true);
-      expect(hint()).not.toBeNull();
+      expect(root().dataset['unsaved']).toBe('true');
 
-      // save in flight: still blocked
+      // save in flight: still unsaved; the body has no dryRun
       button(`${c.prefix}.save`).click();
       await settle();
       const put = http.expectOne((r) => r.method === 'PUT' && r.url === c.url);
-      expect(runDry().disabled).toBe(true);
+      expect(Object.keys(put.request.body as object)).not.toContain('dryRun');
+      expect(root().dataset['unsaved']).toBe('true');
 
-      // saved, but the store automation is not reloaded yet: still blocked
+      // saved, but the store automation is not reloaded yet: still unsaved
       put.flush(c.body());
       await settle();
       expect(reload).toHaveBeenCalled();
-      expect(runDry().disabled).toBe(true);
+      expect(root().dataset['unsaved']).toBe('true');
 
-      // the reloaded state matches the draft: run is possible again
+      // the reloaded state matches the draft
       automation.set(c.saved(structuredClone(savedPickup), structuredClone(savedRequest)));
       await settle();
-      expect(run().disabled).toBe(false);
-      expect(runDry().disabled).toBe(false);
-      expect(hint()).toBeNull();
+      expect(root().dataset['unsaved']).toBe('false');
     });
   }
+
+  it('pickup policy: the switch hint follows An/Aus', async () => {
+    fixture = TestBed.createComponent(PickupPolicySection);
+    await settle();
+    http.match((r) => r.url.endsWith('/automation/gap-candidates')).forEach((r) => r.flush([]));
+    await settle();
+    const hint = () => q('[data-testid="automation.policy.enabledHint"]')?.textContent?.trim();
+    expect(hint()).toBe('automation.policy.enabledHint');
+    const draft = (fixture.componentInstance as { draft: WritableSignal<PickupPolicy | null> }).draft;
+    draft.update((p) => ({ ...p!, enabled: false }));
+    await settle();
+    expect(hint()).toBe('automation.policy.disabledHint');
+  });
 });

@@ -9,7 +9,7 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
 
 /**
  * Store tab "Automation" (`/stores/:storeId/automation`, AU1–AU6, AU8): sub-navigation and the active section.
- * The tab is offered to store editors and CAN_USE_AUTOMATIONS holders; the API decides (403 → forbidden state).
+ * The tab is offered to store editors (mayEditStore, decision 165); the API decides (403 → forbidden state).
  */
 @Component({
   selector: 'fs-store-automation-tab',

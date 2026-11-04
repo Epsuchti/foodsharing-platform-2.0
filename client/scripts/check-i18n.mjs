@@ -8,6 +8,7 @@
 //  - a translation uses other {placeholders} than the German one
 //  - errors.<CODE> is missing for a value of ApiErrorCode in server/.../openapi/schemas/common.yaml
 //  - automation.metric.<KEY with '.' -> '_'> is missing for a value of MetricKey in server/.../schemas/automation.yaml
+//    (except the legacy WOULD_* keys, decision 165)
 // Unused keys are reported as warnings.
 import { readFile } from 'node:fs/promises';
 
@@ -203,6 +204,8 @@ for (const code of [...codes, ...CLIENT_ERROR_CODES]) {
 // MetricKey -> automation.metric.<KEY with every '.' replaced by '_'> (client metricLabelKey)
 const metricKeys = await yamlEnum(AUTOMATION_YAML, 'MetricKey');
 for (const key of metricKeys) {
+  // legacy dry-run keys (decision 165): kept in the contract for old rows, never shown (client isLegacyMetricKey)
+  if (key.includes('WOULD_')) continue;
   const label = `automation.metric.${key.replaceAll('.', '_')}`;
   for (const lang of LANGUAGES) {
     if (!keysByLang[lang].has(label)) {

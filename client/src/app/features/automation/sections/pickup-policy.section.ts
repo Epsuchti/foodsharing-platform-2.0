@@ -11,7 +11,6 @@ import { SelectButton } from '@openng/optimus-ui/selectbutton';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
 import {
-  AutomationRunResult,
   AutomationService,
   GapCandidate,
   GapCandidateLink,
@@ -43,7 +42,6 @@ import {
   todayIn,
 } from '../automation.util';
 import { GapPreviewComponent } from '../components/gap-preview.component';
-import { PreviewDialogComponent } from '../components/preview-dialog.component';
 import { TemplateEditorComponent } from '../components/template-editor.component';
 import { StoreAutomationContext } from '../store-automation.context';
 
@@ -70,9 +68,9 @@ export const MAX_LINK_RULES = 2;
 export const MAX_STORES_PER_LINK = 5;
 
 /**
- * Pickup sign-up automation of a store (AU1): enabled / dry run, rule cards (gap with its own part and the group part
- * of decision 152, experience, cleaning, holidays),
- * linked-store rules, excluded dates, save, run now (dry run / live) and the preview dialog.
+ * Pickup sign-up automation of a store (AU1): one switch "Regeln anwenden" (no dry run, decision 165), rule cards (gap
+ * with its own part and the group part of decision 152, experience, cleaning, holidays), linked-store rules, excluded
+ * dates and save.
  */
 @Component({
   selector: 'fs-pickup-policy-section',
@@ -87,7 +85,6 @@ export const MAX_STORES_PER_LINK = 5;
     InputNumber,
     MultiSelect,
     NgTemplateOutlet,
-    PreviewDialogComponent,
     RouterLink,
     SelectButton,
     TemplateEditorComponent,
@@ -97,27 +94,16 @@ export const MAX_STORES_PER_LINK = 5;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (draft(); as p) {
-      <section class="card fs-card" data-testid="automation.policy.root" [attr.data-enabled]="p.enabled" [attr.data-dry-run]="p.dryRun" [attr.data-unsaved]="unsaved()">
+      <section class="card fs-card" data-testid="automation.policy.root" [attr.data-enabled]="p.enabled" [attr.data-unsaved]="unsaved()">
         <h2>{{ 'automation.policy.title' | t }}</h2>
         <p class="muted">{{ 'automation.policy.intro' | t }}</p>
         <div class="switch-row">
           <label class="switch-row__text" for="pp-enabled">
             <strong>{{ 'automation.policy.enabled' | t }}</strong>
+            <span class="muted" data-testid="automation.policy.enabledHint">{{ (p.enabled ? 'automation.policy.enabledHint' : 'automation.policy.disabledHint') | t }}</span>
           </label>
           <p-toggleswitch inputId="pp-enabled" [(ngModel)]="p.enabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.enabled" />
         </div>
-        <div class="switch-row">
-          <label class="switch-row__text" for="pp-dry">
-            <strong>{{ 'automation.common.dryRun' | t }}</strong>
-            <span class="muted">{{ 'automation.common.dryRunHint' | t }}</span>
-          </label>
-          <p-toggleswitch inputId="pp-dry" [(ngModel)]="p.dryRun" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.dryRun" />
-        </div>
-        @if (p.enabled && p.dryRun) {
-          <p class="banner" data-testid="automation.policy.dryRunBanner">
-            <i class="pi pi-eye" aria-hidden="true"></i>{{ 'automation.common.dryRunBanner' | t }}
-          </p>
-        }
       </section>
 
       <div class="rules">
@@ -484,27 +470,8 @@ export const MAX_STORES_PER_LINK = 5;
             (onClick)="save.run()"
             data-testid="automation.policy.save"
           />
-          @if (exists()) {
-            <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.policy.runDry" />
-            <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun || unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.policy.run" />
-          }
-        }
-        @if (exists()) {
-          <p-button [label]="'automation.preview.open' | t" icon="pi pi-question-circle" [text]="true" (onClick)="previewOpen.set(true)" data-testid="automation.policy.preview" />
         }
       </div>
-      @if (ctx.mayEdit() && exists() && unsaved()) {
-        <p class="muted" data-testid="automation.policy.saveFirst">{{ 'automation.policy.saveFirst' | t }}</p>
-      }
-      @if (lastRun(); as r) {
-        <p class="banner banner--info" data-testid="automation.policy.runResult">
-          {{ 'automation.common.runResult' | t: { evaluated: r.evaluated, confirmed: r.confirmed, declined: r.declined, skipped: r.skipped, deferred: r.deferred, failed: r.failed } }}
-          @if (r.dryRun) {
-            <span class="badge badge--dry">{{ 'automation.common.dryRunTag' | t }}</span>
-          }
-        </p>
-      }
-      <fs-preview-dialog [(visible)]="previewOpen" />
     }
   `,
   styleUrl: '../automation.scss',
@@ -546,9 +513,6 @@ export class PickupPolicySection {
   protected readonly today = new Date();
 
   protected readonly draft = signal<PickupPolicy | null>(null);
-  protected readonly lastRun = signal<AutomationRunResult | null>(null);
-  protected readonly previewOpen = signal(false);
-  protected readonly exists = computed(() => !!this.ctx.data()?.pickupPolicy);
 
   /** Stores of the region for the linked-store picker (without this store). */
   protected readonly stores = loadResource<StoreListPage, string>({
@@ -806,10 +770,7 @@ export class PickupPolicySection {
     return JSON.stringify(this.payload(draft)) !== JSON.stringify(this.payload(saved));
   }
 
-  /**
-   * Dry run and run evaluate the saved policy: while the draft differs from the server state, or a save is still in
-   * flight (and until the saved state is reloaded), a run would use the old configuration (same rule as the adverts).
-   */
+  /** The draft differs from the server state, or a save is still in flight (until the saved state is reloaded). */
   protected unsaved(): boolean {
     return this.save.busy() || this.dirty();
   }
@@ -870,7 +831,6 @@ export class PickupPolicySection {
   private payload(policy: PickupPolicy): PickupPolicy {
     return {
       enabled: policy.enabled,
-      dryRun: policy.dryRun,
       gapRuleEnabled: policy.gapRuleEnabled,
       minimumGapDays: policy.minimumGapDays,
       cleaningRuleEnabled: policy.cleaningRuleEnabled,
@@ -899,10 +859,5 @@ export class PickupPolicySection {
   protected readonly save = runMutation(
     () => this.api.putPickupPolicy({ storeId: this.ctx.storeId()!, pickupPolicy: this.payload(this.draft()!) }),
     { successToastKey: 'automation.common.saved', errorToast: false, onSuccess: () => this.ctx.reload() },
-  );
-
-  protected readonly run = runMutation(
-    (dryRun: boolean) => this.api.runPickupPolicy({ storeId: this.ctx.storeId()!, dryRun }),
-    { successToastKey: 'automation.common.ran', onSuccess: (result) => this.lastRun.set(result) },
   );
 }
