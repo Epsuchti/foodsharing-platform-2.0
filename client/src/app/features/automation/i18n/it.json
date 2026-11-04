@@ -216,7 +216,7 @@
   "automation.policy.gapPreview.message": "Hai già un ritiro il {date} da {store}. Tra due ritiri da {stores} devono esserci almeno {gap}; qui sarebbero solo {actual}.",
   "automation.policy.gapPreview.messageSingle": "Tra i ritiri ci sono solo {actual}; ne servono almeno {gap}.",
   "automation.policy.gapPreview.none": "Con 0 giorni di distanza la regola non rifiuta nessuna iscrizione.",
-  "automation.policy.grace": "Tolleranza (minuti)",
+  "automation.policy.grace": "Termine dopo una disiscrizione nel negozio collegato (minuti)",
   "automation.policy.holidays": "Giorni festivi",
   "automation.policy.holidaysHint": "Nessuna conferma automatica nei giorni festivi.",
   "automation.policy.holidaysLink": "Mostra i giorni festivi",

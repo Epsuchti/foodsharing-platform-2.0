@@ -216,7 +216,7 @@
   "automation.policy.gapPreview.message": "Du hesch scho am {date} e Abholig bi {store}. Zwüsche zwei Abholige bi {stores} müend mindestens {gap} liege; da wäred es nur {actual}.",
   "automation.policy.gapPreview.messageSingle": "Zwischen den Abholungen liegt nur {actual} Abstand; erforderlich sind mindestens {gap}.",
   "automation.policy.gapPreview.none": "Mit 0 Täg Abstand lehnt d Regel kei Iitragig ab.",
-  "automation.policy.grace": "Karenzziit (Minute)",
+  "automation.policy.grace": "Frist nach em Ustrage im verchnüpfte Betrieb (Minute)",
   "automation.policy.holidays": "Fiirtäg",
   "automation.policy.holidaysHint": "A Fiirtäg kei automatischi Bestätigung.",
   "automation.policy.holidaysLink": "Fiirtäg aazeige",

@@ -216,7 +216,7 @@
   "automation.policy.gapPreview.message": "You already have a pickup on {date} at {store}. At least {gap} must lie between two pickups at {stores}; here it would be only {actual}.",
   "automation.policy.gapPreview.messageSingle": "There is only {actual} between the pickups; at least {gap} are required.",
   "automation.policy.gapPreview.none": "With a gap of 0 days the rule declines no sign-up.",
-  "automation.policy.grace": "Grace period (minutes)",
+  "automation.policy.grace": "Time after a sign-out in the linked store (minutes)",
   "automation.policy.holidays": "Public holidays",
   "automation.policy.holidaysHint": "No automatic confirmation on public holidays.",
   "automation.policy.holidaysLink": "Show holidays",

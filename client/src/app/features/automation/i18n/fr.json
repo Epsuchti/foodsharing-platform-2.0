@@ -216,7 +216,7 @@
   "automation.policy.gapPreview.message": "Tu as déjà une collecte le {date} chez {store}. Il faut au moins {gap} entre deux collectes chez {stores} ; ici il n’y aurait que {actual}.",
   "automation.policy.gapPreview.messageSingle": "Il n’y a que {actual} entre les collectes ; il faut au moins {gap}.",
   "automation.policy.gapPreview.none": "Avec un écart de 0 jour, la règle ne refuse aucune inscription.",
-  "automation.policy.grace": "Délai de grâce (minutes)",
+  "automation.policy.grace": "Délai après une désinscription dans le commerce lié (minutes)",
   "automation.policy.holidays": "Jours fériés",
   "automation.policy.holidaysHint": "Pas de confirmation automatique les jours fériés.",
   "automation.policy.holidaysLink": "Voir les jours fériés",

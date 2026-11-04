@@ -216,7 +216,7 @@
   "automation.policy.gapPreview.message": "Du hast bereits am {date} eine Abholung bei {store}. Zwischen zwei Abholungen bei {stores} müssen mindestens {gap} liegen; hier wären es nur {actual}.",
   "automation.policy.gapPreview.messageSingle": "Zwischen den Abholungen liegt nur {actual} Abstand; erforderlich sind mindestens {gap}.",
   "automation.policy.gapPreview.none": "Mit 0 Tagen Abstand lehnt die Regel keine Eintragung ab.",
-  "automation.policy.grace": "Karenzzeit (Minuten)",
+  "automation.policy.grace": "Frist nach Austragung im verknüpften Betrieb (Minuten)",
   "automation.policy.holidays": "Feiertage",
   "automation.policy.holidaysHint": "An Feiertagen keine automatische Bestätigung.",
   "automation.policy.holidaysLink": "Feiertage anzeigen",
