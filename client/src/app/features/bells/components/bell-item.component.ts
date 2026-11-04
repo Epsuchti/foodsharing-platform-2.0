@@ -3,11 +3,12 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { Bell } from '../../../api';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { piIcon } from '../../../core/icons/lucide-icons';
 
 /** `pi pi-*` class of a bell icon (`icon` is a PrimeIcons name without prefix; GENERIC falls back to the bell). */
 export function bellIconClass(bell: Bell): string {
-  const name = bell.icon?.replace(/^pi[- ]+/, '').replace(/^pi-/, '');
-  return `pi pi-${name || 'bell'}`;
+  // server icons are Lucide names; the font lacks half of them (decision 159)
+  return piIcon(bell.icon, 'bell');
 }
 
 /** Translation key of a bell's title: `bell.<TYPE>` (N3; every NotificationType has one in features/bells/i18n). */
