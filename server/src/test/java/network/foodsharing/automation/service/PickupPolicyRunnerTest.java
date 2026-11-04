@@ -65,10 +65,9 @@ class PickupPolicyRunnerTest {
                 JsonMapper.builder().build(), mock(PlatformTransactionManager.class));
         policy.setStoreId(STORE);
         policy.setEnabled(true);
-        policy.setDryRun(false);
         when(policies.findByStoreId(STORE)).thenReturn(Optional.of(policy));
         when(policies.findByEnabledTrue()).thenReturn(List.of(policy));
-        when(data.spec(policy)).thenReturn(new PickupPolicyEvaluator.Spec(null, STORE, true, false, false, 0, false,
+        when(data.spec(policy)).thenReturn(new PickupPolicyEvaluator.Spec(null, STORE, true, false, 0, false,
                 false, false, Set.of(), List.of()));
         when(data.user(USER)).thenReturn(new PickupPolicyEvaluator.UserInfo(USER, "Sarah", null, Locale.GERMAN));
         when(data.regionId(STORE)).thenReturn(UUID.randomUUID());
@@ -135,31 +134,21 @@ class PickupPolicyRunnerTest {
     }
 
     @Test
-    void dryRunOnlyAudits() {
-        policy.setDryRun(true);
-        decide(declined());
-        signUp();
-        verify(pickups, never()).removeByAutomation(any(), any(), any(), anyString(), any());
-        PickupPolicyAudit audit = savedAudit();
-        assertThat(audit.getDecision()).isEqualTo(PickupPolicyDecision.WOULD_DECLINE);
-        assertThat(audit.isDryRun()).isTrue();
-    }
-
-    @Test
-    void globalDryRunAndForcedDryRun() {
-        properties.getAutomation().setDryRun(true);
+    void jobPathActsAndAuditsLive() {
+        // decision 165: no dry run; every decision acts and its audit has dry_run = false
         decide(allowed(PolicyRule.ALL_RULES_PASSED, null));
         PickupPolicyRunner.RunResult result = runner.runAll();
-        assertThat(result.dryRun()).isTrue();
         assertThat(result.confirmed()).isEqualTo(1);
-        verify(pickups, never()).confirmByAutomation(any(), any(), any(), anyString(), any());
-        assertThat(savedAudit().getDecision()).isEqualTo(PickupPolicyDecision.WOULD_CONFIRM);
+        verify(pickups).confirmByAutomation(STORE, PICKUP, USER, PickupPolicyRunner.ACTOR, null);
+        PickupPolicyAudit audit = savedAudit();
+        assertThat(audit.getDecision()).isEqualTo(PickupPolicyDecision.CONFIRMED);
+        assertThat(audit.isDryRun()).isFalse();
     }
 
     @Test
     void deferredWritesNoAudit() {
         decide(new Decision(false, true, true, List.of(new Reason(PolicyRule.LINKED_STORE, "wartet")), null));
-        PickupPolicyRunner.RunResult result = runner.runStore(STORE, false);
+        PickupPolicyRunner.RunResult result = runner.runAll();
         assertThat(result.deferred()).isEqualTo(1);
         verify(audits, never()).save(any());
     }

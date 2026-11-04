@@ -21,9 +21,9 @@ public class StoreAlertAccessAdapter implements StoreAlertAccess {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean mayUseAutomations(SessionPrincipal actor, UUID storeId) {
+    public boolean mayEditStore(SessionPrincipal actor, UUID storeId) {
         Store store = stores.require(storeId);
-        return permissions.mayUseAutomations(actor, store);
+        return permissions.mayEditStore(actor, store);
     }
 
     @Override

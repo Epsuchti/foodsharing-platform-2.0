@@ -68,7 +68,7 @@ public class PickupPolicyService {
      * shared gap list (decision 151); empty or missing = alone. {@code groupMinimumGapDays}: the gap of that list
      * (decision 152), required with a list.
      */
-    public record PolicyInput(boolean enabled, boolean dryRun, boolean gapRuleEnabled, int minimumGapDays,
+    public record PolicyInput(boolean enabled, boolean gapRuleEnabled, int minimumGapDays,
                               boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                               boolean publicHolidayRuleEnabled, List<LinkInput> links, List<LocalDate> excludedDates,
                               Long version, List<UUID> gapStoreIds, Integer groupMinimumGapDays) {
@@ -78,11 +78,11 @@ public class PickupPolicyService {
         }
 
         /** Without a gap list. */
-        public PolicyInput(boolean enabled, boolean dryRun, boolean gapRuleEnabled, int minimumGapDays,
+        public PolicyInput(boolean enabled, boolean gapRuleEnabled, int minimumGapDays,
                            boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                            boolean publicHolidayRuleEnabled, List<LinkInput> links, List<LocalDate> excludedDates,
                            Long version) {
-            this(enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
+            this(enabled, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
                     publicHolidayRuleEnabled, links, excludedDates, version, List.of(), null);
         }
     }
@@ -141,11 +141,11 @@ public class PickupPolicyService {
         return cleaning.cleaningFsps(store.getRegionId());
     }
 
-    /** The store, after checking mayUseAutomations. @throws ApiException 404, 403 */
+    /** The store, after checking mayEditStore. @throws ApiException 404, 403 */
     @Transactional(readOnly = true)
     public Store requireAutomationStore(UUID storeId) {
         Store store = stores.require(storeId);
-        if (!permissions.mayUseAutomations(currentActor.requirePrincipal(), store)) {
+        if (!permissions.mayEditStore(currentActor.requirePrincipal(), store)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         return store;
@@ -222,7 +222,6 @@ public class PickupPolicyService {
         policy.setStoreId(storeId);
         policy.setRegionId(store.getRegionId());
         policy.setEnabled(input.enabled());
-        policy.setDryRun(input.dryRun());
         policy.setGapRuleEnabled(input.gapRuleEnabled());
         policy.setMinimumGapDays(input.minimumGapDays());
         policy.setCleaningRuleEnabled(input.cleaningRuleEnabled());
@@ -289,12 +288,12 @@ public class PickupPolicyService {
                 throw ApiException.badRequest(ApiErrorCode.GAP_LIST_STORE_TAKEN).withArg("storeId", id.toString());
             }
             boolean changes = gapChanges || !liveOthers.contains(id) || policy == null;
-            if (changes && !permissions.mayUseAutomations(actor, listed)) {
+            if (changes && !permissions.mayEditStore(actor, listed)) {
                 throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());
             }
         }
         for (UUID removed : liveOthers) {
-            if (!wanted.contains(removed) && !permissions.mayUseAutomations(actor, stores.require(removed))) {
+            if (!wanted.contains(removed) && !permissions.mayEditStore(actor, stores.require(removed))) {
                 throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", removed.toString());
             }
         }
@@ -410,7 +409,6 @@ public class PickupPolicyService {
         PickupPolicy created = new PickupPolicy();
         created.setStoreId(storeId);
         created.setEnabled(false);
-        created.setDryRun(true);
         return created;
     }
 
@@ -437,7 +435,7 @@ public class PickupPolicyService {
             List<GapLinkConflicts.Link> rules = policy == null ? List.of()
                     : linkRules(candidate.getId(), links.findByPolicyIdOrderByCreatedAtAscIdAsc(policy.getId()));
             result.add(new GapCandidateView(candidate, policy != null && policy.isEnabled(), inOtherList,
-                    permissions.mayUseAutomations(actor, candidate), rules));
+                    permissions.mayEditStore(actor, candidate), rules));
         }
         return result;
     }
@@ -484,7 +482,7 @@ public class PickupPolicyService {
                     throw ApiException.badRequest(ApiErrorCode.LINKED_STORE_SELF);
                 }
                 Store linked = stores.require(id);
-                if (!permissions.mayUseAutomations(actor, linked)) {
+                if (!permissions.mayEditStore(actor, linked)) {
                     throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());
                 }
                 if (!all.add(id)) {
@@ -577,7 +575,6 @@ public class PickupPolicyService {
             PickupPolicy created = new PickupPolicy();
             created.setStoreId(targetStoreId);
             created.setEnabled(false);
-            created.setDryRun(true);
             return policies.saveAndFlush(created);
         });
         PickupPolicyLinkedStore mirror = new PickupPolicyLinkedStore();
@@ -677,7 +674,7 @@ public class PickupPolicyService {
         SessionPrincipal actor = currentActor.principal().orElse(null);
         return stores.liveStores(byStore.keySet()).stream()
                 .map(s -> new GapStoreView(s, byStore.get(s.getId()).isEnabled(),
-                        permissions.mayUseAutomations(actor, s)))
+                        permissions.mayEditStore(actor, s)))
                 .toList();
     }
 }

@@ -10,11 +10,11 @@ import network.foodsharing.security.SessionPrincipal;
 public interface StoreAlertAccess {
 
     /**
-     * mayUseAutomations(store).
+     * mayEditStore(store).
      *
      * @throws network.foodsharing.common.error.ApiException 404 when the store does not exist
      */
-    boolean mayUseAutomations(SessionPrincipal actor, UUID storeId);
+    boolean mayEditStore(SessionPrincipal actor, UUID storeId);
 
     /** Store name for messages (null when unknown). */
     String storeName(UUID storeId);

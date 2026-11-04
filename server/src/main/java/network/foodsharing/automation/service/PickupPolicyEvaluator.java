@@ -43,7 +43,7 @@ public class PickupPolicyEvaluator {
      * pickups only). {@code gapStoreIds}: the other live stores of its shared gap list (decision 151), empty for a
      * store alone; {@code groupMinimumGapDays}: the gap of that list (decision 152), 0 without a list.
      */
-    public record Spec(UUID id, UUID storeId, boolean enabled, boolean dryRun, boolean gapRuleEnabled,
+    public record Spec(UUID id, UUID storeId, boolean enabled, boolean gapRuleEnabled,
                        int minimumGapDays, boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                        boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links,
                        List<UUID> gapStoreIds, int groupMinimumGapDays) {
@@ -53,10 +53,10 @@ public class PickupPolicyEvaluator {
         }
 
         /** A policy without a gap list. */
-        public Spec(UUID id, UUID storeId, boolean enabled, boolean dryRun, boolean gapRuleEnabled,
+        public Spec(UUID id, UUID storeId, boolean enabled, boolean gapRuleEnabled,
                     int minimumGapDays, boolean cleaningRuleEnabled, boolean experienceRuleEnabled,
                     boolean publicHolidayRuleEnabled, Set<LocalDate> excludedDates, List<LinkRule> links) {
-            this(id, storeId, enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled,
+            this(id, storeId, enabled, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled,
                     experienceRuleEnabled, publicHolidayRuleEnabled, excludedDates, links, List.of(), 0);
         }
     }

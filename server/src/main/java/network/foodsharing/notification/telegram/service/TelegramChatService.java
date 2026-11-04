@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Region and store alert chats (A28): region → mayAdministrateRegion, store → mayUseAutomations. The list of
+ * Region and store alert chats (A28): region → mayAdministrateRegion, store → mayEditStore. The list of
  * selectable chats ({@link #seenChats}) is open to ORGA, ambassadors and store managers.
  */
 @Service
@@ -190,7 +190,7 @@ public class TelegramChatService {
     private void requireAccess(SessionPrincipal actor, OwnerType ownerType, UUID ownerId) {
         if (ownerType == OwnerType.REGION) {
             permissions.requireMayAdministrateRegion(actor, ownerId);
-        } else if (!storeAccess.mayUseAutomations(actor, ownerId)) {
+        } else if (!storeAccess.mayEditStore(actor, ownerId)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
     }

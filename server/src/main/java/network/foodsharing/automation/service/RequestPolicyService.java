@@ -18,7 +18,7 @@ public class RequestPolicyService {
 
     static final double MAXIMUM_DISTANCE_KM = 200;
 
-    public record RequestPolicyInput(boolean enabled, boolean dryRun, boolean distanceRuleEnabled,
+    public record RequestPolicyInput(boolean enabled, boolean distanceRuleEnabled,
                                      double maximumDistanceKm, Long version) {
     }
 
@@ -60,7 +60,6 @@ public class RequestPolicyService {
         policy.setStoreId(storeId);
         policy.setRegionId(store.getRegionId());
         policy.setEnabled(input.enabled());
-        policy.setDryRun(input.dryRun());
         policy.setDistanceRuleEnabled(input.distanceRuleEnabled());
         policy.setMaximumDistanceKm(input.maximumDistanceKm());
         policy = policies.saveAndFlush(policy);

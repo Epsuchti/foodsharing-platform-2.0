@@ -1,6 +1,5 @@
 package network.foodsharing.automation.service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -37,9 +36,9 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Applies pickup policies (A24): right after a sign-up commits ({@link PickupEvents.PickupSignedUpEvent}, unconfirmed
- * only), from the {@code automation-evaluate} job (deferred cases) and from "run now". Each sign-up is decided in its
- * own transaction; a failure writes a FAILED audit. {@code effectiveDryRun = global || forced || policy.dryRun}.
- * DEFERRED writes no audit; on the job path a repeated SKIPPED / WOULD_* decision is not audited again.
+ * only), and from the {@code automation-evaluate} job (deferred cases). Each sign-up is decided in its
+ * own transaction; a failure writes a FAILED audit. No dry run (decision 165): audits are written with
+ * {@code dry_run = false}. DEFERRED writes no audit; on the job path a repeated SKIPPED decision is not audited again.
  */
 @Service
 public class PickupPolicyRunner {
@@ -47,12 +46,11 @@ public class PickupPolicyRunner {
     public static final String ACTOR = "pickup-policy";
 
     private static final Logger log = LoggerFactory.getLogger(PickupPolicyRunner.class);
-    private static final Set<PickupPolicyDecision> REPEATABLE = EnumSet.of(PickupPolicyDecision.SKIPPED,
-            PickupPolicyDecision.WOULD_CONFIRM, PickupPolicyDecision.WOULD_DECLINE);
+    private static final Set<PickupPolicyDecision> REPEATABLE = EnumSet.of(PickupPolicyDecision.SKIPPED);
 
     /** Counts of one run. */
     public record RunResult(int evaluated, int confirmed, int declined, int skipped, int deferred, int failed,
-                            boolean dryRun, List<String> messages) {
+                            List<String> messages) {
     }
 
     private final PickupPolicyRepository policies;
@@ -95,30 +93,20 @@ public class PickupPolicyRunner {
             return;
         }
         process(policy.get(), new Signup(event.storeId(), event.userId(), event.pickupAt(), false,
-                event.signedUpAt()), false, false, new ArrayList<>());
-    }
-
-    /** "Run now" for one store (no permission check here). */
-    public RunResult runStore(UUID storeId, boolean forcedDryRun) {
-        Optional<PickupPolicy> policy = tx.execute(status -> policies.findByStoreId(storeId));
-        if (policy == null || policy.isEmpty()) {
-            return new RunResult(0, 0, 0, 0, 0, 0, forcedDryRun, List.of());
-        }
-        return run(List.of(policy.get()), forcedDryRun);
+                event.signedUpAt()), false, new ArrayList<>());
     }
 
     /** Job path: every unconfirmed future sign-up of every enabled policy. */
     public RunResult runAll() {
         List<PickupPolicy> enabled = tx.execute(status -> policies.findByEnabledTrue());
-        return run(enabled == null ? List.of() : enabled, false);
+        return run(enabled == null ? List.of() : enabled);
     }
 
-    private RunResult run(List<PickupPolicy> policyList, boolean forcedDryRun) {
-        boolean dryRun = forcedDryRun || properties.getAutomation().isDryRun();
+    private RunResult run(List<PickupPolicy> policyList) {
         List<String> messages = new ArrayList<>();
         if (!properties.getAutomation().isEnabled()) {
             messages.add("Pickup automation skipped: global automation is disabled.");
-            return new RunResult(0, 0, 0, 0, 0, 0, true, messages);
+            return new RunResult(0, 0, 0, 0, 0, 0, messages);
         }
         Map<UUID, PickupPolicy> byStore = policyList.stream()
                 .collect(Collectors.toMap(PickupPolicy::getStoreId, Function.identity(), (a, b) -> a));
@@ -129,30 +117,25 @@ public class PickupPolicyRunner {
         for (Signup signup : open == null ? List.<Signup>of() : open) {
             PickupPolicy policy = byStore.get(signup.storeId());
             evaluated++;
-            PickupPolicyDecision decision = process(policy, signup, forcedDryRun, true, messages);
+            PickupPolicyDecision decision = process(policy, signup, true, messages);
             counts[decision.ordinal()]++;
-            dryRun = dryRun || policy.isDryRun();
         }
-        return new RunResult(evaluated,
-                counts[PickupPolicyDecision.CONFIRMED.ordinal()] + counts[PickupPolicyDecision.WOULD_CONFIRM.ordinal()],
-                counts[PickupPolicyDecision.DECLINED.ordinal()] + counts[PickupPolicyDecision.WOULD_DECLINE.ordinal()],
-                counts[PickupPolicyDecision.SKIPPED.ordinal()], counts[PickupPolicyDecision.DEFERRED.ordinal()],
-                counts[PickupPolicyDecision.FAILED.ordinal()], dryRun, messages);
+        return new RunResult(evaluated, counts[PickupPolicyDecision.CONFIRMED.ordinal()],
+                counts[PickupPolicyDecision.DECLINED.ordinal()], counts[PickupPolicyDecision.SKIPPED.ordinal()],
+                counts[PickupPolicyDecision.DEFERRED.ordinal()], counts[PickupPolicyDecision.FAILED.ordinal()],
+                messages);
     }
 
-    private PickupPolicyDecision process(PickupPolicy policy, Signup signup, boolean forcedDryRun, boolean dedupe,
-                                         List<String> messages) {
+    private PickupPolicyDecision process(PickupPolicy policy, Signup signup, boolean dedupe, List<String> messages) {
         try {
-            return tx.execute(status -> decideAndAct(policy, signup, forcedDryRun, dedupe));
+            return tx.execute(status -> decideAndAct(policy, signup, dedupe));
         } catch (RuntimeException ex) {
             log.error("Pickup policy failed for store {} pickupAt={} user={}", signup.storeId(), signup.pickupAt(),
                     signup.userId(), ex);
             messages.add(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
             try {
-                tx.executeWithoutResult(status -> audit(policy, signup,
-                        forcedDryRun || policy.isDryRun() || properties.getAutomation().isDryRun(),
-                        PickupPolicyDecision.FAILED, List.of(), null, truncate(String.valueOf(ex.getMessage()), 2000),
-                        false));
+                tx.executeWithoutResult(status -> audit(policy, signup, PickupPolicyDecision.FAILED, List.of(), null,
+                        truncate(String.valueOf(ex.getMessage()), 2000), false));
             } catch (RuntimeException auditFailure) {
                 log.error("Could not write the FAILED audit", auditFailure);
             }
@@ -160,9 +143,7 @@ public class PickupPolicyRunner {
         }
     }
 
-    private PickupPolicyDecision decideAndAct(PickupPolicy policy, Signup signup, boolean forcedDryRun,
-                                              boolean dedupe) {
-        boolean dryRun = forcedDryRun || policy.isDryRun() || properties.getAutomation().isDryRun();
+    private PickupPolicyDecision decideAndAct(PickupPolicy policy, Signup signup, boolean dedupe) {
         Spec spec = data.spec(policy);
         Decision decision = evaluator.evaluate(spec, signup.pickupAt(), signup.userId(), data);
         if (decision.deferred()) {
@@ -171,31 +152,26 @@ public class PickupPolicyRunner {
             return PickupPolicyDecision.DEFERRED;
         }
         if (decision.skipped()) {
-            audit(policy, signup, dryRun, PickupPolicyDecision.SKIPPED, decision.reasons(), null, null, dedupe);
+            audit(policy, signup, PickupPolicyDecision.SKIPPED, decision.reasons(), null, null, dedupe);
             return PickupPolicyDecision.SKIPPED;
         }
         if (decision.allowed()) {
-            if (!dryRun) {
-                pickups.confirmByAutomation(signup.storeId(), signup.pickupAt(), signup.userId(), ACTOR,
-                        decision.userMessage());
-            }
-            PickupPolicyDecision result = dryRun ? PickupPolicyDecision.WOULD_CONFIRM : PickupPolicyDecision.CONFIRMED;
-            audit(policy, signup, dryRun, result, decision.reasons(), decision.userMessage(), null, dedupe);
-            return result;
+            pickups.confirmByAutomation(signup.storeId(), signup.pickupAt(), signup.userId(), ACTOR,
+                    decision.userMessage());
+            audit(policy, signup, PickupPolicyDecision.CONFIRMED, decision.reasons(), decision.userMessage(), null,
+                    dedupe);
+            return PickupPolicyDecision.CONFIRMED;
         }
         String footer = evaluator.texts(data.user(signup.userId()).locale()).text("decline-footer");
         String message = decision.reasonText() + "\n\n" + footer;
-        if (!dryRun) {
-            pickups.removeByAutomation(signup.storeId(), signup.pickupAt(), signup.userId(), ACTOR,
-                    truncate(message, 4000));
-        }
-        PickupPolicyDecision result = dryRun ? PickupPolicyDecision.WOULD_DECLINE : PickupPolicyDecision.DECLINED;
-        audit(policy, signup, dryRun, result, decision.reasons(),
+        pickups.removeByAutomation(signup.storeId(), signup.pickupAt(), signup.userId(), ACTOR,
+                truncate(message, 4000));
+        audit(policy, signup, PickupPolicyDecision.DECLINED, decision.reasons(),
                 decision.userMessage() != null ? decision.userMessage() : message, null, dedupe);
-        return result;
+        return PickupPolicyDecision.DECLINED;
     }
 
-    private void audit(PickupPolicy policy, Signup signup, boolean dryRun, PickupPolicyDecision decision,
+    private void audit(PickupPolicy policy, Signup signup, PickupPolicyDecision decision,
                        List<Reason> reasons, String userMessage, String error, boolean dedupe) {
         if (dedupe && REPEATABLE.contains(decision) && audits.findFirstByStoreIdAndUserIdAndPickupAtOrderByCreatedAtDescIdDesc(
                 signup.storeId(), signup.userId(), signup.pickupAt())
@@ -209,7 +185,7 @@ public class PickupPolicyRunner {
         audit.setRegionId(regionId);
         audit.setUserId(signup.userId());
         audit.setPickupAt(signup.pickupAt());
-        audit.setDryRun(dryRun);
+        audit.setDryRun(false);
         audit.setDecision(decision);
         audit.setReasons(truncate(json.writeValueAsString(reasons), 32600));
         audit.setUserMessage(truncate(userMessage, 4000));
@@ -219,11 +195,6 @@ public class PickupPolicyRunner {
                 .secondarySubject(signup.userId()).region(regionId).metadata("storeId", signup.storeId().toString())
                 .metadata("pickupAt", signup.pickupAt().toString()).metadata("decision", decision.name())
                 .build());
-    }
-
-    /** Evaluates without acting (preview endpoint). */
-    public Decision preview(PickupPolicy policy, Instant pickupAt, UUID userId) {
-        return evaluator.evaluate(data.spec(policy), pickupAt, userId, data);
     }
 
     static String truncate(String value, int max) {

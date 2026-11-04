@@ -76,9 +76,9 @@ class PickupPolicyFlowIT {
     void signupIsConfirmedInTheSameRequestCycle() throws Exception {
         // the Zürich pickup rule (2 per 7 days) would block foodsaver's sign-ups within the 14-day window
         jdbc.update("update store set use_region_pickup_rule = false where id = ?", java.util.UUID.fromString(S01_ID));
-        // the seed keeps S-01 in dry run (M3 scenarios use its unconfirmed sign-ups); go live for this flow
+        // the seed keeps S-01's rules off (decision 165; M3 scenarios use its unconfirmed sign-ups); switch them on
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(login(SeedUsers.BIEB)), """
-                {"enabled":true,"dryRun":false,"gapRuleEnabled":true,"minimumGapDays":2,"cleaningRuleEnabled":false,
+                {"enabled":true,"gapRuleEnabled":true,"minimumGapDays":2,"cleaningRuleEnabled":false,
                  "experienceRuleEnabled":true,"publicHolidayRuleEnabled":true,"linkedStores":[],
                  "excludedDates":["2026-11-08"]}""")).andExpect(status().isOk());
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
@@ -98,7 +98,7 @@ class PickupPolicyFlowIT {
     void gapViolationRemovesTheSignupWithBellAndMail() throws Exception {
         Cookie bieb = login(SeedUsers.BIEB);
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(bieb), """
-                {"enabled":true,"dryRun":false,"gapRuleEnabled":true,"minimumGapDays":3,"cleaningRuleEnabled":false,
+                {"enabled":true,"gapRuleEnabled":true,"minimumGapDays":3,"cleaningRuleEnabled":false,
                  "experienceRuleEnabled":true,"publicHolidayRuleEnabled":true,"linkedStores":[],
                  "excludedDates":["2026-11-08"]}""")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.minimumGapDays").value(3)).andExpect(jsonPath("$.excludedDates[0]")
@@ -120,23 +120,19 @@ class PickupPolicyFlowIT {
 
     @Test
     @Order(3)
-    void storeAutomationPreviewRunAndAudits() throws Exception {
+    void storeAutomationAccessAndAudits() throws Exception {
+        // decision 165: the store manager (bieb, no region permission) configures it; nobody else without
+        // mayEditStore, also not bot, who held CAN_USE_AUTOMATIONS in zuerich-stadt before
         Cookie bieb = login(SeedUsers.BIEB);
         mvc.perform(get(S01 + "/automation").cookie(bieb)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.pickupPolicy.enabled").value(true))
+                .andExpect(jsonPath("$.pickupPolicy.dryRun").doesNotExist())
                 .andExpect(jsonPath("$.permissions.mayEdit").value(true));
         mvc.perform(get(S01 + "/automation").cookie(login(SeedUsers.FOODSAVER))).andExpect(status().isForbidden());
-        mvc.perform(json(post(S01 + "/automation/pickup-policy/preview").cookie(bieb),
-                "{\"pickupAt\":\"2026-11-08T09:00:00Z\",\"userId\":\"" + SeedUsers.FOODSAVER.id() + "\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.decision").value("SKIPPED"))
-                .andExpect(jsonPath("$.reasons[0].rule").value("MANUAL_DATE"));
-        mvc.perform(json(post(S01 + "/automation/pickup-policy/preview").cookie(bieb),
-                "{\"pickupAt\":\"2026-12-25T18:00:00Z\",\"userId\":\"" + SeedUsers.FOODSAVER.id() + "\"}"))
-                .andExpect(jsonPath("$.reasons[0].rule").value("PUBLIC_HOLIDAY"))
-                .andExpect(jsonPath("$.reasons[0].text").value(Matchers.containsString("Weihnachten")));
-        mvc.perform(post(S01 + "/automation/pickup-policy/run").param("dryRun", "true").cookie(bieb).with(csrf()))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.dryRun").value(true))
-                .andExpect(jsonPath("$.evaluated").value(Matchers.greaterThanOrEqualTo(1)));
+        mvc.perform(get(S + "06/automation").cookie(login(SeedUsers.BOT))).andExpect(status().isForbidden());
+        assertThat(count("select count(*) from region_permission where permission in ('CAN_USE_AUTOMATIONS', "
+                + "'CAN_SEE_ALL_AUTOMATION_DECISIONS', 'CAN_SEE_USER_PICKUP_COUNT_GROUPING')")).isZero();
+        assertThat(count("select count(*) from pickup_policy where dry_run = true")).isZero();
         mvc.perform(get(S01 + "/automation/audits").param("kind", "PICKUP").cookie(bieb)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].storeName").value("Coop Bahnhofbrücke"))
                 .andExpect(jsonPath("$.page.totalItems").value(Matchers.greaterThan(10)));
@@ -147,7 +143,7 @@ class PickupPolicyFlowIT {
     void validationCodes() throws Exception {
         Cookie bieb = login(SeedUsers.BIEB);
         String base = """
-                {"enabled":true,"dryRun":true,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":false,
+                {"enabled":true,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":false,
                  "experienceRuleEnabled":false,"publicHolidayRuleEnabled":false,"excludedDates":[],"linkedStores":[%s]}""";
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(bieb), base.formatted(
                 "{\"storeIds\":[\"" + S01_ID + "\"],\"bidirectional\":false,\"windowMode\":\"SAME_DAY\","
@@ -163,7 +159,7 @@ class PickupPolicyFlowIT {
                         + "\"message\":\"Hallo {{vorname}}\"}")))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_TEMPLATE_VARIABLE"));
         mvc.perform(json(put(S + "07/automation/request-policy").cookie(login(SeedUsers.ORGA)),
-                "{\"enabled\":true,\"dryRun\":true,\"distanceRuleEnabled\":true,\"maximumDistanceKm\":500}"))
+                "{\"enabled\":true,\"distanceRuleEnabled\":true,\"maximumDistanceKm\":500}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -172,7 +168,7 @@ class PickupPolicyFlowIT {
     void bidirectionalLinkCreatesAndDeletesTheMirror() throws Exception {
         Cookie orga = login(SeedUsers.ORGA);
         mvc.perform(json(put(S + "02/automation/pickup-policy").cookie(orga), """
-                {"enabled":true,"dryRun":true,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":true,
+                {"enabled":true,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":true,
                  "experienceRuleEnabled":false,"publicHolidayRuleEnabled":false,"excludedDates":[],
                  "linkedStores":[{"storeIds":["00000020-0001-4000-8000-000000000005"],"bidirectional":true,
                  "windowMode":"LAST_DAYS","windowDaysBefore":1,"windowDaysAfter":2,"graceMinutes":45}]}"""))
@@ -193,15 +189,15 @@ class PickupPolicyFlowIT {
 
     @Test
     @Order(7)
-    void sharedGapListDeclinesAcrossStoresFirstInDryRunThenLive() throws Exception {
+    void sharedGapListDeclinesAcrossStoresOnceTheRulesAreSwitchedOn() throws Exception {
         // decisions 151/152: S-01 and S-03 share a group gap of 2 days while S-01's own gap rule is off (own rule off,
         // group on); foodsaver has a confirmed S-03 pickup on Tuesday 10.11.
         Cookie orga = login(SeedUsers.ORGA);
         String policy = """
-                {"enabled":true,"dryRun":%s,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":false,
+                {"enabled":%s,"gapRuleEnabled":false,"minimumGapDays":0,"cleaningRuleEnabled":false,
                  "experienceRuleEnabled":false,"publicHolidayRuleEnabled":false,"linkedStores":[],"excludedDates":[],
                  "groupMinimumGapDays":2,"gapStoreIds":["00000020-0001-4000-8000-000000000003"]}""";
-        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("true")))
+        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("false")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gapRuleEnabled").value(false))
                 .andExpect(jsonPath("$.groupMinimumGapDays").value(2))
@@ -225,36 +221,39 @@ class PickupPolicyFlowIT {
                 java.sql.Timestamp.from(java.time.Instant.parse("2026-11-01T10:00:00Z")),
                 java.util.UUID.fromString("00000020-0001-4000-8000-000000000003"), SeedUsers.FOODSAVER.id(),
                 java.sql.Timestamp.from(java.time.Instant.parse("2026-11-10T17:30:00Z")));
+        String auditsOfThePickup = "select count(*) from pickup_policy_audit where user_id = ? "
+                + "and pickup_at = '2026-11-09 18:00:00+00'";
+        int auditsBefore = count(auditsOfThePickup, SeedUsers.FOODSAVER.id());
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         mvc.perform(post(S01 + "/pickups/2026-11-09T18:00:00Z/signups").cookie(foodsaver).with(csrf()))
                 .andExpect(status().isOk());
-        assertThat(count("select count(*) from pickup_policy_audit where user_id = ? and decision = 'WOULD_DECLINE' "
-                + "and pickup_at = '2026-11-09 18:00:00+00' and reasons like '%\"GAP\"%' and reasons like '%10.11.2026%'",
-                SeedUsers.FOODSAVER.id())).isEqualTo(1);
-        // dry run: the sign-up stays
+        // rules off: the sign-up stays and nothing is audited (no observe mode, decision 165)
+        assertThat(count(auditsOfThePickup, SeedUsers.FOODSAVER.id())).isEqualTo(auditsBefore);
         assertThat(count("select count(*) from pickup_signup where store_id = ? and user_id = ? and pickup_at = ?",
                 java.util.UUID.fromString(S01_ID), SeedUsers.FOODSAVER.id(),
                 java.sql.Timestamp.from(java.time.Instant.parse("2026-11-09T18:00:00Z")))).isEqualTo(1);
 
         String version = com.jayway.jsonpath.JsonPath.read(mvc.perform(get(S01 + "/automation").cookie(orga))
                 .andReturn().getResponse().getContentAsString(), "$.pickupPolicy.version").toString();
-        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("false")
+        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("true")
                 .replace("\"gapStoreIds\"", "\"version\":" + version + ",\"gapStoreIds\""))).andExpect(status().isOk());
         int declinedBefore = count("select count(*) from history_entry where action = 'AUTO_DECLINED' "
                 + "and subject_id = ?", SeedUsers.FOODSAVER.id());
-        mvc.perform(post(S01 + "/automation/pickup-policy/run").param("dryRun", "false").cookie(orga).with(csrf()))
-                .andExpect(status().isOk());
+        // switched on later: the evaluate job declines the existing sign-up
+        mvc.perform(post("/api/admin/jobs/automation-evaluate/run").cookie(orga).with(csrf()))
+                .andExpect(status().is2xxSuccessful());
         assertThat(count("select count(*) from pickup_signup where store_id = ? and user_id = ? and pickup_at = ?",
                 java.util.UUID.fromString(S01_ID), SeedUsers.FOODSAVER.id(),
                 java.sql.Timestamp.from(java.time.Instant.parse("2026-11-09T18:00:00Z")))).isZero();
         assertThat(count("select count(*) from pickup_policy_audit where user_id = ? and decision = 'DECLINED' "
                 + "and pickup_at = '2026-11-09 18:00:00+00' and reasons like '%\"GAP\"%' and reasons like "
                 + "'%10.11.2026%'", SeedUsers.FOODSAVER.id())).isEqualTo(1);
+        assertThat(count(auditsOfThePickup, SeedUsers.FOODSAVER.id())).isEqualTo(auditsBefore + 1);
         assertThat(count("select count(*) from history_entry where action = 'AUTO_DECLINED' and subject_id = ?",
                 SeedUsers.FOODSAVER.id())).isEqualTo(declinedBefore + 1);
 
         // leaving: S-01 sends an empty list (decision 152), S-03 is left alone and drops out with its own gap
-        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("true")
+        mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(orga), policy.formatted("false")
                 .replace("\"groupMinimumGapDays\":2,", "")
                 .replace("[\"00000020-0001-4000-8000-000000000003\"]", "[]"))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.gapStoreIds").isEmpty())

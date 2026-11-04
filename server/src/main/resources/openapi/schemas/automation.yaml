@@ -90,12 +90,10 @@ LinkedStoreRule:
 
 PickupPolicy:
   type: object
-  required: [enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
+  required: [enabled, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
     publicHolidayRuleEnabled, linkedStores, excludedDates]
   properties:
     enabled:
-      type: boolean
-    dryRun:
       type: boolean
     gapRuleEnabled:
       type: boolean
@@ -202,11 +200,9 @@ GapCandidate:
 
 RequestPolicy:
   type: object
-  required: [enabled, dryRun, distanceRuleEnabled, maximumDistanceKm]
+  required: [enabled, distanceRuleEnabled, maximumDistanceKm]
   properties:
     enabled:
-      type: boolean
-    dryRun:
       type: boolean
     distanceRuleEnabled:
       type: boolean
@@ -228,7 +224,7 @@ AdvertMessages:
 
 OpenSlotAdvert:
   type: object
-  required: [enabled, dryRun, triggerHoursBefore, channels, storeMessages, pushMessages, telegramMessages,
+  required: [enabled, triggerHoursBefore, channels, storeMessages, pushMessages, telegramMessages,
     sendLateCancellationMessage, lateCancellationMaxHoursBefore, resendLatestAdvertAfterLateCancellation]
   properties:
     advertNumber:
@@ -236,8 +232,6 @@ OpenSlotAdvert:
       type: integer
       format: int32
     enabled:
-      type: boolean
-    dryRun:
       type: boolean
     triggerHoursBefore:
       type: integer
@@ -390,7 +384,7 @@ StoreAutomation:
 
 AutomationRunResult:
   type: object
-  required: [evaluated, confirmed, declined, skipped, deferred, failed, dryRun, messages]
+  required: [evaluated, confirmed, declined, skipped, deferred, failed, messages]
   properties:
     evaluated:
       type: integer
@@ -411,23 +405,10 @@ AutomationRunResult:
     failed:
       type: integer
       format: int32
-    dryRun:
-      type: boolean
     messages:
       type: array
       items:
         type: string
-
-PolicyPreviewRequest:
-  type: object
-  required: [pickupAt, userId]
-  properties:
-    pickupAt:
-      type: string
-      format: date-time
-    userId:
-      type: string
-      format: uuid
 
 PolicyReason:
   type: object
@@ -437,19 +418,6 @@ PolicyReason:
       $ref: './automation.yaml#/PolicyRule'
     text:
       description: 'Rendered in the store language'
-      type: string
-
-PolicyDecisionPreview:
-  type: object
-  required: [decision, reasons]
-  properties:
-    decision:
-      $ref: './automation.yaml#/PickupPolicyDecision'
-    reasons:
-      type: array
-      items:
-        $ref: './automation.yaml#/PolicyReason'
-    userMessage:
       type: string
 
 AutomationAudit:
@@ -501,13 +469,11 @@ AutomationAuditPage:
 
 RegionAutomationStore:
   type: object
-  required: [store, pickupPolicyEnabled, dryRun, requestPolicyEnabled, advertCount, signoutAlertEnabled]
+  required: [store, pickupPolicyEnabled, requestPolicyEnabled, advertCount, signoutAlertEnabled]
   properties:
     store:
       $ref: './stores.yaml#/StoreRef'
     pickupPolicyEnabled:
-      type: boolean
-    dryRun:
       type: boolean
     requestPolicyEnabled:
       type: boolean

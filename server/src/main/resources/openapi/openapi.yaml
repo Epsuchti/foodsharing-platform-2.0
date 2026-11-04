@@ -679,14 +679,8 @@ paths:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy'
   /api/stores/{storeId}/automation/gap-candidates:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1gap-candidates'
-  /api/stores/{storeId}/automation/pickup-policy/run:
-    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy~1run'
-  /api/stores/{storeId}/automation/pickup-policy/preview:
-    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy~1preview'
   /api/stores/{storeId}/automation/request-policy:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1request-policy'
-  /api/stores/{storeId}/automation/request-policy/run:
-    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1request-policy~1run'
   /api/stores/{storeId}/automation/adverts/planned:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1adverts~1planned'
   /api/stores/{storeId}/automation/adverts/run:

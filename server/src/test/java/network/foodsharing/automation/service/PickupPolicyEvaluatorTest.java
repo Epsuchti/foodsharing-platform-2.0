@@ -62,7 +62,7 @@ class PickupPolicyEvaluatorTest {
 
     static Spec policy(boolean gap, int minGap, boolean cleaning, boolean experience, boolean holiday,
                        Set<LocalDate> excluded, List<LinkRule> links) {
-        return new Spec(UUID.randomUUID(), STORE, true, false, gap, minGap, cleaning, experience, holiday, excluded,
+        return new Spec(UUID.randomUUID(), STORE, true, gap, minGap, cleaning, experience, holiday, excluded,
                 links);
     }
 
@@ -182,7 +182,7 @@ class PickupPolicyEvaluatorTest {
     Spec grouped(boolean ownOn, int ownGap, int groupGap, UUID... others) {
         data.names.put(CHAIN, "Coop Stauffacher");
         data.names.put(CHAIN_2, "Coop Wiedikon");
-        return new Spec(UUID.randomUUID(), STORE, true, false, ownOn, ownGap, false, false, false, Set.of(), List.of(),
+        return new Spec(UUID.randomUUID(), STORE, true, ownOn, ownGap, false, false, false, Set.of(), List.of(),
                 List.of(others), others.length == 0 ? 0 : groupGap);
     }
 
@@ -233,7 +233,7 @@ class PickupPolicyEvaluatorTest {
         data.signups.add(new Signup(CHAIN, USER, there, false, signedUp));
         assertThat(rules(evaluator.evaluate(listed(2, CHAIN), here, USER, data))).containsExactly(PolicyRule.GAP);
         // seen from the other store of the list
-        Spec chain = new Spec(UUID.randomUUID(), CHAIN, true, false, true, 2, false, false, false, Set.of(),
+        Spec chain = new Spec(UUID.randomUUID(), CHAIN, true, true, 2, false, false, false, Set.of(),
                 List.of(), List.of(STORE), 2);
         assertThat(rules(evaluator.evaluate(chain, there, USER, data))).containsExactly(PolicyRule.GAP);
     }
@@ -361,7 +361,7 @@ class PickupPolicyEvaluatorTest {
         assertThat(d.reasons().getFirst().text()).startsWith("Du hast bereits am 13.11.2026").contains("mindestens 3 Tage")
                 .doesNotContain(OWN_TEXT);
         // the same pickup without the list passes
-        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 1, false, false, false, Set.of(),
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, true, 1, false, false, false, Set.of(),
                 List.of());
         assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
     }
@@ -399,7 +399,7 @@ class PickupPolicyEvaluatorTest {
         own(at("2026-11-14T19:00"), NOW);
         data.signups.add(new Signup(CHAIN, USER, at("2026-11-12T19:00"), true, NOW));
         // the group row says 5, but no other live store is left: only the own gap of 2 applies
-        Spec lonely = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+        Spec lonely = new Spec(UUID.randomUUID(), STORE, true, true, 2, false, false, false, Set.of(),
                 List.of(), List.of(), 5);
         assertThat(evaluator.evaluate(lonely, pickup, USER, data).allowed()).isTrue();
     }
@@ -408,7 +408,7 @@ class PickupPolicyEvaluatorTest {
     void anEmptyListBehavesAsBeforeAndIgnoresOtherStores() {
         Instant pickup = at("2026-11-11T19:00");
         data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
-        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, true, 2, false, false, false, Set.of(),
                 List.of(), List.of(), 0);
         assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
         data.signups.add(new Signup(STORE, USER, at("2026-11-12T19:00"), true, NOW));
@@ -707,13 +707,13 @@ class PickupPolicyEvaluatorTest {
         Instant linkedPickup = at("2026-11-12T09:00");
         data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofHours(1))));
         data.signups.add(new Signup(LINKED, USER, linkedPickup, false, NOW.minus(Duration.ofHours(1))));
-        Spec mirror = new Spec(UUID.randomUUID(), LINKED, true, false, false, 0, false, false, false, Set.of(),
+        Spec mirror = new Spec(UUID.randomUUID(), LINKED, true, false, 0, false, false, false, Set.of(),
                 List.of(new LinkRule(List.of(STORE), LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null)));
         data.policies.put(LINKED, mirror);
         // the recursion stops at the evaluating store (guard), so both sides would be confirmed
         assertThat(evaluator.evaluate(linked(sameDay(20, null)), pickup, USER, data).allowed()).isTrue();
         // a linked policy that would decline keeps this one waiting
-        data.policies.put(LINKED, new Spec(mirror.id(), LINKED, true, false, false, 0, false, true, false, Set.of(),
+        data.policies.put(LINKED, new Spec(mirror.id(), LINKED, true, false, 0, false, true, false, Set.of(),
                 mirror.links()));
         assertThat(evaluator.evaluate(linked(sameDay(20, null)), pickup, USER, data).deferred()).isTrue();
     }

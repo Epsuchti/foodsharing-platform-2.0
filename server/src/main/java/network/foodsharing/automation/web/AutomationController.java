@@ -21,8 +21,6 @@ import network.foodsharing.api.model.PickupCountGroup;
 import network.foodsharing.api.model.GapCandidate;
 import network.foodsharing.api.model.PickupPolicy;
 import network.foodsharing.api.model.PlannedAdvert;
-import network.foodsharing.api.model.PolicyDecisionPreview;
-import network.foodsharing.api.model.PolicyPreviewRequest;
 import network.foodsharing.api.model.RegionAutomationOverview;
 import network.foodsharing.api.model.RequestPolicy;
 import network.foodsharing.api.model.SignoutAlertSetting;
@@ -30,7 +28,6 @@ import network.foodsharing.api.model.StoreAutomation;
 import network.foodsharing.automation.mapper.AutomationMapper;
 import network.foodsharing.automation.service.AutomationAuditService;
 import network.foodsharing.automation.service.AutomationOverviewService;
-import network.foodsharing.automation.service.AutomationRunService;
 import network.foodsharing.automation.service.ExtraSlotService;
 import network.foodsharing.automation.service.MetricArchiveService;
 import network.foodsharing.automation.service.OpenSlotAdvertRunner;
@@ -56,7 +53,6 @@ public class AutomationController implements AutomationApi {
 
     private final PickupPolicyService pickupPolicies;
     private final RequestPolicyService requestPolicies;
-    private final AutomationRunService runs;
     private final AutomationAuditService audits;
     private final CleaningExemptionService exemptions;
     private final AutomationOverviewService overview;
@@ -71,7 +67,7 @@ public class AutomationController implements AutomationApi {
     private final network.foodsharing.pickup.mapper.PickupMapper pickupMapper;
 
     public AutomationController(PickupPolicyService pickupPolicies, RequestPolicyService requestPolicies,
-                                AutomationRunService runs, AutomationAuditService audits,
+                                AutomationAuditService audits,
                                 CleaningExemptionService exemptions, AutomationOverviewService overview,
                                 AutomationMapper mapper, java.time.Clock clock, OpenSlotAdvertService adverts,
                                 OpenSlotAdvertRunner advertRunner, SignoutAlertService signoutAlerts,
@@ -86,7 +82,6 @@ public class AutomationController implements AutomationApi {
         this.pickupMapper = pickupMapper;
         this.pickupPolicies = pickupPolicies;
         this.requestPolicies = requestPolicies;
-        this.runs = runs;
         this.audits = audits;
         this.exemptions = exemptions;
         this.overview = overview;
@@ -222,12 +217,6 @@ public class AutomationController implements AutomationApi {
     }
 
     @Override
-    public ResponseEntity<PolicyDecisionPreview> previewPickupPolicy(UUID storeId, PolicyPreviewRequest policyPreviewRequest) {
-        return ResponseEntity.ok(mapper.toModel(runs.preview(storeId, policyPreviewRequest.getPickupAt().toInstant(),
-                policyPreviewRequest.getUserId())));
-    }
-
-    @Override
     public ResponseEntity<OpenSlotAdvert> putOpenSlotAdvert(UUID storeId, Integer advertNumber, OpenSlotAdvert openSlotAdvert) {
         return ResponseEntity.ok(mapper.toModel(adverts.put(storeId, advertNumber, mapper.toInput(openSlotAdvert))));
     }
@@ -254,19 +243,9 @@ public class AutomationController implements AutomationApi {
     }
 
     @Override
-    public ResponseEntity<AutomationRunResult> runAdverts(UUID storeId, Boolean dryRun) {
+    public ResponseEntity<AutomationRunResult> runAdverts(UUID storeId) {
         pickupPolicies.requireAutomationStore(storeId);
-        return ResponseEntity.ok(mapper.toModel(advertRunner.runStore(storeId, Boolean.TRUE.equals(dryRun))));
-    }
-
-    @Override
-    public ResponseEntity<AutomationRunResult> runPickupPolicy(UUID storeId, Boolean dryRun) {
-        return ResponseEntity.ok(mapper.toModel(runs.runPickupPolicy(storeId, Boolean.TRUE.equals(dryRun))));
-    }
-
-    @Override
-    public ResponseEntity<AutomationRunResult> runRequestPolicy(UUID storeId, Boolean dryRun) {
-        return ResponseEntity.ok(mapper.toModel(runs.runRequestPolicy(storeId, Boolean.TRUE.equals(dryRun))));
+        return ResponseEntity.ok(mapper.toModel(advertRunner.runStore(storeId)));
     }
 
     @Override

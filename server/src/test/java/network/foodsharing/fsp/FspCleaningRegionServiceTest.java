@@ -3,7 +3,6 @@ package network.foodsharing.fsp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -24,7 +23,6 @@ import network.foodsharing.fsp.service.FspCleaningRegionService;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.api.model.Role;
@@ -115,11 +113,12 @@ class FspCleaningRegionServiceTest {
     }
 
     @Test
-    void automationUsersMayEditOthersMayNot() {
+    void regionAdminsMayEditOthersMayNot() {
+        // decision 165: no automation permission any more, only ambassadors and ORGA (mayAdministrateRegion)
         when(permissions.mayAdministrateRegion(ACTOR, REGION)).thenReturn(false);
         assertThatThrownBy(() -> service.get(REGION)).extracting(e -> ((ApiException) e).getCode())
                 .isEqualTo(ApiErrorCode.ACCESS_DENIED);
-        when(permissions.has(eq(ACTOR), eq(Permission.CAN_USE_AUTOMATIONS), eq(REGION))).thenReturn(true);
+        when(permissions.mayAdministrateRegion(ACTOR, REGION)).thenReturn(true);
         assertThat(service.get(REGION).selected()).isEmpty();
     }
 

@@ -171,9 +171,6 @@ class PermissionServiceMatrixTest {
         row("has(CAN_MANAGE_USERS, stadt): FSMANAGEMENT members", (p, u) ->
                         permissions.has(p, Permission.CAN_MANAGE_USERS, stadt.getId()),
                 true, false, false, false, false, true, false, false, false, false);
-        row("has(CAN_USE_AUTOMATIONS, stadt): STORES_COORDINATION members", (p, u) ->
-                        permissions.has(p, Permission.CAN_USE_AUTOMATIONS, stadt.getId()),
-                true, false, false, false, false, false, true, false, false, false);
         row("has(CAN_MANAGE_SURVEYS, stadt): no VOTING group", (p, u) ->
                         permissions.has(p, Permission.CAN_MANAGE_SURVEYS, stadt.getId()),
                 true, false, false, false, false, false, false, false, false, false);
@@ -195,10 +192,8 @@ class PermissionServiceMatrixTest {
         assertThat(permissions.has(principal, Permission.CAN_GIVE_INTRO_PICKUPS, stadt.getId())).isTrue();
         assertThat(permissions.effectivePermissions(principal))
                 .containsExactly("CAN_GIVE_INTRO_PICKUPS@" + stadt.getId());
-        assertThat(permissions.effectivePermissions(TestUsers.principal(actors.get("coordAdmin")))).containsExactly(
-                "CAN_SEE_ALL_AUTOMATION_DECISIONS@" + stadt.getId(),
-                "CAN_SEE_USER_PICKUP_COUNT_GROUPING@" + stadt.getId(),
-                "CAN_USE_AUTOMATIONS@" + stadt.getId());
+        // STORES_COORDINATION grants nothing any more (decision 165)
+        assertThat(permissions.effectivePermissions(TestUsers.principal(actors.get("coordAdmin")))).isEmpty();
         assertThat(permissions.effectivePermissions(TestUsers.principal(actors.get("orga"))))
                 .hasSize(Permission.values().length).allMatch(name -> name.endsWith("@*"));
         assertThat(permissions.effectivePermissions(TestUsers.principal(actors.get("outsider")))).isEmpty();

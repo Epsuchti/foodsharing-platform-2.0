@@ -1,0 +1,55 @@
+# Decision 165 (AU1-AU4): no dry run and no automation permissions any more. Dry-run policies, request policies and
+# open-slot adverts become disabled (Q9); the dry_run columns stay unmapped with default false (decision 165 item 5,
+# dropping them is a todo.md item: seed changesets 105-108 still load them). The three automation permissions go.
+databaseChangeLog:
+  - changeSet:
+      id: 188-1
+      author: platform
+      comment: 'Dry-run automations become disabled.'
+      changes:
+        - update:
+            tableName: pickup_policy
+            columns:
+              - column: {name: enabled, valueBoolean: false}
+              - column: {name: dry_run, valueBoolean: false}
+            where: 'dry_run = TRUE'
+        - update:
+            tableName: request_policy
+            columns:
+              - column: {name: enabled, valueBoolean: false}
+              - column: {name: dry_run, valueBoolean: false}
+            where: 'dry_run = TRUE'
+        - update:
+            tableName: open_slot_advert
+            columns:
+              - column: {name: enabled, valueBoolean: false}
+              - column: {name: dry_run, valueBoolean: false}
+            where: 'dry_run = TRUE'
+  - changeSet:
+      id: 188-2
+      author: platform
+      comment: 'New rows default to dry_run = false (the column is no longer mapped).'
+      changes:
+        - addDefaultValue:
+            tableName: pickup_policy
+            columnName: dry_run
+            columnDataType: BOOLEAN
+            defaultValueBoolean: false
+        - addDefaultValue:
+            tableName: request_policy
+            columnName: dry_run
+            columnDataType: BOOLEAN
+            defaultValueBoolean: false
+        - addDefaultValue:
+            tableName: open_slot_advert
+            columnName: dry_run
+            columnDataType: BOOLEAN
+            defaultValueBoolean: false
+  - changeSet:
+      id: 188-3
+      author: platform
+      comment: 'CAN_USE_AUTOMATIONS, CAN_SEE_ALL_AUTOMATION_DECISIONS and CAN_SEE_USER_PICKUP_COUNT_GROUPING are gone.'
+      changes:
+        - delete:
+            tableName: region_permission
+            where: "permission IN ('CAN_USE_AUTOMATIONS', 'CAN_SEE_ALL_AUTOMATION_DECISIONS', 'CAN_SEE_USER_PICKUP_COUNT_GROUPING')"

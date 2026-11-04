@@ -100,7 +100,7 @@ public class PickupPolicyData implements PickupPolicyEvaluator.Data {
                         rule.getWindowDaysAfter(), rule.getGraceMinutes(), rule.getMessage()))
                 .toList();
         List<UUID> gapStoreIds = gapStoreIds(policy);
-        return new Spec(policy.getId(), policy.getStoreId(), policy.isEnabled(), policy.isDryRun(),
+        return new Spec(policy.getId(), policy.getStoreId(), policy.isEnabled(),
                 policy.isGapRuleEnabled(), policy.getMinimumGapDays(), policy.isCleaningRuleEnabled(),
                 policy.isExperienceRuleEnabled(), policy.isPublicHolidayRuleEnabled(), Set.copyOf(dates), linkRules,
                 gapStoreIds, gapStoreIds.isEmpty() ? 0 : groupMinimumGapDays(policy));

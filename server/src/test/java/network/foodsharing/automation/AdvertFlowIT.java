@@ -127,16 +127,16 @@ class AdvertFlowIT {
         }
     }
 
-    /** Coordinator request: mayUseAutomations, the cleaning Fairteiler and mayAddExtraSlot are delivered. */
+    /** Coordinator request: mayEditStore (automation, decision 165), the cleaning Fairteiler and mayAddExtraSlot are delivered. */
     @Test
     void automationFlagsAreDelivered() throws Exception {
         Cookie bieb = login(SeedUsers.BIEB);
         mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(bieb)).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
-                        .jsonPath("$.mayUseAutomations").value(true));
+                        .jsonPath("$.mayEditStore").value(true));
         mvc.perform(get("/api/stores/" + S06).cookie(bieb)).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
-                        .jsonPath("$.permissions.mayUseAutomations").value(true));
+                        .jsonPath("$.permissions.mayEditStore").value(true));
         java.util.List<String> cleaning = jdbc.queryForList("select cast(c.fsp_id as varchar(36)) from region_cleaning_fsp c"
                 + " join store s on s.region_id = c.region_id where s.id = ? order by c.fsp_id", String.class,
                 UUID.fromString(S06));
@@ -150,7 +150,7 @@ class AdvertFlowIT {
         // verified, no relation to the store: the flag is off
         mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.GUIDE)))
                 .andExpect(status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
-                        .jsonPath("$.mayUseAutomations").value(false));
+                        .jsonPath("$.mayEditStore").value(false));
         // unverified: the store does not exist for them (decision 156, S17 D2), so no permissions to report
         mvc.perform(get("/api/stores/" + S06 + "/permissions").cookie(login(SeedUsers.NEWBIE)))
                 .andExpect(status().isNotFound());

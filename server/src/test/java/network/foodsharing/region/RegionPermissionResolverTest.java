@@ -56,8 +56,6 @@ class RegionPermissionResolverTest {
         assertThat(AppProperties.Permissions.defaultFunctionGrants()).containsExactlyInAnyOrderEntriesOf(Map.of(
                 WorkingGroupFunction.FSMANAGEMENT, List.of(Permission.CAN_MANAGE_USERS),
                 WorkingGroupFunction.WELCOME, List.of(Permission.CAN_GIVE_INTRO_PICKUPS),
-                WorkingGroupFunction.STORES_COORDINATION, List.of(Permission.CAN_USE_AUTOMATIONS,
-                        Permission.CAN_SEE_USER_PICKUP_COUNT_GROUPING, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS),
                 WorkingGroupFunction.VOTING, List.of(Permission.CAN_MANAGE_SURVEYS)));
         assertThat(WorkingGroupFunction.REPORT.isRestricted()).isTrue();
         assertThat(WorkingGroupFunction.WELCOME.isRestricted()).isFalse();

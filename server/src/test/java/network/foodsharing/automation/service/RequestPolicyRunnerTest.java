@@ -59,7 +59,6 @@ class RequestPolicyRunnerTest {
                 mock(PlatformTransactionManager.class));
         policy.setStoreId(STORE);
         policy.setEnabled(true);
-        policy.setDryRun(false);
         policy.setDistanceRuleEnabled(true);
         policy.setMaximumDistanceKm(5);
         Store store = new Store();
@@ -123,12 +122,14 @@ class RequestPolicyRunnerTest {
     }
 
     @Test
-    void dryRunOnlyAudits() {
-        PickupPolicyRunner.RunResult result = runner.runStore(STORE, true);
-        assertThat(result.dryRun()).isTrue();
+    void jobPathApprovesLive() {
+        // decision 165: no dry run; the job accepts and audits with dry_run = false
+        PickupPolicyRunner.RunResult result = runner.runAll();
         assertThat(result.confirmed()).isEqualTo(1);
-        verify(team, never()).acceptByAutomation(any(), any(), anyString());
-        assertThat(savedAudit().getStatus()).isEqualTo(RequestDecision.WOULD_APPROVE);
+        verify(team).acceptByAutomation(STORE, USER, RequestPolicyRunner.ACTOR);
+        RequestPolicyAudit audit = savedAudit();
+        assertThat(audit.getStatus()).isEqualTo(RequestDecision.APPROVED);
+        assertThat(audit.isDryRun()).isFalse();
     }
 
     @Test

@@ -34,7 +34,6 @@ import network.foodsharing.pickup.domain.PickupExtraSlot;
 import network.foodsharing.pickup.service.PickupAutomationQueries;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import org.springframework.stereotype.Service;
@@ -141,14 +140,13 @@ public class MetricArchiveService {
     /**
      * Daily series per key for the region subtree (archive + live rows), default the last 30 days.
      *
-     * @throws ApiException 400 VALIDATION_FAILED, 403 unless ambassador or CAN_USE_AUTOMATIONS, 404 REGION_NOT_FOUND
+     * @throws ApiException 400 VALIDATION_FAILED, 403 unless ambassador or ORGA, 404 REGION_NOT_FOUND
      */
     @Transactional(readOnly = true)
     public Map<String, Map<LocalDate, Long>> series(UUID regionId, LocalDate from, LocalDate to) {
         regions.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
-        if (!permissions.mayAdministrateRegion(actor, regionId)
-                && !permissions.has(actor, Permission.CAN_USE_AUTOMATIONS, regionId)) {
+        if (!permissions.mayAdministrateRegion(actor, regionId)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         ZoneId zone = regions.zoneOf(regionId);

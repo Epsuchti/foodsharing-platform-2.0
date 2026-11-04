@@ -24,9 +24,6 @@ public class OpenSlotAdvert extends BaseEntity {
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
 
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun = true;
-
     @Column(name = "trigger_hours_before", nullable = false)
     private int triggerHoursBefore = 24;
 

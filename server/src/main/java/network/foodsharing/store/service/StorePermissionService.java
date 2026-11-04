@@ -156,11 +156,9 @@ public class StorePermissionService {
                 coordinate, status);
     }
 
-    /** mayUseAutomations(store) = mayEditStore or {@code CAN_USE_AUTOMATIONS} in the store's region (M4). */
-    public boolean mayUseAutomations(SessionPrincipal actor, Store store) {
-        return actor != null && (rights(actor, store).mayEditStore()
-                || permissions.has(actor, network.foodsharing.security.Permission.CAN_USE_AUTOMATIONS,
-                        store.getRegionId()));
+    /** mayEditStore(store) of the actor (automation, store alert chats; decision 165). */
+    public boolean mayEditStore(SessionPrincipal actor, Store store) {
+        return actor != null && rights(actor, store).mayEditStore();
     }
 
     /** ORGA, or role ≥ STORE_MANAGER and member of the region. */

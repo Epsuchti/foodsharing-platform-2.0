@@ -44,8 +44,7 @@ public class RequestPolicyRunner {
     public static final String ACTOR = "request-policy";
 
     private static final Logger log = LoggerFactory.getLogger(RequestPolicyRunner.class);
-    private static final Set<RequestDecision> REPEATABLE = EnumSet.of(RequestDecision.SKIPPED,
-            RequestDecision.WOULD_APPROVE, RequestDecision.WOULD_DECLINE);
+    private static final Set<RequestDecision> REPEATABLE = EnumSet.of(RequestDecision.SKIPPED);
 
     private final RequestPolicyRepository policies;
     private final RequestPolicyAuditRepository audits;
@@ -81,26 +80,20 @@ public class RequestPolicyRunner {
         Optional<RequestPolicy> policy = tx.execute(status -> policies.findByStoreId(event.storeId())
                 .filter(RequestPolicy::isEnabled));
         if (policy != null && policy.isPresent()) {
-            process(policy.get(), event.userId(), false, false, new ArrayList<>());
+            process(policy.get(), event.userId(), false, new ArrayList<>());
         }
-    }
-
-    public PickupPolicyRunner.RunResult runStore(UUID storeId, boolean forcedDryRun) {
-        Optional<RequestPolicy> policy = tx.execute(status -> policies.findByStoreId(storeId));
-        return run(policy == null || policy.isEmpty() ? List.of() : List.of(policy.get()), forcedDryRun);
     }
 
     public PickupPolicyRunner.RunResult runAll() {
         List<RequestPolicy> enabled = tx.execute(status -> policies.findByEnabledTrue());
-        return run(enabled == null ? List.of() : enabled, false);
+        return run(enabled == null ? List.of() : enabled);
     }
 
-    private PickupPolicyRunner.RunResult run(List<RequestPolicy> list, boolean forcedDryRun) {
+    private PickupPolicyRunner.RunResult run(List<RequestPolicy> list) {
         List<String> runMessages = new ArrayList<>();
-        boolean dryRun = forcedDryRun || properties.getAutomation().isDryRun();
         if (!properties.getAutomation().isEnabled()) {
             runMessages.add("Request automation skipped: global automation is disabled.");
-            return new PickupPolicyRunner.RunResult(0, 0, 0, 0, 0, 0, true, runMessages);
+            return new PickupPolicyRunner.RunResult(0, 0, 0, 0, 0, 0, runMessages);
         }
         int max = Math.max(0, properties.getAutomation().getMaxRequestApprovalsPerRun());
         int evaluated = 0;
@@ -110,7 +103,6 @@ public class RequestPolicyRunner {
         int failed = 0;
         outer:
         for (RequestPolicy policy : list) {
-            dryRun = dryRun || policy.isDryRun();
             List<UUID> applicants = tx.execute(status -> team.applicantIds(policy.getStoreId()));
             for (UUID userId : applicants == null ? List.<UUID>of() : applicants) {
                 if (approved + declined >= max) {
@@ -118,28 +110,25 @@ public class RequestPolicyRunner {
                     break outer;
                 }
                 evaluated++;
-                switch (process(policy, userId, forcedDryRun, true, runMessages)) {
-                    case APPROVED, WOULD_APPROVE -> approved++;
-                    case DECLINED, WOULD_DECLINE -> declined++;
+                switch (process(policy, userId, true, runMessages)) {
+                    case APPROVED -> approved++;
+                    case DECLINED -> declined++;
                     case FAILED -> failed++;
                     default -> skipped++;
                 }
             }
         }
-        return new PickupPolicyRunner.RunResult(evaluated, approved, declined, skipped, 0, failed, dryRun,
-                runMessages);
+        return new PickupPolicyRunner.RunResult(evaluated, approved, declined, skipped, 0, failed, runMessages);
     }
 
-    private RequestDecision process(RequestPolicy policy, UUID userId, boolean forcedDryRun, boolean dedupe,
-                                    List<String> runMessages) {
-        boolean dryRun = forcedDryRun || policy.isDryRun() || properties.getAutomation().isDryRun();
+    private RequestDecision process(RequestPolicy policy, UUID userId, boolean dedupe, List<String> runMessages) {
         try {
-            return tx.execute(status -> decideAndAct(policy, userId, dryRun, dedupe));
+            return tx.execute(status -> decideAndAct(policy, userId, dedupe));
         } catch (RuntimeException ex) {
             log.error("Request policy failed for store {} user {}", policy.getStoreId(), userId, ex);
             runMessages.add(String.valueOf(ex.getMessage()));
             try {
-                tx.executeWithoutResult(status -> audit(policy, userId, dryRun, RequestDecision.FAILED, null, null,
+                tx.executeWithoutResult(status -> audit(policy, userId, RequestDecision.FAILED, null, null,
                         PickupPolicyRunner.truncate(String.valueOf(ex.getMessage()), 2000), false));
             } catch (RuntimeException auditFailure) {
                 log.error("Could not write the FAILED request audit", auditFailure);
@@ -148,7 +137,7 @@ public class RequestPolicyRunner {
         }
     }
 
-    private RequestDecision decideAndAct(RequestPolicy policy, UUID userId, boolean dryRun, boolean dedupe) {
+    private RequestDecision decideAndAct(RequestPolicy policy, UUID userId, boolean dedupe) {
         Store store = stores.require(policy.getStoreId());
         User user = users.require(userId);
         PolicyTexts t = new PolicyTexts(messages, Locale.forLanguageTag(user.getPreferredLanguage() == null ? "de"
@@ -157,30 +146,29 @@ public class RequestPolicyRunner {
             Double distance = distanceKm(user.getLatitude(), user.getLongitude(), store.getLatitude(),
                     store.getLongitude());
             if (distance == null) {
-                audit(policy, userId, dryRun, RequestDecision.SKIPPED, PolicyRule.NO_ADDRESS,
+                audit(policy, userId, RequestDecision.SKIPPED, PolicyRule.NO_ADDRESS,
                         t.text("request.no-address"), null, dedupe);
                 return RequestDecision.SKIPPED;
             }
             if (distance > policy.getMaximumDistanceKm()) {
                 String message = t.text("request.distance", formatDistance(distance),
                         formatDistance(policy.getMaximumDistanceKm()));
-                if (!dryRun && !team.declineByAutomation(store.getId(), userId, ACTOR, message)) {
+                if (!team.declineByAutomation(store.getId(), userId, ACTOR, message)) {
                     return RequestDecision.SKIPPED;
                 }
-                RequestDecision result = dryRun ? RequestDecision.WOULD_DECLINE : RequestDecision.DECLINED;
-                audit(policy, userId, dryRun, result, PolicyRule.DISTANCE, message, null, dedupe);
-                return result;
+                audit(policy, userId, RequestDecision.DECLINED, PolicyRule.DISTANCE, message, null, dedupe);
+                return RequestDecision.DECLINED;
             }
         }
-        if (!dryRun && !team.acceptByAutomation(store.getId(), userId, ACTOR)) {
+        if (!team.acceptByAutomation(store.getId(), userId, ACTOR)) {
             return RequestDecision.SKIPPED;
         }
-        RequestDecision result = dryRun ? RequestDecision.WOULD_APPROVE : RequestDecision.APPROVED;
-        audit(policy, userId, dryRun, result, PolicyRule.ALL_RULES_PASSED, t.text("request.approved"), null, dedupe);
-        return result;
+        audit(policy, userId, RequestDecision.APPROVED, PolicyRule.ALL_RULES_PASSED, t.text("request.approved"), null,
+                dedupe);
+        return RequestDecision.APPROVED;
     }
 
-    private void audit(RequestPolicy policy, UUID userId, boolean dryRun, RequestDecision status, PolicyRule rule,
+    private void audit(RequestPolicy policy, UUID userId, RequestDecision status, PolicyRule rule,
                        String message, String error, boolean dedupe) {
         if (dedupe && REPEATABLE.contains(status) && audits.findFirstByStoreIdAndUserIdOrderByCreatedAtDescIdDesc(
                 policy.getStoreId(), userId).map(previous -> previous.getStatus() == status).orElse(false)) {
@@ -192,7 +180,7 @@ public class RequestPolicyRunner {
         audit.setStoreId(policy.getStoreId());
         audit.setRegionId(regionId);
         audit.setUserId(userId);
-        audit.setDryRun(dryRun);
+        audit.setDryRun(false);
         audit.setStatus(status);
         audit.setReason(rule == null ? null : rule.name());
         audit.setMessage(PickupPolicyRunner.truncate(message, 4000));

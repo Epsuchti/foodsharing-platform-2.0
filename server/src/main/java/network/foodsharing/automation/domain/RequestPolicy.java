@@ -28,10 +28,6 @@ public class RequestPolicy extends BaseEntity implements HistorySubject {
     private boolean enabled;
 
     @Tracked
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun = true;
-
-    @Tracked
     @Column(name = "distance_rule_enabled", nullable = false)
     private boolean distanceRuleEnabled;
 
