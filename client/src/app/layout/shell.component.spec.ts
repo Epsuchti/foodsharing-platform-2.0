@@ -3,7 +3,7 @@ import { ComponentFixture, DeferBlockState, TestBed } from '@angular/core/testin
 import { Router } from '@angular/router';
 import { provideOptimus } from '@openng/optimus-ui/config';
 
-import { AppInfo, Language, Role, Theme } from '../api';
+import { AppInfo, Language, NavCapability, Role, Theme } from '../api';
 import { AppInfoService } from '../core/app-info.service';
 import { SessionService } from '../core/auth/session.service';
 import { HttpActivityService } from '../core/http/http-activity.service';
@@ -203,7 +203,8 @@ describe('nav.config', () => {
       visibleNavItems(foodsaver).filter((item) => item.id !== 'search'),
       foodsaver,
     );
-    // primary items in their declared order, the occasional ones (quizzes of a verified member, chains, events, polls) last
+    // primary items in their declared order, the occasional ones (events, polls) last; store chains are for store
+    // managers only (owner feedback 2026-11-04)
     expect(ordered.map((item) => item.id)).toEqual([
       'dashboard',
       'pickups',
@@ -212,7 +213,6 @@ describe('nav.config', () => {
       'stores',
       'map',
       'baskets',
-      'storeChains',
       'events',
       'polls',
     ]);
@@ -321,7 +321,6 @@ describe('nav.config', () => {
         'regions',
         'polls',
         'forum',
-        'storeChains',
         'search',
       ]);
       expect(ids(drawerItems(newcomer))).toEqual([
@@ -342,7 +341,11 @@ describe('nav.config', () => {
   });
 
   it('keeps the M6 items hidden until their page flag flips, then applies their own rule', () => {
-    const orga = context({ isAuthenticated: true, hasRole: (role) => role === Role.Orga });
+    const orga = context({
+      isAuthenticated: true,
+      hasRole: (role) => role === Role.Orga,
+      session: { capabilities: [NavCapability.BlogManage] } as never,
+    });
     const m6Ids = Object.keys(M6_PAGES_READY);
     const notReady = m6Ids.filter((id) => !M6_PAGES_READY[id as keyof typeof M6_PAGES_READY]);
     expect(visibleNavItems(orga, 'user').map((item) => item.id)).toContain('profile');
@@ -373,16 +376,23 @@ describe('nav.config', () => {
       expect(about).toHaveLength(12);
       expect(ids(context(), 'footer')).toEqual(expect.arrayContaining(about));
       expect(ids(foodsaver, 'footer').filter((id) => about.includes(id))).toEqual([]);
-      // Q11: blog management for ORGA and admins of a region/group, support in the user menu; both and the footer
-      // entries of blog and support follow their feature toggles (BLOG, SUPPORT_FORM)
+      // Q11: blog management with the server capability BLOG_MANAGE (decision 159: editors and region ambassadors,
+      // not every unit admin), support in the user menu; both and the footer entries of blog and support follow their
+      // feature toggles (BLOG, SUPPORT_FORM)
       expect(ids(orga)).toContain('blogManage');
       expect(ids(foodsaver)).not.toContain('blogManage');
       const ambassador = context({
         isAuthenticated: true,
         hasRole: (role) => role === Role.Foodsaver,
-        session: { units: [{ admin: true }] } as never,
+        session: { units: [{ admin: true }], capabilities: [NavCapability.BlogManage] } as never,
       });
       expect(ids(ambassador)).toContain('blogManage');
+      const groupAdmin = context({
+        isAuthenticated: true,
+        hasRole: (role) => role === Role.Foodsaver,
+        session: { units: [{ admin: true, type: 'WORKING_GROUP' }], capabilities: [] } as never,
+      });
+      expect(ids(groupAdmin)).not.toContain('blogManage');
       expect(ids(foodsaver, 'user')).toContain('help');
       const off = (ctx: NavContext) => ({ ...ctx, featureEnabled: () => false });
       expect(ids(off(orga))).not.toContain('blogManage');

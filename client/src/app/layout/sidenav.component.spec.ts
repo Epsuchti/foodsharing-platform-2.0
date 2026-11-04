@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { provideOptimus } from '@openng/optimus-ui/config';
 
-import { Language, Role, Theme, UnitMembership } from '../api';
+import { Language, NavCapability, Role, Theme, UnitMembership, UnitType } from '../api';
 import { SessionService } from '../core/auth/session.service';
 import { provideDataStateTesting } from '../core/testing/data-state-testing';
 import { journeyProgress } from '../features/onboarding/components/journey-meter.component';
@@ -54,13 +54,29 @@ describe('side menu nav.config (decision 133)', () => {
     expect(main.filter((item) => !item.section).map((item) => item.id)).toEqual([]);
   });
 
-  it('lists a foodsaver in fixed places: daily group with the bell, Community, store chains in Verwalten', () => {
-    // decision 149: Meine Aktivität and Quiz are in the user menu; Forum of the home region in Community
+  it('lists a foodsaver in fixed places: daily group with the bell, Community, no Verwalten', () => {
+    // decision 149: Meine Aktivität and Quiz are in the user menu; Forum of the home region in Community;
+    // store chains from store manager up (owner feedback 2026-11-04)
     expect(shape(foodsaver)).toEqual({
       daily: ['dashboard', 'pickups', 'stores', 'messages', 'bells', 'baskets'],
       community: ['map', 'events', 'regions', 'polls', 'forum'],
-      manage: ['storeChains'],
     });
+  });
+
+  it('shows a working-group admin without server capabilities only the store chains under Verwalten (decision 159)', () => {
+    // Nina: store manager, admin of the working group Betriebskoordination Zürich
+    const nina = context({
+      isAuthenticated: true,
+      hasRole: (role) => role === Role.Foodsaver || role === Role.StoreManager,
+      session: {
+        user: { verified: true },
+        permissions: [],
+        units: [unit({ homeRegion: true }), unit({ id: 'g1', type: UnitType.WorkingGroup, admin: true, member: true })],
+        capabilities: [],
+      } as unknown as NavContext['session'],
+    });
+    expect(shape(nina)['manage']).toEqual(['storeChains']);
+    expect(shape(nina)['orga']).toBeUndefined();
   });
 
   it('shows Postfächer only with the session flag and Forum only with a home region (decision 149)', () => {
@@ -110,6 +126,13 @@ describe('side menu nav.config (decision 133)', () => {
         permissions: [],
         units: [unit({ admin: true, homeRegion: true })],
         mailboxes: true,
+        capabilities: [
+          NavCapability.ManageNewcomers,
+          NavCapability.Verify,
+          NavCapability.ManageMembers,
+          NavCapability.Newsletters,
+          NavCapability.BlogManage,
+        ],
       } as unknown as NavContext['session'],
     });
     expect(shape(ambassador)['manage']).toEqual([
@@ -132,6 +155,7 @@ describe('side menu nav.config (decision 133)', () => {
         user: { verified: true },
         permissions: [],
         units: [],
+        capabilities: Object.values(NavCapability),
       } as unknown as NavContext['session'],
     });
     expect(shape(orga)['orga']).toEqual([
@@ -174,7 +198,8 @@ describe('side menu nav.config (decision 133)', () => {
     const items = sidenavSections(foodsaver).flatMap((section) => section.items);
     expect(activeNavId('/stores/mine', items)).toBe('stores');
     expect(activeNavId('/stores/12/team?tab=1', items)).toBe('stores');
-    expect(activeNavId('/store-chains', items)).toBe('storeChains');
+    // store chains are a store manager item (not in a foodsaver's menu): `/store-chains` is not `/stores`
+    expect(activeNavId('/store-chains', items)).toBeNull();
     // decision 149: the forum pages belong to Forum, the other region pages to Regionen
     expect(activeNavId('/regions/12/forum', items)).toBe('forum');
     expect(activeNavId('/regions/12/forum/ambassadors/new', items)).toBe('forum');
@@ -193,11 +218,13 @@ describe('side menu nav.config (decision 133)', () => {
         user: { verified: true },
         permissions: [],
         units: [unit({ admin: true })],
+        capabilities: [NavCapability.Verify, NavCapability.QuizEdit],
       } as unknown as NavContext['session'],
     });
     const all = sidenavSections(ambassador).flatMap((section) => section.items);
     // a deeper route of another item wins over the region prefix
     expect(activeNavId('/regions/home/verification', all)).toBe('verification');
+    expect(activeNavId('/store-chains', all)).toBe('storeChains');
     expect(activeNavId('/quizzes/edit/3', all)).toBe('adminQuizzes');
     // Quiz is a user menu item (decision 149): no side menu item is current
     expect(activeNavId('/quizzes/3', all)).toBeNull();
