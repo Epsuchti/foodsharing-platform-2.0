@@ -51,7 +51,7 @@
               $ref: '../schemas/automation.yaml#/PickupPolicy'
       '400': {description: 'TOO_MANY_LINKED_STORES, TOO_MANY_STORES_PER_LINK, LINKED_STORE_WINDOW_INVALID, LINKED_STORE_SELF, INVALID_TEMPLATE_VARIABLE, GRACE_MINUTES_TOO_LOW, GAP_LIST_TOO_LARGE, GAP_LIST_STORE_TAKEN (storeId), GAP_LINK_CONFLICT (storeId, otherStoreId) or VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'ACCESS_DENIED (storeId: a linked or listed store)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED (storeId: a store of a bidirectional rule the actor may not edit, or a listed store)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED (or a linked store)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   delete:
@@ -96,6 +96,53 @@
               type: array
               items:
                 $ref: '../schemas/automation.yaml#/GapCandidate'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/automation/link-candidates:
+  get:
+    tags: [automation]
+    operationId: searchLinkCandidates
+    summary: 'Stores the actor may link to this store, by name, city or postcode, across regions (decision 165 S4, Q3): every live store the actor may know (StoreVisibility, decision 156), without this one and permanently closed ones, by name.'
+    x-permission: 'mayEditStore(store)'
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        required: true
+        description: 'At least two characters (after trimming).'
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 100
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+          default: 20
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/automation.yaml#/LinkCandidatePage'
+      '400': {description: 'VALIDATION_FAILED (field q)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

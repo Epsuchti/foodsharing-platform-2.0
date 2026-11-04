@@ -75,6 +75,9 @@ class QueryCountIT {
         // decision 165 S2: S-06's live rules (gap, experience, holidays) are evaluated for every pickup in one query set
         "SLEEPY|/api/stores/" + STORE_S06 + "/pickups|30",
         "SLEEPY|/api/users/me/pickups/options|26",
+        // decision 165 S4 (21 measured): the link picker pays one region query per tree level and one coordination check
+        // per region of the page, never one per row
+        "BIEB|/api/stores/" + STORE_S06 + "/automation/link-candidates?q=coop|26",
         // FS2: the cleaning shifts of Fairteiler Wiedikon (one query per table, not per shift)
         "FOODSAVER|/api/food-share-points/00000049-0001-4000-8000-000000000001/cleaning/shifts|20",
         "FOODSAVER|/api/search?q=brot|4",

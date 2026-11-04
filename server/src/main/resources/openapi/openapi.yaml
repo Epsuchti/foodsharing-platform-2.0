@@ -679,6 +679,8 @@ paths:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1pickup-policy'
   /api/stores/{storeId}/automation/gap-candidates:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1gap-candidates'
+  /api/stores/{storeId}/automation/link-candidates:
+    $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1link-candidates'
   /api/stores/{storeId}/automation/rules:
     $ref: './paths/automation.yaml#/~1api~1stores~1{storeId}~1automation~1rules'
   /api/stores/{storeId}/automation/linked-options:

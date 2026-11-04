@@ -130,6 +130,20 @@ public class TelegramChatService {
                         chat.getChatId(), "test", true)).build());
     }
 
+    /**
+     * Enabled chats per store, missing = none (store automation status strip, region overview; decision 165 S4); no
+     * access check, the callers have checked the store or region.
+     */
+    @Transactional(readOnly = true)
+    public Map<UUID, Integer> enabledStoreChatCounts(java.util.Collection<UUID> storeIds) {
+        if (storeIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, Integer> counts = new HashMap<>();
+        chats.countEnabled(OwnerType.STORE, storeIds).forEach(c -> counts.put(c.getOwnerId(), (int) c.getCount()));
+        return counts;
+    }
+
     /** Sends a text to every enabled chat of the owner (alerts, adverts); @return how many chats got it. */
     public int sendToOwner(OwnerType ownerType, UUID ownerId, String text, String type) {
         int sent = 0;

@@ -545,4 +545,19 @@ class PickupPolicyServiceGapTest {
         ApiException ex = error(() -> service.put(a, input(true, 2, List.of(b), List.of(both))));
         assertThat(ex.getArgs()).containsEntry("storeId", b.toString()).containsEntry("otherStoreId", a.toString());
     }
+
+    @Test
+    void aOneWayLinkNeedsNoRightInTheLinkedStoreABidirectionalOneDoes() {
+        // decision 165 Q3: D is a store the actor may know but not edit (e.g. another region)
+        allowed.remove(d);
+        LinkInput oneWay = new LinkInput(List.of(d), false, LinkedStoreWindowMode.SAME_DAY, 0, 0, 120, null, null);
+        service.put(a, input(true, 2, List.of(), List.of(oneWay)));
+        verify(links, atLeastOnce()).saveAndFlush(any());
+
+        LinkInput both = new LinkInput(List.of(d), true, LinkedStoreWindowMode.SAME_DAY, 0, 0, 120, null, null);
+        ApiException ex = error(() -> service.put(a, input(true, 2, List.of(), List.of(both))));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(ex.getArgs()).containsEntry("storeId", d.toString());
+    }
 }

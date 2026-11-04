@@ -109,6 +109,8 @@ public class AutomationMapper {
         model.setGraceMinutes(link.getGraceMinutes());
         model.setMessage(link.getMessage());
         model.setMirrorOf(link.getMirrorOf());
+        model.setEditableStoreIds(view.stores().stream().map(Store::getId)
+                .filter(view.editableStoreIds()::contains).toList());
         return model;
     }
 
@@ -226,6 +228,7 @@ public class AutomationMapper {
         model.setRequestPolicyEnabled(overview.requestPolicy() != null && overview.requestPolicy().isEnabled());
         model.setAdvertCount(overview.advertCount());
         model.setSignoutAlertEnabled(overview.signoutAlertEnabled());
+        model.setTelegramChatCount(overview.telegramChatCount());
         return model;
     }
 
@@ -278,6 +281,16 @@ public class AutomationMapper {
             }
             return model;
         }).toList());
+    }
+
+    public network.foodsharing.api.model.LinkCandidate toModel(
+            network.foodsharing.automation.service.LinkCandidateService.Candidate candidate) {
+        return new network.foodsharing.api.model.LinkCandidate()
+                .store(toStoreRef(candidate.store()))
+                .city(candidate.store().getCity())
+                .regionPath(candidate.regionPath())
+                .automationEnabled(candidate.automationEnabled())
+                .mayEdit(candidate.mayEdit());
     }
 
     public static StoreRef toStoreRef(Store store) {

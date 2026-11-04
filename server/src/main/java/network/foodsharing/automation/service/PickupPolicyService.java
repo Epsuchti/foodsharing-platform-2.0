@@ -41,9 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Pickup policy CRUD (AU1). Validation ported from the reference: at most {@value #MAXIMUM_LINKS} link rules per store
  * (mirrors of bidirectional rules of other stores count), at most {@value #MAXIMUM_STORES_PER_LINK} stores per rule, no
- * self link, every linked store must be one the actor may automate, LAST_DAYS window 0..30 days with at least one day,
+ * self link, a linked store is any live store the actor may know (one-way, across regions; decision 165 Q3) and one the
+ * actor may edit when the rule is bidirectional (it writes a mirror there), LAST_DAYS window 0..30 days with at least one day,
  * grace ≥ 20 minutes, message placeholders {@code {{name|storeName|linkedStoreName|pickupDate|requirement|graceMinutes}}}.
- * A bidirectional rule gets a mirror row on every linked store's policy (created disabled + dry run when missing).
+ * A bidirectional rule gets a mirror row on every linked store's policy (created disabled when missing).
  */
 @Service
 public class PickupPolicyService {
@@ -87,7 +88,8 @@ public class PickupPolicyService {
         }
     }
 
-    public record LinkView(PickupPolicyLinkedStore link, List<Store> stores) {
+    /** {@code editableStoreIds}: the linked stores the actor may edit (bidirectional needs all of them, Q3). */
+    public record LinkView(PickupPolicyLinkedStore link, List<Store> stores, java.util.Set<UUID> editableStoreIds) {
     }
 
     /** Another store of the gap list: whether it checks sign-ups itself and whether the actor may change it. */
@@ -136,6 +138,11 @@ public class PickupPolicyService {
         this.permissions = permissions;
         this.currentActor = currentActor;
         this.history = history;
+    }
+
+    /** How far back the cleaning rule looks, in months (the rule card's member sentence). */
+    public int cleaningMonths() {
+        return policyData.cleaningBackCheckMonths();
     }
 
     /** The Fairteiler of the store's region that count for the cleaning rule (FS2), by name. */
@@ -534,8 +541,9 @@ public class PickupPolicyService {
                 if (id.equals(storeId)) {
                     throw ApiException.badRequest(ApiErrorCode.LINKED_STORE_SELF);
                 }
+                // one-way: any live store; the actor may edit this store, so they may know stores (decision 165 Q3)
                 Store linked = stores.require(id);
-                if (!permissions.mayEditStore(actor, linked)) {
+                if (link.bidirectional() && !permissions.mayEditStore(actor, linked)) {
                     throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());
                 }
                 if (!all.add(id)) {
@@ -704,10 +712,13 @@ public class PickupPolicyService {
                 Collectors.mapping(PickupPolicyLinkedStoreMember::getStoreId, Collectors.toList())));
         List<UUID> allIds = storeIdsByLink.values().stream().flatMap(List::stream).distinct().toList();
         Map<UUID, Store> byId = stores.liveStores(allIds).stream().collect(Collectors.toMap(Store::getId, s -> s));
+        Set<UUID> editable = permissions.editableStoreIds(currentActor.principal().orElse(null), byId.values());
         List<LinkView> views = new ArrayList<>();
         for (PickupPolicyLinkedStore rule : rules) {
-            views.add(new LinkView(rule, storeIdsByLink.getOrDefault(rule.getId(), List.of()).stream()
-                    .map(byId::get).filter(java.util.Objects::nonNull).toList()));
+            List<Store> linked = storeIdsByLink.getOrDefault(rule.getId(), List.of()).stream()
+                    .map(byId::get).filter(java.util.Objects::nonNull).toList();
+            views.add(new LinkView(rule, linked, linked.stream().map(Store::getId).filter(editable::contains)
+                    .collect(Collectors.toSet())));
         }
         List<GapStoreView> gapStores = gapStores(policy);
         Integer groupGap = gapStores.isEmpty() ? null : gapGroups.findById(policy.getGapGroupId())

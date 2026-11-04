@@ -66,6 +66,7 @@ public class AutomationController implements AutomationApi {
     private final MetricArchiveService metrics;
     private final network.foodsharing.pickup.mapper.PickupMapper pickupMapper;
     private final network.foodsharing.automation.service.LinkedOptionsService linkedOptions;
+    private final network.foodsharing.automation.service.LinkCandidateService linkCandidates;
 
     public AutomationController(PickupPolicyService pickupPolicies, RequestPolicyService requestPolicies,
                                 AutomationAuditService audits,
@@ -74,8 +75,10 @@ public class AutomationController implements AutomationApi {
                                 OpenSlotAdvertRunner advertRunner, SignoutAlertService signoutAlerts,
                                 ExtraSlotService extraSlots, PickupCountGroupingService grouping,
                                 MetricArchiveService metrics, network.foodsharing.pickup.mapper.PickupMapper pickupMapper,
-                                network.foodsharing.automation.service.LinkedOptionsService linkedOptions) {
+                                network.foodsharing.automation.service.LinkedOptionsService linkedOptions,
+                                network.foodsharing.automation.service.LinkCandidateService linkCandidates) {
         this.linkedOptions = linkedOptions;
+        this.linkCandidates = linkCandidates;
         this.adverts = adverts;
         this.advertRunner = advertRunner;
         this.signoutAlerts = signoutAlerts;
@@ -164,7 +167,18 @@ public class AutomationController implements AutomationApi {
         permissions.setMayEdit(true);
         permissions.setMaySeeAudits(true);
         model.setPermissions(permissions);
+        model.setTelegramChatCount(overview.storeChatCount(storeId));
+        model.setCleaningMonths(pickupPolicies.cleaningMonths());
         return ResponseEntity.ok(model);
+    }
+
+    @Override
+    public ResponseEntity<network.foodsharing.api.model.LinkCandidatePage> searchLinkCandidates(UUID storeId, String q,
+                                                                                            Integer page, Integer size) {
+        var found = linkCandidates.search(storeId, q, page, size);
+        return ResponseEntity.ok(new network.foodsharing.api.model.LinkCandidatePage()
+                .items(found.getContent().stream().map(mapper::toModel).toList())
+                .page(PageMapper.toPageMeta(found)));
     }
 
     @Override

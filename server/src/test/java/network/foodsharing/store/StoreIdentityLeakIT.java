@@ -102,6 +102,7 @@ class StoreIdentityLeakIT {
 
     private static final Map<String, String> QUERY_PARAMS = Map.ofEntries(
             Map.entry("q", "Coop"),
+            Map.entry("pickupAt", "2026-11-09T18:00:00Z"),
             Map.entry("regionId", ZUERICH),
             Map.entry("role", "AMBASSADOR"),
             Map.entry("lat", "47.37"),

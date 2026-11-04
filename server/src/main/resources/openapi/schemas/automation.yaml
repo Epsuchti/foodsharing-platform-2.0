@@ -87,6 +87,12 @@ LinkedStoreRule:
       description: 'Read only: the rule on the other store this one mirrors (bidirectional links)'
       type: string
       format: uuid
+    editableStoreIds:
+      description: 'Read only: the storeIds the actor may edit (mayEditStore); bidirectional needs all of them (decision 165 Q3)'
+      type: array
+      items:
+        type: string
+        format: uuid
 
 PickupPolicy:
   type: object
@@ -360,7 +366,7 @@ AutomationPermissions:
 
 StoreAutomation:
   type: object
-  required: [adverts, extraSlotAllowed, permissions, cleaningFoodSharePoints]
+  required: [adverts, extraSlotAllowed, permissions, cleaningFoodSharePoints, telegramChatCount, cleaningMonths]
   properties:
     pickupPolicy:
       $ref: './automation.yaml#/PickupPolicy'
@@ -381,6 +387,46 @@ StoreAutomation:
         $ref: './food-share-points.yaml#/FspRef'
     permissions:
       $ref: './automation.yaml#/AutomationPermissions'
+    telegramChatCount:
+      description: 'Enabled Telegram chats of the store (decision 165 S4); 0 = automation messages go to the region chats'
+      type: integer
+      format: int32
+    cleaningMonths:
+      description: 'How far back the cleaning rule looks, in months (setting; for the member sentence of the rule card)'
+      type: integer
+      format: int32
+
+LinkCandidate:
+  type: object
+  description: 'A store the actor may link (decision 165 S4, Q3): any store they may know links one-way; bidirectional needs mayEdit.'
+  required: [store, regionPath, automationEnabled, mayEdit]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    city:
+      type: string
+    regionPath:
+      description: "Names of the store's region and its ancestors, root first"
+      type: array
+      items:
+        type: string
+    automationEnabled:
+      description: 'The store has an enabled pickup policy'
+      type: boolean
+    mayEdit:
+      description: 'The actor may edit the store (mayEditStore): only then the rule may be bidirectional'
+      type: boolean
+
+LinkCandidatePage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './automation.yaml#/LinkCandidate'
+    page:
+      $ref: './common.yaml#/PageMeta'
 
 StoreRuleSummary:
   type: object
@@ -614,7 +660,7 @@ AutomationAuditPage:
 
 RegionAutomationStore:
   type: object
-  required: [store, pickupPolicyEnabled, requestPolicyEnabled, advertCount, signoutAlertEnabled]
+  required: [store, pickupPolicyEnabled, requestPolicyEnabled, advertCount, signoutAlertEnabled, telegramChatCount]
   properties:
     store:
       $ref: './stores.yaml#/StoreRef'
@@ -628,6 +674,10 @@ RegionAutomationStore:
       format: int32
     signoutAlertEnabled:
       type: boolean
+    telegramChatCount:
+      description: 'Enabled Telegram chats of the store; 0 = the region chats'
+      type: integer
+      format: int32
 
 RegionAutomationOverview:
   type: object

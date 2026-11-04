@@ -27,6 +27,22 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
     @Query("select s from Store s where s.deletedAt is null")
     List<Store> findAllLive();
 
+    /**
+     * Live stores whose name, city or postcode contains the pattern ({@code %…%}, lower case, {@code \\} escapes),
+     * without one store and without those of one cooperation status, by name (decision 165 S4 link picker).
+     */
+    @Query(value = "select s from Store s where s.deletedAt is null and s.id <> :excludeId "
+            + "and s.cooperationStatus <> :excludeStatus and (lower(s.name) like :pattern escape '\\' "
+            + "or lower(s.city) like :pattern escape '\\' or lower(s.postcode) like :pattern escape '\\') "
+            + "order by lower(s.name), s.id",
+            countQuery = "select count(s) from Store s where s.deletedAt is null and s.id <> :excludeId "
+            + "and s.cooperationStatus <> :excludeStatus and (lower(s.name) like :pattern escape '\\' "
+            + "or lower(s.city) like :pattern escape '\\' or lower(s.postcode) like :pattern escape '\\')")
+    org.springframework.data.domain.Page<Store> searchLive(@Param("pattern") String pattern,
+                                                          @Param("excludeId") UUID excludeId,
+                                                          @Param("excludeStatus") CooperationStatus excludeStatus,
+                                                          org.springframework.data.domain.Pageable pageable);
+
     @Query("select s from Store s where s.regionId in :regionIds and s.deletedAt is null order by s.name, s.id")
     List<Store> findLiveInRegions(@Param("regionIds") Collection<UUID> regionIds);
 
