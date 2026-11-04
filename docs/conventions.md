@@ -212,9 +212,9 @@ Implemented with Angular `resource()`/`rxResource` + `httpResource` is not used 
     the ambassadors").
   - `hasRegionPermission(p, region)`: a `region_permission` row, or membership (not only admin) of a group that holds a
     function of that region whose grants (`app.permissions.function-grants`) contain `p`. Defaults:
-    FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, STORES_COORDINATION → CAN_USE_AUTOMATIONS +
-    CAN_SEE_USER_PICKUP_COUNT_GROUPING + CAN_SEE_ALL_AUTOMATION_DECISIONS, VOTING → CAN_MANAGE_SURVEYS. Grants are per
-    region (no inheritance to sub-regions).
+    FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, VOTING → CAN_MANAGE_SURVEYS; STORES_COORDINATION
+    grants nothing (automation needs `mayEditStore` / `mayAdministrateRegion`, decision 165). Grants are per region (no
+    inheritance to sub-regions).
   - `mayAdministrateRegion(actor, region)`: actor is ambassador of the region **or one of its ancestors**, or admin of
     the FSMANAGEMENT group of such a region (working-group admin roles do not count). `mayAdministrateUser(actor, user)`:
     the same for any region the user is an active member of.

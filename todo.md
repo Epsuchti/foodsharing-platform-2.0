@@ -31,6 +31,10 @@ Last updated 2026-11-03, after the final gate was merged (`dc970052`).
 - Once the hosting cut-over in `todo-eric.md` is done and verified: remove `UploadDiskImport`, `app.uploads.import-dir`/`UPLOADS_IMPORT_DIR` and `UploadBlobRepository.idsWithoutOriginal`, and drop `upload.storage_key` in a new changelog (seeded rows are looked up by it in `UploadSeedFiles`; switch that to the fixed seed ids first).
 - Follow-up (plan Q5, changes A41): don't store `lg` when the original is already at most 1280 px; serve the original instead (saves ~40 % of image bytes).
 
+## Automation redesign (decision 165)
+- Drop the unmapped `dry_run` columns of `pickup_policy`, `request_policy` and `open_slot_advert` (and the always-false audit `dry_run` columns) together with the read-only `WOULD_*` / `DRY_RUN_SUMMARY` / `*_WOULD_*` values (Q8), once no row older than the cut-over is kept. The seed changesets 105–108 still `loadData` the config columns: replace them with new seed changesets first. Until then, native SQL inserts into those tables must not rely on the column default.
+- Orphaned screenshot baselines `automation-preview-*` (the preview dialog is gone): drop them in the next CI baseline run.
+
 ## Housekeeping
 - **Load test on this Mac (optional, does not block launch):** `e2e/load/run.sh` failed three times on 2026-11-03 with `dial: i/o timeout` between k6 and the app, the third time on a quiet machine; every run since 2026-10-29 has had a few (`docs/load-test.md`). Suspect Docker Desktop's port forwarding to `host.docker.internal`: try k6 on the host or the app in the same Docker network. Don't weaken the thresholds.
 - Worktrees and branches whose work is on `main` can be removed (`git branch --merged main`).
