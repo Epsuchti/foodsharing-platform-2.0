@@ -39,6 +39,7 @@ import network.foodsharing.upload.service.UploadUsage;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -186,7 +187,7 @@ public class SupportService {
         if (to == null || to.isBlank()) {
             return;
         }
-        String base = StringUtils.removeEnd(properties.getBaseUrl(), "/");
+        String base = Strings.CS.removeEnd(properties.getBaseUrl(), "/");
         Map<String, Object> variables = new HashMap<>();
         variables.put("ticketId", ticket.getId().toString());
         variables.put("subject", ticket.getSubject());

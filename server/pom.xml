@@ -457,7 +457,7 @@
                         <configuration>
                             <skip>${skip.client}</skip>
                             <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
-                            <overwrite>true</overwrite>
+                            <changeDetection>always</changeDetection>
                             <resources>
                                 <resource>
                                     <directory>../client/dist/client/browser</directory>
