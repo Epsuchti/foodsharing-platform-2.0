@@ -1,0 +1,432 @@
+// Landing page, Variant D (C17, docs/design/landing-page-proposal.md §6). Breakpoints follow the page container
+// (`landing`, 900px) so the bubbles, the steps and the splits switch together; the sticky join sits outside the
+// container because a size container would trap `position: fixed`.
+:host {
+  display: block;
+}
+
+.landing {
+  container: landing / inline-size;
+  display: grid;
+  gap: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+}
+
+.eyebrow {
+  display: inline-flex;
+  justify-self: start;
+  margin: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.title--sm {
+  font-size: 1.6rem;
+}
+
+.lead {
+  max-width: 44rem;
+  margin: 0.6rem 0 0;
+  color: var(--fs-text-muted);
+  font-size: 1.05rem;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  .fs-btn {
+    flex: 1 1 15rem;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+}
+
+@container landing (min-width: 640px) {
+  .actions .fs-btn {
+    flex: 0 0 auto;
+  }
+}
+
+// ---- hero ----
+.hero {
+  display: grid;
+  align-items: center;
+  gap: 2.5rem;
+  padding-top: clamp(0.5rem, 2vw, 2rem);
+}
+
+.hero__text {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.hero__title {
+  margin: 0;
+  font-size: clamp(2.1rem, 1.4rem + 3.2vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.hero__lead {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--fs-text-muted);
+  font-size: clamp(1.02rem, 0.95rem + 0.4vw, 1.2rem);
+  line-height: 1.6;
+}
+
+.hero .actions {
+  margin-top: 0.5rem;
+}
+
+.hero__login {
+  margin: 0;
+  color: var(--fs-text-muted);
+  font-size: 0.95rem;
+}
+
+// ---- text + bubble ----
+.split {
+  display: grid;
+  align-items: center;
+  gap: 2rem;
+}
+
+@container landing (min-width: 900px) {
+  .hero {
+    grid-template-columns: 1.15fr 1fr;
+  }
+  .split {
+    grid-template-columns: 1fr 1fr;
+  }
+  .split--flip > fs-landing-bubble {
+    order: -1;
+  }
+}
+
+.rows {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rows--grid {
+  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+
+  > .pi {
+    margin-top: 0.2rem;
+    color: var(--fs-primary);
+    font-size: 1.3rem;
+  }
+
+  strong {
+    display: block;
+  }
+
+  span {
+    color: var(--fs-text-muted);
+    font-size: 0.93rem;
+  }
+}
+
+// ---- counters strip ----
+.strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 0;
+  padding: 1.6rem;
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-primary-strong);
+  color: #fff;
+  list-style: none;
+
+  li {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  fs-count-up {
+    font-size: clamp(1.7rem, 1.2rem + 1.8vw, 2.6rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  span {
+    font-size: 0.9rem;
+  }
+}
+
+:host-context(.fs-dark) .strip {
+  background: var(--fs-primary-soft);
+  color: var(--fs-text);
+
+  fs-count-up {
+    color: var(--fs-primary-strong);
+  }
+}
+
+@container landing (min-width: 700px) {
+  .strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// ---- near you ----
+.near {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.2rem;
+}
+
+.near--placeholder {
+  min-height: 26rem;
+}
+
+@container landing (min-width: 900px) {
+  .near {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  .near--placeholder {
+    min-height: 26rem;
+  }
+}
+
+// ---- Fairteiler ----
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: var(--fs-primary-soft);
+    color: var(--fs-primary-strong);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+}
+
+// ---- cards ----
+.card {
+  padding: 1.4rem;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-surface);
+  box-shadow: var(--fs-shadow-sm);
+
+  h3 {
+    margin: 0 0 0.9rem;
+    font-size: 1.1rem;
+  }
+
+  .rows {
+    margin: 0;
+  }
+}
+
+.card--soft {
+  border-color: transparent;
+  background: var(--fs-primary-soft);
+  box-shadow: none;
+}
+
+// ---- businesses ----
+.biz {
+  display: grid;
+  gap: 1rem;
+}
+
+.biz__card {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+}
+
+.biz__tag {
+  font-size: 0.85rem;
+}
+
+.biz__panel {
+  display: grid;
+  align-content: center;
+  gap: 0.5rem;
+  padding: 1.2rem;
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-primary-soft);
+}
+
+.biz__quote {
+  margin: 0;
+  font-size: 0.98rem;
+
+  p {
+    margin: 0;
+  }
+
+  footer {
+    margin-top: 0.4rem;
+    color: var(--fs-text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+@container landing (min-width: 900px) {
+  .biz {
+    grid-template-columns: 1.4fr 1fr;
+    align-items: stretch;
+  }
+}
+
+// ---- duties ----
+.duties {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.duties__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+}
+
+.duties__foot a,
+.faq-more a {
+  color: var(--fs-primary-strong);
+  font-weight: 650;
+}
+
+@container landing (min-width: 900px) {
+  .duties {
+    grid-template-columns: 1.35fr 1fr;
+  }
+}
+
+// ---- FAQ ----
+.faq-groups {
+  display: grid;
+  gap: 1.6rem;
+  margin-top: 1.2rem;
+}
+
+@container landing (min-width: 900px) {
+  .faq-groups {
+    grid-template-columns: repeat(3, 1fr);
+    align-items: start;
+  }
+}
+
+.faq-group h3 {
+  margin: 0 0 0.6rem;
+  color: var(--fs-primary-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.faq {
+  display: grid;
+  gap: 0.5rem;
+
+  details {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--fs-border);
+    border-radius: 0.75rem;
+    background: var(--fs-surface);
+  }
+
+  details[open] {
+    border-color: var(--fs-border-strong);
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  p {
+    margin: 0.6rem 0 0;
+    color: var(--fs-text-muted);
+  }
+}
+
+.faq-more {
+  margin-top: 1.2rem;
+  font-size: 0.95rem;
+}
+
+// ---- CTA band + sticky ----
+.band {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  padding: 2rem;
+  border-radius: var(--fs-radius-xl);
+  background: var(--fs-primary-soft);
+}
+
+.sticky {
+  position: fixed;
+  z-index: 45;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0.6rem var(--fs-gutter) calc(0.6rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--fs-header-border);
+  background: var(--fs-header-bg);
+  backdrop-filter: blur(10px);
+
+  .fs-btn {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .sticky {
+    display: none;
+  }
+}
