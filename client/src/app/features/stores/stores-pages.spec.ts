@@ -139,6 +139,18 @@ describe('stores pages', () => {
       'stores.mine.group.invited',
     ]);
     expect(qa('[data-testid="stores.mine.store"]')).toHaveLength(4);
+    // owner feedback 2026-11-04: no cooperation/team badges on active stores; actions inside the store card
+    expect(qa('fs-cooperation-status-badge, fs-team-status-badge')).toHaveLength(0);
+    const invited = q('[data-testid="stores.mine.invitation"]')!;
+    expect(invited.closest('li.store-card')?.querySelector('[data-testid="stores.mine.store"]')?.getAttribute('data-store')).toBe('D');
+
+    // with "show inactive" the closed store comes back with its cooperation badge (and only that one)
+    (q('[data-testid="stores.mine.inactive"] input') as HTMLInputElement).click();
+    await settle();
+    expect(qa('[data-testid="stores.mine.store"]')).toHaveLength(5);
+    expect(qa('[data-testid="stores.mine.inactiveBadge"]')).toHaveLength(1);
+    expect(qa('fs-cooperation-status-badge')).toHaveLength(1);
+    expect(qa('fs-team-status-badge')).toHaveLength(0);
   });
 
   it('my stores: empty and error with retry', async () => {

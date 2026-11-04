@@ -47,8 +47,9 @@ const GROUPS: { id: GroupId; icon: string }[] = [
 ];
 
 /**
- * /stores/mine (S1): the user's stores grouped by membership (manager, member, jumper, invited, applied) with
- * cooperation/team badges, the next pickup and the free-slot light; inactive stores behind a toggle.
+ * /stores/mine (S1): the user's stores grouped by membership (manager, member, jumper, invited, applied) with the
+ * next pickup and the free-slot light; inactive stores behind a toggle, with their cooperation badge (owner
+ * feedback 2026-11-04: no other badges). Invitation and application actions sit inside the store's card.
  */
 @Component({
   selector: 'fs-my-stores-page',
@@ -92,7 +93,8 @@ const GROUPS: { id: GroupId; icon: string }[] = [
               </h2>
               <ul class="stores">
                 @for (store of group.stores; track store.id) {
-                  <li>
+                  <!-- one bordered card per store: the link and its actions (withdraw / accept / decline) inside -->
+                  <li class="store-card" [class.store-card--inactive]="isInactive(store)">
                     <a class="store" [routerLink]="['/stores', store.id]" data-testid="stores.mine.store" [attr.data-store]="store.name">
                       <span class="store__name">{{ store.name }}</span>
                       <span class="store__meta">
@@ -101,10 +103,12 @@ const GROUPS: { id: GroupId; icon: string }[] = [
                           · {{ store.region.name }}
                         }
                       </span>
-                      <span class="store__badges">
-                        <fs-cooperation-status-badge [status]="store.cooperationStatus" />
-                        <fs-team-status-badge [status]="store.teamStatus" />
-                      </span>
+                      @if (isInactive(store)) {
+                        <!-- only shown with "show inactive": why the store is out of the active list -->
+                        <span class="store__badges" data-testid="stores.mine.inactiveBadge">
+                          <fs-cooperation-status-badge [status]="store.cooperationStatus" />
+                        </span>
+                      }
                       <span class="store__pickup" data-testid="stores.mine.nextPickup">
                         @if (store.nextPickupAt) {
                           <i class="pi pi-calendar" aria-hidden="true"></i>
@@ -164,20 +168,22 @@ const GROUPS: { id: GroupId; icon: string }[] = [
     .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
     .switch-row__label { display: inline-flex; align-items: center; gap: 0.6rem; }
     .count { margin-left: auto; color: var(--fs-text-muted); font-size: 0.85rem; font-weight: 600; }
-    .stores { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
-    .store {
-      display: grid; gap: 0.3rem; padding: 0.7rem 0.8rem; border-radius: var(--fs-radius-md, 0.6rem);
-      color: inherit; text-decoration: none; border: 1px solid var(--fs-border);
-    }
-    .invite-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.4rem 0.8rem 0; }
+    .stores { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+    .store-card { border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); overflow: hidden; }
+    .store-card--inactive { border-style: dashed; }
+    .store { display: grid; gap: 0.3rem; padding: 0.7rem 0.8rem; color: inherit; text-decoration: none; }
+    .store:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: -2px; }
+    .invite-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0 0.8rem 0.7rem; }
     .store:hover { background: var(--fs-surface-muted); }
     .store__name { font-weight: 650; }
     .store__meta { color: var(--fs-text-muted); font-size: 0.85rem; }
     .store__badges { display: flex; flex-wrap: wrap; gap: 0.35rem; }
     .store__pickup { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; font-size: 0.88rem; }
     @media (min-width: 48rem) {
-      .store { grid-template-columns: minmax(0, 1fr) auto; }
-      .store__badges, .store__pickup { justify-self: end; }
+      /* name and address left, next pickup right */
+      .store { grid-template-columns: minmax(0, 1fr) auto; column-gap: 1rem; }
+      .store__name, .store__meta, .store__badges { grid-column: 1; }
+      .store__pickup { grid-column: 2; grid-row: 1 / span 3; align-self: center; justify-self: end; }
     }
   `,
 })
@@ -207,6 +213,11 @@ export class MyStoresPageComponent {
     (storeId: string) => this.teamApi.cancelMyStoreApplication({ storeId }),
     { successToastKey: 'stores.membership.applicationCancelled', onSuccess: () => this.stores.reload() },
   );
+
+  /** Closed or uncooperative store: listed only with "show inactive", and the only one that keeps a badge. */
+  protected isInactive(store: StoreListItem): boolean {
+    return INACTIVE_COOPERATION.includes(store.cooperationStatus);
+  }
 
   protected readonly groups = computed<StoreGroup[]>(() => {
     const showInactive = this.showInactive();
