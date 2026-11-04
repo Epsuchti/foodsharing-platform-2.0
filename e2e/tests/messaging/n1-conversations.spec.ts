@@ -116,18 +116,25 @@ test.describe('foodsaver', () => {
     await expect(item.getByTestId('messaging.list.unread')).toHaveCount(0);
     await expect.poll(async () => (await getConversation(api, CONVERSATIONS.foodsaverBieb)).unreadCount).toBe(0);
 
-    // mention autocomplete inserts the token; the sent bubble renders a chip
+    // mention autocomplete inserts the plain @Name (decision 162); the token is built on send and the sent bubble
+    // renders a chip
+    const bieb = await dev.user('bieb');
     await page.getByTestId('messaging.conversation.composer').fill('Super, @');
     await expect(page.getByTestId('messaging.conversation.mentionPick')).toHaveCount(1);
     await page.getByTestId('messaging.conversation.mentionPick').click();
-    // the token reaches the textarea with the next change detection; typing before that appended to the old text
-    // and the next input event overwrote the token ("Super, @bis bald" under load)
-    await expect(page.getByTestId('messaging.conversation.composer')).toHaveValue(/@\[[^\]]+\]\(user:[0-9a-f-]+\) $/);
+    // the name reaches the textarea with the next change detection; typing before that appended to the old text
+    // and the next input event overwrote it ("Super, @bis bald" under load)
+    await expect(page.getByTestId('messaging.conversation.composer')).toHaveValue(`Super, @${bieb.displayName} `);
     await page.getByTestId('messaging.conversation.composer').press('End');
     await page.getByTestId('messaging.conversation.composer').pressSequentially('bis bald');
     await page.getByTestId('messaging.conversation.send').click();
     await expect(bubbles(page).last().getByTestId('messaging.conversation.mention')).toBeVisible();
     await expect(bubbles(page).last()).toContainText('bis bald');
+    const lastBody = async () =>
+      (await api.getJson<{ messages: { body: string }[] }>(`/api/conversations/${CONVERSATIONS.foodsaverBieb}`)).messages.at(-1)?.body;
+    await expect.poll(lastBody).toBe(
+      `Super, @[${bieb.displayName}](user:${bieb.id}) bis bald`,
+    );
   });
 
   test('N1 nav badge counts conversations with unread messages, updates live and clears on read @N1 @N2', async ({ page, api, as, apiOf }) => {

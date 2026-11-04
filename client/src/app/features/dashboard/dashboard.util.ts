@@ -1,4 +1,14 @@
-import { ActivityItem, ActivityType, BasketSummary } from '../../api';
+import {
+  ActivityItem,
+  ActivityType,
+  BasketSummary,
+  EventSummary,
+  FreeSlotStatus,
+  InvitationStatus,
+  StoreListItem,
+  UserPickup,
+  UserTeamStatus,
+} from '../../api';
 
 export const ACTIVITY_PAGE_SIZE = 10;
 /** Nearest baskets on the dashboard card (B2) and the radius they are searched in (server default). */
@@ -35,4 +45,99 @@ export function mergeActivityPages(shown: readonly ActivityItem[], next: readonl
 /** The first baskets of a nearby list (the server sorts by distance). */
 export function nearestBaskets(baskets: readonly BasketSummary[], count = NEARBY_BASKETS_SHOWN): BasketSummary[] {
   return baskets.slice(0, count);
+}
+
+/** Rows of the home cards (docs/design/ui-polish-batch-proposal.md §3). */
+export const HELP_NEEDED_SHOWN = 3;
+export const UPCOMING_EVENTS_SHOWN = 3;
+export const YOUR_STORES_SHOWN = 5;
+
+/** A row of "Waiting for you": what to do, how many, where. `warn` rows wait on the user's team, not on the user. */
+export interface WaitingRow {
+  id: 'invitations' | 'unread' | 'unconfirmed' | 'applications';
+  icon: string;
+  count: number;
+  link: string;
+  fragment?: string;
+  warn: boolean;
+}
+
+/** What "Waiting for you" counts; the store and pickup parts only for verified foodsavers (null otherwise). */
+export interface WaitingInput {
+  stores: readonly StoreListItem[] | null;
+  unreadConversations: number;
+  pickups: readonly UserPickup[] | null;
+}
+
+/**
+ * The rows of "Waiting for you", in this order and only with a count above 0: store invitations, unread
+ * conversations, own unconfirmed pickups, own pending applications.
+ */
+export function waitingRows(input: WaitingInput): WaitingRow[] {
+  const stores = input.stores ?? [];
+  const rows: WaitingRow[] = [
+    {
+      id: 'invitations',
+      icon: 'pi pi-envelope',
+      count: stores.filter((store) => store.membership === UserTeamStatus.Invited).length,
+      link: '/stores/mine',
+      warn: false,
+    },
+    { id: 'unread', icon: 'pi pi-comments', count: input.unreadConversations, link: '/messages', warn: false },
+    {
+      id: 'unconfirmed',
+      icon: 'pi pi-hourglass',
+      count: (input.pickups ?? []).filter((pickup) => !pickup.confirmed).length,
+      link: '/pickups',
+      fragment: 'mine',
+      warn: true,
+    },
+    {
+      id: 'applications',
+      icon: 'pi pi-send',
+      count: stores.filter((store) => store.membership === UserTeamStatus.Applied).length,
+      link: '/stores/mine',
+      warn: true,
+    },
+  ];
+  return rows.filter((row) => row.count > 0);
+}
+
+/** The next events I attend, may attend or am invited to (not "won't join"), from now on, soonest first. */
+export function upcomingEvents(
+  events: readonly EventSummary[],
+  now: Date,
+  count = UPCOMING_EVENTS_SHOWN,
+): EventSummary[] {
+  return events
+    .filter((event) => event.myStatus !== InvitationStatus.WontJoin && new Date(event.startsAt).getTime() >= now.getTime())
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .slice(0, count);
+}
+
+const FREE_SLOT_URGENCY: readonly FreeSlotStatus[] = [
+  FreeSlotStatus.Red,
+  FreeSlotStatus.Orange,
+  FreeSlotStatus.Yellow,
+  FreeSlotStatus.Green,
+];
+
+/**
+ * "Your stores": stores whose team I am in (member or coordinator) with free slots in the next 7 days, most urgent
+ * first (RED → GREEN), then by the next pickup; at most five.
+ */
+export function storesNeedingPeople(stores: readonly StoreListItem[], count = YOUR_STORES_SHOWN): StoreListItem[] {
+  return stores
+    .filter(
+      (store) =>
+        (store.membership === UserTeamStatus.Member || store.membership === UserTeamStatus.Coordinator) &&
+        store.freeSlotCount > 0,
+    )
+    .sort(
+      (a, b) =>
+        FREE_SLOT_URGENCY.indexOf(a.freeSlotStatus) - FREE_SLOT_URGENCY.indexOf(b.freeSlotStatus) ||
+        (a.nextPickupAt ?? '9999').localeCompare(b.nextPickupAt ?? '9999') ||
+        a.name.localeCompare(b.name),
+    )
+    .slice(0, count);
 }

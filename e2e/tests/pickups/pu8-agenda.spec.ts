@@ -5,7 +5,7 @@ import { expect, expectDataState, test } from '../../fixtures';
 test.use({ role: 'foodsaver' });
 
 test('PU8 agenda shows pickups and EinAbs of a day @PU8 @page', async ({ page }) => {
-  await page.goto('/pickups/mine');
+  await page.goto('/pickups');
   await expectDataState(page, 'pickups.mine.state', 'success');
   await page.getByTestId('pickups.mine.agenda').click();
   await expect(page).toHaveURL(/\/pickups\/agenda\/2026-11-04$/);

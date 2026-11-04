@@ -62,7 +62,7 @@
   "pickups.mine.title": "Meine Abholungen",
   "pickups.mine.subtitle": "Deine kommenden Abholungen.",
   "pickups.mine.empty": "Keine Abholungen geplant",
-  "pickups.mine.emptyText": "Schau, wo noch Plätze frei sind.",
+  "pickups.mine.emptyText": "Schau unten, wo noch Plätze frei sind.",
   "pickups.mine.confirmed": "Bestätigt",
   "pickups.agenda.title": "Tagesübersicht",
   "pickups.agenda.stepper": "Tag wählen",
@@ -73,7 +73,6 @@
   "pickups.dashboard.title": "Meine nächsten Abholungen",
   "pickups.dashboard.empty": "Keine Abholungen geplant",
   "pickups.dashboard.all": "Alle meine Abholungen",
-  "pickups.dashboard.free": "{count, plural, one {# Abholung mit freien Plätzen} other {# Abholungen mit freien Plätzen}}",
   "pickups.history.link": "Verlauf",
   "pickups.history.from": "Von",
   "pickups.history.to": "Bis",
@@ -115,5 +114,12 @@
   "pickups.tab.state.unconfirmed": "Unbestätigt",
   "pickups.cleaning.label": "Putzeinsatz",
   "pickups.cleaning.signoutText": "Möchtest du dich von diesem Putzeinsatz abmelden?",
-  "pickups.cleaning.signedOut": "Vom Putzeinsatz abgemeldet."
+  "pickups.cleaning.signedOut": "Vom Putzeinsatz abgemeldet.",
+  "pickups.page.title": "Abholungen",
+  "pickups.page.subtitle": "Deine kommenden Abholungen – und wo deine Betriebe noch Leute brauchen.",
+  "pickups.page.showMore": "{count} weitere anzeigen",
+  "pickups.mine.signOutLabel": "Austragen: {store}, {date}",
+  "pickups.options.signUpLabel": "Eintragen: {store}, {date}",
+  "pickups.dashboard.help": "Bald Hilfe gesucht",
+  "pickups.dashboard.helpAll": "Alle {count, plural, one {# Abholung} other {# Abholungen}} mit freien Plätzen"
 }

@@ -25,7 +25,16 @@ test.describe('jumper', () => {
     const vohdin = member.getByTestId('stores.mine.store').first();
     await expect(vohdin.getByTestId('stores.mine.nextPickup')).toContainText(/\d/);
     await expect(vohdin.locator('fs-free-slot-dot .dot')).toHaveAttribute('aria-label', /\d/);
-    await expect(vohdin.locator('fs-cooperation-status-badge')).toHaveAttribute('data-status', 'COOPERATION_ESTABLISHED');
+    // owner feedback 2026-11-04 (#11): active stores carry no cooperation or team badge; only inactive stores keep
+    // their cooperation badge with "show inactive" (no seed user is in an inactive store: unit spec stores-pages)
+    await expect(page.locator('fs-cooperation-status-badge, fs-team-status-badge')).toHaveCount(0);
+    await page.getByTestId('stores.mine.inactive').click();
+    await expect(page.getByTestId('stores.mine.store')).toHaveCount(4);
+    await expect(page.getByTestId('stores.mine.inactiveBadge')).toHaveCount(0);
+    // the invitation actions sit inside the invited store's card
+    await expect(
+      page.locator('li.store-card').filter({ has: page.getByTestId('stores.mine.invitation') }).getByTestId('stores.mine.store'),
+    ).toHaveAttribute('data-store', 'Wochenmarkt Helvetiaplatz');
 
     await vohdin.click();
     await expect(page.getByTestId('stores.page.name')).toHaveText('Bäckerei Vohdin');

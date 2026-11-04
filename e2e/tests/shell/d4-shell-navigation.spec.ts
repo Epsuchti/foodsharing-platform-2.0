@@ -74,7 +74,9 @@ test.describe('logged in', () => {
     await expect(community).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByTestId('nav.map')).toBeVisible();
     await expect(page.getByTestId('nav.map')).toHaveAttribute('href', '/map');
-    await expect(page.getByTestId('nav.storeChains')).toHaveAttribute('data-nav-section', 'manage');
+    await expect(page.getByTestId('nav.events')).toHaveAttribute('data-nav-section', 'community');
+    // store chains are a store manager item (owner feedback 2026-11-04): a foodsaver has no Verwalten section
+    await expect(page.getByTestId('nav.storeChains')).toHaveCount(0);
     // the side menu never scrolls sideways
     const nav = page.getByRole('navigation', { name: /.+/ }).filter({ has: page.getByTestId('nav.dashboard') });
     expect(await nav.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);

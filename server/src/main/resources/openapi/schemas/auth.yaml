@@ -31,6 +31,21 @@ SessionInfo:
     mailboxes:
       type: boolean
       description: Reads a mailbox or may create one (menu item Postfächer, filled by the mailbox enricher).
+    capabilities:
+      type: array
+      description: >-
+        Menu capabilities computed on the server from the same rules the endpoints check (decision 162). Filled by
+        one SessionInfoEnricher per module; the client shows the matching menu items only for these.
+      items:
+        $ref: './auth.yaml#/NavCapability'
+
+NavCapability:
+  type: string
+  description: >-
+    QUIZ_EDIT quiz editor of any quiz kind; MANAGE_NEWCOMERS, VERIFY, MANAGE_MEMBERS administrates the home region or
+    holds CAN_MANAGE_USERS; NEWSLETTERS administrates a region; BLOG_MANAGE blog editor or ambassador of a region;
+    CONTENT_EDIT ORGA or PR group admin.
+  enum: [QUIZ_EDIT, MANAGE_NEWCOMERS, VERIFY, MANAGE_MEMBERS, NEWSLETTERS, BLOG_MANAGE, CONTENT_EDIT]
 
 SessionUser:
   type: object

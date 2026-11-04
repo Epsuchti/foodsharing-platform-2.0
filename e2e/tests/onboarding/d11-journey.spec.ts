@@ -72,10 +72,11 @@ test('D11.5.2 every seed stage shows the current step and one next action @D11.5
     await expect(page.getByTestId('dashboard.page.nextStep'), role).toHaveAttribute('data-journey-step', journey.currentStep!);
   }
 
-  // a verified foodsaver has no journey bar and sees the role card
+  // a verified foodsaver has no journey bar; with a complete profile there is no next-step card (2026-11-04)
   const foodsaver = await as('foodsaver');
   await foodsaver.goto('/dashboard');
-  await expect(foodsaver.getByTestId('dashboard.page.nextStep')).toHaveAttribute('data-step', 'profile');
+  await expect(foodsaver.getByTestId('dashboard.page.welcome')).toBeVisible();
+  await expect(foodsaver.getByTestId('dashboard.page.nextStep')).toHaveCount(0);
   await expect(foodsaver.getByTestId('onboarding.bar')).toHaveCount(0);
   await expect(foodsaver.getByTestId('nav.onboarding')).toHaveCount(0);
   await expect(foodsaver.getByTestId('nav.onboarding.progress')).toHaveCount(0);

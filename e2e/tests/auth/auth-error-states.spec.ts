@@ -77,7 +77,11 @@ test.describe('logged in', () => {
     await injectApiError(page, { url: '/api/public/app-info', status: 500 });
     await page.goto('/dashboard');
     await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
-    await expect(page.getByTestId('dashboard.page.nextStepAction')).toBeVisible();
+    // the cards that depend on loaded data still render and link on: the foodsaver's profile is complete, so there is
+    // no next-step card (owner feedback 2026-11-04) but the pickups card with its link
+    await expect(page.getByTestId('dashboard.pickups.state')).toHaveAttribute('data-state', 'success');
+    await expect(page.getByTestId('dashboard.pickups.all')).toBeVisible();
+    await expect(page.getByTestId('dashboard.page.nextStep')).toHaveCount(0);
   });
 
   test('A2 session bootstrap failure falls back to the login and recovers on reload @A2', async ({ page }) => {

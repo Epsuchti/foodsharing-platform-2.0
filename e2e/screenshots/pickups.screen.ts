@@ -19,7 +19,7 @@ forEachVariant((variant) => {
       screenshotTest.use({ variant, role: 'guide' });
 
       screenshotTest('my pickups with a cleaning shift @FS2 @screenshot', async ({ page, visual }) => {
-        await page.goto('/pickups/mine');
+        await page.goto('/pickups');
         await expect(page.getByTestId('pickups.mine.state')).toHaveAttribute('data-state', 'success');
         await expect(page.getByTestId('pickups.mine.cleaning').first()).toBeVisible();
         await visual.expectScreen(page, `pickups-mine-cleaning-${variant.name}`);
@@ -42,13 +42,14 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `pickups-signup-eligible-${variant.name}`);
       });
 
-      screenshotTest('options, my pickups, agenda, dashboard @PU7 @PU8 @A19 @screenshot', async ({ page, visual }) => {
+      screenshotTest('pickups page, agenda, dashboard @PU7 @PU8 @A19 @screenshot', async ({ page, visual }) => {
+        // one page since 2026-11-04: my pickups and where can I help (baselines in the end batch, decision 69)
         await page.goto('/pickups');
-        await expect(page.getByTestId('pickups.options.state')).toHaveAttribute('data-state', 'success');
-        await visual.expectScreen(page, `pickups-options-${variant.name}`);
-        await page.goto('/pickups/mine');
         await expect(page.getByTestId('pickups.mine.state')).toHaveAttribute('data-state', 'success');
-        await visual.expectScreen(page, `pickups-mine-${variant.name}`);
+        await expect(page.getByTestId('pickups.options.state')).toHaveAttribute('data-state', 'success');
+        await visual.expectScreen(page, `pickups-page-${variant.name}`);
+        await page.getByTestId('pickups.options.showMore').click();
+        await visual.expectScreen(page, `pickups-page-more-${variant.name}`);
         await page.goto('/pickups/agenda/2026-11-05');
         await expect(page.getByTestId('pickups.agenda.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `pickups-agenda-${variant.name}`);

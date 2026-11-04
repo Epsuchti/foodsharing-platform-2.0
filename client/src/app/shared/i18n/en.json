@@ -210,7 +210,7 @@
   "shared.pickupSlot.label": "{taken} of {total} slots taken",
   "shared.pickupSlot.confirmed": "{name}, confirmed",
   "shared.pickupSlot.unconfirmed": "{name}, unconfirmed",
-  "shared.pickupSlot.free": "Free slot – sign up",
+  "shared.pickupSlot.free": "Free slot – sign up, {count} free",
   "shared.eligibility.rule": "Region pickup rule: {count} of {limit} pickups within {days} days, {sameDay} of {dayLimit} on the same day.",
   "shared.weekdayTime.weekday": "Weekday",
   "shared.weekdayTime.time": "Time",
@@ -266,11 +266,11 @@
   "shared.upload.tooLarge": "Larger than {size}.",
   "shared.upload.failed": "Upload failed.",
   "shared.markerFilter.active": "{count} active",
-  "shared.pickupSlot.freeOnly": "Free slot",
   "shared.pickupSlot.signUp": "Sign up",
   "shared.pickupSlot.freeShort": "{count} free",
   "shared.pickupSlot.you": "You",
   "shared.pickupSlot.mineConfirmed": "You ({name}), confirmed – sign out",
   "shared.pickupSlot.mineUnconfirmed": "You ({name}), unconfirmed – sign out",
-  "shared.pickupSlot.confirmOne": "Confirm {name}"
+  "shared.pickupSlot.confirmOne": "Confirm {name}",
+  "shared.dateTile.today": "Today"
 }

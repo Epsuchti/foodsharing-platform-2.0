@@ -62,7 +62,7 @@ test.describe('foodsaver', () => {
     expect(past.page.totalItems).toBe(24);
     expect((await api.getJson<unknown[]>('/api/users/me/pickups')).length).toBe(2);
 
-    await page.goto('/pickups/mine');
+    await page.goto('/pickups');
     await page.getByTestId('pickups.mine.history').click();
     await expect(page).toHaveURL(/\/me\/pickups\/history$/);
     await expectDataState(page, 'pickups.past.state', 'success');

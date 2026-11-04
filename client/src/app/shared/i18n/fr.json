@@ -210,7 +210,7 @@
   "shared.pickupSlot.label": "{taken} places prises sur {total}",
   "shared.pickupSlot.confirmed": "{name}, confirmé·e",
   "shared.pickupSlot.unconfirmed": "{name}, non confirmé·e",
-  "shared.pickupSlot.free": "Place libre – s’inscrire",
+  "shared.pickupSlot.free": "Place libre – s’inscrire, {count} libre(s)",
   "shared.eligibility.rule": "Règle de la région : {count} collectes sur {limit} en {days} jours, {sameDay} sur {dayLimit} le même jour.",
   "shared.weekdayTime.weekday": "Jour",
   "shared.weekdayTime.time": "Heure",
@@ -266,11 +266,11 @@
   "shared.upload.tooLarge": "Plus grand que {size}.",
   "shared.upload.failed": "L'envoi a échoué.",
   "shared.markerFilter.active": "{count} actif(s)",
-  "shared.pickupSlot.freeOnly": "Place libre",
   "shared.pickupSlot.signUp": "S’inscrire",
   "shared.pickupSlot.freeShort": "{count} libre(s)",
   "shared.pickupSlot.you": "Toi",
   "shared.pickupSlot.mineConfirmed": "Toi ({name}), confirmé·e – se désinscrire",
   "shared.pickupSlot.mineUnconfirmed": "Toi ({name}), non confirmé·e – se désinscrire",
-  "shared.pickupSlot.confirmOne": "Confirmer {name}"
+  "shared.pickupSlot.confirmOne": "Confirmer {name}",
+  "shared.dateTile.today": "Aujourd’hui"
 }

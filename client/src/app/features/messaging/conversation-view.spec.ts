@@ -187,6 +187,48 @@ describe('ConversationViewComponent edit/delete (item 16)', () => {
     expect((q('[data-testid="messaging.conversation.composer"]') as HTMLTextAreaElement).value).toBe('');
   });
 
+  it('shows a picked mention as plain @Name and sends it as a token (decision 162)', async () => {
+    await open([message(1)]);
+    const composer = q('[data-testid="messaging.conversation.composer"]') as HTMLTextAreaElement;
+    composer.value = 'Hallo @Ni';
+    composer.dispatchEvent(new Event('input'));
+    await settle();
+    q('[data-testid="messaging.conversation.mentionPick"]')!.click();
+    await settle();
+    expect(composer.value).toBe('Hallo @Nina Schneider ');
+    composer.value = 'Hallo @Nina Schneider, kommst du?';
+    composer.dispatchEvent(new Event('input'));
+    await settle();
+    composer.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await settle();
+    const post = http.expectOne((req) => req.method === 'POST' && messagesRequest(req));
+    expect((post.request.body as { body: string }).body).toBe(`Hallo @[Nina Schneider](user:${NINA}), kommst du?`);
+    expect(composer.value).toBe('');
+  });
+
+  it('edits a message with a mention as plain text and keeps the token on save', async () => {
+    const body = `Danke @[Nina Schneider](user:${NINA})`;
+    await open([message(1, { body, mayEdit: true, mayDelete: true })]);
+    row(1).querySelector<HTMLElement>('[data-testid="messaging.conversation.messageMenu"]')!.click();
+    await settle();
+    doc('[data-testid="messaging.conversation.edit"]')!.click();
+    await settle();
+    const composer = q('[data-testid="messaging.conversation.composer"]') as HTMLTextAreaElement;
+    expect(composer.value).toBe('Danke @Nina Schneider');
+    // unchanged (compared encoded): Enter saves nothing
+    composer.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await settle();
+    http.expectNone((req) => req.method === 'PATCH');
+
+    composer.value = 'Danke @Nina Schneider!';
+    composer.dispatchEvent(new Event('input'));
+    await settle();
+    composer.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await settle();
+    const patch = http.expectOne((req) => req.method === 'PATCH');
+    expect(patch.request.body).toEqual({ body: `Danke @[Nina Schneider](user:${NINA})!` });
+  });
+
   it('replaces a message on CONVERSATION_MESSAGE_UPDATED and drops the menu of a deleted one', async () => {
     await open([message(1, { mayEdit: true, mayDelete: true }), message(2, { senderId: NINA })]);
     realtime.events.next({

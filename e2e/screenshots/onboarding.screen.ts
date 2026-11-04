@@ -27,7 +27,8 @@ forEachVariant((variant) => {
           await expect(page.getByTestId('onboarding.journey.state')).toHaveAttribute('data-state', 'success');
           await visual.expectScreen(page, `journey-${role}-${variant.name}`);
           await page.goto('/dashboard');
-          await expect(page.getByTestId('dashboard.page.nextStep')).toBeVisible();
+          // a verified foodsaver with a complete profile has no next-step card (owner feedback 2026-11-04)
+          await expect(page.getByTestId(role === 'foodsaver' ? 'dashboard.page.welcome' : 'dashboard.page.nextStep')).toBeVisible();
           await visual.expectScreen(page, `journey-dashboard-${role}-${variant.name}`);
         });
       });

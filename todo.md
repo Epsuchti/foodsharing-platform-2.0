@@ -16,6 +16,11 @@ Last updated 2026-11-03, after the final gate was merged (`dc970052`).
 - **Screenshot baselines:** only about 35 of the 436 changed images were looked at by eye. Review the rest, since differences under the 0.2% tolerance can hide in old ones. The mobile `bells-panel` capture with the drawer open only dims the first screen.
 - **Bell panel:** the long-title overflow fix is covered by a test that fails without it; nobody has looked at the real panel with long titles in a browser.
 
+## Open from the UI polish batch (2026-11-04)
+- **Home "Waiting for you" for store managers:** applications to review in their own stores would be the actionable row, but there is no cheap endpoint (per-store team calls). Needs a count endpoint first (designer question 1, owner: ship without).
+- **Hygiene/quiz reminder on the home screen:** skipped; the session carries no hygiene certificate or quiz expiry (`SessionUser` has `quizRole` only). Needs the expiry in the session or a small endpoint.
+- **Screenshot baselines:** the new names `pickups-page-*`, `pickups-page-more-*`, `dashboard-pickups-tiles-*`, `dashboard-{help,waiting,events,stores}-*`, `dashboard-help-{loading,error}-*` need baselines in the next batch; the old `pickups-options-*` / `pickups-mine-*` baselines are orphaned.
+
 ## Flakes
 - Flaky in the gate run, both passed on retry: `r7-region-admin.spec.ts:10` on firefox and `pages.screen.ts:71` (offline shell light-de) in screenshots.
 - `d10-history.spec.ts` D10.3: hardened, cause not confirmed.

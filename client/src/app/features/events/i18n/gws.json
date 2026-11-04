@@ -69,5 +69,7 @@
   "events.form.error.name": "Bitte gib en Name ii.",
   "events.form.error.dates": "S End mues nach em Aafang sii.",
   "events.form.error.location": "Termin vor Ort bruched en Ortsname.",
-  "events.form.error.link": "Bitte gib en https://-Link ii."
+  "events.form.error.link": "Bitte gib en https://-Link ii.",
+  "events.dashboard.title": "Nächschti Termin",
+  "events.dashboard.all": "Alli mini Termin"
 }

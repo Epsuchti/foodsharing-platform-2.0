@@ -62,7 +62,7 @@
   "pickups.mine.title": "Mini Abholige",
   "pickups.mine.subtitle": "Dini nächschte Abholige.",
   "pickups.mine.empty": "Kei Abholige planet",
-  "pickups.mine.emptyText": "Lueg, wo no Plätz frei sind.",
+  "pickups.mine.emptyText": "Lueg une, wo no Plätz frei sind.",
   "pickups.mine.confirmed": "Bestätigt",
   "pickups.agenda.title": "Tagesüberblick",
   "pickups.agenda.stepper": "Tag wähle",
@@ -73,7 +73,6 @@
   "pickups.dashboard.title": "Mini nächschte Abholige",
   "pickups.dashboard.empty": "Kei Abholige planet",
   "pickups.dashboard.all": "Alli mini Abholige",
-  "pickups.dashboard.free": "{count, plural, one {# Abholig mit freie Plätz} other {# Abholige mit freie Plätz}}",
   "pickups.history.link": "Verlauf",
   "pickups.history.from": "Vo",
   "pickups.history.to": "Bis",
@@ -115,5 +114,12 @@
   "pickups.tab.state.unconfirmed": "Unbestätigt",
   "pickups.cleaning.label": "Putzeinsatz",
   "pickups.cleaning.signoutText": "Wotsch di vo däm Putzeinsatz abmälde?",
-  "pickups.cleaning.signedOut": "Vom Putzeinsatz abgmäldet."
+  "pickups.cleaning.signedOut": "Vom Putzeinsatz abgmäldet.",
+  "pickups.page.title": "Abholige",
+  "pickups.page.subtitle": "Dini nächste Abholige – und wo dini Betriib no Lüüt bruuched.",
+  "pickups.page.showMore": "{count} wiiteri aazeige",
+  "pickups.mine.signOutLabel": "Ustrage: {store}, {date}",
+  "pickups.options.signUpLabel": "Iitrage: {store}, {date}",
+  "pickups.dashboard.help": "Bald Hilf gsuecht",
+  "pickups.dashboard.helpAll": "Alli {count, plural, one {# Abholig} other {# Abholige}} mit freie Plätz"
 }

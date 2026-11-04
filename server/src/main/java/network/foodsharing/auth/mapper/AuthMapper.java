@@ -7,6 +7,7 @@ import network.foodsharing.api.model.AuthIdentityView;
 import network.foodsharing.api.model.AuthMethods;
 import network.foodsharing.api.model.AuthProvider;
 import network.foodsharing.api.model.LegalDocumentKind;
+import network.foodsharing.api.model.NavCapability;
 import network.foodsharing.api.model.OnboardingState;
 import network.foodsharing.api.model.PasskeyView;
 import network.foodsharing.api.model.SessionInfo;
@@ -64,7 +65,8 @@ public class AuthMapper {
         sessionUser.setQuizRole(user.getQuizRole());
         sessionUser.setPhone(user.getMobilePhone());
         sessionUser.setHomeRegionId(user.getHomeRegionId());
-        SessionInfoBuilder builder = new SessionInfoBuilder().homeRegionId(user.getHomeRegionId());
+        SessionInfoBuilder builder = new SessionInfoBuilder().homeRegionId(user.getHomeRegionId())
+                .grantedPermissions(permissions);
         enrichers.orderedStream().forEach(enricher -> {
             try {
                 enricher.enrich(principal, builder);
@@ -94,6 +96,7 @@ public class AuthMapper {
         if (builder.mailboxes() != null) {
             info.setMailboxes(builder.mailboxes());
         }
+        info.setCapabilities(builder.capabilities().stream().map(NavCapability::fromValue).toList());
         return info;
     }
 

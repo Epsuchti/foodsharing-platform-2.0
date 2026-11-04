@@ -90,7 +90,7 @@
   "baskets.form.descriptionHint": "Was im Chorb isch, wie vill, und wie lang s haltbar isch.",
   "baskets.form.descriptionRequired": "Beschriib, was im Chorb isch.",
   "baskets.form.count": "{count} / {max} Zeiche",
-  "baskets.form.weight": "Gwicht i kg (freiwillig)",
+  "baskets.form.weight": "Gwicht (freiwillig)",
   "baskets.form.kinds": "Läbensmittelarte",
   "baskets.form.groceries": "Läbensmittel (freiwillig)",
   "baskets.form.photo": "Foto",

@@ -42,7 +42,46 @@ export function mentionQuery(text: string): string | null {
   return match ? match[1] : null;
 }
 
-/** Replaces the trailing `@query` with the mention token and a space. */
-export function insertMention(text: string, name: string, userId: string): string {
-  return text.replace(/@([^\s@[\]()]{0,30})$/, `${mentionToken(name, userId)} `);
+/** Name as it appears in a token (brackets and newlines removed, see {@link mentionToken}). */
+function tokenName(name: string): string {
+  return name.replace(/[[\]\n]/g, '');
+}
+
+/**
+ * Replaces the trailing `@query` with the plain `@Name` and a space (decision 162: the composer shows plain text; the
+ * tokens are built on send by {@link encodeMentions}).
+ */
+export function insertMention(text: string, name: string): string {
+  return text.replace(/@([^\s@[\]()]{0,30})$/, () => `@${tokenName(name)} `);
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Turns the plain `@Name` of every picked person (name → user id) into a mention token. Longest names first, so
+ * "@Ana Muster" wins over "@Ana"; only `@Name` at a word start and followed by the end, a space or punctuation counts.
+ * A hand-edited name keeps its plain text (accepted, plan risk).
+ */
+export function encodeMentions(text: string, picked: ReadonlyMap<string, string>): string {
+  const names = [...picked.keys()].map(tokenName).filter((name) => name.length > 0);
+  if (names.length === 0) return text;
+  const ids = new Map([...picked].map(([name, id]) => [tokenName(name), id]));
+  names.sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}_@])@(${names.map(escapeRegExp).join('|')})(?=$|[\\s.,;:!?)\\]}'"»…-])`, 'gu');
+  return text.replace(pattern, (_match, name: string) => mentionToken(name, ids.get(name) ?? ''));
+}
+
+/** The editable form of a stored body: tokens back to `@Name`, and the people they name (for {@link encodeMentions}). */
+export function decodeMentions(body: string): { text: string; picked: Map<string, string> } {
+  const picked = new Map<string, string>();
+  const text = bodySegments(body)
+    .map((segment) => {
+      if (segment.kind === 'mention') {
+        picked.set(segment.name, segment.userId);
+        return `@${segment.name}`;
+      }
+      return segment.kind === 'text' ? segment.text : segment.href;
+    })
+    .join('');
+  return { text, picked };
 }

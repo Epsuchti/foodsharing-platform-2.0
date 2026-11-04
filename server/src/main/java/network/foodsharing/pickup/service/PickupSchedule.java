@@ -59,7 +59,8 @@ public final class PickupSchedule {
                 s.slotCount(), s.description(), s.regular(), s.signups())).toList();
         List<SlotSchedule.OneTime> oneTime = dates.stream().map(d -> new SlotSchedule.OneTime(d.getPickupAt(),
                 d.getSlotCount(), d.getDescription())).toList();
-        return SlotSchedule.merge(base, oneTime, signups, PickupSignup::getPickupAt, PickupSignup::getCreatedAt)
+        return SlotSchedule.merge(base, oneTime, signups, PickupSignup::getPickupAt, PickupSignup::getCreatedAt,
+                        PickupSignup::getId)
                 .stream().map(s -> toSlot(storeId, s)).toList();
     }
 

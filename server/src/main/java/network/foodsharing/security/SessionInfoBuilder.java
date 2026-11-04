@@ -21,9 +21,11 @@ public final class SessionInfoBuilder {
     private final List<Unit> units = new ArrayList<>();
     private final Set<String> pendingConsents = new LinkedHashSet<>();
     private final Set<String> extraPermissions = new LinkedHashSet<>();
+    private final Set<String> grantedPermissions = new LinkedHashSet<>();
     private Boolean onboardingComplete;
     private String onboardingCurrentStep;
     private Boolean mailboxes;
+    private final Set<String> capabilities = new LinkedHashSet<>();
 
     public SessionInfoBuilder homeRegionId(UUID regionId) {
         this.homeRegionId = regionId;
@@ -38,6 +40,19 @@ public final class SessionInfoBuilder {
     public SessionInfoBuilder addPendingConsent(String legalDocumentKind) {
         pendingConsents.add(legalDocumentKind);
         return this;
+    }
+
+    /** The permissions the session already carries ({@code <PERMISSION>@<regionId>}), so enrichers need no query. */
+    public SessionInfoBuilder grantedPermissions(java.util.Collection<String> permissions) {
+        grantedPermissions.addAll(permissions);
+        return this;
+    }
+
+    /** Holds the permission for some region ({@code <P>@<regionId>} or {@code <P>@*}), granted or added. */
+    public boolean holdsPermissionAnywhere(String permission) {
+        String prefix = permission + "@";
+        return grantedPermissions.stream().anyMatch(p -> p.startsWith(prefix))
+                || extraPermissions.stream().anyMatch(p -> p.startsWith(prefix));
     }
 
     public SessionInfoBuilder addPermission(String permission) {
@@ -56,12 +71,26 @@ public final class SessionInfoBuilder {
         return this;
     }
 
+    /** A menu capability ({@code NavCapability} enum name, decision 162); added by the module that owns the rule. */
+    public SessionInfoBuilder capability(String capability) {
+        capabilities.add(capability);
+        return this;
+    }
+
     public UUID homeRegionId() {
         return homeRegionId;
     }
 
     public List<Unit> units() {
         return List.copyOf(units);
+    }
+
+    /**
+     * Admin of at least one region or working group, from the units the region enricher ({@code @Order(10)}) added.
+     * Later enrichers use it to skip their admin queries for everybody else (QueryCountIT session budget).
+     */
+    public boolean adminOfAnyUnit() {
+        return units.stream().anyMatch(Unit::admin);
     }
 
     public List<String> pendingConsents() {
@@ -82,5 +111,9 @@ public final class SessionInfoBuilder {
 
     public Boolean mailboxes() {
         return mailboxes;
+    }
+
+    public List<String> capabilities() {
+        return List.copyOf(capabilities);
     }
 }

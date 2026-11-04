@@ -13,6 +13,7 @@ import divider from '@openng/optimus-ui-themes/aura/divider';
 import drawer from '@openng/optimus-ui-themes/aura/drawer';
 import editor from '@openng/optimus-ui-themes/aura/editor';
 import iconfield from '@openng/optimus-ui-themes/aura/iconfield';
+import inputgroup from '@openng/optimus-ui-themes/aura/inputgroup';
 import inputnumber from '@openng/optimus-ui-themes/aura/inputnumber';
 import inputtext from '@openng/optimus-ui-themes/aura/inputtext';
 import message from '@openng/optimus-ui-themes/aura/message';
@@ -60,6 +61,7 @@ export const AURA_COMPONENTS = {
   drawer,
   editor,
   iconfield,
+  inputgroup,
   inputnumber,
   inputtext,
   message,

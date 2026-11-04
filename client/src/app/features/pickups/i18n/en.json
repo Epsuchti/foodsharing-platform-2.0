@@ -62,7 +62,7 @@
   "pickups.mine.title": "My pickups",
   "pickups.mine.subtitle": "Your upcoming pickups.",
   "pickups.mine.empty": "No pickups planned",
-  "pickups.mine.emptyText": "See where slots are still free.",
+  "pickups.mine.emptyText": "See below where slots are still free.",
   "pickups.mine.confirmed": "Confirmed",
   "pickups.agenda.title": "Day overview",
   "pickups.agenda.stepper": "Choose day",
@@ -73,7 +73,6 @@
   "pickups.dashboard.title": "My next pickups",
   "pickups.dashboard.empty": "No pickups planned",
   "pickups.dashboard.all": "All my pickups",
-  "pickups.dashboard.free": "{count, plural, one {# pickup with free slots} other {# pickups with free slots}}",
   "pickups.history.link": "History",
   "pickups.history.from": "From",
   "pickups.history.to": "To",
@@ -115,5 +114,12 @@
   "pickups.tab.state.unconfirmed": "Unconfirmed",
   "pickups.cleaning.label": "Cleaning shift",
   "pickups.cleaning.signoutText": "Do you want to sign out of this cleaning shift?",
-  "pickups.cleaning.signedOut": "Signed out of the cleaning shift."
+  "pickups.cleaning.signedOut": "Signed out of the cleaning shift.",
+  "pickups.page.title": "Pickups",
+  "pickups.page.subtitle": "Your upcoming pickups, and where your stores still need people.",
+  "pickups.page.showMore": "Show {count} more",
+  "pickups.mine.signOutLabel": "Sign out: {store}, {date}",
+  "pickups.options.signUpLabel": "Sign up: {store}, {date}",
+  "pickups.dashboard.help": "Help needed soon",
+  "pickups.dashboard.helpAll": "All {count, plural, one {# pickup} other {# pickups}} with free slots"
 }

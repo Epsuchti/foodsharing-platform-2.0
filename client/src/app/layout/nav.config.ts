@@ -1,4 +1,4 @@
-import { FeatureToggleKey, Role, SessionInfo } from '../api';
+import { FeatureToggleKey, NavCapability, Role, SessionInfo } from '../api';
 import { homeRegion } from '../core/auth/permission.util';
 
 /** What a nav item's `visible` sees. */
@@ -164,27 +164,19 @@ export function hasPermissionAnywhere(ctx: NavContext, permission: string): bool
     (entry) => entry === permission || entry.startsWith(permission + '@'),
   );
 }
-/** Ambassador of a region / admin of a group, or ORGA. */
-export function isAnyAdmin(ctx: NavContext): boolean {
-  return ctx.hasRole(Role.Orga) || (ctx.session?.units ?? []).some((unit) => unit.admin);
+/**
+ * Menu capability computed by the server from the rules its endpoints check (SessionInfo.capabilities, decision 162).
+ * Admin of some unit is not enough: Nina admins a working group and sees none of these items.
+ */
+export function hasCapability(ctx: NavContext, capability: NavCapability): boolean {
+  return ctx.isAuthenticated && (ctx.session?.capabilities ?? []).includes(capability);
 }
+const capable = (capability: NavCapability) => (ctx: NavContext) => hasCapability(ctx, capability);
 const isOrga = (ctx: NavContext) => ctx.isAuthenticated && ctx.hasRole(Role.Orga);
 const onboardingOpen = (ctx: NavContext) =>
   ctx.isAuthenticated && ctx.session?.onboarding?.complete === false;
 const canGuide = (ctx: NavContext) =>
   ctx.isAuthenticated && hasPermissionAnywhere(ctx, 'CAN_GIVE_INTRO_PICKUPS');
-const managesUsers = (ctx: NavContext) =>
-  ctx.isAuthenticated && (isAnyAdmin(ctx) || hasPermissionAnywhere(ctx, 'CAN_MANAGE_USERS'));
-/** Quiz editors: ORGA or admins of a working group (the server decides per quiz). */
-const editsQuizzes = (ctx: NavContext) =>
-  ctx.isAuthenticated &&
-  (ctx.hasRole(Role.Orga) ||
-    (ctx.session?.units ?? []).some((unit) => unit.admin && unit.type === 'WORKING_GROUP'));
-/** Content admins: ORGA or admins of the PR function group. */
-const editsContent = (ctx: NavContext) =>
-  ctx.isAuthenticated &&
-  (ctx.hasRole(Role.Orga) ||
-    (ctx.session?.units ?? []).some((unit) => unit.admin && unit.function === 'PR'));
 /** M3: pickups for verified foodsavers and above (unverified users cannot sign up, A19). */
 const pickupsVisible = (ctx: NavContext) =>
   ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver) && !!ctx.session?.user?.verified;
@@ -226,6 +218,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'pickups',
     section: 'daily',
+    // the pickup history belongs to the pickups page (its header action)
+    activeMatch: '/me/pickups',
     labelKey: 'nav.pickups',
     icon: 'pi pi-calendar',
     route: '/pickups',
@@ -314,7 +308,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.newcomers',
     icon: 'pi pi-chart-line',
     route: '/regions/home/newcomers',
-    visible: when('newcomers', managesUsers),
+    visible: when('newcomers', capable(NavCapability.ManageNewcomers)),
   },
   {
     id: 'verification',
@@ -322,7 +316,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.verification',
     icon: 'pi pi-verified',
     route: '/regions/home/verification',
-    visible: when('verification', managesUsers),
+    visible: when('verification', capable(NavCapability.Verify)),
   },
   {
     id: 'users',
@@ -331,7 +325,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.users',
     icon: 'pi pi-id-card',
     route: '/regions/home/users',
-    visible: when('users', managesUsers),
+    visible: when('users', capable(NavCapability.ManageMembers)),
   },
   {
     id: 'adminRegions',
@@ -349,7 +343,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.adminQuizzes',
     icon: 'pi pi-pencil',
     route: '/quizzes/edit',
-    visible: when('adminQuizzes', editsQuizzes),
+    visible: when('adminQuizzes', capable(NavCapability.QuizEdit)),
   },
   {
     id: 'adminContent',
@@ -358,7 +352,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.adminContent',
     icon: 'pi pi-book',
     route: '/admin/content',
-    visible: when('adminContent', editsContent),
+    visible: when('adminContent', capable(NavCapability.ContentEdit)),
   },
   {
     id: 'storeChains',
@@ -367,7 +361,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.storeChains',
     icon: 'pi pi-link',
     route: '/store-chains',
-    visible: pickupsVisible,
+    // store chains are a store manager's tool (owner feedback 2026-11-04)
+    visible: (ctx) => pickupsVisible(ctx) && ctx.hasRole(Role.StoreManager),
   }, // M3
   {
     id: 'storeCategories',
@@ -503,16 +498,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/admin/mail-outbox',
     visible: isOrga,
   },
-  // --- M4 F5: newsletters (ORGA or any region admin; the API checks the scope) ---
+  // --- M4 F5: newsletters (ORGA or region administrators, server capability) ---
   {
     id: 'newsletters',
     section: 'manage',
     labelKey: 'nav.newsletters',
     icon: 'pi pi-megaphone',
     route: '/newsletters',
-    visible: (ctx) =>
-      ctx.isAuthenticated &&
-      (ctx.hasRole(Role.Orga) || (ctx.session?.units ?? []).some((unit) => unit.admin)),
+    visible: capable(NavCapability.Newsletters),
   },
   // --- M5 F5/F6: events, polls, surveys ---
   {
@@ -586,7 +579,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/blog/manage',
     visible: whenM6(
       'blog',
-      (ctx) => loggedIn(ctx) && isAnyAdmin(ctx) && featureOn(ctx, FeatureToggleKey.Blog),
+      (ctx) => hasCapability(ctx, NavCapability.BlogManage) && featureOn(ctx, FeatureToggleKey.Blog),
     ),
   },
   {

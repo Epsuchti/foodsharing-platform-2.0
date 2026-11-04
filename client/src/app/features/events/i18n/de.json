@@ -69,5 +69,7 @@
   "events.form.error.name": "Bitte gib einen Namen ein.",
   "events.form.error.dates": "Das Ende muss nach dem Beginn liegen.",
   "events.form.error.location": "Termine vor Ort brauchen einen Ortsnamen.",
-  "events.form.error.link": "Bitte gib einen https://-Link ein."
+  "events.form.error.link": "Bitte gib einen https://-Link ein.",
+  "events.dashboard.title": "Nächste Termine",
+  "events.dashboard.all": "Alle meine Termine"
 }

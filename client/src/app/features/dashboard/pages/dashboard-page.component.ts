@@ -1,93 +1,105 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { Journey, OnboardingService, Role } from '../../../api';
-import { SessionService } from '../../../core/auth/session.service';
+import { Journey, Role, SessionUser } from '../../../api';
+import { ROLE_ORDER, SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { JourneyStepperComponent } from '../../../shared/journey-stepper/journey-stepper.component';
 import { currentStepOf } from '../../onboarding/pages/journey-page.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
+import { UpcomingEventsCardComponent } from '../../events/components/upcoming-events-card.component';
+import { HelpNeededCardComponent } from '../../pickups/components/help-needed-card.component';
 import { MyNextPickupsCardComponent } from '../../pickups/components/my-next-pickups-card.component';
 import { PushOptInCardComponent } from '../../notifications/components/push-opt-in-card.component';
 import { JourneyLoader } from '../../onboarding/onboarding.resource';
 import { BounceBannerComponent } from '../../account/components/bounce-banner.component';
 import { ActivityFeedCardComponent } from '../components/activity-feed-card.component';
 import { NearbyBasketsCardComponent } from '../components/nearby-baskets-card.component';
+import { WaitingCardComponent } from '../components/waiting-card.component';
+import { YourStoresCardComponent } from '../components/your-stores-card.component';
 
-/** The one thing to do next, by role, until the onboarding journey (M2) takes over this card. */
+/** The one thing still missing (owner feedback 2026-11-04: only when something is missing). */
 export interface DashboardNextStep {
-  id: 'passkey' | 'profile' | 'activity';
+  id: 'passkey' | 'profile';
   icon: string;
   link: string;
   query?: Record<string, string>;
 }
 
-export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
-  switch (role) {
-    case Role.Foodsaver:
-    case Role.StoreManager:
-      return { id: 'profile', icon: 'pi pi-user-edit', link: '/account/profile' };
-    case Role.Ambassador:
-    case Role.Orga:
-      return { id: 'activity', icon: 'pi pi-history', link: '/me/activity' };
-    default:
-      return {
-        id: 'passkey',
-        icon: 'pi pi-key',
-        link: '/account/settings',
-        query: { addPasskey: '1' },
-      };
+/**
+ * Foodsharers: add a passkey. Foodsavers and up: complete the profile, but only while the avatar or the phone
+ * number is missing; otherwise there is no next step and no card.
+ */
+export function nextStepFor(user: Pick<SessionUser, 'role' | 'avatarUrl' | 'phone'> | null | undefined): DashboardNextStep | null {
+  if (!user || ROLE_ORDER.indexOf(user.role) < ROLE_ORDER.indexOf(Role.Foodsaver)) {
+    return { id: 'passkey', icon: 'pi pi-key', link: '/account/settings', query: { addPasskey: '1' } };
   }
+  if (!user.avatarUrl || !user.phone) {
+    return { id: 'profile', icon: 'pi pi-user-edit', link: '/account/profile' };
+  }
+  return null;
 }
 
 /**
- * Dashboard: welcome, an actionable next step per role (the onboarding journey replaces it in M2), quick links, the
- * activity feed and the nearest food baskets (A19, plan-m7 Q7).
+ * Home (A19, plan-m7 Q7, owner feedback 2026-11-04, docs/design/ui-polish-batch-proposal.md §3): welcome with role and
+ * region, the next step only when something is missing (or the journey's step for newcomers), my next pickups, help
+ * needed soon and the activity feed on the left; waiting for you, upcoming events, your stores and nearby baskets on
+ * the right. On phones one column in the order of the proposal (§6). Cards below the fold load when they come into
+ * view (decision 84 start-up budget).
  */
 @Component({
   selector: 'fs-dashboard-page',
-  imports: [...DATA_STATE_IMPORTS, ActivityFeedCardComponent, BounceBannerComponent, NearbyBasketsCardComponent, JourneyStepperComponent, RouterLink, TPipe, UserAvatarComponent, MyNextPickupsCardComponent, PushOptInCardComponent],
+  imports: [
+    ...DATA_STATE_IMPORTS,
+    ActivityFeedCardComponent,
+    BounceBannerComponent,
+    HelpNeededCardComponent,
+    JourneyStepperComponent,
+    MyNextPickupsCardComponent,
+    NearbyBasketsCardComponent,
+    PushOptInCardComponent,
+    RouterLink,
+    TPipe,
+    UpcomingEventsCardComponent,
+    UserAvatarComponent,
+    WaitingCardComponent,
+    YourStoresCardComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (session.user(); as user) {
       <div class="main">
-      <section class="welcome" data-testid="dashboard.page.welcome">
-        <fs-user-avatar
-          [name]="user.displayName"
-          [avatarUrl]="user.avatarUrl"
-          [role]="user.role"
-          [colorSeed]="user.id"
-          size="xl"
-        />
-        <div class="welcome__text">
-          <p class="welcome__greeting">{{ greetingKey() | t }}</p>
-          <h1 class="welcome__name" data-testid="dashboard.page.name">{{ user.displayName }}</h1>
-          <div class="welcome__chips">
-            <span class="welcome__role" data-testid="dashboard.page.role">{{
-              'common.role.' + user.role | t
-            }}</span>
-            @if (homeRegion(); as region) {
-              <span class="welcome__region" data-testid="dashboard.page.homeRegion">
-                <i class="pi pi-map-marker" aria-hidden="true"></i>{{ region }}
-              </span>
-            }
+        <section class="welcome o-welcome" data-testid="dashboard.page.welcome">
+          <fs-user-avatar
+            [name]="user.displayName"
+            [avatarUrl]="user.avatarUrl"
+            [role]="user.role"
+            [colorSeed]="user.id"
+            size="xl"
+          />
+          <div class="welcome__text">
+            <p class="welcome__greeting">{{ greetingKey() | t }}</p>
+            <h1 class="welcome__name" data-testid="dashboard.page.name">{{ user.displayName }}</h1>
+            <div class="welcome__chips">
+              <span class="welcome__role" data-testid="dashboard.page.role">{{ 'common.role.' + user.role | t }}</span>
+              @if (homeRegion(); as region) {
+                <span class="welcome__region" data-testid="dashboard.page.homeRegion">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>{{ region }}
+                </span>
+              }
+            </div>
+            <!-- A18: mails to the own address bounce (hidden otherwise) -->
+            <fs-bounce-banner class="welcome__bounce" />
           </div>
-          <p class="welcome__hint" data-testid="dashboard.page.roleHint">
-            {{ 'dashboard.page.roleHint.' + user.role | t }}
-          </p>
-          <!-- A18: mails to the own address bounce (hidden otherwise) -->
-          <fs-bounce-banner class="welcome__bounce" />
-        </div>
-      </section>
+        </section>
 
         @defer (on idle) {
-          <fs-push-opt-in-card />
+          <fs-push-opt-in-card class="o-push" />
         }
-        <fs-my-next-pickups-card />
         @if (onboarding()) {
-          <fs-data-state [state]="journey" skeleton="card" [skeletonRows]="1" [compact]="true" class="card--next" data-testid="dashboard.page.journeyState">
+          <fs-data-state [state]="journey" skeleton="card" [skeletonRows]="1" [compact]="true" class="card--next o-next" data-testid="dashboard.page.journeyState">
             <ng-template [fsData]="journey" let-j>
               @let current = currentStep(j);
               <section class="card card--next" data-testid="dashboard.page.nextStep" data-step="journey" [attr.data-journey-step]="current?.key">
@@ -105,76 +117,47 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
               </section>
             </ng-template>
           </fs-data-state>
-        } @else {
-          @let step = nextStep();
-          <section
-            class="card card--next"
-            data-testid="dashboard.page.nextStep"
-            [attr.data-step]="step.id"
-          >
+        } @else if (nextStep(); as step) {
+          <section class="card card--next o-next" data-testid="dashboard.page.nextStep" [attr.data-step]="step.id">
             <div class="card__icon"><i [class]="step.icon" aria-hidden="true"></i></div>
             <p class="card__eyebrow">{{ 'dashboard.page.nextStepTitle' | t }}</p>
             <h2>{{ 'dashboard.page.step.' + step.id + '.title' | t }}</h2>
             <p>{{ 'dashboard.page.step.' + step.id + '.text' | t }}</p>
-            <a
-              class="fs-btn card__action"
-              [routerLink]="step.link"
-              [queryParams]="step.query"
-              data-testid="dashboard.page.nextStepAction"
-            >
+            <a class="fs-btn card__action" [routerLink]="step.link" [queryParams]="step.query" data-testid="dashboard.page.nextStepAction">
               <span>{{ 'dashboard.page.step.' + step.id + '.action' | t }}</span>
               <i class="pi pi-arrow-right" aria-hidden="true"></i>
             </a>
           </section>
         }
-
-        @if (isAdmin()) {
-          <section class="card card--admin" data-testid="dashboard.page.adminCard">
-            <div class="card__icon card__icon--muted">
-              <i class="pi pi-sitemap" aria-hidden="true"></i>
-            </div>
-            <h2>{{ 'dashboard.page.admin.title' | t }}</h2>
-            <p>{{ 'dashboard.page.admin.text' | t }}</p>
-          </section>
+        <fs-my-next-pickups-card class="o-pickups" />
+        @defer (on viewport) {
+          <fs-help-needed-card class="o-help" />
+        } @placeholder {
+          <div class="defer-slot o-help" aria-hidden="true"></div>
         }
         <!-- A19: activity of my forums, store walls, mailboxes, events, FSPs and buddies -->
-        <fs-activity-feed-card />
+        <fs-activity-feed-card class="o-activity" />
       </div>
       <div class="side">
-        <nav class="links" [attr.aria-label]="'dashboard.page.quickLinks' | t">
-          <a class="link" routerLink="/account/sessions" data-testid="dashboard.page.sessionsLink">
-            <i class="pi pi-desktop" aria-hidden="true"></i>
-            <span class="link__text">
-              <strong>{{ 'nav.sessions' | t }}</strong>
-              <span>{{ 'dashboard.page.sessionsText' | t }}</span>
-            </span>
-            <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
-          </a>
-          <a class="link" routerLink="/me/activity" data-testid="dashboard.page.activityLink">
-            <i class="pi pi-history" aria-hidden="true"></i>
-            <span class="link__text">
-              <strong>{{ 'nav.activity' | t }}</strong>
-              <span>{{ 'dashboard.page.activityText' | t }}</span>
-            </span>
-            <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
-          </a>
-          <a class="link" routerLink="/account/settings" data-testid="dashboard.page.settingsLink">
-            <i class="pi pi-cog" aria-hidden="true"></i>
-            <span class="link__text">
-              <strong>{{ 'nav.settings' | t }}</strong>
-              <span>{{ 'dashboard.page.settingsText' | t }}</span>
-            </span>
-            <i class="pi pi-chevron-right link__chevron" aria-hidden="true"></i>
-          </a>
-        </nav>
-        <fs-nearby-baskets-card />
+        <fs-waiting-card class="o-waiting" />
+        @defer (on viewport) {
+          <fs-upcoming-events-card class="o-events" />
+        } @placeholder {
+          <div class="defer-slot o-events" aria-hidden="true"></div>
+        }
+        @defer (on viewport) {
+          <fs-your-stores-card class="o-stores" />
+        } @placeholder {
+          <div class="defer-slot o-stores" aria-hidden="true"></div>
+        }
+        <fs-nearby-baskets-card class="o-baskets" />
       </div>
     }
   `,
   styles: `
     :host {
       display: grid;
-      gap: 1.75rem;
+      gap: 1.25rem;
     }
     .welcome {
       display: flex;
@@ -235,21 +218,6 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       color: var(--fs-primary-strong);
       font-size: 0.75rem;
     }
-    .welcome__hint {
-      max-width: 34rem;
-      margin: 0.35rem 0 0;
-      color: var(--fs-text-muted);
-      font-size: 0.9rem;
-    }
-    .card--admin {
-      border-style: dashed;
-      background: var(--fs-surface-muted);
-      box-shadow: none;
-    }
-    .card__icon--muted {
-      background: var(--fs-surface);
-      color: var(--fs-text-muted);
-    }
     .welcome__role {
       justify-self: start;
       padding: 0.2rem 0.65rem;
@@ -267,12 +235,34 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       min-width: 0;
       align-content: start;
     }
-    /* cards that render nothing for this user (push opt-in, pickups of newcomers) leave no double gap (M7 R2) */
-    .main > :empty,
-    .side > :empty {
+    /* cards that render nothing for this user (push opt-in, empty home cards, pickups of newcomers) leave no gap */
+    .main > :empty:not(.defer-slot),
+    .side > :empty:not(.defer-slot) {
       display: none;
     }
-    /* Desktop: greeting, next step and the activity feed on the left; quick links and nearby baskets beside them. */
+    /* placeholder of a card that loads on viewport: 1px to be observed, its grid gap taken back */
+    .defer-slot {
+      height: 1px;
+      margin-top: -1.25rem;
+    }
+    /* Phones: one column in the proposal's order (§6); the feed, open-ended, comes last. */
+    @media (max-width: 55.99rem) {
+      .main,
+      .side {
+        display: contents;
+      }
+      .o-welcome { order: 1; }
+      .o-push { order: 2; }
+      .o-next { order: 3; }
+      .o-waiting { order: 4; }
+      .o-pickups { order: 5; }
+      .o-help { order: 6; }
+      .o-events { order: 7; }
+      .o-stores { order: 8; }
+      .o-baskets { order: 9; }
+      .o-activity { order: 10; }
+    }
+    /* Desktop: two columns (left wider). */
     @media (min-width: 56rem) {
       :host {
         grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
@@ -305,7 +295,7 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       place-items: center;
       border-radius: var(--fs-radius-md);
       background: var(--fs-primary);
-      color: #fff;
+      color: var(--fs-on-primary);
       font-size: 1.3rem;
     }
     .card__eyebrow {
@@ -336,58 +326,12 @@ export function nextStepFor(role: Role | null | undefined): DashboardNextStep {
       justify-self: start;
       margin-top: 0.75rem;
     }
-    .links {
-      display: grid;
-      overflow: hidden;
-      border: 1px solid var(--fs-border);
-      border-radius: var(--fs-radius-lg);
-      background: var(--fs-surface);
-      box-shadow: var(--fs-shadow-sm);
-    }
-    .link {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      padding: 1rem 1.25rem;
-      color: var(--fs-text);
-      text-decoration: none;
-      transition: background-color 150ms ease;
-    }
-    .link + .link {
-      border-top: 1px solid var(--fs-border);
-    }
-    .link:hover {
-      background: var(--fs-surface-muted);
-    }
-    .link > .pi:first-child {
-      display: grid;
-      width: 2.4rem;
-      height: 2.4rem;
-      place-items: center;
-      border-radius: var(--fs-radius-sm);
-      background: var(--fs-primary-soft);
-      color: var(--fs-primary-strong);
-    }
-    .link__text {
-      display: grid;
-      flex: 1;
-      min-width: 0;
-    }
-    .link__text span {
-      color: var(--fs-text-muted);
-      font-size: 0.88rem;
-    }
-    .link__chevron {
-      color: var(--fs-text-muted);
-      font-size: 0.8rem;
-    }
   `,
 })
 export class DashboardPageComponent {
   private readonly journeyLoader = inject(JourneyLoader);
   protected readonly session = inject(SessionService);
-  private readonly onboardingApi = inject(OnboardingService);
-  protected readonly nextStep = computed(() => nextStepFor(this.session.role()));
+  protected readonly nextStep = computed(() => nextStepFor(this.session.user()));
   /** Newcomers with an incomplete journey get "your next step" from the journey (§11, A19) instead of the role card. */
   protected readonly onboarding = computed(() => this.session.session().onboarding?.complete === false);
   protected readonly journey = loadResource<Journey, true | undefined>({
@@ -400,8 +344,6 @@ export class DashboardPageComponent {
   protected readonly homeRegion = computed(
     () => this.session.session().units?.find((unit) => unit.homeRegion)?.name ?? null,
   );
-  /** Ambassadors and orga: a muted card announcing the admin tools (they arrive with M2's pages). */
-  protected readonly isAdmin = computed(() => this.session.hasRole(Role.Ambassador));
 
   protected readonly greetingKey = computed(() => {
     const hour = Number(

@@ -19,7 +19,7 @@ test('PU7 options list free slots in my stores and hides full ones @PU7 @page', 
   await page.getByTestId('pickups.signup.confirm').click();
   await expect(page.getByTestId('shell.toast').locator('.p-toast-message-success')).toBeVisible();
 
-  await page.goto('/pickups/mine');
+  // one page (owner feedback 2026-11-04): "My pickups" above reloads with the new, unconfirmed pickup
   await expectDataState(page, 'pickups.mine.state', 'success');
   await expect(page.locator('[data-testid="pickups.mine.pickup"][data-store="Hiltl"]')).toHaveAttribute('data-confirmed', 'false');
 });

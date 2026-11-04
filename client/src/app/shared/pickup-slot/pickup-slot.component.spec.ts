@@ -11,7 +11,9 @@ const TRANSLATIONS = {
   'shared.pickupSlot.mineUnconfirmed': 'Du ({name}), unbestätigt – austragen',
   'shared.pickupSlot.confirmOne': '{name} bestätigen',
   'shared.pickupSlot.you': 'Du',
-  'shared.pickupSlot.free': 'Freier Platz – eintragen',
+  'shared.pickupSlot.free': 'Freier Platz – eintragen, {count} frei',
+  'shared.pickupSlot.freeShort': '{count} frei',
+  'shared.pickupSlot.signUp': 'Eintragen',
 };
 
 const slot = (id: string, displayName: string, confirmed: boolean): PickupSlot => ({
@@ -116,16 +118,33 @@ describe('PickupSlotComponent (PU3 slot states)', () => {
     expect(taken()[2].getAttribute('data-mine')).toBe('true');
   });
 
-  it('keeps the free slot logic', async () => {
+  it('renders one free chip per pickup: "+ Sign up" with the count in its name (owner feedback 2026-11-04)', async () => {
+    // changed on purpose: one chip instead of one per free place (overrides M7 R2 #16)
     await render({ slotCount: 3, slots: [SLOTS[0]], freeClickable: true });
     const free = qa('[data-testid="t.free"]');
-    expect(free).toHaveLength(2);
-    expect(free[0].getAttribute('aria-label')).toBe('Freier Platz – eintragen');
+    expect(free).toHaveLength(1);
+    expect(free[0].getAttribute('aria-label')).toBe('Freier Platz – eintragen, 2 frei');
+    expect(free[0].textContent?.trim()).toBe('Eintragen');
+    expect(free[0].querySelector('.pi-plus')).not.toBeNull();
     expect((free[0] as HTMLButtonElement).disabled).toBe(false);
     let clicked = 0;
     fixture.componentInstance.freeClick.subscribe(() => clicked++);
-    free[1].click();
+    free[0].click();
     expect(clicked).toBe(1);
+  });
+
+  it('shows "N free" disabled when the viewer cannot sign up, and no chip when the pickup is full', async () => {
+    await render({ slotCount: 4, slots: [SLOTS[0]], freeClickable: false });
+    const free = qa('[data-testid="t.free"]');
+    expect(free).toHaveLength(1);
+    expect(free[0].textContent?.trim()).toBe('3 frei');
+    expect(free[0].getAttribute('aria-label')).toBe('3 frei');
+    expect((free[0] as HTMLButtonElement).disabled).toBe(true);
+    expect(free[0].querySelector('.pi-plus')).toBeNull();
+
+    fixture.componentRef.setInput('slotCount', 1);
+    await fixture.whenStable();
+    expect(qa('[data-testid="t.free"]')).toHaveLength(0);
   });
 
   it('takes the first name up to the first space', () => {

@@ -26,7 +26,7 @@ export function firstName(displayName: string): string {
  * (solid = confirmed, dashed = unconfirmed) and a badge icon (check / hourglass). Your own slot is a pill with the
  * word "Du"; for `confirmable` viewers (managers) an unconfirmed slot is a split pill: first name + a ✓ button.
  * `slotClick` fires for a taken slot when `slotsClickable` (own slot, or managers), `confirmClick` for the ✓,
- * `freeClick` for a free slot when `freeClickable`.
+ * `freeClick` for the one free chip when `freeClickable` ("+ Sign up"; otherwise "N free", disabled).
  *
  * ```html
  * <fs-pickup-slot [slotCount]="p.slotCount" [slots]="p.occupiedSlots" [myId]="me" (freeClick)="signUp(p)" />
@@ -111,30 +111,24 @@ export function firstName(displayName: string): string {
           }
         </li>
       }
-      @for (free of freeSlots(); track $index; let first = $first) {
+      @if (freeCount() > 0) {
         <li>
-          <!-- the first free slot names itself ("Eintragen" / "frei"), the others stay compact (M7 R2 #16) -->
+          <!-- one chip for all free places (owner feedback 2026-11-04, overrides M7 R2 #16) -->
           <button
             type="button"
-            class="slot slot--free"
-            [class.slot--labelled]="first"
+            class="slot slot--free slot--labelled"
             [disabled]="!freeClickable()"
             [attr.aria-label]="
-              freeClickable()
-                ? ('shared.pickupSlot.free' | t)
-                : first
-                  ? ('shared.pickupSlot.freeShort' | t: { count: freeSlots().length })
-                  : ('shared.pickupSlot.freeOnly' | t)
+              (freeClickable() ? 'shared.pickupSlot.free' : 'shared.pickupSlot.freeShort') | t: { count: freeCount() }
             "
+            [attr.data-free]="freeCount()"
             (click)="freeClick.emit()"
             [attr.data-testid]="testId() + '.free'"
           >
             @if (freeClickable()) {
               <i class="pi pi-plus" aria-hidden="true"></i>
             }
-            @if (first) {
-              <span class="slot__label" aria-hidden="true">{{ (freeClickable() ? 'shared.pickupSlot.signUp' : 'shared.pickupSlot.freeShort') | t: { count: freeSlots().length } }}</span>
-            }
+            <span class="slot__label" aria-hidden="true">{{ (freeClickable() ? 'shared.pickupSlot.signUp' : 'shared.pickupSlot.freeShort') | t: { count: freeCount() } }}</span>
           </button>
         </li>
       }
@@ -218,5 +212,6 @@ export class PickupSlotComponent {
     }),
   );
 
-  protected readonly freeSlots = computed(() => Array.from({ length: Math.max(0, this.slotCount() - this.slots().length) }));
+  /** Free places of the pickup; one chip names them all. */
+  protected readonly freeCount = computed(() => Math.max(0, this.slotCount() - this.slots().length));
 }

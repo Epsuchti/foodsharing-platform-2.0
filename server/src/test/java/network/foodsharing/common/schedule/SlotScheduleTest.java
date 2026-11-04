@@ -24,7 +24,7 @@ class SlotScheduleTest {
 
     static List<SlotSchedule.Slot<Signup>> merge(List<SlotSchedule.Slot<Signup>> regular,
                                                  List<SlotSchedule.OneTime> oneTime, List<Signup> signups) {
-        return SlotSchedule.merge(regular, oneTime, signups, Signup::at, Signup::signedUpAt);
+        return SlotSchedule.merge(regular, oneTime, signups, Signup::at, Signup::signedUpAt, Signup::name);
     }
 
     @Test
@@ -87,6 +87,19 @@ class SlotScheduleTest {
         assertThat(merged.get(0).signups()).extracting(Signup::name).containsExactly("early", "late", "undated");
         assertThat(merged.get(0).slotCount()).isEqualTo(3);
         assertThat(merged.get(1)).matches(s -> s.slotCount() == 1 && !s.regular() && s.description() == null);
+    }
+
+    @Test
+    void signupsWithTheSameSignUpTimeKeepAStableOrderById() {
+        Instant at = Instant.parse("2026-11-14T09:00:00Z");
+        Instant signedUpAt = Instant.parse("2026-11-02T09:00:00Z");
+        Signup b = new Signup("b", at, signedUpAt);
+        Signup a = new Signup("a", at, signedUpAt);
+        Signup c = new Signup("c", at, signedUpAt.minusSeconds(1));
+        assertThat(merge(List.of(), List.of(), List.of(b, a, c)).get(0).signups()).extracting(Signup::name)
+                .containsExactly("c", "a", "b");
+        assertThat(merge(List.of(), List.of(), List.of(a, c, b)).get(0).signups()).extracting(Signup::name)
+                .containsExactly("c", "a", "b");
     }
 
     @Test
