@@ -194,6 +194,7 @@
   "content.support.firstName": "Nome",
   "content.support.email": "Indirizzo e-mail",
   "content.support.subject": "Oggetto",
+  "content.support.subjectPreset.partner": "Diventare partner: far ritirare alimenti",
   "content.support.body": "Il tuo messaggio",
   "content.support.attachments": "Allegati (immagini o PDF, al massimo 5)",
   "content.support.context": "Inviato automaticamente",

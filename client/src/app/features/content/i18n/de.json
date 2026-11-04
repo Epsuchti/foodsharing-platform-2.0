@@ -194,6 +194,7 @@
   "content.support.firstName": "Vorname",
   "content.support.email": "E-Mail-Adresse",
   "content.support.subject": "Betreff",
+  "content.support.subjectPreset.partner": "Partner werden: Lebensmittel abholen lassen",
   "content.support.body": "Deine Nachricht",
   "content.support.attachments": "Anhänge (Bilder oder PDF, höchstens 5)",
   "content.support.context": "Wird automatisch mitgeschickt",

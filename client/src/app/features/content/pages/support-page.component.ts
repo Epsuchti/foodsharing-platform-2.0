@@ -1,5 +1,14 @@
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
@@ -24,10 +33,19 @@ import { UploadDropzoneComponent } from '../../../shared/upload-dropzone/upload-
 import { SUPPORT_LIMITS, plausibleEmail, supportSourcePage } from '../support.util';
 
 /**
+ * `?subject=<preset>` prefills the subject with a translated text (landing page "Partner werden", decision 159).
+ * Only these presets are accepted; free text from the URL never reaches the form.
+ */
+export const SUBJECT_PRESETS: Readonly<Record<string, string>> = {
+  partner: 'content.support.subjectPreset.partner',
+};
+
+/**
  * /support (C9, SUPPORT_FORM toggle): subject and message, the page the request is about (`?from=` or the referrer)
  * and the browser's user agent are sent along read-only. Signed in: `createSupportTicket` with up to five
  * attachments (`fs-upload-dropzone`); logged out: `createPublicSupportTicket` with first name and email, no
- * attachments. 429 SUPPORT_RATE_LIMITED shows its own notice; the form keeps its content.
+ * attachments. 429 SUPPORT_RATE_LIMITED shows its own notice; the form keeps its content. `?subject=partner`
+ * prefills the subject once (allowlisted presets only, {@link SUBJECT_PRESETS}).
  */
 @Component({
   selector: 'fs-support-page',
@@ -129,8 +147,8 @@ import { SUPPORT_LIMITS, plausibleEmail, supportSourcePage } from '../support.ut
             name="subject"
             [maxlength]="limits.subject"
             required
-            [ngModel]="subject()"
-            (ngModelChange)="subject.set($event)"
+            [ngModel]="subjectText()"
+            (ngModelChange)="subjectText.set($event)"
             data-testid="content.support.subject"
           />
         </div>
@@ -312,6 +330,8 @@ export class SupportPageComponent {
 
   /** Query parameter: the app path the request is about. */
   readonly from = input<string | undefined>(undefined);
+  /** Query parameter: a subject preset (`partner`); anything else is ignored. */
+  readonly subject = input<string | undefined>(undefined);
 
   protected readonly limits = SUPPORT_LIMITS;
   protected readonly loggedIn = this.session.isAuthenticated;
@@ -327,7 +347,7 @@ export class SupportPageComponent {
     ),
   );
 
-  protected readonly subject = signal('');
+  protected readonly subjectText = signal('');
   protected readonly body = signal('');
   protected readonly firstName = signal('');
   protected readonly email = signal('');
@@ -335,10 +355,29 @@ export class SupportPageComponent {
   protected readonly sent = signal<SupportTicketCreated | null>(null);
   private readonly failure = signal<ApiErrorView | null>(null);
 
+  constructor() {
+    let prefilled = false;
+    effect(() => {
+      const preset = this.subject();
+      const key =
+        preset && Object.hasOwn(SUBJECT_PRESETS, preset) ? SUBJECT_PRESETS[preset] : undefined;
+      if (prefilled || !key) {
+        return;
+      }
+      const text = this.i18n.t(key);
+      untracked(() => {
+        if (!this.subjectText()) {
+          this.subjectText.set(text);
+        }
+      });
+      prefilled = true;
+    });
+  }
+
   protected readonly emailValid = computed(() => plausibleEmail(this.email()));
   protected readonly valid = computed(
     () =>
-      !!this.subject().trim() &&
+      !!this.subjectText().trim() &&
       !!this.body().trim() &&
       (this.loggedIn() || (!!this.firstName().trim() && this.emailValid())),
   );
@@ -353,7 +392,7 @@ export class SupportPageComponent {
   protected readonly send = runMutation(
     (): Observable<SupportTicketCreated> => {
       const common = {
-        subject: this.subject().trim(),
+        subject: this.subjectText().trim(),
         body: this.body().trim(),
         page: this.sourcePage() || undefined,
         userAgent: this.userAgent || undefined,
@@ -389,7 +428,7 @@ export class SupportPageComponent {
   }
 
   protected reset(): void {
-    this.subject.set('');
+    this.subjectText.set('');
     this.body.set('');
     this.attachments.set([]);
     this.failure.set(null);
