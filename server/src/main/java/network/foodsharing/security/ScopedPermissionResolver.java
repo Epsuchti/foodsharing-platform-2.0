@@ -47,6 +47,11 @@ public interface ScopedPermissionResolver {
      */
     boolean mayAdministrateUser(UUID actorId, UUID userId);
 
+    /** Administrates at least one region (no working group): ambassador of it or admin of its FSMANAGEMENT group. */
+    default boolean administratesAnyRegion(UUID actorId) {
+        return false;
+    }
+
     /** The users of {@code userIds} the actor may administrate (batch form of {@link #mayAdministrateUser}). */
     default Set<UUID> administrableUsers(UUID actorId, java.util.Collection<UUID> userIds) {
         return userIds.stream().filter(userId -> mayAdministrateUser(actorId, userId))

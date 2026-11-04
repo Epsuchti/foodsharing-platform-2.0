@@ -287,6 +287,30 @@ public class BlogService {
                 || regions.isFunctionGroupAdminAnywhere(principal.userId(), WorkingGroupFunction.PR);
     }
 
+    /** What the menu shows of the blog and content administration (decision 159). */
+    public enum MenuRights { NONE, POSTS, EDITOR }
+
+    /**
+     * Editors (ORGA, PR group admins) see the blog administration and the content pages; ambassadors of a region
+     * (BlogRules.mayCreate for one of their regions) the blog administration. Admins of working groups only see
+     * neither. One query for users who administrate nothing.
+     */
+    @Transactional(readOnly = true)
+    public MenuRights menuRights(SessionPrincipal principal) {
+        if (permissions.isOrga(principal)) {
+            return MenuRights.EDITOR;
+        }
+        java.util.Set<UUID> adminOf = regions.adminRegionIds(principal.userId());
+        if (adminOf.isEmpty()) {
+            return MenuRights.NONE;
+        }
+        if (regions.isFunctionGroupAdminAnywhere(principal.userId(), WorkingGroupFunction.PR)) {
+            return MenuRights.EDITOR;
+        }
+        return regions.findAll(adminOf).stream().anyMatch(region -> !region.isGroup()) ? MenuRights.POSTS
+                : MenuRights.NONE;
+    }
+
     static String checkBell(UUID postId) {
         return "blog-check-" + postId;
     }

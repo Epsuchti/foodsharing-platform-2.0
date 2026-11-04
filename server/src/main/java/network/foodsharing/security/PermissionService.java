@@ -110,6 +110,11 @@ public class PermissionService {
         return isOrga(principal) || resolver().mayAdministrateRegion(principal.userId(), regionId);
     }
 
+    /** ORGA, or administrates (ambassador / FSMANAGEMENT admin) at least one region; working-group admins do not count. */
+    public boolean mayAdministrateAnyRegion(SessionPrincipal principal) {
+        return principal != null && (isOrga(principal) || resolver().administratesAnyRegion(principal.userId()));
+    }
+
     /** ORGA, or administrates (ambassador / FSMANAGEMENT admin) a region the user is a member of. */
     public boolean mayAdministrateUser(SessionPrincipal principal, UUID userId) {
         if (principal == null || userId == null) {

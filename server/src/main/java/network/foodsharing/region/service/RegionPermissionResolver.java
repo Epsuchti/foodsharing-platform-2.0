@@ -123,6 +123,11 @@ public class RegionPermissionResolver implements ScopedPermissionResolver {
     }
 
     @Override
+    public boolean administratesAnyRegion(UUID actorId) {
+        return !administratedScopes(actorId).isEmpty();
+    }
+
+    @Override
     public boolean mayAdministrateUser(UUID actorId, UUID userId) {
         Set<UUID> scopes = administratedScopes(actorId);
         if (scopes.isEmpty()) {

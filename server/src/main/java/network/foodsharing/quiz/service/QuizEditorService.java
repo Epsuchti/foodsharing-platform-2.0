@@ -115,6 +115,25 @@ public class QuizEditorService {
         return editorGroups(kind).stream().anyMatch(group -> permissions.isAmbassador(actor, group.getId()));
     }
 
+    /** {@link #mayEdit} for at least one quiz kind (menu item Quizze bearbeiten, decision 159); two queries at most. */
+    @Transactional(readOnly = true)
+    public boolean mayEditAny(SessionPrincipal actor) {
+        if (permissions.isOrga(actor)) {
+            return true;
+        }
+        java.util.Set<UUID> adminOf = regions.adminRegionIds(actor.userId());
+        return !adminOf.isEmpty() && regions.findAll(adminOf).stream().anyMatch(QuizEditorService::holdsQuizKind);
+    }
+
+    /** A working group whose {@code quiz_kinds} names at least one known quiz kind (A14 decision). */
+    static boolean holdsQuizKind(Region group) {
+        if (!group.isGroup() || group.getQuizKinds() == null) {
+            return false;
+        }
+        return java.util.Arrays.stream(group.getQuizKinds().split(",")).map(String::strip)
+                .anyMatch(name -> java.util.Arrays.stream(QuizKind.values()).anyMatch(kind -> kind.name().equals(name)));
+    }
+
     public boolean mayRead(SessionPrincipal actor, QuizKind kind) {
         return mayEdit(actor, kind) || (!QuizRuleService.ROLE_QUIZZES.contains(kind) && isEditorGroupMember(actor, kind));
     }
