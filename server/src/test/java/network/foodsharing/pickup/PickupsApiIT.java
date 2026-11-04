@@ -228,4 +228,104 @@ class PickupsApiIT {
         assertThat(count("select count(*) from pickup_signup where store_id = '00000020-0001-4000-8000-000000000009' "
                 + "and pickup_at = timestamp with time zone '2026-11-10 17:00:00+00'")).isEqualTo(1);
     }
+
+    @Test
+    void signupDetailForManagersAndCoPickupsOnly() throws Exception {
+        String pickup = S + "01/pickups/2026-11-05T18:00:00Z/signups/";
+        // manager: rich detail with phone (S9), counts at this store and upcoming slots here
+        mvc.perform(get(pickup + SeedUsers.FOODSAVER.id()).cookie(login(SeedUsers.BIEB))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.id").value(SeedUsers.FOODSAVER.id().toString()))
+                .andExpect(jsonPath("$.confirmed").value(false))
+                .andExpect(jsonPath("$.signedUpAt").value("2026-11-01T09:00:00Z"))
+                .andExpect(jsonPath("$.upcomingSlots[0]").value("2026-11-05T18:00:00Z"))
+                .andExpect(jsonPath("$.pickupCount").isNumber());
+        // co-pickup: sleepy is signed up for the same pickup
+        Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        mvc.perform(get(pickup + SeedUsers.SLEEPY.id()).cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmed").value(true));
+        // another team member who isn't signed up for that pickup: 403
+        mvc.perform(get(S + "01/pickups/2026-11-09T18:00:00Z/signups/" + SeedUsers.SLEEPY.id()).cookie(foodsaver))
+                .andExpect(status().isForbidden());
+        mvc.perform(get(pickup + SeedUsers.JUMPER.id()).cookie(login(SeedUsers.BIEB)))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("SIGNUP_NOT_FOUND"));
+    }
+
+    @Test
+    void extraSlotsUpToTheStoreLimit() throws Exception {
+        // AU6: seed S-06 allows 2 extra slots; sleepy holds the earliest sign-up of Tuesday 2026-11-10
+        Cookie sleepy = login(SeedUsers.SLEEPY);
+        Cookie bieb = login(SeedUsers.BIEB);
+        String extra = S + "06/pickups/2026-11-10T18:00:00Z/extra-slot";
+        mvc.perform(get(S + "06/automation").cookie(bieb)).andExpect(jsonPath("$.maxExtraSlots").value(2));
+        mvc.perform(post(extra).cookie(sleepy).with(csrf())).andExpect(status().isOk())
+                .andExpect(jsonPath("$.slotCount").value(3)).andExpect(jsonPath("$.mayAddExtraSlot").value(true));
+        mvc.perform(post(extra).cookie(sleepy).with(csrf())).andExpect(status().isOk())
+                .andExpect(jsonPath("$.slotCount").value(4)).andExpect(jsonPath("$.extraSlots.length()").value(2))
+                .andExpect(jsonPath("$.mayAddExtraSlot").value(false));
+        mvc.perform(post(extra).cookie(sleepy).with(csrf())).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("EXTRA_SLOT_LIMIT_REACHED"));
+        mvc.perform(get(S + "06/pickups").cookie(sleepy))
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-10T18:00:00Z')].extraSlots.length()").value(2));
+        // 0 = off
+        mvc.perform(json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .patch(S + "06/automation/extra-slot").cookie(bieb), "{\"maxExtraSlots\":0}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.maxExtraSlots").value(0));
+        mvc.perform(post(extra).cookie(sleepy).with(csrf())).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("EXTRA_SLOT_NOT_ALLOWED"));
+        mvc.perform(json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .patch(S + "06/automation/extra-slot").cookie(bieb), "{\"maxExtraSlots\":51}"))
+                .andExpect(status().isBadRequest());
+        assertThat(count("select count(*) from history_entry where action = 'FIELD_CHANGED' and metadata like ?",
+                "%maxExtraSlots%")).isEqualTo(1);
+    }
+
+    @Test
+    void dayConversationIsNamedIdempotentAndOnlyGrows() throws Exception {
+        String insert = "insert into pickup_signup (id, version, created_at, updated_at, store_id, user_id, pickup_at,"
+                + " confirmed) values (?, 0, timestamp with time zone '2026-11-02 08:00:00+00', timestamp with time "
+                + "zone '2026-11-02 08:00:00+00', '00000020-0001-4000-8000-000000000001', ?, timestamp with time zone"
+                + " '2026-11-26 18:00:00+00', false)";
+        java.util.UUID a = java.util.UUID.randomUUID();
+        java.util.UUID b = java.util.UUID.randomUUID();
+        java.util.UUID c = java.util.UUID.randomUUID();
+        String url = S + "01/pickup-days/2026-11-26/conversation";
+        try {
+            mvc.perform(json(post(url).cookie(login(SeedUsers.BIEB)), "{\"name\":\"Abholung\"}"))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("NO_SIGNUPS"));
+            jdbc.update(insert, a, SeedUsers.FOODSAVER.id());
+            jdbc.update(insert, b, SeedUsers.SLEEPY.id());
+            Cookie foodsaver = login(SeedUsers.FOODSAVER);
+            String created = mvc.perform(json(post(url).cookie(foodsaver), "{\"name\":\"Abholung S-01, Do 26.11.\"}"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.created").value(true))
+                    .andExpect(jsonPath("$.addedMembers").value(2))
+                    .andExpect(jsonPath("$.name").value("Abholung S-01, Do 26.11.")).andReturn().getResponse()
+                    .getContentAsString();
+            String id = com.jayway.jsonpath.JsonPath.read(created, "$.conversationId");
+            String members = "select count(*) from conversation_member where conversation_id = '" + id + "'";
+            assertThat(count(members)).isEqualTo(2);
+            // a manager who isn't signed up: same chat, name kept, the manager joins
+            mvc.perform(json(post(url).cookie(login(SeedUsers.BIEB)), "{\"name\":\"Anderer Name\"}"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.conversationId").value(id))
+                    .andExpect(jsonPath("$.created").value(false)).andExpect(jsonPath("$.addedMembers").value(1))
+                    .andExpect(jsonPath("$.name").value("Abholung S-01, Do 26.11."));
+            // a new signer is added; someone who signed out stays
+            jdbc.update(insert, c, SeedUsers.GUIDE.id());
+            jdbc.update("delete from pickup_signup where id = ?", b);
+            mvc.perform(json(post(url).cookie(foodsaver), "{\"name\":\"x\"}")).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.conversationId").value(id)).andExpect(jsonPath("$.addedMembers").value(1));
+            assertThat(count(members)).isEqualTo(4);
+            assertThat(count(members + " and user_id = ?", SeedUsers.SLEEPY.id())).isEqualTo(1);
+            assertThat(count("select count(*) from pickup_day_conversation where store_id = "
+                    + "'00000020-0001-4000-8000-000000000001' and pickup_date = date '2026-11-26'")).isEqualTo(1);
+            assertThat(count("select count(*) from history_entry where action = 'DAY_CONVERSATION_OPENED'"))
+                    .isEqualTo(3);
+            // neither team member nor signed up that day: 403 (jumper, someone from outside the team)
+            mvc.perform(json(post(url).cookie(login(SeedUsers.JUMPER)), "{\"name\":\"x\"}"))
+                    .andExpect(status().isForbidden());
+            mvc.perform(json(post(url).cookie(login(SeedUsers.WELCOME)), "{\"name\":\"x\"}"))
+                    .andExpect(status().isForbidden());
+        } finally {
+            jdbc.update("delete from pickup_signup where id in (?, ?, ?)", a, b, c);
+        }
+    }
 }

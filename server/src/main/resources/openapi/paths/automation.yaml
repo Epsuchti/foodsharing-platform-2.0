@@ -493,8 +493,8 @@
 /api/stores/{storeId}/automation/extra-slot:
   patch:
     tags: [automation]
-    operationId: setExtraSlotAllowed
-    summary: 'Allow the first sign-up to add one extra slot.'
+    operationId: setMaxExtraSlots
+    summary: 'Set how many extra slots the first sign-up may add (0 = off).'
     x-permission: 'mayUseAutomations(store)'
     x-history: AutomationAction.FIELD_CHANGED
     parameters:
@@ -526,7 +526,7 @@
   post:
     tags: [automation]
     operationId: addExtraSlot
-    summary: 'Add one extra slot (earliest sign-up of the pickup only, once).'
+    summary: "Add one extra slot (earliest sign-up of the pickup only, up to the store's maxExtraSlots)."
     x-permission: 'earliest sign-up of the pickup'
     x-history: AutomationAction.EXTRA_SLOT_ADDED
     parameters:
@@ -553,7 +553,7 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'NOT_FIRST_SIGNUP or ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '409': {description: 'EXTRA_SLOT_ALREADY_ADDED or EXTRA_SLOT_NOT_ALLOWED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'EXTRA_SLOT_LIMIT_REACHED or EXTRA_SLOT_NOT_ALLOWED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/stores/{storeId}/automation/audits:
   get:

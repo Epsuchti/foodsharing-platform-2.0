@@ -1,4 +1,4 @@
-import { S07_WEDNESDAY, injectApiError, seedStore } from '../fixtures';
+import { S01_THURSDAY, S07_WEDNESDAY, injectApiError, seedStore, zurichPickupAt } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
@@ -10,6 +10,7 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 const S01 = seedStore('S-01').id;
 const S02 = seedStore('S-02').id;
 const S07 = seedStore('S-07').id;
+const S01_MONDAY = zurichPickupAt(7, '19:00');
 
 screenshotTest.use({ seedReset: 'file' });
 
@@ -33,6 +34,28 @@ forEachVariant((variant) => {
         await page.goto(`/stores/${S01}/pickups`);
         await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `pickups-tab-${variant.name}`);
+      });
+
+      screenshotTest('slot dialog rich (co-pickup) and short (team) @PU3 @screenshot', async ({ page, visual }) => {
+        // decision 164: compact day cards, "Chat öffnen", rich dialog for co-pickups, short one for the team
+        await page.goto(`/stores/${S01}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${S01_THURSDAY}"] [data-testid="stores.pickups.slot.taken"][data-user="Marco Bernasconi"]`).click();
+        await expect(page.getByTestId('stores.pickups.slotDetail.state')).toHaveAttribute('data-state', 'success');
+        await visual.expectScreen(page, `pickups-slot-rich-${variant.name}`);
+        await page.getByTestId('stores.pickups.slotDetail.close').click();
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${S01_MONDAY}"] [data-testid="stores.pickups.slot.taken"][data-user="Nina Schneider"]`).click();
+        await expect(page.getByTestId('stores.pickups.slotDialog')).toHaveAttribute('data-mode', 'short');
+        await visual.expectScreen(page, `pickups-slot-short-${variant.name}`);
+      });
+
+      screenshotTest('slot dialog rich loading @PU3 @screenshot', async ({ page, visual }) => {
+        await injectApiError(page, { url: `/api/stores/${S01}/pickups/*/signups/*`, delayMs: 30_000 });
+        await page.goto(`/stores/${S01}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${S01_THURSDAY}"] [data-testid="stores.pickups.slot.taken"][data-user="Marco Bernasconi"]`).click();
+        await expect(page.getByTestId('stores.pickups.slotDetail.state')).toHaveAttribute('data-state', 'loading');
+        await visual.expectScreen(page, `pickups-slot-loading-${variant.name}`, { waitForData: false });
       });
 
       screenshotTest('sign-up dialog eligible @PU3 @screenshot', async ({ page, visual }) => {
@@ -117,6 +140,15 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('stores.pickups.slot.confirm').first()).toBeVisible();
         await expect(page.getByTestId('stores.pickups.summary').first()).toBeVisible();
         await visual.expectScreen(page, `pickups-tab-manager-${variant.name}`);
+      });
+
+      screenshotTest('slot dialog rich as manager: phone, Bestätigen, Austragen @PU3 @S9 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S01}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${S01_THURSDAY}"] [data-testid="stores.pickups.slot.taken"][data-user="Sarah Müller"]`).click();
+        await expect(page.getByTestId('stores.pickups.slotDetail.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('stores.pickups.confirmSlot')).toBeVisible();
+        await visual.expectScreen(page, `pickups-slot-manager-${variant.name}`);
       });
     });
   });

@@ -200,6 +200,7 @@ Generated from the `HistoryAction` enums (`RetentionTableTest` writes the expect
 | `OAUTH_CLIENT` | `TOKEN_ISSUED` | YEARS_2 |
 | `PICKUP` | `AUTO_CONFIRMED` | YEARS_2 |
 | `PICKUP` | `AUTO_DECLINED` | YEARS_2 |
+| `PICKUP` | `DAY_CONVERSATION_OPENED` | YEARS_2 |
 | `PICKUP` | `EXTRA_SLOT_ADDED` | YEARS_2 |
 | `PICKUP` | `REMINDER_SENT` | YEARS_2 |
 | `POLL` | `CANCELLED` | FOREVER |

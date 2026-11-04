@@ -98,15 +98,18 @@ Pickup:
       type: boolean
     eligibility:
       $ref: './pickups.yaml#/PickupEligibility'
-    extraSlot:
-      $ref: './pickups.yaml#/PickupExtraSlot'
+    extraSlots:
+      description: 'The extra slots the earliest sign-up added, oldest first (AU6).'
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupExtraSlot'
     mayAddExtraSlot:
       type: boolean
-      description: 'The caller is the earliest sign-up of this future pickup, the store allows an extra slot and none was added yet (AU6).'
+      description: "The caller is the earliest sign-up of this future pickup, fewer than the store's maxExtraSlots were added and slotCount is below maxSlotsPerPickup (AU6)."
 
 PickupExtraSlot:
   type: object
-  description: 'The extra slot the earliest sign-up added (AU6).'
+  description: 'An extra slot the earliest sign-up added (AU6).'
   required: [byUser, addedAt]
   properties:
     byUser:
@@ -114,6 +117,64 @@ PickupExtraSlot:
     addedAt:
       type: string
       format: date-time
+
+PickupSignupDetail:
+  type: object
+  description: 'One sign-up as shown in the slot dialog (PU3).'
+  required: [user, confirmed, signedUpAt, pickupCount, upcomingSlots]
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    confirmed:
+      type: boolean
+    signedUpAt:
+      type: string
+      format: date-time
+    phone:
+      description: 'Only when the caller may see phone numbers (S9).'
+      type: string
+    pickupCount:
+      description: 'Confirmed past pickups of the user at this store.'
+      type: integer
+      format: int32
+    lastPickupAt:
+      description: 'Last confirmed past pickup of the user at this store.'
+      type: string
+      format: date-time
+    upcomingSlots:
+      description: "The user's future slots at this store, soonest first."
+      type: array
+      items:
+        type: string
+        format: date-time
+
+PickupDayConversation:
+  type: object
+  description: 'The day chat of a store (PU3); open it via the messaging API.'
+  required: [conversationId, name, created, addedMembers]
+  properties:
+    conversationId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    created:
+      description: 'True when this call created the chat.'
+      type: boolean
+    addedMembers:
+      description: 'How many people this call added (the caller included).'
+      type: integer
+      format: int32
+
+PickupDayConversationOpen:
+  type: object
+  required: [name]
+  properties:
+    name:
+      description: 'Name of the chat; used only when it is created.'
+      type: string
+      minLength: 1
+      maxLength: 200
 
 PickupEdit:
   type: object
@@ -167,7 +228,7 @@ UserPickup:
     description:
       type: string
     mayAddExtraSlot:
-      description: "AU6: the caller holds the earliest sign-up of this future pickup and may add one extra slot (store allows it, none added yet, within the maximum); false on other users' pickups"
+      description: "AU6: the caller holds the earliest sign-up of this future pickup and may add another extra slot (fewer than the store's maxExtraSlots added, within maxSlotsPerPickup); false on other users' pickups"
       type: boolean
 
 UserPickupPage:

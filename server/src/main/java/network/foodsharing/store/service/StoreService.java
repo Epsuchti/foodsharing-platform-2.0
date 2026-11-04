@@ -512,13 +512,13 @@ public class StoreService {
                 .map(StoreMembership::getUserId).toList();
     }
 
-    /** AU6 store switch; the automation module checks the permission and records the history. */
+    /** AU6 store setting; the automation module checks the permission and records the history. Returns the old value. */
     @Transactional
     @network.foodsharing.history.NoHistory(reason = "recorded by the automation module as AutomationAction.FIELD_CHANGED")
-    public boolean setExtraSlotAllowed(UUID storeId, boolean allowed) {
+    public int setMaxExtraSlots(UUID storeId, int maxExtraSlots) {
         Store store = lock(storeId);
-        boolean previous = store.isExtraSlotAllowed();
-        store.setExtraSlotAllowed(allowed);
+        int previous = store.getMaxExtraSlots();
+        store.setMaxExtraSlots(maxExtraSlots);
         return previous;
     }
 

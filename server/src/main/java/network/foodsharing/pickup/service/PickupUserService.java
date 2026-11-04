@@ -54,15 +54,11 @@ public class PickupUserService {
         }
     }
 
-    /**
-     * AU6 as a flag for the UI (same conditions as {@link PickupSignupService#addExtraSlot}): the store allows extra
-     * slots, the pickup is in the future, the user holds its earliest sign-up, no extra slot was added yet and one
-     * more slot stays within the maximum.
-     */
-    public static boolean mayAddExtraSlot(boolean storeAllows, PickupSchedule.Slot slot, UUID userId,
-                                          java.time.Instant now, boolean alreadyAdded, int maxSlotsPerPickup) {
-        return storeAllows && slot.pickupAt().isAfter(now) && !alreadyAdded
-                && slot.slotCount() + 1 <= maxSlotsPerPickup && PickupSignupService.isFirstSignup(slot, userId);
+    /** AU6 as a flag for the UI: {@link ExtraSlotRule} for this user and pickup. */
+    public static boolean mayAddExtraSlot(int maxExtraSlots, PickupSchedule.Slot slot, UUID userId,
+                                          java.time.Instant now, int addedCount, int maxSlotsPerPickup) {
+        return ExtraSlotRule.mayAdd(maxExtraSlots, addedCount, slot.slotCount(), maxSlotsPerPickup,
+                PickupSignupService.isFirstSignup(slot, userId), slot.pickupAt().isAfter(now));
     }
 
     public record AgendaView(LocalDate date, List<UserPickupView> pickups,
@@ -290,14 +286,14 @@ public class PickupUserService {
         // AU6 flag only for the caller's own pickups; one query per store that allows extra slots
         boolean own = currentActor.principal().map(p -> p.userId().equals(userId)).orElse(false);
         java.time.Instant now = clock.instant();
-        java.util.Set<String> added = new java.util.HashSet<>();
+        Map<String, Integer> added = new java.util.HashMap<>();
         if (own) {
-            rows.stream().filter(r -> byId.containsKey(r.getStoreId()) && byId.get(r.getStoreId()).isExtraSlotAllowed()
+            rows.stream().filter(r -> byId.containsKey(r.getStoreId()) && byId.get(r.getStoreId()).getMaxExtraSlots() > 0
                             && r.getPickupAt().isAfter(now))
                     .collect(Collectors.groupingBy(PickupSignup::getStoreId,
                             Collectors.mapping(PickupSignup::getPickupAt, Collectors.toSet())))
                     .forEach((storeId, times) -> extraSlots.findByStoreIdAndPickupAtIn(storeId, times)
-                            .forEach(e -> added.add(e.getStoreId() + "@" + e.getPickupAt())));
+                            .forEach(e -> added.merge(e.getStoreId() + "@" + e.getPickupAt(), 1, Integer::sum)));
         }
         int max = properties.getStore().getMaxSlotsPerPickup();
         for (PickupSignup row : rows) {
@@ -309,8 +305,8 @@ public class PickupUserService {
             PickupSchedule.Slot found = slots.get(key);
             PickupSchedule.Slot slot = found != null ? found
                     : new PickupSchedule.Slot(store.getId(), row.getPickupAt(), 1, null, false, List.of(row));
-            boolean extra = own && mayAddExtraSlot(store.isExtraSlotAllowed(), slot, userId, now, added.contains(key),
-                    max);
+            boolean extra = own && mayAddExtraSlot(store.getMaxExtraSlots(), slot, userId, now,
+                    added.getOrDefault(key, 0), max);
             result.putIfAbsent(key, new UserPickupView(store, schedule.zoneOf(store), slot, row.isConfirmed(), extra));
         }
         return List.copyOf(result.values());
