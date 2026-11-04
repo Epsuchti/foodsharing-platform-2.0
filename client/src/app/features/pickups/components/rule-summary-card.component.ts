@@ -27,11 +27,10 @@ const HIDDEN = new Set(['idle', 'empty', 'forbidden', 'notFound']);
       <details
         class="card fs-card rules"
         [open]="open()"
-        (toggle)="onToggle($event)"
         [attr.data-state]="rules.status()"
         data-testid="stores.pickups.rules"
       >
-        <summary class="rules__summary" data-testid="stores.pickups.rules.toggle">
+        <summary class="rules__summary" (click)="toggle($event)" data-testid="stores.pickups.rules.toggle">
           <i class="pi pi-shield" aria-hidden="true"></i>
           <span class="rules__title">{{ 'pickups.rules.title' | t }}</span>
           @if (lines().length) {
@@ -120,8 +119,10 @@ export class RuleSummaryCardComponent {
     return `fs.pickups.rules.open.${this.storeId()}`;
   }
 
-  protected onToggle(event: Event): void {
-    const open = (event.target as HTMLDetailsElement).open;
+  /** The summary's click (also Enter/Space): the signal owns the state, so it is stored on every change. */
+  protected toggle(event: Event): void {
+    event.preventDefault();
+    const open = !this.open();
     this.open.set(open);
     writeStorage(this.storageKey(), open ? '1' : null);
   }
