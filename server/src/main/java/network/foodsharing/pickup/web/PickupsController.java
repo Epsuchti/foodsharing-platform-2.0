@@ -79,14 +79,14 @@ public class PickupsController implements PickupsApi {
     }
 
     @Override
-    public ResponseEntity<AgendaDay> getAgenda(UUID userId, LocalDate date) {
-        var view = users.agenda(userId, date);
-        AgendaDay day = new AgendaDay();
-        day.setDate(view.date());
-        day.setPickups(mapper.toUserPickups(view.pickups()));
-        day.setIntroPickups(view.introPickups().stream().map(introMapper::toMyBooking).toList());
-        day.setCleaningShifts(view.cleaningShifts().stream().map(mapper::toCleaningShift).toList());
-        return ResponseEntity.ok(day);
+    public ResponseEntity<AgendaDay> getAgenda(UUID userId, LocalDate day) {
+        var view = users.agenda(userId, day);
+        AgendaDay agenda = new AgendaDay();
+        agenda.setDate(view.date());
+        agenda.setPickups(mapper.toUserPickups(view.pickups()));
+        agenda.setIntroPickups(view.introPickups().stream().map(introMapper::toMyBooking).toList());
+        agenda.setCleaningShifts(view.cleaningShifts().stream().map(mapper::toCleaningShift).toList());
+        return ResponseEntity.ok(agenda);
     }
 
     @Override

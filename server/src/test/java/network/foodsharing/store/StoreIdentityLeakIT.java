@@ -68,7 +68,7 @@ class StoreIdentityLeakIT {
             Map.entry("kind", "FOODSAVER"),
             Map.entry("key", "rules"),
             Map.entry("pickupAt", "2026-11-09T18:00:00Z"),
-            Map.entry("date", "2026-11-09"),
+            Map.entry("day", "2026-11-09"),
             Map.entry("folder", "INBOX"),
             Map.entry("name", "mail-outbox"),
             Map.entry("token", "no-such-token"),
@@ -274,7 +274,7 @@ class StoreIdentityLeakIT {
         if (name.equals("userId") && get.operationId().equals("getAgenda") && cookie != null) {
             return user.id().toString();
         }
-        if (name.equals("date") && get.operationId().equals("getAgenda") && cookie != null) {
+        if (name.equals("day") && get.operationId().equals("getAgenda") && cookie != null) {
             // the day of the viewer's own sign-up, if any: an agenda of an empty day proves nothing
             List<String> days = jdbc.queryForList("select cast(cast(max(pickup_at) as date) as varchar(10)) "
                     + "from pickup_signup where user_id = ?", String.class, user.id());

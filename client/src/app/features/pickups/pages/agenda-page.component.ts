@@ -15,7 +15,7 @@ import { addDays } from '../pickups.util';
 
 interface AgendaQuery {
   userId: string;
-  date: string;
+  day: string;
 }
 
 /** /pickups/agenda/:date (PU8): my pickups, intro pickups (EinAbs) and cleaning shifts of one day, with a day stepper. */
@@ -91,7 +91,7 @@ export class AgendaPageComponent {
   protected readonly agenda = loadResource<AgendaDay, AgendaQuery>({
     params: () => {
       const userId = this.session.user()?.id;
-      return userId && /^\d{4}-\d{2}-\d{2}$/.test(this.date()) ? { userId, date: this.date() } : undefined;
+      return userId && /^\d{4}-\d{2}-\d{2}$/.test(this.date()) ? { userId, day: this.date() } : undefined;
     },
     loader: (query) => this.api.getAgenda(query),
     isEmpty: (day) => day.pickups.length === 0 && day.introPickups.length === 0 && day.cleaningShifts.length === 0,
