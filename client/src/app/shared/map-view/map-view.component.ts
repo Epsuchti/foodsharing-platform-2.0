@@ -13,10 +13,14 @@ import {
   viewChild,
 } from '@angular/core';
 import type * as Leaflet from 'leaflet';
+import type { PMTiles } from 'pmtiles';
 
 import { DataState } from '../../core/data/data-state';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { TPipe } from '../../core/i18n/t.pipe';
+import { ThemeService } from '../../core/theme/theme.service';
 import { DATA_STATE_IMPORTS } from '../data-state';
+import { BASEMAP_URL, OSM_ATTRIBUTION, basemapFlavor, basemapLang } from './basemap';
 
 export type MapMarkerKind =
   | 'region-pin'
@@ -51,8 +55,11 @@ export interface MapFocus {
   zoom?: number;
 }
 
-/** Default OSM tiles; e2e and screenshots set `window.__fsTileUrl` to a local stub. */
-export const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+/** A readable PMTiles archive and its highest zoom with data (overzoomed above). */
+interface Basemap {
+  archive: PMTiles;
+  maxZoom: number;
+}
 const ZURICH: [number, number] = [47.3769, 8.5417];
 
 const KIND_ICON: Record<MapMarkerKind, string> = {
@@ -73,6 +80,10 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
  * Wrap marker loading in `[state]` (DataState) to get skeleton/error/offline; a tile failure shows an overlay with
  * retry while markers stay usable.
  *
+ * Background (MT1, decision 158): the self-hosted vector basemap `/tiles/basemap.pmtiles` (protomaps-leaflet, light
+ * or dark with the theme, labels in the UI language). A raster template in `tileUrl` or `window.__fsTileUrl`
+ * (screenshots: a local stub PNG) replaces it.
+ *
  * `<fs-map-view [markers]="pins" [state]="regions" height="20rem" (markerClick)="open($event)" />`
  */
 @Component({
@@ -83,6 +94,7 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
     class: 'fs-map-view',
     '[style.--map-height]': 'height()',
     '[attr.data-tiles]': 'tileState()',
+    '[attr.data-basemap]': 'basemapMode()',
     '[attr.data-testid]': 'testId()',
     '[attr.data-center]': 'viewCenter()',
   },
@@ -232,7 +244,7 @@ export class MapViewComponent {
   readonly height = input('18rem');
   readonly ariaLabel = input<string | undefined>(undefined);
   readonly testId = input('shared.map');
-  /** Tile URL template (default: `window.__fsTileUrl` in tests, else OSM). */
+  /** Raster tile URL template instead of the vector basemap (default: `window.__fsTileUrl`, set by screenshots). */
   readonly tileUrl = input<string | undefined>(undefined);
   readonly markerClick = output<MapMarker>();
   /** A click on an fsp/basket/user/store marker: the host shows its detail bubble (also emits `markerClick`). */
@@ -245,11 +257,18 @@ export class MapViewComponent {
   readonly focus = input<MapFocus | null | undefined>(undefined);
 
   protected readonly tileState = signal<'loading' | 'ok' | 'error'>('loading');
+  /** `raster` with a tile URL template, else the flavor of the vector basemap (tests read `data-basemap`). */
+  protected readonly basemapMode = signal<'light' | 'dark' | 'raster' | null>(null);
+  private readonly theme = inject(ThemeService);
+  private readonly i18n = inject(I18nService);
   /** Current centre as `lat,lon` (3 decimals), updated after every move (tests read it from `data-center`). */
   protected readonly viewCenter = signal<string | null>(null);
   private readonly mapEl = viewChild.required<ElementRef<HTMLElement>>('mapEl');
   private map: Leaflet.Map | null = null;
-  private tiles: Leaflet.TileLayer | null = null;
+  private tiles: Leaflet.GridLayer | null = null;
+  private basemap: Basemap | null = null;
+  /** Counts basemap probes: an answer to an older probe (before a retry) is dropped. */
+  private probes = 0;
   private layer: Leaflet.LayerGroup | null = null;
   private positionMarker: Leaflet.Marker | null = null;
   private leaflet: typeof Leaflet | null = null;
@@ -269,6 +288,16 @@ export class MapViewComponent {
       const focus = this.focus();
       untracked(() => this.applyFocus(focus));
     });
+    // a theme or language switch redraws the vector basemap in the new flavor / label language
+    effect(() => {
+      this.theme.isDark();
+      this.i18n.language();
+      untracked(() => {
+        if (this.basemap) {
+          void this.showBasemap(this.basemap);
+        }
+      });
+    });
     inject(DestroyRef).onDestroy(() => this.map?.remove());
   }
 
@@ -282,7 +311,66 @@ export class MapViewComponent {
 
   protected reloadTiles(): void {
     this.tileState.set('loading');
-    this.tiles?.redraw();
+    if (this.basemapMode() === 'raster') {
+      this.tiles?.redraw();
+    } else {
+      void this.loadBasemap();
+    }
+  }
+
+  /** Reads the archive header; a missing or broken file shows the tile error (markers stay usable). */
+  protected async probeBasemap(): Promise<Basemap> {
+    const { PMTiles } = await import('pmtiles');
+    const archive = new PMTiles(BASEMAP_URL);
+    const header = await archive.getHeader();
+    return { archive, maxZoom: header.maxZoom };
+  }
+
+  private async loadBasemap(): Promise<void> {
+    const probe = ++this.probes;
+    try {
+      const basemap = await this.probeBasemap();
+      if (probe === this.probes) {
+        this.basemap = basemap;
+        await this.showBasemap(basemap);
+      }
+    } catch {
+      if (probe === this.probes) {
+        this.tiles?.remove();
+        this.tiles = null;
+        this.tileState.set('error');
+      }
+    }
+  }
+
+  /** (Re)draws the vector basemap in the current flavor and label language. */
+  private async showBasemap(basemap: Basemap): Promise<void> {
+    const L = this.leaflet;
+    if (!L || !this.map) {
+      return;
+    }
+    // protomaps-leaflet extends the global `L.GridLayer`
+    (globalThis as { L?: typeof Leaflet }).L ??= L;
+    const { leafletLayer } = await import('protomaps-leaflet');
+    const flavor = basemapFlavor(this.theme.isDark());
+    const layer = leafletLayer({
+      url: basemap.archive,
+      flavor,
+      lang: basemapLang(this.i18n.language()),
+      attribution: OSM_ATTRIBUTION,
+      maxDataZoom: basemap.maxZoom,
+      maxZoom: 19,
+    }) as unknown as Leaflet.GridLayer;
+    layer.on('load', () => {
+      if (this.tileState() !== 'error') {
+        this.tileState.set('ok');
+      }
+    });
+    this.tiles?.remove();
+    this.tiles = layer;
+    layer.addTo(this.map);
+    layer.bringToBack();
+    this.basemapMode.set(flavor);
   }
 
   private async init(): Promise<void> {
@@ -290,25 +378,26 @@ export class MapViewComponent {
     const module = (await import('leaflet')) as typeof Leaflet & { default?: typeof Leaflet };
     const L = module.default ?? module;
     this.leaflet = L;
-    const tileUrl =
-      this.tileUrl() ?? (globalThis as { __fsTileUrl?: string }).__fsTileUrl ?? OSM_TILE_URL;
+    const rasterUrl = this.tileUrl() ?? (globalThis as { __fsTileUrl?: string }).__fsTileUrl;
     this.map = L.map(this.mapEl().nativeElement, {
       center: this.center() ?? ZURICH,
       zoom: this.zoom(),
       scrollWheelZoom: false,
       attributionControl: true,
     });
-    this.tiles = L.tileLayer(tileUrl, {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    })
-      .on('tileerror', () => this.tileState.set('error'))
-      .on('load', () => {
-        if (this.tileState() !== 'error') {
-          this.tileState.set('ok');
-        }
-      })
-      .addTo(this.map);
+    if (rasterUrl) {
+      this.basemapMode.set('raster');
+      this.tiles = L.tileLayer(rasterUrl, { maxZoom: 19, attribution: OSM_ATTRIBUTION })
+        .on('tileerror', () => this.tileState.set('error'))
+        .on('load', () => {
+          if (this.tileState() !== 'error') {
+            this.tileState.set('ok');
+          }
+        })
+        .addTo(this.map);
+    } else {
+      void this.loadBasemap();
+    }
     this.layer = L.layerGroup().addTo(this.map);
     this.map.on('click', (event: Leaflet.LeafletMouseEvent) => {
       if (this.editable()) {
