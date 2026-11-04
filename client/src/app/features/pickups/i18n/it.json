@@ -90,7 +90,6 @@
   "pickups.past.count": "{count, plural, =0 {Nessun ritiro} one {# ritiro} other {# ritiri}}",
   "pickups.past.empty": "Nessun ritiro passato",
   "pickups.past.emptyText": "I ritiri compaiono qui una volta conclusi.",
-  "pickups.past.deleteFutureOwn": "Cancellami da tutti i miei ritiri futuri",
   "pickups.past.deleteFuture": "Elimina tutti i ritiri futuri",
   "pickups.past.deleteTitle": "Eliminare tutti i ritiri futuri?",
   "pickups.past.deleteText": "Le iscrizioni a tutti i ritiri futuri in tutte le aziende vengono rimosse. I team vedono il motivo nel registro dell'azienda.",

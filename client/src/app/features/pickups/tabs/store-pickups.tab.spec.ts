@@ -202,4 +202,20 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     http.expectOne(pickupsUrl).flush(LIST);
     await settle();
   });
+
+  it('lists every extra slot of a pickup (AU6, decision 164)', async () => {
+    const withExtras = [
+      {
+        ...pickup(THU, 4, [{ user: PRIYA, confirmed: true }]),
+        extraSlots: [
+          { byUser: PRIYA, addedAt: '2030-11-01T10:00:00Z' },
+          { byUser: PRIYA, addedAt: '2030-11-02T10:00:00Z' },
+        ],
+      },
+      pickup(FRI, 2, []),
+    ];
+    await open({}, withExtras);
+    expect(pickupEl(THU).querySelectorAll('[data-testid="stores.pickups.extraSlot"]')).toHaveLength(2);
+    expect(pickupEl(FRI).querySelectorAll('[data-testid="stores.pickups.extraSlot"]')).toHaveLength(0);
+  });
 });

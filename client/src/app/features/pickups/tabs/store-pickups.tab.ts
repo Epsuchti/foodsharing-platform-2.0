@@ -213,7 +213,7 @@ interface SlotTarget {
                       data-testid="stores.pickups.addExtraSlot"
                     />
                   }
-                  @if (pickup.extraSlot; as extra) {
+                  @for (extra of pickup.extraSlots ?? []; track extra.addedAt) {
                     <p class="muted" data-testid="stores.pickups.extraSlot">{{ 'pickups.tab.extraSlotBy' | t: { name: extra.byUser.displayName } }}</p>
                   }
                   @if (mySlot(pickup); as mine) {

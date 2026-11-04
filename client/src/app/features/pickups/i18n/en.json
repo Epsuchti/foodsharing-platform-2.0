@@ -90,7 +90,6 @@
   "pickups.past.count": "{count, plural, =0 {No pickups} one {# pickup} other {# pickups}}",
   "pickups.past.empty": "No past pickups",
   "pickups.past.emptyText": "Pickups appear here once they are done.",
-  "pickups.past.deleteFutureOwn": "Sign out of all my future pickups",
   "pickups.past.deleteFuture": "Delete all future pickups",
   "pickups.past.deleteTitle": "Delete all future pickups?",
   "pickups.past.deleteText": "The sign-ups for all upcoming pickups in all stores are removed. The store teams see the reason in the store log.",

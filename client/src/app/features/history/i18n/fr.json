@@ -229,6 +229,7 @@
   "history.action.PICKUP.EXTRA_SLOT_ADDED": "Place supplémentaire ajoutée",
   "history.action.PICKUP.AUTO_CONFIRMED": "Confirmé automatiquement",
   "history.action.PICKUP.AUTO_DECLINED": "Désinscrit automatiquement",
+  "history.action.PICKUP.DAY_CONVERSATION_OPENED": "Discussion du jour ouverte",
   "history.action.CONVERSATION.CONVERSATION_CREATED": "Conversation créée",
   "history.action.CONVERSATION.MEMBER_ADDED": "Membre ajouté",
   "history.action.CONVERSATION.MEMBER_REMOVED": "Membre retiré",
