@@ -95,6 +95,8 @@ test('AU1 linked-store editor saves a bidirectional rule with message preview, m
   // decision 165 S4: stores come from the cross-region picker; bieb manages S-01, so both ways stays possible
   await pickLinkedStore(page, 0, seedStore('S-01').name);
   await expect(link.getByTestId('automation.policy.link.0.bidirectional').locator('input')).toBeChecked();
+  // the message sits in "Erweitert" with the Frist nach Austragung (decision 165 S4)
+  await link.getByTestId('automation.policy.link.0.advanced').locator('summary').click();
   await link.getByTestId('automation.policy.link.0.message.placeholder.linkedStoreName').click();
   await expect(link.getByTestId('automation.policy.link.0.message.preview')).toContainText(seedStore('S-01').name);
   await savePolicy(page);
