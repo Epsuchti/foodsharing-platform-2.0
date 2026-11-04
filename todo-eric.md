@@ -35,7 +35,14 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Name the first ambassadors and guides for staging.
 
 ## Quick check
-- [ ] Map background loads on the server (MT1, runbook §10): after the first `tiles.sh` run, open `/map` and a store page in light and dark mode and say whether the map background shows. Before that, run the DACH build once on a test host with both methods (`--method=planetiler`, `--method=extract`), let the automatic switch fall back (`TILES_MEM_AVAILABLE_MB=4000`, and a Planetiler run stopped with `docker kill fs-tiles-planetiler`), and record file size, RAM, disk and time in runbook §10.3.
+- [ ] Map tile service on K3s (MT2, decision 163, runbook §10.4; hosting branch `feat/foodsharing-tiles`, not merged). The MT1 check now runs on K3s:
+  1. Free RAM of the node, recorded in runbook §10.3: `free -g` and `sudo kubectl describe node | sed -n '/Allocated resources/,/Events/p'`. The build asks for 16Gi (request = limit).
+  2. Publish the builder image after this branch is on `main`: `gh workflow run tiles-image.yml --ref main`, then `gh run watch "$(gh run list -w tiles-image.yml -L 1 --json databaseId -q '.[0].databaseId')"`. Make the package `foodsharing-tiles-builder` public, or check that the account in `.ghcr-pull-secret.env` can read it.
+  3. Merge `feat/foodsharing-tiles` in the hosting repo (conflicts with other work in the foodsharing values files and docs are resolved by hand), then on the server: `sudo ./scripts/deploy-app.sh foodsharing-platform prod <version>` and `sudo ./scripts/deploy-tiles.sh foodsharing-platform prod 1`. It starts `foodsharing-platform-tiles-initial-<date>`; follow it with `sudo kubectl logs -n foodsharing-platform-prod -f job/<job>` and watch "Map Tiles" in Grafana (builder memory against the limit).
+  4. After the job: `sudo kubectl exec -n foodsharing-platform-prod deploy/foodsharing-platform-tiles -- cat /srv/work/last-build.json` and put method, peakMemoryMb, seconds and sizeBytes into runbook §10.3. Then set `builder.resources` in `apps/foodsharing-platform/tiles-prod-values.yaml` to the measured peak plus about 25 % (request = limit; under 16384 Mi it switches to mmap), commit, and run `deploy-tiles.sh` again.
+  5. Test: `sudo ./scripts/deploy-app.sh foodsharing-platform test <version>` and `sudo ./scripts/deploy-tiles.sh foodsharing-platform test`.
+  6. Checks for both hosts: `curl -s -o /dev/null -w '%{http_code}\n' -r 0-126 https://test.foodsharing.site/tiles/basemap.pmtiles` gives 206 and `curl -s -r 0-7 … | od -c` starts with `P M T i l e s 003`; `curl -sI` shows the ETag, `Cache-Control: public, max-age=86400` and no `Content-Encoding`; `…/tiles/basemap.previous.pmtiles` gives 404. Then a manual rebuild (`sudo ./scripts/deploy-tiles.sh --rebuild foodsharing-platform prod`) and the ETag changes after the swap.
+  7. Open `/map` and a store page in light and dark mode on both hosts and say whether the map background shows.
 
 ## Launch day
 - [ ] Announce the switch-over (users re-register), import the EinAbs (`docs/runbook.md` §4) and switch off the old einab-tabelle.

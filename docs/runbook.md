@@ -18,7 +18,7 @@ Internet ──443──▶ reverse proxy (TLS, HSTS; Caddy/nginx on the host)
 
 - One app container; scheduled jobs are guarded by ShedLock (`shedlock` table), so a second replica during an upgrade is harmless.
 - State lives only in Postgres (`pgdata`), upload bytes included (`upload_blob`, decision 158); it is in the backup (§7). Sessions are server-side rows, so a restart logs nobody out.
-- The map basemap is a read-only host folder (`TILES_DIR` → `/tiles`), rebuilt monthly by `tiles.sh` and not backed up (§10).
+- The map basemap is a read-only host folder (`TILES_DIR` → `/tiles`), rebuilt monthly by `tiles.sh` and not backed up (§10). On K3s a separate Caddy tile server answers `/tiles/basemap.pmtiles` on the same host (Ingress path) and a monthly CronJob rebuilds the file; the app does not serve it there (§10.4).
 - Management port 9090 (health, Prometheus) is never published; the proxy only forwards to 8080.
 - The proxy must serve HTTP/2 or HTTP/3 to browsers (Caddy does by default; nginx needs `http2 on;`). A first page load fetches about 50 files, which HTTP/1.1 slows down noticeably on a phone. Check it with `curl -sI --http2 https://<domain> | head -n 1`.
 
@@ -265,12 +265,12 @@ Every map draws its background from one PMTiles file, `basemap.pmtiles` (Protoma
 
 ### 10.1 Monthly build (`server/deploy/tiles.sh`)
 - `tiles.sh` (defaults: `--area=europe/dach --method=auto`, output `${TILES_DIR}`, work and source files in `TILES_WORK_DIR`, default `server/deploy/tiles-work`) picks the method from `MemAvailable`:
-  - 16 GB or more: Planetiler with the pinned Protomaps profile (tiles 4.15.2, image `fs-protomaps-basemaps:<commit>`, built once from `protomaps/basemaps` at the pinned commit) in memory.
+  - 16 GB or more: Planetiler with the pinned Protomaps profile (tiles 4.15.2) in memory. Since MT2 the build runs in the builder image `ghcr.io/epsuchti/foodsharing-tiles-builder:<n>` (`server/deploy/tiles-builder/`, the same image as the K3s CronJob, §10.4): `tiles.sh` pulls it (or builds it locally with `--build-image` or when the pull fails) and runs it with `--memory` = `MemAvailable` and half the cores; inside, the method follows the container's memory limit.
   - 8–16 GB: the same with `--storage=mmap` (slower).
-  - Under 8 GB, or a failed or killed (exit 137, OOM) Planetiler run: `pmtiles extract` of the DACH bbox from the Protomaps daily world build (`build.protomaps.com`, schema checked to be 4.x). That is a third-party download at build time only. Every fallback logs `WARN` with the reason; a host that falls back every month needs more RAM.
+  - Under 8 GB, or a failed or killed Planetiler run (the heap stays 4 GB under the limit and an `OutOfMemoryError` ends the JVM with exit 3; exit 137 is a kill): `pmtiles extract` of the DACH bbox from the Protomaps daily world build (`build.protomaps.com`, schema checked to be 4.x). That is a third-party download at build time only. Every fallback logs `WARN` with the reason; a host that falls back every month needs more RAM.
   - `--method=planetiler|extract` forces one; `TILES_MEM_AVAILABLE_MB=4000` fakes the RAM reading to test the switch.
 - It checks 50 GB free disk first, downloads `dach-latest.osm.pbf` (about 5.5 GB) fresh each run and checks its `.md5`. Planetiler also downloads its other sources (water and land polygons, Natural Earth, landcover, QRank; a few GB) into `tiles-work/sources` once and reuses them.
-- The build runs under `nice` with half the CPU cores (`--cpus`). It writes `basemap-<date>.pmtiles`, checks the `PMTiles` magic, version 3 and at least 1000 MB, hard-links the current file to `basemap.previous.pmtiles` and renames the new one over `basemap.pmtiles` (atomic; open sessions see the new ETag and reload). Any failure leaves the current file in place. A lock (`tiles-work/.tiles.lock`) prevents overlapping runs.
+- The build runs under `nice` with half the CPU cores (`--cpus`). It writes `basemap-<date>.pmtiles`, checks the `PMTiles` magic, version 3 and at least 1000 MB, hard-links the current file to `basemap.previous.pmtiles` and renames the new one over `basemap.pmtiles` (atomic; open sessions see the new ETag and reload). Any failure leaves the current file in place. A lock (`tiles-work/.tiles.lock`) prevents overlapping runs. Each run writes `tiles-work/last-build.json` (status, method, seconds, `peakMemoryMb` from the cgroup's `memory.peak`, `sizeBytes`, OSM date) and the same values in one `INFO [tiles] result ...` log line.
 - Install the timer (1st of the month, 03:30; the output goes to the journal):
 
 ```ini
@@ -312,4 +312,24 @@ WantedBy=timers.target
 | Time | about 1 h with half the cores |
 | Traffic | 0.3–1 MB per map view in 20–40 range requests (100k views a month: 30–100 GB) |
 
-Measured so far: the Zurich fixture (`scripts/tiles-fixture.sh`, extract method, 2026-11-04) is 3.0 MB and takes about 10 s; the automatic switch to the extract under faked low RAM works. The DACH build with both methods and a killed Planetiler run are still to be measured on a test host (`todo-eric.md`); record file size, RAM, disk and time here.
+Measured so far: the Zurich fixture (`scripts/tiles-fixture.sh`, extract method, 2026-11-04) is 3.0 MB and takes about 10 s; the automatic switch to the extract under faked low RAM works. Through the builder image (MT2, 2026-11-04, Docker Desktop on arm64): the fixture is 3,019,978 bytes in 8 s with a peak of 41 MB, and `docker run --memory=4g` picks the extract with the fallback `WARN`.
+
+The first DACH build on K3s is still to be measured (`todo-eric.md`). Copy the values of `work/last-build.json` (§10.4) here after each run that changes them:
+
+| Date | Where | Memory limit / node free RAM | Method | Peak memory | Duration | File size | Disk used |
+|---|---|---|---|---|---|---|---|
+| | K3s prod, initial Job | 16Gi / | | | | | |
+
+### 10.4 K3s: tile service (MT2, decision 163)
+On K3s (hosting repository, chart `charts/pmtiles-basemap`, `docs/foodsharing-platform.md` "Map tiles" there) the app does not serve `/tiles`; it gets `APP_MAP_TILES_DIR: ""`, so a misrouted request answers 404.
+- **Tile server:** Deployment `foodsharing-platform-tiles` (Caddy, uid 10001, read-only), reached through a second path `/tiles` in the app's own Ingress, so host, certificate, origin and CSP stay the same. It serves only `/tiles/basemap.pmtiles` from the PVC (206, strong ETag, `Cache-Control: public, max-age=86400`, `application/vnd.pmtiles`, no compression); `basemap.previous.pmtiles` and everything else answer 404. Metrics on `:9180`, JSON access logs.
+- **Volume:** PVC `foodsharing-platform-tiles` (local-path, RWO, 60Gi, kept on uninstall) with `basemap/` (current, previous and the new file) and `work/` (sources, temp files, `last-build.json`).
+- **Build:** CronJob `foodsharing-platform-tiles-build`, `30 3 1 * *` Europe/Zurich, `concurrencyPolicy: Forbid`, no retry, 4 h deadline, image `ghcr.io/epsuchti/foodsharing-tiles-builder:<n>` (`tiles-image.yml`). Memory request = limit, 16Gi (in-memory build), CPU 500m–4. The limit picks the method (≥ 16Gi in memory, 8–16Gi mmap, < 8Gi extract); if the node cannot spare it the pod stays Pending and fails at the deadline, then lower `builder.resources` in `apps/foodsharing-platform/tiles-prod-values.yaml`.
+- **Test** has no own file: its `foodsharing-platform-tiles` Service is an `ExternalName` to prod's tile server.
+- **Deploy and first build:** `sudo ./scripts/deploy-tiles.sh foodsharing-platform prod [builder-tag]` (hosting repo) installs the release, waits for the tile server and, if the file is missing, starts `foodsharing-platform-tiles-initial-<date>` from the CronJob. Then `sudo ./scripts/deploy-tiles.sh foodsharing-platform test`.
+- **Manual rebuild:** `sudo ./scripts/deploy-tiles.sh --rebuild foodsharing-platform prod`, or `kubectl create job -n foodsharing-platform-prod --from=cronjob/foodsharing-platform-tiles-build foodsharing-platform-tiles-rebuild-$(date +%Y%m%d)`. Follow with `kubectl logs -n foodsharing-platform-prod -f job/<job>`.
+- **Last build:** `kubectl exec -n foodsharing-platform-prod deploy/foodsharing-platform-tiles -- cat /srv/work/last-build.json` (Prometheus and Loki keep 7 days only; copy the values into §10.3).
+- **Roll back:** the tile server mounts read-only, so run a debug pod on the PVC as uid 10001 and swap the files there: `kubectl run tiles-rollback -n foodsharing-platform-prod --rm -i --restart=Never --image=busybox:1.37 --overrides='<pod spec with the PVC at /tiles>'` running `cd /tiles/basemap && ln -f basemap.previous.pmtiles basemap.pmtiles.tmp && mv -f basemap.pmtiles.tmp basemap.pmtiles` (the full command is in the hosting repo's `docs/foodsharing-platform.md`). No restart is needed; open maps see the new ETag.
+- **Checks:** as in §10.2 against `https://foodsharing.site` and `https://test.foodsharing.site`; also `curl -sI` shows the ETag, the cache control and no `Content-Encoding`, and `/tiles/basemap.previous.pmtiles` gives 404. After a rebuild the ETag changes.
+- **Dashboard:** Grafana "Map Tiles (PMTiles basemap)": builder memory (working set, RSS) against its limit, CPU, Job duration, age of the last successful build, terminated reason (`OOMKilled`), tile requests by status, p50/p95 latency, bytes sent, tile server memory, and the Loki build log. **No alerts yet** (`todo.md`): look at the dashboard after the 1st of each month.
+- **Needs:** 60Gi local-path disk, 16Gi RAM and up to 4 CPUs for about an hour a month, tile server 64–256Mi (page cache counts towards the limit). A second node would need node affinity for the local-path volume or RWX storage.
