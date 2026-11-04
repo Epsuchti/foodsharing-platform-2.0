@@ -8,7 +8,10 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.EvaluationResult;
 import org.junit.jupiter.api.Test;
 
-/** Proves rule 4 catches a mutating service method that records no history (fixtures in {@code archfixture}). */
+/**
+ * Proves rule 4 catches a mutating service method that records no history and rule 7b an entity with a byte array
+ * (fixtures in {@code archfixture}).
+ */
 class ArchitectureRuleFixtureTest {
 
     private final JavaClasses fixtures = new ClassFileImporter()
@@ -37,5 +40,16 @@ class ArchitectureRuleFixtureTest {
         assertThatThrownBy(() -> ArchitectureRules.MUTATING_SERVICES_RECORD_HISTORY.check(fixtures))
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("MissingHistoryService.change()");
+    }
+
+    @Test
+    void rule7bReportsEntityByteArrays() {
+        EvaluationResult result = ArchitectureRules.ENTITIES_HAVE_NO_BYTE_ARRAYS.evaluate(fixtures);
+
+        String report = String.join("\n", result.getFailureReport().getDetails());
+        assertThat(report).contains("archfixture.domain.BytesEntity.content")
+                .contains("archfixture.domain.BytesEntity.boxed")
+                .doesNotContain("BytesEntity.name");
+        assertThat(result.getFailureReport().getDetails()).hasSize(2);
     }
 }

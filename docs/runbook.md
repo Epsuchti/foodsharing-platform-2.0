@@ -10,20 +10,20 @@ Internet ──443──▶ reverse proxy (TLS, HSTS; Caddy/nginx on the host)
              ┌───────▼────────┐   backend network (compose project "foodsharing")
              │ app (1 replica)│──9090──▶ prometheus ─▶ alertmanager ─▶ IT mail
              │ prod profile   │                 └────▶ grafana (127.0.0.1:3000, SSH tunnel)
-             └──┬──────────┬──┘
-     postgres:17 (pgdata)  /data/uploads (uploads volume)
+             └──┬─────────────┘
+     postgres:17 (pgdata, uploads included)
                 │
    outbound: SMTP (ProtonMail), Web Push, Telegram, Photon, Google OIDC, IMAP (optional)
 ```
 
 - One app container; scheduled jobs are guarded by ShedLock (`shedlock` table), so a second replica during an upgrade is harmless.
-- State lives only in Postgres (`pgdata`) and the uploads volume; both are in the backup (§7). Sessions are server-side rows, so a restart logs nobody out.
+- State lives only in Postgres (`pgdata`), upload bytes included (`upload_blob`, decision 158); it is in the backup (§7). Sessions are server-side rows, so a restart logs nobody out.
 - Management port 9090 (health, Prometheus) is never published; the proxy only forwards to 8080.
 - The proxy must serve HTTP/2 or HTTP/3 to browsers (Caddy does by default; nginx needs `http2 on;`). A first page load fetches about 50 files, which HTTP/1.1 slows down noticeably on a phone. Check it with `curl -sI --http2 https://<domain> | head -n 1`.
 
 ## 2. Build & release
 
-Image: `ghcr.io/epsuchti/foodsharing-platform:<version>` (+ `:latest`), built from the packaged jar (Angular client inside) by `server/Dockerfile`: `eclipse-temurin:21-jre`, user `app` (uid 10001), `/data` volume (uploads), `SPRING_PROFILES_ACTIVE=prod`, `JAVA_OPTS` default `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`, `HEALTHCHECK` on `:9090/actuator/health/liveness`, `exec java` so SIGTERM reaches the JVM (graceful shutdown, 30 s). The version is the number in `server/deploy/version.txt`; it is baked into the image (`/app/version.txt`, `APP_VERSION`), shown by `/api/public/app-info` and written into every log line.
+Image: `ghcr.io/epsuchti/foodsharing-platform:<version>` (+ `:latest`), built from the packaged jar (Angular client inside) by `server/Dockerfile`: `eclipse-temurin:21-jre`, user `app` (uid 10001), no volume (uploads live in the database), `SPRING_PROFILES_ACTIVE=prod`, `JAVA_OPTS` default `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`, `HEALTHCHECK` on `:9090/actuator/health/liveness`, `exec java` so SIGTERM reaches the JVM (graceful shutdown, 30 s). The version is the number in `server/deploy/version.txt`; it is baked into the image (`/app/version.txt`, `APP_VERSION`), shown by `/api/public/app-info` and written into every log line.
 
 Release steps (maintainer machine, Docker with buildx):
 1. Bump `server/deploy/version.txt`, commit, wait for green CI on `main`.
@@ -75,7 +75,7 @@ SMOKE OK (ghcr.io/epsuchti/foodsharing-platform:local, version 44)
 - **Database**: PostgreSQL 17 (`pgdata` volume), Liquibase context `schema` only (never `seed`), Hikari pool `DB_POOL_SIZE` (20).
 - **Shutdown**: `server.shutdown=graceful`, 30 s per phase; compose `stop_grace_period: 45s`.
 - **Logs**: one JSON object per line on stdout (logstash layout: `@timestamp`, `level`, `logger_name`, `thread_name`, `message`, `traceId`, `app`, `version`, `stack_trace`); `docker compose logs app` / the host's log driver. `StructuredLoggingTest` guards the format.
-- **Storage**: uploads in `/data/uploads` (`uploads` volume); container root filesystem read-only, `/tmp` tmpfs, all capabilities dropped.
+- **Storage**: uploads in PostgreSQL (`upload_blob`/`upload_blob_chunk`, 1 MiB chunks, decision 158), no app volume; container root filesystem read-only, `/tmp` tmpfs, all capabilities dropped.
 - **External services**: SMTP (ProtonMail token), Photon geocoding (`PHOTON_URL`), Google OIDC, Web Push (VAPID), Telegram, optional IMAP mailbox.
 
 ## 4. Initial data
@@ -165,7 +165,8 @@ Symptoms: `MailOutboxStuck`, magic links not arriving. Admin UI → Operations �
 Admin UI → Operations → Integrations (`GET /api/admin/integrations`): state per integration (SMTP, WEB_PUSH, TELEGRAM, GEOCODING, HOLIDAY_CALENDAR, wallets, IMAP), last error and outages. An open breaker skips calls and probes every 5 min (`app.integrations.probe-interval`); "Probe" forces a probe, "Send test" sends a test message to yourself. While GEOCODING is open stores keep their coordinates and imports report `GEOCODING_FAILED`.
 
 ### 6.5 Disk, uploads, database
-- `df -h /var/lib/docker`; uploads: `docker compose exec app du -sh /data/uploads`; database: `docker compose exec postgres psql -U foodsharing -c "select pg_size_pretty(pg_database_size('foodsharing'))"`.
+- `df -h /var/lib/docker`; database: `docker compose exec postgres psql -U foodsharing -c "select pg_size_pretty(pg_database_size('foodsharing'))"`; uploads (part of it): `select pg_size_pretty(pg_total_relation_size('upload_blob_chunk'))`. Revisit object storage at ~20 GB of uploads or a 30-minute dump (decision 158).
+- **One-time import of the old uploads volume** (decision 158): start the first release with the bytes-in-DB change once with the old volume still mounted (compose: add `volumes: [uploads:/data]` to `app` again for this start; k3s: keep the PVC) and `UPLOADS_IMPORT_DIR=/data/uploads`. The log shows `Upload disk import: imported=… missing=… mismatched=… still without bytes=…`; the run is idempotent. Cut-over check, must be 0: `select count(*) from upload u where not exists (select 1 from upload_blob b where b.upload_id = u.id and b.variant = 'orig')`. Then remove `UPLOADS_IMPORT_DIR`, wait for one good nightly backup and only then remove the volume.
 - Unclaimed uploads are deleted after 24 h by the cleanup job; history retention and run retention are jobs too (§6.2).
 - Pool exhausted (`DatabasePoolExhausted`): `select state, count(*) from pg_stat_activity group by 1`, look for long `active` queries (`select pid, now()-query_start, query from pg_stat_activity order by 2 desc limit 5`), `select pg_cancel_backend(<pid>)`; raise `DB_POOL_SIZE` only together with Postgres `max_connections`.
 
@@ -173,11 +174,11 @@ Admin UI → Operations → Integrations (`GET /api/admin/integrations`): state 
 
 ### 7.1 Backup
 `./backup.sh` (cron daily, e.g. `15 2 * * * cd /opt/foodsharing/server/deploy && ./backup.sh 2>&1 | mail -s backup it@…`) writes to `backups/`:
-`foodsharing-<UTC>.dump` (pg_dump custom format, `--no-owner --no-privileges`), `.counts` (row count per table), `.uploads.tar.gz` (the uploads volume), `.sha256`; removes own backups older than `KEEP_DAYS` (14). Copy `backups/` off the host afterwards (e.g. `restic backup backups/` or `rsync` to the storage box; encrypted, 30 days). `.env` is backed up separately (password manager), never with the dumps.
+`foodsharing-<UTC>.dump` (pg_dump custom format, `--no-owner --no-privileges`), `.counts` (row count per table), `.sha256` (upload bytes are in the dump, decision 158); removes own backups older than `KEEP_DAYS` (14). Copy `backups/` off the host afterwards (e.g. `restic backup backups/` or `rsync` to the storage box; encrypted, 30 days). `.env` is backed up separately (password manager), never with the dumps.
 
 ### 7.2 Restore
 1. `./verify-backup.sh backups/<name>.dump` — checksums, restore into a throwaway `postgres:17`, row counts compared with `.counts`.
-2. `./restore.sh backups/<name>.dump --yes` — checksums, stops the app, drops and recreates the database, `pg_restore --exit-on-error`, restores uploads, starts the app and waits for readiness.
+2. `./restore.sh backups/<name>.dump --yes` — checksums, stops the app, drops and recreates the database, `pg_restore --exit-on-error` (uploads included), starts the app and waits for readiness.
 3. Check §6.1, log in, look at the newest data; note the restore in the incident log.
 
 `BackupRestoreIT` runs the same pg_dump / pg_restore flags on every build (full schema + seed data, equal row counts, per-table content checksums and sequence positions). The script set is shellcheck-clean.
@@ -186,6 +187,7 @@ Admin UI → Operations → Integrations (`GET /api/admin/integrations`): state 
 The daily dump loses at most 24 h. For PITR enable WAL archiving on the `postgres` service (`command: postgres -c wal_level=replica -c archive_mode=on -c archive_command='test ! -f /archive/%f && cp %p /archive/%f'` plus an `archive` volume) and take a weekly base backup (`docker compose exec postgres pg_basebackup -U foodsharing -D /archive/base-$(date +%F) -Ft -z`). Recovery: stop the stack, replace `pgdata` with the base backup, create `recovery.signal`, set `restore_command='cp /archive/%f %p'` and `recovery_target_time='<UTC timestamp>'`, start postgres, verify, then start the app. Not enabled by default (decision 82).
 
 ### 7.4 Rehearsal (2026-10-29, local compose stack)
+Recorded before decision 158; the `uploads.tar.gz` lines are gone since uploads live in the dump.
 
 ```text
 $ # COMPOSE_PROJECT_NAME=foodsharing-smoke COMPOSE_FILE=compose.yaml:compose.local.yaml COMPOSE_ENV_FILES=.env.local (stack from smoke.sh --keep)

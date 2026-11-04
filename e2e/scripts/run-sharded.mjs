@@ -209,8 +209,6 @@ async function startJar(jar, slot, env) {
       jar,
       '--spring.profiles.active=e2e',
       `--server.port=${port}`,
-      // see global-setup.ts: parallel jars must not share app.uploads.dir
-      `--app.uploads.dir=${path.join(dir, 'uploads')}`,
     ],
     { cwd: SERVER_DIR, env: { ...env, E2E_PORT: String(port) }, stdio: ['ignore', log, log] },
   );

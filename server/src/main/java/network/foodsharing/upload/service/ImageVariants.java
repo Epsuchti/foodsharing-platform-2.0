@@ -80,6 +80,28 @@ public class ImageVariants {
         return Optional.of(new Rendered(source.getWidth(), source.getHeight(), variants));
     }
 
+    /** Width and height from the image header (nothing decoded); empty for non-images and unreadable bytes. */
+    public Optional<int[]> dimensions(String mimeType, byte[] bytes) {
+        if (mimeType == null || !IMAGE_TYPES.contains(mimeType)) {
+            return Optional.empty();
+        }
+        try (javax.imageio.stream.ImageInputStream in = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            java.util.Iterator<javax.imageio.ImageReader> readers = ImageIO.getImageReaders(in);
+            if (!readers.hasNext()) {
+                return Optional.empty();
+            }
+            javax.imageio.ImageReader reader = readers.next();
+            try {
+                reader.setInput(in);
+                return Optional.of(new int[] {reader.getWidth(0), reader.getHeight(0)});
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException | RuntimeException unreadable) {
+            return Optional.empty();
+        }
+    }
+
     static BufferedImage scale(BufferedImage source, int longestEdge) {
         int width = source.getWidth();
         int height = source.getHeight();

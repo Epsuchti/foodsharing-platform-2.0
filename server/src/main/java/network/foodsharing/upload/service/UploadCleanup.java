@@ -4,7 +4,10 @@ import java.time.Instant;
 import network.foodsharing.common.jobs.CleanupTask;
 import org.springframework.stereotype.Component;
 
-/** Deletes uploads that were never claimed within {@code app.uploads.unclaimed-ttl-hours} (A34). */
+/**
+ * Deletes uploads that were never claimed within {@code app.uploads.unclaimed-ttl-hours} (A34) and claimed uploads
+ * whose owning object is gone; their bytes go with the row (decision 158).
+ */
 @Component
 public class UploadCleanup implements CleanupTask {
 
@@ -21,6 +24,6 @@ public class UploadCleanup implements CleanupTask {
 
     @Override
     public int cleanup(Instant now) {
-        return uploads.deleteExpired(now) + uploads.deleteOrphanVariants(now) + uploads.deleteOwnerless();
+        return uploads.deleteExpired(now) + uploads.deleteOwnerless();
     }
 }

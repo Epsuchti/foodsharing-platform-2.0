@@ -30,6 +30,14 @@ public class ImageVariantsTest {
     }
 
     @Test
+    void dimensionsFromTheHeader() throws IOException {
+        assertThat(variants.dimensions("image/png", image(30, 20, "png"))).hasValueSatisfying(size ->
+                assertThat(size).containsExactly(30, 20));
+        assertThat(variants.dimensions("image/png", "not an image".getBytes())).isEmpty();
+        assertThat(variants.dimensions("application/pdf", image(30, 20, "png"))).isEmpty();
+    }
+
+    @Test
     void rendersThreeJpegSizesKeepingTheAspectRatio() throws IOException {
         var rendered = variants.render("image/png", image(2000, 1000, "png")).orElseThrow();
         assertThat(rendered.width()).isEqualTo(2000);

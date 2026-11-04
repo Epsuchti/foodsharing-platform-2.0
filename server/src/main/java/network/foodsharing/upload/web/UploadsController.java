@@ -44,25 +44,63 @@ public class UploadsController implements UploadsApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(toApi(saved));
     }
 
+    /** Public uploads (A41): browsers and proxies keep them for a week; content per URL never changes. */
+    static final String CACHE_PUBLIC = "public, max-age=604800, immutable";
+    /** Everything else: only the browser keeps it and revalidates (ETag) on every use. */
+    static final String CACHE_PRIVATE = "private, no-cache";
+
     @Override
-    public ResponseEntity<Resource> downloadUpload(UUID uploadId, String size) {
+    public ResponseEntity<Resource> downloadUpload(UUID uploadId, String size, String ifNoneMatch) {
         UUID userId = currentActor.currentUserId().orElse(null);
         if (userId == null && !uploads.find(uploadId).isPublicReadable()) {
             throw ApiException.unauthenticated();
         }
         Upload upload = uploads.requireReadable(userId, userId != null && currentActor.isOrga(), uploadId);
         UploadService.Download download = uploads.open(upload, size);
-        var response = ResponseEntity.ok();
-        if (upload.isPublicReadable()) {
-            response.header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400");
+        String etag = etag(download.sha256());
+        String cacheControl = cacheControl(upload.isPublicReadable());
+        if (notModified(ifNoneMatch, etag)) { // nothing of the blob is read
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag)
+                    .header(HttpHeaders.CACHE_CONTROL, cacheControl).build();
         }
-        return response
+        return ResponseEntity.ok()
+                .eTag(etag)
+                .header(HttpHeaders.CACHE_CONTROL, cacheControl)
                 .contentType(MediaType.parseMediaType(download.mimeType()))
                 .contentLength(download.size())
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                         .filename(upload.getFileName(), java.nio.charset.StandardCharsets.UTF_8).build().toString())
                 .header("X-Content-Type-Options", "nosniff")
                 .body(new InputStreamResource(download.stream()));
+    }
+
+    /** Strong ETag of a blob: its quoted sha256 (decision 158). */
+    static String etag(String sha256) {
+        return "\"" + sha256 + "\"";
+    }
+
+    static String cacheControl(boolean publicReadable) {
+        return publicReadable ? CACHE_PUBLIC : CACHE_PRIVATE;
+    }
+
+    /** Whether {@code If-None-Match} (a list, {@code *} or weak tags) matches {@code etag} (RFC 9110 weak comparison). */
+    static boolean notModified(String ifNoneMatch, String etag) {
+        if (ifNoneMatch == null || ifNoneMatch.isBlank()) {
+            return false;
+        }
+        for (String candidate : ifNoneMatch.split(",")) {
+            String tag = candidate.strip();
+            if (tag.equals("*")) {
+                return true;
+            }
+            if (tag.startsWith("W/")) {
+                tag = tag.substring(2);
+            }
+            if (tag.equals(etag)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

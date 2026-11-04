@@ -1,5 +1,5 @@
 # Production image (D19.1). Built by server/deploy/release.sh (buildx, linux/amd64 + linux/arm64) and the CI
-# release job from the packaged jar (Angular client included): non-root, read-only friendly, data under /data.
+# release job from the packaged jar (Angular client included): non-root, read-only friendly; no volume (uploads live in the database, decision 158).
 FROM eclipse-temurin:21-jre
 
 ARG APP_VERSION=unknown
@@ -9,8 +9,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --home-dir /app --shell /usr/sbin/nologin app \
-    && mkdir -p /app /data/uploads \
-    && chown -R app:app /data
+    && mkdir -p /app
 
 WORKDIR /app
 
@@ -21,12 +20,10 @@ COPY --chown=root:root deploy/version.txt /app/version.txt
 ENV SPRING_PROFILES_ACTIVE=prod \
     APP_VERSION=${APP_VERSION} \
     APP_VERSION_FILE=/app/version.txt \
-    UPLOADS_DIR=/data/uploads \
     MANAGEMENT_PORT=9090 \
     JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/urandom -Dfile.encoding=UTF-8"
 
 USER app:app
-VOLUME ["/data"]
 # 8080: application (behind the reverse proxy); 9090: health + Prometheus (internal network only)
 EXPOSE 8080 9090
 

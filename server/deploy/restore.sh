@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Restores a backup into the running compose stack (D19.2, runbook §7). DESTRUCTIVE: replaces the database and the
-# uploads. Verify the backup first (verify-backup.sh) and take a fresh backup of the current state if it matters.
+# Restores a backup into the running compose stack (D19.2, runbook §7). DESTRUCTIVE: replaces the database (uploads
+# included, decision 158). Verify the backup first (verify-backup.sh) and take a fresh backup of the current state if
+# it matters.
 #
 #   restore.sh backups/foodsharing-20261029T021500Z.dump --yes
 #
-# Steps: checksums → stop app → drop + recreate the database → pg_restore → uploads (if the archive exists) →
-# start app → wait for readiness. Uses the compose project of server/deploy (COMPOSE_* variables as in backup.sh).
+# Steps: checksums → stop app → drop + recreate the database → pg_restore → start app → wait for readiness. Uses the
+# compose project of server/deploy (COMPOSE_* variables as in backup.sh).
 set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,7 +18,6 @@ DIR="$(dirname "${DUMP}")"
 NAME="$(basename "${DUMP}" .dump)"
 DB_USER="${DB_USER:-foodsharing}"
 DB_NAME="${DB_NAME:-foodsharing}"
-UPLOADS="${DIR}/${NAME}.uploads.tar.gz"
 
 sha256() { if command -v sha256sum > /dev/null; then sha256sum "$@"; else shasum -a 256 "$@"; fi; }
 
@@ -34,12 +34,6 @@ docker compose exec -T postgres psql -U "${DB_USER}" -d postgres -v ON_ERROR_STO
   -c "DROP DATABASE IF EXISTS ${DB_NAME} WITH (FORCE)" -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
 docker compose exec -T postgres pg_restore -U "${DB_USER}" -d "${DB_NAME}" --no-owner --no-privileges \
   --exit-on-error < "${DUMP}"
-
-if [[ -f "${UPLOADS}" ]]; then
-  echo "==> Restoring uploads"
-  docker compose run --rm --no-deps -T --entrypoint sh app -c 'rm -rf /data/uploads && tar -C /data -xzf -' \
-    < "${UPLOADS}"
-fi
 
 echo "==> Starting app"
 docker compose start app

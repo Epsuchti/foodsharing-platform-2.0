@@ -1,0 +1,54 @@
+# Uploads in PostgreSQL (C10, decision 158): the bytes of every upload (original and sm/md/lg variants) live in
+# upload_blob + upload_blob_chunk (1 MiB per chunk row) and go with the upload row (ON DELETE CASCADE).
+# BYTEA is allowed for binary content only, in exactly this column (BINARY VARYING on H2, never BLOB).
+databaseChangeLog:
+  - changeSet:
+      id: 186-1
+      author: platform
+      comment: 'Upload bytes per (upload, variant): orig|sm|md|lg with mime type, size, sha256 (ETag) and chunk count.'
+      changes:
+        - createTable:
+            tableName: upload_blob
+            columns:
+              - column: {name: upload_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_upload_blob_upload_id, references: upload(id), deleteCascade: true}}
+              - column: {name: variant, type: VARCHAR(8), constraints: {nullable: false}}
+              - column: {name: mime_type, type: VARCHAR(120), constraints: {nullable: false}}
+              - column: {name: size, type: BIGINT, constraints: {nullable: false}}
+              - column: {name: sha256, type: VARCHAR(64), constraints: {nullable: false}}
+              - column: {name: chunk_count, type: INT, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+        - addPrimaryKey:
+            tableName: upload_blob
+            columnNames: upload_id, variant
+            constraintName: pk_upload_blob
+  - changeSet:
+      id: 186-2
+      author: platform
+      comment: 'Chunks of an upload_blob (1 MiB each, chunk_no from 0).'
+      changes:
+        - createTable:
+            tableName: upload_blob_chunk
+            columns:
+              - column: {name: upload_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: variant, type: VARCHAR(8), constraints: {nullable: false}}
+              - column: {name: chunk_no, type: INT, constraints: {nullable: false}}
+              - column: {name: bytes, type: BYTEA, constraints: {nullable: false}}
+        - addPrimaryKey:
+            tableName: upload_blob_chunk
+            columnNames: upload_id, variant, chunk_no
+            constraintName: pk_upload_blob_chunk
+        - addForeignKeyConstraint:
+            baseTableName: upload_blob_chunk
+            baseColumnNames: upload_id, variant
+            constraintName: fk_upload_blob_chunk_blob
+            referencedTableName: upload_blob
+            referencedColumnNames: upload_id, variant
+            onDelete: CASCADE
+  - changeSet:
+      id: 186-3
+      author: platform
+      dbms: postgresql
+      comment: 'Chunks out of line without compression (JPEG/PNG/PDF do not compress; saves CPU).'
+      changes:
+        - sql:
+            sql: ALTER TABLE upload_blob_chunk ALTER COLUMN bytes SET STORAGE EXTERNAL

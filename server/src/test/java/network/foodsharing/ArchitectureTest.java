@@ -63,6 +63,7 @@ class ArchitectureTest {
     void rule7EntitiesArePortable() {
         ArchitectureRules.ENTITIES_EXTEND_BASE_ENTITY.check(classes);
         ArchitectureRules.ENTITY_FIELDS_ARE_PORTABLE.check(classes);
+        ArchitectureRules.ENTITIES_HAVE_NO_BYTE_ARRAYS.check(classes);
     }
 
     @Test

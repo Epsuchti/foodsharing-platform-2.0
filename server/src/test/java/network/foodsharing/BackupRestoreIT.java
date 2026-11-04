@@ -23,7 +23,7 @@ import org.testcontainers.utility.MountableFile;
  * D19.2: the backup procedure of {@code server/deploy/backup.sh} / {@code restore.sh} (pg_dump custom format,
  * {@code --no-owner --no-privileges}, pg_restore {@code --exit-on-error}) round-trips the full schema with the seed
  * data from container A into an empty container B: same tables, same row counts ({@code deploy/lib/table-counts.sql}),
- * same content checksum per table, same sequence positions.
+ * same content checksum per table, same sequence positions; upload bytes (decision 158) come back byte-identical.
  */
 @SpringBootTest(properties = {"spring.liquibase.contexts=schema,seed", "app.scheduling.enabled=false"})
 @ActiveProfiles("test")
@@ -55,8 +55,22 @@ class BackupRestoreIT {
     @TempDir
     Path tmp;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private network.foodsharing.upload.repository.UploadBlobRepository blobs;
+
+    /** A seeded upload row (docs/seed-ids.md module 0040). */
+    private static final java.util.UUID SEED_UPLOAD = java.util.UUID.fromString("00000040-0001-4000-8000-000000000101");
+
+    private static final String BLOB_SHA_SQL = "SELECT 'blob|' || encode(sha256(string_agg(bytes, ''::bytea "
+            + "ORDER BY chunk_no)), 'hex') FROM upload_blob_chunk WHERE upload_id = '" + SEED_UPLOAD + "' "
+            + "AND variant = 'orig';";
+
     @Test
     void dumpOfAFullDatabaseRestoresIdenticallyIntoAnEmptyOne() throws Exception {
+        byte[] bytes = new byte[2 * 1024 * 1024 + 17]; // three chunks
+        new java.util.Random(158).nextBytes(bytes);
+        String sha = blobs.insert(SEED_UPLOAD, "orig", "image/png", new java.io.ByteArrayInputStream(bytes),
+                java.time.Instant.parse("2026-11-04T08:00:00Z")).sha256();
         ExecResult dump = SOURCE.execInContainer("pg_dump", "-U", SOURCE.getUsername(), "-d", SOURCE.getDatabaseName(),
                 "--format=custom", "--no-owner", "--no-privileges", "-f", "/tmp/backup.dump");
         assertThat(dump.getExitCode()).as(dump.getStderr()).isZero();
@@ -80,6 +94,7 @@ class BackupRestoreIT {
                 .isNotEqualTo("user_account|0");
 
         assertThat(psql(TARGET, CHECKSUMS_SQL)).isEqualTo(psql(SOURCE, CHECKSUMS_SQL));
+        assertThat(psql(TARGET, BLOB_SHA_SQL)).containsExactly("blob|" + sha);
     }
 
     private static List<String> psql(PostgreSQLContainer container, String sql) throws Exception {

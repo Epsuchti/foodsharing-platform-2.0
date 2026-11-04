@@ -137,19 +137,16 @@ else
   LOGS=()
   for ((shard = 1; shard <= SHARDS; shard++)); do
     port="${E2E_PORT:-$(free_port)}"
-    extra=()
     if ((SHARDS == 1)); then
       log="${E2E_DIR}/test-results/server-screenshots.log"
     else
       log="${E2E_DIR}/test-results/server-screenshots-${shard}.log"
-      # Own upload folder per jar (relative to server/, the jar's working directory), see global-setup.ts.
-      extra=("--app.uploads.dir=../e2e/test-results/instances/screenshots-${shard}/uploads")
       rm -rf "${E2E_DIR}/test-results/instances/screenshots-${shard}"
     fi
     echo "[screenshots] starting $(basename "${JAR}") on port ${port} (log: ${log})"
     # shellcheck disable=SC2086 # E2E_JAVA_OPTS is a list of JVM options
     (cd "${SERVER_DIR}" && E2E_PORT="${port}" exec java ${E2E_JAVA_OPTS:-} -jar "${JAR}" \
-        --spring.profiles.active=e2e --server.port="${port}" --server.address=0.0.0.0 ${extra[@]+"${extra[@]}"}) \
+        --spring.profiles.active=e2e --server.port="${port}" --server.address=0.0.0.0) \
         >"${log}" 2>&1 &
     APP_PIDS+=("$!")
     PORTS+=("${port}")

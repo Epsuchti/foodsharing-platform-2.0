@@ -438,7 +438,10 @@ public class AppProperties {
     @Getter
     @Setter
     public static class Uploads {
-        private String dir = "./data/uploads";
+        /**
+         * One-time import (decision 158): directory of the old upload files ({@code /data/uploads}); empty = off.
+         */
+        private String importDir = "";
         private int maxSizeMb = 20;
         private List<String> allowedTypes = new ArrayList<>();
         private int unclaimedTtlHours = 24;

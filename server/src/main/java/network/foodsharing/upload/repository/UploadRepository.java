@@ -32,7 +32,7 @@ public interface UploadRepository extends JpaRepository<Upload, UUID> {
 
     List<Upload> findByOwnerUserIdOrderByCreatedAtAscIdAsc(java.util.UUID ownerUserId);
 
-    boolean existsByStorageKey(String storageKey);
+    java.util.Optional<Upload> findByStorageKey(String storageKey);
 
     List<Upload> findByUsageCountAndExpiresAtBefore(int usageCount, Instant now);
 }

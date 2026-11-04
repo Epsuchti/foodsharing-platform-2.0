@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Minimal uploads (A34): size and mime-type limits, owner-only until claimed by a module, expiry of unclaimed files.
@@ -91,18 +89,16 @@ public class UploadService {
         upload.setSha256(sha256(file.bytes()));
         upload.setStorageKey(KEY_PREFIX.format(now) + "/" + UUID.randomUUID());
         upload.setExpiresAt(now.plus(Duration.ofHours(properties.getUploads().getUnclaimedTtlHours())));
-        try {
-            storage.write(upload.getStorageKey(), file.bytes());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        writeVariants(upload, file.bytes());
-        Upload saved = repository.save(upload);
-        deleteBytesOnRollback(saved.getStorageKey());
-        if (saved.isVariants()) {
-            images.sizeNames().forEach(size ->
-                    deleteBytesOnRollback(ImageVariants.variantKey(saved.getStorageKey(), size)));
-        }
+        java.util.Optional<ImageVariants.Rendered> rendered = images.render(mimeType, file.bytes());
+        rendered.ifPresent(image -> {
+            upload.setWidth(image.width());
+            upload.setHeight(image.height());
+            upload.setVariants(true);
+        });
+        // the blobs reference the row: flush it first; bytes and row commit or roll back together (decision 158)
+        Upload saved = repository.saveAndFlush(upload);
+        write(saved.getId(), UploadStorage.ORIGINAL, mimeType, file.bytes());
+        rendered.ifPresent(image -> writeVariants(saved.getId(), image));
         history.record(history.event(UploadAction.UPLOADED, saved.getId())
                 .metadata(Map.of("mimeType", mimeType, "size", saved.getSize())).build());
         return saved;
@@ -158,49 +154,111 @@ public class UploadService {
         return upload;
     }
 
-    /** A variant ({@code sm|md|lg}) when rendered, else the original. @throws ApiException 400 unknown size */
+    /**
+     * A variant ({@code sm|md|lg}) when rendered, else the original. The stream reads nothing until used, so a
+     * conditional GET answers 304 from {@link Download#sha256()} alone. @throws ApiException 400 unknown size
+     */
     public Download open(Upload upload, String size) {
         if (size != null && !images.isSize(size)) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
         }
         if (size != null && upload.isVariants()) {
-            try (InputStream in = storage.open(ImageVariants.variantKey(upload.getStorageKey(), size))) {
-                byte[] bytes = in.readAllBytes();
-                return new Download(ImageVariants.VARIANT_MIME_TYPE, bytes.length,
-                        new java.io.ByteArrayInputStream(bytes));
-            } catch (IOException missingVariant) {
-                LOG.warn("Variant {} of upload {} is missing; serving the original", size, upload.getId());
+            java.util.Optional<UploadStorage.StoredBlob> variant = storage.open(upload.getId(), size);
+            if (variant.isPresent()) {
+                UploadStorage.StoredBlob blob = variant.get();
+                return new Download(blob.mimeType(), blob.size(), blob.sha256(), blob.stream());
             }
+            LOG.warn("Variant {} of upload {} is missing; serving the original", size, upload.getId());
         }
-        return new Download(upload.getMimeType(), upload.getSize(), open(upload));
+        UploadStorage.StoredBlob original = storage.open(upload.getId(), UploadStorage.ORIGINAL)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.UPLOAD_NOT_FOUND));
+        return new Download(upload.getMimeType(), original.size(), original.sha256(), original.stream());
     }
 
-    /** Bytes to send: content type, length and stream. */
-    public record Download(String mimeType, long size, InputStream stream) {
+    /** Bytes to send: content type, length, sha256 of exactly these bytes (the ETag) and stream. */
+    public record Download(String mimeType, long size, String sha256, InputStream stream) {
     }
 
     /**
-     * Renders missing variants of image uploads whose bytes exist (seeded uploads, uploads from before A41); called by
-     * {@link UploadSeedFiles} at startup.
+     * Renders missing variants of image uploads whose bytes exist (seeded uploads, imported uploads); called by
+     * {@link UploadSeedFiles} at startup and after a seed reset.
      */
     @Transactional
     @NoHistory(reason = "derived files of existing uploads; nothing user-visible changes")
     public int renderMissingVariants() {
         int rendered = 0;
         for (Upload upload : repository.findByVariantsFalseAndMimeTypeIn(ImageVariants.IMAGE_TYPES)) {
-            if (variantsStored(upload)) { // e.g. seeded rows re-inserted by a seed reset: the files are still there
+            if (variantsStored(upload.getId())) { // e.g. written for the same row before
                 upload.setVariants(true);
                 rendered++;
                 continue;
             }
-            try (InputStream in = storage.open(upload.getStorageKey())) {
-                writeVariants(upload, in.readAllBytes());
-                rendered += upload.isVariants() ? 1 : 0;
-            } catch (IOException missing) {
+            java.util.Optional<UploadStorage.StoredBlob> original = storage.open(upload.getId(), UploadStorage.ORIGINAL);
+            if (original.isEmpty()) {
                 LOG.debug("Upload {} has no bytes yet", upload.getId());
+                continue;
+            }
+            try (InputStream in = original.get().stream()) {
+                rendered += renderVariants(upload, in.readAllBytes()).isEmpty() ? 0 : 1;
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
         return rendered;
+    }
+
+    /**
+     * Writes the original bytes of an existing upload row (seed files, disk import) and its variants: the given ones
+     * when all sizes are there, else rendered from the original.
+     *
+     * @return the variants now stored (empty for non-images)
+     */
+    @Transactional
+    @NoHistory(reason = "moves bytes of existing uploads; nothing user-visible changes")
+    public Map<String, byte[]> restoreBytes(UUID uploadId, byte[] original, Map<String, byte[]> variants) {
+        Upload upload = find(uploadId);
+        write(uploadId, UploadStorage.ORIGINAL, upload.getMimeType(), original);
+        if (ImageVariants.IMAGE_TYPES.contains(upload.getMimeType())
+                && variants.keySet().containsAll(images.sizeNames())) {
+            images.sizeNames().forEach(size -> write(uploadId, size, ImageVariants.VARIANT_MIME_TYPE, variants.get(size)));
+            if (upload.getWidth() == null) {
+                images.dimensions(upload.getMimeType(), original).ifPresent(size -> {
+                    upload.setWidth(size[0]);
+                    upload.setHeight(size[1]);
+                });
+            }
+            upload.setVariants(true);
+            return variants;
+        }
+        upload.setVariants(false);
+        return renderVariants(upload, original);
+    }
+
+    /** sha256 of the stored original bytes, empty when none are stored. */
+    public java.util.Optional<String> storedSha256(UUID uploadId) {
+        return storage.open(uploadId, UploadStorage.ORIGINAL).map(UploadStorage.StoredBlob::sha256);
+    }
+
+    /** The upload stored under {@code storageKey} (seeded rows {@code seed/<file>}, legacy disk paths). */
+    @Transactional(readOnly = true)
+    public java.util.Optional<Upload> findByStorageKey(String storageKey) {
+        return repository.findByStorageKey(storageKey);
+    }
+
+    /**
+     * Renders and stores the variants of an image upload and sets width, height and {@code variants}.
+     *
+     * @return the stored variants; empty for non-images and unreadable images
+     */
+    private Map<String, byte[]> renderVariants(Upload upload, byte[] bytes) {
+        java.util.Optional<ImageVariants.Rendered> rendered = images.render(upload.getMimeType(), bytes);
+        rendered.ifPresent(image -> {
+            writeVariants(upload.getId(), image);
+            upload.setWidth(image.width());
+            upload.setHeight(image.height());
+            upload.setVariants(true);
+        });
+        return rendered.map(ImageVariants.Rendered::variants).orElse(Map.of());
     }
 
     /** Names of the image variants ({@code sm|md|lg}). */
@@ -208,39 +266,29 @@ public class UploadService {
         return images.sizeNames();
     }
 
-    private boolean variantsStored(Upload upload) {
-        for (String size : images.sizeNames()) {
-            try (InputStream ignored = storage.open(ImageVariants.variantKey(upload.getStorageKey(), size))) {
-                // present
-            } catch (IOException missing) {
-                return false;
-            }
+    /** Whether every image variant of the upload is stored. */
+    private boolean variantsStored(UUID uploadId) {
+        return images.sizeNames().stream().allMatch(size -> storage.exists(uploadId, size));
+    }
+
+    private void writeVariants(UUID uploadId, ImageVariants.Rendered rendered) {
+        for (Map.Entry<String, byte[]> variant : rendered.variants().entrySet()) {
+            write(uploadId, variant.getKey(), ImageVariants.VARIANT_MIME_TYPE, variant.getValue());
         }
-        return true;
     }
 
-    private void writeVariants(Upload upload, byte[] bytes) {
-        images.render(upload.getMimeType(), bytes).ifPresent(rendered -> {
-            try {
-                for (Map.Entry<String, byte[]> variant : rendered.variants().entrySet()) {
-                    storage.write(ImageVariants.variantKey(upload.getStorageKey(), variant.getKey()),
-                            variant.getValue());
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-            upload.setWidth(rendered.width());
-            upload.setHeight(rendered.height());
-            upload.setVariants(true);
-        });
-    }
-
-    public InputStream open(Upload upload) {
+    private void write(UUID uploadId, String variant, String mimeType, byte[] bytes) {
         try {
-            return storage.open(upload.getStorageKey());
+            storage.write(uploadId, variant, mimeType, new java.io.ByteArrayInputStream(bytes));
         } catch (IOException e) {
-            throw ApiException.notFound(ApiErrorCode.UPLOAD_NOT_FOUND);
+            throw new UncheckedIOException(e);
         }
+    }
+
+    /** The original bytes. @throws ApiException 404 when none are stored */
+    public InputStream open(Upload upload) {
+        return storage.open(upload.getId(), UploadStorage.ORIGINAL).map(UploadStorage.StoredBlob::stream)
+                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.UPLOAD_NOT_FOUND));
     }
 
     /** Original file names of {@code uploadIds} (missing uploads are left out); one query. */
@@ -271,15 +319,13 @@ public class UploadService {
         delete(upload);
     }
 
-    /** Deletes an upload regardless of its usage (the owning module removes its object, e.g. a mail in TRASH). */
+    /**
+     * Deletes an upload regardless of its usage (the owning module removes its object, e.g. a mail in TRASH); its
+     * blobs go with the row ({@code ON DELETE CASCADE}).
+     */
     @Transactional
     public void delete(Upload upload) {
         repository.delete(upload);
-        deleteBytesAfterCommit(upload.getStorageKey());
-        if (upload.isVariants()) {
-            images.sizeNames().forEach(size ->
-                    deleteBytesAfterCommit(ImageVariants.variantKey(upload.getStorageKey(), size)));
-        }
         history.record(history.event(UploadAction.DELETED, upload.getId()).build());
     }
 
@@ -345,34 +391,6 @@ public class UploadService {
         return expired.size();
     }
 
-    /**
-     * Removes variant files ({@code <storage_key>_<size>}) whose upload row is gone (A41, UploadCleanup); files younger
-     * than an hour are left alone so a variant written before its row commits is never removed.
-     */
-    @Transactional(readOnly = true)
-    public int deleteOrphanVariants(Instant now) {
-        List<UploadStorage.StoredFile> files;
-        try {
-            files = storage.list();
-        } catch (IOException | UncheckedIOException e) {
-            LOG.warn("Could not list upload files: {}", e.getMessage());
-            return 0;
-        }
-        Instant cutoff = now.minus(Duration.ofHours(1));
-        int deleted = 0;
-        for (UploadStorage.StoredFile file : files) {
-            int underscore = file.key().lastIndexOf('_');
-            if (underscore < 0 || !images.isSize(file.key().substring(underscore + 1))
-                    || !file.modifiedAt().isBefore(cutoff)
-                    || repository.existsByStorageKey(file.key().substring(0, underscore))) {
-                continue;
-            }
-            deleteQuietly(file.key());
-            deleted++;
-        }
-        return deleted;
-    }
-
     public boolean isAllowed(String mimeType) {
         return properties.getUploads().getAllowedTypes().stream()
                 .anyMatch(allowed -> allowed.trim().equalsIgnoreCase(mimeType));
@@ -428,40 +446,6 @@ public class UploadService {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
-        }
-    }
-
-    private void deleteBytesOnRollback(String key) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCompletion(int status) {
-                    if (status == STATUS_ROLLED_BACK) {
-                        deleteQuietly(key);
-                    }
-                }
-            });
-        }
-    }
-
-    private void deleteBytesAfterCommit(String key) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    deleteQuietly(key);
-                }
-            });
-        } else {
-            deleteQuietly(key);
-        }
-    }
-
-    private void deleteQuietly(String key) {
-        try {
-            storage.delete(key);
-        } catch (IOException | RuntimeException e) {
-            LOG.warn("Could not delete upload bytes {}: {}", key, e.getMessage());
         }
     }
 }

@@ -60,11 +60,6 @@ while IFS='|' read -r table expected; do
   fi
 done < "${DIR}/${NAME}.counts"
 
-if [[ -f "${DIR}/${NAME}.uploads.tar.gz" ]]; then
-  FILES="$(tar -tzf "${DIR}/${NAME}.uploads.tar.gz" | grep -vc '/$' || true)"
-  echo "uploads archive readable (${FILES} files)"
-fi
-
 TABLES="$(wc -l < "${WORK}/restored.counts" | tr -d ' ')"
 ROWS="$(awk -F'|' '{s += $2} END {print s + 0}' "${WORK}/restored.counts")"
 CHANGESETS="$(grep '^databasechangelog|' "${WORK}/restored.counts" | cut -d'|' -f2)"

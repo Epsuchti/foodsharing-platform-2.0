@@ -34,7 +34,7 @@ Review against plan §10.1 ("pickup sign-ups kept 2 years, personal data changes
 | `push_subscription` | until `app.push.max-failures` deliveries failed | `NotificationCleanup` |
 | `bell` | 90 days after read, 30 days after deleted | `NotificationCleanup` |
 | `mail_outbox` | 90 days after sending | `NotificationCleanup` |
-| `upload` | unclaimed uploads after expiry; claimed ones with their content | `UploadCleanup` |
+| `upload` | unclaimed uploads after expiry; claimed ones with their content; the bytes (`upload_blob`, `upload_blob_chunk`) go with the row (`ON DELETE CASCADE`, decision 158) | `UploadCleanup` |
 | `user_archive` | 2 years after the account deletion | `UserArchiveCleanup` |
 | `job_run` | 90 days (job results such as data export zips with their expiry) | `CleanupJob` |
 | `pickup_policy_audit`, `request_policy_audit`, `open_slot_advert_audit` | `app.automation.audit-retention-days` (7), then anonymous daily counts | `AuditRetentionJob` |

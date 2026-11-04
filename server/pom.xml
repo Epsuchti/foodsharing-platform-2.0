@@ -473,15 +473,12 @@
                     <excludes>
                         <exclude>**/*IT.java</exclude>
                     </excludes>
-                    <!-- A60: one JVM per fork (own in-memory H2 databases and Spring context cache), reused for
-                         the next test class; files a test writes go to a directory of its own fork -->
+                    <!-- A60: one JVM per fork (own in-memory H2 databases, upload bytes included, and Spring
+                         context cache), reused for the next test class -->
                     <!-- the same JVM time zone as the app (FoodsharingApplication.JVM_TIME_ZONE) on every machine -->
                     <argLine>-Duser.timezone=UTC</argLine>
                     <forkCount>${test.forks}</forkCount>
                     <reuseForks>true</reuseForks>
-                    <systemPropertyVariables>
-                        <app.uploads.dir>${project.build.directory}/test-uploads/unit-${surefire.forkNumber}</app.uploads.dir>
-                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
@@ -493,9 +490,6 @@
                     <argLine>-Duser.timezone=UTC</argLine>
                     <forkCount>${it.forks}</forkCount>
                     <reuseForks>true</reuseForks>
-                    <systemPropertyVariables>
-                        <app.uploads.dir>${project.build.directory}/test-uploads/it-${surefire.forkNumber}</app.uploads.dir>
-                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
