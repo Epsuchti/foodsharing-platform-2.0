@@ -85,6 +85,7 @@
   "shared.historyTimeline.meta.accountDeleted": "Konto gelöscht",
   "shared.historyTimeline.meta.active": "Aktiv",
   "shared.historyTimeline.meta.admin": "Admin",
+  "shared.historyTimeline.meta.addedMembers": "Hinzugefügte Personen",
   "shared.historyTimeline.meta.advertNumber": "Inseratnummer",
   "shared.historyTimeline.meta.aliasKey": "Alias",
   "shared.historyTimeline.meta.applyType": "Bewerbungsart",

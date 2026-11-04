@@ -173,17 +173,18 @@ public class StoreTeamService {
 
     /** Views of the store's memberships with the given statuses (users loaded with the inviters). */
     private Rows rows(Store store, StorePermissionService.Rights r, Set<StoreMembershipStatus> statuses) {
-        List<StoreMembership> all = memberships.findByStoreId(store.getId()).stream()
-                .filter(m -> statuses.contains(m.getStatus())).toList();
+        List<StoreMembership> rowsOfStore = memberships.findByStoreId(store.getId());
+        List<StoreMembership> all = rowsOfStore.stream().filter(m -> statuses.contains(m.getStatus())).toList();
         Map<UUID, User> byId = users.findAll(all.stream().flatMap(m -> m.getInvitedBy() == null
                 ? java.util.stream.Stream.of(m.getUserId()) : java.util.stream.Stream.of(m.getUserId(),
                 m.getInvitedBy())).distinct().toList()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
         Map<UUID, StorePickupInfo.MemberStats> stats = pickupInfo.memberStats(store.getId());
         Map<UUID, Instant> hygiene = quizzes.hygieneValidUntil(all.stream().map(StoreMembership::getUserId).toList());
-        boolean coordinator = r.mayEditTeam() && currentActor.principal()
-                .map(p -> rights.mayCoordinateRegionStores(p, store.getRegionId())).orElse(false);
-        int managers = r.mayEditTeam() ? managerIds(store.getId()).size() : 0;
+        // computed once per request from what is already loaded (QueryCountIT budget): Rights.coordinate is
+        // mayCoordinateRegionStores, the manager count comes from the store's membership rows
+        boolean coordinator = r.coordinate();
+        int managers = (int) rowsOfStore.stream().filter(StoreTeamService::isActiveManager).count();
         List<TeamMemberView> views = new ArrayList<>();
         for (StoreMembership m : all) {
             User user = byId.get(m.getUserId());
@@ -672,9 +673,12 @@ public class StoreTeamService {
     }
 
     List<UUID> managerIds(UUID storeId) {
-        return memberships.findByStoreId(storeId).stream()
-                .filter(m -> m.isManager() && m.getStatus() == StoreMembershipStatus.MEMBER)
+        return memberships.findByStoreId(storeId).stream().filter(StoreTeamService::isActiveManager)
                 .map(StoreMembership::getUserId).toList();
+    }
+
+    private static boolean isActiveManager(StoreMembership m) {
+        return m.isManager() && m.getStatus() == StoreMembershipStatus.MEMBER;
     }
 
     private void log(StoreLogAction action, Store store, UUID userId, String reason) {

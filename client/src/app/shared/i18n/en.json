@@ -85,6 +85,7 @@
   "shared.historyTimeline.meta.accountDeleted": "Account deleted",
   "shared.historyTimeline.meta.active": "Active",
   "shared.historyTimeline.meta.admin": "Admin",
+  "shared.historyTimeline.meta.addedMembers": "People added",
   "shared.historyTimeline.meta.advertNumber": "Advert number",
   "shared.historyTimeline.meta.aliasKey": "Alias",
   "shared.historyTimeline.meta.applyType": "Application type",
