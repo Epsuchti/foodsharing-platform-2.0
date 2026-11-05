@@ -832,6 +832,7 @@ Derived from the public repo `gitlab.com/foodsharing-dev/foodsharing` (63 module
 | PU7 | Pickup options for user ("where can I help?", free slots in my stores) | `users/current/pickups/options` |
 | PU8 | User agenda for a date | `users/{id}/agenda/{date}` |
 | PU9 | Pickup reminders (disable per user) | `DISABLE_PICKUP_REMINDER` |
+| PU10 | Move one pickup (one-time or one regular occurrence) to another time of the same store; sign-ups move along and keep their confirmation, the people signed up are told (PICKUP_MOVED), linked EinAbs move along (decision 170) | new (no upstream) |
 
 ### 13.5 Messaging, notifications, Telegram
 
