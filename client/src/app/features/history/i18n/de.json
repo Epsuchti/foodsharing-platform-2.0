@@ -125,6 +125,7 @@
   "history.action.INTRO_PICKUP.SUBSCRIBED": "Benachrichtigungen abonniert",
   "history.action.INTRO_PICKUP.UNSUBSCRIBED": "Benachrichtigungen abbestellt",
   "history.action.INTRO_PICKUP.STORE_ALIAS_CHANGED": "Betriebszuordnung geändert",
+  "history.action.INTRO_PICKUP.AUTO_CANCELLED": "Automatisch abgesagt (Abholung entfällt)",
   "history.myActivity.preset.logins": "Nur Anmeldungen",
   "history.myActivity.preset.changes": "Nur Kontoänderungen",
   "history.myActivity.export": "Verlauf als CSV exportieren",

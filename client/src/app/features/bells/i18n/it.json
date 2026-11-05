@@ -12,6 +12,7 @@
   "bell.INTRO_PICKUP_DELETED_BY_ADMIN": "Un ritiro introduttivo è stato eliminato",
   "bell.INTRO_PICKUP_NEW_BOOKABLE": "Nuovi ritiri introduttivi disponibili",
   "bell.INTRO_PICKUP_SUBSCRIPTION_CONFIRMED": "Notifiche per le nuove date attivate",
+  "bell.INTRO_PICKUP_AUTO_CANCELLED": "Il tuo ritiro introduttivo presso {businessName} è stato annullato: non sei più iscritto/a al ritiro",
   "bell.INTRO_PICKUP_UPDATED": "Il tuo ritiro introduttivo è stato modificato",
   "bell.USER_VERIFIED": "Ora sei verificato/a",
   "bell.PASSPORT_CREATED": "La tua tessera è pronta",

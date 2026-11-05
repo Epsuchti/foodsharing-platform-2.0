@@ -20,6 +20,7 @@
   "pickups.signout.title": "Sign out?",
   "pickups.signout.text": "Please only sign out at short notice if there is no other way – the team relies on you.",
   "pickups.signout.confirm": "Sign out",
+  "pickups.signout.linkedIntroPickup": "This also cancels the linked intro pickup{count, plural, =0 {.} one {; # booked newcomer will be notified.} other {; # booked newcomers will be notified.}}",
   "pickups.signout.done": "Signed out.",
   "pickups.tab.range": "Period",
   "pickups.tab.range.twoWeeks": "Next 2 weeks",

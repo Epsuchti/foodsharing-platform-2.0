@@ -20,6 +20,7 @@
   "pickups.signout.title": "Annullare l’iscrizione?",
   "pickups.signout.text": "Annulla all’ultimo momento solo se necessario – il team conta su di te.",
   "pickups.signout.confirm": "Annulla iscrizione",
+  "pickups.signout.linkedIntroPickup": "Così viene annullato anche il ritiro introduttivo collegato{count, plural, =0 {.} one {; # nuova persona prenotata verrà avvisata.} other {; # nuove persone prenotate verranno avvisate.}}",
   "pickups.signout.done": "Iscrizione annullata.",
   "pickups.tab.range": "Periodo",
   "pickups.tab.range.twoWeeks": "Prossime 2 settimane",

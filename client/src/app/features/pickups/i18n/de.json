@@ -20,6 +20,7 @@
   "pickups.signout.title": "Austragen?",
   "pickups.signout.text": "Bitte trag dich nur kurzfristig aus, wenn es nicht anders geht – das Team ist auf dich angewiesen.",
   "pickups.signout.confirm": "Austragen",
+  "pickups.signout.linkedIntroPickup": "Damit wird auch die verknüpfte Einführungsabholung abgesagt{count, plural, =0 {.} one {; # gebuchter Neuling wird benachrichtigt.} other {; # gebuchte Neulinge werden benachrichtigt.}}",
   "pickups.signout.done": "Ausgetragen.",
   "pickups.tab.range": "Zeitraum",
   "pickups.tab.range.twoWeeks": "Nächste 2 Wochen",

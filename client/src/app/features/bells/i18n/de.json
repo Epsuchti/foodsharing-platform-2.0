@@ -12,6 +12,7 @@
   "bell.INTRO_PICKUP_DELETED_BY_ADMIN": "Eine Einführungsabholung wurde gelöscht",
   "bell.INTRO_PICKUP_NEW_BOOKABLE": "Neue Einführungsabholungen verfügbar",
   "bell.INTRO_PICKUP_SUBSCRIPTION_CONFIRMED": "Benachrichtigungen für neue Termine aktiviert",
+  "bell.INTRO_PICKUP_AUTO_CANCELLED": "Deine Einführungsabholung bei {businessName} wurde abgesagt: Du bist nicht mehr für die Abholung eingetragen",
   "bell.INTRO_PICKUP_UPDATED": "Deine Einführungsabholung wurde geändert",
   "bell.USER_VERIFIED": "Du bist jetzt verifiziert",
   "bell.PASSPORT_CREATED": "Dein Ausweis ist bereit",

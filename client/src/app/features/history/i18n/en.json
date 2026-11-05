@@ -125,6 +125,7 @@
   "history.action.INTRO_PICKUP.SUBSCRIBED": "Subscribed to notifications",
   "history.action.INTRO_PICKUP.UNSUBSCRIBED": "Unsubscribed from notifications",
   "history.action.INTRO_PICKUP.STORE_ALIAS_CHANGED": "Store mapping changed",
+  "history.action.INTRO_PICKUP.AUTO_CANCELLED": "Cancelled automatically (store pickup gone)",
   "history.myActivity.preset.logins": "Only logins",
   "history.myActivity.preset.changes": "Only account changes",
   "history.myActivity.export": "Export history as CSV",
