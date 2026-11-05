@@ -1,0 +1,14 @@
+Bonjour [(${displayName})],
+[# th:if="${shortNotice != null}"]
+Changement de dernière minute !
+[/]
+ta collecte d'initiation chez [(${businessName})] a été déplacée, car la collecte au commerce a été déplacée.
+
+Avant: [(${fromWhen})]
+Nouveau: [(${when})]
+
+Ta réservation reste valable. Si tu ne peux pas venir à la nouvelle heure, annule-la s’il te plaît.
+
+[(${link})]
+
+Ton équipe foodsharing

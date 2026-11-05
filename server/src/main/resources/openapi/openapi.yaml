@@ -574,6 +574,8 @@ paths:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups'
   /api/stores/{storeId}/pickups/{pickupAt}:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}'
+  /api/stores/{storeId}/pickups/{pickupAt}/move:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1move'
   /api/stores/{storeId}/pickups/{pickupAt}/eligibility:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1eligibility'
   /api/stores/{storeId}/pickups/{pickupAt}/signups:

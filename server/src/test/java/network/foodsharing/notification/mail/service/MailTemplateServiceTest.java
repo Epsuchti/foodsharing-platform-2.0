@@ -37,6 +37,29 @@ class MailTemplateServiceTest {
         assertThat(mail.textBody()).startsWith("Hallo,");
     }
 
+    @ParameterizedTest
+    @EnumSource(Language.class)
+    void movedPickupMailsRenderInEveryLanguageWithTheShortNoticeSubjectVariant(Language language) {
+        Map<String, Object> variables = new java.util.HashMap<>(Map.of("displayName", "Lea", "businessName", "Migros",
+                "storeName", "Migros", "fromWhen", "06.11.2026 18:30", "when", "08.11.2026 19:00",
+                "link", "https://foodsharing.test/me/intro-pickups"));
+        RenderedMail regular = service.render("intropickup/moved", language, variables);
+        variables.put("shortNotice", "true");
+        variables.put(MailTemplateService.SUBJECT_VARIANT, "short-notice");
+        RenderedMail urgent = service.render("intropickup/moved", language, variables);
+        RenderedMail store = service.render("pickup/moved", language, variables);
+
+        assertThat(regular.subject()).contains("08.11.2026 19:00").doesNotStartWith("mail.");
+        assertThat(urgent.subject()).contains("08.11.2026 19:00").isNotEqualTo(regular.subject());
+        assertThat(urgent.textBody()).contains("06.11.2026 18:30").contains("08.11.2026 19:00")
+                .hasSizeGreaterThan(regular.textBody().length()).doesNotContain("[(");
+        assertThat(store.subject()).contains("Migros").doesNotStartWith("mail.");
+        assertThat(store.textBody()).contains("06.11.2026 18:30").contains("08.11.2026 19:00").doesNotContain("[(");
+        // an unknown variant falls back to the plain subject
+        variables.put(MailTemplateService.SUBJECT_VARIANT, "nope");
+        assertThat(service.render("intropickup/moved", language, variables).subject()).isEqualTo(regular.subject());
+    }
+
     @Test
     void htmlVariablesAreEscaped() {
         RenderedMail mail = service.render("magic-link", Language.EN, variables("<b>Eve</b>"));

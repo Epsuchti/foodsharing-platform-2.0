@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+il ritiro presso [(${storeName})] del [(${fromWhen})] è stato spostato al [(${when})]. Sei ancora iscritto/a; se non puoi al nuovo orario, cancellati per favore.
+[# th:if="${message != null}"]
+Messaggio: [(${message})]
+[/]
+
+[(${link})]
+
+Il tuo team foodsharing

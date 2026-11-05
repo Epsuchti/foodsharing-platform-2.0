@@ -1,0 +1,14 @@
+Hi [(${displayName})],
+[# th:if="${shortNotice != null}"]
+Short notice change!
+[/]
+your intro pickup at [(${businessName})] was moved because the store pickup was moved.
+
+Before: [(${fromWhen})]
+New: [(${when})]
+
+Your booking stays. If you cannot make the new time, please cancel it.
+
+[(${link})]
+
+Your foodsharing team

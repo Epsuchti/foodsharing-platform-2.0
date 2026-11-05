@@ -35,6 +35,17 @@ class IntroPickupLinkSyncTest {
     }
 
     @Test
+    void aMovedPickupMovesTheEinAbsOfItsSignupsAlong() {
+        Instant to = AT.plusSeconds(86400);
+        List<UUID> moved = List.of(GUIDE, UUID.randomUUID());
+        sync.onMoved(new PickupEvents.PickupMovedEvent(STORE, AT, to, moved, UUID.randomUUID()));
+        verify(introPickups).moveLinked(moved, STORE, AT, to);
+
+        sync.onMoved(new PickupEvents.PickupMovedEvent(OTHER_STORE, AT, to, List.of(), GUIDE));
+        org.mockito.Mockito.verifyNoMoreInteractions(introPickups);
+    }
+
+    @Test
     void deletedSignupsCancelEachLinkedEinAb() {
         sync.onSignupsDeleted(new PickupEvents.PickupSignupsDeletedEvent(GUIDE, List.of(
                 new PickupEvents.DeletedSignup(STORE, AT), new PickupEvents.DeletedSignup(OTHER_STORE, AT)), GUIDE,
