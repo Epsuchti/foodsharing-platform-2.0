@@ -31,6 +31,8 @@ public enum NotificationType {
     INTRO_PICKUP_NEW_BOOKABLE(INTRO_PICKUPS, "calendar"),
     INTRO_PICKUP_SUBSCRIPTION_CONFIRMED(INTRO_PICKUPS, "calendar"),
     INTRO_PICKUP_UPDATED(INTRO_PICKUPS, "calendar"),
+    /** EA16: the guide's linked store pickup went away, so the EinAb was cancelled (to the guide). */
+    INTRO_PICKUP_AUTO_CANCELLED(INTRO_PICKUPS, "calendar-x"),
     /** Q4: someone of the region passed the EinAb guide quiz (to its ambassadors). */
     GUIDE_QUIZ_PASSED(INTRO_PICKUPS, "graduation-cap"),
     /** Q4 transition: a released guide must pass the EinAb guide quiz before the deadline. */

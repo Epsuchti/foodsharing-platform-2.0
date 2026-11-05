@@ -250,9 +250,6 @@ public class AppProperties {
         private int importMaxRows = 5000;
         private int gapHorizonDays = 30;
         private int stalledAfterDays = 30;
-        private List<String> icalAllowedHosts = new ArrayList<>(List.of("foodsharing.network", "foodsharing.de"));
-        /** local/e2e only: the iCal import may also read from {@code app.base-url} (dev iCal fixture, EA16). */
-        private boolean icalAllowOwnBaseUrl = false;
         /**
          * Q4 transition (decision 168): from this day (Europe/Zurich) guides without an EinAb guide quiz pass lose
          * CAN_GIVE_INTRO_PICKUPS; the final reminder goes out 14 days before.

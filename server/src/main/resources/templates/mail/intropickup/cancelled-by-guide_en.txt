@@ -1,6 +1,9 @@
 Hi [(${displayName})],
 
 the guide cancelled your booking for the intro pickup at [(${businessName})] on [(${when})]. You can book another intro pickup.
+[# th:if="${storePickupCancelled != null}"]
+Reason: The store pickup of this intro pickup was cancelled.
+[/]
 [# th:if="${reason != null}"]
 Reason: [(${reason})]
 [/]

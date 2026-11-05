@@ -20,6 +20,7 @@ import network.foodsharing.fsp.service.FspCleaningQueries;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.intropickup.service.IntroPickupBookingService;
 import network.foodsharing.intropickup.service.IntroPickupViews;
+import network.foodsharing.pickup.domain.PickupEvents;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.repository.PickupSignupRepository;
 import network.foodsharing.region.service.RegionService;
@@ -82,6 +83,7 @@ public class PickupUserService {
     private final network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots;
     private final network.foodsharing.config.AppProperties properties;
     private final FspCleaningQueries cleaning;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     public PickupUserService(PickupScheduleService schedule, PickupSignupRepository signups, StoreService stores,
                              StorePermissionService rights, PermissionService permissions, UserService users,
@@ -89,8 +91,10 @@ public class PickupUserService {
                              CurrentActorService currentActor, HistoryService history, Clock clock,
                              network.foodsharing.pickup.repository.PickupExtraSlotRepository extraSlots,
                              network.foodsharing.config.AppProperties properties,
-                             FspCleaningQueries cleaning) {
+                             FspCleaningQueries cleaning,
+                             org.springframework.context.ApplicationEventPublisher events) {
         this.cleaning = cleaning;
+        this.events = events;
         this.extraSlots = extraSlots;
         this.properties = properties;
         this.schedule = schedule;
@@ -199,6 +203,11 @@ public class PickupUserService {
         for (Store store : byId.values()) {
             history.record(history.event(StoreLogAction.ALL_FUTURE_PICKUPS_DELETED, store.getId())
                     .secondarySubject(userId).region(store.getRegionId()).reason(text).build());
+        }
+        if (!future.isEmpty()) {
+            events.publishEvent(new PickupEvents.PickupSignupsDeletedEvent(userId, future.stream()
+                    .map(s -> new PickupEvents.DeletedSignup(s.getStoreId(), s.getPickupAt())).toList(),
+                    actor.userId(), PickupEvents.SignupsDeletedReason.ALL_FUTURE_DELETED));
         }
         return future.size();
     }

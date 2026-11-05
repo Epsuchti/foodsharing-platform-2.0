@@ -112,6 +112,26 @@ public class IntroPickupNotifications {
                         .mail("intropickup/cancelled-by-guide").icon("calendar-x").build()));
     }
 
+    /**
+     * EA16: the guide's linked store pickup went away. Booked newcomers get INTRO_PICKUP_CANCELLED_BY_GUIDE with the
+     * fixed reason (mail flag {@code storePickupCancelled}), the guide INTRO_PICKUP_AUTO_CANCELLED.
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @NoHistory(reason = "every bell / mail records NOTIFICATION SENT / MAIL_QUEUED through the notification module")
+    public void onAutoCancelled(IntroPickupGuideService.IntroPickupAutoCancelled event) {
+        pickups.findById(event.introPickupId()).ifPresent(pickup -> {
+            if (!event.bookedUserIds().isEmpty()) {
+                notifications.notify(base(event.bookedUserIds(), NotificationType.INTRO_PICKUP_CANCELLED_BY_GUIDE,
+                        pickup).param("storePickupCancelled", "true").link("/intro-pickups")
+                        .mail("intropickup/cancelled-by-guide").icon("calendar-x").build());
+            }
+            notifications.notify(base(List.of(event.guideId()), NotificationType.INTRO_PICKUP_AUTO_CANCELLED, pickup)
+                    .param("bookedCount", String.valueOf(event.bookedUserIds().size()))
+                    .link("/guide/intro-pickups").mail("intropickup/auto-cancelled").icon("calendar-x").build());
+        });
+    }
+
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onUpdated(IntroPickupGuideService.IntroPickupUpdated event) {

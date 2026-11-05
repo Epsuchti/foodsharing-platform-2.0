@@ -294,8 +294,10 @@ class IntroPickupApiIT {
         mvc.perform(get("/api/guide/ical-feed-link").cookie(guide))
                 .andExpect(jsonPath("$.url").value(Matchers.endsWith(
                         "/api/public/intro-pickups/ical/5eedf00dc0ffee0000000000000000000000000000000010.ics")));
-        mvc.perform(json(patch("/api/guide/profile").cookie(guide), "{\"icalLink\":\"https://evil.example/x\"}"))
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("ICAL_LINK_NOT_ALLOWED"));
+        // EA16 (decision 169): the iCal import is gone; the profile keeps the phone only
+        mvc.perform(json(patch("/api/guide/profile").cookie(guide), "{\"phone\":\"+41791234510\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.icalLink").doesNotExist())
+                .andExpect(jsonPath("$.phone").value("+41791234510"));
 
         Cookie newbie = login(SeedUsers.NEWBIE);
         mvc.perform(json(put("/api/users/me/intro-pickup-subscription").cookie(newbie),

@@ -30,7 +30,9 @@ public enum IntroPickupAction implements HistoryAction {
     GUIDE_ADMIN_REVOKED,
     SUBSCRIBED,
     UNSUBSCRIBED,
-    STORE_ALIAS_CHANGED;
+    STORE_ALIAS_CHANGED,
+    /** EA16: the linked store pickup of the guide went away, so the EinAb was cancelled (metadata cause). */
+    AUTO_CANCELLED;
 
     @Override
     public String code() {

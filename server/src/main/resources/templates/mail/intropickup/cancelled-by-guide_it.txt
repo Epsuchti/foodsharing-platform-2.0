@@ -1,6 +1,9 @@
 Ciao [(${displayName})],
 
 la guida ha annullato la tua prenotazione per il ritiro introduttivo presso [(${businessName})] il [(${when})]. Puoi prenotare un altro ritiro introduttivo.
+[# th:if="${storePickupCancelled != null}"]
+Motivo: Il ritiro presso il negozio collegato a questo ritiro introduttivo è stato annullato.
+[/]
 [# th:if="${reason != null}"]
 Motivo: [(${reason})]
 [/]

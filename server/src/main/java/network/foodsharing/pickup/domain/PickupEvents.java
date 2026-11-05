@@ -1,6 +1,7 @@
 package network.foodsharing.pickup.domain;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -22,6 +23,25 @@ public final class PickupEvents {
 
         public boolean self() {
             return userId.equals(byUserId);
+        }
+    }
+
+    /** Why several sign-ups of one user were deleted at once (EA16). */
+    public enum SignupsDeletedReason { ALL_FUTURE_DELETED, LEFT_TEAM }
+
+    /** One deleted sign-up: the pickup of a store. */
+    public record DeletedSignup(UUID storeId, Instant pickupAt) {
+    }
+
+    /**
+     * Several future sign-ups of {@code userId} were deleted at once ("delete all future pickups", leaving or removal
+     * from the store team); {@code byUserId} is null without a signed-in actor (EA16, decision 169).
+     */
+    public record PickupSignupsDeletedEvent(UUID userId, List<DeletedSignup> signups, UUID byUserId,
+                                            SignupsDeletedReason reason) {
+
+        public PickupSignupsDeletedEvent {
+            signups = List.copyOf(signups);
         }
     }
 

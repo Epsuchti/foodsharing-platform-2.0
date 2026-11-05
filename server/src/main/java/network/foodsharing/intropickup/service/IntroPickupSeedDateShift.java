@@ -29,6 +29,8 @@ public class IntroPickupSeedDateShift implements SeedDateShiftContributor {
     @Override
     public void shift(Duration delta) {
         shiftColumn("intro_pickup", "start_at", delta);
+        // EA16: the link follows the start, like the seeded store sign-up it points to (PickupSeedDateShift)
+        shiftColumn("intro_pickup", "linked_pickup_at", delta);
         shiftColumn("intro_pickup_slot", "booked_at", delta);
         shiftColumn("intro_pickup_slot", "done_at", delta);
     }

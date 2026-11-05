@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+tu n'es plus inscrit·e à la collecte chez [(${businessName})] le [(${when})]. La collecte d'initiation liée a donc été annulée.
+[# th:if="${bookedCount != null and bookedCount != '0'}"]
+[(${bookedCount})] nouvelles personnes inscrites ont été prévenues.
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

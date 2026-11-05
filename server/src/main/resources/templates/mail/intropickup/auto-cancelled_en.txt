@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+you are no longer signed up for the store pickup at [(${businessName})] on [(${when})], so the intro pickup linked to it was cancelled.
+[# th:if="${bookedCount != null and bookedCount != '0'}"]
+[(${bookedCount})] booked newcomers were notified.
+[/]
+
+[(${link})]
+
+Your foodsharing team
