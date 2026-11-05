@@ -232,6 +232,7 @@
   "errors.LAST_MANAGER": "Un negozio ha bisogno di almeno un responsabile.",
   "errors.DUPLICATE_PICKUP_DAY_TIME": "Lo stesso giorno e la stessa ora compaiono due volte.",
   "errors.PICKUP_IN_PAST": "Questo ritiro è nel passato.",
+  "errors.PICKUP_TIME_TAKEN": "Questo negozio ha già un ritiro a quell’ora.",
   "errors.DESCRIPTION_TOO_LONG": "La descrizione è troppo lunga (max. 100 caratteri).",
   "errors.MORE_OCCUPIED_SLOTS": "Sono occupati più posti del nuovo numero.",
   "errors.PICKUP_NOT_ELIGIBLE": "Non puoi iscriverti a questo ritiro.",

@@ -232,6 +232,7 @@
   "errors.LAST_MANAGER": "A store needs at least one manager.",
   "errors.DUPLICATE_PICKUP_DAY_TIME": "The same weekday and time appear twice.",
   "errors.PICKUP_IN_PAST": "This pickup is in the past.",
+  "errors.PICKUP_TIME_TAKEN": "This store already has a pickup at that time.",
   "errors.DESCRIPTION_TOO_LONG": "The description is too long (max. 100 characters).",
   "errors.MORE_OCCUPIED_SLOTS": "More slots are taken than the new number.",
   "errors.PICKUP_NOT_ELIGIBLE": "You cannot sign up for this pickup.",

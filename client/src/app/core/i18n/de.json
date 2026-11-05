@@ -232,6 +232,7 @@
   "errors.LAST_MANAGER": "Ein Betrieb braucht mindestens eine verantwortliche Person.",
   "errors.DUPLICATE_PICKUP_DAY_TIME": "Wochentag und Uhrzeit kommen doppelt vor.",
   "errors.PICKUP_IN_PAST": "Diese Abholung liegt in der Vergangenheit.",
+  "errors.PICKUP_TIME_TAKEN": "Zu dieser Zeit gibt es in diesem Betrieb schon eine Abholung.",
   "errors.DESCRIPTION_TOO_LONG": "Die Beschreibung ist zu lang (max. 100 Zeichen).",
   "errors.MORE_OCCUPIED_SLOTS": "Es sind mehr Plätze belegt als die neue Anzahl.",
   "errors.PICKUP_NOT_ELIGIBLE": "Du kannst dich für diese Abholung nicht eintragen.",
