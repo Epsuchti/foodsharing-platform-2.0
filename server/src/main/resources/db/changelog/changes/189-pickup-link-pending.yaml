@@ -1,0 +1,45 @@
+# Decision 167 S3: a sign-up whose linked-store pickup was signed out waits until deadline_at for another one
+# ("Verknüpfung fehlt", Q4), then the automation-evaluate job frees it. New link rules get 120 minutes by default.
+databaseChangeLog:
+  - changeSet:
+      id: 189-1
+      author: platform
+      comment: 'Sign-ups waiting for a new linked-store pickup.'
+      changes:
+        - createTable:
+            tableName: pickup_link_pending
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_link_pending, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_link_pending_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: pickup_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: user_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_link_pending_user_id, references: user_account(id), deleteCascade: true}}
+              - column: {name: linked_store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_link_pending_linked_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: deadline_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+        - addUniqueConstraint:
+            tableName: pickup_link_pending
+            columnNames: store_id, pickup_at, user_id
+            constraintName: uq_pickup_link_pending_store_id_pickup_at_user_id
+        - createIndex:
+            tableName: pickup_link_pending
+            indexName: ix_pickup_link_pending_deadline_at
+            columns:
+              - column: {name: deadline_at}
+        - createIndex:
+            tableName: pickup_link_pending
+            indexName: ix_pickup_link_pending_user_id
+            columns:
+              - column: {name: user_id}
+  - changeSet:
+      id: 189-2
+      author: platform
+      comment: 'Frist nach Austragung: 120 minutes for new link rules.'
+      changes:
+        - addDefaultValue:
+            tableName: pickup_policy_linked_store
+            columnName: grace_minutes
+            defaultValueNumeric: 120

@@ -178,6 +178,9 @@ ApiErrorCode:
     - DESCRIPTION_TOO_LONG
     - MORE_OCCUPIED_SLOTS
     - PICKUP_NOT_ELIGIBLE
+    - LINKED_PICKUP_REQUIRED
+    - LINKED_PICKUP_FULL
+    - LINKED_PICKUP_BLOCKED
     - SIGNUP_NOT_FOUND
     - NO_SIGNUPS
     - ALREADY_CONFIRMED
@@ -429,7 +432,7 @@ MessageResponse:
 Permission:
   type: string
   description: 'Region-scoped feature permission (plan §9 layer 3). Mirrors network.foodsharing.security.Permission.'
-  enum: [CAN_GIVE_INTRO_PICKUPS, CAN_MANAGE_USERS, CAN_USE_AUTOMATIONS, CAN_SEE_USER_PICKUP_COUNT_GROUPING, CAN_SEE_ALL_AUTOMATION_DECISIONS, CAN_MANAGE_SURVEYS]
+  enum: [CAN_GIVE_INTRO_PICKUPS, CAN_MANAGE_USERS, CAN_MANAGE_SURVEYS]
 
 ReasonBody:
   type: object

@@ -144,6 +144,20 @@ class StorePermissionMatrixTest {
         assertThat(rights.isManager()).isEqualTo(row.manager());
     }
 
+    /** The list form of mayEditStore (link picker, decision 167 S4) decides like rights() for every row. */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rows")
+    void editableStoreIdsMatchesMayEditStore(Row row) {
+        UUID userId = UUID.randomUUID();
+        Store store = store(TeamSearchStatus.CLOSED);
+        StorePermissionService service = service(row, userId);
+        SessionPrincipal actor = new SessionPrincipal(userId, UUID.randomUUID(), row.role(), "x@example.org");
+
+        assertThat(service.editableStoreIds(actor, List.of(store)).contains(store.getId())).as(row.name())
+                .isEqualTo(service.rights(actor, store).mayEditStore());
+        assertThat(service.editableStoreIds(null, List.of(store))).isEmpty();
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("rows")
     void applyOnlyWithoutMembershipAndOpenTeam(Row row) {
@@ -229,6 +243,9 @@ class StorePermissionMatrixTest {
             membership = Optional.of(m);
         }
         when(memberships.findByStoreIdAndUserId(any(), eq(userId))).thenReturn(membership);
+        Store seeded = store(TeamSearchStatus.CLOSED);
+        membership.ifPresent(m -> m.setStoreId(seeded.getId()));
+        when(memberships.findByUserId(userId)).thenReturn(membership.map(List::of).orElse(List.of()));
         when(kams.existsByChainIdAndUserId(CHAIN, userId)).thenReturn(row.kam());
         when(permissions.isOrga(any())).thenAnswer(i -> {
             SessionPrincipal p = i.getArgument(0);

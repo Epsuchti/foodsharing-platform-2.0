@@ -31,7 +31,7 @@ class OpenSlotAdvertServiceTest {
 
     static OpenSlotAdvertService.AdvertInput input(Set<AdvertChannel> channels, List<String> store,
                                                    String telegramChatId, int hours) {
-        return new OpenSlotAdvertService.AdvertInput(true, false, hours, channels, telegramChatId, store, List.of(),
+        return new OpenSlotAdvertService.AdvertInput(true, hours, channels, telegramChatId, store, List.of(),
                 List.of("Telegram {{time}}"), false, null, 72, true);
     }
 
@@ -69,7 +69,7 @@ class OpenSlotAdvertServiceTest {
 
     @Test
     void lateCancellationMessageIsRequiredWhenEnabled() {
-        var late = new OpenSlotAdvertService.AdvertInput(true, false, 24, Set.of(AdvertChannel.STORE_CHAT), null,
+        var late = new OpenSlotAdvertService.AdvertInput(true, 24, Set.of(AdvertChannel.STORE_CHAT), null,
                 List.of("a"), List.of(), List.of(), true, " ", 72, true);
         assertThatThrownBy(() -> service.validate(1, late)).isInstanceOf(ApiException.class);
     }

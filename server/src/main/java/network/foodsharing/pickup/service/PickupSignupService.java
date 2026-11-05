@@ -15,6 +15,7 @@ import network.foodsharing.notification.service.BellService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.pickup.domain.PickupAction;
 import network.foodsharing.pickup.domain.PickupDate;
+import network.foodsharing.pickup.domain.PickupEligibilityReason;
 import network.foodsharing.pickup.domain.PickupEvents;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.repository.PickupDateRepository;
@@ -55,11 +56,14 @@ public class PickupSignupService {
     private final ApplicationEventPublisher events;
     private final AppProperties properties;
     private final Clock clock;
+    private final PickupRuleGate ruleGate;
 
     public PickupSignupService(PickupScheduleService schedule, PickupDateRepository dates,
                                PickupSignupRepository signups, PickupExtraSlotRepository extraSlots, StoreService stores,
                                StorePermissionService rights, UserService users, CurrentActorService currentActor, HistoryService history,
-                               ApplicationEventPublisher events, AppProperties properties, Clock clock) {
+                               ApplicationEventPublisher events, AppProperties properties, Clock clock,
+                               PickupRuleGate ruleGate) {
+        this.ruleGate = ruleGate;
         this.schedule = schedule;
         this.dates = dates;
         this.signups = signups;
@@ -76,23 +80,110 @@ public class PickupSignupService {
 
     /**
      * Signs the current user up; managers (COORDINATOR) are pre-confirmed, otherwise the managers get a grouped
-     * PICKUP_SIGNUP_UNCONFIRMED bell. A regular occurrence becomes a {@code pickup} row (A20).
+     * PICKUP_SIGNUP_UNCONFIRMED bell. A regular occurrence becomes a {@code pickup} row (A20). Decision 167 S3: the
+     * {@code linked} pickups of linked stores are booked in the same transaction. The stores are locked in id order (no deadlock between two people booking the same stores the other
+     * way round); every sign-up goes through the eligibility and the rules of its own store, with the other pickups of
+     * the request counted as booked; any refusal rolls all back. Each sign-up is logged and notified as on its own.
      *
-     * @return whether the sign-up is confirmed
-     * @throws ApiException 404, 403 unless maySeePickups, 409 PICKUP_NOT_ELIGIBLE (args.reason)
+     * @return whether the sign-up for {@code pickupAt} is confirmed
+     * @throws ApiException 404, 403 unless maySeePickups, 400 VALIDATION_FAILED (more than 5, duplicates, the pickup
+     *                      itself), 409 PICKUP_NOT_ELIGIBLE (args.reason, args.rule), LINKED_PICKUP_REQUIRED
+     *                      (args.rule, args.storeIds), LINKED_PICKUP_FULL / LINKED_PICKUP_BLOCKED (args.storeId,
+     *                      args.pickupAt; BLOCKED also args.reason, args.rule)
      */
     @Transactional
-    public boolean signUp(UUID storeId, Instant pickupAt) {
+    public boolean signUp(UUID storeId, Instant pickupAt, List<PickupRuleGate.Planned> linked) {
         stores.require(storeId);
-        Store store = stores.lock(storeId);
+        List<PickupRuleGate.Planned> choices = validLinked(storeId, pickupAt, linked);
+        Map<UUID, Store> locked = new java.util.LinkedHashMap<>();
+        java.util.stream.Stream.concat(java.util.stream.Stream.of(storeId),
+                        choices.stream().map(PickupRuleGate.Planned::storeId))
+                .distinct().sorted().forEach(id -> locked.put(id, stores.lock(id)));
+        Store store = locked.get(storeId);
         SessionPrincipal actor = currentActor.requirePrincipal();
-        StorePermissionService.require(rights.rights(actor, store).maySeePickups());
+        StorePermissionService.Rights actorRights = rights.rights(actor, store);
+        StorePermissionService.require(actorRights.maySeePickups());
         PickupSchedule.Slot slot = schedule.find(store, pickupAt).orElse(null);
         PickupEligibilityRules.Result result = schedule.context(store, actor.userId()).evaluate(pickupAt, slot);
         if (!result.eligible()) {
             throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.PICKUP_NOT_ELIGIBLE,
                     List.of(), Map.of("reason", result.reasons().getFirst().name()));
         }
+        // decision 167 S2/S3: an active store rule refuses the sign-up before it is stored; the linked pickups of the
+        // request count as booked
+        List<PickupRuleGate.RuleBlock> blocks = schedule.ruleCheck(store, actor.userId(), actorRights, pickupAt,
+                choices);
+        if (PickupScheduleService.onlyLinkMissing(blocks)) {
+            throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.LINKED_PICKUP_REQUIRED,
+                    List.of(), Map.of("rule", blocks.getFirst().rule(), "storeIds", String.join(",",
+                    blocks.getFirst().params().storeIds().stream().map(UUID::toString).toList())));
+        }
+        if (!blocks.isEmpty()) {
+            List<PickupRuleGate.RuleBlock> others = blocks.stream()
+                    .filter(b -> !PickupScheduleService.LINKED_STORE.equals(b.rule())).toList();
+            ruleGate.refused(storeId, actor.userId(), pickupAt, blocks);
+            throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.PICKUP_NOT_ELIGIBLE,
+                    List.of(), Map.of("reason", PickupEligibilityReason.AUTOMATION_RULE.name(),
+                    "rule", others.getFirst().rule()));
+        }
+        boolean confirmed = store(store, actor, pickupAt, slot);
+        for (PickupRuleGate.Planned choice : choices) {
+            List<PickupRuleGate.Planned> others = new java.util.ArrayList<>();
+            others.add(new PickupRuleGate.Planned(storeId, pickupAt));
+            choices.stream().filter(c -> !c.equals(choice)).forEach(others::add);
+            signUpLinked(locked.get(choice.storeId()), actor, choice.pickupAt(), others);
+        }
+        return confirmed;
+    }
+
+    /** At most 5 distinct linked pickups, none of them the pickup itself (contract {@code SignupRequest}). */
+    private static List<PickupRuleGate.Planned> validLinked(UUID storeId, Instant pickupAt,
+                                                            List<PickupRuleGate.Planned> linked) {
+        List<PickupRuleGate.Planned> choices = linked == null ? List.of() : List.copyOf(linked);
+        boolean self = choices.stream().anyMatch(c -> c.storeId().equals(storeId) && c.pickupAt().equals(pickupAt));
+        if (choices.size() > 5 || self || choices.stream().distinct().count() != choices.size()) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
+        }
+        return choices;
+    }
+
+    /** One linked pickup of a combined sign-up: its own store's eligibility and rules, the others counted as booked. */
+    private void signUpLinked(Store store, SessionPrincipal actor, Instant pickupAt,
+                              List<PickupRuleGate.Planned> others) {
+        Map<String, String> args = new java.util.HashMap<>(Map.of("storeId", store.getId().toString(),
+                "pickupAt", pickupAt.toString()));
+        StorePermissionService.Rights actorRights = rights.rights(actor, store);
+        if (!actorRights.maySeePickups()) {
+            args.put("reason", PickupEligibilityReason.NOT_TEAM_MEMBER.name());
+            throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.LINKED_PICKUP_BLOCKED,
+                    List.of(), args);
+        }
+        PickupSchedule.Slot slot = schedule.find(store, pickupAt).orElse(null);
+        PickupEligibilityRules.Result result = schedule.context(store, actor.userId()).evaluate(pickupAt, slot);
+        if (!result.eligible()) {
+            if (slot != null && result.reasons().contains(PickupEligibilityReason.NO_FREE_SLOT)) {
+                throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.LINKED_PICKUP_FULL,
+                        List.of(), args);
+            }
+            args.put("reason", result.reasons().getFirst().name());
+            throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.LINKED_PICKUP_BLOCKED,
+                    List.of(), args);
+        }
+        List<PickupRuleGate.RuleBlock> blocks = schedule.ruleCheck(store, actor.userId(), actorRights, pickupAt,
+                others);
+        if (!blocks.isEmpty()) {
+            ruleGate.refused(store.getId(), actor.userId(), pickupAt, blocks);
+            args.put("reason", PickupEligibilityReason.AUTOMATION_RULE.name());
+            args.put("rule", blocks.getFirst().rule());
+            throw new ApiException(org.springframework.http.HttpStatus.CONFLICT, ApiErrorCode.LINKED_PICKUP_BLOCKED,
+                    List.of(), args);
+        }
+        store(store, actor, pickupAt, slot);
+    }
+
+    /** Stores one checked sign-up: pickup row, sign-up, store log, event, unconfirmed bell for the managers. */
+    private boolean store(Store store, SessionPrincipal actor, Instant pickupAt, PickupSchedule.Slot slot) {
+        UUID storeId = store.getId();
         if (dates.findByStoreIdAndPickupAt(storeId, pickupAt).isEmpty()) {
             PickupDate date = new PickupDate();
             date.setStoreId(storeId);
@@ -112,7 +203,10 @@ public class PickupSignupService {
             signup.setConfirmedAt(clock.instant());
         }
         signups.save(signup);
-        log(StoreLogAction.SIGN_UP_SLOT, store, actor.userId(), pickupAt, null, Map.of());
+        // the next sign-up of the request reads this one (region rule, linked-store rules)
+        signups.flush();
+        history.record(history.event(StoreLogAction.SIGN_UP_SLOT, storeId).secondarySubject(actor.userId())
+                .region(store.getRegionId()).metadata("pickupAt", pickupAt.toString()).build());
         events.publishEvent(new PickupEvents.PickupSignedUpEvent(storeId, pickupAt, actor.userId(), confirmed,
                 clock.instant()));
         if (!confirmed) {

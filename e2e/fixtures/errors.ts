@@ -15,6 +15,11 @@ export interface InjectApiErrorOptions {
   times?: number;
   /** Delay before answering (or before continuing to the server when `status` is omitted). */
   delayMs?: number;
+  /**
+   * Hold matching requests until this promise settles, then answer (a loading capture followed by the error state).
+   * Like `delayMs`, the held request is ignored by the screenshot `settle`.
+   */
+  holdUntil?: Promise<unknown>;
   /** Seconds for `Retry-After` / `retryAfterSeconds` (429/503; default 30). */
   retryAfterSeconds?: number;
   /** Override the ApiError body completely. */
@@ -41,7 +46,7 @@ const DEFAULT_CODES: Record<number, string> = {
 };
 
 /**
- * Requests an `injectApiError({ delayMs })` is holding on purpose (a loading-state capture keeps them pending). The
+ * Requests an `injectApiError({ delayMs | holdUntil })` is holding on purpose (a loading-state capture keeps them pending). The
  * screenshot `settle` ignores them when it waits for every other request of the app shell to finish.
  */
 const heldRequests = new WeakSet<Request>();
@@ -79,6 +84,10 @@ export async function injectApiError(page: Page, options: InjectApiErrorOptions)
     if (options.delayMs) {
       heldRequests.add(request);
       await new Promise((resolve) => setTimeout(resolve, options.delayMs));
+    }
+    if (options.holdUntil) {
+      heldRequests.add(request);
+      await options.holdUntil.catch(() => undefined);
     }
     if (options.status === undefined) {
       await route.fallback();

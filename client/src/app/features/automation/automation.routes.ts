@@ -22,6 +22,7 @@ export const STORE_AUTOMATION_ROUTES: Routes = [
   section('extra-slot', 'automation.section.extra-slot', () =>
     import('./sections/extra-slot.section').then((m) => m.ExtraSlotSection),
   ),
+  section('channels', 'automation.section.channels', () => import('./sections/channels.section').then((m) => m.ChannelsSection)),
   section('audits', 'automation.section.audits', () => import('./sections/store-audits.section').then((m) => m.StoreAuditsSection)),
 ];
 

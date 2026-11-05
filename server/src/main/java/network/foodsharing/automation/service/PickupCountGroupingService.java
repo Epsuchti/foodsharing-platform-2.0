@@ -20,7 +20,6 @@ import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.service.PickupAutomationQueries;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
@@ -64,15 +63,14 @@ public class PickupCountGroupingService {
     }
 
     /**
-     * @throws ApiException 400 VALIDATION_FAILED (days 1..60), 403 without CAN_SEE_USER_PICKUP_COUNT_GROUPING (or
-     *                      region admin), 404 REGION_NOT_FOUND
+     * @throws ApiException 400 VALIDATION_FAILED (days 1..60), 403 unless region admin or ORGA,
+     *                      404 REGION_NOT_FOUND
      */
     @Transactional(readOnly = true)
     public List<Group> groups(UUID regionId, Integer days) {
         regions.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
-        if (!permissions.has(actor, Permission.CAN_SEE_USER_PICKUP_COUNT_GROUPING, regionId)
-                && !permissions.mayAdministrateRegion(actor, regionId)) {
+        if (!permissions.mayAdministrateRegion(actor, regionId)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         int window = days == null ? DEFAULT_DAYS : days;

@@ -148,7 +148,7 @@
     tags: [telegram]
     operationId: getStoreTelegramChats
     summary: 'Alert chats of a store.'
-    x-permission: 'mayUseAutomations(store)'
+    x-permission: 'mayEditStore(store)'
     parameters:
       - name: storeId
         in: path
@@ -170,7 +170,7 @@
     tags: [telegram]
     operationId: putStoreTelegramChats
     summary: 'Replace the alert chats of a store.'
-    x-permission: 'mayUseAutomations(store)'
+    x-permission: 'mayEditStore(store)'
     x-history: NotificationAction.TELEGRAM_CHAT_ADDED
     parameters:
       - name: storeId
@@ -202,7 +202,7 @@
     tags: [telegram]
     operationId: testStoreTelegramChat
     summary: 'Send a test message to a store chat.'
-    x-permission: 'mayUseAutomations(store)'
+    x-permission: 'mayEditStore(store)'
     x-history: NotificationAction.TELEGRAM_SENT
     parameters:
       - name: storeId

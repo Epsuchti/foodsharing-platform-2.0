@@ -40,14 +40,14 @@ public class OpenSlotAdvertService {
             + "auch den Notfallchat.";
 
     /** Stored advert with decoded lists. */
-    public record AdvertView(UUID id, UUID storeId, int advertNumber, boolean enabled, boolean dryRun,
+    public record AdvertView(UUID id, UUID storeId, int advertNumber, boolean enabled,
                              int triggerHoursBefore, Set<AdvertChannel> channels, String telegramChatId,
                              List<String> storeMessages, List<String> pushMessages, List<String> telegramMessages,
                              boolean sendLateCancellationMessage, String lateCancellationMessage,
                              int lateCancellationMaxHours, boolean resendLatestAdvertAfterLateCancellation) {
     }
 
-    public record AdvertInput(boolean enabled, boolean dryRun, int triggerHoursBefore, Set<AdvertChannel> channels,
+    public record AdvertInput(boolean enabled, int triggerHoursBefore, Set<AdvertChannel> channels,
                               String telegramChatId, List<String> storeMessages, List<String> pushMessages,
                               List<String> telegramMessages, boolean sendLateCancellationMessage,
                               String lateCancellationMessage, int lateCancellationMaxHours,
@@ -78,7 +78,7 @@ public class OpenSlotAdvertService {
         this.clock = clock;
     }
 
-    /** All adverts of the store (no permission check; callers check mayUseAutomations). */
+    /** All adverts of the store (no permission check; callers check mayEditStore). */
     @Transactional(readOnly = true)
     public List<AdvertView> list(UUID storeId) {
         return adverts.findByStoreIdOrderByAdvertNumber(storeId).stream().map(this::view).toList();
@@ -106,7 +106,6 @@ public class OpenSlotAdvertService {
         advert.setStoreId(storeId);
         advert.setAdvertNumber(advertNumber);
         advert.setEnabled(input.enabled());
-        advert.setDryRun(input.dryRun());
         advert.setTriggerHoursBefore(input.triggerHoursBefore());
         advert.setChannels(input.channels().stream().sorted().map(Enum::name).collect(Collectors.joining(",")));
         advert.setTelegramChatId(blankToNull(input.telegramChatId()));
@@ -227,7 +226,7 @@ public class OpenSlotAdvertService {
 
     AdvertView view(OpenSlotAdvert advert) {
         return new AdvertView(advert.getId(), advert.getStoreId(), advert.getAdvertNumber(), advert.isEnabled(),
-                advert.isDryRun(), advert.getTriggerHoursBefore(), channels(advert.getChannels()),
+                advert.getTriggerHoursBefore(), channels(advert.getChannels()),
                 advert.getTelegramChatId(), read(advert.getStoreMessages()), read(advert.getPushMessages()),
                 read(advert.getTelegramMessages()), advert.isSendLateCancellationMessage(),
                 advert.getLateCancellationMessage(), advert.getLateCancellationMaxHours(),

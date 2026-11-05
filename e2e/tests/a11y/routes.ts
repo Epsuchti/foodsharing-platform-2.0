@@ -207,7 +207,7 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: `/stores/${S01}/statistics`, role: 'bieb', ready: 'stores.statistics.totalPickups' },
   { path: `/stores/${S01}/log`, role: 'bieb' },
   { path: `/stores/${S01}/chat`, role: 'bieb', ready: 'stores.chat.channel' },
-  ...['policy', 'auto-accept', 'adverts', 'signout-alerts', 'extra-slot', 'audits'].map((section) => ({
+  ...['policy', 'auto-accept', 'adverts', 'signout-alerts', 'extra-slot', 'channels', 'audits'].map((section) => ({
     path: `/stores/${S01}/automation/${section}`,
     role: 'bieb' as const,
     ready: 'automation.store.nav',

@@ -40,6 +40,7 @@
   "bell.PICKUP_REMINDER": "Erinnerung an deine Abholung",
   "bell.PICKUP_AUTO_CONFIRMED_WITH_MESSAGE": "Abholung automatisch bestätigt – mit Hinweis",
   "bell.PICKUP_AUTO_DECLINED": "Eintragung automatisch abgelehnt",
+  "bell.PICKUP_LINK_MISSING": "Verknüpfte Abholung fehlt – wähle eine neue",
   "bell.STORE_REQUEST_AUTO_ACCEPTED": "Deine Anfrage wurde automatisch angenommen",
   "bell.STORE_REQUEST_AUTO_DECLINED": "Deine Anfrage wurde automatisch abgelehnt",
   "bell.PICKUP_OPEN_SLOT": "Freier Platz bei einer Abholung",

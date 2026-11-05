@@ -28,9 +28,29 @@ public final class PickupEligibilityRules {
                             int pickupsInTimespan, int pickupsSameDay, List<PickupEligibilityReason> reasons) {
     }
 
-    public record Result(List<PickupEligibilityReason> reasons, RuleState rule) {
+    /** {@code ruleBlocks}: the store rules that block the sign-up (reason AUTOMATION_RULE, decision 167 S2). */
+    public record Result(List<PickupEligibilityReason> reasons, RuleState rule, List<PickupRuleGate.RuleBlock> ruleBlocks) {
+
+        public Result {
+            ruleBlocks = ruleBlocks == null ? List.of() : List.copyOf(ruleBlocks);
+        }
+
+        public Result(List<PickupEligibilityReason> reasons, RuleState rule) {
+            this(reasons, rule, List.of());
+        }
+
         public boolean eligible() {
             return reasons.isEmpty();
+        }
+
+        /** This result plus AUTOMATION_RULE when {@code blocks} is not empty. */
+        public Result withRuleBlocks(List<PickupRuleGate.RuleBlock> blocks) {
+            if (blocks == null || blocks.isEmpty()) {
+                return this;
+            }
+            List<PickupEligibilityReason> all = new ArrayList<>(reasons);
+            all.add(PickupEligibilityReason.AUTOMATION_RULE);
+            return new Result(List.copyOf(all), rule, blocks);
         }
     }
 

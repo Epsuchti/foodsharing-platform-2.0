@@ -36,6 +36,7 @@ class QueryCountIT {
 
     private static final String ZUERICH = "00000010-0001-4000-8000-000000000040";
     private static final String STORE_S01 = "00000020-0001-4000-8000-000000000001";
+    private static final String STORE_S06 = "00000020-0001-4000-8000-000000000006";
     private static final String THREAD = "00000043-0001-4000-8000-000000000001";
 
     @Autowired
@@ -43,6 +44,9 @@ class QueryCountIT {
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource(delimiter = '|', value = {
@@ -68,6 +72,12 @@ class QueryCountIT {
         "FOODSAVER|/api/users/me/stores|13",
         "FOODSAVER|/api/map/markers/stores|3",
         "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|26",
+        // decision 167 S2: S-06's live rules (gap, experience, holidays) are evaluated for every pickup in one query set
+        "SLEEPY|/api/stores/" + STORE_S06 + "/pickups|30",
+        "SLEEPY|/api/users/me/pickups/options|26",
+        // decision 167 S4 (21 measured): the link picker pays one region query per tree level and one coordination check
+        // per region of the page, never one per row
+        "BIEB|/api/stores/" + STORE_S06 + "/automation/link-candidates?q=coop|26",
         // FS2: the cleaning shifts of Fairteiler Wiedikon (one query per table, not per shift)
         "FOODSAVER|/api/food-share-points/00000049-0001-4000-8000-000000000001/cleaning/shifts|20",
         "FOODSAVER|/api/search?q=brot|4",
@@ -115,6 +125,24 @@ class QueryCountIT {
         long many = count(session, path + "?size=20");
         // constant cost (+1 tolerated for a batch query that a one-row page may skip)
         assertThat(many).as("statements for %s?size=20 vs size=1", path).isLessThanOrEqualTo(one + 1);
+    }
+
+    /**
+     * Decision 167 S3: the linked-store step costs one query set for the rule's stores, not one per offered pickup.
+     * S-04's seeded link rule (to S-01) is switched on for the measurement only.
+     */
+    @org.junit.jupiter.api.Test
+    void linkedOptionsStayWithinTheirStatementBudget() throws Exception {
+        String s04 = "00000020-0001-4000-8000-000000000004";
+        jdbc.update("update pickup_policy set enabled = true where store_id = ?", java.util.UUID.fromString(s04));
+        try {
+            Cookie session = login(SeedUsers.FOODSAVER);
+            String path = "/api/stores/" + s04 + "/automation/linked-options?pickupAt=2026-11-11T17:30:00Z";
+            long statements = count(session, path);
+            assertThat(statements).as("Hibernate statements for GET %s", path).isLessThanOrEqualTo(26);
+        } finally {
+            jdbc.update("update pickup_policy set enabled = false where store_id = ?", java.util.UUID.fromString(s04));
+        }
     }
 
     private long count(Cookie session, String path) throws Exception {

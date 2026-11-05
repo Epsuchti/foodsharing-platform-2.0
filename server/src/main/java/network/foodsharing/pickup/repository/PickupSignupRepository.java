@@ -31,6 +31,11 @@ public interface PickupSignupRepository extends JpaRepository<PickupSignup, UUID
     List<PickupSignup> findInRange(@Param("storeIds") Collection<UUID> storeIds, @Param("from") Instant from,
                                    @Param("to") Instant to);
 
+    @Query("select distinct s.userId from PickupSignup s where s.storeId = :storeId and s.userId in :userIds "
+            + "and s.confirmed = true and s.pickupAt < :before")
+    List<UUID> findUsersWithConfirmedPickup(@Param("storeId") UUID storeId, @Param("userIds") Collection<UUID> userIds,
+                                            @Param("before") Instant before);
+
     @Query("select s from PickupSignup s where s.userId = :userId and s.storeId in :storeIds and s.pickupAt >= :from "
             + "and s.pickupAt < :to")
     List<PickupSignup> findOfUserInStores(@Param("userId") UUID userId, @Param("storeIds") Collection<UUID> storeIds,

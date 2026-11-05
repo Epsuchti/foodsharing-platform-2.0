@@ -10,14 +10,13 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Users of a region exempt from the cleaning rule (ambassador or CAN_USE_AUTOMATIONS). */
+/** Users of a region exempt from the cleaning rule (ambassador or ORGA). */
 @Service
 public class CleaningExemptionService {
 
@@ -39,13 +38,12 @@ public class CleaningExemptionService {
         this.history = history;
     }
 
-    /** Ambassador of the region or CAN_USE_AUTOMATIONS there. @throws ApiException 404 REGION_NOT_FOUND, 403 */
+    /** Ambassador of the region or ORGA. @throws ApiException 404 REGION_NOT_FOUND, 403 */
     @Transactional(readOnly = true)
     public void requireRegionAutomation(UUID regionId) {
         regions.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
-        if (!permissions.mayAdministrateRegion(actor, regionId)
-                && !permissions.has(actor, Permission.CAN_USE_AUTOMATIONS, regionId)) {
+        if (!permissions.mayAdministrateRegion(actor, regionId)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
     }

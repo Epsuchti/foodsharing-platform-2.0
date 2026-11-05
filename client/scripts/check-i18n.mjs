@@ -8,6 +8,7 @@
 //  - a translation uses other {placeholders} than the German one
 //  - errors.<CODE> is missing for a value of ApiErrorCode in server/.../openapi/schemas/common.yaml
 //  - automation.metric.<KEY with '.' -> '_'> is missing for a value of MetricKey in server/.../schemas/automation.yaml
+//    (except the legacy WOULD_* keys, decision 167)
 // Unused keys are reported as warnings. A key counts as used when code names it (the patterns above, or any quoted
 // literal equal to the key), when it starts with a dynamic prefix ('foo.bar.' + x, `foo.bar.${x}`, a prefix of two
 // or more segments passed as an argument, DYNAMIC_PREFIXES), or when a string literal in the server's Java sources
@@ -246,6 +247,8 @@ for (const code of [...codes, ...CLIENT_ERROR_CODES]) {
 // MetricKey -> automation.metric.<KEY with every '.' replaced by '_'> (client metricLabelKey)
 const metricKeys = await yamlEnum(AUTOMATION_YAML, 'MetricKey');
 for (const key of metricKeys) {
+  // legacy dry-run keys (decision 167): kept in the contract for old rows, never shown (client isLegacyMetricKey)
+  if (key.includes('WOULD_')) continue;
   const label = `automation.metric.${key.replaceAll('.', '_')}`;
   for (const lang of LANGUAGES) {
     if (!keysByLang[lang].has(label)) {

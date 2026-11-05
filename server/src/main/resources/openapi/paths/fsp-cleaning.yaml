@@ -280,7 +280,7 @@
     tags: [fsp-cleaning]
     operationId: getRegionCleaningFsps
     summary: 'The Fairteiler of a region that count for the cleaning rule, with the candidates.'
-    x-permission: 'ambassador of the region or CAN_USE_AUTOMATIONS there'
+    x-permission: 'mayAdministrateRegion or ORGA'
     parameters:
       - name: regionId
         in: path
@@ -302,7 +302,7 @@
     tags: [fsp-cleaning]
     operationId: replaceRegionCleaningFsps
     summary: 'Set the Fairteiler of a region that count for the cleaning rule.'
-    x-permission: 'ambassador of the region or CAN_USE_AUTOMATIONS there'
+    x-permission: 'mayAdministrateRegion or ORGA'
     x-history: FspAction.REGION_CLEANING_FSPS_CHANGED
     parameters:
       - name: regionId

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { request as playwrightRequest } from '@playwright/test';
+import { expect, request as playwrightRequest } from '@playwright/test';
 import { SEED_NOW, SERVER_DIR, type Role } from '../support/env';
 import { ApiClient, expectStatus } from './api';
 
@@ -132,6 +132,23 @@ export class StoreHelpers {
     await this.withRole(role, async (client) => {
       const response = await client.post(`/api/stores/${this.id(key)}/pickups/${encodeURIComponent(pickupAt)}/signups`);
       await expectStatus(response, [200, 201], `sign up ${role} for ${key} ${pickupAt}`);
+    });
+  }
+
+  /**
+   * Like {@link signUp}, but a sign-up the store rules refuse up front (409 PICKUP_NOT_ELIGIBLE, reason AUTOMATION_RULE,
+   * decision 167 S2) is an expected outcome; returns whether the sign-up was stored.
+   */
+  async trySignUp(role: Role, key: string, pickupAt: string): Promise<boolean> {
+    return this.withRole(role, async (client) => {
+      const response = await client.post(`/api/stores/${this.id(key)}/pickups/${encodeURIComponent(pickupAt)}/signups`);
+      await expectStatus(response, [200, 201, 409], `sign up ${role} for ${key} ${pickupAt}`);
+      if (response.status() === 409) {
+        const body = (await response.json()) as { code?: string; args?: { reason?: string } };
+        expect(body.args?.reason, `refusal of ${role} for ${key} ${pickupAt}`).toBe('AUTOMATION_RULE');
+        return false;
+      }
+      return true;
     });
   }
 

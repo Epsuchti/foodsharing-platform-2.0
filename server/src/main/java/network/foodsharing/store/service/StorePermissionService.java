@@ -156,11 +156,45 @@ public class StorePermissionService {
                 coordinate, status);
     }
 
-    /** mayUseAutomations(store) = mayEditStore or {@code CAN_USE_AUTOMATIONS} in the store's region (M4). */
-    public boolean mayUseAutomations(SessionPrincipal actor, Store store) {
-        return actor != null && (rights(actor, store).mayEditStore()
-                || permissions.has(actor, network.foodsharing.security.Permission.CAN_USE_AUTOMATIONS,
-                        store.getRegionId()));
+    /** mayEditStore(store) of the actor (automation, store alert chats; decision 167). */
+    public boolean mayEditStore(SessionPrincipal actor, Store store) {
+        return actor != null && rights(actor, store).mayEditStore();
+    }
+
+    /**
+     * The stores of {@code list} the actor may edit: the same rule as {@link #rights}{@code .mayEditStore()} for a list,
+     * with one membership query and one coordination check per region instead of per store (link picker, S4).
+     */
+    public Set<UUID> editableStoreIds(SessionPrincipal actor, java.util.Collection<Store> list) {
+        if (actor == null || list.isEmpty()) {
+            return Set.of();
+        }
+        boolean orga = permissions.isOrga(actor);
+        if (!StoreVisibility.mayKnow(orga, visibility.isVerified(actor))) {
+            return Set.of();
+        }
+        Set<UUID> result = new java.util.HashSet<>();
+        if (orga) {
+            list.forEach(store -> result.add(store.getId()));
+            return result;
+        }
+        if (!PermissionService.isAtLeast(actor.role(), Role.STORE_MANAGER)) {
+            return result;
+        }
+        Set<UUID> managed = new java.util.HashSet<>();
+        for (StoreMembership membership : memberships.findByUserId(actor.userId())) {
+            if (status(Optional.of(membership)) == UserTeamStatus.COORDINATOR) {
+                managed.add(membership.getStoreId());
+            }
+        }
+        java.util.Map<UUID, Boolean> coordinates = new java.util.HashMap<>();
+        for (Store store : list) {
+            if (managed.contains(store.getId()) || coordinates.computeIfAbsent(store.getRegionId(),
+                    regionId -> mayCoordinateRegionStores(actor, regionId))) {
+                result.add(store.getId());
+            }
+        }
+        return result;
     }
 
     /** ORGA, or role ≥ STORE_MANAGER and member of the region. */

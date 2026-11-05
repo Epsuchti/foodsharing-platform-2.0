@@ -28,10 +28,6 @@ public class PickupPolicy extends BaseEntity implements HistorySubject {
     private boolean enabled;
 
     @Tracked
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun = true;
-
-    @Tracked
     @Column(name = "gap_rule_enabled", nullable = false)
     private boolean gapRuleEnabled;
 

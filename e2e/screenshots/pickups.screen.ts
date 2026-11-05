@@ -1,10 +1,11 @@
-import { S01_THURSDAY, S07_WEDNESDAY, injectApiError, seedStore, zurichPickupAt } from '../fixtures';
+import { type ApiClient, S01_THURSDAY, S07_WEDNESDAY, injectApiError, seedStore, zurichPickupAt } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
  * Pickup screens (M3 F4): store pickups tab (day list; as manager with split pills, the "Unbestätigt (n)" chip and the
  * summary), sign-up dialog eligible / not eligible, regular editor, one-time pickup dialog, options, my pickups,
- * agenda, dashboard card, loading and error. Baselines in the end batch
+ * agenda, dashboard card, loading and error; the store rules card, the "Gesperrt" chip and its reason dialog
+ * (decision 167 S2); the linked-store step of the sign-up dialog and "Verknüpfung fehlt" (S3). Baselines in the end batch
  * (decision 69).
  */
 const S01 = seedStore('S-01').id;
@@ -111,11 +112,168 @@ forEachVariant((variant) => {
     screenshotTest.describe('jumper', () => {
       screenshotTest.use({ variant, role: 'jumper' });
 
-      screenshotTest('eligibility dialog with reasons @PU4 @screenshot', async ({ page, visual }) => {
+      screenshotTest('eligibility reasons behind the "Gesperrt" chip @PU4 @screenshot', async ({ page, visual }) => {
+        // decision 167 S2: eligibility reasons use the same lock chip and reason dialog as the store rules
         await page.goto(`/stores/${S02}/pickups`);
-        await page.getByTestId('stores.pickups.slot.free').first().click();
+        await page.getByTestId('stores.pickups.slot.blocked').first().click();
         await expect(page.getByTestId('shared.eligibility.reason').first()).toBeVisible();
         await visual.expectScreen(page, `pickups-signup-reasons-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('sleepy with store rules', () => {
+      // S-06's live policy with a 3-day gap; sleepy has Friday (confirmed) and the seeded Tuesday, so Sunday is blocked
+      screenshotTest.use({ variant, role: 'sleepy', seedReset: 'test' });
+
+      const S06 = seedStore('S-06').id;
+      const FRIDAY = zurichPickupAt(4, '19:00');
+      const SUNDAY = zurichPickupAt(6, '19:00');
+
+      async function gapRule(bieb: ApiClient): Promise<void> {
+        const current = await bieb.getJson<{ pickupPolicy: Record<string, unknown> }>(`/api/stores/${S06}/automation`);
+        await bieb.putJson(`/api/stores/${S06}/automation/pickup-policy`, {
+          ...current.pickupPolicy,
+          enabled: true,
+          experienceRuleEnabled: false,
+          gapRuleEnabled: true,
+          minimumGapDays: 3,
+        });
+        for (const at of [FRIDAY, SUNDAY]) {
+          await bieb.putJson(`/api/stores/${S06}/pickups/${encodeURIComponent(at)}`, { slotCount: 2 });
+        }
+      }
+
+      screenshotTest('rules card, Gesperrt chip and reason dialog @AU1 @PU3 @screenshot', async ({ page, as, apiOf, store, visual }) => {
+        await gapRule(apiOf(await as('bieb')));
+        await store.signUp('sleepy', 'S-06', FRIDAY);
+        await page.goto(`/stores/${S06}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.pickups.rules.toggle').click();
+        await expect(page.getByTestId('stores.pickups.rules.line').first()).toBeVisible();
+        await expect(page.getByTestId('stores.pickups.slot.blocked')).toBeVisible();
+        await visual.expectScreen(page, `pickups-rules-blocked-${variant.name}`);
+        await page.getByTestId('stores.pickups.slot.blocked').click();
+        await expect(page.getByTestId('pickups.blocked.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('pickups.blocked.reason').first()).toBeVisible();
+        await visual.expectScreen(page, `pickups-blocked-dialog-${variant.name}`);
+      });
+
+      screenshotTest('rules card loading and error @AU1 @screenshot', async ({ page, as, apiOf, visual }) => {
+        await gapRule(apiOf(await as('bieb')));
+        const delay = await injectApiError(page, { url: `/api/stores/${S06}/automation/rules`, delayMs: 30_000 });
+        await page.goto(`/stores/${S06}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.pickups.rules.toggle').click();
+        await expect(page.getByTestId('stores.pickups.rules')).toHaveAttribute('data-state', 'loading');
+        await visual.expectScreen(page, `pickups-rules-loading-${variant.name}`, { waitForData: false });
+        await delay.remove();
+        await injectApiError(page, { url: `/api/stores/${S06}/automation/rules`, status: 500 });
+        await page.reload();
+        await expect(page.getByTestId('stores.pickups.rules')).toHaveAttribute('data-state', 'error');
+        await visual.expectScreen(page, `pickups-rules-error-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('foodsaver with a linked store', () => {
+      // decision 167 S3: S-04 needs an S-01 pickup on the same day or up to 2 days after; foodsaver is in both teams
+      screenshotTest.use({ variant, role: 'foodsaver', seedReset: 'test' });
+
+      const S04 = seedStore('S-04').id;
+      const SATURDAY = zurichPickupAt(5, '19:30');
+      const MONDAY = zurichPickupAt(7, '19:00');
+      const linkedOptions = `/api/stores/${S04}/automation/linked-options`;
+
+      async function linkS04ToS01(orga: ApiClient): Promise<void> {
+        for (const id of [S01, S04]) {
+          await orga.patchJson(`/api/stores/${id}`, { useRegionPickupRule: false });
+        }
+        const current = await orga.getJson<{ pickupPolicy: Record<string, unknown> }>(`/api/stores/${S04}/automation`);
+        await orga.putJson(`/api/stores/${S04}/automation/pickup-policy`, {
+          ...current.pickupPolicy,
+          enabled: true,
+          gapRuleEnabled: false,
+          experienceRuleEnabled: false,
+          publicHolidayRuleEnabled: false,
+          linkedStores: [
+            { storeIds: [S01], bidirectional: false, windowMode: 'LAST_DAYS', windowDaysBefore: 0, windowDaysAfter: 2, graceMinutes: 120 },
+          ],
+        });
+      }
+
+      async function openStep(page: import('@playwright/test').Page): Promise<void> {
+        await page.goto(`/stores/${S04}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${SATURDAY}"]`).getByTestId('stores.pickups.slot.free').click();
+      }
+
+      screenshotTest('linked step: choose, none free, not in the team @AU1 @PU3 @screenshot', async ({ page, as, apiOf, visual }) => {
+        await linkS04ToS01(apiOf(await as('orga')));
+        await openStep(page);
+        await expect(page.getByTestId('pickups.signup.linked.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="pickups.signup.linked.option"][data-at="${MONDAY}"] input`).check();
+        await visual.expectScreen(page, `pickups-linked-choose-${variant.name}`);
+        // the same rule without a free pickup, and with S-01 as a store foodsaver is not in
+        for (const [name, patch] of [
+          ['none-free', { options: [] }],
+          ['not-member', { options: [], notMember: [{ id: S01, name: seedStore('S-01').name }] }],
+        ] as const) {
+          await page.route(`**${linkedOptions}*`, async (route) => {
+            const response = await route.fetch();
+            const json = await response.json();
+            json.rules = json.rules.map((rule: object) => ({ ...rule, ...patch }));
+            await route.fulfill({ response, json });
+          });
+          await page.keyboard.press('Escape');
+          await openStep(page);
+          await expect(page.getByTestId(name === 'none-free' ? 'pickups.signup.linked.noneFree' : 'pickups.signup.linked.notMember')).toBeVisible();
+          await visual.expectScreen(page, `pickups-linked-${name}-${variant.name}`);
+          await page.unroute(`**${linkedOptions}*`);
+        }
+      });
+
+      screenshotTest('Verknüpfung fehlt, repair and satisfied @AU1 @PU3 @screenshot', async ({ page, as, apiOf, api, profiles, store, visual }) => {
+        await linkS04ToS01(apiOf(await as('orga')));
+        // a real missing link: Saturday booked together with Monday, then Monday signed out
+        const booked = await api.post(`/api/stores/${S04}/pickups/${encodeURIComponent(SATURDAY)}/signups`, {
+          linkedPickups: [{ storeId: S01, pickupAt: MONDAY }],
+        });
+        expect(booked.status()).toBe(200);
+        const out = await api.fetch('DELETE', `/api/stores/${S01}/pickups/${encodeURIComponent(MONDAY)}/signups/${await profiles.userId('foodsaver')}`);
+        expect(out.ok()).toBe(true);
+        await page.goto(`/stores/${S04}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        const pill = page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${SATURDAY}"]`).getByTestId('stores.pickups.linkMissing');
+        await pill.scrollIntoViewIfNeeded();
+        await expect(pill).toBeVisible();
+        await visual.expectScreen(page, `pickups-link-missing-${variant.name}`);
+        await pill.click();
+        await expect(page.getByTestId('pickups.signup.linked.repair')).toBeVisible();
+        await expect(page.getByTestId('pickups.signup.linked.option').first()).toBeVisible();
+        await visual.expectScreen(page, `pickups-link-repair-${variant.name}`);
+        await page.keyboard.press('Escape');
+        // satisfied: S-01 Thursday 12.11. is booked, S-04 Wednesday 11.11. needs nothing more
+        const wednesday = zurichPickupAt(9, '18:30');
+        await store.signUp('foodsaver', 'S-01', zurichPickupAt(10, '19:00'));
+        await page.reload();
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${wednesday}"]`).getByTestId('stores.pickups.slot.free').click();
+        await expect(page.getByTestId('pickups.signup.linked.satisfied')).toBeVisible();
+        await expect(page.getByTestId('pickups.signup.confirm')).toBeVisible();
+        await visual.expectScreen(page, `pickups-linked-satisfied-${variant.name}`);
+      });
+
+      screenshotTest('linked step loading and error @AU1 @screenshot', async ({ page, as, apiOf, visual }) => {
+        await linkS04ToS01(apiOf(await as('orga')));
+        const delay = await injectApiError(page, { url: linkedOptions, delayMs: 30_000 });
+        await openStep(page);
+        await expect(page.getByTestId('pickups.signup.linked.state')).toHaveAttribute('data-state', 'loading');
+        await visual.expectScreen(page, `pickups-linked-loading-${variant.name}`, { waitForData: false });
+        await delay.remove();
+        await injectApiError(page, { url: linkedOptions, status: 500 });
+        await page.keyboard.press('Escape');
+        await openStep(page);
+        await expect(page.getByTestId('pickups.signup.linked.state')).toHaveAttribute('data-state', 'error');
+        await visual.expectScreen(page, `pickups-linked-error-${variant.name}`);
       });
     });
 

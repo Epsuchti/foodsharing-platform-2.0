@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Checkbox } from '@openng/optimus-ui/checkbox';
@@ -43,7 +44,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
  */
 @Component({
   selector: 'fs-adverts-section',
-  imports: [...DATA_STATE_IMPORTS, Button, Checkbox, DateTimePipe, FormsModule, InputNumber, Select, TemplateEditorComponent, ToggleSwitch, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, Checkbox, DateTimePipe, FormsModule, RouterLink, InputNumber, Select, TemplateEditorComponent, ToggleSwitch, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="card fs-card">
@@ -63,10 +64,6 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
           <div class="switch-row">
             <label [for]="'ad-en-' + advert.advertNumber">{{ 'automation.adverts.enabled' | t }}</label>
             <p-toggleswitch [inputId]="'ad-en-' + advert.advertNumber" [(ngModel)]="advert.enabled" [disabled]="!ctx.mayEdit()" data-testid="automation.adverts.enabled" />
-          </div>
-          <div class="switch-row">
-            <label [for]="'ad-dry-' + advert.advertNumber">{{ 'automation.common.dryRun' | t }}</label>
-            <p-toggleswitch [inputId]="'ad-dry-' + advert.advertNumber" [(ngModel)]="advert.dryRun" [disabled]="!ctx.mayEdit()" data-testid="automation.adverts.dryRun" />
           </div>
           <div class="field">
             <label [for]="'ad-h-' + advert.advertNumber">{{ 'automation.adverts.trigger' | t }}</label>
@@ -105,6 +102,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
               [disabled]="!ctx.mayEdit()"
               data-testid="automation.adverts.telegramChat"
             />
+            <a class="manage" [routerLink]="['..', 'channels']" data-testid="automation.channels.manage"><i class="pi pi-cog" aria-hidden="true"></i> {{ 'automation.channels.manage' | t }}</a>
           </div>
         }
         @for (channel of advert.channels; track channel) {
@@ -176,8 +174,7 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
       <div class="row">
         <h3 class="grow">{{ 'automation.adverts.plannedTitle' | t }}</h3>
         @if (ctx.mayEdit() && ctx.data()?.adverts?.length) {
-          <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.adverts.runDry" />
-          <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.adverts.run" />
+          <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" size="small" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run()" data-testid="automation.adverts.run" />
         }
       </div>
       @if (ctx.mayEdit() && ctx.data()?.adverts?.length && unsaved()) {
@@ -374,7 +371,7 @@ export class AdvertsSection {
     });
   }
 
-  protected readonly run = runMutation((dryRun: boolean) => this.api.runAdverts({ storeId: this.ctx.storeId()!, dryRun }), {
+  protected readonly run = runMutation(() => this.api.runAdverts({ storeId: this.ctx.storeId()! }), {
     successToastKey: 'automation.common.ran',
     onSuccess: (result) => {
       this.lastRun.set(result);

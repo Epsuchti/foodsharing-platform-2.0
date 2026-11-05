@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { Permission, RegionDetail, RegionsService } from '../../../api';
+import { RegionDetail, RegionsService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
-import { hasPermission, isAmbassador } from '../../../core/auth/permission.util';
+import { isAmbassador } from '../../../core/auth/permission.util';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { RegionAutomationContext } from '../region-automation.context';
 
 /**
- * `/regions/:regionId/automation` (AU1, AU5, AU7–AU10): region automation overview and sub-pages. Sections are
- * offered by the session's permissions; the API decides (403 → forbidden state).
+ * `/regions/:regionId/automation` (AU1, AU5, AU7–AU10): region automation overview and sub-pages. Ambassadors of the
+ * region and ORGA get every section (decision 167: no automation permissions), everyone else Protokoll (own decisions)
+ * and Feiertage; the API decides (403 → forbidden state).
  */
 @Component({
   selector: 'fs-region-automation-page',
@@ -69,15 +70,12 @@ export class RegionAutomationPageComponent {
   });
 
   protected readonly sections = computed(() => {
-    const s = this.session.session();
-    const regionId = this.ctx.regionId();
-    const admin = isAmbassador(s, regionId) || hasPermission(s, Permission.CanUseAutomations, regionId);
+    // isAmbassador covers ORGA
+    const admin = isAmbassador(this.session.session(), this.ctx.regionId());
     const list: string[] = [];
     if (admin) list.push('overview');
     list.push('audits');
-    if (admin) list.push('cleaning-fsps', 'cleaning-exemptions');
-    if (admin || hasPermission(s, Permission.CanSeeUserPickupCountGrouping, regionId)) list.push('grouping');
-    if (admin) list.push('metrics', 'telegram');
+    if (admin) list.push('cleaning-fsps', 'cleaning-exemptions', 'grouping', 'metrics', 'telegram');
     list.push('holidays');
     return list;
   });

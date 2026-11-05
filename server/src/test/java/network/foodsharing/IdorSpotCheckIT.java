@@ -83,6 +83,13 @@ class IdorSpotCheckIT {
     }
 
     @Test
+    void foreignStoreLinkCandidatesAreRefused() throws Exception {
+        UUID store = one("select s.id from store s where s.deleted_at is null and not exists (select 1 from "
+                + "store_membership m where m.store_id = s.id and m.user_id = ? and m.manager = true) order by s.id", ME.id());
+        assertThat(status(get("/api/stores/" + store + "/automation/link-candidates?q=coop"))).isIn(403, 404);
+    }
+
+    @Test
     void foreignMailboxIsNotReadable() throws Exception {
         UUID mailbox = one("select b.id from mailbox b where not exists (select 1 from mailbox_member m where "
                 + "m.mailbox_id = b.id and m.user_id = ?) and not (b.owner_type = 'USER' and b.owner_id = ?) order by b.id",

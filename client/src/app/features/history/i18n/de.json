@@ -221,6 +221,7 @@
   "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Testlauf ausgeführt",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Entscheidungen archiviert",
   "history.action.AUTOMATION.FIELD_CHANGED": "Feld geändert",
+  "history.action.AUTOMATION.LINK_MISSING": "Verknüpfung fehlt",
   "history.action.SYSTEM.ADMIN_JOB_RUN_MANUAL": "Job manuell gestartet",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCKED": "Automatisch gesperrt (Anfragelimit)",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCK_LIFTED": "Automatische Sperre aufgehoben",

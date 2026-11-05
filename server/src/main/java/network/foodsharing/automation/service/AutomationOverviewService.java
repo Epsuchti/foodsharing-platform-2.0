@@ -11,6 +11,7 @@ import network.foodsharing.automation.domain.RequestPolicy;
 import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.automation.repository.RequestPolicyRepository;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.notification.telegram.service.TelegramChatService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
@@ -24,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AutomationOverviewService {
 
     public record StoreOverview(Store store, PickupPolicy pickupPolicy, RequestPolicy requestPolicy, int advertCount,
-                                boolean signoutAlertEnabled) {
+                                boolean signoutAlertEnabled, int telegramChatCount) {
     }
 
     private final PickupPolicyRepository pickupPolicies;
@@ -37,13 +38,15 @@ public class AutomationOverviewService {
     private final HolidayCalendarService holidays;
     private final PermissionService permissions;
     private final CurrentActorService currentActor;
+    private final TelegramChatService telegram;
 
     public AutomationOverviewService(PickupPolicyRepository pickupPolicies, RequestPolicyRepository requestPolicies,
                                      network.foodsharing.automation.repository.OpenSlotAdvertRepository adverts,
                                      network.foodsharing.automation.repository.SignoutAlertSettingRepository signoutAlerts,
                                      StoreService stores, RegionService regions, CleaningExemptionService exemptions,
                                      HolidayCalendarService holidays, PermissionService permissions,
-                                     CurrentActorService currentActor) {
+                                     CurrentActorService currentActor, TelegramChatService telegram) {
+        this.telegram = telegram;
         this.pickupPolicies = pickupPolicies;
         this.requestPolicies = requestPolicies;
         this.adverts = adverts;
@@ -70,9 +73,17 @@ public class AutomationOverviewService {
                 .collect(Collectors.groupingBy(a -> a.getStoreId(), Collectors.counting()));
         java.util.Set<UUID> alerts = signoutAlerts.findByStoreIdIn(ids).stream().filter(a -> a.isEnabled())
                 .map(a -> a.getStoreId()).collect(Collectors.toSet());
+        Map<UUID, Integer> chats = telegram.enabledStoreChatCounts(ids);
         return list.stream().sorted(java.util.Comparator.comparing(Store::getName, String.CASE_INSENSITIVE_ORDER))
                 .map(s -> new StoreOverview(s, pickup.get(s.getId()), request.get(s.getId()),
-                        advertCounts.getOrDefault(s.getId(), 0L).intValue(), alerts.contains(s.getId()))).toList();
+                        advertCounts.getOrDefault(s.getId(), 0L).intValue(), alerts.contains(s.getId()),
+                        chats.getOrDefault(s.getId(), 0))).toList();
+    }
+
+    /** Enabled Telegram chats of a store (status strip of the store tab); the caller has checked mayEditStore. */
+    @Transactional(readOnly = true)
+    public int storeChatCount(UUID storeId) {
+        return telegram.enabledStoreChatCounts(List.of(storeId)).getOrDefault(storeId, 0);
     }
 
     /**

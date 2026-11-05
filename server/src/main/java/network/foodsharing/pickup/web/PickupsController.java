@@ -167,9 +167,11 @@ public class PickupsController implements PickupsApi {
     }
 
     @Override
-    public ResponseEntity<SignupResult> signUp(UUID storeId, OffsetDateTime pickupAt) {
+    public ResponseEntity<SignupResult> signUp(UUID storeId, OffsetDateTime pickupAt,
+                                               network.foodsharing.api.model.SignupRequest signupRequest) {
         SignupResult result = new SignupResult();
-        result.setConfirmed(signups.signUp(storeId, PickupMapper.instant(pickupAt)));
+        result.setConfirmed(signups.signUp(storeId, PickupMapper.instant(pickupAt),
+                PickupMapper.linkedPickups(signupRequest)));
         return ResponseEntity.ok(result);
     }
 }

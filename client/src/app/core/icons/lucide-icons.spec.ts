@@ -19,7 +19,7 @@ const SERVER_ICONS = [
   'alarm-clock', 'at-sign', 'award', 'badge-check', 'bell', 'book-open', 'bot', 'calendar', 'calendar-check',
   'calendar-plus', 'calendar-x', 'clipboard-list', 'compass', 'eye-off', 'flag', 'graduation-cap', 'heart', 'id-card',
   'life-buoy', 'mail', 'map-pin', 'message-square', 'newspaper', 'plug-zap', 'scale', 'send', 'shield',
-  'shopping-basket', 'store', 'trash', 'unlock', 'user-minus', 'user-plus', 'users', 'vote',
+  'shopping-basket', 'store', 'trash', 'unlink', 'unlock', 'user-minus', 'user-plus', 'users', 'vote',
 ];
 
 describe('lucide icons → icon font (decision 162)', () => {

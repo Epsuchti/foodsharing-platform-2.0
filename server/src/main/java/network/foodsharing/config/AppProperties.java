@@ -182,8 +182,8 @@ public class AppProperties {
     public static class Permissions {
         /**
          * Region permissions granted to every member of a region's function group (plan §9, A10). Defaults:
-         * FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, STORES_COORDINATION → the automation
-         * permissions, VOTING → CAN_MANAGE_SURVEYS.
+         * FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, VOTING → CAN_MANAGE_SURVEYS.
+         * STORES_COORDINATION grants nothing (automation needs no permission, decision 167).
          */
         private Map<WorkingGroupFunction, List<Permission>> functionGrants = defaultFunctionGrants();
 
@@ -191,8 +191,6 @@ public class AppProperties {
             Map<WorkingGroupFunction, List<Permission>> grants = new EnumMap<>(WorkingGroupFunction.class);
             grants.put(WorkingGroupFunction.FSMANAGEMENT, List.of(Permission.CAN_MANAGE_USERS));
             grants.put(WorkingGroupFunction.WELCOME, List.of(Permission.CAN_GIVE_INTRO_PICKUPS));
-            grants.put(WorkingGroupFunction.STORES_COORDINATION, List.of(Permission.CAN_USE_AUTOMATIONS,
-                    Permission.CAN_SEE_USER_PICKUP_COUNT_GROUPING, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS));
             grants.put(WorkingGroupFunction.VOTING, List.of(Permission.CAN_MANAGE_SURVEYS));
             return grants;
         }
@@ -383,8 +381,6 @@ public class AppProperties {
     @Setter
     public static class Automation {
         private boolean enabled = true;
-        /** Global override: every automation runs as dry run. */
-        private boolean dryRun = false;
         private int cleaningBackCheckMonths = 12;
         private int minimumFreeCleaningSlots = 4;
         private int maxRequestApprovalsPerRun = 50;
