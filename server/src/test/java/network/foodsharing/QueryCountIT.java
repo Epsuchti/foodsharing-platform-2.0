@@ -71,7 +71,8 @@ class QueryCountIT {
         "FOODSAVER|/api/activity|30",
         "FOODSAVER|/api/users/me/stores|13",
         "FOODSAVER|/api/map/markers/stores|3",
-        "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|26",
+        // EA16 (decision 169): one query for the EinAbs linked to the visible own / managed sign-ups, not one per row
+        "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|27",
         // decision 167 S2: S-06's live rules (gap, experience, holidays) are evaluated for every pickup in one query set
         "SLEEPY|/api/stores/" + STORE_S06 + "/pickups|30",
         "SLEEPY|/api/users/me/pickups/options|26",
