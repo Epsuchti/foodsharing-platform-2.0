@@ -62,6 +62,18 @@ test('PU10 a manager moves a pickup; sign-ups and the linked EinAb move along @P
   expect(await notifications.bells('bot', 'PICKUP_MOVED')).toHaveLength(0);
 });
 
+test('PU10 the closed move dialog takes no space in the pickups tab @PU10', async ({ page }) => {
+  await openPickups(page, 'S-03');
+  // the tab host is a grid with a row gap: a closed dialog that is a grid item would add an empty row
+  const heights = await page.evaluate(() => {
+    const tab = document.querySelector('fs-store-pickups-tab')!;
+    const before = tab.getBoundingClientRect().height;
+    tab.querySelector('fs-move-pickup-dialog')!.remove();
+    return { before, after: tab.getBoundingClientRect().height };
+  });
+  expect(heights.before).toBe(heights.after);
+});
+
 test('PU10 a time the store already has a pickup at is refused in the dialog @PU10', async ({ page }) => {
   await openPickups(page, 'S-03');
   await openMove(page, FRIDAY);

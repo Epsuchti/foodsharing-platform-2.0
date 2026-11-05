@@ -87,6 +87,8 @@ import { dayOf, moveSummary, timeOf, zonedToUtc } from '../pickups.util';
     </p-dialog>
   `,
   styles: `
+    /* out of the flow: the store tab host is a grid with a row gap, and a closed dialog must not add a row (+20px) */
+    :host { position: absolute; }
     .form { display: grid; gap: 0.85rem; }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .field small { font-weight: 400; }
