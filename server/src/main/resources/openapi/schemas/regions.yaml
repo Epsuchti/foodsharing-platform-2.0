@@ -419,7 +419,7 @@ RegionOnboardingStep:
 
 IntroPickupRegionSettings:
   type: object
-  required: [maxActiveBookingsPerUser, preventDuplicateGuideBookings, preventDuplicateCategoryBookings, requireFairteilerVisitByThirdIntroPickup, ignoredCategories, guideQuizMinPickups]
+  required: [maxActiveBookingsPerUser, preventDuplicateGuideBookings, preventDuplicateCategoryBookings, requireFairteilerVisitByThirdIntroPickup, ignoredCategories]
   properties:
     maxActiveBookingsPerUser:
       description: 'Also the number of EinAbs a newcomer needs (reference parity).'
