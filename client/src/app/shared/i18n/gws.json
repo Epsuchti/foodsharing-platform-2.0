@@ -75,6 +75,7 @@
   "shared.historyTimeline.meta.label": "Name",
   "shared.historyTimeline.meta.reason": "Grund",
   "shared.historyTimeline.meta.count": "Aazahl",
+  "shared.historyTimeline.meta.deadlineAt": "Frischt bis",
   "shared.historyTimeline.meta.template": "Vorlag",
   "shared.historyTimeline.meta.language": "Sprach",
   "shared.historyTimeline.meta.sessionId": "Sitzigs-ID",

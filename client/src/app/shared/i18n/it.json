@@ -75,6 +75,7 @@
   "shared.historyTimeline.meta.label": "Nome",
   "shared.historyTimeline.meta.reason": "Motivo",
   "shared.historyTimeline.meta.count": "Numero",
+  "shared.historyTimeline.meta.deadlineAt": "Scadenza",
   "shared.historyTimeline.meta.template": "Modello",
   "shared.historyTimeline.meta.language": "Lingua",
   "shared.historyTimeline.meta.sessionId": "ID sessione",
