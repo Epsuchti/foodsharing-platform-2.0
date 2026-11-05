@@ -199,6 +199,19 @@ type Tab = 'einabs' | 'bookings' | 'guides';
               </ul>
             </ng-template>
           </fs-data-state>
+          <!-- inside the section, so the page grid gets no extra row (and gap) on the other tabs -->
+          <fs-required-message-dialog
+            [visible]="!!releasing()"
+            (visibleChange)="!$event && releasing.set(null)"
+            [title]="'introPickups.admin.release' | t"
+            [text]="'introPickups.admin.releaseText' | t: { name: releasing()?.user?.displayName ?? '' }"
+            [label]="'introPickups.admin.reasonOptional' | t"
+            [confirmLabel]="'introPickups.admin.release' | t"
+            [busy]="release.busy()"
+            [minLength]="0"
+            testId="introPickups.admin.releaseDialog"
+            (confirm)="release.run($event)"
+          />
         </section>
         <div class="actions">
           @if (mayAdministrate()) {
@@ -292,18 +305,6 @@ type Tab = 'einabs' | 'bookings' | 'guides';
       testId="introPickups.admin.enableDialog"
       (confirm)="setEnabled.run($event)"
     />
-    <fs-required-message-dialog
-      [visible]="!!releasing()"
-      (visibleChange)="!$event && releasing.set(null)"
-      [title]="'introPickups.admin.release' | t"
-      [text]="'introPickups.admin.releaseText' | t: { name: releasing()?.user?.displayName ?? '' }"
-      [label]="'introPickups.admin.reasonOptional' | t"
-      [confirmLabel]="'introPickups.admin.release' | t"
-      [busy]="release.busy()"
-      [minLength]="0"
-      testId="introPickups.admin.releaseDialog"
-      (confirm)="release.run($event)"
-    />
     <fs-member-pick-dialog [(visible)]="guidePickOpen" [regionId]="regionId()" [verified]="true" [title]="'introPickups.admin.addGuide' | t" (picked)="addGuide($event)" />
     <fs-member-pick-dialog [(visible)]="pickOpen" [regionId]="regionId()" [title]="'introPickups.admin.historicalPick' | t" (picked)="startHistorical($event)" />
     <fs-slot-comments-drawer [(slotId)]="commentSlot" [userName]="commentUser()" [admin]="true" (changed)="bookings.reload()" />
@@ -377,19 +378,17 @@ type Tab = 'einabs' | 'bookings' | 'guides';
       gap: 0.25rem;
     }
     .candidates {
-      display: grid;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      display: block;
     }
     .candidates .section-title {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin: 0;
+      margin: 0 0 0.5rem;
       font-size: 1.05rem;
     }
     .candidates .muted {
-      margin: 0;
+      margin: 0 0 0.5rem;
     }
     .banner {
       display: flex;

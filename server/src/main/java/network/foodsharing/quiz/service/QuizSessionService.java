@@ -242,6 +242,27 @@ public class QuizSessionService {
         return result;
     }
 
+    /**
+     * Attempt states of a user for every existing quiz in two queries (onboarding journey; quizzes missing in the
+     * database are missing in the map).
+     */
+    @Transactional(readOnly = true)
+    public Map<QuizKind, QuizRuleService.TryState> tryStatesOf(UUID userId) {
+        Map<UUID, List<QuizRuleService.Attempt>> byQuiz = new java.util.HashMap<>();
+        for (QuizSession session : sessions.findByUserIdOrderByStartedAtDescIdDesc(userId)) {
+            if (!session.isTest()) {
+                byQuiz.computeIfAbsent(session.getQuizId(), id -> new ArrayList<>())
+                        .add(new QuizRuleService.Attempt(session.getStatus(), session.getEndedAt()));
+            }
+        }
+        Instant now = clock.instant();
+        Map<QuizKind, QuizRuleService.TryState> result = new java.util.EnumMap<>(QuizKind.class);
+        for (Quiz quiz : quizzes.findAll()) {
+            result.put(quiz.getKind(), rules.tryState(quiz.getKind(), byQuiz.getOrDefault(quiz.getId(), List.of()), now));
+        }
+        return result;
+    }
+
     /** When the user last passed the quiz (verification queue), if ever. */
     @Transactional(readOnly = true)
     public Optional<Instant> passedAt(UUID userId, QuizKind kind) {

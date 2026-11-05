@@ -28,9 +28,10 @@ import network.foodsharing.onboarding.service.JourneyCalculator.Inputs;
 import network.foodsharing.onboarding.service.JourneyCalculator.JourneyView;
 import network.foodsharing.onboarding.service.JourneyCalculator.TrackInputs;
 import network.foodsharing.quiz.domain.QuizKind;
-import network.foodsharing.quiz.service.GuideQuizEligibility;
+import network.foodsharing.quiz.service.QuizRuleService;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.domain.Region;
+import network.foodsharing.region.service.MemberPickupStats;
 import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.region.service.RegionPermissionResolver;
 import network.foodsharing.region.service.RegionReadService;
@@ -80,7 +81,7 @@ public class JourneyService {
     private final HistoryQueryService historyQuery;
     private final ApplicationEventPublisher events;
     private final Clock clock;
-    private final GuideQuizEligibility guideEligibility;
+    private final MemberPickupStats pickupStats;
 
     public JourneyService(UserService users, RegionService regions, RegionReadService regionReads,
                           RegionSettingsService regionSettings, RegionPermissionResolver resolver,
@@ -89,8 +90,8 @@ public class JourneyService {
                           LearningProgressRepository learning, UserOnboardingStepDoneRepository stepsDone,
                           CurrentActorService currentActor, PermissionService permissions, HistoryService history,
                           HistoryQueryService historyQuery, ApplicationEventPublisher events, Clock clock,
-                          GuideQuizEligibility guideEligibility) {
-        this.guideEligibility = guideEligibility;
+                          MemberPickupStats pickupStats) {
+        this.pickupStats = pickupStats;
         this.users = users;
         this.regions = regions;
         this.regionReads = regionReads;
@@ -220,21 +221,26 @@ public class JourneyService {
                 extras.add(new ExtraStep(step.id(), step.key(), title, confirmed.contains(step.id())));
             }
         }
-        GuideQuizEligibility.Status guideGate = guideEligibility.of(user.getId());
+        java.util.Map<QuizKind, QuizRuleService.TryState> tries = quizzes.tryStatesOf(user.getId());
+        boolean guide = region != null && resolver.hasRegionPermission(user.getId(),
+                Permission.CAN_GIVE_INTRO_PICKUPS, region.getId());
+        QuizRuleService.TryState guideQuiz = tries.get(QuizKind.EINAB_GUIDE);
+        boolean guidePassed = guideQuiz != null && guideQuiz.passValid();
+        // Q4: pickups and release contacts only where the GUIDE track shows them (keeps the journey's query budget)
+        int minPickups = region == null ? RegionSettingsService.DEFAULT_GUIDE_QUIZ_MIN_PICKUPS
+                : region.getGuideQuizMinPickups();
+        int pickupCount = guide || guidePassed || !user.isVerified() ? 0 : pickupStats.pickupCount(user.getId());
+        List<User> guideContacts = guidePassed && !guide && region != null ? regionReads.ambassadorsOf(region.getId())
+                : List.of();
         return new Inputs(user, PhoneNumberValidator.isValid(user.getMobilePhone()), region,
                 settings == null || settings.onboarding().learningPagesMandatory(), content.learningChapterKeys(),
-                read, quizzes.tryStateOf(user.getId(), QuizKind.FOODSAVER).orElse(null), quizContacts(),
+                read, tries.get(QuizKind.FOODSAVER), quizContacts(),
                 legal.hasCurrentConsent(user.getId(), LegalDocumentKind.LEGAL_AGREEMENT),
                 region == null ? null : introPickups.progressOf(user.getId(), region.getId()), extras,
                 region == null ? List.of() : verificationContacts(region.getId()),
                 region == null ? null : typicalVerificationDays(region.getId()),
-                new TrackInputs(quizzes.tryStateOf(user.getId(), QuizKind.HYGIENE).orElse(null),
-                        quizzes.tryStateOf(user.getId(), QuizKind.STORE_MANAGER).orElse(null),
-                        quizzes.tryStateOf(user.getId(), QuizKind.AMBASSADOR).orElse(null),
-                        region != null && resolver.hasRegionPermission(user.getId(),
-                                Permission.CAN_GIVE_INTRO_PICKUPS, region.getId()),
-                        quizzes.tryStateOf(user.getId(), QuizKind.EINAB_GUIDE).orElse(null), guideGate.pickupCount(),
-                        guideGate.minPickups(), region == null ? List.of() : regionReads.ambassadorsOf(region.getId())));
+                new TrackInputs(tries.get(QuizKind.HYGIENE), tries.get(QuizKind.STORE_MANAGER),
+                        tries.get(QuizKind.AMBASSADOR), guide, guideQuiz, pickupCount, minPickups, guideContacts));
     }
 
     /** Admins of the region's FSMANAGEMENT group, else its ambassadors. */
