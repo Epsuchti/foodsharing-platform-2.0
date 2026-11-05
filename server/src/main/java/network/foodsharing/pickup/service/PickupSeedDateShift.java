@@ -39,8 +39,12 @@ public class PickupSeedDateShift implements SeedDateShiftContributor {
     }
 
     private void shiftColumn(String table, String column, Duration delta) {
+        // Move the row furthest in the shift direction first: weekly seed pickups of one store are exactly a week apart,
+        // so a one-week shift in arbitrary order would briefly put two rows on the same (store, pickup_at) key.
+        String order = delta.isNegative() ? " asc" : " desc";
         List<Object[]> rows = jdbc.query("select id, " + column + " from " + table + " where " + column
-                + " is not null", (rs, n) -> new Object[] {rs.getObject(1, UUID.class), rs.getTimestamp(2)});
+                + " is not null order by " + column + order,
+                (rs, n) -> new Object[] {rs.getObject(1, UUID.class), rs.getTimestamp(2)});
         for (Object[] row : rows) {
             if (!row[0].toString().startsWith(SEED_PREFIX)) {
                 continue;
