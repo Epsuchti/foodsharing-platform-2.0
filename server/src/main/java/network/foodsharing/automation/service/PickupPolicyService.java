@@ -405,8 +405,8 @@ public class PickupPolicyService {
     }
 
     /**
-     * Writes the list: every listed store gets the group (a store without a policy gets one, off, in dry run and with
-     * its own rule off); each store keeps its own gap and switch (decision 152), only the group row holds the group
+     * Writes the list: every listed store gets the group (a store without a policy gets one, off and with its own rule
+     * off); each store keeps its own gap and switch (decision 152), only the group row holds the group
      * gap. Live stores taken off the list leave it. History on every affected policy when the list or the group gap
      * changed.
      */

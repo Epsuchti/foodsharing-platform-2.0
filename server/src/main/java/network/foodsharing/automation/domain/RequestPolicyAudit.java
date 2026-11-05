@@ -29,9 +29,6 @@ public class RequestPolicyAudit extends BaseEntity {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private RequestDecision status;

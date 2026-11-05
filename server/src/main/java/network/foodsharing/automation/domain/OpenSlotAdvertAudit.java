@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import network.foodsharing.common.persistence.BaseEntity;
 
-/** One advert outcome per (advert, pickup, trigger hours), or a dry-run summary. */
+/** One advert outcome per (advert, pickup, trigger hours). */
 @Getter
 @Setter
 @Entity
@@ -51,9 +51,6 @@ public class OpenSlotAdvertAudit extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 60)
     private AdvertStatus status;
-
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun;
 
     @Column(name = "message", length = 4000)
     private String message;

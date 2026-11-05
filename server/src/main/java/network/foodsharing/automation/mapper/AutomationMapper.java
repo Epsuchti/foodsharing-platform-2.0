@@ -189,7 +189,6 @@ public class AutomationMapper {
             User user = audit.userId() == null ? null : byId.get(audit.userId());
             model.setUser(user == null ? null : userMapper.toSummary(user));
             model.setStatus(audit.status());
-            model.setDryRun(audit.dryRun());
             model.setReasons(reasons(audit.reasons()));
             model.setUserMessage(audit.userMessage());
             model.setError(audit.error());

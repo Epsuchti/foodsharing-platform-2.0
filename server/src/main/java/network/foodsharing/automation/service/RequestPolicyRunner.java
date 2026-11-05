@@ -180,7 +180,6 @@ public class RequestPolicyRunner {
         audit.setStoreId(policy.getStoreId());
         audit.setRegionId(regionId);
         audit.setUserId(userId);
-        audit.setDryRun(false);
         audit.setStatus(status);
         audit.setReason(rule == null ? null : rule.name());
         audit.setMessage(PickupPolicyRunner.truncate(message, 4000));

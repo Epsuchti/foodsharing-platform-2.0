@@ -14,12 +14,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface OpenSlotAdvertAuditRepository extends JpaRepository<OpenSlotAdvertAudit, UUID> {
 
-    /** Audits of one (advert, pickup, trigger hours), without the given status, oldest first. */
+    /** Audits of one (advert, pickup, trigger hours), oldest first. */
     @Query("select a from OpenSlotAdvertAudit a where a.advertId = :advertId and a.pickupAt = :pickupAt "
-            + "and a.triggerHoursBefore = :hours and a.status <> :excluded order by a.createdAt, a.id")
+            + "and a.triggerHoursBefore = :hours order by a.createdAt, a.id")
     List<OpenSlotAdvertAudit> findForPickup(@Param("advertId") UUID advertId, @Param("pickupAt") Instant pickupAt,
-                                            @Param("hours") Integer triggerHoursBefore,
-                                            @Param("excluded") AdvertStatus excluded);
+                                            @Param("hours") Integer triggerHoursBefore);
 
     boolean existsByStoreIdAndPickupAtAndStatusIn(UUID storeId, Instant pickupAt, Collection<AdvertStatus> statuses);
 

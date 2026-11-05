@@ -91,11 +91,10 @@ class PickupCountGroupingAndMetricsTest {
         filled.setCreatedAt(OLD);
         filled.setStatus(AdvertStatus.SENT);
         filled.setFilledAt(OLD.plusSeconds(3600));
-        OpenSlotAdvertAudit summary = new OpenSlotAdvertAudit();
-        summary.setRegionId(REGION);
-        summary.setCreatedAt(OLD);
-        summary.setDryRun(true);
-        summary.setStatus(AdvertStatus.DRY_RUN_SUMMARY);
+        OpenSlotAdvertAudit occupied = new OpenSlotAdvertAudit();
+        occupied.setRegionId(REGION);
+        occupied.setCreatedAt(OLD);
+        occupied.setStatus(AdvertStatus.OCCUPIED_AT_TRIGGER);
         SignoutCancellation cancellation = new SignoutCancellation();
         cancellation.setRegionId(REGION);
         cancellation.setCreatedAt(OLD);
@@ -104,7 +103,7 @@ class PickupCountGroupingAndMetricsTest {
         extra.setRegionId(REGION);
         extra.setCreatedAt(OLD);
         when(pickupAudits.findByCreatedAtBefore(any())).thenReturn(List.of(declined));
-        when(advertAudits.findByCreatedAtBefore(any())).thenReturn(List.of(filled, summary));
+        when(advertAudits.findByCreatedAtBefore(any())).thenReturn(List.of(filled, occupied));
         when(cancellations.findByCreatedAtBefore(any())).thenReturn(List.of(cancellation));
         when(pickups.extraSlotsCreatedBefore(any())).thenReturn(List.of(extra));
         MetricDailyCount existing = new MetricDailyCount();
@@ -130,7 +129,7 @@ class PickupCountGroupingAndMetricsTest {
                 "ADVERT.FILLED_AFTER_ADVERT", "SLOT_APPROVAL.DECLINED", "SLOT_DECLINE_RULE.GAP",
                 "SLOT_DECLINE_RULE.EXPERIENCE", "CANCELLATION.NOT_REPLACED", "EXTRA_SLOT.ADDED");
         verify(pickupAudits).deleteAll(List.of(declined));
-        verify(advertAudits).deleteAll(List.of(filled, summary));
+        verify(advertAudits).deleteAll(List.of(filled, occupied));
         verify(pickups).deleteExtraSlots(List.of(extra));
     }
 

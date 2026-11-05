@@ -148,14 +148,13 @@ class PickupPolicyRunnerTest {
 
     @Test
     void jobPathActsAndAuditsLive() {
-        // decision 167: no dry run; every decision acts and its audit has dry_run = false
+        // decision 167: no dry run; every decision acts
         decide(allowed(PolicyRule.ALL_RULES_PASSED, null));
         PickupPolicyRunner.RunResult result = runner.runAll();
         assertThat(result.confirmed()).isEqualTo(1);
         verify(pickups).confirmByAutomation(STORE, PICKUP, USER, PickupPolicyRunner.ACTOR, null);
         PickupPolicyAudit audit = savedAudit();
         assertThat(audit.getDecision()).isEqualTo(PickupPolicyDecision.CONFIRMED);
-        assertThat(audit.isDryRun()).isFalse();
     }
 
     @Test

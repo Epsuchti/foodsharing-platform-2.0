@@ -211,7 +211,6 @@ class PickupRuleGateImplTest {
         PickupPolicyAudit audit = captor.getValue();
         assertThat(audit.getDecision()).isEqualTo(PickupPolicyDecision.DECLINED);
         assertThat(audit.getPolicyId()).isEqualTo(policy.getId());
-        assertThat(audit.isDryRun()).isFalse();
         assertThat(audit.getReasons()).isEqualTo("[{\"rule\":\"GAP\",\"text\":\"Zu wenig Abstand.\"}]");
     }
 }
