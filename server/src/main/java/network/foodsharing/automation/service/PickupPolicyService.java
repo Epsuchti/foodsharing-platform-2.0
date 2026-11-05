@@ -3,6 +3,7 @@ package network.foodsharing.automation.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -241,7 +242,8 @@ public class PickupPolicyService {
                 : input.links().stream().filter(link -> link.mirrorOf() == null).toList();
         List<PickupPolicyLinkedStore> mirrorsHere = existing.map(p -> links.findByPolicyIdOrderByCreatedAtAscIdAsc(
                 p.getId()).stream().filter(l -> l.getMirrorOf() != null).toList()).orElse(List.of());
-        validateLinks(actor, storeId, own, mirrorsHere.size());
+        validateLinks(actor, storeId, own, mirrorsHere.size(), existing.map(this::currentMirrorSpecs)
+                .orElse(Map.of()));
         Set<LocalDate> dates = new LinkedHashSet<>(input.excludedDates() == null ? List.of() : input.excludedDates());
         if (dates.size() > 366) {
             throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("field", "excludedDates");
@@ -524,7 +526,44 @@ public class PickupPolicyService {
                 .region(store.getRegionId()).metadata("storeId", storeId.toString()).build());
     }
 
-    void validateLinks(SessionPrincipal actor, UUID storeId, List<LinkInput> own, int mirrorsHere) {
+    /** What a bidirectional rule writes into the linked store's mirror row (the fields {@code createMirror} copies). */
+    record MirrorSpec(LinkedStoreWindowMode mode, int daysBefore, int daysAfter, int graceMinutes, String message) {
+        static MirrorSpec of(LinkInput input) {
+            boolean lastDays = input.windowMode() == LinkedStoreWindowMode.LAST_DAYS;
+            return new MirrorSpec(lastDays ? LinkedStoreWindowMode.LAST_DAYS : LinkedStoreWindowMode.SAME_DAY,
+                    lastDays ? input.windowDaysBefore() : 0, lastDays ? input.windowDaysAfter() : 0,
+                    input.graceMinutes(), input.message() == null || input.message().isBlank() ? null
+                            : input.message().strip());
+        }
+    }
+
+    /** The mirror each store linked by a saved bidirectional rule of the policy gets today. */
+    private Map<UUID, MirrorSpec> currentMirrorSpecs(PickupPolicy policy) {
+        List<PickupPolicyLinkedStore> own = links.findByPolicyIdOrderByCreatedAtAscIdAsc(policy.getId()).stream()
+                .filter(l -> l.getMirrorOf() == null && l.isBidirectional()).toList();
+        Map<UUID, MirrorSpec> result = new HashMap<>();
+        if (own.isEmpty()) {
+            return result;
+        }
+        Map<UUID, PickupPolicyLinkedStore> byId = own.stream()
+                .collect(Collectors.toMap(PickupPolicyLinkedStore::getId, l -> l));
+        for (PickupPolicyLinkedStoreMember member : members.findByLinkIdIn(List.copyOf(byId.keySet()))) {
+            PickupPolicyLinkedStore link = byId.get(member.getLinkId());
+            boolean lastDays = link.getWindowMode() == LinkedStoreWindowMode.LAST_DAYS;
+            result.put(member.getStoreId(), new MirrorSpec(lastDays ? LinkedStoreWindowMode.LAST_DAYS
+                    : LinkedStoreWindowMode.SAME_DAY, lastDays ? link.getWindowDaysBefore() : 0,
+                    lastDays ? link.getWindowDaysAfter() : 0, link.getGraceMinutes(), link.getMessage()));
+        }
+        return result;
+    }
+
+    /**
+     * {@code currentMirrors}: the mirror specs the saved rules already write; the actor needs {@code mayEditStore} of
+     * a linked store only when the save changes what is written into it (new, newly included or changed mirror).
+     * Removing a store or switching bidirectional off needs no right on it (the client offers it).
+     */
+    void validateLinks(SessionPrincipal actor, UUID storeId, List<LinkInput> own, int mirrorsHere,
+                       Map<UUID, MirrorSpec> currentMirrors) {
         if (own.size() + mirrorsHere > MAXIMUM_LINKS) {
             throw ApiException.badRequest(ApiErrorCode.TOO_MANY_LINKED_STORES);
         }
@@ -543,7 +582,8 @@ public class PickupPolicyService {
                 }
                 // one-way: any live store; the actor may edit this store, so they may know stores (decision 167 Q3)
                 Store linked = stores.require(id);
-                if (link.bidirectional() && !permissions.mayEditStore(actor, linked)) {
+                if (link.bidirectional() && !MirrorSpec.of(link).equals(currentMirrors.get(id))
+                        && !permissions.mayEditStore(actor, linked)) {
                     throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());
                 }
                 if (!all.add(id)) {
