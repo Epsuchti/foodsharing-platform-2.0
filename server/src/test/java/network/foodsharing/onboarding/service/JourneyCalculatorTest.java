@@ -28,7 +28,7 @@ class JourneyCalculatorTest {
     private static final Instant NOW = Instant.parse("2026-11-02T09:00:00Z");
     private static final List<String> CHAPTERS = List.of("rules", "hygiene", "how-a-pickup-works", "etiquette");
     private static final User CONTACT = contact();
-    private static final TrackInputs NO_TRACKS = new TrackInputs(null, null, null, false);
+    private static final TrackInputs NO_TRACKS = new TrackInputs(null, null, null, false, null, 0, 25, List.of());
 
     private static User contact() {
         User user = new User();
@@ -253,7 +253,7 @@ class JourneyCalculatorTest {
         c.extras = List.of(new ExtraStep(UUID.randomUUID(), "newcomer-meeting", "Treffen", false));
         c.einabs(Stage.VERIFIED, NextStep.DONE, 3, 0);
         c.tracks = new TrackInputs(new TryState(QuizSessionStatus.PASSED, 0, 0, 0, NOW, 300, true), null, null,
-                false);
+                false, null, 30, 25, List.of(CONTACT));
         JourneyView journey = c.compute();
         assertThat(journey.extraSteps().getFirst().status()).isEqualTo(JourneyStepStatus.DONE);
         assertThat(journey.currentStep()).isEqualTo("PASSPORT");
@@ -261,11 +261,72 @@ class JourneyCalculatorTest {
                 .containsExactly("HYGIENE", "STORE_MANAGER", "GUIDE", "AMBASSADOR");
         assertThat(journey.tracks().get(0).steps().getFirst().status()).isEqualTo(JourneyStepStatus.DONE);
         assertThat(journey.tracks().get(1).steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
-        assertThat(journey.tracks().get(2).steps().getFirst().status())
-                .isEqualTo(JourneyStepStatus.WAITING_FOR_OTHERS);
+        // Q4: 30 of 25 pickups, the EinAb guide quiz is open
+        assertThat(journey.tracks().get(2).steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
         assertThat(journey.tracks().get(3).steps().getFirst().status()).isEqualTo(JourneyStepStatus.LOCKED);
         JourneyView newcomer = new Case().compute();
         assertThat(newcomer.tracks().get(1).steps().getFirst().status()).isEqualTo(JourneyStepStatus.LOCKED);
         assertThat(newcomer.tracks().get(0).steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
+    }
+
+    // ------------------------------------------------------------------------------------- Q4 GUIDE track
+
+    private static StepView guide(Case c, TrackInputs tracks) {
+        c.tracks = tracks;
+        return c.compute().tracks().stream().filter(t -> t.key().equals("GUIDE")).findFirst().orElseThrow()
+                .steps().getFirst();
+    }
+
+    private static Case verifiedFoodsaver() {
+        Case c = new Case().profile().learned().quizPassed().agreed().verified();
+        c.user.setRole(Role.FOODSAVER);
+        c.einabs(Stage.VERIFIED, NextStep.DONE, 3, 0);
+        return c;
+    }
+
+    @Test
+    void guideTrackIsDoneWhenReleased() {
+        StepView step = guide(verifiedFoodsaver(), new TrackInputs(null, null, null, true, null, 0, 25, List.of()));
+        assertThat(step.status()).isEqualTo(JourneyStepStatus.DONE);
+        assertThat(step.nextAction()).isNull();
+    }
+
+    @Test
+    void guideTrackIsLockedWhenUnverified() {
+        StepView step = guide(new Case().profile(), new TrackInputs(null, null, null, false, null, 40, 25, List.of()));
+        assertThat(step.status()).isEqualTo(JourneyStepStatus.LOCKED);
+        assertThat(step.blockedReason()).isNull();
+    }
+
+    @Test
+    void guideTrackShowsPickupProgressBelowTheThreshold() {
+        StepView step = guide(verifiedFoodsaver(), new TrackInputs(null, null, null, false, null, 7, 25, List.of()));
+        assertThat(step.status()).isEqualTo(JourneyStepStatus.LOCKED);
+        assertThat(step.progress().done()).isEqualTo(7);
+        assertThat(step.progress().required()).isEqualTo(25);
+        assertThat(step.blockedReason()).isEqualTo("guidePickups");
+        assertThat(step.blockedArgs()).containsEntry("done", "7").containsEntry("required", "25");
+        assertThat(step.nextAction()).isNull();
+    }
+
+    @Test
+    void guideTrackOffersTheQuizFromTheThreshold() {
+        StepView open = guide(verifiedFoodsaver(), new TrackInputs(null, null, null, false, null, 25, 25, List.of()));
+        assertThat(open.status()).isEqualTo(JourneyStepStatus.AVAILABLE);
+        assertThat(open.nextAction().route()).isEqualTo("/quizzes/EINAB_GUIDE");
+        StepView failed = guide(verifiedFoodsaver(), new TrackInputs(null, null, null, false,
+                new TryState(QuizSessionStatus.FAILED, 1, 0, 0, null, null, false), 30, 25, List.of()));
+        assertThat(failed.status()).isEqualTo(JourneyStepStatus.IN_PROGRESS);
+        assertThat(failed.nextAction().route()).isEqualTo("/quizzes/EINAB_GUIDE");
+    }
+
+    @Test
+    void guideTrackWaitsForTheAmbassadorsAfterAPass() {
+        StepView step = guide(verifiedFoodsaver(), new TrackInputs(null, null, null, false,
+                new TryState(QuizSessionStatus.PASSED, 0, 0, 0, NOW, null, true), 3, 25, List.of(CONTACT)));
+        assertThat(step.status()).isEqualTo(JourneyStepStatus.WAITING_FOR_OTHERS);
+        assertThat(step.waitingFor().labelKey()).isEqualTo("onboarding.waiting.guideRelease");
+        assertThat(step.waitingFor().contacts()).containsExactly(CONTACT);
+        assertThat(step.nextAction()).isNull();
     }
 }

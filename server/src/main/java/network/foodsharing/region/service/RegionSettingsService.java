@@ -37,10 +37,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RegionSettingsService {
 
+    /** {@code guideQuizMinPickups} (Q4): null in a change = unchanged. */
     public record IntroPickupSettings(int maxActiveBookingsPerUser, boolean preventDuplicateGuideBookings,
                                       boolean preventDuplicateCategoryBookings,
-                                      boolean requireFairteilerVisitByThirdIntroPickup, Set<String> ignoredCategories) {
+                                      boolean requireFairteilerVisitByThirdIntroPickup, Set<String> ignoredCategories,
+                                      Integer guideQuizMinPickups) {
+
+        public IntroPickupSettings(int maxActiveBookingsPerUser, boolean preventDuplicateGuideBookings,
+                                   boolean preventDuplicateCategoryBookings,
+                                   boolean requireFairteilerVisitByThirdIntroPickup, Set<String> ignoredCategories) {
+            this(maxActiveBookingsPerUser, preventDuplicateGuideBookings, preventDuplicateCategoryBookings,
+                    requireFairteilerVisitByThirdIntroPickup, ignoredCategories, DEFAULT_GUIDE_QUIZ_MIN_PICKUPS);
+        }
     }
+
+    /** Q4: the pickup threshold of the EinAb guide quiz for users without a home region. */
+    public static final int DEFAULT_GUIDE_QUIZ_MIN_PICKUPS = 25;
+    public static final int MAX_GUIDE_QUIZ_MIN_PICKUPS = 1000;
 
     public record Step(UUID id, String key, Map<String, String> titles, Map<String, String> descriptions,
                        int sortOrder) {
@@ -95,7 +108,8 @@ public class RegionSettingsService {
     public Settings read(Region region) {
         IntroPickupSettings intro = new IntroPickupSettings(region.getMaxActiveBookingsPerUser(),
                 region.isPreventDuplicateGuideBookings(), region.isPreventDuplicateCategoryBookings(),
-                region.isRequireFairteilerVisitByThird(), categories(region.getIgnoredCategories()));
+                region.isRequireFairteilerVisitByThird(), categories(region.getIgnoredCategories()),
+                region.getGuideQuizMinPickups());
         return new Settings(intro, new OnboardingSettings(region.isLearningPagesMandatory(), steps(region.getId())),
                 region.getJoinMode(), region.getTimeZone(), region.getConferenceUrl());
     }
@@ -132,6 +146,11 @@ public class RegionSettingsService {
         Region region = regionService.require(regionId);
         permissions.requireMayAdministrateRegion(currentActor.requirePrincipal(), regionId);
         HistoryAction action = region.isGroup() ? GroupAction.UPDATED : RegionAction.SETTINGS_CHANGED;
+        Integer guideQuizMin = change.introPickups() == null ? null : change.introPickups().guideQuizMinPickups();
+        if (guideQuizMin != null && (guideQuizMin < 0 || guideQuizMin > MAX_GUIDE_QUIZ_MIN_PICKUPS)) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED).withArg("guideQuizMinPickups",
+                    String.valueOf(guideQuizMin));
+        }
         if (change.timeZone() != null) {
             if (!RegionService.isValidZone(change.timeZone())) {
                 throw ApiException.badRequest(ApiErrorCode.INVALID_TIME_ZONE).withArg("timeZone", change.timeZone());
@@ -166,6 +185,11 @@ public class RegionSettingsService {
                     : intro.ignoredCategories().stream().sorted().collect(Collectors.joining(","));
             record(action, region, "ignoredCategories", region.getIgnoredCategories(), ignored, change.reason());
             region.setIgnoredCategories(ignored);
+            if (intro.guideQuizMinPickups() != null) {
+                int min = intro.guideQuizMinPickups();
+                record(action, region, "guideQuizMinPickups", region.getGuideQuizMinPickups(), min, change.reason());
+                region.setGuideQuizMinPickups(min);
+            }
         }
         OnboardingSettings onboarding = change.onboarding();
         if (onboarding != null) {

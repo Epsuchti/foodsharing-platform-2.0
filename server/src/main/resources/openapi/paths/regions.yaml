@@ -346,8 +346,8 @@
   put:
     tags: [regions]
     operationId: grantRegionPermission
-    summary: 'Grant a region-scoped permission.'
-    x-permission: 'ambassador or ORGA (CAN_MANAGE_USERS: only CAN_GIVE_INTRO_PICKUPS)'
+    summary: 'Grant a region-scoped permission (not CAN_GIVE_INTRO_PICKUPS: the guide release, Q4).'
+    x-permission: 'ambassador or ORGA'
     x-history: RegionAction.PERMISSION_GRANTED
     parameters:
       - name: regionId
@@ -377,12 +377,12 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '409': {description: 'NOT_A_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_A_MEMBER or USE_GUIDE_RELEASE (CAN_GIVE_INTRO_PICKUPS goes through the guide release)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   delete:
     tags: [regions]
     operationId: revokeRegionPermission
     summary: 'Revoke a direct region-scoped permission.'
-    x-permission: 'ambassador or ORGA (CAN_MANAGE_USERS: only CAN_GIVE_INTRO_PICKUPS)'
+    x-permission: 'ambassador or ORGA'
     x-history: RegionAction.PERMISSION_REVOKED
     parameters:
       - name: regionId

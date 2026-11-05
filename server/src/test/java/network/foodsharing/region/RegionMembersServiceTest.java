@@ -141,9 +141,14 @@ class RegionMembersServiceTest {
     @Test
     void grantRulesAndTheOverviewIncludeFunctionGrants() {
         TestAuth.login(TestUsers.principal(manager));
-        // CAN_MANAGE_USERS holders may only grant CAN_GIVE_INTRO_PICKUPS
-        members.grant(city.getId(), member.getId(), Permission.CAN_GIVE_INTRO_PICKUPS);
+        // Q4 (decision 167): CAN_MANAGE_USERS holders grant nothing here any more, not even CAN_GIVE_INTRO_PICKUPS
+        assertThatThrownBy(() -> members.grant(city.getId(), member.getId(), Permission.CAN_GIVE_INTRO_PICKUPS))
+                .isInstanceOfSatisfying(ApiException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
         assertThatThrownBy(() -> members.grant(city.getId(), member.getId(), Permission.CAN_MANAGE_SURVEYS))
+                .isInstanceOfSatisfying(ApiException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
+        assertThatThrownBy(() -> members.releaseGuide(city.getId(), member.getId()))
                 .isInstanceOfSatisfying(ApiException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
         TestAuth.login(TestUsers.principal(member));
@@ -151,6 +156,11 @@ class RegionMembersServiceTest {
                 .isInstanceOf(ApiException.class);
 
         TestAuth.login(TestUsers.principal(ambassador));
+        // the generic grant refuses the guide permission, the guide release grants it
+        assertThatThrownBy(() -> members.grant(city.getId(), member.getId(), Permission.CAN_GIVE_INTRO_PICKUPS))
+                .isInstanceOfSatisfying(ApiException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.USE_GUIDE_RELEASE));
+        members.releaseGuide(city.getId(), member.getId());
         members.grant(city.getId(), member.getId(), Permission.CAN_MANAGE_SURVEYS);
         assertThatThrownBy(() -> members.grant(city.getId(), orga.getId(), Permission.CAN_MANAGE_SURVEYS))
                 .isInstanceOfSatisfying(ApiException.class,
@@ -159,9 +169,14 @@ class RegionMembersServiceTest {
         assertThat(grants).extracting(g -> g.permission() + "/" + g.source()).containsExactlyInAnyOrder(
                 "CAN_GIVE_INTRO_PICKUPS/DIRECT", "CAN_MANAGE_SURVEYS/DIRECT", "CAN_MANAGE_USERS/FUNCTION:FSMANAGEMENT");
         assertThat(grants).filteredOn(g -> g.permission() == Permission.CAN_GIVE_INTRO_PICKUPS).singleElement()
-                .satisfies(g -> assertThat(g.grantedBy().getId()).isEqualTo(manager.getId()));
+                .satisfies(g -> assertThat(g.grantedBy().getId()).isEqualTo(ambassador.getId()));
+        assertThat(members.guideReleases()).containsEntry(member.getId(), java.util.Set.of(city.getId()));
         members.revoke(city.getId(), member.getId(), Permission.CAN_MANAGE_SURVEYS);
         assertThat(members.grants(city.getId())).hasSize(2);
+        // withdrawing the guide permission is idempotent
+        assertThat(members.withdrawGuide(city.getId(), member.getId())).isTrue();
+        assertThat(members.withdrawGuide(city.getId(), member.getId())).isFalse();
+        assertThat(members.guideReleases()).doesNotContainKey(member.getId());
     }
 
     @Test

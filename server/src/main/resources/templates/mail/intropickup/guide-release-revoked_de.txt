@@ -1,0 +1,9 @@
+Hallo [(${displayName})],
+
+du hast das EinAb-Begleitungs-Quiz bis zum [(${deadline})] nicht bestanden. Deine Freischaltung als Begleitung für Einführungsabholungen wurde deshalb zurückgenommen. Deine bereits geplanten Einführungsabholungen bleiben bestehen; die Bezirksverwaltung organisiert eine neue Begleitung.
+
+Sobald du das Quiz bestanden hast, können dich deine Botschafter:innen wieder freischalten.
+
+[(${link})]
+
+Dein foodsharing-Team

@@ -253,12 +253,46 @@
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
+/api/regions/{regionId}/admin/guide-candidates:
+  get:
+    tags: [intro-pickup-admin]
+    operationId: listGuideCandidates
+    summary: 'Q4 Ready for release: active members with a valid EinAb guide quiz pass who are not released here.'
+    x-permission: 'CAN_MANAGE_USERS@region'
+    parameters:
+      - name: regionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/intro-pickups.yaml#/GuideCandidatePage'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'REGION_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
 /api/regions/{regionId}/admin/guides/{userId}/enabled:
   put:
     tags: [intro-pickup-admin]
     operationId: setGuideEnabled
-    summary: 'Enable or disable a guide (grants/revokes CAN_GIVE_INTRO_PICKUPS).'
-    x-permission: 'CAN_MANAGE_USERS@region'
+    summary: 'Enable (release, Q4: region administrators only, needs a valid EinAb guide quiz pass) or disable (also CAN_MANAGE_USERS holders) a guide; grants/revokes CAN_GIVE_INTRO_PICKUPS.'
+    x-permission: 'CAN_MANAGE_USERS@region (disable), mayAdministrateRegion (enable)'
     x-history: IntroPickupAction.GUIDE_ENABLED
     parameters:
       - name: regionId
@@ -288,9 +322,9 @@
               $ref: '../schemas/intro-pickups.yaml#/GuideSummary'
       '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED (enable: not a region administrator)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'REGION_NOT_FOUND or USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '409': {description: 'NOT_REGION_MEMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'NOT_REGION_MEMBER or GUIDE_QUIZ_NOT_PASSED (enable without a valid EinAb guide quiz pass)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/regions/{regionId}/admin/guides/{userId}/admin:
   put:

@@ -49,7 +49,13 @@ public final class JourneyCalculator {
     public record ExtraStep(UUID id, String key, String title, boolean done) {
     }
 
-    public record TrackInputs(TryState hygiene, TryState storeManager, TryState ambassador, boolean guide) {
+    /**
+     * {@code guide}: released (CAN_GIVE_INTRO_PICKUPS in the home region); Q4: {@code guideQuiz} the EINAB_GUIDE try
+     * state, {@code pickupCount} confirmed past store pickups against {@code guideMinPickups} of the home region, and
+     * {@code guideContacts} the home region's ambassadors who release guides.
+     */
+    public record TrackInputs(TryState hygiene, TryState storeManager, TryState ambassador, boolean guide,
+                              TryState guideQuiz, int pickupCount, int guideMinPickups, List<User> guideContacts) {
     }
 
     public record Inputs(User user, boolean phoneValid, Region region, boolean learningMandatory,
@@ -265,18 +271,45 @@ public final class JourneyCalculator {
                 ? JourneyStepStatus.DONE : user.isVerified() ? quizStatus(t.storeManager()) : JourneyStepStatus.LOCKED;
         tracks.add(track("STORE_MANAGER", store, new Action("onboarding.action.startQuiz", "/quizzes/STORE_MANAGER"),
                 "PT30M"));
-        JourneyStepStatus guide = t.guide() ? JourneyStepStatus.DONE
-                : user.isVerified() ? JourneyStepStatus.WAITING_FOR_OTHERS : JourneyStepStatus.LOCKED;
-        tracks.add(new Track("GUIDE", List.of(new StepView("GUIDE", guide, titleKey("GUIDE"), null, null, null, "P14D",
-                null, null, guide == JourneyStepStatus.WAITING_FOR_OTHERS
-                ? new WaitingFor("onboarding.waiting.guidePermission", in.verificationContacts(), null) : null,
-                true, null))));
+        tracks.add(new Track("GUIDE", List.of(guideStep(user, t))));
         JourneyStepStatus ambassador = PermissionService.isAtLeast(user.getRole(), Role.AMBASSADOR)
                 ? JourneyStepStatus.DONE : PermissionService.isAtLeast(user.getRole(), Role.STORE_MANAGER)
                 ? quizStatus(t.ambassador()) : JourneyStepStatus.LOCKED;
         tracks.add(track("AMBASSADOR", ambassador, new Action("onboarding.action.startQuiz", "/quizzes/AMBASSADOR"),
                 "PT45M"));
         return tracks;
+    }
+
+    /**
+     * Q4 GUIDE track: DONE when released; LOCKED when unverified; LOCKED with pickup progress below the threshold;
+     * AVAILABLE / IN_PROGRESS for the EinAb guide quiz; WAITING_FOR_OTHERS (the ambassadors' release) after a pass.
+     */
+    private static StepView guideStep(User user, TrackInputs t) {
+        String title = titleKey("GUIDE");
+        if (t.guide()) {
+            return new StepView("GUIDE", JourneyStepStatus.DONE, title, null, null, null, "P14D", null, null, null,
+                    true, null);
+        }
+        if (!user.isVerified()) {
+            return new StepView("GUIDE", JourneyStepStatus.LOCKED, title, null, null, null, "P14D", null, null, null,
+                    true, null);
+        }
+        if (t.guideQuiz() != null && t.guideQuiz().passValid()) {
+            return new StepView("GUIDE", JourneyStepStatus.WAITING_FOR_OTHERS, title, null, null, null, "P14D", null,
+                    null, new WaitingFor("onboarding.waiting.guideRelease", t.guideContacts(), null), true, null);
+        }
+        if (t.pickupCount() < t.guideMinPickups()) {
+            return new StepView("GUIDE", JourneyStepStatus.LOCKED, title, null,
+                    new Progress(t.pickupCount(), 0, t.guideMinPickups(), null), null, "P14D", "guidePickups",
+                    Map.of("done", String.valueOf(t.pickupCount()), "required", String.valueOf(t.guideMinPickups())),
+                    null, true, null);
+        }
+        JourneyStepStatus status = quizStatus(t.guideQuiz());
+        boolean active = status == JourneyStepStatus.AVAILABLE || status == JourneyStepStatus.IN_PROGRESS;
+        return new StepView("GUIDE", status, title, null, null,
+                active ? new Action("onboarding.action.startQuiz", "/quizzes/EINAB_GUIDE") : null, "PT30M", null, null,
+                status == JourneyStepStatus.WAITING_FOR_OTHERS
+                        ? new WaitingFor("onboarding.waiting.quizTeam", t.guideContacts(), null) : null, true, null);
     }
 
     private static JourneyStepStatus quizStatus(TryState state) {

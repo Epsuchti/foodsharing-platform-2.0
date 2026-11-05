@@ -1,0 +1,9 @@
+Ciao [(${displayName})],
+
+non hai superato il quiz accompagnatore EinAb entro il [(${deadline})], quindi la tua abilitazione di accompagnatore dei ritiri introduttivi è stata revocata. I tuoi ritiri introduttivi pianificati restano; l’amministrazione della regione trova un altro accompagnatore.
+
+Appena superi il quiz, i tuoi ambasciatori possono abilitarti di nuovo.
+
+[(${link})]
+
+Il tuo team foodsharing

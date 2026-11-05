@@ -1,0 +1,7 @@
+Hoi [(${displayName})],
+
+Iifüehrigsabholige begleited jetzt nur no Foodsaver, wo s EinAb-Begleitigs-Quiz bestande händ. Bitte mach s Quiz bis am [(${deadline})]. Dänn wird dini Freischaltig als Begleitig zruggnoh, bis du s bestande häsch und dini Botschafter:inne dich wieder freischalted.
+
+[(${link})]
+
+Dis foodsharing-Team

@@ -55,7 +55,6 @@ class RegionPermissionResolverTest {
     void defaultFunctionGrantsFollowA10() {
         assertThat(AppProperties.Permissions.defaultFunctionGrants()).containsExactlyInAnyOrderEntriesOf(Map.of(
                 WorkingGroupFunction.FSMANAGEMENT, List.of(Permission.CAN_MANAGE_USERS),
-                WorkingGroupFunction.WELCOME, List.of(Permission.CAN_GIVE_INTRO_PICKUPS),
                 WorkingGroupFunction.STORES_COORDINATION, List.of(Permission.CAN_USE_AUTOMATIONS,
                         Permission.CAN_SEE_USER_PICKUP_COUNT_GROUPING, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS),
                 WorkingGroupFunction.VOTING, List.of(Permission.CAN_MANAGE_SURVEYS)));
@@ -64,7 +63,16 @@ class RegionPermissionResolverTest {
     }
 
     @Test
+    void welcomeMembersNoLongerGetTheGuidePermission() {
+        // Q4 (decision 167): CAN_GIVE_INTRO_PICKUPS is the guide release, never a function grant by default
+        assertThat(resolver.hasRegionPermission(USER, Permission.CAN_GIVE_INTRO_PICKUPS, REGION)).isFalse();
+        assertThat(resolver.permissionsByRegion(USER)).isEmpty();
+    }
+
+    @Test
     void membersOfAFunctionGroupGetItsPermissionsInTheRegion() {
+        properties.getPermissions().setFunctionGrants(Map.of(WorkingGroupFunction.WELCOME,
+                List.of(Permission.CAN_GIVE_INTRO_PICKUPS)));
         assertThat(resolver.hasRegionPermission(USER, Permission.CAN_GIVE_INTRO_PICKUPS, REGION)).isTrue();
         assertThat(resolver.hasRegionPermission(USER, Permission.CAN_MANAGE_USERS, REGION)).isFalse();
         assertThat(resolver.permissionsByRegion(USER)).isEqualTo(Map.of(REGION, Set.of(Permission.CAN_GIVE_INTRO_PICKUPS)));

@@ -118,6 +118,10 @@ public class Region extends BaseEntity implements HistorySubject {
     @Column(name = "ignored_categories", length = 400)
     private String ignoredCategories;
 
+    /** Q4: confirmed store pickups before the EinAb guide quiz unlocks for members with this home region. */
+    @Column(name = "guide_quiz_min_pickups", nullable = false)
+    private int guideQuizMinPickups = 25;
+
     @Column(name = "learning_pages_mandatory", nullable = false)
     private boolean learningPagesMandatory = true;
 

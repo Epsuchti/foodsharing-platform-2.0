@@ -1,0 +1,7 @@
+Hallo [(${displayName})],
+
+Einführungsabholungen begleiten jetzt nur noch Foodsaver, die das EinAb-Begleitungs-Quiz bestanden haben. Bitte mach das Quiz bis zum [(${deadline})]. Danach wird deine Freischaltung als Begleitung zurückgenommen, bis du es bestanden hast und deine Botschafter:innen dich wieder freischalten.
+
+[(${link})]
+
+Dein foodsharing-Team

@@ -107,6 +107,7 @@ public class QuizSessionService {
     private final UserService users;
     private final AuthSessionService authSessions;
     private final ObjectProvider<QuizConsentChecker> consents;
+    private final ObjectProvider<GuideQuizEligibility> guideEligibility;
     private final CurrentActorService currentActor;
     private final PermissionService permissions;
     private final HistoryService history;
@@ -118,8 +119,10 @@ public class QuizSessionService {
     public QuizSessionService(QuizRepository quizzes, QuizI18nRepository quizTexts, QuizSessionRepository sessions,
                               QuizEditorService editor, QuizRuleService rules, UserService users,
                               AuthSessionService authSessions, ObjectProvider<QuizConsentChecker> consents,
+                              ObjectProvider<GuideQuizEligibility> guideEligibility,
                               CurrentActorService currentActor, PermissionService permissions, HistoryService history,
                               ApplicationEventPublisher events, ObjectMapper objectMapper, Clock clock) {
+        this.guideEligibility = guideEligibility;
         this.quizzes = quizzes;
         this.quizTexts = quizTexts;
         this.sessions = sessions;
@@ -152,9 +155,15 @@ public class QuizSessionService {
             Map<String, QuizI18n> texts = quizTexts.findByOwnerId(quiz.get().getId()).stream()
                     .collect(Collectors.toMap(QuizI18n::getLanguage, Function.identity()));
             QuizI18n text = pick(texts, language);
+            boolean mayTry = mayTry(actor, user, kind);
+            boolean mayRead = editor.mayRead(actor, kind);
+            if (kind == QuizKind.EINAB_GUIDE && !mayTry && !mayRead) {
+                // Q4: below the pickup threshold the guide quiz is not listed at all (editors still see it)
+                continue;
+            }
             result.add(new OverviewView(quiz.get(), text == null ? kind.name() : text.getName(),
-                    text == null ? null : text.getDescription(), mayTry(actor, user, kind),
-                    editor.mayRead(actor, kind), editor.mayEdit(actor, kind), status(quiz.get(), user, false)));
+                    text == null ? null : text.getDescription(), mayTry, mayRead, editor.mayEdit(actor, kind),
+                    status(quiz.get(), user, false)));
         }
         return result;
     }
@@ -205,6 +214,32 @@ public class QuizSessionService {
     @Transactional(readOnly = true)
     public Optional<QuizRuleService.TryState> tryStateOf(UUID userId, QuizKind kind) {
         return quizzes.findByKind(kind).map(quiz -> rules.tryState(kind, attempts(userId, quiz), clock.instant()));
+    }
+
+    /** Q4: users with a valid pass of the quiz → when they passed (batch; users without a valid pass are missing). */
+    @Transactional(readOnly = true)
+    public Map<UUID, Instant> validPasses(java.util.Collection<UUID> userIds, QuizKind kind) {
+        Map<UUID, Instant> result = new java.util.HashMap<>();
+        if (userIds.isEmpty()) {
+            return result;
+        }
+        quizzes.findByKind(kind).ifPresent(quiz -> {
+            Map<UUID, List<QuizRuleService.Attempt>> byUser = new java.util.HashMap<>();
+            for (QuizSession session : sessions.findByUserIdInAndQuizIdOrderByStartedAtAscIdAsc(userIds, quiz.getId())) {
+                if (!session.isTest()) {
+                    byUser.computeIfAbsent(session.getUserId(), id -> new ArrayList<>())
+                            .add(new QuizRuleService.Attempt(session.getStatus(), session.getEndedAt()));
+                }
+            }
+            Instant now = clock.instant();
+            byUser.forEach((userId, attempts) -> {
+                QuizRuleService.TryState state = rules.tryState(kind, attempts, now);
+                if (state.passValid()) {
+                    result.put(userId, state.passedAt());
+                }
+            });
+        });
+        return result;
     }
 
     /** When the user last passed the quiz (verification queue), if ever. */
@@ -460,7 +495,13 @@ public class QuizSessionService {
 
     private boolean mayTry(SessionPrincipal actor, User user, QuizKind kind) {
         return rules.mayTry(kind, user.getRole(), user.isVerified(),
-                kind == QuizKind.REPORTS && editor.isEditorGroupMember(actor, kind));
+                kind == QuizKind.REPORTS && editor.isEditorGroupMember(actor, kind),
+                kind == QuizKind.EINAB_GUIDE && guidePickupsReached(user.getId()));
+    }
+
+    private boolean guidePickupsReached(UUID userId) {
+        GuideQuizEligibility eligibility = guideEligibility.getIfAvailable();
+        return eligibility != null && eligibility.of(userId).reached();
     }
 
     private QuizSession running(QuizKind kind, boolean test) {

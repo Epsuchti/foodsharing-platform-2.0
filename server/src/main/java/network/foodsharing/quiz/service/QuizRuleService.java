@@ -32,13 +32,15 @@ import org.springframework.stereotype.Service;
  *   <li>Failure points of a question: timed out → its full failure points; otherwise
  *       {@code round(mistakes × fp / valued answers, 2)}, valued = non-NEUTRAL answers, mistake = an answer selected
  *       but not CORRECT or CORRECT but not selected. Passed when the sum ≤ the quiz's maximum.</li>
- *   <li>Waiting (failed tries since the last pass; running and test sessions never count): role quizzes 0 days after
- *       1–2 failures, 30 days after the 3rd, disqualified after the 4th; hygiene 1 day after every failure; other
- *       quizzes never wait.</li>
+ *   <li>Waiting (failed tries since the last pass; running and test sessions never count): role quizzes and the
+ *       EinAb guide quiz 0 days after 1–2 failures, 30 days after the 3rd, disqualified after the 4th; hygiene 1 day
+ *       after every failure; other quizzes never wait.</li>
  *   <li>Expiry: hygiene passes are valid {@code app.quiz.hygiene-validity-days}; {@code expiresInDays} is only set
  *       inside the warning window. Confirmation: FOODSAVER and STORE_MANAGER passes must be confirmed.</li>
  *   <li>Who may try: FOODSAVER, HYGIENE, FOODSHARER, SAVING_FOOD everyone; STORE_MANAGER verified FOODSAVERs or
- *       above, AMBASSADOR verified STORE_MANAGERs or above; REPORTS members of a group editing the REPORTS quiz.</li>
+ *       above, AMBASSADOR verified STORE_MANAGERs or above; REPORTS members of a group editing the REPORTS quiz;
+ *       EINAB_GUIDE (Q4) verified FOODSAVERs or above who reached the pickup threshold of their home region (or
+ *       are released guides already). Its pass never expires and changes no role.</li>
  *   <li>Timing: a timed answer counts when given within duration + {@code app.quiz.network-buffer-seconds}.</li>
  * </ul>
  */
@@ -47,6 +49,10 @@ public class QuizRuleService {
 
     public static final Set<QuizKind> ROLE_QUIZZES = Set.of(QuizKind.FOODSAVER, QuizKind.STORE_MANAGER,
             QuizKind.AMBASSADOR);
+
+    /** Quizzes with the role-quiz wait rules (30 days after the 3rd failure, disqualified after the 4th). */
+    static final Set<QuizKind> LIMITED_TRIES = Set.of(QuizKind.FOODSAVER, QuizKind.STORE_MANAGER,
+            QuizKind.AMBASSADOR, QuizKind.EINAB_GUIDE);
 
     /** A selectable question. */
     public record Candidate(UUID id, int failurePoints, boolean mandatory) {
@@ -145,7 +151,7 @@ public class QuizRuleService {
         if (failedTries <= 0) {
             return 0;
         }
-        if (ROLE_QUIZZES.contains(kind)) {
+        if (LIMITED_TRIES.contains(kind)) {
             if (failedTries >= 4) {
                 return -1;
             }
@@ -202,11 +208,18 @@ public class QuizRuleService {
     // ------------------------------------------------------------------------------------------ roles
 
     public boolean mayTry(QuizKind kind, Role role, boolean verified, boolean editorGroupMember) {
+        return mayTry(kind, role, verified, editorGroupMember, false);
+    }
+
+    /** @param guidePickupsReached EINAB_GUIDE only: pickup threshold reached or already a released guide (Q4) */
+    public boolean mayTry(QuizKind kind, Role role, boolean verified, boolean editorGroupMember,
+                          boolean guidePickupsReached) {
         return switch (kind) {
             case FOODSAVER, HYGIENE, FOODSHARER, SAVING_FOOD -> true;
             case STORE_MANAGER -> verified && PermissionService.isAtLeast(role, Role.FOODSAVER);
             case AMBASSADOR -> verified && PermissionService.isAtLeast(role, Role.STORE_MANAGER);
             case REPORTS -> editorGroupMember || role == Role.ORGA;
+            case EINAB_GUIDE -> verified && PermissionService.isAtLeast(role, Role.FOODSAVER) && guidePickupsReached;
         };
     }
 

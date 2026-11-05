@@ -28,6 +28,7 @@ import network.foodsharing.onboarding.service.JourneyCalculator.Inputs;
 import network.foodsharing.onboarding.service.JourneyCalculator.JourneyView;
 import network.foodsharing.onboarding.service.JourneyCalculator.TrackInputs;
 import network.foodsharing.quiz.domain.QuizKind;
+import network.foodsharing.quiz.service.GuideQuizEligibility;
 import network.foodsharing.quiz.service.QuizSessionService;
 import network.foodsharing.region.domain.Region;
 import network.foodsharing.region.service.MembershipService;
@@ -79,6 +80,7 @@ public class JourneyService {
     private final HistoryQueryService historyQuery;
     private final ApplicationEventPublisher events;
     private final Clock clock;
+    private final GuideQuizEligibility guideEligibility;
 
     public JourneyService(UserService users, RegionService regions, RegionReadService regionReads,
                           RegionSettingsService regionSettings, RegionPermissionResolver resolver,
@@ -86,7 +88,9 @@ public class JourneyService {
                           QuizSessionService quizzes, IntroPickupProgressService introPickups,
                           LearningProgressRepository learning, UserOnboardingStepDoneRepository stepsDone,
                           CurrentActorService currentActor, PermissionService permissions, HistoryService history,
-                          HistoryQueryService historyQuery, ApplicationEventPublisher events, Clock clock) {
+                          HistoryQueryService historyQuery, ApplicationEventPublisher events, Clock clock,
+                          GuideQuizEligibility guideEligibility) {
+        this.guideEligibility = guideEligibility;
         this.users = users;
         this.regions = regions;
         this.regionReads = regionReads;
@@ -216,6 +220,7 @@ public class JourneyService {
                 extras.add(new ExtraStep(step.id(), step.key(), title, confirmed.contains(step.id())));
             }
         }
+        GuideQuizEligibility.Status guideGate = guideEligibility.of(user.getId());
         return new Inputs(user, PhoneNumberValidator.isValid(user.getMobilePhone()), region,
                 settings == null || settings.onboarding().learningPagesMandatory(), content.learningChapterKeys(),
                 read, quizzes.tryStateOf(user.getId(), QuizKind.FOODSAVER).orElse(null), quizContacts(),
@@ -227,7 +232,9 @@ public class JourneyService {
                         quizzes.tryStateOf(user.getId(), QuizKind.STORE_MANAGER).orElse(null),
                         quizzes.tryStateOf(user.getId(), QuizKind.AMBASSADOR).orElse(null),
                         region != null && resolver.hasRegionPermission(user.getId(),
-                                Permission.CAN_GIVE_INTRO_PICKUPS, region.getId())));
+                                Permission.CAN_GIVE_INTRO_PICKUPS, region.getId()),
+                        quizzes.tryStateOf(user.getId(), QuizKind.EINAB_GUIDE).orElse(null), guideGate.pickupCount(),
+                        guideGate.minPickups(), region == null ? List.of() : regionReads.ambassadorsOf(region.getId())));
     }
 
     /** Admins of the region's FSMANAGEMENT group, else its ambassadors. */

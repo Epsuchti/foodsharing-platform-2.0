@@ -16,4 +16,6 @@ public interface RegionPermissionRepository extends JpaRepository<RegionPermissi
     List<RegionPermission> findByUserId(UUID userId);
 
     List<RegionPermission> findByRegionId(UUID regionId);
+
+    List<RegionPermission> findByPermission(Permission permission);
 }

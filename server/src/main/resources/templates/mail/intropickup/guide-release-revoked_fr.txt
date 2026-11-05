@@ -1,0 +1,9 @@
+Bonjour [(${displayName})],
+
+tu n’as pas réussi le quiz accompagnateur·rice EinAb d’ici le [(${deadline})] ; ton activation d’accompagnateur·rice des collectes d’introduction a donc été retirée. Tes collectes d’introduction prévues restent ; l’administration de la région trouve un·e autre accompagnateur·rice.
+
+Dès que tu auras réussi le quiz, tes ambassadeur·rice·s pourront te réactiver.
+
+[(${link})]
+
+Ton équipe foodsharing

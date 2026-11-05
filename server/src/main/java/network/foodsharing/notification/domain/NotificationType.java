@@ -31,6 +31,14 @@ public enum NotificationType {
     INTRO_PICKUP_NEW_BOOKABLE(INTRO_PICKUPS, "calendar"),
     INTRO_PICKUP_SUBSCRIPTION_CONFIRMED(INTRO_PICKUPS, "calendar"),
     INTRO_PICKUP_UPDATED(INTRO_PICKUPS, "calendar"),
+    /** Q4: someone of the region passed the EinAb guide quiz (to its ambassadors). */
+    GUIDE_QUIZ_PASSED(INTRO_PICKUPS, "graduation-cap"),
+    /** Q4 transition: a released guide must pass the EinAb guide quiz before the deadline. */
+    GUIDE_QUIZ_REQUIRED(INTRO_PICKUPS, "graduation-cap"),
+    /** Q4 transition: the release was withdrawn at the deadline (no quiz pass). */
+    GUIDE_RELEASE_REVOKED(INTRO_PICKUPS, "user-minus"),
+    /** Q4 transition: upcoming EinAbs of a withdrawn guide need another guide (to the region's EinAb admins). */
+    GUIDE_EINABS_NEED_GUIDE(INTRO_PICKUPS, "calendar-x"),
     STORE_NEW_REQUEST(STORE_TEAM, "user-plus"),
     STORE_REQUEST_ACCEPTED(STORE_TEAM, "store"),
     STORE_REQUEST_DECLINED(STORE_TEAM, "store"),

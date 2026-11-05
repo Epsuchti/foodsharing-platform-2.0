@@ -1,0 +1,7 @@
+Hi [(${displayName})],
+
+From now on only foodsavers who passed the EinAb guide quiz guide intro pickups. Please pass the quiz by [(${deadline})]. After that your guide release is withdrawn until you pass it and your ambassadors release you again.
+
+[(${link})]
+
+Your foodsharing team

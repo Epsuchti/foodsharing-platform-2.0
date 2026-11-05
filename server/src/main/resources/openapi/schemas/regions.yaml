@@ -419,7 +419,7 @@ RegionOnboardingStep:
 
 IntroPickupRegionSettings:
   type: object
-  required: [maxActiveBookingsPerUser, preventDuplicateGuideBookings, preventDuplicateCategoryBookings, requireFairteilerVisitByThirdIntroPickup, ignoredCategories]
+  required: [maxActiveBookingsPerUser, preventDuplicateGuideBookings, preventDuplicateCategoryBookings, requireFairteilerVisitByThirdIntroPickup, ignoredCategories, guideQuizMinPickups]
   properties:
     maxActiveBookingsPerUser:
       description: 'Also the number of EinAbs a newcomer needs (reference parity).'
@@ -437,6 +437,12 @@ IntroPickupRegionSettings:
       type: array
       items:
         $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    guideQuizMinPickups:
+      description: 'Q4: confirmed store pickups before the EinAb guide quiz unlocks (home region of the user).'
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 1000
 
 OnboardingRegionSettings:
   type: object

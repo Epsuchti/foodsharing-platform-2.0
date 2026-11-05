@@ -672,6 +672,10 @@ GuideSummary:
     nextIntroPickupAt:
       type: string
       format: date-time
+    guideQuizPassedAt:
+      type: string
+      format: date-time
+      description: 'Q4: when the guide passed the EinAb guide quiz; missing = no valid pass.'
 
 GuideSummaryPage:
   type: object
@@ -681,6 +685,36 @@ GuideSummaryPage:
       type: array
       items:
         $ref: './intro-pickups.yaml#/GuideSummary'
+    page:
+      $ref: './common.yaml#/PageMeta'
+    guideQuizDeadline:
+      type: string
+      format: date
+      description: 'Q4 transition: from this day guides without a quiz pass lose their release.'
+
+GuideCandidate:
+  type: object
+  required: [user, quizPassedAt, pickupCount]
+  description: 'Q4: an active region member with a valid EinAb guide quiz pass who is not released here yet.'
+  properties:
+    user:
+      $ref: './users.yaml#/UserSummary'
+    quizPassedAt:
+      type: string
+      format: date-time
+    pickupCount:
+      type: integer
+      format: int32
+      description: 'Confirmed past store pickups.'
+
+GuideCandidatePage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './intro-pickups.yaml#/GuideCandidate'
     page:
       $ref: './common.yaml#/PageMeta'
 

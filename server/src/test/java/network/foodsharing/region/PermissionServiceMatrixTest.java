@@ -165,9 +165,10 @@ class PermissionServiceMatrixTest {
     @Test
     void regionPermissionMatrixIncludesFunctionGrants() {
         //                                                                   orga   cAmb   amb    wAdm   wMem   fsm    coord  grpAd  member outsd
-        row("has(CAN_GIVE_INTRO_PICKUPS, stadt): WELCOME members", (p, u) ->
+        // Q4 (decision 167): WELCOME members no longer get CAN_GIVE_INTRO_PICKUPS (the guide release)
+        row("has(CAN_GIVE_INTRO_PICKUPS, stadt): nobody through a function", (p, u) ->
                         permissions.has(p, Permission.CAN_GIVE_INTRO_PICKUPS, stadt.getId()),
-                true, false, false, true, true, false, false, false, false, false);
+                true, false, false, false, false, false, false, false, false, false);
         row("has(CAN_MANAGE_USERS, stadt): FSMANAGEMENT members", (p, u) ->
                         permissions.has(p, Permission.CAN_MANAGE_USERS, stadt.getId()),
                 true, false, false, false, false, true, false, false, false, false);
@@ -177,12 +178,15 @@ class PermissionServiceMatrixTest {
         row("has(CAN_MANAGE_SURVEYS, stadt): no VOTING group", (p, u) ->
                         permissions.has(p, Permission.CAN_MANAGE_SURVEYS, stadt.getId()),
                 true, false, false, false, false, false, false, false, false, false);
-        row("has(CAN_GIVE_INTRO_PICKUPS, kanton): grants are per region", (p, u) ->
-                        permissions.has(p, Permission.CAN_GIVE_INTRO_PICKUPS, kanton.getId()),
+        row("has(CAN_MANAGE_USERS, kanton): grants are per region", (p, u) ->
+                        permissions.has(p, Permission.CAN_MANAGE_USERS, kanton.getId()),
                 true, false, false, false, false, false, false, false, false, false);
+        row("hasAnywhere(CAN_MANAGE_USERS)", (p, u) ->
+                        permissions.hasAnywhere(p, Permission.CAN_MANAGE_USERS),
+                true, false, false, false, false, true, false, false, false, false);
         row("hasAnywhere(CAN_GIVE_INTRO_PICKUPS)", (p, u) ->
                         permissions.hasAnywhere(p, Permission.CAN_GIVE_INTRO_PICKUPS),
-                true, false, false, true, true, false, false, false, false, false);
+                true, false, false, false, false, false, false, false, false, false);
     }
 
     @Test
@@ -220,8 +224,9 @@ class PermissionServiceMatrixTest {
         permissions.requireMember(member, stadt.getId());
         permissions.requireAmbassadorOrOrga(TestUsers.principal(actors.get("ambassador")), stadt.getId());
         permissions.requireMayAdministrateUser(TestUsers.principal(actors.get("fsmAdmin")), actors.get("member").getId());
-        permissions.require(TestUsers.principal(actors.get("welcomeMember")), Permission.CAN_GIVE_INTRO_PICKUPS,
-                stadt.getId());
+        assertThatThrownBy(() -> permissions.require(TestUsers.principal(actors.get("welcomeMember")),
+                Permission.CAN_GIVE_INTRO_PICKUPS, stadt.getId())).isInstanceOf(ApiException.class);
+        permissions.require(TestUsers.principal(actors.get("fsmAdmin")), Permission.CAN_MANAGE_USERS, stadt.getId());
     }
 
     @Test
