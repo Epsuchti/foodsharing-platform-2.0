@@ -67,7 +67,8 @@ class LiquibasePostgresIT {
         assertThat(jdbc.queryForObject("select count(*) from store_wall_post", Integer.class)).isEqualTo(84);
         assertThat(jdbc.queryForObject("select count(*) from pickup_weight_category", Integer.class)).isEqualTo(9);
         assertThat(jdbc.queryForObject("select count(*) from regular_pickup", Integer.class)).isPositive();
-        assertThat(jdbc.queryForObject("select count(*) from pickup_signup", Integer.class)).isEqualTo(125);
+        // 125 generated + 2 EA16 extras of guide@local (decision 169)
+        assertThat(jdbc.queryForObject("select count(*) from pickup_signup", Integer.class)).isEqualTo(127);
         assertThat(jdbc.queryForObject("select count(*) from region_function where function_key = 'STORE_CHAINS'",
                 Integer.class)).isEqualTo(1);
         assertThat(jdbc.queryForObject("select count(*) from user_account where pickup_reminders_enabled",
