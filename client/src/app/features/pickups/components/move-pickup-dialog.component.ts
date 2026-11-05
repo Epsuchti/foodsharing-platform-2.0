@@ -29,10 +29,10 @@ import { dayOf, moveSummary, timeOf, zonedToUtc } from '../pickups.util';
       [closeAriaLabel]="'common.close' | t"
       [header]="'pickups.move.title' | t"
       [style]="{ width: 'min(30rem, 94vw)' }"
-      data-testid="pickups.move.dialog"
     >
       @if (pickup(); as current) {
-        <div class="form">
+        <!-- the test id sits on the content: the p-dialog host is in the DOM while the dialog is closed, too -->
+        <div class="form" data-testid="pickups.move.dialog">
           <p class="from" data-testid="pickups.move.from">
             {{ 'pickups.move.from' | t: { when: (current.pickupAt | fsDate: 'dateTime' : timeZone()) } }}
           </p>
