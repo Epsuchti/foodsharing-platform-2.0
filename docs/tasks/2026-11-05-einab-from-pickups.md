@@ -139,3 +139,10 @@ Guides no longer link an external calendar (iCal). The `/guide` dashboard offers
 - The category table above (16/17).
 - No designer mockup (the card keeps today's layout).
 - Old `ical_link` values are dropped without notice.
+
+## Implementation notes (deviations, 2026-11-05)
+- Numbers: decision 168 and changelog 188 were taken in the meantime (guide quiz, automation), so this is **decision 169** and **changelog 191** (`191-intro-pickup-linked-pickup.yaml`); the seed link is `seed/changes/191-intro-pickup-linked-seed.yaml` (the store seed runs after 045).
+- Module direction: pickup already depends on intropickup (day agenda in `PickupUserService`), so intropickup → pickup would be a cycle. Reversed: the listener is `pickup.service.IntroPickupLinkSync` (calls `IntroPickupGuideService.autoCancelLinked`), the sign-out warning data come from `IntroPickupGuideService.linkedAt` in `PickupScheduleService`, and intropickup reads the guide's sign-ups through its own SPI `intropickup.service.GuideStorePickups` (no-op `IntroPickupDefaults`, implemented by `pickup.service.GuideStorePickupsImpl`). There is no `LinkedIntroPickupInfo`.
+- `linkedIntroPickup` is on the caller's own slot **and for the store's managers** (they see the same warning when removing someone), like `linkMissingUntil`.
+- The newcomer's fixed reason is a flag (`storePickupCancelled`) in the `intropickup/cancelled-by-guide` mail template (five languages) rather than a client key `introPickups.sync.cancelReason`; bells have no reason text.
+- Seed newcomer: pending@local (einab1 is used by many booking-rule tests).

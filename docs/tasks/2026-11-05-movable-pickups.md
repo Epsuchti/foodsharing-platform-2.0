@@ -1,6 +1,8 @@
 # Movable store pickups, linked EinAbs move along (PU10 + EA16, phase 2 of 2)
 
-Builds on `2026-11-05-einab-from-pickups.md`, which must be merged first because it introduces `intro_pickup.linked_pickup_at` and `IntroPickupPickupSync`.
+Builds on `2026-11-05-einab-from-pickups.md`, which must be merged first because it introduces `intro_pickup.linked_pickup_at` and the cancel sync.
+
+> Note from phase 1 (2026-11-05): phase 1 became decision 169, so this phase is decision **170**. The sync lives in the pickup module (`pickup.service.IntroPickupLinkSync`, pickup → intropickup, because pickup already depends on intropickup); `IntroPickupPickupSync` and `LinkedIntroPickupInfo` below mean that class and `IntroPickupGuideService.linkedAt`.
 
 ## Goal
 Store managers can move one pickup, a one-time pickup or one occurrence of a regular pickup, to another date and time. Sign-ups move with it, everyone signed up is notified, and linked EinAbs move along, with booked newcomers notified.
