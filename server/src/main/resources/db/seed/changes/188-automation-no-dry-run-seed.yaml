@@ -1,31 +1,7 @@
-# Seed (decision 167): the seed loads after changeset 188, so its dry-run rows are migrated here the same way
-# (S-01, S-02, S-04 and the S-01 adverts off, the S-07 request policy off; S-06 stays live) and the three automation
-# permission grants of user 0011 (00000010-0009-…-0004/5/6) go. No new ids.
+# Seed (decision 167): the three automation permission grants of user 0011 (00000010-0009-…-0004/5/6) go. No new ids.
 databaseChangeLog:
-  - changeSet:
-      id: seed-188-1
-      author: platform
-      context: seed
-      comment: 'Dry-run seed automations become disabled.'
-      changes:
-        - update:
-            tableName: pickup_policy
-            columns:
-              - column: {name: enabled, valueBoolean: false}
-              - column: {name: dry_run, valueBoolean: false}
-            where: 'dry_run = TRUE'
-        - update:
-            tableName: request_policy
-            columns:
-              - column: {name: enabled, valueBoolean: false}
-              - column: {name: dry_run, valueBoolean: false}
-            where: 'dry_run = TRUE'
-        - update:
-            tableName: open_slot_advert
-            columns:
-              - column: {name: enabled, valueBoolean: false}
-              - column: {name: dry_run, valueBoolean: false}
-            where: 'dry_run = TRUE'
+  # seed-188-1 (dry-run seed automations become disabled) was removed when changelog 191 dropped dry_run: the seed
+  # CSVs of 105-107 load S-01, S-02, S-04, the S-01 adverts and the S-07 request policy as off (S-06 stays live).
   - changeSet:
       id: seed-188-2
       author: platform

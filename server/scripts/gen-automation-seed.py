@@ -49,14 +49,15 @@ def write(name, header, rows):
 
 BASE = ["id", "version", "created_at", "updated_at", "created_by", "updated_by"]
 
-# pickup_policy (0001): S-06 live (no M3 scenario uses it), S-01 dry run, S-02 dry run (cleaning), S-04 dry run (linked to S-01), S-03 disabled
-write("pickup_policy.csv", BASE + ["store_id", "enabled", "dry_run", "gap_rule_enabled", "minimum_gap_days",
+# pickup_policy (0001): S-06 live (no M3 scenario uses it); S-01, S-02 (cleaning), S-04 (linked to S-01) and S-03 off
+# (S-01, S-02 and S-04 were dry runs until decision 167)
+write("pickup_policy.csv", BASE + ["store_id", "enabled", "gap_rule_enabled", "minimum_gap_days",
                                    "cleaning_rule_enabled", "experience_rule_enabled", "public_holiday_rule_enabled"], [
-    [sid(1, 1), 0, CREATED, CREATED, None, None, store(1), "true", "true", "true", 2, "false", "true", "true"],
-    [sid(1, 5), 0, CREATED, CREATED, None, None, store(6), "true", "false", "true", 2, "false", "true", "true"],
-    [sid(1, 2), 0, CREATED, CREATED, None, None, store(2), "true", "true", "false", 0, "true", "false", "false"],
-    [sid(1, 3), 0, CREATED, CREATED, None, None, store(4), "true", "true", "false", 0, "false", "false", "false"],
-    [sid(1, 4), 0, CREATED, CREATED, None, None, store(3), "false", "true", "false", 0, "false", "false", "false"],
+    [sid(1, 1), 0, CREATED, CREATED, None, None, store(1), "false", "true", 2, "false", "true", "true"],
+    [sid(1, 5), 0, CREATED, CREATED, None, None, store(6), "true", "true", 2, "false", "true", "true"],
+    [sid(1, 2), 0, CREATED, CREATED, None, None, store(2), "false", "false", 0, "true", "false", "false"],
+    [sid(1, 3), 0, CREATED, CREATED, None, None, store(4), "false", "false", 0, "false", "false", "false"],
+    [sid(1, 4), 0, CREATED, CREATED, None, None, store(3), "false", "false", 0, "false", "false", "false"],
 ])
 # excluded date (0002): S-01 next Sunday (the extra pickup 2026-11-08)
 write("pickup_policy_excluded_date.csv", BASE + ["policy_id", "excluded_date"], [
@@ -88,54 +89,53 @@ TEXT = {
     "LINKED_STORE": "Innerhalb von 30 Minuten nach deiner Anmeldung haben wir keine passende Abholung bei Coop Bahnhofbrücke gefunden.",
 }
 FOOTER = "Diese Aktion wurde automatisch ausgeführt. Bei Fragen oder Problemen wende dich an die Betriebsverantwortlichen."
-PLAN = [  # (store, policy, decision, dry_run, rules)
-    (1, 1, "CONFIRMED", False, ["ALL_RULES_PASSED"]),
-    (1, 1, "CONFIRMED", False, ["RULES_SKIPPED_NEAR_PICKUP"]),
-    (1, 1, "DECLINED", False, ["GAP"]),
-    (1, 1, "DECLINED", False, ["EXPERIENCE"]),
-    (1, 1, "SKIPPED", False, ["MANUAL_DATE"]),
-    (1, 1, "SKIPPED", False, ["PUBLIC_HOLIDAY"]),
-    (1, 1, "DECLINED", False, ["GAP", "EXPERIENCE"]),
-    (1, 1, "FAILED", False, []),
-    (2, 2, "WOULD_CONFIRM", True, ["ALL_RULES_PASSED"]),
-    (2, 2, "WOULD_DECLINE", True, ["CLEANING_REQUIRED"]),
-    (2, 2, "WOULD_CONFIRM", True, ["CLEANING_REMINDER"]),
-    (4, 3, "WOULD_DECLINE", True, ["LINKED_STORE"]),
-    (4, 3, "WOULD_CONFIRM", True, ["ALL_RULES_PASSED"]),
+PLAN = [  # (store, policy, decision, rules); S-02 and S-04 decided live before they were switched off
+    (1, 1, "CONFIRMED", ["ALL_RULES_PASSED"]),
+    (1, 1, "CONFIRMED", ["RULES_SKIPPED_NEAR_PICKUP"]),
+    (1, 1, "DECLINED", ["GAP"]),
+    (1, 1, "DECLINED", ["EXPERIENCE"]),
+    (1, 1, "SKIPPED", ["MANUAL_DATE"]),
+    (1, 1, "SKIPPED", ["PUBLIC_HOLIDAY"]),
+    (1, 1, "DECLINED", ["GAP", "EXPERIENCE"]),
+    (1, 1, "FAILED", []),
+    (2, 2, "CONFIRMED", ["ALL_RULES_PASSED"]),
+    (2, 2, "DECLINED", ["CLEANING_REQUIRED"]),
+    (2, 2, "CONFIRMED", ["CLEANING_REMINDER"]),
+    (4, 3, "DECLINED", ["LINKED_STORE"]),
+    (4, 3, "CONFIRMED", ["ALL_RULES_PASSED"]),
 ]
 USERS = [6, 7, 8, 10, 11, 12, 9]
 rows = []
 for i in range(40):
-    s, policy, decision, dry, rules = PLAN[i % len(PLAN)]
+    s, policy, decision, rules = PLAN[i % len(PLAN)]
     created = SEED_NOW - dt.timedelta(hours=4 + i * 4)
     pickup = (created + dt.timedelta(days=3 + i % 5)).replace(hour=18, minute=0, second=0)
     u = USERS[i % len(USERS)]
     reasons = [{"rule": r, "text": TEXT[r]} for r in rules]
-    declined = decision in ("DECLINED", "WOULD_DECLINE")
+    declined = decision == "DECLINED"
     reminder = "CLEANING_REMINDER" in rules
     message = ("\n".join(TEXT[r] for r in rules) + "\n\n" + FOOTER) if declined or reminder else None
     error = "Timeout beim Bestätigen" if decision == "FAILED" else None
     rows.append([sid(6, i + 1), 0, iso(created), iso(created), None, None, sid(1, policy), store(s), REGION, user(u),
-                 iso(pickup), "true" if dry else "false", decision,
+                 iso(pickup), decision,
                  json.dumps(reasons, ensure_ascii=False, separators=(",", ":")), message, error])
-write("pickup_policy_audit.csv", BASE + ["policy_id", "store_id", "region_id", "user_id", "pickup_at", "dry_run",
-                                         "decision", "reasons", "user_message", "error"], rows)
+write("pickup_policy_audit.csv", BASE + ["policy_id", "store_id", "region_id", "user_id", "pickup_at", "decision", "reasons", "user_message", "error"], rows)
 
-# request_policy (0007): S-07, distance rule 5 km, dry run (default)
-write("request_policy.csv", BASE + ["store_id", "enabled", "dry_run", "distance_rule_enabled", "maximum_distance_km"], [
-    [sid(7, 1), 0, CREATED, CREATED, None, None, store(7), "true", "true", "true", 5.0],
+# request_policy (0007): S-07, distance rule 5 km, off (a dry run until decision 167; its audits are live decisions)
+write("request_policy.csv", BASE + ["store_id", "enabled", "distance_rule_enabled", "maximum_distance_km"], [
+    [sid(7, 1), 0, CREATED, CREATED, None, None, store(7), "false", "true", 5.0],
 ])
-write("request_policy_audit.csv", BASE + ["policy_id", "store_id", "region_id", "user_id", "dry_run", "status",
-                                          "reason", "message", "error"], [
+write("request_policy_audit.csv", BASE + ["policy_id", "store_id", "region_id", "user_id", "status", "reason",
+                                          "message", "error"], [
     [sid(8, 1), 0, iso(SEED_NOW - dt.timedelta(days=1)), iso(SEED_NOW - dt.timedelta(days=1)), None, None, sid(7, 1),
-     store(7), REGION, user(10), "true", "WOULD_APPROVE", "ALL_RULES_PASSED",
+     store(7), REGION, user(10), "APPROVED", "ALL_RULES_PASSED",
      "Die Anfrage wurde automatisch angenommen.", None],
     [sid(8, 2), 0, iso(SEED_NOW - dt.timedelta(days=2)), iso(SEED_NOW - dt.timedelta(days=2)), None, None, sid(7, 1),
-     store(7), REGION, user(11), "true", "WOULD_DECLINE", "DISTANCE",
+     store(7), REGION, user(11), "DECLINED", "DISTANCE",
      "Die Anfrage wurde automatisch abgelehnt, weil die Entfernung von 12.4 km das Maximum von 5.0 km überschreitet.",
      None],
     [sid(8, 3), 0, iso(SEED_NOW - dt.timedelta(days=3)), iso(SEED_NOW - dt.timedelta(days=3)), None, None, sid(7, 1),
-     store(7), REGION, user(5), "true", "SKIPPED", "NO_ADDRESS",
+     store(7), REGION, user(5), "SKIPPED", "NO_ADDRESS",
      "Für die Person oder den Betrieb ist keine Adresse mit Koordinaten hinterlegt; die Anfrage wird nicht automatisch bearbeitet.",
      None],
 ])

@@ -1,7 +1,9 @@
-# Seed (M4 B4): request policy S-07 (distance 5 km, dry run) with 3 audits. Ids: docs/seed-ids.md (0022).
+# Seed (M4 B4): request policy S-07 (distance 5 km, off) with 3 audits. Ids: docs/seed-ids.md (0022).
 databaseChangeLog:
+  # seed-106-1 and seed-106-2 (with dry_run) were replaced by seed-106-3 and seed-106-4 when changelog 191 dropped
+  # the column (decision 167).
   - changeSet:
-      id: seed-106-1
+      id: seed-106-3
       author: platform
       context: seed
       runOnChange: true
@@ -24,11 +26,10 @@ databaseChangeLog:
               - column: {name: updated_by, type: UUID}
               - column: {name: store_id, type: UUID}
               - column: {name: enabled, type: BOOLEAN}
-              - column: {name: dry_run, type: BOOLEAN}
               - column: {name: distance_rule_enabled, type: BOOLEAN}
               - column: {name: maximum_distance_km, type: NUMERIC}
   - changeSet:
-      id: seed-106-2
+      id: seed-106-4
       author: platform
       context: seed
       runOnChange: true
@@ -53,7 +54,6 @@ databaseChangeLog:
               - column: {name: store_id, type: UUID}
               - column: {name: region_id, type: UUID}
               - column: {name: user_id, type: UUID}
-              - column: {name: dry_run, type: BOOLEAN}
               - column: {name: status, type: STRING}
               - column: {name: reason, type: STRING}
               - column: {name: message, type: STRING}

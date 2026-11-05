@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generates the M4 B5 automation seed (CSVs + changelogs 107-110), relative to SEED_NOW 2026-11-02T09:00Z.
 
-Decision 60: live automations only on S-06 (Babu's Bakery); S-01 adverts are dry runs. Table codes in module 0022:
+Decision 60: live automations only on S-06 (Babu's Bakery); the S-01 adverts are off (dry runs until decision 167).
+Table codes in module 0022:
 open_slot_advert 0009, open_slot_advert_audit 0010, signout_alert_setting 0011, signout_cancellation 0012,
 pickup_extra_slot 0013, metric_daily_count 0014.
 """
@@ -62,27 +63,27 @@ LATE = ("Du hast gerade den Slot {{datetimeDe}} freigegeben. Du bist trotzdem ve
 STORE_MSGS = ["Am {{datetimeDe}} ist bei {{storeName}} noch {{freeSlots}} Platz frei – wer kann? {{link}}",
               "Freier Slot bei {{storeName}}: {{weekday}}, {{dateDe}} um {{time}}. Bitte eintragen: {{link}}",
               "Hilfe gesucht! {{storeName}} am {{dateDe}} {{time}} hat noch freie Plätze."]
-ADVERT_HEADER = ["store_id", "advert_number", "enabled", "dry_run", "trigger_hours_before", "channels",
+ADVERT_HEADER = ["store_id", "advert_number", "enabled", "trigger_hours_before", "channels",
                  "telegram_chat_id", "store_messages", "push_messages", "telegram_messages",
                  "send_late_cancellation_message", "late_cancellation_message", "late_cancellation_max_hours",
                  "resend_latest_advert_after_late_cancellation"]
 write("open_slot_advert", ADVERT_HEADER, [
-    base(9, 1) + [S01, 1, True, True, 24, "PUSH,STORE_CHAT", None, json.dumps(STORE_MSGS, ensure_ascii=False),
+    base(9, 1) + [S01, 1, False, 24, "PUSH,STORE_CHAT", None, json.dumps(STORE_MSGS, ensure_ascii=False),
                   json.dumps(["Freier Platz: {{storeName}} {{datetimeDe}}"], ensure_ascii=False), None, True, LATE,
                   72, True],
-    base(9, 2) + [S01, 2, True, True, 6, "TELEGRAM", "-1002", None, None,
+    base(9, 2) + [S01, 2, False, 6, "TELEGRAM", "-1002", None, None,
                   json.dumps(["🍞 {{storeName}} {{datetimeDe}}: {{freeSlots}} Platz frei! {{link}}"],
                              ensure_ascii=False), False, LATE, 72, True],
     # Live (decision 60: only S-06): Telegram only, to the zuerich-stadt alert chat (region fallback of
     # sendForStore), so no bells reach seeded users.
-    base(9, 3) + [S06, 1, True, False, 24, "TELEGRAM", "-1001", None, None,
+    base(9, 3) + [S06, 1, True, 24, "TELEGRAM", "-1001", None, None,
                   json.dumps(["{{storeName}} {{datetimeDe}}: noch {{freeSlots}} Platz frei! {{link}}"],
                              ensure_ascii=False), False, LATE, 72, True],
 ])
 
 AUDIT_HEADER = ["advert_id", "advert_number", "store_id", "region_id", "pickup_at", "trigger_hours_before", "user_id",
-                "telegram_chat_id", "telegram_message_id", "telegram_deleted_at", "status", "dry_run", "message",
-                "reason", "error", "sent_at", "filled_at"]
+                "telegram_chat_id", "telegram_message_id", "telegram_deleted_at", "status", "message", "reason",
+                "error", "sent_at", "filled_at"]
 
 
 def advert_audit(n, advert, number, days_ago, status, hours, user_id=None, filled=False, message=None,
@@ -91,7 +92,7 @@ def advert_audit(n, advert, number, days_ago, status, hours, user_id=None, fille
     pickup = created + dt.timedelta(hours=hours)
     return base(10, n, created) + [sid(9, advert), number, S01, REGION, iso(pickup), hours, user_id,
                                    "-1002" if telegram else None, telegram,
-                                   iso(pickup) if telegram else None, status, False, message, reason, None,
+                                   iso(pickup) if telegram else None, status, message, reason, None,
                                    iso(created), iso(created + dt.timedelta(hours=2)) if filled else None]
 
 
@@ -117,7 +118,7 @@ write("signout_alert_setting", ["store_id", "enabled", "cutoff_enabled", "maximu
 
 CANCEL_HEADER = ["store_id", "region_id", "pickup_at", "user_id", "cancelled_at", "total_slots", "occupied_slots",
                  "canceller_rejoined", "status", "immediate_notified_at", "final_checked_at", "final_notified_at",
-                 "dry_run", "message", "error"]
+                 "message", "error"]
 
 
 def cancellation(n, user_n, days, status, hours_before, total, occupied, rejoined=False):
@@ -127,7 +128,7 @@ def cancellation(n, user_n, days, status, hours_before, total, occupied, rejoine
     final = pickup + dt.timedelta(hours=12) if passed else None
     return base(12, n, cancelled) + [S06, REGION, iso(pickup), user(user_n), iso(cancelled), total, occupied,
                                      rejoined, status, iso(cancelled), iso(final),
-                                     iso(final) if status == "NOT_REPLACED" else None, False,
+                                     iso(final) if status == "NOT_REPLACED" else None,
                                      "Kurzfristige Austragung %d h vor der Abholung." % hours_before, None]
 
 
@@ -185,26 +186,29 @@ def changelog(name, header, body):
 
 
 S, U, B, N = "STRING", "UUID", "BOOLEAN", "NUMERIC"
-changelog("107-automation-adverts-seed.yaml", "# Seed (M4 B5): S-01 open-slot adverts (dry run) and their audits.\n",
-          load("seed-107-1", "Open-slot adverts.", "open_slot_advert",
-               [("store_id", U), ("advert_number", N), ("enabled", B), ("dry_run", B), ("trigger_hours_before", N),
+changelog("107-automation-adverts-seed.yaml", "# Seed (M4 B5): S-01 open-slot adverts (off), the S-06 advert (live) and their audits.\n",
+          "  # seed-107-1 and seed-107-2 (with dry_run) were replaced by seed-107-3 and seed-107-4 when changelog 191 dropped\n"
+          "  # the column (decision 167).\n"
+          + load("seed-107-3", "Open-slot adverts.", "open_slot_advert",
+               [("store_id", U), ("advert_number", N), ("enabled", B), ("trigger_hours_before", N),
                 ("channels", S), ("telegram_chat_id", S), ("store_messages", S), ("push_messages", S),
                 ("telegram_messages", S), ("send_late_cancellation_message", B), ("late_cancellation_message", S),
                 ("late_cancellation_max_hours", N), ("resend_latest_advert_after_late_cancellation", B)])
-          + load("seed-107-2", "Open-slot advert audits.", "open_slot_advert_audit",
+          + load("seed-107-4", "Open-slot advert audits.", "open_slot_advert_audit",
                  [("advert_id", U), ("advert_number", N), ("store_id", U), ("region_id", U), ("pickup_at", S),
                   ("trigger_hours_before", N), ("user_id", U), ("telegram_chat_id", S),
-                  ("telegram_message_id", N), ("telegram_deleted_at", S), ("status", S), ("dry_run", B),
+                  ("telegram_message_id", N), ("telegram_deleted_at", S), ("status", S),
                   ("message", S), ("reason", S), ("error", S), ("sent_at", S), ("filled_at", S)]))
 changelog("108-automation-signout-seed.yaml", "# Seed (M4 B5): S-06 sign-out alert (live) with 5 cancellations.\n",
-          load("seed-108-1", "Sign-out alert setting.", "signout_alert_setting",
+          "  # seed-108-2 (with dry_run) was replaced by seed-108-3 when changelog 191 dropped the column (decision 167).\n"
+          + load("seed-108-1", "Sign-out alert setting.", "signout_alert_setting",
                [("store_id", U), ("enabled", B), ("cutoff_enabled", B), ("maximum_hours_before_pickup", N),
                 ("channels", S), ("telegram_chat_ids", S), ("active_since", S), ("last_checked_at", S)])
-          + load("seed-108-2", "Cancellations (all statuses).", "signout_cancellation",
+          + load("seed-108-3", "Cancellations (all statuses).", "signout_cancellation",
                  [("store_id", U), ("region_id", U), ("pickup_at", S), ("user_id", U), ("cancelled_at", S),
                   ("total_slots", N), ("occupied_slots", N), ("canceller_rejoined", B), ("status", S),
                   ("immediate_notified_at", S), ("final_checked_at", S), ("final_notified_at", S),
-                  ("dry_run", B), ("message", S), ("error", S)]))
+                  ("message", S), ("error", S)]))
 changelog("109-automation-extra-slot-seed.yaml", "# Seed (M4 B5): S-06 allows the extra slot; two added extra slots.\n",
           "  # seed-109-1 (S-06 extra_slot_allowed = true) was removed when changelog 187 dropped the column (decision 165, as\n"
           "  # seed-105-7 in decision 148); seed-187-1 sets S-06 max_extra_slots = 2 instead.\n"
