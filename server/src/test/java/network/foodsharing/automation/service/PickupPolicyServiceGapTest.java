@@ -560,4 +560,100 @@ class PickupPolicyServiceGapTest {
         assertThat(ex.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED);
         assertThat(ex.getArgs()).containsEntry("storeId", d.toString());
     }
+
+    // ------------------------------------------------------------------ bidirectional links need Y only when Y changes
+
+    /** A saved bidirectional own rule of {@code owner} to {@code target} (20 minutes grace, no message). */
+    void bidirectionalLink(UUID owner, LinkedStoreWindowMode mode, int before, int after, UUID target) {
+        link(owner, mode, before, after, target);
+        PickupPolicyLinkedStore saved = linksByPolicy.get(policiesByStore.get(owner).getId()).getLast();
+        saved.setBidirectional(true);
+        saved.setGraceMinutes(20);
+    }
+
+    static LinkInput bidirectional(LinkedStoreWindowMode mode, int before, int after, int grace, String message,
+                                   UUID... storeIds) {
+        return new LinkInput(List.of(storeIds), true, mode, before, after, grace, message, null);
+    }
+
+    static PolicyInput withLinks(int gap, LinkInput... rules) {
+        return input(true, gap, List.of(), List.of(rules));
+    }
+
+    @Test
+    void unchangedBidirectionalRuleSavesWithoutRightsOnTheLinkedStore() {
+        policy(a, true, 0, false);
+        bidirectionalLink(a, LinkedStoreWindowMode.SAME_DAY, 0, 0, b);
+        allowed.remove(b);
+        assertThatCode(() -> service.put(a, withLinks(3,
+                bidirectional(LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null, b)))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void sameDayIgnoresStrayWindowDaysAndBlankMessageCountsAsNone() {
+        policy(a, true, 0, false);
+        bidirectionalLink(a, LinkedStoreWindowMode.SAME_DAY, 0, 0, b);
+        allowed.remove(b);
+        assertThatCode(() -> service.put(a, withLinks(3,
+                bidirectional(LinkedStoreWindowMode.SAME_DAY, 4, 5, 20, "  ", b)))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void newBidirectionalRuleStillNeedsRightsOnTheLinkedStore() {
+        policy(a, true, 0, false);
+        allowed.remove(b);
+        ApiException ex = error(() -> service.put(a, withLinks(0,
+                bidirectional(LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null, b))));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getArgs()).containsEntry("storeId", b.toString());
+    }
+
+    @Test
+    void makingAOneWayRuleBidirectionalStillNeedsRights() {
+        policy(a, true, 0, false);
+        link(a, LinkedStoreWindowMode.SAME_DAY, 0, 0, b);
+        allowed.remove(b);
+        ApiException ex = error(() -> service.put(a, withLinks(0,
+                bidirectional(LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null, b))));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void addingAStoreToABidirectionalRuleNeedsRightsOnlyOnTheNewOne() {
+        policy(a, true, 0, false);
+        bidirectionalLink(a, LinkedStoreWindowMode.SAME_DAY, 0, 0, b);
+        allowed.remove(b);
+        allowed.remove(c);
+        ApiException ex = error(() -> service.put(a, withLinks(0,
+                bidirectional(LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null, b, c))));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getArgs()).containsEntry("storeId", c.toString());
+    }
+
+    @Test
+    void changingWhatTheMirrorIsBuiltFromNeedsRights() {
+        policy(a, true, 0, false);
+        bidirectionalLink(a, LinkedStoreWindowMode.LAST_DAYS, 1, 2, b);
+        allowed.remove(b);
+        List<LinkInput> changed = List.of(
+                bidirectional(LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null, b),
+                bidirectional(LinkedStoreWindowMode.LAST_DAYS, 2, 2, 20, null, b),
+                bidirectional(LinkedStoreWindowMode.LAST_DAYS, 1, 3, 20, null, b),
+                bidirectional(LinkedStoreWindowMode.LAST_DAYS, 1, 2, 30, null, b),
+                bidirectional(LinkedStoreWindowMode.LAST_DAYS, 1, 2, 20, "Hallo", b));
+        for (LinkInput rule : changed) {
+            ApiException ex = error(() -> service.put(a, withLinks(0, rule)));
+            assertThat(ex.getStatus()).as("%s", rule).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(ex.getArgs()).containsEntry("storeId", b.toString());
+        }
+    }
+
+    @Test
+    void removingTheStoreOrSwitchingBidirectionalOffNeedsNoRightsOnIt() {
+        policy(a, true, 0, false);
+        bidirectionalLink(a, LinkedStoreWindowMode.SAME_DAY, 0, 0, b);
+        allowed.remove(b);
+        assertThatCode(() -> service.put(a, withLinks(0, sameDay(b)))).doesNotThrowAnyException();
+        assertThatCode(() -> service.put(a, withLinks(0))).doesNotThrowAnyException();
+    }
 }
