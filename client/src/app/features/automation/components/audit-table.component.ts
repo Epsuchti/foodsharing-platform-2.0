@@ -31,8 +31,7 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
 
 /**
  * `fs-automation-audit-table` (AU8): kind filter chips, "exclude confirmed", date range, decision badges, expandable
- * reasons (rule chip + text), user message, "load more" paging. Used by the store and region pages. Legacy WOULD_* rows
- * keep their label (decision 167).
+ * reasons (rule chip + text), user message, "load more" paging. Used by the store and region pages.
  */
 @Component({
   selector: 'fs-automation-audit-table',

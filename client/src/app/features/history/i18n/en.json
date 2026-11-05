@@ -218,7 +218,6 @@
   "history.action.AUTOMATION.SIGNOUT_CANCELLATION_RECORDED": "Short-notice sign-out recorded",
   "history.action.AUTOMATION.SIGNOUT_FINAL_NOTIFIED": "Unfilled pickup reported",
   "history.action.AUTOMATION.EXTRA_SLOT_ADDED": "Extra slot added",
-  "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Dry run executed",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Decisions archived",
   "history.action.AUTOMATION.FIELD_CHANGED": "Field changed",
   "history.action.AUTOMATION.LINK_MISSING": "Link missing",

@@ -10,22 +10,15 @@ import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { AUTOMATION_ROUTES } from './automation.routes';
 import { addDays, isoDate } from './automation.util';
 import de from './i18n/de.json';
-import { bucketWeeks, isLegacyMetricKey, METRIC_GROUPS, metricLabelKey, topSeries } from './metric-groups';
+import { bucketWeeks, METRIC_GROUPS, metricLabelKey, topSeries } from './metric-groups';
 
 const R = '00000002-0001-4000-8000-000000000003';
 
 describe('metric groups (AU9)', () => {
-  it('puts every MetricKey into exactly one group, except the legacy dry-run keys (decision 167)', () => {
+  it('puts every MetricKey into exactly one group', () => {
     for (const key of Object.values(MetricKey)) {
-      const expected = isLegacyMetricKey(key) ? 0 : 1;
-      expect(METRIC_GROUPS.filter((g) => g.keys.includes(key)).map((g) => g.id), key).toHaveLength(expected);
+      expect(METRIC_GROUPS.filter((g) => g.keys.includes(key)).map((g) => g.id), key).toHaveLength(1);
     }
-    expect(Object.values(MetricKey).filter(isLegacyMetricKey)).toEqual([
-      MetricKey.SlotApprovalWouldConfirm,
-      MetricKey.SlotApprovalWouldDecline,
-      MetricKey.RequestWouldApprove,
-      MetricKey.RequestWouldDecline,
-    ]);
     expect(METRIC_GROUPS.map((g) => g.id)).toEqual(['PICKUP', 'DECLINE_REASONS', 'SKIP_REASONS', 'REQUESTS', 'CANCELLATIONS', 'ADVERTS']);
     expect(METRIC_GROUPS.find((g) => g.id === 'ADVERTS')?.keys).toEqual([
       MetricKey.AdvertSent,
@@ -106,20 +99,18 @@ describe('region metrics section (AU9)', () => {
     await settle();
   }
 
-  it('shows the PICKUP group by default, hides zero totals and legacy WOULD_* keys, sums 90 days per week, at most 5 lines, hidden table', async () => {
+  it('shows the PICKUP group by default, hides zero totals, sums 90 days per week, at most 5 lines, hidden table', async () => {
     await open([
       series(MetricKey.SlotApprovalConfirmed, 4, 2),
       series(MetricKey.SlotApprovalDeclined, 1),
       series(MetricKey.SlotApprovalSkipped, 0, 0),
-      series(MetricKey.SlotApprovalWouldConfirm, 3),
-      series(MetricKey.SlotApprovalWouldDecline, 2),
       series(MetricKey.SlotApprovalFailed, 1),
       series(MetricKey.SlotDeclineRuleGap, 9),
       series(MetricKey.AdvertSent, 5),
     ]);
 
     const rows = all('[data-testid="automation.metrics.totals.row"]');
-    // default group PICKUP; SKIPPED (total 0) and the legacy WOULD_* keys are hidden; ranked by total
+    // default group PICKUP; SKIPPED (total 0) is hidden; ranked by total
     expect(rows.map((r) => r.getAttribute('data-key'))).toEqual([
       'SLOT_APPROVAL.CONFIRMED',
       'SLOT_APPROVAL.DECLINED',
