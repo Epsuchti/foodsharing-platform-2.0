@@ -395,6 +395,7 @@ interface SlotTarget {
         </label>
       </div>
       <ng-template #footer>
+        <div class="foot">
         @if (editPickup(); as current) {
           <!-- PU10: move this pickup to another date and time (decision 170) -->
           <p-button
@@ -415,6 +416,7 @@ interface SlotTarget {
           (onClick)="savePickup.run()"
           data-testid="stores.pickups.edit.save"
         />
+        </div>
       </ng-template>
     </p-dialog>
 
@@ -539,8 +541,14 @@ interface SlotTarget {
     .form { display: grid; gap: 0.85rem; }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .field small { font-weight: 400; }
-    /* the move action sits apart from cancel / save */
+    /* edit dialog actions (slot dialog pattern): wrap, the move action apart from cancel / save; on phones it takes
+       its own full-width row so three buttons never overflow the dialog */
+    .foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; width: 100%; }
     .move { margin-right: auto; }
+    @media (max-width: 47.99rem) {
+      .move { flex: 1 1 100%; margin-right: 0; }
+      .move ::ng-deep button { width: 100%; }
+    }
   `,
 })
 export class StorePickupsTab {

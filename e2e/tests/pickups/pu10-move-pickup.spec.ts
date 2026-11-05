@@ -74,6 +74,27 @@ test('PU10 the closed move dialog takes no space in the pickups tab @PU10', asyn
   expect(heights.before).toBe(heights.after);
 });
 
+test('PU10 the edit dialog actions stay inside the dialog on narrow screens @PU10', async ({ page }) => {
+  // phones (mobile projects keep their own width) and the narrowest supported width, 360px
+  for (const width of [page.viewportSize()!.width, 360]) {
+    if (width < 768) await page.setViewportSize({ width, height: 800 });
+    else continue;
+    await openPickups(page, 'S-03');
+    await pickupRow(page, FRIDAY).getByTestId('stores.pickups.edit').click();
+    const dialog = page.locator('.p-dialog').filter({ has: page.getByTestId('pickups.slot.move') });
+    const buttons = ['pickups.slot.move', 'stores.pickups.edit.save'].map((id) => page.getByTestId(id).locator('button'));
+    await expect(buttons[0]).toBeVisible();
+    const box = (await dialog.boundingBox())!;
+    for (const button of buttons) {
+      const b = (await button.boundingBox())!;
+      expect(b.x, `left edge at ${width}px`).toBeGreaterThanOrEqual(box.x);
+      expect(b.x + b.width, `right edge at ${width}px`).toBeLessThanOrEqual(box.x + box.width);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.keyboard.press('Escape');
+  }
+});
+
 test('PU10 a time the store already has a pickup at is refused in the dialog @PU10', async ({ page }) => {
   await openPickups(page, 'S-03');
   await openMove(page, FRIDAY);
