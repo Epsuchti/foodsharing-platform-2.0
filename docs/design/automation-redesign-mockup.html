@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatisierung – Redesign-Mockup</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-surface-raised: #ffffff; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-primary-200: #b4e7c2; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108; --fs-on-warning: #ffffff; --fs-accent: #f2b84b;
+  --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04); --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08); --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-target-sm: 2.25rem; --fs-slot-size: 2.4rem; --fs-slot-ring: 2px; --fs-slot-badge: 1.05rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-surface-raised: #262e26; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-primary-200: #1f4a2f; --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3);
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b; --fs-on-warning: #1a201a; --fs-accent: #9c7a3c;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+.frame[data-viewport="phone"] { --fs-target-sm: 2.75rem; --fs-slot-size: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.5; background: var(--fs-bg); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+a { color: var(--fs-primary-strong); }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.12em; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl { position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; align-items: center; padding: 0.5rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.8rem; box-shadow: var(--fs-shadow-sm); }
+.ctl strong { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.2rem; }
+.ctl fieldset { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.55rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ctl .note { flex-basis: 100%; color: var(--fs-text-muted); }
+.screens { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0.5rem 1rem 0; width: min(100% - 2rem, 1040px); margin: 0 auto; }
+.screens button { padding: 0.3rem 0.7rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); font-size: 0.82rem; }
+.screens button[aria-pressed="true"] { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.explain { width: min(100% - 2rem, 1040px); margin: 0.6rem auto 0; padding: 0.6rem 0.9rem; border-left: 3px solid var(--fs-accent); background: var(--fs-surface); border-radius: 0 var(--fs-radius-sm) var(--fs-radius-sm) 0; font-size: 0.85rem; color: var(--fs-text-muted); }
+
+/* ---- app frame ---- */
+.frame { position: relative; margin: 0.75rem auto 2rem; width: min(100% - 2rem, 1040px); min-height: 32rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); }
+.frame[data-viewport="phone"] { width: min(100% - 2rem, 412px); }
+.frame__size { position: absolute; right: 0.5rem; top: 0.4rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.68rem; font-weight: 700; opacity: 0.7; }
+.page { padding: 0.75rem clamp(1rem, 0.6rem + 2vw, 1.75rem) 2rem; }
+.frame[data-viewport="phone"] .page { padding: 0.75rem 1rem 5rem; }
+.hero { padding: 0.9rem 1.1rem; border-radius: var(--fs-radius-lg); background: linear-gradient(120deg, color-mix(in srgb, var(--fs-primary) 10%, var(--fs-surface)), color-mix(in srgb, var(--fs-accent) 10%, var(--fs-surface))); border: 1px solid var(--fs-border); }
+.hero__kicker { margin: 0; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fs-primary-strong); }
+.hero h1 { margin: 0.1rem 0 0.1rem; font-size: clamp(1.3rem, 1.1rem + 1vw, 1.7rem); letter-spacing: -0.02em; }
+.hero p { margin: 0; color: var(--fs-text-muted); font-size: 0.88rem; }
+.tabs { display: flex; gap: 0.25rem; margin: 0.75rem 0 0.9rem; padding-bottom: 0.25rem; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.8rem; border: 0; border-radius: var(--fs-radius-sm); background: transparent; color: var(--fs-text-muted); font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+.tab[aria-current="page"] { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.subnav { display: flex; gap: 0.35rem; margin-bottom: 1rem; overflow-x: auto; scrollbar-width: none; }
+.frame:not([data-viewport="phone"]) .subnav { flex-wrap: wrap; }
+.subnav__item { display: inline-flex; align-items: center; gap: 0.3rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--fs-border); background: transparent; color: inherit; text-decoration: none; font-size: 0.88rem; font-weight: 600; white-space: nowrap; }
+.subnav__item--active { background: var(--fs-primary-soft); border-color: var(--fs-primary); color: var(--fs-primary-strong); }
+.subnav__item .n { display: inline-grid; place-items: center; min-width: 1.1rem; height: 1.1rem; padding: 0 0.3rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.7rem; }
+
+/* ---- shared ---- */
+.stack { display: grid; gap: 0.85rem; }
+.card { display: grid; gap: 0.7rem; padding: 1rem 1.15rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); min-width: 0; }
+.card h2 { margin: 0; font-size: 1.1rem; }
+.card h3 { margin: 0; font-size: 1rem; }
+.muted { margin: 0; color: var(--fs-text-muted); font-size: 0.88rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: center; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.4rem 0.9rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); font-weight: 600; font-size: 0.9rem; box-shadow: var(--fs-shadow-sm); }
+.btn--primary { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); }
+.btn--primary:disabled { opacity: 0.5; }
+.btn--text { border-color: transparent; background: transparent; box-shadow: none; color: var(--fs-primary-strong); }
+.btn--outline { background: transparent; box-shadow: none; }
+.btn--danger { border-color: var(--fs-danger); color: var(--fs-danger); background: transparent; box-shadow: none; }
+.btn--warn { border-color: var(--fs-warning); color: var(--fs-warning-text); background: transparent; box-shadow: none; }
+.btn--sm { min-height: var(--fs-target-sm); padding: 0.25rem 0.65rem; font-size: 0.82rem; }
+.btn--icon { width: var(--fs-target-sm); padding: 0; border-color: transparent; box-shadow: none; background: transparent; color: var(--fs-text-muted); }
+.badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.05rem 0.55rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.badge--ok { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.badge--dry { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.badge--bad { background: var(--fs-danger-soft); color: var(--fs-danger); }
+.banner { display: flex; gap: 0.6rem; align-items: flex-start; margin: 0; padding: 0.7rem 0.9rem; border: 1px solid var(--fs-warning-border); border-radius: var(--fs-radius-md); background: var(--fs-warning-soft); color: var(--fs-warning-text); font-size: 0.9rem; }
+.banner--info { border-color: var(--fs-primary-200); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.banner--danger { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); color: var(--fs-danger); }
+.banner .i { margin-top: 0.2em; }
+.switch-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.switch-row__text { display: grid; gap: 0.1rem; }
+.switch { position: relative; width: 2.6rem; height: 1.5rem; flex: none; border: 0; border-radius: 999px; background: var(--fs-border-strong); transition: background 0.15s; }
+.switch::after { content: ''; position: absolute; top: 0.2rem; left: 0.2rem; width: 1.1rem; height: 1.1rem; border-radius: 999px; background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); transition: transform 0.15s; }
+.switch[aria-checked="true"] { background: var(--fs-primary); }
+.switch[aria-checked="true"]::after { transform: translateX(1.1rem); }
+.switch:disabled { opacity: 0.55; }
+.field { display: grid; gap: 0.3rem; min-width: 0; }
+.field > label, .field > span.lbl { font-size: 0.88rem; font-weight: 600; }
+.input { display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.7rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); font: inherit; color: inherit; width: 100%; }
+.input--num { width: 7rem; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; }
+.seg { display: inline-flex; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); overflow: hidden; }
+.seg button { display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.3rem 0.8rem; border: 0; border-right: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.88rem; font-weight: 600; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.seg button[aria-pressed="true"][data-mode="OFF"] { background: var(--fs-surface-muted); color: var(--fs-text); }
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; padding: 0; list-style: none; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.3rem 0.4rem 0.3rem 0.75rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); font-size: 0.85rem; font-weight: 600; }
+.chip .x { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border: 0; border-radius: 999px; background: transparent; color: var(--fs-text-muted); }
+.chip--or { border: 0; background: none; padding: 0; color: var(--fs-text-muted); font-weight: 500; font-size: 0.82rem; }
+.chip--date { padding-right: 0.5rem; }
+details.adv { border-top: 1px solid var(--fs-border); padding-top: 0.6rem; }
+details.adv summary { cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--fs-text-muted); }
+.savebar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.frame[data-viewport="phone"] .savebar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 30; padding: 0.6rem 1rem; border-top: 1px solid var(--fs-border); background: var(--fs-surface); box-shadow: var(--fs-shadow-md); }
+.frame[data-viewport="phone"] .savebar .btn--primary { flex: 1 1 auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th, td { padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--fs-border); vertical-align: middle; }
+th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fs-text-muted); }
+.table-wrap { overflow-x: auto; }
+
+/* ---- status strip ---- */
+.strip { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.6rem 0.75rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface-raised); }
+.pill { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 1.9rem; padding: 0.15rem 0.7rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.82rem; font-weight: 600; }
+.pill--on { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.pill--observe { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.pill--off { color: var(--fs-text-muted); }
+
+/* ---- rule card ---- */
+.rule { gap: 0.6rem; }
+.rule__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; }
+.rule__title { display: grid; gap: 0.1rem; }
+.rule__title h3 { font-size: 1rem; }
+.rule__member { display: flex; gap: 0.45rem; align-items: flex-start; margin: 0; padding: 0.5rem 0.7rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); font-size: 0.86rem; color: var(--fs-text); }
+.rule__member .i { color: var(--fs-primary-strong); margin-top: 0.2em; }
+.rule__body { display: grid; gap: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed var(--fs-border); }
+.link { display: grid; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); }
+.link--mirror { background: var(--fs-surface-muted); }
+.gapbar { display: flex; gap: 0.15rem; }
+.gapbar span { flex: 1; display: grid; place-items: center; height: 1.6rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 700; background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.gapbar span.no { background: var(--fs-danger-soft); color: var(--fs-danger); }
+.gapbar span.p { background: var(--fs-primary); color: var(--fs-on-primary); }
+
+/* ---- pickups tab ---- */
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+.rchip { min-height: var(--fs-target-sm); padding: 0.35rem 0.85rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); font-size: 0.88rem; }
+.rchip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.rules { padding: 0; }
+.rules summary { display: flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1.15rem; cursor: pointer; list-style: none; font-weight: 650; }
+.rules summary::-webkit-details-marker { display: none; }
+.rules summary .i.chev { margin-left: auto; transition: transform 0.15s; color: var(--fs-text-muted); }
+.rules[open] summary .i.chev { transform: rotate(180deg); }
+.rules__list { display: grid; gap: 0.5rem; margin: 0; padding: 0 1.15rem 0.9rem; list-style: none; }
+.rules__list li { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.92rem; }
+.rules__list .i { color: var(--fs-primary-strong); margin-top: 0.25em; }
+.rules__ask { padding: 0 1.15rem 0.9rem; }
+.day { gap: 0; }
+.day h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+.pickup { display: grid; gap: 0.45rem; padding: 0.6rem 0; border-top: 1px solid var(--fs-border); }
+.pickup:first-of-type { border-top: 0; }
+.pickup__head { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; align-items: center; }
+.pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.slots { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.slot { position: relative; display: inline-grid; place-items: center; width: var(--fs-slot-size); height: var(--fs-slot-size); padding: 0; border-radius: 999px; border: var(--fs-slot-ring) solid transparent; background: none; }
+.slot--taken { border-color: var(--fs-primary); }
+.slot--unconfirmed { border-style: dashed; border-color: var(--fs-warning); }
+.avatar { display: grid; place-items: center; width: calc(var(--fs-slot-size) - 0.5rem); height: calc(var(--fs-slot-size) - 0.5rem); border-radius: 999px; background: var(--fs-surface-muted); color: var(--fs-text-muted); font-size: 0.72rem; font-weight: 700; }
+.slot__state { position: absolute; right: -0.2rem; bottom: -0.2rem; display: grid; place-items: center; width: var(--fs-slot-badge); height: var(--fs-slot-badge); border-radius: 999px; border: 2px solid var(--fs-surface); background: var(--fs-primary); color: var(--fs-on-primary); }
+.slot__state .i { width: 0.6rem; height: 0.6rem; stroke-width: 3; }
+.slot--unconfirmed .slot__state { background: var(--fs-warning); color: var(--fs-on-warning); }
+.slot--pill { display: inline-flex; gap: 0.35rem; align-items: center; width: auto; padding: 0 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 650; }
+.slot--mine { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.slot--mine .avatar { width: 1.6rem; height: 1.6rem; }
+.slot--free { display: inline-flex; gap: 0.35rem; width: auto; padding: 0 0.8rem; border: var(--fs-slot-ring) dashed color-mix(in srgb, var(--fs-primary) 55%, var(--fs-border)); color: var(--fs-primary-strong); background: var(--fs-surface); font-size: 0.85rem; font-weight: 650; }
+.slot--free:disabled { border-color: var(--fs-border); color: var(--fs-text-muted); }
+.slot--blocked { display: inline-flex; gap: 0.35rem; width: auto; padding: 0 0.8rem; border: var(--fs-slot-ring) dashed var(--fs-border-strong); color: var(--fs-text); background: var(--fs-surface-muted); font-size: 0.85rem; font-weight: 650; }
+.slot--blocked:hover { border-color: var(--fs-text-muted); }
+.frame[data-viewport="phone"] .slot--blocked .slot__label { display: none; }
+.frame[data-viewport="phone"] .slot--blocked { padding: 0; width: var(--fs-slot-size); display: inline-grid; }
+.pendingline { display: flex; gap: 0.4rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.88rem; font-weight: 600; }
+
+/* ---- dialogs (rendered inside the frame) ---- */
+.scrim { position: absolute; inset: 0; z-index: 100; display: grid; justify-items: center; align-content: start; padding: 1rem; background: rgb(0 0 0 / 0.35); }
+.dialog { position: sticky; top: 4rem; width: min(32rem, 100%); max-height: calc(100vh - 5rem); overflow: auto; display: grid; gap: 0.75rem; padding: 1.1rem 1.25rem; border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-lg); }
+.dialog--wide { width: min(40rem, 100%); }
+.frame[data-viewport="phone"] .scrim { padding: 3rem 0 0; }
+.frame[data-viewport="phone"] .dialog { width: 100%; border-radius: var(--fs-radius-lg) var(--fs-radius-lg) 0 0; padding-bottom: 1.5rem; }
+.dialog__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.dialog__head h2 { margin: 0; font-size: 1.15rem; }
+.dialog__actions { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.25rem; }
+.frame[data-viewport="phone"] .dialog__actions { position: sticky; bottom: -1.5rem; margin: 0 -1.25rem -1.5rem; padding: 0.75rem 1.25rem 1.5rem; background: var(--fs-surface); border-top: 1px solid var(--fs-border); }
+.frame[data-viewport="phone"] .dialog__actions .btn--primary { flex: 1 1 auto; }
+.reasons { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.reason { display: grid; gap: 0.35rem; padding: 0.6rem 0.8rem; border-left: 3px solid var(--fs-danger-border); border-radius: 0 var(--fs-radius-sm) var(--fs-radius-sm) 0; background: var(--fs-surface-muted); }
+.reason__rule { display: flex; gap: 0.5rem; align-items: center; }
+.reason p { margin: 0; font-size: 0.92rem; }
+.reason__fix { display: flex; gap: 0.4rem; align-items: flex-start; font-size: 0.88rem; color: var(--fs-primary-strong); }
+.reason__fix .i { margin-top: 0.25em; }
+.reason__fix button { padding: 0 0.3rem; min-height: 1.6rem; }
+.steps { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); }
+.ok-line { display: flex; gap: 0.5rem; align-items: flex-start; margin: 0; padding: 0.6rem 0.8rem; border-radius: var(--fs-radius-sm); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 600; font-size: 0.92rem; }
+.opts { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.opt { display: flex; gap: 0.6rem; align-items: center; min-height: 2.75rem; padding: 0.4rem 0.7rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); }
+.opt input { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--fs-primary); }
+.opt__when { font-weight: 650; font-variant-numeric: tabular-nums; }
+.opt__store { color: var(--fs-text-muted); font-size: 0.85rem; }
+.opt--blocked { color: var(--fs-text-muted); }
+.opt--blocked .badge { margin-left: auto; }
+.opt .badge { margin-left: auto; }
+
+/* ---- picker ---- */
+.results { display: grid; gap: 0.25rem; margin: 0; padding: 0; list-style: none; max-height: 20rem; overflow: auto; }
+.results__group { margin: 0.4rem 0 0.1rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); }
+.result { display: grid; grid-template-columns: auto 1fr auto; gap: 0.2rem 0.7rem; align-items: center; min-height: 2.75rem; padding: 0.4rem 0.7rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); cursor: pointer; }
+.result:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); }
+.result input { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--fs-primary); }
+.result__name { font-weight: 650; }
+.result__addr { grid-column: 2; font-size: 0.82rem; color: var(--fs-text-muted); }
+.result .badge { grid-column: 3; grid-row: 1 / span 2; }
+.skel { display: grid; gap: 0.5rem; }
+.skel span { height: 1rem; border-radius: 0.3rem; background: linear-gradient(90deg, var(--fs-surface-muted), var(--fs-border), var(--fs-surface-muted)); background-size: 200% 100%; animation: sh 1.4s infinite; }
+@keyframes sh { to { background-position: -200% 0; } }
+.state { display: grid; gap: 0.5rem; justify-items: center; padding: 2rem 1rem; text-align: center; border: 1px dashed var(--fs-border-strong); border-radius: var(--fs-radius-lg); }
+.state h2 { margin: 0; font-size: 1.1rem; }
+.toast { position: absolute; left: 50%; bottom: 1rem; z-index: 150; transform: translateX(-50%); padding: 0.5rem 0.9rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.85rem; box-shadow: var(--fs-shadow-md); }
+.substates { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.75rem; }
+.substates button { padding: 0.2rem 0.6rem; border: 1px dashed var(--fs-border-strong); border-radius: 999px; background: var(--fs-surface); font-size: 0.78rem; color: var(--fs-text-muted); }
+.substates button[aria-pressed="true"] { border-style: solid; border-color: var(--fs-accent); color: var(--fs-text); font-weight: 650; }
+</style>
+</head>
+<body>
+<div class="ctl" role="group" aria-label="Mockup-Steuerung">
+  <fieldset><strong>Ansicht</strong>
+    <label><input type="radio" name="version" value="proposal" checked>Vorschlag</label>
+    <label><input type="radio" name="version" value="today">Heute</label></fieldset>
+  <fieldset><strong>Thema</strong>
+    <label><input type="radio" name="theme" value="light" checked>Hell</label>
+    <label><input type="radio" name="theme" value="dark">Dunkel</label></fieldset>
+  <fieldset><strong>Breite</strong>
+    <label><input type="radio" name="viewport" value="desktop" checked>Desktop</label>
+    <label><input type="radio" name="viewport" value="phone">Phone 412</label></fieldset>
+  <fieldset><strong>Rolle</strong>
+    <label><input type="radio" name="role" value="member">Mitglied (Alex)</label>
+    <label><input type="radio" name="role" value="manager" checked>Betriebsverantwortliche (Nina)</label>
+    <label><input type="radio" name="role" value="ambassador">Botschafter:in</label>
+    <label><input type="radio" name="role" value="none">Nicht verifiziert / kein Zugang</label></fieldset>
+  <span class="note">Realistische Seed-Namen (Coop Bahnhofbrücke, Denner Langstrasse, Babu's Bakery, Zürich Stadt). Daten: Mo 02.11.2026. Nichts davon ist angebunden.</span>
+</div>
+<div class="screens" role="tablist" aria-label="Screens" id="screens"></div>
+<p class="explain" id="explain"></p>
+<div class="frame" id="frame" data-viewport="desktop"><span class="frame__size" id="size">1040</span><div id="app"></div><div id="overlay"></div></div>
+
+<script>
+(() => {
+  // ---- icons ------------------------------------------------------------------------------------------------------
+  const P = {
+    check: '<path d="M5 12.5l4.5 4.5L19 7"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', plus: '<path d="M12 5v14M5 12h14"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    hourglass: '<path d="M7 3h10M7 21h10M8 3c0 5 8 6 8 9s-8 4-8 9M16 3c0 5-8 6-8 9s8 4 8 9"/>',
+    ban: '<circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/>', info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+    off: '<circle cx="12" cy="12" r="9"/>', link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>', chev: '<path d="M6 9l6 6 6-6"/>', trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', broom: '<path d="M14 3l7 7M9 8l7 7-6 6H4v-6z"/>', star: '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>',
+    ext: '<path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>', bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/>',
+    play: '<path d="M6 4l14 8-14 8z"/>', save: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  };
+  const icon = (n, cls = '') => `<svg class="i ${cls}" aria-hidden="true" viewBox="0 0 24 24">${P[n]}</svg>`;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // ---- state --------------------------------------------------------------------------------------------------------
+  const state = { version: 'proposal', theme: 'light', viewport: 'desktop', role: 'manager', screen: 'rules', sub: {}, mode: 'ON', rulesOpen: false, linkedChoice: null, picked: new Set(['s6']) };
+  const SCREENS = [
+    ['rules', 'Store-Tab: Regeln', 'Konfiguration für Betriebsverantwortliche (mayEditStore; Botschafter:innen und ORGA sind darin enthalten, keine Automatisierungs-Berechtigung mehr). Ein Schalter An/Aus ersetzt «Automatisch bestätigen» + «Testmodus»; Testmodus und Run-Buttons entfallen. Jede Regel zeigt den Satz, den Mitglieder sehen.'],
+    ['pickups', 'Abholungen: Zusammenfassung + gesperrte Plätze', 'Die Mitglieder-Sicht: Karte «So kannst du dich hier eintragen» (eingeklappt) und der Chip «Gesperrt» (Schloss + Text) statt grauem «1 frei». Klick auf Gesperrt öffnet den Grund.'],
+    ['blocked', 'Gesperrt: Warum nicht?', 'Der Grund-Dialog mit den eigenen Daten (letzte Abholung, nächster möglicher Tag) und «Das macht es möglich». Gleiches Muster für Team-/Bezirks-Gründe.'],
+    ['linked', 'Verknüpfte Abholung (Pop-up)', 'Eintragen bei Coop Bahnhofbrücke (verknüpft mit Babu\'s Bakery, gleicher Tag bis 3 Tage danach). Unterzustände: erfüllt, wählen, kein Platz, mehrere Verknüpfungen, kein Teammitglied.'],
+    ['picker', 'Betrieb verknüpfen (Suche über Bezirke)', 'Suchfeld statt Region-Multiselect (heute max. 200, nur eigener Bezirk). Gruppen nach Bezirk; jeder bekannte Betrieb ist einseitig verknüpfbar (Q3 entschieden). Das Schloss erscheint nur bei «beidseitig», wenn man den anderen Betrieb nicht verwaltet.'],
+    ['channels', 'Kanäle: Telegram-Chats des Betriebs', 'Neuer Bereich im Store-Tab; gleiche Komponente wie der Bezirk. Hinweise und Austragungs-Hinweise verweisen hierher.'],
+    ['region', 'Bezirk: Automatisierung › Betriebe', 'Die Bezirksseite bleibt, für Botschafter:innen und ORGA (keine Automatisierungs-Berechtigung mehr). Spalte «Regeln» = An/Aus mit Icon, neu «Kanäle».'],
+  ];
+  const STORES = { s1: 'Coop Bahnhofbrücke', s4: 'Denner Langstrasse', s3: 'Migros Limmatplatz', s6: "Babu's Bakery", s7: 'Hiltl', s2: 'Bäckerei Vohdin' };
+
+  // ---- helpers --------------------------------------------------------------------------------------------------------
+  const isResp = () => state.role === 'manager' || state.role === 'ambassador';
+  const today = () => state.version === 'today';
+  const sw = (on, testid, disabled = false) => `<button type="button" class="switch" role="switch" aria-checked="${on}" ${disabled ? 'disabled' : ''} data-testid="${testid}" aria-label="${testid}"></button>`;
+  const modeIcon = { OFF: 'off', ON: 'shield' };
+  const modeLabel = { OFF: 'Aus', ON: 'An' };
+  const modePill = (m, cls = '') => `<span class="pill pill--${m.toLowerCase()} ${cls}" data-mode="${m}">${icon(modeIcon[m])}${modeLabel[m]}</span>`;
+  const avatar = (ini) => `<span class="avatar" aria-hidden="true">${ini}</span>`;
+  const hero = (tab) => {
+    const tabs = [['overview', 'Übersicht'], ['team', 'Team'], ['pickups', 'Abholungen'], ['wall', 'Pinnwand'], ['statistics', 'Statistik'], ['log', 'Verlauf'], ['chat', 'Chat']];
+    if (isResp()) tabs.push(['automation', 'Automatisierung']);
+    return `<header class="hero"><p class="hero__kicker">Betrieb · Zürich Stadt</p><h1>Coop Bahnhofbrücke</h1><p>Bahnhofbrücke 1, 8001 Zürich · Supermarkt · Coop</p></header>
+      <nav class="tabs" aria-label="Betriebsseiten" data-testid="stores.page.tabs">${tabs.map(([id, l]) => `<a class="tab" href="#" ${id === tab ? 'aria-current="page"' : ''} data-testid="stores.page.tab.${id}">${id === 'automation' ? icon('bolt') : ''}${l}</a>`).join('')}</nav>`;
+  };
+  const subnav = (active) => {
+    const items = today()
+      ? [['policy', 'Eintragungsregeln'], ['auto-accept', 'Auto-Aufnahme'], ['adverts', 'Freie-Plätze-Hinweise'], ['signout-alerts', 'Austragungs-Hinweise'], ['extra-slot', 'Zusatzplatz'], ['audits', 'Entscheidungen']]
+      : [['policy', 'Regeln'], ['auto-accept', 'Auto-Aufnahme'], ['adverts', 'Hinweise', 2], ['signout-alerts', 'Austragungen'], ['extra-slot', 'Zusatzplatz'], ['channels', 'Kanäle', 1], ['audits', 'Protokoll']];
+    return `<nav class="subnav" aria-label="Automatisierungsbereiche" data-testid="automation.store.nav">${items.map(([id, l, n]) => `<a href="#" class="subnav__item ${id === active ? 'subnav__item--active' : ''}" ${id === active ? 'aria-current="page"' : ''} data-testid="automation.store.nav.${id}">${l}${n ? `<span class="n">${n}</span>` : ''}</a>`).join('')}</nav>`;
+  };
+  const forbidden = (ask) => `<div class="state" data-testid="automation.store.state" data-state="forbidden">${icon('lock')}<h2>Kein Zugriff</h2><p class="muted">${ask}</p><button class="btn btn--text">Zurück zum Betrieb</button></div>`;
+  const noAccessStore = () => `<div class="page"><div class="state" data-testid="stores.page.state" data-state="forbidden">${icon('lock')}<h2>Dieser Betrieb ist für dich nicht sichtbar</h2><p class="muted">Erst nach der Verifizierung siehst du Betriebe deines Bezirks (Entscheid 156). Auch Regeln, Plätze und Kanäle bleiben verborgen.</p></div></div>`;
+
+  // ---- screen: store tab rules ----------------------------------------------------------------------------------------
+  function strip() {
+    const rules = state.mode === 'OFF' ? 0 : 5;
+    return `<div class="strip" data-testid="automation.store.summary" aria-label="Status der Automatisierung">
+      ${modePill(state.mode)}
+      <span class="pill" data-testid="automation.store.summary.rules">${icon('shield')}${rules === 1 ? '1 Regel aktiv' : rules + ' Regeln aktiv'}</span>
+      <span class="pill pill--off">${icon('user')}Auto-Aufnahme: Aus</span>
+      <span class="pill">${icon('bell')}Hinweise: 2</span>
+      <span class="pill" data-testid="automation.store.summary.channels">${icon('send')}Kanäle: 1 Telegram</span></div>`;
+  }
+  const memberLine = (txt) => `<p class="rule__member">${icon('info')}<span>${txt}</span></p>`;
+  function ruleCard(id, title, member, on, body, testid) {
+    return `<section class="card rule" data-testid="${testid}" data-enabled="${on}">
+      <div class="rule__head"><div class="rule__title"><h3>${title}</h3></div>${sw(on, testid.replace('Card', '') + (testid.endsWith('Card') ? 'Enabled' : ''))}</div>
+      ${on ? memberLine(member) : `<p class="muted">Aus. ${member.replace(/^./, (c) => c)}</p>`}
+      ${on && body ? `<div class="rule__body">${body}</div>` : ''}</section>`;
+  }
+  function gapBar(gap) {
+    const cells = [];
+    for (let d = -3; d <= 8; d++) { if (d === 0) cells.push('<span class="p" title="Abholung">Abh.</span>'); else cells.push(`<span class="${Math.abs(d) - 1 < gap ? 'no' : ''}">${Math.abs(d) - 1 < gap ? 'Nein' : 'OK'}</span>`); }
+    return `<div><p class="muted">Vorschau: eine Abholung am Mo 09.11. So entscheidet die Regel über eine zweite Eintragung an den Tagen davor und danach.</p><div class="gapbar" aria-label="Vorschau der Abstandsregel" data-testid="automation.policy.gapPreview">${cells.join('')}</div><p class="muted">Nächste mögliche Abholung: Di 17.11.</p></div>`;
+  }
+  const num = (v, id, unit = '') => `<span class="input input--num" role="spinbutton" aria-valuenow="${v}" data-testid="${id}"><span class="grow">${v}</span><span class="muted">${unit}</span></span>`;
+  function linkRule(i, stores, mirror) {
+    if (mirror) return `<div class="link link--mirror" data-testid="automation.policy.link.${i}"><p class="muted">${icon('link')} Vom verknüpften Betrieb gesetzt (${stores.map((s) => STORES[s]).join(', ')}); dort bearbeiten.</p>${memberLine('Eine Abholung hier braucht eine Abholung bei Denner Langstrasse am selben Tag.')}</div>`;
+    const chips = stores.map((s, k) => `${k ? '<li class="chip chip--or">oder</li>' : ''}<li class="chip" data-store="${s}">${STORES[s]}<button type="button" class="x" aria-label="${STORES[s]} entfernen">${icon('x')}</button></li>`).join('');
+    return `<div class="link" data-testid="automation.policy.link.${i}">
+      <div class="field"><span class="lbl">Betriebe (max. 5) – «oder»: eine Abholung in einem davon genügt</span>
+        <ul class="chips" data-testid="automation.policy.link.${i}.stores">${chips}<li><button type="button" class="btn btn--outline btn--sm" data-open="picker" data-testid="automation.policy.pickStore">${icon('search')}Betrieb verknüpfen</button></li></ul></div>
+      <div class="form-grid">
+        <div class="field"><span class="lbl">Zeitraum</span><div class="seg" role="group" aria-label="Zeitraum" data-testid="automation.policy.link.${i}.mode"><button type="button" aria-pressed="false">Gleicher Tag</button><button type="button" aria-pressed="true">Tage davor/danach</button></div></div>
+        <div class="field"><label>Tage davor</label>${num(0, 'automation.policy.link.' + i + '.before')}</div>
+        <div class="field"><label>Tage danach</label>${num(3, 'automation.policy.link.' + i + '.after')}</div></div>
+      ${memberLine("Eine Abholung hier braucht eine Abholung bei Babu's Bakery am selben Tag oder bis 3 Tage danach. Beim Eintragen wird sie gleich mitgewählt.")}
+      <div class="row"><input type="checkbox" id="bidi${i}" ${state.role === 'ambassador' ? 'checked' : 'disabled'} data-testid="automation.policy.link.${i}.bidirectional"><label for="bidi${i}">Auch in den verknüpften Betrieben anwenden</label>
+        ${state.role === 'ambassador' ? '' : `<span class="badge badge--bad" data-testid="automation.policy.link.${i}.bidiLocked">${icon('lock')}Keine Berechtigung: du verwaltest Babu's Bakery nicht</span>`}</div>
+      <p class="muted">Einseitig geht immer (die Abholung dort wird nur gelesen). Beidseitig schreibt die Regel auch in den anderen Betrieb; dafür musst du ihn verwalten.</p>
+      <details class="adv"><summary>Erweitert: Austragung im verknüpften Betrieb</summary>
+        <div class="stack" style="padding-top:0.6rem">
+          <div class="field"><label>Frist nach Austragung im verknüpften Betrieb (Minuten)</label>${num(120, 'automation.policy.link.' + i + '.grace', 'Min.')}<p class="muted">Wer sich dort austrägt, hat so lange Zeit für eine neue Abholung; danach wird der Platz hier frei.</p></div>
+          <div class="field"><label>Nachricht an die Person (beim Freigeben des Platzes)</label><span class="input" style="min-height:4rem;align-items:flex-start" data-testid="automation.policy.link.${i}.message">Hallo {{name}}, deine Abholung bei {{storeName}} am {{pickupDate}} braucht eine Abholung bei {{linkedStoreName}} {{requirement}} …</span></div></div></details>
+      <div class="actions"><button type="button" class="btn btn--danger btn--sm" data-testid="automation.policy.link.${i}.remove">${icon('trash')}Verknüpfung entfernen</button></div></div>`;
+  }
+  function rulesProposal() {
+    const m = state.mode;
+    const dis = m === 'OFF';
+    return `<div class="stack" data-testid="automation.policy.root" data-mode="${m}">
+      <section class="card">
+        <h2>Regeln für Abholungs-Eintragungen</h2>
+        <p class="muted">Eine Eintragung, die eine aktive Regel verletzt, ist nicht möglich: Mitglieder sehen den Platz als «Gesperrt» und erfahren, warum.</p>
+        <div class="switch-row"><label class="switch-row__text" for="pp-enabled"><strong>Regeln anwenden</strong><span class="muted">${m === 'ON' ? 'An: Eintragungen, die eine Regel verletzen, sind nicht möglich. Die Regeln stehen für Mitglieder auf der Seite «Abholungen».' : ''}</span></label><button type="button" class="switch" role="switch" aria-checked="${m === 'ON'}" data-set-mode="${m === 'ON' ? 'OFF' : 'ON'}" id="pp-enabled" data-testid="automation.policy.enabled"></button></div>
+        ${m === 'OFF' ? `<p class="muted">Aus: alle Eintragungen warten wie bisher auf eure Bestätigung.</p>` : ''}
+      </section>
+      ${dis ? '' : `
+      ${ruleCard('gap', 'Mindestabstand', 'Zwischen zwei Abholungen hier mindestens 7 Tage; in Coop Bahnhofbrücke, Denner Langstrasse und Migros Limmatplatz zusammen mindestens 3 Tage.', true, `
+        <div class="form-grid"><div class="field"><label>Min. Tage Abstand in diesem Betrieb</label>${num(7, 'automation.policy.gapDays', 'Tage')}</div></div>
+        ${gapBar(7)}
+        <div class="field"><span class="lbl">Betriebsgruppe (optional) – Gruppenabstand gilt zwischen allen</span>
+          <ul class="chips" data-testid="automation.policy.gapStores"><li class="chip" data-testid="automation.policy.gapMember">Denner Langstrasse <span class="badge badge--ok">${icon('check')}Regeln aktiv</span><button type="button" class="x" aria-label="Denner Langstrasse entfernen" data-testid="automation.policy.gapMember.remove">${icon('x')}</button></li>
+          <li class="chip" data-testid="automation.policy.gapMember">Migros Limmatplatz <span class="badge">${icon('off')}Keine Regeln</span><button type="button" class="x" aria-label="Migros Limmatplatz entfernen">${icon('x')}</button></li>
+          <li><button type="button" class="btn btn--outline btn--sm" data-open="picker">${icon('plus')}Betrieb hinzufügen</button></li></ul></div>
+        <div class="form-grid"><div class="field"><label>Min. Tage Abstand in der Gruppe</label>${num(3, 'automation.policy.groupGapDays', 'Tage')}</div></div>
+        <p class="banner" data-testid="automation.policy.gapWarning">${icon('eye')}<span>Migros Limmatplatz hat die Regeln aus: Abholungen dort zählen für den Abstand, Eintragungen dort werden aber nicht gesperrt.</span></p>`, 'automation.policy.gapCard')}
+      ${ruleCard('exp', 'Erfahrung', 'Neue brauchen zuerst eine bestätigte Abholung hier (oder eine erfahrene Person in derselben Abholung).', true, '', 'automation.policy.experience')}
+      ${ruleCard('clean', 'Putzen', 'Ein Putzeinsatz in einem Putz-Fairteiler des Bezirks in den letzten 12 Monaten.', true, `<p class="muted">Es zählen die Putzeinsätze an: <a href="#">Fairteiler Idaplatz</a>, <a href="#">Fairteiler Wipkingen</a> · <a href="#" data-testid="automation.policy.exemptionsLink">Putz-Ausnahmen des Bezirks</a></p>`, 'automation.policy.cleaning')}
+      ${ruleCard('hol', 'Feiertage', 'An Feiertagen entscheiden die Betriebsverantwortlichen (Eintragung bleibt möglich, wartet auf Bestätigung).', false, '', 'automation.policy.holidays')}
+      <section class="card rule" data-testid="automation.policy.links">
+        <div class="rule__head"><div class="rule__title"><h3>Verknüpfte Betriebe</h3><p class="muted">Wer sich hier einträgt, braucht im selben Zeitraum eine Abholung in einem der verknüpften Betriebe; beim Eintragen wird sie gleich mitgewählt.</p></div></div>
+        ${linkRule(0, ['s6'], false)}
+        ${linkRule(1, ['s4'], true)}
+        <div class="actions"><button type="button" class="btn btn--outline btn--sm" data-testid="automation.policy.addLink">${icon('plus')}Verknüpfung hinzufügen</button></div>
+      </section>
+      <section class="card rule" data-testid="automation.policy.excluded">
+        <div class="rule__head"><div class="rule__title"><h3>Ausgenommene Tage</h3><p class="muted">An diesen Tagen entscheiden die Betriebsverantwortlichen; die Eintragung wartet auf Bestätigung.</p></div></div>
+        <ul class="chips" data-testid="automation.policy.excludedList"><li class="chip chip--date" data-testid="automation.policy.excludedDate">${icon('cal')}Do 24.12.2026<button type="button" class="x" aria-label="Tag entfernen">${icon('x')}</button></li><li class="chip chip--date" data-testid="automation.policy.excludedDate">${icon('cal')}Do 31.12.2026<button type="button" class="x" aria-label="Tag entfernen">${icon('x')}</button></li><li><button type="button" class="btn btn--outline btn--sm" data-testid="automation.policy.excludedPicker">${icon('plus')}Tag wählen</button></li></ul>
+      </section>`}
+      <div class="savebar">
+        <button type="button" class="btn btn--primary" data-testid="automation.policy.save">${icon('save')}Speichern</button>
+        <span class="muted">Zuletzt geändert von Nina Schneider, Fr 30.10.</span>
+      </div></div>`;
+  }
+  function rulesToday() {
+    return `<div class="stack" data-testid="automation.policy.root">
+      <section class="card"><h2>Regeln für Abholungs-Eintragungen</h2><p class="muted">Neue Eintragungen werden nach diesen Regeln geprüft und automatisch bestätigt oder abgelehnt.</p>
+        <div class="switch-row"><label class="switch-row__text"><strong>Eintragungen automatisch bestätigen</strong></label>${sw(true, 'automation.policy.enabled')}</div>
+        <div class="switch-row"><label class="switch-row__text"><strong>Testmodus</strong><span class="muted">Zeichnet nur auf, was passieren würde; niemand wird bestätigt oder abgelehnt.</span></label>${sw(true, 'automation.policy.dryRun')}</div>
+        <p class="banner">${icon('eye')}Testmodus: Entscheidungen werden als «würde …» protokolliert, es wird nichts verändert.</p></section>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))">
+        <section class="card" style="grid-column:1/-1"><div class="row"><h3 class="grow">Mindestabstand</h3><span class="badge badge--ok">Aktiv</span></div><h4 class="muted" style="font-weight:650">In diesem Betrieb</h4><div class="switch-row"><label class="switch-row__text"><strong>Eigener Abstand</strong><span class="muted">Tage zwischen zwei Abholungen derselben Person in diesem Betrieb.</span></label>${sw(true, 'automation.policy.gapEnabled')}</div><div class="field"><label>Min. Tage Abstand</label>${num(7, 'automation.policy.gapDays')}</div>${gapBar(7)}<h4 class="muted" style="font-weight:650">Betriebsgruppe (optional)</h4><div class="field"><label>Betriebe in der Gruppe</label><p class="muted">Höchstens 9 weitere Betriebe aus deiner Region. Der Gruppenabstand gilt zwischen Abholungen in allen Betrieben der Gruppe – auch wenn der eigene Abstand aus ist.</p><span class="input">Betrieb hinzufügen … ${icon('chev')}</span></div></section>
+        <section class="card"><div class="switch-row"><label class="switch-row__text"><strong>Erfahrung</strong><span class="muted">Neue brauchen zuerst eine bestätigte Abholung in diesem Betrieb.</span></label>${sw(true, 'automation.policy.experience')}</div></section>
+        <section class="card"><div class="switch-row"><label class="switch-row__text"><strong>Putzen</strong><span class="muted">Ein Putzeinsatz im Putzbetrieb des Bezirks in den letzten 12 Monaten ist nötig.</span></label>${sw(true, 'automation.policy.cleaning')}</div><p class="muted">Es zählen die Putzeinsätze an:</p><ul class="muted"><li><a href="#">Fairteiler Idaplatz</a></li></ul><a href="#">Putz-Ausnahmen des Bezirks</a></section>
+        <section class="card"><div class="switch-row"><label class="switch-row__text"><strong>Feiertage</strong><span class="muted">An Feiertagen keine automatische Bestätigung.</span></label>${sw(false, 'automation.policy.holidays')}</div><a href="#">Feiertage anzeigen</a></section></div>
+      <section class="card"><h3>Verknüpfte Betriebe</h3><p class="muted">Wer sich hier einträgt, darf im selben Zeitraum nicht in den verknüpften Betrieben eingetragen sein. Nach der Karenzzeit wird die Eintragung entfernt.</p>
+        <div class="link"><div class="field"><label>Betriebe (max. 5)</label><span class="input"><span class="chip">Babu's Bakery ${icon('x')}</span><span class="grow"></span>${icon('chev')}</span></div>
+          <div class="form-grid"><div class="field"><span class="lbl">Zeitraum</span><div class="seg"><button type="button" aria-pressed="false">Gleicher Tag</button><button type="button" aria-pressed="true">Tage davor/danach</button></div></div><div class="field"><label>Tage davor</label>${num(0, 'x')}</div><div class="field"><label>Tage danach</label>${num(3, 'x')}</div><div class="field"><label>Karenzzeit (Minuten)</label>${num(60, 'x')}</div></div>
+          <div class="row"><input type="checkbox" checked id="tb"><label for="tb">Auch in den verknüpften Betrieben anwenden</label></div>
+          <div class="field"><label>Nachricht an die Person</label><span class="input" style="min-height:3.5rem;align-items:flex-start">Hallo {{name}} … Innerhalb von {{graceMinutes}} Minuten nach deiner Anmeldung haben wir keine passende Abholung bei {{linkedStoreName}} gefunden. Deshalb haben wir dich wieder aus diesem Slot ausgetragen.</span></div></div>
+        <div class="actions"><button type="button" class="btn btn--outline btn--sm">${icon('plus')}Verknüpfte Betriebe hinzufügen</button></div></section>
+      <section class="card"><h3>Ausgenommene Tage</h3><p class="muted">An diesen Tagen werden Eintragungen nicht automatisch bestätigt.</p><span class="input input--num">${icon('cal')} tt.mm.jjjj</span><ul class="chips"><li class="chip">24.12.2026 ×</li><li class="chip">31.12.2026 ×</li></ul></section>
+      <div class="actions"><button type="button" class="btn btn--primary">${icon('save')}Speichern</button><button type="button" class="btn btn--outline">${icon('eye')}Jetzt testen</button><button type="button" class="btn btn--warn">${icon('play')}Jetzt ausführen</button><button type="button" class="btn btn--text">${icon('info')}Entscheidung testen</button></div>
+      <p class="banner banner--info">12 geprüft: 9 bestätigt, 2 abgelehnt, 1 übersprungen, 0 zurückgestellt, 0 fehlgeschlagen. <span class="badge badge--dry">Test</span></p></div>`;
+  }
+  function screenRules() {
+    if (state.role === 'none') return noAccessStore();
+    if (!isResp()) return `<div class="page">${hero('automation')}${forbidden('Die Automatisierung richten die Betriebsverantwortlichen ein. Die Regeln selbst siehst du unter «Abholungen».')}</div>`;
+    return `<div class="page">${hero('automation')}${today() ? '' : strip()}<div style="height:0.75rem"></div>${subnav('policy')}${today() ? rulesToday() : rulesProposal()}</div>`;
+  }
+
+  // ---- screen: pickups tab ------------------------------------------------------------------------------------------
+  function rulesCard() {
+    if (today() || state.mode !== 'ON') return '';
+    return `<details class="card rules" ${state.rulesOpen ? 'open' : ''} data-testid="stores.pickups.rules">
+      <summary data-testid="stores.pickups.rules.toggle">${icon('shield')}So kannst du dich hier eintragen <span class="badge">5 Regeln</span>${icon('chev', 'chev')}</summary>
+      <ul class="rules__list">
+        <li data-testid="stores.pickups.rules.line" data-rule="GAP">${icon('clock')}<span>Zwischen zwei Abholungen hier mindestens <strong>7 Tage</strong>; in Coop Bahnhofbrücke, Denner Langstrasse und Migros Limmatplatz zusammen mindestens 3 Tage.</span></li>
+        <li data-rule="LINKED_STORE">${icon('link')}<span>Eine Abholung hier braucht eine Abholung bei <strong>Babu's Bakery</strong> am selben Tag oder bis 3 Tage danach – du wählst sie beim Eintragen gleich mit.</span></li>
+        <li data-rule="EXPERIENCE">${icon('star')}<span>Neue brauchen zuerst eine bestätigte Abholung hier.</span></li>
+        <li data-rule="CLEANING">${icon('broom')}<span>Ein Putzeinsatz in einem Putz-Fairteiler des Bezirks in den letzten 12 Monaten.</span></li>
+        <li data-rule="MANUAL_DATE">${icon('cal')}<span>An Feiertagen und am 24.12., 31.12. entscheiden die Betriebsverantwortlichen.</span></li></ul>
+      <p class="muted rules__ask">Fragen? <a href="#">Die Betriebsverantwortlichen</a> helfen.</p></details>`;
+  }
+  function slotRow(p) {
+    const taken = p.slots.map((s) => s.mine
+      ? `<li><button type="button" class="slot slot--taken slot--pill slot--mine ${s.confirmed ? '' : 'slot--unconfirmed'}" aria-label="Du (Alex Muster), ${s.confirmed ? 'bestätigt' : 'unbestätigt'} – austragen" data-testid="stores.pickups.slot.taken">${avatar('AM')}<span aria-hidden="true">Du</span>${icon(s.confirmed ? 'check' : 'hourglass')}</button></li>`
+      : `<li><button type="button" class="slot slot--taken ${s.confirmed ? '' : 'slot--unconfirmed'}" ${isResp() ? '' : 'disabled'} aria-label="${s.name}, ${s.confirmed ? 'bestätigt' : 'unbestätigt'}" data-testid="stores.pickups.slot.taken">${avatar(s.ini)}<span class="slot__state" aria-hidden="true">${icon(s.confirmed ? 'check' : 'hourglass')}</span></button></li>`).join('');
+    const free = p.total - p.slots.length;
+    let freeChip = '';
+    if (free > 0) {
+      if (p.block && !today() && state.role === 'member' && state.mode === 'ON') {
+        freeChip = `<li><button type="button" class="slot slot--blocked" aria-haspopup="dialog" aria-label="Für dich gesperrt, ${free} frei – Grund anzeigen (${p.block.length} ${p.block.length === 1 ? 'Regel' : 'Regeln'})" data-open="blocked" data-pickup="${p.id}" data-testid="stores.pickups.slot.blocked">${icon('lock')}<span class="slot__label" aria-hidden="true">Gesperrt</span></button></li>`;
+      } else if (p.block && (today() || state.mode !== 'ON') && state.role === 'member' && today()) {
+        freeChip = `<li><button type="button" class="slot slot--free" disabled aria-label="${free} frei" data-testid="stores.pickups.slot.free">${free} frei</button></li>`;
+      } else if (p.slots.some((s) => s.mine)) {
+        freeChip = `<li><button type="button" class="slot slot--free" disabled aria-label="${free} frei">${free} frei</button></li>`;
+      } else {
+        freeChip = `<li><button type="button" class="slot slot--free" aria-label="Freier Platz – eintragen, ${free} frei" data-open="${p.linked && !today() ? 'linked' : 'signup'}" data-pickup="${p.id}" data-testid="stores.pickups.slot.free">${icon('plus')}<span aria-hidden="true">Eintragen</span></button></li>`;
+      }
+    }
+    return `<ul class="slots" aria-label="${p.slots.length} von ${p.total} Plätzen belegt">${taken}${freeChip}</ul>`;
+  }
+  const PICKUPS = [
+    { day: 'Dienstag, 3. November', items: [{ id: 'a', time: '19:00', total: 3, slots: [{ name: 'Nina Schneider', ini: 'NS', confirmed: true }], block: ['GAP'] }] },
+    { day: 'Donnerstag, 5. November', items: [{ id: 'b', time: '19:00', total: 3, slots: [{ mine: true, confirmed: false }, { name: 'Sascha Lehmann', ini: 'SL', confirmed: true }] }] },
+    { day: 'Montag, 9. November', items: [{ id: 'c', time: '19:00', total: 3, slots: [{ name: 'Nina Schneider', ini: 'NS', confirmed: true }], block: ['GAP', 'LINKED_STORE'] }] },
+    { day: 'Donnerstag, 12. November', items: [{ id: 'd', time: '19:00', total: 3, slots: [], linked: true }] },
+  ];
+  function screenPickups() {
+    if (state.role === 'none') return noAccessStore();
+    const list = PICKUPS.map((g) => `<section class="card day" data-testid="stores.pickups.day"><h2>${g.day}</h2>${g.items.map((p) => `<div class="pickup" data-testid="stores.pickups.pickup"><div class="pickup__head"><span class="pickup__time">${p.time}</span><span class="badge">Regelmässig</span>${isResp() ? `<button type="button" class="btn btn--icon" style="margin-left:auto" aria-label="Abholung bearbeiten">✎</button>` : ''}</div>${slotRow(p)}${p.slots.some((s) => s.mine && !s.confirmed) ? `<p class="pendingline">${icon('hourglass')}Dein Platz ist noch unbestätigt</p>` : ''}</div>`).join('')}</section>`).join('');
+    return `<div class="page">${hero('pickups')}
+      <div class="toolbar"><div class="row" role="group" aria-label="Zeitraum"><button type="button" class="rchip rchip--active" aria-pressed="true">Nächste 2 Wochen</button><button type="button" class="rchip" aria-pressed="false">Alle geplanten</button></div>
+        <div class="actions"><button type="button" class="btn btn--text btn--sm">Abholhistorie</button>${isResp() ? `<button type="button" class="btn btn--outline btn--sm">Regelmässige Abholungen</button><button type="button" class="btn btn--primary btn--sm">${icon('plus')}Einmalige Abholung</button>` : ''}</div></div>
+      <div class="stack" data-testid="stores.pickups.list">${rulesCard()}${list}</div>
+      ${!today() && state.role === 'member' ? '' : ''}</div>`;
+  }
+
+  // ---- dialogs ---------------------------------------------------------------------------------------------------------
+  const dlgHead = (title, id = 'dlgTitle') => `<div class="dialog__head"><h2 id="${id}" tabindex="-1">${title}</h2><button type="button" class="btn btn--icon" data-close aria-label="Schliessen">${icon('x')}</button></div>`;
+  function blockedDialog(pickupId) {
+    const two = pickupId === 'c';
+    const when = two ? 'Montag, 9. November 2026, 19:00' : 'Dienstag, 3. November 2026, 19:00';
+    const gapNext = two ? 'Do 12.11.' : 'Mi 04.11.';
+    return `<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" data-testid="pickups.blocked.dialog">
+      ${dlgHead('Warum kannst du dich hier nicht eintragen?')}
+      <p style="margin:0"><strong>Coop Bahnhofbrücke</strong><br>${when}</p>
+      <ul class="reasons">
+        <li class="reason" data-testid="pickups.blocked.reason" data-rule="GAP"><div class="reason__rule"><span class="badge badge--bad">${icon('clock')}Mindestabstand</span></div>
+          <p>Zwischen zwei Abholungen hier müssen mindestens 7 Tage liegen. Deine letzte Abholung hier war am <strong>Do 29.10.</strong>${two ? ', deine nächste ist am <strong>Do 05.11.</strong>' : ''}.</p>
+          <div class="reason__fix">${icon('arrow')}<span>Das macht es möglich: eine Abholung ab <strong>${gapNext}</strong>. <button type="button" class="btn btn--text btn--sm" data-testid="pickups.blocked.action">Zum ${gapNext} springen</button></span></div></li>
+        ${two ? `<li class="reason" data-testid="pickups.blocked.reason" data-rule="LINKED_STORE"><div class="reason__rule"><span class="badge badge--bad">${icon('link')}Verknüpfter Betrieb</span></div>
+          <p>Dazu brauchst du eine Abholung bei <strong>Babu's Bakery</strong> am selben Tag oder bis 3 Tage danach (Mo 09.11. – Do 12.11.). Du hast dort keine.</p>
+          <div class="reason__fix">${icon('arrow')}<span>Das macht es möglich: <button type="button" class="btn btn--text btn--sm" data-open="linked" data-pickup="c" data-testid="pickups.blocked.action">Abholung bei Babu's Bakery wählen</button> – sie wird beim Eintragen gleich mitgebucht (sobald der Abstand passt).</span></div></li>` : ''}
+      </ul>
+      <p class="muted">Diese Regeln gelten für alle im Team. <a href="#" data-close data-testid="pickups.blocked.seeRules">Alle Regeln dieses Betriebs</a></p>
+      <div class="dialog__actions"><button type="button" class="btn btn--primary" data-close autofocus>Verstanden</button></div></div>`;
+  }
+  function linkedDialog() {
+    const sub = state.sub.linked || 'choose';
+    const opts = (store, items) => `<ul class="opts" role="radiogroup" aria-label="Abholungen bei ${store}">${items.map((o, k) => o.blocked
+      ? `<li class="opt opt--blocked" aria-disabled="true" data-testid="pickups.signup.linked.option"><input type="radio" disabled><span class="opt__when">${o.when}</span><span class="opt__store">${o.store || ''}</span><span class="badge">${icon('lock')}Gesperrt dort</span></li>`
+      : `<li><label class="opt" data-testid="pickups.signup.linked.option"><input type="radio" name="lk" value="${k}" ${state.linkedChoice === k ? 'checked' : ''} data-choice="${k}"><span class="opt__when">${o.when}</span><span class="opt__store">${o.store || ''}</span><span class="badge badge--ok">${o.free} frei</span></label></li>`).join('')}</ul>`;
+    const head = (step, total, store) => `<p class="steps">Schritt ${step} von ${total}: Abholung bei ${store}</p>`;
+    const intro = `<p style="margin:0"><strong>Coop Bahnhofbrücke</strong><br>Donnerstag, 12. November 2026, 19:00</p><p class="muted">Trag dich nur ein, wenn du sicher kommen kannst.</p>`;
+    let body = '', actions = '';
+    const cancel = `<button type="button" class="btn btn--text" data-close data-testid="pickups.signup.cancel">Abbrechen</button>`;
+    if (sub === 'satisfied') {
+      body = `${intro}<p class="ok-line" data-testid="pickups.signup.linked.satisfied">${icon('check')}<span>Deine Abholung bei Babu's Bakery am Fr 13.11. 18:30 erfüllt die Verknüpfung (gleicher Tag bis 3 Tage danach).</span></p>`;
+      actions = `${cancel}<button type="button" class="btn btn--primary" data-done="Eingetragen bei Coop Bahnhofbrücke." data-testid="pickups.signup.confirm">${icon('check')}Eintragen</button>`;
+    } else if (sub === 'choose') {
+      body = `${intro}${head(2, 2, "Babu's Bakery")}<p style="margin:0">Wähle eine Abholung bei <strong>Babu's Bakery</strong> (Do 12.11. – So 15.11.):</p>
+        ${opts("Babu's Bakery", [{ when: 'Do 12.11. 18:30', free: 2 }, { when: 'Fr 13.11. 18:30', free: 1 }, { when: 'Sa 14.11. 10:00', blocked: true }, { when: 'So 15.11. 10:00', free: 3 }])}
+        <p class="muted">${icon('info')} Beide Eintragungen werden zusammen gespeichert – oder keine. <a href="#">Abholungen von Babu's Bakery</a></p>`;
+      actions = `${cancel}<button type="button" class="btn btn--primary" ${state.linkedChoice == null ? 'disabled' : ''} data-done="Eingetragen bei Coop Bahnhofbrücke und Babu's Bakery." data-testid="pickups.signup.linked.confirm">${icon('check')}Beide eintragen</button>`;
+    } else if (sub === 'none') {
+      body = `${intro}${head(2, 2, "Babu's Bakery")}<p class="banner banner--danger" data-testid="pickups.signup.linked.noneFree">${icon('ban')}<span>Bei Babu's Bakery ist zwischen Do 12.11. und So 15.11. kein Platz frei. Ohne Abholung dort kannst du dich hier nicht eintragen.</span></p><p class="muted">Du kannst die <a href="#">Abholungen von Babu's Bakery</a> im Blick behalten oder einen anderen Tag hier wählen.</p>`;
+      actions = `${cancel}<button type="button" class="btn btn--primary" disabled>${icon('check')}Beide eintragen</button>`;
+    } else if (sub === 'multi') {
+      body = `${intro}${head(2, 3, "Babu's Bakery oder Hiltl")}<p style="margin:0">Eine Abholung in <strong>einem</strong> dieser Betriebe genügt (Do 12.11. – So 15.11.):</p>
+        ${opts('verknüpfte Betriebe', [{ when: 'Do 12.11. 18:30', store: "Babu's Bakery", free: 2 }, { when: 'Fr 13.11. 19:00', store: 'Hiltl', free: 1 }, { when: 'So 15.11. 10:00', store: "Babu's Bakery", free: 3 }])}
+        <p class="muted">${icon('info')} Schritt 3: Denner Langstrasse (gleicher Tag) – zweite Verknüpfung, beide sind nötig.</p>`;
+      actions = `${cancel}<button type="button" class="btn btn--primary" ${state.linkedChoice == null ? 'disabled' : ''}>Weiter ${icon('arrow')}</button>`;
+    } else if (sub === 'member') {
+      body = `${intro}${head(2, 2, "Babu's Bakery")}<p class="banner" data-testid="pickups.signup.linked.notMember">${icon('user')}<span>Du bist nicht im Team von Babu's Bakery. Für eine Abholung bei Coop Bahnhofbrücke brauchst du eine Abholung dort.</span></p>
+        <div class="actions"><a class="btn btn--outline btn--sm" href="#" data-testid="pickups.signup.linked.apply">${icon('user')}Team-Beitritt anfragen</a><a class="btn btn--text btn--sm" href="#">${icon('ext')}Babu's Bakery ansehen</a></div>`;
+      actions = `${cancel}<button type="button" class="btn btn--primary" disabled>${icon('check')}Beide eintragen</button>`;
+    }
+    const subs = `<div class="substates" aria-label="Mockup: Zustand">${[['satisfied', 'Erfüllt'], ['choose', 'Wählen'], ['none', 'Kein Platz'], ['multi', 'Mehrere Verknüpfungen'], ['member', 'Kein Teammitglied']].map(([k, l]) => `<button type="button" aria-pressed="${sub === k}" data-sub="linked:${k}">${l}</button>`).join('')}</div>`;
+    return `<div class="dialog dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" data-testid="pickups.signup.dialog">${dlgHead('Für Abholung eintragen')}${subs}${body}<div class="dialog__actions">${actions}</div></div>`;
+  }
+  function linkedToday() {
+    return `<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">${dlgHead('Für Abholung eintragen')}
+      <p style="margin:0"><strong>Coop Bahnhofbrücke</strong><br>Donnerstag, 12. November 2026, 19:00</p><p class="muted">Trag dich nur ein, wenn du sicher kommen kannst.</p>
+      <p class="banner banner--info">${icon('info')}<span>Heute: Eintragen funktioniert sofort. 60 Minuten später entfernt der Bot den Platz, wenn keine passende Abholung bei Babu's Bakery gefunden wurde, und schickt die lange Standard-Mail («… haben wir dich wieder aus diesem Slot ausgetragen»). Die Person hat Babu's freie Plätze nie gesehen.</span></p>
+      <div class="dialog__actions"><button type="button" class="btn btn--text" data-close>Abbrechen</button><button type="button" class="btn btn--primary" data-done="Eingetragen – wartet auf Bestätigung durch die Betriebsverantwortlichen.">${icon('check')}Eintragen</button></div></div>`;
+  }
+  function signupDialog() {
+    return `<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" data-testid="pickups.signup.dialog">${dlgHead('Für Abholung eintragen')}<p style="margin:0"><strong>Coop Bahnhofbrücke</strong><br>Donnerstag, 12. November 2026, 19:00</p><p class="muted">Trag dich nur ein, wenn du sicher kommen kannst.</p><div class="dialog__actions"><button type="button" class="btn btn--text" data-close>Abbrechen</button><button type="button" class="btn btn--primary" data-done="Eingetragen – wartet auf Bestätigung durch die Betriebsverantwortlichen.">${icon('check')}Eintragen</button></div></div>`;
+  }
+  function pickerDialog() {
+    const sub = state.sub.picker || 'results';
+    const q = sub === 'empty' ? 'Spar Oerlikon' : sub === 'idle' ? '' : 'ba';
+    const row = (id, name, addr, badge, region) => `<li><label class="result" data-testid="automation.picker.result" data-store="${id}"><input type="checkbox" ${state.picked.has(id) ? 'checked' : ''} data-pick="${id}"><span class="result__name">${name}</span>${badge}<span class="result__addr">${addr}</span></label></li>`;
+    const B = { on: `<span class="badge badge--ok">${icon('shield')}Regeln aktiv</span>`, off: `<span class="badge">Keine Regeln</span>`, };
+    let list = '';
+    if (sub === 'loading') list = `<div class="skel" aria-busy="true" data-testid="automation.picker.state" data-state="loading"><span style="width:60%"></span><span style="width:80%"></span><span style="width:50%"></span><span style="width:70%"></span></div>`;
+    else if (sub === 'empty') list = `<div class="state" data-testid="automation.picker.state" data-state="empty">${icon('search')}<h2>Keine Betriebe für «Spar Oerlikon»</h2><p class="muted">Sichtbar sind Betriebe, deren Namen du kennen darfst (Entscheid 156). Prüfe die Schreibweise oder suche nach dem Ort.</p></div>`;
+    else if (sub === 'error') list = `<div class="state" data-testid="automation.picker.state" data-state="error">${icon('ban')}<h2>Suche fehlgeschlagen</h2><p class="muted">Die Betriebe konnten nicht geladen werden.</p><button type="button" class="btn btn--outline btn--sm">Erneut versuchen</button><button type="button" class="btn btn--text btn--sm">Details</button></div>`;
+    else if (sub === 'offline') list = `<div class="state" data-testid="automation.picker.state" data-state="offline">${icon('ban')}<h2>Offline</h2><p class="muted">Die Suche braucht eine Verbindung. Bereits verknüpfte Betriebe bleiben erhalten.</p></div>`;
+    else if (sub === 'idle') list = `<ul class="results" role="listbox" aria-label="Betriebe"><li class="results__group">Zuletzt verknüpft</li>${row('s6', "Babu's Bakery", 'Zürich Stadt · Langstrasse 212', B.on)}<li class="results__group">Zürich Stadt</li>${row('s4', 'Denner Langstrasse', 'Langstrasse 136', B.on)}${row('s3', 'Migros Limmatplatz', 'Limmatstrasse 152', B.off)}${row('s7', 'Hiltl', 'Sihlstrasse 28', B.off)}</ul>`;
+    else list = `<p class="muted" aria-live="polite">4 Betriebe</p><ul class="results" role="listbox" aria-label="Betriebe">
+      <li class="results__group">Zürich › Zürich Stadt</li>${row('s6', "Babu's Bakery", 'Langstrasse 212, 8004 Zürich', B.on)}${row('s2', 'Bäckerei Vohdin', 'Oberdorfstrasse 12, 8001 Zürich', B.off)}
+      <li class="results__group">Zürich › Winterthur</li>${row('w1', 'Bachser Märt', 'Marktgasse 3, 8400 Winterthur', B.off)}
+      <li class="results__group">Bern › Bern Stadt</li>${row('b1', 'Bäckerei Bohnenblust', 'Länggassstrasse 34, 3012 Bern', B.off)}</ul>
+      <p class="muted">${icon('info')} Du kannst jeden Betrieb verknüpfen, den du kennen darfst – auch aus anderen Bezirken. «Auch in den verknüpften Betrieben anwenden» geht nur für Betriebe, die du verwaltest.</p>`;
+    const picked = [...state.picked].map((id) => `<li class="chip">${STORES[id] || { w1: 'Bachser Märt', b1: 'Bäckerei Bohnenblust' }[id]}<button type="button" class="x" data-unpick="${id}" aria-label="entfernen">${icon('x')}</button></li>`).join('');
+    return `<div class="dialog dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" data-testid="automation.picker.dialog">${dlgHead('Betrieb verknüpfen')}
+      <div class="substates" aria-label="Mockup: Zustand">${[['results', 'Treffer'], ['idle', 'Vor der Eingabe'], ['loading', 'Lädt'], ['empty', 'Leer'], ['error', 'Fehler'], ['offline', 'Offline']].map(([k, l]) => `<button type="button" aria-pressed="${sub === k}" data-sub="picker:${k}">${l}</button>`).join('')}</div>
+      <ul class="chips" aria-label="Gewählte Betriebe (max. 5)">${picked || '<li class="muted">Noch kein Betrieb gewählt</li>'}</ul>
+      <label class="input" data-testid="automation.picker.search">${icon('search')}<input type="search" placeholder="Betrieb suchen (Name oder Ort)" value="${q}" style="border:0;background:none;font:inherit;color:inherit;flex:1;min-width:0;outline:none" aria-label="Betrieb suchen"></label>
+      ${list}
+      <div class="dialog__actions"><button type="button" class="btn btn--text" data-close>Abbrechen</button><button type="button" class="btn btn--primary" data-close data-testid="automation.picker.done">${icon('check')}${state.picked.size} ${state.picked.size === 1 ? 'Betrieb' : 'Betriebe'} übernehmen</button></div></div>`;
+  }
+  // ---- screen: channels ------------------------------------------------------------------------------------------------
+  function screenChannels() {
+    if (state.role === 'none') return noAccessStore();
+    if (!isResp()) return `<div class="page">${hero('automation')}${forbidden('Die Automatisierung richten die Betriebsverantwortlichen ein.')}</div>`;
+    if (today()) return `<div class="page">${hero('automation')}${subnav('adverts')}<section class="card"><h2>Hinweise auf freie Plätze</h2><p class="muted">Heute gibt es keinen Bereich für Telegram-Chats des Betriebs. Im Hinweis steht nur dieses Feld:</p><div class="field"><label>Telegram-Chat</label><span class="input">Betriebs- oder Bezirks-Chat ${icon('chev')}</span><p class="muted">Leer, weil nie jemand <code>PUT /api/stores/{id}/telegram-chats</code> aufrufen konnte. Der Bezirks-Chat «Zürich Notfallchat» greift als Fallback.</p></div></section></div>`;
+    const sub = state.sub.channels || 'data';
+    const inner = sub === 'loading' ? `<div class="skel" aria-busy="true"><span style="width:70%"></span><span style="width:55%"></span><span style="width:40%"></span></div>`
+      : sub === 'empty' ? `<div class="state" data-state="empty">${icon('send')}<h2>Keine Chats eingerichtet.</h2><p class="muted">Hinweise mit Kanal Telegram gehen bis dahin an die aktiven Chats des Bezirks (Zürich Notfallchat).</p></div>
+          <div class="row"><span class="input grow">Chat, den der Bot kennt ${icon('chev')}</span><button type="button" class="btn btn--outline" data-testid="automation.channels.add">${icon('plus')}Chat hinzufügen</button></div>`
+      : sub === 'error' ? `<div class="state" data-state="error">${icon('ban')}<h2>Chats konnten nicht geladen werden</h2><button type="button" class="btn btn--outline btn--sm">Erneut versuchen</button></div>`
+      : `<ul class="stack" style="list-style:none;margin:0;padding:0">
+          <li class="row" data-testid="automation.channels.chat" data-chat-id="-1002"><span class="grow"><strong>Coop Bahnhofbrücke – Team</strong> <span class="muted">-1002 · Gruppe</span></span>${sw(true, 'automation.channels.enabled')}<button type="button" class="btn btn--text btn--sm" data-toast="Testnachricht gesendet." data-testid="automation.channels.test">${icon('send')}Test senden</button><button type="button" class="btn btn--icon" aria-label="Entfernen">${icon('trash')}</button></li>
+          <li class="row" data-testid="automation.channels.chat" data-chat-id="-1007"><span class="grow"><strong>Bahnhofbrücke Springer</strong> <span class="muted">-1007 · Supergruppe</span></span>${sw(false, 'automation.channels.enabled')}<button type="button" class="btn btn--text btn--sm" data-toast="Testnachricht gesendet." data-testid="automation.channels.test">${icon('send')}Test senden</button><button type="button" class="btn btn--icon" aria-label="Entfernen">${icon('trash')}</button></li></ul>
+        <div class="row"><span class="input grow" data-testid="automation.channels.pick">Chat, den der Bot kennt ${icon('chev')}</span><button type="button" class="btn btn--outline" data-testid="automation.channels.add">${icon('plus')}Chat hinzufügen</button></div>
+        <div class="savebar"><button type="button" class="btn btn--primary" data-testid="automation.channels.save">${icon('save')}Speichern</button></div>`;
+    return `<div class="page">${hero('automation')}${strip()}<div style="height:0.75rem"></div>${subnav('channels')}
+      <div class="substates" aria-label="Mockup: Zustand">${[['data', 'Daten'], ['loading', 'Lädt'], ['empty', 'Leer'], ['error', 'Fehler']].map(([k, l]) => `<button type="button" aria-pressed="${sub === k}" data-sub="channels:${k}">${l}</button>`).join('')}</div>
+      <div class="stack"><section class="card" data-testid="automation.channels.state"><h2>Telegram-Chats dieses Betriebs</h2>
+        <p class="muted">Hinweise und Austragungs-Hinweise mit Kanal Telegram gehen an diese Chats; ohne aktiven Chat an die Chats des Bezirks (<a href="#">Zürich Stadt › Telegram-Chats</a>). Füge den Bot <strong>@foodsharing_zh_bot</strong> zuerst der Gruppe hinzu, dann erscheint sie hier.</p>${inner}</section>
+        <section class="card"><h3>Wer sendet hierhin?</h3><ul class="muted" style="margin:0;padding-left:1.1rem"><li>Hinweise auf freie Plätze: Hinweis 1 (Telegram, 24 h vorher), Hinweis 2 (Team-Chat)</li><li>Austragungs-Hinweise: Glocke + Telegram</li></ul></section></div></div>`;
+  }
+
+  // ---- screen: region overview -----------------------------------------------------------------------------------------
+  function screenRegion() {
+    if (state.role === 'none') return `<div class="page"><div class="state" data-state="forbidden">${icon('lock')}<h2>Kein Zugriff</h2><p class="muted">Diese Seiten sehen Botschafter:innen des Bezirks und ORGA.</p></div></div>`;
+    const admin = state.role === 'ambassador';
+    const sections = admin ? [['overview', 'Betriebe'], ['audits', today() ? 'Entscheidungen' : 'Protokoll'], ['cleaning-fsps', 'Putzen'], ['cleaning-exemptions', 'Putz-Ausnahmen'], ['grouping', 'Abholungs-Anzahl'], ['metrics', 'Kennzahlen'], ['telegram', 'Telegram-Chats'], ['holidays', 'Feiertage']] : [['audits', today() ? 'Entscheidungen' : 'Protokoll'], ['holidays', 'Feiertage']];
+    const nav = `<nav class="subnav" aria-label="Automatisierungsseiten" data-testid="automation.region.nav">${sections.map(([id, l], k) => `<a href="#" class="subnav__item ${k === 0 ? 'subnav__item--active' : ''}" data-testid="automation.region.nav.${id}">${l}</a>`).join('')}</nav>`;
+    const header = `<header class="hero"><p class="hero__kicker">${icon('bolt')} Automatisierung</p><h1>Zürich Stadt</h1><p><a href="#">← Zurück zum Bezirk</a></p></header><div style="height:0.75rem"></div>`;
+    if (!admin) return `<div class="page">${header}${nav}<section class="card"><h2>${today() ? 'Entscheidungen der Automatisierung' : 'Protokoll der Automatisierung'}</h2><p class="muted">Ohne Botschafter-Rolle siehst du hier nur dein eigenes Protokoll und die Feiertage; Betriebsverantwortliche sehen alle Entscheidungen ihres Betriebs im Store-Tab.</p></section></div>`;
+    const rows = [['Coop Bahnhofbrücke', 'ON', 'Aus', 2, 'An', 1], ['Denner Langstrasse', 'ON', 'An', 1, 'Aus', 0], ['Migros Limmatplatz', 'OFF', 'Aus', 0, 'Aus', 0], ["Babu's Bakery", 'ON', 'Aus', 1, 'An', 2], ['Hiltl', 'OFF', 'Aus', 0, 'Aus', 0]];
+    const cell = (m, k) => today() ? (m === 'OFF' ? '<span class="muted">–</span>' : `<span class="badge ${k === 2 ? 'badge--dry' : 'badge--ok'}">${k === 2 ? 'Test' : 'Aktiv'}</span>`) : modePill(m);
+    return `<div class="page">${header}${nav}<section class="card"><h2>Betriebe</h2><div class="table-wrap" tabindex="0" data-testid="automation.region.overview"><table><thead><tr><th>Betrieb</th><th>${today() ? 'Eintragungsregeln' : 'Regeln'}</th><th>Auto-Aufnahme</th><th>Hinweise</th><th>${today() ? 'Austragungs-Hinweise' : 'Austragungen'}</th>${today() ? '' : '<th>Kanäle</th>'}</tr></thead><tbody>
+      ${rows.map(([n, m, a, h, s, k], ri) => `<tr data-testid="automation.region.overviewRow"><td><a href="#">${n}</a></td><td>${cell(m, ri)}</td><td>${a}</td><td>${h}</td><td>${s}</td>${today() ? '' : `<td>${k ? `${icon('send')} ${k}` : '<span class="muted">Bezirk</span>'}</td>`}</tr>`).join('')}</tbody></table></div></section></div>`;
+  }
+
+  // ---- render ------------------------------------------------------------------------------------------------------------
+  const app = document.getElementById('app'), overlay = document.getElementById('overlay'), frame = document.getElementById('frame');
+  function render() {
+    document.documentElement.classList.toggle('fs-dark', state.theme === 'dark');
+    frame.dataset.viewport = state.viewport;
+    document.getElementById('size').textContent = state.viewport === 'phone' ? '412' : '1040';
+    document.getElementById('screens').innerHTML = SCREENS.map(([id, l]) => `<button type="button" role="tab" aria-pressed="${state.screen === id}" data-screen="${id}">${l}</button>`).join('');
+    document.getElementById('explain').textContent = SCREENS.find(([id]) => id === state.screen)[2];
+    overlay.innerHTML = '';
+    switch (state.screen) {
+      case 'rules': app.innerHTML = screenRules(); break;
+      case 'pickups': app.innerHTML = screenPickups(); break;
+      case 'blocked': app.innerHTML = screenPickups(); if (state.role === 'member' && !today() && state.mode === 'ON') openDialog(blockedDialog('c')); else if (state.role !== 'none') openDialog(`<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">${dlgHead('Hinweis zum Mockup')}<p class="muted">${today() ? 'Heute: ein gesperrter Platz ist ein grauer, nicht klickbarer Chip «1 frei». Es gibt keinen Grund-Dialog.' : state.mode !== 'ON' ? 'Regeln aus: nichts wird gesperrt; Mitglieder sehen die Plätze wie bisher.' : 'Betriebsverantwortliche sind vorbestätigt; für sie gelten die Regeln beim Eintragen nicht. Wähle die Rolle «Mitglied (Alex)».'}</p><div class="dialog__actions"><button type="button" class="btn btn--primary" data-close>OK</button></div></div>`); break;
+      case 'linked': app.innerHTML = screenPickups(); if (state.role === 'none') break; if (today()) openDialog(linkedToday()); else openDialog(linkedDialog()); break;
+      case 'picker': app.innerHTML = screenRules(); if (isResp()) openDialog(today() ? `<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">${dlgHead('Betriebe (max. 5)')}<p class="muted">Heute: ein Multiselect mit den Betrieben des eigenen Bezirks inkl. Unterbezirken (max. 200). Andere Bezirke fehlen; der Server lehnt jeden Betrieb ab, für den du CAN_USE_AUTOMATIONS / mayEditStore nicht hast (403 ACCESS_DENIED).</p><ul class="opts">${Object.values(STORES).map((n) => `<li class="opt"><input type="checkbox" ${n === "Babu's Bakery" ? 'checked' : ''}>${n}</li>`).join('')}</ul><div class="dialog__actions"><button type="button" class="btn btn--primary" data-close>OK</button></div></div>` : pickerDialog()); break;
+      case 'channels': app.innerHTML = screenChannels(); break;
+      case 'region': app.innerHTML = screenRegion(); break;
+    }
+  }
+  function openDialog(html, extra = '') {
+    overlay.innerHTML = `<div class="scrim" data-scrim>${extra}${html}</div>`;
+    const auto = overlay.querySelector('[autofocus]') || overlay.querySelector('#dlgTitle');
+    if (auto) auto.focus({ preventScroll: true });
+  }
+  function closeDialog() { overlay.innerHTML = ''; if (['blocked', 'linked', 'picker'].includes(state.screen)) { state.screen = state.screen === 'picker' ? 'rules' : 'pickups'; render(); } }
+  function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; frame.appendChild(t); setTimeout(() => t.remove(), 2400); }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, a');
+    if (!b) return;
+    if (b.dataset.screen) { state.screen = b.dataset.screen; state.linkedChoice = null; render(); return; }
+    if (b.dataset.setMode) { state.mode = b.dataset.setMode; render(); return; }
+    if (b.dataset.sub) { const [k, v] = b.dataset.sub.split(':'); state.sub[k] = v; state.linkedChoice = null; render(); return; }
+    if (b.dataset.open) { e.preventDefault(); const which = b.dataset.open; if (which === 'blocked') openDialog(blockedDialog(b.dataset.pickup)); else if (which === 'linked') { state.linkedChoice = null; openDialog(linkedDialog()); } else if (which === 'signup') openDialog(signupDialog()); else if (which === 'picker') openDialog(pickerDialog()); return; }
+    if (b.hasAttribute('data-done')) { const msg = b.dataset.done; overlay.innerHTML = ''; toast(msg); return; }
+    if (b.dataset.toast) { toast(b.dataset.toast); return; }
+    if (b.hasAttribute('data-close')) { e.preventDefault(); closeDialog(); return; }
+    if (b.dataset.unpick) { state.picked.delete(b.dataset.unpick); openDialog(pickerDialog()); return; }
+    if (b.classList.contains('switch')) { b.setAttribute('aria-checked', b.getAttribute('aria-checked') !== 'true'); return; }
+    if (b.tagName === 'A' && b.getAttribute('href') === '#') e.preventDefault();
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.matches('.ctl input[type=radio]')) { state[t.name] = t.value; state.linkedChoice = null; render(); return; }
+    if (t.dataset.choice != null) { state.linkedChoice = +t.dataset.choice; const btn = overlay.querySelector('.dialog__actions .btn--primary'); if (btn) btn.disabled = false; return; }
+    if (t.dataset.pick) { if (t.checked) state.picked.add(t.dataset.pick); else state.picked.delete(t.dataset.pick); openDialog(pickerDialog()); return; }
+  });
+  document.addEventListener('toggle', (e) => { if (e.target.matches('details.rules')) state.rulesOpen = e.target.open; }, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.firstChild) closeDialog(); });
+  render();
+})();
+</script>
+</body>
+</html>

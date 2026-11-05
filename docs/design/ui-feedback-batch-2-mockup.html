@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI-Feedback Batch 2 – Mockup (Tageskarten, Platz-Dialog, Teamkarte, Erwähnung)</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108; --fs-accent: #f2b84b;
+  --fs-on-warning: #ffffff; --fs-surface-raised: #ffffff;
+  --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04);
+  --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08); --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-target-sm: 2.25rem; --fs-slot-size: 2.4rem; --fs-slot-ring: 2px; --fs-slot-badge: 1.05rem; --fs-date-tile: 3.25rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3);
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b;
+  --fs-accent: #9c7a3c; --fs-surface-raised: #262e26; --fs-on-warning: #1a201a;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; --fs-slot-size: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+a { color: var(--fs-primary-strong); }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl { position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm); }
+.ctl strong { font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ctl .note { margin-left: auto; color: var(--fs-text-muted); }
+
+/* ---- app frame ---- */
+.frame { position: relative; margin: 1rem auto; width: min(100% - 2rem, 960px); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
+.frame[data-viewport="phone"] { width: min(100% - 2rem, 412px); }
+.frame__size { position: absolute; top: 0.4rem; left: 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.6; pointer-events: none; }
+.page { padding: 0.75rem clamp(1rem, 0.6rem + 2vw, 2rem) 2rem; }
+.hero { padding: 1rem 1.25rem; border-radius: var(--fs-radius-lg); background: linear-gradient(120deg, color-mix(in srgb, var(--fs-primary) 10%, var(--fs-surface)), color-mix(in srgb, var(--fs-accent) 12%, var(--fs-surface))); border: 1px solid var(--fs-border); }
+.hero__kicker { margin: 0; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fs-primary-strong); }
+.hero h1 { margin: 0.1rem 0 0.15rem; font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem); letter-spacing: -0.02em; }
+.hero p { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
+.tabs { display: flex; gap: 0.25rem; margin: 0.75rem 0 1rem; padding-bottom: 0.25rem; overflow-x: auto; scrollbar-width: none; }
+.tab { display: inline-flex; align-items: center; min-height: var(--fs-target-sm); padding: 0.35rem 0.8rem; border: 0; border-radius: var(--fs-radius-sm); background: transparent; color: var(--fs-text-muted); font-size: 0.9rem; font-weight: 600; white-space: nowrap; text-decoration: none; }
+.tab[aria-current="page"] { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+
+/* ---- shared bits (as the app) ---- */
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+.chips, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.35rem 0.85rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface); font-size: 0.88rem; }
+.chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.chip--pending .i { color: var(--fs-warning-text); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: var(--fs-target-sm); padding: 0.4rem 0.9rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); font-size: 0.88rem; font-weight: 600; box-shadow: var(--fs-shadow-sm); text-decoration: none; color: inherit; }
+.btn--primary { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); }
+.btn--text { border-color: transparent; background: transparent; box-shadow: none; color: var(--fs-primary-strong); }
+.btn--secondary-text { border-color: transparent; background: transparent; box-shadow: none; color: var(--fs-text-muted); }
+.btn--danger { border-color: var(--fs-danger); color: var(--fs-danger); background: transparent; box-shadow: none; }
+.btn--sm { padding: 0.25rem 0.65rem; font-size: 0.82rem; }
+.btn--icon { width: var(--fs-target-sm); min-width: var(--fs-target-sm); padding: 0; border-color: transparent; border-radius: 999px; box-shadow: none; background: transparent; color: var(--fs-text-muted); }
+.btn--icon:hover { background: var(--fs-surface-muted); color: var(--fs-text); }
+.btn--icon .i { width: 1.1rem; height: 1.1rem; }
+.card { padding: clamp(1rem, 0.8rem + 1vw, 1.5rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.card__title { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+.muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
+.badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.75rem; font-weight: 600; }
+.av { display: inline-grid; place-items: center; flex: none; border-radius: 999px; color: #fff; font-weight: 700; letter-spacing: 0.02em; }
+.av--xs { width: 1.25rem; height: 1.25rem; font-size: 0.55rem; }
+.av--sm { width: 1.75rem; height: 1.75rem; font-size: 0.68rem; }
+.av--md { width: 2.5rem; height: 2.5rem; font-size: 0.9rem; }
+.av--lg { width: 3.5rem; height: 3.5rem; font-size: 1.2rem; }
+.verified { color: var(--fs-primary); width: 0.9em; height: 0.9em; }
+
+/* ---- slots (shared/pickup-slot, after the PU3 redesign) ---- */
+.slots { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.slot { position: relative; display: inline-grid; place-items: center; width: var(--fs-slot-size); height: var(--fs-slot-size); padding: 0; border-radius: 999px; border: var(--fs-slot-ring) solid var(--fs-primary); background: none; }
+.slot .av--sm { width: calc(var(--fs-slot-size) - 2 * var(--fs-slot-ring) - 4px); height: calc(var(--fs-slot-size) - 2 * var(--fs-slot-ring) - 4px); }
+.slot--unconfirmed { border-style: dashed; border-color: var(--fs-warning); }
+.slot__state { position: absolute; right: -0.2rem; bottom: -0.2rem; display: grid; place-items: center; width: var(--fs-slot-badge); height: var(--fs-slot-badge); border-radius: 999px; border: 2px solid var(--fs-surface); background: var(--fs-primary); color: var(--fs-on-primary); }
+.slot__state .i { width: 0.62rem; height: 0.62rem; stroke-width: 3; }
+.slot--unconfirmed .slot__state { background: var(--fs-warning); color: var(--fs-on-warning); }
+.slot--pill { display: inline-flex; gap: 0.4rem; width: auto; padding: 0 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 650; }
+.slot--pill .av--sm { width: 1.75rem; height: 1.75rem; }
+.slot--pill .slot__icon { width: 0.95rem; height: 0.95rem; color: var(--fs-primary-strong); }
+.slot--pill.slot--unconfirmed .slot__icon { color: var(--fs-warning-text); }
+.slot--mine { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.slot--mine.slot--unconfirmed { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.slot--free { display: inline-flex; gap: 0.3rem; width: auto; padding: 0 0.8rem; border: var(--fs-slot-ring) dashed var(--fs-border); color: var(--fs-text-muted); background: var(--fs-surface); font-size: 0.85rem; font-weight: 650; }
+.slot--free:not(:disabled) { color: var(--fs-primary-strong); border-color: color-mix(in srgb, var(--fs-primary) 55%, var(--fs-border)); }
+.slot--free:not(:disabled):hover { border-color: var(--fs-primary); background: var(--fs-primary-soft); }
+.slot:disabled:not(.slot--free) { cursor: default; }
+.split { display: inline-flex; align-items: stretch; }
+.split .slot--pill { border-top-right-radius: 0; border-bottom-right-radius: 0; padding-right: 0.55rem; }
+.split__confirm { display: inline-grid; place-items: center; width: var(--fs-slot-size); border: var(--fs-slot-ring) dashed var(--fs-warning); border-left: 0; border-radius: 0 999px 999px 0; background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.split__confirm:hover { background: var(--fs-primary-soft); color: var(--fs-primary-strong); border-color: var(--fs-primary); border-style: solid; }
+.summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.45rem; margin: 0; font-size: 0.82rem; color: var(--fs-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.summary__ok { color: var(--fs-primary-strong); }
+.summary__pending { display: inline-flex; align-items: center; gap: 0.25rem; color: var(--fs-warning-text); font-weight: 650; }
+
+/* =====================================================================================================
+   PART 1 – compact day cards (proposal)
+   ===================================================================================================== */
+.days { display: grid; gap: 0.6rem; }
+/* "Raster": from 60rem two columns; the mockup frame is 960px, so the switch is on the frame attribute */
+.frame[data-layout="grid"]:not([data-viewport="phone"]) .days { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.day { display: grid; grid-template-columns: var(--fs-date-tile) minmax(0, 1fr); gap: 0 0.75rem; padding: 0.55rem 0.65rem 0.55rem 0.55rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.day--today { border-color: color-mix(in srgb, var(--fs-primary) 45%, var(--fs-border)); }
+/* date tile: weekday on top, day number big; one glance replaces "Donnerstag, 5. November" */
+.date { display: grid; justify-items: center; align-content: start; align-self: start; width: var(--fs-date-tile); padding: 0.3rem 0 0.35rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); line-height: 1.05; }
+.date__wd { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fs-text-muted); }
+.date__d { font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.date__m { font-size: 0.68rem; font-weight: 600; color: var(--fs-text-muted); }
+.day--today .date { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.day--today .date__wd, .day--today .date__m { color: var(--fs-primary-strong); }
+.day__body { display: grid; min-width: 0; }
+.day__head { display: flex; align-items: center; gap: 0.5rem; min-height: 1.9rem; }
+.day__title { margin: 0; font-size: 0.95rem; font-weight: 650; }
+.day__title .muted { font-weight: 500; font-size: 0.85rem; }
+.day__chat { margin-left: auto; }
+.day__chat:not(.btn--icon) { gap: 0.35rem; padding: 0.2rem 0.65rem 0.2rem 0.5rem; border-color: transparent; box-shadow: none; background: transparent; color: var(--fs-primary-strong); font-size: 0.82rem; }
+.day__chat:not(.btn--icon):hover { background: var(--fs-primary-soft); }
+/* one pickup = head row (time · ↻ · description · summary · pencil) + slot row */
+.pk { display: grid; gap: 0.3rem; padding: 0.35rem 0; border-top: 1px solid var(--fs-border); }
+.pk:first-of-type { border-top: 0; }
+.pk__head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.6rem; min-height: 1.9rem; }
+.pk__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pk__reg { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 999px; background: var(--fs-surface-muted); color: var(--fs-text-muted); }
+.pk__reg .i { width: 0.8rem; height: 0.8rem; }
+.pk__desc { color: var(--fs-text-muted); font-size: 0.85rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.pk__edit { margin-left: auto; width: 1.9rem; min-width: 1.9rem; height: 1.9rem; }
+.pk__head .summary { margin-left: auto; }
+.pk__head .summary + .pk__edit { margin-left: 0; }
+.pk__pending { display: inline-flex; gap: 0.35rem; align-items: center; color: var(--fs-warning-text); font-size: 0.82rem; font-weight: 600; }
+.pk__cancelled { color: var(--fs-text-muted); font-size: 0.85rem; font-style: italic; }
+.pk__extra { color: var(--fs-text-muted); font-size: 0.78rem; }
+/* phones: the summary moves under the slots, the description wraps */
+.frame[data-viewport="phone"] .pk__head .summary { display: none; }
+.frame[data-viewport="phone"] .pk .summary--phone { display: inline-flex; }
+.summary--phone { display: none; }
+.frame[data-viewport="phone"] .pk__desc { white-space: normal; }
+.frame[data-viewport="phone"] .day { grid-template-columns: 2.75rem minmax(0, 1fr); gap: 0 0.6rem; }
+.frame[data-viewport="phone"] .date { width: 2.75rem; }
+.frame[data-viewport="phone"] .date__d { font-size: 1.15rem; }
+
+/* PART 1 – today's look (for comparison) */
+.old-stack { display: grid; gap: 0.85rem; }
+.old-day { padding: clamp(1rem, 0.8rem + 1vw, 1.5rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.old-pickup { display: grid; gap: 0.45rem; padding: 0.6rem 0; border-top: 1px solid var(--fs-border); }
+.old-pickup:first-of-type { border-top: 0; }
+.old-head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.old-head .btn--icon { margin-left: auto; }
+
+/* =====================================================================================================
+   PART 2 – slot detail dialog
+   ===================================================================================================== */
+.backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 1rem; background: rgb(0 0 0 / 0.45); }
+.dlg { width: min(28rem, 94vw); max-height: min(90vh, 44rem); overflow: auto; border-radius: var(--fs-radius-lg); background: var(--fs-surface-raised); box-shadow: var(--fs-shadow-lg); border: 1px solid var(--fs-border); }
+.dlg__head { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem 0.5rem; }
+.dlg__title { margin: 0; font-size: 1.05rem; font-weight: 650; }
+.dlg__close { margin-left: auto; }
+.dlg__body { display: grid; gap: 0.85rem; padding: 0.25rem 1.25rem 1rem; }
+.dlg__foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; padding: 0.75rem 1.25rem 1rem; border-top: 1px solid var(--fs-border); }
+.frame[data-viewport="phone"] ~ .backdrop .dlg__foot .btn, .touch .dlg__foot .btn { flex: 1 1 auto; }
+.person { display: flex; align-items: center; gap: 0.85rem; }
+.person__name { display: flex; align-items: center; gap: 0.3rem; font-size: 1.1rem; font-weight: 650; line-height: 1.2; }
+.person__phone { color: var(--fs-text-muted); font-variant-numeric: tabular-nums; text-decoration: none; }
+.person__phone:hover { text-decoration: underline; }
+.quick { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.quick .btn { gap: 0.35rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; border-radius: 999px; }
+.quick .btn .i { width: 1rem; height: 1rem; }
+.state { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--fs-primary-strong); font-weight: 650; }
+.state--unconfirmed { color: var(--fs-warning-text); }
+.state small { color: var(--fs-text-muted); font-weight: 400; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; margin: 0; }
+.fact { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 0.5rem; align-items: center; padding: 0.4rem 0.65rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); }
+.fact .i { grid-row: 1 / span 2; color: var(--fs-text-muted); width: 1.1rem; height: 1.1rem; }
+.fact dd { grid-column: 2; margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.fact dt { grid-column: 2; font-size: 0.72rem; color: var(--fs-text-muted); line-height: 1.2; }
+details.upcoming { border: 1px solid var(--fs-border); border-radius: var(--fs-radius-sm); }
+details.upcoming summary { display: flex; align-items: center; gap: 0.5rem; min-height: var(--fs-target-sm); padding: 0.4rem 0.75rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; list-style: none; }
+details.upcoming summary::-webkit-details-marker { display: none; }
+details.upcoming summary .i { margin-left: auto; transition: transform 150ms; }
+details.upcoming[open] summary .i { transform: rotate(180deg); }
+.upcoming ul { margin: 0; padding: 0 0.75rem 0.6rem 2.25rem; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.upcoming li { padding: 0.15rem 0; }
+.upcoming .this { font-weight: 650; color: var(--fs-primary-strong); }
+.upcoming .wait { color: var(--fs-warning-text); font-size: 0.8rem; }
+.sk { background: linear-gradient(90deg, var(--fs-surface-muted), var(--fs-border), var(--fs-surface-muted)); border-radius: 0.4rem; height: 1rem; }
+
+/* =====================================================================================================
+   PART 3 – compact team card
+   ===================================================================================================== */
+.rows { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.tm { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 0.65rem; align-items: center; padding: 0.45rem 0.55rem 0.45rem 0.6rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); }
+.tm__av { grid-row: 1 / span 2; text-decoration: none; }
+.tm__line1 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.4rem; min-width: 0; line-height: 1.3; }
+.tm__name { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 650; color: inherit; text-decoration: none; min-width: 0; overflow-wrap: anywhere; }
+.tm__name:hover { text-decoration: underline; }
+.flag { display: inline-flex; gap: 0.25rem; align-items: center; padding: 0 0.45rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.72rem; font-weight: 600; line-height: 1.35rem; }
+.flag .i { width: 0.75rem; height: 0.75rem; }
+.flag--manager { color: var(--fs-primary-strong); background: var(--fs-primary-soft); }
+.flag--warn { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.tm__stats { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.35rem; margin: 0; color: var(--fs-text-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.tm__stats div { display: inline-flex; align-items: center; gap: 0.3rem; }
+.tm__stats dt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.tm__stats dd { margin: 0; }
+.tm__stats .i { width: 0.8rem; height: 0.8rem; opacity: 0.8; }
+.tm__stats .sep { color: var(--fs-border-strong); }
+.tm__stats b { font-weight: 650; color: var(--fs-text); }
+.tm__btns { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 0.1rem; }
+/* one-line density: from 60rem the stats sit between name and buttons, right aligned */
+.frame[data-density="one"]:not([data-viewport="phone"]) .tm { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.frame[data-density="one"]:not([data-viewport="phone"]) .tm__av { grid-row: 1; }
+.frame[data-density="one"]:not([data-viewport="phone"]) .tm__stats { grid-column: 3; grid-row: 1; justify-content: flex-end; }
+.frame[data-density="one"]:not([data-viewport="phone"]) .tm__btns { grid-column: 4; grid-row: 1; }
+.frame[data-density="one"]:not([data-viewport="phone"]) .tm__stats .lbl { display: none; }
+/* today's team card */
+.old-tm { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.45rem 0.75rem; align-items: start; padding: 0.75rem 0.85rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); }
+.old-tm .av { grid-row: 1 / span 2; }
+.old-tm__head { display: grid; gap: 0.3rem; min-width: 0; padding-top: 0.15rem; }
+.old-tm__btns { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 0.2rem; }
+.old-tm .flag { padding: 0.1rem 0.5rem; font-size: 0.78rem; background: var(--fs-surface-muted); }
+.old-tm .flag--manager { background: var(--fs-surface-muted); }
+.tiles { grid-column: 2; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
+.frame[data-viewport="phone"] .tiles { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tile { display: grid; grid-template-columns: auto auto; column-gap: 0.45rem; align-items: center; min-height: 2.5rem; padding: 0.3rem 0.65rem 0.3rem 0.55rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); }
+.tile .i { grid-row: 1 / span 2; color: var(--fs-text-muted); width: 1.1rem; height: 1.1rem; }
+.tile dd { grid-column: 2; grid-row: 1; margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.tile dt { grid-column: 2; grid-row: 2; color: var(--fs-text-muted); font-size: 0.72rem; line-height: 1.2; }
+.count { margin: 0 0 0.5rem; color: var(--fs-text-muted); font-size: 0.85rem; font-weight: 600; text-align: right; }
+
+/* =====================================================================================================
+   PART 4 – mention pill
+   ===================================================================================================== */
+.chat { display: grid; gap: 0.6rem; padding: 0.5rem 0; }
+.msg { display: flex; align-items: flex-end; gap: 0.5rem; max-width: min(85%, 36rem); }
+.msg--own { margin-left: auto; flex-direction: row-reverse; }
+.bubble { display: grid; gap: 0.15rem; padding: 0.5rem 0.75rem; border-radius: var(--fs-radius-md); background: var(--fs-surface); border: 1px solid var(--fs-border); }
+.msg--own .bubble { background: var(--fs-primary); color: var(--fs-on-primary); border-color: var(--fs-primary); }
+.bubble__sender { color: var(--fs-primary-strong); font-size: 0.8rem; font-weight: 700; }
+.bubble__body { white-space: pre-wrap; }
+.bubble__time { justify-self: end; color: var(--fs-text-muted); font-size: 0.75rem; }
+.msg--own .bubble__time { color: color-mix(in srgb, var(--fs-on-primary) 75%, transparent); }
+/* fs-user-mention: inline, no line-height jump, readable in both bubble colours */
+.fs-mention { display: inline; padding: 0.02em 0.4em; border-radius: 0.45em; background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.fs-mention:hover, .fs-mention:focus-visible { text-decoration: underline; text-underline-offset: 0.12em; }
+.msg--own .fs-mention { background: color-mix(in srgb, var(--fs-on-primary) 22%, transparent); color: var(--fs-on-primary); }
+.fs-mention--me { outline: 1.5px solid color-mix(in srgb, var(--fs-primary) 60%, transparent); outline-offset: 0; }
+/* today: fs-user-chip size xs */
+.old-chip { display: inline-flex; align-items: center; gap: 0.3rem; vertical-align: middle; color: inherit; text-decoration: none; }
+.old-chip .av--xs { width: 1.35rem; height: 1.35rem; font-size: 0.55rem; }
+.post { display: grid; gap: 0.5rem; }
+.post__meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--fs-text-muted); }
+.post__meta b { color: var(--fs-text); }
+.post p { margin: 0; }
+.composer { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+.composer input { flex: 1; min-height: var(--fs-target-sm); padding: 0.4rem 0.75rem; border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-sm); background: var(--fs-surface); color: inherit; font: inherit; }
+
+/* toast (as the app's p-toast) */
+.toast { position: fixed; right: 1rem; bottom: 1rem; z-index: 400; display: flex; align-items: center; gap: 0.6rem; max-width: 24rem; padding: 0.7rem 1rem; border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-primary-strong); border: 1px solid color-mix(in srgb, var(--fs-primary) 35%, transparent); box-shadow: var(--fs-shadow-md); font-size: 0.9rem; font-weight: 600; }
+.legend { margin: 0.75rem auto 0; width: min(100% - 2rem, 960px); color: var(--fs-text-muted); font-size: 0.82rem; }
+.legend code { font-size: 0.78rem; }
+</style>
+</head>
+<body>
+
+<svg hidden xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4zM13 7l4 4"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5"/></symbol>
+  <symbol id="i-comments" viewBox="0 0 24 24"><path d="M4 5h12v9H8l-4 3V5zM16 9h4v9l-3-2h-6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-3 2a10 10 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+  <symbol id="i-envelope" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8zM9 8a3 3 0 0 1 6 0"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-calplus" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-6-6-11a6 6 0 0 1 12 0c0 5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 18h18l-1-9-5 4-3-6-3 6-5-4-1 9z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3zM12 10v5M12 18h.01"/></symbol>
+  <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 2l2.4 2.1 3.1-.4.9 3 2.8 1.5-1.2 2.9 1.2 2.9-2.8 1.5-.9 3-3.1-.4L12 22l-2.4-2.1-3.1.4-.9-3-2.8-1.5 1.2-2.9-1.2-2.9 2.8-1.5.9-3 3.1.4L12 2z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-kebab" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="i-minus-user" viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M2 21a8 8 0 0 1 16 0M17 11h5"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></symbol>
+</svg>
+
+<div class="ctl" role="region" aria-label="Mockup-Einstellungen">
+  <fieldset><strong>Teil</strong>
+    <label><input type="radio" name="part" value="pickups" checked>1+2 Abholungen</label>
+    <label><input type="radio" name="part" value="team">3 Team</label>
+    <label><input type="radio" name="part" value="mention">4 Erwähnung</label>
+  </fieldset>
+  <fieldset><strong>Version</strong>
+    <label><input type="radio" name="version" value="after" checked>Vorschlag</label>
+    <label><input type="radio" name="version" value="before">Heute</label>
+  </fieldset>
+  <fieldset id="ctlRole"><strong>Rolle</strong>
+    <label><input type="radio" name="role" value="bea" checked>Betriebsverantwortliche (Bea)</label>
+    <label><input type="radio" name="role" value="sarah">Mit-Abholerin (Sarah)</label>
+    <label><input type="radio" name="role" value="tom">Teammitglied (Tom)</label>
+  </fieldset>
+  <fieldset id="ctlLayout"><strong>Anordnung</strong>
+    <label><input type="radio" name="layout" value="grid" checked>Raster (2 Spalten ab 60rem)</label>
+    <label><input type="radio" name="layout" value="list">Liste</label>
+  </fieldset>
+  <fieldset id="ctlDensity" hidden><strong>Dichte</strong>
+    <label><input type="radio" name="density" value="two" checked>2 Zeilen</label>
+    <label><input type="radio" name="density" value="one">1 Zeile ab 60rem</label>
+  </fieldset>
+  <fieldset><strong>Theme</strong>
+    <label><input type="radio" name="theme" value="light" checked>Hell</label>
+    <label><input type="radio" name="theme" value="dark">Dunkel</label>
+  </fieldset>
+  <fieldset><strong>Breite</strong>
+    <label><input type="radio" name="viewport" value="desktop" checked>Desktop 960</label>
+    <label><input type="radio" name="viewport" value="phone">Phone 412 (Touch)</label>
+  </fieldset>
+  <span class="note" id="note">Klickbar: Plätze (öffnet den Platz-Dialog), Tageschat, Bestätigen/Austragen.</span>
+</div>
+
+<div class="frame" id="frame" data-viewport="desktop" data-layout="grid" data-density="two">
+  <span class="frame__size" id="frameSize">960 px</span>
+  <div class="page">
+    <div class="hero" id="hero">
+      <p class="hero__kicker">Supermarkt · Zürich Stadt</p>
+      <h1>Coop Bahnhofbrücke</h1>
+      <p>Bahnhofbrücke 1, 8001 Zürich</p>
+    </div>
+    <nav class="tabs" aria-label="Betrieb" id="tabs">
+      <a class="tab" href="#">Übersicht</a><a class="tab" href="#" data-tab="team">Team</a><a class="tab" href="#" data-tab="pickups">Abholungen</a><a class="tab" href="#">Pinnwand</a><a class="tab" href="#">Statistik</a><a class="tab" href="#" data-tab="mention">Chat</a>
+    </nav>
+    <div id="content"></div>
+  </div>
+</div>
+<p class="legend" id="legend"></p>
+
+<div class="backdrop" id="backdrop" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const icon = (n, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const COLORS = ['#25834a', '#1c6f91', '#8a4fb0', '#b5532d', '#2f6e6a', '#9a3f62', '#5a6b1f', '#3d5aa8', '#7a4b1e'];
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function av(u, size) {
+    const ini = u.name.split(' ').map((p) => p[0]).slice(0, 2).join('');
+    const col = COLORS[[...u.id].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+    return `<span class="av av--${size}" style="background:${col}" aria-hidden="true">${ini}</span>`;
+  }
+
+  // ---- people ----------------------------------------------------------------------------------------------
+  const P = {
+    bea: { id: 'bea', name: 'Bea Botschaft', phone: '+41 79 123 45 67' },
+    sarah: { id: 'sarah', name: 'Sarah Müller', phone: '+41 78 234 56 78' },
+    tom: { id: 'tom', name: 'Tom Keller', phone: '+41 76 345 67 89' },
+    priya: { id: 'u1', name: 'Priya Sharma', phone: '+41 79 456 78 90' },
+    marco: { id: 'u2', name: 'Marco Bernasconi', phone: '+41 77 567 89 01' },
+    lena: { id: 'u3', name: 'Lena Huber', phone: '+41 79 678 90 12' },
+    ayse: { id: 'u5', name: 'Ayşe Demir', phone: '+41 78 789 01 23' },
+    noah: { id: 'u6', name: 'Noah Frei', phone: '+41 76 890 12 34' },
+    mia: { id: 'u7', name: 'Mia Steiner', phone: null },
+    jonas: { id: 'u8', name: 'Jonas Weber', phone: '+41 79 012 34 56' },
+    elif: { id: 'u9', name: 'Elif Kaya', phone: '+41 78 123 45 67' },
+  };
+  const ROLES = {
+    bea: { me: P.bea, mayConfirm: true, mayEdit: true, maySeePhone: true, mayEditTeam: true },
+    sarah: { me: P.sarah, mayConfirm: false, mayEdit: false, maySeePhone: false, mayEditTeam: false },
+    tom: { me: P.tom, mayConfirm: false, mayEdit: false, maySeePhone: false, mayEditTeam: false },
+  };
+  // per-user store facts for the rich dialog (PickupSignupDetail)
+  const FACTS = {
+    sarah: { count: 12, last: 'Do 29. Okt 2026', signedUpAt: 'Di 3. Nov, 14:32' },
+    tom: { count: 48, last: 'Sa 31. Okt 2026', signedUpAt: 'Mo 2. Nov, 09:10' },
+    u1: { count: 31, last: 'Fr 30. Okt 2026', signedUpAt: 'Mo 2. Nov, 18:02' },
+    u2: { count: 3, last: 'Fr 16. Okt 2026', signedUpAt: 'Mi 4. Nov, 21:47' },
+    u3: { count: 19, last: 'Do 29. Okt 2026', signedUpAt: 'So 1. Nov, 08:15' },
+    u5: { count: 7, last: 'Sa 24. Okt 2026', signedUpAt: 'Mo 2. Nov, 12:00' },
+    u6: { count: 55, last: 'Sa 31. Okt 2026', signedUpAt: 'Mo 2. Nov, 07:58' },
+    u7: { count: 0, last: null, signedUpAt: 'Di 3. Nov, 20:20' },
+    u8: { count: 2, last: 'Mi 14. Okt 2026', signedUpAt: 'Mi 4. Nov, 06:30' },
+    u9: { count: 9, last: 'Mi 28. Okt 2026', signedUpAt: 'Mi 4. Nov, 06:31' },
+  };
+
+  // ---- pickups: two weeks from Do 5 Nov 2026, store zone Europe/Zurich ------------------------------------------
+  const s = (user, confirmed) => ({ user, confirmed });
+  const DAYS = () => [
+    { key: '2026-11-05', wd: 'Do', d: 5, m: 'Nov', long: 'Donnerstag, 5. November', today: true, items: [
+      { time: '20:00', regular: true, slotCount: 3, slots: [s(P.lena, true), s(P.sarah, false)] },
+    ]},
+    { key: '2026-11-06', wd: 'Fr', d: 6, m: 'Nov', long: 'Freitag, 6. November', items: [
+      { time: '18:30', regular: true, slotCount: 2, slots: [s(P.priya, true), s(P.marco, false)] },
+    ]},
+    { key: '2026-11-07', wd: 'Sa', d: 7, m: 'Nov', long: 'Samstag, 7. November', items: [
+      { time: '10:00', regular: false, desc: 'Marktreste, grosse Taschen mitbringen', slotCount: 4, slots: [s(P.tom, true), s(P.ayse, true), s(P.noah, true), s(P.mia, true)], extra: [P.tom] },
+      { time: '16:00', regular: true, slotCount: 2, slots: [] },
+    ]},
+    { key: '2026-11-09', wd: 'Mo', d: 9, m: 'Nov', long: 'Montag, 9. November', items: [
+      { time: '19:00', regular: true, slotCount: 3, slots: [s(P.sarah, true), s(P.marco, true)] },
+    ]},
+    { key: '2026-11-11', wd: 'Mi', d: 11, m: 'Nov', long: 'Mittwoch, 11. November', items: [
+      { time: '20:30', regular: true, desc: 'Grosse Abholung', slotCount: 8, slots: [s(P.priya, true), s(P.tom, true), s(P.lena, true), s(P.jonas, false), s(P.elif, false), s(P.ayse, false)] },
+    ]},
+    { key: '2026-11-12', wd: 'Do', d: 12, m: 'Nov', long: 'Donnerstag, 12. November', items: [
+      { time: '20:00', regular: true, slotCount: 0, slots: [] },
+    ]},
+    { key: '2026-11-14', wd: 'Sa', d: 14, m: 'Nov', long: 'Samstag, 14. November', items: [
+      { time: '10:00', regular: true, slotCount: 2, slots: [s(P.noah, true)] },
+    ]},
+    { key: '2026-11-16', wd: 'Mo', d: 16, m: 'Nov', long: 'Montag, 16. November', items: [
+      { time: '19:00', regular: true, slotCount: 3, slots: [] },
+    ]},
+  ];
+  let days = DAYS();
+
+  // ---- team ----------------------------------------------------------------------------------------------------
+  const TEAM = [
+    { user: P.bea, manager: true, verified: true, status: 'MEMBER', count: 212, last: '03.11.2026', since: '12.03.2023', km: 0.4 },
+    { user: P.noah, manager: true, verified: true, status: 'MEMBER', count: 55, last: '31.10.2026', since: '04.06.2024', km: 2.1 },
+    { user: P.sarah, manager: false, verified: true, status: 'MEMBER', count: 12, last: '29.10.2026', since: '15.01.2025', km: 0.8 },
+    { user: P.tom, manager: false, verified: true, status: 'MEMBER', count: 48, last: '31.10.2026', since: '20.09.2024', km: 5.6 },
+    { user: P.marco, manager: false, verified: false, status: 'MEMBER', count: 3, last: '16.10.2026', since: '01.10.2026', km: 1.3 },
+    { user: P.mia, manager: false, verified: true, status: 'MEMBER', sleeping: true, count: 0, last: null, since: '02.11.2026', km: 12.7 },
+    { user: P.priya, manager: false, verified: true, status: 'JUMPER', count: 31, last: '30.10.2026', since: '08.02.2024', km: 3.0 },
+    { user: P.elif, manager: false, verified: true, status: 'JUMPER', count: 9, last: '28.10.2026', since: '11.05.2025', km: 0.9 },
+  ];
+
+  // ---- i18n (real keys; NEW = proposed) --------------------------------------------------------------------------
+  const T = {
+    'pickups.tab.range.twoWeeks': 'Nächste 2 Wochen', 'pickups.tab.range.all': 'Alle geplanten', 'pickups.tab.range.pending': 'Unbestätigt ({count})',
+    'pickups.history.link': 'Vergangene', 'pickups.tab.regular': 'Regelmässige Abholungen', 'pickups.tab.addOneTime': 'Einmalige Abholung',
+    'pickups.tab.regularBadge': 'regelmässig', 'pickups.tab.edit': 'Abholung bearbeiten', 'pickups.tab.cancelled': 'Abgesagt',
+    'pickups.tab.waitingMine': 'Dein Platz ist noch unbestätigt', 'pickups.tab.extraSlotBy': 'Zusatzplatz von {name}',
+    'pickups.tab.confirmSlot': 'Bestätigen', 'pickups.tab.removeSlot': 'Austragen', 'pickups.tab.state.confirmed': 'Bestätigt', 'pickups.tab.state.unconfirmed': 'Unbestätigt',
+    'pickups.tab.summary.confirmed': '{confirmed} von {total} bestätigt', 'pickups.tab.summary.unconfirmed': '{count} unbestätigt',
+    'shared.pickupSlot.signUp': 'Eintragen', 'shared.pickupSlot.freeShort': '{count} frei', 'shared.pickupSlot.you': 'Du',
+    'common.close': 'Schliessen',
+    // NEW
+    'pickups.dayChat.open': 'Tageschat', 'pickups.dayChat.openLabel': 'Tageschat für {date} öffnen', 'pickups.dayChat.name': 'Abholung {store}, {date}', 'pickups.dayChat.opened': 'Chat „{name}“ geöffnet.',
+    'pickups.slotDetail.profile': 'Profil', 'pickups.slotDetail.message': 'Nachricht', 'pickups.slotDetail.call': 'Anrufen', 'pickups.slotDetail.copy': 'Nummer kopieren', 'pickups.slotDetail.copied': 'Nummer kopiert.',
+    'pickups.slotDetail.signedUpAt': 'eingetragen {date}', 'pickups.slotDetail.pickupCount': 'Slots hier', 'pickups.slotDetail.lastPickup': 'Letzter Termin hier', 'pickups.slotDetail.never': 'noch keiner',
+    'pickups.slotDetail.upcoming': 'Aktuell belegte Slots ({count})', 'pickups.slotDetail.thisOne': 'dieser Termin', 'pickups.slotDetail.waiting': 'unbestätigt',
+    'stores.team.manager': 'Verantwortlich', 'stores.team.jumper': 'Springer', 'stores.team.sleeping': 'Schlafmütze', 'stores.team.unverified': 'Nicht verifiziert', 'stores.team.verified': 'Verifiziert',
+    'stores.team.pickupCount': 'Abholungen', 'stores.team.lastPickup': 'Zuletzt', 'stores.team.addedAt': 'Dabei seit', 'stores.team.distance': 'Entfernung', 'stores.team.km': '{km} km',
+    'stores.team.count': '{count} Personen', 'stores.team.invite': 'Einladen', 'stores.team.actions': 'Aktionen für {name}',
+  };
+  const t = (k, p = {}) => (T[k] ?? k).replace(/\{(\w+)\}/g, (_, n) => p[n] ?? '');
+
+  // ---- state ---------------------------------------------------------------------------------------------------
+  const state = { part: 'pickups', version: 'after', role: 'bea', layout: 'grid', density: 'two', theme: 'light', viewport: 'desktop' };
+  const frame = $('#frame'), content = $('#content'), backdrop = $('#backdrop'), toast = $('#toast');
+  let toastTimer;
+  function showToast(msg) { toast.innerHTML = icon('check') + esc(msg); toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => (toast.hidden = true), 2600); }
+
+  document.querySelectorAll('.ctl input').forEach((inp) => inp.addEventListener('change', () => { state[inp.name] = inp.value; render(); }));
+
+  function render() {
+    const r = ROLES[state.role];
+    document.documentElement.classList.toggle('fs-dark', state.theme === 'dark');
+    document.documentElement.classList.toggle('touch', state.viewport === 'phone');
+    frame.dataset.viewport = state.viewport; frame.dataset.layout = state.layout; frame.dataset.density = state.density;
+    $('#frameSize').textContent = state.viewport === 'phone' ? '412 px · Touch' : '960 px';
+    $('#ctlLayout').hidden = state.part !== 'pickups' || state.version !== 'after';
+    $('#ctlDensity').hidden = state.part !== 'team' || state.version !== 'after';
+    $('#ctlRole').hidden = state.part === 'mention';
+    $('#hero').hidden = state.part === 'mention';
+    document.querySelectorAll('#tabs .tab').forEach((a) => a.toggleAttribute('aria-current', false));
+    document.querySelectorAll('#tabs .tab').forEach((a) => { if (a.dataset.tab === state.part) a.setAttribute('aria-current', 'page'); });
+    if (state.part === 'pickups') { content.innerHTML = state.version === 'after' ? pickupsAfter(r) : pickupsBefore(r); $('#note').textContent = 'Klickbar: Plätze (öffnet den Platz-Dialog), Tageschat, Bestätigen/Austragen, „+ Eintragen“.'; }
+    if (state.part === 'team') { content.innerHTML = teamTab(r, state.version); $('#note').textContent = 'Name und Avatar verlinken auf das Profil; Stats sind Information (keine Buttons).'; }
+    if (state.part === 'mention') { content.innerHTML = mentionPart(state.version); $('#note').textContent = 'Erwähnungen verlinken auf /profile/:id. Oben Chat, unten Forum.'; }
+    legend();
+  }
+  function legend() {
+    const L = {
+      pickups: 'Teil 1/2: Datum als Kachel links (<code>--fs-date-tile</code>), eine Zeile pro Abholung (Zeit · ↻ regelmässig · Beschreibung · Plätze · Zusammenfassung · Stift). Der Tageschat-Button erscheint im Tageskopf, sobald ausser dir jemand an dem Tag eingetragen ist. Klick auf einen Platz: Bea und Mit-Abholer:innen sehen den ausführlichen Dialog, Tom den kurzen. Heute = <code>Donnerstag, 5. November</code> hervorgehoben.',
+      team: 'Teil 3: Zeile 1 Avatar (sm, verlinkt) · Name (verlinkt) · ✓ · Rollen-Pills; Zeile 2 gedämpfte Inline-Stats mit „·“-Trennern. Telefon + Menü rechts, über beide Zeilen. Alle <code>data-testid</code>s bleiben.',
+      mention: 'Teil 4: <code>fs-user-mention</code> rendert „@Name“ als Inline-Link: <code>--fs-primary-strong</code> auf <code>--fs-primary-soft</code>, 0.45em Radius, kein Zeilensprung. In der eigenen (grünen) Blase: weiss auf 22 % Weiss. Wirst du selbst erwähnt, bekommt die Pille zusätzlich einen 1.5 px Ring.',
+    };
+    $('#legend').innerHTML = L[state.part];
+  }
+
+  // ---- helpers -------------------------------------------------------------------------------------------------
+  const isMine = (sl, r) => sl.user.id === r.me.id;
+  const signedUp = (pk, r) => pk.slots.some((sl) => isMine(sl, r));
+  const summary = (pk) => { const c = pk.slots.filter((x) => x.confirmed).length, u = pk.slots.length - c; return { c, u, total: pk.slotCount }; };
+  function firstName(n) { return n.split(' ')[0]; }
+
+  function slotsHtml(pk, di, pi, r) {
+    const manager = r.mayConfirm;
+    const items = pk.slots.map((sl, si) => {
+      const mine = isMine(sl, r);
+      const name = esc(sl.user.name);
+      if (mine) return `<li><button type="button" class="slot slot--pill slot--mine ${sl.confirmed ? '' : 'slot--unconfirmed'}" title="${name}" aria-label="Du (${name}), ${sl.confirmed ? 'bestätigt' : 'wartet auf Bestätigung'} – austragen" data-slot="${di},${pi},${si}">${av(sl.user, 'sm')}<span>${t('shared.pickupSlot.you')}</span>${icon(sl.confirmed ? 'check' : 'hourglass', 'i slot__icon')}</button></li>`;
+      if (manager && !sl.confirmed) return `<li><div class="split" role="group" aria-label="${name}, wartet auf Bestätigung"><button type="button" class="slot slot--pill slot--unconfirmed" title="${name}" aria-label="${name}, wartet auf Bestätigung" data-slot="${di},${pi},${si}">${av(sl.user, 'sm')}<span>${esc(firstName(sl.user.name))}</span>${icon('hourglass', 'i slot__icon')}</button><button type="button" class="split__confirm" aria-label="${name} bestätigen" title="${name} bestätigen" data-confirm="${di},${pi},${si}">${icon('check')}</button></div></li>`;
+      return `<li><button type="button" class="slot ${sl.confirmed ? '' : 'slot--unconfirmed'}" title="${name}" aria-label="${name}, ${sl.confirmed ? 'bestätigt' : 'wartet auf Bestätigung'}" data-slot="${di},${pi},${si}">${av(sl.user, 'sm')}<span class="slot__state" aria-hidden="true">${icon(sl.confirmed ? 'check' : 'hourglass')}</span></button></li>`;
+    });
+    const free = pk.slotCount - pk.slots.length;
+    if (free > 0) {
+      const can = !signedUp(pk, r);
+      items.push(`<li><button type="button" class="slot slot--free" ${can ? '' : 'disabled'} aria-label="${can ? 'Freier Platz – eintragen' : t('shared.pickupSlot.freeShort', { count: free })}" data-free="${di},${pi}">${can ? icon('plus') : ''}<span>${can ? t('shared.pickupSlot.signUp') : t('shared.pickupSlot.freeShort', { count: free })}</span></button></li>`);
+    }
+    return `<ul class="slots" aria-label="${pk.slots.length} von ${pk.slotCount} Plätzen belegt">${items.join('')}</ul>`;
+  }
+  function summaryHtml(pk) {
+    if (!pk.slotCount || !pk.slots.length) return '';
+    const { c, u, total } = summary(pk);
+    return `<p class="summary"><span class="summary__ok">${icon('check')} ${t('pickups.tab.summary.confirmed', { confirmed: c, total })}</span>${u ? `<span class="summary__pending">${icon('hourglass')} ${t('pickups.tab.summary.unconfirmed', { count: u })}</span>` : ''}</p>`;
+  }
+  function toolbar(r) {
+    const pending = days.reduce((n, d) => n + d.items.reduce((m, p) => m + p.slots.filter((x) => !x.confirmed).length, 0), 0);
+    return `<div class="toolbar">
+      <div class="chips" role="group" aria-label="Zeitraum">
+        <button type="button" class="chip" aria-pressed="false">${t('pickups.tab.range.twoWeeks')}</button>
+        <button type="button" class="chip chip--active" aria-pressed="true">${t('pickups.tab.range.all')}</button>
+        ${r.mayConfirm && pending ? `<button type="button" class="chip chip--pending" aria-pressed="false">${icon('hourglass')}${t('pickups.tab.range.pending', { count: pending })}</button>` : ''}
+      </div>
+      <div class="actions">
+        ${r.mayEdit ? `<button type="button" class="btn btn--sm btn--secondary-text">${icon('history')}${t('pickups.history.link')}</button>
+        <button type="button" class="btn btn--sm">${icon('replay')}${t('pickups.tab.regular')}</button>
+        <button type="button" class="btn btn--sm btn--primary">${icon('plus')}${t('pickups.tab.addOneTime')}</button>` : ''}
+      </div></div>`;
+  }
+
+  // ---- PART 1: proposal ------------------------------------------------------------------------------------------
+  function pickupsAfter(r) {
+    const cards = days.map((d, di) => {
+      const others = d.items.some((pk) => pk.slots.some((sl) => !isMine(sl, r)));
+      const chatLabel = t('pickups.dayChat.openLabel', { date: `${d.wd} ${d.d}.11.` });
+      const chat = others ? (state.viewport === 'phone'
+        ? `<button type="button" class="btn btn--icon day__chat" aria-label="${chatLabel}" title="${chatLabel}" data-chat="${di}">${icon('comments')}</button>`
+        : `<button type="button" class="btn btn--sm day__chat" aria-label="${chatLabel}" title="${chatLabel}" data-chat="${di}">${icon('comments')}${t('pickups.dayChat.open')}</button>`) : '';
+      const rows = d.items.map((pk, pi) => {
+        if (pk.slotCount === 0) return `<div class="pk"><div class="pk__head"><span class="pk__time">${pk.time}</span>${pk.regular ? `<span class="pk__reg" role="img" aria-label="${t('pickups.tab.regularBadge')}" title="${t('pickups.tab.regularBadge')}">${icon('replay')}</span>` : ''}<span class="pk__cancelled">${t('pickups.tab.cancelled')}</span>${r.mayEdit ? `<button type="button" class="btn btn--icon pk__edit" aria-label="${t('pickups.tab.edit')}" title="${t('pickups.tab.edit')}">${icon('pencil')}</button>` : ''}</div></div>`;
+        const mine = pk.slots.find((sl) => isMine(sl, r));
+        return `<div class="pk" data-testid="stores.pickups.pickup">
+          <div class="pk__head">
+            <span class="pk__time">${pk.time}</span>
+            ${pk.regular ? `<span class="pk__reg" role="img" aria-label="${t('pickups.tab.regularBadge')}" title="${t('pickups.tab.regularBadge')}">${icon('replay')}</span>` : ''}
+            ${pk.desc ? `<span class="pk__desc" title="${esc(pk.desc)}">${esc(pk.desc)}</span>` : ''}
+            ${summaryHtml(pk)}
+            ${r.mayEdit ? `<button type="button" class="btn btn--icon pk__edit" aria-label="${t('pickups.tab.edit')}" title="${t('pickups.tab.edit')}">${icon('pencil')}</button>` : ''}
+          </div>
+          ${slotsHtml(pk, di, pi, r)}
+          ${summaryHtml(pk).replace('class="summary"', 'class="summary summary--phone"')}
+          ${pk.extra ? `<span class="pk__extra">${pk.extra.map((u) => t('pickups.tab.extraSlotBy', { name: esc(u.name) })).join(' · ')}</span>` : ''}
+          ${mine && !mine.confirmed ? `<span class="pk__pending">${icon('hourglass')}${t('pickups.tab.waitingMine')}</span>` : ''}
+        </div>`;
+      }).join('');
+      return `<section class="day ${d.today ? 'day--today' : ''}" data-testid="stores.pickups.day" data-day="${d.key}" aria-labelledby="day-${d.key}">
+        <div class="date" aria-hidden="true"><span class="date__wd">${d.wd}</span><span class="date__d">${d.d}</span><span class="date__m">${d.m}</span></div>
+        <div class="day__body">
+          <div class="day__head"><h2 class="day__title" id="day-${d.key}">${d.long.split(', ')[0]} <span class="muted">${d.long.split(', ')[1]}</span></h2>${chat}</div>
+          ${rows}
+        </div></section>`;
+    }).join('');
+    return toolbar(r) + `<div class="days" data-testid="stores.pickups.list">${cards}</div>`;
+  }
+
+  // ---- PART 1: today ---------------------------------------------------------------------------------------------
+  function pickupsBefore(r) {
+    const cards = days.map((d, di) => `<section class="old-day" data-testid="stores.pickups.day"><h2 class="card__title">${d.long}</h2>${d.items.map((pk, pi) => {
+      const mine = pk.slots.find((sl) => isMine(sl, r));
+      return `<div class="old-pickup"><div class="old-head"><span class="pk__time">${pk.time}</span>${pk.regular ? `<span class="badge">${t('pickups.tab.regularBadge')}</span>` : ''}${pk.desc ? `<span class="pk__desc">${esc(pk.desc)}</span>` : ''}${summaryHtml(pk)}${r.mayEdit ? `<button type="button" class="btn btn--icon" aria-label="${t('pickups.tab.edit')}">${icon('pencil')}</button>` : ''}</div>
+        ${pk.slotCount === 0 ? `<p class="muted">${t('pickups.tab.cancelled')}</p>` : slotsHtml(pk, di, pi, r)}
+        ${pk.extra ? `<p class="muted" style="font-size:0.85rem">${t('pickups.tab.extraSlotBy', { name: esc(pk.extra[0].name) })}</p>` : ''}
+        ${mine && !mine.confirmed ? `<p class="pk__pending">${icon('hourglass')}${t('pickups.tab.waitingMine')}</p>` : ''}</div>`;
+    }).join('')}</section>`).join('');
+    return toolbar(r) + `<div class="old-stack">${cards}</div>`;
+  }
+
+  // ---- PART 2: slot dialog ---------------------------------------------------------------------------------------
+  function openSlot(di, pi, si, focusConfirm) {
+    const r = ROLES[state.role], d = days[di], pk = d.items[pi], sl = pk.slots[si];
+    if (isMine(sl, r)) { showToast('Eigener Platz: hier käme wie heute die Austragen-Rückfrage.'); return; }
+    const rich = r.mayConfirm || r.mayEdit || signedUp(pk, r);
+    const name = esc(sl.user.name);
+    const title = `${d.wd} ${d.d}. ${d.m}, ${pk.time}`;
+    let body, foot;
+    if (rich) {
+      const f = FACTS[sl.user.id];
+      const upcoming = days.flatMap((dd) => dd.items.flatMap((p) => p.slots.filter((x) => x.user.id === sl.user.id).map((x) => ({ when: `${dd.wd} ${dd.d}. ${dd.m}, ${p.time}`, confirmed: x.confirmed, isThis: p === pk }))));
+      const phone = r.maySeePhone && sl.user.phone;
+      body = `
+        <div class="person">${av(sl.user, 'lg')}<div><div class="person__name">${name}</div>${phone ? `<a class="person__phone" href="tel:${sl.user.phone.replace(/\s/g, '')}">${sl.user.phone}</a>` : ''}</div></div>
+        <ul class="quick" aria-label="Aktionen">
+          <li><a class="btn" href="#profile">${icon('user')}${t('pickups.slotDetail.profile')}</a></li>
+          <li><button type="button" class="btn" data-act="message">${icon('envelope')}${t('pickups.slotDetail.message')}</button></li>
+          ${phone ? `<li><a class="btn" href="tel:${sl.user.phone.replace(/\s/g, '')}">${icon('phone')}${t('pickups.slotDetail.call')}</a></li>
+          <li><button type="button" class="btn" data-act="copy">${icon('copy')}${t('pickups.slotDetail.copy')}</button></li>` : ''}
+        </ul>
+        <p class="state ${sl.confirmed ? '' : 'state--unconfirmed'}" data-testid="stores.pickups.slotState">${icon(sl.confirmed ? 'check' : 'hourglass')}${t(sl.confirmed ? 'pickups.tab.state.confirmed' : 'pickups.tab.state.unconfirmed')} <small>· ${t('pickups.slotDetail.signedUpAt', { date: f.signedUpAt })}</small></p>
+        <dl class="facts">
+          <div class="fact">${icon('bag')}<dd>${f.count}</dd><dt>${t('pickups.slotDetail.pickupCount')}</dt></div>
+          <div class="fact">${icon('cal')}<dd>${f.last ?? t('pickups.slotDetail.never')}</dd><dt>${t('pickups.slotDetail.lastPickup')}</dt></div>
+        </dl>
+        <details class="upcoming"><summary>${icon('cal')}${t('pickups.slotDetail.upcoming', { count: upcoming.length })}${icon('chev')}</summary>
+          <ul>${upcoming.map((u) => `<li class="${u.isThis ? 'this' : ''}">${u.when}${u.isThis ? ` – ${t('pickups.slotDetail.thisOne')}` : ''}${u.confirmed ? '' : ` <span class="wait">(${t('pickups.slotDetail.waiting')})</span>`}</li>`).join('')}</ul></details>`;
+      foot = `<button type="button" class="btn btn--secondary-text" data-act="close">${t('common.close')}</button>` + (r.mayConfirm
+        ? `<button type="button" class="btn btn--danger" data-act="remove">${icon('minus-user')}${t('pickups.tab.removeSlot')}</button>${sl.confirmed ? '' : `<button type="button" class="btn btn--primary" data-act="confirm" ${focusConfirm ? 'autofocus' : ''}>${icon('check')}${t('pickups.tab.confirmSlot')}</button>`}` : '');
+    } else {
+      body = `<div class="person">${av(sl.user, 'lg')}<div><div class="person__name">${name}</div><p class="state ${sl.confirmed ? '' : 'state--unconfirmed'}" style="font-size:0.9rem">${icon(sl.confirmed ? 'check' : 'hourglass')}${t(sl.confirmed ? 'pickups.tab.state.confirmed' : 'pickups.tab.state.unconfirmed')}</p></div></div>
+        <ul class="quick"><li><a class="btn" href="#profile">${icon('user')}${t('pickups.slotDetail.profile')}</a></li></ul>`;
+      foot = `<button type="button" class="btn btn--secondary-text" data-act="close">${t('common.close')}</button>`;
+    }
+    backdrop.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" data-testid="stores.pickups.slotDialog">
+      <div class="dlg__head"><h2 class="dlg__title" id="dlgTitle">${title}</h2><button type="button" class="btn btn--icon dlg__close" aria-label="${t('common.close')}" data-act="close">${icon('x')}</button></div>
+      <div class="dlg__body">${body}</div><div class="dlg__foot">${foot}</div></div>`;
+    backdrop.hidden = false;
+    backdrop.onclick = (e) => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (e.target === backdrop || act === 'close') { backdrop.hidden = true; return; }
+      if (act === 'confirm') { sl.confirmed = true; backdrop.hidden = true; showToast('Eintrag bestätigt.'); render(); }
+      if (act === 'remove') { pk.slots.splice(si, 1); backdrop.hidden = true; showToast('Ausgetragen, die Nachricht wurde zugestellt.'); render(); }
+      if (act === 'copy') showToast(t('pickups.slotDetail.copied'));
+      if (act === 'message') showToast('→ Direktnachricht an ' + sl.user.name + ' (lookupConversation)');
+    };
+    const af = backdrop.querySelector('[autofocus]'); if (af) af.focus(); else backdrop.querySelector('.dlg__close').focus();
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') backdrop.hidden = true; });
+  content.addEventListener('click', (e) => {
+    const slot = e.target.closest('[data-slot]'); if (slot) { openSlot(...slot.dataset.slot.split(',').map(Number), false); return; }
+    const conf = e.target.closest('[data-confirm]'); if (conf) { openSlot(...conf.dataset.confirm.split(',').map(Number), true); return; }
+    const free = e.target.closest('[data-free]'); if (free) { const [di, pi] = free.dataset.free.split(',').map(Number); days[di].items[pi].slots.push(s(ROLES[state.role].me, false)); showToast('Eingetragen – wartet auf Bestätigung durch die Betriebsverantwortlichen.'); render(); return; }
+    const chat = e.target.closest('[data-chat]'); if (chat) { const d = days[+chat.dataset.chat]; showToast(t('pickups.dayChat.opened', { name: t('pickups.dayChat.name', { store: 'Coop Bahnhofbrücke', date: `${d.wd} ${d.d}.11.` }) })); return; }
+  });
+
+  // ---- PART 3: team ----------------------------------------------------------------------------------------------
+  function flags(m, cls = 'flag') {
+    const f = [];
+    if (m.manager) f.push(`<span class="${cls} flag--manager" data-testid="stores.team.manager">${icon('crown')}${t('stores.team.manager')}</span>`);
+    if (m.status === 'JUMPER') f.push(`<span class="${cls}" data-testid="stores.team.jumperBadge">${icon('clock')}${t('stores.team.jumper')}</span>`);
+    if (m.sleeping) f.push(`<span class="${cls}" data-testid="stores.team.sleeping">${icon('moon')}${t('stores.team.sleeping')}</span>`);
+    if (!m.verified) f.push(`<span class="${cls} flag--warn" data-testid="stores.team.unverified">${icon('warn')}${t('stores.team.unverified')}</span>`);
+    return f.join('');
+  }
+  function btns(m, r) {
+    const me = m.user.id === r.me.id;
+    return `<div class="tm__btns">${m.user.phone && !me && r.maySeePhone ? `<a class="btn btn--icon" href="tel:${m.user.phone.replace(/\s/g, '')}" aria-label="${esc(m.user.name)} anrufen" title="${esc(m.user.name)} anrufen" data-testid="stores.team.call">${icon('phone')}</a>` : ''}${r.mayEditTeam && !me ? `<button type="button" class="btn btn--icon" aria-label="${t('stores.team.actions', { name: esc(m.user.name) })}" title="${t('stores.team.actions', { name: esc(m.user.name) })}" data-testid="stores.team.menu">${icon('kebab')}</button>` : ''}</div>`;
+  }
+  function teamTab(r, version) {
+    const head = `<div class="toolbar" style="justify-content:flex-end">${r.mayEditTeam ? `<button type="button" class="btn btn--sm btn--primary">${icon('plus')}${t('stores.team.invite')}</button>` : ''}</div>
+      <div class="card"><h2 class="card__title">Team</h2>
+      <div class="chips" role="group" aria-label="Status" style="margin:0.5rem 0 0.75rem"><button type="button" class="chip chip--active">Alle <span class="badge">8</span></button><button type="button" class="chip">Verantwortliche</button><button type="button" class="chip">Team <span class="badge">6</span></button><button type="button" class="chip">Springer <span class="badge">2</span></button></div>
+      <p class="count">${t('stores.team.count', { count: 8 })}</p>`;
+    const rows = TEAM.map((m) => {
+      const name = esc(m.user.name);
+      const ver = m.verified ? `${icon('verified', 'i verified')}<span class="vh">${t('stores.team.verified')}</span>` : '';
+      if (version === 'before') {
+        return `<li class="old-tm" data-testid="stores.team.member">${av(m.user, 'md')}<div class="old-tm__head"><span class="tm__name">${name} ${ver}</span>${(m.manager || m.status === 'JUMPER' || m.sleeping || !m.verified) ? `<span class="tm__line1">${flags(m)}</span>` : ''}</div><div class="old-tm__btns">${btns(m, r).replace('class="tm__btns"', '')}</div>
+          <dl class="tiles"><div class="tile">${icon('bag')}<dt>${t('stores.team.pickupCount')}</dt><dd>${m.count}</dd></div><div class="tile">${icon('cal')}<dt>${t('stores.team.lastPickup')}</dt><dd>${m.last ?? '–'}</dd></div><div class="tile">${icon('calplus')}<dt>${t('stores.team.addedAt')}</dt><dd>${m.since}</dd></div>${r.mayEditTeam ? `<div class="tile">${icon('pin')}<dt>${t('stores.team.distance')}</dt><dd>${t('stores.team.km', { km: m.km.toFixed(1) })}</dd></div>` : ''}</dl></li>`;
+      }
+      const sep = '<span class="sep" aria-hidden="true">·</span>';
+      return `<li class="tm" data-testid="stores.team.member" data-status="${m.status}" data-manager="${m.manager}">
+        <a class="tm__av" href="#profile" aria-label="Profil von ${name}">${av(m.user, 'sm')}</a>
+        <div class="tm__line1"><a class="tm__name" href="#profile">${name}${ver}</a>${flags(m)}</div>
+        ${btns(m, r)}
+        <dl class="tm__stats">
+          <div>${icon('bag')}<dt>${t('stores.team.pickupCount')}</dt><dd data-testid="stores.team.pickupCount"><b>${m.count}</b> <span class="lbl">${t('stores.team.pickupCount')}</span></dd></div>${sep}
+          <div>${icon('cal')}<dt>${t('stores.team.lastPickup')}</dt><dd><span class="lbl">${t('stores.team.lastPickup')}</span> ${m.last ?? '–'}</dd></div>${sep}
+          <div>${icon('calplus')}<dt>${t('stores.team.addedAt')}</dt><dd><span class="lbl">${t('stores.team.addedAt')}</span> ${m.since}</dd></div>
+          ${r.mayEditTeam ? `${sep}<div data-testid="stores.team.distance">${icon('pin')}<dt>${t('stores.team.distance')}</dt><dd>${t('stores.team.km', { km: m.km.toFixed(1) })}</dd></div>` : ''}
+        </dl></li>`;
+    }).join('');
+    return head + `<ul class="rows">${rows}</ul></div>`;
+  }
+
+  // ---- PART 4: mention -------------------------------------------------------------------------------------------
+  function mention(u, version, me) {
+    if (version === 'before') return `<a class="old-chip" href="#profile" data-testid="messaging.conversation.mention">${av(u, 'xs')}<span>${esc(u.name)}</span></a>`;
+    return `<a class="fs-mention ${me ? 'fs-mention--me' : ''}" href="#profile" data-testid="messaging.conversation.mention">@${esc(u.name)}</a>`;
+  }
+  function mentionPart(v) {
+    const b = (u, body, own, time) => `<div class="msg ${own ? 'msg--own' : ''}">${own ? '' : av(u, 'sm')}<div class="bubble">${own ? '' : `<span class="bubble__sender">${esc(u.name)}</span>`}<span class="bubble__body">${body}</span><span class="bubble__time">${time}</span></div></div>`;
+    return `<div class="card"><h2 class="card__title">Team Coop Bahnhofbrücke</h2>
+      <div class="chat">
+        ${b(P.lena, `Wer kann am Donnerstag mit mir? ${mention(P.sarah, v, true)} du hattest dich doch mal gemeldet.`, false, '19:02')}
+        ${b(P.sarah, `Ja, bin dabei. ${mention(P.bea, v)} kannst du mich bestätigen? Und ${mention(P.marco, v)} nimmt die zweite Kiste.`, true, '19:05')}
+        ${b(P.bea, `Erledigt – danke euch! Die Taschen stehen beim Hintereingang.`, false, '19:20')}
+      </div>
+      <div class="composer"><input type="text" value="@Sa" aria-label="Nachricht"><button type="button" class="btn btn--primary btn--icon" style="color:var(--fs-on-primary);background:var(--fs-primary)" aria-label="Senden">${icon('send')}</button></div>
+    </div>
+    <div class="card" style="margin-top:1rem"><h2 class="card__title">Forum · Bezirk Zürich Stadt</h2>
+      <article class="post"><div class="post__meta">${av(P.noah, 'sm')}<b>Noah Frei</b> · Di 3. Nov, 21:14</div>
+      <p>Danke an ${mention(P.priya, v)} und ${mention(P.elif, v)} fürs Einspringen am Samstag. ${mention(P.sarah, v, true)}, meldest du dich wegen dem Ausweis bei ${mention(P.bea, v)}?</p></article>
+    </div>`;
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

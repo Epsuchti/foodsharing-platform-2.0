@@ -229,6 +229,7 @@
   "history.action.PICKUP.EXTRA_SLOT_ADDED": "Posto in più aggiunto",
   "history.action.PICKUP.AUTO_CONFIRMED": "Confermato automaticamente",
   "history.action.PICKUP.AUTO_DECLINED": "Rimosso automaticamente",
+  "history.action.PICKUP.DAY_CONVERSATION_OPENED": "Chat del giorno aperta",
   "history.action.CONVERSATION.CONVERSATION_CREATED": "Conversazione creata",
   "history.action.CONVERSATION.MEMBER_ADDED": "Membro aggiunto",
   "history.action.CONVERSATION.MEMBER_REMOVED": "Membro rimosso",

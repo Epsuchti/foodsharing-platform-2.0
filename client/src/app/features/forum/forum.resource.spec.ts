@@ -8,8 +8,9 @@ describe('forum helpers', () => {
     expect(quotePost('B*b', 'x', 'schrieb:', 'Intro ')).toBe('Intro\n\n> **Bb** schrieb:\n> x\n\n');
   });
 
-  it('renders mention tokens as bold names', () => {
-    expect(renderMentions(`Hi @[Ana Muster](user:${ID})!`)).toBe('Hi **@Ana Muster**!');
+  it('renders mention tokens as profile links (the pill look comes from fs-markdown)', () => {
+    expect(renderMentions(`Hi @[Ana Muster](user:${ID})!`)).toBe(`Hi [@Ana Muster](/profile/${ID})!`);
+    expect(renderMentions(`@[B*b_x](user:${ID})`)).toBe(`[@B\\*b\\_x](/profile/${ID})`);
     expect(renderMentions('@[x](user:nope)')).toBe('@[x](user:nope)');
   });
 

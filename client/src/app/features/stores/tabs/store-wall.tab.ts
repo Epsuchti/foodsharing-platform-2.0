@@ -13,6 +13,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { StorePageContext } from '../store-page.context';
+import { milestoneText } from '../stores.util';
 
 const PAGE_SIZE = 20;
 const MAX_LENGTH = 4000;
@@ -27,7 +28,8 @@ const MILESTONE_ICONS: Record<WallMilestone, string> = {
 
 /**
  * /stores/:storeId/wall (S11): the team's notes. Composer for members (mayPostWall), milestone cards (store created,
- * cooperation started, status changes) styled apart from posts, delete per post (`mayDelete`, decision 54) and
+ * cooperation started, status changes) styled apart from posts, delete per post (`mayDelete`: author, ORGA, the
+ * store's managers and its region's coordinators at any age; decision 54 as amended) and
  * "load more" paging.
  */
 @Component({
@@ -89,8 +91,16 @@ const MILESTONE_ICONS: Record<WallMilestone, string> = {
                   <div class="milestone__body">
                     <strong>{{ 'stores.wall.milestone.' + item.milestone | t }}</strong>
                     <span class="muted">{{ item.createdAt | fsDate: 'dateLong' : ctx.timeZone() }}</span>
-                    @if (item.text) {
-                      <p class="post__text">{{ item.text }}</p>
+                    @if (milestoneText(item); as body) {
+                      <p class="post__text" data-testid="stores.wall.milestoneText">
+                        @if ('key' in body) {
+                          {{ body.key | t }}
+                        } @else if ('date' in body) {
+                          {{ body.date | fsDate: 'dateLong' : 'UTC' }}
+                        } @else {
+                          {{ body.text }}
+                        }
+                      </p>
                     }
                   </div>
                 </div>
@@ -181,6 +191,8 @@ export class StoreWallTab {
     const page = this.posts.data();
     return !!page && page.items.length < page.page.totalItems;
   });
+
+  protected readonly milestoneText = milestoneText;
 
   protected icon(milestone: WallMilestone): string {
     return MILESTONE_ICONS[milestone] ?? MILESTONE_ICONS[WallMilestone.None];

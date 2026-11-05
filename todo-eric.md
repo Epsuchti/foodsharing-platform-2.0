@@ -6,6 +6,10 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Should verification require a confirmed identity? The server allows it without one today; the UI only nudges reviewers. If yes, it is a small change (decision 124).
 - [ ] Go through this list after the final gate and strike what no longer applies.
 
+## Refactor (owner)
+- [ ] Refactor the intro pickups (Einführungsabholungen): where they are managed and who may give them.
+- [ ] Refactor the store automations (Automatisierung tab).
+
 ## Infrastructure and accounts
 - [ ] Register the domain and set up DNS. This blocks mail DNS, OAuth redirect URIs, the passkey RP id, wallet pass identifiers and the Telegram bot name.
 - [ ] Choose hosting: server, Postgres with backups, TLS reverse proxy, monitoring (Swiss hosting for nDSG?).

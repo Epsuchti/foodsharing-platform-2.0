@@ -263,7 +263,6 @@ public class AppProperties {
         private int maxManagers = 3;
         private int defaultPrefetchDays = 14;
         private int maxSlotsPerPickup = 50;
-        private int wallDeleteAfterDays = 30;
     }
 
     @Getter

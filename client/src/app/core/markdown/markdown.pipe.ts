@@ -4,6 +4,9 @@ import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 
 let linkHook = false;
+
+/** In-app profile links whose text starts with "@" are mentions (forum `renderMentions`): `fs-mention` pill. */
+const MENTION_HREF = /^\/profile\/[0-9a-f-]{36}$/;
 function ensureLinkHook(): void {
   if (linkHook || typeof window === 'undefined') {
     return;
@@ -14,6 +17,10 @@ function ensureLinkHook(): void {
     if (node.tagName === 'A' && /^https?:/.test(node.getAttribute('href') ?? '')) {
       node.setAttribute('target', '_blank');
       node.setAttribute('rel', 'noopener noreferrer');
+    }
+    if (node.tagName === 'A' && MENTION_HREF.test(node.getAttribute('href') ?? '') && node.textContent?.startsWith('@')) {
+      node.setAttribute('class', 'fs-mention');
+      node.setAttribute('data-testid', 'shared.markdown.mention');
     }
   });
 }

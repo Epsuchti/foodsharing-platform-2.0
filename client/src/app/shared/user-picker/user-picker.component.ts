@@ -45,7 +45,7 @@ let nextId = 0;
           <ul class="hits">
             @for (user of visible(users); track user.id) {
               <li [attr.data-testid]="testId() + '.hit'" [attr.data-user-id]="user.id">
-                <fs-user-chip [name]="user.displayName" [userId]="user.id" [avatarUrl]="user.avatarUrl" />
+                <fs-user-chip [name]="user.displayName" [userId]="user.id" [avatarUrl]="user.avatarUrl" [link]="null" />
                 <p-button
                   icon="pi pi-plus"
                   size="small"

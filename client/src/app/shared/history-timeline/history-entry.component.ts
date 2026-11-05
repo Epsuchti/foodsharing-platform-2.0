@@ -122,12 +122,12 @@ import { HistoryLabeler, historyVisual } from './history-labels';
         </div>
         <div>
           <dt>{{ 'shared.historyTimeline.detail.action' | t }}</dt>
-          <dd><code>{{ entry().subjectType }}.{{ entry().action }}</code></dd>
+          <dd [attr.data-testid]="testId() + '.action'">{{ actionLabel() }}</dd>
         </div>
         @if (entry().field) {
           <div>
             <dt>{{ 'shared.historyTimeline.detail.field' | t }}</dt>
-            <dd>{{ change()?.field }} <code>{{ entry().field }}</code></dd>
+            <dd>{{ change()?.field }}</dd>
           </div>
           <div>
             <dt>{{ 'shared.historyTimeline.detail.oldValue' | t }}</dt>
@@ -152,7 +152,19 @@ import { HistoryLabeler, historyVisual } from './history-labels';
         }
         <div>
           <dt>{{ 'shared.historyTimeline.detail.actor' | t }}</dt>
-          <dd>{{ actorText() }}</dd>
+          <dd>
+            @if (actorKind() === 'USER' && entry().actor; as actor) {
+              <fs-user-chip
+                [name]="actor.displayName"
+                [userId]="actor.id"
+                [avatarUrl]="actor.avatarUrl"
+                size="xs"
+                [attr.data-testid]="testId() + '.detailActor'"
+              />
+            } @else {
+              {{ actorText() }}
+            }
+          </dd>
         </div>
         @if (entry().traceId) {
           <div>
@@ -190,6 +202,11 @@ export class HistoryEntryComponent {
   protected readonly label = computed(() => {
     this.i18n.language();
     return this.labeler.label(this.entry());
+  });
+  /** The action in words for the details (no raw codes, decision row amending 54). */
+  protected readonly actionLabel = computed(() => {
+    this.i18n.language();
+    return this.labeler.actionLabel(this.entry().subjectType, this.entry().action);
   });
   protected readonly change = computed(() => {
     this.i18n.language();

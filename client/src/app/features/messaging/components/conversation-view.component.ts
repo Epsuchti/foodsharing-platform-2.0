@@ -42,6 +42,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
+import { UserMentionComponent } from '../../../shared/user-chip/user-mention.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { bodySegments, decodeMentions, encodeMentions, insertMention, mentionQuery } from '../message-body';
 import { ConversationMessageEvent, MessagingStore, applyMessageUpdate } from '../messaging.resource';
@@ -84,6 +85,7 @@ interface DayGroup {
     TPipe,
     UserAvatarComponent,
     UserChipComponent,
+    UserMentionComponent,
     UserPickerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -170,7 +172,7 @@ interface DayGroup {
               >
                 @if (!own && !system) {
                   @let sender = member(c, m.senderId);
-                  <fs-user-avatar [name]="sender?.displayName" [avatarUrl]="sender?.avatarUrl" size="sm" />
+                  <fs-user-avatar [name]="sender?.displayName" [avatarUrl]="sender?.avatarUrl" [userId]="sender?.id" link="profile" size="sm" />
                 }
                 <div class="bubble" [class.bubble--deleted]="deleted" [class.bubble--editing]="editing()?.id === m.id">
                   @if (!own && !system && c.kind !== kinds.Direct) {
@@ -186,7 +188,7 @@ interface DayGroup {
                       @for (s of segments(m.body); track $index) {
                         @switch (s.kind) {
                           @case ('mention') {
-                            <fs-user-chip class="mention" [name]="s.name" [userId]="s.userId" size="xs" data-testid="messaging.conversation.mention" />
+                            <fs-user-mention [name]="s.name" [userId]="s.userId" testId="messaging.conversation.mention" />
                           }
                           @case ('link') {
                             <a [href]="s.href" target="_blank" rel="noopener noreferrer nofollow">{{ s.href }}</a>
@@ -528,10 +530,6 @@ interface DayGroup {
     }
     .bubble__body a {
       color: var(--fs-primary-strong);
-    }
-    .mention {
-      display: inline-flex;
-      vertical-align: middle;
     }
     .bubble__time {
       justify-self: end;

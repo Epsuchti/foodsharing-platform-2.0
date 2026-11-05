@@ -78,12 +78,16 @@ class StoreWallApiIT {
                 .andExpect(status().isForbidden());
         mvc.perform(delete("/api/stores/" + S01 + "/wall/" + FRESH_BIEB_POST).with(csrf()).cookie(foodsaver))
                 .andExpect(status().isForbidden());
-        mvc.perform(json(post("/api/stores/" + S01 + "/wall").cookie(foodsaver), "{\"text\":\"Hallo Team\"}"))
+        String fresh = mvc.perform(json(post("/api/stores/" + S01 + "/wall").cookie(foodsaver),
+                        "{\"text\":\"Hallo Team\"}"))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.text").value("Hallo Team"))
-                .andExpect(jsonPath("$.mayDelete").value(true)).andExpect(jsonPath("$.milestone").value("NONE"));
+                .andExpect(jsonPath("$.mayDelete").value(true)).andExpect(jsonPath("$.milestone").value("NONE"))
+                .andReturn().getResponse().getContentAsString();
 
         Cookie bieb = login(SeedUsers.BIEB);
-        // manager: posts older than 30 days of others may be deleted
+        // manager: any post of others, old or fresh (no age limit since decision 54 was amended)
+        mvc.perform(delete("/api/stores/" + S01 + "/wall/" + JsonPath.read(fresh, "$.id")).with(csrf()).cookie(bieb))
+                .andExpect(status().isNoContent());
         mvc.perform(delete("/api/stores/" + S01 + "/wall/" + OLD_FOODSAVER_POST).with(csrf()).cookie(bieb))
                 .andExpect(status().isNoContent());
         mvc.perform(delete("/api/stores/" + S01 + "/wall/" + OLD_FOODSAVER_POST).with(csrf()).cookie(bieb))
@@ -93,7 +97,7 @@ class StoreWallApiIT {
                         "WALL_POST_ADDED").cookie(bieb))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertThat(JsonPath.<List<String>>read(log, "$.items[*].action"))
-                .containsExactlyInAnyOrder("DELETED_FROM_WALL", "WALL_POST_ADDED");
+                .containsExactlyInAnyOrder("DELETED_FROM_WALL", "DELETED_FROM_WALL", "WALL_POST_ADDED");
         mvc.perform(get("/api/stores/" + S01 + "/log").cookie(foodsaver)).andExpect(status().isForbidden());
         mvc.perform(get("/api/stores/" + S01 + "/log").param("actions", "NOPE").cookie(bieb))
                 .andExpect(status().isBadRequest());

@@ -1,0 +1,57 @@
+# UI feedback batch 2 (PU3, AU6, decision 165): one named group chat per store and pickup day, and a configurable
+# number of extra slots per pickup instead of the on/off switch (true -> 1, false -> 0).
+databaseChangeLog:
+  - changeSet:
+      id: 187-1
+      author: platform
+      comment: 'Day chat of a store: one conversation per (store, calendar day in the store time zone).'
+      changes:
+        - createTable:
+            tableName: pickup_day_conversation
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, primaryKeyName: pk_pickup_day_conversation, nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_day_conversation_store_id, references: store(id), deleteCascade: true}}
+              - column: {name: pickup_date, type: DATE, constraints: {nullable: false}}
+              - column: {name: conversation_id, type: UUID, constraints: {nullable: false, foreignKeyName: fk_pickup_day_conversation_conversation_id, references: conversation(id), deleteCascade: true}}
+        - addUniqueConstraint:
+            tableName: pickup_day_conversation
+            columnNames: store_id, pickup_date
+            constraintName: uq_pickup_day_conversation_store_date
+        - createIndex:
+            tableName: pickup_day_conversation
+            indexName: ix_pickup_day_conversation_conversation
+            columns:
+              - column: {name: conversation_id}
+  - changeSet:
+      id: 187-2
+      author: platform
+      comment: 'AU6: max_extra_slots (0 = off) replaces the extra_slot_allowed switch.'
+      changes:
+        - addColumn:
+            tableName: store
+            columns:
+              - column: {name: max_extra_slots, type: INT, defaultValueNumeric: 0, constraints: {nullable: false}}
+        - sql:
+            sql: UPDATE store SET max_extra_slots = CASE WHEN extra_slot_allowed THEN 1 ELSE 0 END
+        - dropColumn:
+            tableName: store
+            columnName: extra_slot_allowed
+  - changeSet:
+      id: 187-3
+      author: platform
+      comment: 'AU6: several extra slots per pickup; the unique constraint becomes a plain index.'
+      changes:
+        - dropUniqueConstraint:
+            tableName: pickup_extra_slot
+            constraintName: uq_pickup_extra_slot_pickup
+        - createIndex:
+            tableName: pickup_extra_slot
+            indexName: ix_pickup_extra_slot_store_pickup
+            columns:
+              - column: {name: store_id}
+              - column: {name: pickup_at}

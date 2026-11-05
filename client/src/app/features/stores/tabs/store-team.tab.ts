@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { ConfirmationService } from '@openng/optimus-ui/api';
+import { RouterLink } from '@angular/router';
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
 import { Button } from '@openng/optimus-ui/button';
 import { Paginator, PaginatorState } from '@openng/optimus-ui/paginator';
 import { Popover } from '@openng/optimus-ui/popover';
@@ -8,6 +9,7 @@ import { Popover } from '@openng/optimus-ui/popover';
 import { StoreTeam, StoreTeamService, TeamListStatus, TeamMember, TeamMemberPage, TeamSort } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
+import { errorParams } from '../../../core/data/api-error';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -59,6 +61,7 @@ interface TeamQuery {
     Paginator,
     Popover,
     RequiredMessageDialogComponent,
+    RouterLink,
     StoreInviteDialogComponent,
     TeamFilterBarComponent,
     TPipe,
@@ -249,53 +252,52 @@ interface TeamQuery {
     </div>
 
     <ng-template #memberRow let-member>
+      <!-- compact team card (mockup part 3, owner decision 5): two lines everywhere -->
       <li
-        class="person"
+        class="tm"
         data-testid="stores.team.member"
         [attr.data-user]="member.user.displayName"
         [attr.data-status]="member.status"
         [attr.data-manager]="member.isManager"
       >
         <fs-user-avatar
-          class="person__avatar"
+          class="tm__av"
           [name]="member.user.displayName"
           [avatarUrl]="member.user.avatarUrl"
           [colorSeed]="member.user.id"
-          size="md"
+          [userId]="member.user.id"
+          link="profile"
+          size="sm"
         />
-        <div class="person__head">
-          <span class="person__name">
+        <div class="tm__line1">
+          <a class="tm__name" [routerLink]="['/profile', member.user.id]" data-testid="stores.team.name">
             {{ member.user.displayName }}
             @if (member.verified) {
-              <i class="pi pi-verified person__verified" role="img" [attr.aria-label]="'stores.team.verified' | t"></i>
+              <i class="pi pi-verified tm__verified" role="img" [attr.aria-label]="'stores.team.verified' | t"></i>
             }
-          </span>
-          @if (member.isManager || member.status === 'JUMPER' || member.sleeping || !member.verified) {
-            <span class="flags">
-              @if (member.isManager) {
-                <span class="flag flag--manager" data-testid="stores.team.manager">
-                  <i class="pi pi-crown" aria-hidden="true"></i>{{ 'stores.team.manager' | t }}
-                </span>
-              }
-              @if (member.status === 'JUMPER') {
-                <span class="flag" data-testid="stores.team.jumperBadge">
-                  <i class="pi pi-clock" aria-hidden="true"></i>{{ 'stores.team.jumper' | t }}
-                </span>
-              }
-              @if (member.sleeping) {
-                <span class="flag" data-testid="stores.team.sleeping">
-                  <i class="pi pi-moon" aria-hidden="true"></i>{{ 'stores.team.sleeping' | t }}
-                </span>
-              }
-              @if (!member.verified) {
-                <span class="flag flag--warn" data-testid="stores.team.unverified">
-                  <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'stores.team.unverified' | t }}
-                </span>
-              }
+          </a>
+          @if (member.isManager) {
+            <span class="flag flag--manager" data-testid="stores.team.manager">
+              <i class="pi pi-crown" aria-hidden="true"></i>{{ 'stores.team.manager' | t }}
+            </span>
+          }
+          @if (member.status === 'JUMPER') {
+            <span class="flag" data-testid="stores.team.jumperBadge">
+              <i class="pi pi-clock" aria-hidden="true"></i>{{ 'stores.team.jumper' | t }}
+            </span>
+          }
+          @if (member.sleeping) {
+            <span class="flag" data-testid="stores.team.sleeping">
+              <i class="pi pi-moon" aria-hidden="true"></i>{{ 'stores.team.sleeping' | t }}
+            </span>
+          }
+          @if (!member.verified) {
+            <span class="flag flag--warn" data-testid="stores.team.unverified">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'stores.team.unverified' | t }}
             </span>
           }
         </div>
-        <div class="person__btns">
+        <div class="tm__btns">
           @if (member.phone && member.user.id !== myId()) {
             <fs-phone-button [phone]="member.phone" [label]="member.user.displayName" testId="stores.team.call" />
           }
@@ -311,28 +313,39 @@ interface TeamQuery {
             />
           }
         </div>
-        <dl class="tiles">
-          <div class="tile">
+        <dl class="tm__stats">
+          <div>
             <i class="pi pi-shopping-bag" aria-hidden="true"></i>
-            <dt>{{ 'stores.team.pickupCount' | t }}</dt>
-            <dd data-testid="stores.team.pickupCount">{{ member.pickupCount }}</dd>
+            <dt class="fs-visually-hidden">{{ 'stores.team.pickupCount' | t }}</dt>
+            <dd data-testid="stores.team.pickupCount">
+              <b>{{ member.pickupCount }}</b> <span aria-hidden="true">{{ 'stores.team.pickupCount' | t }}</span>
+            </dd>
           </div>
-          <div class="tile">
+          <span class="sep" aria-hidden="true">·</span>
+          <div>
             <i class="pi pi-calendar" aria-hidden="true"></i>
-            <dt>{{ 'stores.team.lastPickup' | t }}</dt>
-            <dd>{{ member.lastPickupAt ? (member.lastPickupAt | fsDate: 'date') : '–' }}</dd>
+            <dt class="fs-visually-hidden">{{ 'stores.team.lastPickup' | t }}</dt>
+            <dd>
+              <span aria-hidden="true">{{ 'stores.team.lastPickup' | t }}</span>
+              {{ member.lastPickupAt ? (member.lastPickupAt | fsDate: 'date') : '–' }}
+            </dd>
           </div>
           @if (member.addedAt) {
-            <div class="tile">
+            <span class="sep" aria-hidden="true">·</span>
+            <div>
               <i class="pi pi-calendar-plus" aria-hidden="true"></i>
-              <dt>{{ 'stores.team.addedAt' | t }}</dt>
-              <dd>{{ member.addedAt | fsDate: 'date' }}</dd>
+              <dt class="fs-visually-hidden">{{ 'stores.team.addedAt' | t }}</dt>
+              <dd>
+                <span aria-hidden="true">{{ 'stores.team.addedAt' | t }}</span>
+                {{ member.addedAt | fsDate: 'date' }}
+              </dd>
             </div>
           }
           @if (member.distanceKm !== undefined && member.distanceKm !== null) {
-            <div class="tile" data-testid="stores.team.distance">
+            <span class="sep" aria-hidden="true">·</span>
+            <div data-testid="stores.team.distance">
               <i class="pi pi-map-marker" aria-hidden="true"></i>
-              <dt>{{ 'stores.team.distance' | t }}</dt>
+              <dt class="fs-visually-hidden">{{ 'stores.team.distance' | t }}</dt>
               <dd>{{ 'stores.team.km' | t: { km: member.distanceKm.toFixed(1) } }}</dd>
             </div>
           }
@@ -347,9 +360,20 @@ interface TeamQuery {
             <button type="button" class="menu__item" (click)="menuAsk('removeManager', member)" data-testid="stores.team.removeManager">
               <i class="pi pi-star" aria-hidden="true"></i>{{ 'stores.team.removeManager' | t }}
             </button>
-          } @else {
+          } @else if (member.mayBeAppointed) {
             <button type="button" class="menu__item" (click)="menuAppoint(member)" data-testid="stores.team.appointManager">
               <i class="pi pi-star-fill" aria-hidden="true"></i>{{ 'stores.team.appointManager' | t }}
+            </button>
+          } @else if (member.appointBlocker === 'TOO_MANY_MANAGERS') {
+            <!-- possible again once a manager is removed, so it stays visible with the reason (S9) -->
+            <button type="button" class="menu__item" disabled aria-describedby="store-team-appoint-hint" data-testid="stores.team.appointManager">
+              <i class="pi pi-star-fill" aria-hidden="true"></i>
+              <span class="menu__text">
+                {{ 'stores.team.appointManager' | t }}
+                <small id="store-team-appoint-hint" class="menu__hint" data-testid="stores.team.appointBlocked">
+                  {{ 'stores.team.appointBlocked.TOO_MANY_MANAGERS' | t }}
+                </small>
+              </span>
             </button>
           }
           @if (member.status === 'JUMPER') {
@@ -382,7 +406,7 @@ interface TeamQuery {
     }
 
     @if (ctx.data(); as store) {
-      <fs-store-invite-dialog [(visible)]="inviteOpen" [storeId]="store.id" [regionId]="store.region.id" (invited)="refresh()" />
+      <fs-store-invite-dialog [(visible)]="inviteOpen" [storeId]="store.id" (invited)="refresh()" />
     }
   `,
   styleUrl: '../stores.scss',
@@ -399,34 +423,37 @@ interface TeamQuery {
     .row__main { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; min-width: 0; }
     .row__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .row > p-button { grid-column: 2; grid-row: 1 / span 2; }
-    .person {
-      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.45rem 0.75rem; align-items: start;
-      padding: 0.75rem 0.85rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md, 0.6rem);
+    .tm {
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 0.65rem; align-items: center;
+      padding: 0.45rem 0.55rem 0.45rem 0.6rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md, 0.6rem);
+      background: var(--fs-surface);
     }
-    .person__avatar { grid-row: 1 / span 2; }
-    .person__head { display: grid; gap: 0.3rem; min-width: 0; padding-top: 0.15rem; }
-    .person__name { display: inline-flex; align-items: center; gap: 0.3rem; min-width: 0; font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
-    .person__verified { color: var(--fs-primary); font-size: 0.85em; }
-    .person__btns { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 0.2rem; }
-    .flags { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; }
+    .tm__av { grid-row: 1 / span 2; }
+    .tm__line1 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.4rem; min-width: 0; line-height: 1.3; }
+    .tm__name {
+      display: inline-flex; align-items: center; gap: 0.3rem; min-width: 0; color: inherit; font-weight: 650;
+      text-decoration: none; overflow-wrap: anywhere;
+    }
+    .tm__name:hover, .tm__name:focus-visible { text-decoration: underline; }
+    .tm__verified { color: var(--fs-primary); font-size: 0.85em; }
     .flag {
-      display: inline-flex; gap: 0.3rem; align-items: center; padding: 0.1rem 0.5rem; border-radius: 999px;
-      background: var(--fs-surface-muted); font-size: 0.78rem; font-weight: 600;
+      display: inline-flex; gap: 0.25rem; align-items: center; padding: 0 0.45rem; border-radius: 999px;
+      background: var(--fs-surface-muted); font-size: 0.72rem; font-weight: 600; line-height: 1.35rem;
     }
-    .flag--manager { color: var(--fs-primary-strong); }
+    .flag .pi { font-size: 0.75rem; }
+    .flag--manager { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
     .flag--warn { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
-    .tiles { grid-column: 2; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
-    .tile {
-      display: grid; grid-template-columns: auto auto; column-gap: 0.45rem; align-items: center; min-height: 2.5rem;
-      padding: 0.3rem 0.65rem 0.3rem 0.55rem; border-radius: var(--fs-radius-sm, 0.5rem); background: var(--fs-surface-muted);
+    .tm__stats {
+      grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.35rem; margin: 0;
+      color: var(--fs-text-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; line-height: 1.3;
     }
-    .tile .pi { grid-row: 1 / span 2; color: var(--fs-text-muted); font-size: 1.1em; }
-    .tile dd { grid-column: 2; grid-row: 1; margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; }
-    .tile dt { grid-column: 2; grid-row: 2; color: var(--fs-text-muted); font-size: 0.72rem; line-height: 1.2; }
-    @media (max-width: 47.99rem) {
-      .tiles { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .tile { min-height: 2.75rem; }
-    }
+    .tm__stats div { display: inline-flex; align-items: center; gap: 0.3rem; }
+    /* number, word and value are separate nodes: the gap keeps "5 Abholungen" apart (whitespace between tags is dropped) */
+    .tm__stats dd { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.25em; margin: 0; }
+    .tm__stats .pi { font-size: 0.8rem; opacity: 0.8; }
+    .tm__stats .sep { color: var(--fs-border-strong); }
+    .tm__stats b { color: var(--fs-text); font-weight: 650; }
+    .tm__btns { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 0.1rem; }
     .empty-filter { display: grid; justify-items: center; gap: 0.5rem; }
     .text { margin: 0; white-space: pre-line; color: var(--fs-text); }
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
@@ -437,6 +464,9 @@ interface TeamQuery {
     }
     .menu__item:hover, .menu__item:focus-visible { background: var(--fs-surface-muted); }
     .menu__item--danger { color: var(--fs-danger); }
+    .menu__item:disabled { color: var(--fs-text-muted); cursor: default; background: none; }
+    .menu__text { display: grid; gap: 0.1rem; }
+    .menu__hint { font-size: 0.78rem; }
   `,
 })
 export class StoreTeamTab {
@@ -445,6 +475,7 @@ export class StoreTeamTab {
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
   private readonly session = inject(SessionService);
+  private readonly messages = inject(MessageService);
 
   protected readonly myId = computed(() => this.session.user()?.id);
   protected readonly mayEditTeam = computed(() => this.ctx.may('mayEditTeam'));
@@ -537,7 +568,24 @@ export class StoreTeamTab {
 
   protected readonly appoint = runMutation(
     (userId: string) => this.api.appointManager({ storeId: this.ctx.storeId()!, userId }),
-    { successToastKey: 'stores.team.appointed', onSuccess: () => this.refresh() },
+    {
+      successToastKey: 'stores.team.appointed',
+      onSuccess: () => this.refresh(),
+      // the menu only offers appointable members; ROLE_TOO_LOW here means the role changed meanwhile (S9)
+      errorToast: false,
+      onError: (error) => {
+        this.messages.add({
+          severity: 'error',
+          summary: this.i18n.t('common.error.title'),
+          detail:
+            error.code === 'ROLE_TOO_LOW'
+              ? this.i18n.t('stores.team.appointError.ROLE_TOO_LOW')
+              : this.i18n.error(error.code, errorParams(error)),
+          life: 8000,
+        });
+        this.refresh();
+      },
+    },
   );
 
   protected readonly toRegular = runMutation(

@@ -105,7 +105,9 @@ class StoreIdentityLeakIT {
             Map.entry("regionId", ZUERICH),
             Map.entry("role", "AMBASSADOR"),
             Map.entry("lat", "47.37"),
-            Map.entry("lon", "8.54"));
+            Map.entry("lon", "8.54"),
+            // listInviteCandidates (S7): people only (UserSummary), mayEditTeam; nobody here may edit a team
+            Map.entry("search", "Sarah"));
 
     /** Exist only in the local and e2e profiles. */
     private static final String DEV = "/api/dev/";

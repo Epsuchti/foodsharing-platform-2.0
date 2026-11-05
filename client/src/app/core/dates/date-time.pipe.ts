@@ -7,7 +7,17 @@ import { DEFAULT_TIME_ZONE } from './time-zone';
 export { DEFAULT_TIME_ZONE } from './time-zone';
 
 export type DateStyle =
-  'date' | 'dateLong' | 'time' | 'dateTime' | 'dateTimeLong' | 'weekday' | 'relative';
+  | 'date'
+  | 'dateLong'
+  | 'time'
+  | 'dateTime'
+  | 'dateTimeLong'
+  | 'weekday'
+  | 'weekdayShort'
+  | 'dayNumber'
+  | 'monthShort'
+  | 'dayShort'
+  | 'relative';
 
 const FORMATS: Record<Exclude<DateStyle, 'relative'>, Intl.DateTimeFormatOptions> = {
   date: { day: '2-digit', month: '2-digit', year: 'numeric' },
@@ -29,6 +39,12 @@ const FORMATS: Record<Exclude<DateStyle, 'relative'>, Intl.DateTimeFormatOptions
     minute: '2-digit',
   },
   weekday: { weekday: 'long', day: 'numeric', month: 'long' },
+  /** Date tile of a pickup day card: "Do" / "5" / "Nov". */
+  weekdayShort: { weekday: 'short' },
+  dayNumber: { day: 'numeric' },
+  monthShort: { month: 'short' },
+  /** Short day in a sentence or chat name: "Do., 5.11.". */
+  dayShort: { weekday: 'short', day: 'numeric', month: 'numeric' },
 };
 
 const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
