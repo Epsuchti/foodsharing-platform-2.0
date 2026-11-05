@@ -22,7 +22,7 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `messaging-direct-${variant.name}`);
     });
 
-    screenshotTest('@Name mention pills: mentioned me (ring), in my own bubble @N1 @screenshot', async ({ page, as, apiOf, dev, visual }) => {
+    screenshotTest('mention pills: mentioned me (ring), in my own bubble @N1 @screenshot', async ({ page, as, apiOf, dev, visual }) => {
       const me = await dev.user('foodsaver');
       const bieb = await dev.user('bieb');
       await sendMessage(apiOf(await as('bieb')), CONVERSATIONS.foodsaverBieb, `Danke @[${me.displayName}](user:${me.id}) fürs Abholen!`);

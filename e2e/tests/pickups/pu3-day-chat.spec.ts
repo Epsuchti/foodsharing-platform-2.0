@@ -13,7 +13,7 @@ interface ConversationDetail {
   members: { id: string }[];
 }
 
-test('PU3 day chat is created once, named and joined by the manager @PU3 @M5 @page', async ({ as, apiOf, dev }) => {
+test('PU3 day chat is created once, named and joined by the manager @PU3 @page', async ({ as, apiOf, dev }) => {
   const [foodsaverUser, sleepy, biebUser] = await Promise.all([dev.user('foodsaver'), dev.user('sleepy'), dev.user('bieb')]);
   const foodsaver = await as('foodsaver');
   await openPickups(foodsaver, 'S-01');
@@ -37,7 +37,7 @@ test('PU3 day chat is created once, named and joined by the manager @PU3 @M5 @pa
   expect(after.members.map((m) => m.id)).toContain(biebUser.id);
 });
 
-test('PU3 no day chat button when only I am signed up that day @PU3 @M5', async ({ as }) => {
+test('PU3 no day chat button when only I am signed up that day @PU3', async ({ as }) => {
   const foodsaver = await as('foodsaver');
   await openPickups(foodsaver, 'S-04');
   const wednesday = foodsaver.locator('[data-testid="stores.pickups.day"][data-day="2026-11-04"]');

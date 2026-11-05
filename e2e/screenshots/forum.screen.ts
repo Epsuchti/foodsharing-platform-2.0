@@ -21,7 +21,7 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `forum-thread-${variant.name}`);
     });
 
-    screenshotTest('post with @Name mentions, one of them me (ring) @F3 @screenshot', async ({ page, apiOf, dev, visual }) => {
+    screenshotTest('post with name mentions, one of them me (ring) @F3 @screenshot', async ({ page, apiOf, dev, visual }) => {
       const me = await dev.user('bot');
       const bieb = await dev.user('bieb');
       const threadId = thread(3).split('/').pop()!;

@@ -99,7 +99,7 @@ test.describe('foodsaver', () => {
     expect(locked.status()).toBeGreaterThanOrEqual(400);
   });
 
-  test('N1 mark read clears badge, mentions render as @Name links to the profile @N1', async ({ page, api, dev, apiOf, as }) => {
+  test('N1 mark read clears badge, mentions render as name links to the profile @N1', async ({ page, api, dev, apiOf, as }) => {
     const me = await dev.user('foodsaver');
     const biebPage = await as('bieb');
     const biebApi = apiOf(biebPage);
