@@ -1,4 +1,4 @@
-import { seedRegion, seedStore } from '../fixtures';
+import { injectApiError, seedRegion, seedStore } from '../fixtures';
 import { pickLinkedStore } from '../tests/automation/_automation';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
@@ -82,17 +82,14 @@ forEachVariant((variant) => {
       // loading and error (the search request held, then failed)
       let release: () => void = () => undefined;
       const held = new Promise<void>((resolve) => (release = resolve));
-      await page.route('**/automation/link-candidates?*', async (route) => {
-        await held;
-        await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true, fieldErrors: [] }) });
-      });
+      const failing = await injectApiError(page, { url: '**/automation/link-candidates', status: 500, holdUntil: held });
       await page.getByTestId('automation.picker.search').fill('Winterthur');
       await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'loading');
-      await visual.expectElement(dialog, `automation-picker-loading-${variant.name}`);
+      await visual.expectElement(dialog, `automation-picker-loading-${variant.name}`, { waitForData: false });
       release();
       await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'error');
       await visual.expectElement(dialog, `automation-picker-error-${variant.name}`);
-      await page.unroute('**/automation/link-candidates?*');
+      await failing.remove();
       await page.getByTestId('automation.picker.search').fill('winterthur');
       await expect(page.getByTestId('automation.picker.state')).toHaveAttribute('data-state', 'success');
       await page.getByTestId('automation.picker.result').filter({ hasText: seedStore('S-23').name }).getByTestId('automation.picker.select').click();
