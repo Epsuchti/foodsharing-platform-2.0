@@ -105,7 +105,7 @@ class PickupPolicyServiceGapTest {
         when(stores.liveStores(anyCollection())).thenAnswer(inv -> sorted(inv.<Collection<UUID>>getArgument(0)));
         when(stores.liveStoresInRegions(anyCollection())).thenAnswer(inv -> sorted(storesById.keySet()));
         when(stores.storesById(anyCollection())).thenAnswer(inv -> sorted(inv.<Collection<UUID>>getArgument(0)));
-        when(permissions.mayUseAutomations(eq(ACTOR), any())).thenAnswer(inv ->
+        when(permissions.mayEditStore(eq(ACTOR), any())).thenAnswer(inv ->
                 allowed.contains(inv.<Store>getArgument(1).getId()));
 
         when(policies.findByStoreId(any())).thenAnswer(inv ->
@@ -155,7 +155,7 @@ class PickupPolicyServiceGapTest {
         });
 
         service = new PickupPolicyService(policies, links, members, mock(PickupPolicyExcludedDateRepository.class),
-                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions);
+                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions, mock(PickupPolicyData.class));
 
         a = store("A Store");
         b = store("B Store");
@@ -223,7 +223,7 @@ class PickupPolicyServiceGapTest {
     }
 
     static PolicyInput input(boolean ownOn, int ownGap, Integer groupGap, List<UUID> list, List<LinkInput> links) {
-        return new PolicyInput(true, true, ownOn, ownGap, false, false, false, links, List.of(), null, list, groupGap);
+        return new PolicyInput(true, ownOn, ownGap, false, false, false, links, List.of(), null, list, groupGap);
     }
 
     static PolicyInput input(boolean ownOn, int ownGap, Integer groupGap, List<UUID> list) {
@@ -306,12 +306,12 @@ class PickupPolicyServiceGapTest {
         when(stores.liveStoresInRegions(anyCollection())).thenReturn(sorted(List.of(a, b, c, d)));
         when(regions.subtreeIds(REGION)).thenReturn(List.of(REGION));
         StorePermissionService permissions = mock(StorePermissionService.class);
-        when(permissions.mayUseAutomations(any(), any())).thenReturn(true);
+        when(permissions.mayEditStore(any(), any())).thenReturn(true);
         CurrentActorService actor = mock(CurrentActorService.class);
         when(actor.requirePrincipal()).thenReturn(ACTOR);
         PickupPolicyService narrow = new PickupPolicyService(policies, links,
                 mock(PickupPolicyLinkedStoreMemberRepository.class), mock(PickupPolicyExcludedDateRepository.class),
-                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions);
+                stores, permissions, actor, history, mock(FspCleaningQueries.class), gapGroups, regions, mock(PickupPolicyData.class));
         ApiException ex = error(() -> narrow.put(a, input(true, 2, List.of(elsewhere))));
         assertThat(ex.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
         assertThat(ex.getArgs()).containsEntry("storeId", elsewhere.toString());
@@ -335,10 +335,9 @@ class PickupPolicyServiceGapTest {
         assertThat(policyOf(a).isGapRuleEnabled()).isTrue();
         assertThat(policyOf(b).getMinimumGapDays()).isEqualTo(5);
         assertThat(policyOf(b).isGapRuleEnabled()).isFalse();
-        // B keeps its own switches; C had no policy: created off, in dry run and with its own rule off
+        // B keeps its own switches; C had no policy: created off and with its own rule off
         assertThat(policyOf(b).isEnabled()).isTrue();
         assertThat(policyOf(c).isEnabled()).isFalse();
-        assertThat(policyOf(c).isDryRun()).isTrue();
         assertThat(policyOf(c).isGapRuleEnabled()).isFalse();
         assertThat(policyOf(c).getMinimumGapDays()).isZero();
         assertThat(view.gapStores()).extracting(g -> g.store().getId()).containsExactly(b, c);
@@ -545,5 +544,20 @@ class PickupPolicyServiceGapTest {
         LinkInput both = new LinkInput(List.of(b, d), true, LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null, null);
         ApiException ex = error(() -> service.put(a, input(true, 2, List.of(b), List.of(both))));
         assertThat(ex.getArgs()).containsEntry("storeId", b.toString()).containsEntry("otherStoreId", a.toString());
+    }
+
+    @Test
+    void aOneWayLinkNeedsNoRightInTheLinkedStoreABidirectionalOneDoes() {
+        // decision 167 Q3: D is a store the actor may know but not edit (e.g. another region)
+        allowed.remove(d);
+        LinkInput oneWay = new LinkInput(List.of(d), false, LinkedStoreWindowMode.SAME_DAY, 0, 0, 120, null, null);
+        service.put(a, input(true, 2, List.of(), List.of(oneWay)));
+        verify(links, atLeastOnce()).saveAndFlush(any());
+
+        LinkInput both = new LinkInput(List.of(d), true, LinkedStoreWindowMode.SAME_DAY, 0, 0, 120, null, null);
+        ApiException ex = error(() -> service.put(a, input(true, 2, List.of(), List.of(both))));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED);
+        assertThat(ex.getArgs()).containsEntry("storeId", d.toString());
     }
 }

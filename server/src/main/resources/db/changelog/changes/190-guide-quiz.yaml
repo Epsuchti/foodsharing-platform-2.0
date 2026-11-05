@@ -1,4 +1,4 @@
-# EinAb guide quiz (Q4, decision 167): the pickup threshold per region, the EINAB_GUIDE quiz (production data; its
+# EinAb guide quiz (Q4, decision 168): the pickup threshold per region, the EINAB_GUIDE quiz (production data; its
 # questions come through the quiz editor) and direct guide permissions for the WELCOME function-group members, who
 # lose the function grant of CAN_GIVE_INTRO_PICKUPS with this release.
 databaseChangeLog:
@@ -52,7 +52,7 @@ databaseChangeLog:
       id: 188-4
       author: platform
       dbms: h2
-      comment: 'Q4 transition (H2 form of 188-3).'
+      comment: 'Q4 transition (H2 form of 190-3).'
       changes:
         - sql:
             sql: >-

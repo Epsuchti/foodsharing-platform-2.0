@@ -23,7 +23,6 @@ import network.foodsharing.automation.service.PickupPolicyEvaluator.Reason;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.domain.Store;
@@ -40,7 +39,7 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Automation decisions of a store or a region (default: the last 7 days). Region scope: ambassadors and
- * CAN_SEE_ALL_AUTOMATION_DECISIONS holders see all, everyone else only the decisions about themselves. Kinds: PICKUP,
+ * ORGA see all, everyone else only the decisions about themselves (store scope: mayEditStore, all of the store). Kinds: PICKUP,
  * REQUEST, ADVERT (open-slot adverts), CANCELLATION (sign-out alerts) and EXTRA_SLOT; "excludeConfirmed" hides
  * confirmations, sent adverts, replaced/rejoined cancellations and extra slots.
  */
@@ -120,8 +119,7 @@ public class AutomationAuditService {
         if (!visibility.mayKnowStores(actor)) {
             return Page.empty();
         }
-        boolean seesAll = permissions.mayAdministrateRegion(actor, regionId)
-                || permissions.has(actor, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS, regionId);
+        boolean seesAll = permissions.mayAdministrateRegion(actor, regionId);
         if (!seesAll && !permissions.isMemberOf(actor, regionId)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }

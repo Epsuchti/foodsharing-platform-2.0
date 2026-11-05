@@ -8,7 +8,6 @@ import network.foodsharing.automation.repository.PickupPolicyRepository;
 import network.foodsharing.automation.repository.RequestPolicyRepository;
 import network.foodsharing.history.HistoryAccessRule;
 import network.foodsharing.history.SubjectType;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.store.service.StorePermissionService;
@@ -16,7 +15,7 @@ import network.foodsharing.store.service.StoreService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** AUTOMATION history: mayUseAutomations on the policy's store; exemptions: region automation rights (ORGA always). */
+/** AUTOMATION history: mayEditStore on the policy's store; exemptions: region admins (ORGA always). */
 @Component
 public class AutomationHistoryAccessRule implements HistoryAccessRule {
 
@@ -53,10 +52,9 @@ public class AutomationHistoryAccessRule implements HistoryAccessRule {
                 .or(() -> requestPolicies.findById(subjectId).map(p -> p.getStoreId()));
         if (storeId.isPresent()) {
             return stores.exists(storeId.get())
-                    && storePermissions.mayUseAutomations(actor, stores.require(storeId.get()));
+                    && storePermissions.mayEditStore(actor, stores.require(storeId.get()));
         }
         Optional<CleaningRuleExemption> exemption = exemptions.findById(subjectId);
-        return exemption.map(e -> permissions.mayAdministrateRegion(actor, e.getRegionId())
-                || permissions.has(actor, Permission.CAN_USE_AUTOMATIONS, e.getRegionId())).orElse(false);
+        return exemption.map(e -> permissions.mayAdministrateRegion(actor, e.getRegionId())).orElse(false);
     }
 }

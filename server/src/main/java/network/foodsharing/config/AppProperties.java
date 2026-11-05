@@ -182,17 +182,15 @@ public class AppProperties {
     public static class Permissions {
         /**
          * Region permissions granted to every member of a region's function group (plan §9, A10). Defaults:
-         * FSMANAGEMENT → CAN_MANAGE_USERS, STORES_COORDINATION → the automation permissions, VOTING →
-         * CAN_MANAGE_SURVEYS. WELCOME grants nothing (Q4, decision 167: CAN_GIVE_INTRO_PICKUPS is the guide release,
-         * which needs the EinAb guide quiz pass).
+         * FSMANAGEMENT → CAN_MANAGE_USERS, VOTING → CAN_MANAGE_SURVEYS. STORES_COORDINATION grants nothing
+         * (automation needs no permission, decision 167); WELCOME grants nothing (Q4, decision 168:
+         * CAN_GIVE_INTRO_PICKUPS is the guide release, which needs the EinAb guide quiz pass).
          */
         private Map<WorkingGroupFunction, List<Permission>> functionGrants = defaultFunctionGrants();
 
         public static Map<WorkingGroupFunction, List<Permission>> defaultFunctionGrants() {
             Map<WorkingGroupFunction, List<Permission>> grants = new EnumMap<>(WorkingGroupFunction.class);
             grants.put(WorkingGroupFunction.FSMANAGEMENT, List.of(Permission.CAN_MANAGE_USERS));
-            grants.put(WorkingGroupFunction.STORES_COORDINATION, List.of(Permission.CAN_USE_AUTOMATIONS,
-                    Permission.CAN_SEE_USER_PICKUP_COUNT_GROUPING, Permission.CAN_SEE_ALL_AUTOMATION_DECISIONS));
             grants.put(WorkingGroupFunction.VOTING, List.of(Permission.CAN_MANAGE_SURVEYS));
             return grants;
         }
@@ -256,7 +254,7 @@ public class AppProperties {
         /** local/e2e only: the iCal import may also read from {@code app.base-url} (dev iCal fixture, EA16). */
         private boolean icalAllowOwnBaseUrl = false;
         /**
-         * Q4 transition (decision 167): from this day (Europe/Zurich) guides without an EinAb guide quiz pass lose
+         * Q4 transition (decision 168): from this day (Europe/Zurich) guides without an EinAb guide quiz pass lose
          * CAN_GIVE_INTRO_PICKUPS; the final reminder goes out 14 days before.
          */
         private java.time.LocalDate guideQuizDeadline = java.time.LocalDate.of(2027, 1, 15);
@@ -388,8 +386,6 @@ public class AppProperties {
     @Setter
     public static class Automation {
         private boolean enabled = true;
-        /** Global override: every automation runs as dry run. */
-        private boolean dryRun = false;
         private int cleaningBackCheckMonths = 12;
         private int minimumFreeCleaningSlots = 4;
         private int maxRequestApprovalsPerRun = 50;

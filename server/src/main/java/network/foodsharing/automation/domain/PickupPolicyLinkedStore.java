@@ -37,7 +37,7 @@ public class PickupPolicyLinkedStore extends BaseEntity {
     private int windowDaysAfter;
 
     @Column(name = "grace_minutes", nullable = false)
-    private int graceMinutes = 20;
+    private int graceMinutes = 120;
 
     @Column(name = "message", length = 2000)
     private String message;

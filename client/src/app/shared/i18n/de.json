@@ -75,6 +75,7 @@
   "shared.historyTimeline.meta.label": "Name",
   "shared.historyTimeline.meta.reason": "Grund",
   "shared.historyTimeline.meta.count": "Anzahl",
+  "shared.historyTimeline.meta.deadlineAt": "Frist bis",
   "shared.historyTimeline.meta.template": "Vorlage",
   "shared.historyTimeline.meta.language": "Sprache",
   "shared.historyTimeline.meta.sessionId": "Sitzungs-ID",
@@ -420,5 +421,7 @@
   "shared.pickupSlot.mineConfirmed": "Du ({name}), bestätigt – austragen",
   "shared.pickupSlot.mineUnconfirmed": "Du ({name}), unbestätigt – austragen",
   "shared.pickupSlot.confirmOne": "{name} bestätigen",
-  "shared.dateTile.today": "Heute"
+  "shared.dateTile.today": "Heute",
+  "shared.pickupSlot.blocked": "Gesperrt",
+  "shared.pickupSlot.blockedLabel": "Für dich gesperrt, {count} frei – Grund anzeigen ({rules, plural, one {# Grund} other {# Gründe}})"
 }

@@ -26,6 +26,7 @@ databasechangelog
 configuration
 user_onboarding_step_done
 store_membership
+pickup_link_pending
 passport_issue
 mediation_request
 intro_pickup_comment

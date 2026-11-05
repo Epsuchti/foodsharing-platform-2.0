@@ -26,7 +26,8 @@ export function firstName(displayName: string): string {
  * (solid = confirmed, dashed = unconfirmed) and a badge icon (check / hourglass). Your own slot is a pill with the
  * word "Du"; for `confirmable` viewers (managers) an unconfirmed slot is a split pill: first name + a ✓ button.
  * `slotClick` fires for a taken slot when `slotsClickable` (own slot, or managers), `confirmClick` for the ✓,
- * `freeClick` for the one free chip when `freeClickable` ("+ Sign up"; otherwise "N free", disabled).
+ * `freeClick` for the one free chip when `freeClickable` ("+ Sign up"; otherwise "N free", disabled). When `blocked`, the
+ * free chip is a "Gesperrt" button (lock) that emits `blockedClick` and opens the reason dialog (decision 167 S2).
  *
  * ```html
  * <fs-pickup-slot [slotCount]="p.slotCount" [slots]="p.occupiedSlots" [myId]="me" (freeClick)="signUp(p)" />
@@ -111,7 +112,24 @@ export function firstName(displayName: string): string {
           }
         </li>
       }
-      @if (freeCount() > 0) {
+      @if (freeCount() > 0 && blocked()) {
+        <li>
+          <!-- decision 167 S2: a free place the person cannot take; opens "Warum nicht?" -->
+          <button
+            type="button"
+            class="slot slot--blocked slot--labelled"
+            aria-haspopup="dialog"
+            [attr.aria-label]="'shared.pickupSlot.blockedLabel' | t: { count: freeCount(), rules: blockedRuleCount() }"
+            [attr.data-free]="freeCount()"
+            [attr.data-rules]="blockedRuleCount()"
+            (click)="blockedClick.emit()"
+            [attr.data-testid]="testId() + '.blocked'"
+          >
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            <span class="slot__label" aria-hidden="true">{{ 'shared.pickupSlot.blocked' | t }}</span>
+          </button>
+        </li>
+      } @else if (freeCount() > 0) {
         <li>
           <!-- one chip for all free places (owner feedback 2026-11-04, overrides M7 R2 #16) -->
           <button
@@ -181,6 +199,18 @@ export function firstName(displayName: string): string {
     }
     .slot--labelled:disabled { color: var(--fs-text-muted); }
     .slot__label { white-space: nowrap; }
+    /* blocked for this person (decision 167 S2, proposal §3.3/§4): dashed strong ring, muted fill, lock + text */
+    .slot--blocked {
+      min-height: var(--fs-target-sm); border: var(--fs-slot-ring) dashed var(--fs-border-strong);
+      background: var(--fs-surface-muted); color: var(--fs-text);
+    }
+    .slot--blocked:hover { border-color: var(--fs-text-muted); }
+    .slot--blocked .pi { font-size: 0.9em; }
+    /* phones: the lock alone (the text stays in aria-label) */
+    @media (max-width: 47.99rem) {
+      .slot--blocked { display: inline-grid; width: var(--fs-slot-size); padding: 0; }
+      .slot--blocked .slot__label { display: none; }
+    }
     .slot:focus-visible, .split__confirm:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
   `,
 })
@@ -192,10 +222,15 @@ export class PickupSlotComponent {
   readonly slotsClickable = input(false);
   /** Managers (`mayConfirmPickups`): unconfirmed slots become split pills with a ✓ button. */
   readonly confirmable = input(false);
+  /** Decision 167 S2: the free places are blocked for the viewer (store rules or eligibility); the chip opens why. */
+  readonly blocked = input(false);
+  /** How many reasons block (rules + eligibility reasons), for the chip's accessible name. */
+  readonly blockedRuleCount = input(0);
   readonly testId = input('shared.pickupSlot');
   readonly freeClick = output<void>();
   readonly slotClick = output<PickupSlot>();
   readonly confirmClick = output<PickupSlot>();
+  readonly blockedClick = output<void>();
 
   protected readonly taken = computed<TakenSlot[]>(() =>
     this.slots().map((slot) => {

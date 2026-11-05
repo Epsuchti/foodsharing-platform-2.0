@@ -141,7 +141,7 @@ class RegionMembersServiceTest {
     @Test
     void grantRulesAndTheOverviewIncludeFunctionGrants() {
         TestAuth.login(TestUsers.principal(manager));
-        // Q4 (decision 167): CAN_MANAGE_USERS holders grant nothing here any more, not even CAN_GIVE_INTRO_PICKUPS
+        // Q4 (decision 168): CAN_MANAGE_USERS holders grant nothing here any more, not even CAN_GIVE_INTRO_PICKUPS
         assertThatThrownBy(() -> members.grant(city.getId(), member.getId(), Permission.CAN_GIVE_INTRO_PICKUPS))
                 .isInstanceOfSatisfying(ApiException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));

@@ -3,34 +3,30 @@ import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
-import { Checkbox } from '@openng/optimus-ui/checkbox';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { InputNumber } from '@openng/optimus-ui/inputnumber';
 import { MultiSelect } from '@openng/optimus-ui/multiselect';
-import { SelectButton } from '@openng/optimus-ui/selectbutton';
 import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 
 import {
-  AutomationRunResult,
   AutomationService,
   GapCandidate,
   GapCandidateLink,
   LinkedStoreRule,
   LinkedStoreWindowMode,
   PickupPolicy,
-  StoreListPage,
-  StoresService,
+  StoreRef,
+  StoreRuleSummary,
 } from '../../../api';
 import { ApiErrorView } from '../../../core/data/api-error';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
-import { DateTimePipe } from '../../../core/dates/date-time.pipe';
+import { DateTimeFormatter, DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import {
   GapLinkRule,
-  LINK_PLACEHOLDERS,
   MAX_GAP_STORES,
   addDays,
   clone,
@@ -42,9 +38,12 @@ import {
   joinAll,
   todayIn,
 } from '../automation.util';
+import { RuleFormat, uiRuleFormat } from '../../pickups/rule-sentences';
 import { GapPreviewComponent } from '../components/gap-preview.component';
-import { PreviewDialogComponent } from '../components/preview-dialog.component';
-import { TemplateEditorComponent } from '../components/template-editor.component';
+import { LinkRuleComponent } from '../components/link-rule.component';
+import { RuleCardComponent } from '../components/rule-card.component';
+import { PickedStore, StorePickerDialogComponent } from '../components/store-picker-dialog.component';
+import { gapSentence, linkSentence, ruleSentence } from '../policy-sentences';
 import { StoreAutomationContext } from '../store-automation.context';
 
 interface GapInfo {
@@ -70,54 +69,43 @@ export const MAX_LINK_RULES = 2;
 export const MAX_STORES_PER_LINK = 5;
 
 /**
- * Pickup sign-up automation of a store (AU1): enabled / dry run, rule cards (gap with its own part and the group part
- * of decision 152, experience, cleaning, holidays),
- * linked-store rules, excluded dates, save, run now (dry run / live) and the preview dialog.
+ * Pickup sign-up automation of a store (AU1): one switch "Regeln anwenden" (no dry run, decision 167), rule cards with
+ * the member sentence of rule-sentences.ts (the same text members read on the Pickups tab, S4): gap with its own part
+ * and the group part of decision 152, experience, cleaning, holidays; linked-store rules (`fs-link-rule`, stores from
+ * the cross-region picker), excluded dates and save.
  */
 @Component({
   selector: 'fs-pickup-policy-section',
   imports: [
     ...DATA_STATE_IMPORTS,
     Button,
-    Checkbox,
     DatePicker,
     DateTimePipe,
     FormsModule,
     GapPreviewComponent,
     InputNumber,
+    LinkRuleComponent,
     MultiSelect,
     NgTemplateOutlet,
-    PreviewDialogComponent,
     RouterLink,
-    SelectButton,
-    TemplateEditorComponent,
+    RuleCardComponent,
+    StorePickerDialogComponent,
     ToggleSwitch,
     TPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (draft(); as p) {
-      <section class="card fs-card" data-testid="automation.policy.root" [attr.data-enabled]="p.enabled" [attr.data-dry-run]="p.dryRun" [attr.data-unsaved]="unsaved()">
+      <section class="card fs-card" data-testid="automation.policy.root" [attr.data-enabled]="p.enabled" [attr.data-unsaved]="unsaved()">
         <h2>{{ 'automation.policy.title' | t }}</h2>
         <p class="muted">{{ 'automation.policy.intro' | t }}</p>
         <div class="switch-row">
           <label class="switch-row__text" for="pp-enabled">
             <strong>{{ 'automation.policy.enabled' | t }}</strong>
+            <span class="muted" data-testid="automation.policy.enabledHint">{{ (p.enabled ? 'automation.policy.enabledHint' : 'automation.policy.disabledHint') | t }}</span>
           </label>
           <p-toggleswitch inputId="pp-enabled" [(ngModel)]="p.enabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.enabled" />
         </div>
-        <div class="switch-row">
-          <label class="switch-row__text" for="pp-dry">
-            <strong>{{ 'automation.common.dryRun' | t }}</strong>
-            <span class="muted">{{ 'automation.common.dryRunHint' | t }}</span>
-          </label>
-          <p-toggleswitch inputId="pp-dry" [(ngModel)]="p.dryRun" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.dryRun" />
-        </div>
-        @if (p.enabled && p.dryRun) {
-          <p class="banner" data-testid="automation.policy.dryRunBanner">
-            <i class="pi pi-eye" aria-hidden="true"></i>{{ 'automation.common.dryRunBanner' | t }}
-          </p>
-        }
       </section>
 
       <div class="rules">
@@ -131,6 +119,9 @@ export const MAX_STORES_PER_LINK = 5;
               [attr.data-status]="gapActive() ? 'on' : 'off'"
             >{{ (gapActive() ? 'automation.policy.gapStatus.on' : 'automation.policy.gapStatus.off') | t }}</span>
           </div>
+          @if (gapActive() && gapSentence(p); as text) {
+            <p class="member-line" data-testid="automation.policy.member" data-rule="GAP"><i class="pi pi-info-circle" aria-hidden="true"></i><span>{{ text }}</span></p>
+          }
           <div class="gap-part" data-testid="automation.policy.gapOwn">
             <h4 class="gap-part__title">{{ 'automation.policy.gapOwnTitle' | t }}</h4>
             <div class="switch-row">
@@ -300,19 +291,27 @@ export const MAX_STORES_PER_LINK = 5;
             <span class="badge badge--dry"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'automation.policy.gapBadge.off' | t }}</span>
           }
         </ng-template>
-        <section class="card fs-card">
-          <div class="switch-row">
-            <label class="switch-row__text" for="pp-exp"><strong>{{ 'automation.policy.experience' | t }}</strong>
-              <span class="muted">{{ 'automation.policy.experienceHint' | t }}</span></label>
-            <p-toggleswitch inputId="pp-exp" [(ngModel)]="p.experienceRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.experience" />
-          </div>
-        </section>
-        <section class="card fs-card">
-          <div class="switch-row">
-            <label class="switch-row__text" for="pp-clean"><strong>{{ 'automation.policy.cleaning' | t }}</strong>
-              <span class="muted">{{ 'automation.policy.cleaningHint' | t }}</span></label>
-            <p-toggleswitch inputId="pp-clean" [(ngModel)]="p.cleaningRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.cleaning" />
-          </div>
+        <fs-rule-card
+          [title]="'automation.policy.experience' | t"
+          [hint]="'automation.policy.experienceHint' | t"
+          inputId="pp-exp"
+          [enabled]="p.experienceRuleEnabled"
+          [sentence]="sentence({ experience: true })"
+          rule="EXPERIENCE"
+          testId="automation.policy.experienceCard"
+        >
+          <p-toggleswitch ruleSwitch inputId="pp-exp" [(ngModel)]="p.experienceRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.experience" />
+        </fs-rule-card>
+        <fs-rule-card
+          [title]="'automation.policy.cleaning' | t"
+          [hint]="'automation.policy.cleaningHint' | t"
+          inputId="pp-clean"
+          [enabled]="p.cleaningRuleEnabled"
+          [sentence]="sentence({ cleaningMonths: ctx.data()?.cleaningMonths })"
+          rule="CLEANING"
+          testId="automation.policy.cleaningCard"
+        >
+          <p-toggleswitch ruleSwitch inputId="pp-clean" [(ngModel)]="p.cleaningRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.cleaning" />
           <!-- FS2: the region's cleaning Fairteiler, or a hint linking to the "Putzen" section -->
           @if (ctx.data()?.cleaningFoodSharePoints?.length) {
             <p class="muted">{{ 'automation.policy.cleaningFsps' | t }}</p>
@@ -332,106 +331,39 @@ export const MAX_STORES_PER_LINK = 5;
           @if (ctx.regionId(); as regionId) {
             <a [routerLink]="['/regions', regionId, 'automation', 'cleaning-exemptions']" data-testid="automation.policy.exemptionsLink">{{ 'automation.policy.exemptionsLink' | t }}</a>
           }
-        </section>
-        <section class="card fs-card">
-          <div class="switch-row">
-            <label class="switch-row__text" for="pp-hol"><strong>{{ 'automation.policy.holidays' | t }}</strong>
-              <span class="muted">{{ 'automation.policy.holidaysHint' | t }}</span></label>
-            <p-toggleswitch inputId="pp-hol" [(ngModel)]="p.publicHolidayRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.holidays" />
-          </div>
+        </fs-rule-card>
+        <fs-rule-card
+          [title]="'automation.policy.holidays' | t"
+          [hint]="'automation.policy.holidaysHint' | t"
+          inputId="pp-hol"
+          [enabled]="p.publicHolidayRuleEnabled"
+          [sentence]="sentence({ holidays: true })"
+          rule="MANUAL_DATE"
+          testId="automation.policy.holidaysCard"
+        >
+          <p-toggleswitch ruleSwitch inputId="pp-hol" [(ngModel)]="p.publicHolidayRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.holidays" />
           @if (ctx.regionId(); as regionId) {
             <a [routerLink]="['/regions', regionId, 'automation', 'holidays']" data-testid="automation.policy.holidaysLink">{{ 'automation.policy.holidaysLink' | t }}</a>
           }
-        </section>
+        </fs-rule-card>
       </div>
 
       <section class="card fs-card" data-testid="automation.policy.links">
         <h3>{{ 'automation.policy.linksTitle' | t }}</h3>
         <p class="muted">{{ 'automation.policy.linksHint' | t }}</p>
         @for (rule of p.linkedStores; track $index; let i = $index) {
-          <div class="card link" [attr.data-testid]="'automation.policy.link.' + i" [class.link--mirror]="!!rule.mirrorOf">
-            @for (warning of linkGapWarnings(i); track warning.key) {
-              <p
-                class="banner banner--sm"
-                [class.banner--danger]="warning.kind === 'CONFLICT'"
-                [attr.role]="warning.kind === 'CONFLICT' ? 'alert' : 'status'"
-                [attr.data-testid]="'automation.policy.link.' + i + '.gapWarning'"
-                [attr.data-kind]="warning.kind"
-              >
-                <i class="pi" [class.pi-ban]="warning.kind === 'CONFLICT'" [class.pi-exclamation-triangle]="warning.kind !== 'CONFLICT'" aria-hidden="true"></i>{{ warning.text }}
-              </p>
-            }
-            @if (rule.mirrorOf) {
-              <p class="muted" data-testid="automation.policy.link.mirror">
-                <i class="pi pi-arrows-h" aria-hidden="true"></i>
-                {{ 'automation.policy.mirror' | t: { stores: storeNames(rule) } }}
-              </p>
-            } @else {
-              <div class="field">
-                <label [for]="'pp-link-stores-' + i">{{ 'automation.policy.linkStores' | t }}</label>
-                <p-multiselect
-                  #linkStores
-                  (onChange)="releaseOpenGuard(linkStores)"
-                  [inputId]="'pp-link-stores-' + i"
-                  [options]="storeOptions()"
-                  optionLabel="name"
-                  optionValue="id"
-                  [(ngModel)]="rule.storeIds"
-                  [selectionLimit]="maxStores"
-                  [filter]="true"
-                  display="chip"
-                  [loading]="stores.status() === 'loading'"
-                  [disabled]="!ctx.mayEdit()"
-                  [attr.data-testid]="'automation.policy.link.' + i + '.stores'"
-                />
-              </div>
-              <div class="form-grid">
-                <div class="field">
-                  <span>{{ 'automation.policy.windowMode' | t }}</span>
-                  <p-selectbutton
-                    [options]="windowModes()"
-                    optionLabel="label"
-                    optionValue="value"
-                    [(ngModel)]="rule.windowMode"
-                    [allowEmpty]="false"
-                    [disabled]="!ctx.mayEdit()"
-                    [attr.data-testid]="'automation.policy.link.' + i + '.mode'"
-                  />
-                </div>
-                @if (rule.windowMode === 'LAST_DAYS') {
-                  <div class="field">
-                    <label [for]="'pp-before-' + i">{{ 'automation.policy.daysBefore' | t }}</label>
-                    <p-inputnumber [inputId]="'pp-before-' + i" [(ngModel)]="rule.windowDaysBefore" [min]="0" [max]="30" [showButtons]="true" [disabled]="!ctx.mayEdit()" />
-                  </div>
-                  <div class="field">
-                    <label [for]="'pp-after-' + i">{{ 'automation.policy.daysAfter' | t }}</label>
-                    <p-inputnumber [inputId]="'pp-after-' + i" [(ngModel)]="rule.windowDaysAfter" [min]="0" [max]="30" [showButtons]="true" [disabled]="!ctx.mayEdit()" />
-                  </div>
-                }
-                <div class="field">
-                  <label [for]="'pp-grace-' + i">{{ 'automation.policy.grace' | t }}</label>
-                  <p-inputnumber [inputId]="'pp-grace-' + i" [(ngModel)]="rule.graceMinutes" [min]="20" [max]="10080" [showButtons]="true" [step]="10" [disabled]="!ctx.mayEdit()" [attr.data-testid]="'automation.policy.link.' + i + '.grace'" />
-                </div>
-              </div>
-              <div class="row">
-                <p-checkbox [inputId]="'pp-bidi-' + i" [binary]="true" [(ngModel)]="rule.bidirectional" [disabled]="!ctx.mayEdit()" [attr.data-testid]="'automation.policy.link.' + i + '.bidirectional'" />
-                <label [for]="'pp-bidi-' + i">{{ 'automation.policy.bidirectional' | t }}</label>
-              </div>
-              <fs-template-editor
-                [(value)]="rule.message!"
-                [placeholders]="linkPlaceholders"
-                [values]="linkPreviewValues(rule)"
-                [label]="'automation.policy.linkMessage' | t"
-                [inputId]="'pp-msg-' + i"
-                [testId]="'automation.policy.link.' + i + '.message'"
-              />
-              @if (ctx.mayEdit()) {
-                <div class="actions">
-                  <p-button [label]="'automation.policy.removeLink' | t" icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="removeLink(i)" [attr.data-testid]="'automation.policy.link.' + i + '.remove'" />
-                </div>
-              }
-            }
-          </div>
+          <fs-link-rule
+            [rule]="rule"
+            [index]="i"
+            [mayEdit]="ctx.mayEdit()"
+            [sentence]="linkSentence(rule)"
+            [warnings]="linkGapWarnings(i)"
+            [editable]="editable()"
+            [previewValues]="linkPreviewValues(rule)"
+            [windowModes]="windowModes()"
+            (pick)="openPicker(i)"
+            (remove)="removeLink(i)"
+          />
         }
         @if (ctx.mayEdit() && ownLinks() < maxLinks) {
           <div class="actions">
@@ -440,9 +372,21 @@ export const MAX_STORES_PER_LINK = 5;
         }
       </section>
 
+      <fs-store-picker-dialog
+        [(visible)]="pickerOpen"
+        [storeId]="ctx.storeId()"
+        [selected]="pickerSelected()"
+        [recent]="recentStores()"
+        [max]="maxStores"
+        (done)="applyPicked($event)"
+      />
+
       <section class="card fs-card" data-testid="automation.policy.excluded">
         <h3>{{ 'automation.policy.excludedTitle' | t }}</h3>
         <p class="muted">{{ 'automation.policy.excludedHint' | t }}</p>
+        @if (sortedExcluded().length) {
+          <p class="member-line" data-testid="automation.policy.member" data-rule="MANUAL_DATE"><i class="pi pi-info-circle" aria-hidden="true"></i><span>{{ sentence({ manualDates: sortedExcluded() }) }}</span></p>
+        }
         @if (ctx.mayEdit()) {
           <p-datepicker
             [ngModel]="excludedDates()"
@@ -484,33 +428,12 @@ export const MAX_STORES_PER_LINK = 5;
             (onClick)="save.run()"
             data-testid="automation.policy.save"
           />
-          @if (exists()) {
-            <p-button [label]="'automation.common.runDry' | t" icon="pi pi-eye" [outlined]="true" [disabled]="unsaved()" [loading]="run.busy()" (onClick)="run.run(true)" data-testid="automation.policy.runDry" />
-            <p-button [label]="'automation.common.runNow' | t" icon="pi pi-play" severity="warn" [outlined]="true" [disabled]="p.dryRun || unsaved()" [loading]="run.busy()" (onClick)="run.run(false)" data-testid="automation.policy.run" />
-          }
-        }
-        @if (exists()) {
-          <p-button [label]="'automation.preview.open' | t" icon="pi pi-question-circle" [text]="true" (onClick)="previewOpen.set(true)" data-testid="automation.policy.preview" />
         }
       </div>
-      @if (ctx.mayEdit() && exists() && unsaved()) {
-        <p class="muted" data-testid="automation.policy.saveFirst">{{ 'automation.policy.saveFirst' | t }}</p>
-      }
-      @if (lastRun(); as r) {
-        <p class="banner banner--info" data-testid="automation.policy.runResult">
-          {{ 'automation.common.runResult' | t: { evaluated: r.evaluated, confirmed: r.confirmed, declined: r.declined, skipped: r.skipped, deferred: r.deferred, failed: r.failed } }}
-          @if (r.dryRun) {
-            <span class="badge badge--dry">{{ 'automation.common.dryRunTag' | t }}</span>
-          }
-        </p>
-      }
-      <fs-preview-dialog [(visible)]="previewOpen" />
     }
   `,
   styleUrl: '../automation.scss',
   styles: `
-    .link { border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); }
-    .link--mirror { background: var(--fs-surface-muted); }
     .chip-remove { margin-left: 0.25rem; border: 0; background: none; color: inherit; cursor: pointer; font-weight: 700; }
     p-multiselect { width: 100%; }
     .rules .gap-card { grid-column: 1 / -1; }
@@ -531,46 +454,39 @@ export const MAX_STORES_PER_LINK = 5;
     .member__name { font-weight: 650; overflow-wrap: anywhere; }
     .member__end { display: inline-flex; align-items: center; gap: 0.4rem; }
     .banner--danger { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); color: var(--fs-danger); }
-    .banner--sm { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
   `,
 })
 export class PickupPolicySection {
   protected readonly ctx = inject(StoreAutomationContext);
   private readonly api = inject(AutomationService);
-  private readonly storesApi = inject(StoresService);
   private readonly i18n = inject(I18nService);
+  private readonly dates = inject(DateTimeFormatter);
 
   protected readonly maxLinks = MAX_LINK_RULES;
   protected readonly maxStores = MAX_STORES_PER_LINK;
-  protected readonly linkPlaceholders = LINK_PLACEHOLDERS;
   protected readonly today = new Date();
 
   protected readonly draft = signal<PickupPolicy | null>(null);
-  protected readonly lastRun = signal<AutomationRunResult | null>(null);
-  protected readonly previewOpen = signal(false);
-  protected readonly exists = computed(() => !!this.ctx.data()?.pickupPolicy);
 
-  /** Stores of the region for the linked-store picker (without this store). */
-  protected readonly stores = loadResource<StoreListPage, string>({
-    params: () => (this.ctx.mayEdit() ? this.ctx.regionId() : undefined),
-    loader: (regionId) => this.storesApi.listRegionStores({ regionId, includeSubregions: true, size: 200 }),
-    isEmpty: () => false,
+  /** Stores the actor edits: the saved rules' editableStoreIds plus picker results (bidirectional lock, Q3). */
+  protected readonly editable = signal<ReadonlySet<string>>(new Set());
+  protected readonly pickerOpen = signal(false);
+  private readonly pickerRule = signal<number | null>(null);
+
+  /** The stores of the rule the picker edits, with what the page knows about them. */
+  protected readonly pickerSelected = computed<PickedStore[]>(() => {
+    const index = this.pickerRule();
+    const rule = index == null ? undefined : this.draft()?.linkedStores[index];
+    return this.storesOf(rule).map((store) => ({ store }));
   });
 
-  protected readonly storeOptions = computed(() => {
-    const own = this.ctx.storeId();
-    const listed = (this.stores.data()?.items ?? []).filter((s) => s.id !== own).map((s) => ({ id: s.id, name: s.name }));
-    // keep already linked stores selectable even when they are not in the list (other region)
-    const known = new Set(listed.map((s) => s.id));
-    for (const rule of this.draft()?.linkedStores ?? []) {
-      for (const store of rule.stores ?? []) {
-        if (!known.has(store.id)) {
-          listed.push({ id: store.id, name: store.name });
-          known.add(store.id);
-        }
-      }
+  /** Stores linked in this store's saved rules (the picker before typing). */
+  protected readonly recentStores = computed<StoreRef[]>(() => {
+    const seen = new Map<string, StoreRef>();
+    for (const rule of this.ctx.data()?.pickupPolicy?.linkedStores ?? []) {
+      for (const store of rule.stores ?? []) seen.set(store.id, store);
     }
-    return listed.sort((a, b) => a.name.localeCompare(b.name));
+    return [...seen.values()];
   });
 
   protected readonly maxGapStores = MAX_GAP_STORES;
@@ -687,7 +603,7 @@ export class PickupPolicySection {
       const store = (rule.stores ?? []).find((s) => s.id === id);
       if (store) return store.name;
     }
-    return this.storeOptions().find((s) => s.id === id)?.name;
+    return undefined;
   }
 
   /** The link rules for the D7 check: this store's (as edited, with the mirrors they create) first, then the listed stores'. */
@@ -789,6 +705,7 @@ export class PickupPolicySection {
   }
 
   private reset(policy: PickupPolicy | undefined): void {
+    this.editable.set(new Set((policy?.linkedStores ?? []).flatMap((rule) => rule.editableStoreIds ?? [])));
     const draft = policy ? clone(policy) : emptyPickupPolicy();
     draft.linkedStores.forEach((rule) => (rule.message ??= ''));
     draft.gapStoreIds = [...(draft.gapStoreIds ?? [])];
@@ -806,10 +723,7 @@ export class PickupPolicySection {
     return JSON.stringify(this.payload(draft)) !== JSON.stringify(this.payload(saved));
   }
 
-  /**
-   * Dry run and run evaluate the saved policy: while the draft differs from the server state, or a save is still in
-   * flight (and until the saved state is reloaded), a run would use the old configuration (same rule as the adverts).
-   */
+  /** The draft differs from the server state, or a save is still in flight (until the saved state is reloaded). */
   protected unsaved(): boolean {
     return this.save.busy() || this.dirty();
   }
@@ -836,12 +750,71 @@ export class PickupPolicySection {
     select.clickInProgress = false;
   }
 
-  protected storeNames(rule: LinkedStoreRule): string {
-    return (rule.stores ?? []).map((s) => s.name).join(', ');
+  /** The rule's stores in storeIds order, named from `stores`. */
+  private storesOf(rule: LinkedStoreRule | undefined): StoreRef[] {
+    if (!rule) return [];
+    const named = new Map((rule.stores ?? []).map((s) => [s.id, s]));
+    return rule.storeIds.map((id) => named.get(id) ?? { id, name: this.storeName(id) ?? id });
+  }
+
+  protected openPicker(index: number): void {
+    this.pickerRule.set(index);
+    this.pickerOpen.set(true);
+  }
+
+  /** The picker's choice replaces the rule's stores; what it learnt about mayEdit feeds the bidirectional lock. */
+  protected applyPicked(picked: PickedStore[]): void {
+    const index = this.pickerRule();
+    const rule = index == null ? undefined : this.draft()?.linkedStores[index];
+    if (!rule) return;
+    rule.storeIds = picked.map((p) => p.store.id);
+    rule.stores = picked.map((p) => ({ id: p.store.id, name: p.store.name }));
+    const editable = new Set(this.editable());
+    for (const p of picked) {
+      if (p.mayEdit === true) editable.add(p.store.id);
+      if (p.mayEdit === false) editable.delete(p.store.id);
+    }
+    this.editable.set(editable);
+    // a store the actor does not edit cannot be bidirectional (decision 167 Q3)
+    if (rule.bidirectional && rule.storeIds.some((id) => !editable.has(id)) && !this.savedBidirectional(rule)) {
+      rule.bidirectional = false;
+    }
+  }
+
+  private savedBidirectional(rule: LinkedStoreRule): boolean {
+    return !!rule.id && !!this.ctx.data()?.pickupPolicy?.linkedStores.some((saved) => saved.id === rule.id && saved.bidirectional);
+  }
+
+  private format(): RuleFormat {
+    return uiRuleFormat(
+      (key, params) => this.i18n.t(key, params),
+      (value, style, timeZone) => this.dates.format(value, style, timeZone),
+      this.i18n.locale(),
+      this.ctx.timeZone() ?? 'Europe/Zurich',
+    );
+  }
+
+  /** The member sentence of one card (policy-sentences.ts, the same text as the members' summary). */
+  protected sentence(rules: Partial<StoreRuleSummary>): string | undefined {
+    return ruleSentence(rules, this.format());
+  }
+
+  protected gapSentence(p: PickupPolicy): string | undefined {
+    const group = this.gapMembers().length
+      ? {
+          days: p.groupMinimumGapDays ?? 0,
+          stores: [{ id: this.ctx.storeId() ?? '', name: this.selfName() }, ...this.memberRows().map((m) => ({ id: m.id, name: m.name }))],
+        }
+      : undefined;
+    return gapSentence(p.gapRuleEnabled ? p.minimumGapDays : undefined, group, this.format());
+  }
+
+  protected linkSentence(rule: LinkedStoreRule): string | undefined {
+    return linkSentence(rule, this.storesOf(rule), this.format());
   }
 
   protected linkPreviewValues(rule: LinkedStoreRule): Record<string, string | number> {
-    const linked = this.storeOptions().filter((s) => rule.storeIds.includes(s.id)).map((s) => s.name);
+    const linked = this.storesOf(rule).map((s) => s.name);
     return {
       name: this.i18n.t('automation.policy.previewName'),
       storeName: this.ctx.store.data()?.name ?? '',
@@ -870,7 +843,6 @@ export class PickupPolicySection {
   private payload(policy: PickupPolicy): PickupPolicy {
     return {
       enabled: policy.enabled,
-      dryRun: policy.dryRun,
       gapRuleEnabled: policy.gapRuleEnabled,
       minimumGapDays: policy.minimumGapDays,
       cleaningRuleEnabled: policy.cleaningRuleEnabled,
@@ -899,10 +871,5 @@ export class PickupPolicySection {
   protected readonly save = runMutation(
     () => this.api.putPickupPolicy({ storeId: this.ctx.storeId()!, pickupPolicy: this.payload(this.draft()!) }),
     { successToastKey: 'automation.common.saved', errorToast: false, onSuccess: () => this.ctx.reload() },
-  );
-
-  protected readonly run = runMutation(
-    (dryRun: boolean) => this.api.runPickupPolicy({ storeId: this.ctx.storeId()!, dryRun }),
-    { successToastKey: 'automation.common.ran', onSuccess: (result) => this.lastRun.set(result) },
   );
 }

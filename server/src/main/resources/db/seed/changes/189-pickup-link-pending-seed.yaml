@@ -1,0 +1,30 @@
+# Seed (decision 167 S3): foodsaver's confirmed S-04 pickup on Wednesday 2026-11-04 18:30 is missing its S-01 link
+# ("Verknüpfung fehlt" until 13:00 that day). S-04's policy is off, so automation-evaluate leaves it alone; the row
+# shows the pill on the own slot and for S-04's managers. Times move with the seed anchor (AutomationSeedDateShift).
+databaseChangeLog:
+  - changeSet:
+      id: seed-189-1
+      author: platform
+      context: seed
+      comment: 'One sign-up waiting for a new linked-store pickup.'
+      changes:
+        - loadUpdateData:
+            tableName: pickup_link_pending
+            file: ../automation/pickup_link_pending.csv
+            relativeToChangelogFile: true
+            primaryKey: id
+            encoding: UTF-8
+            separator: ','
+            quotchar: '"'
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: created_at, type: STRING}
+              - column: {name: updated_at, type: STRING}
+              - column: {name: created_by, type: UUID}
+              - column: {name: updated_by, type: UUID}
+              - column: {name: store_id, type: UUID}
+              - column: {name: pickup_at, type: STRING}
+              - column: {name: user_id, type: UUID}
+              - column: {name: linked_store_id, type: UUID}
+              - column: {name: deadline_at, type: STRING}

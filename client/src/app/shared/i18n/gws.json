@@ -75,6 +75,7 @@
   "shared.historyTimeline.meta.label": "Name",
   "shared.historyTimeline.meta.reason": "Grund",
   "shared.historyTimeline.meta.count": "Aazahl",
+  "shared.historyTimeline.meta.deadlineAt": "Frischt bis",
   "shared.historyTimeline.meta.template": "Vorlag",
   "shared.historyTimeline.meta.language": "Sprach",
   "shared.historyTimeline.meta.sessionId": "Sitzigs-ID",
@@ -420,5 +421,7 @@
   "shared.pickupSlot.mineConfirmed": "Du ({name}), bestätigt – ustrage",
   "shared.pickupSlot.mineUnconfirmed": "Du ({name}), unbestätigt – ustrage",
   "shared.pickupSlot.confirmOne": "{name} bestätige",
-  "shared.dateTile.today": "Hüt"
+  "shared.dateTile.today": "Hüt",
+  "shared.pickupSlot.blocked": "Gsperrt",
+  "shared.pickupSlot.blockedLabel": "Für dich gsperrt, {count} frei – Grund aazeige ({rules, plural, one {# Grund} other {# Gründ}})"
 }

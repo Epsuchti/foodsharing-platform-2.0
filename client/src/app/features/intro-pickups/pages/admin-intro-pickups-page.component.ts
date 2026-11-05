@@ -45,7 +45,7 @@ type Tab = 'einabs' | 'bookings' | 'guides';
 /**
  * `/regions/:regionId/intro-pickups/admin` (EA17, EA18; CAN_MANAGE_USERS): all upcoming EinAbs of the region with
  * delete-with-reason, all bookings with the counted switch and admin comments, intro pickups added afterwards
- * ("historical") for a member, and the guides with enable / disable. Q4 (decision 167): the Ready-for-release list
+ * ("historical") for a member, and the guides with enable / disable. Q4 (decision 168): the Ready-for-release list
  * (EinAb guide quiz passed, not released yet), release only for region administrators, and a banner with the
  * transition deadline while released guides have no quiz pass. `?tab=guides` opens the guides tab. 403 → forbidden.
  */

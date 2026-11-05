@@ -8,7 +8,7 @@ import {
   test,
   zurichPickupAt,
 } from '../../fixtures';
-import { openPickups, openSignup, pickupRow, reasonsOf } from './_pickups';
+import { openBlocked, openPickups, pickupRow, reasonsOf } from './_pickups';
 
 /**
  * PU4 eligibility reasons. Seed: S-02 Bäckerei Vohdin requires a hygiene certificate (member jumper has none;
@@ -28,7 +28,7 @@ test.describe('foodsaver', () => {
     await expectStatus(await api.patch('/api/users/me/profile', { mobilePhone: '', landlinePhone: '' }), [200, 204], 'remove phone');
     const next = (await store.pickupsOf(api, 'S-03')).find((p) => p.occupiedSlots.length < p.slotCount)!;
     await openPickups(page, 'S-03');
-    await openSignup(page, next.pickupAt);
+    await openBlocked(page, next.pickupAt);
     await expect(page.locator('[data-testid="shared.eligibility.reason"][data-reason="PHONE_REQUIRED"]')).toBeVisible();
   });
 
@@ -53,13 +53,16 @@ test.describe('jumper', () => {
 
   test('PU4 hygiene certificate required @PU4 @page', async ({ page }) => {
     await openPickups(page, 'S-02');
-    // no lock pill or hint in the row (owner decision): the free slot stays clickable, the dialog says why not
+    // changed on purpose (decision 167 S2, proposal §2: one place for every "no"): the free place is a "Gesperrt"
+    // chip with a lock, its dialog says why not
     const row = pickupRow(page, S02_WEDNESDAY);
-    await expect(row.getByTestId('stores.pickups.slot.free').first()).toBeEnabled();
-    await expect(row.locator('.pi-lock')).toHaveCount(0);
-    await openSignup(page, S02_WEDNESDAY);
+    await expect(row.getByTestId('stores.pickups.slot.free')).toHaveCount(0);
+    await expect(row.getByTestId('stores.pickups.slot.blocked')).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(row.getByTestId('stores.pickups.slot.blocked').locator('.pi-lock')).toBeVisible();
+    await openBlocked(page, S02_WEDNESDAY);
     await expect(page.locator('[data-testid="shared.eligibility.reason"][data-reason="HYGIENE_CERTIFICATE_REQUIRED"]')).toBeVisible();
-    await expect(page.getByTestId('pickups.signup.confirm')).toHaveCount(0);
+    await expect(page.getByTestId('pickups.blocked.signUp')).toHaveCount(0);
+    await expect(page.getByTestId('pickups.blocked.reason')).toHaveCount(0);
   });
 
   test('PU4 reasons rendered in five languages @PU4', async ({ page, api }) => {
@@ -69,7 +72,7 @@ test.describe('jumper', () => {
       await api.patchJson('/api/users/me/settings', { language });
       await setLanguage(page, language);
       await openPickups(page, 'S-02');
-      await openSignup(page, S02_WEDNESDAY);
+      await openBlocked(page, S02_WEDNESDAY);
       const reason = page.locator('[data-testid="shared.eligibility.reason"][data-reason="HYGIENE_CERTIFICATE_REQUIRED"]');
       await expect(reason).toBeVisible();
       const text = (await reason.textContent())!.trim();

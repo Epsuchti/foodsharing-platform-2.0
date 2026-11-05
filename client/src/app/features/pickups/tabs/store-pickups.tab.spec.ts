@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -106,10 +107,12 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     http.verify({ ignoreCancelled: true });
   });
 
-  const open = async (permissions: Record<string, boolean>, list: unknown[] = LIST) => {
+  const RULES_OFF = { enabled: false, links: [], experience: false, manualDates: [], holidays: false };
+  const open = async (permissions: Record<string, boolean>, list: unknown[] = LIST, rules: object = RULES_OFF) => {
     await harness.navigateByUrl('/stores/s1/pickups');
     http.expectOne('/api/stores/s1').flush(detail(permissions));
     await settle();
+    http.expectOne('/api/stores/s1/automation/rules').flush(rules);
     http.expectOne(pickupsUrl).flush(list);
     answerClock(http);
     await settle();
@@ -228,6 +231,99 @@ describe('store pickups tab: confirmed vs. unconfirmed (PU3)', () => {
     await settle();
   });
 
+  // ---- decision 167 S2: rule summary card, "Gesperrt" chip and reason dialog --------------------------------------
+
+  const NEXT = '2030-11-10T23:00:00Z';
+  const blockedPickup = {
+    ...pickup(SAT, 2, []),
+    eligibility: {
+      eligible: false,
+      reasons: ['AUTOMATION_RULE'],
+      ruleBlocks: [{ rule: 'GAP', params: { lastPickupAt: FRI, nextPossibleAt: NEXT, gapDays: 2 } }],
+    },
+  };
+  const RULES_ON = { enabled: true, gapDays: 2, links: [], experience: true, manualDates: [], holidays: true };
+  const doc = () => TestBed.inject(DOCUMENT);
+
+  it('members: the summary card lists the active rules and remembers nothing without storage', async () => {
+    await open({}, [blockedPickup], RULES_ON);
+    const card = qa('[data-testid="stores.pickups.rules"]');
+    expect(card).toHaveLength(1);
+    expect(card[0].hasAttribute('open')).toBe(false);
+    expect(qa('[data-testid="stores.pickups.rules.line"]').map((line) => line.getAttribute('data-rule'))).toEqual([
+      'GAP',
+      'EXPERIENCE',
+      'MANUAL_DATE',
+    ]);
+    expect(qa('[data-testid="stores.pickups.rules.count"]')[0].textContent?.trim()).toBe('pickups.rules.count');
+  });
+
+  it('members: rules off hide the card', async () => {
+    await open({});
+    expect(qa('[data-testid="stores.pickups.rules"]')).toHaveLength(0);
+  });
+
+  it('members: a blocked free place is a "Gesperrt" chip that opens the reasons with the own dates', async () => {
+    await open({}, [blockedPickup], RULES_ON);
+    expect(qa('[data-testid="stores.pickups.slot.free"]')).toHaveLength(0);
+    const chip = qa('[data-testid="stores.pickups.slot.blocked"]');
+    expect(chip).toHaveLength(1);
+    expect(chip[0].getAttribute('data-rules')).toBe('1');
+    chip[0].click();
+    await settle();
+    http.expectOne(`/api/stores/s1/pickups/${encodeURIComponent(SAT)}/eligibility`).flush(blockedPickup.eligibility);
+    await settle();
+    // the dialog asks the server clock (past or upcoming pickup)
+    http.match('/api/public/app-info').forEach((request) => request.flush({ serverTime: '2030-11-01T09:00:00Z' }));
+    await settle();
+    const reasons = [...doc().querySelectorAll<HTMLElement>('[data-testid="pickups.blocked.reason"]')];
+    expect(reasons.map((reason) => reason.getAttribute('data-rule'))).toEqual(['GAP']);
+    expect(reasons[0].textContent).toContain('pickups.blocked.GAP');
+    expect(doc().querySelector('[data-testid="pickups.blocked.action"]')).not.toBeNull();
+    // the eligibility list does not repeat AUTOMATION_RULE
+    expect(doc().querySelector('[data-testid="shared.eligibility.reason"][data-reason="AUTOMATION_RULE"]')).toBeNull();
+  });
+
+  it('managers never see a blocked chip', async () => {
+    await open(MANAGER, [blockedPickup], RULES_ON);
+    expect(qa('[data-testid="stores.pickups.slot.blocked"]')).toHaveLength(0);
+    expect(qa('[data-testid="stores.pickups.slot.free"]')).toHaveLength(1);
+  });
+
+  // ---- decision 167 S3: linked-store step and "Verknüpfung fehlt" -------------------------------------------------
+
+  const linkOnly = {
+    ...pickup(SAT, 2, []),
+    eligibility: {
+      eligible: false,
+      reasons: ['AUTOMATION_RULE'],
+      ruleBlocks: [{ rule: 'LINKED_STORE', params: { stores: [{ id: 'y', name: 'Babu' }] } }],
+    },
+  };
+
+  it('members: a pickup that only misses its linked pickup stays a free place (the dialog books both)', async () => {
+    await open({}, [linkOnly], RULES_ON);
+    expect(qa('[data-testid="stores.pickups.slot.blocked"]')).toHaveLength(0);
+    expect(qa('[data-testid="stores.pickups.slot.free"]')).toHaveLength(1);
+  });
+
+  it('members: together with another rule the missing linked pickup is locked and counted', async () => {
+    const both = {
+      ...linkOnly,
+      eligibility: { ...linkOnly.eligibility, ruleBlocks: [...linkOnly.eligibility.ruleBlocks, ...blockedPickup.eligibility.ruleBlocks] },
+    };
+    await open({}, [both], RULES_ON);
+    expect(qa('[data-testid="stores.pickups.slot.blocked"]')[0].getAttribute('data-rules')).toBe('2');
+  });
+
+  it('managers see whose sign-up misses its linked pickup and until when', async () => {
+    const waiting = pickup(THU, 3, [{ user: PRIYA, confirmed: true, linkMissingUntil: '2030-11-06T11:00:00Z' } as { user: unknown; confirmed: boolean }]);
+    await open(MANAGER, [waiting], RULES_ON);
+    const line = qa('[data-testid="stores.pickups.linkMissingOther"]');
+    expect(line).toHaveLength(1);
+    expect(line[0].textContent).toContain('pickups.linked.missingOther');
+  });
+
   it('lists every extra slot of a pickup (AU6, decision 165)', async () => {
     const withExtras = [
       {
@@ -291,6 +387,7 @@ describe('store pickups tab: slot dialog modes and day chat (PU3, decision 165)'
     await harness.navigateByUrl('/stores/s1/pickups');
     http.expectOne('/api/stores/s1').flush(detail(permissions));
     await settle();
+    http.expectOne('/api/stores/s1/automation/rules').flush({ enabled: false, links: [], experience: false, manualDates: [], holidays: false });
     http.expectOne('/api/stores/s1/pickups').flush(list);
     answerClock(http);
     await settle();

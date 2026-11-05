@@ -54,7 +54,7 @@ public class StoreQueryService {
 
     public record Detail(Store store, StoreCategory category, StoreChain chain, List<Grocery> groceries, Region region,
                          String timeZone, List<User> managers, Map<StoreMembershipStatus, Long> teamCounts,
-                         StorePermissionService.Rights rights, boolean mayUseAutomations) {
+                         StorePermissionService.Rights rights) {
     }
 
     public record Metadata(List<StoreCategory> categories, Map<UUID, Long> categoryUsage, List<Grocery> groceries,
@@ -222,15 +222,7 @@ public class StoreQueryService {
                 groceryIds.isEmpty() ? List.of() : groceries.findAllById(groceryIds).stream()
                         .sorted(Comparator.comparing(Grocery::getName)).toList(),
                 regions.require(store.getRegionId()), regions.zoneOf(store.getRegionId()).getId(),
-                storeService.managers(store.getId()), storeService.teamCounts(store.getId()), r,
-                rights.mayUseAutomations(currentActor.principal().orElse(null), store));
-    }
-
-    /** mayUseAutomations of the current user for the store (permissions endpoint; 404 for unknown stores). */
-    public boolean mayUseAutomations(UUID storeId) {
-        SessionPrincipal actor = currentActor.requirePrincipal();
-        rights.requireMayKnowStore(actor);
-        return rights.mayUseAutomations(actor, storeService.require(storeId));
+                storeService.managers(store.getId()), storeService.teamCounts(store.getId()), r);
     }
 
     /** Rights of the current user (404 for unknown stores and for people who may not know stores). */
@@ -238,6 +230,45 @@ public class StoreQueryService {
         SessionPrincipal actor = currentActor.requirePrincipal();
         rights.requireMayKnowStore(actor);
         return rights.rights(actor, storeService.require(storeId));
+    }
+
+    /** A store found by name with the names of its region and ancestors, root first (link picker, S4). */
+    public record KnownStore(Store store, List<String> regionPath) {
+    }
+
+    /**
+     * Live stores the actor may know (StoreVisibility, decision 156) whose name, city or postcode contains {@code q},
+     * across all regions, without {@code excludeId} and permanently closed stores, by name. Empty for people who may
+     * not know stores. Constant query count per page: one search, one count, one region query per tree level.
+     */
+    public Page<KnownStore> searchKnown(String q, UUID excludeId, int page, int size) {
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        PageRequest request = PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), 50));
+        String needle = q == null ? "" : q.strip().toLowerCase(Locale.ROOT);
+        if (needle.length() < 2 || !visibility.mayKnowStores(actor)) {
+            return new PageImpl<>(List.of(), request, 0);
+        }
+        String pattern = "%" + needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        Page<Store> found = stores.searchLive(pattern, excludeId, CooperationStatus.PERMANENTLY_CLOSED, request);
+        Map<UUID, Region> known = new java.util.HashMap<>();
+        Set<UUID> wanted = found.getContent().stream().map(Store::getRegionId).collect(Collectors.toSet());
+        while (!wanted.isEmpty()) {
+            List<Region> level = regions.findAll(wanted);
+            level.forEach(region -> known.put(region.getId(), region));
+            wanted = level.stream().map(Region::getParentId).filter(java.util.Objects::nonNull)
+                    .filter(id -> !known.containsKey(id)).collect(Collectors.toSet());
+        }
+        return found.map(store -> new KnownStore(store, regionPath(store.getRegionId(), known)));
+    }
+
+    private static List<String> regionPath(UUID regionId, Map<UUID, Region> known) {
+        java.util.LinkedList<String> path = new java.util.LinkedList<>();
+        Set<UUID> seen = new java.util.HashSet<>();
+        for (Region region = known.get(regionId); region != null && seen.add(region.getId());
+             region = region.getParentId() == null ? null : known.get(region.getParentId())) {
+            path.addFirst(region.getName());
+        }
+        return List.copyOf(path);
     }
 
     /** Name and city of the live, flagged, established stores, by name (public partners list, S17 D8). */

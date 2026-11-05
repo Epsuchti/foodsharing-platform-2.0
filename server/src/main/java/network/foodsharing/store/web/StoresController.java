@@ -103,8 +103,7 @@ public class StoresController implements StoresApi {
 
     @Override
     public ResponseEntity<StorePermissions> getStorePermissions(UUID storeId) {
-        return ResponseEntity.ok(mapper.toPermissions(queries.permissionsOf(storeId))
-                .mayUseAutomations(queries.mayUseAutomations(storeId)));
+        return ResponseEntity.ok(mapper.toPermissions(queries.permissionsOf(storeId)));
     }
 
     @Override

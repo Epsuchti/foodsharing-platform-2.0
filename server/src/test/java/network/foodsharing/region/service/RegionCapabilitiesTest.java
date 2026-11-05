@@ -73,6 +73,6 @@ class RegionCapabilitiesTest {
         SessionPrincipal nina = principal(Role.STORE_MANAGER);
         when(permissions.mayAdministrateRegion(nina, HOME)).thenReturn(false);
 
-        assertThat(enrich(nina, "CAN_USE_AUTOMATIONS@" + UUID.randomUUID()).capabilities()).isEmpty();
+        assertThat(enrich(nina, "CAN_MANAGE_SURVEYS@" + UUID.randomUUID()).capabilities()).isEmpty();
     }
 }

@@ -3,7 +3,7 @@
 ## Goal
 Giving EinAbs is tied to a new **EinAb guide quiz** instead of a permission that anyone can grant. The quiz unlocks after N confirmed store pickups (N is a region setting, default 25). Passing it does not release you. An ambassador (region admin) or ORGA still releases you, and only people with a pass can be released. Existing guides must pass the quiz too, within a grace period.
 
-## Decisions (new decision 167, amends 40 and 74)
+## Decisions (new decision 168, amends 40 and 74)
 - `CAN_GIVE_INTRO_PICKUPS` stays as the internal "released in region X" flag. All existing checks keep working unchanged (guide pages, booking rules, funnel, nav).
 - New `QuizKind.EINAB_GUIDE`, a global quiz. Try and wait rules match STORE_MANAGER (`waitDays`, disqualification). No pass confirmation. The pass never expires.
 - Who may try: verified, at least FOODSAVER, and `MemberPickupStats.pickupCount(user)` (confirmed past store pickups only) ≥ the home region's `guideQuizMinPickups`. No home region means the global default of 25. People who currently hold `CAN_GIVE_INTRO_PICKUPS` anywhere skip the pickup threshold.
@@ -34,7 +34,7 @@ Out: a "request release" button for users (passing is the request), expiry or re
 - Regenerate server and client.
 
 **DB**
-- `db/changelog/changes/188-guide-quiz.yaml`: `region.guide_quiz_min_pickups INT NOT NULL DEFAULT 25`, plus the `EINAB_GUIDE` quiz row (production data, not seed) with `max_failure_points 2`, `question_count_timed 4`, `question_count_untimed 5`, the same as the STORE_MANAGER row.
+- `db/changelog/changes/190-guide-quiz.yaml`: `region.guide_quiz_min_pickups INT NOT NULL DEFAULT 25`, plus the `EINAB_GUIDE` quiz row (production data, not seed) with `max_failure_points 2`, `question_count_timed 4`, `question_count_untimed 5`, the same as the STORE_MANAGER row.
 - Placeholder questions go in seed only. Production gets real questions through the editor, and an empty pool must make `startQuizSession` answer 409 (verify the existing behaviour and add a test if it is missing).
 - Works on PostgreSQL and H2. No CLOB.
 
@@ -72,12 +72,12 @@ Out: a "request release" button for users (passing is the request), expiry or re
 - i18n: `features/quiz`, `features/intro-pickups`, `features/regions`, `features/onboarding` and the server mail texts, in de/en/gws/fr/it. `npm run i18n:check` must pass.
 
 **Seed** (`db/seed/`, fixed UUIDs, update `docs/seed-ids.md`)
-- `quiz/quiz_i18n.csv`: EINAB_GUIDE name and description in five languages. (The quiz row itself comes from changelog 188 with id `00000013-0001-4000-8000-000000000008`; the seed must not duplicate it.)
+- `quiz/quiz_i18n.csv`: EINAB_GUIDE name and description in five languages. (The quiz row itself comes from changelog 190 with id `00000013-0001-4000-8000-000000000008`; the seed must not duplicate it.)
 - 8 questions with 3–4 answers each, in five languages (`quiz_question*`, `quiz_answer*`). Topics: guide's role, hygiene briefing, checking ID, counting and confirming attendance, Fairteiler visit, cancellation, safety, the comment etiquette.
 - `quiz_session.csv`: passed EINAB_GUIDE session for `guide@local`. A passed session, not released, for `jumper@local`, who becomes the Ready-for-release candidate in Zürich. Make sure jumper has ≥ 25 confirmed past pickups or the session alone suffices; a candidate only needs the pass.
 - `bot@local` and the other WELCOME holders keep giving EinAbs only if they have a direct `region_permission` row. Check `region_permission.csv` and the seed e2e personas and fix fallout.
 
-**Docs**: decision 167 in `docs/decisions.md` (amends 40 and 74), the Q4 row in plan.md §Q, `docs/ledger.md`, and the plan §11 guide track text ("pickups → quiz → ambassador release").
+**Docs**: decision 168 in `docs/decisions.md` (amends 40 and 74), the Q4 row in plan.md §Q, `docs/ledger.md`, and the plan §11 guide track text ("pickups → quiz → ambassador release").
 
 ## UI
 Yes, a visible change: the candidate list on the guide admin page, the settings field, the journey GUIDE track states and a new quiz card. No mockup advised, because it reuses the existing list, card and settings patterns. Screenshot baselines are regenerated via CI (decision 161).
@@ -111,10 +111,10 @@ Yes, a visible change: the candidate list on the guide admin page, the settings 
 - [ ] The generic grant and WELCOME no longer hand out `CAN_GIVE_INTRO_PICKUPS`.
 - [ ] Existing guides get reminders; after `2027-01-15` those without a pass are revoked, their EinAbs flagged to admins; the job only revokes and is idempotent.
 - [ ] Seed, five-language i18n, `npm run i18n:check`, unit, IT and e2e `@Q4` green; screenshots regenerated via CI and reviewed.
-- [ ] Decision 167, the ledger and plan rows written.
+- [ ] Decision 168, the ledger and plan rows written.
 
 ## Risks
-- Removing the WELCOME grant silently removes guides who only had it through the group. **Mitigation:** changelog 188 inserts direct `region_permission` rows for current WELCOME function-group members (SQL over the group membership tables; if that is not portable to H2, use a one-off idempotent startup migration in `GuideQuizTransitionService`, run before the property change takes effect), so they get the grace period like everyone else.
+- Removing the WELCOME grant silently removes guides who only had it through the group. **Mitigation:** changelog 190 inserts direct `region_permission` rows for current WELCOME function-group members (SQL over the group membership tables; if that is not portable to H2, use a one-off idempotent startup migration in `GuideQuizTransitionService`, run before the property change takes effect), so they get the grace period like everyone else.
 - Production has no EINAB_GUIDE questions until the quiz AG adds them, so nobody can pass before the deadline. The ledger and handover must say this. The deadline is a property, so ops can push it.
 - Guides revoked at the deadline can no longer confirm attendance at their upcoming EinAbs. Admins have to reassign them, which is why `GUIDE_EINABS_NEED_GUIDE` exists.
 - Cross-module port: keep `quiz` independent of `intropickup` (ArchUnit module rules).

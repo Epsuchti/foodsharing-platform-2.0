@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Q4 transition (decision 167; dev name {@code guide-quiz-deadline}): daily 08:15 Zurich. Before the deadline it sends
+ * Q4 transition (decision 168; dev name {@code guide-quiz-deadline}): daily 08:15 Zurich. Before the deadline it sends
  * the GUIDE_QUIZ_REQUIRED reminders, from the deadline on it revokes the guides without an EinAb guide quiz pass
  * ({@link GuideQuizTransitionService}).
  */

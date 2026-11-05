@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Q4 (decision 167): the pickup gate of the EINAB_GUIDE quiz. A user may try it with at least
+ * Q4 (decision 168): the pickup gate of the EINAB_GUIDE quiz. A user may try it with at least
  * {@code guideQuizMinPickups} confirmed past store pickups ({@link MemberPickupStats#pickupCount}); the threshold
  * comes from the home region, the global default (25) without one. Current holders of CAN_GIVE_INTRO_PICKUPS skip
  * the threshold (existing guides must pass the quiz within the grace period).

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Q4 transition (decision 167): released guides (direct CAN_GIVE_INTRO_PICKUPS grants) must pass the EinAb guide
+ * Q4 transition (decision 168): released guides (direct CAN_GIVE_INTRO_PICKUPS grants) must pass the EinAb guide
  * quiz by {@code app.intropickup.guide-quiz-deadline}.
  * <ul>
  *   <li>Before the deadline: bell and mail GUIDE_QUIZ_REQUIRED to every guide without a valid pass, once in the

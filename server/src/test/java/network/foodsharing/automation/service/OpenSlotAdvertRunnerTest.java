@@ -99,7 +99,6 @@ class OpenSlotAdvertRunnerTest {
         a.setStoreId(STORE);
         a.setAdvertNumber(number);
         a.setEnabled(true);
-        a.setDryRun(false);
         a.setTriggerHoursBefore(hours);
         a.setChannels("STORE_CHAT");
         a.setStoreMessages(json.writeValueAsString(List.of("Frei am {{datetimeDe}} bei {{storeName}}")));
@@ -138,7 +137,7 @@ class OpenSlotAdvertRunnerTest {
     void pickupOutsideTheTriggerWindowGetsNoAdvert() {
         advert.setTriggerHoursBefore(5);
         slots(slot(PICKUP, 2));
-        var result = runner.run(List.of(advert), false);
+        var result = runner.run(List.of(advert));
         assertThat(result.evaluated()).isZero();
         verify(notifications, never()).notify(any());
     }
@@ -146,7 +145,7 @@ class OpenSlotAdvertRunnerTest {
     @Test
     void freeSlotInsideTheWindowSendsOneAdvertAndAuditsIt() {
         slots(slot(PICKUP, 2, USER));
-        var result = runner.run(List.of(advert), false);
+        var result = runner.run(List.of(advert));
         assertThat(result.confirmed()).isEqualTo(1);
         ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
         verify(teamChat).postToTeamChat(org.mockito.ArgumentMatchers.eq(STORE),
@@ -164,7 +163,7 @@ class OpenSlotAdvertRunnerTest {
     void existingAdvertIsNotSentAgain() {
         existingAudit(AdvertStatus.SENT);
         slots(slot(PICKUP, 2));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         verify(notifications, never()).notify(any());
         assertThat(saved).isEmpty();
     }
@@ -173,7 +172,7 @@ class OpenSlotAdvertRunnerTest {
     void occupiedAtTriggerRecordsTheFirstSignup() {
         UUID other = UUID.randomUUID();
         slots(slot(PICKUP, 2, USER, other));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(saved).singleElement().satisfies(a -> {
             assertThat(a.getStatus()).isEqualTo(AdvertStatus.OCCUPIED_AT_TRIGGER);
             assertThat(a.getUserId()).isEqualTo(USER);
@@ -185,10 +184,10 @@ class OpenSlotAdvertRunnerTest {
     void filledAfterAdvertIsMarkedAndClearedWhenFreedAgain() {
         OpenSlotAdvertAudit sent = existingAudit(AdvertStatus.SENT);
         slots(slot(PICKUP, 1, USER));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(sent.getFilledAt()).isEqualTo(NOW);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(sent.getFilledAt()).isNull();
     }
 
@@ -197,7 +196,7 @@ class OpenSlotAdvertRunnerTest {
         advert.setSendLateCancellationMessage(true);
         OpenSlotAdvertAudit occupied = existingAudit(AdvertStatus.OCCUPIED_AT_TRIGGER);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT);
         ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
         verify(notifications, times(1)).notify(requests.capture());
@@ -215,7 +214,7 @@ class OpenSlotAdvertRunnerTest {
         advert.setResendLatestAdvertAfterLateCancellation(false);
         OpenSlotAdvertAudit occupied = existingAudit(AdvertStatus.OCCUPIED_AT_TRIGGER);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_REMINDER_SENT);
     }
 
@@ -223,7 +222,7 @@ class OpenSlotAdvertRunnerTest {
     void lateCancellationAdvertOnlyWhenTheMessageIsOff() {
         OpenSlotAdvertAudit occupied = existingAudit(AdvertStatus.OCCUPIED_AT_TRIGGER);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_ADVERTISEMENT_SENT);
     }
 
@@ -232,7 +231,7 @@ class OpenSlotAdvertRunnerTest {
         advert.setResendLatestAdvertAfterLateCancellation(false);
         OpenSlotAdvertAudit occupied = existingAudit(AdvertStatus.OCCUPIED_AT_TRIGGER);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_NO_ACTION);
         verify(notifications, never()).notify(any());
     }
@@ -244,7 +243,7 @@ class OpenSlotAdvertRunnerTest {
         advert.setResendLatestAdvertAfterLateCancellation(false);
         OpenSlotAdvertAudit occupied = existingAudit(AdvertStatus.OCCUPIED_AT_TRIGGER);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_NO_ACTION);
     }
 
@@ -259,7 +258,7 @@ class OpenSlotAdvertRunnerTest {
         when(adverts.findByStoreIdOrderByAdvertNumber(STORE)).thenReturn(List.of(first, second));
         OpenSlotAdvertAudit occupied = existingAudit(AdvertStatus.OCCUPIED_AT_TRIGGER);
         slots(slot(PICKUP, 1));
-        runner.run(List.of(second), false);
+        runner.run(List.of(second));
         assertThat(occupied.getStatus()).isEqualTo(AdvertStatus.LATE_CANCELLATION_REMINDER_SENT);
     }
 
@@ -278,7 +277,7 @@ class OpenSlotAdvertRunnerTest {
     void maximumAdvertsPerRun() {
         properties.getAutomation().setMaxAdvertisementsPerRun(1);
         slots(slot(PICKUP, 1), slot(PICKUP.plus(Duration.ofHours(1)), 1));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         verify(teamChat, times(1)).postToTeamChat(org.mockito.ArgumentMatchers.eq(STORE),
                 org.mockito.ArgumentMatchers.eq(TeamChatPort.StoreChat.TEAM), anyString());
     }
@@ -296,7 +295,7 @@ class OpenSlotAdvertRunnerTest {
         when(telegram.sendForStore(eq(STORE), any(), anyCollection(), anyString(), anyString()))
                 .thenReturn(List.of(new TelegramChatService.SentMessage("-1002", 8L)));
         slots(slot(PICKUP, 2));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         verify(telegram).deleteMessage("-1002", 7L);
         assertThat(previous.getTelegramDeletedAt()).isEqualTo(NOW);
         assertThat(saved.getFirst().getTelegramMessageId()).isEqualTo(8L);
@@ -307,21 +306,20 @@ class OpenSlotAdvertRunnerTest {
         advert.setChannels("PUSH");
         advert.setPushMessages(json.writeValueAsString(List.of("Push {{time}}")));
         slots(slot(PICKUP, 2));
-        runner.run(List.of(advert), false);
+        runner.run(List.of(advert));
         verify(notifications).pushOnly(any());
         verify(notifications, never()).notify(any());
     }
 
     @Test
-    void dryRunOnlyWritesASummary() {
-        advert.setDryRun(true);
+    void noDryRunAnyMore_auditsAreLiveAndNoSummaryIsWritten() {
+        // decision 167: every enabled advert sends; DRY_RUN_SUMMARY is a read-only legacy status
         slots(slot(PICKUP, 2));
-        var result = runner.run(List.of(advert), false);
-        assertThat(result.dryRun()).isFalse();
-        verify(notifications, never()).notify(any());
+        var result = runner.run(List.of(advert));
+        assertThat(result.confirmed()).isEqualTo(1);
         assertThat(saved).singleElement().satisfies(a -> {
-            assertThat(a.getStatus()).isEqualTo(AdvertStatus.DRY_RUN_SUMMARY);
-            assertThat(a.getReason()).contains("would send 1");
+            assertThat(a.getStatus()).isEqualTo(AdvertStatus.SENT);
+            assertThat(a.isDryRun()).isFalse();
         });
     }
 
@@ -329,7 +327,7 @@ class OpenSlotAdvertRunnerTest {
     void advertWithoutMessagesForAChannelIsSkipped() {
         advert.setChannels("STORE_CHAT,PUSH");
         slots(slot(PICKUP, 2));
-        var result = runner.run(List.of(advert), false);
+        var result = runner.run(List.of(advert));
         assertThat(result.skipped()).isEqualTo(1);
         verify(notifications, never()).notify(any());
         verify(notifications, never()).pushOnly(any());

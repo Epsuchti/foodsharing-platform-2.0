@@ -221,6 +221,7 @@
   "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Dry run executed",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Decisions archived",
   "history.action.AUTOMATION.FIELD_CHANGED": "Field changed",
+  "history.action.AUTOMATION.LINK_MISSING": "Link missing",
   "history.action.SYSTEM.ADMIN_JOB_RUN_MANUAL": "Job run manually",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCKED": "Blocked automatically (rate limit)",
   "history.action.SYSTEM.ADMIN_RATE_LIMIT_BLOCK_LIFTED": "Automatic block lifted",

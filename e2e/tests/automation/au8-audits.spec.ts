@@ -4,7 +4,7 @@ import { expect, expectDataState, seedRegion, seedStore, test } from '../../fixt
 const ZH = seedRegion('zuerich-stadt').id;
 
 test('AU8 region coordinator sees all decisions, member only own decisions @AU8 @D10.3 @page', async ({ as }) => {
-  // bot: ambassador of Stadt Zürich with CAN_SEE_ALL_AUTOMATION_DECISIONS → decisions of several stores
+  // bot: ambassador of Stadt Zürich (no automation permission any more, decision 167) → decisions of several stores
   const bot = await as('bot');
   await bot.goto(`/regions/${ZH}`);
   await bot.getByTestId('regions.page.tab.automation').click();
@@ -15,7 +15,7 @@ test('AU8 region coordinator sees all decisions, member only own decisions @AU8 
   const stores = new Set(await rows.locator('.audit__title strong').allTextContents());
   expect(stores.size).toBeGreaterThan(1);
 
-  // filters: dry-run decisions only of kind PICKUP, expandable reasons
+  // filters: decisions of kind PICKUP only, expandable reasons
   await bot.getByTestId('automation.region.audits.kind.PICKUP').click();
   await expect(rows.first()).toHaveAttribute('data-kind', 'PICKUP');
   await rows.first().getByTestId('automation.region.audits.toggle').click();

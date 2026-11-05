@@ -19,8 +19,6 @@ import network.foodsharing.api.model.HolidayScope;
 import network.foodsharing.api.model.LinkedStoreRule;
 import network.foodsharing.api.model.LinkedStoreWindowMode;
 import network.foodsharing.api.model.MetricKey;
-import network.foodsharing.api.model.PickupPolicyDecision;
-import network.foodsharing.api.model.PolicyDecisionPreview;
 import network.foodsharing.api.model.PolicyReason;
 import network.foodsharing.api.model.PolicyRule;
 import network.foodsharing.api.model.RegionAutomationStore;
@@ -61,7 +59,6 @@ public class AutomationMapper {
         var p = view.policy();
         var model = new network.foodsharing.api.model.PickupPolicy();
         model.setEnabled(p.isEnabled());
-        model.setDryRun(p.isDryRun());
         model.setGapRuleEnabled(p.isGapRuleEnabled());
         model.setMinimumGapDays(p.getMinimumGapDays());
         model.setCleaningRuleEnabled(p.isCleaningRuleEnabled());
@@ -112,6 +109,8 @@ public class AutomationMapper {
         model.setGraceMinutes(link.getGraceMinutes());
         model.setMessage(link.getMessage());
         model.setMirrorOf(link.getMirrorOf());
+        model.setEditableStoreIds(view.stores().stream().map(Store::getId)
+                .filter(view.editableStoreIds()::contains).toList());
         return model;
     }
 
@@ -127,7 +126,7 @@ public class AutomationMapper {
                         rule.getGraceMinutes() == null ? 20 : rule.getGraceMinutes(), rule.getMessage(),
                         rule.getMirrorOf())).toList();
         return new PickupPolicyService.PolicyInput(Boolean.TRUE.equals(model.getEnabled()),
-                !Boolean.FALSE.equals(model.getDryRun()), Boolean.TRUE.equals(model.getGapRuleEnabled()),
+                Boolean.TRUE.equals(model.getGapRuleEnabled()),
                 value(model.getMinimumGapDays()), Boolean.TRUE.equals(model.getCleaningRuleEnabled()),
                 Boolean.TRUE.equals(model.getExperienceRuleEnabled()),
                 Boolean.TRUE.equals(model.getPublicHolidayRuleEnabled()), links,
@@ -142,7 +141,6 @@ public class AutomationMapper {
     public RequestPolicy toModel(network.foodsharing.automation.domain.RequestPolicy policy) {
         RequestPolicy model = new RequestPolicy();
         model.setEnabled(policy.isEnabled());
-        model.setDryRun(policy.isDryRun());
         model.setDistanceRuleEnabled(policy.isDistanceRuleEnabled());
         model.setMaximumDistanceKm(policy.getMaximumDistanceKm());
         model.setVersion(policy.getVersion());
@@ -151,7 +149,7 @@ public class AutomationMapper {
 
     public RequestPolicyService.RequestPolicyInput toInput(RequestPolicy model) {
         return new RequestPolicyService.RequestPolicyInput(Boolean.TRUE.equals(model.getEnabled()),
-                !Boolean.FALSE.equals(model.getDryRun()), Boolean.TRUE.equals(model.getDistanceRuleEnabled()),
+                Boolean.TRUE.equals(model.getDistanceRuleEnabled()),
                 model.getMaximumDistanceKm() == null ? 0 : model.getMaximumDistanceKm(), model.getVersion());
     }
 
@@ -163,18 +161,7 @@ public class AutomationMapper {
         model.setSkipped(result.skipped());
         model.setDeferred(result.deferred());
         model.setFailed(result.failed());
-        model.setDryRun(result.dryRun());
         model.setMessages(result.messages());
-        return model;
-    }
-
-    public PolicyDecisionPreview toModel(PickupPolicyEvaluator.Decision decision) {
-        PolicyDecisionPreview model = new PolicyDecisionPreview();
-        model.setDecision(decision.deferred() ? PickupPolicyDecision.DEFERRED
-                : decision.skipped() ? PickupPolicyDecision.SKIPPED
-                : decision.allowed() ? PickupPolicyDecision.WOULD_CONFIRM : PickupPolicyDecision.WOULD_DECLINE);
-        model.setReasons(reasons(decision.reasons()));
-        model.setUserMessage(decision.userMessage());
         return model;
     }
 
@@ -238,16 +225,72 @@ public class AutomationMapper {
         RegionAutomationStore model = new RegionAutomationStore();
         model.setStore(toStoreRef(overview.store()));
         model.setPickupPolicyEnabled(overview.pickupPolicy() != null && overview.pickupPolicy().isEnabled());
-        model.setDryRun(overview.pickupPolicy() != null && overview.pickupPolicy().isDryRun());
         model.setRequestPolicyEnabled(overview.requestPolicy() != null && overview.requestPolicy().isEnabled());
         model.setAdvertCount(overview.advertCount());
         model.setSignoutAlertEnabled(overview.signoutAlertEnabled());
+        model.setTelegramChatCount(overview.telegramChatCount());
         return model;
     }
 
     public static network.foodsharing.api.model.FspRef toFspRef(
             network.foodsharing.fsp.service.FspCleaningQueries.CleaningFsp fsp) {
         return new network.foodsharing.api.model.FspRef().id(fsp.id()).name(fsp.name());
+    }
+
+    /** The member summary of a store's rules (decision 167 S2). */
+    public network.foodsharing.api.model.StoreRuleSummary toModel(PickupPolicyService.RuleSummary summary) {
+        var model = new network.foodsharing.api.model.StoreRuleSummary()
+                .enabled(summary.enabled()).gapDays(summary.gapDays()).experience(summary.experience())
+                .cleaningMonths(summary.cleaningMonths()).manualDates(summary.manualDates())
+                .holidays(summary.holidays())
+                .links(summary.links().stream().map(link -> new network.foodsharing.api.model.StoreRuleLink()
+                        .stores(link.stores().stream().map(AutomationMapper::toStoreRef).toList())
+                        .windowMode(LinkedStoreWindowMode.fromValue(link.windowMode().name()))
+                        .before(link.before()).after(link.after())).toList());
+        if (summary.groupDays() != null) {
+            model.setGroup(new network.foodsharing.api.model.StoreRuleGroup().days(summary.groupDays())
+                    .stores(summary.groupStores().stream().map(AutomationMapper::toStoreRef).toList()));
+        }
+        return model;
+    }
+
+    /** The linked-store step of the sign-up dialog (decision 167 S3). */
+    public network.foodsharing.api.model.LinkedOptions toLinkedOptions(
+            network.foodsharing.automation.service.LinkedOptionsService.View view) {
+        Map<UUID, Store> named = view.blockStores();
+        return new network.foodsharing.api.model.LinkedOptions().rules(view.rules().stream().map(rule -> {
+            boolean lastDays = rule.rule().windowMode()
+                    == network.foodsharing.automation.domain.LinkedStoreWindowMode.LAST_DAYS;
+            var model = new network.foodsharing.api.model.LinkedOptionRule()
+                    .stores(rule.stores().stream().map(AutomationMapper::toStoreRef).toList())
+                    .windowMode(LinkedStoreWindowMode.fromValue(rule.rule().windowMode().name()))
+                    .before(lastDays ? rule.rule().windowDaysBefore() : 0)
+                    .after(lastDays ? rule.rule().windowDaysAfter() : 0)
+                    .from(network.foodsharing.pickup.mapper.PickupMapper.time(rule.from()))
+                    .to(network.foodsharing.pickup.mapper.PickupMapper.time(rule.to()))
+                    .notMember(rule.notMember().stream().map(AutomationMapper::toStoreRef).toList())
+                    .options(rule.options().stream().map(o -> new network.foodsharing.api.model.LinkedOption()
+                            .store(toStoreRef(o.store())).pickupAt(network.foodsharing.pickup.mapper.PickupMapper.time(o.pickupAt())).freeCount(o.freeCount())
+                            .reasons(o.reasons().stream().map(r -> network.foodsharing.api.model.PickupEligibilityReason
+                                    .fromValue(r.name())).toList())
+                            .ruleBlocks(o.blocks().stream().map(b -> network.foodsharing.pickup.mapper.PickupMapper
+                                    .toBlock(b, named)).toList())).toList());
+            if (rule.satisfiedStore() != null) {
+                model.setSatisfiedBy(new network.foodsharing.api.model.LinkedPickupRef()
+                        .store(toStoreRef(rule.satisfiedStore())).pickupAt(network.foodsharing.pickup.mapper.PickupMapper.time(rule.satisfiedAt())));
+            }
+            return model;
+        }).toList());
+    }
+
+    public network.foodsharing.api.model.LinkCandidate toModel(
+            network.foodsharing.automation.service.LinkCandidateService.Candidate candidate) {
+        return new network.foodsharing.api.model.LinkCandidate()
+                .store(toStoreRef(candidate.store()))
+                .city(candidate.store().getCity())
+                .regionPath(candidate.regionPath())
+                .automationEnabled(candidate.automationEnabled())
+                .mayEdit(candidate.mayEdit());
     }
 
     public static StoreRef toStoreRef(Store store) {
@@ -263,7 +306,6 @@ public class AutomationMapper {
         var model = new network.foodsharing.api.model.OpenSlotAdvert();
         model.setAdvertNumber(view.advertNumber());
         model.setEnabled(view.enabled());
-        model.setDryRun(view.dryRun());
         model.setTriggerHoursBefore(view.triggerHoursBefore());
         model.setChannels(view.channels().stream()
                 .map(c -> network.foodsharing.api.model.AdvertChannel.valueOf(c.name())).toList());
@@ -287,7 +329,7 @@ public class AutomationMapper {
                     network.foodsharing.automation.domain.AdvertChannel.valueOf(c.name())));
         }
         return new network.foodsharing.automation.service.OpenSlotAdvertService.AdvertInput(
-                Boolean.TRUE.equals(model.getEnabled()), Boolean.TRUE.equals(model.getDryRun()),
+                Boolean.TRUE.equals(model.getEnabled()),
                 model.getTriggerHoursBefore() == null ? 0 : model.getTriggerHoursBefore(), channels,
                 model.getTelegramChatId(), model.getStoreMessages(), model.getPushMessages(),
                 model.getTelegramMessages(), Boolean.TRUE.equals(model.getSendLateCancellationMessage()),

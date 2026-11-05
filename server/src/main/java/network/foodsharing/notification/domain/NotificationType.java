@@ -65,6 +65,8 @@ public enum NotificationType {
     // --- M4 ---
     PICKUP_AUTO_CONFIRMED_WITH_MESSAGE(AUTOMATION, "calendar-check"),
     PICKUP_AUTO_DECLINED(AUTOMATION, "calendar-x"),
+    /** Decision 167 S3: the linked-store pickup of a sign-up was signed out; book another before the deadline. */
+    PICKUP_LINK_MISSING(AUTOMATION, "unlink"),
     STORE_REQUEST_AUTO_ACCEPTED(AUTOMATION, "store"),
     STORE_REQUEST_AUTO_DECLINED(AUTOMATION, "store"),
     PICKUP_OPEN_SLOT(PICKUPS, "calendar-plus"),

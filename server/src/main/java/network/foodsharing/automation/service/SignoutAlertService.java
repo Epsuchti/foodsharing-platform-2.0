@@ -103,7 +103,7 @@ public class SignoutAlertService {
         this.tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
-    /** Setting of the store (no permission check; callers check mayUseAutomations). */
+    /** Setting of the store (no permission check; callers check mayEditStore). */
     @Transactional(readOnly = true)
     public Optional<SettingView> find(UUID storeId) {
         return settings.findByStoreId(storeId).map(this::view);
@@ -222,7 +222,7 @@ public class SignoutAlertService {
         cancellation.setStatus(CancellationStatus.OPEN);
         cancellation.setFinalCheckedAt(null);
         cancellation.setFinalNotifiedAt(null);
-        cancellation.setDryRun(properties.getAutomation().isDryRun());
+        cancellation.setDryRun(false);
         String userName = users.findActive(event.userId()).map(User::getDisplayName).orElse("");
         long hours = Duration.between(event.at(), event.pickupAt()).toHours();
         String when = PickupFormat.when(event.pickupAt(), schedule.zoneOf(store.get()));
@@ -230,11 +230,9 @@ public class SignoutAlertService {
                 + when + " ausgetragen. Belegt: " + cancellation.getOccupiedSlots() + "/"
                 + cancellation.getTotalSlots() + ".";
         cancellation.setMessage(text);
-        if (!cancellation.isDryRun()) {
-            alert(store.get(), setting, NotificationType.PICKUP_SIGNOUT_ALERT, null, event.pickupAt(), when, userName,
-                    text, hours, cancellation);
-            cancellation.setImmediateNotifiedAt(clock.instant());
-        }
+        alert(store.get(), setting, NotificationType.PICKUP_SIGNOUT_ALERT, null, event.pickupAt(), when, userName,
+                text, hours, cancellation);
+        cancellation.setImmediateNotifiedAt(clock.instant());
         cancellation = cancellations.save(cancellation);
         history.record(history.event(AutomationAction.SIGNOUT_CANCELLATION_RECORDED, cancellation.getId())
                 .actorAutomation(ACTOR).secondarySubject(event.userId()).region(store.get().getRegionId())

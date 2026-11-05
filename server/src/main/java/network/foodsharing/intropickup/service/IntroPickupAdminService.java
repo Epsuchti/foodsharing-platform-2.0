@@ -313,7 +313,7 @@ public class IntroPickupAdminService {
 
     /**
      * Enables (releases) / disables a guide: grant / revoke of CAN_GIVE_INTRO_PICKUPS in the region. Q4 (decision
-     * 167): only region administrators (ambassadors, ORGA) release, and only people with a valid EinAb guide quiz
+     * 168): only region administrators (ambassadors, ORGA) release, and only people with a valid EinAb guide quiz
      * pass; CAN_MANAGE_USERS holders may still disable.
      *
      * @throws ApiException 404 REGION_NOT_FOUND / USER_NOT_FOUND, 403, 409 NOT_REGION_MEMBER / GUIDE_QUIZ_NOT_PASSED

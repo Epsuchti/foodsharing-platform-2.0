@@ -46,7 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
-/** Q4 (decision 167): release needs a region administrator and an EinAb guide quiz pass; candidates list. */
+/** Q4 (decision 168): release needs a region administrator and an EinAb guide quiz pass; candidates list. */
 class IntroPickupAdminServiceGuideTest {
 
     private static final UUID REGION = UUID.randomUUID();

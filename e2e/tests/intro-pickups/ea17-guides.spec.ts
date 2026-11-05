@@ -2,7 +2,7 @@ import { SEED_NOW, expect, test } from '../../fixtures';
 import { ZH } from './_intro';
 
 /**
- * EA17: user managers pause guides (with a reason); paused guides cannot offer EinAbs. Q4 (decision 167): only
+ * EA17: user managers pause guides (with a reason); paused guides cannot offer EinAbs. Q4 (decision 168): only
  * ambassadors and ORGA release, and only people who passed the EinAb guide quiz (Ready-for-release list).
  */
 test.use({ seedReset: 'test', role: 'bot' });

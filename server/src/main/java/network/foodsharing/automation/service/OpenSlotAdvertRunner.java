@@ -97,13 +97,13 @@ public class OpenSlotAdvertRunner {
 
     /** All enabled adverts (job). */
     public PickupPolicyRunner.RunResult runAll() {
-        return run(adverts.findByEnabledTrueOrderByStoreIdAscAdvertNumberAsc(), false);
+        return run(adverts.findByEnabledTrueOrderByStoreIdAscAdvertNumberAsc());
     }
 
-    /** "Run now" for one store; {@code dryRun} forces a dry run. */
-    public PickupPolicyRunner.RunResult runStore(UUID storeId, boolean dryRun) {
+    /** "Run now" for one store (sends for real; no dry run, decision 167). */
+    public PickupPolicyRunner.RunResult runStore(UUID storeId) {
         return run(adverts.findByStoreIdOrderByAdvertNumber(storeId).stream().filter(OpenSlotAdvert::isEnabled)
-                .toList(), dryRun);
+                .toList());
     }
 
     private final class Counters {
@@ -117,12 +117,11 @@ public class OpenSlotAdvertRunner {
         final List<String> messages = new ArrayList<>();
     }
 
-    PickupPolicyRunner.RunResult run(List<OpenSlotAdvert> enabled, boolean forceDryRun) {
+    PickupPolicyRunner.RunResult run(List<OpenSlotAdvert> enabled) {
         if (!properties.getAutomation().isEnabled()) {
-            return new PickupPolicyRunner.RunResult(0, 0, 0, 0, 0, 0, true,
+            return new PickupPolicyRunner.RunResult(0, 0, 0, 0, 0, 0,
                     List.of("Open-slot adverts skipped: automation is disabled."));
         }
-        boolean globalDryRun = forceDryRun || properties.getAutomation().isDryRun();
         Instant now = clock.instant();
         Counters counters = new Counters();
         Map<UUID, List<OpenSlotAdvert>> byStore = enabled.stream().collect(Collectors.groupingBy(
@@ -142,7 +141,7 @@ public class OpenSlotAdvertRunner {
             for (OpenSlotAdvert advert : storeEnabled) {
                 try {
                     tx.executeWithoutResult(status -> runAdvert(store.get(), advert, settings, storeEnabled, slots,
-                            globalDryRun || advert.isDryRun(), now, counters));
+                            now, counters));
                 } catch (RuntimeException ex) {
                     counters.failed++;
                     counters.messages.add("Advert " + advert.getAdvertNumber() + " of " + store.get().getName()
@@ -151,23 +150,18 @@ public class OpenSlotAdvertRunner {
                 }
             }
         }
-        counters.messages.addFirst((globalDryRun ? "Would send " : "Processed ") + counters.acted + " message(s) after "
-                + "checking " + counters.evaluated + " pickup(s).");
+        counters.messages.addFirst("Processed " + counters.acted + " message(s) after checking " + counters.evaluated
+                + " pickup(s).");
         return new PickupPolicyRunner.RunResult(counters.evaluated, counters.acted, 0, counters.skipped, 0,
-                counters.failed, globalDryRun, counters.messages);
+                counters.failed, counters.messages);
     }
 
     private void runAdvert(Store store, OpenSlotAdvert advert, OpenSlotAdvert settings, List<OpenSlotAdvert> enabled,
-                           List<PickupSchedule.Slot> slots, boolean dryRun, Instant now, Counters counters) {
+                           List<PickupSchedule.Slot> slots, Instant now, Counters counters) {
         OpenSlotAdvertService.AdvertView view = service.view(advert);
         ZoneId zone = schedule.zoneOf(store);
-        int checked = 0;
-        int acted = 0;
         if (view.channels().isEmpty() || missingMessages(view)) {
             counters.skipped++;
-            if (dryRun) {
-                summary(store, advert, now, "Advert skipped: no channel or missing messages for a selected channel.");
-            }
             return;
         }
         int max = Math.max(0, properties.getAutomation().getMaxAdvertisementsPerRun());
@@ -178,26 +172,22 @@ public class OpenSlotAdvertRunner {
                 continue;
             }
             counters.evaluated++;
-            checked++;
             Optional<OpenSlotAdvertAudit> existing = audits
                     .findForPickup(advert.getId(),
                             pickupAt, advert.getTriggerHoursBefore(), AdvertStatus.DRY_RUN_SUMMARY)
                     .stream().findFirst();
             if (slot.occupied() >= slot.slotCount()) {
-                if (!dryRun) {
-                    existing.filter(a -> a.getFilledAt() == null && SENT_STATUSES.contains(a.getStatus()))
-                            .ifPresent(a -> a.setFilledAt(now));
-                    if (existing.isEmpty()) {
-                        UUID first = slot.signups().stream().min(Comparator.comparing(PickupSignup::getCreatedAt))
-                                .map(PickupSignup::getUserId).orElse(null);
-                        OpenSlotAdvertAudit audit = audit(store, advert, pickupAt, AdvertStatus.OCCUPIED_AT_TRIGGER,
-                                false);
-                        audit.setUserId(first);
-                        audit.setReason("Pickup was occupied when this advert became due.");
-                        audits.save(audit);
-                    }
-                    deleteTelegram(store.getId(), pickupAt, null, now);
+                existing.filter(a -> a.getFilledAt() == null && SENT_STATUSES.contains(a.getStatus()))
+                        .ifPresent(a -> a.setFilledAt(now));
+                if (existing.isEmpty()) {
+                    UUID first = slot.signups().stream().min(Comparator.comparing(PickupSignup::getCreatedAt))
+                            .map(PickupSignup::getUserId).orElse(null);
+                    OpenSlotAdvertAudit audit = audit(store, advert, pickupAt, AdvertStatus.OCCUPIED_AT_TRIGGER);
+                    audit.setUserId(first);
+                    audit.setReason("Pickup was occupied when this advert became due.");
+                    audits.save(audit);
                 }
+                deleteTelegram(store.getId(), pickupAt, null, now);
                 counters.skipped++;
                 continue;
             }
@@ -206,12 +196,11 @@ public class OpenSlotAdvertRunner {
                     properties.getBaseUrl() + "/stores/" + store.getId() + "/pickups");
             if (existing.isPresent()) {
                 OpenSlotAdvertAudit audit = existing.get();
-                if (!dryRun && audit.getFilledAt() != null) {
+                if (audit.getFilledAt() != null) {
                     audit.setFilledAt(null);
                 }
                 if (audit.getStatus() == AdvertStatus.OCCUPIED_AT_TRIGGER) {
-                    acted += lateCancellation(store, advert, settings, enabled, audit, values, dryRun, now, max,
-                            counters);
+                    lateCancellation(store, advert, settings, enabled, audit, values, now, max, counters);
                 } else {
                     counters.skipped++;
                     // "Run now" feedback: one advert per pickup and trigger, so a re-run after a channel change
@@ -225,36 +214,29 @@ public class OpenSlotAdvertRunner {
                 counters.skipped++;
                 break;
             }
-            Sent sent = send(store, view, values, dryRun);
-            if (!dryRun) {
-                OpenSlotAdvertAudit audit = audit(store, advert, pickupAt, AdvertStatus.SENT, false);
-                audit.setReason("Advert sent.");
-                audit.setMessage(sent.text());
-                audit.setSentAt(now);
-                audit.setTelegramChatId(sent.telegramChatId());
-                audit.setTelegramMessageId(sent.telegramMessageId());
-                audit = audits.save(audit);
-                if (sent.telegramMessageId() != null) {
-                    deleteTelegram(store.getId(), pickupAt, audit.getId(), now);
-                }
-                history.record(history.event(AutomationAction.ADVERT_SENT, advert.getId()).actorAutomation(ACTOR)
-                        .region(store.getRegionId()).metadata("storeId", store.getId().toString())
-                        .metadata("pickupAt", pickupAt.toString()).metadata("advertNumber", advert.getAdvertNumber())
-                        .build());
+            Sent sent = send(store, view, values);
+            OpenSlotAdvertAudit audit = audit(store, advert, pickupAt, AdvertStatus.SENT);
+            audit.setReason("Advert sent.");
+            audit.setMessage(sent.text());
+            audit.setSentAt(now);
+            audit.setTelegramChatId(sent.telegramChatId());
+            audit.setTelegramMessageId(sent.telegramMessageId());
+            audit = audits.save(audit);
+            if (sent.telegramMessageId() != null) {
+                deleteTelegram(store.getId(), pickupAt, audit.getId(), now);
             }
-            acted++;
+            history.record(history.event(AutomationAction.ADVERT_SENT, advert.getId()).actorAutomation(ACTOR)
+                    .region(store.getRegionId()).metadata("storeId", store.getId().toString())
+                    .metadata("pickupAt", pickupAt.toString()).metadata("advertNumber", advert.getAdvertNumber())
+                    .build());
             counters.acted++;
             counters.sent++;
         }
-        if (dryRun) {
-            summary(store, advert, now, "Checked " + checked + " pickup(s), would send " + acted + " message(s).");
-        }
     }
 
-    private int lateCancellation(Store store, OpenSlotAdvert advert, OpenSlotAdvert settings,
-                                 List<OpenSlotAdvert> enabled, OpenSlotAdvertAudit audit,
-                                 AdvertTemplates.Values values, boolean dryRun, Instant now, int max,
-                                 Counters counters) {
+    private void lateCancellation(Store store, OpenSlotAdvert advert, OpenSlotAdvert settings,
+                                  List<OpenSlotAdvert> enabled, OpenSlotAdvertAudit audit,
+                                  AdvertTemplates.Values values, Instant now, int max, Counters counters) {
         Instant pickupAt = values.pickupAt();
         String key = store.getId() + ":" + pickupAt;
         boolean sendMessage = settings.isSendLateCancellationMessage()
@@ -266,41 +248,37 @@ public class OpenSlotAdvertRunner {
                 && !counters.lateAdvertSent.contains(key)
                 && !audits.existsByStoreIdAndPickupAtAndStatusIn(store.getId(), pickupAt, LATE_ADVERT_STATUSES);
         if (!sendMessage && !sendAdvert) {
-            if (!dryRun) {
-                audit.setStatus(AdvertStatus.LATE_CANCELLATION_NO_ACTION);
-                audit.setReason("No late-cancellation action is enabled or applicable for this pickup.");
-            }
+            audit.setStatus(AdvertStatus.LATE_CANCELLATION_NO_ACTION);
+            audit.setReason("No late-cancellation action is enabled or applicable for this pickup.");
             counters.skipped++;
-            return 0;
+            return;
         }
         String reminder = sendMessage ? AdvertTemplates.render(settings.getLateCancellationMessage(), values) : null;
-        if (!dryRun) {
-            if (sendMessage) {
-                notifications.notify(NotificationRequest.to(List.of(audit.getUserId()),
-                                NotificationType.PICKUP_LATE_CANCELLATION)
-                        .param("storeId", store.getId().toString()).param("storeName", store.getName())
-                        .param("pickupAt", pickupAt.toString())
-                        .param("when", network.foodsharing.pickup.service.PickupFormat.when(pickupAt, values.zone()))
-                        .param("message", reminder).link("/stores/" + store.getId() + "/pickups")
-                        .mail("notification/PICKUP_LATE_CANCELLATION").senderRegion(store.getRegionId()).build());
-            }
-            Sent sent = sendAdvert ? send(store, service.view(advert), values, false) : null;
-            audit.setStatus(sendMessage && sendAdvert ? AdvertStatus.LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT
-                    : sendMessage ? AdvertStatus.LATE_CANCELLATION_REMINDER_SENT
-                    : AdvertStatus.LATE_CANCELLATION_ADVERTISEMENT_SENT);
-            audit.setReason("Pickup was released after this advert time.");
-            audit.setMessage(sendMessage ? reminder : sent.text());
-            audit.setSentAt(now);
-            if (sent != null && sent.telegramMessageId() != null) {
-                audit.setTelegramChatId(sent.telegramChatId());
-                audit.setTelegramMessageId(sent.telegramMessageId());
-                deleteTelegram(store.getId(), pickupAt, audit.getId(), now);
-            }
-            history.record(history.event(AutomationAction.LATE_CANCELLATION_HANDLED, advert.getId())
-                    .actorAutomation(ACTOR).region(store.getRegionId()).secondarySubject(audit.getUserId())
-                    .metadata("storeId", store.getId().toString()).metadata("pickupAt", pickupAt.toString())
-                    .metadata("status", audit.getStatus().name()).build());
+        if (sendMessage) {
+            notifications.notify(NotificationRequest.to(List.of(audit.getUserId()),
+                            NotificationType.PICKUP_LATE_CANCELLATION)
+                    .param("storeId", store.getId().toString()).param("storeName", store.getName())
+                    .param("pickupAt", pickupAt.toString())
+                    .param("when", network.foodsharing.pickup.service.PickupFormat.when(pickupAt, values.zone()))
+                    .param("message", reminder).link("/stores/" + store.getId() + "/pickups")
+                    .mail("notification/PICKUP_LATE_CANCELLATION").senderRegion(store.getRegionId()).build());
         }
+        Sent sent = sendAdvert ? send(store, service.view(advert), values) : null;
+        audit.setStatus(sendMessage && sendAdvert ? AdvertStatus.LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT
+                : sendMessage ? AdvertStatus.LATE_CANCELLATION_REMINDER_SENT
+                : AdvertStatus.LATE_CANCELLATION_ADVERTISEMENT_SENT);
+        audit.setReason("Pickup was released after this advert time.");
+        audit.setMessage(sendMessage ? reminder : sent.text());
+        audit.setSentAt(now);
+        if (sent != null && sent.telegramMessageId() != null) {
+            audit.setTelegramChatId(sent.telegramChatId());
+            audit.setTelegramMessageId(sent.telegramMessageId());
+            deleteTelegram(store.getId(), pickupAt, audit.getId(), now);
+        }
+        history.record(history.event(AutomationAction.LATE_CANCELLATION_HANDLED, advert.getId())
+                .actorAutomation(ACTOR).region(store.getRegionId()).secondarySubject(audit.getUserId())
+                .metadata("storeId", store.getId().toString()).metadata("pickupAt", pickupAt.toString())
+                .metadata("status", audit.getStatus().name()).build());
         if (sendMessage) {
             counters.lateMessageSent.add(key);
         }
@@ -308,9 +286,7 @@ public class OpenSlotAdvertRunner {
             counters.lateAdvertSent.add(key);
             counters.sent++;
         }
-        int acted = (sendMessage ? 1 : 0) + (sendAdvert ? 1 : 0);
-        counters.acted += acted;
-        return acted;
+        counters.acted += (sendMessage ? 1 : 0) + (sendAdvert ? 1 : 0);
     }
 
     /** The enabled advert of the store whose trigger time is the latest one already due (ties: highest number). */
@@ -325,8 +301,7 @@ public class OpenSlotAdvertRunner {
     record Sent(String text, String telegramChatId, Long telegramMessageId) {
     }
 
-    private Sent send(Store store, OpenSlotAdvertService.AdvertView view, AdvertTemplates.Values values,
-                      boolean dryRun) {
+    private Sent send(Store store, OpenSlotAdvertService.AdvertView view, AdvertTemplates.Values values) {
         List<String> texts = new ArrayList<>();
         String chatId = null;
         Long messageId = null;
@@ -337,22 +312,18 @@ public class OpenSlotAdvertRunner {
             // M5 (A33): a system message in the team and jumper chats replaces the grouped M4 bell (decision 61).
             String text = AdvertTemplates.render(random(view.storeMessages()), values);
             texts.add(text);
-            if (!dryRun) {
-                teamChat.postToTeamChat(store.getId(), TeamChatPort.StoreChat.TEAM, text);
-                teamChat.postToTeamChat(store.getId(), TeamChatPort.StoreChat.JUMPER, text);
-            }
+            teamChat.postToTeamChat(store.getId(), TeamChatPort.StoreChat.TEAM, text);
+            teamChat.postToTeamChat(store.getId(), TeamChatPort.StoreChat.JUMPER, text);
         }
         if (view.channels().contains(AdvertChannel.PUSH)) {
             String text = AdvertTemplates.render(random(view.pushMessages()), values);
             texts.add(text);
-            if (!dryRun) {
-                notifications.pushOnly(request(recipients, store, values, text, identifier).build());
-            }
+            notifications.pushOnly(request(recipients, store, values, text, identifier).build());
         }
         if (view.channels().contains(AdvertChannel.TELEGRAM)) {
             String text = AdvertTemplates.render(random(view.telegramMessages()), values);
             texts.add(text);
-            if (!dryRun && view.telegramChatId() != null) {
+            if (view.telegramChatId() != null) {
                 List<TelegramChatService.SentMessage> sent = telegram.sendForStore(store.getId(),
                         store.getRegionId(), List.of(view.telegramChatId()), text, "PICKUP_OPEN_SLOT");
                 if (!sent.isEmpty()) {
@@ -390,18 +361,8 @@ public class OpenSlotAdvertRunner {
         }
     }
 
-    private void summary(Store store, OpenSlotAdvert advert, Instant now, String reason) {
-        OpenSlotAdvertAudit audit = audit(store, advert, null, AdvertStatus.DRY_RUN_SUMMARY, true);
-        audit.setReason(reason);
-        audit.setSentAt(now);
-        audits.save(audit);
-        history.record(history.event(AutomationAction.DRY_RUN_EXECUTED, advert.getId()).actorAutomation(ACTOR)
-                .region(store.getRegionId()).metadata("storeId", store.getId().toString())
-                .metadata("advertNumber", advert.getAdvertNumber()).build());
-    }
-
-    private static OpenSlotAdvertAudit audit(Store store, OpenSlotAdvert advert, Instant pickupAt, AdvertStatus status,
-                                             boolean dryRun) {
+    private static OpenSlotAdvertAudit audit(Store store, OpenSlotAdvert advert, Instant pickupAt,
+                                             AdvertStatus status) {
         OpenSlotAdvertAudit audit = new OpenSlotAdvertAudit();
         audit.setAdvertId(advert.getId());
         audit.setAdvertNumber(advert.getAdvertNumber());
@@ -410,7 +371,7 @@ public class OpenSlotAdvertRunner {
         audit.setPickupAt(pickupAt);
         audit.setTriggerHoursBefore(advert.getTriggerHoursBefore());
         audit.setStatus(status);
-        audit.setDryRun(dryRun);
+        audit.setDryRun(false);
         return audit;
     }
 

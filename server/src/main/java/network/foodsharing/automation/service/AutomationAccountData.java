@@ -25,6 +25,7 @@ public class AutomationAccountData implements AccountDeletionContributor, DataEx
     @Override
     public void onAccountDeleted(UUID userId) {
         UserRows.delete(em, "CleaningRuleExemption", "userId", userId);
+        UserRows.delete(em, "PickupLinkPending", "userId", userId);
         em.createQuery("update PickupPolicyAudit a set a.userId = null where a.userId = :userId")
                 .setParameter("userId", userId).executeUpdate();
         em.createQuery("update RequestPolicyAudit a set a.userId = null where a.userId = :userId")
@@ -45,6 +46,7 @@ public class AutomationAccountData implements AccountDeletionContributor, DataEx
         data.put("pickupPolicyDecisions", UserRows.read(em, "PickupPolicyAudit", "userId", userId, "storeId", "pickupAt", "decision", "userMessage"));
         data.put("requestPolicyDecisions", UserRows.read(em, "RequestPolicyAudit", "userId", userId, "storeId", "status", "message"));
         data.put("openSlotAdverts", UserRows.read(em, "OpenSlotAdvertAudit", "userId", userId, "storeId", "pickupAt", "sentAt"));
+        data.put("linkPending", UserRows.read(em, "PickupLinkPending", "userId", userId, "storeId", "pickupAt", "linkedStoreId", "deadlineAt"));
         data.put("signoutCancellations", UserRows.read(em, "SignoutCancellation", "userId", userId, "storeId", "pickupAt", "cancelledAt"));
         return data;
     }

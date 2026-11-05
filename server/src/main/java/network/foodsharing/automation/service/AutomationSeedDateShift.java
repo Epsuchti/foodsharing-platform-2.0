@@ -45,6 +45,9 @@ public class AutomationSeedDateShift implements SeedDateShiftContributor {
         for (String column : List.of("created_at", "updated_at", "pickup_at")) {
             shiftTimestamp("pickup_extra_slot", column, delta);
         }
+        for (String column : List.of("created_at", "updated_at", "pickup_at", "deadline_at")) {
+            shiftTimestamp("pickup_link_pending", column, delta);
+        }
         long days = delta.toDays();
         if (days != 0) {
             // Row by row, latest first when moving forward, so (region, day, key) stays unique on Postgres.

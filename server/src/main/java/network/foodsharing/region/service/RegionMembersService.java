@@ -216,7 +216,7 @@ public class RegionMembersService {
 
     /**
      * Grants a region permission (administrators of the region). CAN_GIVE_INTRO_PICKUPS is refused: it is the guide
-     * release of the EinAb admin page, which needs the EinAb guide quiz pass (Q4, decision 167).
+     * release of the EinAb admin page, which needs the EinAb guide quiz pass (Q4, decision 168).
      *
      * @throws ApiException 403 ACCESS_DENIED, 404 REGION_NOT_FOUND / USER_NOT_FOUND, 409 NOT_A_MEMBER /
      *                      USE_GUIDE_RELEASE

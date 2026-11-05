@@ -42,7 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/** Q4 transition (decision 167): reminders before the deadline, revocation from it on, idempotent. */
+/** Q4 transition (decision 168): reminders before the deadline, revocation from it on, idempotent. */
 class GuideQuizTransitionServiceTest {
 
     private static final UUID ZH = UUID.randomUUID();

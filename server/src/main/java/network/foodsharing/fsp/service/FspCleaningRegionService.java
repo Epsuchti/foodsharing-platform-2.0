@@ -20,7 +20,6 @@ import network.foodsharing.fsp.repository.RegionCleaningFspRepository;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.CurrentActorService;
-import network.foodsharing.security.Permission;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The Fairteiler of a region that count for the cleaning rule (FS2, AU1). Edited by the region's ambassadors and
- * whoever has CAN_USE_AUTOMATIONS there (D8, as cleaning exemptions). Only ACTIVE, live Fairteiler of the region
+ * ORGA (D8, as cleaning exemptions). Only ACTIVE, live Fairteiler of the region
  * itself with cleaning shifts can be linked (D7); switching cleaning off, deactivating or deleting a Fairteiler removes
  * its links with history.
  */
@@ -153,8 +152,7 @@ public class FspCleaningRegionService {
     private void requireEditor(UUID regionId) {
         regions.require(regionId);
         SessionPrincipal actor = actors.requirePrincipal();
-        if (!permissions.mayAdministrateRegion(actor, regionId)
-                && !permissions.has(actor, Permission.CAN_USE_AUTOMATIONS, regionId)) {
+        if (!permissions.mayAdministrateRegion(actor, regionId)) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
     }

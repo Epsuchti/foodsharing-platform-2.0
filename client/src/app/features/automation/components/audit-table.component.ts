@@ -31,7 +31,8 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
 
 /**
  * `fs-automation-audit-table` (AU8): kind filter chips, "exclude confirmed", date range, decision badges, expandable
- * reasons (rule chip + text), user message, dry-run tag, "load more" paging. Used by the store and region pages.
+ * reasons (rule chip + text), user message, "load more" paging. Used by the store and region pages. Legacy WOULD_* rows
+ * keep their label (decision 167).
  */
 @Component({
   selector: 'fs-automation-audit-table',
@@ -75,12 +76,9 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
       <ng-template [fsData]="first">
         <ul class="list" [attr.data-testid]="testId() + '.list'">
           @for (audit of items(); track audit.id) {
-            <li class="fs-card audit" [attr.data-testid]="testId() + '.row'" [attr.data-kind]="audit.kind" [attr.data-status]="audit.status" [attr.data-dry-run]="audit.dryRun">
+            <li class="fs-card audit" [attr.data-testid]="testId() + '.row'" [attr.data-kind]="audit.kind" [attr.data-status]="audit.status">
               <button type="button" class="audit__head" [attr.aria-expanded]="open().has(audit.id)" (click)="toggle(audit.id)" [attr.data-testid]="testId() + '.toggle'">
                 <span [class]="'badge badge--' + tone(audit.status)" [attr.data-testid]="testId() + '.status'">{{ statusLabel(audit) | t }}</span>
-                @if (audit.dryRun) {
-                  <span class="badge badge--dry" [attr.data-testid]="testId() + '.dryRun'">{{ 'automation.common.dryRunTag' | t }}</span>
-                }
                 <span class="badge">{{ 'automation.kind.' + audit.kind | t }}</span>
                 <span class="grow audit__title">
                   @if (showStore()) {
@@ -203,6 +201,8 @@ export class AuditTableComponent {
   protected tone = decisionTone;
 
   protected statusLabel(audit: AutomationAudit): string {
+    // decision 167 S2: a declined sign-up was blocked by the rules ("Gesperrt"); request declines keep "Abgelehnt"
+    if (audit.kind === AuditKind.Pickup && audit.status === 'DECLINED') return 'automation.decision.BLOCKED';
     return `automation.decision.${audit.status}`;
   }
 

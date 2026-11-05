@@ -17,7 +17,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Q4 (decision 167): after a pass of the EINAB_GUIDE quiz the ambassadors of the user's home region get the bell
+ * Q4 (decision 168): after a pass of the EINAB_GUIDE quiz the ambassadors of the user's home region get the bell
  * GUIDE_QUIZ_PASSED, linking to the Ready-for-release list of the EinAb admin page. Without a home region nobody is
  * told (the user shows up as a candidate in every region they are a member of).
  */

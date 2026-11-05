@@ -30,7 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * Q4 (decision 167) end to end on the seed (e2e profile, clock fixed at SEED_NOW): the EinAb guide quiz is listed only
+ * Q4 (decision 168) end to end on the seed (e2e profile, clock fixed at SEED_NOW): the EinAb guide quiz is listed only
  * from the region's pickup threshold, a pass rings the ambassadors, only region administrators release people with
  * a pass, the generic grant refuses the guide permission, and the deadline job reminds and then revokes.
  */

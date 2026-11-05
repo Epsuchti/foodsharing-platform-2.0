@@ -62,7 +62,7 @@ class PickupPolicyEvaluatorTest {
 
     static Spec policy(boolean gap, int minGap, boolean cleaning, boolean experience, boolean holiday,
                        Set<LocalDate> excluded, List<LinkRule> links) {
-        return new Spec(UUID.randomUUID(), STORE, true, false, gap, minGap, cleaning, experience, holiday, excluded,
+        return new Spec(UUID.randomUUID(), STORE, true, gap, minGap, cleaning, experience, holiday, excluded,
                 links);
     }
 
@@ -182,7 +182,7 @@ class PickupPolicyEvaluatorTest {
     Spec grouped(boolean ownOn, int ownGap, int groupGap, UUID... others) {
         data.names.put(CHAIN, "Coop Stauffacher");
         data.names.put(CHAIN_2, "Coop Wiedikon");
-        return new Spec(UUID.randomUUID(), STORE, true, false, ownOn, ownGap, false, false, false, Set.of(), List.of(),
+        return new Spec(UUID.randomUUID(), STORE, true, ownOn, ownGap, false, false, false, Set.of(), List.of(),
                 List.of(others), others.length == 0 ? 0 : groupGap);
     }
 
@@ -233,7 +233,7 @@ class PickupPolicyEvaluatorTest {
         data.signups.add(new Signup(CHAIN, USER, there, false, signedUp));
         assertThat(rules(evaluator.evaluate(listed(2, CHAIN), here, USER, data))).containsExactly(PolicyRule.GAP);
         // seen from the other store of the list
-        Spec chain = new Spec(UUID.randomUUID(), CHAIN, true, false, true, 2, false, false, false, Set.of(),
+        Spec chain = new Spec(UUID.randomUUID(), CHAIN, true, true, 2, false, false, false, Set.of(),
                 List.of(), List.of(STORE), 2);
         assertThat(rules(evaluator.evaluate(chain, there, USER, data))).containsExactly(PolicyRule.GAP);
     }
@@ -361,7 +361,7 @@ class PickupPolicyEvaluatorTest {
         assertThat(d.reasons().getFirst().text()).startsWith("Du hast bereits am 13.11.2026").contains("mindestens 3 Tage")
                 .doesNotContain(OWN_TEXT);
         // the same pickup without the list passes
-        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 1, false, false, false, Set.of(),
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, true, 1, false, false, false, Set.of(),
                 List.of());
         assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
     }
@@ -399,7 +399,7 @@ class PickupPolicyEvaluatorTest {
         own(at("2026-11-14T19:00"), NOW);
         data.signups.add(new Signup(CHAIN, USER, at("2026-11-12T19:00"), true, NOW));
         // the group row says 5, but no other live store is left: only the own gap of 2 applies
-        Spec lonely = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+        Spec lonely = new Spec(UUID.randomUUID(), STORE, true, true, 2, false, false, false, Set.of(),
                 List.of(), List.of(), 5);
         assertThat(evaluator.evaluate(lonely, pickup, USER, data).allowed()).isTrue();
     }
@@ -408,7 +408,7 @@ class PickupPolicyEvaluatorTest {
     void anEmptyListBehavesAsBeforeAndIgnoresOtherStores() {
         Instant pickup = at("2026-11-11T19:00");
         data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
-        Spec alone = new Spec(UUID.randomUUID(), STORE, true, false, true, 2, false, false, false, Set.of(),
+        Spec alone = new Spec(UUID.randomUUID(), STORE, true, true, 2, false, false, false, Set.of(),
                 List.of(), List.of(), 0);
         assertThat(evaluator.evaluate(alone, pickup, USER, data).allowed()).isTrue();
         data.signups.add(new Signup(STORE, USER, at("2026-11-12T19:00"), true, NOW));
@@ -632,9 +632,11 @@ class PickupPolicyEvaluatorTest {
     }
 
     @Test
-    void missingLinkedPickupDefersWithinGrace() {
+    void missingLinkedPickupDefersWhileTheSignOutDeadlineRuns() {
+        // decision 167 S3: the linked pickup was signed out, the person has until the pending row's deadline
         Instant pickup = at("2026-11-12T19:00");
-        data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofMinutes(10))));
+        data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofDays(1))));
+        data.pending.put(pickup, NOW.plus(Duration.ofMinutes(20)));
         Decision d = evaluator.evaluate(linked(sameDay(30, null)), pickup, USER, data);
         assertThat(d.deferred()).isTrue();
         assertThat(rules(d)).containsExactly(PolicyRule.LINKED_STORE);
@@ -643,11 +645,31 @@ class PickupPolicyEvaluatorTest {
     }
 
     @Test
-    void graceIsAtLeastTwentyMinutesAndExtendedByOutages() {
+    void missingLinkedPickupWithoutASignOutDeadlineDeclinesAtOnce() {
+        // decision 167 S3: no grace from the sign-up any more (the linked pickup is booked in the same step)
         Instant pickup = at("2026-11-12T19:00");
-        data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofMinutes(25))));
-        data.outage = Duration.ofMinutes(10);
-        assertThat(evaluator.evaluate(linked(sameDay(5, null)), pickup, USER, data).deferred()).isTrue();
+        data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofMinutes(5))));
+        Decision d = evaluator.evaluate(linked(sameDay(120, null)), pickup, USER, data);
+        assertThat(d.deferred()).isFalse();
+        assertThat(d.allowed()).isFalse();
+        assertThat(rules(d)).containsExactly(PolicyRule.LINKED_STORE);
+        // the deadline has passed: declined as well
+        data.pending.put(pickup, NOW.minusSeconds(1));
+        assertThat(evaluator.evaluate(linked(sameDay(120, null)), pickup, USER, data).deferred()).isFalse();
+    }
+
+    @Test
+    void linkMatchesNameTheLinkedPickupPerRuleAndNeverUseOneTwice() {
+        Instant first = at("2026-11-12T19:00");
+        Instant second = at("2026-11-12T20:00");
+        data.signups.add(new Signup(STORE, USER, first, true, NOW.minus(Duration.ofDays(1))));
+        data.signups.add(new Signup(LINKED, USER, at("2026-11-12T09:00"), true, NOW));
+        Spec spec = linked(sameDay(20, null));
+        assertThat(evaluator.linkMatches(spec, first, USER, data)).singleElement()
+                .satisfies(m -> assertThat(m).hasValueSatisfying(v -> assertThat(v.storeId()).isEqualTo(LINKED)));
+        // a second pickup the same day finds the linked pickup taken by the first
+        assertThat(evaluator.linkMatches(spec, second, USER, data)).singleElement()
+                .satisfies(m -> assertThat(m).isEmpty());
     }
 
     @Test
@@ -707,13 +729,13 @@ class PickupPolicyEvaluatorTest {
         Instant linkedPickup = at("2026-11-12T09:00");
         data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofHours(1))));
         data.signups.add(new Signup(LINKED, USER, linkedPickup, false, NOW.minus(Duration.ofHours(1))));
-        Spec mirror = new Spec(UUID.randomUUID(), LINKED, true, false, false, 0, false, false, false, Set.of(),
+        Spec mirror = new Spec(UUID.randomUUID(), LINKED, true, false, 0, false, false, false, Set.of(),
                 List.of(new LinkRule(List.of(STORE), LinkedStoreWindowMode.SAME_DAY, 0, 0, 20, null)));
         data.policies.put(LINKED, mirror);
         // the recursion stops at the evaluating store (guard), so both sides would be confirmed
         assertThat(evaluator.evaluate(linked(sameDay(20, null)), pickup, USER, data).allowed()).isTrue();
         // a linked policy that would decline keeps this one waiting
-        data.policies.put(LINKED, new Spec(mirror.id(), LINKED, true, false, false, 0, false, true, false, Set.of(),
+        data.policies.put(LINKED, new Spec(mirror.id(), LINKED, true, false, 0, false, true, false, Set.of(),
                 mirror.links()));
         assertThat(evaluator.evaluate(linked(sameDay(20, null)), pickup, USER, data).deferred()).isTrue();
     }
@@ -740,6 +762,89 @@ class PickupPolicyEvaluatorTest {
         assertThat(evaluator.texts(Locale.ENGLISH).text("linked-store.requirement.same-day")).isEqualTo("on the same day");
     }
 
+    // ---------------------------------------------------------------- params for the UI (decision 167 S2)
+
+    static PickupPolicyEvaluator.Params params(Decision decision, PolicyRule rule) {
+        return decision.reasons().stream().filter(r -> r.rule() == rule).findFirst().orElseThrow().params();
+    }
+
+    @Test
+    void gapParamsNameTheClosePickupTheGapAndTheNextDayThatKeepsEveryGap() {
+        data.signups.add(new Signup(STORE, USER, at("2026-11-10T19:00"), true, NOW.minusSeconds(3600)));
+        data.signups.add(new Signup(STORE, USER, at("2026-11-15T19:00"), false, NOW.minusSeconds(60)));
+        Decision d = evaluator.evaluate(policy(true, 2, false, false, false, Set.of(), List.of()),
+                at("2026-11-12T19:00"), USER, data);
+        PickupPolicyEvaluator.Params p = params(d, PolicyRule.GAP);
+        assertThat(p.lastPickupAt()).isEqualTo(at("2026-11-10T19:00"));
+        assertThat(p.gapDays()).isEqualTo(2);
+        assertThat(p.storeIds()).isEmpty();
+        // 13.11. is far enough from 10.11. but too close to 15.11.; 18.11. keeps both
+        assertThat(p.nextPossibleAt()).isEqualTo(at("2026-11-18T00:00"));
+    }
+
+    @Test
+    void groupGapParamsNameTheOtherStoreOfTheList() {
+        Instant pickup = at("2026-11-11T19:00");
+        data.signups.add(new Signup(CHAIN, USER, at("2026-11-10T19:00"), true, NOW));
+        Decision d = evaluator.evaluate(grouped(false, 0, 2, CHAIN), pickup, USER, data);
+        PickupPolicyEvaluator.Params p = params(d, PolicyRule.GAP);
+        assertThat(p.lastPickupAt()).isEqualTo(at("2026-11-10T19:00"));
+        assertThat(p.storeIds()).containsExactly(CHAIN);
+        assertThat(p.gapDays()).isEqualTo(2);
+        assertThat(p.nextPossibleAt()).isEqualTo(at("2026-11-13T00:00"));
+    }
+
+    @Test
+    void gapParamsFollowTheSentenceWhenBothChecksFail() {
+        Instant pickup = at("2026-11-11T19:00");
+        own(pickup, NOW);
+        own(at("2026-11-12T19:00"), NOW);
+        PickupPolicyEvaluator.Params ownWins = params(evaluator.evaluate(grouped(true, 3, 1, CHAIN), pickup, USER,
+                data), PolicyRule.GAP);
+        assertThat(ownWins.gapDays()).isEqualTo(3);
+        assertThat(ownWins.lastPickupAt()).isEqualTo(at("2026-11-12T19:00"));
+        // own 3 days after 12.11. → 16.11.; the group gap of 1 day is kept there too
+        assertThat(ownWins.nextPossibleAt()).isEqualTo(at("2026-11-16T00:00"));
+        PickupPolicyEvaluator.Params groupWins = params(evaluator.evaluate(grouped(true, 2, 3, CHAIN), pickup, USER,
+                data), PolicyRule.GAP);
+        assertThat(groupWins.gapDays()).isEqualTo(3);
+    }
+
+    @Test
+    void linkedStoreParamsCarryTheStoresAndTheWindowDays() {
+        Instant pickup = at("2026-11-12T19:00");
+        data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofHours(1))));
+        LinkRule window = new LinkRule(List.of(LINKED), LinkedStoreWindowMode.LAST_DAYS, 1, 3, 20, null);
+        PickupPolicyEvaluator.Params p = params(evaluator.evaluate(linked(window), pickup, USER, data),
+                PolicyRule.LINKED_STORE);
+        assertThat(p.storeIds()).containsExactly(LINKED);
+        assertThat(p.windowMode()).isEqualTo(LinkedStoreWindowMode.LAST_DAYS);
+        assertThat(p.before()).isEqualTo(1);
+        assertThat(p.after()).isEqualTo(3);
+        assertThat(p.from()).isEqualTo(at("2026-11-11T00:00"));
+        assertThat(p.to()).isEqualTo(at("2026-11-15T00:00"));
+    }
+
+    @Test
+    void cleaningParamsCarryTheMonthsAndTheFairteilerOfTheEarliestShift() {
+        freeCleaningSlots(5);
+        PickupPolicyEvaluator.Params never = params(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data),
+                PolicyRule.CLEANING_REQUIRED);
+        assertThat(never.monthsAgo()).isNull();
+        assertThat(never.monthsRequired()).isEqualTo(12);
+        assertThat(never.fspId()).isEqualTo(CLEANING);
+        data.signups.add(new Signup(CLEANING, USER, at("2025-09-01T10:00"), true, NOW));
+        assertThat(params(evaluator.evaluate(cleaning(), at("2026-11-12T19:00"), USER, data),
+                PolicyRule.CLEANING_REQUIRED).monthsAgo()).isEqualTo(14);
+    }
+
+    @Test
+    void experienceAndAllowingReasonsHaveNoParams() {
+        Decision d = evaluator.evaluate(policy(false, 0, false, true, false, Set.of(), List.of()),
+                at("2026-11-12T19:00"), USER, data);
+        assertThat(params(d, PolicyRule.EXPERIENCE)).isEqualTo(PickupPolicyEvaluator.Params.NONE);
+    }
+
     /** In-memory data. */
     static class FakeData implements PickupPolicyEvaluator.Data {
 
@@ -756,6 +861,14 @@ class PickupPolicyEvaluatorTest {
         List<UUID> cleaningFsps = List.of(CLEANING);
         Instant verifiedAt = Instant.parse("2020-01-01T00:00:00Z");
         Duration outage = Duration.ZERO;
+        /** pickup_link_pending deadlines of USER in STORE (decision 167 S3). */
+        final Map<Instant, Instant> pending = new HashMap<>();
+
+        @Override
+        public Optional<Instant> linkPendingDeadline(UUID storeId, Instant pickupAt, UUID userId) {
+            return storeId.equals(STORE) && userId.equals(USER) ? Optional.ofNullable(pending.get(pickupAt))
+                    : Optional.empty();
+        }
 
         @Override
         public Instant now() {

@@ -44,6 +44,12 @@ public class PickupAutomationQueries {
                 userId, before).map(PickupSignup::getPickupAt);
     }
 
+    /** Those of the users with a confirmed sign-up in the store before {@code before} (experience rule, batched). */
+    public java.util.Set<UUID> usersWithConfirmedPickup(UUID storeId, Collection<UUID> userIds, Instant before) {
+        return userIds.isEmpty() ? java.util.Set.of()
+                : java.util.Set.copyOf(signups.findUsersWithConfirmedPickup(storeId, userIds, before));
+    }
+
     /** Unconfirmed sign-ups after {@code now}, by pickup time. */
     public List<PickupSignup> unconfirmedFuture(Collection<UUID> storeIds, Instant now) {
         return storeIds.isEmpty() ? List.of()

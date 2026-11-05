@@ -2,9 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 
-import { Permission, StoreDetail } from '../../../api';
-import { SessionService } from '../../../core/auth/session.service';
-import { hasPermission } from '../../../core/auth/permission.util';
+import { StoreDetail } from '../../../api';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
@@ -147,7 +145,6 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
 })
 export class StorePageComponent {
   protected readonly ctx = inject(StorePageContext);
-  private readonly session = inject(SessionService);
 
   protected readonly tabs = computed<StoreTab[]>(() => {
     const p = this.ctx.permissions();
@@ -168,14 +165,8 @@ export class StorePageComponent {
       { id: 'log', icon: 'pi pi-history', visible: p.maySeeStoreLog },
       // M5 S10: locked team / jumper chat
       { id: 'chat', icon: 'pi pi-comment', visible: p.mayChatTeam || p.mayChatJumper },
-      // M4 F3: store editors and CAN_USE_AUTOMATIONS holders of the store's region (StorePermissionService)
-      {
-        id: 'automation',
-        icon: 'pi pi-bolt',
-        visible:
-          p.mayEditStore ||
-          hasPermission(this.session.session(), Permission.CanUseAutomations, this.ctx.data()?.region.id),
-      },
+      // M4 F3: store editors only (decision 167: no automation permission any more)
+      { id: 'automation', icon: 'pi pi-bolt', visible: p.mayEditStore },
     ];
     return tabs.filter((tab) => tab.visible && STORE_TABS_READY.has(tab.id));
   });

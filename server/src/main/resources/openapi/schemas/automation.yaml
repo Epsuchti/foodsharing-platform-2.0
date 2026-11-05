@@ -87,15 +87,19 @@ LinkedStoreRule:
       description: 'Read only: the rule on the other store this one mirrors (bidirectional links)'
       type: string
       format: uuid
+    editableStoreIds:
+      description: 'Read only: the storeIds the actor may edit (mayEditStore); bidirectional needs all of them (decision 167 Q3)'
+      type: array
+      items:
+        type: string
+        format: uuid
 
 PickupPolicy:
   type: object
-  required: [enabled, dryRun, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
+  required: [enabled, gapRuleEnabled, minimumGapDays, cleaningRuleEnabled, experienceRuleEnabled,
     publicHolidayRuleEnabled, linkedStores, excludedDates]
   properties:
     enabled:
-      type: boolean
-    dryRun:
       type: boolean
     gapRuleEnabled:
       type: boolean
@@ -202,11 +206,9 @@ GapCandidate:
 
 RequestPolicy:
   type: object
-  required: [enabled, dryRun, distanceRuleEnabled, maximumDistanceKm]
+  required: [enabled, distanceRuleEnabled, maximumDistanceKm]
   properties:
     enabled:
-      type: boolean
-    dryRun:
       type: boolean
     distanceRuleEnabled:
       type: boolean
@@ -221,7 +223,7 @@ RequestPolicy:
 
 OpenSlotAdvert:
   type: object
-  required: [enabled, dryRun, triggerHoursBefore, channels, storeMessages, pushMessages, telegramMessages,
+  required: [enabled, triggerHoursBefore, channels, storeMessages, pushMessages, telegramMessages,
     sendLateCancellationMessage, lateCancellationMaxHoursBefore, resendLatestAdvertAfterLateCancellation]
   properties:
     advertNumber:
@@ -229,8 +231,6 @@ OpenSlotAdvert:
       type: integer
       format: int32
     enabled:
-      type: boolean
-    dryRun:
       type: boolean
     triggerHoursBefore:
       type: integer
@@ -375,7 +375,7 @@ AutomationPermissions:
 
 StoreAutomation:
   type: object
-  required: [adverts, maxExtraSlots, permissions, cleaningFoodSharePoints]
+  required: [adverts, maxExtraSlots, permissions, cleaningFoodSharePoints, telegramChatCount, cleaningMonths]
   properties:
     pickupPolicy:
       $ref: './automation.yaml#/PickupPolicy'
@@ -397,10 +397,195 @@ StoreAutomation:
         $ref: './food-share-points.yaml#/FspRef'
     permissions:
       $ref: './automation.yaml#/AutomationPermissions'
+    telegramChatCount:
+      description: 'Enabled Telegram chats of the store (decision 167 S4); 0 = automation messages go to the region chats'
+      type: integer
+      format: int32
+    cleaningMonths:
+      description: 'How far back the cleaning rule looks, in months (setting; for the member sentence of the rule card)'
+      type: integer
+      format: int32
+
+LinkCandidate:
+  type: object
+  description: 'A store the actor may link (decision 167 S4, Q3): any store they may know links one-way; bidirectional needs mayEdit.'
+  required: [store, regionPath, automationEnabled, mayEdit]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    city:
+      type: string
+    regionPath:
+      description: "Names of the store's region and its ancestors, root first"
+      type: array
+      items:
+        type: string
+    automationEnabled:
+      description: 'The store has an enabled pickup policy'
+      type: boolean
+    mayEdit:
+      description: 'The actor may edit the store (mayEditStore): only then the rule may be bidirectional'
+      type: boolean
+
+LinkCandidatePage:
+  type: object
+  required: [items, page]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: './automation.yaml#/LinkCandidate'
+    page:
+      $ref: './common.yaml#/PageMeta'
+
+StoreRuleSummary:
+  type: object
+  description: 'The rules that apply when the policy is on (enabled); everything else is empty while it is off.'
+  required: [enabled, links, experience, manualDates, holidays]
+  properties:
+    enabled:
+      type: boolean
+    gapDays:
+      description: 'Own gap in days between two pickups here; missing when the own gap rule is off.'
+      type: integer
+      format: int32
+    group:
+      $ref: './automation.yaml#/StoreRuleGroup'
+    links:
+      type: array
+      items:
+        $ref: './automation.yaml#/StoreRuleLink'
+    experience:
+      type: boolean
+    cleaningMonths:
+      description: 'A cleaning shift in a cleaning Fairteiler of the region within this many months; missing when the rule is off.'
+      type: integer
+      format: int32
+    manualDates:
+      description: 'Upcoming excluded dates (the managers decide).'
+      type: array
+      items:
+        type: string
+        format: date
+    holidays:
+      description: 'On public holidays the managers decide.'
+      type: boolean
+
+StoreRuleGroup:
+  type: object
+  description: 'The shared gap list (decision 151/152): all its live stores, this one included, by name.'
+  required: [days, stores]
+  properties:
+    days:
+      type: integer
+      format: int32
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+
+StoreRuleLink:
+  type: object
+  description: 'A linked-store rule (own or mirrored): one pickup in any of the stores within the window is needed.'
+  required: [stores, windowMode, before, after]
+  properties:
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    before:
+      type: integer
+      format: int32
+    after:
+      type: integer
+      format: int32
+
+LinkedOptions:
+  type: object
+  description: 'The linked-store rules of the store for one pickup, in the order of LINKED_PICKUP_REQUIRED args.rule; empty while the rules are off, for store managers and without link rules.'
+  required: [rules]
+  properties:
+    rules:
+      type: array
+      items:
+        $ref: './automation.yaml#/LinkedOptionRule'
+
+LinkedOptionRule:
+  type: object
+  description: 'One linked-store rule: any of its stores within the window satisfies it.'
+  required: [stores, windowMode, before, after, from, to, options, notMember]
+  properties:
+    stores:
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+    windowMode:
+      $ref: './automation.yaml#/LinkedStoreWindowMode'
+    before:
+      type: integer
+      format: int32
+    after:
+      type: integer
+      format: int32
+    from:
+      description: 'Start of the first day of the window.'
+      type: string
+      format: date-time
+    to:
+      description: 'Start of the last day of the window.'
+      type: string
+      format: date-time
+    satisfiedBy:
+      $ref: './automation.yaml#/LinkedPickupRef'
+    options:
+      description: 'Future pickups with a free slot in the stores of the rule where the caller is in the team, by time (empty when satisfied).'
+      type: array
+      items:
+        $ref: './automation.yaml#/LinkedOption'
+    notMember:
+      description: 'Stores of the rule where the caller cannot sign up (not in the team or a jumper).'
+      type: array
+      items:
+        $ref: './stores.yaml#/StoreRef'
+
+LinkedPickupRef:
+  type: object
+  required: [store, pickupAt]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupAt:
+      type: string
+      format: date-time
+
+LinkedOption:
+  type: object
+  required: [store, pickupAt, freeCount, reasons, ruleBlocks]
+  properties:
+    store:
+      $ref: './stores.yaml#/StoreRef'
+    pickupAt:
+      type: string
+      format: date-time
+    freeCount:
+      type: integer
+      format: int32
+    reasons:
+      description: 'Eligibility reasons of that store that refuse the caller (hygiene, region rule, …); empty when bookable.'
+      type: array
+      items:
+        $ref: './pickups.yaml#/PickupEligibilityReason'
+    ruleBlocks:
+      description: 'The rules of that store that block the caller there ("Gesperrt dort"), counting this pickup as booked.'
+      type: array
+      items:
+        $ref: './pickups.yaml#/PolicyBlock'
 
 AutomationRunResult:
   type: object
-  required: [evaluated, confirmed, declined, skipped, deferred, failed, dryRun, messages]
+  required: [evaluated, confirmed, declined, skipped, deferred, failed, messages]
   properties:
     evaluated:
       type: integer
@@ -421,23 +606,10 @@ AutomationRunResult:
     failed:
       type: integer
       format: int32
-    dryRun:
-      type: boolean
     messages:
       type: array
       items:
         type: string
-
-PolicyPreviewRequest:
-  type: object
-  required: [pickupAt, userId]
-  properties:
-    pickupAt:
-      type: string
-      format: date-time
-    userId:
-      type: string
-      format: uuid
 
 PolicyReason:
   type: object
@@ -447,19 +619,6 @@ PolicyReason:
       $ref: './automation.yaml#/PolicyRule'
     text:
       description: 'Rendered in the store language'
-      type: string
-
-PolicyDecisionPreview:
-  type: object
-  required: [decision, reasons]
-  properties:
-    decision:
-      $ref: './automation.yaml#/PickupPolicyDecision'
-    reasons:
-      type: array
-      items:
-        $ref: './automation.yaml#/PolicyReason'
-    userMessage:
       type: string
 
 AutomationAudit:
@@ -511,13 +670,11 @@ AutomationAuditPage:
 
 RegionAutomationStore:
   type: object
-  required: [store, pickupPolicyEnabled, dryRun, requestPolicyEnabled, advertCount, signoutAlertEnabled]
+  required: [store, pickupPolicyEnabled, requestPolicyEnabled, advertCount, signoutAlertEnabled, telegramChatCount]
   properties:
     store:
       $ref: './stores.yaml#/StoreRef'
     pickupPolicyEnabled:
-      type: boolean
-    dryRun:
       type: boolean
     requestPolicyEnabled:
       type: boolean
@@ -527,6 +684,10 @@ RegionAutomationStore:
       format: int32
     signoutAlertEnabled:
       type: boolean
+    telegramChatCount:
+      description: 'Enabled Telegram chats of the store; 0 = the region chats'
+      type: integer
+      format: int32
 
 RegionAutomationOverview:
   type: object

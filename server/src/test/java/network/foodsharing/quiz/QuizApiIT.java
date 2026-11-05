@@ -75,7 +75,7 @@ class QuizApiIT {
 
     @Test
     void seedQuestionsHaveCorrectAnswersAndFiveLanguages() {
-        // 7 seed quizzes plus EINAB_GUIDE from changelog 188 (Q4)
+        // 7 seed quizzes plus EINAB_GUIDE from changelog 190 (Q4)
         assertThat(jdbc.queryForObject("select count(*) from quiz", Integer.class)).isEqualTo(8);
         assertThat(jdbc.queryForObject("select count(*) from quiz_question q where not exists (select 1 from "
                 + "quiz_answer a where a.question_id = q.id and a.rating = 'CORRECT')", Integer.class)).isZero();

@@ -75,6 +75,7 @@
   "shared.historyTimeline.meta.label": "Nome",
   "shared.historyTimeline.meta.reason": "Motivo",
   "shared.historyTimeline.meta.count": "Numero",
+  "shared.historyTimeline.meta.deadlineAt": "Scadenza",
   "shared.historyTimeline.meta.template": "Modello",
   "shared.historyTimeline.meta.language": "Lingua",
   "shared.historyTimeline.meta.sessionId": "ID sessione",
@@ -420,5 +421,7 @@
   "shared.pickupSlot.mineConfirmed": "Tu ({name}), confermato – cancellati",
   "shared.pickupSlot.mineUnconfirmed": "Tu ({name}), non confermato – cancellati",
   "shared.pickupSlot.confirmOne": "Conferma {name}",
-  "shared.dateTile.today": "Oggi"
+  "shared.dateTile.today": "Oggi",
+  "shared.pickupSlot.blocked": "Bloccato",
+  "shared.pickupSlot.blockedLabel": "Bloccato per te, {count} liberi – mostra perché ({rules, plural, one {# motivo} other {# motivi}})"
 }

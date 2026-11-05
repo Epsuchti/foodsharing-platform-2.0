@@ -15,9 +15,18 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** How the pickup module plugs into others (A22): unverify guard and PICKUP history access. */
+/**
+ * How the pickup module plugs into others (A22): unverify guard, PICKUP history access and the no-op
+ * {@link PickupRuleGate} until the automation module provides one.
+ */
 @Configuration(proxyBeanMethods = false)
 public class PickupIntegrations {
+
+    /** No store rules: nothing is blocked (replaced by the automation module's {@code @Primary} gate). */
+    @Bean
+    PickupRuleGate noPickupRuleGate() {
+        return (storeId, userId, pickupAts) -> java.util.Map.of();
+    }
 
     /** A user with future sign-ups stays verified (409 HAS_FUTURE_PICKUPS). */
     @Bean

@@ -3,7 +3,7 @@ import { ZH } from '../intro-pickups/_intro';
 import { acceptPrivacy, playSession, solutionKey } from './_quiz';
 
 /**
- * Q4 (decision 167): the EinAb guide quiz opens after the home region's pickup threshold (default 25), the journey's
+ * Q4 (decision 168): the EinAb guide quiz opens after the home region's pickup threshold (default 25), the journey's
  * GUIDE track shows the progress, and a pass waits for the ambassadors' release (Ready-for-release list).
  */
 test.use({ seedReset: 'test' });

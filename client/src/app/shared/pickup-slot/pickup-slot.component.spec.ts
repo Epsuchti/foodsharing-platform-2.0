@@ -14,6 +14,9 @@ const TRANSLATIONS = {
   'shared.pickupSlot.free': 'Freier Platz – eintragen, {count} frei',
   'shared.pickupSlot.freeShort': '{count} frei',
   'shared.pickupSlot.signUp': 'Eintragen',
+  'shared.pickupSlot.blocked': 'Gesperrt',
+  'shared.pickupSlot.blockedLabel':
+    'Für dich gesperrt, {count} frei – Grund anzeigen ({rules, plural, one {# Regel} other {# Regeln}})',
 };
 
 const slot = (id: string, displayName: string, confirmed: boolean): PickupSlot => ({
@@ -145,6 +148,31 @@ describe('PickupSlotComponent (PU3 slot states)', () => {
     fixture.componentRef.setInput('slotCount', 1);
     await fixture.whenStable();
     expect(qa('[data-testid="t.free"]')).toHaveLength(0);
+  });
+
+  it('shows a blocked free place as a "Gesperrt" button that opens the reason (decision 167 S2)', async () => {
+    await render({ slotCount: 3, slots: [SLOTS[0]], freeClickable: true, blocked: true, blockedRuleCount: 2 });
+    expect(qa('[data-testid="t.free"]')).toHaveLength(0);
+    const blocked = qa('[data-testid="t.blocked"]');
+    expect(blocked).toHaveLength(1);
+    expect(blocked[0].classList).toContain('slot--blocked');
+    expect(blocked[0].getAttribute('aria-haspopup')).toBe('dialog');
+    expect(blocked[0].getAttribute('aria-label')).toBe('Für dich gesperrt, 2 frei – Grund anzeigen (2 Regeln)');
+    expect(blocked[0].querySelector('.pi-lock')).not.toBeNull();
+    expect(blocked[0].textContent?.trim()).toBe('Gesperrt');
+    expect((blocked[0] as HTMLButtonElement).disabled).toBe(false);
+    let opened = 0;
+    let signUps = 0;
+    fixture.componentInstance.blockedClick.subscribe(() => opened++);
+    fixture.componentInstance.freeClick.subscribe(() => signUps++);
+    blocked[0].click();
+    expect(opened).toBe(1);
+    expect(signUps).toBe(0);
+
+    // a full pickup has no free place to block
+    fixture.componentRef.setInput('slotCount', 1);
+    await fixture.whenStable();
+    expect(qa('[data-testid="t.blocked"]')).toHaveLength(0);
   });
 
   it('takes the first name up to the first space', () => {

@@ -3,7 +3,7 @@ package network.foodsharing.quiz.service;
 import java.util.UUID;
 
 /**
- * Port (Q4, decision 167): may a user try the EINAB_GUIDE quiz as far as pickups go? Implemented by the intropickup
+ * Port (Q4, decision 168): may a user try the EINAB_GUIDE quiz as far as pickups go? Implemented by the intropickup
  * module, so the quiz module needs no intropickup imports.
  */
 public interface GuideQuizEligibility {
