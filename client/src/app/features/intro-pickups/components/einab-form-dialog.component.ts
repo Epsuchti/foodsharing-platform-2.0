@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  model,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
 import { Checkbox } from '@openng/optimus-ui/checkbox';
@@ -81,23 +71,10 @@ const EMPTY: FormModel = {
  */
 @Component({
   selector: 'fs-einab-form-dialog',
-  imports: [
-    ...DATE_INPUT_IMPORTS,
-    Button,
-    Checkbox,
-    DateTimePipe,
-    Dialog,
-    FormsModule,
-    InputNumber,
-    InputText,
-    Select,
-    Textarea,
-    TPipe,
-  ],
+  imports: [...DATE_INPUT_IMPORTS, Button, Checkbox, DateTimePipe, Dialog, FormsModule, InputNumber, InputText, Select, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-dialog
-      [closeAriaLabel]="'common.close' | t"
+    <p-dialog [closeAriaLabel]="'common.close' | t"
       [visible]="visible()"
       (visibleChange)="visible.set($event)"
       [modal]="true"
@@ -109,128 +86,54 @@ const EMPTY: FormModel = {
         <div class="form__row">
           <div class="field">
             <label for="ea-category">{{ 'introPickups.form.category' | t }}</label>
-            <p-select
-              inputId="ea-category"
-              name="category"
-              [options]="categoryOptions()"
-              optionLabel="label"
-              optionValue="value"
-              [(ngModel)]="m.category"
-              (ngModelChange)="touch()"
-              appendTo="body"
-              [style]="{ width: '100%' }"
-              data-testid="introPickups.form.category"
-            />
+            <p-select inputId="ea-category" name="category" [options]="categoryOptions()" optionLabel="label" optionValue="value" [(ngModel)]="m.category" (ngModelChange)="touch()" appendTo="body" [style]="{ width: '100%' }" data-testid="introPickups.form.category" />
           </div>
           <div class="field">
             <label for="ea-start">{{ 'introPickups.form.start' | t }}</label>
-            <fs-datetime-input
-              inputId="ea-start"
-              name="start"
-              [(ngModel)]="m.start"
-              (ngModelChange)="touch()"
-              required
-              testId="introPickups.form.start"
-            />
+            <fs-datetime-input inputId="ea-start" name="start" [(ngModel)]="m.start" (ngModelChange)="touch()" required testId="introPickups.form.start" />
           </div>
         </div>
         @if (linkedAt(); as at) {
-          <p class="hint" data-testid="introPickups.form.linkedHint">
-            <i class="pi pi-link" aria-hidden="true"></i
-            >{{ 'introPickups.form.linkedHint' | t: { date: (at | fsDate: 'dateTime') } }}
-          </p>
+          <p class="hint" data-testid="introPickups.form.linkedHint"><i class="pi pi-link" aria-hidden="true"></i>{{ 'introPickups.form.linkedHint' | t: { date: (at | fsDate: 'dateTime') } }}</p>
           @if (unlinking()) {
-            <p class="hint hint--warn" role="status" data-testid="introPickups.form.unlinkHint">
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i
-              >{{ 'introPickups.form.unlinkHint' | t }}
-            </p>
+            <p class="hint hint--warn" role="status" data-testid="introPickups.form.unlinkHint"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'introPickups.form.unlinkHint' | t }}</p>
           }
         }
         @if (!online()) {
           <div class="form__row">
             <div class="field">
               <label for="ea-slots">{{ 'introPickups.form.slotCount' | t }}</label>
-              <p-inputnumber
-                inputId="ea-slots"
-                name="slotCount"
-                [(ngModel)]="m.slotCount"
-                [min]="einab()?.slotCount ?? 1"
-                [max]="3"
-                [showButtons]="true"
-                data-testid="introPickups.form.slotCount"
-              />
+              <p-inputnumber inputId="ea-slots" name="slotCount" [(ngModel)]="m.slotCount" [min]="einab()?.slotCount ?? 1" [max]="3" [showButtons]="true" data-testid="introPickups.form.slotCount" />
             </div>
             <div class="field">
               <label for="ea-min">{{ 'introPickups.form.minimumPickups' | t }}</label>
-              <p-inputnumber
-                inputId="ea-min"
-                name="minimumPickupCount"
-                [(ngModel)]="m.minimumPickupCount"
-                [min]="0"
-                [max]="1000"
-                data-testid="introPickups.form.minimumPickups"
-              />
+              <p-inputnumber inputId="ea-min" name="minimumPickupCount" [(ngModel)]="m.minimumPickupCount" [min]="0" [max]="1000" data-testid="introPickups.form.minimumPickups" />
             </div>
           </div>
           <div class="field field--inline">
-            <p-checkbox
-              inputId="ea-fairteiler"
-              name="visitFairteiler"
-              [binary]="true"
-              [(ngModel)]="m.visitFairteiler"
-              data-testid="introPickups.form.fairteiler"
-            />
+            <p-checkbox inputId="ea-fairteiler" name="visitFairteiler" [binary]="true" [(ngModel)]="m.visitFairteiler" data-testid="introPickups.form.fairteiler" />
             <label for="ea-fairteiler">{{ 'introPickups.form.fairteiler' | t }}</label>
           </div>
           <div class="field">
             <label for="ea-business">{{ 'introPickups.form.businessName' | t }}</label>
-            <input
-              pInputText
-              id="ea-business"
-              name="businessName"
-              [(ngModel)]="m.businessName"
-              data-testid="introPickups.form.businessName"
-            />
+            <input pInputText id="ea-business" name="businessName" [(ngModel)]="m.businessName" data-testid="introPickups.form.businessName" />
           </div>
         }
         @if (online()) {
-          <p class="muted" data-testid="introPickups.form.onlineHint">
-            {{ 'introPickups.form.onlineHint' | t }}
-          </p>
+          <p class="muted" data-testid="introPickups.form.onlineHint">{{ 'introPickups.form.onlineHint' | t }}</p>
           <div class="field">
             <label for="ea-call">{{ 'introPickups.form.callLink' | t }}</label>
-            <input
-              pInputText
-              id="ea-call"
-              name="onlineCallLink"
-              type="url"
-              placeholder="https://meet.jit.si/…"
-              [(ngModel)]="m.onlineCallLink"
-              data-testid="introPickups.form.callLink"
-            />
+            <input pInputText id="ea-call" name="onlineCallLink" type="url" placeholder="https://meet.jit.si/…" [(ngModel)]="m.onlineCallLink" data-testid="introPickups.form.callLink" />
           </div>
         } @else {
           <div class="form__row">
             <div class="field">
               <label for="ea-address">{{ 'introPickups.form.address' | t }}</label>
-              <input
-                pInputText
-                id="ea-address"
-                name="privateAddress"
-                [(ngModel)]="m.privateAddress"
-                data-testid="introPickups.form.address"
-              />
+              <input pInputText id="ea-address" name="privateAddress" [(ngModel)]="m.privateAddress" data-testid="introPickups.form.address" />
             </div>
             <div class="field">
               <label for="ea-area">{{ 'introPickups.form.area' | t }}</label>
-              <input
-                pInputText
-                id="ea-area"
-                name="publicGeneralLocation"
-                [(ngModel)]="m.publicGeneralLocation"
-                [placeholder]="'introPickups.form.areaPlaceholder' | t"
-                data-testid="introPickups.form.area"
-              />
+              <input pInputText id="ea-area" name="publicGeneralLocation" [(ngModel)]="m.publicGeneralLocation" [placeholder]="'introPickups.form.areaPlaceholder' | t" data-testid="introPickups.form.area" />
             </div>
           </div>
         }
@@ -238,67 +141,27 @@ const EMPTY: FormModel = {
           <span class="label-row">
             <label for="ea-private">{{ 'introPickups.form.privateInfo' | t }}</label>
             @if (template(); as tpl) {
-              <p-button
-                [label]="'introPickups.form.useTemplate' | t"
-                icon="pi pi-file-import"
-                [text]="true"
-                size="small"
-                (onClick)="m.privateInfo = tpl.content; touch()"
-                data-testid="introPickups.form.useTemplate"
-              />
+              <p-button [label]="'introPickups.form.useTemplate' | t" icon="pi pi-file-import" [text]="true" size="small" (onClick)="m.privateInfo = tpl.content; touch()" data-testid="introPickups.form.useTemplate" />
             }
           </span>
-          <textarea
-            pTextarea
-            id="ea-private"
-            name="privateInfo"
-            rows="3"
-            [(ngModel)]="m.privateInfo"
-            data-testid="introPickups.form.privateInfo"
-          ></textarea>
+          <textarea pTextarea id="ea-private" name="privateInfo" rows="3" [(ngModel)]="m.privateInfo" data-testid="introPickups.form.privateInfo"></textarea>
           <span class="muted">{{ 'introPickups.form.privateInfoHint' | t }}</span>
         </div>
         <div class="field field--inline">
-          <p-checkbox
-            inputId="ea-tpl"
-            name="saveTemplate"
-            [binary]="true"
-            [(ngModel)]="m.saveTemplate"
-            data-testid="introPickups.form.saveTemplate"
-          />
+          <p-checkbox inputId="ea-tpl" name="saveTemplate" [binary]="true" [(ngModel)]="m.saveTemplate" data-testid="introPickups.form.saveTemplate" />
           <label for="ea-tpl">{{ 'introPickups.form.saveTemplate' | t }}</label>
         </div>
         <div class="field">
           <label for="ea-public">{{ 'introPickups.form.publicInfo' | t }}</label>
-          <textarea
-            pTextarea
-            id="ea-public"
-            name="publicInfo"
-            rows="2"
-            [(ngModel)]="m.publicInfo"
-            data-testid="introPickups.form.publicInfo"
-          ></textarea>
+          <textarea pTextarea id="ea-public" name="publicInfo" rows="2" [(ngModel)]="m.publicInfo" data-testid="introPickups.form.publicInfo"></textarea>
         </div>
         @if (problem()) {
-          <p class="error-text" role="alert" data-testid="introPickups.form.error">
-            {{ problem() }}
-          </p>
+          <p class="error-text" role="alert" data-testid="introPickups.form.error">{{ problem() }}</p>
         }
       </form>
       <ng-template #footer>
-        <p-button
-          [label]="'common.cancel' | t"
-          [text]="true"
-          severity="secondary"
-          (onClick)="visible.set(false)"
-        />
-        <p-button
-          (onClick)="save.run()"
-          [label]="'common.save' | t"
-          icon="pi pi-check"
-          [loading]="save.busy()"
-          data-testid="introPickups.form.save"
-        />
+        <p-button [label]="'common.cancel' | t" [text]="true" severity="secondary" (onClick)="visible.set(false)" />
+        <p-button (onClick)="save.run()" [label]="'common.save' | t" icon="pi pi-check" [loading]="save.busy()" data-testid="introPickups.form.save" />
       </ng-template>
     </p-dialog>
   `,
@@ -326,7 +189,7 @@ const EMPTY: FormModel = {
       color: var(--fs-text-muted);
     }
     .hint--warn {
-      color: var(--fs-warning-text);
+      color: var(--fs-warning-text, var(--fs-text));
     }
   `,
 })
@@ -348,10 +211,7 @@ export class EinAbFormDialogComponent {
   protected readonly problem = signal('');
 
   protected readonly categoryOptions = computed(() =>
-    INTRO_CATEGORIES.map((value) => ({
-      value,
-      label: this.i18n.t('common.introCategory.' + value),
-    })),
+    INTRO_CATEGORIES.map((value) => ({ value, label: this.i18n.t('common.introCategory.' + value) })),
   );
   protected readonly online = computed(() => {
     this.version();
@@ -362,10 +222,7 @@ export class EinAbFormDialogComponent {
     return this.templates().find((tpl) => tpl.category === this.m.category);
   });
   /** EA16: the store pickup this EinAb is (or, on create, will be) linked to. */
-  protected readonly linkedAt = computed(
-    () =>
-      this.einab()?.linkedPickupAt ?? (this.einab() ? undefined : this.prefill()?.linkedPickupAt),
-  );
+  protected readonly linkedAt = computed(() => this.einab()?.linkedPickupAt ?? (this.einab() ? undefined : this.prefill()?.linkedPickupAt));
   /** The start (in the form's local time) the link belongs to; changing it removes the link. */
   private linkedStart = '';
   protected readonly unlinking = computed(() => {
@@ -450,10 +307,7 @@ export class EinAbFormDialogComponent {
       const einab = this.einab();
       return einab
         ? this.api.updateIntroPickup({ introPickupId: einab.id, introPickupUpdate: this.body() })
-        : this.api.createIntroPickup({
-            regionId: this.regionId()!,
-            introPickupCreate: this.createBody(),
-          });
+        : this.api.createIntroPickup({ regionId: this.regionId()!, introPickupCreate: this.createBody() });
     },
     {
       successToastKey: 'introPickups.form.saved',

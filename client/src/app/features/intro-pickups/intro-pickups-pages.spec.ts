@@ -29,26 +29,10 @@ const SESSION: SessionInfo = {
     homeRegionId: REGION,
     foodsaverNumber: 100004,
   } as unknown as SessionInfo['user'],
-  units: [
-    {
-      id: REGION,
-      name: 'Zürich Stadt',
-      slug: 'zuerich-stadt',
-      type: 'REGION',
-      member: true,
-      admin: false,
-      homeRegion: true,
-    },
-  ] as unknown as SessionInfo['units'],
+  units: [{ id: REGION, name: 'Zürich Stadt', slug: 'zuerich-stadt', type: 'REGION', member: true, admin: false, homeRegion: true }] as unknown as SessionInfo['units'],
 };
 
-const problem = (code: string, status: number) => ({
-  status,
-  code,
-  message: code,
-  retryable: false,
-  traceId: 't',
-});
+const problem = (code: string, status: number) => ({ status, code, message: code, retryable: false, traceId: 't' });
 
 function einab(id: string, bookable: boolean, reason?: string): BookableIntroPickup {
   return {
@@ -131,25 +115,16 @@ describe('intro pickup pages', () => {
   it('bookable: loading, then bookable cards and translated reasons', async () => {
     TestBed.inject(SessionService).applySession(SESSION);
     await harness.navigateByUrl('/intro-pickups');
-    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe(
-      'loading',
-    );
+    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('loading');
     http
       .expectOne((req) => req.url === `/api/regions/${REGION}/intro-pickups/bookable`)
-      .flush({
-        items: [einab('a', true), einab('b', false, 'USER_ALREADY_BOOKED_WITH_GUIDE')],
-        page: { page: 0, size: 100, totalItems: 2, totalPages: 1 },
-      });
+      .flush({ items: [einab('a', true), einab('b', false, 'USER_ALREADY_BOOKED_WITH_GUIDE')], page: { page: 0, size: 100, totalItems: 2, totalPages: 1 } });
     await settle();
     expect(qa('[data-testid="introPickups.bookable.card"]').length).toBe(2);
     expect(qa('[data-testid="introPickups.bookable.book"]').length).toBe(1);
-    expect(q('[data-testid="introPickups.bookable.reason"]')?.getAttribute('data-reason')).toBe(
-      'USER_ALREADY_BOOKED_WITH_GUIDE',
-    );
+    expect(q('[data-testid="introPickups.bookable.reason"]')?.getAttribute('data-reason')).toBe('USER_ALREADY_BOOKED_WITH_GUIDE');
     // S17 D5: on site or online and the city, no filters
-    expect(q('[data-testid="introPickups.card.mode"]')?.textContent).toContain(
-      'common.introMode.onSite',
-    );
+    expect(q('[data-testid="introPickups.card.mode"]')?.textContent).toContain('common.introMode.onSite');
     expect(q('[data-testid="introPickups.card.city"]')?.textContent).toContain('Zürich');
     expect(q('[data-testid="introPickups.card.category"]')).toBeNull();
     expect(q('[data-testid="introPickups.bookable.search"]')).toBeNull();
@@ -164,37 +139,21 @@ describe('intro pickup pages', () => {
       .expectOne((req) => req.url.endsWith('/intro-pickups/bookable'))
       .flush(problem('INTERNAL_ERROR', 500), { status: 500, statusText: 'Server Error' });
     await settle();
-    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe(
-      'error',
-    );
+    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('error');
     (q('[data-testid="introPickups.bookable.state.retry"] button') as HTMLButtonElement).click();
     await settle();
-    http
-      .expectOne((req) => req.url.endsWith('/intro-pickups/bookable'))
-      .flush({ items: [], page: { page: 0, size: 100, totalItems: 0, totalPages: 0 } });
+    http.expectOne((req) => req.url.endsWith('/intro-pickups/bookable')).flush({ items: [], page: { page: 0, size: 100, totalItems: 0, totalPages: 0 } });
     await settle();
-    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe(
-      'empty',
-    );
+    expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('empty');
   });
 
   it('my bookings: empty state and the subscription card for newcomers', async () => {
     TestBed.inject(SessionService).applySession(SESSION);
     await harness.navigateByUrl('/me/intro-pickups');
-    http
-      .expectOne(
-        (req) => req.url === '/api/users/me/intro-pickups' && req.params.get('past') === 'false',
-      )
-      .flush([]);
-    http
-      .expectOne(
-        (req) => req.url === '/api/users/me/intro-pickups' && req.params.get('past') === 'true',
-      )
-      .flush([]);
+    http.expectOne((req) => req.url === '/api/users/me/intro-pickups' && req.params.get('past') === 'false').flush([]);
+    http.expectOne((req) => req.url === '/api/users/me/intro-pickups' && req.params.get('past') === 'true').flush([]);
     http.expectOne('/api/onboarding/journey').flush({ complete: false, steps: [], extraSteps: [] });
-    http
-      .expectOne('/api/users/me/intro-pickup-subscription')
-      .flush(problem('RESOURCE_NOT_FOUND', 404), { status: 404, statusText: 'Not Found' });
+    http.expectOne('/api/users/me/intro-pickup-subscription').flush(problem('RESOURCE_NOT_FOUND', 404), { status: 404, statusText: 'Not Found' });
     await settle();
     expect(q('[data-testid="introPickups.my.state"]')?.getAttribute('data-state')).toBe('empty');
     expect(q('[data-testid="introPickups.subscription.subscribe"]')).not.toBeNull();
@@ -216,11 +175,7 @@ describe('intro pickup pages', () => {
     expect(req.request.body).toEqual({ token: 'abc' });
     req.flush({ message: 'ok' });
     await fixture.whenStable();
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector(
-        '[data-testid="introPickups.unsubscribe.done"]',
-      ),
-    ).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="introPickups.unsubscribe.done"]')).not.toBeNull();
   });
 
   it('guide: no guide regions → empty state', async () => {
@@ -229,16 +184,12 @@ describe('intro pickup pages', () => {
     http.expectOne('/api/guide/pickup-candidates').flush([]);
     http.expectOne('/api/guide/private-info-templates').flush([]);
     await settle();
-    expect(q('[data-testid="introPickups.guide.regionsState"]')?.getAttribute('data-state')).toBe(
-      'empty',
-    );
+    expect(q('[data-testid="introPickups.guide.regionsState"]')?.getAttribute('data-state')).toBe('empty');
   });
 
   it('guide: EinAbs of the guide region with slots', async () => {
     await harness.navigateByUrl('/guide');
-    http
-      .expectOne('/api/guide/regions')
-      .flush([{ id: REGION, slug: 'zuerich-stadt', name: 'Zürich Stadt', type: 'REGION' }]);
+    http.expectOne('/api/guide/regions').flush([{ id: REGION, slug: 'zuerich-stadt', name: 'Zürich Stadt', type: 'REGION' }]);
     await settle();
     http.expectOne('/api/guide/pickup-candidates').flush([]);
     http.expectOne('/api/guide/private-info-templates').flush([]);
@@ -256,17 +207,7 @@ describe('intro pickup pages', () => {
             visitFairteiler: false,
             booked: true,
             slots: [
-              {
-                id: 's1',
-                status: 'BOOKED',
-                bookingUser: {
-                  id: 'u',
-                  displayName: 'Luca',
-                  role: Role.Foodsharer,
-                  verified: false,
-                },
-                commentCount: 2,
-              },
+              { id: 's1', status: 'BOOKED', bookingUser: { id: 'u', displayName: 'Luca', role: Role.Foodsharer, verified: false }, commentCount: 2 },
               { id: 's2', status: 'AVAILABLE' },
             ],
           },
@@ -371,40 +312,12 @@ describe('intro pickup pages', () => {
         openFairteilerSlots: 0,
         gapHorizonDays: 28,
         steps: [
-          {
-            stage: 'REGISTERED',
-            userCount: 1,
-            reachedCount: 2,
-            stalledCount: 1,
-            users: [
-              {
-                stage: 'REGISTERED',
-                counted: 0,
-                upcoming: 0,
-                target: 3,
-                stalled: true,
-                nextStep: 'BOOK_EINAB',
-                user: { id: 'u', displayName: 'Luca', role: Role.Foodsharer, verified: false },
-              },
-            ],
-          },
+          { stage: 'REGISTERED', userCount: 1, reachedCount: 2, stalledCount: 1, users: [{ stage: 'REGISTERED', counted: 0, upcoming: 0, target: 3, stalled: true, nextStep: 'BOOK_EINAB', user: { id: 'u', displayName: 'Luca', role: Role.Foodsharer, verified: false } }] },
           { stage: 'IN_PROGRESS', userCount: 1, reachedCount: 1, stalledCount: 0, users: [] },
         ],
         gaps: [
-          {
-            category: 'BAKERY',
-            withFairteiler: false,
-            students: 2,
-            openSlots: 0,
-            severity: 'MISSING',
-          },
-          {
-            category: 'SUPERMARKET',
-            withFairteiler: false,
-            students: 1,
-            openSlots: 3,
-            severity: 'OK',
-          },
+          { category: 'BAKERY', withFairteiler: false, students: 2, openSlots: 0, severity: 'MISSING' },
+          { category: 'SUPERMARKET', withFairteiler: false, students: 1, openSlots: 3, severity: 'OK' },
         ],
       });
     await fixture.whenStable();
@@ -418,13 +331,9 @@ describe('intro pickup pages', () => {
     fixture.componentRef.setInput('regionId', REGION);
     fixture.detectChanges();
     await fixture.whenStable();
-    http
-      .expectOne((req) => req.url.endsWith('/newcomer-funnel'))
-      .flush(problem('FORBIDDEN', 403), { status: 403, statusText: 'Forbidden' });
+    http.expectOne((req) => req.url.endsWith('/newcomer-funnel')).flush(problem('FORBIDDEN', 403), { status: 403, statusText: 'Forbidden' });
     await fixture.whenStable();
-    const state = (fixture.nativeElement as HTMLElement).querySelector(
-      '[data-testid="introPickups.funnel.state"]',
-    );
+    const state = (fixture.nativeElement as HTMLElement).querySelector('[data-testid="introPickups.funnel.state"]');
     expect(state?.getAttribute('data-state')).toBe('forbidden');
   });
 });

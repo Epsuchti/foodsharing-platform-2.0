@@ -1,12 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
@@ -35,33 +28,15 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.component';
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
-import {
-  WeekdayTimePickerComponent,
-  duplicateRows,
-} from '../../../shared/weekday-time-picker/weekday-time-picker.component';
+import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { BlockedReasonDialogComponent } from '../components/blocked-reason-dialog.component';
 import { RuleSummaryCardComponent } from '../components/rule-summary-card.component';
-import {
-  PickupSignupDialogComponent,
-  SignupDone,
-  SignupTarget,
-} from '../components/signup-dialog.component';
+import { PickupSignupDialogComponent, SignupDone, SignupTarget } from '../components/signup-dialog.component';
 import { PickupSummaryComponent } from '../components/pickup-summary.component';
-import {
-  SlotDetailDialogComponent,
-  SlotDetailMode,
-} from '../components/slot-detail-dialog.component';
+import { SlotDetailDialogComponent, SlotDetailMode } from '../components/slot-detail-dialog.component';
 import { ServerClock } from '../pickups.resource';
 import { lockingBlocks } from '../rule-sentences';
-import {
-  SlotSummary,
-  addDays,
-  dayOf,
-  groupByDay,
-  pickupSummary,
-  unconfirmedCount,
-  zonedToUtc,
-} from '../pickups.util';
+import { SlotSummary, addDays, dayOf, groupByDay, pickupSummary, unconfirmedCount, zonedToUtc } from '../pickups.util';
 import { StorePageContext } from '../../stores/store-page.context';
 
 type Range = 'twoWeeks' | 'all';
@@ -126,8 +101,7 @@ interface SlotTarget {
             (click)="pendingOnly.set(!pendingOnly())"
             data-testid="stores.pickups.range.pending"
           >
-            <i class="pi pi-hourglass" aria-hidden="true"></i
-            >{{ 'pickups.tab.range.pending' | t: { count: pendingCount() } }}
+            <i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.range.pending' | t: { count: pendingCount() } }}
           </button>
         }
       </div>
@@ -180,9 +154,7 @@ interface SlotTarget {
       <ng-template [fsData]="pickups">
         <div class="stack" data-testid="stores.pickups.list">
           @if (pendingOnly() && !days().length) {
-            <p class="muted" data-testid="stores.pickups.pendingEmpty">
-              {{ 'pickups.tab.pendingEmpty' | t }}
-            </p>
+            <p class="muted" data-testid="stores.pickups.pendingEmpty">{{ 'pickups.tab.pendingEmpty' | t }}</p>
           }
           @for (group of days(); track group.day) {
             @let first = group.items[0];
@@ -199,173 +171,143 @@ interface SlotTarget {
                 <span class="date__m">{{ first.pickupAt | fsDate: 'monthShort' : tz() }}</span>
               </div>
               <div class="day__body">
-                <div class="day__head">
-                  <h2 class="day__title" tabindex="-1" [id]="'stores-pickups-day-' + group.day">
-                    {{ first.pickupAt | fsDate: 'weekday' : tz() }}
-                  </h2>
-                  @if (mayOpenDayChat(group.items)) {
-                    <!-- decision 165: text on desktop, icon only on phones; the text is the accessible name -->
-                    <button
-                      type="button"
-                      class="day__chat"
-                      [attr.aria-label]="'pickups.dayChat.open' | t"
-                      [attr.title]="'pickups.dayChat.open' | t"
-                      [attr.aria-describedby]="'stores-pickups-day-' + group.day"
-                      [disabled]="openDayChat.busy()"
-                      (click)="openDayChat.run(group.day, first.pickupAt)"
-                      data-testid="stores.pickups.dayChat"
-                    >
-                      <i class="pi pi-comments" aria-hidden="true"></i>
-                      <span class="day__chatLabel" aria-hidden="true">{{
-                        'pickups.dayChat.open' | t
-                      }}</span>
-                    </button>
-                  }
-                </div>
-                @for (pickup of group.items; track pickup.pickupAt) {
-                  <div
-                    class="pickup"
-                    data-testid="stores.pickups.pickup"
-                    [attr.data-pickup-at]="pickup.pickupAt"
-                    [attr.data-slots]="pickup.slotCount"
+              <div class="day__head">
+                <h2 class="day__title" tabindex="-1" [id]="'stores-pickups-day-' + group.day">{{ first.pickupAt | fsDate: 'weekday' : tz() }}</h2>
+                @if (mayOpenDayChat(group.items)) {
+                  <!-- decision 165: text on desktop, icon only on phones; the text is the accessible name -->
+                  <button
+                    type="button"
+                    class="day__chat"
+                    [attr.aria-label]="'pickups.dayChat.open' | t"
+                    [attr.title]="'pickups.dayChat.open' | t"
+                    [attr.aria-describedby]="'stores-pickups-day-' + group.day"
+                    [disabled]="openDayChat.busy()"
+                    (click)="openDayChat.run(group.day, first.pickupAt)"
+                    data-testid="stores.pickups.dayChat"
                   >
-                    <div class="pickup__head">
-                      <span class="pickup__time">{{
-                        pickup.pickupAt | fsDate: 'time' : tz()
-                      }}</span>
-                      @if (pickup.isRegular) {
-                        <span
-                          class="pickup__reg"
-                          role="img"
-                          [attr.aria-label]="'pickups.tab.regularBadge' | t"
-                          [attr.title]="'pickups.tab.regularBadge' | t"
-                          data-testid="stores.pickups.regularBadge"
-                          ><i class="pi pi-replay" aria-hidden="true"></i
-                        ></span>
-                      }
-                      @if (pickup.description) {
-                        <span
-                          class="pickup__desc"
-                          [attr.title]="pickup.description"
-                          data-testid="stores.pickups.description"
-                          >{{ pickup.description }}</span
-                        >
-                      }
-                      @if (pickup.slotCount > 0 && pickup.occupiedSlots.length > 0) {
-                        @let summary = summaryOf(pickup);
-                        <fs-pickup-summary
-                          [confirmed]="summary.confirmed"
-                          [unconfirmed]="summary.unconfirmed"
-                          [total]="summary.total"
-                          testId="stores.pickups.summary"
-                        >
-                          @if (ctx.may('mayConfirmPickups') && summary.unconfirmed >= 2) {
-                            <p-button
-                              [label]="'pickups.tab.confirmAll' | t: { count: summary.unconfirmed }"
-                              icon="pi pi-check-circle"
-                              [text]="true"
-                              size="small"
-                              [loading]="confirmAll.busy()"
-                              (onClick)="askConfirmAll(pickup)"
-                              data-testid="stores.pickups.confirmAll"
-                            />
-                          }
-                        </fs-pickup-summary>
-                      }
-                      @if (ctx.may('mayEditPickups')) {
-                        <p-button
-                          icon="pi pi-pencil"
-                          [text]="true"
-                          [rounded]="true"
-                          size="small"
-                          severity="secondary"
-                          [ariaLabel]="'pickups.tab.edit' | t"
-                          (onClick)="openEdit(pickup)"
-                          data-testid="stores.pickups.edit"
-                        />
-                      }
-                    </div>
-                    @if (pickup.slotCount === 0) {
-                      <p class="pickup__cancelled" data-testid="stores.pickups.cancelled">
-                        {{ 'pickups.tab.cancelled' | t }}
-                      </p>
-                    } @else {
-                      <fs-pickup-slot
-                        [slotCount]="pickup.slotCount"
-                        [slots]="pickup.occupiedSlots"
-                        [myId]="myId()"
-                        [freeClickable]="!isSignedUp(pickup)"
-                        [slotsClickable]="slotsClickable(pickup)"
-                        [confirmable]="ctx.may('mayConfirmPickups')"
-                        [blocked]="isBlocked(pickup)"
-                        [blockedRuleCount]="blockedCount(pickup)"
-                        (blockedClick)="openBlocked(pickup)"
-                        (freeClick)="openSignup(pickup)"
-                        (slotClick)="onSlot(pickup, $event)"
-                        (confirmClick)="openSlot(pickup, $event, true)"
-                        testId="stores.pickups.slot"
-                      />
+                    <i class="pi pi-comments" aria-hidden="true"></i>
+                    <span class="day__chatLabel" aria-hidden="true">{{ 'pickups.dayChat.open' | t }}</span>
+                  </button>
+                }
+              </div>
+              @for (pickup of group.items; track pickup.pickupAt) {
+                <div
+                  class="pickup"
+                  data-testid="stores.pickups.pickup"
+                  [attr.data-pickup-at]="pickup.pickupAt"
+                  [attr.data-slots]="pickup.slotCount"
+                >
+                  <div class="pickup__head">
+                    <span class="pickup__time">{{ pickup.pickupAt | fsDate: 'time' : tz() }}</span>
+                    @if (pickup.isRegular) {
+                      <span
+                        class="pickup__reg"
+                        role="img"
+                        [attr.aria-label]="'pickups.tab.regularBadge' | t"
+                        [attr.title]="'pickups.tab.regularBadge' | t"
+                        data-testid="stores.pickups.regularBadge"
+                      ><i class="pi pi-replay" aria-hidden="true"></i></span>
                     }
-                    @if (pickup.mayAddExtraSlot) {
-                      <!-- AU6: the first person of the pickup may add one extra slot -->
+                    @if (pickup.description) {
+                      <span class="pickup__desc" [attr.title]="pickup.description" data-testid="stores.pickups.description">{{ pickup.description }}</span>
+                    }
+                    @if (pickup.slotCount > 0 && pickup.occupiedSlots.length > 0) {
+                      @let summary = summaryOf(pickup);
+                      <fs-pickup-summary
+                        [confirmed]="summary.confirmed"
+                        [unconfirmed]="summary.unconfirmed"
+                        [total]="summary.total"
+                        testId="stores.pickups.summary"
+                      >
+                        @if (ctx.may('mayConfirmPickups') && summary.unconfirmed >= 2) {
+                          <p-button
+                            [label]="'pickups.tab.confirmAll' | t: { count: summary.unconfirmed }"
+                            icon="pi pi-check-circle"
+                            [text]="true"
+                            size="small"
+                            [loading]="confirmAll.busy()"
+                            (onClick)="askConfirmAll(pickup)"
+                            data-testid="stores.pickups.confirmAll"
+                          />
+                        }
+                      </fs-pickup-summary>
+                    }
+                    @if (ctx.may('mayEditPickups')) {
                       <p-button
-                        [label]="'pickups.tab.addExtraSlot' | t"
-                        icon="pi pi-plus"
+                        icon="pi pi-pencil"
+                        [text]="true"
+                        [rounded]="true"
                         size="small"
-                        [outlined]="true"
-                        [loading]="addExtraSlot.busy()"
-                        (onClick)="addExtraSlot.run(pickup)"
-                        data-testid="stores.pickups.addExtraSlot"
+                        severity="secondary"
+                        [ariaLabel]="'pickups.tab.edit' | t"
+                        (onClick)="openEdit(pickup)"
+                        data-testid="stores.pickups.edit"
                       />
-                    }
-                    @for (extra of pickup.extraSlots ?? []; track extra.addedAt) {
-                      <p class="pickup__extra" data-testid="stores.pickups.extraSlot">
-                        {{ 'pickups.tab.extraSlotBy' | t: { name: extra.byUser.displayName } }}
-                      </p>
-                    }
-                    @if (mySlot(pickup); as mine) {
-                      @if (!mine.confirmed) {
-                        <p class="pending" data-testid="stores.pickups.unconfirmed">
-                          <i class="pi pi-hourglass" aria-hidden="true"></i
-                          >{{ 'pickups.tab.waitingMine' | t }}
-                        </p>
-                      }
-                      @if (mine.linkMissingUntil; as until) {
-                        <!-- decision 167 S3: the linked pickup was signed out; choose a new one before the deadline -->
-                        <button
-                          type="button"
-                          class="link-missing"
-                          aria-haspopup="dialog"
-                          [attr.aria-label]="
-                            'pickups.linked.missingLabel'
-                              | t: { until: (until | fsDate: 'dateTime' : tz()) }
-                          "
-                          (click)="openRepair(pickup, until)"
-                          data-testid="stores.pickups.linkMissing"
-                        >
-                          <i class="pi pi-hourglass" aria-hidden="true"></i>
-                          <span aria-hidden="true">{{
-                            'pickups.linked.missing'
-                              | t: { until: (until | fsDate: 'dateTime' : tz()) }
-                          }}</span>
-                        </button>
-                      }
-                    }
-                    @for (slot of othersMissingLink(pickup); track slot.user.id) {
-                      <p class="pending" data-testid="stores.pickups.linkMissingOther">
-                        <i class="pi pi-hourglass" aria-hidden="true"></i>
-                        {{
-                          'pickups.linked.missingOther'
-                            | t
-                              : {
-                                  name: slot.user.displayName,
-                                  until: (slot.linkMissingUntil! | fsDate: 'dateTime' : tz()),
-                                }
-                        }}
-                      </p>
                     }
                   </div>
-                }
+                  @if (pickup.slotCount === 0) {
+                    <p class="pickup__cancelled" data-testid="stores.pickups.cancelled">{{ 'pickups.tab.cancelled' | t }}</p>
+                  } @else {
+                    <fs-pickup-slot
+                      [slotCount]="pickup.slotCount"
+                      [slots]="pickup.occupiedSlots"
+                      [myId]="myId()"
+                      [freeClickable]="!isSignedUp(pickup)"
+                      [slotsClickable]="slotsClickable(pickup)"
+                      [confirmable]="ctx.may('mayConfirmPickups')"
+                      [blocked]="isBlocked(pickup)"
+                      [blockedRuleCount]="blockedCount(pickup)"
+                      (blockedClick)="openBlocked(pickup)"
+                      (freeClick)="openSignup(pickup)"
+                      (slotClick)="onSlot(pickup, $event)"
+                      (confirmClick)="openSlot(pickup, $event, true)"
+                      testId="stores.pickups.slot"
+                    />
+                  }
+                  @if (pickup.mayAddExtraSlot) {
+                    <!-- AU6: the first person of the pickup may add one extra slot -->
+                    <p-button
+                      [label]="'pickups.tab.addExtraSlot' | t"
+                      icon="pi pi-plus"
+                      size="small"
+                      [outlined]="true"
+                      [loading]="addExtraSlot.busy()"
+                      (onClick)="addExtraSlot.run(pickup)"
+                      data-testid="stores.pickups.addExtraSlot"
+                    />
+                  }
+                  @for (extra of pickup.extraSlots ?? []; track extra.addedAt) {
+                    <p class="pickup__extra" data-testid="stores.pickups.extraSlot">{{ 'pickups.tab.extraSlotBy' | t: { name: extra.byUser.displayName } }}</p>
+                  }
+                  @if (mySlot(pickup); as mine) {
+                    @if (!mine.confirmed) {
+                      <p class="pending" data-testid="stores.pickups.unconfirmed">
+                        <i class="pi pi-hourglass" aria-hidden="true"></i>{{ 'pickups.tab.waitingMine' | t }}
+                      </p>
+                    }
+                    @if (mine.linkMissingUntil; as until) {
+                      <!-- decision 167 S3: the linked pickup was signed out; choose a new one before the deadline -->
+                      <button
+                        type="button"
+                        class="link-missing"
+                        aria-haspopup="dialog"
+                        [attr.aria-label]="'pickups.linked.missingLabel' | t: { until: (until | fsDate: 'dateTime' : tz()) }"
+                        (click)="openRepair(pickup, until)"
+                        data-testid="stores.pickups.linkMissing"
+                      >
+                        <i class="pi pi-hourglass" aria-hidden="true"></i>
+                        <span aria-hidden="true">{{ 'pickups.linked.missing' | t: { until: (until | fsDate: 'dateTime' : tz()) } }}</span>
+                      </button>
+                    }
+                  }
+                  @for (slot of othersMissingLink(pickup); track slot.user.id) {
+                    <p class="pending" data-testid="stores.pickups.linkMissingOther">
+                      <i class="pi pi-hourglass" aria-hidden="true"></i>
+                      {{ 'pickups.linked.missingOther' | t: { name: slot.user.displayName, until: (slot.linkMissingUntil! | fsDate: 'dateTime' : tz()) } }}
+                    </p>
+                  }
+                </div>
+              }
               </div>
             </section>
           }
@@ -373,11 +315,7 @@ interface SlotTarget {
       </ng-template>
     </fs-data-state>
 
-    <fs-pickup-signup-dialog
-      [(visible)]="signupOpen"
-      [target]="signupTarget()"
-      (signedUp)="afterSignup($event)"
-    />
+    <fs-pickup-signup-dialog [(visible)]="signupOpen" [target]="signupTarget()" (signedUp)="afterSignup($event)" />
 
     <fs-blocked-reason-dialog
       [(visible)]="blockedOpen"
@@ -451,21 +389,11 @@ interface SlotTarget {
         </div>
         <label class="field">
           <span>{{ 'pickups.tab.description' | t }}</span>
-          <input
-            pInputText
-            maxlength="100"
-            [(ngModel)]="editDescription"
-            data-testid="stores.pickups.edit.description"
-          />
+          <input pInputText maxlength="100" [(ngModel)]="editDescription" data-testid="stores.pickups.edit.description" />
         </label>
       </div>
       <ng-template #footer>
-        <p-button
-          [label]="'common.cancel' | t"
-          severity="secondary"
-          [text]="true"
-          (onClick)="editOpen.set(false)"
-        />
+        <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="editOpen.set(false)" />
         <p-button
           [label]="'pickups.tab.save' | t"
           icon="pi pi-check"
@@ -486,26 +414,14 @@ interface SlotTarget {
       [style]="{ width: 'min(46rem, 96vw)' }"
       data-testid="stores.pickups.regularDialog"
     >
-      <p class="muted">
-        {{ 'pickups.regular.intro' | t: { days: ctx.data()?.prefetchDays ?? 14 } }}
-      </p>
-      <fs-data-state
-        [state]="regular"
-        skeleton="form"
-        testId="stores.regular.state"
-        data-testid="stores.regular.state"
-      >
+      <p class="muted">{{ 'pickups.regular.intro' | t: { days: ctx.data()?.prefetchDays ?? 14 } }}</p>
+      <fs-data-state [state]="regular" skeleton="form" testId="stores.regular.state" data-testid="stores.regular.state">
         <ng-template [fsData]="regular">
           <fs-weekday-time-picker [(rows)]="schedule" testId="stores.regular" />
         </ng-template>
       </fs-data-state>
       <ng-template #footer>
-        <p-button
-          [label]="'common.cancel' | t"
-          severity="secondary"
-          [text]="true"
-          (onClick)="regularOpen.set(false)"
-        />
+        <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="regularOpen.set(false)" />
         <p-button
           [label]="'pickups.tab.save' | t"
           icon="pi pi-check"
@@ -519,283 +435,87 @@ interface SlotTarget {
   `,
   styleUrl: '../../stores/stores.scss',
   styles: `
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-    .chips,
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.4rem;
-    }
+    .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+    .chips, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
     /* phones: the actions start left under the range chips, the primary one first (M7 R2 action placement) */
     @media (max-width: 47.99rem) {
-      .actions {
-        width: 100%;
-      }
-      .actions p-button[data-testid='stores.pickups.add'] {
-        order: -1;
-      }
+      .actions { width: 100%; }
+      .actions p-button[data-testid='stores.pickups.add'] { order: -1; }
     }
     .chip {
       min-height: var(--fs-target-sm);
-      padding: 0.35rem 0.85rem;
-      border: 1px solid var(--fs-border);
-      border-radius: 999px;
-      background: var(--fs-surface);
-      color: inherit;
-      font: inherit;
-      font-size: 0.88rem;
-      cursor: pointer;
+      padding: 0.35rem 0.85rem; border: 1px solid var(--fs-border); border-radius: 999px; background: var(--fs-surface);
+      color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer;
     }
-    .chip--active {
-      border-color: var(--fs-primary);
-      background: var(--fs-primary-soft);
-      color: var(--fs-primary-strong);
-      font-weight: 650;
-    }
-    .chip--pending {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-    .chip--pending .pi {
-      color: var(--fs-warning-text);
-      font-size: 0.85em;
-    }
+    .chip--active { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+    .chip--pending { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .chip--pending .pi { color: var(--fs-warning-text); font-size: 0.85em; }
     /* compact day cards (decision 165, ui-feedback-batch-2-proposal §3): one column on all widths */
-    .stack {
-      display: grid;
-      gap: 0.6rem;
-    }
+    .stack { display: grid; gap: 0.6rem; }
     .day {
       --fs-date-tile: 3.25rem;
-      display: grid;
-      grid-template-columns: var(--fs-date-tile) minmax(0, 1fr);
-      gap: 0 0.75rem;
-      padding: 0.55rem 0.65rem 0.55rem 0.55rem;
-      border: 1px solid var(--fs-border);
-      border-radius: var(--fs-radius-md);
-      background: var(--fs-surface);
-      box-shadow: var(--fs-shadow-sm);
+      display: grid; grid-template-columns: var(--fs-date-tile) minmax(0, 1fr); gap: 0 0.75rem;
+      padding: 0.55rem 0.65rem 0.55rem 0.55rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md);
+      background: var(--fs-surface); box-shadow: var(--fs-shadow-sm);
     }
-    .day--today {
-      border-color: color-mix(in srgb, var(--fs-primary) 45%, var(--fs-border));
-    }
+    .day--today { border-color: color-mix(in srgb, var(--fs-primary) 45%, var(--fs-border)); }
     .date {
-      display: grid;
-      justify-items: center;
-      align-content: start;
-      align-self: start;
-      width: var(--fs-date-tile);
-      padding: 0.3rem 0 0.35rem;
-      border-radius: var(--fs-radius-sm);
-      background: var(--fs-surface-muted);
-      line-height: 1.05;
+      display: grid; justify-items: center; align-content: start; align-self: start; width: var(--fs-date-tile);
+      padding: 0.3rem 0 0.35rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); line-height: 1.05;
     }
-    .date__wd {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--fs-text-muted);
-    }
-    .date__d {
-      font-size: 1.35rem;
-      font-weight: 750;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-    }
-    .date__m {
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: var(--fs-text-muted);
-    }
-    .day--today .date {
-      background: var(--fs-primary-soft);
-      color: var(--fs-primary-strong);
-    }
-    .day--today .date__wd,
-    .day--today .date__m {
-      color: var(--fs-primary-strong);
-    }
-    .day__body {
-      display: grid;
-      min-width: 0;
-    }
-    .day__head {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      min-height: 1.9rem;
-    }
-    .day__title {
-      margin: 0;
-      font-size: 0.95rem;
-      font-weight: 650;
-    }
+    .date__wd { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fs-text-muted); }
+    .date__d { font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .date__m { font-size: 0.68rem; font-weight: 600; color: var(--fs-text-muted); }
+    .day--today .date { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+    .day--today .date__wd, .day--today .date__m { color: var(--fs-primary-strong); }
+    .day__body { display: grid; min-width: 0; }
+    .day__head { display: flex; align-items: center; gap: 0.5rem; min-height: 1.9rem; }
+    .day__title { margin: 0; font-size: 0.95rem; font-weight: 650; }
     .day__chat {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      margin-left: auto;
-      min-height: 1.9rem;
-      padding: 0.2rem 0.65rem 0.2rem 0.5rem;
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--fs-primary-strong);
-      font: inherit;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.35rem; margin-left: auto; min-height: 1.9rem;
+      padding: 0.2rem 0.65rem 0.2rem 0.5rem; border: 0; border-radius: 999px; background: transparent;
+      color: var(--fs-primary-strong); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
     }
-    .day__chat:hover {
-      background: var(--fs-primary-soft);
-    }
-    .day__chat:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    .pickup {
-      display: grid;
-      gap: 0.3rem;
-      padding: 0.35rem 0;
-      border-top: 1px solid var(--fs-border);
-    }
-    .pickup:first-of-type {
-      border-top: 0;
-    }
-    .pickup__head {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.2rem 0.6rem;
-      align-items: center;
-      min-height: 1.9rem;
-    }
-    .pickup__head fs-pickup-summary {
-      margin-left: auto;
-    }
-    .pickup__head p-button[data-testid='stores.pickups.edit'] {
-      margin-left: auto;
-    }
-    .pickup__head fs-pickup-summary + p-button[data-testid='stores.pickups.edit'] {
-      margin-left: 0;
-    }
+    .day__chat:hover { background: var(--fs-primary-soft); }
+    .day__chat:disabled { opacity: 0.6; cursor: default; }
+    .pickup { display: grid; gap: 0.3rem; padding: 0.35rem 0; border-top: 1px solid var(--fs-border); }
+    .pickup:first-of-type { border-top: 0; }
+    .pickup__head { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; align-items: center; min-height: 1.9rem; }
+    .pickup__head fs-pickup-summary { margin-left: auto; }
+    .pickup__head p-button[data-testid='stores.pickups.edit'] { margin-left: auto; }
+    .pickup__head fs-pickup-summary + p-button[data-testid='stores.pickups.edit'] { margin-left: 0; }
     .pickup__reg {
-      display: inline-grid;
-      place-items: center;
-      width: 1.3rem;
-      height: 1.3rem;
-      border-radius: 999px;
-      background: var(--fs-surface-muted);
-      color: var(--fs-text-muted);
+      display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 999px;
+      background: var(--fs-surface-muted); color: var(--fs-text-muted);
     }
-    .pickup__reg .pi {
-      font-size: 0.7rem;
-    }
-    .pickup__cancelled {
-      margin: 0;
-      color: var(--fs-text-muted);
-      font-size: 0.85rem;
-      font-style: italic;
-    }
-    .pickup__extra {
-      margin: 0;
-      color: var(--fs-text-muted);
-      font-size: 0.78rem;
-    }
+    .pickup__reg .pi { font-size: 0.7rem; }
+    .pickup__cancelled { margin: 0; color: var(--fs-text-muted); font-size: 0.85rem; font-style: italic; }
+    .pickup__extra { margin: 0; color: var(--fs-text-muted); font-size: 0.78rem; }
     @media (max-width: 47.99rem) {
-      .day {
-        --fs-date-tile: 2.75rem;
-        gap: 0 0.6rem;
-      }
-      .date__d {
-        font-size: 1.15rem;
-      }
-      .day__chat {
-        justify-content: center;
-        min-width: var(--fs-target-sm);
-        min-height: var(--fs-target-sm);
-        padding: 0;
-      }
-      .day__chatLabel {
-        display: none;
-      }
-      .pickup__desc {
-        white-space: normal;
-      }
+      .day { --fs-date-tile: 2.75rem; gap: 0 0.6rem; }
+      .date__d { font-size: 1.15rem; }
+      .day__chat { justify-content: center; min-width: var(--fs-target-sm); min-height: var(--fs-target-sm); padding: 0; }
+      .day__chatLabel { display: none; }
+      .pickup__desc { white-space: normal; }
     }
     /* phones: the summary takes its own line under the time, the pencil stays on the first line */
     @media (max-width: 47.99rem) {
-      .pickup__head fs-pickup-summary {
-        flex-basis: 100%;
-        order: 1;
-      }
+      .pickup__head fs-pickup-summary { flex-basis: 100%; order: 1; }
     }
-    .pickup__time {
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-    .pickup__desc {
-      min-width: 0;
-      max-width: 100%;
-      overflow: hidden;
-      color: var(--fs-text-muted);
-      font-size: 0.85rem;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .pending {
-      display: flex;
-      gap: 0.35rem;
-      align-items: center;
-      margin: 0;
-      color: var(--fs-warning-text);
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
+    .pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .pickup__desc { min-width: 0; max-width: 100%; overflow: hidden; color: var(--fs-text-muted); font-size: 0.85rem; text-overflow: ellipsis; white-space: nowrap; }
+    .pending { display: flex; gap: 0.35rem; align-items: center; margin: 0; color: var(--fs-warning-text); font-size: 0.82rem; font-weight: 600; }
     .link-missing {
-      display: inline-flex;
-      gap: 0.35rem;
-      align-items: center;
-      align-self: start;
-      min-height: var(--fs-target-sm, 2.75rem);
-      padding: 0.2rem 0.75rem;
-      border: 1px solid var(--fs-warning-border, var(--fs-border-strong));
-      border-radius: 999px;
-      background: var(--fs-surface-muted);
-      color: var(--fs-warning-text);
-      font: inherit;
-      font-size: 0.82rem;
-      font-weight: 600;
+      display: inline-flex; gap: 0.35rem; align-items: center; align-self: start; min-height: var(--fs-target-sm, 2.75rem);
+      padding: 0.2rem 0.75rem; border: 1px solid var(--fs-warning-border, var(--fs-border-strong)); border-radius: 999px;
+      background: var(--fs-surface-muted); color: var(--fs-warning-text); font: inherit; font-size: 0.82rem; font-weight: 600;
       cursor: pointer;
     }
-    .link-missing:focus-visible {
-      outline: 2px solid var(--fs-primary);
-      outline-offset: 2px;
-    }
-    .muted {
-      margin: 0;
-      color: var(--fs-text-muted);
-    }
-    .form {
-      display: grid;
-      gap: 0.85rem;
-    }
-    .field {
-      display: grid;
-      gap: 0.3rem;
-      font-weight: 600;
-    }
-    .field small {
-      font-weight: 400;
-    }
+    .link-missing:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
+    .muted { margin: 0; color: var(--fs-text-muted); }
+    .form { display: grid; gap: 0.85rem; }
+    .field { display: grid; gap: 0.3rem; font-weight: 600; }
+    .field small { font-weight: 400; }
   `,
 })
 export class StorePickupsTab {
@@ -804,8 +524,7 @@ export class StorePickupsTab {
   private readonly automationApi = inject(AutomationService);
 
   protected readonly addExtraSlot = runMutation(
-    (pickup: Pickup) =>
-      this.automationApi.addExtraSlot({ storeId: this.ctx.storeId()!, pickupAt: pickup.pickupAt }),
+    (pickup: Pickup) => this.automationApi.addExtraSlot({ storeId: this.ctx.storeId()!, pickupAt: pickup.pickupAt }),
     { successToastKey: 'pickups.tab.extraSlotAdded', onSuccess: () => this.reload() },
   );
   private readonly session = inject(SessionService);
@@ -847,18 +566,13 @@ export class StorePickupsTab {
   });
 
   /** Unconfirmed sign-ups in the selected range (the chip's count). */
-  protected readonly pendingCount = computed(() =>
-    unconfirmedCount(this.rangeDays().flatMap((group) => group.items)),
-  );
+  protected readonly pendingCount = computed(() => unconfirmedCount(this.rangeDays().flatMap((group) => group.items)));
 
   protected readonly days = computed(() => {
     const groups = this.rangeDays();
     if (!this.pendingOnly()) return groups;
     return groups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((pickup) => unconfirmedCount([pickup]) > 0),
-      }))
+      .map((group) => ({ ...group, items: group.items.filter((pickup) => unconfirmedCount([pickup]) > 0) }))
       .filter((group) => group.items.length > 0);
   });
 
@@ -908,11 +622,7 @@ export class StorePickupsTab {
       }),
     {
       onSuccess: (chat: PickupDayConversation) => {
-        this.messages.add({
-          severity: 'success',
-          summary: this.i18n.t('pickups.dayChat.opened', { name: chat.name }),
-          life: 3000,
-        });
+        this.messages.add({ severity: 'success', summary: this.i18n.t('pickups.dayChat.opened', { name: chat.name }), life: 3000 });
         void this.router.navigate(['/messages', chat.conversationId]);
       },
     },
@@ -930,12 +640,7 @@ export class StorePickupsTab {
   protected openSignup(pickup: Pickup): void {
     const store = this.ctx.data();
     if (!store) return;
-    this.signupTarget.set({
-      storeId: store.id,
-      storeName: store.name,
-      pickupAt: pickup.pickupAt,
-      timeZone: this.tz(),
-    });
+    this.signupTarget.set({ storeId: store.id, storeName: store.name, pickupAt: pickup.pickupAt, timeZone: this.tz() });
     this.signupOpen.set(true);
   }
 
@@ -955,9 +660,7 @@ export class StorePickupsTab {
 
   /** Other people's sign-ups waiting for a new linked pickup (store managers see them). */
   protected othersMissingLink(pickup: Pickup): PickupSlot[] {
-    return pickup.occupiedSlots.filter(
-      (slot) => slot.user.id !== this.myId() && !!slot.linkMissingUntil,
-    );
+    return pickup.occupiedSlots.filter((slot) => slot.user.id !== this.myId() && !!slot.linkMissingUntil);
   }
 
   // --- blocked for this person (decision 167 S2) -------------------------------------------------------------------
@@ -976,9 +679,7 @@ export class StorePickupsTab {
         reason !== PickupEligibilityReason.NoFreeSlot,
     ).length;
     // decision 167 S3: a missing linked pickup alone is no lock, the sign-up dialog books it in the same step
-    const rules = e.reasons.includes(PickupEligibilityReason.AutomationRule)
-      ? lockingBlocks(e.ruleBlocks).length
-      : 0;
+    const rules = e.reasons.includes(PickupEligibilityReason.AutomationRule) ? lockingBlocks(e.ruleBlocks).length : 0;
     return others + rules;
   }
 
@@ -993,12 +694,7 @@ export class StorePickupsTab {
   protected openBlocked(pickup: Pickup): void {
     const store = this.ctx.data();
     if (!store) return;
-    this.signupTarget.set({
-      storeId: store.id,
-      storeName: store.name,
-      pickupAt: pickup.pickupAt,
-      timeZone: this.tz(),
-    });
+    this.signupTarget.set({ storeId: store.id, storeName: store.name, pickupAt: pickup.pickupAt, timeZone: this.tz() });
     this.blockedOpen.set(true);
   }
 
@@ -1008,9 +704,9 @@ export class StorePickupsTab {
     this.pendingOnly.set(false);
     const day = dayOf(at, this.tz());
     setTimeout(() => {
-      const target = [
-        ...this.document.querySelectorAll<HTMLElement>('[data-testid="stores.pickups.day"]'),
-      ].find((element) => (element.dataset['day'] ?? '') >= day);
+      const target = [...this.document.querySelectorAll<HTMLElement>('[data-testid="stores.pickups.day"]')].find(
+        (element) => (element.dataset['day'] ?? '') >= day,
+      );
       target?.scrollIntoView({ block: 'start', behavior: 'smooth' });
       target?.querySelector<HTMLElement>('h2')?.focus();
     });
@@ -1022,15 +718,8 @@ export class StorePickupsTab {
     this.messages.add({
       severity: 'success',
       summary: linked.length
-        ? this.i18n.t('pickups.linked.done', {
-            stores: [
-              ...(store && !this.signupTarget()?.linkMissingUntil ? [store.name] : []),
-              ...linked,
-            ].join(', '),
-          })
-        : this.i18n.t(
-            result.confirmed ? 'pickups.signup.doneConfirmed' : 'pickups.signup.doneUnconfirmed',
-          ),
+        ? this.i18n.t('pickups.linked.done', { stores: [...(store && !this.signupTarget()?.linkMissingUntil ? [store.name] : []), ...linked].join(', ') })
+        : this.i18n.t(result.confirmed ? 'pickups.signup.doneConfirmed' : 'pickups.signup.doneUnconfirmed'),
     });
     this.reload();
   }
@@ -1065,18 +754,12 @@ export class StorePickupsTab {
   /** `p-dialog` (onShow) fires after the enter animation, so the focus does not race it. */
   protected onSlotDialogShown(): void {
     if (!this.focusConfirm()) return;
-    this.document
-      .querySelector<HTMLElement>('[data-testid="stores.pickups.confirmSlot"] button')
-      ?.focus();
+    this.document.querySelector<HTMLElement>('[data-testid="stores.pickups.confirmSlot"] button')?.focus();
   }
 
   protected readonly signOut = runMutation(
     (pickup: Pickup) =>
-      this.api.signOut({
-        storeId: this.ctx.storeId()!,
-        pickupAt: pickup.pickupAt,
-        userId: this.myId()!,
-      }),
+      this.api.signOut({ storeId: this.ctx.storeId()!, pickupAt: pickup.pickupAt, userId: this.myId()! }),
     { successToastKey: 'pickups.signout.done', onSuccess: () => this.reload() },
   );
 
@@ -1123,11 +806,7 @@ export class StorePickupsTab {
     (pickup: Pickup, pending: PickupSlot[]) =>
       concat(
         ...pending.map((slot) =>
-          this.api.confirmSignup({
-            storeId: this.ctx.storeId()!,
-            pickupAt: pickup.pickupAt,
-            userId: slot.user.id,
-          }),
+          this.api.confirmSignup({ storeId: this.ctx.storeId()!, pickupAt: pickup.pickupAt, userId: slot.user.id }),
         ),
       ).pipe(tap({ complete: () => this.confirmedAll.set(pending.length) })),
     {
@@ -1146,16 +825,12 @@ export class StorePickupsTab {
   private readonly confirmedAll = signal(0);
 
   /** The remove dialog's text, with the EA16 warning when the sign-up carries a linked EinAb. */
-  protected readonly removeText = computed(() =>
-    this.withLinkedWarning(this.i18n.t('pickups.tab.removeText'), this.slotTarget()?.slot),
-  );
+  protected readonly removeText = computed(() => this.withLinkedWarning(this.i18n.t('pickups.tab.removeText'), this.slotTarget()?.slot));
 
   /** EA16 (decision 169): signing out of / removing a sign-up with a linked EinAb cancels it; booked newcomers are told. */
   private withLinkedWarning(text: string, slot: PickupSlot | undefined): string {
     const linked = slot?.linkedIntroPickup;
-    return linked
-      ? `${text} ${this.i18n.t('pickups.signout.linkedIntroPickup', { count: linked.bookedCount })}`
-      : text;
+    return linked ? `${text} ${this.i18n.t('pickups.signout.linkedIntroPickup', { count: linked.bookedCount })}` : text;
   }
 
   protected askRemove(): void {
@@ -1214,10 +889,7 @@ export class StorePickupsTab {
       return this.api.editPickup({
         storeId: this.ctx.storeId()!,
         pickupAt,
-        pickupEdit: {
-          slotCount: Math.min(50, Math.max(0, Number(this.editSlots) || 0)),
-          ...(description ? { description } : {}),
-        },
+        pickupEdit: { slotCount: Math.min(50, Math.max(0, Number(this.editSlots) || 0)), ...(description ? { description } : {}) },
       });
     },
     {
@@ -1245,13 +917,7 @@ export class StorePickupsTab {
     loader: (storeId) =>
       this.api
         .getRegularPickups({ storeId })
-        .pipe(
-          tap((rows) =>
-            this.schedule.set(
-              rows.map((row) => ({ ...row, startTime: row.startTime.slice(0, 5) })),
-            ),
-          ),
-        ),
+        .pipe(tap((rows) => this.schedule.set(rows.map((row) => ({ ...row, startTime: row.startTime.slice(0, 5) }))))),
   });
 
   protected openRegular(): void {
