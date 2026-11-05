@@ -1,0 +1,9 @@
+Hoi [(${displayName})],
+
+du häsch s EinAb-Begleitigs-Quiz bis am [(${deadline})] nöd bestande. Dini Freischaltig als Begleitig für Iifüehrigsabholige isch drum zruggnoh worde. Dini planti Iifüehrigsabholige bliibed; d Bezirksverwaltig organisiert e neui Begleitig.
+
+Sobald du s Quiz bestande häsch, chönd dich dini Botschafter:inne wieder freischalte.
+
+[(${link})]
+
+Dis foodsharing-Team

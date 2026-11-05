@@ -182,5 +182,7 @@
   "quiz.editor.commentAdded": "Commentaire enregistré",
   "quiz.results.confirmed.FOODSAVER": "C’est fait – tu es maintenant foodsaver ! Prochaine étape : les collectes d’introduction.",
   "quiz.results.confirmed.STORE_MANAGER": "C’est fait – tu es maintenant responsable de commerce !",
-  "quiz.list.retry": "Réessayer"
+  "quiz.list.retry": "Réessayer",
+  "quiz.kind.EINAB_GUIDE": "Quiz accompagnateur·rice EinAb",
+  "quiz.list.locked.EINAB_GUIDE": "Pour les foodsavers vérifiés après assez de collectes confirmées."
 }

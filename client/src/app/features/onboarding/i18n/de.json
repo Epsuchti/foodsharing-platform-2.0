@@ -35,7 +35,6 @@
   "onboarding.waiting.introPickupDates": "Wartet auf neue Termine",
   "onboarding.waiting.regionStep": "Wartet auf die Bestätigung deines Bezirks",
   "onboarding.waiting.verification": "Wartet auf die Verifizierung durch deine Botschafter:innen",
-  "onboarding.waiting.guidePermission": "Wartet auf die Freischaltung als Einführer:in",
   "onboarding.blocked.QUIZ_WAIT_TIME": "Du kannst das Quiz in {days, plural, one {# Tag} other {# Tagen}} wiederholen.",
   "onboarding.blocked.QUIZ_DISQUALIFIED": "Das Quiz ist gesperrt. Bitte melde dich bei deinen Botschafter:innen.",
   "onboarding.blocked.FAIRTEILER_VISIT_REQUIRED": "Bei deiner dritten Einführungsabholung muss ein Fairteiler-Besuch dabei sein.",
@@ -74,5 +73,7 @@
   "onboarding.region.noDates": "Gerade keine freien Termine – wir benachrichtigen dich gerne.",
   "onboarding.region.allDates": "Alle Termine ansehen",
   "onboarding.meter.progress": "Schritt {current} von {total}",
-  "onboarding.meter.retry": "Fortschritt neu laden"
+  "onboarding.meter.retry": "Fortschritt neu laden",
+  "onboarding.blocked.guidePickups": "Das Quiz öffnet nach {required} bestätigten Abholungen ({done}/{required}).",
+  "onboarding.waiting.guideRelease": "Quiz bestanden – wartet auf die Freischaltung durch deine Botschafter:innen"
 }

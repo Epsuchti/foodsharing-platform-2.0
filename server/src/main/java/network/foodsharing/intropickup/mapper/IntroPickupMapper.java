@@ -315,6 +315,16 @@ public class IntroPickupMapper {
         model.setIntroPickupCount(view.introPickupCount());
         model.setLastIntroPickupAt(toOffset(view.lastIntroPickupAt()));
         model.setNextIntroPickupAt(toOffset(view.nextIntroPickupAt()));
+        model.setGuideQuizPassedAt(toOffset(view.guideQuizPassedAt()));
+        return model;
+    }
+
+    public network.foodsharing.api.model.GuideCandidate toGuideCandidate(
+            IntroPickupAdminService.GuideCandidateView view) {
+        network.foodsharing.api.model.GuideCandidate model = new network.foodsharing.api.model.GuideCandidate();
+        model.setUser(users.toSummary(view.user()));
+        model.setQuizPassedAt(toOffset(view.quizPassedAt()));
+        model.setPickupCount(view.pickupCount());
         return model;
     }
 

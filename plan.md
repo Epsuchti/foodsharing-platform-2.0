@@ -590,7 +590,8 @@ card, nudges and the ambassador's funnel.
 
 Further tracks after completion, each with its own mini-journey and progress: hygiene quiz (expires after
 365 days, warning 90 days before), store manager quiz + confidentiality agreement, EinAb guide
-(permission request → ambassador approval → first EinAb), ambassador quiz.
+(N confirmed store pickups, region setting, default 25 → EinAb guide quiz → ambassador release → first EinAb;
+decision 168), ambassador quiz.
 
 Each step carries: `status` (`LOCKED | AVAILABLE | IN_PROGRESS | WAITING_FOR_OTHERS | DONE`),
 `progress` (e.g. 2/3), `nextAction` (CTA + deep link), `estimatedDuration`, `blockedReason`, and who to
@@ -885,6 +886,7 @@ Derived from the public repo `gitlab.com/foodsharing-dev/foodsharing` (63 module
 | Q1 | Quizzes: Foodsaver, Store manager, Ambassador, Hygiene, Foodsharer, Saving food, Reports (and French foodsaver quiz variant → all quizzes in all five languages) | QuizID |
 | Q2 | Quiz sessions: timed & untimed questions, mandatory questions, failure points, results with explanations and wiki links, confirmation; wait/disqualification rules; hygiene expiry; practice/test mode | `fs_quiz_session`, QuizTransactions |
 | Q3 | Quiz editor for quiz AG: quiz settings (max failure points, question counts), questions (duration, wiki link, mandatory), answers with rating and explanation, question comments | QuizEditor, `fs_question_has_wallpost` |
+| Q4 | EinAb guide quiz (decision 168): unlocks after N confirmed store pickups (region setting `guideQuizMinPickups`, default 25); a pass makes you a candidate, only ambassadors / ORGA release guides (CAN_GIVE_INTRO_PICKUPS) and only with a pass; Ready-for-release list; existing guides must pass by the grace deadline, then the job withdraws the release | new (no upstream source) |
 | Ve1 | Legal agreement and privacy policy (versioned, re-consent on change), store manager confidentiality agreement | Legal, `privacy_*_accepted_date` |
 | Ve2 | Verify / unverify users with required message, verification history, identity confirmation | VerificationRestController |
 | Ve3 | Passport: PDF (single and batch per region), pass requests, pass history, last pass date, Apple/Google Wallet, bell/mail on creation optional; layout approved by our admins | PassportGenerator, `fs_pass_*` |

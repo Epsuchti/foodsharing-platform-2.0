@@ -303,5 +303,8 @@
   "regions.members.removeShort": "Retirer",
   "regions.page.membershipHome": "{name} est ta région principale.",
   "regions.page.membershipMember": "Tu es membre de {name}.",
-  "regions.statistics.cleaning": "Créneaux de nettoyage le mois dernier"
+  "regions.statistics.cleaning": "Créneaux de nettoyage le mois dernier",
+  "regions.settings.guideQuizMinPickups": "Collectes avant le quiz accompagnateur·rice EinAb",
+  "regions.settings.guideQuizMinPickupsHint": "Collectes confirmées nécessaires à un membre de cette région d’origine avant le quiz.",
+  "regions.members.guideReleaseLink": "Activer sur la page des accompagnateur·rice·s"
 }

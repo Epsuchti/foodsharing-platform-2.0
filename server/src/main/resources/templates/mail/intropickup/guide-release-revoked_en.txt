@@ -1,0 +1,9 @@
+Hi [(${displayName})],
+
+you did not pass the EinAb guide quiz by [(${deadline})], so your release as a guide for intro pickups was withdrawn. Your planned intro pickups stay; the region administration finds another guide.
+
+Once you pass the quiz, your ambassadors can release you again.
+
+[(${link})]
+
+Your foodsharing team

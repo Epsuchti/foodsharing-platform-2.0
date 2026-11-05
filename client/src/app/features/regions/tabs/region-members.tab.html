@@ -177,13 +177,24 @@
                 <label [for]="'perm-' + permission">{{ 'regions.permission.' + permission + '.label' | t }}</label>
                 <span class="matrix__source" data-testid="regions.members.permissionSource" [attr.data-source]="grant?.source ?? 'NONE'">{{ sourceText(grant) }}</span>
               </span>
-              <p-toggleswitch
-                [inputId]="'perm-' + permission"
-                [ngModel]="!!grant"
-                [disabled]="togglePermission.busy() || (!!grant && grant.source !== 'DIRECT')"
-                (ngModelChange)="togglePermission.run(member.user.id, permission, $event)"
-                [attr.data-testid]="'regions.members.permission.' + permission"
-              />
+              @if (permission === guidePermission && !grant) {
+                <!-- Q4: the guide release needs the EinAb guide quiz pass; it happens on the guide page -->
+                <a
+                  [routerLink]="['/regions', ctx.regionId(), 'intro-pickups', 'admin']"
+                  [queryParams]="{ tab: 'guides' }"
+                  class="matrix__link"
+                  data-testid="regions.members.guideReleaseLink"
+                  >{{ 'regions.members.guideReleaseLink' | t }}</a
+                >
+              } @else {
+                <p-toggleswitch
+                  [inputId]="'perm-' + permission"
+                  [ngModel]="!!grant"
+                  [disabled]="togglePermission.busy() || (!!grant && grant.source !== 'DIRECT')"
+                  (ngModelChange)="togglePermission.run(member.user.id, permission, $event)"
+                  [attr.data-testid]="'regions.members.permission.' + permission"
+                />
+              }
             </div>
           }
         </div>

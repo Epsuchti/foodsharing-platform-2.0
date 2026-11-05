@@ -303,5 +303,8 @@
   "regions.members.removeShort": "Entferne",
   "regions.page.membershipHome": "{name} isch din Stammbezirk.",
   "regions.page.membershipMember": "Du bisch Mitglied vo {name}.",
-  "regions.statistics.cleaning": "Putzeinsätz letschte Monet"
+  "regions.statistics.cleaning": "Putzeinsätz letschte Monet",
+  "regions.settings.guideQuizMinPickups": "Abholige vor em EinAb-Begleitigs-Quiz",
+  "regions.settings.guideQuizMinPickupsHint": "So vill bestätigti Abholige bruucht es Mitglied mit dem Stammbezirk, bevor s Quiz mache cha.",
+  "regions.members.guideReleaseLink": "Über d Begleitigssiite freischalte"
 }

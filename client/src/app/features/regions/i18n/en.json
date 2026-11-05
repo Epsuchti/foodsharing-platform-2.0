@@ -303,5 +303,8 @@
   "regions.members.removeShort": "Remove",
   "regions.page.membershipHome": "{name} is your home region.",
   "regions.page.membershipMember": "You are a member of {name}.",
-  "regions.statistics.cleaning": "Cleaning shifts last month"
+  "regions.statistics.cleaning": "Cleaning shifts last month",
+  "regions.settings.guideQuizMinPickups": "Pickups before the EinAb guide quiz",
+  "regions.settings.guideQuizMinPickupsHint": "Confirmed pickups a member with this home region needs before taking the quiz.",
+  "regions.members.guideReleaseLink": "Release on the guide page"
 }

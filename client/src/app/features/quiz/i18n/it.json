@@ -182,5 +182,7 @@
   "quiz.editor.commentAdded": "Commento salvato",
   "quiz.results.confirmed.FOODSAVER": "Fatto – ora sei foodsaver! Prossimo passo: i ritiri introduttivi.",
   "quiz.results.confirmed.STORE_MANAGER": "Fatto – ora sei responsabile del negozio!",
-  "quiz.list.retry": "Riprova"
+  "quiz.list.retry": "Riprova",
+  "quiz.kind.EINAB_GUIDE": "Quiz accompagnatore EinAb",
+  "quiz.list.locked.EINAB_GUIDE": "Per i foodsaver verificati dopo abbastanza ritiri confermati."
 }

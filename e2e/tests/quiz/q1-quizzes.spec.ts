@@ -1,19 +1,19 @@
 import { LANGUAGES, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
 import { acceptPrivacy } from './_quiz';
 
-/** Q1: the seven quizzes in five languages, locked quizzes explain why. */
+/** Q1: the quizzes in five languages (orga also sees the EinAb guide quiz as its editor, Q4), locked quizzes explain why. */
 
 test.use({ seedReset: 'test' });
 
 const NAMES: Record<string, string[]> = {
-  de: ['Foodsaver-Quiz', 'Betriebsverantwortlichen-Quiz', 'Botschafter-Quiz', 'Hygiene-Quiz', 'Foodsharer-Quiz', 'Lebensmittel retten', 'Meldeteam-Quiz'],
-  en: ['Foodsaver quiz', 'Store manager quiz', 'Ambassador quiz', 'Hygiene quiz', 'Foodsharer quiz', 'Saving food', 'Report team quiz'],
-  gws: ['Foodsaver-Quiz', 'Betriebsverantwortliche-Quiz', 'Botschafter-Quiz', 'Hygiene-Quiz', 'Foodsharer-Quiz', 'Läbensmittel rette', 'Meldeteam-Quiz'],
-  fr: ['Quiz foodsaver', 'Quiz responsable de commerce', 'Quiz ambassadeur', 'Quiz hygiène', 'Quiz foodsharer', 'Sauver la nourriture', 'Quiz équipe de signalement'],
-  it: ['Quiz foodsaver', 'Quiz responsabile di negozio', 'Quiz ambasciatore', 'Quiz igiene', 'Quiz foodsharer', 'Salvare il cibo', 'Quiz team segnalazioni'],
+  de: ['Foodsaver-Quiz', 'Betriebsverantwortlichen-Quiz', 'Botschafter-Quiz', 'Hygiene-Quiz', 'Foodsharer-Quiz', 'Lebensmittel retten', 'Meldeteam-Quiz', 'EinAb-Begleitungs-Quiz'],
+  en: ['Foodsaver quiz', 'Store manager quiz', 'Ambassador quiz', 'Hygiene quiz', 'Foodsharer quiz', 'Saving food', 'Report team quiz', 'EinAb guide quiz'],
+  gws: ['Foodsaver-Quiz', 'Betriebsverantwortliche-Quiz', 'Botschafter-Quiz', 'Hygiene-Quiz', 'Foodsharer-Quiz', 'Läbensmittel rette', 'Meldeteam-Quiz', 'EinAb-Begleitigs-Quiz'],
+  fr: ['Quiz foodsaver', 'Quiz responsable de commerce', 'Quiz ambassadeur', 'Quiz hygiène', 'Quiz foodsharer', 'Sauver la nourriture', 'Quiz équipe de signalement', 'Quiz accompagnateur·rice EinAb'],
+  it: ['Quiz foodsaver', 'Quiz responsabile di negozio', 'Quiz ambasciatore', 'Quiz igiene', 'Quiz foodsharer', 'Salvare il cibo', 'Quiz team segnalazioni', 'Quiz accompagnatore EinAb'],
 };
 
-test('Q1 all seven quizzes are listed in five languages @Q1 @page', async ({ as, apiOf }) => {
+test('Q1 all quizzes are listed in five languages @Q1 @page', async ({ as, apiOf }) => {
   const page = await as('orga');
   const api = apiOf(page);
   for (const lang of LANGUAGES) {
@@ -22,7 +22,7 @@ test('Q1 all seven quizzes are listed in five languages @Q1 @page', async ({ as,
     await page.goto('/quizzes');
     await expect(page.getByTestId('quiz.list.state')).toHaveAttribute('data-state', 'success');
     const cards = page.getByTestId('quiz.list.card');
-    await expect(cards).toHaveCount(7);
+    await expect(cards).toHaveCount(8);
     await expect(page.getByTestId('quiz.list.name')).toHaveText(NAMES[lang], { useInnerText: true, ignoreCase: false });
     await expectNoMissingKeys(page);
   }

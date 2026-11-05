@@ -1,0 +1,7 @@
+Ciao [(${displayName})],
+
+D’ora in poi accompagnano i ritiri introduttivi solo i foodsaver che hanno superato il quiz accompagnatore EinAb. Supera il quiz entro il [(${deadline})]. Dopo, la tua abilitazione di accompagnatore viene revocata finché non lo superi e i tuoi ambasciatori ti abilitano di nuovo.
+
+[(${link})]
+
+Il tuo team foodsharing

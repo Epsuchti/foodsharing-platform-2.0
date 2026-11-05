@@ -84,7 +84,8 @@ class QuizRuleServiceTest {
             "FOODSAVER, 1, 0", "FOODSAVER, 2, 0", "FOODSAVER, 3, 30", "FOODSAVER, 4, -1", "FOODSAVER, 5, -1",
             "STORE_MANAGER, 3, 30", "AMBASSADOR, 4, -1",
             "HYGIENE, 1, 1", "HYGIENE, 2, 1", "HYGIENE, 6, 1",
-            "FOODSHARER, 3, 0", "SAVING_FOOD, 5, 0", "REPORTS, 4, 0"})
+            "FOODSHARER, 3, 0", "SAVING_FOOD, 5, 0", "REPORTS, 4, 0",
+            "EINAB_GUIDE, 1, 0", "EINAB_GUIDE, 2, 0", "EINAB_GUIDE, 3, 30", "EINAB_GUIDE, 4, -1"})
     void waitTable(QuizKind kind, int failures, int waitDays) {
         assertThat(rules.waitDays(kind, failures)).isEqualTo(waitDays);
     }
@@ -155,6 +156,29 @@ class QuizRuleServiceTest {
         assertThat(rules.requiresConfirmation(QuizKind.AMBASSADOR)).isFalse();
         assertThat(rules.roleOf(QuizKind.STORE_MANAGER)).isEqualTo(Role.STORE_MANAGER);
         assertThat(rules.roleOf(QuizKind.HYGIENE)).isNull();
+    }
+
+    @Test
+    void einabGuideQuizNeedsVerifiedFoodsaversWhoReachedThePickupThreshold() {
+        // Q4: verified, at least FOODSAVER, and the pickup threshold reached (or already a released guide)
+        assertThat(rules.mayTry(QuizKind.EINAB_GUIDE, Role.FOODSAVER, true, false, true)).isTrue();
+        assertThat(rules.mayTry(QuizKind.EINAB_GUIDE, Role.AMBASSADOR, true, false, true)).isTrue();
+        assertThat(rules.mayTry(QuizKind.EINAB_GUIDE, Role.FOODSAVER, true, false, false)).isFalse();
+        assertThat(rules.mayTry(QuizKind.EINAB_GUIDE, Role.FOODSAVER, false, false, true)).isFalse();
+        assertThat(rules.mayTry(QuizKind.EINAB_GUIDE, Role.FOODSHARER, true, false, true)).isFalse();
+        assertThat(rules.mayTry(QuizKind.EINAB_GUIDE, Role.FOODSAVER, true, false)).isFalse();
+        // the pickup flag only matters for the guide quiz
+        assertThat(rules.mayTry(QuizKind.STORE_MANAGER, Role.FOODSAVER, true, false, false)).isTrue();
+        // no confirmation, no role, the pass never expires and blocks a repeat
+        assertThat(rules.requiresConfirmation(QuizKind.EINAB_GUIDE)).isFalse();
+        assertThat(rules.roleOf(QuizKind.EINAB_GUIDE)).isNull();
+        var state = rules.tryState(QuizKind.EINAB_GUIDE, List.of(passed(2000)), NOW);
+        assertThat(state.passValid()).isTrue();
+        assertThat(state.expiresInDays()).isNull();
+        assertThat(rules.mayStart(QuizKind.EINAB_GUIDE, state)).isFalse();
+        var disqualified = rules.tryState(QuizKind.EINAB_GUIDE,
+                List.of(failed(90), failed(80), failed(50), failed(10)), NOW);
+        assertThat(disqualified.disqualified()).isTrue();
     }
 
     @Test

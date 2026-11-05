@@ -182,15 +182,15 @@ public class AppProperties {
     public static class Permissions {
         /**
          * Region permissions granted to every member of a region's function group (plan §9, A10). Defaults:
-         * FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, VOTING → CAN_MANAGE_SURVEYS.
-         * STORES_COORDINATION grants nothing (automation needs no permission, decision 167).
+         * FSMANAGEMENT → CAN_MANAGE_USERS, VOTING → CAN_MANAGE_SURVEYS. STORES_COORDINATION grants nothing
+         * (automation needs no permission, decision 167); WELCOME grants nothing (Q4, decision 168:
+         * CAN_GIVE_INTRO_PICKUPS is the guide release, which needs the EinAb guide quiz pass).
          */
         private Map<WorkingGroupFunction, List<Permission>> functionGrants = defaultFunctionGrants();
 
         public static Map<WorkingGroupFunction, List<Permission>> defaultFunctionGrants() {
             Map<WorkingGroupFunction, List<Permission>> grants = new EnumMap<>(WorkingGroupFunction.class);
             grants.put(WorkingGroupFunction.FSMANAGEMENT, List.of(Permission.CAN_MANAGE_USERS));
-            grants.put(WorkingGroupFunction.WELCOME, List.of(Permission.CAN_GIVE_INTRO_PICKUPS));
             grants.put(WorkingGroupFunction.VOTING, List.of(Permission.CAN_MANAGE_SURVEYS));
             return grants;
         }
@@ -253,6 +253,11 @@ public class AppProperties {
         private List<String> icalAllowedHosts = new ArrayList<>(List.of("foodsharing.network", "foodsharing.de"));
         /** local/e2e only: the iCal import may also read from {@code app.base-url} (dev iCal fixture, EA16). */
         private boolean icalAllowOwnBaseUrl = false;
+        /**
+         * Q4 transition (decision 168): from this day (Europe/Zurich) guides without an EinAb guide quiz pass lose
+         * CAN_GIVE_INTRO_PICKUPS; the final reminder goes out 14 days before.
+         */
+        private java.time.LocalDate guideQuizDeadline = java.time.LocalDate.of(2027, 1, 15);
     }
 
     @Getter

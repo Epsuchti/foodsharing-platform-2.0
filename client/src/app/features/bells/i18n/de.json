@@ -114,5 +114,9 @@
   "bell.ui.page.loadMore": "Ältere laden",
   "bell.ui.page.deleteRead": "Gelesene löschen",
   "bell.ui.page.deletedRead": "Gelesene Benachrichtigungen gelöscht",
-  "bell.ui.button.itemCount": "({count} ungelesen)"
+  "bell.ui.button.itemCount": "({count} ungelesen)",
+  "bell.GUIDE_QUIZ_PASSED": "{userName} hat das EinAb-Begleitungs-Quiz bestanden",
+  "bell.GUIDE_QUIZ_REQUIRED": "Bitte mach das EinAb-Begleitungs-Quiz bis zum {deadline}",
+  "bell.GUIDE_RELEASE_REVOKED": "Deine Freischaltung als Begleitung wurde zurückgenommen",
+  "bell.GUIDE_EINABS_NEED_GUIDE": "{count} Einführungsabholungen von {guideName} brauchen eine neue Begleitung"
 }

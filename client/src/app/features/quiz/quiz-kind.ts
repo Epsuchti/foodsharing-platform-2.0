@@ -25,6 +25,7 @@ export const QUIZ_ICONS: Record<QuizKind, string> = {
   FOODSHARER: 'pi pi-heart',
   SAVING_FOOD: 'pi pi-sparkles',
   REPORTS: 'pi pi-flag',
+  EINAB_GUIDE: 'pi pi-compass',
 };
 
 /** What the status chip shows for a quiz (plan T19, quizzes page). */

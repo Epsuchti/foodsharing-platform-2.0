@@ -186,6 +186,7 @@ describe('regions pages', () => {
         preventDuplicateCategoryBookings: true,
         requireFairteilerVisitByThirdIntroPickup: false,
         ignoredCategories: [IntroPickupCategory.Online],
+        guideQuizMinPickups: 25,
       },
       onboarding: {
         learningPagesMandatory: true,

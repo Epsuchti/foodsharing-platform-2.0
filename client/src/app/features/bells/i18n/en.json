@@ -114,5 +114,9 @@
   "bell.ui.page.loadMore": "Load older",
   "bell.ui.page.deleteRead": "Delete read",
   "bell.ui.page.deletedRead": "Read notifications deleted",
-  "bell.ui.button.itemCount": "({count} unread)"
+  "bell.ui.button.itemCount": "({count} unread)",
+  "bell.GUIDE_QUIZ_PASSED": "{userName} passed the EinAb guide quiz",
+  "bell.GUIDE_QUIZ_REQUIRED": "Please pass the EinAb guide quiz by {deadline}",
+  "bell.GUIDE_RELEASE_REVOKED": "Your guide release was withdrawn",
+  "bell.GUIDE_EINABS_NEED_GUIDE": "{count} intro pickups of {guideName} need a new guide"
 }

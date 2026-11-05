@@ -293,5 +293,19 @@
   "introPickups.admin.status.DISABLED": "Disabled",
   "introPickups.admin.grantAdmin": "Make newcomer manager",
   "introPickups.admin.revokeAdmin": "Remove manager right",
-  "introPickups.admin.adminSaved": "Manager right saved"
+  "introPickups.admin.adminSaved": "Manager right saved",
+  "introPickups.admin.candidatesTitle": "Ready for release",
+  "introPickups.admin.candidatesText": "These members passed the EinAb guide quiz. Ambassadors and ORGA release them.",
+  "introPickups.admin.noCandidates": "Nobody is waiting for release",
+  "introPickups.admin.noCandidatesText": "People who pass the EinAb guide quiz show up here.",
+  "introPickups.admin.candidateStats": "{count, plural, one {# pickup} other {# pickups}} · quiz passed on {date}",
+  "introPickups.admin.release": "Release",
+  "introPickups.admin.releaseText": "Release {name} as a guide for intro pickups.",
+  "introPickups.admin.reasonOptional": "Note (optional)",
+  "introPickups.admin.released": "Guide released",
+  "introPickups.admin.releaseByAmbassadors": "Ambassadors and ORGA release guides.",
+  "introPickups.admin.enableLocked": "Ambassadors only",
+  "introPickups.admin.deadlineBanner": "{count, plural, one {# guide has} other {# guides have}} not passed the EinAb guide quiz yet. From {date} they lose their release.",
+  "introPickups.admin.quizPassed": "Quiz passed",
+  "introPickups.admin.quizMissing": "Quiz missing"
 }

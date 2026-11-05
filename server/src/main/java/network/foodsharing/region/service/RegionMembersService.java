@@ -215,15 +215,63 @@ public class RegionMembersService {
     }
 
     /**
-     * Grants a region permission: administrators of the region; CAN_MANAGE_USERS holders only CAN_GIVE_INTRO_PICKUPS.
+     * Grants a region permission (administrators of the region). CAN_GIVE_INTRO_PICKUPS is refused: it is the guide
+     * release of the EinAb admin page, which needs the EinAb guide quiz pass (Q4, decision 168).
      *
-     * @throws ApiException 403 ACCESS_DENIED, 404 REGION_NOT_FOUND / USER_NOT_FOUND, 409 NOT_A_MEMBER
+     * @throws ApiException 403 ACCESS_DENIED, 404 REGION_NOT_FOUND / USER_NOT_FOUND, 409 NOT_A_MEMBER /
+     *                      USE_GUIDE_RELEASE
      */
     @Transactional
     public GrantView grant(UUID regionId, UUID userId, Permission permission) {
         regionService.require(regionId);
         SessionPrincipal actor = currentActor.requirePrincipal();
         requireMayGrant(actor, regionId, permission);
+        if (permission == Permission.CAN_GIVE_INTRO_PICKUPS) {
+            throw ApiException.conflict(ApiErrorCode.USE_GUIDE_RELEASE);
+        }
+        return insertGrant(regionId, userId, permission, actor.userId());
+    }
+
+    /**
+     * Q4: the guide release, i.e. the grant of CAN_GIVE_INTRO_PICKUPS (region administrators only). The caller checks
+     * the EinAb guide quiz pass.
+     *
+     * @throws ApiException 403 ACCESS_DENIED, 404 REGION_NOT_FOUND / USER_NOT_FOUND, 409 NOT_A_MEMBER
+     */
+    @Transactional
+    public GrantView releaseGuide(UUID regionId, UUID userId) {
+        regionService.require(regionId);
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        permissions.requireMayAdministrateRegion(actor, regionId);
+        return insertGrant(regionId, userId, Permission.CAN_GIVE_INTRO_PICKUPS, actor.userId());
+    }
+
+    /**
+     * Q4: withdraws the direct CAN_GIVE_INTRO_PICKUPS grant without an actor check; the callers check (guide disable
+     * by EinAb admins, the guide quiz deadline job).
+     *
+     * @return whether a grant was removed
+     */
+    @Transactional
+    public boolean withdrawGuide(UUID regionId, UUID userId) {
+        return grants.findByUserIdAndRegionIdAndPermission(userId, regionId, Permission.CAN_GIVE_INTRO_PICKUPS)
+                .map(grant -> {
+                    grants.delete(grant);
+                    history.record(history.event(RegionAction.PERMISSION_REVOKED, regionId).secondarySubject(userId)
+                            .region(regionId).metadata("permission", Permission.CAN_GIVE_INTRO_PICKUPS.name())
+                            .build());
+                    return true;
+                }).orElse(false);
+    }
+
+    /** Q4: every direct CAN_GIVE_INTRO_PICKUPS grant as user → regions (deadline job). */
+    @Transactional(readOnly = true)
+    public Map<UUID, Set<UUID>> guideReleases() {
+        return grants.findByPermission(Permission.CAN_GIVE_INTRO_PICKUPS).stream().collect(Collectors.groupingBy(
+                RegionPermission::getUserId, Collectors.mapping(RegionPermission::getRegionId, Collectors.toSet())));
+    }
+
+    private GrantView insertGrant(UUID regionId, UUID userId, Permission permission, UUID grantedBy) {
         User user = users.requireActive(userId);
         if (!memberships.existsByUserIdAndRegionIdAndActiveTrue(userId, regionId)) {
             throw ApiException.conflict(ApiErrorCode.NOT_A_MEMBER);
@@ -234,7 +282,7 @@ public class RegionMembersService {
                     created.setUserId(userId);
                     created.setRegionId(regionId);
                     created.setPermission(permission);
-                    created.setGrantedBy(actor.userId());
+                    created.setGrantedBy(grantedBy);
                     history.record(history.event(RegionAction.PERMISSION_GRANTED, regionId).secondarySubject(userId)
                             .region(regionId).metadata("permission", permission.name()).build());
                     return grants.save(created);
@@ -256,11 +304,12 @@ public class RegionMembersService {
         });
     }
 
-    /** May the actor grant / revoke this permission in the region? */
+    /**
+     * May the actor grant / revoke this permission in the region? Region administrators only (Q4: CAN_MANAGE_USERS
+     * holders no longer grant CAN_GIVE_INTRO_PICKUPS here; they disable guides on the EinAb admin page).
+     */
     public boolean mayGrant(SessionPrincipal actor, UUID regionId, Permission permission) {
-        return permissions.mayAdministrateRegion(actor, regionId)
-                || (permission == Permission.CAN_GIVE_INTRO_PICKUPS
-                && permissions.has(actor, Permission.CAN_MANAGE_USERS, regionId));
+        return permissions.mayAdministrateRegion(actor, regionId);
     }
 
     private void requireMayGrant(SessionPrincipal actor, UUID regionId, Permission permission) {

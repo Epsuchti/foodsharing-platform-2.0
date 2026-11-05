@@ -6,6 +6,7 @@ import network.foodsharing.api.IntroPickupAdminApi;
 import network.foodsharing.api.model.BookingCountedUpdate;
 import network.foodsharing.api.model.GuideBooking;
 import network.foodsharing.api.model.GuideBookingPage;
+import network.foodsharing.api.model.GuideCandidatePage;
 import network.foodsharing.api.model.GuideEnabledUpdate;
 import network.foodsharing.api.model.GuideSummary;
 import network.foodsharing.api.model.GuideSummaryPage;
@@ -21,6 +22,7 @@ import network.foodsharing.api.model.StoreAlias;
 import network.foodsharing.api.model.StoreAliasUpdate;
 import network.foodsharing.common.mapper.PageMapper;
 import network.foodsharing.intropickup.mapper.IntroPickupMapper;
+import network.foodsharing.intropickup.service.GuideQuizTransitionService;
 import network.foodsharing.intropickup.service.IntroPickupAdminService;
 import network.foodsharing.intropickup.service.IntroPickupViews;
 import network.foodsharing.intropickup.service.PastImportService;
@@ -36,9 +38,11 @@ public class IntroPickupAdminController implements IntroPickupAdminApi {
     private final IntroPickupAdminService admin;
     private final PastImportService pastImport;
     private final IntroPickupMapper mapper;
+    private final GuideQuizTransitionService transition;
 
     public IntroPickupAdminController(IntroPickupAdminService admin, PastImportService pastImport,
-                                      IntroPickupMapper mapper) {
+                                      IntroPickupMapper mapper, GuideQuizTransitionService transition) {
+        this.transition = transition;
         this.admin = admin;
         this.pastImport = pastImport;
         this.mapper = mapper;
@@ -88,6 +92,16 @@ public class IntroPickupAdminController implements IntroPickupAdminApi {
         Page<IntroPickupAdminService.GuideSummaryView> result = admin.guides(regionId, page, size);
         GuideSummaryPage model = new GuideSummaryPage();
         model.setItems(result.getContent().stream().map(mapper::toGuideSummary).toList());
+        model.setPage(PageMapper.toPageMeta(result));
+        model.setGuideQuizDeadline(transition.deadline());
+        return ResponseEntity.ok(model);
+    }
+
+    @Override
+    public ResponseEntity<GuideCandidatePage> listGuideCandidates(UUID regionId, Integer page, Integer size) {
+        Page<IntroPickupAdminService.GuideCandidateView> result = admin.guideCandidates(regionId, page, size);
+        GuideCandidatePage model = new GuideCandidatePage();
+        model.setItems(result.getContent().stream().map(mapper::toGuideCandidate).toList());
         model.setPage(PageMapper.toPageMeta(result));
         return ResponseEntity.ok(model);
     }

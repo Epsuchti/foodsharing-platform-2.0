@@ -1,0 +1,66 @@
+# EinAb guide quiz (Q4, decision 168): the pickup threshold per region, the EINAB_GUIDE quiz (production data; its
+# questions come through the quiz editor) and direct guide permissions for the WELCOME function-group members, who
+# lose the function grant of CAN_GIVE_INTRO_PICKUPS with this release.
+databaseChangeLog:
+  - changeSet:
+      id: 190-1
+      author: platform
+      comment: 'Q4: confirmed store pickups before the EinAb guide quiz unlocks (home region).'
+      changes:
+        - addColumn:
+            tableName: region
+            columns:
+              - column: {name: guide_quiz_min_pickups, type: INT, defaultValueNumeric: 25, constraints: {nullable: false}}
+  - changeSet:
+      id: 190-2
+      author: platform
+      comment: 'Q4: the EINAB_GUIDE quiz (same counts as STORE_MANAGER). Questions are added with the quiz editor.'
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM quiz WHERE kind = 'EINAB_GUIDE'
+      changes:
+        - insert:
+            tableName: quiz
+            columns:
+              - column: {name: id, value: '00000013-0001-4000-8000-000000000008'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueComputed: CURRENT_TIMESTAMP}
+              - column: {name: updated_at, valueComputed: CURRENT_TIMESTAMP}
+              - column: {name: kind, value: EINAB_GUIDE}
+              - column: {name: max_failure_points, valueNumeric: 2}
+              - column: {name: question_count_timed, valueNumeric: 4}
+              - column: {name: question_count_untimed, valueNumeric: 5}
+  - changeSet:
+      id: 190-3
+      author: platform
+      dbms: postgresql
+      comment: 'Q4 transition: WELCOME group members keep CAN_GIVE_INTRO_PICKUPS as a direct grant (grace period).'
+      changes:
+        - sql:
+            sql: >-
+              INSERT INTO region_permission (id, version, created_at, updated_at, user_id, region_id, permission)
+              SELECT gen_random_uuid(), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, holders.user_id, holders.region_id,
+              'CAN_GIVE_INTRO_PICKUPS'
+              FROM (SELECT DISTINCT m.user_id AS user_id, f.region_id AS region_id
+                    FROM region_function f JOIN region_membership m ON m.region_id = f.group_id AND m.active = TRUE
+                    WHERE f.function_key = 'WELCOME') holders
+              WHERE NOT EXISTS (SELECT 1 FROM region_permission p WHERE p.user_id = holders.user_id
+                                AND p.region_id = holders.region_id AND p.permission = 'CAN_GIVE_INTRO_PICKUPS')
+  - changeSet:
+      id: 190-4
+      author: platform
+      dbms: h2
+      comment: 'Q4 transition (H2 form of 190-3).'
+      changes:
+        - sql:
+            sql: >-
+              INSERT INTO region_permission (id, version, created_at, updated_at, user_id, region_id, permission)
+              SELECT RANDOM_UUID(), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, holders.user_id, holders.region_id,
+              'CAN_GIVE_INTRO_PICKUPS'
+              FROM (SELECT DISTINCT m.user_id AS user_id, f.region_id AS region_id
+                    FROM region_function f JOIN region_membership m ON m.region_id = f.group_id AND m.active = TRUE
+                    WHERE f.function_key = 'WELCOME') holders
+              WHERE NOT EXISTS (SELECT 1 FROM region_permission p WHERE p.user_id = holders.user_id
+                                AND p.region_id = holders.region_id AND p.permission = 'CAN_GIVE_INTRO_PICKUPS')

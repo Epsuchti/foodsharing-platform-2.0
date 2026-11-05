@@ -114,5 +114,9 @@
   "bell.ui.page.loadMore": "Carica le più vecchie",
   "bell.ui.page.deleteRead": "Elimina le lette",
   "bell.ui.page.deletedRead": "Notifiche lette eliminate",
-  "bell.ui.button.itemCount": "({count} non lette)"
+  "bell.ui.button.itemCount": "({count} non lette)",
+  "bell.GUIDE_QUIZ_PASSED": "{userName} ha superato il quiz accompagnatore EinAb",
+  "bell.GUIDE_QUIZ_REQUIRED": "Supera il quiz accompagnatore EinAb entro il {deadline}",
+  "bell.GUIDE_RELEASE_REVOKED": "La tua abilitazione di accompagnatore è stata revocata",
+  "bell.GUIDE_EINABS_NEED_GUIDE": "{count} ritiri introduttivi di {guideName} hanno bisogno di un nuovo accompagnatore"
 }

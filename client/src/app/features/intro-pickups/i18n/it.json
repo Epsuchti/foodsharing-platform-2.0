@@ -293,5 +293,19 @@
   "introPickups.admin.status.DISABLED": "Disattivato",
   "introPickups.admin.grantAdmin": "Nomina gestore",
   "introPickups.admin.revokeAdmin": "Revoca il diritto di gestione",
-  "introPickups.admin.adminSaved": "Diritto di gestione salvato"
+  "introPickups.admin.adminSaved": "Diritto di gestione salvato",
+  "introPickups.admin.candidatesTitle": "Pronti per l’abilitazione",
+  "introPickups.admin.candidatesText": "Questi membri hanno superato il quiz accompagnatore EinAb. Ambasciatori e ORGA li abilitano.",
+  "introPickups.admin.noCandidates": "Nessuno attende l’abilitazione",
+  "introPickups.admin.noCandidatesText": "Chi supera il quiz accompagnatore EinAb compare qui.",
+  "introPickups.admin.candidateStats": "{count, plural, one {# ritiro} other {# ritiri}} · quiz superato il {date}",
+  "introPickups.admin.release": "Abilita",
+  "introPickups.admin.releaseText": "Abilita {name} come accompagnatore dei ritiri introduttivi.",
+  "introPickups.admin.reasonOptional": "Nota (facoltativa)",
+  "introPickups.admin.released": "Accompagnatore abilitato",
+  "introPickups.admin.releaseByAmbassadors": "Ambasciatori e ORGA abilitano gli accompagnatori.",
+  "introPickups.admin.enableLocked": "Solo ambasciatori",
+  "introPickups.admin.deadlineBanner": "{count, plural, one {# accompagnatore non ha} other {# accompagnatori non hanno}} ancora superato il quiz accompagnatore EinAb. Dal {date} perdono l’abilitazione.",
+  "introPickups.admin.quizPassed": "Quiz superato",
+  "introPickups.admin.quizMissing": "Quiz mancante"
 }

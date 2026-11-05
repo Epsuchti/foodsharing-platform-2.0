@@ -1,0 +1,7 @@
+Bonjour [(${displayName})],
+
+Désormais, seuls les foodsavers qui ont réussi le quiz accompagnateur·rice EinAb accompagnent les collectes d’introduction. Merci de réussir le quiz d’ici le [(${deadline})]. Ensuite, ton activation d’accompagnateur·rice sera retirée jusqu’à ce que tu le réussisses et que tes ambassadeur·rice·s te réactivent.
+
+[(${link})]
+
+Ton équipe foodsharing

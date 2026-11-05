@@ -27,6 +27,10 @@ import network.foodsharing.intropickup.repository.IntroPickupStoreAliasRepositor
 import network.foodsharing.intropickup.service.IntroPickupGuideService.CommentView;
 import network.foodsharing.intropickup.service.IntroPickupViews.BookingView;
 import network.foodsharing.intropickup.service.IntroPickupViews.PickupView;
+import network.foodsharing.quiz.domain.QuizKind;
+import network.foodsharing.quiz.service.QuizSessionService;
+import network.foodsharing.region.service.MemberPickupStats;
+import network.foodsharing.region.service.MembershipService;
 import network.foodsharing.region.service.RegionMembersService;
 import network.foodsharing.region.service.RegionPermissionResolver;
 import network.foodsharing.region.service.RegionService;
@@ -42,14 +46,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * EinAb administration of a region for CAN_MANAGE_USERS holders (plan §14.1 EA17–EA19): all EinAbs and bookings,
- * delete with a reason, historical EinAbs, counted / not counted, admin comments, guides (enable = grant of
- * CAN_GIVE_INTRO_PICKUPS) and the store aliases of the past import.
+ * delete with a reason, historical EinAbs, counted / not counted, admin comments, guides (disable = revoke of
+ * CAN_GIVE_INTRO_PICKUPS; the release is for region administrators and needs the EinAb guide quiz pass, Q4), the
+ * Ready-for-release candidates and the store aliases of the past import.
  */
 @Service
 public class IntroPickupAdminService {
 
+    /** {@code guideQuizPassedAt}: valid EinAb guide quiz pass (Q4), null without one. */
     public record GuideSummaryView(User user, boolean active, GuideStatus status, boolean canManageUsers,
-                                   int introPickupCount, Instant lastIntroPickupAt, Instant nextIntroPickupAt) {
+                                   int introPickupCount, Instant lastIntroPickupAt, Instant nextIntroPickupAt,
+                                   Instant guideQuizPassedAt) {
+    }
+
+    /** Q4 Ready for release: an active member with a valid EinAb guide quiz pass who is not released here. */
+    public record GuideCandidateView(User user, Instant quizPassedAt, int pickupCount) {
     }
 
     public record HistoricalInput(IntroPickupCategory category, Instant startAt, String businessName,
@@ -74,6 +85,9 @@ public class IntroPickupAdminService {
     private final PermissionService permissions;
     private final HistoryService history;
     private final ApplicationEventPublisher events;
+    private final QuizSessionService quizzes;
+    private final MembershipService memberships;
+    private final MemberPickupStats pickupStats;
 
     public IntroPickupAdminService(IntroPickupRepository pickups, IntroPickupSlotRepository slots,
                                    IntroPickupCommentRepository comments, IntroPickupStoreAliasRepository aliases,
@@ -81,7 +95,11 @@ public class IntroPickupAdminService {
                                    RegionMembersService members, RegionPermissionResolver resolver,
                                    UserService users, CurrentActorService currentActor,
                                    PermissionService permissions, HistoryService history,
-                                   ApplicationEventPublisher events) {
+                                   ApplicationEventPublisher events, QuizSessionService quizzes,
+                                   MembershipService memberships, MemberPickupStats pickupStats) {
+        this.quizzes = quizzes;
+        this.memberships = memberships;
+        this.pickupStats = pickupStats;
         this.pickups = pickups;
         this.slots = slots;
         this.comments = comments;
@@ -277,6 +295,7 @@ public class IntroPickupAdminService {
         Map<UUID, List<IntroPickup>> byGuide = new HashMap<>();
         all.forEach(p -> byGuide.computeIfAbsent(p.getGuideId(), id -> new ArrayList<>()).add(p));
         Instant now = views.now();
+        Map<UUID, Instant> passes = quizzes.validPasses(ids, QuizKind.EINAB_GUIDE);
         List<GuideSummaryView> result = users.findAll(ids).stream().map(user -> {
             List<IntroPickup> own = byGuide.getOrDefault(user.getId(), List.of());
             Instant last = own.stream().map(IntroPickup::getStartAt).filter(t -> t.isBefore(now))
@@ -286,33 +305,68 @@ public class IntroPickupAdminService {
             boolean guide = user.isActive() && active.contains(user.getId());
             return new GuideSummaryView(user, guide,
                     GuideStatus.of(user.isActive(), active.contains(user.getId()), users.isSleeping(user)),
-                    managers.contains(user.getId()), own.size(), last, next);
+                    managers.contains(user.getId()), own.size(), last, next, passes.get(user.getId()));
         }).sorted(Comparator.comparing(GuideSummaryView::status)
                 .thenComparing(v -> v.user().getDisplayName(), String.CASE_INSENSITIVE_ORDER)).toList();
         return IntroPickupViews.page(result, page, size);
     }
 
     /**
-     * Enables / disables a guide (grant / revoke of CAN_GIVE_INTRO_PICKUPS in the region).
+     * Enables (releases) / disables a guide: grant / revoke of CAN_GIVE_INTRO_PICKUPS in the region. Q4 (decision
+     * 168): only region administrators (ambassadors, ORGA) release, and only people with a valid EinAb guide quiz
+     * pass; CAN_MANAGE_USERS holders may still disable.
      *
-     * @throws ApiException 404 REGION_NOT_FOUND / USER_NOT_FOUND, 403, 409 NOT_REGION_MEMBER
+     * @throws ApiException 404 REGION_NOT_FOUND / USER_NOT_FOUND, 403, 409 NOT_REGION_MEMBER / GUIDE_QUIZ_NOT_PASSED
      */
     @Transactional
     public GuideSummaryView setGuideEnabled(UUID regionId, UUID userId, boolean enabled, String reason) {
-        requireAdmin(regionId);
+        if (enabled) {
+            regions.require(regionId);
+            permissions.requireMayAdministrateRegion(currentActor.requirePrincipal(), regionId);
+        } else {
+            requireAdmin(regionId);
+        }
         User user = users.require(userId);
         if (enabled && !resolver.isMember(userId, regionId)) {
             throw ApiException.conflict(ApiErrorCode.NOT_REGION_MEMBER);
         }
+        if (enabled && !guideQuizPassed(userId)) {
+            throw ApiException.conflict(ApiErrorCode.GUIDE_QUIZ_NOT_PASSED);
+        }
         if (enabled) {
-            members.grant(regionId, userId, Permission.CAN_GIVE_INTRO_PICKUPS);
+            members.releaseGuide(regionId, userId);
         } else {
-            members.revoke(regionId, userId, Permission.CAN_GIVE_INTRO_PICKUPS);
+            members.withdrawGuide(regionId, userId);
         }
         history.record(history.event(enabled ? IntroPickupAction.GUIDE_ENABLED : IntroPickupAction.GUIDE_DISABLED,
                         userId).secondarySubject(userId).region(regionId)
                 .reason(reason == null || reason.isBlank() ? null : reason.strip()).build());
         return summary(regionId, user);
+    }
+
+    /**
+     * Q4 Ready for release: active members of the region with a valid EinAb guide quiz pass who are not released
+     * here yet, longest waiting first.
+     *
+     * @throws ApiException 404 REGION_NOT_FOUND, 403
+     */
+    @Transactional(readOnly = true)
+    public Page<GuideCandidateView> guideCandidates(UUID regionId, Integer page, Integer size) {
+        requireAdmin(regionId);
+        Set<UUID> released = resolver.holders(Permission.CAN_GIVE_INTRO_PICKUPS, regionId);
+        List<UUID> others = memberships.membersOf(regionId).stream().filter(id -> !released.contains(id)).toList();
+        Map<UUID, Instant> passes = quizzes.validPasses(others, QuizKind.EINAB_GUIDE);
+        List<GuideCandidateView> result = users.findActive(passes.keySet()).stream()
+                .map(user -> new GuideCandidateView(user, passes.get(user.getId()),
+                        pickupStats.pickupCount(user.getId())))
+                .sorted(Comparator.comparing(GuideCandidateView::quizPassedAt)
+                        .thenComparing(v -> v.user().getDisplayName(), String.CASE_INSENSITIVE_ORDER))
+                .toList();
+        return IntroPickupViews.page(result, page, size);
+    }
+
+    private boolean guideQuizPassed(UUID userId) {
+        return quizzes.tryStateOf(userId, QuizKind.EINAB_GUIDE).map(state -> state.passValid()).orElse(false);
     }
 
     /**
@@ -355,7 +409,8 @@ public class IntroPickupAdminService {
                 own.stream().map(IntroPickup::getStartAt).filter(t -> t.isBefore(now)).max(Comparator.naturalOrder())
                         .orElse(null),
                 own.stream().map(IntroPickup::getStartAt).filter(t -> !t.isBefore(now)).min(Comparator.naturalOrder())
-                        .orElse(null));
+                        .orElse(null),
+                quizzes.validPasses(List.of(userId), QuizKind.EINAB_GUIDE).get(userId));
     }
 
     // ------------------------------------------------------------------------------------ store aliases

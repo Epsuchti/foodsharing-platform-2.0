@@ -202,17 +202,22 @@ class IntroPickupApiIT {
 
         mvc.perform(get("/api/regions/" + ZURICH + "/admin/guides").cookie(bot))
                 .andExpect(jsonPath("$.items[?(@.user.id == '" + SeedUsers.GUIDE.id() + "')].active").value(true));
+        // Q4: the release needs the EinAb guide quiz pass (jumper passed in the seed, the foodsaver did not)
         mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.FOODSAVER.id() + "/enabled")
                         .cookie(bot), "{\"enabled\":true}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("GUIDE_QUIZ_NOT_PASSED"));
+        Cookie jumper = login(SeedUsers.JUMPER);
+        mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.JUMPER.id() + "/enabled")
+                        .cookie(bot), "{\"enabled\":true}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(true));
-        mvc.perform(get("/api/guide/regions").cookie(foodsaver)).andExpect(jsonPath("$[0].id").value(ZURICH));
-        mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.FOODSAVER.id() + "/enabled")
+        mvc.perform(get("/api/guide/regions").cookie(jumper)).andExpect(jsonPath("$[0].id").value(ZURICH));
+        mvc.perform(json(put("/api/regions/" + ZURICH + "/admin/guides/" + SeedUsers.JUMPER.id() + "/enabled")
                         .cookie(bot), "{\"enabled\":false,\"reason\":\"Pause\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(false))
                 .andExpect(jsonPath("$.status").value("DISABLED"));
         // EA17: disabled guides stay in the list with their status
         mvc.perform(get("/api/regions/" + ZURICH + "/admin/guides").cookie(bot))
-                .andExpect(jsonPath("$.items[?(@.user.id == '" + SeedUsers.FOODSAVER.id() + "')].status")
+                .andExpect(jsonPath("$.items[?(@.user.id == '" + SeedUsers.JUMPER.id() + "')].status")
                         .value("DISABLED"))
                 .andExpect(jsonPath("$.items[?(@.user.id == '" + SeedUsers.GUIDE.id() + "')].status")
                         .value("ACTIVE"));

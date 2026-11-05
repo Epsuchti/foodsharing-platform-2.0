@@ -114,5 +114,9 @@
   "bell.ui.page.loadMore": "Älteri lade",
   "bell.ui.page.deleteRead": "Gläseni lösche",
   "bell.ui.page.deletedRead": "Gläseni Benachrichtigunge glöscht",
-  "bell.ui.button.itemCount": "({count} ungläse)"
+  "bell.ui.button.itemCount": "({count} ungläse)",
+  "bell.GUIDE_QUIZ_PASSED": "{userName} het s EinAb-Begleitigs-Quiz bestande",
+  "bell.GUIDE_QUIZ_REQUIRED": "Bitte mach s EinAb-Begleitigs-Quiz bis am {deadline}",
+  "bell.GUIDE_RELEASE_REVOKED": "Dini Freischaltig als Begleitig isch zruggnoh worde",
+  "bell.GUIDE_EINABS_NEED_GUIDE": "{count} Iifüehrigsabholige vo {guideName} bruuched e neui Begleitig"
 }

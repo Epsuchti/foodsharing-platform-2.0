@@ -5,7 +5,8 @@ import { expect, forEachVariant, screenshotTest, type Variant } from './_setup';
 /**
  * Intro pickup screens (M2 T21): bookable list (incl. reasons, booking success), no-region picker, public dates,
  * my bookings with progress and subscription, unsubscribe, guide dashboard (upcoming, past with slots, form dialog,
- * comments), guide settings, admin (dates, bookings, guides), import preview, funnel, forbidden and error states —
+ * comments), guide settings, admin (dates, bookings, guides, Q4 guide candidates and deadline banner), import
+ * preview, funnel, forbidden and error states —
  * × light/dark × de/fr. Baselines are generated in one batch (decision 69), not per task.
  */
 screenshotTest.use({ seedReset: 'test' });
@@ -138,6 +139,24 @@ forEachVariant((variant) => {
         await page.goto(`/regions/${ZH}/newcomers`);
         await expect(page.getByTestId('introPickups.funnel.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `intro-funnel-${variant.name}`);
+      });
+
+      screenshotTest('guide candidates filled and empty, deadline banner @Q4 @screenshot', async ({ page, apiOf, visual }) => {
+        const api = apiOf(page);
+        await language(api, variant);
+        // Ready for release (jumper passed the EinAb guide quiz) and the banner for guides without a pass
+        await page.goto(`/regions/${ZH}/intro-pickups/admin?tab=guides`);
+        await expect(page.getByTestId('introPickups.admin.candidatesState')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('introPickups.admin.deadlineBanner')).toBeVisible();
+        await visual.expectScreen(page, `intro-admin-candidates-${variant.name}`);
+        // after the release the list is empty
+        const candidates = await api.getJson<{ items: { user: { id: string } }[] }>(`/api/regions/${ZH}/admin/guide-candidates`);
+        for (const candidate of candidates.items) {
+          await api.putJson(`/api/regions/${ZH}/admin/guides/${candidate.user.id}/enabled`, { enabled: true });
+        }
+        await page.reload();
+        await expect(page.getByTestId('introPickups.admin.candidatesState')).toHaveAttribute('data-state', 'empty');
+        await visual.expectScreen(page, `intro-admin-candidates-empty-${variant.name}`);
       });
     });
   });

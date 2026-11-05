@@ -456,5 +456,7 @@
   "nav.section.community": "Community",
   "nav.section.manage": "Manage",
   "nav.section.orga": "Orga",
-  "nav.section.about": "About foodsharing"
+  "nav.section.about": "About foodsharing",
+  "errors.GUIDE_QUIZ_NOT_PASSED": "This person has not passed the EinAb guide quiz yet.",
+  "errors.USE_GUIDE_RELEASE": "Guides are released on the guide page."
 }

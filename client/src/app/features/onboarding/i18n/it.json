@@ -35,7 +35,6 @@
   "onboarding.waiting.introPickupDates": "In attesa di nuove date",
   "onboarding.waiting.regionStep": "In attesa della conferma della tua regione",
   "onboarding.waiting.verification": "In attesa della verifica dei tuoi ambasciatori",
-  "onboarding.waiting.guidePermission": "In attesa dell’abilitazione come guida",
   "onboarding.blocked.QUIZ_WAIT_TIME": "Potrai rifare il quiz tra {days, plural, one {# giorno} other {# giorni}}.",
   "onboarding.blocked.QUIZ_DISQUALIFIED": "Il quiz è bloccato. Contatta i tuoi ambasciatori.",
   "onboarding.blocked.FAIRTEILER_VISIT_REQUIRED": "Il tuo terzo ritiro introduttivo deve includere una visita a un punto di condivisione.",
@@ -74,5 +73,7 @@
   "onboarding.region.noDates": "Al momento nessuna data libera – ti avvisiamo volentieri.",
   "onboarding.region.allDates": "Vedi tutte le date",
   "onboarding.meter.progress": "Passo {current} di {total}",
-  "onboarding.meter.retry": "Ricarica i progressi"
+  "onboarding.meter.retry": "Ricarica i progressi",
+  "onboarding.blocked.guidePickups": "Il quiz si apre dopo {required} ritiri confermati ({done}/{required}).",
+  "onboarding.waiting.guideRelease": "Quiz superato – in attesa dell’abilitazione dei tuoi ambasciatori"
 }

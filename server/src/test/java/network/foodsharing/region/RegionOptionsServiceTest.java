@@ -168,4 +168,27 @@ class RegionOptionsServiceTest {
                 null, "Mars/Olympus", null, null))).isInstanceOfSatisfying(ApiException.class,
                 e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.INVALID_TIME_ZONE));
     }
+
+    @Test
+    void guideQuizMinPickupsIsReadWrittenAndRecorded() {
+        TestAuth.login(TestUsers.principal(ambassador));
+        // Q4: default 25, changed with history, untouched when the change leaves it out (null)
+        assertThat(settings.settings(city.getId()).introPickups().guideQuizMinPickups()).isEqualTo(25);
+        var changed = settings.update(city.getId(), new RegionSettingsService.SettingsChange(
+                new RegionSettingsService.IntroPickupSettings(3, true, true, false, java.util.Set.of(), 10),
+                null, null, null, null, "smaller region"));
+        assertThat(changed.introPickups().guideQuizMinPickups()).isEqualTo(10);
+        assertThat(history.findAll()).filteredOn(entry -> "guideQuizMinPickups".equals(entry.getField()))
+                .singleElement().satisfies(entry -> assertThat(entry.getAction()).isEqualTo("SETTINGS_CHANGED"));
+        var kept = settings.update(city.getId(), new RegionSettingsService.SettingsChange(
+                new RegionSettingsService.IntroPickupSettings(3, true, true, false, java.util.Set.of(), null),
+                null, null, null, null, null));
+        assertThat(kept.introPickups().guideQuizMinPickups()).isEqualTo(10);
+        for (int invalid : new int[] {-1, 1001}) {
+            assertThatThrownBy(() -> settings.update(city.getId(), new RegionSettingsService.SettingsChange(
+                    new RegionSettingsService.IntroPickupSettings(3, true, true, false, java.util.Set.of(), invalid),
+                    null, null, null, null, null))).isInstanceOfSatisfying(ApiException.class,
+                    e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED));
+        }
+    }
 }

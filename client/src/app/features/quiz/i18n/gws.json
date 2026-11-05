@@ -182,5 +182,7 @@
   "quiz.editor.commentAdded": "Kommentar gspeicheret",
   "quiz.results.confirmed.FOODSAVER": "Gschafft – du bisch jetzt Foodsaver:in! Wiiter gahts mit de Iifüehrigsabholige.",
   "quiz.results.confirmed.STORE_MANAGER": "Gschafft – du bisch jetzt Betriebsverantwortlichi!",
-  "quiz.list.retry": "Nomal probiere"
+  "quiz.list.retry": "Nomal probiere",
+  "quiz.kind.EINAB_GUIDE": "EinAb-Begleitigs-Quiz",
+  "quiz.list.locked.EINAB_GUIDE": "Für verifizierti Foodsaver nach gnueg bestätigte Abholige."
 }

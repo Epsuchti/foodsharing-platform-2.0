@@ -303,5 +303,8 @@
   "regions.members.removeShort": "Rimuovi",
   "regions.page.membershipHome": "{name} è la tua regione principale.",
   "regions.page.membershipMember": "Sei membro di {name}.",
-  "regions.statistics.cleaning": "Turni di pulizia del mese scorso"
+  "regions.statistics.cleaning": "Turni di pulizia del mese scorso",
+  "regions.settings.guideQuizMinPickups": "Ritiri prima del quiz accompagnatore EinAb",
+  "regions.settings.guideQuizMinPickupsHint": "Ritiri confermati necessari a un membro con questa regione di origine prima del quiz.",
+  "regions.members.guideReleaseLink": "Abilita dalla pagina accompagnatori"
 }

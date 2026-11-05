@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { Dialog } from '@openng/optimus-ui/dialog';
@@ -57,6 +58,7 @@ interface MemberQuery {
     Paginator,
     PhoneButtonComponent,
     RequiredMessageDialogComponent,
+    RouterLink,
     Select,
     TPipe,
     ToggleSwitch,
@@ -150,6 +152,10 @@ interface MemberQuery {
       color: var(--fs-text-muted);
       font-size: 0.8rem;
     }
+    .matrix__link {
+      font-size: 0.85rem;
+      text-align: end;
+    }
   `,
 })
 export class RegionMembersTab {
@@ -160,6 +166,8 @@ export class RegionMembersTab {
 
   protected readonly pageSize = MEMBERS_PAGE_SIZE;
   protected readonly permissions = PERMISSIONS;
+  /** Q4: granted only through the guide release on the EinAb admin page (needs the EinAb guide quiz pass). */
+  protected readonly guidePermission = Permission.CanGiveIntroPickups;
   protected readonly search = signal('');
   private readonly appliedSearch = signal('');
   protected readonly verified = signal<'all' | 'yes' | 'no'>('all');
