@@ -4,7 +4,7 @@ import type { ApiClient } from '../../fixtures';
 
 /** Helpers of the quiz specs (M2 T19). */
 
-export type QuizKind = 'FOODSAVER' | 'STORE_MANAGER' | 'AMBASSADOR' | 'HYGIENE' | 'FOODSHARER' | 'SAVING_FOOD' | 'REPORTS';
+export type QuizKind = 'FOODSAVER' | 'STORE_MANAGER' | 'AMBASSADOR' | 'HYGIENE' | 'FOODSHARER' | 'SAVING_FOOD' | 'REPORTS' | 'EINAB_GUIDE';
 
 interface AnswerDetail {
   id: string;

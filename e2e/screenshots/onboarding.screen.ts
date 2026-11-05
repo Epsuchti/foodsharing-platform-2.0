@@ -34,6 +34,27 @@ forEachVariant((variant) => {
       });
     }
 
+    screenshotTest.describe('guide track', () => {
+      // Q4: GUIDE track locked with pickup progress (foodsaver, 24/25) and waiting for the release (jumper, passed)
+      for (const [role, status] of [
+        ['foodsaver', 'LOCKED'],
+        ['jumper', 'WAITING_FOR_OTHERS'],
+      ] as const) {
+        screenshotTest.describe(role, () => {
+          screenshotTest.use({ variant, role });
+
+          screenshotTest(`guide track ${status} @Q4 @screenshot`, async ({ page, apiOf, visual }) => {
+            await ready(apiOf(page));
+            await page.goto('/onboarding');
+            await expect(page.getByTestId('onboarding.journey.state')).toHaveAttribute('data-state', 'success');
+            const track = page.locator('[data-testid="onboarding.journey.track"][data-track="GUIDE"]');
+            await expect(track.locator('li[data-status]')).toHaveAttribute('data-status', status);
+            await visual.expectElement(track, `journey-guide-track-${role}-${variant.name}`);
+          });
+        });
+      }
+    });
+
     screenshotTest.describe('profile step', () => {
       screenshotTest.use({ variant, role: 'newbie' });
 

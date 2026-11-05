@@ -27,3 +27,16 @@ test('EA22 region EinAb settings change booking behaviour @EA22', async ({ page,
   await openBookable(einab1);
   await expect(bookableCards(einab1, 'TAKEOUT').first().getByTestId('introPickups.bookable.book')).toBeVisible();
 });
+
+test('EA22 the ambassador sets the pickups before the EinAb guide quiz @EA22 @Q4', async ({ page, apiOf }) => {
+  await page.goto(`/regions/${ZH}/settings`);
+  await expect(page.getByTestId('regions.settings.state')).toHaveAttribute('data-state', 'success');
+  const field = page.locator('#set-guide-quiz');
+  await expect(field).toHaveValue('25');
+  await field.fill('12');
+  await field.blur();
+  await page.getByTestId('regions.settings.save').click();
+  await expect(page.getByTestId('shell.toast')).toBeVisible();
+  const settings = await apiOf(page).getJson<{ introPickups: { guideQuizMinPickups: number } }>(`/api/regions/${ZH}/settings`);
+  expect(settings.introPickups.guideQuizMinPickups).toBe(12);
+});
