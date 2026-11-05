@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The linked-store step of the sign-up dialog (decision 165 S3, proposal §3.4): per link rule of the store's enabled
+ * The linked-store step of the sign-up dialog (decision 167 S3, proposal §3.4): per link rule of the store's enabled
  * policy either the caller's linked pickup that already satisfies it ({@code satisfiedBy}), or the future pickups with
  * a free slot of the linked stores in the rule's window, each with the eligibility reasons and the rules of its own
  * store (counting the pickup here as booked), plus the linked stores where the caller is not in the team. Empty for

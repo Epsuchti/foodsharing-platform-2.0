@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /**
- * A rule card of the Regeln section (decision 165 S4, proposal §3.1): title and hint left, the switch (projected with
+ * A rule card of the Regeln section (decision 167 S4, proposal §3.1): title and hint left, the switch (projected with
  * the `ruleSwitch` attribute) right, the member sentence while the rule is on, then the card's own content.
  */
 @Component({

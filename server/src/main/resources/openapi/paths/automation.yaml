@@ -104,7 +104,7 @@
   get:
     tags: [automation]
     operationId: searchLinkCandidates
-    summary: 'Stores the actor may link to this store, by name, city or postcode, across regions (decision 165 S4, Q3): every live store the actor may know (StoreVisibility, decision 156), without this one and permanently closed ones, by name.'
+    summary: 'Stores the actor may link to this store, by name, city or postcode, across regions (decision 167 S4, Q3): every live store the actor may know (StoreVisibility, decision 156), without this one and permanently closed ones, by name.'
     x-permission: 'mayEditStore(store)'
     parameters:
       - name: storeId
@@ -151,7 +151,7 @@
   get:
     tags: [automation]
     operationId: getStoreRules
-    summary: 'The active pickup rules of a store as structured data, for the member summary on the pickups tab (decision 165 S2).'
+    summary: 'The active pickup rules of a store as structured data, for the member summary on the pickups tab (decision 167 S2).'
     x-permission: 'maySeePickups'
     parameters:
       - name: storeId
@@ -175,7 +175,7 @@
   get:
     tags: [automation]
     operationId: getLinkedOptions
-    summary: 'Per linked-store rule of the store: the caller''s pickups that already satisfy it, or the pickups of the linked stores in its window to book together with this one (decision 165 S3).'
+    summary: 'Per linked-store rule of the store: the caller''s pickups that already satisfy it, or the pickups of the linked stores in its window to book together with this one (decision 167 S3).'
     x-permission: 'maySeePickups'
     parameters:
       - name: storeId
@@ -496,8 +496,8 @@
 /api/stores/{storeId}/automation/extra-slot:
   patch:
     tags: [automation]
-    operationId: setExtraSlotAllowed
-    summary: 'Allow the first sign-up to add one extra slot.'
+    operationId: setMaxExtraSlots
+    summary: 'Set how many extra slots the first sign-up may add (0 = off).'
     x-permission: 'mayEditStore(store)'
     x-history: AutomationAction.FIELD_CHANGED
     parameters:
@@ -529,7 +529,7 @@
   post:
     tags: [automation]
     operationId: addExtraSlot
-    summary: 'Add one extra slot (earliest sign-up of the pickup only, once).'
+    summary: "Add one extra slot (earliest sign-up of the pickup only, up to the store's maxExtraSlots)."
     x-permission: 'earliest sign-up of the pickup'
     x-history: AutomationAction.EXTRA_SLOT_ADDED
     parameters:
@@ -556,7 +556,7 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'NOT_FIRST_SIGNUP or ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '409': {description: 'EXTRA_SLOT_ALREADY_ADDED or EXTRA_SLOT_NOT_ALLOWED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'EXTRA_SLOT_LIMIT_REACHED or EXTRA_SLOT_NOT_ALLOWED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/stores/{storeId}/automation/audits:
   get:

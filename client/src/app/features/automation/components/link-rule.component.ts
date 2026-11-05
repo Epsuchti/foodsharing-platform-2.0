@@ -18,7 +18,7 @@ export interface LinkRuleWarning {
 }
 
 /**
- * The stores of a rule the actor does not edit: they lock "Auch in den verknüpften Betrieben anwenden" (decision 165
+ * The stores of a rule the actor does not edit: they lock "Auch in den verknüpften Betrieben anwenden" (decision 167
  * Q3). A rule that is already bidirectional may still be switched off.
  */
 export function lockedStores(rule: Pick<LinkedStoreRule, 'storeIds' | 'stores'>, editable: ReadonlySet<string>): StoreRef[] {
@@ -27,7 +27,7 @@ export function lockedStores(rule: Pick<LinkedStoreRule, 'storeIds' | 'stores'>,
 }
 
 /**
- * One linked-store rule of the Regeln section (decision 165 S4, proposal §3.1): store chips ("oder"), "Betrieb
+ * One linked-store rule of the Regeln section (decision 167 S4, proposal §3.1): store chips ("oder"), "Betrieb
  * verknüpfen" (opens the picker), window, the member sentence, the bidirectional checkbox (locked with a reason when a
  * store is not the actor's), "Erweitert" with *Frist nach Austragung* and the message, remove. Mirrors are read-only.
  * The rule is edited in place (the section compares its draft on every change detection run).

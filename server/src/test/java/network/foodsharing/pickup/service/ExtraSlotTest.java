@@ -38,7 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
-/** Extra slot for the earliest sign-up (AU6, M4 B5): first only, once, future, store switch. */
+/** Extra slots for the earliest sign-up (AU6, M4 B5): first only, up to maxExtraSlots, future, 0 = off. */
 class ExtraSlotTest {
 
     static final Instant NOW = Instant.parse("2026-11-10T10:00:00Z");
@@ -65,13 +65,13 @@ class ExtraSlotTest {
         store.setId(STORE);
         store.setRegionId(UUID.randomUUID());
         store.setName("Bäckerei");
-        store.setExtraSlotAllowed(true);
+        store.setMaxExtraSlots(2);
         when(stores.require(STORE)).thenReturn(store);
         when(stores.lock(STORE)).thenReturn(store);
         when(schedule.zoneOf(store)).thenReturn(ZoneId.of("Europe/Zurich"));
         when(schedule.find(eq(store), any())).thenReturn(Optional.of(slot(2)));
         when(dates.findByStoreIdAndPickupAt(any(), any())).thenReturn(Optional.empty());
-        when(extraSlots.findByStoreIdAndPickupAt(any(), any())).thenReturn(Optional.empty());
+        when(extraSlots.findByStoreIdAndPickupAt(any(), any())).thenReturn(List.of());
         when(extraSlots.save(any())).thenAnswer(i -> {
             saved.add(i.getArgument(0));
             return i.getArgument(0);
@@ -125,15 +125,28 @@ class ExtraSlotTest {
     }
 
     @Test
-    void onlyOncePerPickup() {
-        when(extraSlots.findByStoreIdAndPickupAt(STORE, PICKUP)).thenReturn(Optional.of(new PickupExtraSlot()));
-        assertThat(code(() -> service.addExtraSlot(STORE, PICKUP))).isEqualTo(ApiErrorCode.EXTRA_SLOT_ALREADY_ADDED);
+    void upToTheStoreLimitPerPickup() {
+        when(extraSlots.findByStoreIdAndPickupAt(STORE, PICKUP)).thenReturn(List.of(new PickupExtraSlot()));
+        service.addExtraSlot(STORE, PICKUP);
+        assertThat(saved).hasSize(1);
+        when(extraSlots.findByStoreIdAndPickupAt(STORE, PICKUP))
+                .thenReturn(List.of(new PickupExtraSlot(), new PickupExtraSlot()));
+        assertThat(code(() -> service.addExtraSlot(STORE, PICKUP))).isEqualTo(ApiErrorCode.EXTRA_SLOT_LIMIT_REACHED);
+        assertThat(saved).hasSize(1);
+    }
+
+    @Test
+    void cappedByMaxSlotsPerPickup() {
+        AppProperties properties = new AppProperties();
+        when(schedule.find(eq(store), any())).thenReturn(Optional.of(slot(properties.getStore().getMaxSlotsPerPickup())));
+        assertThat(code(() -> service.addExtraSlot(STORE, PICKUP))).isEqualTo(ApiErrorCode.SLOT_COUNT_OUT_OF_RANGE);
+        assertThat(saved).isEmpty();
     }
 
     @Test
     void onlyFuturePickupsAndAllowedStores() {
         assertThat(code(() -> service.addExtraSlot(STORE, NOW.minusSeconds(1)))).isEqualTo(ApiErrorCode.PICKUP_IN_PAST);
-        store.setExtraSlotAllowed(false);
+        store.setMaxExtraSlots(0);
         assertThat(code(() -> service.addExtraSlot(STORE, PICKUP))).isEqualTo(ApiErrorCode.EXTRA_SLOT_NOT_ALLOWED);
         assertThat(saved).isEmpty();
     }

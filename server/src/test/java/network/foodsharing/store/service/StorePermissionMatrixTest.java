@@ -144,7 +144,7 @@ class StorePermissionMatrixTest {
         assertThat(rights.isManager()).isEqualTo(row.manager());
     }
 
-    /** The list form of mayEditStore (link picker, decision 165 S4) decides like rights() for every row. */
+    /** The list form of mayEditStore (link picker, decision 167 S4) decides like rights() for every row. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("rows")
     void editableStoreIdsMatchesMayEditStore(Row row) {

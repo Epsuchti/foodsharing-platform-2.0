@@ -1,4 +1,4 @@
-# Seed (decision 165): the seed loads after changeset 188, so its dry-run rows are migrated here the same way
+# Seed (decision 167): the seed loads after changeset 188, so its dry-run rows are migrated here the same way
 # (S-01, S-02, S-04 and the S-01 adverts off, the S-07 request policy off; S-06 stays live) and the three automation
 # permission grants of user 0011 (00000010-0009-…-0004/5/6) go. No new ids.
 databaseChangeLog:

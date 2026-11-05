@@ -287,6 +287,15 @@ public class StoreMapper {
         model.setDistanceKm(m.distanceKm());
         model.setSleeping(users.isSleeping(m.user()));
         model.setPhone(m.withPhone() ? m.user().getMobilePhone() : null);
+        model.setMayBeAppointed(m.mayBeAppointed());
+        model.setAppointBlocker(convert(m.appointBlocker(), network.foodsharing.api.model.TeamAppointBlocker.class));
+        return model;
+    }
+
+    public network.foodsharing.api.model.InviteCandidateList toInviteCandidates(
+            List<network.foodsharing.user.domain.User> candidates) {
+        network.foodsharing.api.model.InviteCandidateList model = new network.foodsharing.api.model.InviteCandidateList();
+        model.setItems(candidates.stream().map(users::toSummary).toList());
         return model;
     }
 

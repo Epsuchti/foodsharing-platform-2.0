@@ -1,5 +1,5 @@
-# Decision 165 (AU1-AU4): no dry run and no automation permissions any more. Dry-run policies, request policies and
-# open-slot adverts become disabled (Q9); the dry_run columns stay unmapped with default false (decision 165 item 5,
+# Decision 167 (AU1-AU4): no dry run and no automation permissions any more. Dry-run policies, request policies and
+# open-slot adverts become disabled (Q9); the dry_run columns stay unmapped with default false (decision 167 item 5,
 # dropping them is a todo.md item: seed changesets 105-108 still load them). The three automation permissions go.
 databaseChangeLog:
   - changeSet:

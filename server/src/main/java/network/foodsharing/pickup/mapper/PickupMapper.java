@@ -42,7 +42,7 @@ public class PickupMapper {
         this.stores = stores;
     }
 
-    /** The linked pickups of a sign-up request (decision 165 S3); none without a body. */
+    /** The linked pickups of a sign-up request (decision 167 S3); none without a body. */
     public static List<network.foodsharing.pickup.service.PickupRuleGate.Planned> linkedPickups(
             network.foodsharing.api.model.SignupRequest request) {
         if (request == null || request.getLinkedPickups() == null) {
@@ -82,8 +82,9 @@ public class PickupMapper {
 
     public List<Pickup> toModels(List<PickupScheduleService.PickupView> views) {
         Map<UUID, User> byId = usersOf(views.stream().map(PickupScheduleService.PickupView::slot).toList());
-        List<UUID> extraUsers = views.stream().filter(v -> v.extraSlot() != null)
-                .map(v -> v.extraSlot().getUserId()).filter(id -> !byId.containsKey(id)).distinct().toList();
+        List<UUID> extraUsers = views.stream().flatMap(v -> v.extraSlots().stream())
+                .map(network.foodsharing.pickup.domain.PickupExtraSlot::getUserId)
+                .filter(id -> !byId.containsKey(id)).distinct().toList();
         Map<UUID, User> all = new java.util.HashMap<>(byId);
         if (!extraUsers.isEmpty()) {
             users.findAll(extraUsers).forEach(u -> all.put(u.getId(), u));
@@ -101,14 +102,22 @@ public class PickupMapper {
                     }
                 }
             }
-            if (v.extraSlot() != null && all.containsKey(v.extraSlot().getUserId())) {
+            model.setExtraSlots(v.extraSlots().stream().filter(e -> all.containsKey(e.getUserId())).map(e -> {
                 network.foodsharing.api.model.PickupExtraSlot extra = new network.foodsharing.api.model.PickupExtraSlot();
-                extra.setByUser(userMapper.toSummary(all.get(v.extraSlot().getUserId())));
-                extra.setAddedAt(time(v.extraSlot().getCreatedAt()));
-                model.setExtraSlot(extra);
-            }
+                extra.setByUser(userMapper.toSummary(all.get(e.getUserId())));
+                extra.setAddedAt(time(e.getCreatedAt()));
+                return extra;
+            }).toList());
             return model;
         }).toList();
+    }
+
+    public network.foodsharing.api.model.PickupSignupDetail toDetail(
+            network.foodsharing.pickup.service.PickupSignupDetailService.SignupDetail d) {
+        return new network.foodsharing.api.model.PickupSignupDetail().user(userMapper.toSummary(d.user()))
+                .confirmed(d.confirmed()).signedUpAt(time(d.signedUpAt())).phone(d.phone())
+                .pickupCount(d.pickupCount()).lastPickupAt(time(d.lastPickupAt()))
+                .upcomingSlots(d.upcomingSlots().stream().map(PickupMapper::time).toList());
     }
 
     public Pickup toModel(PickupSchedule.Slot slot, boolean available) {

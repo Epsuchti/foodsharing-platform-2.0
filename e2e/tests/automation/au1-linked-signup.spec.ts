@@ -2,7 +2,7 @@ import { type ApiClient, SEED_NOW, expect, expectDataState, seedStore, test, zur
 import { openPickups, pickupRow } from '../pickups/_pickups';
 
 /**
- * Decision 165 S3: the linked store is booked in the same step. S-04 (manager welcome) links S-01 one-way; ORGA sets the
+ * Decision 167 S3: the linked store is booked in the same step. S-04 (manager welcome) links S-01 one-way; ORGA sets the
  * rule to "the same day or up to 2 days after" and switches S-04's rules on, and both stores leave the Zürich pickup rule
  * (2 per 7 days) so foodsaver's seeded pickups do not interfere. foodsaver is in both teams: S-04 Saturday 7.11. 19:30
  * needs an S-01 pickup between Saturday and Monday (seed: Sunday 8.11. 10:00 extra, Monday 9.11. 19:00 with one place).

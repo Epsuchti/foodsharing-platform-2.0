@@ -21,7 +21,9 @@ import network.foodsharing.api.model.UserPickupPage;
 import network.foodsharing.common.mapper.PageMapper;
 import network.foodsharing.intropickup.mapper.IntroPickupMapper;
 import network.foodsharing.pickup.mapper.PickupMapper;
+import network.foodsharing.pickup.service.PickupDayConversationService;
 import network.foodsharing.pickup.service.PickupScheduleService;
+import network.foodsharing.pickup.service.PickupSignupDetailService;
 import network.foodsharing.pickup.service.PickupSignupService;
 import network.foodsharing.pickup.service.PickupUserService;
 import network.foodsharing.pickup.service.RegularPickupService;
@@ -41,10 +43,15 @@ public class PickupsController implements PickupsApi {
     private final PickupUserService users;
     private final IntroPickupMapper introMapper;
     private final Clock clock;
+    private final PickupSignupDetailService signupDetails;
+    private final PickupDayConversationService dayChats;
 
     public PickupsController(PickupScheduleService schedule, PickupSignupService signups,
                              RegularPickupService regular, PickupUserService users, PickupMapper mapper,
-                             IntroPickupMapper introMapper, Clock clock) {
+                             IntroPickupMapper introMapper, Clock clock, PickupSignupDetailService signupDetails,
+                             PickupDayConversationService dayChats) {
+        this.signupDetails = signupDetails;
+        this.dayChats = dayChats;
         this.users = users;
         this.introMapper = introMapper;
         this.schedule = schedule;
@@ -57,6 +64,23 @@ public class PickupsController implements PickupsApi {
     @Override
     public ResponseEntity<PickupEligibility> checkEligibility(UUID storeId, OffsetDateTime pickupAt) {
         return ResponseEntity.ok(mapper.toModel(schedule.eligibility(storeId, PickupMapper.instant(pickupAt))));
+    }
+
+    @Override
+    public ResponseEntity<network.foodsharing.api.model.PickupSignupDetail> getPickupSignupDetail(UUID userId,
+                                                                                               UUID storeId,
+                                                                                               OffsetDateTime pickupAt) {
+        return ResponseEntity.ok(mapper.toDetail(signupDetails.detail(storeId, PickupMapper.instant(pickupAt),
+                userId)));
+    }
+
+    @Override
+    public ResponseEntity<network.foodsharing.api.model.PickupDayConversation> openPickupDayConversation(
+            UUID storeId, LocalDate date, network.foodsharing.api.model.PickupDayConversationOpen body) {
+        var opened = dayChats.open(storeId, date, body.getName());
+        return ResponseEntity.ok(new network.foodsharing.api.model.PickupDayConversation()
+                .conversationId(opened.conversationId()).name(opened.name()).created(opened.created())
+                .addedMembers(opened.addedMembers()));
     }
 
     @Override

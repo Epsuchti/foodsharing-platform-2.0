@@ -18,7 +18,7 @@ import { ChannelsSection } from './sections/channels.section';
 import { PickupPolicySection } from './sections/pickup-policy.section';
 import { StoreAutomationContext } from './store-automation.context';
 
-/** Decision 165 S4: member sentences, picker, bidirectional lock, Kanäle. */
+/** Decision 167 S4: member sentences, picker, bidirectional lock, Kanäle. */
 
 const S = '00000020-0001-4000-8000-000000000006';
 const Y = '00000020-0001-4000-8000-000000000023';
@@ -39,7 +39,7 @@ const candidate = (id: string, name: string, path: string[], mayEdit: boolean, a
   automationEnabled,
 });
 
-describe('policy sentences and picker helpers (decision 165 S4)', () => {
+describe('policy sentences and picker helpers (decision 167 S4)', () => {
   it('builds the member sentence of one card from the summary lines', () => {
     expect(ruleSentence({ experience: true }, fmt)).toBe('pickups.rules.experience');
     expect(ruleSentence({ holidays: true }, fmt)).toBe('pickups.rules.holidays');
@@ -96,7 +96,7 @@ describe('policy sentences and picker helpers (decision 165 S4)', () => {
   });
 });
 
-describe('store picker dialog (decision 165 S4)', () => {
+describe('store picker dialog (decision 167 S4)', () => {
   let http: HttpTestingController;
   let fixture: ComponentFixture<StorePickerDialogComponent>;
   const body = () => document.body;
@@ -188,7 +188,7 @@ describe('store picker dialog (decision 165 S4)', () => {
   });
 });
 
-describe('pickup policy section: picker and bidirectional lock (decision 165 S4)', () => {
+describe('pickup policy section: picker and bidirectional lock (decision 167 S4)', () => {
   const automation = signal<StoreAutomation | undefined>(undefined);
   let http: HttpTestingController;
   let fixture: ComponentFixture<PickupPolicySection>;
@@ -274,7 +274,7 @@ describe('pickup policy section: picker and bidirectional lock (decision 165 S4)
   });
 });
 
-describe('Kanäle (decision 165 S4)', () => {
+describe('Kanäle (decision 167 S4)', () => {
   const automation = signal<StoreAutomation | undefined>(undefined);
   const reload = vi.fn();
   let http: HttpTestingController;

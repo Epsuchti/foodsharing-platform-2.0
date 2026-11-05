@@ -5,7 +5,7 @@ import { type ApiClient, expect, expectDataState, seedStore, zurichPickupAt } fr
  * Shared helpers of the automation specs (M4 F3/F4). Seed (docs/seed-ids.md "Automation", decision 60): S-06 Babu's
  * Bakery has the live pickup policy (gap 2, experience, holiday; team bieb manager + sleepy), Tuesdays 19:00;
  * S-01's policy and adverts and the S-07 request policy (welcome manager, guide applied) are off (former dry run,
- * changeset 188, decision 165).
+ * changeset 188, decision 167).
  */
 export const S06 = seedStore('S-06');
 /**
@@ -47,7 +47,7 @@ export interface AuditDto {
   id: string;
   kind: string;
   status: string;
-  /** Always false since decision 165 (legacy rows may still say true). */
+  /** Always false since decision 167 (legacy rows may still say true). */
   dryRun: boolean;
   pickupAt?: string;
   user?: { id: string; displayName: string };
@@ -91,7 +91,7 @@ export async function saveSection(page: Page, prefix: 'automation.policy' | 'aut
 }
 
 /**
- * Links a store to rule `index` with the "Betrieb verknüpfen" picker (decision 165 S4): search, tick the result, take
+ * Links a store to rule `index` with the "Betrieb verknüpfen" picker (decision 167 S4): search, tick the result, take
  * it over.
  */
 export async function pickLinkedStore(page: Page, index: number, name: string, query = name): Promise<void> {

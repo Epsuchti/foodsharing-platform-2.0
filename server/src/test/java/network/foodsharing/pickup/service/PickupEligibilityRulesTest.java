@@ -170,7 +170,7 @@ class PickupEligibilityRulesTest {
         assertThat(PickupEligibilityRules.mayCheckEligibility(false, null)).isFalse();
     }
 
-    /** Decision 165 S2: store rule blocks add AUTOMATION_RULE (last) and travel with the result. */
+    /** Decision 167 S2: store rule blocks add AUTOMATION_RULE (last) and travel with the result. */
     @Test
     void ruleBlocksMakeTheResultIneligibleWithAutomationRuleLast() {
         var eligible = PickupEligibilityRules.combine(List.of(), List.of(), null);

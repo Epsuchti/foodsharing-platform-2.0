@@ -192,7 +192,7 @@ class PermissionServiceMatrixTest {
         assertThat(permissions.has(principal, Permission.CAN_GIVE_INTRO_PICKUPS, stadt.getId())).isTrue();
         assertThat(permissions.effectivePermissions(principal))
                 .containsExactly("CAN_GIVE_INTRO_PICKUPS@" + stadt.getId());
-        // STORES_COORDINATION grants nothing any more (decision 165)
+        // STORES_COORDINATION grants nothing any more (decision 167)
         assertThat(permissions.effectivePermissions(TestUsers.principal(actors.get("coordAdmin")))).isEmpty();
         assertThat(permissions.effectivePermissions(TestUsers.principal(actors.get("orga"))))
                 .hasSize(Permission.values().length).allMatch(name -> name.endsWith("@*"));

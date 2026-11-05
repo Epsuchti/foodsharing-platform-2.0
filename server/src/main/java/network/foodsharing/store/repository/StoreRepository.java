@@ -29,7 +29,7 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
 
     /**
      * Live stores whose name, city or postcode contains the pattern ({@code %…%}, lower case, {@code \\} escapes),
-     * without one store and without those of one cooperation status, by name (decision 165 S4 link picker).
+     * without one store and without those of one cooperation status, by name (decision 167 S4 link picker).
      */
     @Query(value = "select s from Store s where s.deletedAt is null and s.id <> :excludeId "
             + "and s.cooperationStatus <> :excludeStatus and (lower(s.name) like :pattern escape '\\' "

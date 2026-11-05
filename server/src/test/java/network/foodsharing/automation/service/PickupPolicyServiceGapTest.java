@@ -548,7 +548,7 @@ class PickupPolicyServiceGapTest {
 
     @Test
     void aOneWayLinkNeedsNoRightInTheLinkedStoreABidirectionalOneDoes() {
-        // decision 165 Q3: D is a store the actor may know but not edit (e.g. another region)
+        // decision 167 Q3: D is a store the actor may know but not edit (e.g. another region)
         allowed.remove(d);
         LinkInput oneWay = new LinkInput(List.of(d), false, LinkedStoreWindowMode.SAME_DAY, 0, 0, 120, null, null);
         service.put(a, input(true, 2, List.of(), List.of(oneWay)));

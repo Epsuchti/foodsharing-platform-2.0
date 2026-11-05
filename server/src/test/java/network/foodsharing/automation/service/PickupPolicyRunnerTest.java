@@ -37,7 +37,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Runner paths: event (confirm only, decision 165 S2) vs job, deferred (no audit), repeated decisions, failures (M4 B4). */
+/** Runner paths: event (confirm only, decision 167 S2) vs job, deferred (no audit), repeated decisions, failures (M4 B4). */
 class PickupPolicyRunnerTest {
 
     static final UUID STORE = UUID.randomUUID();
@@ -124,7 +124,7 @@ class PickupPolicyRunnerTest {
 
     @Test
     void eventPathLeavesADeclineToTheJob() {
-        // decision 165 S2: rule violations are refused before the sign-up is stored; after commit the runner only
+        // decision 167 S2: rule violations are refused before the sign-up is stored; after commit the runner only
         // confirms, a decline (race between two sign-ups) is left to the job
         decide(declined());
         signUp();
@@ -148,7 +148,7 @@ class PickupPolicyRunnerTest {
 
     @Test
     void jobPathActsAndAuditsLive() {
-        // decision 165: no dry run; every decision acts and its audit has dry_run = false
+        // decision 167: no dry run; every decision acts and its audit has dry_run = false
         decide(allowed(PolicyRule.ALL_RULES_PASSED, null));
         PickupPolicyRunner.RunResult result = runner.runAll();
         assertThat(result.confirmed()).isEqualTo(1);

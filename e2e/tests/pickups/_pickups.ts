@@ -25,7 +25,7 @@ export async function openSignup(page: Page, pickupAt: string): Promise<void> {
 
 /**
  * Clicks the "Gesperrt" chip of a pickup (a free place the viewer cannot take: store rules or eligibility reasons,
- * decision 165 S2) and waits for the reasons in the dialog.
+ * decision 167 S2) and waits for the reasons in the dialog.
  */
 export async function openBlocked(page: Page, pickupAt: string): Promise<void> {
   const row = pickupRow(page, pickupAt);

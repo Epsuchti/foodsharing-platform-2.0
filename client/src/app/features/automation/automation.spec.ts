@@ -466,7 +466,7 @@ describe('adverts section: run now uses the saved adverts', () => {
 
   afterEach(() => http.verify({ ignoreCancelled: true }));
 
-  it('blocks run while a draft is unsaved or the save is in flight; there is no dry run (decision 165)', async () => {
+  it('blocks run while a draft is unsaved or the save is in flight; there is no dry run (decision 167)', async () => {
     expect(runButton().disabled).toBe(false);
     expect(q('[data-testid="automation.adverts.runDry"]')).toBeNull();
     expect(q('[data-testid="automation.adverts.dryRun"]')).toBeNull();
@@ -513,7 +513,7 @@ describe('adverts section: run now uses the saved adverts', () => {
 });
 
 /**
- * Pickup policy and request policy (decision 165): one An/Aus switch, no dry run, no "test" / "run now"; the draft is
+ * Pickup policy and request policy (decision 167): one An/Aus switch, no dry run, no "test" / "run now"; the draft is
  * unsaved while it differs, while the save is in flight and until the saved state is reloaded.
  */
 describe('policy sections: one switch, no dry run', () => {

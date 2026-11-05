@@ -548,6 +548,8 @@ paths:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications~1{userId}~1accept'
   /api/stores/{storeId}/applications/{userId}/decline:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1applications~1{userId}~1decline'
+  /api/stores/{storeId}/invite-candidates:
+    $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1invite-candidates'
   /api/stores/{storeId}/invitations/{userId}:
     $ref: './paths/store-team.yaml#/~1api~1stores~1{storeId}~1invitations~1{userId}'
   /api/stores/{storeId}/invitations/me/accept:
@@ -580,6 +582,8 @@ paths:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups~1{userId}'
   /api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}/confirm:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1signups~1{userId}~1confirm'
+  /api/stores/{storeId}/pickup-days/{date}/conversation:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickup-days~1{date}~1conversation'
   /api/stores/{storeId}/pickup-history:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickup-history'
   /api/users/me/pickups:

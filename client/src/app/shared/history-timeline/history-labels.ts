@@ -1,12 +1,23 @@
 import { Injectable, inject } from '@angular/core';
 
 import { HistoryEntry } from '../../api';
+import { DateTimeFormatter } from '../../core/dates/date-time.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { MessageParams } from '../../core/i18n/message-format';
 import { HistoryVisual } from './history-timeline.types';
 
 /** Value shown for redacted fields (`@Tracked(redact = true)`). */
 export const REDACTED_VALUE = '***';
+
+/** Pure id keys are never shown: they mean nothing to people (the trace id has its own row). */
+export const ID_KEY = /^(id|.*Id|.*Ids)$/;
+
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ENUM_VALUE = /^[A-Z][A-Z0-9_]*$/;
+
+/** Enum catalogs a metadata value may come from when the key has no own `shared.historyTimeline.value.<key>.*`. */
+const ENUM_CATALOGS = ['shared.store.cooperation', 'shared.store.team', 'common.role'];
 
 /** Metadata keys shown as small facts below the label (everything else only in the details). */
 const VISIBLE_FACTS = ['label', 'reason', 'count', 'template', 'language'] as const;
@@ -91,6 +102,7 @@ export interface HistoryChange {
 @Injectable({ providedIn: 'root' })
 export class HistoryLabeler {
   private readonly i18n = inject(I18nService);
+  private readonly dates = inject(DateTimeFormatter);
 
   /** Label of an action without entry context (filter options): `select` blocks take their `other` branch. */
   actionLabel(subjectType: string, action: string): string {
@@ -128,7 +140,10 @@ export class HistoryLabeler {
     return this.i18n.has(key) ? this.i18n.t(key) : humanize(field);
   }
 
-  /** Field values in words: roles, languages and themes translated, redacted and empty values marked. */
+  /**
+   * Field values in words: roles, languages and themes translated, redacted and empty values marked; other values
+   * like metadata (booleans, dates, enum values).
+   */
   value(field: string | undefined, value: string | null | undefined): string {
     if (value === null || value === undefined || value === '') {
       return this.i18n.t('shared.historyTimeline.noValue');
@@ -137,7 +152,7 @@ export class HistoryLabeler {
       return this.i18n.t('shared.historyTimeline.redacted');
     }
     const lookup = this.valueKey(field, value);
-    return lookup && this.i18n.has(lookup) ? this.i18n.t(lookup) : value;
+    return lookup && this.i18n.has(lookup) ? this.i18n.t(lookup) : this.metaValue(field ?? '', value);
   }
 
   change(entry: HistoryEntry): HistoryChange | null {
@@ -165,10 +180,10 @@ export class HistoryLabeler {
     return facts;
   }
 
-  /** All metadata as label/value pairs for the details panel. */
+  /** All metadata as label/value pairs for the details panel (without pure id keys). */
   metadata(entry: HistoryEntry): HistoryFact[] {
     return Object.entries(entry.metadata ?? {})
-      .filter(([, raw]) => raw !== null && raw !== undefined && raw !== '')
+      .filter(([key, raw]) => raw !== null && raw !== undefined && raw !== '' && !ID_KEY.test(key))
       .map(([key, raw]) => ({ key, label: this.metaLabel(key), value: this.metaValue(key, raw) }));
   }
 
@@ -177,9 +192,23 @@ export class HistoryLabeler {
     return this.i18n.has(i18nKey) ? this.i18n.t(i18nKey) : humanize(key);
   }
 
+  /**
+   * A metadata value in words: booleans as yes/no, ISO instants and dates formatted, enum values translated
+   * (`shared.historyTimeline.value.<key>.<VALUE>`, else cooperation/team status and role), methods, reasons and
+   * languages as before. Anything else is shown as it is.
+   */
   metaValue(key: string, raw: unknown): string {
     const value = typeof raw === 'object' ? JSON.stringify(raw) : String(raw);
-    let lookup: string | null = null;
+    if (value === 'true' || value === 'false') {
+      return this.i18n.t(`shared.historyTimeline.value.${value}`);
+    }
+    if (ISO_INSTANT.test(value)) {
+      return this.dates.format(value, 'dateTime');
+    }
+    if (ISO_DATE.test(value)) {
+      return this.dates.format(value, 'date', 'UTC');
+    }
+    let lookup: string | null;
     switch (key) {
       case 'method':
       case 'provider':
@@ -194,8 +223,18 @@ export class HistoryLabeler {
       case 'language':
         lookup = `lang.${value.toLowerCase()}`;
         break;
+      default:
+        lookup = ENUM_VALUE.test(value) ? this.enumKey(key, value) : null;
     }
     return lookup && this.i18n.has(lookup) ? this.i18n.t(lookup) : value;
+  }
+
+  private enumKey(key: string, value: string): string | null {
+    const own = `shared.historyTimeline.value.${key}.${value}`;
+    if (this.i18n.has(own)) {
+      return own;
+    }
+    return ENUM_CATALOGS.map((catalog) => `${catalog}.${value}`).find((candidate) => this.i18n.has(candidate)) ?? null;
   }
 
   private valueKey(field: string | undefined, value: string): string | null {

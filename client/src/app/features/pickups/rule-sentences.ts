@@ -12,7 +12,7 @@ import {
 } from '../../api';
 
 /**
- * The member's view of a store's pickup rules (decision 165 S2): summary lines for the card on the Pickups tab and the
+ * The member's view of a store's pickup rules (decision 167 S2): summary lines for the card on the Pickups tab and the
  * reasons of a blocked sign-up, built from structured data only (never server texts). Pure: the caller passes the
  * formatting (dates in the store's time zone, localised lists) and translates `key` with `params`.
  */
@@ -153,7 +153,7 @@ export function blockReason(block: PolicyBlock, fmt: RuleFormat, now: Date): Blo
           to: p.to ? fmt.day(p.to) : '',
         },
       };
-      // decision 165 S3: the linked step of the sign-up dialog books the linked pickup together with this one
+      // decision 167 S3: the linked step of the sign-up dialog books the linked pickup together with this one
       return stores.length
         ? {
             ...base,
@@ -190,7 +190,7 @@ export function blockReason(block: PolicyBlock, fmt: RuleFormat, now: Date): Blo
   }
 }
 
-// --- linked-store step of the sign-up dialog (decision 165 S3) ------------------------------------------------------
+// --- linked-store step of the sign-up dialog (decision 167 S3) ------------------------------------------------------
 
 /** Only missing linked-store pickups keep the person out: the sign-up dialog books them in the same step. */
 export function onlyLinkMissing(e: PickupEligibility | null | undefined): boolean {

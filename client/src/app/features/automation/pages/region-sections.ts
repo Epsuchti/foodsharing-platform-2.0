@@ -40,7 +40,7 @@ import { RegionAutomationContext } from '../region-automation.context';
 /** Lines of the metrics chart; the totals list shows every series of the group. */
 const MAX_LINES = 5;
 
-/** Overview: store × rules An/Aus / auto-accept / adverts / alerts / Telegram chats with links (AU1–AU5, decision 165 S4). */
+/** Overview: store × rules An/Aus / auto-accept / adverts / alerts / Telegram chats with links (AU1–AU5, decision 167 S4). */
 @Component({
   selector: 'fs-region-automation-overview',
   imports: [...DATA_STATE_IMPORTS, RouterLink, TPipe],
@@ -107,7 +107,7 @@ export class RegionOverviewSection {
   });
 }
 
-/** All decisions of the region (AU8): ambassadors and ORGA see all, everyone else their own (decision 165). */
+/** All decisions of the region (AU8): ambassadors and ORGA see all, everyone else their own (decision 167). */
 @Component({
   selector: 'fs-region-automation-audits',
   imports: [AuditTableComponent, TPipe],

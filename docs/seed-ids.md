@@ -43,8 +43,8 @@ Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at 
 | verification | 0014 | `passport_issue`, `passport_request`, `wallet_pass` | 0001–0003 | T16 |
 | onboarding | 0015 | `learning_progress`, `user_onboarding_step_done`, `onboarding_nudge` | 0001–0003 | T22 |
 | store | 0020 | `store`, `store_category`, `store_chain`, `store_chain_kam`, `grocery`, `store_grocery`, `store_membership`, `store_wall_post` | 0001–0008 | M3 (B2, B3, B6); `changes/185-store-publicly-named-seed.yaml` (S17): S-01 and S-02 `publicly_named`, no new ids |
-| pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category` | 0001–0004 | M3 (B2, B4) |
-| automation | 0022 | `pickup_policy`, `pickup_policy_excluded_date`, `pickup_policy_linked_store`, `pickup_policy_linked_store_member`, `cleaning_rule_exemption`, `pickup_policy_audit`, `request_policy`, `request_policy_audit`, `open_slot_advert`, `open_slot_advert_audit`, `signout_alert_setting`, `signout_cancellation`, `pickup_extra_slot`, `metric_daily_count`, `holiday_calendar`, `pickup_gap_group`, `pickup_link_pending` | 0001–0017 | M4 (B4, B5; seed files `changes/105…111-automation-*.yaml`; 0016: `changes/181-gap-group-seed.yaml`; 0017: `changes/189-pickup-link-pending-seed.yaml`, decision 165 S3) |
+| pickup | 0021 | `regular_pickup`, `pickup`, `pickup_signup`, `pickup_weight_category`, `pickup_day_conversation` (0005) | 0001–0005 | M3 (B2, B4); day chat `changes/187-pickup-day-conversation-seed.yaml` (decision 165) |
+| automation | 0022 | `pickup_policy`, `pickup_policy_excluded_date`, `pickup_policy_linked_store`, `pickup_policy_linked_store_member`, `cleaning_rule_exemption`, `pickup_policy_audit`, `request_policy`, `request_policy_audit`, `open_slot_advert`, `open_slot_advert_audit`, `signout_alert_setting`, `signout_cancellation`, `pickup_extra_slot`, `metric_daily_count`, `holiday_calendar`, `pickup_gap_group`, `pickup_link_pending` | 0001–0017 | M4 (B4, B5; seed files `changes/105…111-automation-*.yaml`; 0016: `changes/181-gap-group-seed.yaml`; 0017: `changes/189-pickup-link-pending-seed.yaml`, decision 167 S3) |
 | intropickup | 0030 | `intro_pickup`, `intro_pickup_slot`, `intro_pickup_comment`, `guide_profile`, `private_info_template`, `intro_pickup_subscription`, `intro_pickup_store_alias` | 0001–0007 | T15 |
 | upload | 0040 | `upload` | 0001 | M5 B1/B4 (`130`; seed rows in `133-mailbox-seed`, bytes in `db/seed/upload/files/`) |
 | messaging | 0041 | `conversation`, `conversation_member`, `message`, `store_conversation` (+ `region_conversation` 0005, `history_entry` 0006) | 0001–0006 | M5 B2 (`131`/`132`), edit/delete (`178`) |
@@ -198,10 +198,13 @@ unconfirmed + sleepy confirmed (1 free), S-04 Wednesday 2026-11-04 18:30 foodsav
 pickup rule 2 per 7 days blocks a third sign-up of foodsaver in S-01/S-04), S-02 Saturday 2026-11-07 18:00 full (bieb,
 jumper). foodsaver has no other future sign-ups; S-07 Wednesday 2026-11-04 20:30 is free for sign-up tests. Only 14
 seed users exist, so the plan's "≈ 650 past rows" became 93 with the per-user counts above.
+Day chat (`187-pickup-day-conversation-seed.yaml`, decision 165): `pickup_day_conversation` `00000021-0005-…-01` maps
+S-02 Saturday 2026-11-07 to the GROUP conversation `00000041-0001-…-07` "Abholung Bäckerei Vohdin, Sa 7.11." (members
+`00000041-0002-…-08` bieb, `…-09` jumper, no messages); `PickupSeedDateShift` moves its day in `local`.
 
 ### Automation (M4 B4, module 0022)
 
-**Since decision 165 (`seed/changes/188-automation-no-dry-run-seed.yaml`, no new ids):** there is no dry run any more;
+**Since decision 167 (`seed/changes/188-automation-no-dry-run-seed.yaml`, no new ids):** there is no dry run any more;
 every row below marked "dry run" (S-01, S-02, S-04 policies, the S-01 adverts, the S-07 request policy) is loaded and
 then switched **off**; S-06 stays live. The grants `00000010-0009-…-04/05/06` (bot: CAN_USE_AUTOMATIONS,
 CAN_SEE_USER_PICKUP_COUNT_GROUPING, CAN_SEE_ALL_AUTOMATION_DECISIONS) are deleted. Seeded `WOULD_*` audits stay as
@@ -221,7 +224,7 @@ its own gap 2, rule on.
 `pickup_policy` `…-01` S-01 (enabled, **dry run**, gap 2, experience, holiday — its seeded unconfirmed sign-ups belong to M3 scenarios and must not be decided by `automation-evaluate`, which runs in local/e2e), `…-05` S-06 Babu's Bakery (same rules, **live**; no M3 scenario uses it, no seeded unconfirmed sign-ups), `…-02` S-02 (enabled, dry run, cleaning),
 `…-03` S-04 (enabled, dry run, link `0003-…01` → S-01 `SAME_DAY`, grace 30, **one-way**: S-01 Mon/Thu and S-04
 Wed/Sat never share a day, a bidirectional mirror would decline every S-01 sign-up), `…-04` S-03 (disabled).
-**Decision 165 S3** (`seed/changes/189-pickup-link-pending-seed.yaml`, `automation/pickup_link_pending.csv`):
+**Decision 167 S3** (`seed/changes/189-pickup-link-pending-seed.yaml`, `automation/pickup_link_pending.csv`):
 `pickup_link_pending` `0017-…01` foodsaver's confirmed S-04 pickup Wednesday 2026-11-04 18:30 misses its S-01 link
 ("Verknüpfung fehlt") until 2026-11-04 13:00 Zurich (`deadline_at` 12:00Z); S-04's policy is off, so `automation-evaluate`
 leaves it; times move with the seed anchor.
@@ -239,7 +242,7 @@ messages, late-cancellation message on), `0009-…02` #2 6 h TELEGRAM to `-1002`
 1–6 days back): SENT filled, SENT, SENT with Telegram message 4711 (deleted), OCCUPIED_AT_TRIGGER foodsaver,
 LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT jumper, LATE_CANCELLATION_NO_ACTION sleepy. Sign-out alert
 `0011-…01` S-06 (enabled, live, BELL+TELEGRAM, cutoff 72 h) with cancellations `0012-…01`–`05`: OPEN sleepy (in 2 days),
-REPLACED foodsaver, NOT_REPLACED jumper, REJOINED sleepy, UNKNOWN guide. S-06 `store.extra_slot_allowed` = true;
+REPLACED foodsaver, NOT_REPLACED jumper, REJOINED sleepy, UNKNOWN guide. S-06 `store.max_extra_slots` = 2 (`seed-187-1`; `seed-109-1` with the old switch was removed, decision 165);
 extra slots `0013-…01`/`02` by bieb (3 and 10 days ago, 2 → 3). Metrics `0014-…`: 60 days (SEED_NOW − 8 … − 67) for
 zuerich-stadt, keys SLOT_APPROVAL.CONFIRMED/DECLINED, SLOT_DECLINE_RULE.GAP, REQUEST.APPROVED, ADVERT.SENT,
 ADVERT.FILLED_AFTER_ADVERT, CANCELLATION.NOT_REPLACED, EXTRA_SLOT.ADDED. `AutomationSeedDateShift` moves all of them
@@ -251,7 +254,8 @@ Conversations `00000041-0001-4000-8000-0000000000NN`: `01` DIRECT foodsaver ↔ 
 read up to 10 → 2 unread), `02` DIRECT foodsaver ↔ bot (3 messages, read), `03` GROUP "Kochgruppe Planung" (foodsaver,
 jumper, guide; 8 messages, foodsaver and guide 1 unread), `04` STORE_TEAM and `05` STORE_JUMPER of S-01 (team chat: 6
 messages incl. 1 system advert; members inserted from the seeded `store_membership`, random member ids), `06` REGION
-chat of kochgruppe (2 messages, members from `region_membership`). Members `0002-…01`–`07` (direct/group), messages
+chat of kochgruppe (2 messages, members from `region_membership`), `07` GROUP day chat of S-02 2026-11-07 (bieb,
+jumper; see Pickups). Members `0002-…01`–`07` (direct/group), messages
 `0003-…01`–`31`, links `0004-…01`/`02` (S-01 TEAM/JUMPER), `0005-…01` (kochgruppe). `region.conversation_enabled` is
 true for the Zürich Stadt groups `20`–`35` (and every new working group). Other store chats are created on first
 access (`GET /api/stores/{id}/conversations`, team changes, adverts) and reconciled hourly by `conversation-sync`.

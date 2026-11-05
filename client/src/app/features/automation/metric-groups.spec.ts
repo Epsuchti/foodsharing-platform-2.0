@@ -15,7 +15,7 @@ import { bucketWeeks, isLegacyMetricKey, METRIC_GROUPS, metricLabelKey, topSerie
 const R = '00000002-0001-4000-8000-000000000003';
 
 describe('metric groups (AU9)', () => {
-  it('puts every MetricKey into exactly one group, except the legacy dry-run keys (decision 165)', () => {
+  it('puts every MetricKey into exactly one group, except the legacy dry-run keys (decision 167)', () => {
     for (const key of Object.values(MetricKey)) {
       const expected = isLegacyMetricKey(key) ? 0 : 1;
       expect(METRIC_GROUPS.filter((g) => g.keys.includes(key)).map((g) => g.id), key).toHaveLength(expected);

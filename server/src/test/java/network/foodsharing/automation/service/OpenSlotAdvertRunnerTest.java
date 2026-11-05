@@ -313,7 +313,7 @@ class OpenSlotAdvertRunnerTest {
 
     @Test
     void noDryRunAnyMore_auditsAreLiveAndNoSummaryIsWritten() {
-        // decision 165: every enabled advert sends; DRY_RUN_SUMMARY is a read-only legacy status
+        // decision 167: every enabled advert sends; DRY_RUN_SUMMARY is a read-only legacy status
         slots(slot(PICKUP, 2));
         var result = runner.run(List.of(advert));
         assertThat(result.confirmed()).isEqualTo(1);

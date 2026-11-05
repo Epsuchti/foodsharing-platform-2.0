@@ -16,7 +16,8 @@ const PAGE_SIZE = 25;
 
 /**
  * /me/pickups/history (own) and /users/:userId/pickups (admins, `mayAdministrateUser`) (PU6): past pickups of a user,
- * newest first, and "delete all future pickups" with a reason (e.g. when the user leaves).
+ * newest first; on another user's page "delete all future pickups" with a reason (e.g. when the user leaves; not on
+ * the own history, decision 165).
  */
 @Component({
   selector: 'fs-pickup-history-page',
@@ -30,16 +31,19 @@ const PAGE_SIZE = 25;
       [backLink]="own() ? '/pickups' : ['/users', targetId()]"
       [backLabel]="'common.back' | t"
     />
-    <div class="toolbar">
-      <p-button
-        [label]="(own() ? 'pickups.past.deleteFutureOwn' : 'pickups.past.deleteFuture') | t"
-        icon="pi pi-calendar-times"
-        severity="danger"
-        [outlined]="true"
-        (onClick)="deleteOpen.set(true)"
-        data-testid="pickups.past.deleteFuture"
-      />
-    </div>
+    @if (!own()) {
+      <!-- decision 165: only the admin variant; people sign out of their own pickups one by one -->
+      <div class="toolbar">
+        <p-button
+          [label]="'pickups.past.deleteFuture' | t"
+          icon="pi pi-calendar-times"
+          severity="danger"
+          [outlined]="true"
+          (onClick)="deleteOpen.set(true)"
+          data-testid="pickups.past.deleteFuture"
+        />
+      </div>
+    }
 
     <fs-data-state
       [state]="pickups"

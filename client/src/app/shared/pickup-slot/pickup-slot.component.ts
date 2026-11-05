@@ -27,7 +27,7 @@ export function firstName(displayName: string): string {
  * word "Du"; for `confirmable` viewers (managers) an unconfirmed slot is a split pill: first name + a ✓ button.
  * `slotClick` fires for a taken slot when `slotsClickable` (own slot, or managers), `confirmClick` for the ✓,
  * `freeClick` for the one free chip when `freeClickable` ("+ Sign up"; otherwise "N free", disabled). When `blocked`, the
- * free chip is a "Gesperrt" button (lock) that emits `blockedClick` and opens the reason dialog (decision 165 S2).
+ * free chip is a "Gesperrt" button (lock) that emits `blockedClick` and opens the reason dialog (decision 167 S2).
  *
  * ```html
  * <fs-pickup-slot [slotCount]="p.slotCount" [slots]="p.occupiedSlots" [myId]="me" (freeClick)="signUp(p)" />
@@ -114,7 +114,7 @@ export function firstName(displayName: string): string {
       }
       @if (freeCount() > 0 && blocked()) {
         <li>
-          <!-- decision 165 S2: a free place the person cannot take; opens "Warum nicht?" -->
+          <!-- decision 167 S2: a free place the person cannot take; opens "Warum nicht?" -->
           <button
             type="button"
             class="slot slot--blocked slot--labelled"
@@ -199,7 +199,7 @@ export function firstName(displayName: string): string {
     }
     .slot--labelled:disabled { color: var(--fs-text-muted); }
     .slot__label { white-space: nowrap; }
-    /* blocked for this person (decision 165 S2, proposal §3.3/§4): dashed strong ring, muted fill, lock + text */
+    /* blocked for this person (decision 167 S2, proposal §3.3/§4): dashed strong ring, muted fill, lock + text */
     .slot--blocked {
       min-height: var(--fs-target-sm); border: var(--fs-slot-ring) dashed var(--fs-border-strong);
       background: var(--fs-surface-muted); color: var(--fs-text);
@@ -222,7 +222,7 @@ export class PickupSlotComponent {
   readonly slotsClickable = input(false);
   /** Managers (`mayConfirmPickups`): unconfirmed slots become split pills with a ✓ button. */
   readonly confirmable = input(false);
-  /** Decision 165 S2: the free places are blocked for the viewer (store rules or eligibility); the chip opens why. */
+  /** Decision 167 S2: the free places are blocked for the viewer (store rules or eligibility); the chip opens why. */
   readonly blocked = input(false);
   /** How many reasons block (rules + eligibility reasons), for the chip's accessible name. */
   readonly blockedRuleCount = input(0);

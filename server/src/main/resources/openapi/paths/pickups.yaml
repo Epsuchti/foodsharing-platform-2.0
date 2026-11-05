@@ -185,7 +185,7 @@
           format: date-time
     requestBody:
       required: false
-      description: 'Linked-store pickups booked in the same step (decision 165 S3): every sign-up goes through the normal eligibility and rules of its store; all are stored or none.'
+      description: 'Linked-store pickups booked in the same step (decision 167 S3): every sign-up goes through the normal eligibility and rules of its store; all are stored or none.'
       content:
         application/json:
           schema:
@@ -204,6 +204,40 @@
       '409': {description: 'PICKUP_NOT_ELIGIBLE (args.reason; AUTOMATION_RULE when an active store rule blocks it, args.rule = the first blocking rule); LINKED_PICKUP_REQUIRED when only a linked-store rule is missing its pickup (args.rule = index of the first such rule in getLinkedOptions); LINKED_PICKUP_FULL (args.storeId, args.pickupAt) when a chosen linked pickup has no free slot; LINKED_PICKUP_BLOCKED (args.storeId, args.pickupAt, args.reason, args.rule) when the eligibility or the rules of its store refuse a chosen linked pickup', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/stores/{storeId}/pickups/{pickupAt}/signups/{userId}:
+  get:
+    tags: [pickups]
+    operationId: getPickupSignupDetail
+    summary: 'Details of one sign-up for the slot dialog (PU3): sign-up time, state, counts at this store, upcoming slots here.'
+    x-permission: 'mayConfirmPickups or mayEditPickups or signed up for the same pickup'
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/PickupSignupDetail'
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or SIGNUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   delete:
     tags: [pickups]
     operationId: signOut
@@ -276,6 +310,45 @@
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or SIGNUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'ALREADY_CONFIRMED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/stores/{storeId}/pickup-days/{date}/conversation:
+  post:
+    tags: [pickups]
+    operationId: openPickupDayConversation
+    summary: "Find or create the named group chat of a store's pickup day (PU3, M5); adds everyone signed up that day who is not a member yet, never removes anyone."
+    x-permission: 'team member of the store or signed up that day'
+    x-history: PickupAction.DAY_CONVERSATION_OPENED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: date
+        in: path
+        required: true
+        description: "Calendar day in the store's time zone."
+        schema:
+          type: string
+          format: date
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/pickups.yaml#/PickupDayConversationOpen'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/PickupDayConversation'
+      '400': {description: 'VALIDATION_FAILED or NO_SIGNUPS (nobody but the caller signed up that day and no chat exists yet)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/stores/{storeId}/pickup-history:
   get:

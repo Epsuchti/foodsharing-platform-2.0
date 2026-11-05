@@ -1,4 +1,4 @@
-import { CONVERSATIONS, injectApiError, seedStore } from '../fixtures';
+import { CONVERSATIONS, injectApiError, seedStore, sendMessage } from '../fixtures';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
@@ -20,6 +20,17 @@ forEachVariant((variant) => {
       await page.goto(`/messages/${CONVERSATIONS.foodsaverBieb}`);
       await expect(page.getByTestId('messaging.conversation.state')).toHaveAttribute('data-state', 'success');
       await visual.expectScreen(page, `messaging-direct-${variant.name}`);
+    });
+
+    screenshotTest('mention pills: mentioned me (ring), in my own bubble @N1 @screenshot', async ({ page, as, apiOf, dev, visual }) => {
+      const me = await dev.user('foodsaver');
+      const bieb = await dev.user('bieb');
+      await sendMessage(apiOf(await as('bieb')), CONVERSATIONS.foodsaverBieb, `Danke @[${me.displayName}](user:${me.id}) fürs Abholen!`);
+      await sendMessage(apiOf(page), CONVERSATIONS.foodsaverBieb, `Gern, @[${bieb.displayName}](user:${bieb.id}) – bis Donnerstag`);
+      await page.goto(`/messages/${CONVERSATIONS.foodsaverBieb}`);
+      await expect(page.getByTestId('messaging.conversation.state')).toHaveAttribute('data-state', 'success');
+      await expect(page.getByTestId('messaging.conversation.mention')).toHaveCount(2);
+      await visual.expectScreen(page, `messaging-mentions-${variant.name}`);
     });
 
     screenshotTest('group conversation with members dialog @N1 @screenshot', async ({ page, visual }) => {

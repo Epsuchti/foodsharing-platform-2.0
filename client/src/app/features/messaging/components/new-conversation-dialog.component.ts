@@ -33,7 +33,7 @@ import { UserPickerComponent } from '../../../shared/user-picker/user-picker.com
           <ul class="chips" [attr.aria-label]="'messaging.new.recipients' | t">
             @for (user of selected(); track user.id) {
               <li data-testid="messaging.new.recipient">
-                <fs-user-chip [name]="user.displayName" [userId]="user.id" [avatarUrl]="user.avatarUrl" />
+                <fs-user-chip [name]="user.displayName" [userId]="user.id" [avatarUrl]="user.avatarUrl" [link]="null" />
                 <p-button
                   icon="pi pi-times"
                   size="small"

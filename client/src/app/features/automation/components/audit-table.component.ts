@@ -32,7 +32,7 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
 /**
  * `fs-automation-audit-table` (AU8): kind filter chips, "exclude confirmed", date range, decision badges, expandable
  * reasons (rule chip + text), user message, "load more" paging. Used by the store and region pages. Legacy WOULD_* rows
- * keep their label (decision 165).
+ * keep their label (decision 167).
  */
 @Component({
   selector: 'fs-automation-audit-table',
@@ -201,7 +201,7 @@ export class AuditTableComponent {
   protected tone = decisionTone;
 
   protected statusLabel(audit: AutomationAudit): string {
-    // decision 165 S2: a declined sign-up was blocked by the rules ("Gesperrt"); request declines keep "Abgelehnt"
+    // decision 167 S2: a declined sign-up was blocked by the rules ("Gesperrt"); request declines keep "Abgelehnt"
     if (audit.kind === AuditKind.Pickup && audit.status === 'DECLINED') return 'automation.decision.BLOCKED';
     return `automation.decision.${audit.status}`;
   }

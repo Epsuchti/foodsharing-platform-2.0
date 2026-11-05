@@ -1,4 +1,4 @@
-# Seed (decision 165 S3): foodsaver's confirmed S-04 pickup on Wednesday 2026-11-04 18:30 is missing its S-01 link
+# Seed (decision 167 S3): foodsaver's confirmed S-04 pickup on Wednesday 2026-11-04 18:30 is missing its S-01 link
 # ("Verknüpfung fehlt" until 13:00 that day). S-04's policy is off, so automation-evaluate leaves it alone; the row
 # shows the pill on the own slot and for S-04's managers. Times move with the seed anchor (AutomationSeedDateShift).
 databaseChangeLog:

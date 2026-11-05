@@ -1,4 +1,4 @@
-# Decision 165 S3: a sign-up whose linked-store pickup was signed out waits until deadline_at for another one
+# Decision 167 S3: a sign-up whose linked-store pickup was signed out waits until deadline_at for another one
 # ("Verknüpfung fehlt", Q4), then the automation-evaluate job frees it. New link rules get 120 minutes by default.
 databaseChangeLog:
   - changeSet:

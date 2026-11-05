@@ -2,7 +2,7 @@ import { type DevNotification, expect, expectDataState, seedRegion, seedStore, t
 import { openAutomation, pickLinkedStore, savePolicy } from './_automation';
 
 /**
- * Decision 165 S4: the "Betrieb verknüpfen" picker finds stores across regions (StoreVisibility) and locks "both ways"
+ * Decision 167 S4: the "Betrieb verknüpfen" picker finds stores across regions (StoreVisibility) and locks "both ways"
  * for a store bieb does not manage; the store tab's status strip and the Kanäle section (store Telegram chats, "Wer
  * sendet hierhin?", "Chats verwalten"); the region overview's Kanäle column. Seed: bieb manages S-06 Babu's Bakery and
  * S-01; Coop Winterthur Bahnhof (S-23) is in the region winterthur; S-06 has the live Telegram advert #1 and the

@@ -1,8 +1,6 @@
 package network.foodsharing.store.service;
 
 import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +9,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
-import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.security.PermissionService;
@@ -34,9 +31,9 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Store wall (plan §13.3 S11, A19 wall rules): list, post, delete. Delete: ORGA everything; the author always; posts
- * older than {@code app.store.wall-delete-after-days}: store managers (COORDINATOR) and whoever coordinates the
- * store's region (ambassadors / store coordination admins). Store milestones ({@link StoreService.StoreChanged}) are
+ * Store wall (plan §13.3 S11, A19 wall rules): list, post, delete. Delete: ORGA everything; the author always; store
+ * managers (COORDINATOR) and whoever coordinates the store's region (ambassadors / store coordination admins) any
+ * post at any time (amends decision 54). Store milestones ({@link StoreService.StoreChanged}) are
  * written as wall posts after the store change has committed.
  */
 @Service
@@ -53,13 +50,11 @@ public class StoreWallService {
     private final UserService users;
     private final CurrentActorService currentActor;
     private final HistoryService history;
-    private final AppProperties properties;
     private final Clock clock;
 
     public StoreWallService(StoreWallPostRepository posts, StoreRepository stores, StoreService storeService,
                             StorePermissionService rights, PermissionService permissions, UserService users,
-                            CurrentActorService currentActor, HistoryService history, AppProperties properties,
-                            Clock clock) {
+                            CurrentActorService currentActor, HistoryService history, Clock clock) {
         this.posts = posts;
         this.stores = stores;
         this.storeService = storeService;
@@ -68,7 +63,6 @@ public class StoreWallService {
         this.users = users;
         this.currentActor = currentActor;
         this.history = history;
-        this.properties = properties;
         this.clock = clock;
     }
 
@@ -124,7 +118,7 @@ public class StoreWallService {
                 .metadata("text", post.getText()).build());
     }
 
-    /** A19 wall delete rule. */
+    /** A19 wall delete rule: ORGA, the author, the store's managers and its region's coordinators; no age limit. */
     boolean mayDelete(UUID actorId, boolean orga, StorePermissionService.Rights r, StoreWallPost post) {
         if (orga) {
             return true;
@@ -135,10 +129,7 @@ public class StoreWallService {
         if (actorId.equals(post.getAuthorId())) {
             return true;
         }
-        Instant created = post.getCreatedAt() == null ? clock.instant() : post.getCreatedAt();
-        boolean old = created.isBefore(clock.instant().minus(Duration.ofDays(properties.getStore()
-                .getWallDeleteAfterDays())));
-        return old && (r.teamStatus() == UserTeamStatus.COORDINATOR || r.coordinate());
+        return r.teamStatus() == UserTeamStatus.COORDINATOR || r.coordinate();
     }
 
     /** Soft-deletes every live post of a deleted store (no own log row; DELETE_STORE covers it). */

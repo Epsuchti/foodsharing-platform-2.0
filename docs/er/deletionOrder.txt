@@ -54,6 +54,7 @@ quiz_question_comment
 poll_vote
 pickup_signup
 pickup_policy_linked_store_member
+pickup_day_conversation
 passport_request
 oauth_refresh_token
 oauth_consent

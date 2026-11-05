@@ -11,11 +11,11 @@ import { runMutation } from '../../../core/data/mutation';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 
-/** Whose alert chats: a region (AU10) or a store (decision 165 S4, Kanäle). */
+/** Whose alert chats: a region (AU10) or a store (decision 167 S4, Kanäle). */
 export type TelegramChatsScope = { regionId: string } | { storeId: string };
 
 /**
- * Telegram alert chats of a region or a store (AU10, decision 165 S4): pick from the chats the bot has seen, enable,
+ * Telegram alert chats of a region or a store (AU10, decision 167 S4): pick from the chats the bot has seen, enable,
  * send a test message, remove, save. Test ids are `<testId>.state|chat|enabled|test|remove|pick|add|save`
  * (`automation.telegram` on the region page, `automation.channels` in the store tab).
  */

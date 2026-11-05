@@ -31,6 +31,7 @@ class PickupSeedDateShiftTest {
                 + "unique (store_id, pickup_at))");
         jdbc.execute("create table pickup_signup (id uuid primary key, pickup_at timestamp with time zone, "
                 + "confirmed_at timestamp with time zone, reminded_at timestamp with time zone)");
+        jdbc.execute("create table pickup_day_conversation (id uuid primary key, pickup_date date not null)");
         // inserted earliest first, so an unordered shift would move EARLY onto LATE's instant first
         jdbc.update("insert into pickup values (?, ?, ?)", EARLY, STORE, Timestamp.from(EARLY_AT));
         jdbc.update("insert into pickup values (?, ?, ?)", LATE, STORE, Timestamp.from(LATE_AT));

@@ -30,7 +30,7 @@ public enum AutomationAction implements HistoryAction {
     /** Shared gap list changed (decision 151); metadata storeId, storeIds, minimumGapDays. */
     GAP_LIST_CHANGED,
     /**
-     * A sign-up lost its linked-store pickup (decision 165 S3); subject = policy, secondary = person, metadata storeId,
+     * A sign-up lost its linked-store pickup (decision 167 S3); subject = policy, secondary = person, metadata storeId,
      * pickupAt, linkedStoreId, deadlineAt.
      */
     LINK_MISSING;

@@ -11,7 +11,7 @@ import network.foodsharing.common.persistence.BaseEntity;
 
 /**
  * A sign-up ({@code storeId}, {@code pickupAt}, {@code userId}) whose linked-store pickup in {@code linkedStoreId} was
- * signed out (decision 165 S3, Q4): until {@code deadlineAt} the person may book another one, then the
+ * signed out (decision 167 S3, Q4): until {@code deadlineAt} the person may book another one, then the
  * {@code automation-evaluate} job frees the slot. Gone once the link is satisfied again or the sign-up ends.
  */
 @Getter

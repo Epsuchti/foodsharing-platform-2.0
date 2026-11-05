@@ -108,7 +108,7 @@ test.describe('cleaning shifts', () => {
     await createPickup(api, 'S-06', friday);
     await createPickup(api, 'S-06', sunday);
 
-    // no cleaning in Wiedikon: refused up front (decision 165 S2), the audit lists Wiedikon's free shifts
+    // no cleaning in Wiedikon: refused up front (decision 167 S2), the audit lists Wiedikon's free shifts
     expect(await store.trySignUp('sleepy', 'S-06', friday)).toBe(false);
     const declined = await waitForAudit(api, 'S-06', friday);
     expect(declined.status).toBe('DECLINED');

@@ -55,7 +55,7 @@ export class RegionPageComponent {
   private readonly i18n = inject(I18nService);
   private readonly toggles = inject(FeatureToggleService);
 
-  /** Region automation pages (M4 F4): ambassadors of the region and ORGA (decision 165: no automation permissions). */
+  /** Region automation pages (M4 F4): ambassadors of the region and ORGA (decision 167: no automation permissions). */
   private readonly automation = computed(() => isAmbassador(this.session.session(), this.ctx.regionId()));
 
   /** Report handlers (`RegionDetail.mayHandleReports`; the server decides). */

@@ -38,7 +38,7 @@ const summary = (patch: Partial<StoreRuleSummary>): StoreRuleSummary => ({
   ...patch,
 });
 
-describe('rule sentences (decision 165 S2)', () => {
+describe('rule sentences (decision 167 S2)', () => {
   it('has no lines while the rules are off or missing', () => {
     expect(summaryLines(undefined, fmt)).toEqual([]);
     expect(summaryLines(summary({ enabled: false, gapDays: 7, experience: true }), fmt)).toEqual([]);
@@ -161,7 +161,7 @@ describe('rule sentences (decision 165 S2)', () => {
   });
 });
 
-describe('linked-store step (decision 165 S3)', () => {
+describe('linked-store step (decision 167 S3)', () => {
   const linkBlock = (ids: string[]): PolicyBlock => ({
     rule: PolicyRule.LinkedStore,
     params: { stores: ids.map((id) => store(id, id)) },

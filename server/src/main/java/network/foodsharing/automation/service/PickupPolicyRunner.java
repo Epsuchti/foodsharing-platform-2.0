@@ -37,9 +37,9 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * Applies pickup policies (A24): right after a sign-up commits ({@link PickupEvents.PickupSignedUpEvent}, unconfirmed
  * only), and from the {@code automation-evaluate} job (deferred cases). Each sign-up is decided in its
- * own transaction; a failure writes a FAILED audit. No dry run (decision 165): audits are written with
+ * own transaction; a failure writes a FAILED audit. No dry run (decision 167): audits are written with
  * {@code dry_run = false}. DEFERRED writes no audit; on the job path a repeated SKIPPED decision is not audited again.
- * Rule violations are refused before the sign-up is stored ({@link PickupRuleGateImpl}, decision 165 S2), so the
+ * Rule violations are refused before the sign-up is stored ({@link PickupRuleGateImpl}, decision 167 S2), so the
  * after-commit path only confirms or skips; a decline it would make (a race between two sign-ups) is left to the job,
  * which keeps the decline path for sign-ups that existed before the rules were switched on.
  */
@@ -182,7 +182,7 @@ public class PickupPolicyRunner {
     }
 
     /**
-     * Decision 165 S3 (Q4): the deadline to book another linked pickup has passed. When the link is still missing the
+     * Decision 167 S3 (Q4): the deadline to book another linked pickup has passed. When the link is still missing the
      * slot is freed with the rule's message (DECLINED audit, only the linked-store reasons); otherwise (booked again,
      * rules skipped near the pickup) nothing happens. Own transaction; a failure writes a FAILED audit.
      */

@@ -2,7 +2,7 @@ import { LinkedStoreRule, LinkedStoreWindowMode, StoreRef, StoreRuleSummary } fr
 import { RuleFormat, summaryLines } from '../pickups/rule-sentences';
 
 /**
- * The member sentences of the rule cards (decision 165 S4, proposal §3.1): the lines members read on the Pickups tab
+ * The member sentences of the rule cards (decision 167 S4, proposal §3.1): the lines members read on the Pickups tab
  * (rule-sentences.ts), built for one rule of the manager's draft. Pure: `fmt` formats and translates.
  */
 export function ruleSentence(rules: Partial<StoreRuleSummary>, fmt: RuleFormat): string | undefined {

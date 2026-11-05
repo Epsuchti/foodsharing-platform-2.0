@@ -15,7 +15,7 @@ export interface ChannelUser {
 }
 
 /**
- * Kanäle (decision 165 S4, proposal §3.6): the store's Telegram chats (`fs-telegram-chats`, store scope; without an
+ * Kanäle (decision 167 S4, proposal §3.6): the store's Telegram chats (`fs-telegram-chats`, store scope; without an
  * active chat the messages go to the region's chats) and "Wer sendet hierhin?", the enabled adverts and sign-out
  * alert with channel Telegram.
  */

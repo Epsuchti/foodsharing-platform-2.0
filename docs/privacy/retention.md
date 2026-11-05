@@ -39,7 +39,7 @@ Review against plan §10.1 ("pickup sign-ups kept 2 years, personal data changes
 | `job_run` | 90 days (job results such as data export zips with their expiry) | `CleanupJob` |
 | `pickup_policy_audit`, `request_policy_audit`, `open_slot_advert_audit` | `app.automation.audit-retention-days` (7), then anonymous daily counts | `AuditRetentionJob` |
 | `signout_cancellation`, `pickup_extra_slot` | `app.automation.signout-retention-days` (180), then anonymous daily counts | `AuditRetentionJob` |
-| `pickup_link_pending` | until the person books another linked pickup, the sign-up ends or the deadline has passed (decision 165 S3); rows of past pickups go with the next run | `AutomationEvaluateJob` |
+| `pickup_link_pending` | until the person books another linked pickup, the sign-up ends or the deadline has passed (decision 167 S3); rows of past pickups go with the next run | `AutomationEvaluateJob` |
 | `basket` | expired baskets stay as statistics (status EXPIRED); contact data and exact home location go on account deletion | `BasketExpiryJob` (status only) |
 | `history_entry` | per action, see below | `HistoryRetentionJob` |
 | `search_index` | rebuilt nightly | `SearchReindexJob` |
@@ -202,6 +202,7 @@ Generated from the `HistoryAction` enums (`RetentionTableTest` writes the expect
 | `OAUTH_CLIENT` | `TOKEN_ISSUED` | YEARS_2 |
 | `PICKUP` | `AUTO_CONFIRMED` | YEARS_2 |
 | `PICKUP` | `AUTO_DECLINED` | YEARS_2 |
+| `PICKUP` | `DAY_CONVERSATION_OPENED` | YEARS_2 |
 | `PICKUP` | `EXTRA_SLOT_ADDED` | YEARS_2 |
 | `PICKUP` | `REMINDER_SENT` | YEARS_2 |
 | `POLL` | `CANCELLED` | FOREVER |

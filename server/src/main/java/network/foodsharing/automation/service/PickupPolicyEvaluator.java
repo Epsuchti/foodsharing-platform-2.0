@@ -81,7 +81,7 @@ public class PickupPolicyEvaluator {
     }
 
     /**
-     * The person's own data behind a reason (decision 165 S2), so clients render their own sentences. GAP:
+     * The person's own data behind a reason (decision 167 S2), so clients render their own sentences. GAP:
      * {@code lastPickupAt} (the pickup that is too close), {@code storeIds} (its store when another store of the gap
      * list), {@code gapDays}, {@code nextPossibleAt} (start of the first later day that keeps every gap). LINKED_STORE:
      * {@code storeIds}, window, {@code from}/{@code to} (start of the first and the last day of the window).
@@ -184,7 +184,7 @@ public class PickupPolicyEvaluator {
 
         /**
          * Until when the person may book another linked pickup for this sign-up after the linked one was signed out
-         * (decision 165 S3, {@code pickup_link_pending}, extended by outages); empty when nothing is pending.
+         * (decision 167 S3, {@code pickup_link_pending}, extended by outages); empty when nothing is pending.
          */
         default Optional<Instant> linkPendingDeadline(UUID storeId, Instant pickupAt, UUID userId) {
             return Optional.empty();
@@ -267,7 +267,7 @@ public class PickupPolicyEvaluator {
                     pending = new Reason(PolicyRule.LINKED_STORE, t.text("linked-store.awaiting-confirmation", names));
                     continue;
                 }
-                // Decision 165 S3: a missing linked pickup blocks, unless the linked one was signed out and the
+                // Decision 167 S3: a missing linked pickup blocks, unless the linked one was signed out and the
                 // person is still within the deadline to book another (pickup_link_pending, Q4).
                 Optional<Instant> deadline = data.linkPendingDeadline(storeId, pickupAt, userId);
                 if (deadline.isPresent() && now.isBefore(deadline.get())) {
@@ -506,7 +506,7 @@ public class PickupPolicyEvaluator {
 
     /**
      * Per link rule of the policy (in its order) the person's linked pickup matched to {@code pickupAt} — one linked
-     * pickup never covers two pickups here — or empty (decision 165 S3: linked options, pending link tracking).
+     * pickup never covers two pickups here — or empty (decision 167 S3: linked options, pending link tracking).
      */
     public List<Optional<LinkMatch>> linkMatches(Spec policy, Instant pickupAt, UUID userId, Data data) {
         Instant now = data.now();

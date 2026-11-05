@@ -150,7 +150,7 @@ describe('PickupSlotComponent (PU3 slot states)', () => {
     expect(qa('[data-testid="t.free"]')).toHaveLength(0);
   });
 
-  it('shows a blocked free place as a "Gesperrt" button that opens the reason (decision 165 S2)', async () => {
+  it('shows a blocked free place as a "Gesperrt" button that opens the reason (decision 167 S2)', async () => {
     await render({ slotCount: 3, slots: [SLOTS[0]], freeClickable: true, blocked: true, blockedRuleCount: 2 });
     expect(qa('[data-testid="t.free"]')).toHaveLength(0);
     const blocked = qa('[data-testid="t.blocked"]');

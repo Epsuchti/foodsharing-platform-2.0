@@ -31,7 +31,7 @@ Last updated 2026-11-03, after the final gate was merged (`dc970052`).
 - Once the hosting cut-over in `todo-eric.md` is done and verified: remove `UploadDiskImport`, `app.uploads.import-dir`/`UPLOADS_IMPORT_DIR` and `UploadBlobRepository.idsWithoutOriginal`, and drop `upload.storage_key` in a new changelog (seeded rows are looked up by it in `UploadSeedFiles`; switch that to the fixed seed ids first).
 - Follow-up (plan Q5, changes A41): don't store `lg` when the original is already at most 1280 px; serve the original instead (saves ~40 % of image bytes).
 
-## Automation redesign (decision 165)
+## Automation redesign (decision 167)
 - Drop the unmapped `dry_run` columns of `pickup_policy`, `request_policy` and `open_slot_advert` (and the always-false audit `dry_run` columns) together with the read-only `WOULD_*` / `DRY_RUN_SUMMARY` / `*_WOULD_*` values (Q8), once no row older than the cut-over is kept. The seed changesets 105–108 still `loadData` the config columns: replace them with new seed changesets first. Until then, native SQL inserts into those tables must not rely on the column default.
 - S2 screenshots: new baselines `pickups-rules-blocked-*`, `pickups-blocked-dialog-*`, `pickups-rules-loading-*`, `pickups-rules-error-*`; `pickups-signup-reasons-*` now shows the reason dialog behind the *Gesperrt* chip (regenerate via CI, decision 161).
 - S3 screenshots: new baselines `pickups-linked-choose-*`, `pickups-linked-none-free-*`, `pickups-linked-not-member-*`, `pickups-link-missing-*`, `pickups-link-repair-*`, `pickups-linked-satisfied-*`, `pickups-linked-loading-*`, `pickups-linked-error-*`; the S2 `pickups-rules-blocked-*` card line now ends with "du wählst sie beim Eintragen gleich mit" (regenerate via CI, decision 161).

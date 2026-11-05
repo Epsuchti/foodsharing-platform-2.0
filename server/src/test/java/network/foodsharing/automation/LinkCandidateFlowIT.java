@@ -21,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Decision 165 S4 (Q3): the link picker finds stores across regions, bounded by StoreVisibility; a store manager links
+ * Decision 167 S4 (Q3): the link picker finds stores across regions, bounded by StoreVisibility; a store manager links
  * any of them one-way, a bidirectional rule needs mayEditStore of every linked store. Seed: bieb manages S-06 Babu's
  * Bakery in zuerich-stadt; Coop Winterthur Bahnhof (S-23) is in winterthur, a sibling region; Bäckerei Winterthur Markt
  * (S-24) is permanently closed.

@@ -4,7 +4,7 @@ import { openAutomation, saveSection, setSwitch, typeNumber } from './_automatio
 
 /**
  * AU3: team request automation on S-07 (welcome manages it, guide has applied; the seeded request policy, 5 km, is off
- * since changeset 188: no dry run, decision 165). Switching it on decides the open application in the next job run.
+ * since changeset 188: no dry run, decision 167). Switching it on decides the open application in the next job run.
  */
 test.use({ role: 'welcome', seedReset: 'test' });
 

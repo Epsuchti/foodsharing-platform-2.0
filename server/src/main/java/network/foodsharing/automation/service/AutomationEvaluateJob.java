@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 /**
  * {@code automation-evaluate} (every 5 min): re-evaluates every unconfirmed future sign-up of enabled pickup policies —
  * the cases deferred by the linked-store rule and sign-ups that came in while a policy was off — and frees the sign-ups
- * whose deadline to book another linked pickup has passed ({@link LinkPendingService#freeExpired}, decision 165 S3).
+ * whose deadline to book another linked pickup has passed ({@link LinkPendingService#freeExpired}, decision 167 S3).
  * New sign-ups are decided instantly by {@link PickupPolicyRunner#onSignedUp}.
  */
 @Component

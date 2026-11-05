@@ -1,5 +1,5 @@
-import { injectApiError, seedStore } from '../fixtures';
-import { pageSize } from '../tests/stores/_stores';
+import { acceptPendingConsents, expectStatus, injectApiError, seedStore } from '../fixtures';
+import { memberRow, NAMES, pageSize } from '../tests/stores/_stores';
 import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup';
 
 /**
@@ -11,6 +11,7 @@ import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup
 const ZURICH = '00000010-0001-4000-8000-000000000040';
 const S01 = seedStore('S-01').id;
 const S08 = seedStore('S-08').id;
+const S10 = seedStore('S-10').id;
 
 screenshotTest.use({ seedReset: 'file' });
 
@@ -88,6 +89,15 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `stores-team-invite-${variant.name}`);
       });
 
+      screenshotTest('invite dialog: nobody who can be invited @S7 @screenshot', async ({ page, visual }) => {
+        await page.goto(`/stores/${S08}/team`);
+        await page.getByTestId('stores.team.invite').click();
+        await page.getByTestId('stores.invite.search').fill('Lea');
+        await tickFixedClock(page);
+        await expect(page.getByTestId('stores.invite.state')).toHaveAttribute('data-state', 'empty');
+        await visual.expectScreen(page, `stores-team-invite-empty-${variant.name}`);
+      });
+
       screenshotTest('team tab loading and error @S5 @screenshot', async ({ page, visual }) => {
         const delay = await injectApiError(page, { url: `/api/stores/${S01}/team*`, delayMs: 30_000 });
         await page.goto(`/stores/${S01}/team`);
@@ -109,6 +119,28 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('stores.team.state')).toHaveAttribute('data-state', 'success');
         await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `stores-team-member-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('welcome', () => {
+      screenshotTest.use({ variant, role: 'welcome' });
+
+      screenshotTest('row menu with appoint blocked: three managers @S9 @screenshot', async ({ page, as, apiOf, dev, visual }) => {
+        // welcome manages S-10 with bot (no coordinator); orga adds two more and appoints one: three managers
+        const orga = apiOf(await as('orga'));
+        for (const role of ['reports', 'bieb'] as const) {
+          const user = await dev.user(role);
+          await expectStatus(await orga.post(`/api/stores/${S10}/team/${user.id}`), [200, 201, 204, 409], `add ${role}`);
+        }
+        const reports = await dev.user('reports');
+        await expectStatus(await orga.put(`/api/stores/${S10}/managers/${reports.id}`), [200, 204, 409], 'third manager');
+        await acceptPendingConsents(apiOf(page));
+        await page.goto(`/stores/${S10}/team`);
+        await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
+        await memberRow(page, NAMES.bieb).getByTestId('stores.team.menu').click();
+        await expect(page.getByTestId('stores.team.appointBlocked')).toBeVisible();
+        // viewport only: p-popover closes on the resize of a full-page capture
+        await visual.expectScreen(page, `stores-team-appoint-blocked-${variant.name}`, { fullPage: false });
       });
     });
 

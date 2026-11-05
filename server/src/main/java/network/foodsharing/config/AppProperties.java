@@ -183,7 +183,7 @@ public class AppProperties {
         /**
          * Region permissions granted to every member of a region's function group (plan §9, A10). Defaults:
          * FSMANAGEMENT → CAN_MANAGE_USERS, WELCOME → CAN_GIVE_INTRO_PICKUPS, VOTING → CAN_MANAGE_SURVEYS.
-         * STORES_COORDINATION grants nothing (automation needs no permission, decision 165).
+         * STORES_COORDINATION grants nothing (automation needs no permission, decision 167).
          */
         private Map<WorkingGroupFunction, List<Permission>> functionGrants = defaultFunctionGrants();
 
@@ -261,7 +261,6 @@ public class AppProperties {
         private int maxManagers = 3;
         private int defaultPrefetchDays = 14;
         private int maxSlotsPerPickup = 50;
-        private int wallDeleteAfterDays = 30;
     }
 
     @Getter

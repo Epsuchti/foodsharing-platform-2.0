@@ -57,7 +57,7 @@ async function jumperJoinsS06(api: ApiClient, store: SignUpRunner): Promise<void
 }
 
 /**
- * Writes S-06's policy through the API: rules on (no dry run or preview any more, decision 165), only the gap rules,
+ * Writes S-06's policy through the API: rules on (no dry run or preview any more, decision 167), only the gap rules,
  * with this own gap and group.
  */
 async function putS06(
@@ -92,7 +92,7 @@ async function pickupAudits(api: ApiClient, pickupAt: string): Promise<AuditDto[
 
 /**
  * `role` signs up for `pickupAt` at S-06; returns the GAP reason of the new decision (declined: refused before it is
- * stored, decision 165 S2), or undefined when it passed (confirmed).
+ * stored, decision 167 S2), or undefined when it passed (confirmed).
  */
 async function signUpGapReason(api: ApiClient, store: SignUpRunner, role: 'jumper' | 'sleepy', pickupAt: string): Promise<string | undefined> {
   const before = new Set((await pickupAudits(api, pickupAt)).map((a) => a.id));

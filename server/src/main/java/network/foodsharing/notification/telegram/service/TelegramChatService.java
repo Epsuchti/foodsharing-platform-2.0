@@ -131,7 +131,7 @@ public class TelegramChatService {
     }
 
     /**
-     * Enabled chats per store, missing = none (store automation status strip, region overview; decision 165 S4); no
+     * Enabled chats per store, missing = none (store automation status strip, region overview; decision 167 S4); no
      * access check, the callers have checked the store or region.
      */
     @Transactional(readOnly = true)

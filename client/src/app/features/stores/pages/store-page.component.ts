@@ -165,7 +165,7 @@ export class StorePageComponent {
       { id: 'log', icon: 'pi pi-history', visible: p.maySeeStoreLog },
       // M5 S10: locked team / jumper chat
       { id: 'chat', icon: 'pi pi-comment', visible: p.mayChatTeam || p.mayChatJumper },
-      // M4 F3: store editors only (decision 165: no automation permission any more)
+      // M4 F3: store editors only (decision 167: no automation permission any more)
       { id: 'automation', icon: 'pi pi-bolt', visible: p.mayEditStore },
     ];
     return tabs.filter((tab) => tab.visible && STORE_TABS_READY.has(tab.id));

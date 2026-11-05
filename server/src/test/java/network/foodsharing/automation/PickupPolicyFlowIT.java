@@ -76,7 +76,7 @@ class PickupPolicyFlowIT {
     void signupIsConfirmedInTheSameRequestCycle() throws Exception {
         // the Zürich pickup rule (2 per 7 days) would block foodsaver's sign-ups within the 14-day window
         jdbc.update("update store set use_region_pickup_rule = false where id = ?", java.util.UUID.fromString(S01_ID));
-        // the seed keeps S-01's rules off (decision 165; M3 scenarios use its unconfirmed sign-ups); switch them on
+        // the seed keeps S-01's rules off (decision 167; M3 scenarios use its unconfirmed sign-ups); switch them on
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(login(SeedUsers.BIEB)), """
                 {"enabled":true,"gapRuleEnabled":true,"minimumGapDays":2,"cleaningRuleEnabled":false,
                  "experienceRuleEnabled":true,"publicHolidayRuleEnabled":true,"linkedStores":[],
@@ -96,7 +96,7 @@ class PickupPolicyFlowIT {
     @Test
     @Order(2)
     void gapViolationIsRefusedUpFrontAndShownToTheMember() throws Exception {
-        // decision 165 S2: the rule blocks before the sign-up is stored; the member sees why in the list, the summary
+        // decision 167 S2: the rule blocks before the sign-up is stored; the member sees why in the list, the summary
         // and the 409; the attempt is audited as DECLINED without bell or mail
         Cookie bieb = login(SeedUsers.BIEB);
         mvc.perform(json(put(S01 + "/automation/pickup-policy").cookie(bieb), """
@@ -148,7 +148,7 @@ class PickupPolicyFlowIT {
     @Test
     @Order(3)
     void storeAutomationAccessAndAudits() throws Exception {
-        // decision 165: the store manager (bieb, no region permission) configures it; nobody else without
+        // decision 167: the store manager (bieb, no region permission) configures it; nobody else without
         // mayEditStore, also not bot, who held CAN_USE_AUTOMATIONS in zuerich-stadt before
         Cookie bieb = login(SeedUsers.BIEB);
         mvc.perform(get(S01 + "/automation").cookie(bieb)).andExpect(status().isOk())
@@ -254,7 +254,7 @@ class PickupPolicyFlowIT {
         Cookie foodsaver = login(SeedUsers.FOODSAVER);
         mvc.perform(post(S01 + "/pickups/2026-11-09T18:00:00Z/signups").cookie(foodsaver).with(csrf()))
                 .andExpect(status().isOk());
-        // rules off: the sign-up stays and nothing is audited (no observe mode, decision 165)
+        // rules off: the sign-up stays and nothing is audited (no observe mode, decision 167)
         assertThat(count(auditsOfThePickup, SeedUsers.FOODSAVER.id())).isEqualTo(auditsBefore);
         assertThat(count("select count(*) from pickup_signup where store_id = ? and user_id = ? and pickup_at = ?",
                 java.util.UUID.fromString(S01_ID), SeedUsers.FOODSAVER.id(),

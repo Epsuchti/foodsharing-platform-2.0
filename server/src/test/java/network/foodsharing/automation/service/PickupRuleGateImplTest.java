@@ -36,7 +36,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * The rule gate (decision 165 S2): which evaluations block, batching over a pickup list, managers' exemption lives in
+ * The rule gate (decision 167 S2): which evaluations block, batching over a pickup list, managers' exemption lives in
  * the pickup module, the refusal audit. Now = Monday 2026-11-02 10:00 Zurich.
  */
 class PickupRuleGateImplTest {

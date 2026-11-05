@@ -4,7 +4,7 @@ import { expect, expectDataState, seedRegion, seedStore, test } from '../../fixt
 const ZH = seedRegion('zuerich-stadt').id;
 
 test('AU8 region coordinator sees all decisions, member only own decisions @AU8 @D10.3 @page', async ({ as }) => {
-  // bot: ambassador of Stadt Zürich (no automation permission any more, decision 165) → decisions of several stores
+  // bot: ambassador of Stadt Zürich (no automation permission any more, decision 167) → decisions of several stores
   const bot = await as('bot');
   await bot.goto(`/regions/${ZH}`);
   await bot.getByTestId('regions.page.tab.automation').click();

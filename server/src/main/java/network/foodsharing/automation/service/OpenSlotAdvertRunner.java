@@ -100,7 +100,7 @@ public class OpenSlotAdvertRunner {
         return run(adverts.findByEnabledTrueOrderByStoreIdAscAdvertNumberAsc());
     }
 
-    /** "Run now" for one store (sends for real; no dry run, decision 165). */
+    /** "Run now" for one store (sends for real; no dry run, decision 167). */
     public PickupPolicyRunner.RunResult runStore(UUID storeId) {
         return run(adverts.findByStoreIdOrderByAdvertNumber(storeId).stream().filter(OpenSlotAdvert::isEnabled)
                 .toList());

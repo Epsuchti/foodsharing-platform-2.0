@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Pickup policy CRUD (AU1). Validation ported from the reference: at most {@value #MAXIMUM_LINKS} link rules per store
  * (mirrors of bidirectional rules of other stores count), at most {@value #MAXIMUM_STORES_PER_LINK} stores per rule, no
- * self link, a linked store is any live store the actor may know (one-way, across regions; decision 165 Q3) and one the
+ * self link, a linked store is any live store the actor may know (one-way, across regions; decision 167 Q3) and one the
  * actor may edit when the rule is bidirectional (it writes a mirror there), LAST_DAYS window 0..30 days with at least one day,
  * grace ≥ 20 minutes, message placeholders {@code {{name|storeName|linkedStoreName|pickupDate|requirement|graceMinutes}}}.
  * A bidirectional rule gets a mirror row on every linked store's policy (created disabled when missing).
@@ -166,7 +166,7 @@ public class PickupPolicyService {
     }
 
     /**
-     * The active rules of a store as the member summary shows them (decision 165 S2); {@code enabled} false and
+     * The active rules of a store as the member summary shows them (decision 167 S2); {@code enabled} false and
      * everything empty while the policy is off or missing. {@code groupStores}: the gap list with this store, by name.
      */
     public record RuleSummary(boolean enabled, Integer gapDays, Integer groupDays, List<Store> groupStores,
@@ -541,7 +541,7 @@ public class PickupPolicyService {
                 if (id.equals(storeId)) {
                     throw ApiException.badRequest(ApiErrorCode.LINKED_STORE_SELF);
                 }
-                // one-way: any live store; the actor may edit this store, so they may know stores (decision 165 Q3)
+                // one-way: any live store; the actor may edit this store, so they may know stores (decision 167 Q3)
                 Store linked = stores.require(id);
                 if (link.bidirectional() && !permissions.mayEditStore(actor, linked)) {
                     throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED).withArg("storeId", id.toString());

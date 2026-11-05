@@ -8,7 +8,7 @@ import java.util.UUID;
 
 /**
  * SPI implemented by the automation module (pickup must not depend on it, {@code ModulesTest}): the store rules that
- * block a person's sign-up, checked before the sign-up is stored (decision 165 S2). A no-op default
+ * block a person's sign-up, checked before the sign-up is stored (decision 167 S2). A no-op default
  * ({@link PickupIntegrations}) blocks nothing. Callers skip store managers (pre-confirmed sign-ups).
  */
 public interface PickupRuleGate {
@@ -54,13 +54,13 @@ public interface PickupRuleGate {
         return result;
     }
 
-    /** A pickup the person books in the same request as another one (decision 165 S3, linked stores). */
+    /** A pickup the person books in the same request as another one (decision 167 S3, linked stores). */
     record Planned(UUID storeId, Instant pickupAt) {
     }
 
     /**
      * The blocks of one sign-up when {@code planned} pickups (in other stores) are booked in the same request: they
-     * count as the person's unconfirmed sign-ups, so a linked-store rule they satisfy does not block (decision 165 S3).
+     * count as the person's unconfirmed sign-ups, so a linked-store rule they satisfy does not block (decision 167 S3).
      */
     default List<RuleBlock> check(UUID storeId, UUID userId, Instant pickupAt, Collection<Planned> planned) {
         return blocks(storeId, userId, List.of(pickupAt)).getOrDefault(pickupAt, List.of());
@@ -68,7 +68,7 @@ public interface PickupRuleGate {
 
     /**
      * Sign-ups of the store with {@code from <= pickupAt < to} whose linked-store pickup was signed out: pickup time →
-     * person → until when another one may be booked (decision 165 S3, "Verknüpfung fehlt").
+     * person → until when another one may be booked (decision 167 S3, "Verknüpfung fehlt").
      */
     default Map<Instant, Map<UUID, Instant>> linkMissing(UUID storeId, Instant from, Instant to) {
         return Map.of();

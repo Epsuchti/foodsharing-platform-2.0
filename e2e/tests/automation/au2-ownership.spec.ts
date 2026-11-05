@@ -12,7 +12,7 @@ test('AU2 foodsaver and the former CAN_USE_AUTOMATIONS holder are forbidden, the
   await foodsaver.goto(`/stores/${seedStore('S-01').id}/automation/policy`);
   await expectDataState(foodsaver, 'automation.store.state', 'forbidden');
 
-  // bot held CAN_USE_AUTOMATIONS in zuerich-stadt (not in S-06's team, no mayEditStore): decision 165 removed it
+  // bot held CAN_USE_AUTOMATIONS in zuerich-stadt (not in S-06's team, no mayEditStore): decision 167 removed it
   const bot = await as('bot');
   await bot.goto(`/stores/${S06.id}/overview`);
   await expect(bot.getByTestId('stores.page.tabs')).toBeVisible();

@@ -1,21 +1,26 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tooltip } from '@openng/optimus-ui/tooltip';
 
 import { Role } from '../../api';
+import { SessionService } from '../../core/auth/session.service';
 import { TPipe } from '../../core/i18n/t.pipe';
 import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
 
-/** Avatar + name (+ role label or subtitle); a link when `link` is set. */
+/**
+ * Avatar + name (+ role label or subtitle). Links to the person's profile (`/profile/:userId`) when `userId` is set
+ * and someone is logged in; `link` sets another target, `[link]="null"` turns the link off (inside rows that are
+ * links or buttons themselves, pickers).
+ */
 @Component({
   selector: 'fs-user-chip',
   imports: [NgTemplateOutlet, RouterLink, Tooltip, UserAvatarComponent, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-user-chip' },
   template: `
-    @if (link()) {
-      <a class="chip chip--link" [routerLink]="link()">
+    @if (target(); as target) {
+      <a class="chip chip--link" [routerLink]="target" data-testid="shared.userChip.link">
         <ng-container [ngTemplateOutlet]="body" />
       </a>
     } @else {
@@ -131,6 +136,8 @@ import { AvatarSize, UserAvatarComponent } from './user-avatar.component';
   `,
 })
 export class UserChipComponent {
+  private readonly session = inject(SessionService);
+
   readonly name = input.required<string>();
   readonly userId = input<string | null | undefined>(undefined);
   readonly avatarUrl = input<string | null | undefined>(undefined);
@@ -138,7 +145,8 @@ export class UserChipComponent {
   readonly subtitle = input<string | undefined>(undefined);
   readonly showRole = input(false);
   readonly size = input<AvatarSize>('sm');
-  readonly link = input<string | unknown[] | undefined>(undefined);
+  /** Link target; undefined = the profile of `userId` (when logged in), null = no link. */
+  readonly link = input<string | unknown[] | null | undefined>(undefined);
   /** Verified foodsaver (Ve2): a check badge after the name. */
   readonly verified = input(false);
   /** Shown as "ID 100006" with a help tooltip (EA3: newcomers give it to their guide). */
@@ -146,6 +154,15 @@ export class UserChipComponent {
   /** Sleep mode (A39, `UserSummary.sleepMode`): moon badge with the sleep message as tooltip, grey avatar ring. */
   readonly sleepMode = input<boolean | string | null | undefined>(undefined);
   readonly sleepMessage = input<string | null | undefined>(undefined);
+
+  protected readonly target = computed(() => {
+    const link = this.link();
+    if (link !== undefined) {
+      return link;
+    }
+    const userId = this.userId();
+    return userId && this.session.isAuthenticated() ? ['/profile', userId] : null;
+  });
 
   /** `UserSummary.sleepMode` is a boolean today; an enum (`NONE | TEMPORARY | FULL`) counts unless `NONE`. */
   protected readonly sleeping = computed(() => {

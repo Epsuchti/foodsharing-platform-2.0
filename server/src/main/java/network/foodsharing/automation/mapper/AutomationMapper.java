@@ -237,7 +237,7 @@ public class AutomationMapper {
         return new network.foodsharing.api.model.FspRef().id(fsp.id()).name(fsp.name());
     }
 
-    /** The member summary of a store's rules (decision 165 S2). */
+    /** The member summary of a store's rules (decision 167 S2). */
     public network.foodsharing.api.model.StoreRuleSummary toModel(PickupPolicyService.RuleSummary summary) {
         var model = new network.foodsharing.api.model.StoreRuleSummary()
                 .enabled(summary.enabled()).gapDays(summary.gapDays()).experience(summary.experience())
@@ -254,7 +254,7 @@ public class AutomationMapper {
         return model;
     }
 
-    /** The linked-store step of the sign-up dialog (decision 165 S3). */
+    /** The linked-store step of the sign-up dialog (decision 167 S3). */
     public network.foodsharing.api.model.LinkedOptions toLinkedOptions(
             network.foodsharing.automation.service.LinkedOptionsService.View view) {
         Map<UUID, Store> named = view.blockStores();

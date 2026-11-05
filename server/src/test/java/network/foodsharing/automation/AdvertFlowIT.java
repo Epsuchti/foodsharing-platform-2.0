@@ -127,7 +127,7 @@ class AdvertFlowIT {
         }
     }
 
-    /** Coordinator request: mayEditStore (automation, decision 165), the cleaning Fairteiler and mayAddExtraSlot are delivered. */
+    /** Coordinator request: mayEditStore (automation, decision 167), the cleaning Fairteiler and mayAddExtraSlot are delivered. */
     @Test
     void automationFlagsAreDelivered() throws Exception {
         Cookie bieb = login(SeedUsers.BIEB);

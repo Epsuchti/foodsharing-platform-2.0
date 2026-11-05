@@ -53,7 +53,7 @@ test.describe('jumper', () => {
 
   test('PU4 hygiene certificate required @PU4 @page', async ({ page }) => {
     await openPickups(page, 'S-02');
-    // changed on purpose (decision 165 S2, proposal §2: one place for every "no"): the free place is a "Gesperrt"
+    // changed on purpose (decision 167 S2, proposal §2: one place for every "no"): the free place is a "Gesperrt"
     // chip with a lock, its dialog says why not
     const row = pickupRow(page, S02_WEDNESDAY);
     await expect(row.getByTestId('stores.pickups.slot.free')).toHaveCount(0);

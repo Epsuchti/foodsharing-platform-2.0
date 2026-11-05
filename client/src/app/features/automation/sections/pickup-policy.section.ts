@@ -69,7 +69,7 @@ export const MAX_LINK_RULES = 2;
 export const MAX_STORES_PER_LINK = 5;
 
 /**
- * Pickup sign-up automation of a store (AU1): one switch "Regeln anwenden" (no dry run, decision 165), rule cards with
+ * Pickup sign-up automation of a store (AU1): one switch "Regeln anwenden" (no dry run, decision 167), rule cards with
  * the member sentence of rule-sentences.ts (the same text members read on the Pickups tab, S4): gap with its own part
  * and the group part of decision 152, experience, cleaning, holidays; linked-store rules (`fs-link-rule`, stores from
  * the cross-region picker), excluded dates and save.
@@ -775,7 +775,7 @@ export class PickupPolicySection {
       if (p.mayEdit === false) editable.delete(p.store.id);
     }
     this.editable.set(editable);
-    // a store the actor does not edit cannot be bidirectional (decision 165 Q3)
+    // a store the actor does not edit cannot be bidirectional (decision 167 Q3)
     if (rule.bidirectional && rule.storeIds.some((id) => !editable.has(id)) && !this.savedBidirectional(rule)) {
       rule.bidirectional = false;
     }

@@ -137,7 +137,7 @@ export class StoreHelpers {
 
   /**
    * Like {@link signUp}, but a sign-up the store rules refuse up front (409 PICKUP_NOT_ELIGIBLE, reason AUTOMATION_RULE,
-   * decision 165 S2) is an expected outcome; returns whether the sign-up was stored.
+   * decision 167 S2) is an expected outcome; returns whether the sign-up was stored.
    */
   async trySignUp(role: Role, key: string, pickupAt: string): Promise<boolean> {
     return this.withRole(role, async (client) => {

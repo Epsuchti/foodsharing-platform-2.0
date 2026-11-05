@@ -14,7 +14,7 @@ import { RuleLine, ruleCount, summaryLines, uiRuleFormat } from '../rule-sentenc
 const HIDDEN = new Set(['idle', 'empty', 'forbidden', 'notFound']);
 
 /**
- * "So kannst du dich hier eintragen" on the Pickups tab (decision 165 S2, proposal §3.2): the store's active rules as
+ * "So kannst du dich hier eintragen" on the Pickups tab (decision 167 S2, proposal §3.2): the store's active rules as
  * plain sentences built from structured data. A collapsed `<details>`; the open state is remembered per store in
  * `localStorage` (try/catch: works without storage). Hidden while the rules are off.
  */

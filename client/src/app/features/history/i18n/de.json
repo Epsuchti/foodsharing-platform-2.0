@@ -230,6 +230,7 @@
   "history.action.PICKUP.EXTRA_SLOT_ADDED": "Zusatzplatz geöffnet",
   "history.action.PICKUP.AUTO_CONFIRMED": "Automatisch bestätigt",
   "history.action.PICKUP.AUTO_DECLINED": "Automatisch ausgetragen",
+  "history.action.PICKUP.DAY_CONVERSATION_OPENED": "Tageschat geöffnet",
   "history.action.CONVERSATION.CONVERSATION_CREATED": "Unterhaltung erstellt",
   "history.action.CONVERSATION.MEMBER_ADDED": "Mitglied hinzugefügt",
   "history.action.CONVERSATION.MEMBER_REMOVED": "Mitglied entfernt",

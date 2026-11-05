@@ -15,7 +15,7 @@ import { BlockReason, blockReason, uiRuleFormat } from '../rule-sentences';
 import { SignupTarget } from './signup-dialog.component';
 
 /**
- * "Warum kannst du dich hier nicht eintragen?" (decision 165 S2, proposal §3.3): opened from a "Gesperrt" chip. Loads
+ * "Warum kannst du dich hier nicht eintragen?" (decision 167 S2, proposal §3.3): opened from a "Gesperrt" chip. Loads
  * the person's current eligibility for the pickup; one block per store rule with the person's own dates and what makes
  * it possible (jump to the next possible day, a cleaning shift, the linked-store step of the sign-up dialog, S3), plus
  * the eligibility reasons (team, hygiene, region rule) in the same dialog. Texts come from structured data, never from the server.
@@ -156,7 +156,7 @@ export class BlockedReasonDialogComponent {
   readonly seeRules = output<void>();
   /** The reasons are gone in the meantime: open the sign-up instead. */
   readonly signUp = output<void>();
-  /** "Abholung bei … wählen": open the sign-up with its linked-store step (decision 165 S3). */
+  /** "Abholung bei … wählen": open the sign-up with its linked-store step (decision 167 S3). */
   readonly linked = output<void>();
 
   protected readonly eligibility = loadResource<PickupEligibility, SignupTarget>({

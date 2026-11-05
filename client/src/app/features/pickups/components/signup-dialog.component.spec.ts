@@ -28,8 +28,8 @@ const rule = (patch: object) => ({
 });
 const option = (pickupAt: string, patch: object = {}) => ({ store: Y, pickupAt, freeCount: 2, reasons: [], ruleBlocks: [], ...patch });
 
-/** Decision 165 S3: the linked-store step of the sign-up dialog (proposal §3.4). */
-describe('PickupSignupDialogComponent linked step (decision 165 S3)', () => {
+/** Decision 167 S3: the linked-store step of the sign-up dialog (proposal §3.4). */
+describe('PickupSignupDialogComponent linked step (decision 167 S3)', () => {
   let fixture: ComponentFixture<PickupSignupDialogComponent>;
   let http: HttpTestingController;
   const el = () => document.body;

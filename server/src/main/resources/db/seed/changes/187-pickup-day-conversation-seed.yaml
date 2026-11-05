@@ -1,0 +1,65 @@
+# Seed (PU3, AU6, decision 165): S-06 allows 2 extra slots (replaces seed-109-1, whose column changelog 187 drops);
+# the day chat of S-02 on Saturday 2026-11-07 (bieb, jumper signed up). Ids in docs/seed-ids.md (0021 code 0005,
+# 0041 conversation 07 and members 08/09).
+databaseChangeLog:
+  - changeSet:
+      id: seed-187-1
+      author: platform
+      context: seed
+      comment: 'S-06: the first sign-up may add up to 2 extra slots.'
+      changes:
+        - update:
+            tableName: store
+            columns:
+              - column: {name: max_extra_slots, valueNumeric: 2}
+            where: "id = '00000020-0001-4000-8000-000000000006'"
+  - changeSet:
+      id: seed-187-2
+      author: platform
+      context: seed
+      comment: 'Day chat of S-02 on 2026-11-07 with the two people signed up.'
+      changes:
+        - insert:
+            tableName: conversation
+            columns:
+              - column: {name: id, value: '00000041-0001-4000-8000-000000000007'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: kind, value: 'GROUP'}
+              - column: {name: locked, valueBoolean: false}
+              - column: {name: name, value: 'Abholung Bäckerei Vohdin, Sa 7.11.'}
+              - column: {name: last_seq, valueNumeric: 0}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000008'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000007'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: last_read_seq, valueNumeric: 0}
+              - column: {name: joined_at, valueDate: '2026-11-02T08:00:00'}
+        - insert:
+            tableName: conversation_member
+            columns:
+              - column: {name: id, value: '00000041-0002-4000-8000-000000000009'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000007'}
+              - column: {name: user_id, value: '00000001-0001-4000-8000-000000000007'}
+              - column: {name: last_read_seq, valueNumeric: 0}
+              - column: {name: joined_at, valueDate: '2026-11-02T08:00:00'}
+        - insert:
+            tableName: pickup_day_conversation
+            columns:
+              - column: {name: id, value: '00000021-0005-4000-8000-000000000001'}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: created_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: updated_at, valueDate: '2026-11-02T08:00:00'}
+              - column: {name: created_by, value: '00000001-0001-4000-8000-000000000009'}
+              - column: {name: store_id, value: '00000020-0001-4000-8000-000000000002'}
+              - column: {name: pickup_date, valueDate: '2026-11-07'}
+              - column: {name: conversation_id, value: '00000041-0001-4000-8000-000000000007'}

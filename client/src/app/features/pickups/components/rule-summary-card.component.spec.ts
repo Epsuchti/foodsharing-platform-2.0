@@ -6,7 +6,7 @@ import { RuleSummaryCardComponent } from './rule-summary-card.component';
 
 const RULES = { enabled: true, gapDays: 3, links: [], experience: false, manualDates: [], holidays: true };
 
-describe('RuleSummaryCardComponent (decision 165 S2)', () => {
+describe('RuleSummaryCardComponent (decision 167 S2)', () => {
   let fixture: ComponentFixture<RuleSummaryCardComponent>;
   let http: HttpTestingController;
   const card = () => (fixture.nativeElement as HTMLElement).querySelector<HTMLDetailsElement>('[data-testid="stores.pickups.rules"]');

@@ -9,7 +9,7 @@ export interface MetricGroup {
   keys: readonly MetricKey[];
 }
 
-/** Legacy dry-run keys (decision 165): still in the contract for old rows, never shown. */
+/** Legacy dry-run keys (decision 167): still in the contract for old rows, never shown. */
 export function isLegacyMetricKey(key: string): boolean {
   return key.includes('WOULD_');
 }

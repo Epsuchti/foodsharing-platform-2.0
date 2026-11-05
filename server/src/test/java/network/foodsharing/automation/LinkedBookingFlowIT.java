@@ -30,7 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * Decision 165 S3 end to end on the seed: S-04 links S-01 one-way (seed link, set by ORGA to the same day up to 2 days
+ * Decision 167 S3 end to end on the seed: S-04 links S-01 one-way (seed link, set by ORGA to the same day up to 2 days
  * after, rules switched on). foodsaver (member of both) books the S-04 pickup together with an S-01 one in one request;
  * a full linked pickup rolls both back; the S-01 sign-out leaves S-04 "Verknüpfung fehlt" with a bell until the
  * deadline, a new S-01 pickup clears it, and after the deadline the evaluate job frees S-04. Now = SEED_NOW (Monday

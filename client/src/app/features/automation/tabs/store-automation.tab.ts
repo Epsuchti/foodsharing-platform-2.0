@@ -10,8 +10,8 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
 
 /**
  * Store tab "Automation" (`/stores/:storeId/automation`, AU1–AU6, AU8, AU10): status strip (rules An/Aus, active
- * rules, auto-accept, adverts, Telegram chats; decision 165 S4), sub-navigation and the active section (default Regeln).
- * The tab is offered to store editors (mayEditStore, decision 165); the API decides (403 → forbidden state).
+ * rules, auto-accept, adverts, Telegram chats; decision 167 S4), sub-navigation and the active section (default Regeln).
+ * The tab is offered to store editors (mayEditStore, decision 167); the API decides (403 → forbidden state).
  */
 @Component({
   selector: 'fs-store-automation-tab',

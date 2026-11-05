@@ -10,7 +10,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { clone, emptyRequestPolicy } from '../automation.util';
 import { StoreAutomationContext } from '../store-automation.context';
 
-/** Team request automation (AU3): auto-accept applications (An/Aus, no dry run: decision 165), distance rule (km from home). */
+/** Team request automation (AU3): auto-accept applications (An/Aus, no dry run: decision 167), distance rule (km from home). */
 @Component({
   selector: 'fs-request-policy-section',
   imports: [Button, FormsModule, InputNumber, ToggleSwitch, TPipe],

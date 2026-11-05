@@ -74,7 +74,7 @@ async function filledTotal(api: ApiClient): Promise<number> {
 }
 
 test('AU4 filled slot after the advert counts in the filled-after-advert metric @AU4 @AU9 @page', async ({ api, as, apiOf, clock, notifications }) => {
-  // the region metrics are for ambassadors and ORGA (decision 165): bot reads them, bieb runs the store
+  // the region metrics are for ambassadors and ORGA (decision 167): bot reads them, bieb runs the store
   const bot = await as('bot');
   const botApi = apiOf(bot);
   await onePlacePickup(api, FILL_PICKUP);

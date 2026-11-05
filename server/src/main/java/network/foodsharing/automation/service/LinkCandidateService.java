@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The "Betrieb verknüpfen" picker (decision 165 S4, Q3): stores a store manager may link, found by name across regions
+ * The "Betrieb verknüpfen" picker (decision 167 S4, Q3): stores a store manager may link, found by name across regions
  * and bounded by what they may know (StoreVisibility, decision 156). Each row says whether the store checks sign-ups
  * itself and whether the actor may edit it, which a bidirectional rule needs.
  */

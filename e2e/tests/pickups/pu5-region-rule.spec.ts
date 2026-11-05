@@ -12,7 +12,7 @@ const S04_SATURDAY = zurichPickupAt(5, '19:30');
 
 test('PU5 third pickup within 7 days refused; allowed within 24 h of pickup @PU5', async ({ page, api, clock }) => {
   await openPickups(page, 'S-04');
-  // decision 165 S2: a free place the person cannot take is a "Gesperrt" chip; its dialog says why
+  // decision 167 S2: a free place the person cannot take is a "Gesperrt" chip; its dialog says why
   await openBlocked(page, S04_SATURDAY);
   await expect(page.locator('[data-testid="shared.eligibility.reason"][data-reason="REGION_RULE_TIMESPAN_LIMIT"]')).toBeVisible();
   await expect(page.getByTestId('shared.eligibility.rule')).toBeVisible();

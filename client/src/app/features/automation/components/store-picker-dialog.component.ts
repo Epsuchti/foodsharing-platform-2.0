@@ -47,7 +47,7 @@ export function groupByRegion(items: readonly LinkCandidate[]): ResultGroup[] {
 }
 
 /**
- * "Betrieb verknüpfen" (decision 165 S4, proposal §3.5): selected chips, a debounced search over every store the person
+ * "Betrieb verknüpfen" (decision 167 S4, proposal §3.5): selected chips, a debounced search over every store the person
  * may know (StoreVisibility, across regions), results grouped by region with the rules badge. No lock here: any known
  * store links one-way; the bidirectional checkbox of the rule card is locked for stores the person does not edit.
  */

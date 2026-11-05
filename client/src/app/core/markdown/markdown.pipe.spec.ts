@@ -22,6 +22,15 @@ describe('renderMarkdown', () => {
     expect(renderMarkdown('[intern](/learn)')).not.toContain('target=');
   });
 
+  it('styles in-app profile links that start with @ as mentions, nothing else', () => {
+    const id = '00000000-0000-4000-8000-000000000042';
+    const link = new DOMParser().parseFromString(renderMarkdown(`Hi [@Ana](/profile/${id})`), 'text/html').querySelector('a');
+    expect(link?.className).toBe('fs-mention');
+    expect(link?.getAttribute('href')).toBe(`/profile/${id}`);
+    expect(renderMarkdown(`[Ana](/profile/${id})`)).not.toContain('fs-mention');
+    expect(renderMarkdown('[@Ana](https://example.org/profile/x)')).not.toContain('fs-mention');
+  });
+
   it('handles empty input', () => {
     expect(renderMarkdown(null)).toBe('');
   });

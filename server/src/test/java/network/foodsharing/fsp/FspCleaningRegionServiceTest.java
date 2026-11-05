@@ -114,7 +114,7 @@ class FspCleaningRegionServiceTest {
 
     @Test
     void regionAdminsMayEditOthersMayNot() {
-        // decision 165: no automation permission any more, only ambassadors and ORGA (mayAdministrateRegion)
+        // decision 167: no automation permission any more, only ambassadors and ORGA (mayAdministrateRegion)
         when(permissions.mayAdministrateRegion(ACTOR, REGION)).thenReturn(false);
         assertThatThrownBy(() -> service.get(REGION)).extracting(e -> ((ApiException) e).getCode())
                 .isEqualTo(ApiErrorCode.ACCESS_DENIED);

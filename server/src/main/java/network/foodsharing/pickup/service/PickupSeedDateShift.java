@@ -33,17 +33,18 @@ public class PickupSeedDateShift implements SeedDateShiftContributor {
         shiftColumn("pickup_signup", "pickup_at", delta);
         shiftColumn("pickup_signup", "confirmed_at", delta);
         shiftColumn("pickup_signup", "reminded_at", delta);
+        // the seeded day chat follows its pickup day (decision 165)
+        network.foodsharing.common.seed.SeedDateShifts.shift(jdbc, SEED_PREFIX, delta,
+                java.util.Map.of("pickup_day_conversation", List.of("pickup_date:date")));
     }
 
     private void shiftColumn(String table, String column, Duration delta) {
+        // Move the row furthest in the shift direction first: weekly seed pickups of one store are exactly a week apart,
+        // so a one-week shift in arbitrary order would briefly put two rows on the same (store, pickup_at) key.
+        String order = delta.isNegative() ? " asc" : " desc";
         List<Object[]> rows = jdbc.query("select id, " + column + " from " + table + " where " + column
-                + " is not null", (rs, n) -> new Object[] {rs.getObject(1, UUID.class), rs.getTimestamp(2)});
-        // Latest first when moving forward (earliest first when moving back), so a row never lands on the instant of
-        // a not yet shifted row of the same store (unique store_id + pickup_at).
-        rows.sort(java.util.Comparator.comparing((Object[] r) -> ((Timestamp) r[1]).toInstant()));
-        if (!delta.isNegative()) {
-            java.util.Collections.reverse(rows);
-        }
+                + " is not null order by " + column + order,
+                (rs, n) -> new Object[] {rs.getObject(1, UUID.class), rs.getTimestamp(2)});
         for (Object[] row : rows) {
             if (!row[0].toString().startsWith(SEED_PREFIX)) {
                 continue;

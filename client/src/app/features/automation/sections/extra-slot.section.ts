@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
+import { Button } from '@openng/optimus-ui/button';
+import { InputNumber } from '@openng/optimus-ui/inputnumber';
 
 import { AuditKind, AutomationService } from '../../../api';
 import { runMutation } from '../../../core/data/mutation';
@@ -9,25 +10,43 @@ import { AutomationAuditLoaders } from '../automation.resource';
 import { AuditLoader, AuditTableComponent } from '../components/audit-table.component';
 import { StoreAutomationContext } from '../store-automation.context';
 
-/** Extra slot (AU6): store switch "first person of a pickup may add one extra slot" and the extra-slot audit. */
+/** Contract maximum of ExtraSlotSetting.maxExtraSlots; the server still caps every pickup at maxSlotsPerPickup. */
+export const MAX_EXTRA_SLOTS = 50;
+
+/** Extra slots (AU6, decision 165): how many extra slots the first person of a pickup may add (0 = off), and the audit. */
 @Component({
   selector: 'fs-extra-slot-section',
-  imports: [AuditTableComponent, FormsModule, ToggleSwitch, TPipe],
+  imports: [AuditTableComponent, Button, FormsModule, InputNumber, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="card fs-card" data-testid="automation.extraSlot.root">
       <h2>{{ 'automation.extraSlot.title' | t }}</h2>
-      <div class="switch-row">
-        <label class="switch-row__text" for="xs-allowed"><strong>{{ 'automation.extraSlot.allowed' | t }}</strong>
-          <span class="muted">{{ 'automation.extraSlot.hint' | t }}</span></label>
-        <p-toggleswitch
-          inputId="xs-allowed"
-          [ngModel]="ctx.data()?.extraSlotAllowed"
-          (ngModelChange)="set.run($event)"
+      <div class="field">
+        <label for="xs-max"><strong>{{ 'automation.extraSlot.allowed' | t }}</strong></label>
+        <p-inputnumber
+          inputId="xs-max"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event ?? 0)"
+          [min]="0"
+          [max]="max"
+          [showButtons]="true"
           [disabled]="!ctx.mayEdit() || set.busy()"
-          data-testid="automation.extraSlot.allowed"
+          data-testid="automation.extraSlot.max"
         />
+        <span class="muted">{{ 'automation.extraSlot.maxHint' | t }}</span>
       </div>
+      @if (ctx.mayEdit()) {
+        <div class="actions">
+          <p-button
+            [label]="'common.save' | t"
+            icon="pi pi-save"
+            [loading]="set.busy()"
+            [disabled]="!dirty()"
+            (onClick)="set.run(draft())"
+            data-testid="automation.extraSlot.save"
+          />
+        </div>
+      }
     </section>
     <section class="card fs-card">
       <h3>{{ 'automation.extraSlot.audit' | t }}</h3>
@@ -39,11 +58,25 @@ import { StoreAutomationContext } from '../store-automation.context';
 export class ExtraSlotSection {
   protected readonly ctx = inject(StoreAutomationContext);
   private readonly api = inject(AutomationService);
+  protected readonly max = MAX_EXTRA_SLOTS;
+  protected readonly draft = signal(0);
 
   protected readonly loader: AuditLoader = inject(AutomationAuditLoaders).store(() => this.ctx.storeId(), AuditKind.ExtraSlot);
 
+  constructor() {
+    effect(() => {
+      const saved = this.ctx.data()?.maxExtraSlots ?? 0;
+      untracked(() => this.draft.set(saved));
+    });
+  }
+
+  protected dirty(): boolean {
+    return this.draft() !== (this.ctx.data()?.maxExtraSlots ?? 0);
+  }
+
   protected readonly set = runMutation(
-    (allowed: boolean) => this.api.setExtraSlotAllowed({ storeId: this.ctx.storeId()!, extraSlotSetting: { allowed } }),
+    (maxExtraSlots: number) =>
+      this.api.setMaxExtraSlots({ storeId: this.ctx.storeId()!, extraSlotSetting: { maxExtraSlots } }),
     { successToastKey: 'automation.common.saved', onSuccess: () => this.ctx.reload(), onError: () => this.ctx.reload() },
   );
 }

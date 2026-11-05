@@ -28,7 +28,7 @@ public final class PickupEligibilityRules {
                             int pickupsInTimespan, int pickupsSameDay, List<PickupEligibilityReason> reasons) {
     }
 
-    /** {@code ruleBlocks}: the store rules that block the sign-up (reason AUTOMATION_RULE, decision 165 S2). */
+    /** {@code ruleBlocks}: the store rules that block the sign-up (reason AUTOMATION_RULE, decision 167 S2). */
     public record Result(List<PickupEligibilityReason> reasons, RuleState rule, List<PickupRuleGate.RuleBlock> ruleBlocks) {
 
         public Result {

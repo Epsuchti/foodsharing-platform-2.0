@@ -36,11 +36,18 @@ test('S8 appoint third manager allowed, fourth refused, coordinator overrides @S
   await memberAction(page, NAMES.reports, 'appointManager');
   await acceptConfirm(page);
   await expect(memberRow(page, NAMES.reports).getByTestId('stores.team.manager')).toBeVisible();
-  // a fourth is refused for a store manager …
-  await memberAction(page, NAMES.bieb, 'appointManager');
-  await acceptConfirm(page);
-  await expect(page.getByTestId('shell.toast').locator('.p-toast-message-error')).toBeVisible();
+  // a fourth is refused for a store manager: the menu shows the item disabled with the reason (S9, server blocker) …
+  await memberRow(page, NAMES.bieb).getByTestId('stores.team.menu').click();
+  await expect(page.getByTestId('stores.team.appointManager')).toBeDisabled();
+  await expect(page.getByTestId('stores.team.appointBlocked')).toBeVisible();
+  await page.keyboard.press('Escape');
   await expect(memberRow(page, NAMES.bieb).getByTestId('stores.team.manager')).toHaveCount(0);
+  // … and the server still refuses it
+  await expectStatus(
+    await apiOf(page).put(`/api/stores/${s10}/managers/${(await dev.user('bieb')).id}`),
+    [409],
+    'fourth manager refused',
+  );
   // … but a coordinator (orga) may ignore the limit
   const bieb = await dev.user('bieb');
   await expectStatus(await orga.put(`/api/stores/${s10}/managers/${bieb.id}`), [200, 204], 'orga appoints a fourth manager');

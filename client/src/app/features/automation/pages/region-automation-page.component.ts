@@ -11,7 +11,7 @@ import { RegionAutomationContext } from '../region-automation.context';
 
 /**
  * `/regions/:regionId/automation` (AU1, AU5, AU7–AU10): region automation overview and sub-pages. Ambassadors of the
- * region and ORGA get every section (decision 165: no automation permissions), everyone else Protokoll (own decisions)
+ * region and ORGA get every section (decision 167: no automation permissions), everyone else Protokoll (own decisions)
  * and Feiertage; the API decides (403 → forbidden state).
  */
 @Component({

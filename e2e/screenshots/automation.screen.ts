@@ -4,7 +4,7 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
  * Automation screens (M4 F3/F4, AU1–AU10): store policy form with the status strip and rule cards (one switch,
- * decision 165), linked-store editor, store picker, Kanäle, decisions, adverts, sign-out alerts, region overview,
+ * decision 167), linked-store editor, store picker, Kanäle, decisions, adverts, sign-out alerts, region overview,
  * grouping, metrics — × light/dark × de/fr. Baselines are generated in CI (decision 161).
  */
 screenshotTest.use({ seedReset: 'test' });

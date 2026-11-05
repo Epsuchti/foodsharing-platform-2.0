@@ -72,10 +72,10 @@ class QueryCountIT {
         "FOODSAVER|/api/users/me/stores|13",
         "FOODSAVER|/api/map/markers/stores|3",
         "FOODSAVER|/api/stores/" + STORE_S01 + "/pickups|26",
-        // decision 165 S2: S-06's live rules (gap, experience, holidays) are evaluated for every pickup in one query set
+        // decision 167 S2: S-06's live rules (gap, experience, holidays) are evaluated for every pickup in one query set
         "SLEEPY|/api/stores/" + STORE_S06 + "/pickups|30",
         "SLEEPY|/api/users/me/pickups/options|26",
-        // decision 165 S4 (21 measured): the link picker pays one region query per tree level and one coordination check
+        // decision 167 S4 (21 measured): the link picker pays one region query per tree level and one coordination check
         // per region of the page, never one per row
         "BIEB|/api/stores/" + STORE_S06 + "/automation/link-candidates?q=coop|26",
         // FS2: the cleaning shifts of Fairteiler Wiedikon (one query per table, not per shift)
@@ -128,7 +128,7 @@ class QueryCountIT {
     }
 
     /**
-     * Decision 165 S3: the linked-store step costs one query set for the rule's stores, not one per offered pickup.
+     * Decision 167 S3: the linked-store step costs one query set for the rule's stores, not one per offered pickup.
      * S-04's seeded link rule (to S-01) is switched on for the measurement only.
      */
     @org.junit.jupiter.api.Test

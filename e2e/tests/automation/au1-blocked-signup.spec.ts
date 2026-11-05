@@ -3,7 +3,7 @@ import { openBlocked, openPickups, pickupRow } from '../pickups/_pickups';
 import { S06, S06_A, S06_B, createPickup, openAutomation, waitForAudit } from './_automation';
 
 /**
- * Decision 165 S2: store rules block before the sign-up is stored. Members see the rules on the Pickups tab ("So kannst
+ * Decision 167 S2: store rules block before the sign-up is stored. Members see the rules on the Pickups tab ("So kannst
  * du dich hier eintragen"), a free place they cannot take as a "Gesperrt" chip with a reason dialog that names their
  * own dates, and the attempt is refused (409) and audited as "Gesperrt". Store managers are never blocked; /pickups
  * leaves blocked pickups out. Seed: S-06 Babu's Bakery has the live policy (holiday rule; team bieb manager + sleepy,

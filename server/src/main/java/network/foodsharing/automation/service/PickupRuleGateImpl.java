@@ -34,11 +34,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * The pickup policy as a gate before the sign-up is stored (decision 165 S2): the same {@link PickupPolicyEvaluator}
+ * The pickup policy as a gate before the sign-up is stored (decision 167 S2): the same {@link PickupPolicyEvaluator}
  * as the runner, without audits, over a {@link CachingPolicyData} so a whole pickup list costs one set of queries. A
  * pickup is blocked when the evaluation declines it; skipped days (excluded date, holiday) and the last two days before a
  * pickup are not blocked (the runner decides those after the sign-up). A missing linked-store pickup blocks unless it
- * is booked in the same request ({@link #check}, decision 165 S3). A
+ * is booked in the same request ({@link #check}, decision 167 S3). A
  * refused sign-up gets a DECLINED audit once its transaction has rolled back (audit only, no history: no state
  * changed).
  */
@@ -112,7 +112,7 @@ public class PickupRuleGateImpl implements PickupRuleGate {
         return blocks(storeId, userId, List.of(pickupAt), planned).getOrDefault(pickupAt, List.of());
     }
 
-    /** {@link #blocks(UUID, UUID, Collection)} with {@code planned} pickups counted as booked (decision 165 S3). */
+    /** {@link #blocks(UUID, UUID, Collection)} with {@code planned} pickups counted as booked (decision 167 S3). */
     Map<Instant, List<RuleBlock>> blocks(UUID storeId, UUID userId, Collection<Instant> pickupAts,
                                          Collection<Planned> planned) {
         if (pickupAts.isEmpty() || !properties.getAutomation().isEnabled()) {

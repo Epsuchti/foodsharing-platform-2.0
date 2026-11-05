@@ -3,8 +3,8 @@
 Status: design approved (`docs/design/automation-redesign-proposal.md`, Q1–Q10 decided, all recommendations accepted; mockup
 `docs/design/automation-redesign-mockup.html`, screens `rules`, `pickups`, `blocked`, `linked`, `picker`, `channels`, `region`).
 **Four slices, one branch + PR each, merged in order S1 → S2 → S3; S4 may run in parallel with S3** (S4 needs S2's sentence util).
-Longer than the usual 120 lines on purpose: four independently mergeable slices. Record as **one decision (next free, 165 unless
-taken)** amending 59/60, and update ledger AU1/AU2/AU3/AU4/AU7/AU8/AU10, `docs/conventions.md` l.215 (STORES_COORDINATION grants).
+Longer than the usual 120 lines on purpose: four independently mergeable slices. Record as **one decision (next free; recorded as 167, since main took 165 and 166
+during the merge)** amending 59/60, and update ledger AU1/AU2/AU3/AU4/AU7/AU8/AU10, `docs/conventions.md` l.215 (STORES_COORDINATION grants).
 
 ## Goal
 Rules that block instead of "declining later", visible to the members they affect, with the linked store booked in the same step,

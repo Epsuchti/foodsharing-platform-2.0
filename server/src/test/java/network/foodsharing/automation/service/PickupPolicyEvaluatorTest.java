@@ -633,7 +633,7 @@ class PickupPolicyEvaluatorTest {
 
     @Test
     void missingLinkedPickupDefersWhileTheSignOutDeadlineRuns() {
-        // decision 165 S3: the linked pickup was signed out, the person has until the pending row's deadline
+        // decision 167 S3: the linked pickup was signed out, the person has until the pending row's deadline
         Instant pickup = at("2026-11-12T19:00");
         data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofDays(1))));
         data.pending.put(pickup, NOW.plus(Duration.ofMinutes(20)));
@@ -646,7 +646,7 @@ class PickupPolicyEvaluatorTest {
 
     @Test
     void missingLinkedPickupWithoutASignOutDeadlineDeclinesAtOnce() {
-        // decision 165 S3: no grace from the sign-up any more (the linked pickup is booked in the same step)
+        // decision 167 S3: no grace from the sign-up any more (the linked pickup is booked in the same step)
         Instant pickup = at("2026-11-12T19:00");
         data.signups.add(new Signup(STORE, USER, pickup, false, NOW.minus(Duration.ofMinutes(5))));
         Decision d = evaluator.evaluate(linked(sameDay(120, null)), pickup, USER, data);
@@ -762,7 +762,7 @@ class PickupPolicyEvaluatorTest {
         assertThat(evaluator.texts(Locale.ENGLISH).text("linked-store.requirement.same-day")).isEqualTo("on the same day");
     }
 
-    // ---------------------------------------------------------------- params for the UI (decision 165 S2)
+    // ---------------------------------------------------------------- params for the UI (decision 167 S2)
 
     static PickupPolicyEvaluator.Params params(Decision decision, PolicyRule rule) {
         return decision.reasons().stream().filter(r -> r.rule() == rule).findFirst().orElseThrow().params();
@@ -861,7 +861,7 @@ class PickupPolicyEvaluatorTest {
         List<UUID> cleaningFsps = List.of(CLEANING);
         Instant verifiedAt = Instant.parse("2020-01-01T00:00:00Z");
         Duration outage = Duration.ZERO;
-        /** pickup_link_pending deadlines of USER in STORE (decision 165 S3). */
+        /** pickup_link_pending deadlines of USER in STORE (decision 167 S3). */
         final Map<Instant, Instant> pending = new HashMap<>();
 
         @Override

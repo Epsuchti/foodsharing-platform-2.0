@@ -19,7 +19,7 @@ import network.foodsharing.automation.service.PickupPolicyEvaluator.Spec;
 import network.foodsharing.automation.service.PickupPolicyEvaluator.UserInfo;
 
 /**
- * Per-request cache over {@link PickupPolicyData} for evaluating many pickups of one store and person (decision 165
+ * Per-request cache over {@link PickupPolicyData} for evaluating many pickups of one store and person (decision 167
  * S2, {@code listPickups} hot path): every lookup is memoised, sign-up ranges are loaded once in a wide window and
  * filtered in memory, holidays are loaded per year, and the experience of co-signed people is primed in one query.
  * Not thread-safe; one instance per call.
@@ -53,7 +53,7 @@ final class CachingPolicyData implements PickupPolicyEvaluator.Data {
         }
     }
 
-    /** Pickups the person books in the same request (decision 165 S3): counted as their unconfirmed sign-ups. */
+    /** Pickups the person books in the same request (decision 167 S3): counted as their unconfirmed sign-ups. */
     private final List<Signup> planned;
 
     CachingPolicyData(PickupPolicyData delegate) {

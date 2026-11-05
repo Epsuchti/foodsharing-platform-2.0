@@ -44,7 +44,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Sign-ups whose linked-store pickup went away (decision 165 S3, Q4). When the person's pickup in a linked store Y
+ * Sign-ups whose linked-store pickup went away (decision 167 S3, Q4). When the person's pickup in a linked store Y
  * ends, every future sign-up of theirs in a store X whose enabled policy links Y is checked: one that now misses its
  * linked pickup gets a {@code pickup_link_pending} row (deadline = now + the rule's {@code graceMinutes}, at least
  * {@link PickupPolicyEvaluator#MINIMUM_GRACE_MINUTES}), history {@link AutomationAction#LINK_MISSING} and a

@@ -29,7 +29,7 @@ export interface SignupTarget {
   pickupAt: string;
   timeZone: string;
   /**
-   * Repair mode (decision 165 S3): the person is signed up, their linked-store pickup was signed out; until then they
+   * Repair mode (decision 167 S3): the person is signed up, their linked-store pickup was signed out; until then they
    * choose a new one here (only the linked pickups are booked).
    */
   linkMissingUntil?: string;
@@ -42,7 +42,7 @@ export type SignupDone = SignupResult & { linkedStores?: string[] };
  * Sign up for a pickup (PU3/PU4/PU5): checks eligibility first; eligible → confirm; otherwise the translated reasons
  * and the region rule counters. Emits the result (`confirmed` = preconfirmed, e.g. managers).
  *
- * Decision 165 S3 (proposal §3.4): when a linked-store rule applies, step 2..n per rule that is not yet satisfied:
+ * Decision 167 S3 (proposal §3.4): when a linked-store rule applies, step 2..n per rule that is not yet satisfied:
  * choose one of the linked stores' pickups in the window (pickups the rules there block are listed as "Gesperrt
  * dort"), none free, or not in that team (Team-Beitritt anfragen). A satisfied rule shows its pickup. All sign-ups go
  * in one request and are stored together or not at all; cancel books nothing.

@@ -1,7 +1,7 @@
 import { type ApiClient, expect, expectDataState, seedStore, test } from '../../fixtures';
 import { type AuditDto, S06, S06_A, S06_B, createPickup, openAutomation, pickLinkedStore, savePolicy, setSwitch, typeNumber, waitForAudit } from './_automation';
 
-/** AU1: pickup sign-up automation per store (one switch, rules, excluded dates, linked stores; no dry run: decision 165). */
+/** AU1: pickup sign-up automation per store (one switch, rules, excluded dates, linked stores; no dry run: decision 167). */
 test.use({ role: 'bieb', seedReset: 'test' });
 
 /** bieb sets S-06's policy: experience off, gap `gap` days, rules on or off. */
@@ -25,7 +25,7 @@ test('AU1 manager enables gap rule; a second sign-up two days later is refused u
   await configureS06(page, api, 3);
   await store.signUp('sleepy', 'S-06', S06_A);
   expect((await waitForAudit(api, 'S-06', S06_A)).status).toBe('CONFIRMED');
-  // changed on purpose (decision 165 S2): the rule refuses before the sign-up is stored (409), no later decline
+  // changed on purpose (decision 167 S2): the rule refuses before the sign-up is stored (409), no later decline
   expect(await store.trySignUp('sleepy', 'S-06', S06_B)).toBe(false);
   const declined = await waitForAudit(api, 'S-06', S06_B);
   expect(declined.status).toBe('DECLINED');
@@ -81,7 +81,7 @@ test('AU1 cleaning rule decides a sign-up without cleaning by the cleaning rule 
   await expect(page.getByTestId('automation.policy.exemptionsLink')).toBeVisible();
   await savePolicy(page);
   await createPickup(api, 'S-06', S06_A);
-  // stored with a reminder or refused up front (CLEANING_REQUIRED, decision 165 S2): either way the cleaning rule decides
+  // stored with a reminder or refused up front (CLEANING_REQUIRED, decision 167 S2): either way the cleaning rule decides
   await store.trySignUp('sleepy', 'S-06', S06_A);
   const audit = await waitForAudit(api, 'S-06', S06_A);
   expect(audit.reasons.map((r) => r.rule).some((rule) => rule.startsWith('CLEANING'))).toBe(true);
@@ -92,10 +92,10 @@ test('AU1 linked-store editor saves a bidirectional rule with message preview, m
   await page.getByTestId('automation.policy.addLink').click();
   const link = page.getByTestId('automation.policy.link.0');
   await link.getByTestId('automation.policy.link.0.bidirectional').click();
-  // decision 165 S4: stores come from the cross-region picker; bieb manages S-01, so both ways stays possible
+  // decision 167 S4: stores come from the cross-region picker; bieb manages S-01, so both ways stays possible
   await pickLinkedStore(page, 0, seedStore('S-01').name);
   await expect(link.getByTestId('automation.policy.link.0.bidirectional').locator('input')).toBeChecked();
-  // the message sits in "Erweitert" with the Frist nach Austragung (decision 165 S4)
+  // the message sits in "Erweitert" with the Frist nach Austragung (decision 167 S4)
   await link.getByTestId('automation.policy.link.0.advanced').locator('summary').click();
   await link.getByTestId('automation.policy.link.0.message.placeholder.linkedStoreName').click();
   await expect(link.getByTestId('automation.policy.link.0.message.preview')).toContainText(seedStore('S-01').name);
@@ -107,7 +107,7 @@ test('AU1 linked-store editor saves a bidirectional rule with message preview, m
 });
 
 test('AU1 one switch "Regeln anwenden": the former dry-run policy of S-01 is off, no test mode, run or preview @AU1', async ({ page }) => {
-  // decision 165 / changeset 188: dry-run policies became disabled
+  // decision 167 / changeset 188: dry-run policies became disabled
   await openAutomation(page, 'S-01', 'policy');
   const root = page.getByTestId('automation.policy.root');
   await expect(root).toHaveAttribute('data-enabled', 'false');

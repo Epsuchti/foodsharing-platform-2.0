@@ -56,7 +56,7 @@ test.describe('bieb', () => {
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver', seedReset: 'test' });
 
-  test('PU6 user past pickups and delete all future pickups with reason @PU6 @D10.3', async ({ page, api, dev, as }) => {
+  test('PU6 user past pickups; admins delete all future pickups with reason @PU6 @D10.3', async ({ page, api, dev, as }) => {
     const me = await dev.user('foodsaver');
     const past = await api.getJson<UserPickupPage>(`/api/users/${me.id}/pickups/past`, { params: { size: 100 } });
     expect(past.page.totalItems).toBe(24);
@@ -71,18 +71,20 @@ test.describe('foodsaver', () => {
     const shown = await page.getByTestId('pickups.past.pickup').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-pickup-at')!));
     expect(shown).toEqual([...shown].sort().reverse());
 
-    await page.getByTestId('pickups.past.deleteFuture').click();
-    await page.getByTestId('pickups.past.deleteDialog.message').fill('Ich ziehe weg.');
-    await page.getByTestId('pickups.past.deleteDialog.confirm').click();
-    await expect(page.getByTestId('pickups.past.deleteDialog.message')).toBeHidden();
-    await expect.poll(async () => (await api.getJson<unknown[]>('/api/users/me/pickups')).length).toBe(0);
+    // decision 165: no "sign out of all my future pickups" on the own history
+    await expect(page.getByTestId('pickups.past.deleteFuture')).toHaveCount(0);
 
-    // admins: the user page links to the user's pickups
+    // admins: the user page links to the user's pickups, where they delete all future pickups with a reason
     const orga = await as('orga');
     await orga.goto(`/users/${me.id}`);
     await orga.getByTestId('usersAdmin.user.pickups').click();
     await expect(orga).toHaveURL(new RegExp(`/users/${me.id}/pickups$`));
     await expectDataState(orga, 'pickups.past.state', 'success');
     await expect(orga.getByTestId('pickups.past.count')).toContainText('24');
+    await orga.getByTestId('pickups.past.deleteFuture').click();
+    await orga.getByTestId('pickups.past.deleteDialog.message').fill('Zieht weg.');
+    await orga.getByTestId('pickups.past.deleteDialog.confirm').click();
+    await expect(orga.getByTestId('pickups.past.deleteDialog.message')).toBeHidden();
+    await expect.poll(async () => (await api.getJson<unknown[]>('/api/users/me/pickups')).length).toBe(0);
   });
 });

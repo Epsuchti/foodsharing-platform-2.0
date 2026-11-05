@@ -156,7 +156,7 @@ public class StorePermissionService {
                 coordinate, status);
     }
 
-    /** mayEditStore(store) of the actor (automation, store alert chats; decision 165). */
+    /** mayEditStore(store) of the actor (automation, store alert chats; decision 167). */
     public boolean mayEditStore(SessionPrincipal actor, Store store) {
         return actor != null && rights(actor, store).mayEditStore();
     }
