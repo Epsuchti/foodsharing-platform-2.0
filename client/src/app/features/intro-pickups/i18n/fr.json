@@ -293,5 +293,19 @@
   "introPickups.admin.status.DISABLED": "Désactivé",
   "introPickups.admin.grantAdmin": "Nommer gestionnaire",
   "introPickups.admin.revokeAdmin": "Retirer le droit de gestion",
-  "introPickups.admin.adminSaved": "Droit de gestion enregistré"
+  "introPickups.admin.adminSaved": "Droit de gestion enregistré",
+  "introPickups.admin.candidatesTitle": "Prêts à être activés",
+  "introPickups.admin.candidatesText": "Ces membres ont réussi le quiz accompagnateur·rice EinAb. Les ambassadeur·rice·s et l’ORGA les activent.",
+  "introPickups.admin.noCandidates": "Personne n’attend d’activation",
+  "introPickups.admin.noCandidatesText": "Les personnes qui réussissent le quiz accompagnateur·rice EinAb apparaissent ici.",
+  "introPickups.admin.candidateStats": "{count, plural, one {# collecte} other {# collectes}} · quiz réussi le {date}",
+  "introPickups.admin.release": "Activer",
+  "introPickups.admin.releaseText": "Activer {name} comme accompagnateur·rice des collectes d’introduction.",
+  "introPickups.admin.reasonOptional": "Note (facultative)",
+  "introPickups.admin.released": "Accompagnateur·rice activé·e",
+  "introPickups.admin.releaseByAmbassadors": "Les ambassadeur·rice·s et l’ORGA activent les accompagnateur·rice·s.",
+  "introPickups.admin.enableLocked": "Ambassadeur·rice·s seulement",
+  "introPickups.admin.deadlineBanner": "{count, plural, one {# accompagnateur·rice n’a} other {# accompagnateur·rice·s n’ont}} pas encore réussi le quiz accompagnateur·rice EinAb. À partir du {date}, l’activation est retirée.",
+  "introPickups.admin.quizPassed": "Quiz réussi",
+  "introPickups.admin.quizMissing": "Quiz manquant"
 }

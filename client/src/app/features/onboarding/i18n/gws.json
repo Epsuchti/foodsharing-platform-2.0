@@ -35,7 +35,6 @@
   "onboarding.waiting.introPickupDates": "Wartet uf neui Termin",
   "onboarding.waiting.regionStep": "Wartet uf d Bestätigung vo dim Bezirk",
   "onboarding.waiting.verification": "Wartet uf d Verifizierig dur dini Botschafter:inne",
-  "onboarding.waiting.guidePermission": "Wartet uf d Freischaltig als Iifüehrer:in",
   "onboarding.blocked.QUIZ_WAIT_TIME": "Du chasch s Quiz in {days, plural, one {# Tag} other {# Täg}} widerhole.",
   "onboarding.blocked.QUIZ_DISQUALIFIED": "S Quiz isch gsperrt. Bitte mäld di bi dine Botschafter:inne.",
   "onboarding.blocked.FAIRTEILER_VISIT_REQUIRED": "Bi dinere dritte Iifüehrigsabholig muess en Fairteiler-Bsuech debi sii.",
@@ -74,5 +73,7 @@
   "onboarding.region.noDates": "Grad kei freie Termin – mir benachrichtiged di gern.",
   "onboarding.region.allDates": "Alli Termin aaluege",
   "onboarding.meter.progress": "Schritt {current} vo {total}",
-  "onboarding.meter.retry": "Fortschritt neu lade"
+  "onboarding.meter.retry": "Fortschritt neu lade",
+  "onboarding.blocked.guidePickups": "S Quiz gaht nach {required} bestätigte Abholige uf ({done}/{required}).",
+  "onboarding.waiting.guideRelease": "Quiz bestande – wartet uf d Freischaltig dur dini Botschafter:inne"
 }

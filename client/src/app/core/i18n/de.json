@@ -453,5 +453,7 @@
   "nav.section.community": "Community",
   "nav.section.manage": "Verwalten",
   "nav.section.orga": "Orga",
-  "nav.section.about": "Über foodsharing"
+  "nav.section.about": "Über foodsharing",
+  "errors.GUIDE_QUIZ_NOT_PASSED": "Diese Person hat das EinAb-Begleitungs-Quiz noch nicht bestanden.",
+  "errors.USE_GUIDE_RELEASE": "Begleitungen werden auf der Begleitungsseite freigeschaltet."
 }

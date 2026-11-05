@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { Checkbox } from '@openng/optimus-ui/checkbox';
 import { Dialog } from '@openng/optimus-ui/dialog';
@@ -12,6 +12,8 @@ import { ToggleSwitch } from '@openng/optimus-ui/toggleswitch';
 import {
   GuideBooking,
   GuideBookingPage,
+  GuideCandidate,
+  GuideCandidatePage,
   GuideStatus,
   GuideSummary,
   GuideSummaryPage,
@@ -43,7 +45,9 @@ type Tab = 'einabs' | 'bookings' | 'guides';
 /**
  * `/regions/:regionId/intro-pickups/admin` (EA17, EA18; CAN_MANAGE_USERS): all upcoming EinAbs of the region with
  * delete-with-reason, all bookings with the counted switch and admin comments, intro pickups added afterwards
- * ("historical") for a member, and the guides with enable / disable. 403 → forbidden state.
+ * ("historical") for a member, and the guides with enable / disable. Q4 (decision 167): the Ready-for-release list
+ * (EinAb guide quiz passed, not released yet), release only for region administrators, and a banner with the
+ * transition deadline while released guides have no quiz pass. `?tab=guides` opens the guides tab. 403 → forbidden.
  */
 @Component({
   selector: 'fs-admin-intro-pickups-page',
@@ -164,11 +168,51 @@ type Tab = 'einabs' | 'bookings' | 'guides';
         </fs-data-state>
       }
       @case ('guides') {
+        <section class="candidates" data-testid="introPickups.admin.candidates">
+          <h2 class="section-title"><i class="pi pi-graduation-cap" aria-hidden="true"></i>{{ 'introPickups.admin.candidatesTitle' | t }}</h2>
+          <p class="muted">{{ 'introPickups.admin.candidatesText' | t }}</p>
+          <fs-data-state [state]="candidates" skeleton="list" [skeletonRows]="2" [compact]="true" emptyIcon="pi pi-graduation-cap" [emptyTitle]="'introPickups.admin.noCandidates' | t" [emptyText]="'introPickups.admin.noCandidatesText' | t" data-testid="introPickups.admin.candidatesState">
+            <ng-template [fsData]="candidates" let-page>
+              <ul class="list">
+                @for (candidate of page.items; track candidate.user.id) {
+                  <li class="fs-card guide" data-testid="introPickups.admin.candidate" [attr.data-user]="candidate.user.id">
+                    <fs-user-chip
+                      [name]="candidate.user.displayName"
+                      [avatarUrl]="candidate.user.avatarUrl"
+                      [subtitle]="'introPickups.admin.candidateStats' | t: { count: candidate.pickupCount, date: (candidate.quizPassedAt | fsDate: 'date') }"
+                    />
+                    <span class="guide__actions">
+                      @if (mayAdministrate()) {
+                        <p-button
+                          [label]="'introPickups.admin.release' | t"
+                          icon="pi pi-check"
+                          size="small"
+                          (onClick)="releasing.set(candidate)"
+                          data-testid="introPickups.admin.candidateRelease"
+                        />
+                      } @else {
+                        <span class="muted" data-testid="introPickups.admin.releaseByAmbassadors">{{ 'introPickups.admin.releaseByAmbassadors' | t }}</span>
+                      }
+                    </span>
+                  </li>
+                }
+              </ul>
+            </ng-template>
+          </fs-data-state>
+        </section>
         <div class="actions">
-          <p-button [label]="'introPickups.admin.addGuide' | t" icon="pi pi-user-plus" size="small" [outlined]="true" (onClick)="guidePickOpen.set(true)" data-testid="introPickups.admin.addGuide" />
+          @if (mayAdministrate()) {
+            <p-button [label]="'introPickups.admin.addGuide' | t" icon="pi pi-user-plus" size="small" [outlined]="true" (onClick)="guidePickOpen.set(true)" data-testid="introPickups.admin.addGuide" />
+          }
         </div>
         <fs-data-state [state]="guides" skeleton="table" emptyIcon="pi pi-compass" [emptyTitle]="'introPickups.admin.noGuides' | t" [askWho]="'introPickups.admin.askWho' | t" data-testid="introPickups.admin.guidesState">
           <ng-template [fsData]="guides" let-page>
+            @if (withoutPass(page) > 0 && page.guideQuizDeadline) {
+              <p class="banner" data-testid="introPickups.admin.deadlineBanner">
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                <span>{{ 'introPickups.admin.deadlineBanner' | t: { count: withoutPass(page), date: (page.guideQuizDeadline | fsDate: 'date') } }}</span>
+              </p>
+            }
             <ul class="list">
               @for (guide of page.items; track guide.user.id) {
                 <li class="fs-card guide" [attr.data-active]="guide.active" [attr.data-status]="guide.status" [attr.data-admin]="guide.canManageUsers" data-testid="introPickups.admin.guide">
@@ -176,6 +220,11 @@ type Tab = 'einabs' | 'bookings' | 'guides';
                   <span class="tags">
                     @if (guide.canManageUsers) {
                       <span class="tag" data-testid="introPickups.admin.managerTag">{{ 'introPickups.admin.manager' | t }}</span>
+                    }
+                    @if (guide.guideQuizPassedAt) {
+                      <span class="tag tag--ok" data-testid="introPickups.admin.quizTag">{{ 'introPickups.admin.quizPassed' | t }}</span>
+                    } @else if (guide.active) {
+                      <span class="tag tag--warn" data-testid="introPickups.admin.quizTag">{{ 'introPickups.admin.quizMissing' | t }}</span>
                     }
                     <span
                       class="tag"
@@ -199,14 +248,18 @@ type Tab = 'einabs' | 'bookings' | 'guides';
                         data-testid="introPickups.admin.toggleAdmin"
                       />
                     }
-                    <p-button
-                      [label]="(guide.status === 'DISABLED' ? 'introPickups.admin.enable' : 'introPickups.admin.disable') | t"
-                      size="small"
-                      [outlined]="true"
-                      [severity]="guide.status === 'DISABLED' ? 'primary' : 'danger'"
-                      (onClick)="askEnable(guide)"
-                      data-testid="introPickups.admin.toggleGuide"
-                    />
+                    @if (guide.status !== 'DISABLED' || mayAdministrate()) {
+                      <p-button
+                        [label]="(guide.status === 'DISABLED' ? 'introPickups.admin.enable' : 'introPickups.admin.disable') | t"
+                        size="small"
+                        [outlined]="true"
+                        [severity]="guide.status === 'DISABLED' ? 'primary' : 'danger'"
+                        (onClick)="askEnable(guide)"
+                        data-testid="introPickups.admin.toggleGuide"
+                      />
+                    } @else {
+                      <span class="muted" [title]="'introPickups.admin.releaseByAmbassadors' | t" data-testid="introPickups.admin.enableLocked"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'introPickups.admin.enableLocked' | t }}</span>
+                    }
                   </span>
                 </li>
               }
@@ -238,6 +291,18 @@ type Tab = 'einabs' | 'bookings' | 'guides';
       [minLength]="3"
       testId="introPickups.admin.enableDialog"
       (confirm)="setEnabled.run($event)"
+    />
+    <fs-required-message-dialog
+      [visible]="!!releasing()"
+      (visibleChange)="!$event && releasing.set(null)"
+      [title]="'introPickups.admin.release' | t"
+      [text]="'introPickups.admin.releaseText' | t: { name: releasing()?.user?.displayName ?? '' }"
+      [label]="'introPickups.admin.reasonOptional' | t"
+      [confirmLabel]="'introPickups.admin.release' | t"
+      [busy]="release.busy()"
+      [minLength]="0"
+      testId="introPickups.admin.releaseDialog"
+      (confirm)="release.run($event)"
     />
     <fs-member-pick-dialog [(visible)]="guidePickOpen" [regionId]="regionId()" [verified]="true" [title]="'introPickups.admin.addGuide' | t" (picked)="addGuide($event)" />
     <fs-member-pick-dialog [(visible)]="pickOpen" [regionId]="regionId()" [title]="'introPickups.admin.historicalPick' | t" (picked)="startHistorical($event)" />
@@ -308,7 +373,35 @@ type Tab = 'einabs' | 'bookings' | 'guides';
     .guide__actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.25rem;
+    }
+    .candidates {
+      display: grid;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .candidates .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+      font-size: 1.05rem;
+    }
+    .candidates .muted {
+      margin: 0;
+    }
+    .banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin: 0 0 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--fs-warning-border);
+      border-radius: var(--fs-radius-md);
+      background: var(--fs-warning-soft);
+      color: var(--fs-warning-text);
+      font-size: 0.92rem;
     }
     .count {
       align-self: center;
@@ -326,10 +419,11 @@ export class AdminIntroPickupsPageComponent {
   private readonly i18n = inject(I18nService);
   private readonly context = inject(RegionContextService);
   private readonly session = inject(SessionService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly regionId = input.required<string>();
   protected readonly tabs: readonly Tab[] = ['einabs', 'bookings', 'guides'];
-  protected readonly tab = signal<Tab>('einabs');
+  protected readonly tab = signal<Tab>(this.route.snapshot.queryParamMap.get('tab') === 'guides' ? 'guides' : 'einabs');
   protected readonly pastBookings = signal(false);
 
   protected readonly einabs = loadResource<IntroPickupDetailPage, string>({
@@ -344,6 +438,16 @@ export class AdminIntroPickupsPageComponent {
     params: () => (this.tab() === 'guides' ? this.regionId() : undefined),
     loader: (regionId) => this.api.listGuides({ regionId: regionId!, size: 200 }),
   });
+  /** Q4 Ready for release: EinAb guide quiz passed, not released here yet. */
+  protected readonly candidates = loadResource<GuideCandidatePage, string | undefined>({
+    params: () => (this.tab() === 'guides' ? this.regionId() : undefined),
+    loader: (regionId) => this.api.listGuideCandidates({ regionId: regionId!, size: 200 }),
+  });
+
+  /** Released guides without an EinAb guide quiz pass (deadline banner). */
+  protected withoutPass(page: GuideSummaryPage): number {
+    return page.items.filter((guide) => guide.active && !guide.guideQuizPassedAt).length;
+  }
 
   protected bookedCount(einab: IntroPickupDetail): number {
     return einab.slots.filter((slot) => slot.status === 'BOOKED' || slot.status === 'DONE').length;
@@ -418,6 +522,24 @@ export class AdminIntroPickupsPageComponent {
       successToastKey: 'introPickups.admin.guideSaved',
       onSuccess: () => {
         this.toggling.set(null);
+        this.guides.reload();
+      },
+    },
+  );
+
+  protected readonly releasing = signal<GuideCandidate | null>(null);
+  protected readonly release = runMutation(
+    (reason: string) =>
+      this.api.setGuideEnabled({
+        regionId: this.regionId(),
+        userId: this.releasing()!.user.id,
+        guideEnabledUpdate: { enabled: true, reason: reason.trim() || undefined },
+      }),
+    {
+      successToastKey: 'introPickups.admin.released',
+      onSuccess: () => {
+        this.releasing.set(null);
+        this.candidates.reload();
         this.guides.reload();
       },
     },

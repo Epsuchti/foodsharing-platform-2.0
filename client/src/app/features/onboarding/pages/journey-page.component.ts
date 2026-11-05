@@ -88,6 +88,11 @@ export function currentStepOf(journey: Journey): JourneyStep | undefined {
                       @if (s.nextAction; as next) {
                         <a [routerLink]="next.route" class="track__link">{{ next.labelKey | t }}</a>
                       }
+                      @if (s.blockedReason) {
+                        <span class="track__note" data-testid="onboarding.journey.trackBlocked">{{ 'onboarding.blocked.' + s.blockedReason | t: s.blockedArgs }}</span>
+                      } @else if (s.waitingFor; as waiting) {
+                        <span class="track__note" data-testid="onboarding.journey.trackWaiting"><i class="pi pi-hourglass" aria-hidden="true"></i> {{ waiting.labelKey | t }}</span>
+                      }
                     </li>
                   }
                 </ul>
@@ -186,6 +191,11 @@ export function currentStepOf(journey: Journey): JourneyStep | undefined {
     .track__link {
       color: var(--fs-primary-strong);
       font-weight: 650;
+    }
+    .track__note {
+      flex-basis: 100%;
+      color: var(--fs-text-muted);
+      font-size: 0.85rem;
     }
   `,
 })

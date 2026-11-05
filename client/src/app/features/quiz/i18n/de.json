@@ -182,5 +182,7 @@
   "quiz.editor.commentAdded": "Kommentar gespeichert",
   "quiz.results.confirmed.FOODSAVER": "Geschafft – du bist jetzt Foodsaver:in! Weiter geht es mit den Einführungsabholungen.",
   "quiz.results.confirmed.STORE_MANAGER": "Geschafft – du bist jetzt Betriebsverantwortliche:r!",
-  "quiz.list.retry": "Erneut versuchen"
+  "quiz.list.retry": "Erneut versuchen",
+  "quiz.kind.EINAB_GUIDE": "EinAb-Begleitungs-Quiz",
+  "quiz.list.locked.EINAB_GUIDE": "Für verifizierte Foodsaver nach genügend bestätigten Abholungen."
 }

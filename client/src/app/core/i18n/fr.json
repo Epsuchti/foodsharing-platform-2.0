@@ -453,5 +453,7 @@
   "nav.section.community": "Communauté",
   "nav.section.manage": "Gérer",
   "nav.section.orga": "Orga",
-  "nav.section.about": "À propos de foodsharing"
+  "nav.section.about": "À propos de foodsharing",
+  "errors.GUIDE_QUIZ_NOT_PASSED": "Cette personne n’a pas encore réussi le quiz accompagnateur·rice EinAb.",
+  "errors.USE_GUIDE_RELEASE": "Les accompagnateur·rice·s sont activé·e·s sur la page des accompagnateur·rice·s."
 }

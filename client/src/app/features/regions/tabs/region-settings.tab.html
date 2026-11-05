@@ -25,6 +25,11 @@
             <p-multiselect inputId="set-ignored" formControlName="ignoredCategories" [options]="categories()" optionLabel="label" optionValue="value" [showToggleAll]="false" appendTo="body" [placeholder]="'regions.settings.noIgnored' | t" [style]="{ width: '100%' }" />
             <span class="field__hint">{{ 'regions.settings.ignoredHint' | t }}</span>
           </div>
+          <div class="field">
+            <label for="set-guide-quiz">{{ 'regions.settings.guideQuizMinPickups' | t }}</label>
+            <p-inputnumber inputId="set-guide-quiz" formControlName="guideQuizMinPickups" [min]="0" [max]="1000" [showButtons]="true" data-testid="regions.settings.guideQuizMinPickups" />
+            <span class="field__hint">{{ 'regions.settings.guideQuizMinPickupsHint' | t }}</span>
+          </div>
         </section>
 
         <section class="fs-card card" data-testid="regions.settings.general">

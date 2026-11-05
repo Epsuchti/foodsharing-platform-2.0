@@ -293,5 +293,19 @@
   "introPickups.admin.status.DISABLED": "Deaktiviert",
   "introPickups.admin.grantAdmin": "Zur Verwaltig hinzuefüege",
   "introPickups.admin.revokeAdmin": "Verwaltigsrächt entzie",
-  "introPickups.admin.adminSaved": "Verwaltigsrächt gspeicheret"
+  "introPickups.admin.adminSaved": "Verwaltigsrächt gspeicheret",
+  "introPickups.admin.candidatesTitle": "Parat zum Freischalte",
+  "introPickups.admin.candidatesText": "Die Mitglieder händ s EinAb-Begleitigs-Quiz bestande. Botschafter:inne und ORGA schalted si frei.",
+  "introPickups.admin.noCandidates": "Niemer wartet ufs Freischalte",
+  "introPickups.admin.noCandidatesText": "Wer s EinAb-Begleitigs-Quiz bestaht, erschiint da.",
+  "introPickups.admin.candidateStats": "{count, plural, one {# Abholig} other {# Abholige}} · Quiz bestande am {date}",
+  "introPickups.admin.release": "Freischalte",
+  "introPickups.admin.releaseText": "{name} als Begleitig für Iifüehrigsabholige freischalte.",
+  "introPickups.admin.reasonOptional": "Notiz (optional)",
+  "introPickups.admin.released": "Begleitig freigschaltet",
+  "introPickups.admin.releaseByAmbassadors": "Freischalte chönd Botschafter:inne und ORGA.",
+  "introPickups.admin.enableLocked": "Nur Botschafter:inne",
+  "introPickups.admin.deadlineBanner": "{count, plural, one {# Begleitig het} other {# Begleitige händ}} s EinAb-Begleitigs-Quiz no nöd bestande. Ab em {date} verlüüred si d Freischaltig.",
+  "introPickups.admin.quizPassed": "Quiz bestande",
+  "introPickups.admin.quizMissing": "Quiz fehlt"
 }

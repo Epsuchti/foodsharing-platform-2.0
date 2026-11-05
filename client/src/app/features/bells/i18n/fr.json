@@ -113,5 +113,9 @@
   "bell.ui.page.loadMore": "Charger les plus anciennes",
   "bell.ui.page.deleteRead": "Supprimer les lues",
   "bell.ui.page.deletedRead": "Notifications lues supprimées",
-  "bell.ui.button.itemCount": "({count} non lues)"
+  "bell.ui.button.itemCount": "({count} non lues)",
+  "bell.GUIDE_QUIZ_PASSED": "{userName} a réussi le quiz accompagnateur·rice EinAb",
+  "bell.GUIDE_QUIZ_REQUIRED": "Merci de réussir le quiz accompagnateur·rice EinAb d’ici le {deadline}",
+  "bell.GUIDE_RELEASE_REVOKED": "Ton activation d’accompagnateur·rice a été retirée",
+  "bell.GUIDE_EINABS_NEED_GUIDE": "{count} collectes d’introduction de {guideName} ont besoin d’un·e nouvel·le accompagnateur·rice"
 }

@@ -453,5 +453,7 @@
   "nav.section.community": "Community",
   "nav.section.manage": "Verwalte",
   "nav.section.orga": "Orga",
-  "nav.section.about": "Über foodsharing"
+  "nav.section.about": "Über foodsharing",
+  "errors.GUIDE_QUIZ_NOT_PASSED": "Die Person het s EinAb-Begleitigs-Quiz no nöd bestande.",
+  "errors.USE_GUIDE_RELEASE": "Begleitige werded uf de Begleitigssiite freigschaltet."
 }

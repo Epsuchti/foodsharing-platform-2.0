@@ -97,6 +97,7 @@ export class RegionSettingsTab {
       preventDuplicateCategoryBookings: new FormControl(true, { nonNullable: true }),
       requireFairteilerVisitByThirdIntroPickup: new FormControl(false, { nonNullable: true }),
       ignoredCategories: new FormControl<IntroPickupCategory[]>([], { nonNullable: true }),
+      guideQuizMinPickups: new FormControl(25, { nonNullable: true, validators: [Validators.min(0), Validators.max(1000)] }),
     }),
     learningPagesMandatory: new FormControl(true, { nonNullable: true }),
     steps: new FormArray<StepForm>([]),

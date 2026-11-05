@@ -293,5 +293,19 @@
   "introPickups.admin.status.DISABLED": "Deaktiviert",
   "introPickups.admin.grantAdmin": "Zur Verwaltung hinzufügen",
   "introPickups.admin.revokeAdmin": "Verwaltungsrecht entziehen",
-  "introPickups.admin.adminSaved": "Verwaltungsrecht gespeichert"
+  "introPickups.admin.adminSaved": "Verwaltungsrecht gespeichert",
+  "introPickups.admin.candidatesTitle": "Bereit zur Freischaltung",
+  "introPickups.admin.candidatesText": "Diese Mitglieder haben das EinAb-Begleitungs-Quiz bestanden. Botschafter:innen und ORGA schalten sie frei.",
+  "introPickups.admin.noCandidates": "Niemand wartet auf die Freischaltung",
+  "introPickups.admin.noCandidatesText": "Wer das EinAb-Begleitungs-Quiz besteht, erscheint hier.",
+  "introPickups.admin.candidateStats": "{count, plural, one {# Abholung} other {# Abholungen}} · Quiz bestanden am {date}",
+  "introPickups.admin.release": "Freischalten",
+  "introPickups.admin.releaseText": "{name} als Begleitung für Einführungsabholungen freischalten.",
+  "introPickups.admin.reasonOptional": "Notiz (optional)",
+  "introPickups.admin.released": "Begleitung freigeschaltet",
+  "introPickups.admin.releaseByAmbassadors": "Freischalten können Botschafter:innen und ORGA.",
+  "introPickups.admin.enableLocked": "Nur Botschafter:innen",
+  "introPickups.admin.deadlineBanner": "{count, plural, one {# Begleitung hat} other {# Begleitungen haben}} das EinAb-Begleitungs-Quiz noch nicht bestanden. Ab dem {date} verlieren sie die Freischaltung.",
+  "introPickups.admin.quizPassed": "Quiz bestanden",
+  "introPickups.admin.quizMissing": "Quiz fehlt"
 }

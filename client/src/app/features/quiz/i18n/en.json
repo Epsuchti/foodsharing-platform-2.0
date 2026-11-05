@@ -182,5 +182,7 @@
   "quiz.editor.commentAdded": "Comment saved",
   "quiz.results.confirmed.FOODSAVER": "Done – you are now a foodsaver! Next up: the introductory pickups.",
   "quiz.results.confirmed.STORE_MANAGER": "Done – you are now a store manager!",
-  "quiz.list.retry": "Try again"
+  "quiz.list.retry": "Try again",
+  "quiz.kind.EINAB_GUIDE": "EinAb guide quiz",
+  "quiz.list.locked.EINAB_GUIDE": "For verified foodsavers after enough confirmed pickups."
 }

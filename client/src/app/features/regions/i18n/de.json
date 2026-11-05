@@ -309,5 +309,8 @@
   "regions.members.removeShort": "Entfernen",
   "regions.page.membershipHome": "{name} ist dein Stammbezirk.",
   "regions.page.membershipMember": "Du bist Mitglied von {name}.",
-  "regions.statistics.cleaning": "Putzeinsätze letzten Monat"
+  "regions.statistics.cleaning": "Putzeinsätze letzten Monat",
+  "regions.settings.guideQuizMinPickups": "Abholungen vor dem EinAb-Begleitungs-Quiz",
+  "regions.settings.guideQuizMinPickupsHint": "So viele bestätigte Abholungen braucht ein Mitglied mit diesem Stammbezirk, bevor es das Quiz machen kann.",
+  "regions.members.guideReleaseLink": "Über die Begleitungsseite freischalten"
 }

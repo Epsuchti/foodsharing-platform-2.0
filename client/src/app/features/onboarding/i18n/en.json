@@ -35,7 +35,6 @@
   "onboarding.waiting.introPickupDates": "Waiting for new dates",
   "onboarding.waiting.regionStep": "Waiting for your region’s confirmation",
   "onboarding.waiting.verification": "Waiting for verification by your ambassadors",
-  "onboarding.waiting.guidePermission": "Waiting to be enabled as a guide",
   "onboarding.blocked.QUIZ_WAIT_TIME": "You can retake the quiz in {days, plural, one {# day} other {# days}}.",
   "onboarding.blocked.QUIZ_DISQUALIFIED": "The quiz is locked. Please contact your ambassadors.",
   "onboarding.blocked.FAIRTEILER_VISIT_REQUIRED": "Your third intro pickup has to include a food-share point visit.",
@@ -74,5 +73,7 @@
   "onboarding.region.noDates": "No free dates right now – we’re happy to notify you.",
   "onboarding.region.allDates": "See all dates",
   "onboarding.meter.progress": "Step {current} of {total}",
-  "onboarding.meter.retry": "Reload progress"
+  "onboarding.meter.retry": "Reload progress",
+  "onboarding.blocked.guidePickups": "The quiz opens after {required} confirmed pickups ({done}/{required}).",
+  "onboarding.waiting.guideRelease": "Quiz passed – waiting for your ambassadors to release you"
 }
