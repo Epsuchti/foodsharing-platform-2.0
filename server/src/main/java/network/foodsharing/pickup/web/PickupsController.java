@@ -103,6 +103,14 @@ public class PickupsController implements PickupsApi {
     }
 
     @Override
+    public ResponseEntity<Pickup> movePickup(UUID storeId, OffsetDateTime pickupAt,
+                                             network.foodsharing.api.model.PickupMove pickupMove) {
+        var slot = signups.move(storeId, PickupMapper.instant(pickupAt),
+                PickupMapper.instant(pickupMove.getNewPickupAt()), pickupMove.getMessage());
+        return ResponseEntity.ok(mapper.toModel(slot, slot.isAvailable(clock.instant())));
+    }
+
+    @Override
     public ResponseEntity<AgendaDay> getAgenda(UUID userId, LocalDate day) {
         var view = users.agenda(userId, day);
         AgendaDay agenda = new AgendaDay();

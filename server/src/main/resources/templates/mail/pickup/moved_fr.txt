@@ -1,0 +1,10 @@
+Bonjour [(${displayName})],
+
+la collecte chez [(${storeName})] du [(${fromWhen})] a été déplacée au [(${when})]. Tu restes inscrit·e ; si tu ne peux pas venir à la nouvelle heure, désinscris-toi s’il te plaît.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Ton équipe foodsharing

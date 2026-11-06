@@ -1,4 +1,5 @@
 import { type ApiClient, S01_THURSDAY, S07_WEDNESDAY, injectApiError, seedStore, zurichPickupAt } from '../fixtures';
+import { fillDate } from '../support/date-inputs';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
@@ -6,10 +7,11 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
  * summary), sign-up dialog eligible / not eligible, regular editor, one-time pickup dialog, options, my pickups,
  * agenda, dashboard card, loading and error; the store rules card, the "Gesperrt" chip and its reason dialog
  * (decision 167 S2); the linked-store step of the sign-up dialog and "Verknüpfung fehlt" (S3). Baselines in the end batch
- * (decision 69).
+ * (decision 69). The move dialog (PU10) with its summary and the taken-time error.
  */
 const S01 = seedStore('S-01').id;
 const S02 = seedStore('S-02').id;
+const S03 = seedStore('S-03').id;
 const S07 = seedStore('S-07').id;
 const S01_MONDAY = zurichPickupAt(7, '19:00');
 
@@ -307,6 +309,28 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('stores.pickups.slotDetail.state')).toHaveAttribute('data-state', 'success');
         await expect(page.getByTestId('stores.pickups.confirmSlot')).toBeVisible();
         await visual.expectScreen(page, `pickups-slot-manager-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('bot', () => {
+      screenshotTest.use({ variant, role: 'bot' });
+
+      screenshotTest('move dialog with summary and taken time @PU10 @EA16 @screenshot', async ({ page, visual }) => {
+        // S-03 Friday 6.11 18:30 (regular): guide signed up, his linked EinAb booked by one newcomer
+        const friday = zurichPickupAt(4, '18:30');
+        await page.goto(`/stores/${S03}/pickups`);
+        await expect(page.getByTestId('stores.pickups.state')).toHaveAttribute('data-state', 'success');
+        await page.locator(`[data-testid="stores.pickups.pickup"][data-pickup-at="${friday}"] [data-testid="stores.pickups.edit"]`).click();
+        await expect(page.getByTestId('pickups.slot.move')).toBeVisible();
+        await visual.expectScreen(page, `pickups-edit-move-${variant.name}`);
+        await page.getByTestId('pickups.slot.move').click();
+        await expect(page.getByTestId('pickups.move.introPickups')).toBeVisible();
+        await visual.expectScreen(page, `pickups-move-${variant.name}`);
+        // the store's regular Tuesday 10.11 18:30: 409 PICKUP_TIME_TAKEN in the dialog (nothing changes)
+        await fillDate(page.getByTestId('pickups.move.newDate'), '2026-11-10');
+        await page.getByTestId('pickups.move.save').click();
+        await expect(page.getByTestId('pickups.move.error')).toBeVisible();
+        await visual.expectScreen(page, `pickups-move-taken-${variant.name}`);
       });
     });
   });

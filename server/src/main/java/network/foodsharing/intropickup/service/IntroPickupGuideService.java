@@ -78,6 +78,17 @@ public class IntroPickupGuideService {
     public record IntroPickupAutoCancelled(UUID introPickupId, UUID guideId, List<UUID> bookedUserIds) {
     }
 
+    /**
+     * After commit: the linked store pickup moved {@code from} → {@code to}, so the EinAb moved along;
+     * {@code bookedUserIds} get INTRO_PICKUP_MOVED, "short notice" when the new time is less than 24 h ahead (PU10).
+     */
+    public record IntroPickupMoved(UUID introPickupId, Instant from, Instant to, List<UUID> bookedUserIds,
+                                   boolean shortNotice) {
+    }
+
+    /** Below this lead time the INTRO_PICKUP_MOVED mail says "short notice" (PU10, decision 170). */
+    static final java.time.Duration SHORT_NOTICE = java.time.Duration.ofHours(24);
+
     /** The EinAb linked to a guide's sign-up (sign-out warning, EA16). */
     public record LinkedInfo(UUID introPickupId, UUID guideId, Instant pickupAt, int bookedCount) {
     }
@@ -444,6 +455,48 @@ public class IntroPickupGuideService {
             count++;
         }
         return count;
+    }
+
+    /**
+     * PU10 move sync (decision 170): the store pickup {@code from} of {@code storeId} moved to {@code to}. Every
+     * linked, live, future EinAb there whose guide is one of the moved sign-ups ({@code guideIds}) moves along:
+     * {@code startAt} and {@code linkedPickupAt} become {@code to}, history UPDATED ({@code fields=startAt},
+     * {@code cause=STORE_PICKUP_MOVED}); after commit the booked newcomers get INTRO_PICKUP_MOVED. Bookings stay; the
+     * booking rules (lead time, minimum pickups) are not re-checked. Past EinAbs are never touched.
+     *
+     * @return how many EinAbs moved
+     */
+    @Transactional
+    public int moveLinked(java.util.Collection<UUID> guideIds, UUID storeId, Instant from, Instant to) {
+        Instant now = views.now();
+        int count = 0;
+        for (UUID guideId : guideIds.stream().distinct().toList()) {
+            for (IntroPickup pickup : pickups.findLinked(guideId, storeId, from)) {
+                if (!movesAlong(pickup, now)) {
+                    continue;
+                }
+                pickup.setStartAt(to);
+                pickup.setLinkedPickupAt(to);
+                List<UUID> booked = bookedUsers(slots.findByPickup(pickup.getId()));
+                history.record(history.event(IntroPickupAction.UPDATED, pickup.getId()).region(pickup.getRegionId())
+                        .metadata("fields", "startAt").metadata("cause", "STORE_PICKUP_MOVED")
+                        .metadata("from", from.toString()).metadata("to", to.toString()).build());
+                events.publishEvent(new IntroPickupMoved(pickup.getId(), from, to, booked, shortNotice(to, now)));
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /** Only live future EinAbs move with their store pickup. */
+    static boolean movesAlong(IntroPickup pickup, Instant now) {
+        return pickup.getDeletedAt() == null && pickup.getLinkedPickupAt() != null
+                && !pickup.getStartAt().isBefore(now);
+    }
+
+    /** The new time is less than 24 h ahead. */
+    static boolean shortNotice(Instant to, Instant now) {
+        return to.isBefore(now.plus(SHORT_NOTICE));
     }
 
     /** Booked newcomers of the slots (BOOKED with a user), in slot order. */

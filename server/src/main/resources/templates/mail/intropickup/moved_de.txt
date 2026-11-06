@@ -1,0 +1,14 @@
+Hallo [(${displayName})],
+[# th:if="${shortNotice != null}"]
+Kurzfristige Änderung!
+[/]
+deine Einführungsabholung bei [(${businessName})] wurde verschoben, weil die Abholung im Betrieb verschoben wurde.
+
+Bisher: [(${fromWhen})]
+Neu: [(${when})]
+
+Deine Buchung bleibt bestehen. Falls du zur neuen Zeit nicht kannst, sag bitte ab.
+
+[(${link})]
+
+Dein foodsharing-Team

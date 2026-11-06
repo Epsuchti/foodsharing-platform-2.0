@@ -270,6 +270,7 @@ Generated from the `HistoryAction` enums (`RetentionTableTest` writes the expect
 | `STORE` | `MOVED_TO_JUMPER` | FOREVER |
 | `STORE` | `MOVED_TO_REGION` | FOREVER |
 | `STORE` | `MOVED_TO_TEAM` | FOREVER |
+| `STORE` | `PICKUP_MOVED` | YEARS_2 |
 | `STORE` | `REGION_PICKUP_RULE_DISABLED` | FOREVER |
 | `STORE` | `REGION_PICKUP_RULE_ENABLED` | FOREVER |
 | `STORE` | `REMOVED_AS_STORE_MANAGER` | FOREVER |

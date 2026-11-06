@@ -75,3 +75,12 @@ Store managers can move one pickup, a one-time pickup or one occurrence of a reg
 - A dedicated `INTRO_PICKUP_MOVED` instead of the generic "updated".
 - The moved regular occurrence becomes a one-time pickup.
 - No designer mockup (a small dialog).
+
+## Implementation notes (deviations, 2026-11-05)
+- Decision **170**; no changelog and no seed change.
+- No `linkedIntroPickupCount` on the pickup model: managers already get `linkedIntroPickup {introPickupId, bookedCount}` on every sign-up (phase 1), so the dialog counts the linked EinAbs (and their booked newcomers) from the slots.
+- `pickup_signup.pickup_at` became updatable in the entity (the sign-up moves and keeps `id`/`createdAt`, so the AU6 "earliest sign-up" order stays); `pickup.pickup_at` stays non-updatable: the one-time row is deleted and the new-time row created (or a cancelled one reused).
+- "Short notice" is a subject variant: `MailTemplateService.SUBJECT_VARIANT` picks `mail.<template>.subject.<variant>` when present (`intropickup/moved` + `short-notice`), and the template shows a line with `shortNotice`.
+- The move button sits in the pickup edit dialog (`pickups.slot.move`), the dialog is `fs-move-pickup-dialog` with `pickups.move.newDate` + `pickups.move.newTime` (two inputs like the one-time dialog), `.message`, `.save`, `.summary`, `.introPickups`, `.regularHint`, `.error`.
+- PICKUP_TIME_TAKEN (and every other refusal) is shown in the dialog, not as a toast.
+- Open: `pickup_link_pending` rows (decision 167 S3) of moved sign-ups keep the old time (rules are not re-checked, as decided); the expiry job then finds no sign-up at the old time and frees nothing.

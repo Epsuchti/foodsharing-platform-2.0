@@ -142,6 +142,7 @@
   "history.action.STORE.SIGN_UP_SLOT": "Signed up for a pickup",
   "history.action.STORE.SIGN_OUT_SLOT": "Signed out of a pickup",
   "history.action.STORE.REMOVED_FROM_SLOT": "Removed from a pickup",
+  "history.action.STORE.PICKUP_MOVED": "Pickup moved",
   "history.action.STORE.SLOT_CONFIRMED": "Pickup confirmed",
   "history.action.STORE.DELETED_FROM_WALL": "Wall post deleted",
   "history.action.STORE.REQUEST_CANCELLED": "Application withdrawn",

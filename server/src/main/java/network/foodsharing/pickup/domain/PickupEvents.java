@@ -45,6 +45,17 @@ public final class PickupEvents {
         }
     }
 
+    /**
+     * A store manager ({@code byUserId}) moved the pickup {@code from} → {@code to} of a store (PU10, decision 170);
+     * {@code userIds} are the sign-ups that moved along.
+     */
+    public record PickupMovedEvent(UUID storeId, Instant from, Instant to, List<UUID> userIds, UUID byUserId) {
+
+        public PickupMovedEvent {
+            userIds = List.copyOf(userIds);
+        }
+    }
+
     /** A sign-up was confirmed by a manager ({@code byUserId}) or the automation (null). */
     public record PickupConfirmedEvent(UUID storeId, Instant pickupAt, UUID userId, UUID byUserId) {
     }

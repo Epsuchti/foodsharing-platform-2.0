@@ -5,14 +5,32 @@ import {
   firstName,
   groupByDay,
   mergeByTime,
+  moveSummary,
   pickupSummary,
   slotState,
+  timeOf,
   unconfirmedCount,
   zonedToUtc,
 } from './pickups.util';
 import { UserPickup } from '../../api';
 
 describe('pickups util (A20)', () => {
+  it('gives the wall time of an instant in the store zone (PU10 move preset)', () => {
+    expect(timeOf('2026-11-05T18:00:00Z', 'Europe/Zurich')).toBe('19:00');
+    expect(timeOf('2026-07-01T05:05:00Z', 'Europe/Zurich')).toBe('07:05');
+  });
+
+  it('summarises a move: everyone but the mover is told, linked EinAbs with their newcomers (PU10)', () => {
+    const slots = [
+      { user: { id: 'me' } },
+      { user: { id: 'guide' }, linkedIntroPickup: { bookedCount: 2 } },
+      { user: { id: 'other' } },
+    ];
+    expect(moveSummary(slots, 'me')).toEqual({ notified: 2, introPickups: 1, booked: 2 });
+    expect(moveSummary(slots, 'nobody')).toEqual({ notified: 3, introPickups: 1, booked: 2 });
+    expect(moveSummary([], 'me')).toEqual({ notified: 0, introPickups: 0, booked: 0 });
+  });
+
   it('converts store-local date and time to the UTC pickupAt, across DST', () => {
     expect(zonedToUtc('2026-11-05', '19:00', 'Europe/Zurich')).toBe('2026-11-05T18:00:00Z');
     expect(zonedToUtc('2026-07-01', '19:00', 'Europe/Zurich')).toBe('2026-07-01T17:00:00Z');

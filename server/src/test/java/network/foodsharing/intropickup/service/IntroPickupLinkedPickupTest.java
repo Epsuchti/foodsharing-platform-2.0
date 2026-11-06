@@ -237,6 +237,65 @@ class IntroPickupLinkedPickupTest {
         verify(events, never()).publishEvent(any(Object.class));
     }
 
+    // ------------------------------------------------------------------------------- move sync (PU10)
+
+    @Test
+    void aMovedStorePickupMovesTheGuidesLinkedEinAbAndTellsTheBookedNewcomers() {
+        IntroPickup pickup = linked(PICKUP);
+        UUID newcomer = UUID.randomUUID();
+        IntroPickupSlot booked = slot(SlotStatus.BOOKED, newcomer);
+        Instant to = PICKUP.plusSeconds(2 * 86400);
+        when(pickups.findLinked(GUIDE, STORE, PICKUP)).thenReturn(List.of(pickup));
+        when(slots.findByPickup(pickup.getId())).thenReturn(List.of(booked, slot(SlotStatus.AVAILABLE, null)));
+
+        assertThat(guides.moveLinked(List.of(GUIDE, GUIDE), STORE, PICKUP, to)).isEqualTo(1);
+
+        assertThat(pickup.getStartAt()).isEqualTo(to);
+        assertThat(pickup.getLinkedPickupAt()).isEqualTo(to);
+        // bookings stay; the booking rules are not re-checked
+        assertThat(booked.getStatus()).isEqualTo(SlotStatus.BOOKED);
+        assertThat(booked.getBookingUserId()).isEqualTo(newcomer);
+        verify(history).record(argThat(e -> e.action() == IntroPickupAction.UPDATED
+                && "startAt".equals(e.metadata().get("fields"))
+                && "STORE_PICKUP_MOVED".equals(e.metadata().get("cause"))));
+        verify(events).publishEvent(new IntroPickupGuideService.IntroPickupMoved(pickup.getId(), PICKUP, to,
+                List.of(newcomer), false));
+    }
+
+    @Test
+    void onlyTheMovedSignupsGuidesAndOnlyLiveFutureEinAbsMove() {
+        IntroPickup past = linked(NOW.minusSeconds(60));
+        IntroPickup deleted = linked(PICKUP);
+        deleted.setDeletedAt(NOW);
+        Instant to = PICKUP.plusSeconds(3600);
+        when(pickups.findLinked(GUIDE, STORE, PICKUP)).thenReturn(List.of(past, deleted));
+
+        assertThat(guides.moveLinked(List.of(GUIDE), STORE, PICKUP, to)).isZero();
+        // another guide's EinAb at the same pickup is only looked up for the guides that moved
+        assertThat(guides.moveLinked(List.of(), STORE, PICKUP, to)).isZero();
+
+        assertThat(past.getStartAt()).isEqualTo(NOW.minusSeconds(60));
+        assertThat(deleted.getStartAt()).isEqualTo(PICKUP);
+        verify(pickups, never()).findLinked(org.mockito.ArgumentMatchers.argThat(id -> !GUIDE.equals(id)), any(),
+                any());
+        verify(events, never()).publishEvent(any(Object.class));
+    }
+
+    @Test
+    void lessThan24HoursAheadIsShortNotice() {
+        assertThat(IntroPickupGuideService.shortNotice(NOW.plusSeconds(23 * 3600), NOW)).isTrue();
+        assertThat(IntroPickupGuideService.shortNotice(NOW.plusSeconds(24 * 3600), NOW)).isFalse();
+        IntroPickup pickup = linked(PICKUP);
+        Instant soon = NOW.plusSeconds(3600);
+        when(pickups.findLinked(GUIDE, STORE, PICKUP)).thenReturn(List.of(pickup));
+        when(slots.findByPickup(pickup.getId())).thenReturn(List.of());
+
+        guides.moveLinked(List.of(GUIDE), STORE, PICKUP, soon);
+
+        verify(events).publishEvent(new IntroPickupGuideService.IntroPickupMoved(pickup.getId(), PICKUP, soon,
+                List.of(), true));
+    }
+
     // ------------------------------------------------------------------------------------ reassign
 
     @Test

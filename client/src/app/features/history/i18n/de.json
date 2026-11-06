@@ -142,6 +142,7 @@
   "history.action.STORE.SIGN_UP_SLOT": "Für Abholung eingetragen",
   "history.action.STORE.SIGN_OUT_SLOT": "Von Abholung ausgetragen",
   "history.action.STORE.REMOVED_FROM_SLOT": "Aus Abholung entfernt",
+  "history.action.STORE.PICKUP_MOVED": "Abholung verschoben",
   "history.action.STORE.SLOT_CONFIRMED": "Abholung bestätigt",
   "history.action.STORE.DELETED_FROM_WALL": "Pinnwandeintrag gelöscht",
   "history.action.STORE.REQUEST_CANCELLED": "Bewerbung zurückgezogen",

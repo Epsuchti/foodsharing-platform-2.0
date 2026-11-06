@@ -30,6 +30,7 @@ import { PickupSlotComponent } from '../../../shared/pickup-slot/pickup-slot.com
 import { RequiredMessageDialogComponent } from '../../../shared/required-message-dialog/required-message-dialog.component';
 import { WeekdayTimePickerComponent, duplicateRows } from '../../../shared/weekday-time-picker/weekday-time-picker.component';
 import { BlockedReasonDialogComponent } from '../components/blocked-reason-dialog.component';
+import { MovePickupDialogComponent } from '../components/move-pickup-dialog.component';
 import { RuleSummaryCardComponent } from '../components/rule-summary-card.component';
 import { PickupSignupDialogComponent, SignupDone, SignupTarget } from '../components/signup-dialog.component';
 import { PickupSummaryComponent } from '../components/pickup-summary.component';
@@ -50,7 +51,7 @@ interface SlotTarget {
  * /stores/:storeId/pickups (PU1–PU5): pickups grouped by compact day cards (date tile, one column, decision 165) with
  * their slots. Free slot → eligibility + sign-up; own slot → sign out; another person's slot → slot dialog (rich for
  * managers and co-pickups, short for the team); managers: confirm/remove others (message), edit a pickup
- * (slots/description), add a one-time pickup and edit the regular schedule. "Chat öffnen" finds or creates the named
+ * (slots/description), move it to another time (PU10), add a one-time pickup and edit the regular schedule. "Chat öffnen" finds or creates the named
  * day chat when someone else is signed up that day.
  */
 @Component({
@@ -64,6 +65,7 @@ interface SlotTarget {
     Dialog,
     FormsModule,
     InputText,
+    MovePickupDialogComponent,
     PickupSignupDialogComponent,
     PickupSlotComponent,
     PickupSummaryComponent,
@@ -393,6 +395,19 @@ interface SlotTarget {
         </label>
       </div>
       <ng-template #footer>
+        <div class="foot">
+        @if (editPickup(); as current) {
+          <!-- PU10: move this pickup to another date and time (decision 170) -->
+          <p-button
+            class="move"
+            [label]="'pickups.move.open' | t"
+            icon="pi pi-arrow-right-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="openMove(current)"
+            data-testid="pickups.slot.move"
+          />
+        }
         <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="editOpen.set(false)" />
         <p-button
           [label]="'pickups.tab.save' | t"
@@ -401,8 +416,18 @@ interface SlotTarget {
           (onClick)="savePickup.run()"
           data-testid="stores.pickups.edit.save"
         />
+        </div>
       </ng-template>
     </p-dialog>
+
+    <fs-move-pickup-dialog
+      [(visible)]="moveOpen"
+      [storeId]="ctx.storeId() ?? undefined"
+      [pickup]="moveTarget() ?? undefined"
+      [timeZone]="tz()"
+      [myId]="myId()"
+      (moved)="reload()"
+    />
 
     <p-dialog
       [visible]="regularOpen()"
@@ -516,6 +541,14 @@ interface SlotTarget {
     .form { display: grid; gap: 0.85rem; }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .field small { font-weight: 400; }
+    /* edit dialog actions (slot dialog pattern): wrap, the move action apart from cancel / save; on phones it takes
+       its own full-width row so three buttons never overflow the dialog */
+    .foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; width: 100%; }
+    .move { margin-right: auto; }
+    @media (max-width: 47.99rem) {
+      .move { flex: 1 1 100%; margin-right: 0; }
+      .move ::ng-deep button { width: 100%; }
+    }
   `,
 })
 export class StorePickupsTab {
@@ -866,8 +899,12 @@ export class StorePickupsTab {
   protected newDate = '';
   protected newTime = '18:00';
 
+  /** The future pickup being edited (the move action needs it); null when adding one. */
+  protected readonly editPickup = signal<Pickup | null>(null);
+
   protected openEdit(pickup: Pickup): void {
     this.editAt.set(pickup.pickupAt);
+    this.editPickup.set(Date.parse(pickup.pickupAt) > this.clock.now() ? pickup : null);
     this.editSlots = pickup.slotCount;
     this.editDescription = pickup.description ?? '';
     this.editOpen.set(true);
@@ -875,6 +912,7 @@ export class StorePickupsTab {
 
   protected openAdd(): void {
     this.editAt.set(null);
+    this.editPickup.set(null);
     this.editSlots = 2;
     this.editDescription = '';
     this.newDate = addDays(dayOf(this.clock.now(), this.tz()), 1);
@@ -900,6 +938,17 @@ export class StorePickupsTab {
       },
     },
   );
+
+  // --- manager: move a pickup (PU10, decision 170) ----------------------------------------------------------------
+
+  protected readonly moveOpen = signal(false);
+  protected readonly moveTarget = signal<Pickup | null>(null);
+
+  protected openMove(pickup: Pickup): void {
+    this.editOpen.set(false);
+    this.moveTarget.set(pickup);
+    this.moveOpen.set(true);
+  }
 
   // --- manager: regular schedule (PU1) ---------------------------------------------------------------------------
 

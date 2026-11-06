@@ -33,6 +33,8 @@ public enum NotificationType {
     INTRO_PICKUP_UPDATED(INTRO_PICKUPS, "calendar"),
     /** EA16: the guide's linked store pickup went away, so the EinAb was cancelled (to the guide). */
     INTRO_PICKUP_AUTO_CANCELLED(INTRO_PICKUPS, "calendar-x"),
+    /** EA16 / PU10: the linked store pickup was moved, so the booked EinAb moved along (to the newcomers). */
+    INTRO_PICKUP_MOVED(INTRO_PICKUPS, "calendar"),
     /** Q4: someone of the region passed the EinAb guide quiz (to its ambassadors). */
     GUIDE_QUIZ_PASSED(INTRO_PICKUPS, "graduation-cap"),
     /** Q4 transition: a released guide must pass the EinAb guide quiz before the deadline. */
@@ -57,6 +59,8 @@ public enum NotificationType {
     PICKUP_SIGNUP_UNCONFIRMED(PICKUPS, "calendar-plus"),
     PICKUP_CONFIRMED(PICKUPS, "calendar-check"),
     PICKUP_REMOVED(PICKUPS, "calendar-x"),
+    /** PU10: a pickup someone is signed up for was moved to another time (decision 170). */
+    PICKUP_MOVED(PICKUPS, "calendar"),
     PICKUP_REMINDER(NotificationCategory.PICKUP_REMINDER, "alarm-clock"),
     USER_VERIFIED(SYSTEM, "badge-check"),
     PASSPORT_CREATED(SYSTEM, "id-card"),

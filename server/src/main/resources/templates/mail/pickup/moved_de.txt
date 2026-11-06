@@ -1,0 +1,10 @@
+Hallo [(${displayName})],
+
+die Abholung bei [(${storeName})] am [(${fromWhen})] wurde auf [(${when})] verschoben. Du bist weiterhin eingetragen; falls du zur neuen Zeit nicht kannst, trag dich bitte aus.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dein foodsharing-Team

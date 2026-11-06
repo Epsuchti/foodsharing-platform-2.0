@@ -232,6 +232,7 @@
   "errors.LAST_MANAGER": "Un commerce a besoin d'au moins un responsable.",
   "errors.DUPLICATE_PICKUP_DAY_TIME": "Le même jour et la même heure apparaissent deux fois.",
   "errors.PICKUP_IN_PAST": "Cette collecte est passée.",
+  "errors.PICKUP_TIME_TAKEN": "Ce commerce a déjà une collecte à cette heure.",
   "errors.DESCRIPTION_TOO_LONG": "La description est trop longue (max. 100 caractères).",
   "errors.MORE_OCCUPIED_SLOTS": "Plus de places sont occupées que le nouveau nombre.",
   "errors.PICKUP_NOT_ELIGIBLE": "Tu ne peux pas t'inscrire à cette collecte.",

@@ -232,6 +232,7 @@
   "errors.LAST_MANAGER": "En Betrieb bruucht mindestens e verantwortlichi Person.",
   "errors.DUPLICATE_PICKUP_DAY_TIME": "Wuchetag und Ziit chömed doppelt vor.",
   "errors.PICKUP_IN_PAST": "Die Abholig isch scho verbii.",
+  "errors.PICKUP_TIME_TAKEN": "De Betrieb hät zu dere Ziit scho e Abholig.",
   "errors.DESCRIPTION_TOO_LONG": "D Beschriibig isch z lang (max. 100 Zeiche).",
   "errors.MORE_OCCUPIED_SLOTS": "Es sind meh Plätz besetzt als di neu Aazahl.",
   "errors.PICKUP_NOT_ELIGIBLE": "Du chasch di für die Abholig nöd iitrage.",

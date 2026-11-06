@@ -142,6 +142,7 @@
   "history.action.STORE.SIGN_UP_SLOT": "Iscritto a un ritiro",
   "history.action.STORE.SIGN_OUT_SLOT": "Cancellato da un ritiro",
   "history.action.STORE.REMOVED_FROM_SLOT": "Rimosso da un ritiro",
+  "history.action.STORE.PICKUP_MOVED": "Ritiro spostato",
   "history.action.STORE.SLOT_CONFIRMED": "Ritiro confermato",
   "history.action.STORE.DELETED_FROM_WALL": "Messaggio eliminato",
   "history.action.STORE.REQUEST_CANCELLED": "Candidatura ritirata",

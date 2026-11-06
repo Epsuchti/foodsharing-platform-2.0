@@ -45,9 +45,11 @@ public enum StoreLogAction implements HistoryAction {
     /** D16.2: CSV import of the stores of a region (subject = the region). */
     STORES_IMPORTED,
     /** S17: {@code publicly_named} switched, by hand or because publicity left ALLOWED. */
-    STORE_PUBLIC_NAMING_CHANGED;
+    STORE_PUBLIC_NAMING_CHANGED,
+    /** PU10: one pickup moved to another time (metadata from, to, signups, withMessage; decision 170). */
+    PICKUP_MOVED;
 
-    private static final Set<String> SHORT_LIVED = Set.of("SIGN_UP_SLOT", "SIGN_OUT_SLOT", "REMOVED_FROM_SLOT", "SLOT_CONFIRMED", "UPDATE_SLOT_COUNT", "UPDATE_SLOT_DESCRIPTION");
+    private static final Set<String> SHORT_LIVED = Set.of("SIGN_UP_SLOT", "SIGN_OUT_SLOT", "REMOVED_FROM_SLOT", "SLOT_CONFIRMED", "UPDATE_SLOT_COUNT", "UPDATE_SLOT_DESCRIPTION", "PICKUP_MOVED");
 
     @Override
     public String code() {

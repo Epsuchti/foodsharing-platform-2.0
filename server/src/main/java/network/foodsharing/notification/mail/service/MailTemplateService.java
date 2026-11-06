@@ -49,7 +49,7 @@ public class MailTemplateService {
         String name = template + "_" + language.getValue();
         String text = textEngine.process(name, context);
         String content = exists(name + ".html") ? htmlEngine.process(name, context) : textToHtml(text);
-        String subject = interpolate(subject(template, language), variables);
+        String subject = interpolate(subject(template, language, variant(variables)), variables);
         String senderLine = senderLine(language, variables);
         if (senderLine != null) {
             text = text.stripTrailing() + "\n\n-- \n" + senderLine + "\n";
@@ -110,6 +110,29 @@ public class MailTemplateService {
             }
         }
         return result;
+    }
+
+    /**
+     * Optional template variable: a variant of the subject, {@code mail.<template>.subject.<variant>} (e.g.
+     * {@code short-notice}); the plain subject when the variant has no text.
+     */
+    public static final String SUBJECT_VARIANT = "subjectVariant";
+
+    private static String variant(Map<String, Object> variables) {
+        Object value = variables == null ? null : variables.get(SUBJECT_VARIANT);
+        return value == null || value.toString().isBlank() ? null : value.toString();
+    }
+
+    private String subject(String template, Language language, String variant) {
+        if (variant != null) {
+            String key = "mail." + template + ".subject." + variant;
+            try {
+                return messageSource.getMessage(key, null, locale(language));
+            } catch (NoSuchMessageException ex) {
+                // fall back to the plain subject
+            }
+        }
+        return subject(template, language);
     }
 
     private String subject(String template, Language language) {

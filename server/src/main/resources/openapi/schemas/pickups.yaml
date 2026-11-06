@@ -265,6 +265,19 @@ PickupEdit:
       type: string
       maxLength: 100
 
+PickupMove:
+  type: object
+  required: [newPickupAt]
+  properties:
+    newPickupAt:
+      type: string
+      format: date-time
+      description: 'The new time; future, not the current one, and no other pickup of the store at that time.'
+    message:
+      type: string
+      maxLength: 500
+      description: 'Optional message to everyone signed up (bell and mail PICKUP_MOVED).'
+
 SignupResult:
   type: object
   required: [confirmed]

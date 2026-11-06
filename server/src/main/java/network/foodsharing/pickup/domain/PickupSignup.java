@@ -22,7 +22,8 @@ public class PickupSignup extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
 
-    @Column(name = "pickup_at", nullable = false, updatable = false)
+    /** Updatable only for moving a pickup (PU10, decision 170): the sign-up moves with it. */
+    @Column(name = "pickup_at", nullable = false)
     private Instant pickupAt;
 
     @Column(name = "confirmed", nullable = false)

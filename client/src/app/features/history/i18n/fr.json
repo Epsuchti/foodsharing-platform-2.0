@@ -142,6 +142,7 @@
   "history.action.STORE.SIGN_UP_SLOT": "Inscrit à une collecte",
   "history.action.STORE.SIGN_OUT_SLOT": "Désinscrit d'une collecte",
   "history.action.STORE.REMOVED_FROM_SLOT": "Retiré d'une collecte",
+  "history.action.STORE.PICKUP_MOVED": "Collecte déplacée",
   "history.action.STORE.SLOT_CONFIRMED": "Collecte confirmée",
   "history.action.STORE.DELETED_FROM_WALL": "Message supprimé",
   "history.action.STORE.REQUEST_CANCELLED": "Candidature retirée",
