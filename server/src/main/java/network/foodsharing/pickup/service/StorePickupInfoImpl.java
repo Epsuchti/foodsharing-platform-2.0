@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.NoHistory;
+import network.foodsharing.pickup.domain.PickupEvents;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.repository.PickupSignupRepository;
 import network.foodsharing.store.domain.FreeSlotStatus;
@@ -35,9 +36,15 @@ public class StorePickupInfoImpl implements StorePickupInfo {
     private final StoreService storeQueries;
     private final AppProperties properties;
     private final Clock clock;
+    private final org.springframework.context.ApplicationEventPublisher events;
+    private final network.foodsharing.security.CurrentActorService currentActor;
 
     public StorePickupInfoImpl(PickupScheduleService schedule, PickupSignupRepository signups,
-                               StoreService storeQueries, AppProperties properties, Clock clock) {
+                               StoreService storeQueries, AppProperties properties, Clock clock,
+                               org.springframework.context.ApplicationEventPublisher events,
+                               network.foodsharing.security.CurrentActorService currentActor) {
+        this.events = events;
+        this.currentActor = currentActor;
         this.schedule = schedule;
         this.signups = signups;
         this.storeQueries = storeQueries;
@@ -105,6 +112,11 @@ public class StorePickupInfoImpl implements StorePickupInfo {
     public int deleteFutureSignups(UUID storeId, UUID userId) {
         List<PickupSignup> future = signups.findFutureOfUser(storeId, userId, clock.instant());
         signups.deleteAll(future);
+        if (!future.isEmpty()) {
+            events.publishEvent(new PickupEvents.PickupSignupsDeletedEvent(userId, future.stream()
+                    .map(s -> new PickupEvents.DeletedSignup(s.getStoreId(), s.getPickupAt())).toList(),
+                    currentActor.currentUserId().orElse(null), PickupEvents.SignupsDeletedReason.LEFT_TEAM));
+        }
         return future.size();
     }
 

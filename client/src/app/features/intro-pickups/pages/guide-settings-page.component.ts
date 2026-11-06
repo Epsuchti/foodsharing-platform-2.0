@@ -29,11 +29,6 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
           <ng-template [fsData]="profile">
             <form class="form" (ngSubmit)="save.run()">
               <div class="field">
-                <label for="gs-ical">{{ 'introPickups.settings.icalLink' | t }}</label>
-                <input pInputText id="gs-ical" name="icalLink" type="url" [(ngModel)]="icalLink" placeholder="https://…/calendar.ics" data-testid="introPickups.settings.icalLink" />
-                <span class="muted">{{ 'introPickups.settings.icalHint' | t }}</span>
-              </div>
-              <div class="field">
                 <label for="gs-phone">{{ 'introPickups.settings.phone' | t }}</label>
                 <input pInputText id="gs-phone" name="phone" type="tel" [(ngModel)]="phone" placeholder="+41 79 …" data-testid="introPickups.settings.phone" />
                 <span class="muted">{{ 'introPickups.settings.phoneHint' | t }}</span>
@@ -136,7 +131,6 @@ export class GuideSettingsPageComponent {
   private readonly messages = inject(MessageService);
   private readonly i18n = inject(I18nService);
 
-  protected icalLink = '';
   protected phone = '';
 
   protected readonly profile = loadResource<GuideProfile>({ loader: () => this.api.getGuideProfile(), isEmpty: () => false });
@@ -149,7 +143,6 @@ export class GuideSettingsPageComponent {
     effect(() => {
       const profile = this.profile.data();
       if (profile && !this.loaded()) {
-        this.icalLink = profile.icalLink ?? '';
         this.phone = profile.phone ?? '';
         this.loaded.set(true);
       }
@@ -159,7 +152,7 @@ export class GuideSettingsPageComponent {
   protected readonly save = runMutation(
     () =>
       this.api.updateGuideProfile({
-        guideProfileUpdate: { icalLink: this.icalLink.trim(), phone: this.phone.trim() },
+        guideProfileUpdate: { phone: this.phone.trim() },
       }),
     { successToastKey: 'introPickups.settings.saved', onSuccess: () => this.profile.reload() },
   );

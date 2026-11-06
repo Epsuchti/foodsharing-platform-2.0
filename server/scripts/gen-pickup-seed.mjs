@@ -158,6 +158,20 @@ for (const sg of signups.filter((x) => x.at > SEED_NOW)) {
   dates.push({ store: sg.store, at: sg.at, slots: o.slots, description: null });
 }
 
+// ---------------------------------------------------------------- EA16 extras (decision 169)
+// Appended after the generated rows with the next free ids, so existing ids stay stable: the guide has two confirmed
+// future sign-ups that are EinAb candidates (S-09 Friday 2026-11-06 20:00 above, S-09 Friday 2026-11-13 20:00 here),
+// the confirmed S-03 Friday 2026-11-06 18:30 above that the seeded linked EinAb 00000030-0001-…-28 uses, and one
+// unconfirmed (S-03 Tuesday 2026-11-10 18:30), which is never a candidate.
+const extras = [
+  { store: 9, user: GUIDE, at: occurrences(9, at(9, 11, '00:00'), at(9, 12, '00:00'))[0].at, confirmed: true },
+  { store: 3, user: GUIDE, at: occurrences(3, at(3, 8, '00:00'), at(3, 9, '00:00'))[0].at, confirmed: false },
+];
+for (const x of extras) {
+  if ((taken.get(key(x.store, x.at)) ?? []).length !== 0) throw new Error(`EA16 extra not free ${key(x.store, x.at)}`);
+  if (dates.some((d) => d.store === x.store && d.at === x.at)) throw new Error('EA16 extra has a pickup row');
+}
+
 // ---------------------------------------------------------------- CSVs
 const head = 'id,version,created_at,updated_at,created_by,updated_by';
 const csv = (s) => (s === null || s === undefined ? 'NULL' : /[",]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
@@ -179,6 +193,11 @@ dates.forEach((d, i) => {
   dateRows.push(`${id(2, i + 1)},0,${created},${created},NULL,NULL,${store(d.store)},${iso(d.at)},${d.slots},`
     + `${csv(d.description)}`);
 });
+extras.forEach((x, i) => {
+  const created = iso(SEED_NOW - 7 * DAY);
+  dateRows.push(`${id(2, dates.length + i + 1)},0,${created},${created},NULL,NULL,${store(x.store)},${iso(x.at)},`
+    + `${regularOf(x.store, x.at).slots},NULL`);
+});
 writeFileSync(join(OUT, 'pickup.csv'), `${dateRows.join('\n')}\n`);
 
 signups.sort((a, b) => a.at - b.at || a.store - b.store || a.user - b.user);
@@ -188,6 +207,12 @@ signups.forEach((sg, i) => {
   const by = sg.confirmed ? user(MANAGERS[sg.store]) : 'NULL';
   signupRows.push(`${id(3, i + 1)},0,${created},${created},${user(sg.user)},${user(sg.user)},${store(sg.store)},`
     + `${user(sg.user)},${iso(sg.at)},${sg.confirmed},${by},${sg.confirmed ? created : 'NULL'},NULL`);
+});
+extras.forEach((sg, i) => {
+  const created = iso(SEED_NOW - DAY);
+  const by = sg.confirmed ? user(MANAGERS[sg.store]) : 'NULL';
+  signupRows.push(`${id(3, signups.length + i + 1)},0,${created},${created},${user(sg.user)},${user(sg.user)},`
+    + `${store(sg.store)},${user(sg.user)},${iso(sg.at)},${sg.confirmed},${by},${sg.confirmed ? created : 'NULL'},NULL`);
 });
 writeFileSync(join(OUT, 'pickup_signup.csv'), `${signupRows.join('\n')}\n`);
 

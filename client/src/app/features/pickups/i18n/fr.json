@@ -20,6 +20,7 @@
   "pickups.signout.title": "Se désinscrire ?",
   "pickups.signout.text": "Ne te désinscris au dernier moment que si nécessaire – l’équipe compte sur toi.",
   "pickups.signout.confirm": "Me désinscrire",
+  "pickups.signout.linkedIntroPickup": "Cela annule aussi la collecte d’introduction liée{count, plural, =0 {.} one {; # nouvelle personne inscrite sera prévenue.} other {; # nouvelles personnes inscrites seront prévenues.}}",
   "pickups.signout.done": "Désinscrit·e.",
   "pickups.tab.range": "Période",
   "pickups.tab.range.twoWeeks": "2 prochaines semaines",

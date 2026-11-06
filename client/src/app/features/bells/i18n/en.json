@@ -12,6 +12,7 @@
   "bell.INTRO_PICKUP_DELETED_BY_ADMIN": "An intro pickup was deleted",
   "bell.INTRO_PICKUP_NEW_BOOKABLE": "New intro pickups available",
   "bell.INTRO_PICKUP_SUBSCRIPTION_CONFIRMED": "Notifications for new dates turned on",
+  "bell.INTRO_PICKUP_AUTO_CANCELLED": "Your intro pickup at {businessName} was cancelled: you are no longer signed up for the store pickup",
   "bell.INTRO_PICKUP_UPDATED": "Your intro pickup was changed",
   "bell.USER_VERIFIED": "You’re verified now",
   "bell.PASSPORT_CREATED": "Your ID card is ready",

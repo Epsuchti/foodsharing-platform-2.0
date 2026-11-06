@@ -12,6 +12,7 @@
   "bell.INTRO_PICKUP_DELETED_BY_ADMIN": "E Iifüehrigsabholig isch glöscht worde",
   "bell.INTRO_PICKUP_NEW_BOOKABLE": "Neui Iifüehrigsabholige verfüegbar",
   "bell.INTRO_PICKUP_SUBSCRIPTION_CONFIRMED": "Benachrichtigunge für neui Termin aktiviert",
+  "bell.INTRO_PICKUP_AUTO_CANCELLED": "Dini Iifüehrigsabholig bi {businessName} isch abgseit worde: Du bisch nümm für d Abholig iitreit",
   "bell.INTRO_PICKUP_UPDATED": "Dini Iifüehrigsabholig isch gänderet worde",
   "bell.USER_VERIFIED": "Du bisch jetzt verifiziert",
   "bell.PASSPORT_CREATED": "Din Uswiis isch parat",

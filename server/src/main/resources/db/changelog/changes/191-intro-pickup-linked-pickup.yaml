@@ -1,0 +1,28 @@
+# EinAbs from the guide's own store pickups (EA16, decision 169): the iCal import is gone (guide_profile.ical_link is
+# dropped without notice), and an EinAb created from a confirmed store pickup stays linked to it through
+# (guide_id, store_id, linked_pickup_at) so signing out of the pickup cancels the EinAb.
+databaseChangeLog:
+  - changeSet:
+      id: 191-1
+      author: platform
+      comment: 'EA16: the guide iCal import link is removed.'
+      changes:
+        - dropColumn:
+            tableName: guide_profile
+            columnName: ical_link
+  - changeSet:
+      id: 191-2
+      author: platform
+      comment: 'EA16: the store pickup a linked EinAb belongs to (null = not linked).'
+      changes:
+        - addColumn:
+            tableName: intro_pickup
+            columns:
+              - column: {name: linked_pickup_at, type: TIMESTAMP WITH TIME ZONE}
+        - createIndex:
+            tableName: intro_pickup
+            indexName: ix_intro_pickup_linked
+            columns:
+              - column: {name: guide_id}
+              - column: {name: store_id}
+              - column: {name: linked_pickup_at}

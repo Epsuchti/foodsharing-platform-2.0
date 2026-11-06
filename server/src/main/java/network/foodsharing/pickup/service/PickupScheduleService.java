@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.intropickup.service.IntroPickupGuideService;
 import network.foodsharing.pickup.domain.PickupDate;
 import network.foodsharing.pickup.domain.PickupSignup;
 import network.foodsharing.pickup.domain.RegularPickup;
@@ -29,6 +30,7 @@ import network.foodsharing.store.service.StorePermissionService;
 import network.foodsharing.store.service.StoreService;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.service.UserService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,14 +51,23 @@ public class PickupScheduleService {
     /**
      * A pickup with the caller's eligibility (null when not computed, e.g. for past pickups). {@code linkMissing}:
      * sign-ups whose linked-store pickup was signed out → deadline (decision 167 S3; only the caller's own one unless
-     * the caller manages the store).
+     * the caller manages the store). {@code linkedIntroPickups}: sign-up user → the EinAb linked to that sign-up
+     * (EA16 sign-out warning; same visibility as {@code linkMissing}).
      */
     public record PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
                              List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlots,
-                             boolean mayAddExtraSlot, Map<UUID, Instant> linkMissing) {
+                             boolean mayAddExtraSlot, Map<UUID, Instant> linkMissing,
+                             Map<UUID, IntroPickupGuideService.LinkedInfo> linkedIntroPickups) {
 
         public PickupView {
             linkMissing = linkMissing == null ? Map.of() : Map.copyOf(linkMissing);
+            linkedIntroPickups = linkedIntroPickups == null ? Map.of() : Map.copyOf(linkedIntroPickups);
+        }
+
+        public PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
+                          List<network.foodsharing.pickup.domain.PickupExtraSlot> extraSlots,
+                          boolean mayAddExtraSlot, Map<UUID, Instant> linkMissing) {
+            this(slot, available, eligibility, extraSlots, mayAddExtraSlot, linkMissing, Map.of());
         }
 
         public PickupView(PickupSchedule.Slot slot, boolean available, PickupEligibilityRules.Result eligibility,
@@ -95,6 +106,7 @@ public class PickupScheduleService {
     private final CurrentActorService currentActor;
     private final java.time.Clock clock;
     private final PickupRuleGate ruleGate;
+    private final ObjectProvider<IntroPickupGuideService> introPickups;
     private final network.foodsharing.config.AppProperties properties;
 
     public PickupScheduleService(RegularPickupRepository regular, PickupDateRepository dates,
@@ -104,7 +116,9 @@ public class PickupScheduleService {
                                  RegionService regions, RegionOptionsService regionOptions,
                                  QuizSessionService quizzes, UserService users, CurrentActorService currentActor,
                                  java.time.Clock clock, PickupRuleGate ruleGate,
-                                 network.foodsharing.config.AppProperties properties) {
+                                 network.foodsharing.config.AppProperties properties,
+                                 ObjectProvider<IntroPickupGuideService> introPickups) {
+        this.introPickups = introPickups;
         this.ruleGate = ruleGate;
         this.properties = properties;
         this.regular = regular;
@@ -209,16 +223,31 @@ public class PickupScheduleService {
         Map<Instant, Map<UUID, Instant>> linkMissing = slots.stream().noneMatch(s -> !s.pickupAt().isBefore(now)
                 && (manager || s.hasSignup(actor.userId()))) ? Map.of()
                 : ruleGate.linkMissing(storeId, now, OPEN_END);
+        List<Instant> linkable = slots.stream().filter(s -> !s.pickupAt().isBefore(now)
+                && (manager || s.hasSignup(actor.userId()))).map(PickupSchedule.Slot::pickupAt).toList();
+        Map<Instant, Map<UUID, IntroPickupGuideService.LinkedInfo>> linked = new HashMap<>();
+        IntroPickupGuideService intro = linkable.isEmpty() ? null : introPickups.getIfAvailable();
+        if (intro != null) {
+            for (IntroPickupGuideService.LinkedInfo info : intro.linkedAt(storeId, linkable)) {
+                if (manager || info.guideId().equals(actor.userId())) {
+                    linked.computeIfAbsent(info.pickupAt(), k -> new HashMap<>()).putIfAbsent(info.guideId(), info);
+                }
+            }
+        }
         return slots.stream().map(s -> {
             Map<UUID, Instant> missing = linkMissing.getOrDefault(s.pickupAt(), Map.of()).entrySet().stream()
                     .filter(e -> manager || e.getKey().equals(actor.userId()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<UUID, IntroPickupGuideService.LinkedInfo> linkedHere = linked.getOrDefault(s.pickupAt(), Map.of())
+                    .entrySet().stream().filter(e -> s.hasSignup(e.getKey()))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             var extra = extras.getOrDefault(s.pickupAt(), List.of());
             boolean mayAdd = ExtraSlotRule.mayAdd(store.getMaxExtraSlots(), extra.size(), s.slotCount(), maxSlots,
                     PickupSignupService.isFirstSignup(s, actor.userId()), s.pickupAt().isAfter(now));
             PickupEligibilityRules.Result result = eligibility.get(s.pickupAt());
             return new PickupView(s, s.isAvailable(now),
-                    result == null ? null : result.withRuleBlocks(blocks.get(s.pickupAt())), extra, mayAdd, missing);
+                    result == null ? null : result.withRuleBlocks(blocks.get(s.pickupAt())), extra, mayAdd, missing,
+                    linkedHere);
         }).toList();
     }
 

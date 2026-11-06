@@ -45,7 +45,7 @@ public class IntroPickupAccountData implements AccountDeletionContributor, DataE
         data.put("bookings", UserRows.read(em, "IntroPickupSlot", "bookingUserId", userId, "introPickupId", "status", "bookedAt", "doneAt"));
         data.put("guided", UserRows.read(em, "IntroPickup", "guideId", userId, "regionId", "startAt", "businessName"));
         data.put("comments", UserRows.read(em, "IntroPickupComment", "authorId", userId, "slotId", "text", "createdAt"));
-        data.put("guideProfile", UserRows.read(em, "GuideProfile", "userId", userId, "phone", "icalLink"));
+        data.put("guideProfile", UserRows.read(em, "GuideProfile", "userId", userId, "phone"));
         data.put("subscriptions", UserRows.read(em, "IntroPickupSubscription", "userId", userId, "regionId", "channel", "deliveryEmail", "language", "active"));
         return data;
     }

@@ -20,6 +20,7 @@
   "pickups.signout.title": "Ustrage?",
   "pickups.signout.text": "Bitte trag di nur churzfristig us, wänns nöd andersch gaht – s Team zellt uf di.",
   "pickups.signout.confirm": "Ustrage",
+  "pickups.signout.linkedIntroPickup": "Demit wird au di verknüpfti Iifüehrigsabholig abgseit{count, plural, =0 {.} one {; # buechte Neue wird benachrichtigt.} other {; # buechti Neui werdet benachrichtigt.}}",
   "pickups.signout.done": "Usgtreit.",
   "pickups.tab.range": "Zitruum",
   "pickups.tab.range.twoWeeks": "Nächschti 2 Wuche",

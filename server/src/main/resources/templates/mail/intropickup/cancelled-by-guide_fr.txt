@@ -1,6 +1,9 @@
 Bonjour [(${displayName})],
 
 la personne qui guide a annulé ta réservation pour la collecte d'initiation chez [(${businessName})] le [(${when})]. Tu peux réserver une autre collecte d'initiation.
+[# th:if="${storePickupCancelled != null}"]
+Motif: La collecte du magasin liée à cette collecte d'initiation a été annulée.
+[/]
 [# th:if="${reason != null}"]
 Motif: [(${reason})]
 [/]

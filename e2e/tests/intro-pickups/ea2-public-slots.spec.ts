@@ -6,7 +6,7 @@ test('EA2 public slots show only date, mode, city and free places and notify-me 
   await page.goto('/r/zuerich-stadt/intro-pickups');
   await expect(page.getByTestId('introPickups.public.state')).toHaveAttribute('data-state', 'success');
   const cards = page.getByTestId('introPickups.public.card');
-  await expect(cards).toHaveCount(14);
+  await expect(cards).toHaveCount(15);
   const first = cards.first();
   await expect(first.getByTestId('introPickups.card.mode')).toBeVisible();
   await expect(first.getByTestId('introPickups.card.city')).toHaveText('Zürich Stadt');

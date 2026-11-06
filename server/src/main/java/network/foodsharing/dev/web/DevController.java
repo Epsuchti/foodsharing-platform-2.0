@@ -34,7 +34,6 @@ import network.foodsharing.notification.domain.NotificationChannelType;
 import network.foodsharing.notification.service.CapturedMessages;
 import network.foodsharing.security.PermissionService;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -173,12 +172,6 @@ public class DevController implements DevApi {
     public ResponseEntity<Void> runDevJob(String name) {
         notificationService.runJob(name);
         return ResponseEntity.noContent().build();
-    }
-
-    @Override
-    public ResponseEntity<String> getDevIcalFixture() {
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/calendar;charset=UTF-8"))
-                .body(notificationService.icalFixture());
     }
 
     @Override

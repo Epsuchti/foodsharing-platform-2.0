@@ -30,6 +30,17 @@ public interface IntroPickupRepository extends JpaRepository<IntroPickup, UUID> 
     @Query("select p from IntroPickup p where p.guideId = :guideId and p.deletedAt is null order by p.startAt asc, p.id asc")
     List<IntroPickup> findByGuide(@Param("guideId") UUID guideId);
 
+    /** Live EinAbs of the guide linked to the store pickup (EA16, ix_intro_pickup_linked). */
+    @Query("select p from IntroPickup p where p.guideId = :guideId and p.storeId = :storeId "
+            + "and p.linkedPickupAt = :pickupAt and p.deletedAt is null order by p.id asc")
+    List<IntroPickup> findLinked(@Param("guideId") UUID guideId, @Param("storeId") UUID storeId,
+                                 @Param("pickupAt") Instant pickupAt);
+
+    /** Live EinAbs linked to any of these pickups of the store (sign-out warning, EA16). */
+    @Query("select p from IntroPickup p where p.storeId = :storeId and p.linkedPickupAt in :pickupAts "
+            + "and p.deletedAt is null order by p.id asc")
+    List<IntroPickup> findLinkedAt(@Param("storeId") UUID storeId, @Param("pickupAts") Collection<Instant> pickupAts);
+
     @Query("select p from IntroPickup p where p.id in :ids")
     List<IntroPickup> findAllIn(@Param("ids") Collection<UUID> ids);
 

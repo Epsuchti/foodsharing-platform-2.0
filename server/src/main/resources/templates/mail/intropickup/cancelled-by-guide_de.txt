@@ -1,6 +1,9 @@
 Hallo [(${displayName})],
 
 deine Buchung für die Einführungsabholung bei [(${businessName})] am [(${when})] wurde von der Einführerin oder dem Einführer abgesagt. Du kannst eine andere Einführungsabholung buchen.
+[# th:if="${storePickupCancelled != null}"]
+Begründung: Die Betriebsabholung dieser Einführungsabholung wurde abgesagt.
+[/]
 [# th:if="${reason != null}"]
 Begründung: [(${reason})]
 [/]

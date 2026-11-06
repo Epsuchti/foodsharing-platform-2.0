@@ -39,6 +39,21 @@ PickupSlot:
       description: 'The linked-store pickup of this sign-up was signed out (decision 167 S3): until then the person may book another one, afterwards the slot is freed. Only on the caller''s own slot and for the store''s managers.'
       type: string
       format: date-time
+    linkedIntroPickup:
+      $ref: './pickups.yaml#/LinkedIntroPickup'
+
+LinkedIntroPickup:
+  type: object
+  description: 'The EinAb linked to this sign-up (EA16, decision 169): signing out cancels it. Only on the caller''s own slot and for the store''s managers.'
+  required: [introPickupId, bookedCount]
+  properties:
+    introPickupId:
+      type: string
+      format: uuid
+    bookedCount:
+      description: 'Newcomers booked on the EinAb; they are notified when it is cancelled.'
+      type: integer
+      format: int32
 
 RegionPickupRuleState:
   type: object

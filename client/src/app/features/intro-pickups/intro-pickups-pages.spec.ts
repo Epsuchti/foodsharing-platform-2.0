@@ -181,7 +181,7 @@ describe('intro pickup pages', () => {
   it('guide: no guide regions → empty state', async () => {
     await harness.navigateByUrl('/guide');
     http.expectOne('/api/guide/regions').flush([]);
-    http.expectOne('/api/guide/ical-candidates').flush([]);
+    http.expectOne('/api/guide/pickup-candidates').flush([]);
     http.expectOne('/api/guide/private-info-templates').flush([]);
     await settle();
     expect(q('[data-testid="introPickups.guide.regionsState"]')?.getAttribute('data-state')).toBe('empty');
@@ -191,7 +191,7 @@ describe('intro pickup pages', () => {
     await harness.navigateByUrl('/guide');
     http.expectOne('/api/guide/regions').flush([{ id: REGION, slug: 'zuerich-stadt', name: 'Zürich Stadt', type: 'REGION' }]);
     await settle();
-    http.expectOne('/api/guide/ical-candidates').flush([]);
+    http.expectOne('/api/guide/pickup-candidates').flush([]);
     http.expectOne('/api/guide/private-info-templates').flush([]);
     http
       .expectOne((req) => req.url === `/api/regions/${REGION}/guide/intro-pickups`)
@@ -220,7 +220,75 @@ describe('intro pickup pages', () => {
     expect(q('[data-testid="introPickups.slot.cancel"]')).not.toBeNull();
     expect(q('[data-testid="introPickups.slot.bookFor"]')).not.toBeNull();
     expect(q('[data-testid="introPickups.slot.commentCount"]')?.textContent?.trim()).toBe('2');
-    expect(q('[data-testid="introPickups.guide.ical"]')).toBeNull();
+    expect(q('[data-testid="introPickups.guide.pickupCandidates"]')).toBeNull();
+    expect(q('[data-testid="introPickups.guide.assign"]')).not.toBeNull();
+    expect(q('[data-testid="introPickups.guide.linked"]')).toBeNull();
+  });
+
+  it('guide: own store pickups as candidates pre-fill the form; a linked EinAb has a chip and no reassign (EA16)', async () => {
+    await harness.navigateByUrl('/guide');
+    http.expectOne('/api/guide/regions').flush([{ id: REGION, slug: 'zuerich-stadt', name: 'Zürich Stadt', type: 'REGION' }]);
+    await settle();
+    http.expectOne('/api/guide/pickup-candidates').flush([
+      {
+        storeId: 'st1',
+        storeName: 'Migros Limmatplatz',
+        startAt: '2026-11-06T17:30:00Z',
+        address: 'Limmatstrasse 152, 8005 Zürich',
+        city: 'Zürich',
+        category: 'SUPERMARKET',
+        regionId: REGION,
+      },
+    ]);
+    http.expectOne('/api/guide/private-info-templates').flush([]);
+    http
+      .expectOne((req) => req.url === `/api/regions/${REGION}/guide/intro-pickups`)
+      .flush({
+        items: [
+          {
+            id: 'e1',
+            regionId: REGION,
+            category: 'TAKEOUT',
+            startAt: '2026-11-06T19:00:00Z',
+            guide: { id: 'g', displayName: 'Julien', role: Role.Foodsaver, verified: true },
+            slotCount: 2,
+            visitFairteiler: false,
+            booked: false,
+            storeId: 'st9',
+            linkedPickupAt: '2026-11-06T19:00:00Z',
+            slots: [{ id: 's1', status: 'AVAILABLE' }],
+          },
+        ],
+        page: { page: 0, size: 100, totalItems: 1, totalPages: 1 },
+      });
+    await settle();
+    expect(qa('[data-testid="introPickups.guide.pickupCandidate"]').length).toBe(1);
+    expect(q('[data-testid="introPickups.guide.pickupCandidate"]')?.textContent).toContain('Migros Limmatplatz');
+    expect(q('[data-testid="introPickups.guide.linked"]')).not.toBeNull();
+    expect(q('[data-testid="introPickups.guide.assign"]')).toBeNull();
+
+    (q('[data-testid="introPickups.guide.pickupCandidateUse"] button') as HTMLButtonElement).click();
+    await settle();
+    const body = document.body;
+    expect((body.querySelector('[data-testid="introPickups.form.businessName"]') as HTMLInputElement).value).toBe('Migros Limmatplatz');
+    expect((body.querySelector('[data-testid="introPickups.form.address"]') as HTMLInputElement).value).toBe('Limmatstrasse 152, 8005 Zürich');
+    expect((body.querySelector('[data-testid="introPickups.form.area"]') as HTMLInputElement).value).toBe('Zürich');
+    expect(body.querySelector('[data-testid="introPickups.form.linkedHint"]')).not.toBeNull();
+    expect(body.querySelector('[data-testid="introPickups.form.unlinkHint"]')).toBeNull();
+
+    (body.querySelector('[data-testid="introPickups.form.save"] button') as HTMLButtonElement).click();
+    const create = http.expectOne(`/api/regions/${REGION}/guide/intro-pickups`);
+    expect(create.request.method).toBe('POST');
+    expect(create.request.body).toEqual(
+      expect.objectContaining({
+        category: 'SUPERMARKET',
+        startAt: '2026-11-06T17:30:00.000Z',
+        storeId: 'st1',
+        linkedPickupAt: '2026-11-06T17:30:00Z',
+        businessName: 'Migros Limmatplatz',
+        publicGeneralLocation: 'Zürich',
+      }),
+    );
   });
 
   it('funnel: steps, names and gap severities; 403 → forbidden', async () => {

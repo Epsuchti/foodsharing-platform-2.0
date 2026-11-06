@@ -19,7 +19,6 @@ import network.foodsharing.notification.service.CapturedMessages;
 import network.foodsharing.notification.telegram.service.TelegramClient;
 import network.foodsharing.notification.telegram.service.TelegramUpdateProcessor;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 /** Dev API for M2 tests: persisted notifications, running jobs by name, the iCal fixture (local/e2e only). */
@@ -81,15 +80,6 @@ public class DevNotificationService {
 
     public List<String> jobNames() {
         return jobs.stream().map(RunnableJob::jobName).sorted().toList();
-    }
-
-    /** Static calendar used by the guide iCal import e2e tests ({@code dev/ical-fixture.ics}). */
-    public String icalFixture() {
-        try (var in = new ClassPathResource("dev/ical-fixture.ics").getInputStream()) {
-            return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (java.io.IOException e) {
-            throw new IllegalStateException("dev/ical-fixture.ics missing", e);
-        }
     }
 
     /** {@code POST /api/dev/telegram/incoming}: an update as if the bot had received it (title = group chat). */

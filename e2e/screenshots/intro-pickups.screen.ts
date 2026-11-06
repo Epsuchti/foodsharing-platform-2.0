@@ -1,11 +1,12 @@
-import { type ApiClient, acceptPendingConsents, injectApiError } from '../fixtures';
+import { type ApiClient, acceptPendingConsents, injectApiError, zurichPickupAt } from '../fixtures';
 import { ZH } from '../tests/intro-pickups/_intro';
+import { openPickups, pickupRow } from '../tests/pickups/_pickups';
 import { expect, forEachVariant, screenshotTest, type Variant } from './_setup';
 
 /**
  * Intro pickup screens (M2 T21): bookable list (incl. reasons, booking success), no-region picker, public dates,
  * my bookings with progress and subscription, unsubscribe, guide dashboard (upcoming, past with slots, form dialog,
- * comments), guide settings, admin (dates, bookings, guides, Q4 guide candidates and deadline banner), import
+ * comments, EA16 store pickup candidates, the pre-filled linked form and the sign-out warning), guide settings, admin (dates, bookings, guides, Q4 guide candidates and deadline banner), import
  * preview, funnel, forbidden and error states —
  * × light/dark × de/fr. Baselines are generated in one batch (decision 69), not per task.
  */
@@ -93,7 +94,7 @@ forEachVariant((variant) => {
     screenshotTest.describe('guide', () => {
       screenshotTest.use({ variant, role: 'guide' });
 
-      screenshotTest('guide dashboard, form, comments and settings @EA10 @EA11 @EA13 @EA15 @screenshot', async ({ page, apiOf, visual }) => {
+      screenshotTest('guide dashboard, form, comments and settings @EA10 @EA11 @EA13 @EA15 @EA16 @screenshot', async ({ page, apiOf, visual }) => {
         await language(apiOf(page), variant);
         await page.goto('/guide');
         await expect(page.getByTestId('introPickups.guide.state')).toHaveAttribute('data-state', 'success');
@@ -101,6 +102,11 @@ forEachVariant((variant) => {
         await page.getByTestId('introPickups.guide.create').click();
         await expect(page.getByTestId('introPickups.form')).toBeVisible();
         await visual.expectScreen(page, `intro-guide-form-${variant.name}`, { fullPage: false });
+        await page.keyboard.press('Escape');
+        // EA16: a store pickup candidate pre-fills the form, linked to the pickup
+        await page.getByTestId('introPickups.guide.pickupCandidateUse').first().click();
+        await expect(page.getByTestId('introPickups.form.linkedHint')).toBeVisible();
+        await visual.expectScreen(page, `intro-guide-form-linked-${variant.name}`, { fullPage: false });
         await page.keyboard.press('Escape');
         await page.getByTestId('introPickups.guide.showPast').click();
         await expect(page.getByTestId('introPickups.guide.state')).toHaveAttribute('data-state', 'success');
@@ -111,6 +117,12 @@ forEachVariant((variant) => {
         await page.goto('/guide/settings');
         await expect(page.getByTestId('introPickups.settings.profileState')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `intro-guide-settings-${variant.name}`);
+        // EA16: signing out of the store pickup with the seeded linked EinAb warns first (dismissed, nothing changes)
+        await openPickups(page, 'S-03');
+        await pickupRow(page, zurichPickupAt(4, '18:30')).locator('[data-testid="stores.pickups.slot.taken"][data-user="Julien Favre"]').click();
+        await expect(page.locator('.p-confirmdialog')).toBeVisible();
+        await visual.expectScreen(page, `intro-guide-signout-linked-${variant.name}`, { fullPage: false });
+        await page.keyboard.press('Escape');
       });
     });
 

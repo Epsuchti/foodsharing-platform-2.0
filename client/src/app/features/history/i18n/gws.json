@@ -125,6 +125,7 @@
   "history.action.INTRO_PICKUP.SUBSCRIBED": "Benachrichtigunge abonniert",
   "history.action.INTRO_PICKUP.UNSUBSCRIBED": "Benachrichtigunge abbstellt",
   "history.action.INTRO_PICKUP.STORE_ALIAS_CHANGED": "Betriibszueordnig gänderet",
+  "history.action.INTRO_PICKUP.AUTO_CANCELLED": "Automatisch abgseit (Abholig fallt weg)",
   "history.myActivity.preset.logins": "Nume Aamäldige",
   "history.myActivity.preset.changes": "Nume Kontoänderige",
   "history.myActivity.export": "Verlauf als CSV exportiere",

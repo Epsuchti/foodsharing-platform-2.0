@@ -10,7 +10,7 @@ test('EA10 guide creates, edits, deletes EinAb with validation @EA10 @page', asy
   const list = page.getByTestId('introPickups.guide.state');
   await expect(list).toHaveAttribute('data-state', 'success');
   const einabs = page.getByTestId('introPickups.guide.einab');
-  await expect(einabs).toHaveCount(10);
+  await expect(einabs).toHaveCount(11);
   const form = page.getByTestId('introPickups.form');
 
   // online: a call link instead of an address, validated by the server
@@ -26,9 +26,9 @@ test('EA10 guide creates, edits, deletes EinAb with validation @EA10 @page', asy
   await form.getByTestId('introPickups.form.callLink').fill('https://meet.jit.si/foodsharing-einab');
   await page.getByTestId('introPickups.form.save').click();
   await expect(form).toBeHidden();
-  await expect(einabs).toHaveCount(11);
-  // all seeded EinAbs start at 18:00 local time
-  const online = einabs.filter({ hasText: '18:30' });
+  await expect(einabs).toHaveCount(12);
+  // the seeded EinAbs start at 18:00 local time, the linked one (EA16) at 18:30 on its store pickup
+  const online = page.locator('[data-testid="introPickups.guide.einab"][data-category="ONLINE"]').filter({ hasText: '18:30' });
   await expect(online).toHaveAttribute('data-category', 'ONLINE');
   await expect(online.getByTestId('introPickups.slot')).toHaveCount(1);
 
@@ -57,10 +57,10 @@ test('EA10 guide creates, edits, deletes EinAb with validation @EA10 @page', asy
   // delete (no bookings)
   await market.getByTestId('introPickups.guide.delete').click();
   await acceptConfirm(page);
-  await expect(einabs).toHaveCount(11);
+  await expect(einabs).toHaveCount(12);
   await online.getByTestId('introPickups.guide.delete').click();
   await acceptConfirm(page);
-  await expect(einabs).toHaveCount(10);
+  await expect(einabs).toHaveCount(11);
 
   // past EinAbs cannot be changed
   await page.getByTestId('introPickups.guide.showPast').click();

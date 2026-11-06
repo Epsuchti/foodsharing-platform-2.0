@@ -5,7 +5,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -93,21 +92,5 @@ class DevNotificationsControllerTest {
         mvc.perform(post("/api/dev/jobs/nope/run"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("DEV_JOB_NOT_FOUND"));
-    }
-
-    @Test
-    void icalFixtureIsServedAsCalendar() throws Exception {
-        when(notificationService.icalFixture()).thenReturn("BEGIN:VCALENDAR\nEND:VCALENDAR\n");
-        mvc.perform(get("/api/dev/fixtures/ical"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("text/calendar"))
-                .andExpect(content().string("BEGIN:VCALENDAR\nEND:VCALENDAR\n"));
-    }
-
-    @Test
-    void theRealFixtureIsAValidCalendar() {
-        String ics = new DevNotificationService(null, List.of(), null, null, null, null).icalFixture();
-        org.assertj.core.api.Assertions.assertThat(ics).startsWith("BEGIN:VCALENDAR").contains("BEGIN:VEVENT")
-                .contains("END:VCALENDAR");
     }
 }

@@ -399,6 +399,24 @@ describe('store pickups tab: slot dialog modes and day chat (PU3, decision 165)'
     )[0] as HTMLButtonElement;
   const dialog = () => qa('[data-testid="stores.pickups.slotDialog"]')[0];
 
+  it('signing out of a pickup with a linked EinAb warns that it is cancelled and the newcomers are told (EA16)', async () => {
+    const confirmations: Confirmation[] = [];
+    vi.spyOn(TestBed.inject(ConfirmationService), 'confirm').mockImplementation((c) => {
+      confirmations.push(c);
+      return TestBed.inject(ConfirmationService);
+    });
+    await open({}, [
+      pickup(THU, 3, [{ user: ME, confirmed: true, linkedIntroPickup: { introPickupId: 'e1', bookedCount: 2 } } as { user: unknown; confirmed: boolean }]),
+      pickup(FRI, 3, [{ user: ME, confirmed: true }]),
+    ]);
+    takenOf(THU, 'Sarah Müller').click();
+    takenOf(FRI, 'Sarah Müller').click();
+    await settle();
+    expect(confirmations).toHaveLength(2);
+    expect(confirmations[0].message).toContain('pickups.signout.linkedIntroPickup');
+    expect(confirmations[1].message).not.toContain('pickups.signout.linkedIntroPickup');
+  });
+
   it('team members open the short dialog without a request', async () => {
     await open({}, [pickup(THU, 3, [{ user: PRIYA, confirmed: true }])]);
     const slot = takenOf(THU, 'Priya Sharma');

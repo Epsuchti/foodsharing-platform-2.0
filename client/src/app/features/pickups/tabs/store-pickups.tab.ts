@@ -345,7 +345,7 @@ interface SlotTarget {
     <fs-required-message-dialog
       [(visible)]="removeOpen"
       [title]="'pickups.tab.removeTitle' | t: { name: slotTarget()?.slot?.user?.displayName ?? '' }"
-      [text]="'pickups.tab.removeText' | t"
+      [text]="removeText()"
       [confirmLabel]="'pickups.tab.removeSlot' | t"
       severity="danger"
       [busy]="removeSlot.busy()"
@@ -728,7 +728,7 @@ export class StorePickupsTab {
     if (slot.user.id === this.myId()) {
       this.confirm.confirm({
         header: this.i18n.t('pickups.signout.title'),
-        message: this.i18n.t('pickups.signout.text'),
+        message: this.withLinkedWarning(this.i18n.t('pickups.signout.text'), slot),
         acceptLabel: this.i18n.t('pickups.signout.confirm'),
         rejectLabel: this.i18n.t('common.cancel'),
         acceptButtonStyleClass: 'p-button-danger',
@@ -823,6 +823,15 @@ export class StorePickupsTab {
     },
   );
   private readonly confirmedAll = signal(0);
+
+  /** The remove dialog's text, with the EA16 warning when the sign-up carries a linked EinAb. */
+  protected readonly removeText = computed(() => this.withLinkedWarning(this.i18n.t('pickups.tab.removeText'), this.slotTarget()?.slot));
+
+  /** EA16 (decision 169): signing out of / removing a sign-up with a linked EinAb cancels it; booked newcomers are told. */
+  private withLinkedWarning(text: string, slot: PickupSlot | undefined): string {
+    const linked = slot?.linkedIntroPickup;
+    return linked ? `${text} ${this.i18n.t('pickups.signout.linkedIntroPickup', { count: linked.bookedCount })}` : text;
+  }
 
   protected askRemove(): void {
     this.slotOpen.set(false);

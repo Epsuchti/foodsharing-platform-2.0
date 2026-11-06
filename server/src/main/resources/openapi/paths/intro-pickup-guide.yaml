@@ -16,7 +16,7 @@
   patch:
     tags: [intro-pickup-guide]
     operationId: updateGuideProfile
-    summary: 'Change iCal link and phone.'
+    summary: 'Change the phone number.'
     x-permission: 'CAN_GIVE_INTRO_PICKUPS@region'
     x-history: IntroPickupAction.GUIDE_PROFILE_UPDATED
     requestBody:
@@ -32,7 +32,7 @@
           application/json:
             schema:
               $ref: '../schemas/intro-pickups.yaml#/GuideProfile'
-      '400': {description: 'VALIDATION_FAILED, ICAL_LINK_NOT_ALLOWED or INVALID_PHONE_NUMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '400': {description: 'VALIDATION_FAILED or INVALID_PHONE_NUMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
@@ -120,6 +120,7 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED or GUIDE_INACTIVE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'REGION_NOT_FOUND or STORE_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'STORE_PICKUP_NOT_SIGNED_UP', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/intro-pickups/{introPickupId}:
   get:
@@ -227,7 +228,7 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ONLY_OWN_INTRO_PICKUPS_MANAGEABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'INTRO_PICKUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '409': {description: 'PAST_INTRO_PICKUP_NOT_REASSIGNABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PAST_INTRO_PICKUP_NOT_REASSIGNABLE or LINKED_INTRO_PICKUP_NOT_REASSIGNABLE', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/regions/{regionId}/guide/assignable-guides:
   get:
@@ -503,11 +504,11 @@
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'RESOURCE_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
-/api/guide/ical-candidates:
+/api/guide/pickup-candidates:
   get:
     tags: [intro-pickup-guide]
-    operationId: getIcalCandidates
-    summary: 'Upcoming entries of the guide''s own calendar (iCal link) to turn into EinAbs.'
+    operationId: listPickupCandidates
+    summary: 'The guide''s own confirmed upcoming store pickups (in guide regions) that can become linked EinAbs.'
     x-permission: 'CAN_GIVE_INTRO_PICKUPS@region'
     responses:
       '200':
@@ -517,11 +518,9 @@
             schema:
               type: array
               items:
-                $ref: '../schemas/intro-pickups.yaml#/IcalCandidate'
-      '400': {description: 'ICAL_LINK_NOT_ALLOWED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+                $ref: '../schemas/intro-pickups.yaml#/PickupCandidate'
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '503': {description: 'ICAL_FETCH_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
 /api/guide/ical-feed-link:
   get:
