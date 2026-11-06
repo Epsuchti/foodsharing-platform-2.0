@@ -61,7 +61,7 @@ jobs:
         dir: [., client, e2e]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: '24.15.0'
       - name: npm audit --omit=dev --audit-level=high (${{ matrix.dir }})
