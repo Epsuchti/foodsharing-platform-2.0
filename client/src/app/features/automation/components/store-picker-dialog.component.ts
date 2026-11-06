@@ -168,7 +168,7 @@ export function groupByRegion(items: readonly LinkCandidate[]): ResultGroup[] {
       </div>
       <ng-template #footer>
         <p-button [label]="'common.cancel' | t" [text]="true" (onClick)="visible.set(false)" data-testid="automation.picker.cancel" />
-        <p-button [label]="'automation.picker.done' | t: { count: picked().length }" icon="pi pi-check" (onClick)="onDone()" data-testid="automation.picker.done" />
+        <p-button [label]="'automation.picker.done' | t: { count: picked().length }" icon="pi pi-check" [disabled]="picked().length === 0" (onClick)="onDone()" data-testid="automation.picker.done" />
       </ng-template>
     </p-dialog>
   `,
