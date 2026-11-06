@@ -153,16 +153,36 @@ jobs:
         with:
           name: app-jar
           path: server/target
+      - name: Pick the Playwright browser
+        id: browser
+        run: |
+          case "${{ matrix.project }}" in
+            firefox) echo "name=firefox" >> "$GITHUB_OUTPUT" ;;
+            webkit|mobile-safari) echo "name=webkit" >> "$GITHUB_OUTPUT" ;;
+            *) echo "name=chromium" >> "$GITHUB_OUTPUT" ;;
+          esac
+      # The browser's system packages come from the runner's Ubuntu mirror, which at times serves one package every
+      # 10-20 s and runs the job into its timeout (mostly webkit, the largest set). Keep the downloaded .debs in the
+      # Actions cache, and give a download three tries of 10 minutes each.
+      - name: Restore browser system packages
+        uses: actions/cache@v4
+        with:
+          path: ~/apt-archives
+          key: apt-${{ runner.os }}-${{ steps.browser.outputs.name }}-${{ hashFiles('e2e/package-lock.json') }}
+          restore-keys: apt-${{ runner.os }}-${{ steps.browser.outputs.name }}-
       - name: Install e2e dependencies and browser
         working-directory: e2e
         run: |
           npm ci
-          case "${{ matrix.project }}" in
-            firefox) browser=firefox ;;
-            webkit|mobile-safari) browser=webkit ;;
-            *) browser=chromium ;;
-          esac
-          npx playwright install --with-deps "$browser"
+          mkdir -p ~/apt-archives/partial
+          echo "Dir::Cache::Archives \"$HOME/apt-archives\";" | sudo tee /etc/apt/apt.conf.d/99-apt-archives >/dev/null
+          for attempt in 1 2 3; do
+            sudo env "PATH=$PATH" timeout 10m npx playwright install-deps "${{ steps.browser.outputs.name }}" && break
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            echo "::warning::system packages attempt $attempt failed or took over 10 minutes; retrying"
+          done
+          sudo chown -R "$(id -u):$(id -g)" ~/apt-archives
+          npx playwright install "${{ steps.browser.outputs.name }}"
       - name: Type-check specs
         working-directory: e2e
         run: npx tsc --noEmit -p .
