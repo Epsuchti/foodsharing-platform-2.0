@@ -19,6 +19,8 @@ export function postCard(page: Page, postId: string) {
 
 /** Waits until success toasts have faded out (their enter animation trips the axe contrast check). */
 export async function settleToasts(page: Page): Promise<void> {
+  // a toast that slides in under the pointer of the last click pauses its life on hover until the mouse moves
+  await page.mouse.move(0, 0);
   await expect(page.getByTestId('shell.toast').locator('.p-toast-message')).toHaveCount(0, { timeout: 15_000 });
   await settleAnimations(page);
 }
