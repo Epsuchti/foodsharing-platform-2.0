@@ -22,7 +22,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-/** A33: concurrent senders get gap-free, unique seqs (conversation row lock) on PostgreSQL. */
+/**
+ * A33: concurrent senders get gap-free, unique seqs (conversation row lock) on PostgreSQL, and one user sending from
+ * two devices at once never gets 409 CONCURRENT_MODIFICATION (the member row is read after the lock).
+ */
 @SpringBootTest(properties = {"spring.liquibase.contexts=schema,seed", "app.scheduling.enabled=false"})
 @ActiveProfiles("test")
 @Testcontainers
@@ -43,11 +46,20 @@ class MessageSeqPostgresIT {
 
     @Test
     void concurrentSendersGetUniqueContiguousSeqs() throws Exception {
+        sendConcurrently(List.of(SeedUsers.FOODSAVER.id(), SeedUsers.BIEB.id()));
+    }
+
+    @Test
+    void oneSenderOnTwoDevicesNeverConflicts() throws Exception {
+        sendConcurrently(List.of(SeedUsers.FOODSAVER.id(), SeedUsers.FOODSAVER.id()));
+    }
+
+    private void sendConcurrently(List<UUID> senders) throws Exception {
         long before = jdbc.queryForObject("select last_seq from conversation where id = ?", Long.class, DIRECT);
         CountDownLatch start = new CountDownLatch(1);
-        ExecutorService pool = Executors.newFixedThreadPool(2);
+        ExecutorService pool = Executors.newFixedThreadPool(senders.size());
         List<Future<Integer>> results = new ArrayList<>();
-        for (UUID sender : List.of(SeedUsers.FOODSAVER.id(), SeedUsers.BIEB.id())) {
+        for (UUID sender : senders) {
             Callable<Integer> task = () -> {
                 start.await();
                 for (int i = 0; i < PER_SENDER; i++) {
@@ -64,11 +76,11 @@ class MessageSeqPostgresIT {
         pool.shutdown();
         List<Long> seqs = jdbc.queryForList("select seq from message where conversation_id = ? and seq > ? order by seq",
                 Long.class, DIRECT, before);
-        assertThat(seqs).hasSize(2 * PER_SENDER);
+        assertThat(seqs).hasSize(senders.size() * PER_SENDER);
         for (int i = 0; i < seqs.size(); i++) {
             assertThat(seqs.get(i)).isEqualTo(before + 1 + i);
         }
         assertThat(jdbc.queryForObject("select last_seq from conversation where id = ?", Long.class, DIRECT))
-                .isEqualTo(before + 2 * PER_SENDER);
+                .isEqualTo(before + (long) senders.size() * PER_SENDER);
     }
 }

@@ -203,6 +203,7 @@ public class MessagingService {
     @Transactional
     @NoHistory(reason = "chat messages are content, not actions (A33)")
     public ConversationMessage send(UUID senderId, UUID conversationId, String body, String clientKey) {
+        lock(conversationId);
         requireMember(senderId, conversationId);
         String text = body == null ? "" : body.strip();
         if (text.isEmpty()) {
@@ -243,8 +244,7 @@ public class MessagingService {
     }
 
     private ConversationMessage append(UUID conversationId, UUID senderId, String text, String clientKey) {
-        Conversation conversation = conversations.findForUpdate(conversationId)
-                .orElseThrow(() -> ApiException.notFound(ApiErrorCode.CONVERSATION_NOT_FOUND));
+        Conversation conversation = lock(conversationId);
         Instant now = clock.instant();
         long seq = conversation.getLastSeq() + 1;
         ConversationMessage message = new ConversationMessage();
@@ -398,6 +398,10 @@ public class MessagingService {
         return message;
     }
 
+    /**
+     * Row lock on the conversation. Take it before loading any {@link ConversationMember} that is written later:
+     * a member read before the lock may be stale once a concurrent send commits (409 CONCURRENT_MODIFICATION).
+     */
     private Conversation lock(UUID conversationId) {
         return conversations.findForUpdate(conversationId)
                 .orElseThrow(() -> ApiException.notFound(ApiErrorCode.CONVERSATION_NOT_FOUND));
@@ -471,8 +475,8 @@ public class MessagingService {
     @Transactional
     @NoHistory(reason = "read state is not an action")
     public long markRead(UUID userId, UUID conversationId, Long lastReadSeq) {
+        Conversation conversation = lock(conversationId);
         ConversationMember member = requireMember(userId, conversationId);
-        Conversation conversation = conversations.findById(conversationId).orElseThrow();
         long target = lastReadSeq == null ? conversation.getLastSeq()
                 : Math.max(0, Math.min(lastReadSeq, conversation.getLastSeq()));
         if (target > member.getLastReadSeq()) {
