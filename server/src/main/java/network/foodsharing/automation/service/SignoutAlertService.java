@@ -222,7 +222,6 @@ public class SignoutAlertService {
         cancellation.setStatus(CancellationStatus.OPEN);
         cancellation.setFinalCheckedAt(null);
         cancellation.setFinalNotifiedAt(null);
-        cancellation.setDryRun(false);
         String userName = users.findActive(event.userId()).map(User::getDisplayName).orElse("");
         long hours = Duration.between(event.at(), event.pickupAt()).toHours();
         String when = PickupFormat.when(event.pickupAt(), schedule.zoneOf(store.get()));
@@ -276,7 +275,7 @@ public class SignoutAlertService {
                 c.setTotalSlots(slot.get().slotCount());
                 c.setOccupiedSlots(slot.get().occupied());
             }
-            if (c.getStatus() == CancellationStatus.NOT_REPLACED && !c.isDryRun()) {
+            if (c.getStatus() == CancellationStatus.NOT_REPLACED) {
                 String userName = users.findActive(c.getUserId()).map(User::getDisplayName).orElse("");
                 String when = PickupFormat.when(c.getPickupAt(), schedule.zoneOf(store));
                 long hours = Duration.between(c.getCancelledAt(), c.getPickupAt()).toHours();

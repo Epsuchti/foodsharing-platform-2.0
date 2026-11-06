@@ -33,9 +33,6 @@ public class PickupPolicyAudit extends BaseEntity {
     @Column(name = "pickup_at", nullable = false)
     private Instant pickupAt;
 
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "decision", nullable = false, length = 20)
     private PickupPolicyDecision decision;

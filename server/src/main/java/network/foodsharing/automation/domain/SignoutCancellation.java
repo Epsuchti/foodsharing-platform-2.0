@@ -55,9 +55,6 @@ public class SignoutCancellation extends BaseEntity {
     @Column(name = "final_notified_at")
     private Instant finalNotifiedAt;
 
-    @Column(name = "dry_run", nullable = false)
-    private boolean dryRun;
-
     @Column(name = "message", length = 4000)
     private String message;
 

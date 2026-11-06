@@ -47,15 +47,13 @@ import tools.jackson.databind.ObjectMapper;
 public class AutomationAuditService {
 
     static final int DEFAULT_DAYS = 7;
-    private static final List<PickupPolicyDecision> CONFIRMED_PICKUP = List.of(PickupPolicyDecision.CONFIRMED,
-            PickupPolicyDecision.WOULD_CONFIRM);
-    private static final List<RequestDecision> CONFIRMED_REQUEST = List.of(RequestDecision.APPROVED,
-            RequestDecision.WOULD_APPROVE);
+    private static final List<PickupPolicyDecision> CONFIRMED_PICKUP = List.of(PickupPolicyDecision.CONFIRMED);
+    private static final List<RequestDecision> CONFIRMED_REQUEST = List.of(RequestDecision.APPROVED);
     private static final UUID NO_USER = new UUID(0L, 0L);
 
     /** One audit row of any kind. */
     public record AuditView(UUID id, AuditKind kind, UUID storeId, Instant pickupAt, UUID userId, String status,
-                            boolean dryRun, List<Reason> reasons, String userMessage, String error, Instant createdAt) {
+                            List<Reason> reasons, String userMessage, String error, Instant createdAt) {
     }
 
     public record Query(AuditKind kind, boolean excludeConfirmed, LocalDate from, LocalDate to, Integer page,
@@ -186,7 +184,7 @@ public class AutomationAuditService {
 
     private AuditView view(PickupPolicyAudit row) {
         return new AuditView(row.getId(), AuditKind.PICKUP, row.getStoreId(), row.getPickupAt(), row.getUserId(),
-                row.getDecision().name(), row.isDryRun(), reasons(row.getReasons()), row.getUserMessage(),
+                row.getDecision().name(), reasons(row.getReasons()), row.getUserMessage(),
                 row.getError(), row.getCreatedAt());
     }
 
@@ -195,25 +193,25 @@ public class AutomationAuditService {
                 : List.of(new Reason(PolicyRule.valueOf(row.getReason()), row.getMessage() == null ? ""
                 : row.getMessage()));
         return new AuditView(row.getId(), AuditKind.REQUEST, row.getStoreId(), null, row.getUserId(),
-                row.getStatus().name(), row.isDryRun(), reasons, row.getMessage(), row.getError(),
+                row.getStatus().name(), reasons, row.getMessage(), row.getError(),
                 row.getCreatedAt());
     }
 
     private AuditView view(network.foodsharing.automation.domain.OpenSlotAdvertAudit row) {
         return new AuditView(row.getId(), AuditKind.ADVERT, row.getStoreId(), row.getPickupAt(), row.getUserId(),
-                row.getStatus().name(), row.isDryRun(), List.of(), row.getMessage() != null ? row.getMessage()
+                row.getStatus().name(), List.of(), row.getMessage() != null ? row.getMessage()
                 : row.getReason(), row.getError(), row.getCreatedAt());
     }
 
     private AuditView view(network.foodsharing.automation.domain.SignoutCancellation row) {
         return new AuditView(row.getId(), AuditKind.CANCELLATION, row.getStoreId(), row.getPickupAt(),
-                row.getUserId(), row.getStatus().name(), row.isDryRun(), List.of(), row.getMessage(), row.getError(),
+                row.getUserId(), row.getStatus().name(), List.of(), row.getMessage(), row.getError(),
                 row.getCreatedAt());
     }
 
     private AuditView view(network.foodsharing.pickup.domain.PickupExtraSlot row) {
         return new AuditView(row.getId(), AuditKind.EXTRA_SLOT, row.getStoreId(), row.getPickupAt(), row.getUserId(),
-                "ADDED", false, List.of(), row.getPreviousTotalSlots() + " → " + row.getNewTotalSlots(), null,
+                "ADDED", List.of(), row.getPreviousTotalSlots() + " → " + row.getNewTotalSlots(), null,
                 row.getCreatedAt());
     }
 

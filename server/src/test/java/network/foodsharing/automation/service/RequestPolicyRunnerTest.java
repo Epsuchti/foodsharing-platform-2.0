@@ -123,13 +123,12 @@ class RequestPolicyRunnerTest {
 
     @Test
     void jobPathApprovesLive() {
-        // decision 167: no dry run; the job accepts and audits with dry_run = false
+        // decision 167: no dry run; the job accepts and audits the approval
         PickupPolicyRunner.RunResult result = runner.runAll();
         assertThat(result.confirmed()).isEqualTo(1);
         verify(team).acceptByAutomation(STORE, USER, RequestPolicyRunner.ACTOR);
         RequestPolicyAudit audit = savedAudit();
         assertThat(audit.getStatus()).isEqualTo(RequestDecision.APPROVED);
-        assertThat(audit.isDryRun()).isFalse();
     }
 
     @Test

@@ -220,7 +220,6 @@
   "history.action.AUTOMATION.SIGNOUT_CANCELLATION_RECORDED": "Kurzfristige Austragung erfasst",
   "history.action.AUTOMATION.SIGNOUT_FINAL_NOTIFIED": "Unbesetzte Abholung gemeldet",
   "history.action.AUTOMATION.EXTRA_SLOT_ADDED": "Zusatzplatz geöffnet",
-  "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Testlauf ausgeführt",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Entscheidungen archiviert",
   "history.action.AUTOMATION.FIELD_CHANGED": "Feld geändert",
   "history.action.AUTOMATION.LINK_MISSING": "Verknüpfung fehlt",

@@ -16,11 +16,10 @@ export const ADVERT_PLACEHOLDERS = ['date', 'dateDe', 'weekday', 'time', 'dateti
 export const LINK_PLACEHOLDERS = ['name', 'storeName', 'linkedStoreName', 'pickupDate', 'graceMinutes', 'requirement'] as const;
 
 /** Badge tone of an audit status / decision. */
-export type Tone = 'ok' | 'bad' | 'dry' | 'neutral' | 'error';
+export type Tone = 'ok' | 'bad' | 'neutral' | 'error';
 
 export function decisionTone(status: string): Tone {
   if (status === 'FAILED') return 'error';
-  if (status.startsWith('WOULD_') || status === 'DRY_RUN_SUMMARY') return 'dry';
   if (['CONFIRMED', 'APPROVED', 'SENT', 'REPLACED', 'REJOINED', 'ADDED'].includes(status)) return 'ok';
   if (['DECLINED', 'NOT_REPLACED'].includes(status)) return 'bad';
   if (status.startsWith('LATE_CANCELLATION') || status === 'OPEN') return 'bad';

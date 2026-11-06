@@ -55,7 +55,8 @@ describe('automation util', () => {
 
   it('maps decisions to badge tones', () => {
     expect(decisionTone('CONFIRMED')).toBe('ok');
-    expect(decisionTone('WOULD_DECLINE')).toBe('dry');
+    expect(decisionTone('LATE_CANCELLATION_REMINDER_SENT')).toBe('bad');
+    expect(decisionTone('OCCUPIED_AT_TRIGGER')).toBe('neutral');
     expect(decisionTone('DECLINED')).toBe('bad');
     expect(decisionTone('FAILED')).toBe('error');
     expect(decisionTone('SKIPPED')).toBe('neutral');

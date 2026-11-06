@@ -220,7 +220,6 @@
   "history.action.AUTOMATION.SIGNOUT_CANCELLATION_RECORDED": "Disiscrizione tardiva registrata",
   "history.action.AUTOMATION.SIGNOUT_FINAL_NOTIFIED": "Ritiro non coperto segnalato",
   "history.action.AUTOMATION.EXTRA_SLOT_ADDED": "Posto in più aggiunto",
-  "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Simulazione eseguita",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Decisioni archiviate",
   "history.action.AUTOMATION.FIELD_CHANGED": "Campo modificato",
   "history.action.AUTOMATION.LINK_MISSING": "Collegamento mancante",

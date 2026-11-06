@@ -14,7 +14,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Function;
 import network.foodsharing.api.model.ApiErrorCode;
-import network.foodsharing.automation.domain.AdvertStatus;
 import network.foodsharing.automation.domain.AutomationAction;
 import network.foodsharing.automation.domain.MetricDailyCount;
 import network.foodsharing.automation.domain.OpenSlotAdvertAudit;
@@ -186,8 +185,7 @@ public class MetricArchiveService {
         for (PickupPolicyAudit row : pickupRows) {
             LocalDate day = day(row.getCreatedAt(), zone.apply(row.getRegionId()));
             add(counts, row.getRegionId(), day, "SLOT_APPROVAL." + row.getDecision().name());
-            String prefix = row.getDecision() == PickupPolicyDecision.DECLINED
-                    || row.getDecision() == PickupPolicyDecision.WOULD_DECLINE ? "SLOT_DECLINE_RULE."
+            String prefix = row.getDecision() == PickupPolicyDecision.DECLINED ? "SLOT_DECLINE_RULE."
                     : row.getDecision() == PickupPolicyDecision.SKIPPED ? "SLOT_SKIP_RULE." : null;
             if (prefix != null) {
                 for (PickupPolicyEvaluator.Reason reason : audits.reasons(row.getReasons())) {
@@ -200,9 +198,6 @@ public class MetricArchiveService {
                     "REQUEST." + row.getStatus().name());
         }
         for (OpenSlotAdvertAudit row : advertRows) {
-            if (row.isDryRun() || row.getStatus() == AdvertStatus.DRY_RUN_SUMMARY) {
-                continue;
-            }
             LocalDate day = day(row.getCreatedAt(), zone.apply(row.getRegionId()));
             if (OpenSlotAdvertRunner.SENT_STATUSES.contains(row.getStatus())) {
                 add(counts, row.getRegionId(), day, ADVERT_SENT);

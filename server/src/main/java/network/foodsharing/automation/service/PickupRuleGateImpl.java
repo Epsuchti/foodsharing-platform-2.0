@@ -225,7 +225,6 @@ public class PickupRuleGateImpl implements PickupRuleGate {
         audit.setRegionId(data.regionId(storeId));
         audit.setUserId(userId);
         audit.setPickupAt(pickupAt);
-        audit.setDryRun(false);
         audit.setDecision(PickupPolicyDecision.DECLINED);
         audit.setReasons(PickupPolicyRunner.truncate(reasons, 32600));
         audits.save(audit);

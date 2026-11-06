@@ -159,7 +159,8 @@ class PickupPolicyFlowIT {
         mvc.perform(get(S + "06/automation").cookie(login(SeedUsers.BOT))).andExpect(status().isForbidden());
         assertThat(count("select count(*) from region_permission where permission in ('CAN_USE_AUTOMATIONS', "
                 + "'CAN_SEE_ALL_AUTOMATION_DECISIONS', 'CAN_SEE_USER_PICKUP_COUNT_GROUPING')")).isZero();
-        assertThat(count("select count(*) from pickup_policy where dry_run = true")).isZero();
+        assertThat(count("select count(*) from information_schema.columns where lower(column_name) = 'dry_run'"))
+                .isZero();
         mvc.perform(get(S01 + "/automation/audits").param("kind", "PICKUP").cookie(bieb)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].storeName").value("Coop Bahnhofbrücke"))
                 .andExpect(jsonPath("$.page.totalItems").value(Matchers.greaterThan(10)));
@@ -319,7 +320,7 @@ class PickupPolicyFlowIT {
         mvc.perform(get(ZUERICH + "/automation/audits").param("excludeConfirmed", "true").cookie(orga))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].status").value(Matchers.everyItem(
-                        Matchers.not(Matchers.in(java.util.List.of("CONFIRMED", "WOULD_CONFIRM", "APPROVED",
-                                "WOULD_APPROVE"))))));
+                        Matchers.not(Matchers.in(java.util.List.of("CONFIRMED", "APPROVED", "SENT", "REPLACED",
+                                "REJOINED", "ADDED"))))));
     }
 }

@@ -83,8 +83,7 @@ class OpenSlotAdvertRunnerTest {
         when(stores.memberAndJumperIds(STORE)).thenReturn(List.of(USER));
         when(schedule.zoneOf(store)).thenReturn(ZoneId.of("Europe/Zurich"));
         when(adverts.findByStoreIdOrderByAdvertNumber(STORE)).thenAnswer(i -> List.of(advert));
-        when(audits.findForPickup(any(), any(), any(),
-                any())).thenAnswer(i -> existing);
+        when(audits.findForPickup(any(), any(), any())).thenAnswer(i -> existing);
         when(audits.save(any())).thenAnswer(i -> {
             OpenSlotAdvertAudit audit = i.getArgument(0);
             audit.setId(UUID.randomUUID());
@@ -312,15 +311,12 @@ class OpenSlotAdvertRunnerTest {
     }
 
     @Test
-    void noDryRunAnyMore_auditsAreLiveAndNoSummaryIsWritten() {
-        // decision 167: every enabled advert sends; DRY_RUN_SUMMARY is a read-only legacy status
+    void noDryRunAnyMore_everyEnabledAdvertSends() {
+        // decision 167: every enabled advert sends
         slots(slot(PICKUP, 2));
         var result = runner.run(List.of(advert));
         assertThat(result.confirmed()).isEqualTo(1);
-        assertThat(saved).singleElement().satisfies(a -> {
-            assertThat(a.getStatus()).isEqualTo(AdvertStatus.SENT);
-            assertThat(a.isDryRun()).isFalse();
-        });
+        assertThat(saved).singleElement().satisfies(a -> assertThat(a.getStatus()).isEqualTo(AdvertStatus.SENT));
     }
 
     @Test

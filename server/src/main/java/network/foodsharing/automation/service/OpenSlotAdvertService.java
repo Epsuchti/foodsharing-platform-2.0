@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.automation.domain.AdvertChannel;
-import network.foodsharing.automation.domain.AdvertStatus;
 import network.foodsharing.automation.domain.AutomationAction;
 import network.foodsharing.automation.domain.OpenSlotAdvert;
 import network.foodsharing.automation.repository.OpenSlotAdvertAuditRepository;
@@ -161,9 +160,7 @@ public class OpenSlotAdvertService {
                 Instant triggerAt = slot.pickupAt().minus(Duration.ofHours(advert.triggerHoursBefore()));
                 int free = slot.slotCount() - slot.occupied();
                 if (free <= 0 || triggerAt.isAfter(until) || !slot.pickupAt().isAfter(now)
-                        || !audits.findForPickup(
-                        advert.id(), slot.pickupAt(), advert.triggerHoursBefore(), AdvertStatus.DRY_RUN_SUMMARY)
-                        .isEmpty()) {
+                        || !audits.findForPickup(advert.id(), slot.pickupAt(), advert.triggerHoursBefore()).isEmpty()) {
                     continue;
                 }
                 planned.add(new Planned(slot.pickupAt(), advert.advertNumber(), triggerAt.isBefore(now) ? now

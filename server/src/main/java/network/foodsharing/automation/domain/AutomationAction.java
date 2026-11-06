@@ -24,7 +24,6 @@ public enum AutomationAction implements HistoryAction {
     SIGNOUT_CANCELLATION_RECORDED,
     SIGNOUT_FINAL_NOTIFIED,
     EXTRA_SLOT_ADDED,
-    DRY_RUN_EXECUTED,
     AUDITS_ARCHIVED,
     FIELD_CHANGED,
     /** Shared gap list changed (decision 151); metadata storeId, storeIds, minimumGapDays. */

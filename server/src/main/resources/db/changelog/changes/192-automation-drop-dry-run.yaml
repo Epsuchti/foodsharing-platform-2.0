@@ -1,0 +1,39 @@
+# Decision 167 (Q8): dry run is gone for good. The legacy WOULD_* / DRY_RUN_SUMMARY audit rows, their archived
+# metric counts and the DRY_RUN_EXECUTED history entries go, then the dry_run columns (unmapped since changeset 188,
+# no index or constraint besides NOT NULL) are dropped. The seed loads after this changeset without dry_run.
+databaseChangeLog:
+  - changeSet:
+      id: 192-1
+      author: platform
+      comment: 'Legacy dry-run audit rows, archived counts and history entries.'
+      changes:
+        - delete:
+            tableName: pickup_policy_audit
+            where: "decision IN ('WOULD_CONFIRM', 'WOULD_DECLINE')"
+        - delete:
+            tableName: request_policy_audit
+            where: "status IN ('WOULD_APPROVE', 'WOULD_DECLINE')"
+        - delete:
+            tableName: open_slot_advert_audit
+            where: "status = 'DRY_RUN_SUMMARY' OR dry_run = TRUE"
+        - delete:
+            tableName: signout_cancellation
+            where: 'dry_run = TRUE'
+        - delete:
+            tableName: metric_daily_count
+            where: "metric_key IN ('SLOT_APPROVAL.WOULD_CONFIRM', 'SLOT_APPROVAL.WOULD_DECLINE', 'REQUEST.WOULD_APPROVE', 'REQUEST.WOULD_DECLINE')"
+        - delete:
+            tableName: history_entry
+            where: "subject_type = 'AUTOMATION' AND action = 'DRY_RUN_EXECUTED'"
+  - changeSet:
+      id: 192-2
+      author: platform
+      comment: 'Drop the dry_run columns.'
+      changes:
+        - dropColumn: {tableName: pickup_policy, columnName: dry_run}
+        - dropColumn: {tableName: request_policy, columnName: dry_run}
+        - dropColumn: {tableName: open_slot_advert, columnName: dry_run}
+        - dropColumn: {tableName: pickup_policy_audit, columnName: dry_run}
+        - dropColumn: {tableName: request_policy_audit, columnName: dry_run}
+        - dropColumn: {tableName: open_slot_advert_audit, columnName: dry_run}
+        - dropColumn: {tableName: signout_cancellation, columnName: dry_run}

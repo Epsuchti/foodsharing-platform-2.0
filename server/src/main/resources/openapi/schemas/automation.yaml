@@ -5,11 +5,11 @@ LinkedStoreWindowMode:
 
 PickupPolicyDecision:
   type: string
-  enum: [CONFIRMED, DECLINED, WOULD_CONFIRM, WOULD_DECLINE, SKIPPED, DEFERRED, FAILED]
+  enum: [CONFIRMED, DECLINED, SKIPPED, DEFERRED, FAILED]
 
 RequestDecision:
   type: string
-  enum: [APPROVED, DECLINED, WOULD_APPROVE, WOULD_DECLINE, SKIPPED, FAILED]
+  enum: [APPROVED, DECLINED, SKIPPED, FAILED]
 
 PolicyRule:
   type: string
@@ -24,7 +24,7 @@ AdvertChannel:
 AdvertStatus:
   type: string
   enum: [SENT, OCCUPIED_AT_TRIGGER, LATE_CANCELLATION_REMINDER_SENT, LATE_CANCELLATION_ADVERTISEMENT_SENT,
-    LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT, LATE_CANCELLATION_NO_ACTION, DRY_RUN_SUMMARY, FAILED]
+    LATE_CANCELLATION_REMINDER_AND_ADVERTISEMENT_SENT, LATE_CANCELLATION_NO_ACTION, FAILED]
 
 SignoutAlertChannel:
   type: string
@@ -623,7 +623,7 @@ PolicyReason:
 
 AutomationAudit:
   type: object
-  required: [id, kind, storeId, storeName, status, dryRun, reasons, createdAt]
+  required: [id, kind, storeId, storeName, status, reasons, createdAt]
   properties:
     id:
       type: string
@@ -643,8 +643,6 @@ AutomationAudit:
     status:
       description: 'PickupPolicyDecision, RequestDecision, AdvertStatus or CancellationStatus name (by kind)'
       type: string
-    dryRun:
-      type: boolean
     reasons:
       type: array
       items:
@@ -764,11 +762,9 @@ MetricKey:
     # --- pickup slot decisions (DEFERRED writes no audit, so it has no key) ---
     - SLOT_APPROVAL.CONFIRMED
     - SLOT_APPROVAL.DECLINED
-    - SLOT_APPROVAL.WOULD_CONFIRM
-    - SLOT_APPROVAL.WOULD_DECLINE
     - SLOT_APPROVAL.SKIPPED
     - SLOT_APPROVAL.FAILED
-    # --- decline reasons (DECLINED and WOULD_DECLINE), one per PolicyRule ---
+    # --- decline reasons (DECLINED), one per PolicyRule ---
     - SLOT_DECLINE_RULE.MANUAL_DATE
     - SLOT_DECLINE_RULE.PUBLIC_HOLIDAY
     - SLOT_DECLINE_RULE.HOLIDAY_CALENDAR_UNAVAILABLE
@@ -801,8 +797,6 @@ MetricKey:
     # --- store requests, one per RequestDecision ---
     - REQUEST.APPROVED
     - REQUEST.DECLINED
-    - REQUEST.WOULD_APPROVE
-    - REQUEST.WOULD_DECLINE
     - REQUEST.SKIPPED
     - REQUEST.FAILED
     # --- short-notice sign-outs, one per CancellationStatus ---

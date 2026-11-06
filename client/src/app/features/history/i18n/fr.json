@@ -220,7 +220,6 @@
   "history.action.AUTOMATION.SIGNOUT_CANCELLATION_RECORDED": "Désinscription tardive enregistrée",
   "history.action.AUTOMATION.SIGNOUT_FINAL_NOTIFIED": "Collecte non pourvue signalée",
   "history.action.AUTOMATION.EXTRA_SLOT_ADDED": "Place supplémentaire ajoutée",
-  "history.action.AUTOMATION.DRY_RUN_EXECUTED": "Simulation exécutée",
   "history.action.AUTOMATION.AUDITS_ARCHIVED": "Décisions archivées",
   "history.action.AUTOMATION.FIELD_CHANGED": "Champ modifié",
   "history.action.AUTOMATION.LINK_MISSING": "Lien manquant",

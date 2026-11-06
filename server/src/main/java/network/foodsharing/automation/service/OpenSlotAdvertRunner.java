@@ -173,8 +173,7 @@ public class OpenSlotAdvertRunner {
             }
             counters.evaluated++;
             Optional<OpenSlotAdvertAudit> existing = audits
-                    .findForPickup(advert.getId(),
-                            pickupAt, advert.getTriggerHoursBefore(), AdvertStatus.DRY_RUN_SUMMARY)
+                    .findForPickup(advert.getId(), pickupAt, advert.getTriggerHoursBefore())
                     .stream().findFirst();
             if (slot.occupied() >= slot.slotCount()) {
                 existing.filter(a -> a.getFilledAt() == null && SENT_STATUSES.contains(a.getStatus()))
@@ -371,7 +370,6 @@ public class OpenSlotAdvertRunner {
         audit.setPickupAt(pickupAt);
         audit.setTriggerHoursBefore(advert.getTriggerHoursBefore());
         audit.setStatus(status);
-        audit.setDryRun(false);
         return audit;
     }
 
