@@ -171,6 +171,18 @@ describe('store picker dialog (decision 167 S4)', () => {
     expect(fixture.componentInstance.visible()).toBe(false);
   });
 
+  it('disables "übernehmen" while no store is picked', async () => {
+    fixture.componentRef.setInput('selected', []);
+    fixture.componentInstance.visible.set(true);
+    await settle();
+    const button = () => body().querySelector('[data-testid="automation.picker.done"] button') as HTMLButtonElement;
+    expect(button().disabled).toBe(true);
+
+    (body().querySelector(`[data-testid="automation.picker.result"][data-store="${M}"] input`) as HTMLInputElement).click();
+    await settle();
+    expect(button().disabled).toBe(false);
+  });
+
   it('shows empty and error states', async () => {
     fixture.componentInstance.visible.set(true);
     await settle();
