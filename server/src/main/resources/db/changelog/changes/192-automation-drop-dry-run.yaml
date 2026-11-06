@@ -3,7 +3,7 @@
 # no index or constraint besides NOT NULL) are dropped. The seed loads after this changeset without dry_run.
 databaseChangeLog:
   - changeSet:
-      id: 191-1
+      id: 192-1
       author: platform
       comment: 'Legacy dry-run audit rows, archived counts and history entries.'
       changes:
@@ -26,7 +26,7 @@ databaseChangeLog:
             tableName: history_entry
             where: "subject_type = 'AUTOMATION' AND action = 'DRY_RUN_EXECUTED'"
   - changeSet:
-      id: 191-2
+      id: 192-2
       author: platform
       comment: 'Drop the dry_run columns.'
       changes:

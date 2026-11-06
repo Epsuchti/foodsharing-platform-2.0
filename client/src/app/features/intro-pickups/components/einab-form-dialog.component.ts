@@ -16,16 +16,22 @@ import {
   PrivateInfoTemplate,
 } from '../../../api';
 import { runMutation } from '../../../core/data/mutation';
+import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
 import { INTRO_CATEGORIES, isOnline, isoToZonedLocal, zonedLocalToIso } from '../intro-category';
 
-/** Prefill for a new EinAb (e.g. from an iCal candidate). */
+/** Prefill for a new EinAb, e.g. from the guide's own store pickup (EA16: then linked to it). */
 export interface EinAbPrefill {
   startAt?: string;
   businessName?: string;
   privateAddress?: string;
+  publicGeneralLocation?: string;
+  category?: IntroPickupCategory;
+  storeId?: string;
+  /** The store pickup the new EinAb is linked to (needs storeId; kept only while the start is unchanged). */
+  linkedPickupAt?: string;
 }
 
 interface FormModel {
@@ -65,7 +71,7 @@ const EMPTY: FormModel = {
  */
 @Component({
   selector: 'fs-einab-form-dialog',
-  imports: [...DATE_INPUT_IMPORTS, Button, Checkbox, Dialog, FormsModule, InputNumber, InputText, Select, Textarea, TPipe],
+  imports: [...DATE_INPUT_IMPORTS, Button, Checkbox, DateTimePipe, Dialog, FormsModule, InputNumber, InputText, Select, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-dialog [closeAriaLabel]="'common.close' | t"
@@ -87,6 +93,12 @@ const EMPTY: FormModel = {
             <fs-datetime-input inputId="ea-start" name="start" [(ngModel)]="m.start" (ngModelChange)="touch()" required testId="introPickups.form.start" />
           </div>
         </div>
+        @if (linkedAt(); as at) {
+          <p class="hint" data-testid="introPickups.form.linkedHint"><i class="pi pi-link" aria-hidden="true"></i>{{ 'introPickups.form.linkedHint' | t: { date: (at | fsDate: 'dateTime') } }}</p>
+          @if (unlinking()) {
+            <p class="hint hint--warn" role="status" data-testid="introPickups.form.unlinkHint"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'introPickups.form.unlinkHint' | t }}</p>
+          }
+        }
         @if (!online()) {
           <div class="form__row">
             <div class="field">
@@ -168,6 +180,17 @@ const EMPTY: FormModel = {
       font-size: 0.85rem;
       font-weight: 650;
     }
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--fs-text-muted);
+    }
+    .hint--warn {
+      color: var(--fs-warning-text, var(--fs-text));
+    }
   `,
 })
 export class EinAbFormDialogComponent {
@@ -198,6 +221,14 @@ export class EinAbFormDialogComponent {
     this.version();
     return this.templates().find((tpl) => tpl.category === this.m.category);
   });
+  /** EA16: the store pickup this EinAb is (or, on create, will be) linked to. */
+  protected readonly linkedAt = computed(() => this.einab()?.linkedPickupAt ?? (this.einab() ? undefined : this.prefill()?.linkedPickupAt));
+  /** The start (in the form's local time) the link belongs to; changing it removes the link. */
+  private linkedStart = '';
+  protected readonly unlinking = computed(() => {
+    this.version();
+    return !!this.linkedAt() && this.m.start !== this.linkedStart;
+  });
 
   constructor() {
     effect(() => {
@@ -225,10 +256,14 @@ export class EinAbFormDialogComponent {
           }
         : {
             ...EMPTY,
+            category: prefill?.category ?? EMPTY.category,
             start: isoToZonedLocal(prefill?.startAt, zone),
             businessName: prefill?.businessName ?? '',
             privateAddress: prefill?.privateAddress ?? '',
+            publicGeneralLocation: prefill?.publicGeneralLocation ?? '',
           };
+      const linked = einab ? einab.linkedPickupAt : prefill?.linkedPickupAt;
+      this.linkedStart = linked ? isoToZonedLocal(einab ? einab.startAt : linked, zone) : '';
       this.version.update((v) => v + 1);
     });
   }
@@ -257,13 +292,22 @@ export class EinAbFormDialogComponent {
     };
   }
 
+  /** Create only: the store and the link of a pre-filled store pickup (the server keeps the link while start = pickup). */
+  private createBody(): IntroPickupCreate {
+    const body = this.body();
+    const prefill = this.prefill();
+    if (!prefill?.storeId || isOnline(this.m.category)) {
+      return body;
+    }
+    return { ...body, storeId: prefill.storeId, linkedPickupAt: prefill.linkedPickupAt };
+  }
+
   protected readonly save = runMutation(
     () => {
-      const body = this.body();
       const einab = this.einab();
       return einab
-        ? this.api.updateIntroPickup({ introPickupId: einab.id, introPickupUpdate: body })
-        : this.api.createIntroPickup({ regionId: this.regionId()!, introPickupCreate: body });
+        ? this.api.updateIntroPickup({ introPickupId: einab.id, introPickupUpdate: this.body() })
+        : this.api.createIntroPickup({ regionId: this.regionId()!, introPickupCreate: this.createBody() });
     },
     {
       successToastKey: 'introPickups.form.saved',

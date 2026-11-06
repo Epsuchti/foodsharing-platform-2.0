@@ -7,11 +7,11 @@ import { Dialog } from '@openng/optimus-ui/dialog';
 import { Select } from '@openng/optimus-ui/select';
 
 import {
-  IcalCandidate,
   IntroPickupDetail,
   IntroPickupDetailPage,
   IntroPickupGuideService,
   IntroPickupSlot,
+  PickupCandidate,
   PrivateInfoTemplate,
   RegionRef,
   UserSummary,
@@ -34,8 +34,9 @@ import { introPickupIcs } from '../intro-pickups.resource';
 
 /**
  * `/guide` (EA10–EA16): the guide's EinAbs (upcoming / past) with create, edit, delete, assign another guide,
- * calendar export, book on behalf, cancel, mark done, count a cancelled booking and comments; plus dates from the
- * guide's own calendar (iCal) that can be turned into an EinAb.
+ * calendar export, book on behalf, cancel, mark done, count a cancelled booking and comments; plus the guide's own
+ * confirmed upcoming store pickups, which become a linked EinAb with the form pre-filled (EA16, decision 169). A
+ * linked EinAb is cancelled when the guide signs out of the store pickup, and cannot be handed to another guide.
  */
 @Component({
   selector: 'fs-guide-dashboard-page',
@@ -78,19 +79,19 @@ import { introPickupIcs } from '../intro-pickups.resource';
         </div>
 
         @if (!past() && candidates.status() !== 'empty') {
-          <fs-data-state [state]="candidates" skeleton="list" [skeletonRows]="1" [compact]="true" data-testid="introPickups.guide.icalState">
+          <fs-data-state [state]="candidates" skeleton="list" [skeletonRows]="1" [compact]="true" data-testid="introPickups.guide.pickupCandidatesState">
             <ng-template [fsData]="candidates" let-items>
-              <section class="fs-card card" data-testid="introPickups.guide.ical">
-                <h2 class="card__title"><i class="pi pi-calendar-clock" aria-hidden="true"></i>{{ 'introPickups.guide.icalTitle' | t }}</h2>
-                <p class="muted">{{ 'introPickups.guide.icalText' | t }}</p>
+              <section class="fs-card card" data-testid="introPickups.guide.pickupCandidates">
+                <h2 class="card__title"><i class="pi pi-calendar-clock" aria-hidden="true"></i>{{ 'introPickups.guide.candidatesTitle' | t }}</h2>
+                <p class="muted">{{ 'introPickups.guide.candidatesText' | t }}</p>
                 <ul class="list">
-                  @for (candidate of items; track candidate.startAt + candidate.summary) {
-                    <li class="candidate" data-testid="introPickups.guide.icalItem">
+                  @for (candidate of items; track candidate.storeId + candidate.startAt) {
+                    <li class="candidate" [attr.data-store-id]="candidate.storeId" data-testid="introPickups.guide.pickupCandidate">
                       <span class="candidate__main">
-                        <strong>{{ candidate.summary }}</strong>
-                        <span class="muted">{{ candidate.startAt | fsDate: 'dateTime' }}@if (candidate.location) { · {{ candidate.location }} }</span>
+                        <strong>{{ candidate.storeName }}</strong>
+                        <span class="muted">{{ candidate.startAt | fsDate: 'dateTime' }}@if (candidate.city) { · {{ candidate.city }} }</span>
                       </span>
-                      <p-button [label]="'introPickups.guide.icalUse' | t" icon="pi pi-plus" size="small" [outlined]="true" (onClick)="useCandidate(candidate)" data-testid="introPickups.guide.icalUse" />
+                      <p-button [label]="'introPickups.guide.candidateUse' | t" icon="pi pi-plus" size="small" [outlined]="true" (onClick)="useCandidate(candidate)" data-testid="introPickups.guide.pickupCandidateUse" />
                     </li>
                   }
                 </ul>
@@ -126,7 +127,9 @@ import { introPickupIcs } from '../intro-pickups.resource';
                       <fs-calendar-export-button [ics]="ics(einab.id)" fileName="einab.ics" [small]="true" testId="introPickups.guide.calendar" />
                       @if (!past()) {
                         <p-button icon="pi pi-pencil" [ariaLabel]="'introPickups.guide.edit' | t" [text]="true" size="small" (onClick)="openEdit(einab)" data-testid="introPickups.guide.edit" />
-                        <p-button icon="pi pi-user-edit" [ariaLabel]="'introPickups.guide.assign' | t" [text]="true" size="small" (onClick)="openAssign(einab)" data-testid="introPickups.guide.assign" />
+                        @if (!einab.linkedPickupAt) {
+                          <p-button icon="pi pi-user-edit" [ariaLabel]="'introPickups.guide.assign' | t" [text]="true" size="small" (onClick)="openAssign(einab)" data-testid="introPickups.guide.assign" />
+                        }
                         <p-button icon="pi pi-trash" [ariaLabel]="'introPickups.guide.delete' | t" [text]="true" size="small" severity="danger" (onClick)="askDelete(einab)" data-testid="introPickups.guide.delete" />
                       }
                     </span>
@@ -137,6 +140,9 @@ import { introPickupIcs } from '../intro-pickups.resource';
                     }
                     @if (einab.minimumPickupCount) {
                       <span class="tag">{{ 'introPickups.card.minimumPickups' | t: { count: einab.minimumPickupCount } }}</span>
+                    }
+                    @if (einab.linkedPickupAt) {
+                      <span class="tag" data-testid="introPickups.guide.linked"><i class="pi pi-link" aria-hidden="true"></i>{{ 'introPickups.guide.linked' | t }}</span>
                     }
                     @if (einab.imported) {
                       <span class="tag">{{ 'introPickups.guide.imported' | t }}</span>
@@ -161,7 +167,7 @@ import { introPickupIcs } from '../intro-pickups.resource';
       [einab]="editing()"
       [prefill]="prefill()"
       [templates]="templates.data() ?? []"
-      (saved)="einabs.reload(); templates.reload()"
+      (saved)="einabs.reload(); templates.reload(); candidates.reload()"
     />
 
     <fs-member-pick-dialog
@@ -264,7 +270,7 @@ export class GuideDashboardPageComponent {
     },
     loader: (p) => this.api.listGuideIntroPickups({ regionId: p!.regionId, past: p!.past, size: 100 }),
   });
-  protected readonly candidates = loadResource<IcalCandidate[]>({ loader: () => this.api.getIcalCandidates() });
+  protected readonly candidates = loadResource<PickupCandidate[]>({ loader: () => this.api.listPickupCandidates() });
   protected readonly templates = loadResource<PrivateInfoTemplate[]>({ loader: () => this.api.listPrivateInfoTemplates() });
 
   // create / edit
@@ -284,16 +290,31 @@ export class GuideDashboardPageComponent {
     this.formOpen.set(true);
   }
 
-  protected useCandidate(candidate: IcalCandidate): void {
+  /** EA16: the store pickup pre-fills the form; the dashboard switches to the guide region that contains the store. */
+  protected useCandidate(candidate: PickupCandidate): void {
+    if (candidate.regionId !== this.regionId()) {
+      this.chosenRegion.set(candidate.regionId);
+    }
     this.editing.set(null);
-    this.prefill.set({ startAt: candidate.startAt, businessName: candidate.summary, privateAddress: candidate.location });
+    this.prefill.set({
+      startAt: candidate.startAt,
+      businessName: candidate.storeName,
+      privateAddress: candidate.address,
+      publicGeneralLocation: candidate.city,
+      category: candidate.category,
+      storeId: candidate.storeId,
+      linkedPickupAt: candidate.startAt,
+    });
     this.formOpen.set(true);
   }
 
   // delete
   protected readonly remove = runMutation((introPickupId: string) => this.api.deleteIntroPickup({ introPickupId }), {
     successToastKey: 'introPickups.guide.deleted',
-    onSuccess: () => this.einabs.reload(),
+    onSuccess: () => {
+      this.einabs.reload();
+      this.candidates.reload();
+    },
   });
 
   protected askDelete(einab: IntroPickupDetail): void {

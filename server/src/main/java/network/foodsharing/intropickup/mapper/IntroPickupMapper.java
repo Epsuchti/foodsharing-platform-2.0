@@ -11,7 +11,6 @@ import network.foodsharing.api.model.FunnelStep;
 import network.foodsharing.api.model.GapSeverity;
 import network.foodsharing.api.model.GuideBooking;
 import network.foodsharing.api.model.GuideSummary;
-import network.foodsharing.api.model.IcalCandidate;
 import network.foodsharing.api.model.IntroPickupDetail;
 import network.foodsharing.api.model.MyBooking;
 import network.foodsharing.api.model.NewcomerFunnel;
@@ -29,7 +28,6 @@ import network.foodsharing.api.model.StoreAlias;
 import network.foodsharing.intropickup.domain.IntroPickup;
 import network.foodsharing.intropickup.domain.IntroPickupStoreAlias;
 import network.foodsharing.intropickup.service.GuideProfileService;
-import network.foodsharing.intropickup.service.IcalImportService;
 import network.foodsharing.intropickup.service.IntroPickupAdminService;
 import network.foodsharing.intropickup.service.IntroPickupBookingService;
 import network.foodsharing.intropickup.service.IntroPickupGuideService;
@@ -156,6 +154,7 @@ public class IntroPickupMapper {
         model.setPublicInfo(pickup.getPublicInfo());
         model.setVisitFairteiler(pickup.isVisitFairteiler());
         model.setImported(pickup.isImported());
+        model.setLinkedPickupAt(toOffset(pickup.getLinkedPickupAt()));
         model.setSlots(view.slots().stream().map(this::toSlot).toList());
         model.setBooked(view.booked());
         return model;
@@ -178,7 +177,8 @@ public class IntroPickupMapper {
                 create.getMinimumPickupCount(), create.getBusinessName(), create.getStoreId(),
                 create.getPrivateAddress(), create.getPublicGeneralLocation(), create.getOnlineCallLink(),
                 create.getPrivateInfo(), create.getPublicInfo(), create.getSavePrivateInfoAsTemplate(),
-                create.getVisitFairteiler());
+                create.getVisitFairteiler(),
+                create.getLinkedPickupAt() == null ? null : create.getLinkedPickupAt().toInstant());
     }
 
     public PickupInput toInput(network.foodsharing.api.model.IntroPickupUpdate update) {
@@ -213,19 +213,16 @@ public class IntroPickupMapper {
 
     public network.foodsharing.api.model.GuideProfile toProfile(GuideProfileService.ProfileView view) {
         network.foodsharing.api.model.GuideProfile model = new network.foodsharing.api.model.GuideProfile();
-        model.setIcalLink(view.icalLink());
         model.setPhone(view.phone());
         model.setFeedUrl(view.feedUrl());
         return model;
     }
 
-    public IcalCandidate toCandidate(IcalImportService.Candidate candidate) {
-        IcalCandidate model = new IcalCandidate();
-        model.setStartAt(toOffset(candidate.startAt()));
-        model.setEndAt(toOffset(candidate.endAt()));
-        model.setSummary(candidate.summary());
-        model.setLocation(candidate.location());
-        return model;
+    public network.foodsharing.api.model.PickupCandidate toCandidate(
+            network.foodsharing.intropickup.service.IntroPickupCandidateService.Candidate candidate) {
+        return new network.foodsharing.api.model.PickupCandidate().storeId(candidate.storeId())
+                .storeName(candidate.storeName()).startAt(toOffset(candidate.startAt())).address(candidate.address())
+                .city(candidate.city()).category(category(candidate.category())).regionId(candidate.regionId());
     }
 
     // ------------------------------------------------------------------------------------- subscription

@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+d Abholig bi [(${storeName})] am [(${fromWhen})] isch uf [(${when})] verschobe worde. Du bisch wiiterhin iitreit; wenn du zur neue Ziit nöd chasch, trag di bitte us.
+[# th:if="${message != null}"]
+Nachricht: [(${message})]
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

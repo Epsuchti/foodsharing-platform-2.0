@@ -1,0 +1,10 @@
+Ciao [(${displayName})],
+
+non sei più iscritto/a al ritiro presso [(${businessName})] il [(${when})], quindi il ritiro introduttivo collegato è stato annullato.
+[# th:if="${bookedCount != null and bookedCount != '0'}"]
+[(${bookedCount})] nuove persone prenotate sono state avvisate.
+[/]
+
+[(${link})]
+
+Il tuo team foodsharing

@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import network.foodsharing.common.persistence.BaseEntity;
 
-/** Settings of a guide (iCal link, personal feed token, phone). */
+/** Settings of a guide (personal iCal feed token, phone). */
 @Getter
 @Setter
 @Entity
@@ -17,9 +17,6 @@ public class GuideProfile extends BaseEntity {
 
     @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
-
-    @Column(name = "ical_link", length = 2000)
-    private String icalLink;
 
     @Column(name = "ical_feed_token", length = 64)
     private String icalFeedToken;

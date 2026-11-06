@@ -9,13 +9,13 @@ test('EA18 admin deletes unbooked with reason, creates historical, adjusts count
   await page.goto(`/regions/home/intro-pickups/admin`);
   await expect(page).toHaveURL(new RegExp(`/regions/${ZH}/intro-pickups/admin$`));
   const rows = page.getByTestId('introPickups.admin.einab');
-  await expect(rows).toHaveCount(14);
+  await expect(rows).toHaveCount(15);
 
   // delete an unbooked EinAb with a reason (booked ones have no delete button)
   await rows.first().getByTestId('introPickups.admin.delete').click();
   await page.getByTestId('introPickups.admin.deleteDialog.message').fill('Betrieb hat geschlossen, Termin entfällt.');
   await page.getByTestId('introPickups.admin.deleteDialog.confirm').click();
-  await expect(rows).toHaveCount(13);
+  await expect(rows).toHaveCount(14);
   await expect(rows.filter({ hasText: '1 / 1' }).getByTestId('introPickups.admin.delete')).toHaveCount(0);
 
   // a past EinAb for Luca (einab1), added afterwards

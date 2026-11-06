@@ -245,8 +245,6 @@ paths:
     $ref: './paths/dev.yaml#/~1api~1dev~1jobs~1{name}~1run'
   /api/dev/integrations/{integration}/fail:
     $ref: './paths/dev.yaml#/~1api~1dev~1integrations~1{integration}~1fail'
-  /api/dev/fixtures/ical:
-    $ref: './paths/dev.yaml#/~1api~1dev~1fixtures~1ical'
   # --- onboarding ---
   /api/onboarding/journey:
     $ref: './paths/onboarding.yaml#/~1api~1onboarding~1journey'
@@ -443,8 +441,8 @@ paths:
     $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1private-info-templates'
   /api/guide/private-info-templates/{category}:
     $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1private-info-templates~1{category}'
-  /api/guide/ical-candidates:
-    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1ical-candidates'
+  /api/guide/pickup-candidates:
+    $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1pickup-candidates'
   /api/guide/ical-feed-link:
     $ref: './paths/intro-pickup-guide.yaml#/~1api~1guide~1ical-feed-link'
   /api/regions/{regionId}/newcomer-funnel:
@@ -576,6 +574,8 @@ paths:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups'
   /api/stores/{storeId}/pickups/{pickupAt}:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}'
+  /api/stores/{storeId}/pickups/{pickupAt}/move:
+    $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1move'
   /api/stores/{storeId}/pickups/{pickupAt}/eligibility:
     $ref: './paths/pickups.yaml#/~1api~1stores~1{storeId}~1pickups~1{pickupAt}~1eligibility'
   /api/stores/{storeId}/pickups/{pickupAt}/signups:

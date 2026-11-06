@@ -1,6 +1,6 @@
 # Seed (decision 167): the three automation permission grants of user 0011 (00000010-0009-…-0004/5/6) go. No new ids.
 databaseChangeLog:
-  # seed-188-1 (dry-run seed automations become disabled) was removed when changelog 191 dropped dry_run: the seed
+  # seed-188-1 (dry-run seed automations become disabled) was removed when changelog 192 dropped dry_run: the seed
   # CSVs of 105-107 load S-01, S-02, S-04, the S-01 adverts and the S-07 request policy as off (S-06 stays live).
   - changeSet:
       id: seed-188-2

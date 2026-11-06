@@ -155,6 +155,7 @@ Generated from the `HistoryAction` enums (`RetentionTableTest` writes the expect
 | `GROUP` | `MEMBER_JOINED` | FOREVER |
 | `GROUP` | `MEMBER_REMOVED` | FOREVER |
 | `GROUP` | `UPDATED` | FOREVER |
+| `INTRO_PICKUP` | `AUTO_CANCELLED` | YEARS_2 |
 | `INTRO_PICKUP` | `BOOKING_CANCELLED_BY_GUIDE` | YEARS_2 |
 | `INTRO_PICKUP` | `BOOKING_CANCELLED_BY_USER` | YEARS_2 |
 | `INTRO_PICKUP` | `COMMENT_ADDED` | YEARS_2 |
@@ -268,6 +269,7 @@ Generated from the `HistoryAction` enums (`RetentionTableTest` writes the expect
 | `STORE` | `MOVED_TO_JUMPER` | FOREVER |
 | `STORE` | `MOVED_TO_REGION` | FOREVER |
 | `STORE` | `MOVED_TO_TEAM` | FOREVER |
+| `STORE` | `PICKUP_MOVED` | YEARS_2 |
 | `STORE` | `REGION_PICKUP_RULE_DISABLED` | FOREVER |
 | `STORE` | `REGION_PICKUP_RULE_ENABLED` | FOREVER |
 | `STORE` | `REMOVED_AS_STORE_MANAGER` | FOREVER |

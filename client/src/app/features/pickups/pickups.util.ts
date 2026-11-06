@@ -36,6 +36,34 @@ export function dayOf(instant: string | number | Date, timeZone: string): string
   );
 }
 
+/** Wall time (`HH:mm`, 24 h) of an instant in `timeZone` (move dialog preset). */
+export function timeOf(instant: string | number | Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-GB', { timeZone, hourCycle: 'h23', hour: '2-digit', minute: '2-digit' }).format(
+    new Date(instant),
+  );
+}
+
+export interface MoveSummary {
+  /** People signed up who get PICKUP_MOVED (everyone but the mover). */
+  notified: number;
+  /** Linked EinAbs that move along (EA16), and the newcomers booked on them. */
+  introPickups: number;
+  booked: number;
+}
+
+/** PU10 move dialog summary from the pickup's sign-ups (managers see every linked EinAb on them). */
+export function moveSummary(
+  slots: readonly { user: { id: string }; linkedIntroPickup?: { bookedCount: number } }[],
+  myId: string | null | undefined,
+): MoveSummary {
+  const linked = slots.filter((slot) => !!slot.linkedIntroPickup);
+  return {
+    notified: slots.filter((slot) => slot.user.id !== myId).length,
+    introPickups: linked.length,
+    booked: linked.reduce((sum, slot) => sum + (slot.linkedIntroPickup?.bookedCount ?? 0), 0),
+  };
+}
+
 /** `YYYY-MM-DD` plus `days`. */
 export function addDays(date: string, days: number): string {
   const [y, m, d] = date.split('-').map(Number);

@@ -22,6 +22,7 @@ import network.foodsharing.intropickup.repository.IntroPickupSubscriptionReposit
 import network.foodsharing.notification.domain.NotificationType;
 import network.foodsharing.notification.mail.service.MailDraft;
 import network.foodsharing.notification.mail.service.MailOutboxService;
+import network.foodsharing.notification.mail.service.MailTemplateService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
 import network.foodsharing.region.service.RegionService;
@@ -110,6 +111,50 @@ public class IntroPickupNotifications {
                 base(List.of(event.userId()), NotificationType.INTRO_PICKUP_CANCELLED_BY_GUIDE, pickup)
                         .param("reason", event.reason()).link("/intro-pickups")
                         .mail("intropickup/cancelled-by-guide").icon("calendar-x").build()));
+    }
+
+    /**
+     * EA16: the guide's linked store pickup went away. Booked newcomers get INTRO_PICKUP_CANCELLED_BY_GUIDE with the
+     * fixed reason (mail flag {@code storePickupCancelled}), the guide INTRO_PICKUP_AUTO_CANCELLED.
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @NoHistory(reason = "every bell / mail records NOTIFICATION SENT / MAIL_QUEUED through the notification module")
+    public void onAutoCancelled(IntroPickupGuideService.IntroPickupAutoCancelled event) {
+        pickups.findById(event.introPickupId()).ifPresent(pickup -> {
+            if (!event.bookedUserIds().isEmpty()) {
+                notifications.notify(base(event.bookedUserIds(), NotificationType.INTRO_PICKUP_CANCELLED_BY_GUIDE,
+                        pickup).param("storePickupCancelled", "true").link("/intro-pickups")
+                        .mail("intropickup/cancelled-by-guide").icon("calendar-x").build());
+            }
+            notifications.notify(base(List.of(event.guideId()), NotificationType.INTRO_PICKUP_AUTO_CANCELLED, pickup)
+                    .param("bookedCount", String.valueOf(event.bookedUserIds().size()))
+                    .link("/guide/intro-pickups").mail("intropickup/auto-cancelled").icon("calendar-x").build());
+        });
+    }
+
+    /**
+     * PU10: the linked store pickup moved, so the EinAb moved along. Booked newcomers get INTRO_PICKUP_MOVED with the
+     * old and the new time; the mail subject says "short notice" below 24 h (subject variant {@code short-notice}).
+     * The guide gets nothing extra (he got PICKUP_MOVED).
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @NoHistory(reason = "every bell / mail records NOTIFICATION SENT / MAIL_QUEUED through the notification module")
+    public void onMoved(IntroPickupGuideService.IntroPickupMoved event) {
+        if (event.bookedUserIds().isEmpty()) {
+            return;
+        }
+        pickups.findById(event.introPickupId()).ifPresent(pickup -> {
+            NotificationRequest.Builder bell = base(event.bookedUserIds(), NotificationType.INTRO_PICKUP_MOVED, pickup)
+                    .param("fromStartAt", event.from().toString())
+                    .param("fromWhen", WHEN.format(event.from().atZone(regions.zoneOf(pickup.getRegionId()))))
+                    .link("/me/intro-pickups").mail("intropickup/moved").icon("calendar");
+            if (event.shortNotice()) {
+                bell.param("shortNotice", "true").param(MailTemplateService.SUBJECT_VARIANT, "short-notice");
+            }
+            notifications.notify(bell.build());
+        });
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

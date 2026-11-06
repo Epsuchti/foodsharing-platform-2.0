@@ -133,6 +133,45 @@
       '404': {description: 'STORE_NOT_FOUND or STORE_DELETED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'MORE_OCCUPIED_SLOTS', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
 
+/api/stores/{storeId}/pickups/{pickupAt}/move:
+  post:
+    tags: [pickups]
+    operationId: movePickup
+    summary: 'Move one future pickup (one-time or one regular occurrence) to another future time of the same store (PU10). Sign-ups move along and keep their confirmation; everyone signed up except the mover gets PICKUP_MOVED; linked EinAbs move along (EA16).'
+    x-permission: 'mayEditPickups'
+    x-history: StoreLogAction.PICKUP_MOVED
+    parameters:
+      - name: storeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: pickupAt
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date-time
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/pickups.yaml#/PickupMove'
+    responses:
+      '200':
+        description: The pickup at its new time
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/pickups.yaml#/Pickup'
+      '400': {description: 'VALIDATION_FAILED (same time, message too long) or PICKUP_IN_PAST (old or new time)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'STORE_NOT_FOUND, STORE_DELETED or PICKUP_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'PICKUP_TIME_TAKEN (the store already has a pickup at the new time)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
 /api/stores/{storeId}/pickups/{pickupAt}/eligibility:
   get:
     tags: [pickups]

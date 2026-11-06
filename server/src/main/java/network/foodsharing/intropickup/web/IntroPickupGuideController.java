@@ -10,7 +10,6 @@ import network.foodsharing.api.model.GuideBooking;
 import network.foodsharing.api.model.GuideBookingPage;
 import network.foodsharing.api.model.GuideProfile;
 import network.foodsharing.api.model.GuideProfileUpdate;
-import network.foodsharing.api.model.IcalCandidate;
 import network.foodsharing.api.model.IntroPickupCategory;
 import network.foodsharing.api.model.IntroPickupCreate;
 import network.foodsharing.api.model.IntroPickupDetail;
@@ -18,6 +17,7 @@ import network.foodsharing.api.model.IntroPickupDetailPage;
 import network.foodsharing.api.model.IntroPickupUpdate;
 import network.foodsharing.api.model.NewcomerFunnel;
 import network.foodsharing.api.model.OptionalReasonBody;
+import network.foodsharing.api.model.PickupCandidate;
 import network.foodsharing.api.model.PrivateInfoTemplate;
 import network.foodsharing.api.model.RegionRef;
 import network.foodsharing.api.model.SlotComment;
@@ -27,6 +27,7 @@ import network.foodsharing.common.mapper.PageMapper;
 import network.foodsharing.intropickup.mapper.IntroPickupMapper;
 import network.foodsharing.intropickup.service.GuideProfileService;
 import network.foodsharing.intropickup.service.IntroPickupBookingService;
+import network.foodsharing.intropickup.service.IntroPickupCandidateService;
 import network.foodsharing.intropickup.service.IntroPickupGuideService;
 import network.foodsharing.intropickup.service.IntroPickupViews;
 import network.foodsharing.intropickup.service.NewcomerProgressService;
@@ -48,10 +49,13 @@ public class IntroPickupGuideController implements IntroPickupGuideApi {
     private final IntroPickupMapper mapper;
     private final RegionMapper regionMapper;
     private final UserMapper userMapper;
+    private final IntroPickupCandidateService candidates;
 
     public IntroPickupGuideController(IntroPickupGuideService guides, IntroPickupBookingService booking,
                                       GuideProfileService profiles, NewcomerProgressService progress,
-                                      IntroPickupMapper mapper, RegionMapper regionMapper, UserMapper userMapper) {
+                                      IntroPickupMapper mapper, RegionMapper regionMapper, UserMapper userMapper,
+                                      IntroPickupCandidateService candidates) {
+        this.candidates = candidates;
         this.guides = guides;
         this.booking = booking;
         this.profiles = profiles;
@@ -119,8 +123,8 @@ public class IntroPickupGuideController implements IntroPickupGuideApi {
     }
 
     @Override
-    public ResponseEntity<List<IcalCandidate>> getIcalCandidates() {
-        return ResponseEntity.ok(profiles.candidates().stream().map(mapper::toCandidate).toList());
+    public ResponseEntity<List<PickupCandidate>> listPickupCandidates() {
+        return ResponseEntity.ok(candidates.candidates().stream().map(mapper::toCandidate).toList());
     }
 
     @Override
@@ -181,7 +185,7 @@ public class IntroPickupGuideController implements IntroPickupGuideApi {
 
     @Override
     public ResponseEntity<GuideProfile> updateGuideProfile(GuideProfileUpdate update) {
-        return ResponseEntity.ok(mapper.toProfile(profiles.update(update.getIcalLink(), update.getPhone())));
+        return ResponseEntity.ok(mapper.toProfile(profiles.update(update.getPhone())));
     }
 
     @Override

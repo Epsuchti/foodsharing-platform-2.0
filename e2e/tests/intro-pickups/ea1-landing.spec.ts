@@ -14,9 +14,9 @@ test('EA1 logged-in user lands on home region list, newbie gets region picker @E
   await newbie.goto('/r/zuerich-stadt/intro-pickups');
   await expect(newbie.getByTestId('introPickups.public.state')).toHaveAttribute('data-state', 'success');
 
-  // einab1 (home region Zürich Stadt): the region's 14 upcoming EinAbs
+  // einab1 (home region Zürich Stadt): the region's 15 upcoming EinAbs
   await openBookable(page);
-  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(14);
+  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(15);
   await expect(page.locator('fs-page-header')).toContainText('Zürich');
   await expect(bookableCards(page, 'ONLINE').getByTestId('introPickups.bookable.book')).toBeVisible();
 

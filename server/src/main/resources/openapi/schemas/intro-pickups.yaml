@@ -195,8 +195,6 @@ SubscriptionUpdate:
 GuideProfile:
   type: object
   properties:
-    icalLink:
-      type: string
     phone:
       type: string
     feedUrl:
@@ -205,9 +203,6 @@ GuideProfile:
 GuideProfileUpdate:
   type: object
   properties:
-    icalLink:
-      type: string
-      maxLength: 2000
     phone:
       type: string
       maxLength: 50
@@ -275,6 +270,10 @@ IntroPickupDetail:
       type: boolean
     imported:
       type: boolean
+    linkedPickupAt:
+      description: 'Set while the EinAb is linked to the guide''s own store pickup at storeId (EA16, decision 169).'
+      type: string
+      format: date-time
     slots:
       type: array
       items:
@@ -338,6 +337,10 @@ IntroPickupCreate:
       type: boolean
     visitFairteiler:
       type: boolean
+    linkedPickupAt:
+      description: 'Link the EinAb to the guide''s own confirmed store pickup at storeId and this time (EA16). Needs storeId; startAt must equal it, otherwise no link is stored.'
+      type: string
+      format: date-time
 
 IntroPickupUpdate:
   type: object
@@ -470,20 +473,30 @@ PrivateInfoTemplate:
     content:
       type: string
 
-IcalCandidate:
+PickupCandidate:
   type: object
-  required: [startAt, summary]
+  description: 'A confirmed upcoming store pickup of the guide that can become a linked EinAb (EA16).'
+  required: [storeId, storeName, startAt, category, regionId]
   properties:
+    storeId:
+      type: string
+      format: uuid
+    storeName:
+      type: string
     startAt:
       type: string
       format: date-time
-    endAt:
+    address:
+      description: 'Street, postcode and city of the store.'
       type: string
-      format: date-time
-    summary:
+    city:
       type: string
-    location:
+    category:
+      $ref: './intro-pickups.yaml#/IntroPickupCategory'
+    regionId:
+      description: 'The guide region that contains the store.'
       type: string
+      format: uuid
 
 FeedLink:
   type: object

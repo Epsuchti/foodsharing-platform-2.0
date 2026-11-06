@@ -67,6 +67,10 @@ public class IntroPickup extends BaseEntity implements HistorySubject {
     @Column(name = "imported", nullable = false)
     private boolean imported;
 
+    /** The guide's own store pickup at {@link #storeId} this EinAb is linked to (EA16, decision 169); null = unlinked. */
+    @Column(name = "linked_pickup_at")
+    private Instant linkedPickupAt;
+
     @Column(name = "deleted_at")
     private Instant deletedAt;
 

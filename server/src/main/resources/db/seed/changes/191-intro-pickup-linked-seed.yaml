@@ -1,0 +1,16 @@
+# Seed (EA16, decision 169): the EinAb 00000030-0001-…-28 of guide@local (seeded in 045, booked by pending@local) is
+# linked to his confirmed S-03 Migros Limmatplatz pickup on Friday 2026-11-06 18:30. The store only exists after the
+# store seed (060), so its id is set here. Times move with the seed anchor (IntroPickupSeedDateShift shifts
+# linked_pickup_at with start_at, PickupSeedDateShift the sign-up).
+databaseChangeLog:
+  - changeSet:
+      id: seed-191-1
+      author: platform
+      context: seed
+      comment: 'The linked EinAb points to its store.'
+      changes:
+        - update:
+            tableName: intro_pickup
+            columns:
+              - column: {name: store_id, value: '00000020-0001-4000-8000-000000000003'}
+            where: "id = '00000030-0001-4000-8000-000000000028'"

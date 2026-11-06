@@ -1,6 +1,6 @@
 # Seed (M4 B4): request policy S-07 (distance 5 km, off) with 3 audits. Ids: docs/seed-ids.md (0022).
 databaseChangeLog:
-  # seed-106-1 and seed-106-2 (with dry_run) were replaced by seed-106-3 and seed-106-4 when changelog 191 dropped
+  # seed-106-1 and seed-106-2 (with dry_run) were replaced by seed-106-3 and seed-106-4 when changelog 192 dropped
   # the column (decision 167).
   - changeSet:
       id: seed-106-3

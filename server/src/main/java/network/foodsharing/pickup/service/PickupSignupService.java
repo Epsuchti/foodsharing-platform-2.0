@@ -394,6 +394,75 @@ public class PickupSignupService {
     }
 
     /**
+     * PU10 (decision 170): moves one future pickup of the store to another future time of the same store. A regular
+     * occurrence stays cancelled at the old time (override with 0 slots) and becomes a one-time pickup at the new
+     * time; a one-time pickup's row moves. Slot count (with added extra slots) and description go along, every
+     * sign-up moves and keeps its confirmation, its reminder is reset; the extra-slot rows follow. Eligibility and
+     * automation rules are not re-checked. Store log PICKUP_MOVED; {@link PickupEvents.PickupMovedEvent} in the same
+     * transaction (linked EinAbs move along); bell + mail PICKUP_MOVED to everyone signed up except the mover.
+     *
+     * @throws ApiException 404 (store, PICKUP_NOT_FOUND), 403 unless mayEditPickups, 400 PICKUP_IN_PAST /
+     *                      VALIDATION_FAILED, 409 PICKUP_TIME_TAKEN
+     */
+    @Transactional
+    public PickupSchedule.Slot move(UUID storeId, Instant from, Instant to, String message) {
+        stores.require(storeId);
+        Store store = stores.lock(storeId);
+        SessionPrincipal actor = currentActor.requirePrincipal();
+        boolean mayEdit = rights.rights(actor, store).mayEditPickups();
+        PickupSchedule.Slot current = mayEdit ? schedule.find(store, from).orElse(null) : null;
+        PickupSchedule.Slot atNew = mayEdit && to != null ? schedule.find(store, to).orElse(null) : null;
+        String text = message == null || message.isBlank() ? null : message.strip();
+        PickupMoveRule.check(mayEdit, current, to, atNew, clock.instant(), text).ifPresent(refusal -> {
+            throw refusal.exception();
+        });
+        PickupDate target = dates.findByStoreIdAndPickupAt(storeId, to).orElseGet(() -> {
+            PickupDate d = new PickupDate();
+            d.setStoreId(storeId);
+            d.setPickupAt(to);
+            return d;
+        });
+        target.setSlotCount(PickupMoveRule.slotCountAfterMove(current));
+        target.setDescription(current.description());
+        dates.save(target);
+        PickupDate old = dates.findByStoreIdAndPickupAt(storeId, from).orElse(null);
+        if (PickupMoveRule.keepCancelledOccurrence(current)) {
+            if (old == null) {
+                old = new PickupDate();
+                old.setStoreId(storeId);
+                old.setPickupAt(from);
+            }
+            old.setSlotCount(0);
+            dates.save(old);
+        } else if (old != null) {
+            dates.delete(old);
+        }
+        List<PickupSignup> moved = signups.findByStoreIdAndPickupAt(storeId, from);
+        moved.forEach(signup -> moveSignup(signup, to));
+        extraSlots.findByStoreIdAndPickupAt(storeId, from).forEach(extra -> extra.setPickupAt(to));
+        signups.flush();
+        history.record(history.event(StoreLogAction.PICKUP_MOVED, storeId).region(store.getRegionId())
+                .metadata("from", from.toString()).metadata("to", to.toString()).metadata("signups", moved.size())
+                .metadata("withMessage", text != null).build());
+        List<UUID> userIds = moved.stream().map(PickupSignup::getUserId).toList();
+        events.publishEvent(new PickupEvents.PickupMovedEvent(storeId, from, to, userIds, actor.userId()));
+        List<UUID> recipients = userIds.stream().filter(id -> !id.equals(actor.userId())).toList();
+        if (!recipients.isEmpty()) {
+            StoreNotifications.send(events, request(recipients, NotificationType.PICKUP_MOVED, store, to)
+                    .param("fromPickupAt", from.toString())
+                    .param("fromWhen", PickupFormat.when(from, schedule.zoneOf(store)))
+                    .param("message", text).mail("pickup/moved").build());
+        }
+        return schedule.find(store, to).orElseThrow();
+    }
+
+    /** A moved sign-up keeps its confirmation; the reminder is sent again for the new time (PU10). */
+    static void moveSignup(PickupSignup signup, Instant to) {
+        signup.setPickupAt(to);
+        signup.setRemindedAt(null);
+    }
+
+    /**
      * AU6: the earliest sign-up of a future pickup adds one extra slot (up to the store's {@code max_extra_slots} per
      * pickup, {@link ExtraSlotRule}). Store log UPDATE_SLOT_COUNT + {@link PickupAction#EXTRA_SLOT_ADDED}; bell PICKUP_EXTRA_SLOT_ADDED to
      * the managers.

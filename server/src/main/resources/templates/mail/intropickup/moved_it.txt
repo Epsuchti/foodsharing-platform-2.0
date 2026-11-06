@@ -1,0 +1,14 @@
+Ciao [(${displayName})],
+[# th:if="${shortNotice != null}"]
+Modifica con breve preavviso!
+[/]
+il tuo ritiro introduttivo presso [(${businessName})] è stato spostato perché il ritiro presso il negozio è stato spostato.
+
+Prima: [(${fromWhen})]
+Nuovo: [(${when})]
+
+La tua prenotazione resta valida. Se non puoi al nuovo orario, annullala per favore.
+
+[(${link})]
+
+Il tuo team foodsharing

@@ -94,6 +94,15 @@ public class PickupMapper {
         return views.stream().map(v -> {
             Pickup model = toModel(v.slot(), v.available(), v.eligibility(), all, blockStores);
             model.setMayAddExtraSlot(v.mayAddExtraSlot());
+            if (!v.linkedIntroPickups().isEmpty()) {
+                for (PickupSlot slot : model.getOccupiedSlots()) {
+                    var info = v.linkedIntroPickups().get(slot.getUser().getId());
+                    if (info != null) {
+                        slot.setLinkedIntroPickup(new network.foodsharing.api.model.LinkedIntroPickup()
+                                .introPickupId(info.introPickupId()).bookedCount(info.bookedCount()));
+                    }
+                }
+            }
             if (!v.linkMissing().isEmpty()) {
                 for (PickupSlot slot : model.getOccupiedSlots()) {
                     Instant until = v.linkMissing().get(slot.getUser().getId());

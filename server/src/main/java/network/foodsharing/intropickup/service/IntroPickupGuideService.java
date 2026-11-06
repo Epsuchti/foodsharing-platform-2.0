@@ -48,11 +48,49 @@ public class IntroPickupGuideService {
 
     static final Set<SlotStatus> BLOCKING = Set.of(SlotStatus.BOOKED, SlotStatus.DONE);
 
-    /** Create / update input; on update null means unchanged. */
+    /**
+     * Create / update input; on update null means unchanged. {@code linkedPickupAt} (create only, EA16): the guide's
+     * own store pickup at {@code storeId} to link to.
+     */
     public record PickupInput(IntroPickupCategory category, Instant startAt, Integer slotCount,
                               Integer minimumPickupCount, String businessName, UUID storeId, String privateAddress,
                               String publicGeneralLocation, String onlineCallLink, String privateInfo,
-                              String publicInfo, Boolean savePrivateInfoAsTemplate, Boolean visitFairteiler) {
+                              String publicInfo, Boolean savePrivateInfoAsTemplate, Boolean visitFairteiler,
+                              Instant linkedPickupAt) {
+
+        public PickupInput(IntroPickupCategory category, Instant startAt, Integer slotCount,
+                           Integer minimumPickupCount, String businessName, UUID storeId, String privateAddress,
+                           String publicGeneralLocation, String onlineCallLink, String privateInfo,
+                           String publicInfo, Boolean savePrivateInfoAsTemplate, Boolean visitFairteiler) {
+            this(category, startAt, slotCount, minimumPickupCount, businessName, storeId, privateAddress,
+                    publicGeneralLocation, onlineCallLink, privateInfo, publicInfo, savePrivateInfoAsTemplate,
+                    visitFairteiler, null);
+        }
+    }
+
+    /** Why a linked EinAb was cancelled (history metadata {@code cause}, EA16). */
+    public enum AutoCancelCause { SIGNED_OUT, REMOVED, AUTOMATION, ALL_FUTURE_DELETED, LEFT_TEAM }
+
+    /**
+     * After commit: the linked EinAb was cancelled; {@code bookedUserIds} are told (booking cancelled because the store
+     * pickup went away), the guide gets INTRO_PICKUP_AUTO_CANCELLED.
+     */
+    public record IntroPickupAutoCancelled(UUID introPickupId, UUID guideId, List<UUID> bookedUserIds) {
+    }
+
+    /**
+     * After commit: the linked store pickup moved {@code from} → {@code to}, so the EinAb moved along;
+     * {@code bookedUserIds} get INTRO_PICKUP_MOVED, "short notice" when the new time is less than 24 h ahead (PU10).
+     */
+    public record IntroPickupMoved(UUID introPickupId, Instant from, Instant to, List<UUID> bookedUserIds,
+                                   boolean shortNotice) {
+    }
+
+    /** Below this lead time the INTRO_PICKUP_MOVED mail says "short notice" (PU10, decision 170). */
+    static final java.time.Duration SHORT_NOTICE = java.time.Duration.ofHours(24);
+
+    /** The EinAb linked to a guide's sign-up (sign-out warning, EA16). */
+    public record LinkedInfo(UUID introPickupId, UUID guideId, Instant pickupAt, int bookedCount) {
     }
 
     public record CommentView(IntroPickupComment comment, User author) {
@@ -107,10 +145,16 @@ public class IntroPickupGuideService {
     }
 
     private network.foodsharing.store.service.StoreService storeService;
+    private GuideStorePickups storePickups;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setStoreService(network.foodsharing.store.service.StoreService storeService) {
         this.storeService = storeService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setStorePickups(GuideStorePickups storePickups) {
+        this.storePickups = storePickups;
     }
 
     // ------------------------------------------------------------------------------------------- read
@@ -207,12 +251,18 @@ public class IntroPickupGuideService {
         pickup.setRegionId(regionId);
         pickup.setGuideId(guideId);
         apply(pickup, input);
+        Instant link = linkOnCreate(input.linkedPickupAt(), pickup.getStartAt(), pickup.getStoreId());
+        if (link != null && (storePickups == null || !storePickups.hasConfirmedSignup(guideId, pickup.getStoreId(),
+                link))) {
+            throw ApiException.conflict(ApiErrorCode.STORE_PICKUP_NOT_SIGNED_UP);
+        }
+        pickup.setLinkedPickupAt(link);
         pickups.save(pickup);
         createSlots(pickup, pickup.getSlotCount());
         saveTemplateIfRequested(guideId, pickup, input);
         history.record(history.event(IntroPickupAction.CREATED, pickup.getId()).region(regionId)
                 .metadata("category", pickup.getCategory().name()).metadata("startAt", pickup.getStartAt().toString())
-                .build());
+                .metadata("linked", link != null).build());
         events.publishEvent(new IntroPickupCreated(pickup.getId()));
         return views.pickup(pickup);
     }
@@ -234,6 +284,7 @@ public class IntroPickupGuideService {
             throw ApiException.badRequest(ApiErrorCode.INTRO_PICKUP_START_IN_PAST);
         }
         Snapshot before = Snapshot.of(pickup);
+        UUID storeBefore = pickup.getStoreId();
         IntroPickupCategory category = input.category() == null ? pickup.getCategory() : input.category();
         PickupInput merged = new PickupInput(category,
                 input.startAt() == null ? pickup.getStartAt() : input.startAt(),
@@ -274,8 +325,17 @@ public class IntroPickupGuideService {
         }
         saveTemplateIfRequested(pickup.getGuideId(), pickup, merged);
         List<String> changed = before.changedFields(pickup);
-        history.record(history.event(IntroPickupAction.UPDATED, pickup.getId()).region(pickup.getRegionId())
-                .metadata("fields", String.join(",", changed)).build());
+        Instant link = linkAfterUpdate(pickup.getLinkedPickupAt(), storeBefore, before.startAt(), pickup.getStoreId(),
+                pickup.getStartAt());
+        boolean unlinked = pickup.getLinkedPickupAt() != null && link == null;
+        pickup.setLinkedPickupAt(link);
+        network.foodsharing.history.HistoryEvent.Builder updated = history
+                .event(IntroPickupAction.UPDATED, pickup.getId()).region(pickup.getRegionId())
+                .metadata("fields", String.join(",", changed));
+        if (unlinked) {
+            updated.metadata("unlinked", true);
+        }
+        history.record(updated.build());
         if (!changed.isEmpty()) {
             events.publishEvent(new IntroPickupUpdated(pickup.getId()));
         }
@@ -319,6 +379,9 @@ public class IntroPickupGuideService {
         if (pickup.getStartAt().isBefore(views.now())) {
             throw ApiException.conflict(ApiErrorCode.PAST_INTRO_PICKUP_NOT_REASSIGNABLE);
         }
+        if (pickup.getLinkedPickupAt() != null) {
+            throw ApiException.conflict(ApiErrorCode.LINKED_INTRO_PICKUP_NOT_REASSIGNABLE);
+        }
         boolean assignable = guideId != null && guidesOf(pickup.getRegionId()).stream()
                 .anyMatch(user -> user.getId().equals(guideId));
         if (!assignable) {
@@ -330,6 +393,121 @@ public class IntroPickupGuideService {
         history.record(history.event(IntroPickupAction.GUIDE_ASSIGNED, pickup.getId()).region(pickup.getRegionId())
                 .change("guideId", previous, guideId).build());
         return views.pickup(pickup);
+    }
+
+    // ------------------------------------------------------------------------------- linked (EA16)
+
+    /**
+     * The link stored on create: only when a store is set and the start equals the linked pickup time (the guide may
+     * have changed the date in the form); null otherwise.
+     */
+    static Instant linkOnCreate(Instant linkedPickupAt, Instant startAt, UUID storeId) {
+        return linkedPickupAt != null && storeId != null && linkedPickupAt.equals(startAt) ? linkedPickupAt : null;
+    }
+
+    /** The unlink rule: changing the start or the store of a linked EinAb removes the link; other fields keep it. */
+    static Instant linkAfterUpdate(Instant linkedPickupAt, UUID storeBefore, Instant startBefore, UUID storeAfter,
+                                   Instant startAfter) {
+        if (linkedPickupAt == null || !Objects.equals(storeBefore, storeAfter)
+                || !Objects.equals(startBefore, startAfter)) {
+            return null;
+        }
+        return linkedPickupAt;
+    }
+
+    /** Live EinAbs linked to these pickups of the store, with their booked count (sign-out warning). */
+    @Transactional(readOnly = true)
+    public List<LinkedInfo> linkedAt(UUID storeId, java.util.Collection<Instant> pickupAts) {
+        if (storeId == null || pickupAts.isEmpty()) {
+            return List.of();
+        }
+        Instant now = views.now();
+        return pickups.findLinkedAt(storeId, pickupAts).stream().filter(p -> !p.getStartAt().isBefore(now))
+                .map(p -> new LinkedInfo(p.getId(), p.getGuideId(), p.getLinkedPickupAt(),
+                        bookedUsers(slots.findByPickup(p.getId())).size()))
+                .toList();
+    }
+
+    /**
+     * The guide's sign-up for the store pickup went away: every linked, live, future EinAb is cancelled in the same
+     * transaction, booked or not (no BOOKED_SLOTS_PREVENT_DELETE guard). All slots become CANCELLED (never counted),
+     * the EinAb is soft-deleted, history AUTO_CANCELLED; after commit the booked newcomers and the guide are told.
+     * Past EinAbs are never touched.
+     *
+     * @return how many EinAbs were cancelled
+     */
+    @Transactional
+    public int autoCancelLinked(UUID guideId, UUID storeId, Instant pickupAt, AutoCancelCause cause) {
+        Instant now = views.now();
+        int count = 0;
+        for (IntroPickup pickup : pickups.findLinked(guideId, storeId, pickupAt)) {
+            if (pickup.getStartAt().isBefore(now)) {
+                continue;
+            }
+            List<IntroPickupSlot> all = slots.findByPickupForUpdate(pickup.getId());
+            List<UUID> booked = bookedUsers(all);
+            cancelAll(all);
+            pickup.setDeletedAt(now);
+            history.record(history.event(IntroPickupAction.AUTO_CANCELLED, pickup.getId())
+                    .region(pickup.getRegionId()).metadata("cause", cause.name())
+                    .metadata("bookedCount", booked.size()).metadata("pickupAt", pickupAt.toString()).build());
+            events.publishEvent(new IntroPickupAutoCancelled(pickup.getId(), pickup.getGuideId(), booked));
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * PU10 move sync (decision 170): the store pickup {@code from} of {@code storeId} moved to {@code to}. Every
+     * linked, live, future EinAb there whose guide is one of the moved sign-ups ({@code guideIds}) moves along:
+     * {@code startAt} and {@code linkedPickupAt} become {@code to}, history UPDATED ({@code fields=startAt},
+     * {@code cause=STORE_PICKUP_MOVED}); after commit the booked newcomers get INTRO_PICKUP_MOVED. Bookings stay; the
+     * booking rules (lead time, minimum pickups) are not re-checked. Past EinAbs are never touched.
+     *
+     * @return how many EinAbs moved
+     */
+    @Transactional
+    public int moveLinked(java.util.Collection<UUID> guideIds, UUID storeId, Instant from, Instant to) {
+        Instant now = views.now();
+        int count = 0;
+        for (UUID guideId : guideIds.stream().distinct().toList()) {
+            for (IntroPickup pickup : pickups.findLinked(guideId, storeId, from)) {
+                if (!movesAlong(pickup, now)) {
+                    continue;
+                }
+                pickup.setStartAt(to);
+                pickup.setLinkedPickupAt(to);
+                List<UUID> booked = bookedUsers(slots.findByPickup(pickup.getId()));
+                history.record(history.event(IntroPickupAction.UPDATED, pickup.getId()).region(pickup.getRegionId())
+                        .metadata("fields", "startAt").metadata("cause", "STORE_PICKUP_MOVED")
+                        .metadata("from", from.toString()).metadata("to", to.toString()).build());
+                events.publishEvent(new IntroPickupMoved(pickup.getId(), from, to, booked, shortNotice(to, now)));
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /** Only live future EinAbs move with their store pickup. */
+    static boolean movesAlong(IntroPickup pickup, Instant now) {
+        return pickup.getDeletedAt() == null && pickup.getLinkedPickupAt() != null
+                && !pickup.getStartAt().isBefore(now);
+    }
+
+    /** The new time is less than 24 h ahead. */
+    static boolean shortNotice(Instant to, Instant now) {
+        return to.isBefore(now.plus(SHORT_NOTICE));
+    }
+
+    /** Booked newcomers of the slots (BOOKED with a user), in slot order. */
+    static List<UUID> bookedUsers(List<IntroPickupSlot> all) {
+        return all.stream().filter(s -> s.getStatus() == SlotStatus.BOOKED && s.getBookingUserId() != null)
+                .map(IntroPickupSlot::getBookingUserId).distinct().toList();
+    }
+
+    /** Every slot CANCELLED: CANCELLED never counts against the newcomers (same effect as a cancelled booking). */
+    static void cancelAll(List<IntroPickupSlot> all) {
+        all.forEach(slot -> slot.setStatus(SlotStatus.CANCELLED));
     }
 
     /**

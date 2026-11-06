@@ -187,7 +187,7 @@ def changelog(name, header, body):
 
 S, U, B, N = "STRING", "UUID", "BOOLEAN", "NUMERIC"
 changelog("107-automation-adverts-seed.yaml", "# Seed (M4 B5): S-01 open-slot adverts (off), the S-06 advert (live) and their audits.\n",
-          "  # seed-107-1 and seed-107-2 (with dry_run) were replaced by seed-107-3 and seed-107-4 when changelog 191 dropped\n"
+          "  # seed-107-1 and seed-107-2 (with dry_run) were replaced by seed-107-3 and seed-107-4 when changelog 192 dropped\n"
           "  # the column (decision 167).\n"
           + load("seed-107-3", "Open-slot adverts.", "open_slot_advert",
                [("store_id", U), ("advert_number", N), ("enabled", B), ("trigger_hours_before", N),
@@ -200,7 +200,7 @@ changelog("107-automation-adverts-seed.yaml", "# Seed (M4 B5): S-01 open-slot ad
                   ("telegram_message_id", N), ("telegram_deleted_at", S), ("status", S),
                   ("message", S), ("reason", S), ("error", S), ("sent_at", S), ("filled_at", S)]))
 changelog("108-automation-signout-seed.yaml", "# Seed (M4 B5): S-06 sign-out alert (live) with 5 cancellations.\n",
-          "  # seed-108-2 (with dry_run) was replaced by seed-108-3 when changelog 191 dropped the column (decision 167).\n"
+          "  # seed-108-2 (with dry_run) was replaced by seed-108-3 when changelog 192 dropped the column (decision 167).\n"
           + load("seed-108-1", "Sign-out alert setting.", "signout_alert_setting",
                [("store_id", U), ("enabled", B), ("cutoff_enabled", B), ("maximum_hours_before_pickup", N),
                 ("channels", S), ("telegram_chat_ids", S), ("active_since", S), ("last_checked_at", S)])

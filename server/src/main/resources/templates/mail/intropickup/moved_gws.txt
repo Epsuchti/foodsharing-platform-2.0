@@ -1,0 +1,14 @@
+Hoi [(${displayName})],
+[# th:if="${shortNotice != null}"]
+Churzfristigi Änderig!
+[/]
+dini Iifüehrigsabholig bi [(${businessName})] isch verschobe worde, will d Abholig im Betrieb verschobe worde isch.
+
+Bisher: [(${fromWhen})]
+Neu: [(${when})]
+
+Dini Buechig blibt bestah. Wenn du zur neue Ziit nöd chasch, sag bitte ab.
+
+[(${link})]
+
+Dis foodsharing-Team

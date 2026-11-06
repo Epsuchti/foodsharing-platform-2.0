@@ -30,6 +30,7 @@ databaseChangeLog:
               - column: {name: minimum_pickup_count, type: NUMERIC}
               - column: {name: store_id, type: UUID}
               - column: {name: imported, type: BOOLEAN}
+              - column: {name: linked_pickup_at, type: STRING}
               - column: {name: deleted_at, type: STRING}
   - changeSet:
       id: seed-045-2

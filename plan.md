@@ -832,6 +832,7 @@ Derived from the public repo `gitlab.com/foodsharing-dev/foodsharing` (63 module
 | PU7 | Pickup options for user ("where can I help?", free slots in my stores) | `users/current/pickups/options` |
 | PU8 | User agenda for a date | `users/{id}/agenda/{date}` |
 | PU9 | Pickup reminders (disable per user) | `DISABLE_PICKUP_REMINDER` |
+| PU10 | Move one pickup (one-time or one regular occurrence) to another time of the same store; sign-ups move along and keep their confirmation, the people signed up are told (PICKUP_MOVED), linked EinAbs move along (decision 170) | new (no upstream) |
 
 ### 13.5 Messaging, notifications, Telegram
 
@@ -949,7 +950,7 @@ is dropped; things that only existed to talk to foodsharing.network become their
 | Slot comments (guide feedback per newcomer), admin comments | Same; shown in the verification queue |
 | Mark EinAb done | Guide confirms attendance → counts towards step 6 |
 | ICS per EinAb, personal guide ICS feed with token | Same, included in the personal calendar feed (A11) |
-| iCal import candidates (guide's foodsharing calendar link) | Guide's own pickups in this platform are offered as EinAb candidates ("turn this pickup into an EinAb"); external ICS link import still supported (https only, SSRF-safe as reference) |
+| iCal import candidates (guide's foodsharing calendar link) | Guide's own confirmed pickups in this platform are offered as EinAb candidates ("turn this pickup into an EinAb"); the EinAb stays linked and is cancelled when the guide signs out (decision 169). No external ICS link import. |
 | Guide profile, guide regions, enable/disable guides, grant admin | `CAN_GIVE_INTRO_PICKUPS` per region; guide profile settings |
 | Admin: list EinAbs, delete unbooked with reason, historical EinAb creation, adjust booking count | Same |
 | Past EinAb CSV import with preview/confirm, dedupe by user + day + store, store-name aliases, needs-attention rows | Same, for regions moving over from paper lists or the old tool |
@@ -1011,7 +1012,7 @@ Fields marked `@Tracked` write field-level history (§10).
 | Statistics | pickup count, kg saved, pickup rate, post count, banana count, buddy count, rating count / average, give count, engagement count, last stats update |
 | Options | pickup reminder disabled, mention notifications disabled, activity feed filters, notification channels, Telegram chat link, push subscriptions, calendar token |
 | Admin | info mail message, no automatic delete, email bounced, deleted at / by / reason (archive) |
-| Reference (einab) | foodsaver ID (displayed number), region-scoped permissions, iCal link and feed token, last verified at |
+| Reference (einab) | foodsaver ID (displayed number), region-scoped permissions, iCal feed token (the iCal link import is gone, decision 169), last verified at |
 
 ### 15.2 Store (all fields from `fs_betrieb` + DTOs)
 

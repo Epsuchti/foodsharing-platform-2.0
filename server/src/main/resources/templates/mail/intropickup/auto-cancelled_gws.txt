@@ -1,0 +1,10 @@
+Hoi [(${displayName})],
+
+du bisch nümm für d Abholig bi [(${businessName})] am [(${when})] iitreit. Dini verknüpfti Iifüehrigsabholig isch drum abgseit worde.
+[# th:if="${bookedCount != null and bookedCount != '0'}"]
+[(${bookedCount})] buechti Neui sind benachrichtigt worde.
+[/]
+
+[(${link})]
+
+Dis foodsharing-Team

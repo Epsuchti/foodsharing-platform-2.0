@@ -1,0 +1,10 @@
+Hi [(${displayName})],
+
+the pickup at [(${storeName})] on [(${fromWhen})] was moved to [(${when})]. You are still signed up; if you cannot make the new time, please sign out.
+[# th:if="${message != null}"]
+Message: [(${message})]
+[/]
+
+[(${link})]
+
+Your foodsharing team
