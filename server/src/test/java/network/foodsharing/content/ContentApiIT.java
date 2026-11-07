@@ -142,7 +142,7 @@ class ContentApiIT {
     void editorsUpsertPages() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         mvc.perform(get("/api/content/pages").cookie(bot)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(32)); // B11 seed: 38 pages, 6 with a non-PR editor function
+                .andExpect(jsonPath("$.length()").value(26)); // seed: 29 pages (decision 172 removed 9), 3 with a non-PR editor function
         mvc.perform(json(put("/api/content/pages/press").cookie(bot), "{\"titles\":{\"de\":\"Presse\"},"
                         + "\"bodies\":{\"de\":\"Kontakt\"},\"kind\":\"PAGE\",\"published\":true}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.languages[0]").value("de"));
