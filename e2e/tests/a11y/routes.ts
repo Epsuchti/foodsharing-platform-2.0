@@ -338,4 +338,17 @@ export const SWEEP_EXCLUDED: Exclusion[] = [
   { pattern: '/resources', reason: 'redirect to /resources/mine' },
   { pattern: '/admin/settings', reason: 'redirect to /admin/feature-toggles' },
   { pattern: '/pickups/mine', reason: 'redirect to /pickups#mine (swept as /pickups)' },
+  ...[
+    '/about',
+    '/team',
+    '/for-companies',
+    '/about/vision',
+    '/about/team',
+    '/about/cities',
+    '/about/demands',
+    '/about/transparency',
+    '/about/communities',
+    '/about/international',
+    '/about/security',
+  ].map((pattern) => ({ pattern, reason: 'removed page, redirect to / (decision 172)' })),
 ];
