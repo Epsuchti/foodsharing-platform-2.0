@@ -48,6 +48,31 @@ forEachVariant((variant) => {
       await visual.expectScreen(page, `fsp-form-${variant.name}`);
     });
 
+    screenshotTest('fsp form pin from the address @FS1 @screenshot', async ({ page, visual }) => {
+      // decision 171: street, postcode and city typed in, the pin sits on the address
+      await page.goto(`/food-share-points/new?regionId=${ZURICH}`);
+      await expect(page.getByTestId('foodSharePoints.form.state')).toHaveAttribute('data-state', 'success');
+      await page.getByTestId('foodSharePoints.form.street').fill('Langstrasse 100');
+      await page.getByTestId('foodSharePoints.form.postcode').fill('8004');
+      await page.getByTestId('foodSharePoints.form.city').fill('Zürich');
+      await expect(page.getByTestId('foodSharePoints.form.geocodeStatus')).toHaveAttribute('data-status', 'found');
+      await visual.expectScreen(page, `fsp-form-geocoded-${variant.name}`);
+    });
+
+    screenshotTest('fsp detail cleaning card error @FS2 @screenshot', async ({ page, visual }) => {
+      await injectApiError(page, { url: `/api/food-share-points/${FSPS.wiedikon}/cleaning/shifts`, status: 503 });
+      await page.goto(`/food-share-points/${FSPS.wiedikon}`);
+      await expect(page.getByTestId('fsp.cleaningCard.state')).toHaveAttribute('data-state', 'error');
+      await visual.expectScreen(page, `fsp-detail-cleaning-error-${variant.name}`);
+    });
+
+    screenshotTest('fsp detail cleaning card empty @FS2 @screenshot', async ({ page, visual }) => {
+      await page.route(`**/api/food-share-points/${FSPS.wiedikon}/cleaning/shifts*`, (route) => route.fulfill({ json: [] }));
+      await page.goto(`/food-share-points/${FSPS.wiedikon}`);
+      await expect(page.getByTestId('fsp.cleaningCard.state')).toHaveAttribute('data-state', 'empty');
+      await visual.expectScreen(page, `fsp-detail-cleaning-empty-${variant.name}`);
+    });
+
     screenshotTest('my fsps @FS1 @screenshot', async ({ page, visual }) => {
       await page.goto('/food-share-points/mine');
       await expect(page.getByTestId('foodSharePoints.mine.state')).toHaveAttribute('data-state', 'success');

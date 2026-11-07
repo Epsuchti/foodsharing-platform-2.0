@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
+import java.sql.Timestamp;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import network.foodsharing.testsupport.SeedUsers;
@@ -43,6 +45,9 @@ class IntroPickupApiIT {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private Clock clock;
+
     private Cookie login(SeedUsers user) throws Exception {
         var result = mvc.perform(post("/api/dev/login-as").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"userId\":\"" + user.id() + "\"}")).andExpect(status().isOk()).andReturn();
@@ -60,8 +65,8 @@ class IntroPickupApiIT {
 
     private List<String> upcomingOfCategory(String category) {
         return jdbc.queryForList("select cast(id as varchar(36)) from intro_pickup where category = ? "
-                + "and deleted_at is null and region_id = ? and start_at > current_timestamp order by start_at",
-                String.class, category, java.util.UUID.fromString(ZURICH));
+                + "and deleted_at is null and region_id = ? and start_at > ? order by start_at",
+                String.class, category, java.util.UUID.fromString(ZURICH), Timestamp.from(clock.instant()));
     }
 
     @Test

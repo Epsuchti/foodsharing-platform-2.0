@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal, untracked } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
 
 import { TPipe } from '../../core/i18n/t.pipe';
 import { MapViewComponent } from '../map-view/map-view.component';
+import { AddressGeocoder } from './address-geocode';
 
 export type AddressFormGroup = FormGroup<{
   street: FormControl<string>;
@@ -29,7 +30,9 @@ export function addressFormGroup(): AddressFormGroup {
 
 /**
  * Address of a store (S2/S15): street, postcode, city, country and the map position (drag the pin or click the map;
- * "use my location" asks the browser). The parent owns the form group.
+ * "use my location" asks the browser). Decision 171: "find address on map" places the pin on the typed address, and
+ * so does an automatic lookup once street, postcode and city are typed in, unless the pin was set by hand (a loaded
+ * pin counts as set by hand). The parent owns the form group.
  */
 @Component({
   selector: 'fs-address-form',
@@ -65,6 +68,17 @@ export function addressFormGroup(): AddressFormGroup {
           }
         </span>
         <p-button
+          [label]="'shared.address.geocode' | t"
+          icon="pi pi-search"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          [disabled]="group().disabled"
+          [loading]="geocoder.status() === 'searching'"
+          (onClick)="findAddress()"
+          [attr.data-testid]="testId() + '.geocode'"
+        />
+        <p-button
           [label]="'shared.address.useLocation' | t"
           icon="pi pi-map-marker"
           size="small"
@@ -87,7 +101,13 @@ export function addressFormGroup(): AddressFormGroup {
         [testId]="testId() + '.map'"
         (positionChange)="setPosition($event)"
       />
-      <span class="muted hint">{{ 'shared.address.positionHint' | t }}</span>
+      <span class="muted hint" role="status" aria-live="polite" [attr.data-status]="geocoder.status()" [attr.data-testid]="testId() + '.geocodeStatus'">
+        @if (geocoder.status() === 'idle') {
+          {{ 'shared.address.positionHint' | t }}
+        } @else {
+          {{ 'shared.address.geocodeStatus.' + geocoder.status() | t }}
+        }
+      </span>
     </div>
   `,
   styles: `
@@ -109,6 +129,9 @@ export class AddressFormComponent {
   readonly testId = input('shared.address');
   protected readonly id = `fs-address-${AddressFormComponent.nextId++}`;
   protected readonly locating = signal(false);
+  protected readonly geocoder = new AddressGeocoder((position) => this.applyGeocode(position));
+  /** True while the geocoder writes the pin, so its own change does not count as a pin set by hand. */
+  private applyingGeocode = false;
   /** Latest coordinates of the group (patched from outside, e.g. when the store loads, or by the map). */
   private readonly coordinates = signal<[number | null, number | null]>([null, null]);
 
@@ -120,8 +143,23 @@ export class AddressFormComponent {
   constructor() {
     effect((onCleanup) => {
       const group = this.group();
-      const sync = () => this.coordinates.set([group.controls.latitude.value, group.controls.longitude.value]);
-      sync();
+      const sync = () => {
+        const { latitude, longitude, street, postcode, city, country } = group.controls;
+        const [lastLat, lastLon] = untracked(this.coordinates);
+        const moved = latitude.value !== lastLat || longitude.value !== lastLon;
+        this.coordinates.set([latitude.value, longitude.value]);
+        if (moved && latitude.value != null && longitude.value != null) {
+          // dragged, clicked, "use my location" or loaded with the record; the geocoder's own pin does not count
+          if (!this.applyingGeocode) this.geocoder.markPinSetByHand();
+        } else if (moved && this.geocoder.pinSetByHand()) {
+          this.geocoder.pinCleared();
+        }
+        // only what the user typed starts a lookup (a patched, loaded address does not)
+        if (street.dirty || postcode.dirty || city.dirty) {
+          this.geocoder.addressChanged({ street: street.value, postcode: postcode.value, city: city.value, country: country.value });
+        }
+      };
+      untracked(sync);
       const subscription = group.valueChanges.subscribe(sync);
       onCleanup(() => subscription.unsubscribe());
     });
@@ -131,6 +169,22 @@ export class AddressFormComponent {
     const group = this.group();
     group.patchValue({ latitude: round(lat), longitude: round(lon) });
     group.markAsDirty();
+  }
+
+  protected findAddress(): void {
+    const { street, postcode, city, country } = this.group().getRawValue();
+    void this.geocoder.lookup({ street, postcode, city, country });
+  }
+
+  private applyGeocode([lat, lon]: [number, number]): void {
+    const group = this.group();
+    this.applyingGeocode = true;
+    try {
+      group.patchValue({ latitude: round(lat), longitude: round(lon) });
+      group.markAsDirty();
+    } finally {
+      this.applyingGeocode = false;
+    }
   }
 
   protected useMyLocation(): void {

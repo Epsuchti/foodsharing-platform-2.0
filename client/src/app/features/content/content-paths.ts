@@ -1,6 +1,6 @@
-/** A public page of the about area: either a CMS page with a fixed slug or a page of its own (team, statistics …). */
+/** A public CMS page of the about area with a fixed route (C1). */
 export interface AboutPage {
-  /** i18n suffix: `content.about.page.<id>` (title) and `content.about.text.<id>` (teaser). */
+  /** i18n suffix: `content.about.page.<id>` (route title). */
   id: string;
   path: string;
   icon: string;
@@ -10,30 +10,24 @@ export interface AboutPage {
 
 /**
  * Canonical routes of the public pages (C1, plan-m7 Q10). CMS pages keep their slug in the database; the route names
- * are the upstream ones (`/about/cities` shows the `foodsharing-cities` page).
+ * are the upstream ones. Decision 172 removed Vision, About us, Team, Cities, Demands, Transparency, Communities,
+ * International, Security and For companies; their paths redirect to `/` ({@link REMOVED_ABOUT_PATHS}).
  */
 export const ABOUT_PAGES: readonly AboutPage[] = [
-  { id: 'vision', path: '/about/vision', slug: 'vision', icon: 'pi pi-heart' },
-  { id: 'team', path: '/about/team', slug: 'team', icon: 'pi pi-users' },
   { id: 'partners', path: '/about/partners', slug: 'partners', icon: 'pi pi-thumbs-up' },
   { id: 'press', path: '/about/press', slug: 'press', icon: 'pi pi-megaphone' },
-  { id: 'cities', path: '/about/cities', slug: 'foodsharing-cities', icon: 'pi pi-building' },
-  { id: 'demands', path: '/about/demands', slug: 'demands', icon: 'pi pi-flag' },
-  { id: 'transparency', path: '/about/transparency', slug: 'transparency', icon: 'pi pi-eye' },
   { id: 'education', path: '/about/education', slug: 'education', icon: 'pi pi-graduation-cap' },
-  { id: 'communities', path: '/about/communities', slug: 'communities', icon: 'pi pi-sitemap' },
-  { id: 'international', path: '/about/international', slug: 'international', icon: 'pi pi-globe' },
-  { id: 'security', path: '/about/security', slug: 'security', icon: 'pi pi-shield' },
   { id: 'imprint', path: '/imprint', slug: 'imprint', icon: 'pi pi-id-card' },
-  { id: 'forCompanies', path: '/for-companies', slug: 'for-companies', icon: 'pi pi-briefcase' },
 ];
 
-/** Pages of their own, listed on the about overview next to the CMS pages. */
-export const ABOUT_FEATURE_PAGES: readonly AboutPage[] = [
-  { id: 'groups', path: '/team', icon: 'pi pi-users' },
-  { id: 'statistics', path: '/statistics', icon: 'pi pi-chart-bar' },
-  { id: 'faq', path: '/faq', icon: 'pi pi-comments' },
-  { id: 'releaseNotes', path: '/release-notes', icon: 'pi pi-gift' },
+/** Paths of the pages removed by decision 172; bookmarks land on the start page. */
+export const REMOVED_ABOUT_PATHS: readonly string[] = [
+  'about',
+  'team',
+  'for-companies',
+  ...['vision', 'team', 'cities', 'demands', 'transparency', 'communities', 'international', 'security'].map(
+    (page) => `about/${page}`,
+  ),
 ];
 
 /** Route of a CMS page: its canonical about route, else `/pages/<slug>`. */

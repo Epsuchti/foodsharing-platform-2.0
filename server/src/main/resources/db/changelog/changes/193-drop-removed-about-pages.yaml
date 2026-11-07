@@ -1,0 +1,16 @@
+# Decision 172 (D5): the CMS pages Vision, Team, Cities, Demands, Transparency, Communities, International, Security
+# and For companies are gone from the site. Their texts go too (irreversible: take a dump before deploying). The
+# i18n rows would cascade (fk_content_page_i18n_owner_id); they are deleted first so the changeset does not rely on
+# the cascade. No other table references content_page.
+databaseChangeLog:
+  - changeSet:
+      id: 193-1
+      author: platform
+      comment: 'Delete the removed about pages and their texts.'
+      changes:
+        - delete:
+            tableName: content_page_i18n
+            where: "owner_id IN (SELECT id FROM content_page WHERE kind = 'PAGE' AND slug IN ('vision', 'team', 'foodsharing-cities', 'demands', 'transparency', 'communities', 'international', 'security', 'for-companies'))"
+        - delete:
+            tableName: content_page
+            where: "kind = 'PAGE' AND slug IN ('vision', 'team', 'foodsharing-cities', 'demands', 'transparency', 'communities', 'international', 'security', 'for-companies')"

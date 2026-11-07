@@ -5,17 +5,15 @@ import {
   Petition,
   PublicStatistics,
   ReleaseNote,
-  TeamGroup,
 } from '../../../../api';
 import { LearningChapterItemComponent } from '../../../content/components/learning-chapter-item.component';
 import { PetitionNoticeComponent } from '../../../content/components/petition-notice.component';
 import { ReleaseNoteCardComponent } from '../../../content/components/release-note-card.component';
 import { StatisticsTilesComponent } from '../../../content/components/statistics-tiles.component';
-import { TeamGroupCardComponent } from '../../../content/components/team-group-card.component';
 
 /**
- * Content (C1, C3, C4, C8, C16): learning chapter items in their three states, the statistics counters, a team
- * group, release notes (new and seen) and the petition notice.
+ * Content (C1, C3, C4, C8): learning chapter items in their three states, the statistics counters, release notes
+ * (new and seen) and the petition notice.
  */
 @Component({
   selector: 'fs-gallery-content-section',
@@ -24,7 +22,6 @@ import { TeamGroupCardComponent } from '../../../content/components/team-group-c
     PetitionNoticeComponent,
     ReleaseNoteCardComponent,
     StatisticsTilesComponent,
-    TeamGroupCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -41,13 +38,6 @@ import { TeamGroupCardComponent } from '../../../content/components/team-group-c
       <section class="specimen" style="grid-column: 1 / -1" data-testid="gallery.statisticsTiles">
         <header class="specimen__head"><code>fs-statistics-tiles</code></header>
         <fs-statistics-tiles [stats]="stats" />
-      </section>
-      <section class="specimen" style="grid-column: 1 / -1" data-testid="gallery.teamGroup">
-        <header class="specimen__head"><code>fs-team-group-card</code></header>
-        <div style="display: grid; gap: 0.75rem">
-          <fs-team-group-card [group]="team[0]" />
-          <fs-team-group-card [group]="team[1]" />
-        </div>
       </section>
       <section class="specimen" data-testid="gallery.releaseNotes">
         <header class="specimen__head"><code>fs-release-note-card</code> new / seen</header>
@@ -98,25 +88,6 @@ export class ContentGallerySection {
     baskets: 12870,
     asOf: '2026-11-01T02:00:00Z',
   };
-
-  protected readonly team: TeamGroup[] = [
-    {
-      id: 'gallery-it',
-      name: 'IT',
-      teaser: 'Entwickelt und betreibt die Plattform.',
-      members: [
-        { displayName: 'Anna Keller', roleDescription: 'Koordination' },
-        { displayName: 'Luca Rossi' },
-        { displayName: 'Mia Steiner', roleDescription: 'Support' },
-      ],
-    },
-    {
-      id: 'gallery-pr',
-      name: 'Öffentlichkeitsarbeit',
-      teaser: 'Presse, Social Media und Kampagnen.',
-      members: [],
-    },
-  ];
 
   protected readonly notes: ReleaseNote[] = [
     {

@@ -6,7 +6,7 @@ import { ConfirmationService } from '@openng/optimus-ui/api';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach, vi } from 'vitest';
 
-import { ApiErrorCode, FaqEntry, PublicStatistics, ReleaseNote, TeamGroup } from '../../api';
+import { ApiErrorCode, FaqEntry, PublicStatistics, ReleaseNote } from '../../api';
 import { FeatureToggleService } from '../../core/feature-toggles/feature-toggle.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { PetitionBannerComponent } from './components/petition-banner.component';
@@ -17,7 +17,6 @@ import { PetitionPageComponent } from './pages/petition-page.component';
 import { ReleaseNotesAdminPageComponent } from './pages/release-notes-admin-page.component';
 import { ReleaseNotesPageComponent } from './pages/release-notes-page.component';
 import { StatisticsPageComponent } from './pages/statistics-page.component';
-import { TeamPageComponent } from './pages/team-page.component';
 import { PETITION_DISMISSED_KEY } from './petition.resource';
 import { RELEASE_NOTES_SEEN_KEY } from './release-notes-seen.service';
 
@@ -39,19 +38,6 @@ const FAQ: FaqEntry[] = [
     question: 'Wie werde ich Foodsaver?',
     answer: 'Quiz und Einführungsabholungen.',
   },
-];
-
-const TEAM: TeamGroup[] = [
-  {
-    id: 'g1',
-    name: 'IT',
-    teaser: 'Entwickelt die Plattform.',
-    members: [
-      { displayName: 'Anna Admin', roleDescription: 'Leitung' },
-      { displayName: 'Ben Bot' },
-    ],
-  },
-  { id: 'g2', name: 'Öffentlichkeitsarbeit', members: [] },
 ];
 
 const STATS: PublicStatistics = {
@@ -148,30 +134,6 @@ describe('content pages (Q10)', () => {
       http.expectOne((req) => req.url === '/api/public/faq').flush(FAQ);
       await settle();
       expect(state('content.faq.state')).toBe('success');
-    });
-  });
-
-  describe('team', () => {
-    it('lists the groups with their members', async () => {
-      await create(TeamPageComponent);
-      expect(state('content.team.state')).toBe('loading');
-      http.expectOne('/api/public/team').flush(TEAM);
-      await settle();
-      expect(all('content.team.group')).toHaveLength(2);
-      expect(all('content.team.member')).toHaveLength(2);
-      expect(q('content.team.group')?.textContent).toContain('Leitung');
-      expect(all('content.team.groupName')[1].textContent).toContain('Öffentlichkeitsarbeit');
-    });
-
-    it('shows the empty state and the error state with retry', async () => {
-      await create(TeamPageComponent);
-      http.expectOne('/api/public/team').flush(null, serverError);
-      await settle();
-      expect(state('content.team.state')).toBe('error');
-      retry('content.team.state');
-      http.expectOne('/api/public/team').flush([]);
-      await settle();
-      expect(state('content.team.state')).toBe('empty');
     });
   });
 
@@ -444,10 +406,8 @@ describe('content pages (Q10)', () => {
 
   describe('routes', () => {
     it('serve the about pages with their slugs and redirect body links to the canonical route', async () => {
-      const cities = CONTENT_ROUTES.find((route) => route.path === 'about/cities');
-      expect(cities?.data).toEqual({ slug: 'foodsharing-cities' });
-      expect(CONTENT_ROUTES.find((route) => route.path === 'for-companies')?.data).toEqual({
-        slug: 'for-companies',
+      expect(CONTENT_ROUTES.find((route) => route.path === 'about/partners')?.data).toEqual({
+        slug: 'partners',
       });
 
       TestBed.resetTestingModule();
@@ -456,19 +416,39 @@ describe('content pages (Q10)', () => {
       });
       const router = TestBed.inject(Router);
       http = TestBed.inject(HttpTestingController);
-      await router.navigateByUrl('/content/for-companies');
-      expect(router.url).toBe('/for-companies');
+      await router.navigateByUrl('/content/partners');
+      expect(router.url).toBe('/about/partners');
       http
         .match(() => true)
         .forEach((request) =>
           request.flush({
-            slug: 'for-companies',
+            slug: 'partners',
             title: 'x',
             body: 'y',
             language: 'de',
             fallback: false,
           }),
         );
+    });
+
+    it('send the pages removed by decision 172 to the start page', () => {
+      for (const path of [
+        'about',
+        'team',
+        'for-companies',
+        'about/vision',
+        'about/team',
+        'about/cities',
+        'about/demands',
+        'about/transparency',
+        'about/communities',
+        'about/international',
+        'about/security',
+      ]) {
+        const route = CONTENT_ROUTES.find((candidate) => candidate.path === path);
+        expect(route?.redirectTo, path).toBe('/');
+        expect(route?.loadComponent, path).toBeUndefined();
+      }
     });
   });
 });

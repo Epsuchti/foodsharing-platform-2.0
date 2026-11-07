@@ -122,6 +122,43 @@ test.describe('member proposes, admin activates', () => {
   });
 });
 
+test.describe('address and description (decision 171)', () => {
+  test.use({ seedReset: 'test', role: 'foodsaver' });
+
+  test('FS1 the pin follows the typed address and the description renders Markdown @FS1 @page', async ({ page, apiOf }) => {
+    await acceptPendingConsents(apiOf(page));
+    await page.goto(`/food-share-points/new?regionId=${ZURICH}`);
+    await expectDataState(page, 'foodSharePoints.form.state', 'success');
+    await expect(page.getByTestId('foodSharePoints.form.description')).toHaveAttribute('rows', '10');
+    await page.getByTestId('foodSharePoints.form.name').fill(`Fairteiler Langstrasse Hof ${Date.now()}`);
+    await page.getByTestId('foodSharePoints.form.description').fill('**Kühlschrank** im Hof, _täglich_ offen.');
+
+    // street, postcode and city typed in: the pin goes to the address (static geocoder: the postcode's point)
+    const position = page.getByTestId('foodSharePoints.form.position');
+    await page.getByTestId('foodSharePoints.form.street').fill('Langstrasse 100');
+    await page.getByTestId('foodSharePoints.form.postcode').fill('8004');
+    await page.getByTestId('foodSharePoints.form.city').fill('Zürich');
+    await expect(position).toContainText('47.37860');
+    await expect(position).toContainText('8.52030');
+    await expect(page.getByTestId('foodSharePoints.form.geocodeStatus')).toHaveAttribute('data-status', 'found');
+
+    // without the pin the button places it again
+    await page.getByTestId('foodSharePoints.form.clearPin').click();
+    await expect(position).toHaveCount(0);
+    await page.getByTestId('foodSharePoints.form.geocode').click();
+    await expect(position).toContainText('47.37860');
+
+    await page.getByTestId('foodSharePoints.form.submit').click();
+    await expect(page).toHaveURL(/\/food-share-points\/[0-9a-f-]{36}$/);
+    await expectDataState(page, 'foodSharePoints.detail.state', 'success');
+    const description = page.getByTestId('foodSharePoints.detail.description');
+    await expect(description.locator('strong')).toHaveText('Kühlschrank');
+    await expect(description.locator('em')).toHaveText('täglich');
+    const fsp = await apiOf(page).getJson<{ lat: number; lon: number }>(`/api/food-share-points/${fspIdFromUrl(page)}`);
+    expect([fsp.lat, fsp.lon]).toEqual([47.3786, 8.5203]);
+  });
+});
+
 test.describe('region tab', () => {
   // the seed list exactly (the proposal test above adds an FSP)
   test.use({ seedReset: 'test', role: 'foodsaver' });

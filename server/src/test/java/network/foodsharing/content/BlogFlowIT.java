@@ -60,8 +60,9 @@ class BlogFlowIT {
         mvc.perform(get("/api/public/faq").param("lang", "fr")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(12))
                 .andExpect(jsonPath("$[0].question").value("foodsharing coûte-t-il quelque chose ?"));
-        mvc.perform(get("/api/public/team")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(5));
+        // decision 172: the team page and the removed about pages are gone (endpoint, seed, changelog 193)
+        mvc.perform(get("/api/public/content/vision")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/public/content/for-companies")).andExpect(status().isNotFound());
         mvc.perform(get("/api/public/release-notes").param("lang", "en")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(5))
                 .andExpect(jsonPath("$[0].version").value("5.0.0"));

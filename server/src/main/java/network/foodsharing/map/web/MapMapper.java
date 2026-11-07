@@ -40,6 +40,10 @@ final class MapMapper {
     }
 
     static List<GeoResult> hits(List<MapSearchService.GeoHit> hits) {
-        return hits.stream().map(h -> new GeoResult().label(h.label()).lat(h.lat()).lon(h.lon())).toList();
+        return hits.stream().map(MapMapper::hit).toList();
+    }
+
+    static GeoResult hit(MapSearchService.GeoHit h) {
+        return new GeoResult().label(h.label()).lat(h.lat()).lon(h.lon());
     }
 }

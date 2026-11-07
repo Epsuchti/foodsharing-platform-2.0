@@ -91,6 +91,58 @@ test.describe('store manager', () => {
   });
 });
 
+test.describe('address and texts (decision 171)', () => {
+  test.use({ role: 'bieb' });
+
+  test('S2 the pin follows the typed address until it is set by hand; texts render Markdown @S2 @page', async ({ page }) => {
+    await page.goto(`/stores/new?regionId=${ZURICH}`);
+    await expectDataState(page, 'stores.form.state', 'success');
+    await expect(page.getByTestId('stores.form.description')).toHaveAttribute('rows', '10');
+    await expect(page.getByTestId('stores.form.publicInfo')).toHaveAttribute('rows', '10');
+
+    // street, postcode and city typed in: the pin goes to the address (static geocoder: the postcode's point)
+    const coordinates = page.getByTestId('stores.form.address.coordinates');
+    await page.getByTestId('stores.form.address.street').fill('Bahnhofstrasse 1');
+    await page.getByTestId('stores.form.address.postcode').fill('8001');
+    await page.getByTestId('stores.form.address.city').fill('Zürich');
+    await expect(coordinates).toHaveText('47.37170, 8.54230');
+    await expect(page.getByTestId('stores.form.address.geocodeStatus')).toHaveAttribute('data-status', 'found');
+
+    // a pin set by hand stays when the address changes; the button puts it back on the address
+    await center(page, 'stores.form.address.map');
+    await page.getByTestId('stores.form.address.map').click({ position: { x: 60, y: 60 } });
+    await expect(coordinates).not.toHaveText('47.37170, 8.54230');
+    const manual = await coordinates.textContent();
+    await page.getByTestId('stores.form.address.postcode').fill('8003');
+    await expect(coordinates).toHaveText(manual ?? '');
+    await page.getByTestId('stores.form.address.geocode').click();
+    await expect(coordinates).toHaveText('47.37350, 8.51300');
+
+    // Markdown in the description and the public information
+    await page.getByTestId('stores.form.name').fill('Quartierladen Markdown');
+    await chooseOption(page, 'stores.form.category', 'Bäckerei');
+    await page.getByTestId('stores.form.description').fill('Hintereingang **Rampe 2**');
+    await page.getByTestId('stores.form.publicInfo').fill('Abholung _nur_ nach Absprache');
+    await chooseOption(page, 'stores.form.cooperationStatus', 'Kooperiert');
+    await center(page, 'stores.form.submit');
+    await page.getByTestId('stores.form.submit').click();
+    await expect(page).toHaveURL(/\/stores\/[0-9a-f-]+\/overview$/);
+    await expect(page.getByTestId('stores.overview.description').locator('strong')).toHaveText('Rampe 2');
+    await expect(page.getByTestId('stores.overview.publicInfo').locator('em')).toHaveText('nur');
+  });
+});
+
+test.describe('waiting list', () => {
+  test.use({ role: 'jumper' });
+
+  test('S2 the waiting list sees the public information but not the description @S2', async ({ page }) => {
+    await openStore(page, 'S-01');
+    await expect(page.getByTestId('stores.overview.publicInfoCard')).toBeVisible();
+    await expect(page.getByTestId('stores.overview.publicInfo')).toHaveText('Abholung am Hintereingang.');
+    await expect(page.getByTestId('stores.overview.description')).toHaveCount(0);
+  });
+});
+
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver' });
 
@@ -103,5 +155,16 @@ test.describe('foodsaver', () => {
     // members of a store don't get the edit button either
     await openStore(page, 'S-01');
     await expect(page.getByTestId('stores.page.edit')).toHaveCount(0);
+  });
+});
+
+test.describe('team member', () => {
+  // the seed texts (the manager tests above change S-01's description)
+  test.use({ role: 'foodsaver', seedReset: 'test' });
+
+  test('S2 team members see the description @S2', async ({ page }) => {
+    await openStore(page, 'S-01');
+    await expect(page.getByTestId('stores.overview.description')).toHaveText('Coop Bahnhofbrücke in Zürich.');
+    await expect(page.getByTestId('stores.overview.publicInfo')).toHaveText('Abholung am Hintereingang.');
   });
 });

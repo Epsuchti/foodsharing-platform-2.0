@@ -106,12 +106,14 @@ const optional = () => new FormControl<string | null>(null);
               </div>
               <div class="field field--wide">
                 <label for="sf-description">{{ 'stores.form.description' | t }}</label>
-                <textarea pTextarea id="sf-description" rows="3" formControlName="description" data-testid="stores.form.description"></textarea>
+                <!-- decision 171: Markdown, 10 rows growing with the text -->
+                <textarea pTextarea id="sf-description" rows="10" [autoResize]="true" formControlName="description" aria-describedby="sf-description-hint" data-testid="stores.form.description"></textarea>
+                <span class="field__hint" id="sf-description-hint">{{ 'stores.form.descriptionHint' | t }} {{ 'stores.form.markdownHint' | t }}</span>
               </div>
               <div class="field field--wide">
                 <label for="sf-public">{{ 'stores.form.publicInfo' | t }}</label>
-                <textarea pTextarea id="sf-public" rows="2" formControlName="publicInfo" data-testid="stores.form.publicInfo"></textarea>
-                <span class="field__hint">{{ 'stores.form.publicInfoHint' | t }}</span>
+                <textarea pTextarea id="sf-public" rows="10" [autoResize]="true" formControlName="publicInfo" aria-describedby="sf-public-hint" data-testid="stores.form.publicInfo"></textarea>
+                <span class="field__hint" id="sf-public-hint">{{ 'stores.form.publicInfoHint' | t }} {{ 'stores.form.markdownHint' | t }}</span>
               </div>
             </div>
           </section>

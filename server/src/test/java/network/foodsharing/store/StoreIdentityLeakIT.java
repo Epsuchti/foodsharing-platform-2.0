@@ -107,6 +107,8 @@ class StoreIdentityLeakIT {
             Map.entry("role", "AMBASSADOR"),
             Map.entry("lat", "47.37"),
             Map.entry("lon", "8.54"),
+            // geocodeAddress (decision 171): a postcode only, no store data in the answer
+            Map.entry("postcode", "8001"),
             // listInviteCandidates (S7): people only (UserSummary), mayEditTeam; nobody here may edit a team
             Map.entry("search", "Sarah"));
 

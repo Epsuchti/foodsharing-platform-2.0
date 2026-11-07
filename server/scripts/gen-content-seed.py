@@ -13,7 +13,7 @@ import sys
 import zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from content_seed_texts import BLOG, DRAFT, EXISTING, FAQ, LEGAL, PAGES, RELEASE_NOTES  # noqa: E402
+from content_seed_texts import BLOG, DRAFT, EXISTING, FAQ, LEGAL, PAGES, RELEASE_NOTES, REMOVED  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "main", "resources", "db", "seed")
 CONTENT = os.path.join(ROOT, "content")
@@ -116,6 +116,10 @@ def content_csv():
                           "created_by": "NULL", "updated_by": "NULL", "owner_id": page_id, "language": lang,
                           "title": title, "body": body_of(slug, lang, body)})
             next_text += 1
+    # decision 172: removed pages keep their ids (the later ones stay fixed) but leave the seed
+    removed = {p["id"] for p in pages if p["slug"] in REMOVED}
+    pages = [p for p in pages if p["id"] not in removed]
+    texts = [t for t in texts if t["owner_id"] not in removed]
     write("content_page.csv", list(pages[0].keys()), pages)
     write("content_page_i18n.csv", list(texts[0].keys()), texts)
     return len(new)

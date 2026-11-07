@@ -1013,6 +1013,8 @@ paths:
     $ref: './paths/map.yaml#/~1api~1map~1bubbles~1{kind}~1{id}'
   /api/map/search:
     $ref: './paths/map.yaml#/~1api~1map~1search'
+  /api/map/geocode-address:
+    $ref: './paths/map.yaml#/~1api~1map~1geocode-address'
   # --- public-map (M6) ---
   /api/public/map/markers/food-share-points:
     $ref: './paths/public-map.yaml#/~1api~1public~1map~1markers~1food-share-points'
@@ -1090,8 +1092,6 @@ paths:
     $ref: './paths/public-content.yaml#/~1api~1public~1blog~1{blogPostId}'
   /api/public/statistics:
     $ref: './paths/public-content.yaml#/~1api~1public~1statistics'
-  /api/public/team:
-    $ref: './paths/public-content.yaml#/~1api~1public~1team'
   /api/public/petition:
     $ref: './paths/public-content.yaml#/~1api~1public~1petition'
   /api/public/donations:

@@ -55,8 +55,8 @@ test('C7 donation page follows admin configuration; modal appears per hours sett
   await expect(page.getByTestId('content.donate.frame')).toHaveCount(0);
   await expect(page.getByTestId('content.donate.info')).toHaveAttribute('href', 'https://foodsharing.local.test/spenden');
   await expectNoMissingKeys(page);
-  await openWithToggles(page, '/about');
-  await expect(page.getByTestId('content.about.link').first()).toBeVisible();
+  await openWithToggles(page, '/release-notes');
+  await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(modal).toHaveCount(0);
 
   // ORGA: forms instead of the campaign card, the modal every 24 h for visitors (DONATION_MODAL toggle on)
@@ -89,7 +89,7 @@ test('C7 donation page follows admin configuration; modal appears per hours sett
   await expect(modal).toHaveCount(0);
 
   // another page: the modal opens once (text from the CMS page `donation-modal`)
-  await openWithDonation(page, '/about');
+  await openWithDonation(page, '/release-notes');
   await expect(modal).toBeVisible();
   await expectNoMissingKeys(page);
   await page.getByTestId('content.donationModal.later').click();
@@ -100,11 +100,11 @@ test('C7 donation page follows admin configuration; modal appears per hours sett
 
   // 23 hours later it stays closed, after 25 hours it is back; "donate" leads to /donate
   await shownHoursAgo(page, 23);
-  await openWithDonation(page, '/about');
-  await expect(page.getByTestId('content.about.link').first()).toBeVisible();
+  await openWithDonation(page, '/release-notes');
+  await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(modal).toHaveCount(0);
   await shownHoursAgo(page, 25);
-  await openWithDonation(page, '/about');
+  await openWithDonation(page, '/release-notes');
   await expect(modal).toBeVisible();
   await page.getByTestId('content.donationModal.donate').click();
   await expect(page).toHaveURL(/\/donate$/);
@@ -127,8 +127,8 @@ test('C7 donation page follows admin configuration; modal appears per hours sett
   const off = await api.fetch('PATCH', '/api/admin/feature-toggles/DONATION_MODAL', { enabled: false });
   expect(off.status(), await off.text()).toBe(200);
   await page.evaluate((key) => localStorage.removeItem(key), SHOWN_KEY);
-  await openWithToggles(page, '/about');
-  await expect(page.getByTestId('content.about.link').first()).toBeVisible();
+  await openWithToggles(page, '/release-notes');
+  await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(modal).toHaveCount(0);
 });
 

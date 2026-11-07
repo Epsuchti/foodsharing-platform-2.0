@@ -70,8 +70,8 @@ test('C1 orga edits a content page in five languages @C1', async ({ as, page: gu
   if ((orga.viewportSize()?.width ?? 0) >= 1024) await expect(orga.getByTestId('nav.adminContent')).toBeAttached();
   await orga.goto('/admin/content');
   await expect(orga.getByTestId('content.admin.state')).toHaveAttribute('data-state', 'success');
-  await orga.locator('[data-testid="content.admin.page"][data-slug="vision"]').click();
-  await expect(orga).toHaveURL(/\/admin\/content\/vision$/);
+  await orga.locator('[data-testid="content.admin.page"][data-slug="education"]').click();
+  await expect(orga).toHaveURL(/\/admin\/content\/education$/);
   await expect(orga.getByTestId('content.editor.state')).toHaveAttribute('data-state', 'success');
 
   const texts: Record<string, string> = {
@@ -97,7 +97,7 @@ test('C1 orga edits a content page in five languages @C1', async ({ as, page: gu
 
   for (const lang of LANGUAGES) {
     await setLanguage(guest, lang);
-    await guest.goto('/pages/vision');
+    await guest.goto('/pages/education');
     await expect(guest.getByTestId('content.page.body')).toContainText(texts[lang]);
     await expect(guest.getByTestId('content.page.fallback')).toHaveCount(0);
   }

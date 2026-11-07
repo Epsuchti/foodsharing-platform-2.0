@@ -18,8 +18,6 @@ import network.foodsharing.api.model.Language;
 import network.foodsharing.api.model.Petition;
 import network.foodsharing.api.model.RegionRef;
 import network.foodsharing.api.model.ReleaseNote;
-import network.foodsharing.api.model.TeamGroup;
-import network.foodsharing.api.model.TeamPageMember;
 import network.foodsharing.api.model.UserSummary;
 import network.foodsharing.common.mapper.PageMapper;
 import network.foodsharing.common.mapper.TimeMapper;
@@ -27,7 +25,6 @@ import network.foodsharing.content.service.BlogService;
 import network.foodsharing.content.service.CampaignService;
 import network.foodsharing.content.service.ContentService;
 import network.foodsharing.content.service.ReleaseNoteService;
-import network.foodsharing.content.service.TeamPageService;
 import network.foodsharing.region.domain.Region;
 import network.foodsharing.region.mapper.RegionMapper;
 import network.foodsharing.region.service.RegionService;
@@ -37,7 +34,7 @@ import network.foodsharing.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-/** Content domain (blog, release notes, team, campaigns, FAQ) → API models (B11). */
+/** Content domain (blog, release notes, campaigns, FAQ) → API models (B11). */
 @Component
 public class ContentMapper {
 
@@ -167,22 +164,6 @@ public class ContentMapper {
         entry.setQuestion(page.title());
         entry.setAnswer(page.body());
         return entry;
-    }
-
-    public static TeamGroup toTeamGroup(TeamPageService.Group group) {
-        TeamGroup model = new TeamGroup();
-        model.setId(group.group().getId());
-        model.setName(group.group().getName());
-        model.setTeaser(group.group().getTeaser());
-        model.setPhotoUrl(group.group().getPhotoUrl());
-        model.setMembers(group.members().stream().map(member -> {
-            TeamPageMember m = new TeamPageMember();
-            m.setDisplayName(member.displayName());
-            m.setAvatarUrl(member.avatarUrl());
-            m.setRoleDescription(member.positionDescription());
-            return m;
-        }).toList());
-        return model;
     }
 
     public static Petition toPetition(CampaignService.Petition petition) {

@@ -179,8 +179,9 @@ describe('content rules (Q10)', () => {
   });
 
   it('maps CMS slugs to their canonical routes', () => {
-    expect(contentPath('foodsharing-cities')).toBe('/about/cities');
-    expect(contentPath('for-companies')).toBe('/for-companies');
+    expect(contentPath('partners')).toBe('/about/partners');
+    // decision 172: removed pages have no canonical route any more
+    expect(contentPath('for-companies')).toBe('/pages/for-companies');
     expect(contentPath('imprint')).toBe('/imprint');
     expect(contentPath('donation-campaign-1')).toBe('/pages/donation-campaign-1');
     expect(new Set(ABOUT_PAGES.map((page) => page.path)).size).toBe(ABOUT_PAGES.length);

@@ -75,4 +75,11 @@ public class MapController implements MapApi {
     public ResponseEntity<List<GeoResult>> searchMapLocation(String q) {
         return ResponseEntity.ok(MapMapper.hits(search.search(q)));
     }
+
+    @Override
+    public ResponseEntity<GeoResult> geocodeAddress(String postcode, String street, String city, String country) {
+        return search.geocodeAddress(street, postcode, city, country)
+                .map(hit -> ResponseEntity.ok(MapMapper.hit(hit)))
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
 }

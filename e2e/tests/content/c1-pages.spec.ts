@@ -2,28 +2,34 @@ import path from 'node:path';
 import { LANGUAGES, expect, expectDataState, expectNoMissingKeys, pickOption, setLanguage, test } from '../../fixtures';
 
 /**
- * C1 (plan-m7 Q10): the public CMS pages under their canonical routes (`/about/*`, `/imprint`, `/for-companies`) in all
- * five languages; a page without a translation shows the German text with the fallback notice. Also the about
- * overview, the FAQ (accordion + filter) and the redirect of body links (`/content/<slug>`).
+ * C1 (plan-m7 Q10): the public CMS pages under their canonical routes (`/about/*`, `/imprint`) in all five languages;
+ * a page without a translation shows the German text with the fallback notice. Also the FAQ (accordion + filter), the
+ * redirect of body links (`/content/<slug>`) and, decision 172, the removed pages that land on the start page.
  */
 
 test.use({ seedReset: 'test' });
 
 const PAGES: Record<string, string> = {
-  '/about/vision': 'vision',
-  '/about/team': 'team',
   '/about/partners': 'partners',
   '/about/press': 'press',
-  '/about/cities': 'foodsharing-cities',
-  '/about/demands': 'demands',
-  '/about/transparency': 'transparency',
   '/about/education': 'education',
-  '/about/communities': 'communities',
-  '/about/international': 'international',
-  '/about/security': 'security',
   '/imprint': 'imprint',
-  '/for-companies': 'for-companies',
 };
+
+/** Decision 172: the pages that are gone; bookmarks land on the start page. */
+const REMOVED = [
+  '/about',
+  '/team',
+  '/for-companies',
+  '/about/vision',
+  '/about/team',
+  '/about/cities',
+  '/about/demands',
+  '/about/transparency',
+  '/about/communities',
+  '/about/international',
+  '/about/security',
+];
 
 interface PageForEdit {
   titles: Record<string, string>;
@@ -37,7 +43,7 @@ test('C1 every public page renders in five languages with fallback notice for mi
   api,
   page,
 }) => {
-  test.slow(); // 13 pages × 5 languages
+  test.slow(); // 4 pages × 5 languages
   // ORGA removes every translation of the press page but German
   await api.loginAs('orga');
   const press = await api.getJson<PageForEdit>('/api/content/pages/press');
@@ -64,22 +70,24 @@ test('C1 every public page renders in five languages with fallback notice for mi
       }
     }
     await expectNoMissingKeys(page);
-
-    await page.goto('/about');
-    await expect(page.getByTestId('content.about.link')).toHaveCount(Object.keys(PAGES).length + 4);
-    await expectNoMissingKeys(page);
   }
 
-  // body links of the seed (`/content/for-companies`) land on the canonical route
-  await page.goto('/content/for-companies');
-  await expect(page).toHaveURL(/\/for-companies$/);
+  // body links (`/content/<slug>`) land on the canonical route
+  await page.goto('/content/partners');
+  await expect(page).toHaveURL(/\/about\/partners$/);
   await expectDataState(page, 'content.page.state', 'success');
+});
 
-  // the about overview links to every page
-  await page.goto('/about');
-  await page.locator('[data-testid="content.about.link"][data-page="cities"]').click();
-  await expect(page).toHaveURL(/\/about\/cities$/);
-  await expect(page.getByTestId('content.page.article')).toHaveAttribute('data-slug', 'foodsharing-cities');
+test('C1 removed pages redirect to the start page @C1 @C16 @page', async ({ page }) => {
+  await setLanguage(page, 'de');
+  for (const path of REMOVED) {
+    await page.goto(path);
+    await expect(page, path).toHaveURL(/\/$/);
+    await expect(page.getByTestId('public.landing.hero')).toBeVisible();
+  }
+  // the CMS rows are gone too (changelog 193): a body link to a removed page finds nothing
+  await page.goto('/pages/vision');
+  await expectDataState(page, 'content.page.state', 'notFound');
 });
 
 test('C1 FAQ lists the published questions and filters them @C1 @page', async ({ page }) => {

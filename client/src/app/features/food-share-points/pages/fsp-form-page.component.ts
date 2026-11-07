@@ -16,6 +16,7 @@ import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { AddressGeocoder } from '../../../shared/address-form/address-geocode';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { ImageCropComponent } from '../../../shared/image-crop/image-crop.component';
 import { MapViewComponent } from '../../../shared/map-view/map-view.component';
@@ -53,6 +54,8 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
 /**
  * /food-share-points/new?regionId= and /food-share-points/:fspId/edit (FS1): name, address, description, photo
  * (`fs-image-crop` → JPEG → `createUpload`, A41) and an optional pin (without one the server geocodes the address).
+ * Decision 171: the pin follows the typed address ("find address on map" and an automatic lookup once street,
+ * postcode and city are typed in) unless it was set by hand or loaded with the Fairteiler.
  * A region member's new FSP waits for activation by the FSP admins (explained on the form); the creator becomes its
  * first manager. Managers are changed on the detail page.
  */
@@ -96,8 +99,9 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
               </div>
               <div class="field">
                 <label for="ff-description">{{ 'foodSharePoints.form.description' | t }}</label>
-                <textarea pTextarea id="ff-description" rows="5" formControlName="description" [maxlength]="descriptionMax" aria-describedby="ff-description-hint" data-testid="foodSharePoints.form.description"></textarea>
-                <span class="field__hint" id="ff-description-hint">{{ 'foodSharePoints.form.descriptionHint' | t }}</span>
+                <!-- decision 171: Markdown, 10 rows growing with the text -->
+                <textarea pTextarea id="ff-description" rows="10" [autoResize]="true" formControlName="description" [maxlength]="descriptionMax" aria-describedby="ff-description-hint" data-testid="foodSharePoints.form.description"></textarea>
+                <span class="field__hint" id="ff-description-hint">{{ 'foodSharePoints.form.descriptionHint' | t }} {{ 'foodSharePoints.form.markdownHint' | t }}</span>
               </div>
             </section>
 
@@ -126,11 +130,28 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
                   }
                 </div>
               </div>
-              <p class="muted">{{ 'foodSharePoints.form.pinHint' | t }}</p>
+              <div class="pin">
+                <p class="muted">{{ 'foodSharePoints.form.pinHint' | t }}</p>
+                <p-button
+                  [label]="'foodSharePoints.form.geocode' | t"
+                  icon="pi pi-search"
+                  size="small"
+                  severity="secondary"
+                  [text]="true"
+                  [loading]="geocoder.status() === 'searching'"
+                  (onClick)="findAddress()"
+                  data-testid="foodSharePoints.form.geocode"
+                />
+              </div>
+              @if (geocoder.status() !== 'idle') {
+                <p class="muted" role="status" aria-live="polite" [attr.data-status]="geocoder.status()" data-testid="foodSharePoints.form.geocodeStatus">
+                  {{ 'foodSharePoints.form.geocodeStatus.' + geocoder.status() | t }}
+                </p>
+              }
               <fs-map-view
                 [editable]="true"
                 [position]="position()"
-                (positionChange)="position.set($event)"
+                (positionChange)="setPinByHand($event)"
                 [center]="position() ?? fallbackCenter"
                 [zoom]="position() ? 15 : 12"
                 [fitMarkers]="false"
@@ -141,7 +162,7 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
               @if (position(); as pos) {
                 <div class="pin">
                   <p class="muted" data-testid="foodSharePoints.form.position">{{ 'foodSharePoints.form.positionChosen' | t: { lat: pos[0].toFixed(5), lon: pos[1].toFixed(5) } }}</p>
-                  <p-button [label]="'foodSharePoints.form.clearPin' | t" icon="pi pi-times" size="small" severity="secondary" [text]="true" (onClick)="position.set(null)" data-testid="foodSharePoints.form.clearPin" />
+                  <p-button [label]="'foodSharePoints.form.clearPin' | t" icon="pi pi-times" size="small" severity="secondary" [text]="true" (onClick)="clearPin()" data-testid="foodSharePoints.form.clearPin" />
                 </div>
               }
             </section>
@@ -272,6 +293,7 @@ export class FspFormPageComponent {
   });
 
   protected readonly position = signal<[number, number] | null>(null);
+  protected readonly geocoder = new AddressGeocoder((position) => this.position.set(position));
   protected readonly photoUploadId = signal<string | null>(null);
   private readonly localPreview = signal<string | null>(null);
   private readonly submitted = signal(false);
@@ -311,7 +333,14 @@ export class FspFormPageComponent {
       this.patched.set(key);
       if (loaded.fsp) this.patchFrom(loaded.fsp);
     });
-    inject(DestroyRef).onDestroy(() => this.revokePreview());
+    const typed = this.form.valueChanges.subscribe(() => {
+      const { street, postcode, city } = this.form.controls;
+      if (street.dirty || postcode.dirty || city.dirty) this.geocoder.addressChanged(this.addressQuery());
+    });
+    inject(DestroyRef).onDestroy(() => {
+      typed.unsubscribe();
+      this.revokePreview();
+    });
   }
 
   protected readonly upload = runMutation((file: File) => this.uploads.createUpload({ file }), {
@@ -339,6 +368,25 @@ export class FspFormPageComponent {
     this.submitted();
     const control = this.form.controls[name];
     return (control.touched || this.submitted()) && (control.invalid || !control.value.trim());
+  }
+
+  protected setPinByHand(position: [number, number]): void {
+    this.geocoder.markPinSetByHand();
+    this.position.set(position);
+  }
+
+  protected clearPin(): void {
+    this.position.set(null);
+    this.geocoder.pinCleared();
+  }
+
+  protected findAddress(): void {
+    void this.geocoder.lookup(this.addressQuery());
+  }
+
+  private addressQuery(): { street: string; postcode: string; city: string } {
+    const { street, postcode, city } = this.form.getRawValue();
+    return { street, postcode, city };
   }
 
   protected uploadPhoto(blob: Blob): void {
@@ -375,7 +423,10 @@ export class FspFormPageComponent {
       cleaningAutoConfirm: fsp.cleaningAutoConfirm,
       timeZone: fsp.timeZone,
     });
-    if (fsp.lat != null && fsp.lon != null) this.position.set([fsp.lat, fsp.lon]);
+    if (fsp.lat != null && fsp.lon != null) {
+      this.position.set([fsp.lat, fsp.lon]);
+      this.geocoder.markPinSetByHand();
+    }
   }
 
   private revokePreview(): void {

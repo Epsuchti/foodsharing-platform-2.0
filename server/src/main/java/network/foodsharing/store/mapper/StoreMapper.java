@@ -174,8 +174,9 @@ public class StoreMapper {
         model.setPrefetchDays(s.getPrefetchDays());
         model.setUseRegionPickupRule(s.isUseRegionPickupRule());
         model.setTeamStatus(convert(s.getTeamStatus(), network.foodsharing.api.model.TeamSearchStatus.class));
-        model.setDescription(s.getDescription());
         if (sensitive) {
+            // decision 171: the description is for the team; publicInfo above is for every viewer
+            model.setDescription(s.getDescription());
             model.setConvinceStatus(convert(s.getConvinceStatus(), network.foodsharing.api.model.ConvinceStatus.class));
             StoreContact contact = new StoreContact();
             contact.setPerson(s.getContactPerson());

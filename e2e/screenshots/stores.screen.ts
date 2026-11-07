@@ -95,6 +95,17 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `stores-form-public-name-${variant.name}`, { fullPage: true });
       });
 
+      screenshotTest('store form pin from the address @S2 @screenshot', async ({ page, visual }) => {
+        // decision 171: a new store, street, postcode and city typed in, the pin sits on the address
+        await page.goto(`/stores/new?regionId=${ZURICH}`);
+        await expect(page.getByTestId('stores.form.state')).toHaveAttribute('data-state', 'success');
+        await page.getByTestId('stores.form.address.street').fill('Bahnhofstrasse 1');
+        await page.getByTestId('stores.form.address.postcode').fill('8001');
+        await page.getByTestId('stores.form.address.city').fill('Zürich');
+        await expect(page.getByTestId('stores.form.address.geocodeStatus')).toHaveAttribute('data-status', 'found');
+        await visual.expectScreen(page, `stores-form-geocoded-${variant.name}`, { fullPage: true });
+      });
+
       screenshotTest('store form edit @S2 @screenshot', async ({ page, visual }) => {
         await page.goto(`/stores/${S01}/edit`);
         await expect(page.getByTestId('stores.form.state')).toHaveAttribute('data-state', 'success');

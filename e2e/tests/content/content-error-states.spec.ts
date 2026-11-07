@@ -24,8 +24,8 @@ test('unknown content page and chapter show not found @C1', async ({ page }) => 
 });
 
 test('content page: server error with retry @C1', async ({ page }) => {
-  const failure = await injectApiError(page, { url: /\/api\/public\/content\/vision/, status: 503 });
-  await page.goto('/pages/vision');
+  const failure = await injectApiError(page, { url: /\/api\/public\/content\/partners/, status: 503 });
+  await page.goto('/pages/partners');
   const { retry } = await expectErrorState(page, 'content.page.state');
   await failure.remove();
   await retry.click();

@@ -189,28 +189,6 @@
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
 
-/api/public/team:
-  get:
-    tags: [public-content]
-    operationId: getPublicTeam
-    summary: Team page (groups with team_page flag).
-    x-permission: public
-    responses:
-      "200":
-        description: OK
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '../schemas/content.yaml#/TeamGroup'
-      "429":
-        description: TOO_MANY_REQUESTS
-        content:
-          application/json:
-            schema:
-              $ref: '../schemas/common.yaml#/ApiError'
-
 /api/public/petition:
   get:
     tags: [public-content]

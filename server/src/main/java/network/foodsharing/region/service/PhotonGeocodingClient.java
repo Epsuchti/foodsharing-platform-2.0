@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +26,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Postcode geocoding with Photon (komoot, OSM based): timeouts and a 24 h cache; failures go to the GEOCODING breaker
+ * Postcode and address geocoding with Photon (komoot, OSM based): timeouts and a 24 h cache; failures go to the GEOCODING breaker
  * of the {@link IntegrationRegistry} (A26), which fails fast while open. {@link #probe()} is the registry's probe.
  */
 @Component
@@ -65,31 +66,65 @@ public class PhotonGeocodingClient implements GeocodingClient {
         if (cached != null && cached.expiresAt().isAfter(now)) {
             return cached.point();
         }
+        Optional<GeoPoint> point = call(key, () -> fetchUnchecked(country, postcode.strip(), "&layer=postcode"));
+        cache.put(key, new CacheEntry(point, now.plus(Duration.ofHours(settings.getCacheHours()))));
+        return point;
+    }
+
+    @Override
+    public Optional<GeoPoint> geocodeAddress(String country, String street, String postcode, String city) {
+        String query = addressQuery(street, postcode, city);
+        if (street == null || street.isBlank() || query.isEmpty()) {
+            return geocodePostcode(country, postcode);
+        }
+        String key = "address:" + (country == null ? "CH" : country.toUpperCase(Locale.ROOT)) + ":"
+                + query.toLowerCase(Locale.ROOT);
+        Instant now = clock.instant();
+        CacheEntry cached = cache.get(key);
         Optional<GeoPoint> point;
+        if (cached != null && cached.expiresAt().isAfter(now)) {
+            point = cached.point();
+        } else {
+            point = call(key, () -> fetchUnchecked(country, query, "&layer=house&layer=street"));
+            cache.put(key, new CacheEntry(point, now.plus(Duration.ofHours(settings.getCacheHours()))));
+        }
+        return point.isPresent() ? point : geocodePostcode(country, postcode);
+    }
+
+    /** {@code street postcode city}, blanks skipped and whitespace collapsed. */
+    static String addressQuery(String street, String postcode, String city) {
+        StringBuilder query = new StringBuilder();
+        for (String part : new String[] {street, postcode, city}) {
+            if (part != null && !part.isBlank()) {
+                query.append(query.isEmpty() ? "" : " ").append(part.strip());
+            }
+        }
+        return query.toString().replaceAll("\\s+", " ");
+    }
+
+    private Optional<GeoPoint> call(String key, java.util.function.Supplier<Optional<GeoPoint>> fetch) {
         try {
-            point = integrations.call(Integration.GEOCODING, "photon", () -> fetchUnchecked(country, postcode.strip()));
+            return integrations.call(Integration.GEOCODING, "photon", fetch);
         } catch (ApiException e) {
             throw new GeocodingUnavailableException("geocoding circuit open", e);
         } catch (RuntimeException e) {
             log.warn("Photon geocoding failed for {}: {}", key, e.toString());
             throw new GeocodingUnavailableException("geocoding failed", e.getCause() == null ? e : e.getCause());
         }
-        cache.put(key, new CacheEntry(point, now.plus(Duration.ofHours(settings.getCacheHours()))));
-        return point;
     }
 
     /** A26 probe: "8001" (Zürich) resolves, called directly (not through the breaker). */
     public boolean probe() {
         try {
-            return fetch("CH", "8001").isPresent();
+            return fetch("CH", "8001", "&layer=postcode").isPresent();
         } catch (Exception e) {
             return false;
         }
     }
 
-    private Optional<GeoPoint> fetchUnchecked(String country, String postcode) {
+    private Optional<GeoPoint> fetchUnchecked(String country, String q, String layers) {
         try {
-            return fetch(country == null ? "CH" : country, postcode);
+            return fetch(country == null ? "CH" : country, q, layers);
         } catch (java.io.IOException e) {
             throw new java.io.UncheckedIOException(e);
         } catch (InterruptedException e) {
@@ -102,10 +137,10 @@ public class PhotonGeocodingClient implements GeocodingClient {
         }
     }
 
-    private Optional<GeoPoint> fetch(String country, String postcode) throws Exception {
-        String query = URLEncoder.encode(postcode, StandardCharsets.UTF_8);
-        URI uri = URI.create(settings.getPhotonUrl() + "/api?limit=1&layer=postcode&q=" + query
-                + "&countrycode=" + URLEncoder.encode(country.toLowerCase(java.util.Locale.ROOT), StandardCharsets.UTF_8));
+    private Optional<GeoPoint> fetch(String country, String q, String layers) throws Exception {
+        String query = URLEncoder.encode(q, StandardCharsets.UTF_8);
+        URI uri = URI.create(settings.getPhotonUrl() + "/api?limit=1" + layers + "&q=" + query
+                + "&countrycode=" + URLEncoder.encode(country.toLowerCase(Locale.ROOT), StandardCharsets.UTF_8));
         HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofMillis(settings.getReadTimeoutMs()))
                 .header("Accept", "application/json").GET().build();
         HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());

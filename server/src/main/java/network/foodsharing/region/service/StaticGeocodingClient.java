@@ -40,6 +40,12 @@ public class StaticGeocodingClient implements GeocodingClient {
         return Optional.ofNullable(points.get(key(country, postcode)));
     }
 
+    /** Offline: only postcodes are known, so the address falls back to its postcode. */
+    @Override
+    public Optional<GeoPoint> geocodeAddress(String country, String street, String postcode, String city) {
+        return geocodePostcode(country, postcode);
+    }
+
     static String key(String country, String postcode) {
         return (country == null ? "CH" : country.toUpperCase(Locale.ROOT)) + ":" + postcode.strip();
     }

@@ -3,7 +3,7 @@ import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
  * Content screens (C1): learning overview with progress and chapter states, a chapter, a CMS page, the content admin
- * list and editor, the learning overview error state, the about overview, FAQ, team, statistics (+ error), release
+ * list and editor, the learning overview error state, FAQ, statistics (+ error), release
  * notes (+ ORGA editor) and the petition page with its banner (Q10); blog list/post (+ error), management and
  * editor, donate and support (+ rate limit) (Q11) — light/de (decision 109).
  */
@@ -43,27 +43,17 @@ forEachVariant((variant) => {
       screenshotTest.use({ variant, role: undefined });
 
       screenshotTest('content page @C1 @screenshot', async ({ page, visual }) => {
-        await page.goto('/pages/vision');
+        await page.goto('/pages/partners');
         await expect(page.getByTestId('content.page.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `content-page-${variant.name}`);
       });
 
-      screenshotTest('about overview and FAQ @C1 @screenshot', async ({ page, visual }) => {
-        await page.goto('/about');
-        await expect(page.getByTestId('content.about.link').first()).toBeVisible();
-        await visual.expectScreen(page, `about-${variant.name}`);
-
+      screenshotTest('FAQ @C1 @screenshot', async ({ page, visual }) => {
         await page.goto('/faq');
         await expect(page.getByTestId('content.faq.state')).toHaveAttribute('data-state', 'success');
         await page.getByTestId('content.faq.question').first().click();
         await expect(page.getByTestId('content.faq.answer').first()).toBeVisible();
         await visual.expectScreen(page, `faq-${variant.name}`);
-      });
-
-      screenshotTest('team page @C16 @screenshot', async ({ page, visual }) => {
-        await page.goto('/team');
-        await expect(page.getByTestId('content.team.state')).toHaveAttribute('data-state', 'success');
-        await visual.expectScreen(page, `team-${variant.name}`);
       });
 
       screenshotTest('statistics page @C3 @screenshot', async ({ page, visual }) => {
