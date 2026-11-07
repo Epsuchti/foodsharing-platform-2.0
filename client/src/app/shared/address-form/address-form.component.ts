@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal, untracked } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from '@openng/optimus-ui/button';
 import { InputText } from '@openng/optimus-ui/inputtext';
@@ -145,10 +145,13 @@ export class AddressFormComponent {
       const group = this.group();
       const sync = () => {
         const { latitude, longitude, street, postcode, city, country } = group.controls;
+        const [lastLat, lastLon] = untracked(this.coordinates);
+        const moved = latitude.value !== lastLat || longitude.value !== lastLon;
         this.coordinates.set([latitude.value, longitude.value]);
-        if (latitude.value != null && longitude.value != null) {
+        if (moved && latitude.value != null && longitude.value != null) {
+          // dragged, clicked, "use my location" or loaded with the record; the geocoder's own pin does not count
           if (!this.applyingGeocode) this.geocoder.markPinSetByHand();
-        } else if (this.geocoder.pinSetByHand()) {
+        } else if (moved && this.geocoder.pinSetByHand()) {
           this.geocoder.pinCleared();
         }
         // only what the user typed starts a lookup (a patched, loaded address does not)
@@ -156,7 +159,7 @@ export class AddressFormComponent {
           this.geocoder.addressChanged({ street: street.value, postcode: postcode.value, city: city.value, country: country.value });
         }
       };
-      sync();
+      untracked(sync);
       const subscription = group.valueChanges.subscribe(sync);
       onCleanup(() => subscription.unsubscribe());
     });

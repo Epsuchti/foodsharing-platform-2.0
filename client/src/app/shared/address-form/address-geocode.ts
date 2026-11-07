@@ -76,9 +76,11 @@ export class AddressGeocoder {
     return this.run(query);
   }
 
-  /** The pin was placed by hand or loaded with the record. */
+  /** The pin was placed by hand or loaded with the record: a pending or running lookup no longer moves it. */
   markPinSetByHand(): void {
     clearTimeout(this.timer);
+    this.request++;
+    if (this.status() === 'searching') this.status.set('idle');
     this.pinSetByHand.set(true);
   }
 

@@ -107,6 +107,30 @@ describe('AddressFormComponent geocoding', () => {
     expect(fixture.componentInstance.group.value.latitude).toBe(47.5);
   });
 
+  it('keeps following the address after its own pin', async () => {
+    const group = fixture.componentInstance.group;
+    typeAddress();
+    vi.advanceTimersByTime(AUTO_LOOKUP_DELAY_MS);
+    lookups()[0].flush({ label: 'x', lat: 47.3769, lon: 8.5402 });
+    await vi.runAllTimersAsync();
+    type('street', 'Bahnhofstrasse 9');
+    vi.advanceTimersByTime(AUTO_LOOKUP_DELAY_MS);
+    lookups()[0].flush({ label: 'y', lat: 47.3771, lon: 8.5399 });
+    await vi.runAllTimersAsync();
+    expect([group.value.latitude, group.value.longitude]).toEqual([47.3771, 8.5399]);
+  });
+
+  it('a running lookup does not move a pin set by hand meanwhile', async () => {
+    const group = fixture.componentInstance.group;
+    typeAddress();
+    vi.advanceTimersByTime(AUTO_LOOKUP_DELAY_MS);
+    const [request] = lookups();
+    group.patchValue({ latitude: 47.5, longitude: 8.7 });
+    request.flush({ label: 'x', lat: 47.3769, lon: 8.5402 });
+    await vi.runAllTimersAsync();
+    expect([group.value.latitude, group.value.longitude]).toEqual([47.5, 8.7]);
+  });
+
   it('does not look up a loaded address nobody typed', () => {
     fixture.componentInstance.group.patchValue({ street: 'Bahnhofstrasse 1', postcode: '8001', city: 'Zürich' });
     vi.advanceTimersByTime(AUTO_LOOKUP_DELAY_MS * 2);
