@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { StoreDetail, UserTeamStatus } from '../../../api';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
+import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { StoreMembershipActionsComponent } from '../components/membership-actions.component';
@@ -15,12 +16,12 @@ interface Requirement {
 }
 
 /**
- * Overview tab of a store (S1/S2/S15): public information, groceries, pickup time, chain, cooperation dates,
+ * Overview tab of a store (S1/S2/S15): description (team only, decision 171), public information, groceries, pickup time, chain, cooperation dates,
  * contact (only for wall readers, A19), requirements for joining the team and the managers.
  */
 @Component({
   selector: 'fs-store-overview-tab',
-  imports: [DateTimePipe, MapViewComponent, RouterLink, StoreMembershipActionsComponent, TPipe, UserChipComponent],
+  imports: [DateTimePipe, MapViewComponent, MarkdownComponent, RouterLink, StoreMembershipActionsComponent, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ctx.data(); as store) {
@@ -28,11 +29,9 @@ interface Requirement {
         <div class="stack">
           <section class="fs-card card" data-testid="stores.overview.info">
             <h2 class="card__title"><i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'stores.overview.info' | t }}</h2>
+            <!-- decision 171: the server sends the description to the team only (mayReadWall) -->
             @if (store.description) {
-              <p class="text" data-testid="stores.overview.description">{{ store.description }}</p>
-            }
-            @if (store.publicInfo) {
-              <p class="text" data-testid="stores.overview.publicInfo">{{ store.publicInfo }}</p>
+              <fs-markdown class="text-md" [markdown]="store.description" data-testid="stores.overview.description" />
             }
             <dl class="facts">
               @if (store.category) {
@@ -67,6 +66,16 @@ interface Requirement {
                   <li class="tag">{{ grocery.name }}</li>
                 }
               </ul>
+            }
+          </section>
+
+          <!-- decision 171: public information for everyone who can open the store -->
+          <section class="fs-card card" data-testid="stores.overview.publicInfoCard">
+            <h2 class="card__title"><i class="pi pi-globe" aria-hidden="true"></i>{{ 'stores.overview.publicInfo' | t }}</h2>
+            @if (store.publicInfo) {
+              <fs-markdown [markdown]="store.publicInfo" data-testid="stores.overview.publicInfo" />
+            } @else {
+              <p class="muted" data-testid="stores.overview.publicInfoEmpty">{{ 'stores.overview.publicInfoEmpty' | t }}</p>
             }
           </section>
 
@@ -139,6 +148,7 @@ interface Requirement {
   styleUrl: '../stores.scss',
   styles: `
     .text { margin: 0; white-space: pre-line; }
+    .text-md { margin-bottom: 0.75rem; }
     .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.35rem 1rem; margin: 0; }
     .facts dt { color: var(--fs-text-muted); font-size: 0.88rem; }
     .facts dd { margin: 0; }

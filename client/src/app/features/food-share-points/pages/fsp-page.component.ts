@@ -15,6 +15,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
 import { MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { NavigateButtonComponent } from '../../../shared/navigate-button/navigate-button.component';
 import { navigationLinks } from '../../../shared/navigate-button/navigate.util';
@@ -22,13 +23,14 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { WallComponent, WallPost } from '../../../shared/wall/wall.component';
+import { FspCleaningCardComponent } from '../components/fsp-cleaning-card.component';
 import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.util';
 
 /**
  * /food-share-points/:fspId (FS1; the FSP_ACTIVATE and FSP_NEW_POST bells link here): photo, description, address
  * with navigation links and map, managers, follow switches (bell / mail), wall (`fs-wall`). FSP admins activate an
  * INACTIVE FSP and delete; editors (FSP admins and managers) edit and replace the managers. With cleaning shifts on
- * (FS2) a card links to `…/cleaning`. The server decides every
+ * (FS2) a card shows the next five shifts with sign-up and sign-out and links to `…/cleaning` (decision 171). The server decides every
  * right (`Fsp.permissions`); a hidden or unknown FSP renders the not-found state.
  */
 @Component({
@@ -37,8 +39,10 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
     ...DATA_STATE_IMPORTS,
     Button,
     DateTimePipe,
+    FspCleaningCardComponent,
     FormsModule,
     MapViewComponent,
+    MarkdownComponent,
     NavigateButtonComponent,
     PageHeaderComponent,
     RouterLink,
@@ -90,7 +94,7 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
               }
               <h2 class="card__title"><i class="pi pi-info-circle" aria-hidden="true"></i> {{ 'foodSharePoints.detail.about' | t }}</h2>
               @if (f.description) {
-                <p class="description" data-testid="foodSharePoints.detail.description">{{ f.description }}</p>
+                <fs-markdown class="description" [markdown]="f.description" data-testid="foodSharePoints.detail.description" />
               } @else {
                 <p class="muted">{{ 'foodSharePoints.detail.noDescription' | t }}</p>
               }
@@ -142,13 +146,7 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
             </section>
 
             @if (f.cleaningEnabled) {
-              <section class="fs-card card" data-testid="foodSharePoints.detail.cleaning">
-                <h2 class="card__title"><i class="pi pi-sparkles" aria-hidden="true"></i> {{ 'foodSharePoints.cleaning.title' | t }}</h2>
-                <p class="muted">{{ 'foodSharePoints.cleaning.teaser' | t }}</p>
-                <div>
-                  <p-button [label]="'foodSharePoints.cleaning.open' | t" icon="pi pi-calendar" [routerLink]="['/food-share-points', f.id, 'cleaning']" data-testid="fsp.cleaning.open" />
-                </div>
-              </section>
+              <fs-fsp-cleaning-card [fsp]="f" />
             }
 
             @if (f.following.following || f.permissions.mayFollow) {
@@ -265,7 +263,7 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
     .error { margin: 0; color: var(--fs-danger); }
     .photo { width: 100%; max-width: 28rem; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--fs-radius-md); }
-    .description { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .description { margin: 0; overflow-wrap: anywhere; }
     .meta { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0; color: var(--fs-text-muted); font-size: 0.85rem; }
     .inactive {
       display: flex;
