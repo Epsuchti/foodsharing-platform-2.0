@@ -165,7 +165,7 @@ export async function reportOnlyPages(baseURL) {
   return [
     { path: '/map' },
     { path: '/statistics' },
-    { path: '/about/vision' },
+    { path: '/about/partners' },
     { path: '/blog' },
     { path: '/profile/me', cookie: foodsaver },
     { path: '/baskets', cookie: foodsaver },

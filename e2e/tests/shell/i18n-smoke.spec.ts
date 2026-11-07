@@ -90,7 +90,7 @@ async function countersDone(page: Page): Promise<void> {
 
 const SMOKE: Visit[] = [
   { path: '/', role: null, ready: 'public.landing.hero' },
-  { path: '/about/vision', role: null, ready: 'content.page.body' },
+  { path: '/about/partners', role: null, ready: 'content.page.body' },
   { path: '/statistics', role: null, ready: 'content.statistics.tile' },
   { path: '/map', role: null, ready: 'map.page.layers' },
   { path: '/onboarding', role: 'newbie', ready: 'onboarding.journey.state' },
@@ -159,11 +159,9 @@ const M6_PAGES: Visit[] = [
   // AC1 achievements
   { path: `/regions/${ZH}/achievements`, role: 'foodsaver', ready: 'achievements.board.list' },
   { path: '/admin/achievements', role: 'orga', ready: 'achievements.board.list' },
-  // C1 content (+ C3/C4/C7/C8/C16 pages)
-  { path: '/about', role: null, ready: 'content.about.link' },
+  // C1 content (+ C3/C4/C7/C8 pages)
   { path: '/imprint', role: null, ready: 'content.page.body' },
   { path: '/faq', role: null, ready: 'content.faq.entry' },
-  { path: '/team', role: null, ready: 'content.team.group' },
   { path: '/release-notes', role: null, ready: 'content.releaseNotes.note' },
   { path: '/petition', role: null, ready: 'content.petition.card' },
   { path: '/donate', role: null, ready: 'content.donate.info' },

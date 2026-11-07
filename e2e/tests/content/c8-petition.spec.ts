@@ -22,7 +22,7 @@ test('C8 petition banner follows the feature toggle @C8 @C11 @page', async ({ ap
   const banner = page.getByTestId('content.petition.banner');
 
   // seed: PETITION_BANNER on, 4213 signatures, 21 days left
-  await openWithToggles(page, '/about');
+  await openWithToggles(page, '/release-notes');
   await expect(banner).toBeVisible();
   await expect(page.getByTestId('content.petition.bannerCount')).toContainText(/4.213/);
   await expect(page.getByTestId('content.petition.bannerCount')).toContainText('21');
@@ -40,8 +40,8 @@ test('C8 petition banner follows the feature toggle @C8 @C11 @page', async ({ ap
   await api.loginAs('orga');
   const off = await api.fetch('PATCH', '/api/admin/feature-toggles/PETITION_BANNER', { enabled: false });
   expect(off.status(), await off.text()).toBe(200);
-  await openWithToggles(page, '/about');
-  await expect(page.getByTestId('content.about.link').first()).toBeVisible();
+  await openWithToggles(page, '/release-notes');
+  await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(banner).toHaveCount(0);
   await page.goto('/petition');
   await expectDataState(page, 'content.petition.state', 'notFound');
@@ -49,13 +49,13 @@ test('C8 petition banner follows the feature toggle @C8 @C11 @page', async ({ ap
   // on again: the banner is back; dismissing hides this petition for good (in this browser)
   const on = await api.fetch('PATCH', '/api/admin/feature-toggles/PETITION_BANNER', { enabled: true });
   expect(on.status(), await on.text()).toBe(200);
-  await openWithToggles(page, '/about');
+  await openWithToggles(page, '/release-notes');
   await expect(banner).toBeVisible();
   await page.getByTestId('content.petition.bannerDismiss').click();
   await expect(banner).toHaveCount(0);
   const petition = page.waitForResponse((response) => response.url().includes('/api/public/petition'));
-  await openWithToggles(page, '/about');
+  await openWithToggles(page, '/release-notes');
   await petition;
-  await expect(page.getByTestId('content.about.link').first()).toBeVisible();
+  await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(banner).toHaveCount(0);
 });

@@ -171,15 +171,12 @@ export const SWEEP_ROUTES: RouteCase[] = [
 
   // --- legal and content (M2 T14, M6 Q10/Q11)
   { path: '/admin/legal', role: 'orga', ready: 'legal.admin.versions' },
-  { path: '/about', role: null, ready: 'content.about.link', mobile: true },
-  ...['vision', 'team', 'partners', 'press', 'cities', 'demands', 'transparency', 'education', 'communities', 'international', 'security'].map(
-    (page) => ({ path: `/about/${page}`, role: null, ready: 'content.page.article' }),
-  ),
+  // decision 172: Vision, About us, Team, Cities, Demands, Transparency, Communities, International, Security and
+  // For companies are gone
+  ...['partners', 'press', 'education'].map((page) => ({ path: `/about/${page}`, role: null, ready: 'content.page.article' })),
   { path: '/imprint', role: null, ready: 'content.page.body', mobile: true },
-  { path: '/for-companies', role: null, ready: 'content.page.article' },
-  { path: '/pages/vision', role: null, ready: 'content.page.body' },
+  { path: '/pages/partners', role: null, ready: 'content.page.body' },
   { path: '/faq', role: null, ready: 'content.faq.entry', mobile: true },
-  { path: '/team', role: null, ready: 'content.team.group', mobile: true },
   { path: '/statistics', role: null, ready: 'content.statistics.tile', mobile: true },
   { path: '/release-notes', role: null, ready: 'content.releaseNotes.note', mobile: true },
   { path: '/petition', role: null, ready: 'content.petition.card' },

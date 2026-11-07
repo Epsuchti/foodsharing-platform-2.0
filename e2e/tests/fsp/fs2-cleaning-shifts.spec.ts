@@ -14,6 +14,36 @@ const NEW_SHIFT = '2026-11-10T17:00:00Z';
 
 const shift = (page: Page, at: string) => page.locator(`[data-testid="fsp.cleaning.shift"][data-shift-at="${at}"]`);
 
+/** Saturday 2026-11-07 10:00 in Zürich: Wiedikon's first regular shift after the fixed e2e clock (2026-11-02). */
+const FIRST_SHIFT = '2026-11-07T09:00:00Z';
+
+test.describe('next shifts on the Fairteiler page', () => {
+  test.use({ seedReset: 'test', role: 'foodsaver' });
+
+  test('FS2 foodsaver signs up and out on the Fairteiler page @FS2 @page', async ({ page, apiOf }) => {
+    await acceptPendingConsents(apiOf(page));
+    await page.goto(`/food-share-points/${FSPS.wiedikon}`);
+    await expectDataState(page, 'fsp.cleaningCard.state', 'success');
+    await expect(page.getByTestId('fsp.cleaningCard.shift')).toHaveCount(5);
+    const first = page.locator(`[data-testid="fsp.cleaningCard.shift"][data-shift-at="${FIRST_SHIFT}"]`);
+
+    await first.getByTestId('fsp.cleaningCard.slot.free').first().click();
+    await page.getByTestId('fsp.cleaningCard.signupConfirm').locator('button').click();
+    await expect(first.getByTestId('fsp.cleaningCard.unconfirmed')).toBeVisible();
+    const mine = first.locator('[data-testid="fsp.cleaningCard.slot.taken"][data-mine="true"]');
+    await expect(mine).toHaveCount(1);
+
+    await mine.click();
+    await page.locator('.p-confirmdialog-accept-button').click();
+    await expect(mine).toHaveCount(0);
+    await expect(first.getByTestId('fsp.cleaningCard.unconfirmed')).toHaveCount(0);
+
+    await page.getByTestId('fsp.cleaning.open').click();
+    await expect(page).toHaveURL(new RegExp(`/food-share-points/${FSPS.wiedikon}/cleaning$`));
+    await expectDataState(page, 'fsp.cleaning.state', 'success');
+  });
+});
+
 test.describe('cleaning shifts', () => {
   test.use({ seedReset: 'test', role: 'bieb' });
 
@@ -31,6 +61,8 @@ test.describe('cleaning shifts', () => {
     await setSwitch(page.getByTestId('foodSharePoints.form.cleaning'), true);
     await page.getByTestId('foodSharePoints.form.submit').click();
     await expect(page).toHaveURL(new RegExp(`/food-share-points/${FSPS.langstrasse}$`));
+    // decision 171: the Fairteiler page lists the next shifts; "All shifts" leads to the manager tools
+    await expectDataState(page, 'fsp.cleaningCard.state', 'empty');
     await page.getByTestId('fsp.cleaning.open').click();
     await expect(page).toHaveURL(new RegExp(`/food-share-points/${FSPS.langstrasse}/cleaning$`));
     await expectDataState(page, 'fsp.cleaning.state', 'empty');

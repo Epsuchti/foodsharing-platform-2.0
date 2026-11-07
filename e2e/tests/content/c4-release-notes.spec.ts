@@ -11,12 +11,13 @@ import type { Page } from '@playwright/test';
 
 /**
  * C4 (plan-m7 Q10): release notes newest first in the UI language, the header "what's new" dot until the newest note
- * was seen (`localStorage['fs.releaseNotesSeen']`), and the ORGA editor `/admin/release-notes`.
+ * was seen (`localStorage['fs.releaseNotesSeen']`), and the ORGA editor `/admin/release-notes`. Decision 172: the
+ * "what's new" link is for signed-in users; `/release-notes` stays public by URL.
  */
 
 test.use({ seedReset: 'test' });
 
-/** The header link is hidden on phones (decision: release notes stay reachable from the footer and /about). */
+/** The header link is hidden on phones (decision: release notes stay reachable from the footer). */
 const hasHeaderLink = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768;
 
 async function expectDot(page: Page, shown: boolean): Promise<void> {
@@ -27,27 +28,33 @@ async function expectDot(page: Page, shown: boolean): Promise<void> {
 }
 
 test("C4 release notes list and what's new indicator @C4 @page", async ({ as, page }) => {
-  // a first-time visitor: the dot shows, the page marks only the newest note new
+  // a visitor has no "what's new" link (decision 172) but opens the page by URL; only the newest note is new
   await setLanguage(page, 'de');
-  await page.goto('/about');
-  await expectDot(page, true);
-  if (hasHeaderLink(page)) await page.getByTestId('shell.whatsNew').click();
-  else await page.goto('/release-notes');
-  await expect(page).toHaveURL(/\/release-notes$/);
+  await page.goto('/release-notes');
   await expectDataState(page, 'content.releaseNotes.state', 'success');
+  await expect(page.getByTestId('shell.whatsNew')).toHaveCount(0);
   const notes = page.getByTestId('content.releaseNotes.note');
   await expect(notes).toHaveCount(5);
   await expect(notes.first()).toHaveAttribute('data-version', '5.0.0');
   await expect(notes.first()).toContainText('Gemeinsam reden und entscheiden');
   await expect(page.getByTestId('content.releaseNotes.new')).toHaveCount(1);
-  await expectDot(page, false);
   expect(await page.evaluate(() => localStorage.getItem('fs.releaseNotesSeen'))).toBe('5.0.0');
 
-  // seen: no dot and nothing new after a reload
+  // seen: nothing new after a reload
   await page.reload();
   await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(page.getByTestId('content.releaseNotes.new')).toHaveCount(0);
-  await expectDot(page, false);
+
+  // a signed-in foodsaver: the dot shows until the link was followed
+  const member = await as('foodsaver');
+  await setLanguage(member, 'de');
+  await member.goto('/dashboard');
+  await expectDot(member, true);
+  if (hasHeaderLink(member)) await member.getByTestId('shell.whatsNew').click();
+  else await member.goto('/release-notes');
+  await expect(member).toHaveURL(/\/release-notes$/);
+  await expectDataState(member, 'content.releaseNotes.state', 'success');
+  await expectDot(member, false);
 
   // ORGA adds a note with a French translation
   const orga = await as('orga');
@@ -70,10 +77,10 @@ test("C4 release notes list and what's new indicator @C4 @page", async ({ as, pa
   await expect(orga.getByTestId('content.releaseAdmin.note')).toHaveCount(6);
   await expect(orga.getByTestId('content.releaseAdmin.note').first()).toHaveAttribute('data-version', '6.0.0');
 
-  // the visitor sees the dot again; in French the new note is translated and the only new one
+  // the member sees the dot again; in French the new note is translated and the only new one
+  await member.goto('/dashboard');
+  await expectDot(member, true);
   await setLanguage(page, 'fr');
-  await page.goto('/about');
-  await expectDot(page, true);
   await page.goto('/release-notes');
   await expectDataState(page, 'content.releaseNotes.state', 'success');
   await expect(notes.first()).toHaveAttribute('data-version', '6.0.0');
