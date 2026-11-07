@@ -373,7 +373,8 @@ describe('nav.config', () => {
       expect(ids(foodsaver, 'user')).toContain('profile');
       // the "about" pages are in the logged-out footer only
       const about = NAV_ITEMS.filter((item) => item.group === 'about').map((item) => item.id);
-      expect(about).toHaveLength(12);
+      // decision 172: team, cities and demands are gone
+      expect(about).toHaveLength(9);
       expect(ids(context(), 'footer')).toEqual(expect.arrayContaining(about));
       expect(ids(foodsaver, 'footer').filter((id) => about.includes(id))).toEqual([]);
       // Q11: blog management with the server capability BLOG_MANAGE (decision 162: editors and region ambassadors,

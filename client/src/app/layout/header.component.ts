@@ -173,8 +173,9 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
         @if (chrome() === 'full' && session.isAuthenticated()) {
           <fs-region-switcher />
         }
-        @if (chrome() === 'full') {
-          <!-- C4: the dot (newest release note not seen yet) loads after the first page and never shifts the header -->
+        @if (chrome() === 'full' && session.isAuthenticated()) {
+          <!-- C4, decision 172: signed-in users only; the dot (newest release note not seen yet) loads after the first
+               page and never shifts the header -->
           <a
             class="hdr-btn hdr__whats-new"
             routerLink="/release-notes"

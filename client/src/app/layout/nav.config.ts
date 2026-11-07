@@ -112,12 +112,9 @@ export const M6_PAGES_READY = {
   adminBounced: true,
   /** AD1 global admins list (Q13). */
   adminAdmins: true,
-  team: true,
   partners: true,
   press: true,
   blog: true,
-  cities: true,
-  demands: true,
   education: true,
   donate: true,
   statistics: true,
@@ -144,12 +141,9 @@ const ABOUT_PAGES: readonly {
   /** Side menu section for visitors (decision 133); support and release notes stay in the footer only. */
   section?: NavSection;
 }[] = [
-  { id: 'team', icon: 'pi pi-users', route: '/team', section: 'about' },
   { id: 'partners', icon: 'pi pi-thumbs-up', route: '/about/partners', section: 'about' },
   { id: 'press', icon: 'pi pi-megaphone', route: '/about/press', section: 'about' },
   { id: 'blog', icon: 'pi pi-book', route: '/blog', toggle: FeatureToggleKey.Blog, section: 'daily' },
-  { id: 'cities', icon: 'pi pi-building', route: '/about/cities', section: 'about' },
-  { id: 'demands', icon: 'pi pi-flag', route: '/about/demands', section: 'about' },
   { id: 'education', icon: 'pi pi-graduation-cap', route: '/about/education', section: 'about' },
   { id: 'donate', icon: 'pi pi-heart-fill', route: '/donate', section: 'about' },
   { id: 'statistics', icon: 'pi pi-chart-bar', route: '/statistics', section: 'daily' },
@@ -426,25 +420,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     area: 'user',
   },
   // --- footer (CMS pages arrive in M6) ---
-  {
-    id: 'vision',
-    section: 'about',
-    labelKey: 'nav.vision',
-    icon: 'pi pi-heart',
-    route: '/about/vision',
-    visible: () => true,
-    area: 'footer',
-  },
-  {
-    id: 'about',
-    section: 'about',
-    labelKey: 'nav.about',
-    icon: 'pi pi-info-circle',
-    route: '/about',
-    visible: () => true,
-    area: 'footer',
-    exact: true,
-  },
   {
     id: 'privacy',
     labelKey: 'nav.privacy',
@@ -768,7 +743,7 @@ export const NAV_SECTIONS: readonly NavSectionDef[] = [
     icon: 'pi pi-info-circle',
     collapsible: true,
     defaultOpen: true,
-    order: ['vision', 'about', 'team', 'partners', 'press', 'cities', 'demands', 'education', 'donate', 'faq'],
+    order: ['partners', 'press', 'education', 'donate', 'faq'],
   },
 ];
 

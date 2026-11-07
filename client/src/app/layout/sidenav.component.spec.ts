@@ -179,18 +179,8 @@ describe('side menu nav.config (decision 133)', () => {
   it('gives visitors the public pages: start, map, statistics, blog, then the about pages', () => {
     expect(shape(context())).toEqual({
       daily: ['home', 'map', 'statistics', 'blog'],
-      about: [
-        'vision',
-        'about',
-        'team',
-        'partners',
-        'press',
-        'cities',
-        'demands',
-        'education',
-        'donate',
-        'faq',
-      ],
+      // decision 172: Vision, About us, Team, Cities and Demands are gone
+      about: ['partners', 'press', 'education', 'donate', 'faq'],
     });
   });
 
@@ -230,9 +220,8 @@ describe('side menu nav.config (decision 133)', () => {
     expect(activeNavId('/quizzes/3', all)).toBeNull();
 
     const visitor = sidenavSections(context()).flatMap((section) => section.items);
-    // the start page matches exactly, "Über uns" too (its sub-pages are their own items)
+    // the start page matches exactly; the about pages are their own items
     expect(activeNavId('/', visitor)).toBe('home');
-    expect(activeNavId('/about', visitor)).toBe('about');
     expect(activeNavId('/about/press', visitor)).toBe('press');
     expect(activeNavId('/login', visitor)).toBeNull();
   });
@@ -396,7 +385,7 @@ describe('SidenavComponent in the shell', () => {
     const trigger = byTestId('shell.userMenu')!;
     const card = byTestId('shell.userMenu.card')!;
     expect(card.hidden).toBe(true);
-    expect(byTestId('shell.whatsNew')).not.toBeNull();
+    expect(byTestId('shell.whatsNew')?.getAttribute('href')).toBe('/release-notes');
     // A2: the role under the name follows a session refresh; shell.userMenu.role is the one inside the card
     expect(byTestId('shell.userMenu.triggerRole')?.textContent).toContain('common.role.FOODSAVER');
     expect(card.contains(byTestId('shell.userMenu.role'))).toBe(true);
@@ -427,8 +416,8 @@ describe('SidenavComponent in the shell', () => {
     expect(byTestId('shell.userMenu')).toBeNull();
     expect(byTestId('shell.login')?.getAttribute('href')).toBe('/login');
     expect(byTestId('shell.register')).not.toBeNull();
-    // C4: "what's new" is there for visitors too, as in the former desktop header
-    expect(byTestId('shell.whatsNew')?.getAttribute('href')).toBe('/release-notes');
+    // decision 172: "what's new" only for signed-in users
+    expect(byTestId('shell.whatsNew')).toBeNull();
     byTestId('shell.prefs')!.click();
     await fixture.whenStable();
     expect(byTestId('shell.prefs')?.getAttribute('aria-expanded')).toBe('true');
