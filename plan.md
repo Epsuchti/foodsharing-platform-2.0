@@ -620,8 +620,9 @@ Clear, warm, fast (static content + one public stats call), in all five language
 4. **Find your region**: postcode / locate-me → region card with ambassadors, active stores,
    **next free EinAb dates** (public endpoint, as the reference's public slots page), and the map.
 5. **Impact**: live counters (kg saved, pickups, foodsavers, stores), per region if chosen.
-6. **FAQ** (CMS), **for businesses** (contact form), footer: vision, about, team, partners, press, blog,
-   foodsharing cities, demands, donations, transparency, privacy, imprint, contact.
+6. **FAQ** (CMS), footer: partners, press, education, blog, donations, privacy, imprint, contact (decision 172
+   removed vision, about, team, foodsharing cities, demands, transparency, communities, international, security
+   and for businesses).
 
 SEO: prerender public routes (Angular SSG), `hreflang` for the five languages.
 
@@ -740,8 +741,8 @@ Implementation:
 
 ### 12.5 Navigation
 
-Logged out: Explainer, Map, Find region, About (vision, team, partners, press, blog), Politics (foodsharing
-cities, demands), Education, Donate, Help, Login. Logged in: Dashboard, Stores (mine), Regions & Groups
+Logged out: Explainer, Map, Find region, About (partners, press, blog), Education, Donate, Help, Login
+(decision 172: no vision, team, cities or demands; "What's new" only when logged in). Logged in: Dashboard, Stores (mine), Regions & Groups
 (mine), Messages, Mailboxes, Bells, Baskets, Map, Profile menu (profile, settings, passport, history,
 logout), Admin (by permission). Mobile: bottom tab bar (Dashboard, Pickups, Messages, Bells, Menu).
 
@@ -906,7 +907,7 @@ Derived from the public repo `gitlab.com/foodsharing-dev/foodsharing` (63 module
 
 | ID | Feature | Source |
 |---|---|---|
-| C1 | CMS content pages in five languages (vision, team, partners, press, foodsharing cities, demands, transparency, education, communities, FAQ, privacy, imprint, learning pages) | Content |
+| C1 | CMS content pages in five languages (partners, press, education, FAQ, privacy, imprint, learning pages; decision 172 removed the others) | Content |
 | C2 | Blog: create, edit, publish/unpublish, delete, per region, teaser, picture | Blog |
 | C3 | Public statistics (kg saved, pickups, foodsavers, stores, cooperations, FSPs, baskets) with animated counter | Statistics |
 | C4 | Release notes / "what's new" | release-notes |
@@ -921,7 +922,7 @@ Derived from the public repo `gitlab.com/foodsharing-dev/foodsharing` (63 module
 | C13 | OAuth2/OIDC provider for partner apps: authorization code + PKCE, userinfo, scopes `openid profile email regions`, consent with "remember", region-restricted clients, client admin | OAuth, oauth.md |
 | C14 | Configuration admin (key/value settings) | `configuration` |
 | C15 | Maintenance jobs (§6.3) | src/Command |
-| C16 | Team page (public, from working groups) | Team |
+| C16 | ~~Team page (public, from working groups)~~ removed by decision 172 | Team |
 
 ---
 
