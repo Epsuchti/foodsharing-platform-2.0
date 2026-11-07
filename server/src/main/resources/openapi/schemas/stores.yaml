@@ -499,6 +499,7 @@ StoreDetail:
       description: 'Only with mayReadWall'
       type: string
     description:
+      description: 'Only with mayReadWall'
       type: string
     region:
       $ref: './regions.yaml#/RegionRef'

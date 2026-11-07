@@ -8,7 +8,6 @@ import network.foodsharing.api.model.Petition;
 import network.foodsharing.api.model.PublicPartnerStore;
 import network.foodsharing.api.model.PublicStatistics;
 import network.foodsharing.api.model.ReleaseNote;
-import network.foodsharing.api.model.TeamGroup;
 import java.util.UUID;
 import java.util.List;
 import network.foodsharing.api.PublicContentApi;
@@ -20,7 +19,6 @@ import network.foodsharing.content.service.BlogService;
 import network.foodsharing.content.service.CampaignService;
 import network.foodsharing.content.service.ContentService;
 import network.foodsharing.content.service.ReleaseNoteService;
-import network.foodsharing.content.service.TeamPageService;
 import network.foodsharing.statistics.service.PublicStatisticsService;
 import network.foodsharing.store.service.StoreQueryService;
 import org.springframework.http.ResponseEntity;
@@ -33,21 +31,19 @@ public class PublicContentController implements PublicContentApi {
     private final ContentService content;
     private final BlogService blog;
     private final ReleaseNoteService releaseNotes;
-    private final TeamPageService team;
     private final CampaignService campaigns;
     private final ContentMapper mapper;
     private final PublicStatisticsService statistics;
     private final StoreQueryService stores;
 
     public PublicContentController(ContentService content, BlogService blog, ReleaseNoteService releaseNotes,
-                                   TeamPageService team, CampaignService campaigns, ContentMapper mapper,
+                                   CampaignService campaigns, ContentMapper mapper,
                                    PublicStatisticsService statistics, StoreQueryService stores) {
         this.stores = stores;
         this.statistics = statistics;
         this.content = content;
         this.blog = blog;
         this.releaseNotes = releaseNotes;
-        this.team = team;
         this.campaigns = campaigns;
         this.mapper = mapper;
     }
@@ -98,11 +94,6 @@ public class PublicContentController implements PublicContentApi {
                 .foodsavers(totals.foodsavers()).stores(totals.stores()).cooperations(totals.cooperations())
                 .foodSharePoints(totals.foodSharePoints()).baskets(totals.baskets())
                 .asOf(totals.asOf().atOffset(java.time.ZoneOffset.UTC)));
-    }
-
-    @Override
-    public ResponseEntity<List<TeamGroup>> getPublicTeam() {
-        return ResponseEntity.ok(team.groups().stream().map(ContentMapper::toTeamGroup).toList());
     }
 
     @Override

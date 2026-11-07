@@ -258,3 +258,63 @@
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/ApiError'
+
+/api/map/geocode-address:
+  get:
+    tags: [map]
+    operationId: geocodeAddress
+    summary: Geocode a full postal address (store and Fairteiler forms place the pin with it).
+    description: 'Photon search for street, postcode and city; falls back to the postcode when the address is unknown.
+      The static geocoder (no Photon configured) only knows postcodes.'
+    x-permission: authenticated
+    parameters:
+      - name: street
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+      - name: postcode
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 20
+      - name: city
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+      - name: country
+        in: query
+        schema:
+          type: string
+          pattern: '^[A-Za-z]{2}$'
+          default: CH
+    responses:
+      "200":
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/GeoResult'
+      "204":
+        description: Address and postcode unknown
+      "400":
+        description: VALIDATION_FAILED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "401":
+        description: AUTHENTICATION_REQUIRED
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'
+      "503":
+        description: GEOCODING_UNAVAILABLE
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ApiError'

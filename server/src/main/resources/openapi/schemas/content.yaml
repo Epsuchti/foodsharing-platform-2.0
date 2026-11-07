@@ -279,35 +279,6 @@ PublicStatistics:
       type: string
       format: date-time
 
-TeamPageMember:
-  type: object
-  required: [displayName]
-  properties:
-    displayName:
-      type: string
-    avatarUrl:
-      type: string
-    roleDescription:
-      type: string
-
-TeamGroup:
-  type: object
-  required: [id, name, members]
-  properties:
-    id:
-      type: string
-      format: uuid
-    name:
-      type: string
-    teaser:
-      type: string
-    photoUrl:
-      type: string
-    members:
-      type: array
-      items:
-        $ref: './content.yaml#/TeamPageMember'
-
 Petition:
   type: object
   required: [href, signatures, daysLeft]

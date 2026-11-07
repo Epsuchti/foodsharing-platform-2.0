@@ -57,12 +57,6 @@ public class RegionService {
         return result;
     }
 
-    /** Active working groups flagged for the public team page (C16), in sort order. */
-    @Transactional(readOnly = true)
-    public List<Region> teamPageGroups() {
-        return regions.findByTeamPageTrueAndActiveTrueOrderBySortOrderAscNameAscIdAsc();
-    }
-
     /** Active regions (no working groups) with at least one ambassador (explainer counter). */
     @Transactional(readOnly = true)
     public long countRegionsWithAmbassadors() {

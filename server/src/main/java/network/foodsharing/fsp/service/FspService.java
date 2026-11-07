@@ -469,7 +469,7 @@ public class FspService {
         fsp.setLat(null);
         fsp.setLon(null);
         try {
-            geocoding.geocodePostcode("CH", fsp.getPostcode()).ifPresent(point -> {
+            geocoding.geocodeAddress("CH", fsp.getStreet(), fsp.getPostcode(), fsp.getCity()).ifPresent(point -> {
                 fsp.setLat(point.latitude());
                 fsp.setLon(point.longitude());
             });
