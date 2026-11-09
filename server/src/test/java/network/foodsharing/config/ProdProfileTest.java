@@ -17,7 +17,7 @@ class ProdProfileTest {
         assertThat(load("application-prod.properties").getProperty("management.server.port"))
                 .isEqualTo("${MANAGEMENT_PORT:9090}");
         for (String other : new String[] {"application.properties", "application-local.properties",
-                "application-e2e.properties", "application-test.properties"}) {
+                "application-e2e.properties", "application-test.properties", "application-staging.properties"}) {
             assertThat(load(other).getProperty("management.server.port")).as(other).isNull();
         }
     }
@@ -38,6 +38,34 @@ class ProdProfileTest {
         assertThat(prod.getProperty("app.dev.enabled")).isNull();
         assertThat(load("application.properties").getProperty("app.dev.enabled")).isEqualTo("false");
         assertThat(prod.getProperty("app.oauth.allow-generated-key")).isEqualTo("false");
+    }
+
+    /** Decision 173: prod alone has no test-environment settings; staging adds them on top of prod. */
+    @Test
+    void stagingExtrasLiveOnlyInTheStagingFile() throws IOException {
+        Properties prod = load("application-prod.properties");
+        assertThat(prod.stringPropertyNames()).noneMatch(key -> key.startsWith("app.staging."));
+        assertThat(prod.getProperty("app.demo-banner")).isNull();
+        assertThat(prod.getProperty("app.mail.recipient-policy")).isNull();
+        assertThat(prod.getProperty("app.mail.allowed-recipients")).isNull();
+
+        Properties defaults = load("application.properties");
+        assertThat(defaults.getProperty("app.staging.persona-panel.password")).isEmpty();
+        assertThat(defaults.getProperty("app.demo-banner")).isEqualTo("false");
+        assertThat(defaults.getProperty("app.mail.recipient-policy")).isEqualTo("all");
+
+        Properties staging = load("application-staging.properties");
+        assertThat(staging.getProperty("spring.liquibase.contexts")).isEqualTo("schema,seed");
+        assertThat(staging.getProperty("app.dev.enabled")).isNull();
+        assertThat(staging.getProperty("spring.h2.console.enabled")).isNull();
+        assertThat(staging.getProperty("app.staging.persona-panel.password")).isEqualTo("${PERSONA_PANEL_PASSWORD:}");
+        assertThat(staging.getProperty("app.demo-banner")).isEqualTo("true");
+        assertThat(staging.getProperty("app.mail.recipient-policy")).isEqualTo("staging");
+        assertThat(staging.getProperty("app.mail.allowed-recipients")).isEqualTo("${MAIL_ALLOWED_RECIPIENTS:}");
+        assertThat(staging.getProperty("app.telegram.mode")).isEqualTo("log");
+        // everything else comes from prod: no datasource, secrets or ports of its own
+        assertThat(staging.stringPropertyNames()).noneMatch(key -> key.startsWith("spring.datasource.")
+                || key.startsWith("management.") || key.startsWith("app.auth.") || key.startsWith("server."));
     }
 
     static Properties load(String name) throws IOException {
