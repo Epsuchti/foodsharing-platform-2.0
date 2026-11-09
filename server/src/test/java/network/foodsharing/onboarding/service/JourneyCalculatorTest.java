@@ -26,7 +26,8 @@ import org.junit.jupiter.api.Test;
 class JourneyCalculatorTest {
 
     private static final Instant NOW = Instant.parse("2026-11-02T09:00:00Z");
-    private static final List<String> CHAPTERS = List.of("rules", "hygiene", "how-a-pickup-works", "etiquette");
+    private static final List<String> CHAPTERS = List.of("principles", "code-of-conduct", "rule-violations",
+            "hygiene-rules", "role-requirements", "legal-agreement", "context-and-self-image");
     private static final User CONTACT = contact();
     private static final TrackInputs NO_TRACKS = new TrackInputs(null, null, null, false, null, 0, 25, List.of());
 
@@ -141,14 +142,14 @@ class JourneyCalculatorTest {
     void learningPagesThenOptionalWhenNotMandatory() {
         JourneyView journey = new Case().profile().compute();
         expectCurrent(journey, "LEARN", JourneyStepStatus.AVAILABLE);
-        assertThat(step(journey, "LEARN").nextAction().route()).isEqualTo("/learn/rules");
+        assertThat(step(journey, "LEARN").nextAction().route()).isEqualTo("/learn/principles");
         Case some = new Case().profile();
-        some.read = Set.of("rules");
+        some.read = Set.of("principles");
         JourneyView partial = some.compute();
         expectCurrent(partial, "LEARN", JourneyStepStatus.IN_PROGRESS);
         assertThat(step(partial, "LEARN").progress().done()).isEqualTo(1);
-        assertThat(step(partial, "LEARN").nextAction().route()).isEqualTo("/learn/hygiene");
-        assertThat(step(partial, "LEARN").details()).containsEntry("readChapters", java.util.List.of("rules"));
+        assertThat(step(partial, "LEARN").nextAction().route()).isEqualTo("/learn/code-of-conduct");
+        assertThat(step(partial, "LEARN").details()).containsEntry("readChapters", java.util.List.of("principles"));
         assertThat(step(journey, "LEARN").details()).containsEntry("readChapters", java.util.List.of());
         Case optional = new Case().profile();
         optional.mandatory = false;
@@ -237,6 +238,45 @@ class JourneyCalculatorTest {
         assertThat(done.complete()).isTrue();
         assertThat(done.currentStep()).isNull();
         assertThat(done.steps()).allMatch(s -> s.status() == JourneyStepStatus.DONE);
+    }
+
+    @Test
+    void onlyRequiredChaptersCountAndReadingAnOptionalOneChangesNothing() {
+        // the inputs carry the required keys only (ContentService.requiredChapterKeys); an optional key is ignored
+        Case c = new Case().profile();
+        c.read = Set.of("rule-violations-explained");
+        JourneyView journey = c.compute();
+        expectCurrent(journey, "LEARN", JourneyStepStatus.AVAILABLE);
+        assertThat(step(journey, "LEARN").progress().done()).isZero();
+        assertThat(step(journey, "LEARN").progress().required()).isEqualTo(CHAPTERS.size());
+    }
+
+    @Test
+    void foodsaversKeepLearnDoneWhenNewRequiredChaptersAppear() {
+        // C1 (amends decision 44): role or quiz role >= FOODSAVER means LEARN is done, read or not
+        Case quizRole = new Case().profile().quizPassed();
+        quizRole.read = Set.of("principles");
+        StepView learn = step(quizRole.compute(), "LEARN");
+        assertThat(learn.status()).isEqualTo(JourneyStepStatus.DONE);
+        assertThat(learn.progress().done()).isEqualTo(1);
+
+        Case role = new Case().profile().agreed().verified();
+        role.user.setRole(Role.STORE_MANAGER);
+        assertThat(step(role.compute(), "LEARN").status()).isEqualTo(JourneyStepStatus.DONE);
+
+        Case foodsharer = new Case().profile();
+        foodsharer.user.setQuizRole(Role.FOODSHARER);
+        assertThat(step(foodsharer.compute(), "LEARN").status()).isNotEqualTo(JourneyStepStatus.DONE);
+    }
+
+    @Test
+    void lastUnreadRequiredChapterIsTheNextAction() {
+        Case c = new Case().profile();
+        c.read = Set.copyOf(CHAPTERS.subList(0, CHAPTERS.size() - 1));
+        StepView learn = step(c.compute(), "LEARN");
+        assertThat(learn.nextAction().route()).isEqualTo("/learn/context-and-self-image");
+        assertThat(step(new Case().profile().learned().compute(), "LEARN").status())
+                .isEqualTo(JourneyStepStatus.DONE);
     }
 
     @Test

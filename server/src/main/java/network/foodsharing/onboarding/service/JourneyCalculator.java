@@ -191,12 +191,18 @@ public final class JourneyCalculator {
                 .details(Map.of("missing", List.copyOf(missing)));
     }
 
+    /**
+     * LEARN (decision 44, amended by C1): done when every published required chapter is read, when the region does not
+     * make learning mandatory, or when the user already is a foodsaver (role or quiz role ≥ FOODSAVER), so new required
+     * chapters never reopen finished journeys. The client offers rereading on a done step.
+     */
     private static Draft learn(Inputs in) {
         List<String> chapters = in.chapterKeys();
         int read = (int) chapters.stream().filter(in.readChapters()::contains).count();
         boolean allRead = read == chapters.size();
+        boolean done = allRead || !in.learningMandatory() || isFoodsaver(in.user());
         String firstUnread = chapters.stream().filter(k -> !in.readChapters().contains(k)).findFirst().orElse(null);
-        Draft draft = Draft.of(JourneyStepKey.LEARN, allRead || !in.learningMandatory(),
+        Draft draft = Draft.of(JourneyStepKey.LEARN, done,
                         read > 0 ? JourneyStepStatus.IN_PROGRESS : JourneyStepStatus.AVAILABLE,
                         new Action("onboarding.action.readChapter", firstUnread == null ? "/learn"
                                 : "/learn/" + firstUnread), "PT20M")
@@ -205,10 +211,15 @@ public final class JourneyCalculator {
         return draft.optional(!in.learningMandatory());
     }
 
+    /** Role or quiz role ≥ FOODSAVER. */
+    static boolean isFoodsaver(User user) {
+        return PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)
+                || (user.getQuizRole() != null && PermissionService.isAtLeast(user.getQuizRole(), Role.FOODSAVER));
+    }
+
     private static Draft quiz(Inputs in) {
         User user = in.user();
-        boolean done = PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)
-                || (user.getQuizRole() != null && PermissionService.isAtLeast(user.getQuizRole(), Role.FOODSAVER));
+        boolean done = isFoodsaver(user);
         TryState state = in.foodsaverQuiz();
         Action start = new Action("onboarding.action.startQuiz", "/quizzes/FOODSAVER");
         if (done || state == null) {

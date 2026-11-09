@@ -182,12 +182,12 @@ public class JourneyService {
         events.publishEvent(new RegionStepConfirmed(userId, regionId, stepKey));
     }
 
-    /** Has the user read every published learning chapter? (verification queue) */
+    /** Has the user read every published required learning chapter? (verification queue; C1) */
     @Transactional(readOnly = true)
     public boolean learningDone(UUID userId) {
         Set<String> read = learning.findByUserId(userId).stream().map(LearningProgress::getChapterKey)
                 .collect(Collectors.toSet());
-        return read.containsAll(content.learningChapterKeys());
+        return read.containsAll(content.requiredChapterKeys());
     }
 
     /** Latest progress timestamp of the user (nudges): registration, chapters, confirmations, EinAbs, quiz. */
@@ -233,7 +233,7 @@ public class JourneyService {
         List<User> guideContacts = guidePassed && !guide && region != null ? regionReads.ambassadorsOf(region.getId())
                 : List.of();
         return new Inputs(user, PhoneNumberValidator.isValid(user.getMobilePhone()), region,
-                settings == null || settings.onboarding().learningPagesMandatory(), content.learningChapterKeys(),
+                settings == null || settings.onboarding().learningPagesMandatory(), content.requiredChapterKeys(),
                 read, tries.get(QuizKind.FOODSAVER), quizContacts(),
                 legal.hasCurrentConsent(user.getId(), LegalDocumentKind.LEGAL_AGREEMENT),
                 region == null ? null : introPickups.progressOf(user.getId(), region.getId()), extras,
