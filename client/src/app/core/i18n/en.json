@@ -59,6 +59,8 @@
   "errors.USER_NOT_FOUND": "This person was not found.",
   "errors.HISTORY_SUBJECT_NOT_READABLE": "You are not allowed to view this history.",
   "errors.DEV_USER_NOT_FOUND": "This test user does not exist.",
+  "errors.PERSONA_PANEL_PASSWORD_INVALID": "The password is not correct.",
+  "errors.PERSONA_NOT_FOUND": "This test account does not exist.",
   "errors.NETWORK": "No connection to the server. Please check your internet connection.",
   "errors.UNKNOWN": "An unknown error occurred.",
   "errors.CLIENT_ERROR": "Something went wrong in the app. We have been notified – reload the page if something stops working.",

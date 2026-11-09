@@ -59,6 +59,8 @@
   "errors.USER_NOT_FOUND": "Diese Person wurde nicht gefunden.",
   "errors.HISTORY_SUBJECT_NOT_READABLE": "Diesen Verlauf darfst du nicht einsehen.",
   "errors.DEV_USER_NOT_FOUND": "Diese Testperson gibt es nicht.",
+  "errors.PERSONA_PANEL_PASSWORD_INVALID": "Das Passwort stimmt nicht.",
+  "errors.PERSONA_NOT_FOUND": "Dieses Testkonto gibt es nicht.",
   "errors.NETWORK": "Keine Verbindung zum Server. Prüfe deine Internetverbindung.",
   "errors.UNKNOWN": "Ein unbekannter Fehler ist aufgetreten.",
   "errors.CLIENT_ERROR": "In der App ist ein Fehler passiert. Wir wurden informiert – lade die Seite neu, falls etwas nicht mehr funktioniert.",

@@ -112,6 +112,9 @@ test('D5.1 app-info contract @D5.1', async ({ api }) => {
   expect(conformance(info, 'public', 'AppInfo')).toEqual([]);
   expect(info.version).not.toBe('');
   expect(info.devMode).toBe(true);
+  // decision 173: the test-environment extras are off in e2e (staging profile only)
+  expect(info.personaPanel).toBe(false);
+  expect(info.demoBanner).toBe(false);
   expect(info.languages).toEqual(schema('common', 'Language').enum);
   expect(Number.isNaN(Date.parse(info.serverTime))).toBe(false);
 

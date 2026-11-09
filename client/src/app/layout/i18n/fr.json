@@ -25,5 +25,6 @@
   "layout.sidenav.prefs": "Langue et apparence",
   "layout.sidenav.join": "Participer",
   "layout.header.groups": "Groupes de travail",
-  "layout.header.regionFilter": "Filtrer régions et groupes"
+  "layout.header.regionFilter": "Filtrer régions et groupes",
+  "layout.demoBanner.text": "Environnement de test : ce n’est pas le vrai foodsharing. Les données sont réinitialisées régulièrement – n’entre pas de vraies données."
 }

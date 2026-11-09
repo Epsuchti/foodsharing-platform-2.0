@@ -150,4 +150,7 @@
 
 @if (appInfo.devMode()) {
   <fs-dev-user-switcher class="dev" [returnUrl]="safeReturn()" />
+} @else if (appInfo.personaPanel()) {
+  <!-- test environment (decision 173): the same switcher behind the panel password -->
+  <fs-dev-user-switcher class="dev" mode="persona" [returnUrl]="safeReturn()" />
 }

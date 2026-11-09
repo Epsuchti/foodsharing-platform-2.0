@@ -18,6 +18,8 @@ export interface ApiError {
 export interface AppInfo {
   version: string;
   devMode: boolean;
+  personaPanel: boolean;
+  demoBanner: boolean;
   languages: Language[];
   loginMethods: { google: boolean; magicLink: boolean; passkeys: boolean };
   serverTime: string;

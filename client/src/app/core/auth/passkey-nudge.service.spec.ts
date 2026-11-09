@@ -21,6 +21,8 @@ describe('PasskeyNudgeService', () => {
     TestBed.inject(AppInfoService).info.set({
       version: 't',
       devMode: false,
+      personaPanel: false,
+      demoBanner: false,
       languages: [],
       loginMethods: { google: true, magicLink: true, passkeys: true },
       serverTime: '2026-11-02T09:00:00Z',

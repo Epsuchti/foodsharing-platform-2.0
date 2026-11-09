@@ -33,6 +33,8 @@ class PageComponent {}
 const APP_INFO: AppInfo = {
   version: '1.2.3',
   devMode: true,
+  personaPanel: false,
+  demoBanner: false,
   languages: [],
   loginMethods: { google: true, magicLink: true, passkeys: true },
   serverTime: '2026-11-02T09:00:00Z',

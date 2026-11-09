@@ -27,6 +27,7 @@ import { I18nService } from '../core/i18n/i18n.service';
 import { RealtimeStatusComponent } from '../core/realtime/realtime-status.component';
 import { OfflineBannerComponent } from '../shared/offline-banner/offline-banner.component';
 import { SessionExpiredDialogComponent } from '../shared/session-expired-dialog/session-expired-dialog.component';
+import { DemoBannerComponent } from './demo-banner.component';
 import { FooterComponent } from './footer.component';
 import { ChromeMode, HeaderComponent } from './header.component';
 import { MobileTabBarComponent } from './mobile-tab-bar.component';
@@ -64,6 +65,7 @@ export const TOAST_BREAKPOINTS = {
   selector: 'fs-shell',
   imports: [
     ConfirmDialog,
+    DemoBannerComponent,
     FooterComponent,
     HeaderComponent,
     JourneyBarComponent,
@@ -101,6 +103,8 @@ export const TOAST_BREAKPOINTS = {
       }
     }
     <div class="shell__col">
+      <!-- test environment only (AppInfo.demoBanner, decision 173) -->
+      <fs-demo-banner />
       @if (chrome() !== 'none' && !showSidenav()) {
         <!-- phones, and the minimal chrome (login, surveys) on every width; the journey bar is a phone thing now -->
         <fs-header [chrome]="chrome()"><fs-journey-bar fsJourneyBar /></fs-header>
