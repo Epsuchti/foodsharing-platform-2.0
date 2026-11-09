@@ -60,6 +60,9 @@ test('M1 public map shows FSP, region and basket markers; logged-in user filters
   await openPin(pins(visitor, 'fsp').first());
   await expectDataState(visitor, 'map.bubble.state', 'success');
   await expect(visitor.getByTestId('map.bubble.link')).toHaveAttribute('href', /^\/food-share-points\/[0-9a-f-]{36}$/);
+  // the X takes the click in its middle (the card content used to lie over it and swallow the click)
+  await visitor.getByTestId('map.bubble.close').click();
+  await expect(visitor.getByTestId('map.bubble')).toHaveCount(0);
 
   // foodsaver: stores layer with the filter bar
   const page = await as('foodsaver');
