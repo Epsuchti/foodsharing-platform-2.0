@@ -28,7 +28,7 @@ Operations metrics of the platform (`common/metrics/OperationsMetrics`):
 | `fs_job_consecutive_failures` | gauge | `name` | failures in a row (reset on success) | alert `JobFailing` |
 | `fs_async_jobs_running` | gauge | – | background jobs (imports, exports) in `RUNNING` (`ProgressTracker`) | alert `AsyncJobsPiling` |
 | `fs_websocket_connected_users` | gauge | – | users with an open STOMP session | dashboard |
-| `fs_rate_limit_rejections_total` | counter | `limiter` | every rejection of a `SlidingWindowRateLimiter` (login-ip, login-email, basket-requests, client-errors, group-mails, support, messages, public-api, api-ip, api-user; for api-ip/api-user also every request rejected during a block) | alert `RateLimitSpike` |
+| `fs_rate_limit_rejections_total` | counter | `limiter` | every rejection of a `SlidingWindowRateLimiter` (login-ip, login-email, basket-requests, client-errors, group-mails, support, messages, public-api, api-ip, api-user, search, persona-panel; for api-ip/api-user also every request rejected during a block) | alert `RateLimitSpike` |
 | `fs_rate_limit_blocks_total` | counter | `scope` = `ip`, `account`; `level` = `1`, `2`, `3+` | every new block of the API rate limit (D17.2, `ApiRateLimitFilter`) | alert `RateLimitBlocks` |
 | `fs_login_failures_total` | counter | `reason` = `invalid-token`, `expired-token`, `passkey` | failed magic-link / passkey logins | alert `LoginFailureSpike` |
 

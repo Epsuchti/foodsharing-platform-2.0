@@ -48,7 +48,7 @@ public class OperationsMetrics {
 
     public static final List<String> CHANNELS = List.of("mail", "push", "telegram");
     public static final List<String> LIMITERS = List.of("login-ip", "login-email", "basket-requests", "client-errors",
-            "group-mails", "support", "messages", "public-api", "api-ip", "api-user", "search");
+            "group-mails", "support", "messages", "public-api", "api-ip", "api-user", "search", "persona-panel");
     /** Tags of {@code fs_rate_limit_blocks_total} (D17.2): the blocked scope and the level, "3+" for 3 and above. */
     public static final List<String> BLOCK_SCOPES = List.of("ip", "account");
     public static final List<String> BLOCK_LEVELS = List.of("1", "2", "3+");

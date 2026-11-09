@@ -92,6 +92,7 @@
   "shared.historyTimeline.meta.applyType": "Bewerbigsart",
   "shared.historyTimeline.meta.attachments": "Aahäng",
   "shared.historyTimeline.meta.attempts": "Versüech",
+  "shared.historyTimeline.meta.suppressed": "Unterdrückt (Testumgebig)",
   "shared.historyTimeline.meta.autoConfirmed": "Automatisch bestätigt",
   "shared.historyTimeline.meta.bell": "Glogge",
   "shared.historyTimeline.meta.bounce": "Unzuestellbar",

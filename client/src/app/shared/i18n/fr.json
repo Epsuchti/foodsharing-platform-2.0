@@ -92,6 +92,7 @@
   "shared.historyTimeline.meta.applyType": "Type de candidature",
   "shared.historyTimeline.meta.attachments": "Pièces jointes",
   "shared.historyTimeline.meta.attempts": "Tentatives",
+  "shared.historyTimeline.meta.suppressed": "Bloqué (environnement de test)",
   "shared.historyTimeline.meta.autoConfirmed": "Confirmé automatiquement",
   "shared.historyTimeline.meta.bell": "Cloche",
   "shared.historyTimeline.meta.bounce": "Non distribuable",

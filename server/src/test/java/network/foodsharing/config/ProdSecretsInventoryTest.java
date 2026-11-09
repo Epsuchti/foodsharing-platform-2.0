@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 /**
- * D19.1: every environment placeholder of the shipped configuration (base + prod profile) is documented in
+ * D19.1: every environment placeholder of the shipped configuration (base, prod and staging profile) is documented in
  * {@code docs/secrets.md} and listed in {@code server/deploy/.env.example}; every variable of the template and of
  * the compose file is documented, and required prod variables (no default) are not commented out in the template.
  */
@@ -34,6 +34,8 @@ class ProdSecretsInventoryTest {
         Set<String> vars = new TreeSet<>();
         vars.addAll(placeholders("application.properties", false));
         vars.addAll(placeholders("application-prod.properties", false));
+        // decision 173: the test environment runs prod,staging from the same .env template
+        vars.addAll(placeholders("application-staging.properties", false));
         assertThat(vars).hasSizeGreaterThan(20);
 
         Set<String> templated = new TreeSet<>();

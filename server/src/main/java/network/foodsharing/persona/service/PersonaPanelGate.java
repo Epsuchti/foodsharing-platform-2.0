@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.metrics.OperationsMetrics;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.PersonaPanelCondition;
 import org.slf4j.Logger;
@@ -33,6 +34,8 @@ import org.springframework.stereotype.Component;
 public class PersonaPanelGate {
 
     private static final Logger log = LoggerFactory.getLogger(PersonaPanelGate.class);
+    /** Metric tag of {@code fs_rate_limit_rejections_total}. */
+    public static final String LIMITER = "persona-panel";
 
     private final byte[] expectedDigest;
     private final int maxFailures;
@@ -62,6 +65,7 @@ public class PersonaPanelGate {
                 failures.pollFirst();
             }
             if (failures.size() >= maxFailures) {
+                OperationsMetrics.rateLimited(LIMITER);
                 Duration retryAfter = Duration.between(now, failures.peekFirst().plus(window));
                 throw ApiException.tooManyRequests(ApiErrorCode.TOO_MANY_REQUESTS,
                         retryAfter.isNegative() || retryAfter.isZero() ? Duration.ofSeconds(1) : retryAfter);
