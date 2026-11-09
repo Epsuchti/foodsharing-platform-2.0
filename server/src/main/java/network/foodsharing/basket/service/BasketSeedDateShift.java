@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded food baskets and requests (active baskets stay unexpired) (seed prefix 00000048-) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class BasketSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000048-";

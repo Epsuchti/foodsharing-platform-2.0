@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 40 days old.
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class StoreWallSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000020-0008-";

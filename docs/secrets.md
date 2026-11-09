@@ -65,7 +65,18 @@ Legend — **Req**: `yes` = the prod profile does not start without it; `opt` = 
 | `MAILBOX_IMAP_PASSWORD` | opt | S | provider | change at provider, deploy | inbound mail stays on the IMAP server until fixed |
 | `MAILBOX_WEBHOOK_SECRET` | opt | S | `openssl rand -hex 32` | update provider webhook config together | inbound webhook rejects mails |
 
-## Wallet passes (off by default)
+## Test environment (staging profile only, decision 173)
+
+Only on the public test environment (`SPRING_PROFILES_ACTIVE=prod,staging`, `application-staging.properties`). Leave
+both unset in production: `StagingProfileGuard` refuses to start a non-staging profile with a panel password.
+
+| Variable | Req | Secret | Generate / source | Rotation | Consequence of loss |
+|---|---|---|---|---|---|
+| `SPRING_PROFILES_ACTIVE` | opt | - | set by the image to `prod`; the test environment uses `prod,staging` (this order, runbook §11) | - | - |
+| `PERSONA_PANEL_PASSWORD` | opt | S | staging only; empty = no persona panel (the endpoints answer 404). Shared with the testers (e.g. `foobar` on test.foodsharing.site); checked on the server, never sent to the client | change in `.env`, `docker compose up -d app`; tell the testers | the panel is off until a new one is set |
+| `MAIL_ALLOWED_RECIPIENTS` | opt | - | staging only; comma-separated addresses the staging mail policy lets through in addition to active non-seed users and auth mails (default empty) | - | - |
+
+
 
 | Variable | Req | Secret | Generate / source | Rotation | Consequence of loss |
 |---|---|---|---|---|---|

@@ -59,6 +59,8 @@
   "errors.USER_NOT_FOUND": "Questa persona non è stata trovata.",
   "errors.HISTORY_SUBJECT_NOT_READABLE": "Non puoi visualizzare questa cronologia.",
   "errors.DEV_USER_NOT_FOUND": "Questo utente di test non esiste.",
+  "errors.PERSONA_PANEL_PASSWORD_INVALID": "La password non è corretta.",
+  "errors.PERSONA_NOT_FOUND": "Questo account di prova non esiste.",
   "errors.NETWORK": "Nessuna connessione al server. Controlla la tua connessione internet.",
   "errors.UNKNOWN": "Si è verificato un errore sconosciuto.",
   "errors.CLIENT_ERROR": "Si è verificato un errore nell’app. Siamo stati avvisati: ricarica la pagina se qualcosa non funziona più.",

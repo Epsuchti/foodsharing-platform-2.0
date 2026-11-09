@@ -92,6 +92,7 @@
   "shared.historyTimeline.meta.applyType": "Tipo di candidatura",
   "shared.historyTimeline.meta.attachments": "Allegati",
   "shared.historyTimeline.meta.attempts": "Tentativi",
+  "shared.historyTimeline.meta.suppressed": "Bloccato (ambiente di prova)",
   "shared.historyTimeline.meta.autoConfirmed": "Confermato automaticamente",
   "shared.historyTimeline.meta.bell": "Campanella",
   "shared.historyTimeline.meta.bounce": "Non recapitabile",

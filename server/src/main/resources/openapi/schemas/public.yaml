@@ -1,12 +1,18 @@
 AppInfo:
   type: object
-  required: [version, devMode, languages, loginMethods, serverTime]
+  required: [version, devMode, personaPanel, demoBanner, languages, loginMethods, serverTime]
   properties:
     version:
       type: string
     devMode:
       type: boolean
       description: True in the local and e2e profiles (dev user switcher, gallery).
+    personaPanel:
+      type: boolean
+      description: True on the test environment (staging profile with a panel password); the login page offers the persona panel.
+    demoBanner:
+      type: boolean
+      description: True on the test environment (app.demo-banner); the shell shows a red "test site" banner.
     languages:
       type: array
       items:

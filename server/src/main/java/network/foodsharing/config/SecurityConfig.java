@@ -42,7 +42,10 @@ public class SecurityConfig {
             "/api/auth/session",
             "/api/auth/logout",
             "/api/auth/magic-link",
-            "/api/auth/magic-link/verify"
+            "/api/auth/magic-link/verify",
+            // decision 173: the persona panel of the test environment (staging only; checks its own password)
+            "/api/personas/list",
+            "/api/personas/login"
     };
 
     /** Login endpoints of the frameworks (Google OAuth2, passkey login). */

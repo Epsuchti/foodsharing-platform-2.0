@@ -72,6 +72,26 @@ public class AppProperties {
     private final OAuth oauth = new OAuth();
     private final Security security = new Security();
     private final Activity activity = new Activity();
+    // --- test environment (staging profile, decision 173) ---
+    private final Staging staging = new Staging();
+    /** Red "test site" banner in the client shell (true in the staging profile). */
+    private boolean demoBanner = false;
+
+    @Getter
+    @Setter
+    public static class Staging {
+        private final PersonaPanel personaPanel = new PersonaPanel();
+
+        @Getter
+        @Setter
+        public static class PersonaPanel {
+            /** Password of the persona panel; blank = no panel (no persona beans, endpoints 404). Staging only. */
+            private String password = "";
+            /** Wrong passwords per client IP within {@link #failureWindow} before the panel answers 429. */
+            private int maxFailuresPerIp = 10;
+            private Duration failureWindow = Duration.ofMinutes(15);
+        }
+    }
 
     @Getter
     @Setter
@@ -137,6 +157,13 @@ public class AppProperties {
         private int outboxBackoffBaseMinutes = 1;
         /** M4 A27: per-recipient limits; mails beyond them are deferred, never dropped. */
         private final RateLimit rateLimit = new RateLimit();
+        /**
+         * {@code all} (default): every outbox mail goes out. {@code staging} (test environment, decision 173): only
+         * to active non-seed users, auth mails and {@link #allowedRecipients}; everything else is suppressed.
+         */
+        private String recipientPolicy = "all";
+        /** Extra recipients the {@code staging} policy lets through (exact addresses, case-insensitive). */
+        private List<String> allowedRecipients = new ArrayList<>();
 
         @Getter
         @Setter

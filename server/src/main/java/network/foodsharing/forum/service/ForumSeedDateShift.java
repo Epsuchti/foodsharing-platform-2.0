@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded forum threads and posts (seed prefix 00000043-) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class ForumSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000043-";

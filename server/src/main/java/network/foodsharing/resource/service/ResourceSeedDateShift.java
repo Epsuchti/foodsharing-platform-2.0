@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded shared resources (seed prefix 00000056-) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class ResourceSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000056-";

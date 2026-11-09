@@ -3,7 +3,10 @@ import { firstValueFrom } from 'rxjs';
 
 import { AppInfo, PublicService } from '../api';
 
-/** GET /api/public/app-info, loaded once at start (version, dev mode, enabled login methods). */
+/**
+ * GET /api/public/app-info, loaded once at start (version, dev mode, test environment flags, enabled login
+ * methods).
+ */
 @Injectable({ providedIn: 'root' })
 export class AppInfoService {
   private readonly publicApi = inject(PublicService);
@@ -11,6 +14,10 @@ export class AppInfoService {
 
   readonly info = signal<AppInfo | null>(null);
   readonly devMode = computed(() => this.info()?.devMode ?? false);
+  /** Test environment (staging profile with a panel password): the persona panel on the login page. */
+  readonly personaPanel = computed(() => this.info()?.personaPanel ?? false);
+  /** Test environment: the red "test site" banner in the shell. */
+  readonly demoBanner = computed(() => this.info()?.demoBanner ?? false);
   readonly version = computed(() => this.info()?.version ?? null);
 
   /** Loads once; failures resolve to null and are retried on the next call. */

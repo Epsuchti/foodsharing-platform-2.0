@@ -59,6 +59,8 @@
   "errors.USER_NOT_FOUND": "Die Person isch nöd gfunde worde.",
   "errors.HISTORY_SUBJECT_NOT_READABLE": "Dä Verlauf darfsch nöd aaluege.",
   "errors.DEV_USER_NOT_FOUND": "Die Testperson gits nöd.",
+  "errors.PERSONA_PANEL_PASSWORD_INVALID": "S Passwort stimmt nöd.",
+  "errors.PERSONA_NOT_FOUND": "Das Testkonto gits nöd.",
   "errors.NETWORK": "Kei Verbindig zum Server. Prüef dini Internetverbindig.",
   "errors.UNKNOWN": "En unbekannte Fähler isch passiert.",
   "errors.CLIENT_ERROR": "I de App isch en Fähler passiert. Mir sind informiert – lad d Siite neu, wänn öppis nüme gaht.",

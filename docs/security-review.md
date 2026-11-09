@@ -65,6 +65,7 @@ every anonymous operation is limited or listed with a reason, every limiter is a
 | `group-mails` | per user, 1 h | `app.region.group-mails-per-hour` | `sendGroupMail` |
 | mailbox (database count) | per mailbox, 1 h | `app.mailbox.*` | `sendMail` |
 | data export (cooldown) | per user | `app.users.export-cooldown-*` | `exportMyData` |
+| `persona-panel` (`PersonaPanelGate`, decision 173) | per IP, 15 min, wrong passwords only | `app.staging.persona-panel.max-failures-per-ip` (10), `failure-window` | `listPersonas`, `loginAsPersona` (staging profile only; 404 elsewhere) |
 | mail outbox (deferral, not rejection) | per recipient | 20/h, 5 per template/day | every outgoing mail (`MailRateLimiter`) |
 
 Anonymous operations outside `/api/public/**` without an own limit: `logout` (ends only the caller's session) and

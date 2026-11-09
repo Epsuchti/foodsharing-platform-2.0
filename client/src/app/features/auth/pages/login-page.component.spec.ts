@@ -39,8 +39,8 @@ describe('LoginPageComponent', () => {
 
   afterEach(() => http.verify());
 
-  async function create(inputs: Record<string, string> = {}, devMode = false) {
-    useAppInfo({ devMode });
+  async function create(inputs: Record<string, string> = {}, devMode = false, personaPanel = false) {
+    useAppInfo({ devMode, personaPanel });
     fixture = TestBed.createComponent(LoginPageComponent);
     for (const [name, value] of Object.entries(inputs)) {
       fixture.componentRef.setInput(name, value);
@@ -166,6 +166,23 @@ describe('LoginPageComponent', () => {
   it('shows the dev user switcher in dev mode', async () => {
     await create({}, true);
     expect(host.querySelector('fs-dev-user-switcher')).not.toBeNull();
+    http.expectOne('/api/dev/users').flush([]);
+  });
+
+  it('shows the persona panel (password first) on the test environment', async () => {
+    await create({}, false, true);
+    const switcher = host.querySelector('fs-dev-user-switcher');
+    expect(switcher).not.toBeNull();
+    expect(byTestId('auth.login.personaPanel.password')).not.toBeNull();
+    // nothing is loaded before the password is entered, and never from the dev API
+    http.expectNone('/api/dev/users');
+    http.expectNone('/api/personas/list');
+  });
+
+  it('prefers the dev switcher when both flags are set', async () => {
+    await create({}, true, true);
+    expect(host.querySelectorAll('fs-dev-user-switcher')).toHaveLength(1);
+    expect(byTestId('auth.login.personaPanel.password')).toBeNull();
     http.expectOne('/api/dev/users').flush([]);
   });
 });

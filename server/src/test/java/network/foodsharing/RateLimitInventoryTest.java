@@ -38,7 +38,10 @@ class RateLimitInventoryTest {
             Map.entry("createSupportTicket", "support"),
             Map.entry("sendMail", "mailbox-hourly"),
             Map.entry("exportMyData", "data-export-cooldown"),
-            Map.entry("search", "search"));
+            Map.entry("search", "search"),
+            // decision 173: the test environment's persona panel (staging only), wrong passwords per IP
+            Map.entry("listPersonas", "persona-panel"),
+            Map.entry("loginAsPersona", "persona-panel"));
 
     /** Limits that are cooldowns / quotas in the database rather than in-memory sliding windows. */
     static final Set<String> NON_METRIC_LIMITERS = Set.of("mailbox-hourly", "data-export-cooldown");

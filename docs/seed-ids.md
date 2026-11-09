@@ -1,7 +1,9 @@
 # Seed ids
 
 Fixed UUIDs of the seed data (`server/src/main/resources/db/seed/`, Liquibase context `seed`, loaded in the
-`local` and `e2e` profiles). Format: `0000MMMM-TTTT-4000-8000-NNNNNNNNNNNN`:
+`local` and `e2e` profiles and on the public test environment, profile `prod,staging`, decision 173). The seed is
+public there: anyone with the persona panel password (`PERSONA_PANEL_PASSWORD`) can log in as the 14 personas
+(`common.seed.SeedPersonas`, `@local` addresses, ORGA included), so it must never hold real data. Format: `0000MMMM-TTTT-4000-8000-NNNNNNNNNNNN`:
 `MMMM` = module code, `TTTT` = table code inside the module, `N` = sequence (decimal digits, zero-padded).
 Seed time anchor: `SEED_NOW = 2026-11-02T09:00:00Z` (all seed timestamps are at or before it).
 

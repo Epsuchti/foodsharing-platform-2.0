@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded mails (seed module 0042) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class MailboxSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000042-";

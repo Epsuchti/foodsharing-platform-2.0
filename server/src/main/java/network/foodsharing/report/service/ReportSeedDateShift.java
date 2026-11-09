@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded reports, report walls and mediation requests (seed prefix 00000050-) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class ReportSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000050-";

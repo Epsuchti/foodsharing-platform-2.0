@@ -258,7 +258,7 @@ public class FakeOidcProvider {
         return jwt.serialize();
     }
 
-    private Account seedAccount(DevUserCatalog.Entry entry, User user) {
+    private Account seedAccount(network.foodsharing.common.seed.SeedPersonas.Entry entry, User user) {
         String picture = user.getAvatarUrl() == null ? null
                 : user.getAvatarUrl().startsWith("/") ? properties.getBaseUrl() + user.getAvatarUrl() : user.getAvatarUrl();
         return new Account(entry.name(), entry.googleSubject(), user.getEmail(), true, user.getDisplayName(),

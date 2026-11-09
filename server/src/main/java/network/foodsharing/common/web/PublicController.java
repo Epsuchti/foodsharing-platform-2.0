@@ -14,9 +14,11 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.AppVersionResolver;
+import network.foodsharing.config.PersonaPanelCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,9 +32,12 @@ public class PublicController implements PublicApi {
     private final AppVersionResolver versionResolver;
     private final Clock clock;
     private final SlidingWindowRateLimiter clientErrorLimiter;
+    private final boolean personaPanel;
 
-    public PublicController(AppProperties properties, AppVersionResolver versionResolver, Clock clock) {
+    public PublicController(AppProperties properties, AppVersionResolver versionResolver, Clock clock,
+                            Environment environment) {
         this.properties = properties;
+        this.personaPanel = PersonaPanelCondition.enabled(environment);
         this.versionResolver = versionResolver;
         this.clock = clock;
         this.clientErrorLimiter = new SlidingWindowRateLimiter("client-errors", clock,
@@ -49,6 +54,8 @@ public class PublicController implements PublicApi {
         AppInfo info = new AppInfo();
         info.setVersion(versionResolver.resolve());
         info.setDevMode(properties.getDev().isEnabled());
+        info.setPersonaPanel(personaPanel);
+        info.setDemoBanner(properties.isDemoBanner());
         info.setLanguages(Arrays.asList(Language.values()));
         info.setLoginMethods(loginMethods);
         info.setServerTime(TimeMapper.toOffset(clock.instant()));

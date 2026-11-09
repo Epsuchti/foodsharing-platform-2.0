@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * shift is not a whole number of weeks (as pickups do).
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class FspSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000049-";

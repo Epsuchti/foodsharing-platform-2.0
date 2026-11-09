@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded conversations and messages (seed module 0041) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class MessagingSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000041-";

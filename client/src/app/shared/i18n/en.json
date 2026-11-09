@@ -92,6 +92,7 @@
   "shared.historyTimeline.meta.applyType": "Application type",
   "shared.historyTimeline.meta.attachments": "Attachments",
   "shared.historyTimeline.meta.attempts": "Attempts",
+  "shared.historyTimeline.meta.suppressed": "Suppressed (test environment)",
   "shared.historyTimeline.meta.autoConfirmed": "Confirmed automatically",
   "shared.historyTimeline.meta.bell": "Bell",
   "shared.historyTimeline.meta.bounce": "Bounce",

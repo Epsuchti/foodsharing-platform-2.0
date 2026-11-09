@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded surveys and responses (seed prefix 00000046-) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class SurveySeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000046-";

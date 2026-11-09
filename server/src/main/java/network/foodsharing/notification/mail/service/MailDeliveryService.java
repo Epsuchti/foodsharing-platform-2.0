@@ -42,10 +42,13 @@ public class MailDeliveryService {
     private final Clock clock;
     private final IntegrationRegistry integrations;
     private final UploadService uploads;
+    private final MailRecipientPolicy recipientPolicy;
 
     public MailDeliveryService(MailOutboxRepository repository, ObjectProvider<MailTransport> transport,
                                HistoryService history, AppProperties properties, Clock clock,
-                               IntegrationRegistry integrations, UploadService uploads) {
+                               IntegrationRegistry integrations, UploadService uploads,
+                               MailRecipientPolicy recipientPolicy) {
+        this.recipientPolicy = recipientPolicy;
         this.integrations = integrations;
         this.uploads = uploads;
         this.repository = repository;
@@ -55,11 +58,25 @@ public class MailDeliveryService {
         this.clock = clock;
     }
 
-    /** Records MAIL_SENT on success, MAIL_FAILED when the last attempt failed. */
+    /**
+     * Records MAIL_SENT on success, MAIL_FAILED when the last attempt failed. A mail the recipient policy does not
+     * allow (staging, decision 173) is not sent: it is marked SENT with {@code last_error}
+     * {@value MailRecipientPolicy#SUPPRESSED} and logged.
+     */
     @Transactional
     public void deliver(UUID mailId) {
         MailOutboxMessage message = repository.findById(mailId).orElse(null);
         if (message == null || message.getStatus() != MailStatus.PENDING) {
+            return;
+        }
+        if (!recipientPolicy.allows(message.getToAddress(), message.getCategory())) {
+            message.setStatus(MailStatus.SENT);
+            message.setSentAt(clock.instant());
+            message.setLastError(MailRecipientPolicy.SUPPRESSED);
+            log.info("Mail {} ({}) suppressed by the staging recipient policy", mailId, message.getTemplate());
+            history.record(history.event(MailAction.SENT, HistoryService.SYSTEM_SUBJECT_ID).actorSystem()
+                    .metadata(Map.of("mailId", message.getId().toString(), "template", message.getTemplate(),
+                            "attempts", message.getAttempts(), "suppressed", true)).build());
             return;
         }
         MailTransport active = transport.getIfAvailable();
@@ -98,8 +115,15 @@ public class MailDeliveryService {
         }
     }
 
-    /** Admin integration test: one plain mail straight through the transport and the SMTP breaker (A26). */
+    /**
+     * Admin integration test: one plain mail straight through the transport and the SMTP breaker (A26). On staging a
+     * recipient the policy does not allow gets nothing (logged).
+     */
     public void sendTest(String to) {
+        if (!recipientPolicy.allows(to, null)) {
+            log.info("SMTP test mail suppressed by the staging recipient policy");
+            return;
+        }
         MailTransport active = transport.getIfAvailable();
         if (active == null) {
             throw new IllegalStateException("No MailTransport for app.mail.transport=" + properties.getMail().getTransport());

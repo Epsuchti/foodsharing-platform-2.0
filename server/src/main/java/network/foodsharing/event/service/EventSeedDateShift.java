@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded events (seed module 0044) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class EventSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000044-";

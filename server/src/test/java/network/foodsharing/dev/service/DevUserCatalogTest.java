@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import network.foodsharing.common.seed.SeedPersonas;
 import network.foodsharing.testsupport.SeedUsers;
 import org.junit.jupiter.api.Test;
 
@@ -17,20 +18,20 @@ class DevUserCatalogTest {
 
     @Test
     void catalogMatchesSeedUsersInJourneyOrder() {
-        assertThat(catalog.entries()).extracting(DevUserCatalog.Entry::id)
+        assertThat(catalog.entries()).extracting(SeedPersonas.Entry::id)
                 .containsExactlyElementsOf(Arrays.stream(SeedUsers.values()).map(SeedUsers::id).toList());
-        assertThat(catalog.entries()).extracting(DevUserCatalog.Entry::email)
+        assertThat(catalog.entries()).extracting(SeedPersonas.Entry::email)
                 .containsExactlyElementsOf(Arrays.stream(SeedUsers.values()).map(SeedUsers::email).toList());
-        assertThat(catalog.byId(SeedUsers.ORGA.id())).get().extracting(DevUserCatalog.Entry::descriptionKey)
+        assertThat(catalog.byId(SeedUsers.ORGA.id())).get().extracting(SeedPersonas.Entry::descriptionKey)
                 .isEqualTo("dev.users.orga");
     }
 
     @Test
     void onlyFoodsaverAndBotHaveGoogleIdentities() {
         assertThat(catalog.entries()).filteredOn(entry -> entry.googleSubject() != null)
-                .extracting(DevUserCatalog.Entry::googleSubject)
+                .extracting(SeedPersonas.Entry::googleSubject)
                 .containsExactly("fake-google-foodsaver", "fake-google-bot");
-        assertThat(catalog.byGoogleSubject("fake-google-bot")).get().extracting(DevUserCatalog.Entry::name)
+        assertThat(catalog.byGoogleSubject("fake-google-bot")).get().extracting(SeedPersonas.Entry::name)
                 .isEqualTo("bot");
         assertThat(catalog.byGoogleSubject(null)).isEmpty();
     }
@@ -43,7 +44,7 @@ class DevUserCatalogTest {
         }
         assertThat(lines).hasSize(catalog.entries().size());
         for (int i = 0; i < lines.size(); i++) {
-            DevUserCatalog.Entry entry = catalog.entries().get(i);
+            SeedPersonas.Entry entry = catalog.entries().get(i);
             assertThat(lines.get(i)).startsWith(entry.id() + ",").contains("," + entry.email() + ",")
                     .contains("/images/avatars/" + entry.name() + ".svg");
         }
