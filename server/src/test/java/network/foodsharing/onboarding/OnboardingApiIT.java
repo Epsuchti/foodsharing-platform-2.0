@@ -94,10 +94,10 @@ class OnboardingApiIT {
         Cookie profile = login(SeedUsers.PROFILE);
         mvc.perform(json(post("/api/onboarding/learning/nope/read").cookie(profile), ""))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("CONTENT_NOT_FOUND"));
-        mvc.perform(json(post("/api/onboarding/learning/rules/read").cookie(profile), ""))
+        mvc.perform(json(post("/api/onboarding/learning/principles/read").cookie(profile), ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.steps[?(@.key == 'LEARN')].progress.done").value(1));
-        mvc.perform(json(post("/api/onboarding/learning/rules/read").cookie(profile), "")).andExpect(status().isOk());
+        mvc.perform(json(post("/api/onboarding/learning/principles/read").cookie(profile), "")).andExpect(status().isOk());
         assertThat(jdbc.queryForObject("select count(*) from learning_progress where user_id = ?", Integer.class,
                 SeedUsers.PROFILE.id())).isEqualTo(1);
 
