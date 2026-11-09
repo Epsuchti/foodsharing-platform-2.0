@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * pickup times, and the excluded dates by whole days, so "the last 7 days" and "next Sunday" stay true.
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class AutomationSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000022-";

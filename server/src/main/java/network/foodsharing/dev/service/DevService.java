@@ -66,7 +66,7 @@ public class DevService {
     }
 
     /** A user together with its catalog entry (empty for users that are not seed users). */
-    public record DevUserView(User user, Optional<DevUserCatalog.Entry> entry) {
+    public record DevUserView(User user, Optional<network.foodsharing.common.seed.SeedPersonas.Entry> entry) {
     }
 
     /** The result of {@link #loginAs}: the session cookie is already written. */

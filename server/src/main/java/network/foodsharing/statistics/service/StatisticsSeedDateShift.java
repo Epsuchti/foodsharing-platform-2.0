@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * newest first so the unique day never collides; a seeded day that a real aggregation row already occupies is dropped.
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class StatisticsSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000054-";

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * Java, so the statements are plain and portable (PostgreSQL and H2).
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class IntroPickupSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000030-";

@@ -1,4 +1,4 @@
-package network.foodsharing.dev.service;
+package network.foodsharing.common.seed;
 
 import java.sql.Date;
 import java.time.Clock;
@@ -8,7 +8,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
-import network.foodsharing.common.seed.SeedDateShiftContributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -19,14 +18,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Keeps the local seed data current (docs/conventions.md A13): on every start of the {@code local} profile, all
+ * Keeps the seed data current (docs/conventions.md A13): on every start of the {@code local} and {@code staging}
+ * profiles (staging: the test environment, decision 173), all
  * {@link SeedDateShiftContributor}s move their seed timestamps forward by the whole days between the last anchor
  * (initially {@link #SEED_NOW_DATE}) and today in Europe/Zurich; the new anchor is stored in
  * {@code seed_shift_state}, so repeated starts shift only by the remaining delta. Not active in {@code e2e}, where
  * the clock is fixed at SEED_NOW.
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class SeedDateShiftRunner implements ApplicationRunner {
 
     public static final LocalDate SEED_NOW_DATE = LocalDate.of(2026, 11, 2);

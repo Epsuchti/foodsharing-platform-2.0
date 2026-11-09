@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Moves the seeded polls (seed module 0045) forward with the local seed anchor (A13). */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class PollSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000045-";

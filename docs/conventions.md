@@ -258,9 +258,9 @@ Implemented with Angular `resource()`/`rxResource` + `httpResource` is not used 
 - Tests read notifications through `GET /api/dev/notifications?userId&type` (one BELL entry per bell plus a MAIL entry
   when it was mailed).
 
-### A13. Seed date shifting (local profile only)
-- SPI `common.seed.SeedDateShiftContributor { void shift(Duration delta) }`. `dev.service.SeedDateShiftRunner`
-  (`@Profile("local")`, `ApplicationRunner`) shifts by the whole days between the last anchor (table
+### A13. Seed date shifting (local and staging profiles)
+- SPI `common.seed.SeedDateShiftContributor { void shift(Duration delta) }`. `common.seed.SeedDateShiftRunner`
+  (`@Profile({"local", "staging"})`, `ApplicationRunner`; contributors carry the same profiles, decision 173) shifts by the whole days between the last anchor (table
   `seed_shift_state`, initially SEED_NOW's date 2026-11-02) and today in Europe/Zurich, inside one transaction, then
   stores the new anchor. e2e has a fixed clock → nothing shifts. Contributors update only seed rows (fixed seed ids)
   with plain SQL. After `POST /api/dev/seed/reset` the next shift happens at the next start.

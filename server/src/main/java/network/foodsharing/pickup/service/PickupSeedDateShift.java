@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * one-time pickup next to the regular occurrences.
  */
 @Component
-@Profile("local")
+@Profile({"local", "staging"})
 public class PickupSeedDateShift implements SeedDateShiftContributor {
 
     static final String SEED_PREFIX = "00000021-";
