@@ -86,6 +86,11 @@ class SpaForwardingControllerTest {
         mvc.perform(get("/h2-console/login.do")).andExpect(forwardedUrl(null));
         mvc.perform(get("/assets/icons/logo.svg")).andExpect(status().isNotFound()).andExpect(forwardedUrl(null));
         mvc.perform(get("/fonts/inter.woff2")).andExpect(forwardedUrl(null));
+        // the app icon (favicon, manifest, push): a static folder, not an Angular route (it answered 404 on staging)
+        mvc.perform(get("/icons/fixture-icon.svg"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl(null))
+                .andExpect(content().string(containsString("<svg")));
         // MT1: /tiles/** belongs to the PMTiles resource handler, never to the SPA
         mvc.perform(get("/tiles/basemap.pmtiles")).andExpect(forwardedUrl(null));
         mvc.perform(get("/tiles")).andExpect(forwardedUrl(null));
