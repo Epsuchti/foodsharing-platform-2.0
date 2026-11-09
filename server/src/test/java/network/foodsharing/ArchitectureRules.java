@@ -113,6 +113,15 @@ final class ArchitectureRules {
             .should(haveOnlyDevProfiles())
             .allowEmptyShould(true);
 
+    // 6b. (decision 173) The persona panel of the test environment exists only in the staging profile.
+    static final ArchRule PERSONA_CLASSES_ONLY_IN_STAGING = classes()
+            .that().resideInAPackage("network.foodsharing.persona..")
+            .and().areTopLevelClasses()
+            .and().areNotInterfaces()
+            .and().doNotHaveSimpleName("package-info")
+            .should(haveOnlyProfile("staging"))
+            .allowEmptyShould(true);
+
     // 7. Entities extend BaseEntity, no LOB/TEXT, enums as strings.
     static final ArchRule ENTITIES_EXTEND_BASE_ENTITY = classes()
             .that().areAnnotatedWith(Entity.class)
@@ -153,7 +162,7 @@ final class ArchitectureRules {
     static List<ArchRule> all() {
         return List.of(CONTROLLERS_IMPLEMENT_ONE_GENERATED_API, WEB_DOES_NOT_ACCESS_REPOSITORIES, WEB_DOES_NOT_USE_JPA,
                 GENERATED_MODELS_ONLY_AT_THE_EDGE, MUTATING_SERVICES_RECORD_HISTORY, NO_SYSTEM_CLOCK,
-                DEV_CLASSES_ONLY_IN_DEV_PROFILES, ENTITIES_EXTEND_BASE_ENTITY, ENTITY_FIELDS_ARE_PORTABLE,
+                DEV_CLASSES_ONLY_IN_DEV_PROFILES, PERSONA_CLASSES_ONLY_IN_STAGING, ENTITIES_EXTEND_BASE_ENTITY, ENTITY_FIELDS_ARE_PORTABLE,
                 ENTITIES_HAVE_NO_BYTE_ARRAYS,
                 SCHEDULED_ONLY_IN_JOBS, SCHEDULED_JOBS_ARE_LOCKED, NO_FOREIGN_REPOSITORIES);
     }
@@ -277,6 +286,20 @@ final class ArchitectureRules {
                 if (!ok) {
                     events.add(SimpleConditionEvent.violated(javaClass, javaClass.getName()
                             + " is not annotated @Profile({\"local\",\"e2e\"})"));
+                }
+            }
+        };
+    }
+
+    private static ArchCondition<JavaClass> haveOnlyProfile(String expected) {
+        return new ArchCondition<>("be annotated @Profile(\"" + expected + "\") only") {
+            @Override
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                Optional<Profile> profile = javaClass.tryGetAnnotationOfType(Profile.class);
+                boolean ok = profile.isPresent() && Arrays.equals(profile.get().value(), new String[] {expected});
+                if (!ok) {
+                    events.add(SimpleConditionEvent.violated(javaClass, javaClass.getName()
+                            + " is not annotated @Profile(\"" + expected + "\")"));
                 }
             }
         };

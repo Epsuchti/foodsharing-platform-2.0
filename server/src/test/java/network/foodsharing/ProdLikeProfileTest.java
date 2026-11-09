@@ -1,9 +1,11 @@
 package network.foodsharing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,6 +77,29 @@ class ProdLikeProfileTest {
         mvc.perform(get("/dev/oidc/.well-known/openid-configuration")).andExpect(status().isNotFound());
         mvc.perform(get("/dev/oidc/authorize")).andExpect(status().isNotFound());
         mvc.perform(get("/dev/oidc/jwks")).andExpect(status().isNotFound());
+    }
+
+    /** Decision 173: the persona panel and the staging extras exist only with the staging profile. */
+    @Test
+    void noPersonaPanelNoBannerNoNoindex() throws Exception {
+        assertThat(Arrays.stream(context.getBeanDefinitionNames())
+                .map(context::getType)
+                .filter(type -> type != null && (type.getName().startsWith("network.foodsharing.persona.")
+                        || type.getSimpleName().equals("StagingNoIndexFilter")
+                        || type.getSimpleName().equals("SeedDateShiftRunner")
+                        || type.getSimpleName().equals("UploadSeedFiles"))))
+                .isEmpty();
+        mvc.perform(post("/api/personas/list").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"foobar\"}"))
+                .andExpect(status().isNotFound());
+        mvc.perform(post("/api/personas/login").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"password\":\"foobar\",\"userId\":\"" + SeedUsers.ORGA.id() + "\"}"))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/public/app-info"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("X-Robots-Tag"))
+                .andExpect(jsonPath("$.personaPanel").value(false))
+                .andExpect(jsonPath("$.demoBanner").value(false));
     }
 
     @Test

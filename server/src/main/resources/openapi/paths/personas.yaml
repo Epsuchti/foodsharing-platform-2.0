@@ -1,0 +1,55 @@
+# Only served in the staging profile with app.staging.persona-panel.password set (persona beans are
+# @Profile("staging") and conditional on the password; otherwise 404). POST so the password never ends up in a URL.
+/api/personas/list:
+  post:
+    tags: [personas]
+    operationId: listPersonas
+    summary: The seed personas of the test environment, in journey order (needs the panel password).
+    security: []
+    x-permission: PUBLIC
+    x-history: NONE
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/personas.yaml#/PersonaPanelRequest'
+    responses:
+      '200':
+        description: Personas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/personas.yaml#/Persona'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'PERSONA_PANEL_PASSWORD_INVALID', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'Not available (no staging profile or no panel password)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '429': {description: 'TOO_MANY_REQUESTS (too many wrong passwords from this IP; Retry-After)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+
+/api/personas/login:
+  post:
+    tags: [personas]
+    operationId: loginAsPersona
+    summary: Log in as a seed persona (sets the session cookie; needs the panel password).
+    security: []
+    x-permission: PUBLIC
+    x-history: AuthAction.LOGIN
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/personas.yaml#/PersonaLoginRequest'
+    responses:
+      '200':
+        description: Logged in
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/auth.yaml#/SessionInfo'
+      '400': {description: 'VALIDATION_FAILED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '401': {description: 'PERSONA_PANEL_PASSWORD_INVALID', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '404': {description: 'PERSONA_NOT_FOUND, or not available (no staging profile or no panel password)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '429': {description: 'TOO_MANY_REQUESTS (too many wrong passwords from this IP; Retry-After)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

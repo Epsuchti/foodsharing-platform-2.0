@@ -1,0 +1,35 @@
+PersonaPanelRequest:
+  type: object
+  description: A missing or wrong password answers 401 PERSONA_PANEL_PASSWORD_INVALID (and counts as a failure).
+  properties:
+    password:
+      type: string
+      maxLength: 200
+
+PersonaLoginRequest:
+  type: object
+  required: [userId]
+  properties:
+    password:
+      type: string
+      maxLength: 200
+    userId:
+      type: string
+      format: uuid
+
+Persona:
+  type: object
+  required: [id, email, displayName, role, descriptionKey]
+  properties:
+    id:
+      type: string
+      format: uuid
+    email:
+      type: string
+    displayName:
+      type: string
+    role:
+      $ref: './common.yaml#/Role'
+    descriptionKey:
+      type: string
+      description: i18n key of the one-line description of the persona's journey stage (dev.users.<name>).

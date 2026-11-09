@@ -32,6 +32,9 @@ ApiErrorCode:
     - HISTORY_SUBJECT_NOT_READABLE
     # --- dev ---
     - DEV_USER_NOT_FOUND
+    # --- personas (staging persona panel) ---
+    - PERSONA_PANEL_PASSWORD_INVALID
+    - PERSONA_NOT_FOUND
     # --- users (M2) ---
     - INVALID_PHONE_NUMBER
     - CANNOT_DEACTIVATE_SELF

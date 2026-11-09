@@ -60,6 +60,11 @@ class ArchitectureTest {
     }
 
     @Test
+    void rule6bPersonaClassesOnlyInStaging() {
+        ArchitectureRules.PERSONA_CLASSES_ONLY_IN_STAGING.check(classes);
+    }
+
+    @Test
     void rule7EntitiesArePortable() {
         ArchitectureRules.ENTITIES_EXTEND_BASE_ENTITY.check(classes);
         ArchitectureRules.ENTITY_FIELDS_ARE_PORTABLE.check(classes);

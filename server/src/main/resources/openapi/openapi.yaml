@@ -21,6 +21,8 @@ tags:
   - name: dev
     description: Development helpers, only present in the local and e2e profiles.
     x-dev-only: true
+  - name: personas
+    description: Persona panel of the public test environment (staging profile only, behind a password).
   - name: onboarding
     description: Onboarding journey of the current user (plan §11).
   - name: regions
@@ -223,6 +225,11 @@ paths:
     $ref: './paths/history.yaml#/~1api~1history~1actions'
   /api/history/export:
     $ref: './paths/history.yaml#/~1api~1history~1export'
+  # --- personas (staging only) ---
+  /api/personas/list:
+    $ref: './paths/personas.yaml#/~1api~1personas~1list'
+  /api/personas/login:
+    $ref: './paths/personas.yaml#/~1api~1personas~1login'
   # --- dev ---
   /api/dev/users:
     $ref: './paths/dev.yaml#/~1api~1dev~1users'
