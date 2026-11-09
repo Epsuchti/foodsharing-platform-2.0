@@ -73,7 +73,7 @@ SMOKE OK (ghcr.io/epsuchti/foodsharing-platform:local, version 44)
 
 - **Profile** `prod` (set by the image). `application.properties` holds the defaults, `application-prod.properties` the production overrides; every environment variable, how to generate it, rotation and consequence of loss: [`docs/secrets.md`](secrets.md). Template: `server/deploy/.env.example` → `server/deploy/.env` on the host (`chmod 600`). `ProdSecretsInventoryTest` keeps the three in sync.
 - **Ports**: 8080 application (bound to `127.0.0.1` via `HTTP_BIND`, TLS reverse proxy in front, `X-Forwarded-*` honoured); 9090 management (`/actuator/health/{liveness,readiness}`, `/actuator/health/version`, `/actuator/prometheus`), only on the compose network. Local and e2e profiles keep the actuator on 8080 (e2e global setup waits on `/actuator/health/readiness` of the app port).
-- **Database**: PostgreSQL 17 (`pgdata` volume), Liquibase context `schema` only (never `seed`), Hikari pool `DB_POOL_SIZE` (20).
+- **Database**: PostgreSQL 17 (`pgdata` volume), Liquibase context `schema` only (never `seed`; only the test environment's `staging` profile adds `seed`, §11), Hikari pool `DB_POOL_SIZE` (20).
 - **Shutdown**: `server.shutdown=graceful`, 30 s per phase; compose `stop_grace_period: 45s`.
 - **Logs**: one JSON object per line on stdout (logstash layout: `@timestamp`, `level`, `logger_name`, `thread_name`, `message`, `traceId`, `app`, `version`, `stack_trace`); `docker compose logs app` / the host's log driver. `StructuredLoggingTest` guards the format.
 - **Storage**: uploads in PostgreSQL (`upload_blob`/`upload_blob_chunk`, 1 MiB chunks, decision 158), no app volume; container root filesystem read-only, `/tmp` tmpfs, all capabilities dropped.
@@ -333,3 +333,31 @@ On K3s (hosting repository, chart `charts/pmtiles-basemap`, `docs/foodsharing-pl
 - **Checks:** as in §10.2 against `https://foodsharing.site` and `https://test.foodsharing.site`; also `curl -sI` shows the ETag, the cache control and no `Content-Encoding`, and `/tiles/basemap.previous.pmtiles` gives 404. After a rebuild the ETag changes.
 - **Dashboard:** Grafana "Map Tiles (PMTiles basemap)": builder memory (working set, RSS) against its limit, CPU, Job duration, age of the last successful build, terminated reason (`OOMKilled`), tile requests by status, p50/p95 latency, bytes sent, tile server memory, and the Loki build log. **No alerts yet** (`todo.md`): look at the dashboard after the 1st of each month.
 - **Needs:** 60Gi local-path disk, 16Gi RAM and up to 4 CPUs for about an hour a month, tile server 64–256Mi (page cache counts towards the limit). A second node would need node affinity for the local-path volume or RWX storage.
+
+## 11. Test environment (staging profile, decision 173)
+`https://test.foodsharing.site` runs the same image with `SPRING_PROFILES_ACTIVE=prod,staging` (exactly this order;
+`StagingProfileGuard` stops the start for `staging` alone, `staging,prod`, or with `local`/`e2e`, and for a panel
+password without `staging`). Production keeps `prod` alone.
+- **What staging adds on top of prod** (`application-staging.properties`): Liquibase contexts `schema,seed` (the seed
+  data of `docs/seed-ids.md`, kept current by `SeedDateShiftRunner` at every start; `UploadSeedFiles` writes the seeded
+  files), the red demo banner, `X-Robots-Tag: noindex, nofollow` on every response, Telegram log-only (the seed has
+  fake chat ids), and the mail recipient policy `staging`: mails go only to active non-seed users, auth mails (magic
+  link login and sign-up, email change) and `MAIL_ALLOWED_RECIPIENTS`; every other outbox mail is marked `SENT` with
+  `last_error = 'suppressed (staging recipient policy)'` and logged, never sent.
+- **Persona panel**: with `PERSONA_PANEL_PASSWORD` set, `/login` shows the seed personas behind that password
+  (`POST /api/personas/list|login`, 10 wrong passwords per IP in 15 minutes → 429). Empty = no panel (404). The dev
+  API (`/api/dev/**`), the fake OIDC provider and the H2 console stay 404 as in prod. Testers can register themselves
+  with a real address; the login page tells them not to use real data.
+- **Switching an existing test database** from `prod` to `prod,staging` just adds the seed on the next start
+  (`StagingSeedOnExistingSchemaPostgresIT`); the foodsaver number sequence is not touched. Seed rows that clash with
+  rows created by testers can still make a changeset fail, so prefer a fresh database (below).
+
+### 11.1 Reset the test database to a fresh seed
+Only on test, never in the prod namespace. The data of the testers is lost.
+1. Scale the app to 0: `kubectl scale -n foodsharing-platform-test deploy/foodsharing-platform --replicas=0`.
+2. Drop and recreate the schema in the CNPG primary pod:
+   `kubectl exec -n foodsharing-platform-test -it <cnpg-primary-pod> -- psql -U postgres -d foodsharing -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public AUTHORIZATION foodsharing;'`
+3. Deploy (or keep) the release with `SPRING_PROFILES_ACTIVE=prod,staging`.
+4. Scale to 1: `kubectl scale -n foodsharing-platform-test deploy/foodsharing-platform --replicas=1`. Liquibase builds
+   the schema and the seed; the seed dates are shifted to today on start.
+5. Check: `/login` shows the persona panel after the password, `curl -sI https://test.foodsharing.site/ | grep -i x-robots-tag`.

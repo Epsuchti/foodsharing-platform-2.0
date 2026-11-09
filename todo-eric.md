@@ -13,7 +13,7 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 ## Infrastructure and accounts
 - [ ] Register the domain and set up DNS. This blocks mail DNS, OAuth redirect URIs, the passkey RP id, wallet pass identifiers and the Telegram bot name.
 - [ ] Choose hosting: server, Postgres with backups, TLS reverse proxy, monitoring (Swiss hosting for nDSG?).
-- [ ] Set up a staging environment for testers and the Zürich pilot team.
+- [ ] Set up a staging environment for testers and the Zürich pilot team. The app side is ready (decision 173, runbook §11): in the hosting repo set `SPRING_PROFILES_ACTIVE=prod,staging` and `PERSONA_PANEL_PASSWORD` for test only, reset the test database (runbook §11.1), deploy, then share the panel password with the testers.
 - [ ] Choose a mail provider and set up the regional mailboxes (`MAILBOX_*`).
 - [ ] Generate the production secrets into `server/deploy/.env` (`docs/secrets.md`).
 - [ ] Create the Google OAuth client with the production redirect URI.

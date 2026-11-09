@@ -21,6 +21,10 @@ Last updated 2026-11-03, after the final gate was merged (`dc970052`).
 - **Hygiene/quiz reminder on the home screen:** skipped; the session carries no hygiene certificate or quiz expiry (`SessionUser` has `quizRole` only). Needs the expiry in the session or a small endpoint.
 - **Screenshot baselines:** the new names `pickups-page-*`, `pickups-page-more-*`, `dashboard-pickups-tiles-*`, `dashboard-{help,waiting,events,stores}-*`, `dashboard-help-{loading,error}-*` need baselines in the next batch; the old `pickups-options-*` / `pickups-mine-*` baselines are orphaned.
 
+## Open from the staging profile (decision 173)
+- **Meta robots:** staging sends `X-Robots-Tag: noindex, nofollow` on every response; the prerendered pages carry no `<meta name="robots">`. Add one at runtime (when `AppInfo.demoBanner`) only if a search engine is seen indexing test.
+- **Seed on a used test database:** switching a database with tester data to `prod,staging` runs the seed on top; a clash (e.g. a tester registered `orga@local`) would fail a seed changeset. The runbook says to reset the test database (§11.1) instead.
+
 ## Flakes
 - Flaky in the gate run, both passed on retry: `r7-region-admin.spec.ts:10` on firefox and `pages.screen.ts:71` (offline shell light-de) in screenshots.
 - `d10-history.spec.ts` D10.3: hardened, cause not confirmed.
