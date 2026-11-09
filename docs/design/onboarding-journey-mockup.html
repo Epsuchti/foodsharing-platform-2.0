@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mein Einstieg (/onboarding) – horizontale Journey – Mockup</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-primary-200: #b4e7c2; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108; --fs-accent: #f2b84b;
+  --fs-header-bg: rgb(255 255 255 / 0.86); --fs-header-border: rgb(199 212 194 / 0.7); --fs-sidenav-bg: #f3f6f1; --fs-sidenav-hover: rgb(26 42 32 / 0.07);
+  --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem; --fs-radius-xl: 1.5rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04); --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08); --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-header-h: 4rem; --fs-tabbar-h: 4.25rem; --fs-sidenav-w: 16.5rem; --fs-sidenav-rail-w: 4.5rem; --fs-target-sm: 2.25rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-primary-200: #1f4a2f; --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1); --fs-danger-border: rgb(240 138 128 / 0.3);
+  --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1); --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b; --fs-accent: #9c7a3c;
+  --fs-header-bg: rgb(17 22 17 / 0.82); --fs-header-border: rgb(61 71 59 / 0.7); --fs-sidenav-bg: #151a15; --fs-sidenav-hover: rgb(236 242 234 / 0.08);
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: var(--fs-primary-strong); font-weight: 600; text-underline-offset: 0.18em; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl { position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm); }
+.ctl strong { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.25rem; }
+.ctl fieldset { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.note { margin: 0.75rem auto 0; width: min(100% - 2rem, 1280px); color: var(--fs-text-muted); font-size: 0.82rem; }
+.note code { font-size: 0.78rem; }
+
+/* ---- app frame: side menu (decision 133) + content; phone: header + tab bar ---- */
+.frame { --sn: var(--fs-sidenav-w); --gut: clamp(1rem, 0.6rem + 2cqi, 2rem); position: relative; margin: 0.75rem auto 2rem; width: min(100% - 2rem, 1280px); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); container: frame / inline-size; }
+.frame[data-vp="tab-sidebar"] { width: min(100% - 2rem, 1024px); }
+.frame[data-vp="tab-rail"] { width: min(100% - 2rem, 1024px); --sn: var(--fs-sidenav-rail-w); }
+.frame[data-vp="tab-768"] { width: min(100% - 2rem, 768px); }
+.frame[data-vp="phone"] { width: min(100% - 2rem, 412px); height: min(880px, 92vh); }
+.frame__size { position: absolute; top: 0.4rem; right: 0.5rem; z-index: 60; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--fs-text); color: var(--fs-surface); font-size: 0.7rem; font-weight: 700; opacity: 0.55; pointer-events: none; }
+.shell { display: grid; grid-template-columns: var(--sn) minmax(0, 1fr); min-height: 44rem; }
+.frame[data-vp="phone"] .shell { display: block; height: 100%; overflow: auto; padding-bottom: calc(var(--fs-tabbar-h) + 0.5rem); }
+/* side menu (abbreviated; the real one is docs/design/sidenav-mockup.html) */
+.sn { display: grid; align-content: start; gap: 0.15rem; padding: 0.75rem; border-right: 1px solid var(--fs-border); background: var(--fs-sidenav-bg); font-size: 0.92rem; }
+.frame[data-vp="phone"] .sn { display: none; }
+.sn__brand { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem 1rem; font-weight: 800; letter-spacing: -0.02em; }
+.sn__brand b { color: var(--fs-primary); }
+.sn__logo { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; background: var(--fs-primary); flex: none; }
+.sn__sec { padding: 0.6rem 0.6rem 0.2rem; color: var(--fs-text-muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.sn__item { position: relative; display: flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0.75rem; border-radius: var(--fs-radius-sm); color: var(--fs-text); text-decoration: none; font-weight: 550; }
+.sn__item:hover { background: var(--fs-sidenav-hover); }
+.sn__item[aria-current="page"] { background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 700; }
+.sn__item .i { width: 1.1rem; height: 1.1rem; color: var(--fs-text-muted); }
+.sn__item[aria-current="page"] .i { color: var(--fs-primary-strong); }
+.sn__count { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--fs-text-muted); }
+.sn__meter { position: absolute; left: 2.55rem; right: 0.75rem; bottom: 0.3rem; height: 3px; border-radius: 2px; background: var(--fs-border-strong); overflow: hidden; }
+.sn__meter span { display: block; height: 100%; background: var(--fs-primary); }
+.frame[data-vp="tab-rail"] .sn__item span:not(.sn__count), .frame[data-vp="tab-rail"] .sn__sec, .frame[data-vp="tab-rail"] .sn__brand span, .frame[data-vp="tab-rail"] .sn__meter { display: none; }
+.frame[data-vp="tab-rail"] .sn__item { justify-content: center; padding: 0.6rem 0; }
+.frame[data-vp="tab-rail"] .sn__count { position: absolute; top: 0.05rem; right: 0.35rem; margin: 0; font-size: 0.62rem; }
+/* phone chrome */
+.phdr { display: none; position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--fs-header-border); background: var(--fs-header-bg); backdrop-filter: saturate(1.4) blur(14px); }
+.frame[data-vp="phone"] .phdr { display: block; }
+.phdr__row { display: flex; align-items: center; gap: 0.75rem; height: var(--fs-header-h); padding: 0 1rem; }
+.phdr__row .sn__brand { padding: 0; }
+.phdr__acts { display: flex; gap: 0.25rem; margin-left: auto; color: var(--fs-text-muted); }
+.phdr__acts span { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; }
+.jbar { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.75rem 0.45rem; border-top: 1px solid var(--fs-header-border); font-size: 0.92rem; line-height: 1.25; }
+.jbar small { display: block; color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 600; }
+.frame:not([data-jbar="on"]) .jbar { display: none; }
+.tabbar { display: none; position: absolute; left: 0; right: 0; bottom: 0; z-index: 45; grid-template-columns: repeat(4, 1fr); height: var(--fs-tabbar-h); border-top: 1px solid var(--fs-header-border); background: var(--fs-header-bg); backdrop-filter: blur(14px); }
+.frame[data-vp="phone"] .tabbar { display: grid; }
+.tabbar a { display: grid; justify-items: center; align-content: center; gap: 0.15rem; color: var(--fs-text-muted); font-size: 0.72rem; font-weight: 600; text-decoration: none; }
+.tabbar a .i { width: 1.35rem; height: 1.35rem; }
+.tabbar a[aria-current="page"] { color: var(--fs-primary-strong); }
+
+/* ---- page ---- */
+.main { padding: 1rem var(--gut) 2.5rem; container: content / inline-size; }
+.frame[data-vp="phone"] .main { padding: 0.75rem 1rem 2rem; }
+.page { display: grid; gap: 1.25rem; width: min(100%, 72rem); margin: 0 auto; min-width: 0; }
+.ph { display: flex; gap: 0.9rem; align-items: flex-start; }
+.ph__icon { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: none; border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.ph__icon .i { width: 1.35rem; height: 1.35rem; }
+.ph h1 { font-size: clamp(1.35rem, 1.1rem + 1cqi, 1.75rem); letter-spacing: -0.02em; line-height: 1.2; }
+.ph p { color: var(--fs-text-muted); font-size: 0.95rem; }
+.card { padding: clamp(1.1rem, 1rem + 1cqi, 1.5rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); min-width: 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.125rem; border: 1px solid var(--fs-primary); border-radius: 0.75rem; background: var(--fs-primary); color: var(--fs-on-primary); font-weight: 650; line-height: 1.2; text-decoration: none; white-space: nowrap; }
+.btn:hover { background: var(--fs-primary-strong); border-color: var(--fs-primary-strong); box-shadow: 0 4px 12px color-mix(in srgb, var(--fs-primary) 28%, transparent); }
+.btn--lg { padding: 0.8rem 1.4rem; font-size: 1.05rem; }
+.btn--sm { padding: 0.45rem 0.85rem; font-size: 0.9rem; }
+.btn--outlined { border-color: var(--fs-border-strong); background: var(--fs-surface); color: var(--fs-text); }
+.btn--outlined:hover { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); box-shadow: none; }
+.btn--text { border-color: transparent; background: transparent; color: var(--fs-primary-strong); }
+.btn--text:hover { background: var(--fs-primary-soft); box-shadow: none; border-color: transparent; }
+.tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: var(--fs-surface-muted); color: var(--fs-text); font-size: 0.8rem; font-weight: 600; }
+.tag--ok { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.tag--warn { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.tag--now { background: var(--fs-primary); color: var(--fs-on-primary); }
+.muted { color: var(--fs-text-muted); font-size: 0.9rem; }
+.sec-title { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 1.1rem; }
+.sec-title .i { color: var(--fs-primary-strong); }
+
+/* ---- journey card: phases + horizontal rail + detail panel (desktop and tablet) ---- */
+.jc { --mk: 2.5rem; --rail-pb: 1rem; display: grid; gap: 0; }
+.rail { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)) minmax(4.5rem, 6rem); column-gap: 0.4rem; padding-bottom: var(--rail-pb); }
+.phase { grid-row: 1; margin-bottom: 0.9rem; padding-bottom: 0.45rem; border-bottom: 2px solid var(--fs-primary-200); color: var(--fs-primary-strong); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; }
+.phase--end { border-bottom-color: transparent; }
+.rs { position: relative; grid-row: 2; display: grid; justify-items: center; min-width: 0; }
+/* the line from this marker to the next one: coloured by this step's state */
+.rs::before { content: ''; position: absolute; top: calc(var(--mk) / 2 - 1px + 0.25rem); left: 50%; right: calc(-50% - 0.4rem); height: 2px; background: var(--fs-border-strong); }
+.rs[data-status="DONE"]::before { background: var(--fs-primary); }
+.rs__btn { position: relative; display: grid; justify-items: center; gap: 0.45rem; width: 100%; min-width: 0; padding: 0.25rem 0.15rem 0.5rem; border: 0; border-radius: var(--fs-radius-md); background: none; text-align: center; }
+.rs__btn:hover .mk { border-color: var(--fs-primary); }
+.rs__btn:hover .rs__lbl { text-decoration: underline; text-underline-offset: 0.15em; }
+.mk { position: relative; z-index: 1; display: grid; place-items: center; width: var(--mk); height: var(--mk); border: 2px solid var(--fs-border-strong); border-radius: 999px; background: var(--fs-surface); color: var(--fs-text-muted); font-weight: 800; font-size: 0.95rem; transition: box-shadow 150ms ease, border-color 150ms ease; }
+.mk .i { width: 1.1rem; height: 1.1rem; stroke-width: 2.6; }
+[data-status="DONE"] .mk { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); }
+[aria-current="step"] .mk { border-color: var(--fs-primary); color: var(--fs-primary-strong); box-shadow: 0 0 0 4px var(--fs-primary-soft); }
+[data-status="WAITING_FOR_OTHERS"] .mk { border-color: var(--fs-warning); color: var(--fs-warning-text); background: var(--fs-warning-soft); }
+[data-status="LOCKED"] .mk { background: var(--fs-surface-muted); }
+/* selected = the step whose detail is open below; distinct from "current" (the ring is text-coloured, never only colour: the panel names it) */
+.rs[data-selected] .mk { box-shadow: 0 0 0 2px var(--fs-surface), 0 0 0 4px var(--fs-text); }
+.rs[data-selected][aria-current="step"] .mk { box-shadow: 0 0 0 4px var(--fs-primary-soft), 0 0 0 6px var(--fs-text); }
+.rs[data-selected]::after { content: ''; position: absolute; left: 50%; bottom: calc(-1 * var(--rail-pb) - 0.45rem); z-index: 2; width: 0.9rem; height: 0.9rem; transform: translateX(-50%) rotate(45deg); border-top: 1px solid var(--fs-border); border-left: 1px solid var(--fs-border); background: var(--fs-surface); }
+.rs__lbl { max-width: 100%; font-size: 0.78rem; font-weight: 650; line-height: 1.2; color: var(--fs-text); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; hyphens: manual; }
+.rs[data-status="LOCKED"] .rs__lbl { color: var(--fs-text-muted); }
+.rs[aria-current="step"] .rs__lbl { color: var(--fs-primary-strong); }
+.mini { display: flex; gap: 2px; width: 2.2rem; height: 4px; margin-top: -0.1rem; }
+.mini i { flex: 1; border-radius: 2px; background: var(--fs-surface-muted); box-shadow: inset 0 0 0 1px var(--fs-border); }
+.mini i.d { background: var(--fs-primary); box-shadow: none; }
+.mini i.b { background: var(--fs-primary-soft); box-shadow: inset 0 0 0 1px var(--fs-primary); }
+.end { grid-row: 2; display: grid; justify-items: center; align-content: start; gap: 0.45rem; padding-top: 0.25rem; color: var(--fs-text-muted); font-size: 0.78rem; font-weight: 650; line-height: 1.2; text-align: center; }
+.end .mk { border-color: var(--fs-primary-200); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.jc[data-complete] .end .mk { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); box-shadow: 0 0 0 4px var(--fs-primary-soft); }
+.jc[data-complete] .end { color: var(--fs-primary-strong); }
+/* label density by content width (the side menu takes 16.5rem or 4.5rem of the viewport) */
+@container content (max-width: 51.99rem) {
+  .jc { --mk: 2.25rem; }
+  .rs:not([aria-current="step"]):not([data-selected]):not([data-near]) .rs__lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@container content (max-width: 33.99rem) {
+  .rs .rs__lbl, .end__t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .phase { display: none; }
+  .rail { grid-template-columns: repeat(var(--n), minmax(0, 1fr)) var(--mk); column-gap: 0.25rem; }
+  .rs::before { right: calc(-50% - 0.25rem); }
+}
+/* detail panel */
+.pnl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 2.5rem; align-items: start; padding-top: 1.1rem; border-top: 1px solid var(--fs-border); transition: opacity 150ms ease; }
+.pnl.swap { opacity: 0; }
+@container content (max-width: 44rem) { .pnl { grid-template-columns: 1fr; } }
+.eyebrow { color: var(--fs-text-muted); font-size: 0.8rem; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; }
+.pnl__title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin: 0.15rem 0 0.35rem; font-size: 1.45rem; letter-spacing: -0.02em; line-height: 1.2; }
+.pnl__text { color: var(--fs-text-muted); max-width: 44rem; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; margin-top: 0.7rem; color: var(--fs-text-muted); font-size: 0.85rem; }
+.meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.side { display: grid; gap: 0.75rem; justify-items: start; align-self: center; min-width: 14rem; }
+.noteb { display: flex; align-items: flex-start; gap: 0.45rem; margin-top: 0.8rem; padding: 0.55rem 0.75rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); color: var(--fs-text); font-size: 0.88rem; }
+.noteb--warn { background: var(--fs-warning-soft); color: var(--fs-warning-text); font-weight: 600; }
+.noteb .i { margin-top: 0.2rem; }
+.waiting { display: grid; gap: 0.5rem; padding: 0.7rem 0.85rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); font-size: 0.9rem; }
+.waiting__t { display: flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+.waiting__t .i { color: var(--fs-warning-text); }
+.chipu { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.15rem 0.6rem 0.15rem 0.15rem; border: 1px solid var(--fs-border); border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.av { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; background: #6b8e6b; color: #fff; font-size: 0.65rem; font-weight: 700; }
+.chipu small { color: var(--fs-text-muted); font-weight: 500; }
+/* intro pickups meter (today's, moved into the panel) */
+.im { display: grid; gap: 0.55rem; width: 100%; min-width: 14rem; }
+.im__h { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 650; }
+.im__h .i { color: var(--fs-primary-strong); }
+.meter { display: flex; gap: 0.35rem; }
+.meter i { flex: 1; height: 0.7rem; border-radius: 999px; background: var(--fs-surface-muted); box-shadow: inset 0 0 0 1px var(--fs-border); }
+.meter i.d { background: var(--fs-primary); box-shadow: none; }
+.meter i.b { background: var(--fs-primary-soft); box-shadow: inset 0 0 0 1px var(--fs-primary); }
+.legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.88rem; }
+.legend li { display: flex; align-items: center; gap: 0.35rem; }
+.dot { width: 0.75rem; height: 0.75rem; border-radius: 999px; background: var(--fs-surface-muted); box-shadow: inset 0 0 0 1px var(--fs-border); }
+.dot.d { background: var(--fs-primary); box-shadow: none; }
+.dot.b { background: var(--fs-primary-soft); box-shadow: inset 0 0 0 1px var(--fs-primary); }
+/* finished */
+.done { display: grid; gap: 0.6rem; justify-items: start; padding-top: 1.1rem; border-top: 1px solid var(--fs-border); }
+.done h2 { display: flex; align-items: center; gap: 0.5rem; font-size: 1.45rem; letter-spacing: -0.02em; }
+.done h2 .i { color: var(--fs-primary); width: 1.5rem; height: 1.5rem; }
+/* tracks (unchanged from today) */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; }
+.track li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.track .noteb { flex-basis: 100%; margin: 0; padding: 0; background: none; color: var(--fs-text-muted); font-size: 0.85rem; }
+
+/* ---- phone layout ---- */
+.ph-only { display: none; }
+.frame[data-vp="phone"] .ph-only { display: grid; }
+.frame[data-vp="phone"] .rail, .frame[data-vp="phone"] .pnl, .frame[data-vp="phone"] .jc > .done { display: none; }
+.frame[data-vp="phone"] .jc { padding: 0; border: 0; background: none; box-shadow: none; gap: 1rem; }
+.strip { gap: 0.35rem; }
+.strip__segs { display: flex; gap: 3px; }
+.strip__segs i { flex: 1; height: 0.45rem; border-radius: 999px; background: var(--fs-border-strong); }
+.strip__segs i.d { background: var(--fs-primary); }
+.strip__segs i.c { background: color-mix(in srgb, var(--fs-primary) 45%, var(--fs-border-strong)); }
+.strip__segs i.w { background: var(--fs-warning); }
+.strip__cap { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.8rem; font-weight: 650; color: var(--fs-text-muted); }
+.cur { gap: 0.6rem; border-left: 4px solid var(--fs-primary); }
+.cur .pnl__title { font-size: 1.35rem; }
+.cur .btn { width: 100%; }
+.cur .side { width: 100%; justify-items: stretch; min-width: 0; }
+.cur .im { min-width: 0; }
+.cur--done { border-left-color: var(--fs-primary-strong); }
+.ph-h { margin: 0.9rem 0 0.4rem; color: var(--fs-primary-strong); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.ph-h:first-of-type { margin-top: 0.25rem; }
+.rows { display: grid; }
+.row { position: relative; display: grid; padding-bottom: 0.35rem; }
+.row::before { content: ''; position: absolute; top: 2.75rem; bottom: -0.1rem; left: 1.35rem; width: 2px; background: var(--fs-border); }
+.row[data-status="DONE"]::before { background: var(--fs-primary); }
+.row:last-child::before { display: none; }
+.row__btn { display: grid; grid-template-columns: var(--mk, 2.25rem) minmax(0, 1fr) auto auto; align-items: center; gap: 0.75rem; width: 100%; min-height: 3rem; padding: 0.3rem 0.5rem 0.3rem 0.25rem; border: 0; border-radius: var(--fs-radius-md); background: none; text-align: left; }
+.row__btn:hover { background: var(--fs-surface-muted); }
+.row[aria-current="step"] .row__btn { background: var(--fs-primary-soft); }
+.row { --mk: 2.25rem; }
+.row__t { font-weight: 650; font-size: 0.98rem; line-height: 1.25; }
+.row[data-status="LOCKED"] .row__t { color: var(--fs-text-muted); }
+.row[aria-current="step"] .row__t { color: var(--fs-primary-strong); }
+.row__s { color: var(--fs-text-muted); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.row[aria-current="step"] .row__s { color: var(--fs-primary-strong); }
+.row[data-status="WAITING_FOR_OTHERS"] .row__s { color: var(--fs-warning-text); }
+.row__chev { color: var(--fs-text-muted); transition: transform 150ms ease; }
+.row__btn[aria-expanded="true"] .row__chev { transform: rotate(180deg); }
+.row__body { margin: 0.1rem 0 0.6rem 3.25rem; padding: 0.75rem 0.9rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); color: var(--fs-text-muted); font-size: 0.92rem; }
+.row__body .noteb { margin-top: 0.6rem; }
+.row__body .meta { margin-top: 0.5rem; }
+.row--end .row__btn { cursor: default; grid-template-columns: var(--mk) 1fr; }
+.row--end .row__t { color: var(--fs-text-muted); }
+.row--end .mk { border-color: var(--fs-primary-200); background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.jc[data-complete] .row--end .mk { border-color: var(--fs-primary); background: var(--fs-primary); color: var(--fs-on-primary); }
+.jc[data-complete] .row--end .row__t { color: var(--fs-primary-strong); }
+
+/* ---- data states (fs-data-state) ---- */
+.sk { background: linear-gradient(90deg, var(--fs-surface-muted), var(--fs-border), var(--fs-surface-muted)); background-size: 200% 100%; animation: sh 1.4s linear infinite; border-radius: var(--fs-radius-sm); }
+@keyframes sh { to { background-position: -200% 0; } }
+.sk--c { width: var(--mk, 2.5rem); height: var(--mk, 2.5rem); border-radius: 999px; }
+.sk-row { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 0.4rem; justify-items: center; padding: 0.6rem 0 1.2rem; }
+.sk-row > div { display: grid; gap: 0.5rem; justify-items: center; width: 100%; }
+.sk-row .sk--l { width: 70%; height: 0.7rem; }
+.ds { display: grid; justify-items: start; gap: 0.6rem; padding: 1.4rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); }
+.ds--err { border-color: var(--fs-danger-border); background: var(--fs-danger-soft); }
+.ds h2 { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; }
+.ds--err h2 .i { color: var(--fs-danger); }
+.ds p { color: var(--fs-text-muted); font-size: 0.92rem; }
+
+/* ---- today's layout (comparison) ---- */
+.today-hero { display: grid; gap: 0.85rem; border-left: 4px solid var(--fs-primary); }
+.today-hero h2 { font-size: 1.5rem; }
+.t-steps { display: grid; }
+.t-step { position: relative; display: flex; gap: 1rem; padding-bottom: 1.25rem; }
+.t-step:not(:last-child)::before { content: ''; position: absolute; top: 2.5rem; bottom: 0.25rem; left: 1.1rem; width: 2px; background: var(--fs-border); }
+.t-step[data-status="DONE"]:not(:last-child)::before { background: var(--fs-primary); }
+.t-step .mk { --mk: 2.25rem; }
+.t-body { display: grid; flex: 1; gap: 0.5rem; padding-top: 0.3rem; min-width: 0; }
+.t-step[aria-current="step"] .t-body { padding: 0.9rem 1rem; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.t-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; }
+.t-head h3 { font-size: 1rem; }
+.t-head span { color: var(--fs-text-muted); font-size: 0.8rem; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="ctl" role="toolbar" aria-label="Mockup-Steuerung">
+  <fieldset><strong>Ansicht</strong>
+    <label><input type="radio" name="view" value="mid" checked>Schritt 4 aktuell</label>
+    <label><input type="radio" name="view" value="einab">Einführungsabholungen aktuell</label>
+    <label><input type="radio" name="view" value="waiting">Wartet auf Verifizierung</label>
+    <label><input type="radio" name="view" value="done">Abgeschlossen</label>
+    <label><input type="radio" name="view" value="skeleton">Skeleton</label>
+    <label><input type="radio" name="view" value="error">Fehler</label>
+    <label><input type="radio" name="view" value="offline">Offline</label>
+    <label><input type="radio" name="view" value="today">Heute (Vergleich)</label>
+  </fieldset>
+  <fieldset><strong>Fenster</strong>
+    <label><input type="radio" name="vp" value="desktop" checked>1280 Desktop</label>
+    <label><input type="radio" name="vp" value="tab-sidebar">1024 Sidebar</label>
+    <label><input type="radio" name="vp" value="tab-rail">1024 Rail</label>
+    <label><input type="radio" name="vp" value="tab-768">768 Sidebar</label>
+    <label><input type="radio" name="vp" value="phone">412 Phone</label>
+  </fieldset>
+  <fieldset><strong>Theme</strong>
+    <label><input type="radio" name="theme" value="light" checked>Hell</label>
+    <label><input type="radio" name="theme" value="dark">Dunkel</label>
+  </fieldset>
+  <fieldset><strong>Bezirk</strong>
+    <label><input type="radio" name="region" value="on" checked>mit Zusatzschritt (9)</label>
+    <label><input type="radio" name="region" value="off">ohne (8)</label>
+  </fieldset>
+  <fieldset><strong>Journey-Bar (Phone)</strong>
+    <label><input type="radio" name="jbar" value="off" checked>aus (Vorschlag)</label>
+    <label><input type="radio" name="jbar" value="on">an (heute)</label>
+  </fieldset>
+</div>
+
+<div class="frame" id="frame" data-vp="desktop" data-jbar="off">
+  <span class="frame__size" id="size"></span>
+  <div class="shell" id="shell"></div>
+</div>
+<p class="note">Klick auf einen Schritt öffnet sein Detail (Desktop: unten im Kasten; Phone: in der Liste). Pfeiltasten bewegen den Fokus in der Schrittleiste. Die Schrittleiste passt ihre Beschriftung an die Inhaltsbreite an (<code>@container content</code>): alle Labels ab 52 rem, nur aktueller Schritt ± 1 zwischen 34 und 52 rem, nur Nummern darunter. Breite des Browserfensters ändern, um das zu sehen. Erledigte Schritte mit Rückweg (Grundlagen → „Nochmal lesen“, Profil &amp; Bezirk, Einführungsabholungen) zeigen im Detail einen umrandeten Link.</p>
+
+<script>
+(() => {
+  const I = {
+    check: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>',
+    lock: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    hour: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12M6 22h12M7 2c0 5 5 6 5 10s-5 5-5 10M17 2c0 5-5 6-5 10s5 5 5 10"/></svg>',
+    clock: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    arrow: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>',
+    up: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>',
+    flag: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4m0 0h11l-2 4 2 4H5"/></svg>',
+    cal: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4"/></svg>',
+    bag: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+    refresh: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>',
+    wifi: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a16 16 0 0 1 20 0M5.5 12.5a11 11 0 0 1 13 0M9 16a5 5 0 0 1 6 0M12 20h.01M3 3l18 18"/></svg>',
+    chev: '<svg class="i row__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+    info: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>',
+    list: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>',
+    compass: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 5-4 1 2-5 4-1Z"/></svg>',
+    checkc: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>',
+    warn: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3Zm0 7v4m0 4h.01"/></svg>',
+    home: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10H3z"/></svg>',
+    chat: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4V5Z"/></svg>',
+    menu: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+    store: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V5h16v5M4 10h16v10H4z"/></svg>',
+    bell: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4l2-2Zm4 3h4"/></svg>',
+    user: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  };
+  const PHASES = { online: 'Online', onsite: 'Vor Ort', in: 'Dabei', region: 'Dein Bezirk' };
+  const STATUS = { LOCKED: 'noch gesperrt', AVAILABLE: 'bereit', IN_PROGRESS: 'läuft', WAITING_FOR_OTHERS: 'wartet auf andere', DONE: 'erledigt' };
+  // onboarding.step.<KEY>.title / .description / (new) .short; the region step comes translated from the server
+  const DEF = {
+    ACCOUNT: { title: 'Konto erstellen', short: 'Konto', desc: 'Melde dich mit E-Mail-Link, Google oder Passkey an.', dur: 'PT5M', phase: 'online' },
+    // revisit: what a DONE step still links to (new optional JourneyStep.revisit, same shape as nextAction)
+    PROFILE_REGION: { title: 'Profil & Bezirk', short: 'Profil & Bezirk', desc: 'Ergänze Name, Telefonnummer und Adresse und wähle deinen Bezirk.', dur: 'PT10M', phase: 'online', action: 'Profil vervollständigen', revisit: { label: 'Profil bearbeiten', route: '/onboarding/profile' } },
+    LEARN: { title: 'Grundlagen lernen', short: 'Grundlagen', desc: 'Lies die Kapitel über Abholungen, Hygiene und Verhalten in Betrieben.', dur: 'PT45M', phase: 'online', action: 'Kapitel lesen', revisit: { label: 'Nochmal lesen', route: '/learn' } },
+    QUIZ: { title: 'Foodsaver-Quiz', short: 'Quiz', desc: 'Zeig im Quiz, dass du die wichtigsten Regeln kennst.', dur: 'PT30M', phase: 'online', action: 'Quiz starten' },
+    AGREEMENT: { title: 'Vereinbarung', short: 'Vereinbarung', desc: 'Lies die Rechtsvereinbarung und stimme ihr zu.', dur: 'PT10M', phase: 'online', action: 'Vereinbarung lesen' },
+    INTRO_PICKUPS: { title: 'Einführungsabholungen', short: 'Einführungs­abholungen', desc: 'Hol mit erfahrenen Foodsaver:innen bei verschiedenen Betrieben ab.', dur: 'P2W', phase: 'onsite', action: 'Termin buchen', revisit: { label: 'Meine Termine', route: '/intro-pickups' } },
+    ID_CHECK: { title: 'Ausweis prüfen lassen', short: 'Verifizierung', desc: 'Deine Botschafter:innen prüfen deinen Ausweis und verifizieren dich.', dur: 'P1W', phase: 'onsite' },
+    PASSPORT: { title: 'Foodsaver-Ausweis', short: 'Dein Ausweis', desc: 'Lade deinen Ausweis herunter – du zeigst ihn bei jeder Abholung.', dur: 'PT5M', phase: 'in', action: 'Ausweis herunterladen' },
+    REGION_MEETUP: { title: 'Neuen-Treffen besuchen', short: 'Neuen-Treffen besuchen', desc: 'Komm an ein Neuen-Treffen des Begrüssungsteams (jeden ersten Montag im Monat).', dur: 'PT2H', phase: 'region', region: true },
+  };
+  const ORDER = ['ACCOUNT', 'PROFILE_REGION', 'LEARN', 'QUIZ', 'AGREEMENT', 'INTRO_PICKUPS', 'ID_CHECK', 'PASSPORT'];
+
+  function journey(kind, withRegion) {
+    const order = withRegion ? ORDER.concat('REGION_MEETUP') : ORDER;
+    const curIdx = { mid: 3, einab: 5, waiting: 6, done: -1 }[kind];
+    const steps = order.map((key, i) => {
+      const d = DEF[key];
+      const status = kind === 'done' || i < curIdx ? 'DONE' : i === curIdx ? (kind === 'waiting' ? 'WAITING_FOR_OTHERS' : 'IN_PROGRESS') : 'LOCKED';
+      const s = { key, status, ...d };
+      if (key === 'INTRO_PICKUPS' && status !== 'DONE') {
+        s.progress = kind === 'einab' ? { done: 1, booked: 1, required: 3 } : { done: 0, booked: 0, required: 3 };
+        if (kind === 'einab') s.blocked = 'Bei deiner dritten Einführungsabholung muss ein Fairteiler-Besuch dabei sein.';
+      }
+      if (key === 'ID_CHECK' && status === 'WAITING_FOR_OTHERS') {
+        s.waiting = { label: 'Wartet auf die Verifizierung durch deine Botschafter:innen', days: 5, contacts: [{ name: 'Reto Baumann', role: 'Botschafter', initials: 'RB' }] };
+      }
+      return s;
+    });
+    return { complete: kind === 'done', currentStep: order[curIdx], steps, tracks: kind === 'done' };
+  }
+  function dur(iso) {
+    const m = /^P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?$/.exec(iso);
+    if (!m) return iso;
+    const [, w, d, h, min] = m;
+    if (w) return `ca. ${w} ${w === '1' ? 'Woche' : 'Wochen'}`;
+    if (d) return `ca. ${d} ${d === '1' ? 'Tag' : 'Tage'}`;
+    if (h) return `ca. ${h} ${h === '1' ? 'Stunde' : 'Stunden'}`;
+    return `ca. ${min} Min.`;
+  }
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function marker(step, n) {
+    const glyph = step.status === 'DONE' ? I.check : step.status === 'LOCKED' ? I.lock : step.status === 'WAITING_FOR_OTHERS' ? I.hour : esc(n);
+    return `<span class="mk" aria-hidden="true">${glyph}</span>`;
+  }
+  function statusTag(step, isCurrent) {
+    if (step.status === 'DONE') return `<span class="tag tag--ok">${I.check} erledigt</span>`;
+    if (step.status === 'LOCKED') return `<span class="tag">${I.lock} noch gesperrt</span>`;
+    if (step.status === 'WAITING_FOR_OTHERS') return `<span class="tag tag--warn">${I.hour} wartet auf andere</span>`;
+    return `<span class="tag tag--now">${isCurrent ? 'Dein nächster Schritt' : STATUS[step.status]}</span>`;
+  }
+  function introMeter(p, testid) {
+    const segs = Array.from({ length: p.required }, (_, i) => `<i class="${i < p.done ? 'd' : i < p.done + p.booked ? 'b' : ''}"></i>`).join('');
+    const open = Math.max(p.required - p.done - p.booked, 0);
+    return `<div class="im" data-testid="${testid}" data-done="${p.done}" data-required="${p.required}">
+      <div class="im__h">${I.cal} Einführungsabholungen</div>
+      <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="${p.required}" aria-valuenow="${p.done}" aria-label="Einführungsabholungen: ${p.done} von ${p.required} erledigt, ${p.booked} gebucht">${segs}</div>
+      <ul class="legend"><li><span class="dot d"></span>${p.done} erledigt</li><li><span class="dot b"></span>${p.booked} gebucht</li><li><span class="dot"></span>${open} offen</li></ul>
+    </div>`;
+  }
+  function waitingBlock(w) {
+    return `<div class="waiting" data-testid="onboarding.journey.waiting">
+      <p class="waiting__t">${I.hour} ${esc(w.label)}</p>
+      <p class="muted">dauert meist ${w.days} Tage</p>
+      <ul class="legend">${w.contacts.map((c) => `<li><span class="chipu"><span class="av" aria-hidden="true">${c.initials}</span>${esc(c.name)} <small>· ${esc(c.role)}</small></span></li>`).join('')}</ul>
+    </div>`;
+  }
+  // locked step: what has to happen first (new key onboarding.journey.unlocksAfter / unlocksLater)
+  function lockNote(j, idx) {
+    const curIdx = j.steps.findIndex((s) => s.key === j.currentStep);
+    const text = idx === curIdx + 1 ? `Kommt dran, sobald „${j.steps[curIdx].title}“ erledigt ist.` : 'Kommt dran, sobald die Schritte davor erledigt sind.';
+    return `<p class="noteb">${I.lock} <span>${esc(text)}</span></p>`;
+  }
+  function detailBody(j, step, idx, isCurrent, opts = {}) {
+    const total = j.steps.length;
+    let side = '';
+    if (step.progress) side += introMeter(step.progress, 'onboarding.journey.introMeter');
+    if (isCurrent && step.action) side += `<a class="btn ${opts.phone ? '' : 'btn--lg'}" href="#" data-testid="onboarding.journey.cta">${esc(step.action)} ${I.arrow}</a>`;
+    // a done step stays reachable (owner: LEARN at least) – outlined, never the page's primary action
+    if (step.status === 'DONE' && step.revisit) side += `<a class="btn btn--outlined" href="#" title="${esc(step.revisit.route)}" data-testid="onboarding.journey.revisit">${esc(step.revisit.label)} ${I.arrow}</a>${step.key === 'LEARN' ? '<p class="muted" style="font-size:.82rem">Die Kapitel bleiben jederzeit offen – auch nach dem Einstieg.</p>' : ''}`;
+    if (step.waiting) side += waitingBlock(step.waiting);
+    const notes = (step.blocked ? `<p class="noteb noteb--warn" role="note">${I.info} <span>${esc(step.blocked)}</span></p>` : '') + (step.status === 'LOCKED' ? lockNote(j, idx) : '');
+    const back = !isCurrent && !opts.phone ? `<p style="margin-top:.8rem"><button class="btn btn--text btn--sm" data-back data-testid="onboarding.journey.detail.back">${I.up} ${opts.backLabel || 'Zum aktuellen Schritt'}</button></p>` : '';
+    return `<div class="pnl__main">
+        <p class="eyebrow">Schritt ${idx + 1} von ${total} · ${PHASES[step.phase]}</p>
+        <h2 class="pnl__title" id="journey-detail-title" tabindex="-1">${esc(step.title)} ${statusTag(step, isCurrent)}</h2>
+        <p class="pnl__text">${esc(step.desc)}</p>
+        <div class="meta"><span>${I.clock} ${dur(step.dur)}</span>${step.region ? '<span>Zusatzschritt deines Bezirks Zürich Stadt</span>' : ''}</div>
+        ${notes}${back}
+      </div>
+      ${side ? `<div class="side">${side}</div>` : ''}`;
+  }
+
+  // ---------- desktop / tablet: phases + rail + panel ----------
+  function rail(j, selectedKey) {
+    const n = j.steps.length;
+    const curIdx = j.steps.findIndex((s) => s.key === j.currentStep);
+    const selIdx = selectedKey ? j.steps.findIndex((s) => s.key === selectedKey) : curIdx;
+    // phase labels span the columns of their steps (region extra steps come after PASSPORT in the server's order)
+    const groups = [];
+    j.steps.forEach((s, i) => { const g = groups[groups.length - 1]; if (g && g.phase === s.phase) g.end = i; else groups.push({ phase: s.phase, start: i, end: i }); });
+    const phases = groups.map((g) => `<li class="phase" style="grid-column:${g.start + 1} / ${g.end + 2}" data-testid="onboarding.journey.phase.${g.phase}">${PHASES[g.phase]}</li>`).join('')
+      + `<li class="phase phase--end" style="grid-column:${n + 1}" aria-hidden="true"></li>`;
+    const items = j.steps.map((s, i) => {
+      const isCur = i === curIdx && !j.complete;
+      const near = Math.abs(i - (j.complete ? n - 1 : curIdx)) === 1;
+      const mini = s.progress && s.status !== 'LOCKED' ? `<span class="mini" role="img" aria-label="Einführungsabholungen: ${s.progress.done} von ${s.progress.required} erledigt, ${s.progress.booked} gebucht" data-testid="onboarding.journey.stepper.mini.${s.key}">${Array.from({ length: s.progress.required }, (_, k) => `<i class="${k < s.progress.done ? 'd' : k < s.progress.done + s.progress.booked ? 'b' : ''}"></i>`).join('')}</span>` : '';
+      return `<li class="rs" data-status="${s.status}" data-step="${s.key}" ${isCur ? 'aria-current="step"' : ''} ${i === selIdx ? 'data-selected' : ''} ${near ? 'data-near' : ''} data-testid="onboarding.journey.stepper.step.${s.key}">
+        <button type="button" class="rs__btn" data-select="${s.key}" aria-expanded="${i === selIdx}" aria-controls="journey-detail" data-testid="onboarding.journey.stepper.select.${s.key}">
+          ${marker(s, i + 1)}
+          <span class="rs__lbl">${s.short}</span>
+          <span class="vh">, Schritt ${i + 1} von ${n}, ${STATUS[s.status]}${isCur ? ', dein nächster Schritt' : ''}</span>
+          ${mini}
+        </button>
+      </li>`;
+    }).join('');
+    const end = `<li class="end" data-testid="onboarding.journey.end"><span class="mk" aria-hidden="true">${I.bag}</span><span class="end__t">Du holst selbst ab</span></li>`;
+    return `<ol class="rail" style="--n:${n}" aria-label="Alle Schritte">${phases}${items}${end}</ol>`;
+  }
+  function panel(j, selectedKey) {
+    if (j.complete && !selectedKey) {
+      return `<section class="done" id="journey-detail" data-testid="onboarding.journey.complete">
+        <h2>${I.checkc} Geschafft – willkommen im Team!</h2>
+        <p class="pnl__text">Du bist verifiziert und kannst dich für Abholungen eintragen.</p>
+        <a class="btn" href="#" data-testid="onboarding.journey.toDashboard">Zur Übersicht</a>
+      </section>`;
+    }
+    const idx = j.steps.findIndex((s) => s.key === (selectedKey || j.currentStep));
+    const step = j.steps[idx];
+    const isCur = step.key === j.currentStep && !j.complete;
+    return `<section class="pnl" id="journey-detail" data-testid="${isCur ? 'onboarding.journey.current' : 'onboarding.journey.detail'}" data-step="${step.key}" data-status="${step.status}" data-selected="${!isCur}">${detailBody(j, step, idx, isCur, { backLabel: j.complete ? 'Zur Zusammenfassung' : undefined })}</section>`;
+  }
+
+  // ---------- phone: strip + current card + grouped list ----------
+  function phone(j, expanded) {
+    const n = j.steps.length;
+    const curIdx = j.steps.findIndex((s) => s.key === j.currentStep);
+    const doneCount = j.steps.filter((s) => s.status === 'DONE').length;
+    const segs = j.steps.map((s) => `<i class="${s.status === 'DONE' ? 'd' : s.status === 'WAITING_FOR_OTHERS' ? 'w' : s.status === 'LOCKED' ? '' : 'c'}"></i>`).join('');
+    const strip = `<div class="strip ph-only" role="progressbar" aria-valuemin="0" aria-valuemax="${n}" aria-valuenow="${doneCount}" aria-label="${doneCount} von ${n} Schritten erledigt" data-testid="onboarding.journey.strip">
+      <div class="strip__segs" aria-hidden="true">${segs}</div>
+      <div class="strip__cap" aria-hidden="true"><span>${j.complete ? 'Alle Schritte erledigt' : `Schritt ${curIdx + 1} von ${n} · ${PHASES[j.steps[curIdx].phase]}`}</span><span>${doneCount} erledigt</span></div>
+    </div>`;
+    const cur = j.complete
+      ? `<section class="card cur cur--done ph-only" id="journey-current" tabindex="-1" data-testid="onboarding.journey.complete">
+          <h2 class="pnl__title">${I.checkc} Geschafft – willkommen im Team!</h2>
+          <p class="pnl__text">Du bist verifiziert und kannst dich für Abholungen eintragen.</p>
+          <a class="btn" href="#" data-testid="onboarding.journey.toDashboard">Zur Übersicht</a>
+        </section>`
+      : `<section class="card cur ph-only" id="journey-current" tabindex="-1" data-testid="onboarding.journey.current" data-step="${j.currentStep}" data-status="${j.steps[curIdx].status}">${detailBody(j, j.steps[curIdx], curIdx, true, { phone: true })}</section>`;
+    const groups = [];
+    j.steps.forEach((s, i) => { const g = groups[groups.length - 1]; if (g && g.phase === s.phase) g.items.push([s, i]); else groups.push({ phase: s.phase, items: [[s, i]] }); });
+    const list = groups.map((g) => `<h3 class="ph-h">${PHASES[g.phase]}</h3><ol class="rows">${g.items.map(([s, i]) => {
+      const isCur = i === curIdx && !j.complete;
+      const open = expanded === s.key;
+      const body = isCur ? '' : `<div class="row__body" id="row-${s.key}" ${open ? '' : 'hidden'}>
+          <p>${esc(s.desc)}</p>
+          <div class="meta"><span>${I.clock} ${dur(s.dur)}</span></div>
+          ${s.status === 'LOCKED' ? lockNote(j, i) : ''}${s.progress && !isCur ? `<div style="margin-top:.6rem">${introMeter(s.progress, 'onboarding.journey.introMeter')}</div>` : ''}
+          ${s.status === 'DONE' && s.revisit ? `<p style="margin-top:.7rem"><a class="btn btn--outlined btn--sm" href="#" title="${esc(s.revisit.route)}" data-testid="onboarding.journey.revisit">${esc(s.revisit.label)} ${I.arrow}</a></p>` : ''}
+        </div>`;
+      return `<li class="row" data-status="${s.status}" data-step="${s.key}" ${isCur ? 'aria-current="step"' : ''} data-testid="onboarding.journey.stepper.step.${s.key}">
+        <button type="button" class="row__btn" ${isCur ? 'data-totop' : `data-expand="${s.key}" aria-expanded="${open}" aria-controls="row-${s.key}"`} data-testid="onboarding.journey.stepper.select.${s.key}">
+          ${marker(s, i + 1)}
+          <span class="row__t">${esc(s.title)}<span class="vh">, Schritt ${i + 1} von ${n}</span></span>
+          <span class="row__s">${isCur ? 'dein nächster Schritt' : STATUS[s.status]}</span>
+          ${isCur ? `<span class="row__chev" aria-hidden="true">${I.up}</span>` : I.chev}
+        </button>${body}
+      </li>`;
+    }).join('')}</ol>`).join('');
+    const end = `<ol class="rows"><li class="row row--end" data-testid="onboarding.journey.end"><div class="row__btn"><span class="mk end-mk" aria-hidden="true">${I.bag}</span><span class="row__t">Ziel: Du holst selbst ab</span></div></li></ol>`;
+    return `${strip}${cur}<div class="ph-only" data-testid="onboarding.journey.list"><h2 class="sec-title">${I.list} Alle Schritte</h2>${list}${end}</div>`;
+  }
+
+  function tracks() {
+    const t = (title, status, extra) => `<li data-status="${status}"><span>${title}</span><span class="tag ${status === 'DONE' ? 'tag--ok' : ''}">${STATUS[status]}</span>${extra || ''}</li>`;
+    return `<h2 class="sec-title">${I.compass} Weitere Wege</h2><p class="muted">Nach der Verifizierung kannst du mehr Verantwortung übernehmen.</p>
+      <ul class="grid">
+        <li class="card" data-testid="onboarding.journey.track" data-track="HYGIENE"><ul class="track">${t('Hygiene-Quiz', 'AVAILABLE', '<a href="#">Quiz starten</a>')}</ul></li>
+        <li class="card" data-testid="onboarding.journey.track" data-track="STORE_MANAGER"><ul class="track">${t('Betriebsverantwortung', 'LOCKED')}</ul></li>
+        <li class="card" data-testid="onboarding.journey.track" data-track="GUIDE"><ul class="track">${t('Einführer:in werden', 'LOCKED', '<span class="noteb" data-testid="onboarding.journey.trackBlocked">Das Quiz öffnet nach 25 bestätigten Abholungen (3/25).</span>')}</ul></li>
+        <li class="card" data-testid="onboarding.journey.track" data-track="AMBASSADOR"><ul class="track">${t('Botschafter:in werden', 'LOCKED')}</ul></li>
+      </ul>`;
+  }
+
+  // ---------- today's layout, for comparison ----------
+  function today(j) {
+    const curIdx = j.steps.findIndex((s) => s.key === j.currentStep);
+    const cur = j.steps[curIdx];
+    const intro = j.steps.find((s) => s.key === 'INTRO_PICKUPS');
+    const hero = `<section class="card today-hero"><p class="eyebrow">Schritt ${curIdx + 1} von ${j.steps.length}</p><h2>${esc(cur.title)}</h2>${cur.action ? `<div><a class="btn btn--lg" href="#">${esc(cur.action)} ${I.arrow}</a></div>` : cur.waiting ? `<p class="waiting__t">${I.hour} ${esc(cur.waiting.label)}</p>` : ''}</section>`;
+    const meter = intro && intro.progress ? `<section class="card">${introMeter(intro.progress, 'onboarding.journey.introMeter')}</section>` : '';
+    const steps = `<h2 class="sec-title">${I.list} Alle Schritte</h2><ol class="t-steps">${j.steps.map((s, i) => `<li class="t-step" data-status="${s.status}" ${i === curIdx ? 'aria-current="step"' : ''}>${marker(s, i + 1)}<div class="t-body"><div class="t-head"><h3>${esc(s.title)}</h3><span>${STATUS[s.status]}</span></div>${i === curIdx ? `<p class="muted">${esc(s.desc)}</p><div class="meta"><span>${I.clock} ${dur(s.dur)}</span></div>` : ''}</div></li>`).join('')}</ol>`;
+    return hero + meter + steps;
+  }
+
+  // ---------- data states ----------
+  function skeleton(n) {
+    return `<section class="card jc" aria-busy="true" data-testid="onboarding.journey.state" data-state="loading"><span class="vh">Inhalt wird geladen</span>
+      <div class="sk" style="height:.9rem;width:40%;margin-bottom:1rem"></div>
+      <div class="sk-row" style="--n:${n}">${Array.from({ length: n }, () => '<div><div class="sk sk--c"></div><div class="sk sk--l"></div></div>').join('')}</div>
+      <div style="border-top:1px solid var(--fs-border);padding-top:1.1rem;display:grid;gap:.6rem"><div class="sk" style="height:.8rem;width:9rem"></div><div class="sk" style="height:1.4rem;width:40%"></div><div class="sk" style="height:.9rem;width:70%"></div><div class="sk" style="height:2.75rem;width:11rem;margin-top:.4rem"></div></div>
+    </section>`;
+  }
+  const errorState = `<section class="ds ds--err" role="alert" data-testid="onboarding.journey.state" data-state="error">
+      <h2>${I.warn} Das hat nicht geklappt</h2><p>Dein Einstieg konnte nicht geladen werden.</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn btn--outlined" data-retry data-testid="onboarding.journey.state.retry">${I.refresh} Nochmals versuchen</button><a href="#" class="btn btn--text">Details für den Support</a></div></section>`;
+  const offlineState = `<section class="ds" role="status" data-testid="onboarding.journey.state" data-state="offline">
+      <h2>${I.wifi} Du bist offline</h2><p>Sobald du wieder online bist, laden wir die Daten automatisch.</p>
+      <button class="btn btn--outlined" data-retry data-testid="onboarding.journey.state.retry">${I.refresh} Nochmals versuchen</button></section>`;
+
+  // ---------- chrome ----------
+  function sidenav(j) {
+    const n = j ? j.steps.length : 9;
+    const done = j ? j.steps.filter((s) => s.status === 'DONE').length : 3;
+    const curIdx = j ? j.steps.findIndex((s) => s.key === j.currentStep) : 3;
+    const meter = j && j.complete ? '' : `<span class="sn__count" aria-hidden="true">${curIdx + 1}/${n}</span><span class="sn__meter" aria-hidden="true"><span style="width:${(done / n) * 100}%"></span></span>`;
+    const item = (icon, label, extra, cur) => `<a class="sn__item" href="#" ${cur ? 'aria-current="page"' : ''}>${icon}<span>${label}</span>${extra || ''}</a>`;
+    return `<nav class="sn" aria-label="Hauptmenü">
+      <div class="sn__brand"><span class="sn__logo" aria-hidden="true"></span><span>food<b>sharing</b></span></div>
+      ${item(I.home, 'Übersicht')}${j && j.complete ? '' : item(I.flag, 'Mein Einstieg', meter, true)}
+      <div class="sn__sec">Retten</div>${item(I.bag, 'Abholungen')}${item(I.store, 'Betriebe')}${item(I.cal, 'Einführungsabholungen')}
+      <div class="sn__sec">Community</div>${item(I.chat, 'Nachrichten')}${item(I.bell, 'Mitteilungen')}${item(I.user, 'Profil')}
+    </nav>`;
+  }
+  function phoneChrome(j) {
+    const curIdx = j ? j.steps.findIndex((s) => s.key === j.currentStep) : 3;
+    const bar = j && !j.complete ? `<div class="jbar" data-testid="onboarding.bar"><span><small>Schritt ${curIdx + 1} von ${j.steps.length}</small><strong>${esc(j.steps[curIdx].title)}</strong></span></div>` : '';
+    return `<header class="phdr"><div class="phdr__row"><div class="sn__brand"><span class="sn__logo" aria-hidden="true"></span><span>food<b>sharing</b></span></div><div class="phdr__acts"><span>${I.bell}</span><span>${I.user}</span></div></div>${bar}</header>`;
+  }
+  const tabbar = `<nav class="tabbar" aria-label="Tabs"><a href="#">${I.home}Übersicht</a><a href="#" aria-current="page">${I.flag}Einstieg</a><a href="#">${I.bag}Abholungen</a><a href="#">${I.menu}Mehr</a></nav>`;
+
+  // ---------- state + render ----------
+  const ui = { view: 'mid', vp: 'desktop', theme: 'light', region: true, jbar: false, selected: null, expanded: null };
+  const frame = document.getElementById('frame');
+  const shell = document.getElementById('shell');
+  function render() {
+    const dataView = ['skeleton', 'error', 'offline'].includes(ui.view);
+    const j = dataView ? null : journey(ui.view === 'today' ? 'mid' : ui.view, ui.region);
+    const header = `<header class="ph"><span class="ph__icon">${I.flag}</span><div><h1>Dein Einstieg als Foodsaver:in</h1><p>Schritt für Schritt – du siehst immer, was als Nächstes kommt.</p></div></header>`;
+    let body;
+    if (ui.view === 'skeleton') body = skeleton(ui.region ? 9 : 8);
+    else if (ui.view === 'error') body = errorState;
+    else if (ui.view === 'offline') body = offlineState;
+    else if (ui.view === 'today') body = today(j);
+    else body = `<section class="card jc" data-testid="onboarding.journey.state" data-state="success" ${j.complete ? 'data-complete' : ''}>${rail(j, ui.selected)}${panel(j, ui.selected)}${phone(j, ui.expanded)}</section>${j.tracks ? tracks() : ''}`;
+    shell.innerHTML = `${sidenav(j)}${phoneChrome(j)}<div class="main"><div class="page">${header}${body}</div></div>${tabbar}`;
+  }
+  function select(key, focusTitle) {
+    const pnl = shell.querySelector('#journey-detail');
+    if (pnl) pnl.classList.add('swap');
+    const go = () => { ui.selected = key; render(); const b = key && shell.querySelector(`[data-select="${key}"]`); if (b) b.focus(); else if (focusTitle) { const t = shell.querySelector('[aria-current="step"] .rs__btn'); if (t) t.focus(); } };
+    matchMedia('(prefers-reduced-motion: reduce)').matches ? go() : setTimeout(go, 120);
+  }
+  shell.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href="#"]'); if (a) e.preventDefault();
+    const sel = e.target.closest('[data-select]');
+    if (sel) { const key = sel.dataset.select; const j = journey(ui.view, ui.region); select(key === j.currentStep && !j.complete ? null : key); return; }
+    if (e.target.closest('[data-back]')) { select(null, true); return; }
+    const ex = e.target.closest('[data-expand]');
+    if (ex) { ui.expanded = ui.expanded === ex.dataset.expand ? null : ex.dataset.expand; render(); shell.querySelector(`[data-expand="${ex.dataset.expand}"]`).focus(); return; }
+    if (e.target.closest('[data-totop]')) { const c = shell.querySelector('#journey-current'); c.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); c.focus({ preventScroll: true }); return; }
+    if (e.target.closest('[data-retry]')) { ui.view = 'mid'; document.querySelector('input[name="view"][value="mid"]').checked = true; render(); }
+  });
+  // arrow keys move the focus along the rail (Tab leaves it towards the panel)
+  shell.addEventListener('keydown', (e) => {
+    const btn = e.target.closest('.rs__btn'); if (!btn) return;
+    const all = [...shell.querySelectorAll('.rs__btn')]; const i = all.indexOf(btn);
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: all.length - 1 }[e.key];
+    if (next === undefined) return;
+    e.preventDefault(); all[Math.max(0, Math.min(all.length - 1, next))].focus();
+  });
+  document.querySelectorAll('.ctl input').forEach((inp) => inp.addEventListener('change', () => {
+    if (inp.name === 'view') { ui.view = inp.value; ui.selected = null; ui.expanded = null; }
+    if (inp.name === 'vp') { ui.vp = inp.value; frame.dataset.vp = inp.value; }
+    if (inp.name === 'theme') document.documentElement.classList.toggle('fs-dark', inp.value === 'dark');
+    if (inp.name === 'region') { ui.region = inp.value === 'on'; ui.selected = null; }
+    if (inp.name === 'jbar') frame.dataset.jbar = inp.value;
+    render(); size();
+  }));
+  const size = () => { document.getElementById('size').textContent = `${frame.clientWidth} px · Inhalt ${shell.querySelector('.main') ? shell.querySelector('.main').clientWidth : 0} px`; };
+  new ResizeObserver(size).observe(frame);
+  render(); size();
+})();
+</script>
+</body>
+</html>
