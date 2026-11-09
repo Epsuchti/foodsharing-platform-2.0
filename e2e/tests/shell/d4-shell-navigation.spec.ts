@@ -195,6 +195,34 @@ test.describe('logged out', () => {
     }
   });
 
+  test('D4.3 visitors get a menu drawer on phones @D4.3 @page', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto('/');
+    // desktop: the side menu is the navigation, the phone menu button is not there
+    await expect(page.getByTestId('nav.home')).toBeVisible();
+    await expect(page.getByTestId('shell.visitorMenu.open')).toHaveCount(0);
+
+    await page.setViewportSize(PHONE);
+    await page.goto('/');
+    const open = page.getByTestId('shell.visitorMenu.open');
+    await expect(open).toBeVisible();
+    await expect(open).toHaveAttribute('aria-expanded', 'false');
+    await open.click();
+    await expect(open).toHaveAttribute('aria-expanded', 'true');
+    // the <p-drawer> host has no box; the panel is appended to <body>
+    const drawer = page.locator('.fs-mobile-menu');
+    await expect(drawer).toBeVisible();
+    await animationsDone(page);
+    // the same sections as the desktop side menu for visitors: Entdecken first, then the about pages
+    await expect(drawer.getByTestId('shell.visitorMenu.section.daily')).toBeVisible();
+    await expect(drawer.getByTestId('shell.visitorMenu.home')).toHaveAttribute('aria-current', 'page');
+    await expect(drawer.getByTestId('shell.visitorMenu.login')).toHaveAttribute('href', '/login');
+
+    await drawer.getByTestId('shell.visitorMenu.map').click();
+    await expect(drawer).toBeHidden();
+    await expect.poll(() => path(page)).toBe('/map');
+  });
+
   test('D4.3 skip link jumps to the main content @D4.3', async ({ page, browserName }) => {
     await page.setViewportSize(DESKTOP);
     await page.goto('/dev/gallery');
