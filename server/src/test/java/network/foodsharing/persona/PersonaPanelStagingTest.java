@@ -130,7 +130,8 @@ class PersonaPanelStagingTest {
 
     @Test
     void devApiAndFakeOidcStayHidden() throws Exception {
-        mvc.perform(get("/api/dev/users")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/dev/users")).andExpect(status().isNotFound())
+                .andExpect(header().string(StagingNoIndexFilter.HEADER, StagingNoIndexFilter.VALUE));
         mvc.perform(post("/api/dev/login-as").with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userId\":\"" + SeedUsers.ORGA.id() + "\"}"))
                 .andExpect(status().isNotFound());

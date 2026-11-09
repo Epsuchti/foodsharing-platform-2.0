@@ -13,11 +13,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * The public test environment (staging profile, decision 173) stays out of search engines: every response carries
- * {@code X-Robots-Tag: noindex, nofollow} (pages, API, static files).
+ * {@code X-Robots-Tag: noindex, nofollow} (pages, API, static files; before DevPathsNotFoundFilter, so its 404s too).
  */
 @Component
 @Profile(StagingProfileGuard.STAGING)
-@Order(Ordered.HIGHEST_PRECEDENCE + 2)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class StagingNoIndexFilter extends OncePerRequestFilter {
 
     public static final String HEADER = "X-Robots-Tag";
