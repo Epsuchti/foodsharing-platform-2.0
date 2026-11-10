@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Skeleton } from '@openng/optimus-ui/skeleton';
 import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
@@ -7,6 +7,7 @@ import { PublicMapService, PublicRegionsService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { MapViewQuery, mapViewQuery } from '../../../shared/map-view/map-view-query';
 import { isPostcode, nearestFsps } from '../landing-geo';
 import { LandingMarkersResource } from '../landing-markers.resource';
 
@@ -18,14 +19,20 @@ export interface NearResult {
   readonly memberCount: number;
   /** Names of the (up to) two nearest Fairteiler within 10 km of the region pin. */
   readonly fspNames: readonly string[];
+  /** The region's pin, if it has one (the map moves there; "Karte öffnen" opens `/map` there at zoom 11). */
+  readonly pin: { readonly lat: number; readonly lon: number } | null;
 }
+
+/** Zoom of the map on a found region (decision 176, D4). */
+export const NEAR_RESULT_ZOOM = 11;
 
 /**
  * "In deiner Nähe" search (C17, decision 160): postcode → `suggestRegions` → first suggestion → `getPublicRegion`
  * (active cooperations = `storeCount`, members, pin) → the two nearest Fairteiler within 10 km of the pin, named
  * by `getPublicMapBubble`. A failing bubble only drops that name. No suggestion → empty ("gründe einen"); 503
  * GEOCODING_UNAVAILABLE and other failures → "Suche gerade nicht möglich" + retry; region gone → not found.
- * Invalid input (not 4 or 5 digits) shows a hint and sends no request.
+ * Invalid input (not 4 or 5 digits) shows a hint and sends no request. A result with a pin moves the landing map
+ * there (`LandingMarkersResource.focus`, zoom 11) and its "Karte öffnen" opens `/map?lat&lon&z` at that view.
  */
 @Component({
   selector: 'fs-landing-near',
@@ -154,6 +161,7 @@ export interface NearResult {
                 <a
                   class="fs-btn fs-btn--sm fs-btn--outlined"
                   routerLink="/map"
+                  [queryParams]="mapQuery(r)"
                   data-testid="public.landing.near.openMap"
                 >
                   <i class="pi pi-map-marker" aria-hidden="true"></i>
@@ -318,6 +326,7 @@ export class LandingNearComponent {
                   storeCount: region.storeCount,
                   memberCount: region.memberCount,
                   fspNames,
+                  pin: pin ? { lat: pin.latitude, lon: pin.longitude } : null,
                 })),
               );
             }),
@@ -326,6 +335,21 @@ export class LandingNearComponent {
       ),
     isEmpty: (value) => value === null,
   });
+
+  constructor() {
+    // a found region with a pin moves the landing map; no pin, empty or error leave it where it is
+    effect(() => {
+      const pin = this.near.status() === 'success' ? this.near.data()?.pin : null;
+      if (pin) {
+        untracked(() => this.markers.focus.set({ ...pin, zoom: NEAR_RESULT_ZOOM }));
+      }
+    });
+  }
+
+  /** `/map` at the region's pin, or plain `/map` without one. */
+  protected mapQuery(result: NearResult): MapViewQuery | null {
+    return result.pin ? mapViewQuery({ ...result.pin, zoom: NEAR_RESULT_ZOOM }) : null;
+  }
 
   private readonly notFoundKey = 'public.landing.near.result.notFound';
   private readonly unavailableKey = 'public.landing.near.search.unavailable';
