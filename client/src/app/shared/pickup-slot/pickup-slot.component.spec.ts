@@ -160,6 +160,9 @@ describe('PickupSlotComponent (PU3 slot states)', () => {
     expect(blocked[0].getAttribute('aria-label')).toBe('Für dich gesperrt, 2 frei – Grund anzeigen (2 Regeln)');
     expect(blocked[0].querySelector('.pi-lock')).not.toBeNull();
     expect(blocked[0].textContent?.trim()).toBe('Gesperrt');
+    // review fix A8: phones show the label too; no style rule hides it (the test DOM has no media queries)
+    const styles = ((PickupSlotComponent as unknown as { ɵcmp: { styles: string[] } }).ɵcmp.styles ?? []).join('\n');
+    expect(styles).not.toMatch(/\.slot--blocked[^{]*\.slot__label[^{]*\{[^}]*display:\s*none/);
     expect((blocked[0] as HTMLButtonElement).disabled).toBe(false);
     let opened = 0;
     let signUps = 0;
