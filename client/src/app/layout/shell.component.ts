@@ -111,7 +111,8 @@ export const TOAST_BREAKPOINTS = {
       }
       <fs-offline-banner />
       <fs-realtime-status />
-      <main id="main-content" class="shell__main" tabindex="-1">
+      <!-- fs-public: the old foodsharing palette while logged out (decision 174) -->
+      <main id="main-content" class="shell__main" tabindex="-1" [class.fs-public]="!session.isAuthenticated()">
         <router-outlet />
       </main>
       @if (chrome() === 'full') {
@@ -212,7 +213,12 @@ export const TOAST_BREAKPOINTS = {
 })
 export class ShellComponent {
   private readonly router = inject(Router);
-  private readonly session = inject(SessionService);
+  /**
+   * Also read by the template: while logged out, `<main>` carries `fs-public`, the token scope of the old foodsharing
+   * palette in styles.scss (decision 174). It follows the session, not the route, so a logged-in user keeps the app
+   * colours on public pages too, and the prerendered landing page (no session) already has the class.
+   */
+  protected readonly session = inject(SessionService);
 
   protected readonly toastBreakpoints = TOAST_BREAKPOINTS;
 
