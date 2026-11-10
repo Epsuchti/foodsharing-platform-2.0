@@ -157,6 +157,8 @@ test('M1 location search centres the map @M1', async ({ apiOf, as }) => {
   await expect(member.getByTestId('map.page.searchResult').first()).toHaveText('8400');
   // the postcode centre of Winterthur (static geocoding seed)
   await expect(member.getByTestId('map.page.map')).toHaveAttribute('data-center', '47.500,8.724');
+  // a search hit is a place the user typed: the URL carries it (decision 176)
+  await expect(member).toHaveURL(/\/map\?lat=47\.(49|50)\d\d&lon=8\.72\d\d&z=13$/);
 
   // a region name finds the region
   await member.getByTestId('map.page.search').fill('Winterthur');
@@ -167,6 +169,41 @@ test('M1 location search centres the map @M1', async ({ apiOf, as }) => {
   await member.getByTestId('map.page.search').fill('Nirgendwo');
   await member.getByTestId('map.page.searchSubmit').click();
   await expectDataState(member, 'map.page.searchState', 'empty');
+});
+
+test('M1 deep link opens and keeps the view @M1', async ({ page, context, baseURL }) => {
+  await page.goto('/map?lat=47.3769&lon=8.5417&z=13');
+  const map = page.getByTestId('map.page.map');
+  await expectDataState(page, 'map.page.map.state', 'success');
+  await expect(map).toHaveAttribute('data-center', '47.377,8.542');
+  const entries = await page.evaluate(() => history.length);
+
+  // a pan by hand (arrow key on the focused map) rewrites the URL in place
+  await map.locator('.leaflet-container').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(map).not.toHaveAttribute('data-center', '47.377,8.542');
+  await expect(page).not.toHaveURL(/lon=8\.5417/);
+  await expect(page).toHaveURL(/\/map\?lat=47\.\d{4}&lon=8\.\d{4}&z=13$/);
+  expect(await page.evaluate(() => history.length)).toBe(entries);
+  const moved = await map.getAttribute('data-center');
+
+  // reload: the same view
+  await page.reload();
+  await expectDataState(page, 'map.page.map.state', 'success');
+  await expect(map).toHaveAttribute('data-center', moved!);
+
+  // "near me": the browser location never goes into the URL
+  await context.grantPermissions(['geolocation'], { origin: new URL(baseURL!).origin });
+  await context.setGeolocation({ latitude: 47.3851, longitude: 8.5312 });
+  await page.getByTestId('map.page.nearMe').click();
+  await expect(map).toHaveAttribute('data-center', '47.385,8.531');
+  await expect(page).toHaveURL(/\/map$/);
+
+  // an invalid link: the default view, no error
+  await page.goto('/map?lat=999&lon=x&z=50');
+  await expectDataState(page, 'map.page.map.state', 'success');
+  await expect(map).toHaveAttribute('data-center', '47.377,8.542');
+  await expect(page.locator('fs-error-state, [data-testid="map.page.locateError"]')).toHaveCount(0);
 });
 
 test('M1 a failed layer shows the error state and loads again on retry @M1', async ({ page }) => {
