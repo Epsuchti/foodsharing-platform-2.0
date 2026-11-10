@@ -324,6 +324,7 @@
   "shared.journey.stepOf": "Étape {n} sur {total}",
   "shared.journey.open": "Voir mon parcours",
   "shared.journey.optional": "facultatif",
+  "shared.journey.relearn": "Relire",
   "shared.journey.status.LOCKED": "verrouillée",
   "shared.journey.status.AVAILABLE": "disponible",
   "shared.journey.status.IN_PROGRESS": "en cours",

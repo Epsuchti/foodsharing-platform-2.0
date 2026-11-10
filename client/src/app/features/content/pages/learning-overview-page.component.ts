@@ -17,6 +17,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { LearningChapterItemComponent } from '../components/learning-chapter-item.component';
+import { ChapterGroup, groupChapters } from '../learning-groups';
 import { chapterState, learningProgress } from '../learning-progress';
 
 /**
@@ -82,13 +83,26 @@ import { chapterState, learningProgress } from '../learning-progress';
                   data-testid="content.learn.continue"
                 />
               } @else if (p.done) {
-                <p-button
-                  [label]="'content.learn.toJourney' | t"
-                  icon="pi pi-map"
-                  severity="secondary"
-                  routerLink="/onboarding"
-                  data-testid="content.learn.toJourney"
-                />
+                <div class="progress__actions">
+                  @if (firstKey(); as first) {
+                    <!-- C1: everything read, the chapters stay open for rereading -->
+                    <p-button
+                      [label]="'content.learn.reread' | t"
+                      icon="pi pi-replay"
+                      severity="secondary"
+                      [outlined]="true"
+                      [routerLink]="['/learn', first]"
+                      data-testid="content.learn.reread"
+                    />
+                  }
+                  <p-button
+                    [label]="'content.learn.toJourney' | t"
+                    icon="pi pi-map"
+                    severity="secondary"
+                    routerLink="/onboarding"
+                    data-testid="content.learn.toJourney"
+                  />
+                </div>
               }
             </section>
           }
@@ -104,17 +118,23 @@ import { chapterState, learningProgress } from '../learning-progress';
       data-testid="content.learn.state"
     >
       <ng-template [fsData]="chapters" let-list>
-        <ol class="chapters">
-          @for (chapter of list; track chapter.key; let i = $index) {
-            <li>
-              <fs-learning-chapter-item
-                [chapter]="chapter"
-                [position]="i + 1"
-                [state]="state(chapter.key)"
-              />
-            </li>
-          }
-        </ol>
+        <!-- C1: chapters under their group heading, numbered through in reading order -->
+        @for (group of groupsOf(list); track group.id) {
+          <section class="group" [attr.data-group]="group.id" data-testid="content.learn.group">
+            <h2 class="group__title">{{ 'content.learn.group.' + group.id | t }}</h2>
+            <ol class="chapters">
+              @for (entry of group.chapters; track entry.chapter.key) {
+                <li>
+                  <fs-learning-chapter-item
+                    [chapter]="entry.chapter"
+                    [position]="entry.position"
+                    [state]="state(entry.chapter.key)"
+                  />
+                </li>
+              }
+            </ol>
+          </section>
+        }
         @if (!signedIn()) {
           <p class="hint">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
@@ -153,6 +173,19 @@ import { chapterState, learningProgress } from '../learning-progress';
       grid-column: 1 / -1;
       grid-row: 2;
       --p-progressbar-height: 0.5rem;
+    }
+    .progress__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .group + .group {
+      margin-top: 1.75rem;
+    }
+    .group__title {
+      margin: 0 0 0.75rem;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
     }
     .chapters {
       display: grid;
@@ -194,12 +227,19 @@ export class LearningOverviewPageComponent {
     loader: () => this.onboardingApi.getMyJourney(),
   });
 
-  protected readonly progress = computed(() =>
-    learningProgress(
-      this.journey.data(),
-      (this.chapters.data() ?? []).map((chapter) => chapter.key),
-    ),
+  /** Required chapters in reading order: only they count for the journey (C1). */
+  private readonly requiredKeys = computed(() =>
+    (this.chapters.data() ?? []).filter((chapter) => chapter.required !== false).map((chapter) => chapter.key),
   );
+
+  protected readonly progress = computed(() => learningProgress(this.journey.data(), this.requiredKeys()));
+
+  /** First chapter of the knowledge area (rereading starts here). */
+  protected readonly firstKey = computed(() => this.chapters.data()?.[0]?.key);
+
+  protected groupsOf(list: readonly LearningChapter[]): ChapterGroup[] {
+    return groupChapters(list);
+  }
 
   protected state(key: string) {
     return chapterState(this.progress(), key);

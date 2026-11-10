@@ -324,6 +324,7 @@
   "shared.journey.stepOf": "Step {n} of {total}",
   "shared.journey.open": "Open my journey",
   "shared.journey.optional": "optional",
+  "shared.journey.relearn": "Read again",
   "shared.journey.status.LOCKED": "locked",
   "shared.journey.status.AVAILABLE": "ready",
   "shared.journey.status.IN_PROGRESS": "in progress",

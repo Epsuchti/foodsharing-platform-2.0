@@ -92,6 +92,17 @@ function notFound(): ApiErrorView {
               }
             }
 
+            @if (d.quiz.kind === 'FOODSAVER') {
+              <!-- C1: the questions come from the foodsharing-Grundlagen in the knowledge area -->
+              <p class="banner banner--info" data-testid="quiz.intro.prepare">
+                <i class="pi pi-book" aria-hidden="true"></i>
+                <span
+                  >{{ 'quiz.intro.prepare' | t }}
+                  <a routerLink="/learn" data-testid="quiz.intro.prepareLink">{{ 'quiz.intro.prepareLink' | t }}</a></span
+                >
+              </p>
+            }
+
             <section class="fs-card card" data-testid="quiz.intro.rules">
               <h2 class="card__title"><i class="pi pi-list-check" aria-hidden="true"></i>{{ 'quiz.intro.rules' | t }}</h2>
               <ul class="rules">

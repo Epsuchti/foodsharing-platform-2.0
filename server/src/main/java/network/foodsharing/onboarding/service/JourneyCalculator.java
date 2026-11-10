@@ -207,7 +207,9 @@ public final class JourneyCalculator {
                         new Action("onboarding.action.readChapter", firstUnread == null ? "/learn"
                                 : "/learn/" + firstUnread), "PT20M")
                 .progress(new Progress(read, 0, chapters.size(), null))
-                .details(Map.of("readChapters", chapters.stream().filter(in.readChapters()::contains).toList()));
+                // readChapters: required ones (progress); readKeys: every chapter read, optional ones too (C1)
+                .details(Map.of("readChapters", chapters.stream().filter(in.readChapters()::contains).toList(),
+                        "readKeys", in.readChapters().stream().sorted().toList()));
         return draft.optional(!in.learningMandatory());
     }
 

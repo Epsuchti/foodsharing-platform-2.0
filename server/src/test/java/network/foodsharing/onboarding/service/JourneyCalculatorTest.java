@@ -249,6 +249,8 @@ class JourneyCalculatorTest {
         expectCurrent(journey, "LEARN", JourneyStepStatus.AVAILABLE);
         assertThat(step(journey, "LEARN").progress().done()).isZero();
         assertThat(step(journey, "LEARN").progress().required()).isEqualTo(CHAPTERS.size());
+        assertThat(step(journey, "LEARN").details()).containsEntry("readChapters", List.of())
+                .containsEntry("readKeys", List.of("rule-violations-explained"));
     }
 
     @Test

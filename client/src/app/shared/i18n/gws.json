@@ -324,6 +324,7 @@
   "shared.journey.stepOf": "Schritt {n} vo {total}",
   "shared.journey.open": "Zum Iistieg",
   "shared.journey.optional": "freiwillig",
+  "shared.journey.relearn": "Nomal läse",
   "shared.journey.status.LOCKED": "no gsperrt",
   "shared.journey.status.AVAILABLE": "parat",
   "shared.journey.status.IN_PROGRESS": "lauft",

@@ -56,6 +56,8 @@
   "quiz.intro.passed": "Du hast dieses Quiz bestanden.",
   "quiz.intro.failed": "Letzter Versuch nicht bestanden ({tries} seit dem letzten Bestehen). Du kannst es gleich nochmal versuchen.",
   "quiz.intro.rules": "So funktioniert das Quiz",
+  "quiz.intro.prepare": "Vorbereitung: Die Fragen beruhen auf den foodsharing-Grundlagen.",
+  "quiz.intro.prepareLink": "Grundlagen lesen",
   "quiz.intro.ruleFailurePoints": "Bestanden mit höchstens {count, plural, one {# Fehlerpunkt} other {# Fehlerpunkten}}.",
   "quiz.intro.ruleMultiple": "Pro Frage können mehrere Antworten richtig sein – wähle alle richtigen.",
   "quiz.intro.ruleSolution": "Nach jeder Frage siehst du die Lösung mit Erklärungen.",
