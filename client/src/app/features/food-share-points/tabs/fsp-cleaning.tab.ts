@@ -148,7 +148,7 @@ interface SlotTarget {
                         [attr.data-day]="group.day"
                       >
                         <h2 class="card__title">
-                          {{ group.items[0].shiftAt | fsDate: 'weekday' : tz }}
+                          {{ group.items[0].shiftAt | fsDate: 'date' : tz }}
                         </h2>
                         @for (shift of group.items; track shift.shiftAt) {
                           <div
@@ -299,7 +299,7 @@ interface SlotTarget {
           data-testid="fsp.cleaning.signupDialog"
         >
           @if (signupTarget(); as s) {
-            <p class="when">{{ s.shiftAt | fsDate: 'dateTimeLong' : tz }}</p>
+            <p class="when">{{ s.shiftAt | fsDate: 'dateTime' : tz }}</p>
             @if (s.description) {
               <p class="muted">{{ s.description }}</p>
             }
@@ -346,7 +346,7 @@ interface SlotTarget {
           data-testid="fsp.cleaning.slotDialog"
         >
           @if (slotTarget(); as s) {
-            <p class="muted">{{ s.shift.shiftAt | fsDate: 'dateTimeLong' : tz }}</p>
+            <p class="muted">{{ s.shift.shiftAt | fsDate: 'dateTime' : tz }}</p>
             <p
               class="slot-state"
               [class.slot-state--unconfirmed]="!s.slot.confirmed"

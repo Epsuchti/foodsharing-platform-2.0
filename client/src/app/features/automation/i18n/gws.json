@@ -167,6 +167,7 @@
   "automation.policy.gapHint": "Täg zwüsche zwei Abholige vo de gliiche Person i dem Betrieb.",
   "automation.policy.gapStatus.on": "Aktiv",
   "automation.policy.gapStatus.off": "Us",
+  "automation.policy.inactiveHint": "Wirkt erscht, wenn d Regle iigschaltet sind.",
   "automation.policy.gapOwnTitle": "I dem Betrieb",
   "automation.policy.gapOwnEnabled": "Eigete Abstand",
   "automation.policy.gapGroupTitle": "Betriebsgruppe (optional)",

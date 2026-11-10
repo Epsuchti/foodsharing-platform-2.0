@@ -6,7 +6,6 @@ import {
   FreeSlotStatus,
   InvitationStatus,
   StoreListItem,
-  UserPickup,
   UserTeamStatus,
 } from '../../api';
 
@@ -26,6 +25,24 @@ export const ACTIVITY_TYPE_ICON: Record<ActivityType, string> = {
   [ActivityType.FspWall]: 'pi pi-box',
   [ActivityType.BuddyWall]: 'pi pi-users',
 };
+
+/** What decides which feed types a user can use (STORE_WALL ↔ verified foodsaver, MAILBOX ↔ `session.mailboxes`). */
+export interface ActivityAccess {
+  /** Verified foodsaver or above: the pickups/stores navigation rule. */
+  stores: boolean;
+  /** The server's mailbox flag (decision 149). */
+  mailboxes: boolean;
+}
+
+/**
+ * Filter chips of the activity feed the user can use (review 2026-11-10, D3): no store wall chip without stores, no
+ * mailbox chip without mailboxes. The enum order stays.
+ */
+export function activityTypesFor(access: ActivityAccess): ActivityType[] {
+  return ACTIVITY_TYPES.filter(
+    (type) => (type !== ActivityType.StoreWall || access.stores) && (type !== ActivityType.Mailbox || access.mailboxes),
+  );
+}
 
 /** The excluded types after a chip click: an excluded type comes back, an included one is excluded. */
 export function toggleExcluded(excluded: readonly ActivityType[], type: ActivityType): ActivityType[] {
@@ -52,26 +69,24 @@ export const HELP_NEEDED_SHOWN = 3;
 export const UPCOMING_EVENTS_SHOWN = 3;
 export const YOUR_STORES_SHOWN = 5;
 
-/** A row of "Waiting for you": what to do, how many, where. `warn` rows wait on the user's team, not on the user. */
+/** A row of "Waiting for you": what to do, how many, where. */
 export interface WaitingRow {
-  id: 'invitations' | 'unread' | 'unconfirmed' | 'applications';
+  id: 'invitations' | 'unread';
   icon: string;
   count: number;
   link: string;
-  fragment?: string;
-  warn: boolean;
 }
 
-/** What "Waiting for you" counts; the store and pickup parts only for verified foodsavers (null otherwise). */
+/** What "Waiting for you" counts; the stores only for verified foodsavers (null otherwise). */
 export interface WaitingInput {
   stores: readonly StoreListItem[] | null;
   unreadConversations: number;
-  pickups: readonly UserPickup[] | null;
 }
 
 /**
- * The rows of "Waiting for you", in this order and only with a count above 0: store invitations, unread
- * conversations, own unconfirmed pickups, own pending applications.
+ * The rows of "Waiting for you", in this order and only with a count above 0: store invitations and unread
+ * conversations. Only things the user can act on (review 2026-11-10, D4): unconfirmed pickups and open applications
+ * wait on the team, so they are not listed.
  */
 export function waitingRows(input: WaitingInput): WaitingRow[] {
   const stores = input.stores ?? [];
@@ -81,24 +96,8 @@ export function waitingRows(input: WaitingInput): WaitingRow[] {
       icon: 'pi pi-envelope',
       count: stores.filter((store) => store.membership === UserTeamStatus.Invited).length,
       link: '/stores/mine',
-      warn: false,
     },
-    { id: 'unread', icon: 'pi pi-comments', count: input.unreadConversations, link: '/messages', warn: false },
-    {
-      id: 'unconfirmed',
-      icon: 'pi pi-hourglass',
-      count: (input.pickups ?? []).filter((pickup) => !pickup.confirmed).length,
-      link: '/pickups',
-      fragment: 'mine',
-      warn: true,
-    },
-    {
-      id: 'applications',
-      icon: 'pi pi-send',
-      count: stores.filter((store) => store.membership === UserTeamStatus.Applied).length,
-      link: '/stores/mine',
-      warn: true,
-    },
+    { id: 'unread', icon: 'pi pi-comments', count: input.unreadConversations, link: '/messages' },
   ];
   return rows.filter((row) => row.count > 0);
 }

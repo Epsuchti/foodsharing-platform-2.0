@@ -1,4 +1,4 @@
-import { expect, expectDataState, expectNoSeriousViolations, test } from '../../fixtures';
+import { acceptPendingConsents, expect, expectDataState, expectNoSeriousViolations, test } from '../../fixtures';
 
 /** A4 (M2 T18): the own profile with all user-editable fields on /account/profile. */
 
@@ -33,4 +33,46 @@ test('A4 the display name is required @A4', async ({ page }) => {
   await expectDataState(page, 'account.profile.state', 'success');
   await page.getByTestId('account.profile.displayName').fill('');
   await expect(page.getByTestId('account.profile.save').locator('button')).toBeDisabled();
+});
+
+test('A4 the mobile number is required: clearing it blocks saving, the server refuses it too @A4', async ({ page, api }) => {
+  await page.goto('/account/profile');
+  await expectDataState(page, 'account.profile.state', 'success');
+  const save = page.getByTestId('account.profile.save').locator('button');
+  await expect(page.getByTestId('account.profile.mobileRequired')).toHaveCount(0);
+  await page.getByTestId('account.profile.mobilePhone').fill('');
+  await page.getByTestId('account.profile.city').fill('Zürich');
+  await expect(page.getByTestId('account.profile.mobileRequired')).toBeVisible();
+  await expect(save).toBeDisabled();
+  // review 2026-11-10 F2: the error below the mobile number moves neither input; both keep the same height
+  const mobile = (await page.getByTestId('account.profile.mobilePhone').boundingBox())!;
+  const landline = (await page.getByTestId('account.profile.landlinePhone').boundingBox())!;
+  expect(Math.abs(mobile.height - landline.height)).toBeLessThanOrEqual(1);
+  if (Math.abs(mobile.x - landline.x) > 1) {
+    // side by side (from 40rem)
+    expect(Math.abs(mobile.y - landline.y)).toBeLessThanOrEqual(1);
+  }
+  await page.getByTestId('account.profile.mobilePhone').fill('079 123 45 67');
+  await expect(page.getByTestId('account.profile.mobileRequired')).toHaveCount(0);
+  await expect(save).toBeEnabled();
+
+  const refused = await api.patch('/api/users/me/profile', { mobilePhone: '' });
+  expect(refused.status()).toBe(400);
+  expect(await refused.json()).toMatchObject({ code: 'VALIDATION_FAILED', fieldErrors: [{ field: 'mobilePhone', code: 'NotBlank' }] });
+  // a save that leaves the field out still works
+  expect((await api.patch('/api/users/me/profile', { city: 'Zürich' })).status()).toBe(200);
+});
+
+test('A4 an account without a mobile number is asked for it on the profile @A4', async ({ as, apiOf }) => {
+  const page = await as('newbie');
+  await acceptPendingConsents(apiOf(page));
+  await page.goto('/account/profile');
+  await expectDataState(page, 'account.profile.state', 'success');
+  await expect(page.getByTestId('account.profile.mobileRequired')).toBeVisible();
+  await page.getByTestId('account.profile.city').fill('Zürich');
+  await expect(page.getByTestId('account.profile.save').locator('button')).toBeDisabled();
+  await page.getByTestId('account.profile.mobilePhone').fill('079 555 12 34');
+  await page.getByTestId('account.profile.save').click();
+  await expect(page.getByTestId('shell.toast').locator('.p-toast-message').first()).toBeVisible();
+  expect((await apiOf(page).getJson<{ mobilePhone?: string }>('/api/users/me')).mobilePhone).toBe('+41795551234');
 });

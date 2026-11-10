@@ -65,7 +65,8 @@ class OnboardingApiIT {
                 .andExpect(jsonPath("$.steps[0].status").value("DONE"))
                 .andExpect(jsonPath("$.steps[1].status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$.steps[2].status").value("LOCKED"))
-                .andExpect(jsonPath("$.tracks.length()").value(4));
+                // D3: a newcomer before the quiz step sees no additional tracks (all locked, hygiene after the quiz)
+                .andExpect(jsonPath("$.tracks.length()").value(0));
         mvc.perform(get("/api/onboarding/journey").cookie(login(SeedUsers.QUIZ)))
                 .andExpect(jsonPath("$.steps[?(@.key == 'LEARN')].status").value("DONE"))
                 .andExpect(jsonPath("$.currentStep").value(Matchers.oneOf("QUIZ", "AGREEMENT")));

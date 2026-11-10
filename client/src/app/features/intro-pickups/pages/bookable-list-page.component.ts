@@ -24,10 +24,42 @@ import { RegionPickerComponent } from '../../../shared/region-picker/region-pick
 import { BookedDetailsComponent } from '../components/booked-details.component';
 import { EinAbCardComponent } from '../components/einab-card.component';
 import { introPickupIcs } from '../intro-pickups.resource';
+import { BookableEmptyKind, bookableEmptyKind } from '../intro-pickups.util';
+
+interface EmptyView {
+  icon: string;
+  title: string;
+  text?: string;
+  action?: string;
+  actionIcon?: string;
+}
+
+const EMPTY: Record<BookableEmptyKind, EmptyView> = {
+  none: {
+    icon: 'pi pi-calendar-times',
+    title: 'introPickups.bookable.empty',
+    text: 'introPickups.bookable.emptyText',
+    action: 'introPickups.bookable.notifyMe',
+    actionIcon: 'pi pi-bell',
+  },
+  enough: {
+    icon: 'pi pi-check-circle',
+    title: 'introPickups.bookable.emptyEnough',
+    action: 'introPickups.bookable.myBookings',
+    actionIcon: 'pi pi-calendar',
+  },
+  fairteiler: { icon: 'pi pi-map-marker', title: 'introPickups.bookable.emptyFairteiler' },
+  noMatch: {
+    icon: 'pi pi-calendar-times',
+    title: 'introPickups.bookable.emptyNoMatch',
+    action: 'introPickups.bookable.notifyMe',
+    actionIcon: 'pi pi-bell',
+  },
+};
 
 /**
- * `/intro-pickups` (EA1, EA5, EA6): bookable EinAbs of the active (home) region. Each card is bookable
- * or shows the translated reason; one tap books after a confirmation, the success dialog shows the private details and
+ * `/intro-pickups` (EA1, EA5, EA6): bookable EinAbs of the active (home) region. Only bookable EinAbs are listed
+ * (review 2026-11-10 B1); when none is, the empty state says why (`bookableEmptyKind`). One tap books after a confirmation, the success dialog shows the private details and
  * the calendar export. Users without a region pick one and continue on its public list.
  */
 @Component({
@@ -67,17 +99,18 @@ import { introPickupIcs } from '../intro-pickups.resource';
         [state]="list"
         skeleton="card"
         [skeletonRows]="6"
-        emptyIcon="pi pi-calendar-times"
-        [emptyTitle]="'introPickups.bookable.empty' | t"
-        [emptyText]="'introPickups.bookable.emptyText' | t"
-        [emptyActionLabel]="'introPickups.bookable.notifyMe' | t"
-        emptyActionIcon="pi pi-bell"
+        [emptyIcon]="empty().icon"
+        [emptyTitle]="empty().title | t"
+        [emptyText]="empty().text ? (empty().text! | t) : undefined"
+        [emptyActionLabel]="empty().action ? (empty().action! | t) : undefined"
+        [emptyActionIcon]="empty().actionIcon"
         (emptyAction)="router.navigate(['/me/intro-pickups'])"
+        [attr.data-empty-kind]="emptyKind()"
         data-testid="introPickups.bookable.state"
       >
         <ng-template [fsData]="list" let-page>
           <ul class="grid">
-            @for (einab of page.items; track einab.id) {
+            @for (einab of bookable(page); track einab.id) {
               <li>
                 <fs-einab-card
                   [einab]="einab"
@@ -85,20 +118,13 @@ import { introPickupIcs } from '../intro-pickups.resource';
                   [attr.data-bookable]="einab.bookable"
                   data-testid="introPickups.bookable.card"
                 >
-                  @if (einab.bookable) {
-                    <p-button
-                      [label]="'introPickups.bookable.book' | t"
-                      icon="pi pi-check"
-                      [loading]="book.busy() && pending()?.id === einab.id"
-                      (onClick)="askBook(einab)"
-                      data-testid="introPickups.bookable.book"
-                    />
-                  } @else {
-                    <p class="reason" data-testid="introPickups.bookable.reason" [attr.data-reason]="einab.notBookableReason">
-                      <i class="pi pi-lock" aria-hidden="true"></i>
-                      {{ 'errors.' + (einab.notBookableReason ?? 'SLOT_NOT_AVAILABLE') | t }}
-                    </p>
-                  }
+                  <p-button
+                    [label]="'introPickups.bookable.book' | t"
+                    icon="pi pi-check"
+                    [loading]="book.busy() && pending()?.id === einab.id"
+                    (onClick)="askBook(einab)"
+                    data-testid="introPickups.bookable.book"
+                  />
                 </fs-einab-card>
               </li>
             }
@@ -145,7 +171,11 @@ export class BookableListPageComponent {
   protected readonly list = loadResource<BookableIntroPickupPage, string | undefined>({
     params: () => this.regionId() ?? undefined,
     loader: (regionId) => this.api.listBookableIntroPickups({ regionId: regionId!, size: 100 }),
+    // B1: only bookable EinAbs are listed; the reasons of the others pick the empty state
+    isEmpty: (page) => bookableEmptyKind(page.items) !== null,
   });
+  protected readonly emptyKind = computed(() => bookableEmptyKind(this.list.data()?.items ?? []) ?? 'none');
+  protected readonly empty = computed(() => EMPTY[this.emptyKind()]);
 
   protected readonly pending = signal<BookableIntroPickup | undefined>(undefined);
   protected readonly booked = signal<MyBooking | undefined>(undefined);
@@ -158,8 +188,12 @@ export class BookableListPageComponent {
     onError: () => this.list.reload(),
   });
 
+  protected bookable(page: BookableIntroPickupPage): BookableIntroPickup[] {
+    return page.items.filter((item) => item.bookable);
+  }
+
   protected dateOf(iso: string): string {
-    return this.dates.format(iso, 'dateTimeLong', this.context.timeZone());
+    return this.dates.format(iso, 'dateTime', this.context.timeZone());
   }
 
   protected askBook(einab: BookableIntroPickup): void {

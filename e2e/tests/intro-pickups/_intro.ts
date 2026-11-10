@@ -44,6 +44,19 @@ export function bookableCards(page: Page, category: string, extraIds: string[] =
   return page.locator(ids.map((id) => `[data-testid="introPickups.bookable.card"][data-id="${id}"]`).join(', '));
 }
 
+/**
+ * The server's `notBookableReason` for seed EinAb `n` (undefined when bookable). The list hides EinAbs that cannot be
+ * booked (review 2026-11-10 B1), so the rule behind a hidden card is checked here.
+ */
+export async function reasonOf(api: ApiClient, n: number): Promise<string | undefined> {
+  const page = await api.getJson<{ items: { id: string; bookable: boolean; notBookableReason?: string }[] }>(
+    `/api/regions/${ZH}/intro-pickups/bookable?size=100`,
+  );
+  const item = page.items.find((einab) => einab.id === einabId(n));
+  if (!item) throw new Error(`EinAb ${n} is not in the bookable list`);
+  return item.bookable ? undefined : item.notBookableReason;
+}
+
 /** Opens `/intro-pickups` and waits for the list. */
 export async function openBookable(page: Page): Promise<void> {
   await page.goto('/intro-pickups');

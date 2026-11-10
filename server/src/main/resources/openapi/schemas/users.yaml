@@ -207,6 +207,7 @@ UserProfileUpdate:
       type: string
       format: date
     mobilePhone:
+      description: 'Absent = unchanged. Mandatory on the own profile: an empty value is refused (VALIDATION_FAILED, field mobilePhone).'
       type: string
       maxLength: 50
     landlinePhone:

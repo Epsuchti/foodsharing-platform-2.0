@@ -120,7 +120,7 @@ import { introPickupIcs } from '../intro-pickups.resource';
                       <span class="einab__icon" aria-hidden="true"><i [class]="icons[einab.category]"></i></span>
                       <span class="einab__title">
                         <strong>{{ 'common.introCategory.' + einab.category | t }}@if (einab.businessName) { · {{ einab.businessName }} }</strong>
-                        <span class="muted" data-testid="introPickups.guide.date">{{ einab.startAt | fsDate: 'dateTimeLong' }}</span>
+                        <span class="muted" data-testid="introPickups.guide.date">{{ einab.startAt | fsDate: 'dateTime' }}</span>
                       </span>
                     </div>
                     <span class="row-actions">
@@ -421,6 +421,6 @@ export class GuideDashboardPageComponent {
   }
 
   private date(iso: string): string {
-    return this.dates.format(iso, 'dateTimeLong', this.timeZone());
+    return this.dates.format(iso, 'dateTime', this.timeZone());
   }
 }

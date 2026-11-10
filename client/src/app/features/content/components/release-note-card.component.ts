@@ -21,7 +21,7 @@ import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
     <header class="head">
       <span class="version">{{ 'content.releaseNotes.version' | t: { version: n.version } }}</span>
       <time class="date" [attr.datetime]="n.releasedAt">{{
-        n.releasedAt | fsDate: 'dateLong'
+        n.releasedAt | fsDate: 'date'
       }}</time>
       @if (isNew()) {
         <span class="new" data-testid="content.releaseNotes.new">{{

@@ -111,9 +111,12 @@ const GROUPS: { id: GroupId; icon: string }[] = [
                       }
                       <span class="store__pickup" data-testid="stores.mine.nextPickup">
                         @if (store.nextPickupAt) {
-                          <i class="pi pi-calendar" aria-hidden="true"></i>
-                          {{ 'stores.mine.nextPickup' | t: { date: (store.nextPickupAt | fsDate: 'dateTime') } }}
-                          <fs-free-slot-dot [status]="store.freeSlotStatus" [count]="store.freeSlotCount" />
+                          <span class="store__next">
+                            <i class="pi pi-calendar" aria-hidden="true"></i>
+                            {{ 'stores.mine.nextPickup' | t: { date: (store.nextPickupAt | fsDate: 'dateTime') } }}
+                          </span>
+                          <!-- D5: free slots as a text chip on its own line (nothing when all are covered) -->
+                          <fs-free-slot-chip [status]="store.freeSlotStatus" [count]="store.freeSlotCount" data-testid="stores.mine.freeSlots" />
                         } @else {
                           <span class="muted">{{ 'stores.mine.noPickup' | t }}</span>
                         }
@@ -178,12 +181,13 @@ const GROUPS: { id: GroupId; icon: string }[] = [
     .store__name { font-weight: 650; }
     .store__meta { color: var(--fs-text-muted); font-size: 0.85rem; }
     .store__badges { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-    .store__pickup { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; font-size: 0.88rem; }
+    .store__pickup { display: grid; gap: 0.3rem; justify-items: start; font-size: 0.88rem; }
+    .store__next { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
     @media (min-width: 48rem) {
       /* name and address left, next pickup right */
       .store { grid-template-columns: minmax(0, 1fr) auto; column-gap: 1rem; }
       .store__name, .store__meta, .store__badges { grid-column: 1; }
-      .store__pickup { grid-column: 2; grid-row: 1 / span 3; align-self: center; justify-self: end; }
+      .store__pickup { grid-column: 2; grid-row: 1 / span 3; align-self: center; justify-self: end; justify-items: end; }
     }
   `,
 })

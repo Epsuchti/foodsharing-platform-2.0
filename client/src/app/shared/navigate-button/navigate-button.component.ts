@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from '@openng/optimus-ui/button';
 import { Popover } from '@openng/optimus-ui/popover';
 
 import { TPipe } from '../../core/i18n/t.pipe';
@@ -11,22 +12,27 @@ import { NavigationLinks } from './navigate.util';
  */
 @Component({
   selector: 'fs-navigate-button',
-  imports: [Popover, TPipe],
+  imports: [ButtonDirective, ButtonIcon, ButtonLabel, Popover, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fs-navigate-button' },
   template: `
+    <!-- a real pButton (review fix A8): only an instantiated Button injects the button styles, so plain p-button
+         classes stay unstyled on pages without another button (store pickups on phones) -->
     <button
       #trigger
+      pButton
       type="button"
-      class="p-button p-button-secondary p-button-outlined trigger"
-      [class.p-button-sm]="small()"
+      severity="secondary"
+      [outlined]="true"
+      [size]="small() ? 'small' : undefined"
+      class="trigger"
       aria-haspopup="menu"
       [attr.aria-expanded]="open()"
       (click)="menu.toggle($event)"
       [attr.data-testid]="testId()"
     >
-      <i class="pi pi-directions" aria-hidden="true"></i>
-      <span>{{ 'shared.navigate.button' | t }}</span>
+      <i pButtonIcon class="pi pi-directions" aria-hidden="true"></i>
+      <span pButtonLabel>{{ 'shared.navigate.button' | t }}</span>
       <i class="pi pi-chevron-down trigger__chevron" aria-hidden="true"></i>
     </button>
     <p-popover #menu (onShow)="open.set(true)" (onHide)="hidden()" [attr.data-testid]="testId() + 'Panel'">

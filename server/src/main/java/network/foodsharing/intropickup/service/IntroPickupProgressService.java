@@ -1,6 +1,7 @@
 package network.foodsharing.intropickup.service;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,19 @@ public class IntroPickupProgressService {
         return booked.stream().filter(s -> byId.containsKey(s.getIntroPickupId()))
                 .filter(s -> IntroPickupViews.counts(s, byId.get(s.getIntroPickupId()), now))
                 .map(s -> byId.get(s.getIntroPickupId()).getStartAt()).max(Comparator.naturalOrder()).orElse(null);
+    }
+
+    /** Start of the latest past counted EinAb (any region) per user; users without one are missing. One query. */
+    @Transactional(readOnly = true)
+    public Map<UUID, Instant> lastIntroPickupAt(Collection<UUID> userIds) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, Instant> result = new java.util.HashMap<>();
+        for (Object[] row : slots.lastCountedStartOfUsers(userIds, views.now())) {
+            result.put((UUID) row[0], (Instant) row[1]);
+        }
+        return result;
     }
 
     /** Guide and admin comments on the user's bookings, oldest first. */

@@ -8,9 +8,11 @@ import {
   JourneyStepPreview,
   JourneyStepStatus,
 } from '../../api';
+import { SessionService } from '../../core/auth/session.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TPipe } from '../../core/i18n/t.pipe';
 import { UserChipComponent } from '../user-chip/user-chip.component';
+import { JourneyMessageButtonComponent } from './journey-message-button.component';
 
 export type JourneyStepperMode = 'compact' | 'full' | 'preview';
 
@@ -25,7 +27,8 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
 /**
  * JourneyStepper (§11, §12.4): the newcomer journey in three sizes.
  * - `compact`: one line for the header journey bar (progress, current step, next action).
- * - `full`: every step with status, progress, next action, blocked reason and who it is waiting for.
+ * - `full`: every step with status, progress, next action, blocked reason and who it is waiting for (each contact
+ *   with a "Nachricht" button, except the user themselves).
  * - `preview`: the steps of the public explainer page (no status).
  *
  * Step texts: `titleKey` from the server (`onboarding.step.<KEY>.title`) or the step's own `title` (region steps),
@@ -33,7 +36,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
  */
 @Component({
   selector: 'fs-journey-stepper',
-  imports: [RouterLink, TPipe, UserChipComponent],
+  imports: [JourneyMessageButtonComponent, RouterLink, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'fs-journey-stepper',
@@ -156,13 +159,20 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                         <i class="pi pi-hourglass" aria-hidden="true"></i>
                         {{ waiting.labelKey | t }}
                         @if (waiting.typicalDays) {
-                          · {{ 'shared.journey.typicalDays' | t: { days: waiting.typicalDays } }}
+                          <span class="waiting__typical" [attr.data-testid]="testId() + '.typicalDays'">· {{ 'shared.journey.typicalDays' | t: { days: waiting.typicalDays } }}</span>
                         }
                       </p>
                       @if (waiting.contacts.length > 0) {
                         <ul class="waiting__contacts">
                           @for (contact of waiting.contacts; track contact.id) {
-                            <li><fs-user-chip [name]="contact.displayName" [userId]="contact.id" [avatarUrl]="contact.avatarUrl" [role]="contact.role" [showRole]="true" size="sm" /></li>
+                            <li class="waiting__contact">
+                              <fs-user-chip [name]="contact.displayName" [userId]="contact.id" [avatarUrl]="contact.avatarUrl" [role]="contact.role" [showRole]="true" size="sm" />
+                              @if (contact.id !== myId()) {
+                                @defer {
+                                  <fs-journey-message-button [userId]="contact.id" [name]="contact.displayName" [testId]="testId() + '.message'" />
+                                }
+                              }
+                            </li>
                           }
                         </ul>
                       }
@@ -175,7 +185,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                         <i class="pi pi-arrow-right" aria-hidden="true"></i>
                       </a>
                     }
-                    @if (step.estimatedDuration) {
+                    @if (step.estimatedDuration && (step.waitingFor?.typicalDays ?? null) === null) {
                       <span class="step__meta"><i class="pi pi-clock" aria-hidden="true"></i> {{ durationText(step.estimatedDuration) }}</span>
                     }
                   </div>
@@ -191,6 +201,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
 })
 export class JourneyStepperComponent {
   private readonly i18n = inject(I18nService);
+  private readonly session = inject(SessionService);
 
   readonly mode = input<JourneyStepperMode>('full');
   readonly journey = input<Journey | null | undefined>(undefined);
@@ -212,6 +223,8 @@ export class JourneyStepperComponent {
   /** Full mode: the step whose action the host page shows itself (the journey page's hero CTA). */
   readonly omitActionFor = input<string | null | undefined>(undefined);
   readonly action = output<JourneyNextAction>();
+
+  protected readonly myId = computed(() => this.session.user()?.id);
 
   protected readonly steps = computed<JourneyStep[]>(() => [
     ...(this.journey()?.steps ?? []),

@@ -7,6 +7,7 @@ import { map } from 'rxjs';
 
 import { SearchKind, SearchResults, SearchService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
+import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
@@ -19,7 +20,7 @@ import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, isSearchRateLimited, resul
  */
 @Component({
   selector: 'fs-search-page',
-  imports: [...DATA_STATE_IMPORTS, Button, InputText, PageHeaderComponent, RouterLink, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, InputText, PageHeaderComponent, RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'search.page.title' | t" [subtitle]="(session.mayKnowStores() ? 'search.page.subtitle' : 'search.page.subtitleNoStores') | t" icon="pi pi-search" />
@@ -99,7 +100,9 @@ import { SEARCH_GROUPS, SEARCH_MIN_LENGTH, countHits, isSearchRateLimited, resul
                         }
                         <span class="hit__text">
                           <span class="hit__title">{{ hit.title }}</span>
-                          @if (hit.subtitle) {
+                          @if (hit.startsAt) {
+                            <time class="hit__sub" [attr.datetime]="hit.startsAt">{{ hit.startsAt | fsDate: 'dateTime' }}</time>
+                          } @else if (hit.subtitle) {
                             <span class="hit__sub">{{ hit.subtitle }}</span>
                           }
                         </span>

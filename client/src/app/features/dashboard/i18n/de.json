@@ -33,8 +33,6 @@
   "dashboard.waiting.title": "Wartet auf dich",
   "dashboard.waiting.invitations": "{count, plural, one {Einladung in ein Betriebsteam} other {Einladungen in Betriebsteams}}",
   "dashboard.waiting.unread": "Ungelesene {count, plural, one {Unterhaltung} other {Unterhaltungen}}",
-  "dashboard.waiting.unconfirmed": "{count, plural, one {Deine Abholung ist} other {Deine Abholungen sind}} noch unbestätigt",
-  "dashboard.waiting.applications": "{count, plural, one {Deine Bewerbung ist} other {Deine Bewerbungen sind}} noch offen",
   "dashboard.stores.title": "Deine Betriebe",
   "dashboard.stores.all": "Alle meine Betriebe",
   "dashboard.stores.freeSlots": "{count, plural, one {# freier Platz} other {# freie Plätze}} in den nächsten 7 Tagen",

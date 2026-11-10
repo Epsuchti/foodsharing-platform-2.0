@@ -95,6 +95,28 @@ class PickupUserApiIT {
         mvc.perform(get(S01 + "/pickup-history").cookie(foodsaver)).andExpect(status().isForbidden());
     }
 
+    /**
+     * Review fix A1/A2 (PU7): Sarah (region rule of Zürich: at most 2 within ±7 days, 1 per day) is not offered the
+     * free S-01 pickups the rule refuses (the store page lists them with the reason), but keeps her own sign-ups.
+     */
+    @Test
+    void optionsHideWhatTheSignUpWouldRefuse() throws Exception {
+        Cookie foodsaver = login(SeedUsers.FOODSAVER);
+        mvc.perform(get(S01 + "/pickups").cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-08T09:00:00Z')].eligibility.reasons[0]")
+                        .value("REGION_RULE_TIMESPAN_LIMIT"))
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-09T18:00:00Z')].eligibility.reasons[0]")
+                        .value("REGION_RULE_TIMESPAN_LIMIT"))
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-12T18:00:00Z')].eligibility.eligible").value(true));
+        mvc.perform(get("/api/users/me/pickups/options").cookie(foodsaver)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-08T09:00:00Z')]").isEmpty())
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-09T18:00:00Z')]").isEmpty())
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-12T18:00:00Z')].store.name").isNotEmpty())
+                // her own sign-ups stay (S-04 confirmed, S-01 unconfirmed although the rule counts her there too)
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-04T17:30:00Z')].isConfirmed").value(true))
+                .andExpect(jsonPath("$[?(@.pickupAt == '2026-11-05T18:00:00Z')].isConfirmed").value(false));
+    }
+
     @Test
     void memberLastPickupAndRemindersSetting() throws Exception {
         Cookie bot = login(SeedUsers.BOT);

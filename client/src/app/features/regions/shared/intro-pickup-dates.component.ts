@@ -17,7 +17,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
         @for (pickup of pickups(); track pickup.id) {
           <li class="date" [attr.data-testid]="testId() + '.date'">
             <span class="date__day">
-              <strong>{{ pickup.startAt | fsDate: 'weekday' }}</strong>
+              <strong>{{ pickup.startAt | fsDate: 'date' }}</strong>
               <span>{{ pickup.startAt | fsDate: 'time' }}</span>
             </span>
             <span class="date__what">

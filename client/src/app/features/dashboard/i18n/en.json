@@ -33,8 +33,6 @@
   "dashboard.waiting.title": "Waiting for you",
   "dashboard.waiting.invitations": "Store {count, plural, one {invitation} other {invitations}}",
   "dashboard.waiting.unread": "Unread {count, plural, one {conversation} other {conversations}}",
-  "dashboard.waiting.unconfirmed": "Your {count, plural, one {pickup is} other {pickups are}} still unconfirmed",
-  "dashboard.waiting.applications": "Your store {count, plural, one {application is} other {applications are}} pending",
   "dashboard.stores.title": "Your stores",
   "dashboard.stores.all": "All my stores",
   "dashboard.stores.freeSlots": "{count, plural, one {# free slot} other {# free slots}} in the next 7 days",

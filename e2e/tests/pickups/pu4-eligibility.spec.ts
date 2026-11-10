@@ -24,8 +24,19 @@ const S02_WEDNESDAY = zurichPickupAt(2, '18:00');
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver' });
 
-  test('PU4 phone number required @PU4', async ({ page, api, store }) => {
-    await expectStatus(await api.patch('/api/users/me/profile', { mobilePhone: '', landlinePhone: '' }), [200, 204], 'remove phone');
+  test('PU4 phone number required @PU4', async ({ page, api, store, as, apiOf }) => {
+    // changed on purpose (D2): the own profile can no longer clear the mobile number, an administrator can
+    const own = await api.patch('/api/users/me/profile', { mobilePhone: '', landlinePhone: '' });
+    expect(own.status()).toBe(400);
+    expect((await own.json()).fieldErrors?.[0]?.field).toBe('mobilePhone');
+    await expectStatus(await api.patch('/api/users/me/profile', { landlinePhone: '' }), [200, 204], 'remove landline');
+    const me = await api.getJson<{ id: string }>('/api/users/me');
+    const orga = apiOf(await as('orga'));
+    await expectStatus(
+      await orga.patch(`/api/admin/users/${me.id}/profile`, { mobilePhone: '', reason: 'Nummer nicht mehr gültig' }),
+      [200, 204],
+      'remove mobile phone',
+    );
     const next = (await store.pickupsOf(api, 'S-03')).find((p) => p.occupiedSlots.length < p.slotCount)!;
     await openPickups(page, 'S-03');
     await openBlocked(page, next.pickupAt);

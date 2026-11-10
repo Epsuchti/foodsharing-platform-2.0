@@ -1,5 +1,14 @@
 import { acceptPendingConsents, expect, test } from '../../fixtures';
-import { USERS, VERIFY_MESSAGE, ZH, confirmMessage, openQueue, queueCard, verifyViaApi } from './_verification';
+import {
+  USERS,
+  VERIFY_MESSAGE,
+  ZH,
+  confirmIdentityViaApi,
+  confirmMessage,
+  openQueue,
+  queueCard,
+  verifyViaApi,
+} from './_verification';
 
 /** Ve2: verification queue, verify / unverify with required message, identity confirmation, verification history. */
 test.use({ seedReset: 'test' });
@@ -29,8 +38,43 @@ test('Ve2 queue lists ready newcomers with EinAb history and comments @Ve2 @page
   }
 });
 
+test('Ve2 verify stays disabled until the identity is confirmed, the server refuses it too @Ve2', async ({ as, apiOf }) => {
+  const page = await as('bot');
+  await openQueue(page);
+  const card = queueCard(page, USERS.pending);
+  const verify = card.getByTestId('verification.queue.verify').locator('button');
+  await expect(card.getByTestId('verification.queue.identityOpen')).toBeVisible();
+  await expect(card.getByTestId('verification.queue.identityRequired')).toBeVisible();
+  await expect(verify).toBeDisabled();
+  // C1: no ORGA or ambassador exception on the server either
+  const refused = await apiOf(page).post(`/api/users/${USERS.pending}/verification`, { message: VERIFY_MESSAGE });
+  expect(refused.status()).toBe(409);
+  expect((await refused.json()).code).toBe('IDENTITY_NOT_CONFIRMED');
+
+  await card.getByTestId('verification.queue.confirmIdentity').click();
+  await expect(card.getByTestId('verification.queue.identityTag')).toBeVisible();
+  await expect(card.getByTestId('verification.queue.identityRequired')).toHaveCount(0);
+  await expect(verify).toBeEnabled();
+});
+
+test('Ve2 verification history: verify disabled until the identity is confirmed there @Ve2 @A8', async ({ as }) => {
+  const page = await as('bot');
+  await page.goto(`/users/${USERS.pending}/verification-history`);
+  await expect(page.getByTestId('verification.history.identity')).toHaveAttribute('data-confirmed', 'false');
+  const verify = page.getByTestId('verification.history.verify').locator('button');
+  await expect(verify).toBeDisabled();
+  await expect(page.getByTestId('verification.history.identityRequired')).toBeVisible();
+
+  await page.getByTestId('verification.history.confirmIdentity').click();
+  await expect(page.getByTestId('verification.history.identity')).toHaveAttribute('data-confirmed', 'true');
+  await expect(page.getByTestId('verification.history.identityRequired')).toHaveCount(0);
+  await expect(verify).toBeEnabled();
+});
+
 test('Ve2 verify requires a message, sets verified, sends bell and mail, removes welcome bell @Ve2', async ({ as, apiOf, mails }) => {
   const page = await as('bot');
+  // changed on purpose (C1): the identity is confirmed first
+  await confirmIdentityViaApi(apiOf(page), USERS.pending);
   await openQueue(page);
   const card = queueCard(page, USERS.pending);
   await card.getByTestId('verification.queue.verify').click();
@@ -96,6 +140,9 @@ test('Ve2 FS management admin may verify, plain member may not @Ve2', async ({ a
   const welcome = await as('welcome');
   await acceptPendingConsents(apiOf(welcome));
   await openQueue(welcome);
+  // changed on purpose (C1): the identity is confirmed first
+  await queueCard(welcome, USERS.pending).getByTestId('verification.queue.confirmIdentity').click();
+  await expect(queueCard(welcome, USERS.pending).getByTestId('verification.queue.identityTag')).toBeVisible();
   await queueCard(welcome, USERS.pending).getByTestId('verification.queue.verify').click();
   await confirmMessage(welcome, 'verification.verifyDialog', VERIFY_MESSAGE);
   await expect(queueCard(welcome, USERS.pending)).toHaveAttribute('data-verified', 'true');

@@ -150,4 +150,13 @@ class ActivityFeedServiceTest {
         assertThat(ActivityFeedService.excerpt("x".repeat(400))).hasSize(300);
         assertThat(ActivityFeedService.excerpt(null)).isNull();
     }
+
+    @Test
+    void excerptsShowMentionsAsPlainNames() {
+        String token = "@[Jonas Weber](user:00000001-0001-4000-8000-000000000007)";
+        assertThat(ActivityFeedService.excerpt("Merci! " + token + " übernimmt den Montag."))
+                .isEqualTo("Merci! @Jonas Weber übernimmt den Montag.");
+        // converted before the cut: a token at the limit never ends up half in the excerpt
+        assertThat(ActivityFeedService.excerpt("x".repeat(280) + " " + token)).isEqualTo("x".repeat(280) + " @Jonas Weber");
+    }
 }

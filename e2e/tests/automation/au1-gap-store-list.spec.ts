@@ -145,7 +145,9 @@ test('AU1 gap list: saving writes only the group gap to the listed stores and a 
   await expect(member(page, S06.id)).toBeVisible();
   await expect(member(page, S02.id)).toBeVisible();
   await expect(page.getByTestId('automation.policy.groupGapDays').locator('input')).toHaveValue('1');
-  await expect(page.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'on');
+  // review fix A7: S-05's rules are switched off, so the group gap does not apply there yet
+  await expect(page.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'off');
+  await expect(page.locator('[data-testid="automation.policy.inactiveHint"][data-rule="GAP"]')).toBeVisible();
 
   // jumper's S-02 pickup on Saturday blocks an S-06 sign-up on Friday (D4), with the group text
   await jumperJoinsS06(api, store);
@@ -173,7 +175,9 @@ test('AU1 gap list: switching the own rule off keeps the group; the leave action
   await expect(page.getByTestId('automation.policy.gapNote')).toBeVisible();
   await expect(page.getByTestId('automation.policy.gapPreview')).toHaveCount(0);
   await expect(page.getByTestId('automation.policy.groupGapPreview')).toBeVisible();
-  await expect(page.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'on');
+  // review fix A7: S-01's rules are switched off, so the group is configured but not in effect
+  await expect(page.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'off');
+  await expect(page.locator('[data-testid="automation.policy.inactiveHint"][data-rule="GAP"]')).toBeVisible();
   await savePolicy(page);
   const s01 = await api.getJson<{ pickupPolicy: { gapStoreIds: string[]; gapRuleEnabled: boolean; groupMinimumGapDays?: number } }>(
     `/api/stores/${seedStore('S-01').id}/automation`,
@@ -187,6 +191,7 @@ test('AU1 gap list: switching the own rule off keeps the group; the leave action
   await expect(page.getByTestId('automation.policy.gapMember')).toHaveCount(0);
   await expect(page.getByTestId('automation.policy.gapLeave')).toHaveCount(0);
   await expect(page.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'off');
+  await expect(page.locator('[data-testid="automation.policy.inactiveHint"][data-rule="GAP"]')).toHaveCount(0);
   await savePolicy(page);
   const left = await api.getJson<{ pickupPolicy: { gapStoreIds: string[] } }>(`/api/stores/${seedStore('S-01').id}/automation`);
   expect(left.pickupPolicy.gapStoreIds).toEqual([]);

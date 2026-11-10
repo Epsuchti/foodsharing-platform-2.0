@@ -1,22 +1,37 @@
 import { expect, expectDataState, test } from '../../fixtures';
+import { chooseOption } from '../stores/_stores';
 
 /**
- * AD1 user management and A4 admin edits (M2 T18): /regions/:id/users and /users/:id. Seed: bot@local is
- * ambassador of Zürich Stadt; sleepy@local (Marco Bernasconi) is an inactive foodsaver there.
+ * AD1 user management and A4 admin edits (M2 T18): the region's Members tab (D1, review 2026-11-10: the former
+ * /regions/:id/users page redirects there) and /users/:id. Seed: bot@local is ambassador of Zürich Stadt;
+ * sleepy@local (Marco Bernasconi) is an inactive foodsaver there.
  */
 const SLEEPY = '00000001-0001-4000-8000-000000000008';
+const ZURICH = '00000010-0001-4000-8000-000000000040';
 
 test.use({ seedReset: 'test', role: 'bot' });
 
-test('AD1 the ambassador searches and filters the users of the home region @AD1', async ({ page }) => {
+test('AD1 R8 the ambassador searches and filters the members of the home region, the old URL redirects @AD1 @R8', async ({ page }) => {
   await page.goto('/regions/home/users');
-  await expect(page).toHaveURL(/\/regions\/00000010-0001-4000-8000-000000000040\/users$/);
-  await expectDataState(page, 'usersAdmin.list.state', 'success');
-  await page.getByTestId('usersAdmin.list.search').fill('Bernasconi');
-  await expect(page.getByTestId('usersAdmin.list.row')).toHaveCount(1);
-  await page.getByTestId('usersAdmin.list.open').click();
+  await expect(page).toHaveURL(new RegExp(`/regions/${ZURICH}/members$`));
+  await expectDataState(page, 'regions.members.list', 'success');
+  // the users page extras for people who manage members
+  // bot@local uses Swiss German (Nur Botschafter*inne)
+  await chooseOption(page, 'regions.members.admin', /^Nur Botschafter/);
+  await expectDataState(page, 'regions.members.list', 'success');
+  const ambassadors = page.getByTestId('regions.members.member');
+  await expect(ambassadors.first()).toBeVisible();
+  expect(await ambassadors.count()).toBe(await page.getByTestId('regions.members.adminTag').count());
+  await chooseOption(page, 'regions.members.admin', /^All[ei]$/);
+
+  await page.getByTestId('regions.members.search').fill('Bernasconi');
+  await expect(page.getByTestId('regions.members.member')).toHaveCount(1);
+  await expect(page.getByTestId('regions.members.lastPickup')).toBeVisible();
+  await page.getByTestId('regions.members.open').click();
   await expect(page).toHaveURL(new RegExp(`/users/${SLEEPY}$`));
   await expect(page.getByTestId('usersAdmin.user.name')).toHaveText('Marco Bernasconi');
+  // D1: no separate "Mitglieder" item in the menu any more
+  await expect(page.getByTestId('nav.users')).toHaveCount(0);
 });
 
 test('A4 AD1 the ambassador corrects the address with a reason and disables the account @A4 @AD1 @D10.3', async ({ page }) => {
@@ -41,10 +56,15 @@ test('A4 AD1 the ambassador corrects the address with a reason and disables the 
   await expect(page.getByTestId('usersAdmin.user.history.entry').first()).toBeVisible();
 });
 
-test('AD1 plain foodsavers get the forbidden state @AD1', async ({ as }) => {
+test('AD1 R8 plain foodsavers see the members list without the admin extras @AD1 @R8', async ({ as }) => {
   const page = await as('foodsaver');
   await page.goto('/regions/home/users');
-  await expectDataState(page, 'usersAdmin.list.state', 'forbidden');
+  await expect(page).toHaveURL(new RegExp(`/regions/${ZURICH}/members$`));
+  await expectDataState(page, 'regions.members.list', 'success');
+  await expect(page.getByTestId('regions.members.member').first()).toBeVisible();
+  await expect(page.getByTestId('regions.members.admin')).toHaveCount(0);
+  await expect(page.getByTestId('regions.members.lastPickup')).toHaveCount(0);
+  await expect(page.getByTestId('regions.members.open')).toHaveCount(0);
   await page.goto(`/users/${SLEEPY}`);
   await expectDataState(page, 'usersAdmin.user.state', 'forbidden');
 });

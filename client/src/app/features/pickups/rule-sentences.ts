@@ -236,7 +236,7 @@ export function bookable(option: LinkedOption): boolean {
 /** The {@link RuleFormat} of the UI: `t` translates, days in the store's time zone, lists in the UI language. */
 export function uiRuleFormat(
   t: (key: string, params?: Record<string, string | number>) => string,
-  formatDate: (value: string, style: 'weekday' | 'date', timeZone: string) => string,
+  formatDate: (value: string, style: 'date', timeZone: string) => string,
   locale: string,
   timeZone: string,
 ): RuleFormat {
@@ -250,8 +250,8 @@ export function uiRuleFormat(
   return {
     t,
     list,
-    day: (iso) => formatDate(iso, 'weekday', timeZone),
-    // a calendar date: noon UTC keeps the day in every time zone
-    date: (localDate) => formatDate(`${localDate}T12:00:00Z`, 'date', 'UTC'),
+    day: (iso) => formatDate(iso, 'date', timeZone),
+    // a calendar date (yyyy-MM-dd): the formatter keeps the day in every time zone
+    date: (localDate) => formatDate(localDate, 'date', timeZone),
   };
 }

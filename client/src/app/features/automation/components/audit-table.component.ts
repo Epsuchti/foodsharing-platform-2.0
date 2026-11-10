@@ -88,7 +88,7 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
                     · {{ audit.pickupAt | fsDate: 'dateTime' }}
                   }
                 </span>
-                <span class="muted">{{ audit.createdAt | fsDate: 'relative' }}</span>
+                <time class="muted" [attr.datetime]="audit.createdAt" [title]="audit.createdAt | fsDate: 'dateTime'">{{ audit.createdAt | fsDate: 'relative' }}</time>
                 <i [class]="open().has(audit.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" aria-hidden="true"></i>
               </button>
               @if (open().has(audit.id)) {
@@ -112,7 +112,7 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
                   @if (audit.error) {
                     <p class="error-text">{{ audit.error }}</p>
                   }
-                  <span class="muted">{{ audit.createdAt | fsDate: 'dateTimeLong' }}</span>
+                  <span class="muted">{{ audit.createdAt | fsDate: 'dateTime' }}</span>
                 </div>
               }
             </li>

@@ -132,8 +132,9 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: `/regions/${ZH}/later/forum`, role: 'foodsaver', ready: 'regions.later.empty' },
   { path: `/groups/${KOCHGRUPPE}`, role: 'foodsaver' },
   { path: '/admin/regions', role: 'orga' },
-  { path: `/regions/${ZH}/users`, role: 'bot', ready: 'usersAdmin.list.search' },
-  { path: '/regions/home/users', role: 'bot', ready: 'usersAdmin.list.search', mobile: true },
+  // D1: the former users page redirects to the Members tab (admin extras for the ambassador)
+  { path: `/regions/${ZH}/users`, role: 'bot', ready: 'regions.members.admin' },
+  { path: '/regions/home/users', role: 'bot', ready: 'regions.members.admin', mobile: true },
   { path: `/users/${SLEEPY}`, role: 'bot', ready: 'usersAdmin.user.notes.composer' },
   { path: '/admin/bounced-emails', role: 'orga', ready: 'usersAdmin.bounced.state' },
 

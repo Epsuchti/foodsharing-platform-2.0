@@ -174,7 +174,7 @@ interface SlotTarget {
               </div>
               <div class="day__body">
               <div class="day__head">
-                <h2 class="day__title" tabindex="-1" [id]="'stores-pickups-day-' + group.day">{{ first.pickupAt | fsDate: 'weekday' : tz() }}</h2>
+                <h2 class="day__title" tabindex="-1" [id]="'stores-pickups-day-' + group.day">{{ first.pickupAt | fsDate: 'date' : tz() }}</h2>
                 @if (mayOpenDayChat(group.items)) {
                   <!-- decision 165: text on desktop, icon only on phones; the text is the accessible name -->
                   <button
@@ -648,7 +648,7 @@ export class StorePickupsTab {
           name: this.i18n
             .t('pickups.dayChat.name', {
               store: this.ctx.data()?.name ?? '',
-              date: this.dates.format(pickupAt, 'dayShort', this.tz()),
+              date: this.dates.format(pickupAt, 'date', this.tz()),
             })
             .slice(0, 200),
         },

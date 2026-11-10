@@ -58,7 +58,14 @@ import { VerificationResources } from '../verification.resource';
               @if (verified(p)) {
                 <p-button [label]="'verification.queue.unverify' | t" icon="pi pi-undo" severity="danger" [outlined]="true" size="small" (onClick)="unverifyOpen.set(true)" data-testid="verification.history.unverify" />
               } @else {
-                <p-button [label]="'verification.queue.verify' | t" icon="pi pi-verified" size="small" (onClick)="verifyOpen.set(true)" data-testid="verification.history.verify" />
+                <!-- C1: verifying needs a confirmed identity (the server refuses it otherwise) -->
+                @let identityMissing = identity.data()?.confirmed !== true;
+                <p-button [label]="'verification.queue.verify' | t" icon="pi pi-verified" size="small" [disabled]="identityMissing" (onClick)="verifyOpen.set(true)" data-testid="verification.history.verify" />
+                @if (identityMissing) {
+                  <p class="identity-hint" data-testid="verification.history.identityRequired">
+                    <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'verification.queue.identityRequired' | t }}
+                  </p>
+                }
               }
             </div>
           }
@@ -124,6 +131,18 @@ import { VerificationResources } from '../verification.resource';
       align-items: center;
       justify-content: space-between;
       gap: 0.5rem;
+    }
+    .identity-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      margin: 0;
+      color: var(--fs-warning-text);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .identity-hint .pi {
+      margin-top: 0.2rem;
     }
   `,
 })

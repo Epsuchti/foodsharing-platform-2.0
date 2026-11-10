@@ -33,8 +33,6 @@
   "dashboard.waiting.title": "En attente de toi",
   "dashboard.waiting.invitations": "{count, plural, one {Invitation dans une équipe de commerce} other {Invitations dans des équipes de commerce}}",
   "dashboard.waiting.unread": "{count, plural, one {Conversation non lue} other {Conversations non lues}}",
-  "dashboard.waiting.unconfirmed": "{count, plural, one {Ta collecte n’est pas encore confirmée} other {Tes collectes ne sont pas encore confirmées}}",
-  "dashboard.waiting.applications": "{count, plural, one {Ta candidature est encore en attente} other {Tes candidatures sont encore en attente}}",
   "dashboard.stores.title": "Tes commerces",
   "dashboard.stores.all": "Tous mes commerces",
   "dashboard.stores.freeSlots": "{count, plural, one {# place libre} other {# places libres}} dans les 7 prochains jours",

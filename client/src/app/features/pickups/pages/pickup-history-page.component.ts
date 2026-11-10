@@ -59,7 +59,7 @@ const PAGE_SIZE = 25;
           @for (pickup of page.items; track pickup.store.id + pickup.pickupAt) {
             <li class="fs-card item" data-testid="pickups.past.pickup" [attr.data-store]="pickup.store.name" [attr.data-pickup-at]="pickup.pickupAt">
               <a class="item__store" [routerLink]="['/stores', pickup.store.id]">{{ pickup.store.name }}</a>
-              <span>{{ pickup.pickupAt | fsDate: 'dateTimeLong' }}</span>
+              <span>{{ pickup.pickupAt | fsDate: 'dateTime' }}</span>
             </li>
           }
         </ul>

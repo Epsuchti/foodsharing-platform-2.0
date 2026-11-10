@@ -4,7 +4,7 @@ import { openPickups, pickupRow } from '../tests/pickups/_pickups';
 import { expect, forEachVariant, screenshotTest, type Variant } from './_setup';
 
 /**
- * Intro pickup screens (M2 T21): bookable list (incl. reasons, booking success), no-region picker, public dates,
+ * Intro pickup screens (M2 T21): bookable list (only bookable EinAbs, empty state per reason, booking success), no-region picker, public dates,
  * my bookings with progress and subscription, unsubscribe, guide dashboard (upcoming, past with slots, form dialog,
  * comments, EA16 store pickup candidates, the pre-filled linked form and the sign-out warning), guide settings, admin (dates, bookings, guides, Q4 guide candidates and deadline banner), import
  * preview, funnel, forbidden and error states —
@@ -38,6 +38,30 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('introPickups.bookable.success')).toBeVisible();
         await visual.expectScreen(page, `intro-booked-${variant.name}`, { fullPage: false });
       });
+
+      // review 2026-11-10 B1: only bookable EinAbs are listed; the empty state names the reason of the hidden ones
+      const EMPTY_KINDS: Record<string, string | null> = {
+        none: null,
+        enough: 'USER_BOOKING_LIMIT_REACHED',
+        fairteiler: 'FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP',
+        noMatch: 'USER_ALREADY_BOOKED_WITH_GUIDE',
+      };
+      for (const [kind, reason] of Object.entries(EMPTY_KINDS)) {
+        screenshotTest(`bookable list empty (${kind}) @EA5 @screenshot`, async ({ page, apiOf, visual }) => {
+          await language(apiOf(page), variant);
+          await page.route(`**/api/regions/${ZH}/intro-pickups/bookable**`, async (route) => {
+            const response = await route.fetch();
+            const body = (await response.json()) as { items: Record<string, unknown>[] };
+            body.items = reason === null ? [] : body.items.map((item) => ({ ...item, bookable: false, notBookableReason: reason }));
+            await route.fulfill({ response, json: body });
+          });
+          await page.goto('/intro-pickups');
+          const state = page.getByTestId('introPickups.bookable.state');
+          await expect(state).toHaveAttribute('data-state', 'empty');
+          await expect(state).toHaveAttribute('data-empty-kind', kind);
+          await visual.expectScreen(page, `intro-bookable-empty-${kind}-${variant.name}`);
+        });
+      }
 
       screenshotTest('my bookings with progress and subscription @EA7 @EA8 @EA9 @screenshot', async ({ page, apiOf, visual }) => {
         await language(apiOf(page), variant);

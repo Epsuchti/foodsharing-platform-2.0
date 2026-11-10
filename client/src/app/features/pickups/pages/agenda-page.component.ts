@@ -27,7 +27,7 @@ interface AgendaQuery {
     <fs-page-header [title]="'pickups.agenda.title' | t" icon="pi pi-list" backLink="/pickups" [backLabel]="'common.back' | t" />
     <nav class="stepper" [attr.aria-label]="'pickups.agenda.stepper' | t">
       <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true" [ariaLabel]="'pickups.agenda.previous' | t" [routerLink]="['/pickups/agenda', previous()]" data-testid="pickups.agenda.previous" />
-      <h2 class="stepper__day" data-testid="pickups.agenda.day">{{ date() + 'T12:00:00Z' | fsDate: 'weekday' }}</h2>
+      <h2 class="stepper__day" data-testid="pickups.agenda.day">{{ date() | fsDate: 'date' }}</h2>
       <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true" [ariaLabel]="'pickups.agenda.next' | t" [routerLink]="['/pickups/agenda', next()]" data-testid="pickups.agenda.next" />
     </nav>
     <fs-data-state

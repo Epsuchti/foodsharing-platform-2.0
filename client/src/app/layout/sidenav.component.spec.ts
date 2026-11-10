@@ -114,9 +114,10 @@ describe('side menu nav.config (decision 133)', () => {
         units: [],
       } as unknown as NavContext['session'],
     });
+    // F3 (decision 176): without a region no Termine, Abstimmungen or Einführungsabholungen
     expect(shape(newcomer)).toEqual({
       daily: ['dashboard', 'onboarding', 'messages', 'bells', 'baskets'],
-      community: ['map', 'events', 'regions', 'polls', 'introPickups', 'learn'],
+      community: ['map', 'regions', 'learn'],
     });
 
     const ambassador = context({
@@ -139,7 +140,6 @@ describe('side menu nav.config (decision 133)', () => {
     expect(shape(ambassador)['manage']).toEqual([
       'newcomers',
       'verification',
-      'users',
       'newsletters',
       'blogManage',
       'storeChains',

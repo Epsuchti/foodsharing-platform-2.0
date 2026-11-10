@@ -77,13 +77,13 @@ export class DateTileComponent {
 
 /**
  * The time of a date-tile row: `<time datetime>` with the full date as a visually hidden prefix ("Today, " or
- * "Wednesday, 4 November, "), since the tile beside it is decorative.
+ * "04.11.2026, "), since the tile beside it is decorative.
  */
 @Component({
   selector: 'fs-tile-time',
   imports: [DateTimePipe, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<time [attr.datetime]="at()"><span class="fs-visually-hidden">{{ today() ? ('shared.dateTile.today' | t) : (at() | fsDate: 'weekday' : timeZone()) }}, </span>{{ at() | fsDate: 'time' : timeZone() }}</time>`,
+  template: `<time [attr.datetime]="at()"><span class="fs-visually-hidden">{{ today() ? ('shared.dateTile.today' | t) : (at() | fsDate: 'date' : timeZone()) }}, </span>{{ at() | fsDate: 'time' : timeZone() }}</time>`,
   styles: `:host { font-variant-numeric: tabular-nums; }`,
 })
 export class TileTimeComponent {

@@ -250,7 +250,7 @@ describe('pickup policy section: gap list (decisions 151, 152)', () => {
   });
 
   it('prefills the group gap with max(1, own gap) and shows the status badge', async () => {
-    await open({ ...emptyPickupPolicy(), gapRuleEnabled: false, minimumGapDays: 0, version: 1 });
+    await open({ ...emptyPickupPolicy(), enabled: true, gapRuleEnabled: false, minimumGapDays: 0, version: 1 });
     expect(all('automation.policy.gapStatus')[0].dataset['status']).toBe('off');
     expect(all('automation.policy.gapPreview')).toHaveLength(0);
     section().setGapMembers([D]);
@@ -266,6 +266,28 @@ describe('pickup policy section: gap list (decisions 151, 152)', () => {
     section().setGapMembers([]);
     section().setGapMembers([D]);
     expect(section().draft()!.groupMinimumGapDays).toBe(4);
+  });
+
+  it('rule cards are off while the master switch is off, with a hint; on again with the master (review fix A7)', async () => {
+    await open({
+      ...emptyPickupPolicy(),
+      enabled: false,
+      gapRuleEnabled: true,
+      minimumGapDays: 2,
+      experienceRuleEnabled: true,
+      publicHolidayRuleEnabled: false,
+      version: 1,
+    });
+    expect(all('automation.policy.gapStatus')[0].dataset['status']).toBe('off');
+    expect(all('automation.policy.gapStatus')[0].textContent).toContain('automation.policy.gapStatus.off');
+    // gap and experience are switched on themselves: both say why they do not apply; holidays (off) says nothing
+    expect(all('automation.policy.inactiveHint').map((h) => h.dataset['rule'])).toEqual(['GAP', 'EXPERIENCE']);
+    expect(all('automation.policy.member')).toHaveLength(0);
+
+    section().draft.update((p) => ({ ...p!, enabled: true }));
+    await settle();
+    expect(all('automation.policy.gapStatus')[0].dataset['status']).toBe('on');
+    expect(all('automation.policy.inactiveHint')).toHaveLength(0);
   });
 
   it('a group gap below 1 blocks save, whatever the own switch says', async () => {

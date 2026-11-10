@@ -33,6 +33,10 @@ describe('store badges', () => {
       <fs-team-status-badge [status]="team" />
       <fs-membership-badge [status]="membership" />
       <fs-free-slot-dot [status]="slots" [count]="3" />
+      <fs-free-slot-chip data-testid="chip.red" [status]="slots" [count]="3" />
+      <fs-free-slot-chip data-testid="chip.orange" [status]="orange" [count]="2" />
+      <fs-free-slot-chip data-testid="chip.yellow" [status]="yellow" [count]="1" />
+      <fs-free-slot-chip data-testid="chip.green" [status]="green" [count]="0" />
     `,
   })
   class Host {
@@ -40,6 +44,9 @@ describe('store badges', () => {
     readonly team = TeamSearchStatus.OpenSearching;
     readonly membership = UserTeamStatus.WaitingList;
     readonly slots = FreeSlotStatus.Red;
+    readonly orange = FreeSlotStatus.Orange;
+    readonly yellow = FreeSlotStatus.Yellow;
+    readonly green = FreeSlotStatus.Green;
   }
 
   it('renders translated labels, tones and an accessible free-slot dot', async () => {
@@ -54,6 +61,21 @@ describe('store badges', () => {
     const dot = el.querySelector('fs-free-slot-dot .dot')!;
     expect(dot.getAttribute('role')).toBe('img');
     expect(dot.getAttribute('aria-label')).toBe('3 frei');
+  });
+
+  it('free-slot chip: text with tone and icon per status, nothing for GREEN (D5)', async () => {
+    const fixture = TestBed.createComponent(Host);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const red = el.querySelector('[data-testid="chip.red"]')!;
+    expect(red.classList.contains('chip--danger')).toBe(true);
+    expect(red.textContent?.trim()).toBe('3 frei');
+    expect(red.querySelector('i.pi-exclamation-circle')).not.toBeNull();
+    expect(el.querySelector('[data-testid="chip.orange"]')!.classList.contains('chip--warn')).toBe(true);
+    expect(el.querySelector('[data-testid="chip.yellow"]')!.classList.contains('chip--info')).toBe(true);
+    const green = el.querySelector('[data-testid="chip.green"]')!;
+    expect(green.classList.contains('chip--none')).toBe(true);
+    expect(green.textContent?.trim()).toBe('');
   });
 });
 

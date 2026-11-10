@@ -167,6 +167,7 @@
   "automation.policy.gapHint": "Giorni tra due ritiri della stessa persona in questo negozio.",
   "automation.policy.gapStatus.on": "Attivo",
   "automation.policy.gapStatus.off": "Disattivato",
+  "automation.policy.inactiveHint": "Vale solo quando le regole sono attivate.",
   "automation.policy.gapOwnTitle": "In questo negozio",
   "automation.policy.gapOwnEnabled": "Distanza propria",
   "automation.policy.gapGroupTitle": "Gruppo di negozi (facoltativo)",

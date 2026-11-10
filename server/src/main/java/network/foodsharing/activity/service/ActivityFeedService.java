@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import network.foodsharing.activity.domain.ActivityType;
+import network.foodsharing.common.text.MentionText;
 import network.foodsharing.security.CurrentActorService;
 import network.foodsharing.user.service.ActivityContribution;
 import network.foodsharing.user.service.UserService;
@@ -122,7 +123,8 @@ public class ActivityFeedService {
         if (text == null) {
             return null;
         }
-        String flat = text.strip().replaceAll("\\s+", " ");
+        // mention tokens as "@Name" before cutting (review 2026-11-10 F4)
+        String flat = MentionText.plain(text).strip().replaceAll("\\s+", " ");
         return flat.length() <= 300 ? flat : flat.substring(0, 299) + "…";
     }
 }

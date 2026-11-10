@@ -1,7 +1,7 @@
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Legal screens: EA4 consent page with phone prompt (pending privacy policy of newbie@local), Ve1 public document
+ * Legal screens: EA4 consent page, first time (pending privacy policy of newbie@local, A6), Ve1 public document
  * page and the ORGA versions page — × light/dark × de/fr.
  */
 
@@ -14,7 +14,7 @@ forEachVariant((variant) => {
         await page.goto('/dashboard');
         await expect(page).toHaveURL(/\/consent\?/);
         await expect(page.getByTestId('legal.consent.documents')).toHaveAttribute('data-state', 'success');
-        await expect(page.getByTestId('legal.consent.phone')).toBeVisible();
+        await expect(page.getByTestId('legal.consent.document').first()).toBeVisible();
         await visual.expectScreen(page, `consent-${variant.name}`);
       });
     });

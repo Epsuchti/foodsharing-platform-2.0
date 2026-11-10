@@ -93,6 +93,38 @@ export class MembershipBadgeComponent {
   protected readonly meta = computed(() => MEMBERSHIP[this.status()] ?? MEMBERSHIP.NO_MEMBER);
 }
 
+const FREE_SLOTS: Record<FreeSlotStatus, { tone: StoreChipTone; icon: string } | null> = {
+  GREEN: null,
+  YELLOW: { tone: 'info', icon: 'pi pi-info-circle' },
+  ORANGE: { tone: 'warn', icon: 'pi pi-exclamation-triangle' },
+  RED: { tone: 'danger', icon: 'pi pi-exclamation-circle' },
+};
+
+/**
+ * Free slots of a store as a text chip (review 2026-11-10, D5): YELLOW info, ORANGE warn, RED danger, each with an
+ * icon and the `shared.store.freeSlots.<STATUS>` text. GREEN (all covered) shows nothing.
+ */
+@Component({
+  selector: 'fs-free-slot-chip',
+  imports: [TPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class]': 'meta() ? "chip chip--" + meta()!.tone : "chip--none"',
+    '[attr.data-status]': 'status()',
+  },
+  template: `
+    @if (meta(); as m) {
+      <i [class]="m.icon" aria-hidden="true"></i><span>{{ 'shared.store.freeSlots.' + status() | t: { count: count() } }}</span>
+    }
+  `,
+  styles: [CHIP_STYLES, ':host(.chip--none) { display: none; } :host { white-space: normal; }'],
+})
+export class FreeSlotChipComponent {
+  readonly status = input.required<FreeSlotStatus>();
+  readonly count = input(0);
+  protected readonly meta = computed(() => FREE_SLOTS[this.status()] ?? null);
+}
+
 const DOT_COLORS: Record<FreeSlotStatus, string> = {
   GREEN: '#25834a',
   YELLOW: '#ca8a04',
@@ -139,4 +171,5 @@ export const STORE_BADGES = [
   TeamStatusBadgeComponent,
   MembershipBadgeComponent,
   FreeSlotDotComponent,
+  FreeSlotChipComponent,
 ] as const;

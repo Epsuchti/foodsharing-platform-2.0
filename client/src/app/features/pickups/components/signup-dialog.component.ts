@@ -66,7 +66,7 @@ export type SignupDone = SignupResult & { linkedStores?: string[] };
       @if (target(); as t) {
         <p class="when" data-testid="pickups.signup.when">
           <strong>{{ t.storeName }}</strong><br />
-          {{ t.pickupAt | fsDate: 'dateTimeLong' : t.timeZone }}
+          {{ t.pickupAt | fsDate: 'dateTime' : t.timeZone }}
         </p>
         @if (t.linkMissingUntil; as until) {
           <p class="muted" data-testid="pickups.signup.linked.repair">
@@ -118,7 +118,7 @@ export type SignupDone = SignupResult & { linkedStores?: string[] };
                             [checked]="chosen()[index()] === option"
                             (change)="choose(option)"
                           />
-                          <span class="opt__when">{{ option.pickupAt | fsDate: 'weekday' : zone() }} {{ option.pickupAt | fsDate: 'time' : zone() }}</span>
+                          <span class="opt__when">{{ option.pickupAt | fsDate: 'dateTime' : zone() }}</span>
                           @if (rule.stores.length > 1) {
                             <span class="opt__store">{{ option.store.name }}</span>
                           }
@@ -128,7 +128,7 @@ export type SignupDone = SignupResult & { linkedStores?: string[] };
                     } @else {
                       <li class="opt opt--blocked" aria-disabled="true" data-testid="pickups.signup.linked.option" data-blocked="true" [attr.data-store]="option.store.id" [attr.data-at]="option.pickupAt">
                         <input type="radio" disabled [attr.aria-label]="'pickups.linked.blockedThere' | t" />
-                        <span class="opt__when">{{ option.pickupAt | fsDate: 'weekday' : zone() }} {{ option.pickupAt | fsDate: 'time' : zone() }}</span>
+                        <span class="opt__when">{{ option.pickupAt | fsDate: 'dateTime' : zone() }}</span>
                         @if (rule.stores.length > 1) {
                           <span class="opt__store">{{ option.store.name }}</span>
                         }

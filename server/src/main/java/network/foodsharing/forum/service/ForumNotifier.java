@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import network.foodsharing.common.realtime.RealtimeEvent;
 import network.foodsharing.common.realtime.RealtimeEventType;
 import network.foodsharing.common.realtime.RealtimePublisher;
+import network.foodsharing.common.text.MentionText;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.forum.domain.ForumPost;
 import network.foodsharing.forum.domain.ForumThread;
@@ -37,8 +38,7 @@ import org.springframework.stereotype.Component;
 public class ForumNotifier {
 
     /** Mention token in post bodies: {@code @[Display Name](user:<uuid>)}. */
-    static final Pattern MENTION = Pattern.compile(
-            "@\\[[^\\]\\n]{1,200}\\]\\(user:([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\\)");
+    static final Pattern MENTION = MentionText.TOKEN;
     static final String MAIL_FORUM_POST = "notification/FORUM_POST";
     static final String MAIL_THREAD_TO_ACTIVATE = "notification/FORUM_THREAD_TO_ACTIVATE";
 
@@ -75,7 +75,7 @@ public class ForumNotifier {
         }
         Matcher matcher = MENTION.matcher(body);
         while (matcher.find()) {
-            ids.add(UUID.fromString(matcher.group(1).toLowerCase()));
+            ids.add(UUID.fromString(matcher.group(2).toLowerCase()));
         }
         return ids;
     }
@@ -157,7 +157,7 @@ public class ForumNotifier {
             variables.put("displayName", user.getDisplayName());
             variables.put("title", thread.getTitle());
             variables.put("author", authorName);
-            variables.put("body", abbreviate(post.getBody(), 2000));
+            variables.put("body", abbreviate(MentionText.plain(post.getBody()), 2000));
             variables.put("link", link);
             mails.enqueue(new MailDraft(user.getEmail(), MAIL_FORUM_POST, user.getPreferredLanguage(), variables,
                     user.getId(), "FORUM", "FORUM_POST-" + thread.getId()));

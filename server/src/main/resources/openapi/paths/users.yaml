@@ -85,7 +85,7 @@
           application/json:
             schema:
               $ref: '../schemas/users.yaml#/UserProfile'
-      '400': {description: 'VALIDATION_FAILED or INVALID_PHONE_NUMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '400': {description: 'VALIDATION_FAILED (also field mobilePhone/NotBlank when the request clears the mobile number: it is mandatory on the own profile) or INVALID_PHONE_NUMBER', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '409': {description: 'CONCURRENT_MODIFICATION', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}

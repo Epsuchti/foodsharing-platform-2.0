@@ -123,12 +123,23 @@ export function unconfirmedCount(pickups: readonly { occupiedSlots: readonly { c
 /** `displayName` up to the first space; lives with the slot component, which shows it in the manager's split pill. */
 export { firstName } from '../../shared/pickup-slot/pickup-slot.component';
 
-/** Pickups with at least one free slot, by time (PU7: full pickups are never offered; /pickups and the home card). */
-export function openOptions<T extends { pickupAt: string; slotCount: number; occupiedSlots: readonly unknown[] }>(
-  options: readonly T[],
-): T[] {
+/**
+ * Whether the user is signed up for this pickup option: the server sets `isConfirmed` only then (review fix A2). Such
+ * an option shows a "Signed up" chip instead of the sign-up button.
+ */
+export function isSignedUp(option: { isConfirmed?: boolean | null }): boolean {
+  return option.isConfirmed != null;
+}
+
+/**
+ * Pickups with at least one free slot plus the user's own sign-ups, by time (PU7: full pickups are never offered;
+ * /pickups and the home card). The server already left out what the sign-up would refuse (review fix A1).
+ */
+export function openOptions<
+  T extends { pickupAt: string; slotCount: number; occupiedSlots: readonly unknown[]; isConfirmed?: boolean | null },
+>(options: readonly T[]): T[] {
   return options
-    .filter((option) => option.occupiedSlots.length < option.slotCount)
+    .filter((option) => option.occupiedSlots.length < option.slotCount || isSignedUp(option))
     .sort((a, b) => a.pickupAt.localeCompare(b.pickupAt));
 }
 

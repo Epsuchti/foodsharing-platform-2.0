@@ -2,14 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, u
 import { Router, RouterLink, UrlTree } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 
-import { ActivityFilters, ActivityItem, ActivityPage, ActivityService, ActivityType, UsersService } from '../../../api';
+import { ActivityFilters, ActivityItem, ActivityPage, ActivityService, ActivityType, Role, UsersService } from '../../../api';
+import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { UserAvatarComponent } from '../../../shared/user-chip/user-avatar.component';
-import { ACTIVITY_PAGE_SIZE, ACTIVITY_TYPES, ACTIVITY_TYPE_ICON, mergeActivityPages, toggleExcluded } from '../dashboard.util';
+import { ACTIVITY_PAGE_SIZE, ACTIVITY_TYPE_ICON, activityTypesFor, mergeActivityPages, toggleExcluded } from '../dashboard.util';
 
 interface FeedEntry {
   item: ActivityItem;
@@ -20,7 +21,8 @@ interface FeedEntry {
 /**
  * Dashboard activity feed (A19): what happened in my forums, store walls, mailboxes, events, food share points and
  * on my buddies' walls (`getActivityFeed(page, size)`, newest first, "load more"). The filter chips switch types
- * off and on; the choice is stored on the server (`getActivityFilters` / `updateActivityFilters`).
+ * off and on; the choice is stored on the server (`getActivityFilters` / `updateActivityFilters`). Only chips the
+ * user can use (review 2026-11-10, D3): store walls for verified foodsavers, mailboxes with the server's mailbox flag.
  */
 @Component({
   selector: 'fs-activity-feed-card',
@@ -32,7 +34,7 @@ interface FeedEntry {
       <fs-data-state [state]="filters" skeleton="list" [skeletonRows]="1" [compact]="true" data-testid="dashboard.activity.filtersState">
         <ng-template [fsData]="filters" let-current>
           <div class="chips" role="group" [attr.aria-label]="'dashboard.activity.filterLabel' | t" data-testid="dashboard.activity.filters">
-            @for (type of types; track type) {
+            @for (type of types(); track type) {
               @let on = !current.excluded.includes(type);
               <button
                 type="button"
@@ -77,7 +79,7 @@ interface FeedEntry {
                         {{ author.displayName }}
                       </span>
                     }
-                    <time [attr.datetime]="entry.item.at">{{ entry.item.at | fsDate: 'relative' }}</time>
+                    <time [attr.datetime]="entry.item.at" [title]="entry.item.at | fsDate: 'dateTime'">{{ entry.item.at | fsDate: 'relative' }}</time>
                   </p>
                 </div>
               </li>
@@ -226,8 +228,14 @@ export class ActivityFeedCardComponent {
   private readonly activityApi = inject(ActivityService);
   private readonly usersApi = inject(UsersService);
   private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
 
-  protected readonly types = ACTIVITY_TYPES;
+  protected readonly types = computed(() =>
+    activityTypesFor({
+      stores: this.session.hasRole(Role.Foodsaver) && !!this.session.user()?.verified,
+      mailboxes: this.session.session().mailboxes === true,
+    }),
+  );
   protected readonly icons = ACTIVITY_TYPE_ICON;
   protected readonly page = signal(0);
   /** Bumped after a filter change: the feed starts again at the first page. */

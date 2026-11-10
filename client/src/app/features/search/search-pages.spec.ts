@@ -108,6 +108,18 @@ describe('search', () => {
       expect(all('[data-testid="search.global.option"]')).toHaveLength(3);
     });
 
+    it('shows an event hit with its start in the one date format, not the raw ISO date', async () => {
+      await type('waldfest');
+      await wait(350);
+      http.expectOne(searchRequest).flush(
+        results({ events: [{ id: 'e1', kind: SearchKind.Event, title: 'Waldfest', startsAt: '2026-11-05T09:00:00Z', link: '/events/e1' }] }),
+      );
+      await settle();
+      const sub = q('[data-testid="search.global.option"] .gs__option-sub')!;
+      expect(sub.textContent?.trim()).toBe('05.11.2026, 10:00');
+      expect(sub.getAttribute('datetime')).toBe('2026-11-05T09:00:00Z');
+    });
+
     it('does not ask the server for one character and debounces fast typing', async () => {
       await type('w');
       expect(q('[data-testid="search.global.tooShort"]')).toBeNull(); // index hits exist
@@ -246,6 +258,16 @@ describe('search', () => {
       (q('[data-testid="search.page.kind"][data-kind="STORE"]') as HTMLButtonElement).click();
       await settle();
       expect(all('[data-testid="search.page.group"]').map((group) => group.dataset['group'])).toEqual(['remote.stores']);
+    });
+
+    it('formats the start of event hits (decision 177)', async () => {
+      await harness.navigateByUrl('/search?q=waldfest');
+      await settle();
+      http.expectOne(searchRequest).flush(
+        results({ events: [{ id: 'e1', kind: SearchKind.Event, title: 'Waldfest', startsAt: '2026-11-05T09:00:00Z', link: '/events/e1' }] }),
+      );
+      await settle();
+      expect(q('[data-testid="search.page.hit"] .hit__sub')?.textContent?.trim()).toBe('05.11.2026, 10:00');
     });
 
     it('shows the empty state and the error state with retry', async () => {

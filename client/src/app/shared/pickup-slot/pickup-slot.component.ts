@@ -206,11 +206,7 @@ export function firstName(displayName: string): string {
     }
     .slot--blocked:hover { border-color: var(--fs-text-muted); }
     .slot--blocked .pi { font-size: 0.9em; }
-    /* phones: the lock alone (the text stays in aria-label) */
-    @media (max-width: 47.99rem) {
-      .slot--blocked { display: inline-grid; width: var(--fs-slot-size); padding: 0; }
-      .slot--blocked .slot__label { display: none; }
-    }
+    /* phones too: lock + "Gesperrt", the chip grows in width (review fix A8 reverses the former "lock only" rule) */
     .slot:focus-visible, .split__confirm:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
   `,
 })

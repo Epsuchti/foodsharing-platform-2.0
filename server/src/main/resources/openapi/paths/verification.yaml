@@ -71,7 +71,7 @@
       '401': {description: 'AUTHENTICATION_REQUIRED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '403': {description: 'ACCESS_DENIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
       '404': {description: 'USER_NOT_FOUND', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
-      '409': {description: 'ALREADY_VERIFIED', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
+      '409': {description: 'ALREADY_VERIFIED or IDENTITY_NOT_CONFIRMED (verification needs a confirmed identity)', content: {application/json: {schema: {$ref: '../schemas/common.yaml#/ApiError'}}}}
   delete:
     tags: [verification]
     operationId: unverifyUser

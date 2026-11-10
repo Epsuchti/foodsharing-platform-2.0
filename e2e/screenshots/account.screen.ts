@@ -2,8 +2,8 @@ import { acceptPendingConsents, injectApiError, injectBounce as bounce } from '.
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Account settings (plan-m7 Q3/Q4, A3/A5/A9/A11/A13/A18/A20): settings page with the pending email change of
- * profile@local, jumper's temporary sleep mode card, the photo crop dialog, the email confirm link page, the settings
+ * Account settings (plan-m7 Q3/Q4, A3/A4/A5/A9/A11/A13/A18/A20): profile of newbie@local without a mobile number
+ * (required, D2), settings page with the pending email change of profile@local, jumper's temporary sleep mode card, the photo crop dialog, the email confirm link page, the settings
  * error state, the calendar card, the delete dialog, the bounce banner and ORGA's bounced list ×
  * light/dark × de/fr. Baselines are generated in Docker in the end batch (decision 69:
  * `e2e/scripts/screenshots.sh --update-snapshots`).
@@ -27,6 +27,18 @@ forEachVariant((variant) => {
         await page.goto('/account/email/confirm?token=not-a-token');
         await expect(page.getByTestId('account.email.confirm.tokenError')).toBeVisible();
         await visual.expectScreen(page, `account-email-confirm-invalid-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('newbie', () => {
+      screenshotTest.use({ variant, role: 'newbie' });
+
+      screenshotTest('profile without a mobile number @A4 @screenshot', async ({ page, apiOf, visual }) => {
+        await acceptPendingConsents(apiOf(page));
+        await page.goto('/account/profile');
+        await expect(page.getByTestId('account.profile.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('account.profile.mobileRequired')).toBeVisible();
+        await visual.expectScreen(page, `profile-mobile-required-${variant.name}`);
       });
     });
 

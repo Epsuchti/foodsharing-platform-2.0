@@ -3,7 +3,8 @@ import { USERS, ZH } from '../tests/verification/_verification';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
 /**
- * Verification and passport screens (M2 T23): queue (ready, all unverified, verify dialog, error), user verification
+ * Verification and passport screens (M2 T23): queue (ready, all unverified, card before/after the identity check,
+ * verify dialog, error), user verification
  * history, own passport (valid, expired, locked, wallets not configured, error), region passports (requests, job done)
  * — × light/dark × de/fr. Baselines are generated in Docker (`e2e/scripts/screenshots.sh`, decision 69).
  */
@@ -21,7 +22,16 @@ forEachVariant((variant) => {
         await page.getByTestId('verification.queue.filter').locator('.p-togglebutton').nth(1).click();
         await expect(page.getByTestId('verification.queue.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `verification-queue-all-${variant.name}`);
-        await page.locator(`[data-testid="verification.queue.card"][data-user="${USERS.pending}"]`).getByTestId('verification.queue.verify').click();
+        // C1: before the identity is confirmed the card shows the hint and a disabled verify button (both queue
+        // screens above); afterwards verify is the primary action
+        const card = page.locator(`[data-testid="verification.queue.card"][data-user="${USERS.pending}"]`);
+        await expect(card.getByTestId('verification.queue.identityRequired')).toBeVisible();
+        await visual.expectElement(card, `verification-card-identity-open-${variant.name}`);
+        await card.getByTestId('verification.queue.confirmIdentity').click();
+        await expect(card.getByTestId('verification.queue.identityTag')).toBeVisible();
+        await expect(card.getByTestId('verification.queue.verify').locator('button')).toBeEnabled();
+        await visual.expectElement(card, `verification-card-identity-confirmed-${variant.name}`);
+        await card.getByTestId('verification.queue.verify').click();
         await expect(page.getByTestId('verification.verifyDialog.message')).toBeVisible();
         await visual.expectScreen(page, `verification-verify-dialog-${variant.name}`);
       });

@@ -4,8 +4,10 @@ import {
   dayOf,
   firstName,
   groupByDay,
+  isSignedUp,
   mergeByTime,
   moveSummary,
+  openOptions,
   pickupSummary,
   slotState,
   timeOf,
@@ -100,5 +102,31 @@ describe('pickup slot helpers (PU3)', () => {
     expect(firstName('Marco Bernasconi')).toBe('Marco');
     expect(firstName('  Priya  ')).toBe('Priya');
     expect(firstName('Anna Lena Meier')).toBe('Anna');
+  });
+  it('treats an option as signed up exactly when the server set isConfirmed (review fix A2)', () => {
+    expect(isSignedUp({ isConfirmed: true })).toBe(true);
+    expect(isSignedUp({ isConfirmed: false })).toBe(true);
+    expect(isSignedUp({})).toBe(false);
+    expect(isSignedUp({ isConfirmed: null })).toBe(false);
+  });
+
+  it('offers free pickups and keeps own sign-ups even when full, by time', () => {
+    const option = (pickupAt: string, taken: number, isConfirmed?: boolean) => ({
+      pickupAt,
+      slotCount: 2,
+      occupiedSlots: Array.from({ length: taken }, () => ({})),
+      isConfirmed,
+    });
+    const list = [
+      option('2026-11-06T18:00:00Z', 1),
+      option('2026-11-05T18:00:00Z', 2, false),
+      option('2026-11-04T18:00:00Z', 2),
+      option('2026-11-03T18:00:00Z', 0, true),
+    ];
+    expect(openOptions(list).map((o) => o.pickupAt)).toEqual([
+      '2026-11-03T18:00:00Z',
+      '2026-11-05T18:00:00Z',
+      '2026-11-06T18:00:00Z',
+    ]);
   });
 });

@@ -25,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Verification and identity confirmation (plan §13.9 Ve2): ambassadors / FSMANAGEMENT admins of a region the user is a
- * member of (and ORGA) verify with a required message (stored as a user note and as the history reason); un-verifying
- * asks the {@link UnverifyGuard}s first. Identity is confirmed by an administrator other than the user; only ORGA
- * reverts it.
+ * member of (and ORGA) verify with a required message (stored as a user note and as the history reason), only once
+ * the identity is confirmed (C1, {@link VerificationRules}); un-verifying asks the {@link UnverifyGuard}s first.
+ * Identity is confirmed by an administrator other than the user; only ORGA reverts it.
  */
 @Service
 public class VerificationService {
@@ -62,13 +62,19 @@ public class VerificationService {
         this.clock = clock;
     }
 
-    /** @throws ApiException 404 USER_NOT_FOUND, 403 ACCESS_DENIED, 400 VALIDATION_FAILED, 409 ALREADY_VERIFIED */
+    /**
+     * @throws ApiException 404 USER_NOT_FOUND, 403 ACCESS_DENIED, 400 VALIDATION_FAILED, 409 ALREADY_VERIFIED /
+     *                      IDENTITY_NOT_CONFIRMED ({@link VerificationRules#mayVerify})
+     */
     @Transactional
     public User verify(UUID userId, String message) {
         User user = requireAdministrable(userId);
         String text = requireMessage(message);
         if (user.isVerified()) {
             throw ApiException.conflict(ApiErrorCode.ALREADY_VERIFIED);
+        }
+        if (!VerificationRules.mayVerify(user)) {
+            throw ApiException.conflict(ApiErrorCode.IDENTITY_NOT_CONFIRMED);
         }
         User updated = users.setVerified(userId, true, clock.instant());
         notes.add(userId, UserNoteKind.VERIFICATION_MESSAGE, text);

@@ -48,10 +48,16 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
 
         <h2 class="section-title"><i class="pi pi-filter" aria-hidden="true"></i>{{ 'introPickups.funnel.steps' | t }}</h2>
         <ol class="list">
-          @for (step of f.steps; track step.stage) {
+          @for (step of f.steps; track step.stage + step.introPickupCount) {
             <li class="fs-card step" [attr.data-stage]="step.stage" data-testid="introPickups.funnel.step">
               <div class="step__head">
-                <strong>{{ 'introPickups.funnel.stage.' + step.stage | t }}</strong>
+                <strong>
+                  @if (step.stage === 'IN_PROGRESS' && step.introPickupCount !== undefined && step.introPickupCount !== null) {
+                    {{ 'introPickups.funnel.stage.IN_PROGRESS_COUNT' | t: { count: step.introPickupCount, target: f.targetIntroPickups } }}
+                  } @else {
+                    {{ 'introPickups.funnel.stage.' + step.stage | t }}
+                  }
+                </strong>
                 <span class="tags">
                   <span class="tag" data-testid="introPickups.funnel.count">{{ 'introPickups.funnel.people' | t: { count: step.userCount } }}</span>
                   @if (step.medianDaysInStep !== undefined && step.medianDaysInStep !== null) {

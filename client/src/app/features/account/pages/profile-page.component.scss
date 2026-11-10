@@ -82,6 +82,8 @@
 
 .field {
   display: grid;
+  /* a field stretched by its taller neighbour (an error below it) keeps label and input at the top */
+  align-content: start;
   gap: 0.35rem;
   min-width: 0;
 }
@@ -122,4 +124,23 @@
 
 .number {
   font-variant-numeric: tabular-nums;
+}
+
+.req {
+  margin-left: 0.2rem;
+  color: var(--fs-danger);
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  color: var(--fs-danger);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.field-error .pi {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
 }

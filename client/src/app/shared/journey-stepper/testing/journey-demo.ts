@@ -42,6 +42,7 @@ export const DEMO_JOURNEY_WAITING: Journey = {
       return {
         ...step,
         status: JourneyStepStatus.WaitingForOthers,
+        // the estimate stays in the data; the stepper shows the typical days instead (review 2026-11-10 Q3)
         waitingFor: {
           labelKey: 'onboarding.waiting.verification',
           typicalDays: 5,

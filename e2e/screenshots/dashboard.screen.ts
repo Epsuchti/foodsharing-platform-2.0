@@ -1,4 +1,4 @@
-import { injectApiError } from '../fixtures';
+import { acceptPendingConsents, injectApiError } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { expect, forEachVariant, screenshotTest } from './_setup';
 
@@ -76,6 +76,20 @@ forEachVariant((variant) => {
       await page.goto('/dashboard');
       await expect(page.getByTestId('dashboard.activity.state')).toHaveAttribute('data-state', 'error');
       await visual.expectElement(page.getByTestId('dashboard.activity'), `dashboard-activity-error-${variant.name}`);
+    });
+  });
+
+  screenshotTest.describe(`dashboard newcomer ${variant.name}`, () => {
+    // D3 (review 2026-11-10): a newcomer gets no store wall or mailbox chip
+    screenshotTest.use({ variant, role: 'einab1' });
+
+    screenshotTest('activity feed card without store and mailbox chips @A19 @screenshot', async ({ page, apiOf, visual }) => {
+      await acceptPendingConsents(apiOf(page));
+      await page.goto('/dashboard');
+      await expect(page.getByTestId('dashboard.activity.filtersState')).toHaveAttribute('data-state', 'success');
+      await expect(page.getByTestId('dashboard.activity.filter.STORE_WALL')).toHaveCount(0);
+      await expect(page.getByTestId('dashboard.activity.state')).not.toHaveAttribute('data-state', 'loading');
+      await visual.expectElement(page.getByTestId('dashboard.activity'), `dashboard-activity-newcomer-${variant.name}`);
     });
   });
 

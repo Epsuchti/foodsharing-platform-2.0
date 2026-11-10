@@ -129,6 +129,8 @@
   "pickups.page.showMore": "Afficher {count} de plus",
   "pickups.mine.signOutLabel": "Me désinscrire : {store}, {date}",
   "pickups.options.signUpLabel": "M’inscrire : {store}, {date}",
+  "pickups.options.signedUpConfirmed": "Inscrit·e · confirmé·e",
+  "pickups.options.signedUpUnconfirmed": "Inscrit·e · pas encore confirmé·e",
   "pickups.dashboard.help": "On a bientôt besoin d’aide",
   "pickups.dashboard.helpAll": "{count, plural, one {La # collecte} other {Les # collectes}} avec des places libres",
   "pickups.eligibility.AUTOMATION_RULE": "Une règle de ce commerce empêche l’inscription.",

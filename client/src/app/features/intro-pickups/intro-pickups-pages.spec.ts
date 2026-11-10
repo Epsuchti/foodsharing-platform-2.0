@@ -6,8 +6,10 @@ import { afterEach } from 'vitest';
 
 import { BookableIntroPickup, IntroPickupCategory, Role, SessionInfo } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { canSetCounted, isOnline, isoToZonedLocal, zonedLocalToIso } from './intro-category';
+import { bookableEmptyKind } from './intro-pickups.util';
 import { BookableListPageComponent } from './pages/bookable-list-page.component';
 import { GuideDashboardPageComponent } from './pages/guide-dashboard-page.component';
 import { NewcomerFunnelPageComponent } from './pages/newcomer-funnel-page.component';
@@ -63,6 +65,29 @@ describe('intro pickup helpers', () => {
   });
 });
 
+describe('bookable list empty kind (review 2026-11-10 B1)', () => {
+  it('is null while one EinAb is bookable, none without any', () => {
+    expect(bookableEmptyKind([einab('a', true), einab('b', false, 'USER_ALREADY_BOOKED_WITH_GUIDE')])).toBeNull();
+    expect(bookableEmptyKind([])).toBe('none');
+  });
+
+  it('enough: the booking limit, or every date already booked', () => {
+    expect(bookableEmptyKind([einab('a', false, 'USER_BOOKING_LIMIT_REACHED'), einab('b', false, 'USER_ALREADY_BOOKED_WITH_GUIDE')])).toBe('enough');
+    expect(bookableEmptyKind([einab('a', false, 'USER_ALREADY_BOOKED_IN_INTRO_PICKUP')])).toBe('enough');
+  });
+
+  it('fairteiler: the next EinAb needs a Fairteiler visit first', () => {
+    expect(
+      bookableEmptyKind([einab('a', false, 'FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP'), einab('b', false, 'USER_ALREADY_BOOKED_IN_INTRO_PICKUP')]),
+    ).toBe('fairteiler');
+  });
+
+  it('noMatch: dates exist but none fits the bookings so far', () => {
+    expect(bookableEmptyKind([einab('a', false, 'USER_ALREADY_BOOKED_WITH_GUIDE'), einab('b', false, 'USER_ALREADY_BOOKED_IN_INTRO_PICKUP')])).toBe('noMatch');
+    expect(bookableEmptyKind([einab('a', false)])).toBe('noMatch');
+  });
+});
+
 describe('counted switch rule (EA18)', () => {
   it('shows the switch for DONE and CANCELLED bookings', () => {
     expect(canSetCounted({ status: 'DONE', counted: true })).toBe(true);
@@ -112,7 +137,7 @@ describe('intro pickup pages', () => {
     http.expectNone((req) => req.url.includes('/intro-pickups/bookable'));
   });
 
-  it('bookable: loading, then bookable cards and translated reasons', async () => {
+  it('bookable: loading, then only the bookable cards (B1)', async () => {
     TestBed.inject(SessionService).applySession(SESSION);
     await harness.navigateByUrl('/intro-pickups');
     expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('loading');
@@ -120,9 +145,10 @@ describe('intro pickup pages', () => {
       .expectOne((req) => req.url === `/api/regions/${REGION}/intro-pickups/bookable`)
       .flush({ items: [einab('a', true), einab('b', false, 'USER_ALREADY_BOOKED_WITH_GUIDE')], page: { page: 0, size: 100, totalItems: 2, totalPages: 1 } });
     await settle();
-    expect(qa('[data-testid="introPickups.bookable.card"]').length).toBe(2);
+    expect(qa('[data-testid="introPickups.bookable.card"]').length).toBe(1);
+    expect(q('[data-testid="introPickups.bookable.card"]')?.getAttribute('data-id')).toBe('a');
     expect(qa('[data-testid="introPickups.bookable.book"]').length).toBe(1);
-    expect(q('[data-testid="introPickups.bookable.reason"]')?.getAttribute('data-reason')).toBe('USER_ALREADY_BOOKED_WITH_GUIDE');
+    expect(q('[data-testid="introPickups.bookable.reason"]')).toBeNull();
     // S17 D5: on site or online and the city, no filters
     expect(q('[data-testid="introPickups.card.mode"]')?.textContent).toContain('common.introMode.onSite');
     expect(q('[data-testid="introPickups.card.city"]')?.textContent).toContain('Zürich');
@@ -145,6 +171,21 @@ describe('intro pickup pages', () => {
     http.expectOne((req) => req.url.endsWith('/intro-pickups/bookable')).flush({ items: [], page: { page: 0, size: 100, totalItems: 0, totalPages: 0 } });
     await settle();
     expect(q('[data-testid="introPickups.bookable.state"]')?.getAttribute('data-state')).toBe('empty');
+  });
+
+  it('bookable: nothing bookable → the empty state says why (B1)', async () => {
+    TestBed.inject(SessionService).applySession(SESSION);
+    await harness.navigateByUrl('/intro-pickups');
+    http
+      .expectOne((req) => req.url.endsWith('/intro-pickups/bookable'))
+      .flush({ items: [einab('a', false, 'USER_BOOKING_LIMIT_REACHED')], page: { page: 0, size: 100, totalItems: 1, totalPages: 1 } });
+    await settle();
+    const state = q('[data-testid="introPickups.bookable.state"]');
+    expect(state?.getAttribute('data-state')).toBe('empty');
+    expect(state?.getAttribute('data-empty-kind')).toBe('enough');
+    expect(state?.textContent).toContain('introPickups.bookable.emptyEnough');
+    expect(state?.textContent).toContain('introPickups.bookable.myBookings');
+    expect(qa('[data-testid="introPickups.bookable.card"]').length).toBe(0);
   });
 
   it('my bookings: empty state and the subscription card for newcomers', async () => {
@@ -292,6 +333,7 @@ describe('intro pickup pages', () => {
   });
 
   it('funnel: steps, names and gap severities; 403 → forbidden', async () => {
+    TestBed.inject(I18nService).useCatalog({ 'introPickups.funnel.stage.IN_PROGRESS_COUNT': 'In Einführung: {count} von {target}' }, 'de');
     const fixture = TestBed.createComponent(NewcomerFunnelPageComponent);
     fixture.componentRef.setInput('regionId', REGION);
     fixture.detectChanges();
@@ -313,7 +355,8 @@ describe('intro pickup pages', () => {
         gapHorizonDays: 28,
         steps: [
           { stage: 'REGISTERED', userCount: 1, reachedCount: 2, stalledCount: 1, users: [{ stage: 'REGISTERED', counted: 0, upcoming: 0, target: 3, stalled: true, nextStep: 'BOOK_EINAB', user: { id: 'u', displayName: 'Luca', role: Role.Foodsharer, verified: false } }] },
-          { stage: 'IN_PROGRESS', userCount: 1, reachedCount: 1, stalledCount: 0, users: [] },
+          { stage: 'IN_PROGRESS', introPickupCount: 1, userCount: 1, reachedCount: 1, stalledCount: 0, users: [] },
+          { stage: 'IN_PROGRESS', introPickupCount: 2, userCount: 0, reachedCount: 0, stalledCount: 0, users: [] },
         ],
         gaps: [
           { category: 'BAKERY', withFairteiler: false, students: 2, openSlots: 0, severity: 'MISSING' },
@@ -321,7 +364,11 @@ describe('intro pickup pages', () => {
         ],
       });
     await fixture.whenStable();
-    expect(el.querySelectorAll('[data-testid="introPickups.funnel.step"]').length).toBe(2);
+    const steps = [...el.querySelectorAll('[data-testid="introPickups.funnel.step"]')];
+    expect(steps.length).toBe(3);
+    // A5: one IN_PROGRESS step per EinAb count, labelled with the count instead of "In Einführung" twice
+    expect(steps[1].querySelector('strong')?.textContent?.trim()).toBe('In Einführung: 1 von 3');
+    expect(steps[2].querySelector('strong')?.textContent?.trim()).toBe('In Einführung: 2 von 3');
     expect(el.querySelectorAll('[data-testid="introPickups.funnel.names"]').length).toBe(1);
     expect(el.querySelector('[data-severity="MISSING"]')).not.toBeNull();
   });

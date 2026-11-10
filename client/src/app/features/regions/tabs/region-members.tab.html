@@ -1,5 +1,5 @@
 <section class="fs-card card">
-  <div class="filters">
+  <div class="filters" [class.filters--manage]="ctx.manageUsers()">
     <div class="field">
       <label for="members-search">{{ 'regions.members.search' | t }}</label>
       <input
@@ -42,6 +42,22 @@
         data-testid="regions.members.role"
       />
     </div>
+    @if (ctx.manageUsers()) {
+      <div class="field">
+        <label for="members-admin">{{ 'regions.members.adminFilter' | t }}</label>
+        <p-select
+          inputId="members-admin"
+          [options]="adminOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="admin()"
+          (ngModelChange)="setAdminFilter($event)"
+          appendTo="body"
+          [style]="{ width: '100%' }"
+          data-testid="regions.members.admin"
+        />
+      </div>
+    }
   </div>
 
   <fs-data-state
@@ -88,6 +104,13 @@
               @if (member.joinedAt) {
                 <span>{{ 'regions.members.since' | t: { date: (member.joinedAt | fsDate: 'date') } }}</span>
               }
+              @if (ctx.manageUsers()) {
+                <span data-testid="regions.members.lastPickup">{{
+                  member.lastPickupAt
+                    ? ('regions.members.lastPickup' | t: { date: (member.lastPickupAt | fsDate: 'date') })
+                    : ('regions.members.noPickup' | t)
+                }}</span>
+              }
             </div>
             <div class="member__actions">
               @if (member.user.phone) {
@@ -127,6 +150,16 @@
                   (onClick)="openRemove(member)"
                   data-testid="regions.members.removeButton"
                 />
+              }
+              @if (ctx.manageUsers()) {
+                <a
+                  class="member__open"
+                  [routerLink]="['/users', member.user.id]"
+                  [attr.aria-label]="'regions.members.open' | t: { name: member.user.displayName }"
+                  data-testid="regions.members.open"
+                >
+                  <i class="pi pi-angle-right" aria-hidden="true"></i>
+                </a>
               }
             </div>
           </li>

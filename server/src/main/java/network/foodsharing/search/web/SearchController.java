@@ -8,6 +8,7 @@ import network.foodsharing.api.model.SearchIndexData;
 import network.foodsharing.api.model.SearchIndexEntry;
 import network.foodsharing.api.model.SearchKind;
 import network.foodsharing.api.model.SearchResults;
+import network.foodsharing.common.mapper.TimeMapper;
 import network.foodsharing.search.domain.SearchHitRow;
 import network.foodsharing.search.service.SearchService;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +52,8 @@ public class SearchController implements SearchApi {
                                         network.foodsharing.search.domain.SearchKind kind) {
         return all.getOrDefault(kind, List.of()).stream().map(h -> new SearchHit().id(h.entityId())
                 .kind(SearchKind.fromValue(h.kind().name())).title(h.title()).subtitle(h.subtitle()).link(h.link())
-                .imageUrl(h.imageUrl())).toList();
+                .imageUrl(h.imageUrl())
+                .startsAt(TimeMapper.toOffset(h.startsAt()))).toList();
     }
 
     private static List<SearchIndexEntry> entries(List<SearchHitRow> hits) {

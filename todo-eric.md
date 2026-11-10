@@ -3,7 +3,7 @@
 Tasks only a person can do: decisions, accounts, money, other people. Everything an agent can do lives in `todo.md`. Details and references for most items: "Needs a human before launch" in `docs/launch-report.md`.
 
 ## Decide
-- [ ] Should verification require a confirmed identity? The server allows it without one today; the UI only nudges reviewers. If yes, it is a small change (decision 124).
+- [x] ~~Should verification require a confirmed identity? The server allows it without one today; the UI only nudges reviewers. If yes, it is a small change (decision 124).~~ Yes, no ORGA exception (decision 175).
 - [ ] Go through this list after the final gate and strike what no longer applies.
 
 ## Refactor (owner)

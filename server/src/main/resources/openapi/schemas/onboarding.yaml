@@ -65,7 +65,7 @@ JourneyStep:
     nextAction:
       $ref: './onboarding.yaml#/JourneyNextAction'
     estimatedDuration:
-      description: 'ISO-8601 duration, e.g. PT10M'
+      description: 'ISO-8601 duration, e.g. PT10M. A step with waitingFor.typicalDays shows that figure instead (one figure only).'
       type: string
     blockedReason:
       type: string

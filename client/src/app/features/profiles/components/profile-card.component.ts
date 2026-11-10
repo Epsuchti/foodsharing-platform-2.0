@@ -42,7 +42,7 @@ import { photoInSize } from '../profiles.util';
               <span><i class="pi pi-map-marker" aria-hidden="true"></i> {{ home.name }}</span>
             }
             @if (p.registeredAt) {
-              <span>{{ 'profiles.card.memberSince' | t: { date: (p.registeredAt | fsDate: 'dateLong') } }}</span>
+              <span>{{ 'profiles.card.memberSince' | t: { date: (p.registeredAt | fsDate: 'date') } }}</span>
             }
           </p>
           @if (p.permissions.mayAdminister && p.user.foodsaverNumber) {
