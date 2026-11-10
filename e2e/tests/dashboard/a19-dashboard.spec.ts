@@ -112,11 +112,13 @@ test('A19 activity feed shows mentions as names, not as raw markup (review 2026-
 
   await page.goto('/dashboard');
   await expectDataState(page, 'dashboard.activity.state', 'success');
-  const mention = items(page, 'FORUM').filter({ hasText: 'übernimmt den Montag' });
-  while ((await mention.count()) === 0 && (await page.getByTestId('dashboard.activity.loadMore').count()) > 0) {
+  const position = excerpts.indexOf('Merci! @Jonas Weber übernimmt den Montag.');
+  // the card shows 10 items per page: load more until the post is on screen
+  for (let shown = 10; shown <= position; shown += 10) {
+    await expect(items(page)).toHaveCount(shown);
     await page.getByTestId('dashboard.activity.loadMore').click();
-    await expectDataState(page, 'dashboard.activity.state', 'success');
   }
+  const mention = items(page, 'FORUM').filter({ hasText: 'übernimmt den Montag' });
   await expect(mention.first()).toContainText('Merci! @Jonas Weber übernimmt den Montag.');
   await expect(page.getByTestId('dashboard.activity.list')).not.toContainText('(user:');
 });
