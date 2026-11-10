@@ -3,7 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Drawer } from '@openng/optimus-ui/drawer';
 
 import { TPipe } from '../core/i18n/t.pipe';
-import { StartupService } from '../core/startup/startup.service';
+import { LazyCodeService } from '../core/startup/lazy-code.service';
 import { NavContextService } from './nav-context.service';
 import { SidenavSection, sidenavSections } from './nav.config';
 
@@ -31,7 +31,7 @@ import { SidenavSection, sidenavSections } from './nav.config';
     </button>
 
     <!-- not part of the start-up bundle (D11.5.3): the drawer's code loads after the first page, it renders on the first tap -->
-    @defer (on interaction(menuTrigger); prefetch when startup.pageShown()) {
+    @defer (on interaction(menuTrigger); prefetch when drawerCode()) {
       <p-drawer
         [visible]="menuOpen()"
         (visibleChange)="menuOpen.set($event)"
@@ -133,7 +133,8 @@ import { SidenavSection, sidenavSections } from './nav.config';
   `,
 })
 export class VisitorMenuComponent {
-  protected readonly startup = inject(StartupService);
+  /** The drawer code, loaded after the first page while online and retried offline (LazyCodeService, no NG0750). */
+  protected readonly drawerCode = inject(LazyCodeService).ready('drawer', () => import('@openng/optimus-ui/drawer'));
   private readonly nav = inject(NavContextService);
 
   protected readonly menuOpen = signal(false);
