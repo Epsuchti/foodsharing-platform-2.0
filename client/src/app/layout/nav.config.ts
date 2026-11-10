@@ -1,4 +1,4 @@
-import { FeatureToggleKey, NavCapability, Role, SessionInfo } from '../api';
+import { FeatureToggleKey, JourneyStepKey, NavCapability, Role, SessionInfo, UnitType } from '../api';
 import { homeRegion } from '../core/auth/permission.util';
 
 /** What a nav item's `visible` sees. */
@@ -170,6 +170,28 @@ const onboardingOpen = (ctx: NavContext) =>
   ctx.isAuthenticated && ctx.session?.onboarding?.complete === false;
 const canGuide = (ctx: NavContext) =>
   ctx.isAuthenticated && hasPermissionAnywhere(ctx, 'CAN_GIVE_INTRO_PICKUPS');
+/**
+ * Review 2026-11-10 F3 (decision 176 amendment): items a user only sees when the page can hold something for them.
+ * Active member of any region or working group (SessionInfo.units): event invitations and polls come from units.
+ */
+const memberOfAnyUnit = (ctx: NavContext) => (ctx.session?.units ?? []).some((unit) => unit.member);
+/** Active member of a region (not a working group): intro pickups are booked in a region (BookingRules NOT_REGION_MEMBER). */
+const memberOfRegion = (ctx: NavContext) =>
+  (ctx.session?.units ?? []).some((unit) => unit.member && unit.type !== UnitType.WorkingGroup);
+/** Journey steps before INTRO_PICKUPS: while one of them is current, the intro pickup step is still locked. */
+const BEFORE_INTRO_PICKUPS: readonly string[] = [
+  JourneyStepKey.Account,
+  JourneyStepKey.ProfileRegion,
+  JourneyStepKey.Learn,
+  JourneyStepKey.Quiz,
+  JourneyStepKey.Agreement,
+];
+/** Newcomer whose journey reached the intro pickups (current step INTRO_PICKUPS or later) in a region they belong to. */
+const introPickupsOpen = (ctx: NavContext) =>
+  ctx.isAuthenticated &&
+  ctx.session?.user?.verified === false &&
+  memberOfRegion(ctx) &&
+  !BEFORE_INTRO_PICKUPS.includes(ctx.session?.onboarding?.currentStep ?? JourneyStepKey.Account);
 /** M3: pickups for verified foodsavers and above (unverified users cannot sign up, A19). */
 const pickupsVisible = (ctx: NavContext) =>
   ctx.isAuthenticated && ctx.hasRole(Role.Foodsaver) && !!ctx.session?.user?.verified;
@@ -283,8 +305,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.introPickups',
     icon: 'pi pi-users',
     route: '/me/intro-pickups',
-    // newcomers only: verified foodsavers are done with intro pickups (guides have their own item)
-    visible: when('introPickups', (ctx) => ctx.isAuthenticated && ctx.session?.user?.verified === false),
+    // newcomers only: verified foodsavers are done with intro pickups (guides have their own item); F3: once the
+    // journey reached the step, in a region of their own
+    visible: when('introPickups', introPickupsOpen),
   },
   {
     id: 'guide',
@@ -504,7 +527,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.events',
     icon: 'pi pi-calendar',
     route: '/events/mine',
-    visible: loggedIn,
+    // F3: /events/mine lists invitations, which come from the user's regions and groups
+    visible: (ctx) => loggedIn(ctx) && memberOfAnyUnit(ctx),
   },
   {
     id: 'polls',
@@ -514,7 +538,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.polls',
     icon: 'pi pi-chart-bar',
     route: '/polls/mine',
-    visible: loggedIn,
+    // F3: /polls/mine lists running polls of the user's units they may vote in; every poll scope needs FOODSAVER
+    visible: (ctx) => loggedIn(ctx) && ctx.hasRole(Role.Foodsaver) && memberOfAnyUnit(ctx),
   },
   {
     id: 'surveys',
