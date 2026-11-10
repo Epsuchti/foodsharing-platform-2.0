@@ -6,46 +6,54 @@ import { DEFAULT_TIME_ZONE } from './time-zone';
 
 export { DEFAULT_TIME_ZONE } from './time-zone';
 
-export type DateStyle =
-  | 'date'
-  | 'dateLong'
-  | 'time'
-  | 'dateTime'
-  | 'dateTimeLong'
-  | 'weekday'
-  | 'weekdayShort'
-  | 'dayNumber'
-  | 'monthShort'
-  | 'dayShort'
-  | 'relative';
+/**
+ * `date` "10.11.2026", `time` "18:30" and `dateTime` "10.11.2026, 18:30": one fixed numeric pattern, the same in every
+ * UI language (D6). The tile styles `weekdayShort` / `dayNumber` / `monthShort` ("Do" / "5" / "Nov.") are only for
+ * graphic date tiles; `relative` ("vor 5 Min.") always comes with the full `dateTime` as a tooltip.
+ */
+export type DateStyle = 'date' | 'time' | 'dateTime' | 'weekdayShort' | 'dayNumber' | 'monthShort' | 'relative';
 
-const FORMATS: Record<Exclude<DateStyle, 'relative'>, Intl.DateTimeFormatOptions> = {
-  date: { day: '2-digit', month: '2-digit', year: 'numeric' },
-  dateLong: { day: 'numeric', month: 'long', year: 'numeric' },
-  time: { hour: '2-digit', minute: '2-digit' },
-  dateTime: {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  },
-  dateTimeLong: {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  },
-  weekday: { weekday: 'long', day: 'numeric', month: 'long' },
-  /** Date tile of a pickup day card: "Do" / "5" / "Nov". */
+type NumericStyle = 'date' | 'time' | 'dateTime';
+
+/** Tile styles: localized names, only for the graphic date tiles ("Do" / "5" / "Nov."). */
+const TILE_FORMATS: Record<Exclude<DateStyle, NumericStyle | 'relative'>, Intl.DateTimeFormatOptions> = {
   weekdayShort: { weekday: 'short' },
   dayNumber: { day: 'numeric' },
   monthShort: { month: 'short' },
-  /** Short day in a sentence or chat name: "Do., 5.11.". */
-  dayShort: { weekday: 'short', day: 'numeric', month: 'numeric' },
 };
+
+/** A calendar date without time and zone (`yyyy-MM-dd`): shown as that day in every time zone. */
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+const NUMERIC_CACHE = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * The fixed numeric pattern of an instant in a time zone: `dd.MM.yyyy`, `HH:mm` (24 h) or `dd.MM.yyyy, HH:mm`,
+ * independent of the language. Built from `formatToParts`, so no locale adds a weekday, slash or missing comma.
+ */
+export function formatNumeric(date: Date, style: NumericStyle, timeZone = DEFAULT_TIME_ZONE): string {
+  let format = NUMERIC_CACHE.get(timeZone);
+  if (!format) {
+    format = new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      numberingSystem: 'latn',
+    });
+    NUMERIC_CACHE.set(timeZone, format);
+  }
+  const parts: Partial<Record<Intl.DateTimeFormatPartTypes, string>> = {};
+  for (const part of format.formatToParts(date)) {
+    parts[part.type] = part.value;
+  }
+  const day = `${parts.day}.${parts.month}.${parts.year}`;
+  const time = `${parts.hour}:${parts.minute}`;
+  return style === 'date' ? day : style === 'time' ? time : `${day}, ${time}`;
+}
 
 const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['year', 365 * 24 * 3600],
@@ -57,7 +65,10 @@ const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['second', 1],
 ];
 
-/** Locale- and time-zone-aware date formatting (locale from the UI language: de/gws → de-CH, …). */
+/**
+ * Time-zone-aware date formatting (D6): numeric styles use one fixed pattern for every language, the tile and relative
+ * styles the UI locale (de/gws → de-CH, …).
+ */
 @Injectable({ providedIn: 'root' })
 export class DateTimeFormatter {
   private readonly i18n = inject(I18nService);
@@ -72,9 +83,20 @@ export class DateTimeFormatter {
     if (value === null || value === undefined || value === '') {
       return '';
     }
-    const date = value instanceof Date ? value : new Date(value);
+    let date: Date;
+    const isoDate = typeof value === 'string' ? ISO_DATE.exec(value) : null;
+    if (isoDate) {
+      // a calendar date: noon UTC, shown in UTC, so no time zone moves it to the day before or after
+      date = new Date(Date.UTC(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]), 12));
+      timeZone = 'UTC';
+    } else {
+      date = value instanceof Date ? value : new Date(value);
+    }
     if (Number.isNaN(date.getTime())) {
       return '';
+    }
+    if (style === 'date' || style === 'time' || style === 'dateTime') {
+      return formatNumeric(date, style, timeZone);
     }
     const locale = this.i18n.locale();
     if (style === 'relative') {
@@ -83,7 +105,7 @@ export class DateTimeFormatter {
     const key = `${locale}|${style}|${timeZone}`;
     let formatter = this.cache.get(key);
     if (!formatter) {
-      formatter = new Intl.DateTimeFormat(locale, { ...FORMATS[style], timeZone });
+      formatter = new Intl.DateTimeFormat(locale, { ...TILE_FORMATS[style], timeZone });
       this.cache.set(key, formatter);
     }
     return formatter.format(date);
