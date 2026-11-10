@@ -1105,9 +1105,9 @@
 <ellipse fill="none" stroke="#000000" cx="2032.804" cy="-12035.4004" rx="3.2" ry="3.2"/>
 </g>
 <!-- pickup_policy_linked_store -->
-<g id="node112" class="node">
+<g id="node111" class="node">
 <title>pickup_policy_linked_store</title>
-<g id="a_node112"><a xlink:href="../../tables/pickup_policy_linked_store.html" xlink:title="pickup_policy_linked_store" target="_top">
+<g id="a_node111"><a xlink:href="../../tables/pickup_policy_linked_store.html" xlink:title="pickup_policy_linked_store" target="_top">
 <polygon fill="#ffffff" stroke="transparent" points="1754,-12235.2 1754,-12362.2 1987,-12362.2 1987,-12235.2 1754,-12235.2"/>
 <polygon fill="#f5f5f5" stroke="transparent" points="1754.5,-12338.7 1754.5,-12361.7 1987.5,-12361.7 1987.5,-12338.7 1754.5,-12338.7"/>
 <polygon fill="none" stroke="#000000" points="1754.5,-12338.7 1754.5,-12361.7 1987.5,-12361.7 1987.5,-12338.7 1754.5,-12338.7"/>
@@ -5367,10 +5367,17 @@
 </a>
 </g>
 </g>
+<!-- pickup_policy_linked_store&#45;&gt;pickup_policy -->
+<g id="edge107" class="edge">
+<title>pickup_policy_linked_store:w&#45;&gt;pickup_policy:e</title>
+<path fill="none" stroke="#000000" d="M1739.983,-12305.7C1699.2883,-12305.7 1684.0204,-12305.7 1637,-12305.7"/>
+<polygon fill="#000000" stroke="#000000" points="1746.5,-12305.7001 1754.5,-12309.3 1750.5,-12305.7 1754.5,-12305.7 1754.5,-12305.7 1754.5,-12305.7 1750.5,-12305.7 1754.5,-12302.1 1746.5,-12305.7001 1746.5,-12305.7001"/>
+<ellipse fill="none" stroke="#000000" cx="1743.3" cy="-12305.7001" rx="3.2" ry="3.2"/>
+</g>
 <!-- pickup_extra_slot -->
-<g id="node111" class="node">
+<g id="node112" class="node">
 <title>pickup_extra_slot</title>
-<g id="a_node111"><a xlink:href="../../tables/pickup_extra_slot.html" xlink:title="pickup_extra_slot" target="_top">
+<g id="a_node112"><a xlink:href="../../tables/pickup_extra_slot.html" xlink:title="pickup_extra_slot" target="_top">
 <polygon fill="#ffffff" stroke="transparent" points="1440.5,-11275.2 1440.5,-11446.2 1607.5,-11446.2 1607.5,-11275.2 1440.5,-11275.2"/>
 <polygon fill="#f5f5f5" stroke="transparent" points="1441,-11422.7 1441,-11445.7 1608,-11445.7 1608,-11422.7 1441,-11422.7"/>
 <polygon fill="none" stroke="#000000" points="1441,-11422.7 1441,-11445.7 1608,-11445.7 1608,-11422.7 1441,-11422.7"/>
@@ -5413,13 +5420,6 @@
 <path fill="none" stroke="#000000" d="M1426.5709,-11366.771C1376.7617,-11359.9188 1369.9809,-11316.0473 1343,-11264.7 1310.5735,-11202.9891 1348.2117,-10957.7 1278.5,-10957.7"/>
 <polygon fill="#000000" stroke="#000000" points="1433.0165,-11367.1859 1440.7687,-11371.2926 1437.0083,-11367.443 1441,-11367.7 1441,-11367.7 1441,-11367.7 1437.0083,-11367.443 1441.2313,-11364.1074 1433.0165,-11367.1859 1433.0165,-11367.1859"/>
 <ellipse fill="none" stroke="#000000" cx="1429.8231" cy="-11366.9803" rx="3.2" ry="3.2"/>
-</g>
-<!-- pickup_policy_linked_store&#45;&gt;pickup_policy -->
-<g id="edge107" class="edge">
-<title>pickup_policy_linked_store:w&#45;&gt;pickup_policy:e</title>
-<path fill="none" stroke="#000000" d="M1739.983,-12305.7C1699.2883,-12305.7 1684.0204,-12305.7 1637,-12305.7"/>
-<polygon fill="#000000" stroke="#000000" points="1746.5,-12305.7001 1754.5,-12309.3 1750.5,-12305.7 1754.5,-12305.7 1754.5,-12305.7 1754.5,-12305.7 1750.5,-12305.7 1754.5,-12302.1 1746.5,-12305.7001 1746.5,-12305.7001"/>
-<ellipse fill="none" stroke="#000000" cx="1743.3" cy="-12305.7001" rx="3.2" ry="3.2"/>
 </g>
 <!-- survey_answer -->
 <g id="node113" class="node">
