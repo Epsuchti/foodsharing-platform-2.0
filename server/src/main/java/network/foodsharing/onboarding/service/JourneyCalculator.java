@@ -122,7 +122,8 @@ public final class JourneyCalculator {
         main.add(Draft.of(JourneyStepKey.ACCOUNT, true, JourneyStepStatus.DONE, null, "PT2M"));
         main.add(profile(in));
         main.add(learn(in));
-        main.add(quiz(in));
+        Draft quiz = quiz(in);
+        main.add(quiz);
         main.add(Draft.of(JourneyStepKey.AGREEMENT, in.agreementAccepted(), JourneyStepStatus.AVAILABLE,
                 new Action("onboarding.action.acceptAgreement", "/legal/LEGAL_AGREEMENT"), "PT5M"));
         Draft introPickups = introPickups(in);
@@ -168,7 +169,7 @@ public final class JourneyCalculator {
         steps.add(passport.view(statuses.get(passport)));
         List<StepView> extraViews = extras.stream()
                 .map(d -> d.view(statuses.get(d))).toList();
-        return new JourneyView(current == null, current, steps, in.region(), extraViews, tracks(in));
+        return new JourneyView(current == null, current, steps, in.region(), extraViews, tracks(in, quiz.done()));
     }
 
     private static Draft profile(Inputs in) {
@@ -262,13 +263,21 @@ public final class JourneyCalculator {
         return draft.details(Map.of("fairteilerRequired", s.fairteilerRequired(), "stalled", s.stalled()));
     }
 
-    private static List<Track> tracks(Inputs in) {
+    /**
+     * Additional tracks the user can work on now or has done (review 2026-11-10, D3/Q5a): tracks whose step is LOCKED
+     * are left out, and HYGIENE only appears once the foodsaver quiz step is done ({@code quizDone}). Exception: a
+     * LOCKED step with progress (Q4 GUIDE below the pickup threshold) stays, since the user works towards it with every
+     * pickup. The quiz rules themselves are unchanged.
+     */
+    private static List<Track> tracks(Inputs in, boolean quizDone) {
         User user = in.user();
         TrackInputs t = in.tracks();
         List<Track> tracks = new ArrayList<>();
         boolean hygieneDone = t.hygiene() != null && t.hygiene().passValid();
-        tracks.add(track("HYGIENE", hygieneDone ? JourneyStepStatus.DONE : JourneyStepStatus.AVAILABLE,
-                new Action("onboarding.action.startQuiz", "/quizzes/HYGIENE"), "PT20M"));
+        if (quizDone) {
+            tracks.add(track("HYGIENE", hygieneDone ? JourneyStepStatus.DONE : JourneyStepStatus.AVAILABLE,
+                    new Action("onboarding.action.startQuiz", "/quizzes/HYGIENE"), "PT20M"));
+        }
         JourneyStepStatus store = PermissionService.isAtLeast(user.getRole(), Role.STORE_MANAGER)
                 ? JourneyStepStatus.DONE : user.isVerified() ? quizStatus(t.storeManager()) : JourneyStepStatus.LOCKED;
         tracks.add(track("STORE_MANAGER", store, new Action("onboarding.action.startQuiz", "/quizzes/STORE_MANAGER"),
@@ -279,7 +288,9 @@ public final class JourneyCalculator {
                 ? quizStatus(t.ambassador()) : JourneyStepStatus.LOCKED;
         tracks.add(track("AMBASSADOR", ambassador, new Action("onboarding.action.startQuiz", "/quizzes/AMBASSADOR"),
                 "PT45M"));
-        return tracks;
+        return tracks.stream()
+                .filter(track -> track.steps().getFirst().status() != JourneyStepStatus.LOCKED
+                        || track.steps().getFirst().progress() != null).toList();
     }
 
     /**
