@@ -17,12 +17,13 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { mapViewQuery } from '../../../shared/map-view/map-view-query';
-import {
+// types only here: MapViewComponent is used in the inner @defer alone, so its chunk stays lazy
+import type {
   MapFocus,
   MapMarker,
   MapMarkerKind as ViewKind,
-  MapViewComponent,
 } from '../../../shared/map-view/map-view.component';
+import { MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { LandingMarkersResource } from '../landing-markers.resource';
 
 /** The marker kinds of `/` and how MapView draws them (FSP: the accent pin with `pi-box`, decision 160 O1). */
