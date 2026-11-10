@@ -16,12 +16,13 @@ test('AD1 R8 the ambassador searches and filters the members of the home region,
   await expect(page).toHaveURL(new RegExp(`/regions/${ZURICH}/members$`));
   await expectDataState(page, 'regions.members.list', 'success');
   // the users page extras for people who manage members
-  await chooseOption(page, 'regions.members.admin', 'Nur Botschafter:innen');
+  // bot@local uses Swiss German (Nur Botschafter*inne)
+  await chooseOption(page, 'regions.members.admin', /^Nur Botschafter/);
   await expectDataState(page, 'regions.members.list', 'success');
   const ambassadors = page.getByTestId('regions.members.member');
   await expect(ambassadors.first()).toBeVisible();
   expect(await ambassadors.count()).toBe(await page.getByTestId('regions.members.adminTag').count());
-  await chooseOption(page, 'regions.members.admin', 'Alle');
+  await chooseOption(page, 'regions.members.admin', /^All[ei]$/);
 
   await page.getByTestId('regions.members.search').fill('Bernasconi');
   await expect(page.getByTestId('regions.members.member')).toHaveCount(1);
