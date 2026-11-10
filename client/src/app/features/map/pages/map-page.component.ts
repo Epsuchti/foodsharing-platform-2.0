@@ -648,7 +648,7 @@ export class MapPageComponent {
         const params = piece.date ? { ...piece.params, date: this.dates.format(piece.date, 'dateTime') } : piece.params;
         return this.i18n.t(piece.key, params);
       }
-      return this.dates.format(piece.date, 'dateTimeLong');
+      return this.dates.format(piece.date, 'dateTime');
     };
     return { ...view, subtitle: view.subtitle ? render(view.subtitle) : null, lines: view.lines.map(render) };
   });

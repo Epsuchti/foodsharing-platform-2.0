@@ -8,6 +8,7 @@ import {
   SignoutAlertChannel,
   SignoutAlertSetting,
 } from '../../api';
+import { formatNumeric } from '../../core/dates/date-time.pipe';
 
 /** Placeholders of open-slot advert messages (server `AdvertTemplates.VARIABLES`). */
 export const ADVERT_PLACEHOLDERS = ['date', 'dateDe', 'weekday', 'time', 'datetime', 'datetimeDe', 'storeName', 'freeSlots', 'link'] as const;
@@ -56,9 +57,10 @@ export function advertValues(
 ): Record<string, string | number> {
   const at = new Date(pickupAt);
   const fmt = (lc: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(lc, { timeZone, ...opts }).format(at);
-  const date = fmt(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const dateDe = fmt('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const time = fmt('de-CH', { hour: '2-digit', minute: '2-digit' });
+  // dates in the one numeric pattern (D6); the weekday stays a name, it is a placeholder of the advert text
+  const date = formatNumeric(at, 'date', timeZone);
+  const dateDe = date;
+  const time = formatNumeric(at, 'time', timeZone);
   return {
     date,
     dateDe,

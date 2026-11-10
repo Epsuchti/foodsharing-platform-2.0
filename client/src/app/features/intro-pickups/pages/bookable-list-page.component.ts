@@ -193,7 +193,7 @@ export class BookableListPageComponent {
   }
 
   protected dateOf(iso: string): string {
-    return this.dates.format(iso, 'dateTimeLong', this.context.timeZone());
+    return this.dates.format(iso, 'dateTime', this.context.timeZone());
   }
 
   protected askBook(einab: BookableIntroPickup): void {

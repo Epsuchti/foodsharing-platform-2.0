@@ -55,10 +55,10 @@ test('AU1 a rule-breaking sign-up is refused up front: rules card, Gesperrt chip
   await openBlocked(page, S06_B);
   const reason = page.locator('[data-testid="pickups.blocked.reason"][data-rule="GAP"]');
   await expect(reason).toHaveCount(1);
-  // the own data (sleepy uses Italian): the gap, the close pickup on Friday 6.11. and the next possible day, Saturday 14.11.
+  // the own data (sleepy uses Italian, dates in the one numeric format D6): the gap, the close pickup on Friday 6.11. and the next possible day, Saturday 14.11.
   await expect(reason).toContainText('3 giorni');
-  await expect(reason).toContainText('6 novembre');
-  await expect(reason).toContainText('14 novembre');
+  await expect(reason).toContainText('06.11.2026');
+  await expect(reason).toContainText('14.11.2026');
   await expect(reason).not.toContainText('pickups.blocked');
   await expect(page.getByTestId('pickups.blocked.seeRules')).toBeVisible();
   await page.getByTestId('pickups.blocked.action').click();

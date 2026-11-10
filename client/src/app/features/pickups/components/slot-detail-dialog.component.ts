@@ -41,7 +41,7 @@ interface DetailParams {
       [draggable]="false"
       [dismissableMask]="true"
       [closeAriaLabel]="'common.close' | t"
-      [header]="pickupAt() | fsDate: 'dateTimeLong' : timeZone()"
+      [header]="pickupAt() | fsDate: 'dateTime' : timeZone()"
       [style]="{ width: 'min(28rem, 94vw)' }"
       [focusOnShow]="!focusConfirm()"
       (onShow)="shown.emit()"
@@ -119,7 +119,7 @@ interface DetailParams {
                     <ul>
                       @for (at of d.upcomingSlots; track at) {
                         <li [class.this]="at === pickupAt()" data-testid="stores.pickups.slotDetail.upcomingItem">
-                          {{ at | fsDate: 'dateTimeLong' : timeZone() }}
+                          {{ at | fsDate: 'dateTime' : timeZone() }}
                           @if (at === pickupAt()) {
                             – {{ 'pickups.slotDetail.thisOne' | t }}
                           }

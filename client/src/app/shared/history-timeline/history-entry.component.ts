@@ -118,7 +118,7 @@ import { HistoryLabeler, historyVisual } from './history-labels';
       <dl class="he__details" [id]="detailsId" [attr.data-testid]="testId() + '.detailsPanel'">
         <div>
           <dt>{{ 'shared.historyTimeline.detail.when' | t }}</dt>
-          <dd>{{ entry().occurredAt | fsDate: 'dateTimeLong' }}</dd>
+          <dd>{{ entry().occurredAt | fsDate: 'dateTime' }}</dd>
         </div>
         <div>
           <dt>{{ 'shared.historyTimeline.detail.action' | t }}</dt>

@@ -39,7 +39,7 @@ import { SignupTarget } from './signup-dialog.component';
       @if (target(); as t) {
         <p class="when" data-testid="pickups.blocked.when">
           <strong>{{ t.storeName }}</strong><br />
-          {{ t.pickupAt | fsDate: 'dateTimeLong' : t.timeZone }}
+          {{ t.pickupAt | fsDate: 'dateTime' : t.timeZone }}
         </p>
         <fs-data-state [state]="eligibility" skeleton="inline" testId="pickups.blocked.state" data-testid="pickups.blocked.state">
           <ng-template [fsData]="eligibility" let-e>

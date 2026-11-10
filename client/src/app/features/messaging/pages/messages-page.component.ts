@@ -99,7 +99,7 @@ import { MessagingStore } from '../messaging.resource';
                     </span>
                     <span class="item__meta">
                       @if (c.lastMessageAt) {
-                        <time [attr.datetime]="c.lastMessageAt">{{ c.lastMessageAt | fsDate: 'relative' }}</time>
+                        <time [attr.datetime]="c.lastMessageAt" [title]="c.lastMessageAt | fsDate: 'dateTime'">{{ c.lastMessageAt | fsDate: 'relative' }}</time>
                       }
                       @if (c.unreadCount > 0) {
                         <span class="badge" data-testid="messaging.list.unread" [attr.aria-label]="'messaging.unread' | t: { count: c.unreadCount }">{{ c.unreadCount }}</span>

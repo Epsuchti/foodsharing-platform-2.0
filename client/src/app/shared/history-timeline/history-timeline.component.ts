@@ -273,7 +273,6 @@ export class HistoryTimelineComponent implements OnInit {
     const items = this.state.data()?.items ?? [];
     const today = dayKey(new Date());
     const yesterday = dayKey(new Date(Date.now() - 24 * 3600 * 1000));
-    const thisYear = today.slice(0, 4);
     const groups: HistoryDayGroup[] = [];
     for (const entry of items) {
       const key = dayKey(entry.occurredAt);
@@ -285,10 +284,7 @@ export class HistoryTimelineComponent implements OnInit {
         } else if (key === yesterday) {
           label = this.i18n.t('shared.historyTimeline.yesterday');
         } else {
-          label = this.dates.format(
-            entry.occurredAt,
-            key.startsWith(thisYear) ? 'weekday' : 'dateLong',
-          );
+          label = this.dates.format(entry.occurredAt, 'date');
         }
         group = { key, label, entries: [] };
         groups.push(group);

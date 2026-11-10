@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 
+import { DateTimeFormatter } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { GapDayResult, fromIsoDate, gapPreview, joinAll } from '../automation.util';
@@ -97,6 +98,7 @@ let nextId = 0;
 })
 export class GapPreviewComponent {
   private readonly i18n = inject(I18nService);
+  private readonly dates = inject(DateTimeFormatter);
 
   /** Example pickup `yyyy-MM-dd`. */
   readonly pickup = input.required<string>();
@@ -131,7 +133,7 @@ export class GapPreviewComponent {
   });
 
   protected long(day: string): string {
-    return new Intl.DateTimeFormat(this.i18n.locale(), { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(fromIsoDate(day));
+    return this.dates.format(day, 'date');
   }
 
   protected weekday(day: string): string {

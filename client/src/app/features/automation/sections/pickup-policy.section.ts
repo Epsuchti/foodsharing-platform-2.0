@@ -833,7 +833,7 @@ export class PickupPolicySection {
       name: this.i18n.t('automation.policy.previewName'),
       storeName: this.ctx.store.data()?.name ?? '',
       linkedStoreName: linked.join(', '),
-      pickupDate: new Intl.DateTimeFormat(this.i18n.locale(), { dateStyle: 'medium' }).format(new Date()),
+      pickupDate: this.dates.format(new Date(), 'date', this.ctx.timeZone() ?? undefined),
       graceMinutes: rule.graceMinutes,
       requirement: this.i18n.t('automation.policy.previewRequirement'),
     };

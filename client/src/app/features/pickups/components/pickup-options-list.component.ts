@@ -47,7 +47,7 @@ export const OPTIONS_PAGE = 10;
               <li class="fs-card option" data-testid="pickups.options.option" [attr.data-store]="option.store.name" [attr.data-pickup-at]="option.pickupAt">
                 <div class="option__main">
                   <a class="option__store" [routerLink]="['/stores', option.store.id, 'pickups']">{{ option.store.name }}</a>
-                  <span class="option__when">{{ option.pickupAt | fsDate: 'dateTimeLong' }}</span>
+                  <span class="option__when">{{ option.pickupAt | fsDate: 'dateTime' }}</span>
                   @if (option.description) {
                     <span class="muted">{{ option.description }}</span>
                   }
