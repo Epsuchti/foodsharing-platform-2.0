@@ -69,26 +69,6 @@ forEachVariant((variant) => {
       });
 
       screenshotTest(`offline shell ${variant.name} @AU12 @screenshot`, async ({ page, context, visual }) => {
-        // TEMPORARY diagnosis of the offline toast (removed in the next commit): log what reaches the error handler
-        const diag: string[] = [];
-        page.on('console', (m) => {
-          if (m.type() === 'error' && !m.text().includes('WebSocket')) diag.push(`console: ${m.text().slice(0, 1500)}`);
-        });
-        page.on('pageerror', (e) => diag.push(`pageerror: ${e.message} | ${(e.stack ?? '').slice(0, 1500)}`));
-        page.on('requestfailed', (r) => diag.push(`requestfailed: ${r.method()} ${r.url()} ${r.failure()?.errorText}`));
-        await page.exposeFunction('__fsDiag', (text: string) => diag.push(`handler: ${text}`));
-        await page.addInitScript(() => {
-          const original = console.error.bind(console);
-          console.error = (...args: unknown[]) => {
-            const e = args[0] as { name?: string; message?: string; stack?: string } | undefined;
-            if (e && typeof e === 'object' && 'message' in e) {
-              (window as unknown as { __fsDiag: (t: string) => void }).__fsDiag(
-                `${e.name}: ${e.message} | ${(e.stack ?? '').slice(0, 1500)}`,
-              );
-            }
-            original(...args);
-          };
-        });
         await page.goto('/dashboard');
         await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
         // Go offline only after the dashboard's data has loaded (decision 125): otherwise a slow activity feed (seen
@@ -97,11 +77,7 @@ forEachVariant((variant) => {
         await context.setOffline(true);
         await expect(page.getByTestId('shell.offlineBanner')).toBeVisible();
         await tabBarInFlow(page);
-        try {
-          await visual.expectScreen(page, `offline-${variant.name}`);
-        } finally {
-          console.log(`FSDIAG offline ${variant.name}:\n${diag.join('\n') || '(nothing)'}`);
-        }
+        await visual.expectScreen(page, `offline-${variant.name}`);
         await context.setOffline(false);
       });
     });
