@@ -325,15 +325,16 @@ test.describe('C17 phone map', () => {
     const frame = (await map.locator('.leaflet-container').boundingBox())!;
     const center = await map.getAttribute('data-center');
     const before = await page.evaluate(() => window.scrollY);
-    // a real one-finger swipe up (trusted touch input through the compositor)
+    // a real one-finger swipe up: trusted touch events (the page gets touchstart/move/end, Leaflet sees them too).
+    // Not Input.synthesizeScrollGesture: on headless Linux (CI) it does not scroll at all, not even off the map.
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.synthesizeScrollGesture', {
-      x: Math.round(frame.x + frame.width / 2),
-      y: Math.round(frame.y + frame.height * 0.75),
-      yDistance: -200,
-      gestureSourceType: 'touch',
-      speed: 600,
-    });
+    const x = Math.round(frame.x + frame.width / 2);
+    const y = Math.round(frame.y + frame.height * 0.75);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let step = 1; step <= 10; step++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - step * 20 }] });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 100);
     await expect(map).toHaveAttribute('data-center', center!);
   });
