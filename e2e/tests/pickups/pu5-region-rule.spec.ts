@@ -15,7 +15,9 @@ test('PU5 third pickup within 7 days refused; allowed within 24 h of pickup @PU5
   // decision 167 S2: a free place the person cannot take is a "Gesperrt" chip; its dialog says why
   await openBlocked(page, S04_SATURDAY);
   await expect(page.locator('[data-testid="shared.eligibility.reason"][data-reason="REGION_RULE_TIMESPAN_LIMIT"]')).toBeVisible();
-  await expect(page.getByTestId('shared.eligibility.rule')).toBeVisible();
+  // review fix A3: one plain line per limit
+  await expect(page.getByTestId('shared.eligibility.ruleTimespan')).toContainText('höchstens 2 Abholungen innerhalb von 7 Tagen vor oder nach diesem Termin');
+  await expect(page.getByTestId('shared.eligibility.ruleDay')).toContainText('Höchstens 1 pro Tag.');
   await expect(page.getByTestId('pickups.blocked.signUp')).toHaveCount(0);
 
   // on Saturday morning (< 24 h before the pickup) the rule no longer applies
