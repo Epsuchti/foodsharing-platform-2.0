@@ -128,6 +128,9 @@ test('EA8 newbie becomes a verified foodsaver with passport through every journe
   await openQueue(bot);
   const card = queueCard(bot, NEWBIE_ID);
   await expect(card.getByTestId('verification.queue.introPickups')).toHaveText(/^(\d+) \/ \1$/);
+  // changed on purpose (C1): the ID check comes first, verifying needs a confirmed identity
+  await card.getByTestId('verification.queue.confirmIdentity').click();
+  await expect(card.getByTestId('verification.queue.identityTag')).toBeVisible();
   await card.getByTestId('verification.queue.verify').click();
   await confirmMessage(bot, 'verification.verifyDialog', 'Willkommen, Lea!');
   await expect(card.getByTestId('verification.queue.verifiedTag')).toBeVisible();

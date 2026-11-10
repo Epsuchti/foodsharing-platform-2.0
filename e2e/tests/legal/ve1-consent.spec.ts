@@ -49,7 +49,6 @@ test('Ve1 first login shows privacy consent and stores version @Ve1 @page', asyn
   await page.goBack();
 
   await doc.locator('[data-testid^="legal.consent.check."] input').check();
-  await page.getByTestId('legal.consent.phoneInput').fill('0791112233');
   await page.getByTestId('legal.consent.submit').click();
   await expect(page).toHaveURL(/\/dashboard$/);
 
@@ -86,6 +85,8 @@ test('Ve1 publishing a new version with reconsent re-prompts @Ve1', async ({ as,
   const doc = page.locator('[data-testid="legal.consent.document"][data-kind="PRIVACY_POLICY"]');
   await expect(doc).toContainText('2026-11');
   await expect(page.getByTestId('legal.consent.phone')).toHaveCount(0);
+  // A6: an earlier version was accepted, so the page talks about a changed document
+  await expect(page.locator('fs-page-header .ph__subtitle')).toContainText('geänderte Dokumente');
   await doc.locator('[data-testid^="legal.consent.check."] input').check();
   await page.getByTestId('legal.consent.submit').click();
   await expect(page).toHaveURL(/\/me\/activity$/);
@@ -157,7 +158,6 @@ test('Ve1 outdated version is refused @Ve1', async ({ as, apiOf, api }) => {
 
   // accepting the version on screen fails: the user stays on the consent page with an error
   await doc.locator('[data-testid^="legal.consent.check."] input').check();
-  await page.getByTestId('legal.consent.phoneInput').fill('079 111 22 44');
   await page.getByTestId('legal.consent.submit').click();
   await expect(page.getByTestId('shell.toast').locator('.p-toast-message').first()).toBeVisible();
   await expect(page).toHaveURL(/\/consent/);
