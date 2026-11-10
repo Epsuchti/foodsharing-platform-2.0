@@ -283,7 +283,7 @@ export class MyBookingsPageComponent {
       header: this.i18n.t('introPickups.my.cancelTitle'),
       message: this.i18n.t('introPickups.my.cancelText', {
         category: this.i18n.t('common.introCategory.' + booking.introPickup.category),
-        date: this.dates.format(booking.introPickup.startAt, 'dateTimeLong', this.context.timeZone()),
+        date: this.dates.format(booking.introPickup.startAt, 'dateTime', this.context.timeZone()),
       }),
       acceptLabel: this.i18n.t('introPickups.my.cancel'),
       rejectLabel: this.i18n.t('common.back'),

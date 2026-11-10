@@ -33,7 +33,7 @@ export function bellTitleKey(bell: Bell): string {
       <span class="bell-item__icon" aria-hidden="true"><i [class]="icon()"></i></span>
       <span class="bell-item__text">
         <span class="bell-item__title" [attr.data-testid]="testId() + '.title'">{{ titleKey() | t: bell().params }}</span>
-        <span class="bell-item__date">{{ bell().createdAt | fsDate: 'relative' }}</span>
+        <time class="bell-item__date" [attr.datetime]="bell().createdAt" [title]="bell().createdAt | fsDate: 'dateTime'">{{ bell().createdAt | fsDate: 'relative' }}</time>
       </span>
       @if (!bell().readAt) {
         <span class="bell-item__dot" role="img" [attr.aria-label]="'bell.ui.unread' | t"></span>

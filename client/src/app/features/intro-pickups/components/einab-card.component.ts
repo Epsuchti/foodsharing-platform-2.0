@@ -43,7 +43,7 @@ export interface EinAbCardData {
         } @else {
           <strong data-testid="introPickups.card.mode">{{ (einab().online ? 'common.introMode.online' : 'common.introMode.onSite') | t }}</strong>
         }
-        <span class="muted" data-testid="introPickups.card.date">{{ einab().startAt | fsDate: 'dateTimeLong' : timeZone() }}</span>
+        <span class="muted" data-testid="introPickups.card.date">{{ einab().startAt | fsDate: 'dateTime' : timeZone() }}</span>
       </span>
     </div>
     <div class="einab__meta">

@@ -79,7 +79,7 @@ interface FeedEntry {
                         {{ author.displayName }}
                       </span>
                     }
-                    <time [attr.datetime]="entry.item.at">{{ entry.item.at | fsDate: 'relative' }}</time>
+                    <time [attr.datetime]="entry.item.at" [title]="entry.item.at | fsDate: 'dateTime'">{{ entry.item.at | fsDate: 'relative' }}</time>
                   </p>
                 </div>
               </li>

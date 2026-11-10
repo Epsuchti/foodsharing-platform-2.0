@@ -123,7 +123,7 @@ import { highlight } from '../forum.resource';
                   <span class="thread__meta">
                     {{ 'forum.posts' | t: { count: t.postCount } }}
                     @if (t.lastPost; as last) {
-                      · {{ last.author?.displayName }} · <time [attr.datetime]="last.at">{{ last.at | fsDate: 'relative' }}</time>
+                      · {{ last.author?.displayName }} · <time [attr.datetime]="last.at" [title]="last.at | fsDate: 'dateTime'">{{ last.at | fsDate: 'relative' }}</time>
                     }
                   </span>
                 </a>

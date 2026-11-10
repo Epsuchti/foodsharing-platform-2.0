@@ -64,7 +64,7 @@ export function nextShifts(shifts: readonly CleaningShift[], now: number, count 
           <div class="days" data-testid="fsp.cleaningCard.list">
             @for (group of days(); track group.day) {
               <div class="day" data-testid="fsp.cleaningCard.day" [attr.data-day]="group.day">
-                <h3 class="day__title">{{ group.items[0].shiftAt | fsDate: 'weekday' : tz() }}</h3>
+                <h3 class="day__title">{{ group.items[0].shiftAt | fsDate: 'date' : tz() }}</h3>
                 @for (shift of group.items; track shift.shiftAt) {
                   <div class="shift" data-testid="fsp.cleaningCard.shift" [attr.data-shift-at]="shift.shiftAt">
                     <span class="shift__time">{{ shift.shiftAt | fsDate: 'time' : tz() }}</span>
@@ -110,7 +110,7 @@ export function nextShifts(shifts: readonly CleaningShift[], now: number, count 
       data-testid="fsp.cleaningCard.signupDialog"
     >
       @if (signupTarget(); as s) {
-        <p class="when">{{ s.shiftAt | fsDate: 'dateTimeLong' : tz() }}</p>
+        <p class="when">{{ s.shiftAt | fsDate: 'dateTime' : tz() }}</p>
         @if (s.description) {
           <p class="muted">{{ s.description }}</p>
         }

@@ -11,7 +11,7 @@
       <dl class="profile__facts">
         <div>
           <dt>{{ 'account.profile.memberSince' | t }}</dt>
-          <dd>{{ user.registeredAt | fsDate: 'dateLong' }}</dd>
+          <dd>{{ user.registeredAt | fsDate: 'date' }}</dd>
         </div>
         @if (user.lastLoginAt) {
           <div>

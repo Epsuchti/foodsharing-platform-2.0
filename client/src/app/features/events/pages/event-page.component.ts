@@ -63,7 +63,7 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
         <section class="facts fs-card">
           <p class="when" data-testid="events.event.when">
             <i class="pi pi-clock" aria-hidden="true"></i>
-            <time [attr.datetime]="e.startsAt">{{ e.startsAt | fsDate: 'dateTimeLong' }}</time> –
+            <time [attr.datetime]="e.startsAt">{{ e.startsAt | fsDate: 'dateTime' }}</time> –
             <time [attr.datetime]="e.endsAt">{{ e.endsAt | fsDate: (sameDay(e) ? 'time' : 'dateTime') }}</time>
           </p>
           <p><i class="pi pi-tag" aria-hidden="true"></i> {{ 'events.type.' + e.type | t }} @if (e.public) {· <span data-testid="events.event.public">{{ 'events.public' | t }}</span>}</p>
@@ -149,7 +149,7 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
               <li data-testid="events.wall.post" [attr.data-post-id]="p.id">
                 <div class="wall__head">
                   <fs-user-chip [name]="p.author.displayName" [userId]="p.author.id" [avatarUrl]="p.author.avatarUrl" />
-                  <time class="muted" [attr.datetime]="p.createdAt">{{ p.createdAt | fsDate: 'relative' }}</time>
+                  <time class="muted" [attr.datetime]="p.createdAt" [title]="p.createdAt | fsDate: 'dateTime'">{{ p.createdAt | fsDate: 'relative' }}</time>
                   @if (p.mayDelete) {
                     <p-button icon="pi pi-trash" severity="danger" [text]="true" [ariaLabel]="'events.wall.delete' | t" (onClick)="removePost.run(p.id)" data-testid="events.wall.delete" />
                   }

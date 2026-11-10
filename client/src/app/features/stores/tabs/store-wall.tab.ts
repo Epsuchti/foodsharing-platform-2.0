@@ -90,13 +90,13 @@ const MILESTONE_ICONS: Record<WallMilestone, string> = {
                   <span class="milestone__icon"><i [class]="icon(item.milestone)" aria-hidden="true"></i></span>
                   <div class="milestone__body">
                     <strong>{{ 'stores.wall.milestone.' + item.milestone | t }}</strong>
-                    <span class="muted">{{ item.createdAt | fsDate: 'dateLong' : ctx.timeZone() }}</span>
+                    <span class="muted">{{ item.createdAt | fsDate: 'date' : ctx.timeZone() }}</span>
                     @if (milestoneText(item); as body) {
                       <p class="post__text" data-testid="stores.wall.milestoneText">
                         @if ('key' in body) {
                           {{ body.key | t }}
                         } @else if ('date' in body) {
-                          {{ body.date | fsDate: 'dateLong' : 'UTC' }}
+                          {{ body.date | fsDate: 'date' : 'UTC' }}
                         } @else {
                           {{ body.text }}
                         }

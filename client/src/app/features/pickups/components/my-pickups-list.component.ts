@@ -54,7 +54,7 @@ export const MY_PICKUPS_PAGE = 5;
                 <li class="fs-card item" data-testid="pickups.mine.pickup" [attr.data-store]="pickup.store.name" [attr.data-confirmed]="pickup.confirmed">
                   <div class="item__main">
                     <a class="item__store" [routerLink]="['/stores', pickup.store.id, 'pickups']">{{ pickup.store.name }}</a>
-                    <span class="item__when">{{ pickup.pickupAt | fsDate: 'dateTimeLong' }}</span>
+                    <span class="item__when">{{ pickup.pickupAt | fsDate: 'dateTime' }}</span>
                     @if (pickup.confirmed) {
                       <span class="state state--ok" data-testid="pickups.mine.confirmed"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'pickups.mine.confirmed' | t }}</span>
                     } @else {
@@ -77,7 +77,7 @@ export const MY_PICKUPS_PAGE = 5;
                   <div class="item__main">
                     <a class="item__store" [routerLink]="['/food-share-points', shift.fsp.id, 'cleaning']">{{ shift.fsp.name }}</a>
                     <span class="kind"><i class="pi pi-sparkles" aria-hidden="true"></i>{{ 'pickups.cleaning.label' | t }}</span>
-                    <span class="item__when">{{ shift.shiftAt | fsDate: 'dateTimeLong' }}</span>
+                    <span class="item__when">{{ shift.shiftAt | fsDate: 'dateTime' }}</span>
                     @if (shift.confirmed) {
                       <span class="state state--ok"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'pickups.mine.confirmed' | t }}</span>
                     } @else {

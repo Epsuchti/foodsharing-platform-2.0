@@ -152,7 +152,7 @@ interface DayGroup {
             </div>
           }
           @for (group of days(); track group.day) {
-            <div class="day" role="separator">{{ group.messages[0].sentAt | fsDate: 'dateLong' }}</div>
+            <div class="day" role="separator">{{ group.messages[0].sentAt | fsDate: 'date' }}</div>
             @for (m of group.messages; track m.id) {
               @let own = m.senderId === me();
               @let system = !m.senderId;
@@ -201,7 +201,7 @@ interface DayGroup {
                     </span>
                   }
                   <span class="bubble__time">
-                    <time [attr.datetime]="m.sentAt">{{ m.sentAt | fsDate: 'time' }}</time>
+                    <time [attr.datetime]="m.sentAt" [title]="m.sentAt | fsDate: 'dateTime'">{{ m.sentAt | fsDate: 'time' }}</time>
                     @if (m.editedAt && !deleted) {
                       @let editedLabel = 'messaging.message.editedAt' | t: { date: (m.editedAt | fsDate: 'dateTime') };
                       <span class="bubble__edited" [attr.title]="editedLabel" [attr.aria-label]="editedLabel" data-testid="messaging.conversation.edited">
