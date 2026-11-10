@@ -12,8 +12,7 @@ import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
 import { BellStore } from '../features/bells/bells.resource';
 import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
-import { OnlineStatusService } from '../core/online/online-status.service';
-import { StartupService } from '../core/startup/startup.service';
+import { LazyCodeService } from '../core/startup/lazy-code.service';
 
 /** User menu items the drawer shows directly under the profile block. */
 const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
@@ -63,7 +62,7 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
     </nav>
 
     <!-- the menu drawer is not part of the start-up bundle (D11.5.3): its code loads after the first page, it renders on the first tap -->
-    @defer (on interaction(menuTrigger); prefetch when startup.pageShown() && connection.online()) {
+    @defer (on interaction(menuTrigger); prefetch when drawerCode()) {
     <p-drawer
       [visible]="menuOpen()"
       (visibleChange)="menuOpen.set($event)"
@@ -332,9 +331,8 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
   `,
 })
 export class MobileTabBarComponent {
-  protected readonly startup = inject(StartupService);
-  /** Prefetch only online (LazyPopover): an offline prefetch fails for good and reports NG0750. */
-  protected readonly connection = inject(OnlineStatusService);
+  /** The drawer code, loaded after the first page while online and retried offline (LazyCodeService, no NG0750). */
+  protected readonly drawerCode = inject(LazyCodeService).ready('drawer', () => import('@openng/optimus-ui/drawer'));
   protected readonly nav = inject(NavContextService);
   protected readonly session = inject(SessionService);
   protected readonly i18n = inject(I18nService);
