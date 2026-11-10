@@ -22,6 +22,7 @@ import {
   splitHeaderNav,
   visibleNavItems,
 } from './nav.config';
+import { LEGAL_ROUTES } from '../features/legal/legal.routes';
 import { ShellComponent, TOAST_BREAKPOINTS, chromeOf } from './shell.component';
 
 @Component({
@@ -415,6 +416,13 @@ describe('nav.config', () => {
     };
     expect(chromeOf(snapshot as never)).toBe('minimal');
     expect(chromeOf(null)).toBe('full');
+  });
+
+  it('shows the consent wall with minimal chrome (D3)', () => {
+    const consent = LEGAL_ROUTES.find((route) => route.path === 'consent')!;
+    expect(chromeOf({ data: {}, firstChild: { data: consent.data, firstChild: null } } as never)).toBe('minimal');
+    const document = LEGAL_ROUTES.find((route) => route.path === 'legal/:kind')!;
+    expect(chromeOf({ data: {}, firstChild: { data: document.data ?? {}, firstChild: null } } as never)).toBe('full');
   });
 });
 

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { forkJoin, map, of } from 'rxjs';
 
-import { MessagingService, PickupsService, Role, StoresService } from '../../../api';
+import { MessagingService, Role, StoresService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
@@ -10,9 +10,9 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { WaitingRow, waitingRows } from '../dashboard.util';
 
 /**
- * Home card "Waiting for you" (owner feedback 2026-11-04): store invitations, unread conversations, own unconfirmed
- * pickups and own pending applications, each a link with its count (existing endpoints only). Stores and pickups
- * only for verified foodsavers; hidden when every count is 0. The two warning rows wait on the team.
+ * Home card "Waiting for you" (owner feedback 2026-11-04): store invitations and unread conversations, each a link
+ * with its count (existing endpoints only). Only things the user can act on (review 2026-11-10, D4). Store
+ * invitations only for verified foodsavers; hidden when every count is 0.
  */
 @Component({
   selector: 'fs-waiting-card',
@@ -27,10 +27,10 @@ import { WaitingRow, waitingRows } from '../dashboard.util';
             <ul class="wait">
               @for (row of asRows(list); track row.id) {
                 <li>
-                  <a class="wait__row" [routerLink]="row.link" [fragment]="row.fragment" [attr.data-testid]="'dashboard.waiting.' + row.id" [attr.data-count]="row.count">
-                    <span class="wait__icon" [class.wait__icon--warn]="row.warn" aria-hidden="true"><i [class]="row.icon"></i></span>
+                  <a class="wait__row" [routerLink]="row.link" [attr.data-testid]="'dashboard.waiting.' + row.id" [attr.data-count]="row.count">
+                    <span class="wait__icon" aria-hidden="true"><i [class]="row.icon"></i></span>
                     <span class="wait__text">{{ 'dashboard.waiting.' + row.id | t: { count: row.count } }}</span>
-                    <span class="wait__count" [class.wait__count--warn]="row.warn">{{ row.count }}</span>
+                    <span class="wait__count">{{ row.count }}</span>
                     <i class="pi pi-chevron-right wait__chev" aria-hidden="true"></i>
                   </a>
                 </li>
@@ -54,24 +54,21 @@ import { WaitingRow, waitingRows } from '../dashboard.util';
       display: grid; flex: none; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: var(--fs-radius-sm);
       background: var(--fs-primary-soft); color: var(--fs-primary-strong);
     }
-    .wait__icon--warn { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
     .wait__text { flex: 1; min-width: 0; font-weight: 600; }
     .wait__count {
       display: inline-grid; place-items: center; min-width: 1.5rem; height: 1.5rem; padding: 0 0.4rem; border-radius: 999px;
       background: var(--fs-primary); color: var(--fs-on-primary); font-size: 0.8rem; font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
-    .wait__count--warn { background: var(--fs-warning); color: var(--fs-on-warning); }
     .wait__chev { color: var(--fs-text-muted); font-size: 0.8rem; }
   `,
 })
 export class WaitingCardComponent {
   private readonly stores = inject(StoresService);
   private readonly messaging = inject(MessagingService);
-  private readonly pickups = inject(PickupsService);
   private readonly session = inject(SessionService);
 
-  /** Stores and pickups follow the pickups navigation rule (verified foodsavers). */
+  /** Store invitations follow the pickups navigation rule (verified foodsavers). */
   private readonly storeRows = computed(() => this.session.hasRole(Role.Foodsaver) && !!this.session.user()?.verified);
 
   protected readonly rows = loadResource<WaitingRow[], boolean>({
@@ -80,10 +77,7 @@ export class WaitingCardComponent {
       forkJoin([
         withStores ? this.stores.listMyStores({ excludeInactive: true }) : of(null),
         this.messaging.getConversationUnreadCount(),
-        withStores ? this.pickups.listMyPickups() : of(null),
-      ]).pipe(
-        map(([stores, unread, pickups]) => waitingRows({ stores, unreadConversations: unread.conversations, pickups })),
-      ),
+      ]).pipe(map(([stores, unread]) => waitingRows({ stores, unreadConversations: unread.conversations }))),
     isEmpty: (rows) => rows.length === 0,
   });
 

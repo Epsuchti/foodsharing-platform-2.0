@@ -24,7 +24,12 @@ test.describe('jumper', () => {
 
     const vohdin = member.getByTestId('stores.mine.store').first();
     await expect(vohdin.getByTestId('stores.mine.nextPickup')).toContainText(/\d/);
-    await expect(vohdin.locator('fs-free-slot-dot .dot')).toHaveAttribute('aria-label', /\d/);
+    // D5 (review 2026-11-10): free slots as a text chip on its own line; GREEN (all covered) shows nothing
+    const chip = vohdin.getByTestId('stores.mine.freeSlots');
+    const status = await chip.getAttribute('data-status');
+    expect(status).toMatch(/^(GREEN|YELLOW|ORANGE|RED)$/);
+    if (status === 'GREEN') await expect(chip).toBeHidden();
+    else await expect(chip).toContainText(/\d/);
     // owner feedback 2026-11-04 (#11): active stores carry no cooperation or team badge; only inactive stores keep
     // their cooperation badge with "show inactive" (no seed user is in an inactive store: unit spec stores-pages)
     await expect(page.locator('fs-cooperation-status-badge, fs-team-status-badge')).toHaveCount(0);

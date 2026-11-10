@@ -29,7 +29,9 @@ test('A19 home cards link to their pages and help signs up inline @A19 @PU7', as
   const waiting = page.getByTestId('dashboard.waiting');
   await expectDataState(page, 'dashboard.waiting.state', 'success');
   await expect(waiting.getByTestId('dashboard.waiting.unread')).toHaveAttribute('data-count', '2');
-  await expect(waiting.getByTestId('dashboard.waiting.unconfirmed')).toHaveAttribute('href', '/pickups#mine');
+  // D4 (review 2026-11-10): the seed's unconfirmed pickup waits on the team, so it is no row
+  await expect(waiting.getByTestId('dashboard.waiting.unconfirmed')).toHaveCount(0);
+  await expect(waiting.getByTestId('dashboard.waiting.applications')).toHaveCount(0);
 
   const help = await reveal(page, 'help');
   await expectDataState(page, 'dashboard.help.state', 'success');

@@ -273,16 +273,41 @@ class JourneyCalculatorTest {
         JourneyView journey = c.compute();
         assertThat(journey.extraSteps().getFirst().status()).isEqualTo(JourneyStepStatus.DONE);
         assertThat(journey.currentStep()).isEqualTo("PASSPORT");
+        // review 2026-11-10 (D3): the AMBASSADOR track is LOCKED for a foodsharer and left out
         assertThat(journey.tracks()).extracting(JourneyCalculator.Track::key)
-                .containsExactly("HYGIENE", "STORE_MANAGER", "GUIDE", "AMBASSADOR");
+                .containsExactly("HYGIENE", "STORE_MANAGER", "GUIDE");
         assertThat(journey.tracks().get(0).steps().getFirst().status()).isEqualTo(JourneyStepStatus.DONE);
         assertThat(journey.tracks().get(1).steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
         // Q4: 30 of 25 pickups, the EinAb guide quiz is open
         assertThat(journey.tracks().get(2).steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
-        assertThat(journey.tracks().get(3).steps().getFirst().status()).isEqualTo(JourneyStepStatus.LOCKED);
-        JourneyView newcomer = new Case().compute();
-        assertThat(newcomer.tracks().get(1).steps().getFirst().status()).isEqualTo(JourneyStepStatus.LOCKED);
-        assertThat(newcomer.tracks().get(0).steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
+    }
+
+    @Test
+    void lockedTracksAreLeftOut() {
+        // a fresh account: STORE_MANAGER, GUIDE and AMBASSADOR are locked, the quiz step is open
+        assertThat(new Case().compute().tracks()).isEmpty();
+        // a verified foodsaver: AMBASSADOR is locked; GUIDE below the pickup threshold stays with its progress (Q4)
+        Case c = new Case().profile().learned().quizPassed().agreed().verified();
+        c.user.setRole(Role.FOODSAVER);
+        c.einabs(Stage.VERIFIED, NextStep.DONE, 3, 0);
+        c.tracks = new TrackInputs(null, null, null, false, null, 7, 25, List.of());
+        assertThat(c.compute().tracks()).extracting(JourneyCalculator.Track::key)
+                .containsExactly("HYGIENE", "STORE_MANAGER", "GUIDE");
+    }
+
+    @Test
+    void hygieneTrackOnlyAfterTheQuizStep() {
+        Case before = new Case().profile().learned().agreed();
+        assertThat(before.compute().tracks()).extracting(JourneyCalculator.Track::key).doesNotContain("HYGIENE");
+        Case after = new Case().profile().learned().quizPassed();
+        JourneyView journey = after.compute();
+        assertThat(journey.tracks()).extracting(JourneyCalculator.Track::key).containsExactly("HYGIENE");
+        assertThat(journey.tracks().getFirst().steps().getFirst().status()).isEqualTo(JourneyStepStatus.AVAILABLE);
+        assertThat(journey.tracks().getFirst().steps().getFirst().nextAction().route()).isEqualTo("/quizzes/HYGIENE");
+        // a foodsaver by role has the quiz step done as well
+        Case foodsaver = new Case().profile();
+        foodsaver.user.setRole(Role.FOODSAVER);
+        assertThat(foodsaver.compute().tracks()).extracting(JourneyCalculator.Track::key).contains("HYGIENE");
     }
 
     // ------------------------------------------------------------------------------------- Q4 GUIDE track
@@ -291,6 +316,11 @@ class JourneyCalculatorTest {
         c.tracks = tracks;
         return c.compute().tracks().stream().filter(t -> t.key().equals("GUIDE")).findFirst().orElseThrow()
                 .steps().getFirst();
+    }
+
+    private static boolean hasGuideTrack(Case c, TrackInputs tracks) {
+        c.tracks = tracks;
+        return c.compute().tracks().stream().anyMatch(t -> t.key().equals("GUIDE"));
     }
 
     private static Case verifiedFoodsaver() {
@@ -308,10 +338,9 @@ class JourneyCalculatorTest {
     }
 
     @Test
-    void guideTrackIsLockedWhenUnverified() {
-        StepView step = guide(new Case().profile(), new TrackInputs(null, null, null, false, null, 40, 25, List.of()));
-        assertThat(step.status()).isEqualTo(JourneyStepStatus.LOCKED);
-        assertThat(step.blockedReason()).isNull();
+    void guideTrackIsLockedAndLeftOutWhenUnverified() {
+        assertThat(hasGuideTrack(new Case().profile(), new TrackInputs(null, null, null, false, null, 40, 25,
+                List.of()))).isFalse();
     }
 
     @Test

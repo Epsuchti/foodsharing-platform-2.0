@@ -23,6 +23,14 @@ forEachVariant((variant) => {
         await visual.expectScreen(page, `region-overview-${variant.name}`);
       });
 
+      screenshotTest('region members without admin extras @R8 @screenshot', async ({ page, visual }) => {
+        // D1: plain members see the list without the ambassador filter, last pickup and admin link
+        await page.goto(`/regions/${ZURICH}/members`);
+        await expect(page.getByTestId('regions.members.list')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('regions.members.admin')).toHaveCount(0);
+        await visual.expectScreen(page, `region-members-member-${variant.name}`);
+      });
+
       screenshotTest('region statistics @R13 @screenshot', async ({ page, visual }) => {
         await page.goto(`/regions/${ZURICH}/statistics`);
         await expect(page.getByTestId('regions.statistics.gender')).toBeVisible();
@@ -83,9 +91,11 @@ forEachVariant((variant) => {
     screenshotTest.describe('ambassador', () => {
       screenshotTest.use({ variant, role: 'bot' });
 
-      screenshotTest('region members @R8 @screenshot', async ({ page, visual }) => {
+      screenshotTest('region members with admin extras @R8 @AD1 @screenshot', async ({ page, visual }) => {
+        // D1: the ambassador gets the ambassador filter, the last pickup and the admin link (former users page)
         await page.goto(`/regions/${ZURICH}/members`);
         await expect(page.getByTestId('regions.members.list')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('regions.members.admin')).toBeVisible();
         await visual.expectScreen(page, `region-members-${variant.name}`);
       });
 
@@ -99,12 +109,6 @@ forEachVariant((variant) => {
         await page.goto(`/groups/${PR_GROUP}`);
         await expect(page.getByTestId('regions.group.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `group-admin-${variant.name}`);
-      });
-
-      screenshotTest('user management @AD1 @screenshot', async ({ page, visual }) => {
-        await page.goto(`/regions/${ZURICH}/users`);
-        await expect(page.getByTestId('usersAdmin.list.state')).toHaveAttribute('data-state', 'success');
-        await visual.expectScreen(page, `users-list-${variant.name}`);
       });
 
       screenshotTest('user admin page @AD1 @screenshot', async ({ page, visual }) => {

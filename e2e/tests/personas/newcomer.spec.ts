@@ -30,6 +30,10 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/consent(\?|$)/);
     await expectDataState(page, 'legal.consent.documents', 'success');
+    // D3 (review 2026-11-10): no menu behind the consent wall
+    await expect(page.locator('fs-shell[data-chrome="minimal"]')).toBeVisible();
+    await expect(page.getByTestId('nav.dashboard')).toHaveCount(0);
+    await expect(page.getByTestId('nav.tab.dashboard')).toHaveCount(0);
     const checks = page.locator('[data-testid^="legal.consent.check."] input');
     const count = await checks.count();
     expect(count).toBeGreaterThan(0);
@@ -40,6 +44,11 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
 
   await walk.step('follows "your next step" to profile and region', async () => {
     await page.goto('/dashboard');
+    // D3: no chips for store walls or mailboxes a newcomer cannot use
+    await expectDataState(page, 'dashboard.activity.filtersState', 'success');
+    await expect(page.getByTestId('dashboard.activity.filter.FORUM')).toBeVisible();
+    await expect(page.getByTestId('dashboard.activity.filter.STORE_WALL')).toHaveCount(0);
+    await expect(page.getByTestId('dashboard.activity.filter.MAILBOX')).toHaveCount(0);
     await expect(page.getByTestId('dashboard.page.nextStep')).toHaveAttribute('data-journey-step', 'PROFILE_REGION');
     await walk.click(page.getByTestId('dashboard.page.nextStepAction'));
     await expect(page).toHaveURL(/\/onboarding\/profile$/);
@@ -53,6 +62,8 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
     await expect(page).toHaveURL(/\/onboarding$/);
     await expect(page.getByTestId('onboarding.journey.stepper.step.PROFILE_REGION')).toHaveAttribute('data-status', 'DONE');
     await expect(page.getByTestId('onboarding.journey.current')).toHaveAttribute('data-step', 'LEARN');
+    // D3: before the quiz step no further tracks (all locked, hygiene comes after the quiz)
+    await expect(page.getByTestId('onboarding.journey.track')).toHaveCount(0);
   });
 
   await walk.step('reads every learning chapter', async () => {
@@ -116,6 +127,9 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
     await walk.click(page.getByTestId('quiz.results.toJourney'));
     await expect(page).toHaveURL(/\/onboarding$/);
     await expect(page.getByTestId('onboarding.journey.current')).toHaveAttribute('data-step', 'INTRO_PICKUPS');
+    // D3: with the quiz step done the hygiene track shows; the locked ones stay hidden
+    await expect(page.getByTestId('onboarding.journey.track')).toHaveCount(1);
+    await expect(page.locator('[data-testid="onboarding.journey.track"][data-track="HYGIENE"]')).toBeVisible();
     await walk.click(page.getByTestId('onboarding.journey.cta'));
     await expect(page).toHaveURL(/\/intro-pickups$/);
     await expect(page.getByTestId('introPickups.bookable.state')).toHaveAttribute('data-state', 'success');

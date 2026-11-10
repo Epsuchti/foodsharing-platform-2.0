@@ -1,5 +1,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
@@ -9,8 +11,11 @@ import { SessionService } from '../../core/auth/session.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { sessionInfo } from '../auth/testing';
 import { BouncedUsersPageComponent } from './pages/bounced-users-page.component';
-import { RegionUsersPageComponent } from './pages/region-users-page.component';
 import { UserAdminPageComponent } from './pages/user-admin-page.component';
+import { USERS_ADMIN_ROUTES } from './users-admin.routes';
+
+@Component({ template: '<p>page</p>', changeDetection: ChangeDetectionStrategy.OnPush })
+class StubPageComponent {}
 
 const REGION_ID = '00000000-0000-4000-8000-000000000101';
 const USER_ID = '00000001-0001-4000-8000-000000000006';
@@ -38,7 +43,10 @@ describe('users admin pages', () => {
       providers: [
         ...provideDataStateTesting({
           routes: [
-            { path: 'regions/:regionId/users', component: RegionUsersPageComponent },
+            // the real redirect of users-admin.routes.ts
+            USERS_ADMIN_ROUTES.find((route) => route.path === 'regions/:regionId/users')!,
+            { path: 'regions/:regionId/members', component: StubPageComponent },
+            { path: 'find-region', component: StubPageComponent },
             { path: 'users/:userId', component: UserAdminPageComponent },
             { path: 'admin/bounced-emails', component: BouncedUsersPageComponent },
           ],
@@ -52,41 +60,20 @@ describe('users admin pages', () => {
 
   afterEach(() => http.verify({ ignoreCancelled: true }));
 
-  it('user list: filters go to the members endpoint and reset the page', async () => {
+  it('old user list URL redirects to the Members tab, home resolved (D1)', async () => {
     await harness.navigateByUrl(`/regions/${REGION_ID}/users`);
-    http
-      .expectOne(`/api/regions/${REGION_ID}`)
-      .flush({ id: REGION_ID, name: 'Zürich', membership: { member: true, admin: true, homeRegion: true } });
-    await settle();
-    const first = http.expectOne((req) => req.url === `/api/regions/${REGION_ID}/members`);
-    expect(first.request.params.get('verified')).toBeNull();
-    first.flush({
-      items: [{ user: { id: USER_ID, displayName: 'Sarah', role: Role.Foodsaver, verified: false }, admin: false, verified: false, permissions: [] }],
-      page: { page: 0, size: 25, totalItems: 1, totalPages: 1 },
-    });
-    await settle();
-    expect(q('[data-testid="usersAdmin.list.row"] a')?.getAttribute('href')).toBe(`/users/${USER_ID}`);
+    expect(TestBed.inject(Router).url).toBe(`/regions/${REGION_ID}/members`);
 
-    const page = harness.routeDebugElement!.componentInstance as {
-      setFilter<T>(filter: { set(value: T): void }, value: T): void;
-      verified: { set(value: string): void };
-    };
-    page.setFilter(page.verified, 'no');
-    await settle();
-    const filtered = http.expectOne((req) => req.url === `/api/regions/${REGION_ID}/members`);
-    expect(filtered.request.params.get('verified')).toBe('false');
-    expect(filtered.request.params.get('page')).toBe('0');
-    filtered.flush({ items: [], page: { page: 0, size: 25, totalItems: 0, totalPages: 0 } });
-  });
+    TestBed.inject(SessionService).applySession({
+      ...sessionInfo(),
+      units: [{ id: REGION_ID, name: 'Zürich', type: 'CITY', member: true, admin: false, homeRegion: true }],
+    } as never);
+    await harness.navigateByUrl('/regions/home/users');
+    expect(TestBed.inject(Router).url).toBe(`/regions/${REGION_ID}/members`);
 
-  it('user list: members without user management get the forbidden state, no member request', async () => {
-    await harness.navigateByUrl(`/regions/${REGION_ID}/users`);
-    http
-      .expectOne(`/api/regions/${REGION_ID}`)
-      .flush({ id: REGION_ID, name: 'Zürich', membership: { member: true, admin: false, homeRegion: true } });
-    await settle();
-    http.expectNone((req) => req.url === `/api/regions/${REGION_ID}/members`);
-    expect(q('[data-testid="usersAdmin.list.state"]')?.getAttribute('data-state')).toBe('forbidden');
+    TestBed.inject(SessionService).applySession(sessionInfo());
+    await harness.navigateByUrl('/regions/home/users');
+    expect(TestBed.inject(Router).url).toBe('/find-region');
   });
 
   /** Opens the user page and answers profile, internal notes and history. */

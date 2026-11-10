@@ -38,5 +38,7 @@ test('D4.3 foodsaver has no Verwalten, ambassador manages users and newsletters 
   await ambassador.setViewportSize(DESKTOP);
   await ambassador.goto('/dashboard');
   await expect(ambassador.getByTestId('nav.dashboard')).toBeVisible();
-  expect(await sectionItems(ambassador, 'manage')).toEqual(expect.arrayContaining(['newcomers', 'verification', 'users', 'newsletters', 'storeChains']));
+  expect(await sectionItems(ambassador, 'manage')).toEqual(expect.arrayContaining(['newcomers', 'verification', 'newsletters', 'storeChains']));
+  // D1 (review 2026-11-10): the members list is the region's Members tab, not a menu item
+  expect(await sectionItems(ambassador, 'manage')).not.toContain('users');
 });

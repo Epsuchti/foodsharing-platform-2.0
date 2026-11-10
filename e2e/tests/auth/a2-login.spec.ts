@@ -1,4 +1,4 @@
-import { addVirtualAuthenticator, expect, test } from '../../fixtures';
+import { acceptPendingConsents, addVirtualAuthenticator, expect, test } from '../../fixtures';
 import {
   loginWithSwitcher,
   logoutWithMenu,
@@ -102,7 +102,9 @@ test('A2 passkey registration and login @A2 @D8.3 @chromium-only', async ({ page
 test.describe('logged in as newbie', () => {
   test.use({ role: 'newbie' });
 
-  test('A2 session refresh after role change @A2', async ({ page, dev }) => {
+  test('A2 session refresh after role change @A2', async ({ page, dev, apiOf }) => {
+    // newbie@local has a pending consent; /consent has no user menu since D3 (minimal chrome), so consent first
+    await acceptPendingConsents(apiOf(page));
     await page.clock.install();
     await page.goto('/dashboard');
     await page.getByTestId('shell.userMenu').click();
