@@ -28,7 +28,7 @@ public class ExplainerService {
 
     static final List<StepPreview> PREVIEW = List.of(
             preview(JourneyStepKey.ACCOUNT, "PT2M"), preview(JourneyStepKey.PROFILE_REGION, "PT5M"),
-            preview(JourneyStepKey.LEARN, "PT20M"), preview(JourneyStepKey.QUIZ, "PT30M"),
+            preview(JourneyStepKey.LEARN, "PT45M"), preview(JourneyStepKey.QUIZ, "PT30M"),
             preview(JourneyStepKey.AGREEMENT, "PT5M"), preview(JourneyStepKey.INTRO_PICKUPS, null),
             preview(JourneyStepKey.ID_CHECK, null), preview(JourneyStepKey.PASSPORT, "PT2M"));
 

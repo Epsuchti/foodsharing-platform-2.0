@@ -104,6 +104,42 @@ class ConverterTest(unittest.TestCase):
         self.assertIn("*Original im foodsharing-Wiki: [Verhaltensregeln]"
                       "(https://wiki.foodsharing.network/wiki/Verhaltensregeln)*", body)
 
+    def test_summaries_must_be_plain_text(self):
+        self.assertEqual(gen.summary_problems("Wofür foodsharing steht."), [])
+        for broken in ('<a id="x"></a>Text', "Siehe [Wiki](https://x)", "Änderungen(https://drive.google.com/x)",
+                       "Gültig ab 2020\\", "**fett**", ""):
+            self.assertTrue(gen.summary_problems(broken), broken)
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "summaries.json")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write('{"principles": {"de": "a", "en": "b", "gws": "c", "fr": "d", "it": "Siehe [x](y)"}}')
+            with self.assertRaises(gen.ConversionError) as raised:
+                gen.read_summaries(["principles"], path)
+            self.assertIn("principles/it", str(raised.exception))
+            with self.assertRaises(gen.ConversionError):
+                gen.read_summaries(["code-of-conduct"], path)
+
+    def test_the_summaries_file_covers_every_chapter(self):
+        keys = [key for name, key, *_ in gen.CHAPTERS if key != "rule-violations-explained"]
+        summaries = gen.read_summaries(keys)
+        self.assertTrue(all(len(summaries[key]) == 5 for key in keys))
+
+    def test_bodies_without_visible_markup(self):
+        good = ('## <a id="a-b"></a>A) B\n\nText mit [Link](/learn/x#a-b) und\\\nUmbruch, Spender\\*in, '
+                '[mail](mailto:a@b.ch), 1\\) Punkt.\n')
+        self.assertEqual(gen.body_problems(good), [])
+        for broken in ('<a id="x"</aText\n', "Text <span>x</span>\n", "Siehe [Link] (https://x)\n",
+                       "Änderungen(https://drive.google.com/x)\n", "Gültig ab\\ Zu den neuen\n",
+                       "Ende\\\n\nNeuer Absatz\n"):
+            self.assertTrue(gen.body_problems(broken), broken)
+
+    def test_generated_chapters_have_no_visible_markup(self):
+        folder = os.path.join(gen.OUT_DIR)
+        for name in sorted(os.listdir(folder)):
+            if name.endswith(".md") and name != "README.md":
+                _, body = gen.read_markdown(os.path.join(folder, name))
+                self.assertEqual(gen.body_problems(body), [], name)
+
     def test_minutes_and_ids(self):
         self.assertEqual(gen.minutes("wort " * 401), 3)
         self.assertEqual(gen.page_id(1), "00000012-0001-4000-8000-000000000101")

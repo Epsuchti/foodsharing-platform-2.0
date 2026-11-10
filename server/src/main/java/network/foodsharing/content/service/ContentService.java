@@ -35,8 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ContentService {
 
+    /** {@code summary}: the text's own summary, else derived from the body ({@link #summary(String)}). */
     public record LocalizedPage(ContentPage page, String title, String body, String language, boolean fallback,
-                                Instant updatedAt, String nextChapterKey) {
+                                Instant updatedAt, String nextChapterKey, String summary) {
     }
 
     public record PageTexts(ContentPage page, Map<String, String> titles, Map<String, String> bodies) {
@@ -167,12 +168,20 @@ public class ContentService {
             .comparing((ContentPage page) -> groupOf(page).ordinal()).thenComparingInt(ContentPage::getSortOrder)
             .thenComparing(ContentPage::getSlug);
 
-    /** First characters of the body without markdown markers. */
+    /**
+     * First characters of the body as plain text: HTML tags (anchors), link targets, hard breaks, escapes and markdown
+     * markers are dropped.
+     */
     public static String summary(String body) {
         if (body == null) {
             return null;
         }
-        String plain = body.replaceAll("(?m)^#+\\s*", "").replaceAll("[*_`>\\[\\]]", "").replaceAll("\\s+", " ").strip();
+        String plain = body.replaceAll("<[^>]*>", "")
+                .replaceAll("!?\\[([^\\]]*)\\]\\([^)]*\\)", "$1")
+                .replaceAll("(?m)^\\s*(#+|[-*+]|\\d+[.)])\\s+", "")
+                .replaceAll("\\\\(\\r?\\n)", " ")
+                .replaceAll("\\\\([\\\\`*_{}\\[\\]()#+\\-.!>])", "$1")
+                .replaceAll("[*_`>\\[\\]]", "").replaceAll("\\s+", " ").strip();
         return plain.length() <= SUMMARY_LENGTH ? plain : plain.substring(0, SUMMARY_LENGTH - 1).strip() + "…";
     }
 
@@ -444,8 +453,10 @@ public class ContentService {
         }
         Instant updated = byLanguage.values().stream().map(ContentPageI18n::getUpdatedAt).filter(Objects::nonNull)
                 .max(Instant::compareTo).orElse(page.getUpdatedAt());
+        String summary = text.getSummary() == null || text.getSummary().isBlank() ? summary(text.getBody())
+                : text.getSummary().strip();
         return new LocalizedPage(page, text.getTitle(), text.getBody(), text.getLanguage(),
-                !text.getLanguage().equals(language), updated, nextChapterKey);
+                !text.getLanguage().equals(language), updated, nextChapterKey, summary);
     }
 
     private static PageTexts texts(ContentPage page, List<ContentPageI18n> rows) {

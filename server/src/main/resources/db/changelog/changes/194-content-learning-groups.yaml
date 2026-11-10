@@ -17,3 +17,12 @@ databaseChangeLog:
             columns:
               - column: {name: chapter_group, value: BASICS}
             where: "kind = 'LEARNING_CHAPTER'"
+  - changeSet:
+      id: 194-2
+      author: platform
+      comment: 'C1: short hand-written summary of a learning chapter per language (overview); null = derived from the body.'
+      changes:
+        - addColumn:
+            tableName: content_page_i18n
+            columns:
+              - column: {name: summary, type: VARCHAR(300)}

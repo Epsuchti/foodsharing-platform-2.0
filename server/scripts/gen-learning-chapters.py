@@ -16,6 +16,7 @@ docs/content-import/learning/). Re-running gives identical files.
   python3 server/scripts/gen-learning-chapters.py --de-only  only (re)write the German Markdown files
   ... --force   overwrite changesets with different content (only before they were ever released)
 """
+import json
 import math
 import os
 import re
@@ -499,7 +500,60 @@ def base_columns(row_id):
             column("created_at", yaml_str(STAMP), "valueDate"), column("updated_at", yaml_str(STAMP), "valueDate")]
 
 
-def chapter_change_set(chapter, texts):
+SUMMARIES_FILE = os.path.join(OUT_DIR, "summaries.json")
+MAX_SUMMARY = 300
+
+
+def summary_problems(text):
+    """Markup that must not appear in a hand-written summary (it is shown as plain text)."""
+    problems = []
+    for pattern, label in ((r"<", "'<'"), (r"\]\(", "'](' (link)"), (r"\(https?:", "'(http' (raw link)"),
+                           (r"\\\s*$", "trailing backslash"), (r"[*_`#]", "Markdown marker")):
+        if re.search(pattern, text):
+            problems.append(label)
+    if not text.strip() or len(text) > MAX_SUMMARY:
+        problems.append("empty or longer than %d characters" % MAX_SUMMARY)
+    return problems
+
+
+def read_summaries(keys, path=SUMMARIES_FILE):
+    """summaries.json: {key: {language: one sentence}} for every chapter and language, plain text only."""
+    with open(path, encoding="utf-8") as f:
+        summaries = json.load(f)
+    for key in keys:
+        for lang in LANGS:
+            text = summaries.get(key, {}).get(lang)
+            if text is None:
+                raise ConversionError("%s: no summary for %s/%s" % (path, key, lang))
+            problems = summary_problems(text)
+            if problems:
+                raise ConversionError("%s: summary %s/%s has %s" % (path, key, lang, ", ".join(problems)))
+    return summaries
+
+
+def body_problems(body):
+    """Markup that would show as text once the chapter body is rendered: stray HTML, broken links, raw URLs in
+    parentheses and backslashes that are neither a hard line break nor an escape."""
+    problems = []
+    text = re.sub(r'<a id="[a-z0-9-]+"></a>', "", body)
+    if "<" in re.sub(r"\\<", "", text):
+        problems.append("HTML other than heading anchors")
+    links = re.sub(r"\[[^\]\n]*\]\(<?[^)\s]+>?\)", "", text)
+    if "](" in links:
+        problems.append("a broken link")
+    if re.search(r"\(https?:", links):
+        problems.append("a raw (http...) link")
+    for line in text.split("\n"):
+        stripped = re.sub(r"\\[\\`*_{}\[\]()#+\-.!>|~]", "", line)
+        if "\\" in stripped and not stripped.endswith("\\"):
+            problems.append("a stray backslash: " + line.strip()[:60])
+            break
+    if re.search(r"\\\n\s*(\n|$)", text) or text.rstrip().endswith("\\"):
+        problems.append("a hard line break at the end of a paragraph")
+    return problems
+
+
+def chapter_change_set(chapter, texts, summaries):
     name, key, group, required, number, sort, body_minutes = chapter
     changes = [insert("content_page", base_columns(page_id(number)) + [
         column("slug", yaml_str(key)), column("kind", yaml_str("LEARNING_CHAPTER")),
@@ -510,7 +564,8 @@ def chapter_change_set(chapter, texts):
         title, body = texts[lang]
         changes.append(insert("content_page_i18n", base_columns(text_id(number, lang)) + [
             column("owner_id", yaml_str(page_id(number))), column("language", yaml_str(lang)),
-            column("title", yaml_str(title)), column("body", yaml_str(body))]))
+            column("title", yaml_str(title)), column("body", yaml_str(body)),
+            column("summary", yaml_str(summaries[key][lang]))]))
     return "\n".join([
         "  - changeSet:",
         "      id: 195-%d" % number,
@@ -599,6 +654,8 @@ def convert_all(wiki_dir=WIKI_DIR):
                 body = body.replace("/learn/%s#%s)" % (target_key, slug(anchor)), "/learn/%s)" % target_key)
         if len(body) > MAX_BODY:
             raise ConversionError("%s: body has %d characters (max %d)" % (key, len(body), MAX_BODY))
+        if body_problems(body):
+            raise ConversionError("%s: %s" % (key, "; ".join(body_problems(body))))
         converted[key] = (value[0], value[1], body) + value[3:]
     return converted, skipped, converter.warnings
 
@@ -631,6 +688,7 @@ def main(argv):
         print("wrote %d German chapters to %s" % (len(converted), OUT_DIR))
         return 0
     chapter_sets, legal_texts = [], None
+    summaries = read_summaries(list(converted))
     for name, key, group, required, number in CHAPTERS:
         if key not in converted:
             continue
@@ -647,9 +705,12 @@ def main(argv):
                 raise ConversionError("%s: links differ from the German text" % path)
             if len(t_body) > MAX_BODY or len(t_title) > 200:
                 raise ConversionError("%s: too long" % path)
+            if body_problems(t_body):
+                raise ConversionError("%s: %s" % (path, "; ".join(body_problems(t_body))))
             texts[lang] = (t_title, t_body)
         sort = SORT_OVERRIDE.get(key, number * 10)
-        chapter_sets.append(chapter_change_set((name, key, group, required, number, sort, minutes(body)), texts))
+        chapter_sets.append(chapter_change_set((name, key, group, required, number, sort, minutes(body)), texts,
+                                               summaries))
         if key == LEGAL_KEY:
             legal_texts = texts
     header = ("# GENERATED by server/scripts/gen-learning-chapters.py from docs/content-import/ - do not edit.\n"

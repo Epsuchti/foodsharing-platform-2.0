@@ -84,6 +84,24 @@ class LearningChapterOrderTest {
     }
 
     @Test
+    void ownSummaryWinsElseTheBodyIsShownAsPlainText() {
+        ContentPage chapter = chapter("own", 1, null, true, true);
+        ContentPageI18n text = new ContentPageI18n();
+        text.setOwnerId(chapter.getId());
+        text.setLanguage("de");
+        text.setTitle("T");
+        text.setBody("B");
+        text.setSummary("Wofür foodsharing steht.");
+        when(pages.findByKindOrderBySortOrderAscSlugAscIdAsc(ContentPageKind.LEARNING_CHAPTER)).thenReturn(List.of(chapter));
+        when(texts.findByOwnerId(chapter.getId())).thenReturn(List.of(text));
+        assertThat(service.learningChapters("de")).singleElement()
+                .satisfies(page -> assertThat(page.summary()).isEqualTo("Wofür foodsharing steht."));
+        // derived: anchors, link targets, hard breaks and escapes do not show (C1 screenshot review)
+        assertThat(ContentService.summary("*Gültig ab 2020*\\\n## <a id=\"x\"></a>Titel\n\n[Änderungen](https://x.y/z) "
+                + "für Spender\\*innen, 1\\) Punkt")).isEqualTo("Gültig ab 2020 Titel Änderungen für Spenderinnen, 1) Punkt");
+    }
+
+    @Test
     void chaptersWithoutGroupCountAsBasics() {
         assertThat(ContentService.groupOf(chapter("x", 1, null, true, true))).isEqualTo(LearningChapterGroup.BASICS);
     }

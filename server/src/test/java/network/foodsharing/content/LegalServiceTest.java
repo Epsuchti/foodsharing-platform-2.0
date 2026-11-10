@@ -173,7 +173,7 @@ class LegalServiceTest {
                 });
         assertThatThrownBy(() -> content.page("draft", "de")).isInstanceOfSatisfying(ApiException.class,
                 e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.CONTENT_NOT_FOUND));
-        assertThat(ContentService.summary("## Titel\n\n**fett** und [Link](x)")).isEqualTo("Titel fett und Link(x)");
+        assertThat(ContentService.summary("## Titel\n\n**fett** und [Link](x)")).isEqualTo("Titel fett und Link");
         TestAuth.login(TestUsers.principal(foodsaver));
         assertThatThrownBy(() -> content.allPages(null)).isInstanceOf(ApiException.class);
     }

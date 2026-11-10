@@ -205,7 +205,7 @@ public final class JourneyCalculator {
         Draft draft = Draft.of(JourneyStepKey.LEARN, done,
                         read > 0 ? JourneyStepStatus.IN_PROGRESS : JourneyStepStatus.AVAILABLE,
                         new Action("onboarding.action.readChapter", firstUnread == null ? "/learn"
-                                : "/learn/" + firstUnread), "PT20M")
+                                : "/learn/" + firstUnread), "PT45M") // C1: the 7 Grundlagen take about 45 minutes
                 .progress(new Progress(read, 0, chapters.size(), null))
                 // readChapters: required ones (progress); readKeys: every chapter read, optional ones too (C1)
                 .details(Map.of("readChapters", chapters.stream().filter(in.readChapters()::contains).toList(),

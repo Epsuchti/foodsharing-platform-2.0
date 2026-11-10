@@ -44,7 +44,7 @@ final class ContentModels {
         LearningChapter chapter = new LearningChapter();
         chapter.setKey(view.page().getSlug());
         chapter.setTitle(view.title());
-        chapter.setSummary(ContentService.summary(view.body()));
+        chapter.setSummary(view.summary());
         chapter.setEstimatedMinutes(view.page().getEstimatedMinutes() == null ? 0 : view.page().getEstimatedMinutes());
         chapter.setSortOrder(view.page().getSortOrder());
         chapter.setLanguage(Language.fromValue(view.language()));
