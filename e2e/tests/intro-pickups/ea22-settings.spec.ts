@@ -1,14 +1,16 @@
 import { expect, test } from '../../fixtures';
-import { ZH, bookableCards, openBookable } from './_intro';
+import { ZH, bookableCards, openBookable, reasonOf } from './_intro';
 
 /** EA22: the region's EinAb settings (region settings tab) change what newcomers can book. */
 test.use({ seedReset: 'test', role: 'bot' });
 
-test('EA22 region EinAb settings change booking behaviour @EA22', async ({ page, as }) => {
+test('EA22 region EinAb settings change booking behaviour @EA22', async ({ page, as, apiOf }) => {
   const einab1 = await as('einab1');
   await openBookable(einab1);
-  const reason = bookableCards(einab1, 'TAKEOUT').first().getByTestId('introPickups.bookable.reason');
-  await expect(reason).toHaveAttribute('data-reason', 'USER_ALREADY_BOOKED_WITH_GUIDE');
+  // blocked EinAbs are not listed (review 2026-11-10 B1); the server still names the rule
+  const takeout = bookableCards(einab1, 'TAKEOUT').first();
+  await expect(takeout).toHaveCount(0);
+  expect(await reasonOf(apiOf(einab1), 2)).toBe('USER_ALREADY_BOOKED_WITH_GUIDE');
 
   // the ambassador allows several EinAbs with the same guide
   await page.goto(`/regions/${ZH}/settings`);
@@ -19,7 +21,8 @@ test('EA22 region EinAb settings change booking behaviour @EA22', async ({ page,
 
   // now the third booking must include a Fairteiler visit (still a region rule)
   await openBookable(einab1);
-  await expect(reason).toHaveAttribute('data-reason', 'FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP');
+  await expect(takeout).toHaveCount(0);
+  expect(await reasonOf(apiOf(einab1), 2)).toBe('FAIRTEILER_VISIT_REQUIRED_FOR_THIRD_INTRO_PICKUP');
 
   // … until that rule is switched off, too
   await page.getByTestId('regions.settings.requireFairteiler').click();

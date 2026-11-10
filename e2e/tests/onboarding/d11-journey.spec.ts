@@ -84,6 +84,23 @@ test('D11.5.2 every seed stage shows the current step and one next action @D11.5
   await expect(foodsaver.getByTestId('onboarding.journey.complete')).toBeVisible();
 });
 
+test('D11.5.2 waiting for verification: one time figure, "Nachricht" opens the conversation @D11.5.2 @EA8', async ({ as, apiOf }) => {
+  const page = await as('pending');
+  await acceptPendingConsents(apiOf(page));
+  await page.goto('/onboarding');
+  const step = page.getByTestId('onboarding.journey.stepper.step.ID_CHECK');
+  await expect(step).toHaveAttribute('data-status', 'WAITING_FOR_OTHERS');
+  // review 2026-11-10 Q3: the region's typical days or the static estimate, never both
+  const typical = step.getByTestId('onboarding.journey.stepper.typicalDays');
+  const estimate = step.locator('.step__meta');
+  await expect(typical.or(estimate)).toHaveCount(1);
+
+  const message = step.getByTestId('onboarding.journey.stepper.message').first();
+  await expect(message).toHaveAccessibleName(/\S/);
+  await message.click();
+  await expect(page).toHaveURL(/\/messages\/[0-9a-f-]{36}$/);
+});
+
 test('D11.5.4 journey works at 360px in all five languages @D11.5.4', async ({ as, apiOf }) => {
   const page = await as('einab1');
   await acceptPendingConsents(apiOf(page));

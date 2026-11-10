@@ -1,5 +1,5 @@
 import { acceptPendingConsents, expect, test } from '../../fixtures';
-import { bookableCards, openBookable } from './_intro';
+import { ZH, bookableCards, openBookable } from './_intro';
 
 /** EA1: `/intro-pickups` lists the home region's EinAbs; users without a region pick one first. */
 test.use({ role: 'einab1' });
@@ -14,9 +14,12 @@ test('EA1 logged-in user lands on home region list, newbie gets region picker @E
   await newbie.goto('/r/zuerich-stadt/intro-pickups');
   await expect(newbie.getByTestId('introPickups.public.state')).toHaveAttribute('data-state', 'success');
 
-  // einab1 (home region Zürich Stadt): the region's 15 upcoming EinAbs
+  // einab1 (home region Zürich Stadt): the region's 15 upcoming EinAbs, of which the list shows the bookable ones
+  // (review 2026-11-10 B1)
+  const list = await apiOf(page).getJson<{ items: { bookable: boolean }[] }>(`/api/regions/${ZH}/intro-pickups/bookable?size=100`);
+  expect(list.items).toHaveLength(15);
   await openBookable(page);
-  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(15);
+  await expect(page.getByTestId('introPickups.bookable.card')).toHaveCount(list.items.filter((item) => item.bookable).length);
   await expect(page.locator('fs-page-header')).toContainText('Zürich');
   await expect(bookableCards(page, 'ONLINE').getByTestId('introPickups.bookable.book')).toBeVisible();
 
