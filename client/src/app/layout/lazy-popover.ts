@@ -1,6 +1,6 @@
 import { Signal, effect, inject } from '@angular/core';
 
-import { StartupService } from '../core/startup/startup.service';
+import { LazyCodeService } from '../core/startup/lazy-code.service';
 
 /** What LazyPopover needs of `p-popover` (kept structural so the Popover class stays out of the start-up bundle). */
 export interface PopoverLike {
@@ -17,8 +17,11 @@ export interface PopoverLike {
  * an effect).
  */
 export class LazyPopover {
-  /** Fetch the code after the first page has been shown (StartupService). */
-  readonly prefetch = inject(StartupService).pageShown;
+  /**
+   * True once the popover code is in the module cache (LazyCodeService: after the first page, while online, retried
+   * when the connection comes back), so the `@defer` prefetch never fails and never reports NG0750.
+   */
+  readonly prefetch = inject(LazyCodeService).ready('popover', () => import('@openng/optimus-ui/popover'));
   private pending: EventTarget | null = null;
 
   constructor(private readonly popover: Signal<PopoverLike | undefined>) {

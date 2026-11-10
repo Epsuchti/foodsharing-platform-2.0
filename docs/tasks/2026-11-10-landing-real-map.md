@@ -1,6 +1,6 @@
 # Landing page: real map in "In deiner Nähe", plus a `/map` deep link (C17 + M1, amends decision 160 map option 1)
 
-Status: plan, owner answered Q1–Q5 on 2026-11-10 (Q1–Q4 as recommended, Q5 changed: deep link in this branch). Ready for the implementer.
+Status: approved by the owner on 2026-11-10 (including the `/map` URL sync, D13); owner answered Q1–Q5 on 2026-11-10 (Q1–Q4 as recommended, Q5 changed: deep link in this branch). Ready for the implementer.
 Branch: `feat/landing-real-map`, cut from `feat/public-reskin-old-colours` once that branch has its tokens commit. Rebase onto `main` after the reskin merges. It is not merged into the reskin: different risks (Lighthouse, a shared MapView change) and its own review.
 
 ## Goal
@@ -18,7 +18,7 @@ Owner answers: Q1 delete the SVG (D10) · Q2 popup (D3) · Q3 zoom 11 on the fou
 - **D8 Colours from `.fs-public`:** MapView reads `--fs-map-surface`, `--fs-map-pin-region-bg/-fg` and `--fs-map-pin-fsp-bg/-fg`, falling back to today's hex values. `fs-landing-map` sets them to `var(--fs-pub-map-land)`, `var(--fs-primary)`/`var(--fs-on-primary)` and `var(--fs-accent)`/`#1a2a20`. Inside `main.fs-public` they resolve to the reskin tokens. O1 holds (accent only on the FSP pin, with `pi-box`). The tiles follow the theme (light/dark).
 - **D9 Initial landing view:** DACH, `center [47.9, 10.4]`, zoom 6 (≥ 48rem) or 5 (phones), `fitMarkers=false`.
 - **D10 SVG removed:** delete the preview component and spec, plus `FRAME`, `LAND_SHAPES`, `shapePath`, `projectToFrame`, `framePercent` and `insideShape` from `landing-geo.ts` (keep `distanceKm`, `nearestFsps`, `isPostcode`) and the keys `previewAlt`/`previewNote*`. The placeholder is a plain frame of the same height.
-- **D11 Bookkeeping:** decision **175** (174 = reskin; re-check at merge) amends 160's "Map (option 1)", the O1 wording ("Fairteiler pin of the map") and "no MapView on `/`", and records D12–D14 for M1. Ledger notes on C17 ("real map") and M1 ("deep link `?lat&lon&z`"), both pointing to decision 175.
+- **D11 Bookkeeping:** decision **179** (174 = learning wiki, 175–177 = review fixes 3–5, 178 = reskin) amends 160's "Map (option 1)", the O1 wording ("Fairteiler pin of the map") and "no MapView on `/`", and records D12–D14 for M1. Ledger notes on C17 ("real map") and M1 ("deep link `?lat&lon&z`"), both pointing to decision 179.
 - **D12 Deep-link format** `/map?lat=<deg>&lon=<deg>&z=<int>`, written with 4 decimals (about 11 m). Parsing lives in the shared `shared/map-view/map-view-query.ts` (`parseMapView(params): MapFocus | null`, `mapViewQuery(view): {lat, lon, z}`), used by both features, so there's no cross-feature import. Rules: `lat`/`lon` must both be finite decimals with `lat ∈ [-90, 90]` and `lon ∈ [-180, 180]`; otherwise the whole link is ignored and the default view (Zürich, zoom 8) applies. `z` is rounded and clamped to `[3, 19]`; if it's missing or not a number while `lat`/`lon` are valid, it is 12. Extra or duplicated params: the first value counts, the rest are ignored. Nothing is ever shown as an error.
 - **D13 `/map` keeps the URL in sync** (recommended): on MapView `viewChange` (moveend), debounced 300 ms, `router.navigate([], { queryParams, replaceUrl: true })`. That way reload, share and back-from-a-bubble-link return to the same view, and history doesn't grow. It is not written while the view equals the default (plain `/map` stays `/map`). **Data protection:** a move caused by "near me" (browser location) is never written. The URL drops its params instead, until the user pans or zooms by hand. That keeps a person's position out of URLs that get shared or bookmarked. A location search hit is a place name the user typed, so that one is written.
 - **D14 Links into `/map`:** the landing map's "Karte öffnen" (footer and tile-error action) uses its current view (`viewChange`, before any move: the D9 view). The result card's "Karte öffnen" in `landing-near` uses the found region's pin at z 11. Plain `/map` links elsewhere (nav, other pages) are unchanged.
@@ -59,7 +59,7 @@ Owner answers: Q1 delete the SVG (D10) · Q2 popup (D3) · Q3 zoom 11 on the fou
 - inject `ActivatedRoute`; on init `parseMapView(route.snapshot.queryParamMap)` → initial `focus` (else the default Zürich/8, unchanged);
 - `(viewChange)` → D13 sync (debounced, `replaceUrl`, skip the default view and geolocation moves; `locate()` sets a `suppressSync` flag that the next `byUser` move clears). The doc comment names the deep link.
 
-**Docs:** `docs/decisions.md` row 175; `docs/ledger.md` C17 + M1 notes; `docs/conventions.md` MapView paragraph (inputs, `viewChange`, colour vars, reduced motion, deep-link format).
+**Docs:** `docs/decisions.md` row 176; `docs/ledger.md` C17 + M1 notes; `docs/conventions.md` MapView paragraph (inputs, `viewChange`, colour vars, reduced motion, deep-link format).
 
 ## Effect on today's `/map`
 Without params it behaves and looks exactly as today: same default view, no URL change on load, so `d4-sidenav`/`d4-shell-navigation` (`path === '/map'`), `i18n-smoke`, `a11y/routes.ts` and all `e2e/screenshots/map.screen.ts` baselines stay. The only visible differences are that the URL gains `?lat&lon&z` after the user moves the map or picks a search hit, and that animations are off under reduced motion. `m1-map.spec.ts` "location search centres the map" still passes. It gets one extra assertion (on purpose) that the URL now carries the hit. "Near me" asserts the URL has no params.
@@ -87,7 +87,7 @@ A visible change on `/` (map, popup, gesture hint, fallback states). No visible 
 - [ ] Plain `/map` is unchanged: existing M1 e2e and screenshot baselines pass untouched
 - [ ] Preview and frame code removed; i18n check green in 5 languages
 - [ ] Unit, e2e @C17/@M1, Lighthouse and axe green; landing baselines regenerated in CI and reviewed
-- [ ] Decision 175, ledger C17 + M1 notes and the conventions MapView paragraph written
+- [ ] Decision 176, ledger C17 + M1 notes and the conventions MapView paragraph written
 
 ## Risks
 - **Lighthouse full-page screenshot** grows the viewport at the end of the run and can trigger both defers. That comes after the metrics; if TBT/LCP still moves, report it to the owner rather than loosening the gate.

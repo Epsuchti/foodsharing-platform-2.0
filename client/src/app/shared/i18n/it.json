@@ -296,6 +296,7 @@
   "shared.map.label": "Mappa",
   "shared.map.tilesFailed": "Non è stato possibile caricare la mappa.",
   "shared.map.retry": "Ricarica",
+  "shared.map.twoFingers": "Usa due dita per spostare la mappa",
   "shared.regionPicker.how": "Come vuoi trovare la tua regione?",
   "shared.regionPicker.mode.postcode": "NPA",
   "shared.regionPicker.mode.tree": "Elenco",

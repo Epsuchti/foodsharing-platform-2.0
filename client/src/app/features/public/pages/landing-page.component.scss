@@ -1,4 +1,6 @@
-// Landing page, Variant D (C17, docs/design/landing-page-proposal.md §6). Breakpoints follow the page container
+// Landing page, Variant D (C17, docs/design/landing-page-proposal.md §6) in the old foodsharing colours (decision
+// 175, docs/design/landing-old-colours-d-proposal.md §3.4): the tokens come from the `.fs-public` scope of the shell,
+// the panels (`.fs-panel--brand*`) and icon tiles (`.fs-tile`) from styles.scss. Breakpoints follow the page container
 // (`landing`, 900px) so the bubbles, the steps and the splits switch together; the sticky join sits outside the
 // container because a size container would trap `position: fixed`.
 :host {
@@ -113,6 +115,26 @@
   gap: 2rem;
 }
 
+// the split sections are brand panels; the bubble sits inside, on the green side when flipped
+.split.fs-panel--brand {
+  padding: clamp(1.4rem, 1rem + 2vw, 2.25rem);
+}
+
+// tile beside a heading (Fairteiler head, FAQ group labels)
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  > div {
+    min-width: 0;
+  }
+}
+
+.head--center {
+  align-items: center;
+}
+
 @container landing (min-width: 900px) {
   .hero {
     grid-template-columns: 1.15fr 1fr;
@@ -141,13 +163,7 @@
 .row {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
-
-  > .pi {
-    margin-top: 0.2rem;
-    color: var(--fs-primary);
-    font-size: 1.3rem;
-  }
+  gap: 0.8rem;
 
   strong {
     display: block;
@@ -167,8 +183,8 @@
   margin: 0;
   padding: 1.6rem;
   border-radius: var(--fs-radius-lg);
-  background: var(--fs-primary-strong);
-  color: #fff;
+  background: var(--fs-band-bg);
+  color: var(--fs-band-text);
   list-style: none;
 
   li {
@@ -182,19 +198,12 @@
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.1;
+    color: var(--fs-brand-green);
   }
 
   span {
+    color: var(--fs-band-muted);
     font-size: 0.9rem;
-  }
-}
-
-:host-context(.fs-dark) .strip {
-  background: var(--fs-primary-soft);
-  color: var(--fs-text);
-
-  fs-count-up {
-    color: var(--fs-primary-strong);
   }
 }
 
@@ -247,13 +256,9 @@
   }
 }
 
-// ---- cards ----
+// ---- cards (brand panels: border, radius, gradient and shadow come from .fs-panel--brand*) ----
 .card {
   padding: 1.4rem;
-  border: 1px solid var(--fs-border);
-  border-radius: var(--fs-radius-lg);
-  background: var(--fs-surface);
-  box-shadow: var(--fs-shadow-sm);
 
   h3 {
     margin: 0 0 0.9rem;
@@ -263,12 +268,6 @@
   .rows {
     margin: 0;
   }
-}
-
-.card--soft {
-  border-color: transparent;
-  background: var(--fs-primary-soft);
-  box-shadow: none;
 }
 
 // ---- businesses ----
@@ -292,8 +291,6 @@
   align-content: center;
   gap: 0.5rem;
   padding: 1.2rem;
-  border-radius: var(--fs-radius-lg);
-  background: var(--fs-primary-soft);
 }
 
 .biz__quote {
@@ -359,8 +356,16 @@
   }
 }
 
+.faq-group {
+  padding: 1.1rem;
+
+  .head {
+    margin-bottom: 0.8rem;
+  }
+}
+
 .faq-group h3 {
-  margin: 0 0 0.6rem;
+  margin: 0;
   color: var(--fs-primary-strong);
   font-size: 0.8rem;
   font-weight: 700;
@@ -406,7 +411,16 @@
   gap: 1rem;
   padding: 2rem;
   border-radius: var(--fs-radius-xl);
-  background: var(--fs-primary-soft);
+}
+
+// phones: tighter panels (proposal §7)
+@container landing (max-width: 899px) {
+  .split.fs-panel--brand {
+    padding: 1.2rem;
+  }
+  .band {
+    padding: 1.4rem;
+  }
 }
 
 .sticky {

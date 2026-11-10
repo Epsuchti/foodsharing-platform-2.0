@@ -55,12 +55,20 @@ export interface MapFocus {
   zoom?: number;
 }
 
+/** The view after a move (`viewChange`): `byUser` after drag, zoom or keyboard, false after `focus`/`setView`. */
+export interface MapViewChange extends Required<MapFocus> {
+  byUser: boolean;
+}
+
 /** A readable PMTiles archive and its highest zoom with data (overzoomed above). */
 interface Basemap {
   archive: PMTiles;
   maxZoom: number;
 }
-const ZURICH: [number, number] = [47.3769, 8.5417];
+/** The view without a `center` input (Zürich); `/map` keeps its URL plain while it shows this at zoom 8. */
+export const MAP_DEFAULT_CENTER: [number, number] = [47.3769, 8.5417];
+/** How long the "two fingers" hint of a cooperative map stays (ms). */
+const GESTURE_HINT_MS = 1500;
 
 const KIND_ICON: Record<MapMarkerKind, string> = {
   'region-pin': 'pi-map-marker',
@@ -83,6 +91,12 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
  * Background (MT1, decision 159): the self-hosted vector basemap `/tiles/basemap.pmtiles` (protomaps-leaflet, light
  * or dark with the theme, labels in the UI language). A raster template in `tileUrl` or `window.__fsTileUrl`
  * (screenshots: a local stub PNG) replaces it.
+ *
+ * Opt-ins (decision 176): `cooperative` (touch: one finger scrolls the page, two move the map, with a hint),
+ * `markerTabStops=false` (pins are no Tab stops and get no hidden list; the map itself stays one), `viewChange`
+ * after every move, a `[fsMapTilesAction]` element projected into the tile error, and the colour variables
+ * `--fs-map-surface`, `--fs-map-pin-region-bg/-fg` and `--fs-map-pin-fsp-bg/-fg` (fallbacks = the old values).
+ * With `prefers-reduced-motion: reduce` every map moves without animation.
  *
  * `<fs-map-view [markers]="pins" [state]="regions" height="20rem" (markerClick)="open($event)" />`
  */
@@ -112,10 +126,16 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
             <i class="pi pi-refresh" aria-hidden="true"></i>
             {{ 'shared.map.retry' | t }}
           </button>
+          <ng-content select="[fsMapTilesAction]" />
+        </div>
+      }
+      @if (gestureHint()) {
+        <div class="gesture-hint" aria-hidden="true" [attr.data-testid]="testId() + '.gestureHint'">
+          <span>{{ 'shared.map.twoFingers' | t }}</span>
         </div>
       }
     </div>
-    @if (markers().length > 0) {
+    @if (markerTabStops() && markers().length > 0) {
       <ul class="fs-visually-hidden">
         @for (marker of markers(); track marker.id) {
           <li>{{ marker.label }}</li>
@@ -130,15 +150,32 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       gap: 0.5rem;
       min-width: 0;
     }
+    /* its own stacking context: Leaflet's panes and controls (z-index 200–1000) stay inside the map and below the
+       shell (tab bar 45, header, overlays); without it the panes painted over the fixed tab bar */
     .frame {
       position: relative;
+      z-index: 0;
+      isolation: isolate;
       overflow: hidden;
       border: 1px solid var(--fs-border);
       border-radius: var(--fs-radius-lg);
     }
     .map {
       height: var(--map-height);
-      background: var(--fs-surface-muted);
+      background: var(--fs-map-surface, var(--fs-surface-muted));
+    }
+    .gesture-hint {
+      position: absolute;
+      z-index: 600;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: rgb(0 0 0 / 0.45);
+      color: #fff;
+      font-weight: 650;
+      text-align: center;
+      pointer-events: none;
     }
     .tiles-error {
       position: absolute;
@@ -174,9 +211,9 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       box-sizing: border-box;
       border: 2px solid #fff;
       border-radius: 50% 50% 50% 0;
-      background: #25834a;
+      background: var(--fs-map-pin-region-bg, #25834a);
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
-      color: #fff;
+      color: var(--fs-map-pin-region-fg, #fff);
       transform: rotate(-45deg);
       pointer-events: none;
     }
@@ -223,7 +260,8 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       background: #b5532d;
     }
     :host ::ng-deep .fs-map-marker[data-kind='fsp'] .fs-map-marker__pin {
-      background: #8a4fb0;
+      background: var(--fs-map-pin-fsp-bg, #8a4fb0);
+      color: var(--fs-map-pin-fsp-fg, #fff);
     }
     :host ::ng-deep .fs-map-marker[data-kind='basket'] .fs-map-marker__pin {
       background: #9a5b0b;
@@ -255,6 +293,12 @@ export class MapViewComponent {
   readonly positionChange = output<[number, number]>();
   /** Moves the map here whenever it changes (search result, "near me"); markers are no longer fitted afterwards. */
   readonly focus = input<MapFocus | null | undefined>(undefined);
+  /** Touch (`pointer: coarse`): no one-finger dragging, so the page scrolls; two fingers pan and zoom. */
+  readonly cooperative = input(false);
+  /** False: the pins are no Tab stops and the hidden marker list is left out (pages with many pins). */
+  readonly markerTabStops = input(true);
+  /** The view after every move (`moveend`). */
+  readonly viewChange = output<MapViewChange>();
 
   protected readonly tileState = signal<'loading' | 'ok' | 'error'>('loading');
   /** `raster` with a tile URL template, else the flavor of the vector basemap (tests read `data-basemap`). */
@@ -272,6 +316,12 @@ export class MapViewComponent {
   private layer: Leaflet.LayerGroup | null = null;
   private positionMarker: Leaflet.Marker | null = null;
   private leaflet: typeof Leaflet | null = null;
+  /** `prefers-reduced-motion: reduce`, read once at init: no zoom, fade or pan animations. */
+  private reducedMotion = false;
+  /** Set before our own `setView`/`fitBounds`; the next `moveend` reports `byUser: false`. */
+  private programmaticMove = false;
+  protected readonly gestureHint = signal(false);
+  private gestureTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
     afterNextRender(() => void this.init());
@@ -298,7 +348,10 @@ export class MapViewComponent {
         }
       });
     });
-    inject(DestroyRef).onDestroy(() => this.map?.remove());
+    inject(DestroyRef).onDestroy(() => {
+      clearTimeout(this.gestureTimer);
+      this.map?.remove();
+    });
   }
 
   /** Marker click: always `markerClick`, plus `bubble` for the bubble kinds (public for tests). */
@@ -378,12 +431,24 @@ export class MapViewComponent {
     const L: typeof Leaflet = await import('leaflet/dist/leaflet-src.esm.js');
     this.leaflet = L;
     const rasterUrl = this.tileUrl() ?? (globalThis as { __fsTileUrl?: string }).__fsTileUrl;
+    const media = (query: string) => globalThis.matchMedia?.(query).matches ?? false;
+    this.reducedMotion = media('(prefers-reduced-motion: reduce)');
+    const cooperativeTouch = this.cooperative() && media('(pointer: coarse)');
+    const animate = !this.reducedMotion;
     this.map = L.map(this.mapEl().nativeElement, {
-      center: this.center() ?? ZURICH,
+      center: this.center() ?? MAP_DEFAULT_CENTER,
       zoom: this.zoom(),
       scrollWheelZoom: false,
       attributionControl: true,
+      dragging: !cooperativeTouch,
+      touchZoom: true,
+      zoomAnimation: animate,
+      fadeAnimation: animate,
+      markerZoomAnimation: animate,
     });
+    if (cooperativeTouch) {
+      this.mapEl().nativeElement.addEventListener('touchmove', (event) => this.onTouchMove(event), { passive: true });
+    }
     if (rasterUrl) {
       this.basemapMode.set('raster');
       this.tiles = L.tileLayer(rasterUrl, { maxZoom: 19, attribution: OSM_ATTRIBUTION })
@@ -403,11 +468,39 @@ export class MapViewComponent {
         this.positionChange.emit([event.latlng.lat, event.latlng.lng]);
       }
     });
-    this.map.on('moveend', () => this.updateViewCenter());
+    this.map.on('moveend', () => this.onMoveEnd());
     this.drawMarkers(this.markers());
     this.drawPosition(this.position());
     this.applyFocus(this.focus());
     this.updateViewCenter();
+  }
+
+  /** One finger on a cooperative map scrolls the page: say how to move the map instead. */
+  private onTouchMove(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      this.gestureHint.set(false);
+      return;
+    }
+    this.gestureHint.set(true);
+    clearTimeout(this.gestureTimer);
+    this.gestureTimer = setTimeout(() => this.gestureHint.set(false), GESTURE_HINT_MS);
+  }
+
+  private onMoveEnd(): void {
+    const byUser = !this.programmaticMove;
+    this.programmaticMove = false;
+    this.updateViewCenter();
+    const map = this.map;
+    if (map) {
+      const center = map.getCenter().wrap();
+      this.viewChange.emit({ lat: center.lat, lon: center.lng, zoom: map.getZoom(), byUser });
+    }
+  }
+
+  /** `setView` of our own (focus, centre, markers): no animation under reduced motion, `byUser: false`. */
+  private moveTo(center: [number, number], zoom: number): void {
+    this.programmaticMove = true;
+    this.map?.setView(center, zoom, this.reducedMotion ? { animate: false } : {});
   }
 
   private updateViewCenter(): void {
@@ -417,7 +510,7 @@ export class MapViewComponent {
 
   private applyFocus(focus: MapFocus | null | undefined): void {
     if (focus && this.map) {
-      this.map.setView([focus.lat, focus.lon], focus.zoom ?? Math.max(this.map.getZoom(), 13));
+      this.moveTo([focus.lat, focus.lon], focus.zoom ?? Math.max(this.map.getZoom(), 13));
     }
   }
 
@@ -447,7 +540,7 @@ export class MapViewComponent {
       this.positionMarker.getElement()?.setAttribute('data-kind', 'position');
       // keyboard markers are buttons: give the position pin the map's accessible name (axe aria-command-name)
       this.positionMarker.getElement()?.setAttribute('aria-label', this.ariaLabel() ?? 'Position');
-      this.map.setView(position, Math.max(this.map.getZoom(), this.zoom()));
+      this.moveTo(position, Math.max(this.map.getZoom(), this.zoom()));
     } else {
       this.positionMarker.setLatLng(position);
     }
@@ -472,7 +565,13 @@ export class MapViewComponent {
       });
       // count bubbles stay on top: under the pins of the same city their number can't be read
       const zIndexOffset = marker.count === undefined ? 0 : 1000;
-      L.marker([marker.lat, marker.lon], { icon, title: marker.label, alt: marker.label, keyboard: true, zIndexOffset })
+      L.marker([marker.lat, marker.lon], {
+        icon,
+        title: marker.label,
+        alt: marker.label,
+        keyboard: this.markerTabStops(),
+        zIndexOffset,
+      })
         .on('click', () => this.onMarkerClick(marker))
         // Leaflet's own Enter handler only opens popups: keyboard users open the marker like a click
         .on('keydown', (event: Leaflet.LeafletKeyboardEvent) => {
@@ -490,14 +589,16 @@ export class MapViewComponent {
       return;
     }
     if (this.fitMarkers() && markers.length > 1) {
+      this.programmaticMove = true;
       this.map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lon] as [number, number])), {
         padding: [48, 48],
         maxZoom: 14,
+        ...(this.reducedMotion ? { animate: false } : {}),
       });
     } else if (center) {
-      this.map.setView(center, this.zoom());
+      this.moveTo(center, this.zoom());
     } else if (markers.length === 1) {
-      this.map.setView([markers[0].lat, markers[0].lon], this.zoom());
+      this.moveTo([markers[0].lat, markers[0].lon], this.zoom());
     }
   }
 }

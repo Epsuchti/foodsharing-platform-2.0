@@ -19,6 +19,14 @@
   }
 }
 
+/* logged out (decision 175): a brand panel, green left / brown right, with the accent glow on top; logged-in
+   visitors keep the diagonal gradient above */
+:host-context(.fs-public) .hero {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--fs-accent) 18%, transparent), transparent 55%),
+    var(--fs-panel-bg);
+}
+
 .hero__photo {
   width: 8rem;
   height: 8rem;

@@ -2,6 +2,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import {
   ComponentFixture,
   DeferBlockBehavior,
+  DeferBlockFixture,
   DeferBlockState,
   TestBed,
 } from '@angular/core/testing';
@@ -56,12 +57,13 @@ describe('LandingPageComponent (C17)', () => {
 
   const byTestId = (id: string) => host.querySelector<HTMLElement>(`[data-testid="${id}"]`);
 
-  async function renderNear(): Promise<void> {
+  async function renderNear(): Promise<DeferBlockFixture> {
     const [near] = await fixture.getDeferBlocks();
     await near.render(DeferBlockState.Complete);
     http.expectOne('/api/public/map/markers/regions').flush([]);
     http.expectOne('/api/public/map/markers/food-share-points').flush([]);
     await fixture.whenStable();
+    return near;
   }
 
   it('renders the sections of Variant D in order', async () => {
@@ -145,14 +147,37 @@ describe('LandingPageComponent (C17)', () => {
     }
   });
 
-  it('defers "In deiner Nähe" and never embeds a MapView', async () => {
+  it('defers "In deiner Nähe" and embeds the MapView only after the inner defer (decision 176)', async () => {
     http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
     expect(byTestId('public.landing.near.search')).toBeNull();
-    await renderNear();
+    expect(host.querySelector('fs-landing-map')).toBeNull();
+    const near = await renderNear();
     expect(byTestId('public.landing.near.search')).not.toBeNull();
-    expect(byTestId('public.landing.near.preview')).not.toBeNull();
+    // the section is rendered, the map is not: a plain frame, no MapView, no tiles
+    expect(byTestId('public.landing.near.map.placeholder')).not.toBeNull();
     expect(host.querySelector('fs-map-view, .leaflet-container')).toBeNull();
     expect(host.querySelector('img')).toBeNull();
+
+    const [inner] = await near.getDeferBlocks();
+    (globalThis as { __fsTileUrl?: string }).__fsTileUrl = '/stub/{z}/{x}/{y}.png';
+    try {
+      await inner.render(DeferBlockState.Complete);
+      await fixture.whenStable();
+      expect(host.querySelector('fs-map-view')).not.toBeNull();
+      expect(byTestId('public.landing.near.map.placeholder')).toBeNull();
+    } finally {
+      delete (globalThis as { __fsTileUrl?: string }).__fsTileUrl;
+    }
+  });
+
+  it('puts each "way" icon in a decorative tile (decision 175)', () => {
+    http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
+    for (const id of ['member', 'home', 'business']) {
+      const tile = byTestId(`public.landing.way.${id}`)!.querySelector('.fs-tile');
+      expect(tile, id).not.toBeNull();
+      expect(tile!.getAttribute('aria-hidden'), id).toBe('true');
+      expect(tile!.querySelector('.pi'), id).not.toBeNull();
+    }
   });
 
   it('marks the bubbles as decorative', () => {
