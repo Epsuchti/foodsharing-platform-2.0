@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing page · alte Farben · D «Leichter Reskin» · Mockup</title>
+<style>
+/* ====== Reskin D, light: today's tokens of client/src/styles.scss, with the old-colour overrides the landing page
+   scope would set (see landing-old-colours-d-proposal.md §3). Everything not listed here is unchanged. ====== */
+.vp{
+  --fs-font:'Inter Variable',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --fs-bg:#f6f8f4; --fs-surface:#ffffff; --fs-surface-muted:#f5f0e8;
+  --fs-border:#e9dfd0; --fs-border-strong:#cdbfa8;
+  --fs-text:#533a20; --fs-text-muted:#725a3c;
+  --fs-primary:#44801a; --fs-on-primary:#ffffff; --fs-primary-strong:#35690f;
+  --fs-primary-soft:#e9f3dc; --fs-primary-200:#c5e3a3;
+  --fs-accent:#f2b84b;
+  --fs-brand-green:#64ae24; --fs-brand-brown:#533a20; --fs-brand-tan:#b8905c;
+  --fs-band-bg:#3a2814; --fs-band-text:#f4ece0; --fs-band-muted:#d9c9b2;
+  --fs-header-bg:rgb(255 255 255 / .86); --fs-header-border:rgb(199 212 194 / .7);
+  --fs-pub-map-land:#eef1e8; --fs-pub-map-water:#c6dfe4; --fs-pub-map-park:#d8e8cf; --fs-pub-map-line:#d5dccf;
+  --fs-radius-sm:.625rem; --fs-radius-md:.875rem; --fs-radius-lg:1.125rem; --fs-radius-xl:1.5rem;
+  --fs-shadow-sm:0 1px 2px rgb(83 58 32 / .06),0 2px 8px rgb(83 58 32 / .05);
+  --fs-shadow-md:0 6px 20px rgb(83 58 32 / .10);
+  --fs-shadow-lg:0 18px 44px rgb(83 58 32 / .14);
+  --fs-tile-shadow:0 4px 12px color-mix(in srgb,var(--fs-primary) 32%,transparent);
+  /* panel intensity "Mittel" (toolbar switches these) */
+  --fs-panel-green:14%; --fs-panel-green-mid:5%; --fs-panel-brown:9%; --fs-panel-brown-mid:3%;
+  --fs-page-max:76rem; --fs-gutter:clamp(1rem,.6rem + 2vw,2rem);
+  color-scheme:light;
+}
+.vp.i-subtle{--fs-panel-green:9%;--fs-panel-green-mid:3%;--fs-panel-brown:6%;--fs-panel-brown-mid:2%}
+.vp.i-strong{--fs-panel-green:20%;--fs-panel-green-mid:7%;--fs-panel-brown:13%;--fs-panel-brown-mid:4%}
+/* ====== Reskin D, dark: warm dark surfaces, deep green left, warm brown right ====== */
+.vp.dark{
+  --fs-bg:#111611; --fs-surface:#251a10; --fs-surface-muted:#2e2217;
+  --fs-border:#3d2f20; --fs-border-strong:#574735;
+  --fs-text:#f4ece0; --fs-text-muted:#c4b39c;
+  --fs-primary:#8fd14d; --fs-on-primary:#1b130b; --fs-primary-strong:#a8de70;
+  --fs-primary-soft:rgb(143 209 77 / .14); --fs-primary-200:#3d5a1e;
+  --fs-accent:#9c7a3c;
+  --fs-band-bg:#2e2217; --fs-band-text:#f4ece0; --fs-band-muted:#c4b39c;
+  --fs-header-bg:rgb(17 22 17 / .82); --fs-header-border:rgb(61 71 59 / .7);
+  --fs-pub-map-land:#1d241c; --fs-pub-map-water:#1d3a42; --fs-pub-map-park:#24351f; --fs-pub-map-line:#2f3a2d;
+  --fs-shadow-sm:0 1px 2px rgb(0 0 0 / .3); --fs-shadow-md:0 6px 20px rgb(0 0 0 / .35); --fs-shadow-lg:0 18px 44px rgb(0 0 0 / .45);
+  --fs-tile-shadow:0 4px 12px rgb(0 0 0 / .4);
+  --fs-panel-green:18%; --fs-panel-green-mid:6%; --fs-panel-brown:14%; --fs-panel-brown-mid:5%;
+  color-scheme:dark;
+}
+.vp.dark.i-subtle{--fs-panel-green:12%;--fs-panel-green-mid:4%;--fs-panel-brown:9%;--fs-panel-brown-mid:3%}
+.vp.dark.i-strong{--fs-panel-green:26%;--fs-panel-green-mid:9%;--fs-panel-brown:20%;--fs-panel-brown-mid:7%}
+
+/* ====== «Heute»: the tokens of client/src/styles.scss as they are, no panels, no tiles ====== */
+.vp.today{
+  --fs-surface-muted:#f3f6f1; --fs-border:#e1e8dd; --fs-border-strong:#c7d4c2;
+  --fs-text:#1a2a20; --fs-text-muted:#5c6b60;
+  --fs-primary:#25834a; --fs-on-primary:#fff; --fs-primary-strong:#195d35; --fs-primary-soft:#e3f3e7; --fs-primary-200:#b4e7c2;
+  --fs-band-bg:#195d35; --fs-band-text:#fff; --fs-band-muted:#fff;
+  --fs-shadow-sm:0 1px 2px rgb(26 42 32 / .05),0 2px 8px rgb(26 42 32 / .04); --fs-shadow-md:0 6px 20px rgb(26 42 32 / .08); --fs-shadow-lg:0 18px 44px rgb(26 42 32 / .12);
+}
+.vp.today.dark{
+  --fs-surface:#1a201a; --fs-surface-muted:#212821; --fs-border:#2c352b; --fs-border-strong:#3d473b;
+  --fs-text:#ecf2ea; --fs-text-muted:#a3b09f;
+  --fs-primary:#4cba70; --fs-on-primary:#0d1f13; --fs-primary-strong:#82d59b; --fs-primary-soft:rgb(76 186 112 / .14); --fs-primary-200:#1f4a2f;
+  --fs-band-bg:rgb(76 186 112 / .14); --fs-band-text:#ecf2ea; --fs-band-muted:#a3b09f;
+}
+
+/* ====== toolbar (not part of the design) ====== */
+*{box-sizing:border-box}
+body{margin:0;background:#2b2b2b;font-family:ui-sans-serif,system-ui,sans-serif;color:#eee}
+.bar{position:sticky;top:0;z-index:100;display:flex;flex-wrap:wrap;gap:.4rem 1rem;align-items:center;padding:.5rem 1rem;background:#1e1e1e;border-bottom:1px solid #444;font-size:.8rem}
+.bar b{opacity:.7;margin-right:.2rem}
+.bar button{font:inherit;padding:.25rem .6rem;border:1px solid #666;border-radius:.4rem;background:#333;color:#eee;cursor:pointer}
+.bar button[aria-pressed=true]{background:#64ae24;border-color:#64ae24;color:#111;font-weight:700}
+.bar .note{opacity:.6;margin-left:auto}
+.stage{display:flex;justify-content:center;padding:1rem}
+.vp{container:vp / inline-size;position:relative;width:100%;max-width:1400px;background:var(--fs-bg);color:var(--fs-text);font-family:var(--fs-font);font-size:1rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+.vp.phone{width:412px;height:calc(100vh - 5rem);overflow:auto;border:8px solid #111;border-radius:2rem;scrollbar-width:none}
+.vp.phone::-webkit-scrollbar{display:none}
+/* body background of styles.scss (primary 9 % top-left, accent 8 % top-right) */
+.vp::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(60rem 30rem at 0% -10%,color-mix(in srgb,var(--fs-primary) 9%,transparent),transparent 70%),radial-gradient(40rem 24rem at 100% 0%,color-mix(in srgb,var(--fs-accent) 8%,transparent),transparent 70%)}
+.vp>*{position:relative}
+
+/* ====== shell (today's logged-out header, unchanged) ====== */
+.hdr{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:1rem;height:4rem;padding:0 var(--fs-gutter);background:var(--fs-header-bg);border-bottom:1px solid var(--fs-header-border);backdrop-filter:blur(10px)}
+.word{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;color:var(--fs-text);text-decoration:none}
+.word b{color:var(--fs-primary);font-weight:800}
+.word svg{width:1.5rem;height:1.5rem;color:var(--fs-primary)}
+.hdr nav{display:none;gap:.25rem;margin-left:.5rem}
+.hdr nav a{color:var(--fs-text-muted);text-decoration:none;font-weight:600;font-size:.95rem;padding:.4rem .7rem;border-radius:var(--fs-radius-sm)}
+.hdr nav a[aria-current]{color:var(--fs-primary-strong);background:var(--fs-primary-soft)}
+.hdr-actions{margin-left:auto;display:flex;gap:.4rem;align-items:center}
+.ibtn{display:grid;place-items:center;width:2.5rem;height:2.5rem;border:0;border-radius:999px;background:transparent;color:var(--fs-text-muted);cursor:pointer}
+@container vp (min-width:900px){.hdr nav{display:flex}}
+.page{max-width:var(--fs-page-max);margin:0 auto;padding:1.5rem var(--fs-gutter) 4rem}
+.foot{border-top:1px solid var(--fs-border);padding:2rem var(--fs-gutter);color:var(--fs-text-muted);font-size:.9rem}
+.foot .wrap{max-width:var(--fs-page-max);margin:0 auto;display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))}
+.foot b{display:block;color:var(--fs-text);margin-bottom:.3rem}
+
+/* ====== primitives (today's .fs-btn, .eyebrow, .title, .lead, .rows) ====== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.625rem 1.125rem;border:1px solid var(--fs-primary);border-radius:.75rem;background:var(--fs-primary);color:var(--fs-on-primary);font:inherit;font-weight:650;line-height:1.2;text-decoration:none;white-space:nowrap;cursor:pointer;min-height:2.75rem}
+.btn:hover{background:var(--fs-primary-strong);border-color:var(--fs-primary-strong);box-shadow:0 4px 12px color-mix(in srgb,var(--fs-primary) 28%,transparent)}
+.btn:focus-visible{outline:3px solid color-mix(in srgb,var(--fs-primary) 45%,transparent);outline-offset:2px}
+.btn-lg{padding:.8rem 1.4rem;font-size:1.05rem}
+.btn-sm{padding:.45rem .85rem;font-size:.9rem;min-height:2.25rem}
+.btn-line{background:var(--fs-surface);border-color:var(--fs-border-strong);color:var(--fs-text)}
+.btn-line:hover{border-color:var(--fs-primary);background:var(--fs-primary-soft);color:var(--fs-primary-strong);box-shadow:none}
+.btn-google{background:var(--fs-surface);border-color:var(--fs-border-strong);color:var(--fs-text);box-shadow:var(--fs-shadow-sm)}
+.btn-google:hover{border-color:var(--fs-text-muted);background:var(--fs-surface-muted);color:var(--fs-text);box-shadow:var(--fs-shadow-sm)}
+.btn svg{width:1.15em;height:1.15em;flex:none}
+a.link{color:var(--fs-primary-strong);font-weight:650;text-underline-offset:.18em}
+.eyebrow{display:inline-flex;justify-self:start;margin:0;padding:.35rem .8rem;border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-size:.82rem;font-weight:700}
+.title{margin:0;font-size:clamp(1.5rem,1.1rem + 1.4vw,2.1rem);font-weight:800;letter-spacing:-.03em;line-height:1.15;text-wrap:balance}
+.title--sm{font-size:1.6rem}
+.lead{max-width:44rem;margin:.6rem 0 0;color:var(--fs-text-muted);font-size:1.05rem}
+.muted{margin:0;color:var(--fs-text-muted)}
+.landing{display:grid;gap:clamp(2.5rem,2rem + 3vw,4.5rem)}
+.actions{display:flex;flex-wrap:wrap;gap:.75rem}
+.actions .btn{flex:1 1 15rem;gap:.6rem}
+@container vp (min-width:640px){.actions .btn{flex:0 0 auto}}
+.rows{display:grid;gap:.75rem;margin:1.2rem 0 0;padding:0;list-style:none}
+.rows--grid{margin:0;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
+.row{display:flex;align-items:flex-start;gap:.8rem}
+.row b{display:block}
+.row span.x{color:var(--fs-text-muted);font-size:.93rem}
+.card{padding:1.4rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);box-shadow:var(--fs-shadow-sm)}
+.card h3{margin:0 0 .9rem;font-size:1.1rem}
+.card .rows{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.9rem 0 0;padding:0;list-style:none}
+.chips li{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .65rem;border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-size:.82rem;font-weight:700}
+.chips li svg{width:1em;height:1em}
+
+/* ====== THE NEW PIECE: .fs-panel--brand + .fs-tile (proposal §3) ======
+   green (primary) tint on the left fading out, warm tan tint on the right fading in; thin border; soft shadow. */
+.panel{position:relative;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);box-shadow:var(--fs-shadow-sm);
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--fs-primary) var(--fs-panel-green),var(--fs-surface)) 0%,
+    color-mix(in srgb,var(--fs-primary) var(--fs-panel-green-mid),var(--fs-surface)) 38%,
+    color-mix(in srgb,var(--fs-brand-tan) var(--fs-panel-brown-mid),var(--fs-surface)) 62%,
+    color-mix(in srgb,var(--fs-brand-tan) var(--fs-panel-brown),var(--fs-surface)) 100%)}
+.panel--open{padding:clamp(1.4rem,1rem + 2vw,2.25rem)}
+.panel--xl{border-radius:var(--fs-radius-xl)}
+.tile{display:grid;flex:none;place-items:center;width:2.5rem;height:2.5rem;border-radius:var(--fs-radius-md);background:var(--fs-primary);color:var(--fs-on-primary);box-shadow:var(--fs-tile-shadow)}
+.tile svg{width:1.2rem;height:1.2rem}
+.tile--lg{width:3.25rem;height:3.25rem;border-radius:var(--fs-radius-md)}
+.tile--lg svg{width:1.5rem;height:1.5rem}
+.head{display:flex;align-items:flex-start;gap:1rem}
+.head>div{min-width:0}
+.head--center{align-items:center}
+/* «Heute»: open sections, white cards, soft green cards, bare green icons — exactly landing-page.component.scss */
+.today .panel--open,.today .faq-group.panel{padding:0;border:0;background:none;box-shadow:none}
+.today .card.panel{background:var(--fs-surface)}
+.today .panel--soft,.today .card.panel.panel--soft{background:var(--fs-primary-soft);border-color:transparent;box-shadow:none}
+.today .card.panel.rcard--idle{border-style:dashed;background:var(--fs-surface-muted);box-shadow:none}
+.today .panel--band{background:var(--fs-primary-soft);border-color:transparent;box-shadow:none}
+.today .tile{width:auto;height:auto;background:none;box-shadow:none;color:var(--fs-primary);margin-top:.2rem;border-radius:0}
+.today .tile svg{width:1.3rem;height:1.3rem}
+.today .tile--lg{display:none}
+.today .row{gap:.7rem}
+.today .faq-group .tile{display:none}
+
+/* ====== hero (unchanged) ====== */
+.hero{display:grid;align-items:center;gap:2.5rem;padding-top:clamp(.5rem,2vw,2rem)}
+.hero__text{display:grid;gap:1.1rem}
+.hero__title{margin:0;font-size:clamp(2.1rem,1.4rem + 3.2vw,3.6rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;text-wrap:balance}
+.hero__lead{max-width:34rem;margin:0;color:var(--fs-text-muted);font-size:clamp(1.02rem,.95rem + .4vw,1.2rem);line-height:1.6}
+.hero .actions{margin-top:.5rem}
+.hero__login{margin:0;color:var(--fs-text-muted);font-size:.95rem}
+@container vp (min-width:900px){.hero{grid-template-columns:1.15fr 1fr}}
+
+/* ====== bubble (fs-landing-bubble, unchanged) ====== */
+.bub{position:relative;min-height:22rem;pointer-events:none;user-select:none}
+.bub--sm{min-height:13rem}
+.bub__blob{position:absolute;filter:blur(2px)}
+.bub__blob--a{inset:8% 10% 6% 12%;background:radial-gradient(circle at 30% 30%,var(--fs-primary-200),var(--fs-primary-soft) 70%);border-radius:42% 58% 55% 45% / 48% 42% 58% 52%}
+.bub__blob--b{right:4%;bottom:4%;width:34%;height:34%;border-radius:50%;background:color-mix(in srgb,var(--fs-accent) 45%,transparent)}
+.bub__card{position:absolute;display:grid;gap:.3rem;padding:1rem 1.2rem;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface);box-shadow:var(--fs-shadow-lg);font-size:.95rem}
+.bub__card svg{width:1.4rem;height:1.4rem;color:var(--fs-primary)}
+.bub__card span{color:var(--fs-text-muted);font-size:.85rem}
+.bub__card b{font-weight:750}
+.bub__ex{justify-self:start;padding:.1rem .5rem;border-radius:999px;background:var(--fs-surface-muted);font-size:.7rem!important;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.bub__card--main{top:22%;left:14%;width:15rem;transform:rotate(-3deg)}
+.bub__card--side{right:8%;bottom:16%;grid-auto-flow:column;align-items:center;gap:.6rem;transform:rotate(4deg)}
+.bub__card--side svg{width:1.1rem;height:1.1rem}
+.bub[data-kind=hero] .bub__card--side svg{color:#d0583c}
+.bub--sm .bub__card--main{top:14%;left:6%;width:13rem}
+.bub--sm .bub__card--side{right:4%;bottom:10%}
+.split{display:grid;align-items:center;gap:2rem}
+@container vp (min-width:900px){.split{grid-template-columns:1fr 1fr}.split--flip>.bub{order:-1}}
+@container vp (max-width:899px){
+  .bub,.bub--sm{min-height:14rem;overflow:hidden;border-radius:var(--fs-radius-xl)}
+  .bub__card{padding:.7rem .9rem;font-size:.85rem}
+  .bub__card--main,.bub--sm .bub__card--main{top:16%;left:4%;width:12rem}
+  .bub__card--side,.bub--sm .bub__card--side{right:3%;bottom:8%}
+  .bub__blob--a{inset:6%}
+}
+
+/* ====== counters strip: brown band with old-green numbers (toolbar: or a brand panel) ====== */
+.strip{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin:0;padding:1.6rem;border-radius:var(--fs-radius-lg);background:var(--fs-band-bg);color:var(--fs-band-text);list-style:none}
+.strip li{display:grid;gap:.2rem}
+.strip .num{font-size:clamp(1.7rem,1.2rem + 1.8vw,2.6rem);font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--fs-brand-green)}
+.strip .lbl{font-size:.9rem;color:var(--fs-band-muted)}
+.strip.panel{color:var(--fs-text)}
+.strip.panel .num{color:var(--fs-primary-strong)}
+.strip.panel .lbl{color:var(--fs-text)}
+.today .strip .num{color:var(--fs-band-text)}
+.today.dark .strip .num{color:var(--fs-primary-strong)}
+@container vp (min-width:700px){.strip{grid-template-columns:repeat(4,1fr)}}
+
+/* ====== journey (fs-landing-journey, unchanged) ====== */
+.jp{display:grid;gap:0 .6rem;margin:1.4rem 0 0;padding:0;list-style:none}
+.jp__phase{padding-bottom:.5rem;margin-bottom:1rem;border-bottom:2px solid var(--fs-primary-200);color:var(--fs-primary-strong);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.jp__step{position:relative;display:grid;gap:.4rem;align-content:start;padding:0 .2rem}
+.jp__n{position:relative;z-index:1;display:grid;place-items:center;width:2.6rem;height:2.6rem;border:2px solid var(--fs-surface);border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-weight:800}
+.jp__n svg{width:1.2rem;height:1.2rem}
+.jp__t{margin-top:.3rem;font-weight:750}
+.jp__x{color:var(--fs-text-muted);font-size:.93rem}
+.jp__chip{justify-self:start;padding:.15rem .6rem;border-radius:999px;background:var(--fs-primary-soft);color:var(--fs-primary-strong);font-size:.78rem;font-weight:700}
+.jp__end{display:grid;gap:.4rem;align-content:start;justify-items:center;min-width:5rem;color:var(--fs-text-muted);font-size:.85rem;text-align:center}
+@container vp (min-width:900px){
+  .jp{grid-template-columns:repeat(4,1fr) auto}
+  .jp__phase{grid-row:1}.jp__phase--online{grid-column:1/4}.jp__phase--onsite{grid-column:4}.jp__phase--in{grid-column:5}
+  .jp__step{grid-row:2}
+  .jp__step::before{content:'';position:absolute;top:1.3rem;right:-.8rem;left:1.3rem;height:2px;background:var(--fs-border-strong)}
+  .jp__step--last::before{display:none}
+  .jp__end{grid-row:2}
+}
+@container vp (max-width:899px){
+  .jp{grid-template-columns:auto 1fr;gap:.4rem .9rem}
+  .jp__phase{grid-column:1/3;margin:0;padding-top:.6rem}
+  .jp__step{grid-column:1/3;grid-template-columns:2.6rem 1fr;grid-template-areas:'n t' 'n x' 'n c';gap:.2rem .8rem;padding:0 0 1.4rem}
+  .jp__step::before{content:'';position:absolute;top:2.6rem;bottom:0;left:1.3rem;width:2px;background:var(--fs-border-strong)}
+  .jp__step:nth-child(6)::before{display:none}
+  .jp__n{grid-area:n}.jp__t{grid-area:t;margin:0}.jp__x{grid-area:x}.jp__chip{grid-area:c}
+  .jp__end{grid-column:1/3;grid-template-columns:2.6rem 1fr;align-items:center;justify-items:start;gap:.2rem .8rem;text-align:left}
+  .jp__phase--online{order:0}.jp__step{order:1}.jp__phase--onsite{order:2}.jp__step--last{order:3}.jp__phase--in{order:4}.jp__end{order:5}
+}
+
+/* ====== near (fs-landing-near + preview) ====== */
+.near{display:grid;gap:1.5rem;margin-top:1.2rem}
+@container vp (min-width:900px){.near{grid-template-columns:1fr 1fr;align-items:start}}
+.nearcol{display:grid;align-content:start;gap:.5rem}
+.search{display:grid;gap:.35rem}
+.search label{font-size:.9rem;font-weight:650}
+.field{display:flex;gap:.5rem}
+.field input{flex:1;min-width:0;min-height:2.75rem;padding:.5rem .9rem;border:1.5px solid var(--fs-border-strong);border-radius:var(--fs-radius-md);background:var(--fs-surface);color:var(--fs-text);font:inherit}
+.field input:focus{border-color:var(--fs-primary)}
+.hint{display:flex;gap:.4rem;align-items:center;min-height:1.3em;margin:0;color:var(--fs-text-muted);font-size:.9rem}
+.hint svg{width:1em;height:1em}
+.rcard{display:grid;gap:.5rem;padding:1.2rem 1.4rem}
+.rcard p{margin:0}
+.rcard--idle p{color:var(--fs-text-muted);font-size:.95rem}
+.rcard .kind{color:var(--fs-text-muted);font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.rcard h3{margin:0;font-size:1.25rem}
+.rcard .facts{display:flex;flex-wrap:wrap;gap:.4rem 1rem;font-size:.95rem;font-weight:650}
+.rcard .fsp{display:flex;gap:.4rem;align-items:baseline;font-size:.95rem}
+.rcard .fsp svg{width:1em;height:1em;color:var(--fs-primary);flex:none;align-self:center}
+.rcard .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem}
+.preview{display:grid;overflow:hidden;border:1px solid var(--fs-border);border-radius:var(--fs-radius-lg);background:var(--fs-surface)}
+.canvas{position:relative;height:clamp(16rem,36vw,24rem);background:var(--fs-pub-map-water)}
+.canvas svg{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%)}
+.pin i{display:grid;place-items:center;width:1.6rem;height:1.6rem;border:2px solid var(--fs-surface);border-radius:50% 50% 50% 0;box-shadow:var(--fs-shadow-md);transform:rotate(-45deg);background:var(--fs-primary);color:var(--fs-on-primary)}
+.pin i svg{width:.85rem;height:.85rem;transform:rotate(45deg)}
+.pin.fsp i{background:var(--fs-accent);color:#1a2a20}
+.over{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem 1rem;padding:.8rem 1rem;border-top:1px solid var(--fs-border)}
+.over p{margin:0;color:var(--fs-text-muted);font-size:.85rem}
+
+/* ====== business / duties / faq / band ====== */
+.biz{display:grid;gap:1rem}
+.biz__card{display:grid;align-content:start;gap:.9rem}
+.biz__panel{display:grid;align-content:center;gap:.5rem;padding:1.2rem}
+.quote{margin:0;font-size:.98rem}
+.quote p{margin:0}
+.quote footer{margin-top:.4rem;color:var(--fs-text-muted);font-size:.85rem}
+.tag{display:flex;gap:.4rem;align-items:center;font-size:.85rem}
+.tag svg{width:1em;height:1em;color:var(--fs-primary-strong)}
+@container vp (min-width:900px){.biz{grid-template-columns:1.4fr 1fr;align-items:stretch}}
+.duties{display:grid;gap:1rem;margin-top:1.4rem}
+@container vp (min-width:900px){.duties{grid-template-columns:1.35fr 1fr}}
+.dfoot{display:flex;align-items:center;gap:.4rem;margin:1rem 0 0;font-size:.9rem}
+.dfoot svg{width:1em;height:1em}
+.faq-groups{display:grid;gap:1.6rem;margin-top:1.2rem}
+@container vp (min-width:900px){.faq-groups{grid-template-columns:repeat(3,1fr);align-items:start}}
+.faq-group.panel{padding:1.1rem}
+.faq-group h3{margin:0;color:var(--fs-primary-strong);font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.faq-group .head{margin-bottom:.8rem}
+.today .faq-group .head{margin-bottom:.6rem}
+.faq{display:grid;gap:.5rem}
+.faq details{padding:.85rem 1rem;border:1px solid var(--fs-border);border-radius:.75rem;background:var(--fs-surface)}
+.faq details[open]{border-color:var(--fs-border-strong)}
+.faq summary{cursor:pointer;font-weight:650}
+.faq p{margin:.6rem 0 0;color:var(--fs-text-muted)}
+.faq-more{margin-top:1.2rem;font-size:.95rem}
+.band{display:grid;justify-items:start;gap:1rem;padding:2rem;border-radius:var(--fs-radius-xl)}
+.sticky{position:sticky;bottom:0;z-index:45;display:none;padding:.6rem var(--fs-gutter) calc(.6rem + env(safe-area-inset-bottom));border-top:1px solid var(--fs-header-border);background:var(--fs-header-bg);backdrop-filter:blur(10px)}
+.sticky .btn{width:100%}
+.vp.phone .sticky.on{display:block}
+.vis{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.skel{height:9rem;border-radius:var(--fs-radius-lg);background:linear-gradient(90deg,var(--fs-surface-muted),var(--fs-border),var(--fs-surface-muted));background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+@container vp (max-width:899px){.panel--open{padding:1.2rem}.band{padding:1.4rem}}
+</style>
+</head>
+<body>
+<div class="bar" role="toolbar" aria-label="Mockup-Schalter">
+  <span><b>Ansicht</b><button data-set="view" data-val="d" aria-pressed="true">Reskin D</button><button data-set="view" data-val="today" aria-pressed="false">Heute</button></span>
+  <span><b>Verlauf</b><button data-set="mix" data-val="subtle" aria-pressed="false">Dezent</button><button data-set="mix" data-val="medium" aria-pressed="true">Mittel</button><button data-set="mix" data-val="strong" aria-pressed="false">Kräftig</button></span>
+  <span><b>Farbschema</b><button data-set="scheme" data-val="light" aria-pressed="true">Hell</button><button data-set="scheme" data-val="dark" aria-pressed="false">Dunkel</button></span>
+  <span><b>Breite</b><button data-set="width" data-val="desktop" aria-pressed="true">Fenster</button><button data-set="width" data-val="phone" aria-pressed="false">412 px</button></span>
+  <span><b>Zahlen (Q3)</b><button data-set="counters" data-val="band" aria-pressed="true">Braunes Band</button><button data-set="counters" data-val="panel" aria-pressed="false">Panel</button></span>
+  <span><b>Daten</b><button data-set="data" data-val="ok" aria-pressed="true">OK</button><button data-set="data" data-val="skeleton" aria-pressed="false">Skeleton</button></span>
+  <span class="note">Rolle: Gast – die Seite ist nur ausgeloggt sichtbar · PLZ 8004 / 10115 / 9999</span>
+</div>
+<div class="stage"><div class="vp" id="vp"></div></div>
+
+<script>
+/* ---------- icons (inline SVG; the product uses PrimeIcons with the same names) ---------- */
+const P=(d,fill)=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const I={
+  mail:P('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
+  google:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.8 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.5a4.7 4.7 0 0 1-2 3.1v2.6h3.3c1.9-1.8 3-4.4 3-7.6z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.6c-.9.6-2.1 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3a10 10 0 0 0 0 9z"/><path fill="#EA4335" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3 7.5l3.4 2.6C7.2 7.8 9.4 6 12 6z"/></svg>`,
+  shop:P('<path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/>'),
+  home:P('<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>'),
+  users:P('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5a3 3 0 0 1 0 6"/><path d="M18 14a5 5 0 0 1 3.5 5"/>'),
+  truck:P('<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'),
+  shield:P('<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>'),
+  check:P('<path d="m5 12 5 5L20 7"/>'),
+  box:P('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14"/><path d="M9 7v1M9 14v2"/>'),
+  cart:P('<path d="M3 4h2l2.5 11h11L21 7H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>'),
+  code:P('<path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>'),
+  heart:P('<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',true),
+  heartLine:P('<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>'),
+  search:P('<circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/>'),
+  pin:P('<path d="M12 21s6-6 6-11a6 6 0 0 0-12 0c0 5 6 11 6 11z"/><circle cx="12" cy="10" r="2"/>'),
+  book:P('<path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/>'),
+  spark:P('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/>'),
+  bag:P('<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>'),
+  globe:P('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>'),
+  sun:P('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>'),
+  login:P('<path d="M10 7V5a2 2 0 0 1 2-2h7v18h-7a2 2 0 0 1-2-2v-2"/><path d="M3 12h11m-4-4 4 4-4 4"/>'),
+  info:P('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  clock:P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  trash:P('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+  leaf:P('<path d="M4 20c0-9 6-15 16-16-1 10-7 16-16 16z"/><path d="M4 20c4-5 8-8 12-10"/>'),
+  question:P('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>')
+};
+
+/* ---------- copy: client/src/app/features/public/i18n/de.json, verbatim ---------- */
+const T={
+  eyebrow:'Gemeinsam gegen Lebensmittelverschwendung',title:'Retten statt wegwerfen.',
+  lead:'Du holst bei Bäckereien, Läden und Restaurants in deiner Nähe ab, was sonst in der Tonne landet – und teilst es mit Menschen um dich herum. Freiwillig, kostenlos, gemeinsam mit vielen anderen.',
+  joinEmail:'Mit E-Mail mitmachen',joinGoogle:'Mit Google mitmachen',haveAccount:'Schon dabei?',login:'Anmelden',
+  art:{hero:['bag','Abholung Bäckerei','Heute, 18:30 · 2 Plätze frei','heart','12 kg gerettet'],
+    mission:['shop','Bäckerei an der Ecke','4 Brote, 2 kg Gemüse, 6 Joghurts','users','geteilt mit 3 Nachbar:innen'],
+    fsp:['box','Fairteiler Wiedikon','Offen für alle · kein Konto nötig','cart','Heute drin: Brot, Äpfel, Salat'],
+    business:['truck','Abholung Mo–Sa, 18:30','Dein Team: nur bereitstellen','shield','Haftungsfreistellung unterschrieben'],
+    ways:['cart','Essenskorb: Lasagne, 4 Portionen','Abholung heute Abend, Kreis 4','code','open source · werbefrei']},
+  mission:{title:'Worum es geht',text:'Jeden Tag landen gute Lebensmittel in der Tonne – in Läden, Bäckereien, Restaurants und zu Hause. Du holst sie ab, bevor das passiert, und teilst sie mit Menschen in deiner Nähe. Ohne Geld, ohne Verpflichtung, mit vielen anderen. Seit 2012, ehrenamtlich, werbefrei und open source.'},
+  ways:[['member','bag','Als Foodsaver:in','Du holst bei Betrieben ab, was nicht mehr verkauft wird, und bringst es dorthin, wo es gegessen wird.'],
+    ['home','home','Zu Hause','Du hast zu viel gekocht oder fährst in die Ferien? Stell einen Essenskorb ein oder bring es in einen Fairteiler.'],
+    ['business','shop','Als Betrieb','Du führst einen Laden oder ein Restaurant? Wir holen zuverlässig ab – kostenlos und mit Haftungsfreistellung.']],
+  impactTitle:'Was wir gemeinsam bewegen',
+  counters:[['kgSaved',1842300,'kg gerettet'],['pickups',126540,'Abholungen'],['foodsavers',8420,'Foodsaver:innen'],['stores',1130,'Partnerbetriebe']],
+  journeyTitle:'Der Start dauert nur 2 Minuten.',journeyLead:'Vier Schritte. Die ersten drei online, wann du willst – dann geht es mit erfahrenen Foodsaver:innen nach draussen.',
+  phases:['Online','Vor Ort','Dabei'],
+  steps:[['Konto erstellen','Mit E-Mail-Link, Google oder Passkey. Kein Passwort nötig.','ca. 2 Minuten'],
+    ['Grundlagen lernen','Kurze Lernseiten zu Abholungen, Hygiene und dem Verhalten im Betrieb.','ca. 20 Minuten'],
+    ['Foodsaver-Quiz','Online, wann du willst. Mehrere Versuche sind okay.','ca. 30 Minuten'],
+    ['Einführungsabholungen & Ausweis','Mindestens drei Abholungen mit erfahrenen Foodsaver:innen. Deine Botschafter:in prüft einmal deinen Ausweis – dann bekommst du deinen Foodsaver-Ausweis.','nach Terminen in deinem Bezirk']],
+  stepEnd:'Du holst selbst ab',
+  near:{title:'In deiner Nähe',lead:'Bezirke sind unsere lokalen Gruppen, Fairteiler öffentliche Kühlschränke und Regale. Finde beides um die Ecke.',
+    label:'Finde deinen Bezirk',ph:'Postleitzahl, z. B. 8004',submit:'Suchen',invalid:'Bitte eine Postleitzahl mit 4 oder 5 Ziffern.',
+    noMatch:'Noch kein Bezirk in deiner Nähe – gründe einen, wir helfen dir dabei.',
+    idle:'Gib deine Postleitzahl ein. Du siehst, wie viele Betriebe und Mitglieder dein Bezirk hat und wo der nächste Fairteiler steht.',
+    kind:'Dein Bezirk',regionLink:'Zur Bezirksseite',openMap:'Karte öffnen',note:'14 Bezirke · 11 Fairteiler. Die echte Karte lädt erst auf der Kartenseite.',
+    alt:'Schematische Karte: Bezirke und Fairteiler in der Schweiz, Deutschland und Österreich'},
+  fsp:{title:'Was ist ein Fairteiler?',text:'Ein Fairteiler ist ein öffentlicher Kühlschrank oder ein Regal. Alle dürfen Lebensmittel bringen und nehmen – ohne Konto, ohne Fragen. Foodsaver:innen füllen ihn mit Gerettetem und halten ihn sauber.',
+    rules:['Bring, was du selbst noch essen würdest','Nimm, was du brauchst','Kein rohes Fleisch, kein Alkohol']},
+  biz:{eyebrow:'Für Betriebe',title:'Für Betriebe: Partner werden',lead:'Wir holen ab, was du nicht mehr verkaufen kannst. Du stellst es bereit – alles andere übernehmen geprüfte Foodsaver:innen aus deiner Nähe.',cta:'Partner werden',tag:'Aufkleber für die Tür inklusive',
+    benefits:[['free','heart','Kostenlos','Keine Gebühren, kein Vertrag mit Laufzeit. Nichts wird weiterverkauft – die Lebensmittel werden verschenkt.'],
+      ['cost','trash','Weniger Entsorgungskosten','Weniger im Container, weniger Leerungen, weniger Gebühren.'],
+      ['staff','users','Kein Mehraufwand für dein Team','Foodsaver:innen sortieren, packen und tragen selbst weg.'],
+      ['accept','cart','Wir nehmen fast alles','Abgelaufenes MHD, Milchprodukte, Brot vom Vortag, beschädigte Verpackungen.'],
+      ['reliable','clock','Zuverlässig – auch am Wochenende','Feste Abholzeiten, früh oder spät, samstags und sonntags. Fällt jemand aus, springt das Team ein.'],
+      ['liability','shield','Haftungsfreistellung','Jede Foodsaver:in unterschreibt sie in unserer Rechtsvereinbarung – vor der ersten Abholung.']],
+    quote:'«Seit wir mit foodsharing arbeiten, ist der Container abends halb leer – und das Team geht pünktlich nach Hause.»',quoteBy:'Inhaberin einer Bäckerei in Zürich (Beispielzitat)'},
+  more:{title:'Weitere Wege zu helfen',lead:'foodsharing ist ehrenamtlich, unabhängig, werbefrei und open source. Es gibt mehr als einen Weg, dabei zu sein.',
+    items:[['basket','cart','Essenskörbe','Zu viel gekocht? Biete einen Essenskorb an – jemand aus der Nachbarschaft holt ihn ab.'],
+      ['donate','heart','Spenden','foodsharing ist ehrenamtlich und werbefrei. Deine Spende zahlt Server, Versicherung und Material.'],
+      ['it','code','IT & Mitarbeit','Die Plattform ist open source. Code, Design, Übersetzung oder Pressearbeit – du bist willkommen.']]},
+  duties:{title:'Deine Verpflichtungen',lead:'Foodsharing funktioniert, weil sich Betriebe auf uns verlassen können. Darum versprichst du ein paar Dinge – mehr nicht.',yes:'Das versprichst du',no:'Das musst du nicht',rules:'Alle Regeln im Wiki lesen',
+    y:[['reliable','clock','Zuverlässig sein','Du trägst dich nur ein, wenn du sicher kommst. Klappt es nicht, trägst du dich früh aus und suchst Ersatz.'],
+      ['take','cart','Alles nehmen, nichts wegwerfen','Du nimmst alles Essbare mit und gibst weiter, was du nicht brauchst – an Menschen oder an einen Fairteiler.'],
+      ['nosale','heart','Nichts verkaufen','Gerettete Lebensmittel werden verschenkt, nie verkauft oder getauscht.'],
+      ['conduct','shop','Im Betrieb freundlich auftreten','Pünktlich, mit Foodsaver-Ausweis, ohne Diskussion über Menge oder Art – und du hinterlässt alles sauber.'],
+      ['privacy','shield','Vertraulich bleiben','Daten anderer Foodsaver:innen und interne Infos gibst du nicht weiter.']],
+    n:[['min','Keine Mindestzahl an Abholungen','Du entscheidest selbst, wie oft du dabei bist.'],
+      ['money','Keine Kosten, kein Vertrag','Du kannst jederzeit pausieren oder aufhören.'],
+      ['alone','Nie allein am Anfang','Die ersten Abholungen machst du mit erfahrenen Foodsaver:innen.']]},
+  faqTitle:'Häufige Fragen',
+  faq:[['join','users','Mitmachen',[['what','Was macht eine Foodsaver:in?','Du holst bei Betrieben Lebensmittel ab, die sonst im Müll landen würden – und sorgst dafür, dass sie gegessen werden: von dir, deinen Nachbar:innen oder über einen Fairteiler.'],
+      ['who','Wer kann mitmachen?','Alle ab 18 Jahren mit einem amtlichen Ausweis. Vorwissen brauchst du keines – du lernst alles auf dem Weg.'],
+      ['cost','Kostet das etwas?','Nein. foodsharing ist ehrenamtlich, kostenlos und werbefrei. Du zahlst nichts, und du bekommst auch nichts bezahlt.'],
+      ['time','Wie viel Zeit brauche ich?','Die drei Online-Schritte dauern zusammen etwa eine Stunde. Danach entscheidest du selbst, wann und wie oft du abholst.'],
+      ['id','Was brauche ich für den Start?','Eine E-Mail-Adresse oder ein Google-Konto. Für den Foodsaver-Ausweis prüft deine Botschafter:in einmal deinen amtlichen Ausweis – eine Kopie behält niemand.']]],
+    ['pickup','bag','Abholen',[['duties','Was sind meine Verpflichtungen?','Kurz: zuverlässig sein, alles nehmen, nichts verkaufen, freundlich auftreten. Die ganze Liste steht oben unter «Deine Verpflichtungen».'],
+      ['cancel','Was, wenn ich eine Abholung nicht schaffe?','Trag dich so früh wie möglich aus und sag deinem Team Bescheid. Weniger als 24 Stunden vorher rufst du zusätzlich an, damit jemand einspringt.'],
+      ['all','Muss ich alles mitnehmen?','Ja, alles Essbare, was der Betrieb dir gibt – sofern nichts anderes abgemacht ist. Was du nicht brauchst, gibst du weiter.'],
+      ['safe','Ist das Essen sicher?','Gerettet wird nur, was noch essbar ist. In den Lernseiten und im Quiz lernst du, worauf du achtest: Kühlkette, Haltbarkeit, Verpackung.']]],
+    ['share','box','Teilen ohne Konto',[['fairteiler','Was ist ein Fairteiler?','Ein öffentlicher Kühlschrank oder ein Regal. Alle dürfen Lebensmittel hineinlegen oder mitnehmen – ganz ohne Konto.'],
+      ['basket','Kann ich auch ohne Abholungen mitmachen?','Ja. Mit einem Essenskorb bietest du eigene Lebensmittel an oder holst welche bei anderen ab. Dafür brauchst du nur ein Konto, kein Quiz.'],
+      ['business','Ich habe einen Betrieb – wie werde ich Partner?','Über «Partner werden» oben schreibst du uns. Dein Bezirk meldet sich und bespricht mit dir Zeiten und Abläufe.']]]],
+  faqMore:['Noch etwas offen?','Im Wiki nachlesen','oder','uns schreiben'],
+  band:{title:'Bereit? Dein Bezirk wartet.',text:'Konto in zwei Minuten, der Rest Schritt für Schritt.'},sticky:'Jetzt mitmachen'
+};
+const fmt=n=>new Intl.NumberFormat('de-CH',{maximumFractionDigits:0}).format(n);
+
+/* ---------- pieces ---------- */
+const tile=(ic,lg)=>`<span class="tile${lg?' tile--lg':''}" aria-hidden="true">${I[ic]}</span>`;
+const bubble=(kind,sm)=>{const [i1,m,ms,i2,s]=T.art[kind];return `<div class="bub ${sm?'bub--sm':''}" data-kind="${kind}" aria-hidden="true">
+  <div class="bub__blob bub__blob--a"></div><div class="bub__blob bub__blob--b"></div>
+  <div class="bub__card bub__card--main"><span class="bub__ex">Beispiel</span>${I[i1]}<b>${m}</b><span>${ms}</span></div>
+  <div class="bub__card bub__card--side">${I[i2]}<span>${s}</span></div></div>`};
+const cta=(tid)=>`<div class="actions">
+  <a class="btn btn-lg" href="#login" data-testid="public.landing.${tid}joinEmail">${I.mail}<span>${T.joinEmail}</span></a>
+  <a class="btn btn-lg btn-google" href="#google" data-testid="public.landing.${tid}joinGoogle">${I.google}<span>${T.joinGoogle}</span></a></div>`;
+const rows=(items,tidp)=>items.map(([id,ic,t,x])=>`<li class="row" data-testid="${tidp}${id}">${tile(ic)}<div><b>${t}</b><span class="x">${x}</span></div></li>`).join('');
+const LAND=`<svg viewBox="170 20 410 420" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+ <g fill="var(--fs-pub-map-land)" stroke="var(--fs-pub-map-line)" stroke-width="1.5" stroke-linejoin="round">
+  <path d="M250 40 L300 28 L340 34 L380 58 L402 108 L440 148 L432 222 L470 282 L452 318 L430 332 L380 342 L330 334 L300 352 L252 330 L230 282 L198 250 L212 182 L190 122 L232 80Z"/>
+  <path d="M330 350 L380 346 L430 334 L482 328 L542 344 L566 368 L526 398 L462 404 L400 398 L358 390 L326 378Z"/>
+  <path d="M232 344 L282 350 L330 354 L326 384 L300 410 L262 422 L220 408 L198 382 L206 360Z"/></g>
+ <g fill="var(--fs-pub-map-park)"><circle cx="290" cy="380" r="7"/><circle cx="360" cy="300" r="12"/><circle cx="300" cy="200" r="10"/><circle cx="440" cy="380" r="9"/><circle cx="240" cy="160" r="8"/></g>
+ <g fill="none" stroke="var(--fs-pub-map-water)" stroke-width="3" stroke-linecap="round"><path d="M250 330 C262 300 300 260 330 200 S380 100 402 60"/><path d="M280 372 c6 -2 12 -1 16 2"/><path d="M420 370 c20 -4 40 -4 60 -8"/></g>
+ <g fill="var(--fs-pub-map-water)"><ellipse cx="294" cy="371" rx="4" ry="1.6" transform="rotate(35 294 371)"/><ellipse cx="300" cy="320" rx="9" ry="3.5"/><ellipse cx="214" cy="410" rx="10" ry="3"/></g>
+ <g font-family="var(--fs-font)" font-size="11" font-weight="700" fill="var(--fs-text-muted)" opacity=".55"><text x="300" y="150">DE</text><text x="470" y="372">AT</text><text x="240" y="380">CH</text></g></svg>`;
+const PINS=[['r',292,364],['r',252,344],['r',258,384],['r',420,118],['r',529,356],['r',329,64],['r',372,318],['r',262,196],['r',210,408],['r',520,380],['r',290,230],['r',430,160],['r',340,250],['r',468,300],
+  ['f',299,356],['f',254,347],['f',258,384],['f',423,121],['f',418,115],['f',529,356],['f',329,64],['f',372,322],['f',262,200],['f',210,404],['f',290,234]];
+const pins=()=>PINS.map(([k,x,y])=>`<span class="pin ${k==='f'?'fsp':''}" style="left:${((x-170)/410*100).toFixed(1)}%;top:${((y-20)/420*100).toFixed(1)}%"><i>${k==='f'?I.box:I.users}</i></span>`).join('');
+
+function page(){
+  const stripCls=S.counters==='panel'?'strip panel':'strip';
+  return `
+<header class="hdr" data-testid="shell.header">
+  <a class="word" href="#" data-testid="shell.brand" aria-label="foodsharing – Start">${I.leaf}<span>food<b>sharing</b></span></a>
+  <nav aria-label="Hauptnavigation"><a href="#" aria-current="page">Start</a><a href="#">Karte</a><a href="#">Über uns</a><a href="#">Statistik</a></nav>
+  <div class="hdr-actions"><button class="ibtn" aria-label="Sprache: Deutsch">${I.globe}</button><button class="ibtn" aria-label="Darstellung" onclick="set('scheme',vp.classList.contains('dark')?'light':'dark')">${I.sun}</button><a class="btn btn-line btn-sm" href="#login" data-testid="shell.login">${I.login}<span>Anmelden</span></a></div>
+</header>
+<main class="page"><div class="landing">
+  <section class="hero" id="hero" data-testid="public.landing.hero">
+    <div class="hero__text"><p class="eyebrow">${T.eyebrow}</p><h1 class="hero__title">${T.title}</h1><p class="hero__lead">${T.lead}</p>${cta('')}
+      <p class="hero__login">${T.haveAccount} <a class="link" href="#login" data-testid="public.landing.login">${T.login}</a></p></div>
+    ${bubble('hero')}
+  </section>
+
+  <section class="panel panel--open split split--flip" data-testid="public.landing.mission" aria-labelledby="m-t">
+    <div><h2 class="title" id="m-t">${T.mission.title}</h2><p class="lead">${T.mission.text}</p><ul class="rows">${rows(T.ways,'public.landing.way.')}</ul></div>${bubble('mission',true)}
+  </section>
+
+  <section aria-labelledby="z-t"><h2 class="vis" id="z-t">${T.impactTitle}</h2>
+    <div data-testid="public.explainer.state">${S.data==='skeleton'?'<div class="skel" aria-busy="true" aria-label="Lädt"></div>':`<ul class="${stripCls}" data-testid="public.explainer.counters">${T.counters.map(([k,v,l])=>`<li><span class="num cu" data-value="${v}" data-testid="public.explainer.counter.${k}">0</span><span class="lbl">${l}</span></li>`).join('')}</ul>`}</div>
+  </section>
+
+  <section data-testid="public.explainer.journey" aria-labelledby="j-t">
+    <h2 class="title" id="j-t">${T.journeyTitle}</h2><p class="lead">${T.journeyLead}</p>
+    <ol class="jp" data-testid="public.explainer.preview">
+      <li class="jp__phase jp__phase--online">${T.phases[0]}</li><li class="jp__phase jp__phase--onsite">${T.phases[1]}</li><li class="jp__phase jp__phase--in">${T.phases[2]}</li>
+      ${T.steps.map(([t,x,d],i)=>`<li class="jp__step${i===3?' jp__step--last':''}" data-testid="public.landing.journey.step.${i+1}"><span class="jp__n" aria-hidden="true">${i+1}</span><span class="jp__t">${t}</span><span class="jp__x">${x}</span><span class="jp__chip">${d}</span></li>`).join('')}
+      <li class="jp__end"><span class="jp__n" aria-hidden="true">${I.bag}</span><span>${T.stepEnd}</span></li>
+    </ol>
+  </section>
+
+  <section data-testid="public.landing.near" aria-labelledby="n-t">
+    <h2 class="title" id="n-t">${T.near.title}</h2><p class="lead">${T.near.lead}</p>
+    <div class="near">
+      <div class="nearcol"><form class="search" role="search" onsubmit="return search(event)" novalidate>
+          <label for="pc">${T.near.label}</label>
+          <div class="field"><input id="pc" name="postcode" inputmode="numeric" autocomplete="postal-code" maxlength="10" placeholder="${T.near.ph}" aria-describedby="pc-hint" data-testid="public.landing.near.search"><button class="btn" type="submit" data-testid="public.landing.near.search.submit">${I.search}<span>${T.near.submit}</span></button></div>
+          <p class="hint" id="pc-hint" aria-live="polite" data-testid="public.landing.near.search.hint"></p></form>
+        <div id="near-out" aria-live="polite"><div class="card panel rcard rcard--idle" data-testid="public.landing.near.idle"><div class="head head--center">${tile('search',true)}<p>${T.near.idle}</p></div></div></div></div>
+      <div class="preview" data-testid="public.landing.near.preview">
+        <div class="canvas" role="img" aria-label="${T.near.alt}">${LAND}<div aria-hidden="true">${pins()}</div></div>
+        <div class="over"><p data-testid="public.landing.near.previewNote">${T.near.note}</p><a class="btn" href="#map" data-testid="public.landing.near.preview.openMap">${I.pin}<span>${T.near.openMap}</span></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel panel--open split" data-testid="public.landing.fairteiler" aria-labelledby="f-t">
+    ${bubble('fsp',true)}<div><div class="head">${tile('box',true)}<div><h2 class="title" id="f-t">${T.fsp.title}</h2><p class="lead">${T.fsp.text}</p></div></div><ul class="chips">${T.fsp.rules.map(r=>`<li>${I.check}${r}</li>`).join('')}</ul></div>
+  </section>
+
+  <section class="biz" data-testid="public.explainer.business" aria-labelledby="b-t">
+    <div class="card panel biz__card"><p class="eyebrow">${T.biz.eyebrow}</p><h2 class="title title--sm" id="b-t">${T.biz.title}</h2><p class="muted">${T.biz.lead}</p>
+      <div><a class="btn btn-lg" href="#support" data-testid="public.landing.business.cta">${I.shop}<span>${T.biz.cta}</span></a></div>
+      <ul class="rows rows--grid">${rows(T.biz.benefits,'public.landing.business.benefit.')}</ul>
+      <p class="muted tag">${I.spark}${T.biz.tag}</p></div>
+    <div class="panel panel--soft biz__panel">${bubble('business',true)}<blockquote class="quote" data-testid="public.landing.business.quote"><p>${T.biz.quote}</p><footer>${T.biz.quoteBy}</footer></blockquote></div>
+  </section>
+
+  <section class="panel panel--open split split--flip" data-testid="public.landing.moreWays" aria-labelledby="w-t">
+    <div><h2 class="title" id="w-t">${T.more.title}</h2><p class="lead">${T.more.lead}</p><ul class="rows">${rows(T.more.items,'public.landing.moreWays.')}</ul></div>${bubble('ways',true)}
+  </section>
+
+  <section data-testid="public.landing.duties" aria-labelledby="d-t">
+    <h2 class="title" id="d-t">${T.duties.title}</h2><p class="lead">${T.duties.lead}</p>
+    <div class="duties">
+      <div class="card panel"><h3>${T.duties.yes}</h3><ul class="rows">${rows(T.duties.y,'public.landing.duties.')}</ul>
+        <p class="dfoot">${I.book}<a class="link" href="https://wiki.foodsharing.network/wiki/Verhaltensregeln" data-testid="public.landing.duties.rules">${T.duties.rules}</a></p></div>
+      <div class="card panel panel--soft"><h3>${T.duties.no}</h3><ul class="rows">${T.duties.n.map(([id,t,x])=>`<li class="row" data-testid="public.landing.duties.not.${id}">${tile('check')}<div><b>${t}</b><span class="x">${x}</span></div></li>`).join('')}</ul></div>
+    </div>
+  </section>
+
+  <section data-testid="public.explainer.faq" aria-labelledby="q-t">
+    <h2 class="title" id="q-t">${T.faqTitle}</h2>
+    <div class="faq-groups">${T.faq.map(([g,ic,gt,items])=>`<div class="faq-group panel panel--open" data-testid="public.explainer.faq.group.${g}"><div class="head head--center">${tile(ic)}<h3 id="fq-${g}">${gt}</h3></div><div class="faq">${items.map(([id,q,a])=>`<details data-testid="public.explainer.faq.${id}"><summary>${q}</summary><p>${a}</p></details>`).join('')}</div></div>`).join('')}</div>
+    <p class="muted faq-more">${T.faqMore[0]} <a class="link" href="#wiki" data-testid="public.explainer.faq.wiki">${T.faqMore[1]}</a> ${T.faqMore[2]} <a class="link" href="#support" data-testid="public.explainer.faq.support">${T.faqMore[3]}</a>.</p>
+  </section>
+
+  <section class="band panel panel--band panel--xl i-strong" data-testid="public.landing.band" aria-labelledby="c-t">
+    <h2 class="title" id="c-t">${T.band.title}</h2><p class="muted">${T.band.text}</p>${cta('band.')}
+  </section>
+</div></main>
+<footer class="foot"><div class="wrap"><div><b>foodsharing</b>Über uns · Team · Presse</div><div><b>Mitmachen</b>Bezirke · Fairteiler · Spenden · Partner werden</div><div><b>Hilfe</b>FAQ · Support · Release Notes</div><div><b>Rechtliches</b>Datenschutz · Impressum · Nutzungsbedingungen</div></div></footer>
+<div class="sticky" id="sticky" data-testid="public.landing.stickyJoin"><a class="btn" href="#login">${I.mail}<span>${T.sticky}</span></a></div>`;
+}
+
+/* ---------- state + behaviour ---------- */
+const S={view:'d',mix:'medium',scheme:'light',width:'desktop',counters:'band',data:'ok'};
+const vp=document.getElementById('vp');
+function set(k,v){S[k]=v;document.querySelectorAll(`[data-set="${k}"]`).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.val===v)));render()}
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>set(b.dataset.set,b.dataset.val)));
+function render(){
+  vp.className='vp'+(S.view==='today'?' today':'')+(S.scheme==='dark'?' dark':'')+(S.width==='phone'?' phone':'')+(S.mix==='subtle'?' i-subtle':S.mix==='strong'?' i-strong':'');
+  vp.innerHTML=page();
+  /* the CTA band sits one intensity step above the panels */
+  const band=vp.querySelector('.band');
+  if(band){band.classList.remove('i-strong');const up={subtle:'medium',medium:'strong',strong:'strong'}[S.mix];
+    if(up==='strong'){band.style.setProperty('--fs-panel-green',S.scheme==='dark'?'26%':'20%');band.style.setProperty('--fs-panel-green-mid',S.scheme==='dark'?'9%':'7%');band.style.setProperty('--fs-panel-brown',S.scheme==='dark'?'20%':'13%');band.style.setProperty('--fs-panel-brown-mid',S.scheme==='dark'?'7%':'4%')}
+    else{band.style.setProperty('--fs-panel-green',S.scheme==='dark'?'18%':'14%');band.style.setProperty('--fs-panel-green-mid',S.scheme==='dark'?'6%':'5%');band.style.setProperty('--fs-panel-brown',S.scheme==='dark'?'14%':'9%');band.style.setProperty('--fs-panel-brown-mid',S.scheme==='dark'?'5%':'3%')}}
+  countUp();stickyWatch();
+}
+function countUp(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  vp.querySelectorAll('.cu').forEach(el=>{const v=+el.dataset.value;if(reduce){el.textContent=fmt(v);return}
+    const t0=performance.now();const step=t=>{const p=Math.min(1,(t-t0)/1200);el.textContent=fmt(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)});
+}
+function stickyWatch(){
+  const st=vp.querySelector('#sticky'),hero=vp.querySelector('#hero'),foot=vp.querySelector('.foot');
+  if(S.width!=='phone'||!('IntersectionObserver' in window))return;
+  let heroOut=false,footIn=false;const upd=()=>st.classList.toggle('on',heroOut&&!footIn);
+  new IntersectionObserver(([e])=>{heroOut=!e.isIntersecting;upd()},{root:vp}).observe(hero);
+  new IntersectionObserver(([e])=>{footIn=e.isIntersecting;upd()},{root:vp}).observe(foot);
+}
+function search(ev){
+  ev.preventDefault();const pc=vp.querySelector('#pc').value.trim(),hint=vp.querySelector('#pc-hint'),out=vp.querySelector('#near-out');
+  hint.innerHTML='';
+  if(!/^\d{4,5}$/.test(pc)){hint.innerHTML=`${I.info}${T.near.invalid}`;return false}
+  out.innerHTML=`<div class="card panel rcard" aria-hidden="true"><p style="height:.8rem;width:30%;border-radius:4px;background:var(--fs-border)"></p><p style="height:1.3rem;width:55%;border-radius:4px;background:var(--fs-border)"></p><p style="height:.9rem;width:80%;border-radius:4px;background:var(--fs-border)"></p></div>`;
+  setTimeout(()=>{
+    if(pc==='9999'){out.innerHTML=`<div class="card panel rcard rcard--idle" data-testid="public.landing.near.state"><div class="head head--center">${tile('pin',true)}<p>${T.near.noMatch}</p></div></div>`;return}
+    const r=pc.length===4?{n:'Zürich Stadt',slug:'zuerich-stadt',s:42,m:1284,f:'Fairteiler Wiedikon, Fairteiler Kreis 4'}:{n:'Berlin Neukölln',slug:'berlin-neukoelln',s:118,m:3906,f:'Fairteiler Neukölln, Fairteiler Wedding'};
+    out.innerHTML=`<div class="card panel rcard" data-testid="public.landing.near.result"><div class="head">${tile('users',true)}<div style="display:grid;gap:.5rem">
+      <span class="kind">${T.near.kind}</span><h3 data-testid="public.landing.near.result.name">${r.n}</h3>
+      <p class="facts"><span data-testid="public.landing.near.result.cooperations">${r.s} aktive Kooperationen</span><span data-testid="public.landing.near.result.members">${fmt(r.m)} Mitglieder</span></p>
+      <p class="fsp" data-testid="public.landing.near.result.fsps">${I.box}<span>Fairteiler in der Nähe: ${r.f}</span></p>
+      <div class="acts"><a class="btn btn-sm" href="#/r/${r.slug}" data-testid="public.landing.near.regionLink">${T.near.regionLink}</a><a class="btn btn-sm btn-line" href="#map" data-testid="public.landing.near.openMap">${I.pin}<span>${T.near.openMap}</span></a></div></div></div></div>`;
+  },500);
+  return false;
+}
+render();
+</script>
+</body>
+</html>
