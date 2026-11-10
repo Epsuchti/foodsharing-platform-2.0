@@ -22,6 +22,7 @@ import {
   ContentPageSummary,
   ContentPageUpdate,
   ContentService,
+  LearningChapterGroup,
   Role,
   Upload,
   WorkingGroupFunction,
@@ -263,6 +264,36 @@ const NEW = 'new';
               </div>
             }
           </div>
+          @if (kind() === chapterKind) {
+            <!-- C1: section of the knowledge area and whether the chapter counts for the journey -->
+            <div class="field">
+              <label for="content-group">{{ 'content.editor.group' | t }}</label>
+              <p-select
+                inputId="content-group"
+                name="group"
+                [options]="groupOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [fluid]="true"
+                [ngModel]="group()"
+                (ngModelChange)="group.set($event)"
+                data-testid="content.editor.group"
+              />
+            </div>
+            <div class="toggle">
+              <p-toggleswitch
+                inputId="content-required"
+                name="required"
+                [ngModel]="required()"
+                (ngModelChange)="required.set($event)"
+                data-testid="content.editor.required"
+              />
+              <label for="content-required">
+                <strong>{{ 'content.editor.required' | t }}</strong>
+                <span>{{ 'content.editor.requiredHint' | t }}</span>
+              </label>
+            </div>
+          }
           <div class="toggle">
             <p-toggleswitch
               inputId="content-published"
@@ -427,6 +458,9 @@ export class ContentEditorPageComponent {
   protected readonly sortOrder = signal(0);
   protected readonly minutes = signal<number | null>(null);
   protected readonly published = signal(false);
+  /** Learning chapters only (C1). */
+  protected readonly group = signal<LearningChapterGroup>(LearningChapterGroup.Basics);
+  protected readonly required = signal(true);
   protected readonly reason = signal('');
   protected readonly newSlug = signal('');
   /** Working-group function whose admins may edit the page (default PR; only ORGA changes it, A54). */
@@ -478,6 +512,14 @@ export class ContentEditorPageComponent {
     );
   });
 
+  protected readonly groupOptions = computed(() => {
+    this.i18n.language();
+    return Object.values(LearningChapterGroup).map((value) => ({
+      value,
+      label: this.i18n.t('content.learn.group.' + value),
+    }));
+  });
+
   protected readonly slugValid = computed(() => SLUG_PATTERN.test(this.newSlug().trim()));
   /** Languages with a title but no body (the server refuses those). */
   protected readonly missingBodies = computed(() =>
@@ -507,6 +549,8 @@ export class ContentEditorPageComponent {
         this.sortOrder.set(page.sortOrder ?? 0);
         this.minutes.set(page.estimatedMinutes ?? null);
         this.published.set(page.published);
+        this.group.set(page.group ?? LearningChapterGroup.Basics);
+        this.required.set(page.required ?? true);
         this.reason.set('');
         this.editorFunction.set(page.editorFunction || WorkingGroupFunction.Pr);
         this.savedImageIds.set(page.imageUploadIds ?? []);
@@ -548,6 +592,8 @@ export class ContentEditorPageComponent {
               ? (this.minutes() ?? undefined)
               : undefined,
           published: this.published(),
+          group: this.kind() === ContentPageKind.LearningChapter ? this.group() : undefined,
+          required: this.kind() === ContentPageKind.LearningChapter ? this.required() : undefined,
           reason: this.reason().trim() || undefined,
           // only ORGA picks another function; others leave it unchanged (the server answers 403 otherwise)
           editorFunction: this.isOrga() ? this.editorFunction() : undefined,

@@ -1,0 +1,98 @@
+{{Wiki-Artikel-Typ|Typ=1 (Regel-Artikel)}}
+
+
+<b><font size = 3>[[foodsharing-Grundlagen|foodsharing-Grundlagen]] 7</font></b><br>
+<pdfexcludestart />
+
+Dieser Artikel als {{PDFLink|page=Kontext und Selbstverständnis|template=StandardBookPDF|label=PDF}} zum Download
+
+<pdfexcludeend />
+
+==Lebensmittelverschwendung==
+
+*Etwa 4 Milliarden Tonnen Lebensmittel werden weltweit jedes Jahr produziert. Davon werden über 1,3 Milliarden Tonnen verschwendet. [1]
+*In Industriestaaten bestehen ca. 40% der verschwendeten Nahrungsmittel aus völlig genießbaren Lebensmitteln. [1]
+*Wir alle sind dafür verantwortlich, dass Lebensmittelhändler, Zwischenhändler, Produzenten und Gastronomen Millionen von Tonnen an Lebensmitteln jedes Jahr wegwerfen.
+*2/3 der gesamten Lebensmittelverschwendung könnten durch Engagement von Lebensmittelbetrieben, Foodsavern und Privatpersonen     eingespart werden.
+*Nur gemeinsam können wir den Wahnsinn der Überflussgesellschaft stoppen, indem jeder seinen Teil dazu beiträgt und verantwortlich handelt.
+
+
+
+==Ausgangssituation==
+
+*Jeden Tag werden in extremem Ausmaß Lebensmittel verschwendet, und das, obwohl nach wie vor rund 57.000 Menschen pro Tag an Hunger sterben. [2]
+*In den Industrienationen findet besonders viel dieser Verschwendung auf Konsumentenebene statt: über 150 kg pro Person und Jahr. [3]
+*Äpfel mit Druckstellen, zu krumme Gurken, zu kleine Zucchini und sogar Produkte, die entweder zu teuer oder zu billig sind, landen hierzulande sehr schnell im Müll der Händler, obwohl sie in den allermeisten Fällen absolut genießbar wären.
+*Auch Privathaushalte sind nicht vor Verschwendung gefeit: Zu große Packungen, zu viele Produkte, zu kleine Preise und oftmals leider einfach Gedankenlosigkeit führen auch im häuslichen Umfeld zu viel vermeidbarem Lebensmittelmüll.
+
+==Ansatzpunkte==
+
+Da Verschwendung an vielen verschiedenen Stellen des Produktions- und Konsumkreislaufs auftritt, können wir sie auch an vielen verschiedenen Stellen bekämpfen.<br>
+Wir setzen also an drei Stellen an:
+
+#''Bei Lebensmittelhändlern und [[Betrieb|Betrieben]]'': Auf der Basis von Kooperationen werden einerseits Lebensmittel vor dem Wegwerfen gerettet, abgeholt und weiterverteilt. Andererseits wollen wir unsere Partner dafür sensibilisieren, dass durch bessere oder vorsichtigere Planung beim Einkauf und der Vorratshaltung, aber auch z.B. durch vergünstigte Angebote für nicht mehr ganz perfekte Lebensmittel ebenfalls die Verschwendung von Lebensmitteln verringert werden kann. Als Nebeneffekt kann auch das Volumen der Restmüll- und Biotonnen um bis zu 70% zurückgehen. [4]
+#''Bei Verbraucher*innen im privaten Bereich'': Wir stellen allen Menschen, die selbst Essen retten oder teilen wollen, auf foodsharing.de die digitale Infrastruktur zur Verfügung. Wir wünschen uns, dass immer mehr Menschen dieses Angebot nutzen, zum Beispiel, um vor der Abreise in den Urlaub ihre übrigen Lebensmittel per virtuellem Essenskorb zu verteilen. Darüber hinaus wollen wir generell auf das Thema aufmerksam machen, mit fundierten Informationen und Bildungsangeboten Wissen und Ideen zum nachhaltigeren Umgang mit Lebensmitteln verbreiten und allgemein zu mehr Achtsamkeit für Lebensmittel anregen.
+#''Bei Produktionsbetrieben'': Wir wollen Menschen motivieren und ihr Engagement fördern, damit sie "Ausschussobst und -gemüse" vor dem Verrotten oder Verderben retten. Zum Beispiel führen wir zur Erntezeit Aktionen durch, um die Feldfrüchte, die den strengen optischen Standards der Agrarindustrie und ihrer Abnehmer nicht entsprechen, von den Feldern zu sammeln, auf denen sie ansonsten einfach liegen gelassen würden. So lassen sich Unmengen krummer Karotten, zerbrochener Gurken oder angedrückter Äpfel retten.
+
+==Selbstverständnis==
+
+*foodsharing ist eine [[Grunds%C3%A4tze#Grundsatz_1_-_Bek.C3.A4mpfung_der_Lebensmittelverschwendung|Umweltbewegung]]. Unser Ziel ist  die Schonung der natürlichen Ressourcen auf unserem Planeten. Lebensmittel zu verschwenden bedeutet, die dafür aufgewendeten Ressourcen (Wasser, Energie, Land- und Lagerfläche, Arbeitszeit, Rohstoffe etwa für Verpackungen) zu verschwenden.
+
+*foodsharing ist keine soziale (''eigentlich: mildtätige'') Organisation. Wir möchten uns nicht anmaßen zu entscheiden, welche Menschen bedürftig sind oder welche Projekte nun unterstützenswerter sind als andere. Wir möchten Lebensmittel [[Grunds%C3%A4tze#Grundsatz_1_-_Bek.C3.A4mpfung_der_Lebensmittelverschwendung|bedingungslos]] allen Menschen zugänglich machen und dadurch die Achtung vor ihnen fördern.
+
+*Wir von foodsharing verschenken überschüssige Lebensmittel von Betrieben und Privatpersonen. Die Lebensmittel werden immer kostenlos weitergegeben und niemals verkauft oder als Tauschmittel genutzt. Selbstverständlich dürfen Foodsaver die geretteten Waren selbst verzehren.
+
+*foodsharing arbeitet [[Grunds%C3%A4tze#Grundsatz_3_-_Politik_und_Toleranz|unabhängig]] von politischen Parteien und Konfessionen. foodsharing verteilt Lebensmittel an alle Menschen. Jegliche Art der Ausgrenzung oder Benachteiligung werden nicht toleriert.
+
+* Wir stehen nicht in Konkurrenz zu [[Pressemitteilung_zur_Kooperation_mit_den_Tafeln|anderen Initiativen]], die sich gegen Essensverschwendung einsetzen, wie zum Beispiel den Tafeln, sondern kooperieren mit ihnen. Wir begrüßen und unterstützen jegliches Engagement gegen Lebensmittelverschwendung.
+:Wir lassen allen mildtätigen Organisationen gerne den Vortritt, um gerettete Lebensmittel an Bedürftige zu verteilen. foodsharing soll nur die  "letzte Bastion vor der Mülltonne" sein für alle Lebensmittel, die andere Organisationen nicht weiterverteilen können.
+
+*foodsharing will gemeinsam mit den Tausenden ehrenamtlichen Foodsavern in ganz Deutschland eine neue Kultur der Achtung gegenüber Essen leben, um gemeinsam mit den kooperierenden Läden den Lebensmitteln die Wertschätzung zukommen zu lassen, die sie verdienen.
+
+*Das langfristige Ziel von foodsharing ist es sich selbst überflüssig zu machen, indem die großangelegte systematische Verschwendung von Lebensmitteln beendet wird.
+
+*Für weitergehende Informationen zu diesem Thema legen wir euch den Film "Taste the Waste" unseres Gründungsmitglieds Valentin Thurn ans Herz.
+
+==foodsharing==
+
+foodsharing ist eine Initiative, um
+*[[Foodsaver]] zu organisieren, die Lebensmittel (und auch andere, nicht-essbare Produkte) von Lebensmittelbetrieben aller Art retten
+*[[Foodsharer]] zu organisieren, die Lebensmittel kostenfrei weitergeben wollen
+*Veranstaltungen zum Thema zu organisieren, die Internationalisierung von foodsharing voranzubringen und vieles mehr
+
+*Der [[Foodsharing_e.V._und_dessen_Vorstand|foodsharing e.V.]] betreibt die Online-Plattform, hauptsächlich mit unbezahlten hauptehrenamtlichen Engagierten, die sich um zentrale Aufgaben kümmern, z.B. [[Tech-Team_-_die_Entwickler_hinter_der_foodsharing-Plattform|Programmierung]], [[Pressetext|zentrale Pressearbeit]], Rechtsfragen, zentrale Festlegungen, Koordination von [https://foodsharing.de/?page=groups zentralen AGs], [[Arbeitsgruppen-Liste#Materialien_-_Grafikdateien|Grafikdesign]], Koordination der Bezirke und [[Arbeitsgruppen-Liste#Bundesland-Botschafter.2Ainnen|Bundesländer]], [[Arbeitsgruppen-Liste#International_-_foodsharing_International|überregionale und internationale Treffen, Internationalisierung und Übersetzung]], unterstützt lediglich durch wenige Minijob- und Teilzeit-Stellen.
+
+*Daneben engagieren sich über 100 weitere sehr aktive Foodsaver in anderen Bereichen.
+
+*Das Retten von Lebensmitteln ist in Bezirken organisiert, die meist eine oder mehrere Städte oder einen Landkreis umfassen. Die Koordination in einem Bezirk liegt in den Händen von foodsharing-[[Botschafter*in|Botschafter*innen]], die Kooperationen mit einzelnen Betrieben werden jeweils von [[Betriebsverantwortliche*r|Betriebsverantwortlichen]] betreut.
+
+*Wir versuchen, auf eine organische und auf Zuverlässigkeit bedachte Weise zu wachsen: nicht möglichst schnell möglichst viele Kooperationen einzugehen und Leute aufzunehmen. Lieber wollen wir uns die Zeit nehmen, um unsere Arbeit gut und sorgfältig zu machen, bevor wir den nächsten Schritt gehen.
+
+*Alle Foodsaver sind [[Foodsaver#Wie_man_Foodsaver_wird|sorgfältig ausgebildete]] und zuverlässige Lebensmittelretter*innen, deren Arbeit durch die internen [[Verhaltensregeln]], [[Hygieneregeln]] und die [[Rechtsvereinbarung]] gesteuert und abgesichert wird. Sie können sich jederzeit durch ihren [[Ausweis|Foodsaver-Ausweis]] identifizieren.
+
+*Alle Foodsaver müssen mit der [[Rechtsvereinbarung]] den Haftungsausschluss akzeptieren, bevor sie Lebensmittel abholen können. Er ist von zwei Anwaltskanzleien so ausgelegt worden, dass alle abgebenden Lebensmittelbetriebe von jeglicher Verantwortung, auch von Fahrlässigkeit, rechtlich befreit sind. Jeder Foodsaver übernimmt selbst die Verantwortung für die geretteten Lebensmittel und deren Weitergabe.
+
+==Die foodsharing-Plattform==
+
+*foodsharing.de ist [[Umgang_mit_Geld_bei_foodsharing|kostenlos]], nicht kommerziell und ohne Werbung und wird es auch bleiben.
+
+*Die Plattform wurde ehrenamtlich programmiert und wird von den vielen Freiwilligen im [[Tech-Team_-_die_Entwickler_hinter_der_foodsharing-Plattform|Tech-Team]] ständig weiterentwickelt.
+
+*Seit Sommer 2012 haben sich bereits über 300.000 ehrenamtliche Menschen angemeldet, die etwas gegen die Lebensmittelverschwendung unternehmen wollen. Mehr als 70.000 von ihnen retten schon aktiv in ca. 7000 Betrieben.
+
+Dank unserer Öko-Partner [https://manitu.de manitu.de] (Webhosting, Kosten für den Traffic) und [https://Greensta.de Greensta.de] (Email-Konten), die uns kostenlos unterstützen, werden die Server der foodsharing-Plattform zu 100% mit Strom aus Wasserkraft versorgt.
+
+== Verweise ==
+
+[1] n.tv, 2011. Verschwendung ist schockierend. [Online]. http://www.n-tv.de/wissen/Verschwendung-ist-schockierend-article4210226.html. [Accessed 09.07.2013].
+
+[2] ver.di publik, 2013. Der Hunger ist von Menschen gemacht. [''Nicht mehr Online''. https://publik.verdi.de/2013/ausgabe-03/spezial/finanzen/seiten-20-21/A0. [Accessed 09.07.2013]].
+
+[3] Swedish Institute for Food and Biotechnology (SIK), Gothenburg, Sweden, 2011. Global Food Losses and Food Waste. [Online]. http://large.stanford.edu/courses/2012/ph240/briggs1/docs/mb060e00.pdf
+
+[4] Bio Company (Berlin) Kundenmagazin, 2013-07. Tonnen sind kein Platz für Lebensmittel. https://drive.google.com/file/d/12pIcqTvVaRGC-4iBnTu5xGafFGrdikkj
+
+
+----
+
+''Artikel von'': &nbsp; [[Foodsharing_e.V._und_dessen_Vorstand|Vorstand foodsharing e.V.]] &nbsp; (''[mailto:vorstand@foodsharing.network Kontakt]'')<br>​''Letzte Überarbeitung am 12.08.2026''

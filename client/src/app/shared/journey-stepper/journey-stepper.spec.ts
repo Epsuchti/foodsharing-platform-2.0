@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { JourneyStepStatus } from '../../api';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { JourneyStepperComponent } from './journey-stepper.component';
 import {
@@ -54,6 +55,21 @@ describe('JourneyStepperComponent', () => {
     // done and locked steps show no details
     expect(el.querySelector('[data-step="ACCOUNT"] .step__text')).toBeNull();
     expect(el.querySelectorAll('[data-status="DONE"]')).toHaveLength(5);
+  });
+
+  it('a done LEARN step offers rereading the chapters (C1)', async () => {
+    const { el } = await create({ journey: DEMO_JOURNEY_IN_PROGRESS });
+    const relearn = el.querySelector('[data-testid="t.journey.relearn.LEARN"]') as HTMLAnchorElement;
+    expect(relearn.getAttribute('href')).toBe('/learn');
+    expect(el.querySelectorAll('[data-testid^="t.journey.relearn."]')).toHaveLength(1);
+    const open = {
+      ...DEMO_JOURNEY_IN_PROGRESS,
+      steps: DEMO_JOURNEY_IN_PROGRESS.steps.map((step) =>
+        step.key === 'LEARN' ? { ...step, status: JourneyStepStatus.InProgress } : step,
+      ),
+    };
+    const again = await create({ journey: open });
+    expect(again.el.querySelector('[data-testid="t.journey.relearn.LEARN"]')).toBeNull();
   });
 
   it('preview: a step without a duration shows none (S17 D9)', async () => {

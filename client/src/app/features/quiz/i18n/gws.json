@@ -56,6 +56,8 @@
   "quiz.intro.passed": "Du häsch das Quiz bestande.",
   "quiz.intro.failed": "Letschte Versuech nöd bestande ({tries} sit em letschte Bestah). Du chasch es grad nomal probiere.",
   "quiz.intro.rules": "So funktioniert s Quiz",
+  "quiz.intro.prepare": "Vorbereitig: D Froge basiered uf de foodsharing-Grundlage.",
+  "quiz.intro.prepareLink": "Grundlage läse",
   "quiz.intro.ruleFailurePoints": "Bestande mit höchschtens {count, plural, one {# Fählerpunkt} other {# Fählerpünkt}}.",
   "quiz.intro.ruleMultiple": "Pro Frag chönd mehreri Antworte richtig si – wähl alli richtige.",
   "quiz.intro.ruleSolution": "Nach jedere Frag gsehsch d Lösig mit Erchlärige.",

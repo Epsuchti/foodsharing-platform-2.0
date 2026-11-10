@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Type } from '@angular/core';
 
 import {
   LearningChapter,
+  LearningChapterGroup,
   Petition,
   PublicStatistics,
   ReleaseNote,
@@ -57,24 +58,30 @@ import { StatisticsTilesComponent } from '../../../content/components/statistics
 export class ContentGallerySection {
   protected readonly chapters: LearningChapter[] = [
     {
-      key: 'rules',
-      title: 'Die Regeln',
-      summary: 'Was wir versprechen und warum.',
-      estimatedMinutes: 2,
-      sortOrder: 1,
+      key: 'principles',
+      title: 'Grundsätze',
+      summary: 'Wofür foodsharing steht und wie wir zusammenarbeiten.',
+      estimatedMinutes: 6,
+      sortOrder: 10,
+      group: LearningChapterGroup.Basics,
+      required: true,
     },
     {
-      key: 'hygiene',
-      title: 'Hygiene',
+      key: 'hygiene-rules',
+      title: 'Hygieneregeln',
       summary: 'Kühlkette, Haltbarkeit, saubere Hände.',
-      estimatedMinutes: 2,
-      sortOrder: 2,
+      estimatedMinutes: 6,
+      sortOrder: 40,
+      group: LearningChapterGroup.Basics,
+      required: true,
     },
     {
-      key: 'how-a-pickup-works',
-      title: 'So läuft eine Abholung',
-      estimatedMinutes: 3,
-      sortOrder: 3,
+      key: 'rule-violations-explained',
+      title: 'Regelverletzungen – Erläuterungen',
+      estimatedMinutes: 8,
+      sortOrder: 35,
+      group: LearningChapterGroup.More,
+      required: false,
     },
   ];
 

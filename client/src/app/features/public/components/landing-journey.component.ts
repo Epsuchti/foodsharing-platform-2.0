@@ -33,8 +33,8 @@ export const LANDING_STEPS = [1, 2, 3, 4] as const;
         </li>
       }
       <li class="jp__end">
-        <span class="jp__n" aria-hidden="true"><i class="pi pi-shopping-bag"></i></span>
-        <span>{{ 'public.landing.step.end' | t }}</span>
+        <span class="jp__n jp__n--end" aria-hidden="true"><i class="pi pi-shopping-bag"></i></span>
+        <span class="jp__end-text">{{ 'public.landing.step.end' | t }}</span>
       </li>
     </ol>
   `,
@@ -120,6 +120,14 @@ export const LANDING_STEPS = [1, 2, 3, 4] as const;
       font-size: 0.78rem;
       font-weight: 700;
     }
+    .jp__n--end {
+      background: var(--fs-primary);
+      color: var(--fs-on-primary);
+    }
+    .jp__end-text {
+      color: var(--fs-primary-strong);
+      font-weight: 750;
+    }
     .jp__end {
       display: grid;
       grid-row: 2;
@@ -179,10 +187,16 @@ export const LANDING_STEPS = [1, 2, 3, 4] as const;
         grid-row: auto;
         grid-column: 1 / 3;
         grid-template-columns: 2.6rem 1fr;
+        grid-template-areas: 'n t';
         align-items: center;
         justify-items: start;
         gap: 0.2rem 0.8rem;
+        min-width: 0;
+        font-size: 1rem;
         text-align: left;
+      }
+      .jp__end-text {
+        grid-area: t;
       }
       /* vertical order: phase label, its steps, next phase label */
       .jp__phase--online {

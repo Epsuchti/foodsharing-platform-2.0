@@ -124,6 +124,12 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                   @if (step.optional) {
                     <span class="step__status">{{ 'shared.journey.optional' | t }}</span>
                   }
+                  @if (step.key === 'LEARN' && step.status === 'DONE') {
+                    <!-- C1: the chapters stay readable after the step is done -->
+                    <a class="step__relearn" routerLink="/learn" [attr.data-testid]="testId() + '.relearn.LEARN'">{{
+                      'shared.journey.relearn' | t
+                    }}</a>
+                  }
                 </div>
                 @if (step.status !== 'LOCKED' && step.status !== 'DONE') {
                   @if (description(step); as text) {

@@ -27,7 +27,7 @@ forEachVariant((variant) => {
       screenshotTest('learning overview and chapter @C1 @screenshot', async ({ page, apiOf, visual }) => {
         const api = apiOf(page);
         await acceptPendingConsents(api);
-        await api.postJson('/api/onboarding/learning/rules/read', {});
+        await api.postJson('/api/onboarding/learning/principles/read', {});
         await page.goto('/learn');
         await expect(page.getByTestId('content.learn.state')).toHaveAttribute('data-state', 'success');
         await expect(page.getByTestId('content.learn.progress')).toHaveAttribute('data-read', '1');
@@ -36,6 +36,26 @@ forEachVariant((variant) => {
         await page.getByTestId('content.learn.continue').click();
         await expect(page.getByTestId('content.chapter.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `learn-chapter-${variant.name}`);
+      });
+    });
+
+    screenshotTest.describe('foodsaver', () => {
+      screenshotTest.use({ variant, role: 'foodsaver' });
+
+      screenshotTest('learning overview all read, a read chapter and the relearn link @C1 @screenshot', async ({ page, visual }) => {
+        await page.goto('/learn');
+        await expect(page.getByTestId('content.learn.state')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('content.learn.reread')).toBeVisible();
+        await visual.expectScreen(page, `learn-done-${variant.name}`);
+
+        await page.goto('/learn/role-requirements');
+        await expect(page.getByTestId('content.chapter.alreadyRead')).toBeVisible();
+        await visual.expectScreen(page, `learn-chapter-read-${variant.name}`);
+
+        await page.goto('/onboarding');
+        const learn = page.getByTestId('onboarding.journey.stepper.step.LEARN');
+        await expect(learn.getByTestId('onboarding.journey.stepper.relearn.LEARN')).toBeVisible();
+        await visual.expectElement(learn, `learn-relearn-step-${variant.name}`);
       });
     });
 
@@ -146,7 +166,7 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('content.admin.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `content-admin-${variant.name}`);
 
-        await page.goto('/admin/content/rules');
+        await page.goto('/admin/content/principles');
         await expect(page.getByTestId('content.editor.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `content-editor-${variant.name}`);
       });

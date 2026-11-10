@@ -1,8 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 
-import { ContentPage, Language, OnboardingService, PublicContentService } from '../../../api';
+import { ContentPage, Journey, Language, OnboardingService, PublicContentService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
 import { runMutation } from '../../../core/data/mutation';
@@ -12,6 +21,7 @@ import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { continuesJourney } from '../content.util';
+import { learningProgress } from '../learning-progress';
 
 /**
  * /learn/:key (C1, onboarding step 3): one learning chapter with reading time. Signed-in users mark it as read
@@ -65,7 +75,39 @@ import { continuesJourney } from '../content.util';
 
         <footer class="next" data-testid="content.chapter.actions">
           @if (signedIn()) {
-            @if (markedRead()) {
+            <!-- C1: an already read chapter offers next/overview without marking it again (no API call) -->
+            <fs-data-state
+              [state]="journey"
+              [compact]="true"
+              skeleton="card"
+              data-testid="content.chapter.readState"
+            >
+              <ng-template [fsData]="journey">
+            @if (alreadyRead() && !markedRead()) {
+              <p class="next__done" role="status" data-testid="content.chapter.alreadyRead">
+                <i class="pi pi-check-circle" aria-hidden="true"></i
+                >{{ 'content.chapter.alreadyRead' | t }}
+              </p>
+              <div class="next__actions">
+                @if (c.nextChapterKey) {
+                  <p-button
+                    [label]="'content.chapter.nextChapter' | t"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    [routerLink]="['/learn', c.nextChapterKey]"
+                    data-testid="content.chapter.next"
+                  />
+                }
+                <p-button
+                  [label]="'content.chapter.toOverview' | t"
+                  icon="pi pi-list"
+                  severity="secondary"
+                  [outlined]="true"
+                  routerLink="/learn"
+                  data-testid="content.chapter.overview"
+                />
+              </div>
+            } @else if (markedRead()) {
               <p class="next__done" role="status" data-testid="content.chapter.done">
                 <i class="pi pi-check-circle" aria-hidden="true"></i
                 >{{ 'content.chapter.markedRead' | t }}
@@ -107,6 +149,8 @@ import { continuesJourney } from '../content.util';
                 data-testid="content.chapter.markRead"
               />
             }
+              </ng-template>
+            </fs-data-state>
           } @else {
             <p class="next__text">{{ 'content.learn.signInHint' | t }}</p>
             @if (c.nextChapterKey) {
@@ -201,12 +245,39 @@ export class LearningChapterPageComponent {
     },
   });
 
+  /** The reader's journey (signed in): tells whether this chapter is read already (C1). */
+  protected readonly journey = loadResource<Journey, true | undefined>({
+    params: () => (this.signedIn() ? true : undefined),
+    loader: () => this.onboardingApi.getMyJourney(),
+  });
+
+  protected readonly alreadyRead = computed(
+    () => learningProgress(this.journey.data(), [])?.readKeys.has(this.key()) ?? false,
+  );
+
+  private readonly route = inject(ActivatedRoute);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  constructor() {
+    // links to a section (`/learn/<key>#anchor`): the body renders after navigation, so scroll once it is there
+    afterRenderEffect(() => {
+      if (!this.chapter.data()) return;
+      const fragment = this.route.snapshot.fragment;
+      if (!fragment) return;
+      const target = Array.from(this.host.nativeElement.querySelectorAll<HTMLElement>('[id]')).find(
+        (element) => element.id === fragment,
+      );
+      target?.scrollIntoView?.({ block: 'start' });
+    });
+  }
+
   /** Marks the chapter as read; with a next chapter the reader moves on right away. */
   protected readonly markRead = runMutation(
     () => this.onboardingApi.markChapterRead({ key: this.key() }),
     {
       successToastKey: 'content.chapter.markedRead',
       onSuccess: () => {
+        this.journey.refresh();
         const next = this.chapter.data()?.nextChapterKey;
         if (next) {
           void this.router.navigate(['/learn', next]);

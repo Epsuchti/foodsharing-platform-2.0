@@ -38,6 +38,11 @@ import { ChapterState } from '../learning-progress';
             ><i class="pi pi-clock" aria-hidden="true"></i>
             {{ 'content.learn.minutes' | t: { count: c.estimatedMinutes } }}</span
           >
+          @if (c.required === false) {
+            <span class="item__state item__state--optional" data-testid="content.learn.optionalTag">{{
+              'content.learn.optionalTag' | t
+            }}</span>
+          }
           @switch (state()) {
             @case ('read') {
               <span class="item__state item__state--read">{{ 'content.learn.read' | t }}</span>
@@ -140,6 +145,9 @@ import { ChapterState } from '../learning-progress';
     .item__state--next {
       box-shadow: inset 0 0 0 1px var(--fs-primary);
       color: var(--fs-primary-strong);
+    }
+    .item__state--optional {
+      box-shadow: inset 0 0 0 1px var(--fs-border-strong);
     }
     .item__chevron {
       color: var(--fs-text-muted);

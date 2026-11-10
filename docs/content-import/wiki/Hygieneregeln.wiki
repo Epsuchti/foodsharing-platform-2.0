@@ -1,0 +1,153 @@
+{{Wiki-Artikel-Typ|Typ=1 (Regel-Artikel)}}
+
+
+<b><font size = 3>[[foodsharing-Grundlagen|foodsharing-Grundlagen]] 4</font></b>
+
+Gültig ab 13.12.2024<br>
+''[https://drive.google.com/file/d/1XtVCJDSJlYDkLY2lctcN7s1zybYO8FhT Änderungen] gegenüber der vorigen Fassung (pdf)''
+
+
+'''Ausführliche Erläuterungen und Leitfäden für die Praxis'''<br>
+Für die praktische Arbeit als Foodsaver gibt es einige weitere Texte mit Tipps und Infos.
+* ''[[Hygieneregeln_-_Erläuterungen|Erläuterungen zu den Hygieneregeln]]'' - Erklärungen zu jeder einzelnen Regel, warum sie wichtig für foodsharing ist und was sie konkret bedeutet.
+* ''[[Hygiene-Ratgeber für Lebensmittel]]'' - eine Reihe von Artikeln zum Umgang mit geretteten Lebensmitteln
+
+
+''Weiterentwicklung der Hygieneregeln''<br>
+Die Hygieneregeln werden weiterentwickelt von der ''AG Hygiene''. Verbesserungsvorschläge und Ideen können jederzeit an die AG Hygiene geschickt werden (möglichst per E-Mail an [mailto:hygiene@foodsharing.network hygiene@foodsharing.network]).<br>
+Die AG sichtet alle eingegangenen Ideen und Vorschläge; eine Änderung der gültigen Regeln ist einmal pro Jahr – in der Regel im November – vorgesehen.<br>
+Zur [https://foodsharing.de/?page=bezirk&bid=1686 Mitarbeit in der Arbeitsgruppe] sind alle Interessierten herzlich eingeladen.''
+
+
+__TOC__
+
+
+<font size=4>'''Präambel'''</font>
+
+Die Hygieneregeln legen Mindestanforderungen für foodsharing und alle Foodsaver fest. Dadurch soll bei der praktischen Arbeit mit Lebensmitteln einerseits die Einhaltung der gesetzlichen Hygienevorschriften garantiert werden. Andererseits sollen die Regeln vor Fehlern schützen und Hinweise geben, wie man mit Lebensmitteln so umgeht, dass sie unbedenklich verzehrt werden können.<br>
+Es kann dabei durchaus sinnvoll sein, für einzelne Situationen, Betriebe oder Bezirke Regeln etwas stärker zu fassen, wenn die Gegebenheiten vor Ort es nötig machen.
+
+'''''Jeder Bezirk kann deswegen die Regeln für seinen Bereich verschärfen; die Anpassungen dürfen allerdings nicht den hier stehenden Hygieneregeln widersprechen.'''''
+
+
+===A) Tätigkeitsverbote beim Umgang mit Lebensmitteln (§§42, 43 IfSG)===
+
+1) Für den Umgang mit Lebensmitteln sind saubere Kleidung, Haare und Hände Voraussetzung.
+
+2) Bei folgenden Krankheitssymptomen ist man verpflichtet, vor dem Umgang mit offenen empfindlichen Lebensmitteln einen Arzt aufzusuchen:
+:*bei Durchfall, starker Übelkeit, Erbrechen, starkem Husten
+:*bei ansteckenden Krankheiten, insbesondere Cholera, Typhus, Paratyphus, Ruhr, Salmonellose, EHEC, Hepatitis A oder E:
+:*Hauterkrankungen und offene Wunden, die entzündet sind, eitern oder nässen
+:*bei Fieber über 38,5°C
+Der anschließende Umgang mit Lebensmitteln ist nur erlaubt, wenn der Arzt eine schriftliche Unbedenklichkeitsbescheinigung ausstellt.<br>
+[[Hygieneregeln_-_Erläuterungen#A.29_T.C3.A4tigkeitsverbote_beim_Umgang_mit_Lebensmitteln_.28.C2.A7.C2.A742.2C_43_IfSG.29|Erläuterung]]
+
+===B) Umgang mit Lebensmitteln===
+
+====1) Direkter Umgang, Transport und Lagerung====
+
+:a) ''<u>Unverpackte Backwaren</u>'': Gebäckzange, Handschuhe (möglichst abwaschbare Mehrweghandschuhe) oder sorgfältig gewaschene Hände sind zwingend erforderlich.
+::Für alle anderen Lebensmittel sind Handschuhe in der Regel nicht erforderlich, außer wenn es aus besonderen Anlässen (oder behördlichen Anweisungen) empfohlen ist.
+::Für Kuchen und Torten sollten möglichst feste Behälter verwendet werden. [[Hygieneregeln_-_Erläuterungen#Regel_B1a.29_-_Unverpackte_Backwaren|Erläuterung]]
+
+:b) ''<u>Kühlwaren</u>'': Die Kühlkette soll, wenn möglich, eingehalten werden: [[Hygieneregeln_-_Erläuterungen#Regel_B1b.29.2C_B1c.29_-_Kühlkette|Erläuterung]]
+::* ''Transport''  in einer Kühltasche oder Kühlbox mit Kühlelementen mit maximal 20 Minuten Unterbrechung ohne Sonnen- oder Hitzeeinwirkung
+::* ''Lagerung'' ununterbrochen in einem Kühlschrank oder (nur für kurze Zeit) in einer Kühltasche oder Kühlbox mit Kühlelementen
+
+:c) ''<u>Kühlwaren</u>'' sind: [[Hygieneregeln_-_Erläuterungen#Regel_B1b.29.2C_B1c.29_-_Kühlkette|Erläuterung]]
+::* Lebensmittel die laut Verpackung bei +2 bis +8°C gelagert werden sollen
+::* Nudel- und Kartoffelsalat, zubereitete Speisen mit Öl/Fett
+::* Kuchen mit nicht durchgebackener Füllung, Creme- und Sahnetorten
+
+:d) <u>''Angefaulte Lebensmittel''</u> sollen getrennt von anderen Lebensmitteln verpackt werden. [[Hygieneregeln_-_Erläuterungen#Regel_B1d.29_-_Angefaulte_Lebensmittel|Erläuterung]]
+
+:e) Unverpackte Lebensmittel dürfen nur in <u>''sauberen''</u>, <u>''lebensmittelechten Verpackungen''</u> transportiert und gelagert werden. [[Hygieneregeln_-_Erläuterungen#Regel_B1e.29.2C_1._Absatz_-_Lebensmittelechte_.28und_saubere.29_Verpackungen|Erläuterung]]
+::Lebensmittelechte Verpackungen sind erkennbar
+::* an der Angabe "für Lebensmittel" oder dem Glas-und-Gabel-Symbol &nbsp; &nbsp; &nbsp; &nbsp; [[File:Glas-und-Gabel.png|30px]]
+::* an Original-Etiketten, die die ursprüngliche Verwendung für Lebensmittel belegen
+::[https://docs.google.com/spreadsheets/d/1LpZBgtloqpNjDI9X3-7v91wSae61WqxbBAPyc7KrqoQ Bezugsquellen für lebensmittelechte Verpackungen] 
+::Bei <u>''heißen Lebensmitteln''</u> dürfen nur Behälter verwendet werden, die für die entsprechende Temperatur ausgelegt sind.
+
+::<u>''Ausnahme''</u>: [[Hygieneregeln_-_Erläuterungen#Regel_B1e.29.2C_Ausnahme_-_nicht-lebensmittelechte_Verpackungen|Erläuterung]]
+::* Lebensmittel, die von einem Betrieb in einer nicht-lebensmittelechten oder verschmutzten Verpackung übergeben werden, sollten möglichst noch am Abholort umgepackt werden. Sie können ggf. auch bei der Abholung als ungenießbar beurteilt und zurückgelassen werden.
+
+====2) Weitergabe allgemein====
+
+Die folgenden Regeln gelten nur für die '''''Weitergabe''''' von geretteten Lebensmitteln.<br>
+Foodsaver können ohne Einschränkung alle geretteten Lebensmittel und auch andere gerettete Güter auf eigenes Risiko selbst verwenden oder als Tierfutter nutzen.<br>
+[[Hygieneregeln_-_Erläuterungen#2.29_Weitergabe_allgemein|Erläuterung]]
+
+:a) Foodsaver sind <u>''verantwortlich''</u> für Lebensmittel, die sie weitergeben. [[Hygieneregeln_-_Erläuterungen#Regel_B2a.29_-_Verantwortlichkeit_der_Foodsaver|Erläuterung]]
+:b) Ein <u>''Haftungsanspruch''</u> des/der Empfänger*in für Folgeschäden besteht nur bei grober Fahrlässigkeit oder Vorsatz. [[Hygieneregeln_-_Erläuterungen#Regel_B2b.29.2C_B2c.29_-_Grobe_Fahrlässigkeit_.28und_Vorsatz.29|Erläuterung]]
+:c) Um <u>''grobe Fahrlässigkeit''</u> auszuschließen: [[Hygieneregeln_-_Erläuterungen#Regel_B2b.29.2C_B2c.29_-_Grobe_Fahrl.C3.A4ssigkeit_.28und_Vorsatz.29|Erläuterung]]
+::* müssen die Lebensmittel korrekt transportiert und gelagert werden (siehe Abschnitt B1) )
+::* müssen Lebensmittel nach dem Verbrauchsdatum aussortiert werden
+::* muss vor der Weitergabe jedes einzelne Stück auf Genießbarkeit <u>''geprüft werden''</u>:
+::** Nur weitergeben, was man auch noch selbst essen würde !
+::** '''''Auge-Nase-Mund-Test''''': Aussehen, Geruch und ggf. Geschmack prüfen (soweit ohne Öffnen der Verpackung möglich) !
+:d) <u>''Verboten''</u> ist die Weitergabe von Lebensmitteln [[Hygieneregeln_-_Erläuterungen#Regel_B2d.29_-_Verbotene_Lebensmittel|Erläuterung]]
+::* mit Schimmel oder schwarzen Stellen
+::* nach dem Verbrauchsdatum
+::* mit VD bei geöffneter innerster Verpackung
+::* mit MHD bei geöffneter innerster Verpackung, wenn der Zeitpunkt des Öffnens unbekannt ist oder lange zurückliegt
+::* mit aufgeblähten Vakuumverpackungen
+:e) Verboten ist außerdem die Weitergabe von <u>''Arzneimitteln''</u>. [[Hygieneregeln_-_Erläuterungen#Regel_B2e.29_-_Arzneimittel|Erläuterung]]
+:f) <u>''Tierfutter''</u> darf weitergegeben werden. [[Hygieneregeln_-_Erläuterungen#Regel_B2f.29_-_Tierfutter|Erläuterung]]
+:g) <u>''Nicht-Essbares''</u> (z.B. Reinigungs- und Pflegeprodukte, Kosmetika, Bücher, Kleidung) muss so klar getrennt von Lebens- und Futtermitteln weitergegeben werden, dass die Gefahr einer Verwechslung ausgeschlossen ist.  [[Hygieneregeln_-_Erläuterungen#Regel_B2g.29_-_Nicht-Essbares|Erläuterung]]
+
+===C) Zusätzliche Regeln für verschiedene Stufen der Weitergabe===
+Gerettete Lebensmittel müssen für 4 Stufen der Weitergabe aufgeteilt werden:
+:Stufe 1: nicht-persönliche Weitergabe
+:Stufe 2: persönliche Weitergabe
+:Stufe 3: Eigenkonsum oder Tierfutter
+:Stufe 4: Entsorgung.
+Je nach Stufe gelten weitere Regeln zusätzlich zu denen aus Abschnitt B).
+[[Hygieneregeln_-_Erläuterungen#Teil_C.29_-_Stufen_der_Weitergabe|Erläuterung]]
+
+====Stufe 1) Nicht-persönliche Weitergabe====
+ohne direkten Kontakt zu den Empfänger*innen (z.B. Fairteiler, andere Organisationen) [[Hygieneregeln_-_Erläuterungen#1.29_-_Nicht-persönliche_Weitergabe|Erläuterung]]
+
+:a) <u>''Verboten''</u> ist die Weitergabe von
+::* Hackfleisch, rohem Fisch, Produkten aus nicht erhitzter Rohmilch
+::* frisch zubereiteten Speisen mit rohem Ei, Flüssigei
+::* Cremes, Pudding, Tiramisu, Mayonnaise (wenn selbstgemacht mit Ei oder Milch)
+::* rohen Eiern nach Ablauf des MHD
+::* selbstgesammelten Pilzen
+::* Alkoholika, alkohol- oder THC-haltigen Lebensmitteln, Energy-Drinks
+::* Lebensmitteln mit Schimmel oder faulen Stellen
+::* Kühlpflichtigen Lebensmitteln, bei denen die Kühlkette unterbrochen wurde
+::* zubereiteten Speisen, falls Kund*innen unmittelbaren Kontakt mit den Lebensmitteln haben konnten
+::* zubereiteten, warm angebotenen Speisen
+::* zubereiteten kühlbedürftigen Speisen
+::* Lebensmitteln mit VD oder MHD, deren (innerste) Packung geöffnet ist
+::* Lebensmitteln, die in nicht-lebensmittelechten oder verschmutzten Verpackungen übergeben wurden oder darin gelagert wurden
+::[[Hygieneregeln_-_Erläuterungen#Regel_C1a.29_-_Verbotene_Lebensmittel|Erläuterung]]
+:b) <u>''Erdbehaftete''</u> Lebensmittel dürfen nicht oberhalb von anderen Lebensmitteln lagern. [[Hygieneregeln_-_Erläuterungen#Regel_C1b.29_-_Erdbehaftete_Lebensmittel|Erläuterung]]
+:c) <u>''Zubereitete''</u> Speisen müssen abgedeckt oder in verschlossenem Behälter sein. [[Hygieneregeln_-_Erläuterungen#Regel_C1c.29.2C_C1d.29.2C_C1e.29_-_Zubereitete_Speisen_und_das_Umfüllen_von_Lebensmitteln|Erläuterung]]
+:d) <u>''Zutatenliste''</u>: Bei selbstgemachten Speisen müssen alle Zutaten und das Datum der Zubereitung draufgeschrieben werden. [[Hygieneregeln_-_Erläuterungen#Regel_C1c.29.2C_C1d.29.2C_C1e.29_-_Zubereitete_Speisen_und_das_Umfüllen_von_Lebensmitteln|Erläuterung]]
+:e) <u>''Umgefüllte''</u> Lebensmittel müssen mit der vollständigen Zutatenliste, dem Umfülldatum und ggf. dem MHD beschriftet sein. [[Hygieneregeln_-_Erläuterungen#Regel_C1c.29.2C_C1d.29.2C_C1e.29_-_Zubereitete_Speisen_und_das_Umfüllen_von_Lebensmitteln|Erläuterung]]
+
+====Stufe 2) Persönliche Weitergabe====
+mit der Möglichkeit zum Gespräch mit den Empfänger*innen [[Hygieneregeln_-_Erläuterungen#2.29_-_Persönliche_Weitergabe|Erläuterung]]
+
+:a)  <u>''Verboten''</u>: [[Hygieneregeln_-_Erläuterungen#Regel_C2a.29_-_Verbotene_Lebensmittel|Erläuterung]]
+::* Lebensmittel, die nur noch  <u>bedingt und mit Vorsicht </u> genießbar oder  <u>sehr unansehnlich</u> sind (z.B. Obst/Gemüse mit sehr weichen Stellen oder Teilen, brauner Hälfte, wild abgerissenes oder zäh-vertrocknetes Brot)
+::* Lebensmittel, bei denen die <u>Kühlkette</u> für längere Zeit unterbrochen war (je nach Lebensmittel und aktuellem Wetter – Faustregel: direkter Weg vom Betrieb zum Kühlschrank geht)
+:b) <u>''Entscheidung nach Person im Einzelfall''</u>: Lebensmittel dürfen nur weitergegeben werden, wenn man Empfänger*innen die verantwortungsvolle Behandlung und Beurteilung der Lebensmittel <u>zutraut</u> (z.B. bei Alkohol, Fisch oder angefaultem Obst/Gemüse). [[Hygieneregeln_-_Erläuterungen#Regel_C2b.29_-_Entscheidung_im_Einzelfall|Erläuterung]]
+:c) <u>''Mündliche Hinweise''</u>: Die Empfänger*innen sollten ggf. darauf hingewiesen werden, [[Hygieneregeln_-_Erläuterungen#Regel_C2c.29_-_Mündliche_Hinweise|Erläuterung]]
+::* dass die Lebensmittel <u>schnell</u> verbraucht werden müssen
+::* dass sie die Lebensmittel vor dem Verbrauch noch einmal <u>prüfen</u> sollen
+::* falls die <u>Kühlkette</u> nicht eingehalten werden konnte
+
+====Stufe 3) Eigenkonsum oder Tierfutter====
+:a) Foodsaver können Lebensmittel selbst verbrauchen oder als Futter für Tiere weitergeben. [[Hygieneregeln_-_Erläuterungen#3.29_-_Eigenkonsum_oder_Tierfutter|Erläuterung]]
+:b) Foodsaver dürfen andere gerettete Dinge außer Lebens- und Futtermitteln selbst verbrauchen, aber nicht im Namen von foodsharing weitergeben. [[Hygieneregeln_-_Erläuterungen#3.29_-_Eigenkonsum_oder_Tierfutter|Erläuterung]]
+
+====Stufe 4) Entsorgung====
+Lebensmittel, die nicht in die Kategorien 1), 2) oder 3) fallen, müssen fachgerecht entsorgt werden (Mülltonne, Kompostierung usw.). [[Hygieneregeln_-_Erläuterungen#4.29_-_Entsorgung|Erläuterung]]
+
+
+----
+
+''Artikel von'': &nbsp; [https://foodsharing.de/?page=bezirk&bid=1686 AG Hygiene - Austausch und (Fach)Wissen] &nbsp; (''[mailto:hygiene@foodsharing.network Kontakt]'')<br>
+''Letzte Überarbeitung am 13.12.2024''

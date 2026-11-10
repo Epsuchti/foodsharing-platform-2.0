@@ -2,6 +2,11 @@ ContentPageKind:
   type: string
   enum: [PAGE, LEARNING_CHAPTER, FAQ]
 
+LearningChapterGroup:
+  description: 'Section of the knowledge area ("Wissen") a learning chapter belongs to (C1).'
+  type: string
+  enum: [BASICS, MORE, STORE_MANAGER, AMBASSADOR]
+
 ContentPage:
   type: object
   required: [slug, title, body, language, fallback]
@@ -28,10 +33,15 @@ ContentPage:
       format: int32
     nextChapterKey:
       type: string
+    group:
+      $ref: './content.yaml#/LearningChapterGroup'
+    required:
+      description: 'Learning chapters only: counts for the LEARN step (C1). Optional chapters can still be marked read.'
+      type: boolean
 
 LearningChapter:
   type: object
-  required: [key, title, estimatedMinutes, sortOrder]
+  required: [key, title, estimatedMinutes, sortOrder, group, required]
   properties:
     key:
       type: string
@@ -47,6 +57,11 @@ LearningChapter:
       format: int32
     language:
       $ref: './common.yaml#/Language'
+    group:
+      $ref: './content.yaml#/LearningChapterGroup'
+    required:
+      description: 'Learning chapters only: counts for the LEARN step (C1). Optional chapters can still be marked read.'
+      type: boolean
 
 ContentPageSummary:
   type: object
@@ -77,6 +92,11 @@ ContentPageSummary:
       format: date-time
     editorFunction:
       type: string
+    group:
+      $ref: './content.yaml#/LearningChapterGroup'
+    required:
+      description: 'Learning chapters only: counts for the LEARN step (C1). Optional chapters can still be marked read.'
+      type: boolean
 
 ContentPageUpdate:
   type: object
@@ -123,6 +143,11 @@ ContentPageUpdate:
         type: string
         format: uuid
       description: 'Images of the page to remove (their uploads are deleted); 400 VALIDATION_FAILED when an id is also in imageUploadIds or is not an image of the page.'
+    group:
+      $ref: './content.yaml#/LearningChapterGroup'
+    required:
+      description: 'Learning chapters only: counts for the LEARN step. Null = unchanged (new chapters: true).'
+      type: boolean
 
 BlogPostSummary:
   type: object

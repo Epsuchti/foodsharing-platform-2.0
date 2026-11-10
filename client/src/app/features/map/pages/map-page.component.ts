@@ -406,6 +406,8 @@ interface Selected {
       padding: 1rem;
     }
     .bubble__close {
+      /* above the card content: fs-data-state comes later in the DOM and would take the clicks on the X */
+      z-index: 1;
       position: absolute;
       top: 0.5rem;
       right: 0.5rem;
@@ -428,6 +430,7 @@ interface Selected {
     }
     .bubble__kind {
       margin: 0;
+      padding-right: 2rem;
       color: var(--fs-primary-strong);
       font-size: 0.75rem;
       font-weight: 700;
