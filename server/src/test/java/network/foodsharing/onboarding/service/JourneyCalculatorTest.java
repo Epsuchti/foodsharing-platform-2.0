@@ -226,7 +226,7 @@ class JourneyCalculatorTest {
                 .einabs(Stage.COMPLETE, NextStep.WAIT_FOR_VERIFICATION, 3, 0);
         StepView known = step(c.compute(), "ID_CHECK");
         assertThat(known.waitingFor().typicalDays()).isEqualTo(12);
-        assertThat(known.estimatedDuration()).isNull();
+        assertThat(known.estimatedDuration()).isEqualTo("P7D");
 
         c.typicalDays = null;
         StepView unknown = step(c.compute(), "ID_CHECK");
@@ -242,7 +242,7 @@ class JourneyCalculatorTest {
         expectCurrent(waiting, "ID_CHECK", JourneyStepStatus.WAITING_FOR_OTHERS);
         assertThat(step(waiting, "ID_CHECK").waitingFor().typicalDays()).isEqualTo(12);
         assertThat(step(waiting, "ID_CHECK").waitingFor().contacts()).containsExactly(CONTACT);
-        assertThat(step(waiting, "ID_CHECK").estimatedDuration()).isNull();
+        assertThat(step(waiting, "ID_CHECK").estimatedDuration()).isEqualTo("P7D");
         assertThat(step(waiting, "INTRO_PICKUPS").status()).isEqualTo(JourneyStepStatus.DONE);
 
         JourneyView passport = c.verified().compute();

@@ -134,10 +134,11 @@ public final class JourneyCalculator {
                     null, step.title(), null, null, "P7D", null, null,
                     new WaitingFor("onboarding.waiting.regionStep", in.verificationContacts(), null), false, null));
         }
-        // Q3 (review 2026-11-10): one figure only, the region's typical days when known, else the static estimate
+        // Q3 (review 2026-11-10): one figure only. The static estimate is always sent (the contract requires it);
+        // the client shows the region's typical days instead when they are known.
         Draft idCheck = Draft.of(JourneyStepKey.ID_CHECK, user.isVerified(),
                 introPickups.done() ? JourneyStepStatus.WAITING_FOR_OTHERS : JourneyStepStatus.AVAILABLE, null,
-                in.typicalVerificationDays() != null ? null : "P7D")
+                "P7D")
                 .waiting(introPickups.done() ? new WaitingFor("onboarding.waiting.verification",
                         in.verificationContacts(), in.typicalVerificationDays()) : null);
         Draft passport = Draft.of(JourneyStepKey.PASSPORT, user.getLastPassportAt() != null,

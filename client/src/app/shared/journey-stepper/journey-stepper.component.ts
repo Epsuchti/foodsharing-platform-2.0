@@ -185,7 +185,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                         <i class="pi pi-arrow-right" aria-hidden="true"></i>
                       </a>
                     }
-                    @if (step.estimatedDuration) {
+                    @if (step.estimatedDuration && (step.waitingFor?.typicalDays ?? null) === null) {
                       <span class="step__meta"><i class="pi pi-clock" aria-hidden="true"></i> {{ durationText(step.estimatedDuration) }}</span>
                     }
                   </div>
