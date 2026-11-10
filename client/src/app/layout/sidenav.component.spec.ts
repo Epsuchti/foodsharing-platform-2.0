@@ -138,7 +138,6 @@ describe('side menu nav.config (decision 133)', () => {
     expect(shape(ambassador)['manage']).toEqual([
       'newcomers',
       'verification',
-      'users',
       'newsletters',
       'blogManage',
       'storeChains',

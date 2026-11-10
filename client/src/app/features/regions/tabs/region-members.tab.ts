@@ -38,13 +38,17 @@ interface MemberQuery {
   search?: string;
   verified?: boolean;
   role?: Role;
+  /** Only for viewers who manage members (D1). */
+  admin?: boolean;
   page: number;
 }
 
 /**
  * Members tab (R8): search, verified/role filters, paging; admins remove members (required message), see and
  * change scoped permissions (matrix dialog with source), ORGA grants/revokes ambassadors. Phone numbers come only
- * when the server allows it (contact visibility).
+ * when the server allows it (contact visibility). Viewers who manage members (ambassador, CAN_MANAGE_USERS, ORGA)
+ * also get the ambassador filter, the last pickup and the link to the admin view of each user (D1, the former
+ * users page `/regions/:id/users`, which redirects here).
  */
 @Component({
   selector: 'fs-region-members-tab',
@@ -73,6 +77,11 @@ interface MemberQuery {
       gap: 0.75rem;
       @media (min-width: 48rem) {
         grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+      }
+    }
+    .filters--manage {
+      @media (min-width: 48rem) {
+        grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
       }
     }
     .filters input {
@@ -129,6 +138,17 @@ interface MemberQuery {
         justify-content: flex-end;
       }
     }
+    .member__open {
+      display: inline-grid;
+      width: 2.25rem;
+      height: 2.25rem;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--fs-text);
+    }
+    .member__open:hover {
+      background: var(--fs-surface-muted);
+    }
     .matrix {
       display: grid;
       gap: 0.25rem;
@@ -172,6 +192,7 @@ export class RegionMembersTab {
   private readonly appliedSearch = signal('');
   protected readonly verified = signal<'all' | 'yes' | 'no'>('all');
   protected readonly role = signal<Role | null>(null);
+  protected readonly admin = signal<'all' | 'yes' | 'no'>('all');
   protected readonly page = signal(0);
 
   protected readonly verifiedOptions = computed(() => {
@@ -179,6 +200,13 @@ export class RegionMembersTab {
     return (['all', 'yes', 'no'] as const).map((value) => ({
       value,
       label: this.i18n.t(`regions.members.verified.${value}`),
+    }));
+  });
+  protected readonly adminOptions = computed(() => {
+    this.i18n.language();
+    return (['all', 'yes', 'no'] as const).map((value) => ({
+      value,
+      label: this.i18n.t(`regions.members.adminFilterOption.${value}`),
     }));
   });
   protected readonly roleOptions = computed(() => {
@@ -191,12 +219,13 @@ export class RegionMembersTab {
     if (!regionId) {
       return undefined;
     }
-    const verified = this.verified();
+    const tri = (value: 'all' | 'yes' | 'no') => (value === 'all' ? undefined : value === 'yes');
     return {
       regionId,
       search: this.appliedSearch() || undefined,
-      verified: verified === 'all' ? undefined : verified === 'yes',
+      verified: tri(this.verified()),
       role: this.role() ?? undefined,
+      admin: this.ctx.manageUsers() ? tri(this.admin()) : undefined,
       page: this.page(),
     };
   });
@@ -240,6 +269,11 @@ export class RegionMembersTab {
 
   protected setRole(value: Role | null): void {
     this.role.set(value);
+    this.page.set(0);
+  }
+
+  protected setAdminFilter(value: 'all' | 'yes' | 'no'): void {
+    this.admin.set(value);
     this.page.set(0);
   }
 

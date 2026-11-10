@@ -84,7 +84,6 @@ export const M2_PAGES_READY = {
   guide: true,
   newcomers: true,
   verification: true,
-  users: true,
   adminRegions: true,
   adminQuizzes: true,
   adminContent: true,
@@ -312,15 +311,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/regions/home/verification',
     visible: when('verification', capable(NavCapability.Verify)),
   },
-  {
-    id: 'users',
-    section: 'manage',
-    secondary: true,
-    labelKey: 'nav.users',
-    icon: 'pi pi-id-card',
-    route: '/regions/home/users',
-    visible: when('users', capable(NavCapability.ManageMembers)),
-  },
+  // D1 (review 2026-11-10): no "users" item; the region's Members tab is the one members list (managers get the
+  // admin extras there, `/regions/:id/users` redirects to it)
   {
     id: 'adminRegions',
     section: 'orga',
@@ -712,7 +704,7 @@ export const NAV_SECTIONS: readonly NavSectionDef[] = [
     icon: 'pi pi-briefcase',
     collapsible: true,
     defaultOpen: true,
-    order: ['newcomers', 'verification', 'users', 'newsletters', 'blogManage', 'surveys', 'storeChains'],
+    order: ['newcomers', 'verification', 'newsletters', 'blogManage', 'surveys', 'storeChains'],
   },
   {
     id: 'orga',
