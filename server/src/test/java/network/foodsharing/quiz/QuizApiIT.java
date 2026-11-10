@@ -79,11 +79,25 @@ class QuizApiIT {
         assertThat(jdbc.queryForObject("select count(*) from quiz", Integer.class)).isEqualTo(8);
         assertThat(jdbc.queryForObject("select count(*) from quiz_question q where not exists (select 1 from "
                 + "quiz_answer a where a.question_id = q.id and a.rating = 'CORRECT')", Integer.class)).isZero();
+        // seed questions (ids below 1000) are in five languages; the C1 foodsaver pool (changelog 197, production
+        // data, ids 1001+) is German only for now (owner decision 2026-11-10)
         assertThat(jdbc.queryForObject("select count(*) from quiz_question q where (select count(*) from "
-                + "quiz_question_i18n t where t.owner_id = q.id) <> 5 and q.created_by is null", Integer.class)).isZero();
+                + "quiz_question_i18n t where t.owner_id = q.id) <> 5 and q.created_by is null and q.id < ?",
+                Integer.class, POOL_START)).isZero();
         assertThat(jdbc.queryForObject("select count(*) from quiz_answer a where (select count(*) from "
-                + "quiz_answer_i18n t where t.owner_id = a.id) <> 5 and a.created_by is null", Integer.class)).isZero();
+                + "quiz_answer_i18n t where t.owner_id = a.id) <> 5 and a.created_by is null and a.question_id < ?",
+                Integer.class, POOL_START)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from quiz_question q join quiz z on z.id = q.quiz_id "
+                + "where z.kind = 'FOODSAVER' and q.deleted_at is null and q.id >= ? and exists (select 1 from "
+                + "quiz_question_i18n t where t.owner_id = q.id and t.language = 'de') and q.wiki_link like '/learn/%'",
+                Integer.class, POOL_START)).isEqualTo(64);
+        // the seed's demo foodsaver questions are retired, so dev and e2e quiz the real pool only
+        assertThat(jdbc.queryForObject("select count(*) from quiz_question q join quiz z on z.id = q.quiz_id "
+                + "where z.kind = 'FOODSAVER' and q.deleted_at is null and q.id < ?", Integer.class, POOL_START)).isZero();
     }
+
+    /** First id of the C1 foodsaver pool (gen-quiz-pool.py: question n has id 1000 + n). */
+    private static final java.util.UUID POOL_START = java.util.UUID.fromString("00000013-0003-4000-8000-000000001000");
 
     @Test
     void newbiePassesTheFoodsaverQuizAndConfirmsIt() throws Exception {
@@ -243,7 +257,7 @@ class QuizApiIT {
 
         Cookie orga = login(SeedUsers.ORGA);
         mvc.perform(get("/api/quizzes/FOODSAVER/questions").cookie(orga))
-                .andExpect(jsonPath("$.length()").value(12));
+                .andExpect(jsonPath("$.length()").value(64));
         mvc.perform(get("/api/users/" + SeedUsers.PROFILE.id() + "/quiz-sessions").cookie(orga))
                 .andExpect(status().isOk());
         Cookie jumper = login(SeedUsers.JUMPER);
