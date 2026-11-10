@@ -97,6 +97,23 @@ test.describe('foodsaver', () => {
     await expect(page.locator(`[data-testid="search.page.hit"][data-link="/stores/${seedStore('Coop Wiedikon').id}"]`)).toBeVisible();
   });
 
+  test('C5 event hits show their start in the one date format, not a raw ISO date (review 2026-11-10 F5) @C5', async ({ page, apiOf }) => {
+    await acceptPendingConsents(apiOf(page));
+    const brunch = '/events/00000044-0002-4000-8000-000000000001';
+    // decision 177: "05.11.2026, 10:00" (dd.MM.yyyy, HH:mm in the user's time zone)
+    const formatted = /^05\.11\.2026, \d{2}:\d{2}$/;
+    await page.goto('/dashboard');
+    await openSearch(page);
+    await input(page).fill('Brunch');
+    await serverAnswered(page);
+    await expect(option(page, brunch).locator('.gs__option-sub')).toHaveText(formatted);
+    await expect(option(page, brunch)).not.toContainText('2026-11-05');
+
+    await page.goto('/search?q=Brunch');
+    await expectDataState(page, 'search.page.state', 'success');
+    await expect(pageHit(page, brunch).locator('.hit__sub')).toHaveText(formatted);
+  });
+
   test('C5 instant index results appear without a request @C5', async ({ page, apiOf }) => {
     await acceptPendingConsents(apiOf(page));
     const searches: string[] = [];
