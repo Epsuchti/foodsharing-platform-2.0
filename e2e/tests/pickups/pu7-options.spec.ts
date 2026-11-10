@@ -52,6 +52,18 @@ test('PU7 options leave out what the sign-up would refuse and show own sign-ups 
   const thursday = page.locator(`[data-testid="pickups.options.option"][data-store="${s01.name}"][data-pickup-at="${S01_THURSDAY}"]`);
   await expect(thursday.getByTestId('pickups.options.signedUp')).toHaveAttribute('data-confirmed', 'false');
   await expect(thursday.getByTestId('pickups.options.signUp')).toHaveCount(0);
+
+  // review 2026-11-10 F1: the chip is one line where there is room (only narrow phones wrap it), icon beside the text
+  for (const chip of [wednesday.getByTestId('pickups.options.signedUp'), thursday.getByTestId('pickups.options.signedUp')]) {
+    const icon = await chip.locator('i').boundingBox();
+    const text = await chip.locator('span').boundingBox();
+    expect(icon && text).toBeTruthy();
+    expect(Math.abs(text!.x - (icon!.x + icon!.width))).toBeLessThanOrEqual(8);
+    if (page.viewportSize()!.width > 480) {
+      const lineHeight = await chip.evaluate((el) => parseFloat(getComputedStyle(el).fontSize) * 1.8);
+      expect(text!.height).toBeLessThan(lineHeight);
+    }
+  }
 });
 
 test('PU7 options show how many sign-ups are confirmed @PU7', async ({ page }) => {
