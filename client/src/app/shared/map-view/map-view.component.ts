@@ -150,8 +150,12 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
       gap: 0.5rem;
       min-width: 0;
     }
+    /* its own stacking context: Leaflet's panes and controls (z-index 200–1000) stay inside the map and below the
+       shell (tab bar 45, header, overlays); without it the panes painted over the fixed tab bar */
     .frame {
       position: relative;
+      z-index: 0;
+      isolation: isolate;
       overflow: hidden;
       border: 1px solid var(--fs-border);
       border-radius: var(--fs-radius-lg);

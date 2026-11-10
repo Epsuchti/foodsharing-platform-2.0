@@ -206,6 +206,56 @@ test('M1 deep link opens and keeps the view @M1', async ({ page, context, baseUR
   await expect(page.locator('fs-error-state, [data-testid="map.page.locateError"]')).toHaveCount(0);
 });
 
+test('M1 phone: the map stays below the tab bar, a tab over the map still navigates @M1', async ({ as, apiOf, isMobile }) => {
+  const member = await as('foodsaver');
+  await acceptPendingConsents(apiOf(member));
+  if (!isMobile) await member.setViewportSize({ width: 412, height: 800 });
+  // reduced motion too: without Leaflet's animations the map's panes once painted over the shell (decision 176)
+  await member.emulateMedia({ reducedMotion: 'reduce' });
+  await member.goto('/map');
+  await expectDataState(member, 'map.page.map.state', 'success');
+  await expect(member.getByTestId('map.page.map')).toHaveAttribute('data-tiles', 'ok');
+  const bar = member.getByTestId('shell.tabBar');
+  await expect(bar).toBeVisible();
+  // the map frame reaches under the fixed tab bar
+  const frame = (await member.getByTestId('map.page.map').locator('.leaflet-container').boundingBox())!;
+  const barBox = (await bar.boundingBox())!;
+  expect(frame.y + frame.height).toBeGreaterThan(barBox.y + barBox.height / 2);
+  // the map is its own stacking context below the bar: Leaflet's panes (z-index 200–1000) can't reach the shell.
+  // Without it the panes painted over the fixed tab bar in full-page renders (M1 baselines, decision 176 follow-up).
+  const stacking = await member.evaluate(() => {
+    const pane = document.querySelector('[data-testid="map.page.map"] .leaflet-map-pane')!;
+    const bar = document.querySelector('fs-mobile-tab-bar')!;
+    const createsContext = (el: Element) => {
+      const style = getComputedStyle(el);
+      return style.isolation === 'isolate' || (style.position !== 'static' && style.zIndex !== 'auto');
+    };
+    // the outermost stacking context of the map below anything that also holds the tab bar
+    let root: Element | null = null;
+    for (let el: Element | null = pane; el && !el.contains(bar); el = el.parentElement) {
+      if (createsContext(el)) root = el;
+    }
+    return { zIndex: root ? Number(getComputedStyle(root).zIndex) || 0 : null, bar: Number(getComputedStyle(bar).zIndex) };
+  });
+  expect(stacking.zIndex, 'the map has a stacking context of its own').not.toBeNull();
+  expect(stacking.zIndex!).toBeLessThan(stacking.bar);
+  // what is painted on top at every tab of the bar belongs to the bar, not to the map (tiles, pins, controls)
+  const tabs = bar.locator('[data-testid^="nav.tab."]:not([data-testid$=".badge"])');
+  for (const tab of await tabs.all()) {
+    const box = (await tab.boundingBox())!;
+    const onTop = await member.evaluate(
+      ([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+        return { inBar: !!hit?.closest('[data-testid="shell.tabBar"]'), inMap: !!hit?.closest('.leaflet-container') };
+      },
+      [box.x + box.width / 2, box.y + box.height / 2] as const,
+    );
+    expect(onTop, await tab.getAttribute('data-testid') ?? '').toEqual({ inBar: true, inMap: false });
+  }
+  await bar.locator('[data-testid^="nav.tab."]').first().click();
+  await expect(member).not.toHaveURL(/\/map/);
+});
+
 test('M1 a failed layer shows the error state and loads again on retry @M1', async ({ page }) => {
   // the retry interceptor repeats a failed GET twice: fail all three attempts
   await injectApiError(page, { url: '/api/public/map/markers/regions', status: 503, times: 3 });
