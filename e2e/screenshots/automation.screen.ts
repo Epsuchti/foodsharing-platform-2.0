@@ -32,7 +32,8 @@ forEachVariant((variant) => {
       await expect(page.getByTestId('automation.store.state')).toHaveAttribute('data-state', 'success');
       const card = page.getByTestId('automation.policy.gapCard');
       await expect(card.getByTestId('automation.policy.gapMember')).toHaveCount(1);
-      await expect(card.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'on');
+      // review fix A7: S-01's rules are switched off in the seed, so the card says the gap is not in effect
+      await expect(card.getByTestId('automation.policy.gapStatus')).toHaveAttribute('data-status', 'off');
       await expect(card.getByTestId('automation.policy.gapPreview.day')).toHaveCount(11);
       await expect(card.getByTestId('automation.policy.groupGapPreview.day')).toHaveCount(11);
       await visual.expectElement(card, `automation-gap-list-${variant.name}`);
