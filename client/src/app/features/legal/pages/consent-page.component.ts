@@ -12,6 +12,7 @@ import {
   LegalService,
   PublicLegalService,
 } from '../../../api';
+import { AuthFacadeService } from '../../../core/auth/auth-facade.service';
 import { safeReturnUrl } from '../../../core/auth/return-url';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
@@ -28,7 +29,8 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
  * full text; accepting all of them refreshes the session and continues to `?returnUrl`. consentGuard sends users
  * here while `SessionInfo.pendingConsents` is not empty. The mobile number is asked in onboarding step 2 and the
  * profile, not here (D2). A first-time user (A6: no pending document accepted in an earlier version) gets a
- * welcoming subtitle instead of "new or changed documents".
+ * welcoming subtitle instead of "new or changed documents". The page has minimal chrome (no menu, decision 175), so it
+ * carries its own logout button, outside the data state so it also works when the documents fail to load.
  */
 @Component({
   selector: 'fs-consent-page',
@@ -119,6 +121,18 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
         </div>
       </ng-template>
     </fs-data-state>
+
+    <div class="leave">
+      <p-button
+        [label]="'nav.logout' | t"
+        icon="pi pi-sign-out"
+        severity="secondary"
+        [text]="true"
+        [loading]="logout.busy()"
+        (onClick)="logout.run()"
+        data-testid="legal.consent.logout"
+      />
+    </div>
   `,
   styles: `
     :host {
@@ -195,6 +209,11 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
       color: var(--fs-text-muted);
       font-size: 0.88rem;
     }
+    .leave {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
   `,
 })
 export class ConsentPageComponent {
@@ -204,6 +223,7 @@ export class ConsentPageComponent {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
+  private readonly auth = inject(AuthFacadeService);
 
   /** `?returnUrl=` (component input binding). */
   readonly returnUrl = input<string | undefined>(undefined);
@@ -259,6 +279,9 @@ export class ConsentPageComponent {
       onSuccess: () => this.continue(),
     },
   );
+
+  /** Leaves the consent wall without accepting: the same logout as the user menu (clears the session, goes to `/`). */
+  protected readonly logout = runMutation(() => this.auth.logout(), { errorToast: false });
 
   protected toggle(kind: string, value: boolean): void {
     const next = new Set(this.checked());

@@ -87,6 +87,25 @@ test('EA4 consent page shows errors with retry @EA4', async ({ as }) => {
   await expect(page.getByTestId('legal.consent.documents')).toHaveAttribute('data-state', 'success');
 });
 
+test('EA4 the consent wall has its own logout (minimal chrome) @EA4', async ({ as, apiOf }) => {
+  const page = await as('newbie');
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/consent\?/);
+  await expect(page.getByTestId('legal.consent.documents')).toHaveAttribute('data-state', 'success');
+  // decision 175: no menu, footer or tab bar here, so the page carries the logout itself
+  await expect(page.getByTestId('shell.userMenu')).toHaveCount(0);
+  const logout = page.getByTestId('legal.consent.logout').locator('button');
+  await expect(logout).toHaveText('Abmelden');
+  await logout.click();
+
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId('shell.login')).toBeVisible();
+  expect((await apiOf(page).session()).authenticated).toBe(false);
+  // logged out, not consented: a member page asks for the login again
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login/);
+});
+
 test('EA4 users without pending consents never see the consent page @EA4', async ({ as }) => {
   const page = await as('foodsaver');
   await page.goto('/dashboard');
