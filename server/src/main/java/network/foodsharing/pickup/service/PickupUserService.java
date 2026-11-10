@@ -214,8 +214,9 @@ public class PickupUserService {
 
     /**
      * Upstream {@code getPickupOptions}: pickups within each store's prefetch horizon in all stores where the current
-     * user is a regular member; full ones only when the user is in them, and none that the store rules block for the
-     * user (decision 167 S2). Sorted by time.
+     * user is a regular member; full ones only when the user is in them, and none that the sign-up would refuse: neither
+     * the eligibility chain (region pickup rule, hygiene, phone, verification) nor the store rules (decision 167 S2;
+     * store managers are exempt from the store rules only). Pickups the user is in always stay. Sorted by time.
      *
      * @throws ApiException 403 NOT_VERIFIED unless a verified foodsaver
      */
@@ -231,14 +232,36 @@ public class PickupUserService {
         int maxPrefetch = mine.stream().mapToInt(Store::getPrefetchDays).max().orElse(0);
         Map<UUID, List<PickupSchedule.Slot>> all = schedule.schedules(mine, now,
                 now.plus(Duration.ofDays(maxPrefetch)));
-        // decision 167 S2: free pickups the store rules block for the user are not offered (same gate as sign-up)
+        // free pickups the sign-up would refuse are not offered: the eligibility chain (one context per store, which
+        // caches the rule sign-ups) and then the store rules (decision 167 S2, same gates as the sign-up)
         Map<UUID, List<Instant>> candidates = new java.util.HashMap<>();
+        Map<UUID, Map<Instant, PickupEligibilityRules.Result>> eligibility = new java.util.HashMap<>();
+        Map<UUID, List<PickupSchedule.Slot>> freeByStore = new java.util.HashMap<>();
         for (Store store : mine) {
             Instant horizon = now.plus(Duration.ofDays(store.getPrefetchDays()));
-            candidates.put(store.getId(), all.getOrDefault(store.getId(), List.of()).stream()
+            List<PickupSchedule.Slot> free = all.getOrDefault(store.getId(), List.of()).stream()
                     .filter(slot -> !slot.pickupAt().isAfter(horizon) && slot.slotCount() > 0
                             && slot.occupied() < slot.slotCount() && !slot.hasSignup(user.getId()))
-                    .map(PickupSchedule.Slot::pickupAt).toList());
+                    .toList();
+            if (!free.isEmpty()) {
+                freeByStore.put(store.getId(), free);
+            }
+        }
+        Map<UUID, PickupScheduleService.EligibilityContext> contexts = schedule.contexts(
+                mine.stream().filter(s -> freeByStore.containsKey(s.getId())).toList(), user.getId());
+        for (Store store : mine) {
+            List<PickupSchedule.Slot> free = freeByStore.get(store.getId());
+            if (free == null) {
+                continue;
+            }
+            PickupScheduleService.EligibilityContext context = contexts.get(store.getId());
+            Map<Instant, PickupEligibilityRules.Result> results = new java.util.HashMap<>();
+            for (PickupSchedule.Slot slot : free) {
+                results.put(slot.pickupAt(), context.evaluate(slot.pickupAt(), slot));
+            }
+            eligibility.put(store.getId(), results);
+            candidates.put(store.getId(), results.entrySet().stream().filter(e -> e.getValue().eligible())
+                    .map(Map.Entry::getKey).toList());
         }
         Map<UUID, java.util.Set<Instant>> blocked = schedule.blockedPickups(currentActor.requirePrincipal(), mine,
                 candidates);
@@ -246,15 +269,15 @@ public class PickupUserService {
             Instant horizon = now.plus(Duration.ofDays(store.getPrefetchDays()));
             ZoneId zone = schedule.zoneOf(store);
             java.util.Set<Instant> blockedHere = blocked.getOrDefault(store.getId(), java.util.Set.of());
+            Map<Instant, PickupEligibilityRules.Result> eligibilityHere = eligibility.getOrDefault(store.getId(),
+                    Map.of());
             for (PickupSchedule.Slot slot : all.getOrDefault(store.getId(), List.of())) {
                 if (slot.pickupAt().isAfter(horizon) || slot.slotCount() == 0) {
                     continue;
                 }
                 boolean in = slot.hasSignup(user.getId());
-                if (!in && blockedHere.contains(slot.pickupAt())) {
-                    continue;
-                }
-                if (slot.occupied() < slot.slotCount() || in) {
+                if (isOffered(in, slot.occupied() < slot.slotCount(), eligibilityHere.get(slot.pickupAt()),
+                        blockedHere.contains(slot.pickupAt()))) {
                     Boolean confirmed = in ? slot.signups().stream().filter(s -> s.getUserId().equals(user.getId()))
                             .findFirst().map(PickupSignup::isConfirmed).orElse(null) : null;
                     result.add(new UserPickupView(store, zone, slot, confirmed));
@@ -264,6 +287,18 @@ public class PickupUserService {
         result.sort(Comparator.comparing((UserPickupView v) -> v.slot().pickupAt())
                 .thenComparing(v -> v.store().getName()));
         return result;
+    }
+
+    /**
+     * Whether {@link #options()} lists a pickup: always when the user is signed up (shown as "signed up"); a free one
+     * only when the eligibility chain accepts it ({@code eligibility}, null = not evaluated) and no store rule blocks it.
+     */
+    static boolean isOffered(boolean signedUp, boolean free, PickupEligibilityRules.Result eligibility,
+                             boolean storeRuleBlocked) {
+        if (signedUp) {
+            return true;
+        }
+        return free && eligibility != null && eligibility.eligible() && !storeRuleBlocked;
     }
 
     /**

@@ -90,6 +90,15 @@ public class StorePermissionService {
         };
     }
 
+    /** {@link #teamStatus(UUID, UUID)} for all stores of one user in one query (stores without relation are missing). */
+    public java.util.Map<UUID, UserTeamStatus> teamStatuses(UUID userId) {
+        java.util.Map<UUID, UserTeamStatus> result = new java.util.HashMap<>();
+        for (StoreMembership membership : memberships.findByUserId(userId)) {
+            result.put(membership.getStoreId(), status(Optional.of(membership)));
+        }
+        return result;
+    }
+
     public UserTeamStatus teamStatus(UUID userId, UUID storeId) {
         return userId == null ? UserTeamStatus.NO_MEMBER
                 : status(memberships.findByStoreIdAndUserId(storeId, userId));
