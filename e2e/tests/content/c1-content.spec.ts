@@ -1,7 +1,7 @@
 import { LANGUAGES, acceptPendingConsents, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
 
 /**
- * C1: the knowledge area ("Wissen", decision 175): the foodsharing-Grundlagen in five languages, grouped, marked read via
+ * C1: the knowledge area ("Wissen", decision 174): the foodsharing-Grundlagen in five languages, grouped, marked read via
  * the journey and reread without marking again; content pages edited by ORGA.
  */
 
