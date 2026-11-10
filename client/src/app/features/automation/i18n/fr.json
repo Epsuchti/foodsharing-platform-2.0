@@ -167,6 +167,7 @@
   "automation.policy.gapHint": "Jours entre deux collectes de la même personne dans ce commerce.",
   "automation.policy.gapStatus.on": "Actif",
   "automation.policy.gapStatus.off": "Désactivé",
+  "automation.policy.inactiveHint": "S’applique seulement une fois les règles activées.",
   "automation.policy.gapOwnTitle": "Dans ce commerce",
   "automation.policy.gapOwnEnabled": "Écart propre",
   "automation.policy.gapGroupTitle": "Groupe de commerces (facultatif)",

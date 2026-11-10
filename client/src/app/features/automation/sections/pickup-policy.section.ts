@@ -119,6 +119,9 @@ export const MAX_STORES_PER_LINK = 5;
               [attr.data-status]="gapActive() ? 'on' : 'off'"
             >{{ (gapActive() ? 'automation.policy.gapStatus.on' : 'automation.policy.gapStatus.off') | t }}</span>
           </div>
+          @if (!p.enabled && gapConfigured()) {
+            <p class="muted" data-testid="automation.policy.inactiveHint" data-rule="GAP">{{ 'automation.policy.inactiveHint' | t }}</p>
+          }
           @if (gapActive() && gapSentence(p); as text) {
             <p class="member-line" data-testid="automation.policy.member" data-rule="GAP"><i class="pi pi-info-circle" aria-hidden="true"></i><span>{{ text }}</span></p>
           }
@@ -299,6 +302,7 @@ export const MAX_STORES_PER_LINK = 5;
           [sentence]="sentence({ experience: true })"
           rule="EXPERIENCE"
           testId="automation.policy.experienceCard"
+          [masterOn]="p.enabled"
         >
           <p-toggleswitch ruleSwitch inputId="pp-exp" [(ngModel)]="p.experienceRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.experience" />
         </fs-rule-card>
@@ -310,6 +314,7 @@ export const MAX_STORES_PER_LINK = 5;
           [sentence]="sentence({ cleaningMonths: ctx.data()?.cleaningMonths })"
           rule="CLEANING"
           testId="automation.policy.cleaningCard"
+          [masterOn]="p.enabled"
         >
           <p-toggleswitch ruleSwitch inputId="pp-clean" [(ngModel)]="p.cleaningRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.cleaning" />
           <!-- FS2: the region's cleaning Fairteiler, or a hint linking to the "Putzen" section -->
@@ -340,6 +345,7 @@ export const MAX_STORES_PER_LINK = 5;
           [sentence]="sentence({ holidays: true })"
           rule="MANUAL_DATE"
           testId="automation.policy.holidaysCard"
+          [masterOn]="p.enabled"
         >
           <p-toggleswitch ruleSwitch inputId="pp-hol" [(ngModel)]="p.publicHolidayRuleEnabled" [disabled]="!ctx.mayEdit()" data-testid="automation.policy.holidays" />
           @if (ctx.regionId(); as regionId) {
@@ -560,8 +566,16 @@ export class PickupPolicySection {
     }
   }
 
-  /** Header badge: on while the own rule is on or the store is in a group (decision 152, D8). */
+  /**
+   * Header badge: on while the own rule is on or the store is in a group (decision 152, D8), and only while the rules
+   * are switched on at all (review fix A7: `PickupRuleGateImpl` applies no rule while `enabled` is off).
+   */
   protected gapActive(): boolean {
+    return !!this.draft()?.enabled && this.gapConfigured();
+  }
+
+  /** The own gap rule is on or the store is in a group, whatever the master switch says. */
+  protected gapConfigured(): boolean {
     const p = this.draft();
     return !!p && (p.gapRuleEnabled || this.gapMembers().length > 0);
   }

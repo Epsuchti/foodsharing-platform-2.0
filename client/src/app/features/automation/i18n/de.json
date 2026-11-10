@@ -167,6 +167,7 @@
   "automation.policy.gapHint": "Tage zwischen zwei Abholungen derselben Person in diesem Betrieb.",
   "automation.policy.gapStatus.on": "Aktiv",
   "automation.policy.gapStatus.off": "Aus",
+  "automation.policy.inactiveHint": "Wirkt erst, wenn die Regeln eingeschaltet sind.",
   "automation.policy.gapOwnTitle": "In diesem Betrieb",
   "automation.policy.gapOwnEnabled": "Eigener Abstand",
   "automation.policy.gapGroupTitle": "Betriebsgruppe (optional)",
