@@ -5,6 +5,7 @@ import {
   isCollapseShortcut,
   isSectionOpen,
   isTypingTarget,
+  needsRefold,
   nextFoldCount,
   openCurrentSection,
   resolveSidenavMode,
@@ -98,6 +99,17 @@ describe('side menu state rules', () => {
     expect(nextFoldCount(1, false, 3)).toBe(1);
     // everything folded: no further step even if it still overflows
     expect(nextFoldCount(3, true, 3)).toBe(3);
+  });
+
+  it('re-folds the rail only when the side menu height changes', () => {
+    // the first resize report measures
+    expect(needsRefold(null, 700)).toBe(true);
+    // a width-only resize (sidebar to rail) keeps the flyouts and an open card's trigger
+    expect(needsRefold(700, 700)).toBe(false);
+    expect(needsRefold(700, 700.4)).toBe(false);
+    // a shorter or taller window folds again
+    expect(needsRefold(700, 640)).toBe(true);
+    expect(needsRefold(640, 720)).toBe(true);
   });
 
   it('places a card outside the side menu, aligned with its trigger and inside the viewport', () => {
