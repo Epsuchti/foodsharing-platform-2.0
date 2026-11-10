@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 import {
   Journey,
@@ -7,13 +7,12 @@ import {
   JourneyStep,
   JourneyStepPreview,
   JourneyStepStatus,
-  MessagingService,
 } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
-import { runMutation } from '../../core/data/mutation';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TPipe } from '../../core/i18n/t.pipe';
 import { UserChipComponent } from '../user-chip/user-chip.component';
+import { JourneyMessageButtonComponent } from './journey-message-button.component';
 
 export type JourneyStepperMode = 'compact' | 'full' | 'preview';
 
@@ -37,7 +36,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
  */
 @Component({
   selector: 'fs-journey-stepper',
-  imports: [RouterLink, TPipe, UserChipComponent],
+  imports: [JourneyMessageButtonComponent, RouterLink, TPipe, UserChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'fs-journey-stepper',
@@ -154,7 +153,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                         <i class="pi pi-hourglass" aria-hidden="true"></i>
                         {{ waiting.labelKey | t }}
                         @if (waiting.typicalDays) {
-                          · {{ 'shared.journey.typicalDays' | t: { days: waiting.typicalDays } }}
+                          <span class="waiting__typical" [attr.data-testid]="testId() + '.typicalDays'">· {{ 'shared.journey.typicalDays' | t: { days: waiting.typicalDays } }}</span>
                         }
                       </p>
                       @if (waiting.contacts.length > 0) {
@@ -163,17 +162,9 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
                             <li class="waiting__contact">
                               <fs-user-chip [name]="contact.displayName" [userId]="contact.id" [avatarUrl]="contact.avatarUrl" [role]="contact.role" [showRole]="true" size="sm" />
                               @if (contact.id !== myId()) {
-                                <button
-                                  type="button"
-                                  class="fs-btn fs-btn--text fs-btn--sm waiting__message"
-                                  [disabled]="message.busy()"
-                                  [attr.aria-label]="'shared.journey.messageAria' | t: { name: contact.displayName }"
-                                  [attr.data-testid]="testId() + '.message'"
-                                  (click)="message.run(contact.id)"
-                                >
-                                  <i class="pi pi-envelope" aria-hidden="true"></i>
-                                  {{ 'shared.journey.message' | t }}
-                                </button>
+                                @defer {
+                                  <fs-journey-message-button [userId]="contact.id" [name]="contact.displayName" [testId]="testId() + '.message'" />
+                                }
                               }
                             </li>
                           }
@@ -204,8 +195,6 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
 })
 export class JourneyStepperComponent {
   private readonly i18n = inject(I18nService);
-  private readonly messaging = inject(MessagingService);
-  private readonly router = inject(Router);
   private readonly session = inject(SessionService);
 
   readonly mode = input<JourneyStepperMode>('full');
@@ -230,11 +219,6 @@ export class JourneyStepperComponent {
   readonly action = output<JourneyNextAction>();
 
   protected readonly myId = computed(() => this.session.user()?.id);
-  /** A waiting step's contact: find or create the direct conversation and open it (review 2026-11-10 A4). */
-  protected readonly message = runMutation(
-    (userId: string) => this.messaging.lookupConversation({ conversationLookup: { memberIds: [userId] } }),
-    { onSuccess: (conversation) => void this.router.navigate(['/messages', conversation.id]) },
-  );
 
   protected readonly steps = computed<JourneyStep[]>(() => [
     ...(this.journey()?.steps ?? []),

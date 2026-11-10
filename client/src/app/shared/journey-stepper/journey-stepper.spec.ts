@@ -1,6 +1,6 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockState, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
 import { Language, Role, Theme } from '../../api';
@@ -89,6 +89,8 @@ describe('JourneyStepperComponent', () => {
 
   it('"Nachricht" opens the direct conversation with a waiting step contact (A4)', async () => {
     const { el, fixture } = await create({ journey: DEMO_JOURNEY_WAITING });
+    // the button is loaded deferred (it keeps messaging out of the shell's initial bundle)
+    for (const block of await fixture.getDeferBlocks()) await block.render(DeferBlockState.Complete);
     const button = el.querySelector('[data-testid="t.journey.message"]') as HTMLButtonElement;
     expect(button.textContent).toContain('Nachricht');
     expect(button.getAttribute('aria-label')).toBe('Nachricht an Reto Baumann');
@@ -116,7 +118,8 @@ describe('JourneyStepperComponent', () => {
         verified: true,
       },
     });
-    const { el } = await create({ journey: DEMO_JOURNEY_WAITING });
+    const { el, fixture } = await create({ journey: DEMO_JOURNEY_WAITING });
+    expect(await fixture.getDeferBlocks()).toHaveLength(0);
     expect(el.querySelector('fs-user-chip')).not.toBeNull();
     expect(el.querySelector('[data-testid="t.journey.message"]')).toBeNull();
   });
