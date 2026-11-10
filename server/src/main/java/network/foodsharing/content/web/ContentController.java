@@ -62,7 +62,9 @@ public class ContentController implements ContentApi {
                 body.getTitles(), body.getBodies(), network.foodsharing.content.domain.ContentPageKind.valueOf(
                         body.getKind().name()), body.getSortOrder(), body.getEstimatedMinutes(),
                 Boolean.TRUE.equals(body.getPublished()), body.getReason(), body.getEditorFunction(),
-                body.getImageUploadIds(), body.getRemoveImageUploadIds()))));
+                body.getImageUploadIds(), body.getRemoveImageUploadIds(), body.getGroup() == null ? null
+                        : network.foodsharing.content.domain.LearningChapterGroup.valueOf(body.getGroup().name()),
+                body.getRequired()))));
     }
 
     @Override

@@ -1,0 +1,28 @@
+# C1 learning wiki (docs/tasks/2026-11-10-learning-wiki.md): learning chapters get a section of the knowledge area
+# ("Wissen") and a required flag. Only published required chapters count for the LEARN step and learningDone.
+# Existing chapters become BASICS and stay required.
+databaseChangeLog:
+  - changeSet:
+      id: 194-1
+      author: platform
+      comment: 'C1: chapter group (BASICS, MORE, STORE_MANAGER, AMBASSADOR) and required flag of learning chapters.'
+      changes:
+        - addColumn:
+            tableName: content_page
+            columns:
+              - column: {name: chapter_group, type: VARCHAR(30)}
+              - column: {name: required, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+        - update:
+            tableName: content_page
+            columns:
+              - column: {name: chapter_group, value: BASICS}
+            where: "kind = 'LEARNING_CHAPTER'"
+  - changeSet:
+      id: 194-2
+      author: platform
+      comment: 'C1: short hand-written summary of a learning chapter per language (overview); null = derived from the body.'
+      changes:
+        - addColumn:
+            tableName: content_page_i18n
+            columns:
+              - column: {name: summary, type: VARCHAR(300)}

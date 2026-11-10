@@ -53,21 +53,24 @@ class ContentApiIT {
     void publicContentAndLearningChapters() throws Exception {
         mvc.perform(get("/api/public/content/learning").param("lang", "fr"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(4))
-                .andExpect(jsonPath("$[0].key").value("rules"))
-                .andExpect(jsonPath("$[0].title").value("Les règles"))
-                .andExpect(jsonPath("$[2].estimatedMinutes").value(3));
-        mvc.perform(get("/api/public/content/learning/rules").param("lang", "gws"))
-                .andExpect(jsonPath("$.title").value("D Regle"))
-                .andExpect(jsonPath("$.nextChapterKey").value("hygiene"))
+                .andExpect(jsonPath("$.length()").value(7))
+                .andExpect(jsonPath("$[0].key").value("principles"))
+                .andExpect(jsonPath("$[0].title").value("Principes"))
+                .andExpect(jsonPath("$[0].group").value("BASICS"))
+                .andExpect(jsonPath("$[0].required").value(true))
+                .andExpect(jsonPath("$[2].estimatedMinutes").value(9));
+        mvc.perform(get("/api/public/content/learning/principles").param("lang", "gws"))
+                .andExpect(jsonPath("$.title").value("Grundsätz"))
+                .andExpect(jsonPath("$.nextChapterKey").value("code-of-conduct"))
                 .andExpect(jsonPath("$.fallback").value(false));
         mvc.perform(get("/api/public/content/faq"))
                 .andExpect(jsonPath("$.language").value("de")).andExpect(jsonPath("$.kind").value("PAGE"));
         mvc.perform(get("/api/public/content/nope")).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("CONTENT_NOT_FOUND"));
         mvc.perform(get("/api/public/legal/LEGAL_AGREEMENT").param("lang", "it"))
-                .andExpect(jsonPath("$.version").value("2026-01"))
-                .andExpect(jsonPath("$.language").value("it"));
+                .andExpect(jsonPath("$.version").value("2026-11"))
+                .andExpect(jsonPath("$.language").value("it"))
+                .andExpect(jsonPath("$.body").value(org.hamcrest.Matchers.startsWith("# Accordo legale")));
     }
 
     @Test
@@ -142,7 +145,7 @@ class ContentApiIT {
     void editorsUpsertPages() throws Exception {
         Cookie bot = login(SeedUsers.BOT);
         mvc.perform(get("/api/content/pages").cookie(bot)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(26)); // seed: 29 pages (decision 172 removed 9), 3 with a non-PR editor function
+                .andExpect(jsonPath("$.length()").value(29)); // 32 pages (C1: 7 chapters replace 4), 3 non-PR
         mvc.perform(json(put("/api/content/pages/press").cookie(bot), "{\"titles\":{\"de\":\"Presse\"},"
                         + "\"bodies\":{\"de\":\"Kontakt\"},\"kind\":\"PAGE\",\"published\":true}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.languages[0]").value("de"));

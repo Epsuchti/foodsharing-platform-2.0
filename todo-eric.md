@@ -3,7 +3,7 @@
 Tasks only a person can do: decisions, accounts, money, other people. Everything an agent can do lives in `todo.md`. Details and references for most items: "Needs a human before launch" in `docs/launch-report.md`.
 
 ## Decide
-- [x] ~~Should verification require a confirmed identity? The server allows it without one today; the UI only nudges reviewers. If yes, it is a small change (decision 124).~~ Yes, no ORGA exception (decision 174).
+- [x] ~~Should verification require a confirmed identity? The server allows it without one today; the UI only nudges reviewers. If yes, it is a small change (decision 124).~~ Yes, no ORGA exception (decision 175).
 - [ ] Go through this list after the final gate and strike what no longer applies.
 
 ## Refactor (owner)
@@ -37,6 +37,10 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Have the admins approve the passport layout (`docs/passport-layout.md`, `docs/passport-sample.png`).
 - [ ] Have the ambassadors confirm or correct the Zürich regions and stores (`docs/data/zuerich/`).
 - [ ] Name the first ambassadors and guides for staging.
+
+- [ ] Swiss legal agreement (C1, decision 174): the wiki only has the German and the Austrian Rechtsvereinbarung. The German one is now the binding `LEGAL_AGREEMENT` (version 2026-11, changeset 196). Ask foodsharing Schweiz for a Swiss text; publish it as a new version in the admin legal editor (decide there whether everybody has to accept it again).
+- [ ] Review the 64 foodsaver quiz questions on staging in the quiz editor (C1, changeset 197, `docs/content-import/quiz/foodsaver.de.yaml`) and the machine translations of the learning chapters (en/fr/it/gws, `docs/content-import/learning/`); edit in the CMS / quiz editor.
+- [ ] Supply the text of "Regelverletzungen – Erläuterungen" (the wiki page is only a redirect); it becomes the optional chapter `rule-violations-explained` (group MORE).
 
 ## Quick check
 - [ ] Map tile service on K3s (MT2, decision 163, runbook §10.4; hosting branch `feat/foodsharing-tiles`, not merged). The MT1 check now runs on K3s:

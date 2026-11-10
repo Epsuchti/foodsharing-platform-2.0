@@ -30,7 +30,7 @@ describe('legal consent page (EA4)', () => {
 
   afterEach(() => http.verify({ ignoreCancelled: true }));
 
-  it('offers the user-menu logout on the consent wall (minimal chrome, decision 175)', async () => {
+  it('offers the user-menu logout on the consent wall (minimal chrome, decision 176)', async () => {
     await settle();
     http.expectOne('/api/legal/consents').flush([]);
     await settle();

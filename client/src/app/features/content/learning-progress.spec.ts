@@ -2,7 +2,7 @@ import { Journey, JourneyStepKey, JourneyStepStatus } from '../../api';
 import { legalKindOf, legalSlug } from '../legal/legal-kind';
 import { chapterState, learningProgress } from './learning-progress';
 
-const KEYS = ['rules', 'hygiene', 'pickup', 'etiquette'];
+const KEYS = ['principles', 'code-of-conduct', 'rule-violations', 'hygiene-rules'];
 
 function journey(learn: Partial<Journey['steps'][number]>): Journey {
   return {
@@ -30,13 +30,13 @@ describe('learning progress (C1, journey step LEARN)', () => {
       journey({
         status: JourneyStepStatus.InProgress,
         progress: { done: 2, booked: 0, required: 4 },
-        nextAction: { labelKey: 'x', route: '/learn/pickup' },
-        details: { readChapters: ['rules', 'hygiene'] },
+        nextAction: { labelKey: 'x', route: '/learn/rule-violations' },
+        details: { readChapters: ['principles', 'code-of-conduct'] },
       }),
       KEYS,
     )!;
     expect(progress).toEqual(
-      expect.objectContaining({ read: 2, total: 4, done: false, nextKey: 'pickup' }),
+      expect.objectContaining({ read: 2, total: 4, done: false, nextKey: 'rule-violations' }),
     );
     expect(KEYS.map((key) => chapterState(progress, key))).toEqual([
       'read',
@@ -50,8 +50,8 @@ describe('learning progress (C1, journey step LEARN)', () => {
     const progress = learningProgress(
       journey({
         progress: { done: 1, booked: 0, required: 4 },
-        nextAction: { labelKey: 'x', route: '/learn/rules' },
-        details: { readChapters: ['hygiene'] },
+        nextAction: { labelKey: 'x', route: '/learn/principles' },
+        details: { readChapters: ['code-of-conduct'] },
       }),
       KEYS,
     )!;
@@ -68,12 +68,12 @@ describe('learning progress (C1, journey step LEARN)', () => {
       journey({ status: JourneyStepStatus.Locked, progress: { done: 0, booked: 0, required: 4 } }),
       KEYS,
     )!;
-    expect(locked.nextKey).toBe('rules');
+    expect(locked.nextKey).toBe('principles');
     const lockedRead = learningProgress(
       journey({
         status: JourneyStepStatus.Locked,
         progress: { done: 1, booked: 0, required: 4 },
-        details: { readChapters: ['hygiene'] },
+        details: { readChapters: ['code-of-conduct'] },
       }),
       KEYS,
     )!;
@@ -95,6 +95,35 @@ describe('learning progress (C1, journey step LEARN)', () => {
       expect.objectContaining({ done: true, optional: true, nextKey: undefined }),
     );
     expect(KEYS.every((key) => chapterState(done, key) === 'read')).toBe(true);
+  });
+
+  it('counts required chapters only; optional ones read show as read (details.readKeys)', () => {
+    const progress = learningProgress(
+      journey({
+        status: JourneyStepStatus.InProgress,
+        progress: { done: 1, booked: 0, required: 4 },
+        nextAction: { labelKey: 'x', route: '/learn/code-of-conduct' },
+        details: { readChapters: ['principles'], readKeys: ['principles', 'rule-violations-explained'] },
+      }),
+      KEYS,
+    )!;
+    expect(progress).toEqual(expect.objectContaining({ read: 1, total: 4, done: false, stepDone: false }));
+    expect(chapterState(progress, 'rule-violations-explained')).toBe('read');
+    expect(chapterState(progress, 'code-of-conduct')).toBe('next');
+  });
+
+  it('a done step of a foodsaver step with unread chapters is voluntary reading that continues where it stopped', () => {
+    const progress = learningProgress(
+      journey({
+        status: JourneyStepStatus.Done,
+        progress: { done: 1, booked: 0, required: 4 },
+        details: { readChapters: ['principles'], readKeys: ['principles'] },
+      }),
+      KEYS,
+    )!;
+    expect(progress).toEqual(
+      expect.objectContaining({ done: false, stepDone: true, optional: true, nextKey: 'code-of-conduct' }),
+    );
   });
 });
 

@@ -161,7 +161,7 @@ export const SWEEP_ROUTES: RouteCase[] = [
   { path: '/quizzes/edit', role: 'orga', ready: 'quiz.editor.list' },
   { path: '/quizzes/edit/foodsaver', role: 'orga', ready: 'quiz.editor.settings' },
   { path: '/learn', role: 'foodsaver', ready: 'content.learn.state' },
-  { path: '/learn/rules', role: 'foodsaver', ready: 'content.chapter.article' },
+  { path: '/learn/principles', role: 'foodsaver', ready: 'content.chapter.article' },
   { path: '/intro-pickups', role: 'einab1', ready: 'introPickups.bookable.myBookings' },
   { path: '/me/intro-pickups', role: 'einab1', ready: 'introPickups.my.progress', mobile: true },
   { path: '/guide', role: 'guide', ready: 'introPickups.guide.regionsState', mobile: true },

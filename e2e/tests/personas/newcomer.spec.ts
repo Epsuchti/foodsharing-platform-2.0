@@ -152,6 +152,8 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
     await expect(page.getByTestId('introPickups.my.upcomingCard')).toHaveCount(1);
   });
 
-  // round 3: 50–52 clicks (desktop / phone); the quiz draws its questions at random, so its clicks vary a little
-  walk.finish({ steps: 8, clicks: 56, fields: 5 });
+  // round 3: 50–52 clicks (desktop / phone); the quiz draws its questions at random, so its clicks vary a little.
+  // C1 (decision 174): 7 required Grundlagen chapters instead of 4 (+3 "mark as read") and a real question pool whose
+  // questions can have several correct answers: 56–57 measured, so the budget is 60
+  walk.finish({ steps: 8, clicks: 60, fields: 5 });
 });

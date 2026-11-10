@@ -46,6 +46,7 @@ import {
   foldedSections,
   isCollapseShortcut,
   isSectionOpen,
+  needsRefold,
   nextFoldCount,
   openCurrentSection,
 } from './sidenav-state';
@@ -447,6 +448,8 @@ export class SidenavComponent {
 
   /** Open/closed choices of this page view (not persisted, decision 133). */
   private readonly choices = signal<SectionChoices>({});
+  /** Height of the side menu at the last resize (re-folding only follows height changes, see `needsRefold`). */
+  private measuredHeight: number | null = null;
   /** Rail: how many collapsible sections are folded into flyouts (measured, from the bottom up). */
   private readonly foldCount = signal(0);
   /** Rail: even with every section folded it does not fit (very low windows): the list scrolls after all. */
@@ -564,9 +567,11 @@ export class SidenavComponent {
     this.popovers.close(false);
   }
 
-
   private remeasure(): void {
-    if (this.mode() !== 'rail') {
+    const height = this.host.nativeElement.getBoundingClientRect().height;
+    const refold = needsRefold(this.measuredHeight, height);
+    this.measuredHeight = height;
+    if (this.mode() !== 'rail' || !refold) {
       this.updateScrollHint();
       return;
     }

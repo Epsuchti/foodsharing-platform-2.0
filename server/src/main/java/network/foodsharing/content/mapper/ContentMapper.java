@@ -65,6 +65,10 @@ public class ContentMapper {
         page.setUpdatedAt(TimeMapper.toOffset(view.updatedAt()));
         page.setEstimatedMinutes(view.page().getEstimatedMinutes());
         page.setNextChapterKey(view.nextChapterKey());
+        if (view.page().getKind() == network.foodsharing.content.domain.ContentPageKind.LEARNING_CHAPTER) {
+            page.setGroup(chapterGroup(view.page()));
+            page.setRequired(view.page().isRequired());
+        }
         return page;
     }
 
@@ -187,5 +191,12 @@ public class ContentMapper {
         model.setIframeSelfServiceUrl(donation.iframeSelfServiceUrl());
         model.setCampaignPages(donation.campaignPages().stream().map(ContentMapper::page).toList());
         return model;
+    }
+
+    /** The chapter's group as API enum; chapters without one count as BASICS. */
+    static network.foodsharing.api.model.LearningChapterGroup chapterGroup(
+            network.foodsharing.content.domain.ContentPage page) {
+        return network.foodsharing.api.model.LearningChapterGroup.fromValue(
+                network.foodsharing.content.service.ContentService.groupOf(page).name());
     }
 }

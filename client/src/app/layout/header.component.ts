@@ -36,6 +36,7 @@ import { NavContextService } from './nav-context.service';
 import { RegionSwitcherComponent } from './region-switcher.component';
 import { ThemeMenuComponent } from './theme-menu.component';
 import { UserMenuComponent } from './user-menu.component';
+import { VisitorMenuComponent } from './visitor-menu.component';
 
 export type ChromeMode = 'full' | 'minimal' | 'none';
 
@@ -54,6 +55,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
     TPipe,
     ThemeMenuComponent,
     UserMenuComponent,
+    VisitorMenuComponent,
     WhatsNewDotComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -200,6 +202,7 @@ export type ChromeMode = 'full' | 'minimal' | 'none';
               <i class="pi pi-sign-in" aria-hidden="true"></i>
               <span>{{ 'nav.login' | t }}</span>
             </a>
+            <fs-visitor-menu />
           }
         }
       </div>

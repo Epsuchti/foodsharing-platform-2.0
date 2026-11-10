@@ -36,6 +36,15 @@ public class ContentPage extends BaseEntity {
     @Column(name = "editor_function", length = 40)
     private String editorFunction = "PR";
 
+    /** Learning chapters only: section of the knowledge area (C1); null for other kinds. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "chapter_group", length = 30)
+    private LearningChapterGroup chapterGroup;
+
+    /** Learning chapters only: counts for the LEARN step and learningDone (C1). */
+    @Column(name = "required", nullable = false)
+    private boolean required = true;
+
     /** Comma-separated upload ids of images used in the bodies (claimed as CONTENT_IMAGE). */
     @Column(name = "image_upload_ids", length = 2000)
     private String imageUploadIds;

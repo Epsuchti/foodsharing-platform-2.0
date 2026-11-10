@@ -33,6 +33,10 @@ final class ContentModels {
         page.setUpdatedAt(TimeMapper.toOffset(view.updatedAt()));
         page.setEstimatedMinutes(view.page().getEstimatedMinutes());
         page.setNextChapterKey(view.nextChapterKey());
+        if (view.page().getKind() == network.foodsharing.content.domain.ContentPageKind.LEARNING_CHAPTER) {
+            page.setGroup(chapterGroup(view.page()));
+            page.setRequired(view.page().isRequired());
+        }
         return page;
     }
 
@@ -40,10 +44,12 @@ final class ContentModels {
         LearningChapter chapter = new LearningChapter();
         chapter.setKey(view.page().getSlug());
         chapter.setTitle(view.title());
-        chapter.setSummary(ContentService.summary(view.body()));
+        chapter.setSummary(view.summary());
         chapter.setEstimatedMinutes(view.page().getEstimatedMinutes() == null ? 0 : view.page().getEstimatedMinutes());
         chapter.setSortOrder(view.page().getSortOrder());
         chapter.setLanguage(Language.fromValue(view.language()));
+        chapter.setGroup(chapterGroup(view.page()));
+        chapter.setRequired(view.page().isRequired());
         return chapter;
     }
 
@@ -58,6 +64,10 @@ final class ContentModels {
         summary.setEstimatedMinutes(texts.page().getEstimatedMinutes());
         summary.setUpdatedAt(TimeMapper.toOffset(texts.page().getUpdatedAt()));
         summary.setEditorFunction(texts.page().getEditorFunction());
+        if (texts.page().getKind() == network.foodsharing.content.domain.ContentPageKind.LEARNING_CHAPTER) {
+            summary.setGroup(chapterGroup(texts.page()));
+            summary.setRequired(texts.page().isRequired());
+        }
         return summary;
     }
 
@@ -70,6 +80,10 @@ final class ContentModels {
         update.setEstimatedMinutes(texts.page().getEstimatedMinutes());
         update.setPublished(texts.page().isPublished());
         update.setEditorFunction(texts.page().getEditorFunction());
+        if (texts.page().getKind() == network.foodsharing.content.domain.ContentPageKind.LEARNING_CHAPTER) {
+            update.setGroup(chapterGroup(texts.page()));
+            update.setRequired(texts.page().isRequired());
+        }
         update.setImageUploadIds(network.foodsharing.content.service.ContentService.imageUploadIds(texts.page()));
         return update;
     }
@@ -112,5 +126,12 @@ final class ContentModels {
 
     static String language(Language language) {
         return language == null ? null : language.getValue();
+    }
+
+    /** The chapter's group as API enum; chapters without one count as BASICS. */
+    static network.foodsharing.api.model.LearningChapterGroup chapterGroup(
+            network.foodsharing.content.domain.ContentPage page) {
+        return network.foodsharing.api.model.LearningChapterGroup.fromValue(
+                network.foodsharing.content.service.ContentService.groupOf(page).name());
     }
 }

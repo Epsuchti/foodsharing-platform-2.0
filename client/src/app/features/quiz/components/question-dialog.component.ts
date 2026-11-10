@@ -64,7 +64,8 @@ interface AnswerDraft {
         </div>
         <div class="field">
           <label for="q-wiki">{{ 'quiz.editor.wikiLink' | t }}</label>
-          <input pInputText id="q-wiki" type="url" [(ngModel)]="wikiLink" maxlength="500" placeholder="https://wiki.foodsharing.de/…" data-testid="quiz.editor.wikiLink" />
+          <!-- C1: in-app chapter links (/learn/<key>#anchor) as well as URLs -->
+          <input pInputText id="q-wiki" type="text" [(ngModel)]="wikiLink" maxlength="500" placeholder="/learn/hygiene-rules" data-testid="quiz.editor.wikiLink" />
         </div>
         <div class="actions">
           <p-button

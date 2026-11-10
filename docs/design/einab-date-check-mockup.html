@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reichen die Termine? (Neue im Bezirk) – Mockup</title>
+<style>
+/* ---- tokens: copied from client/src/styles.scss (light / .fs-dark) ---- */
+:root {
+  --fs-bg: #f6f8f4; --fs-surface: #ffffff; --fs-surface-muted: #f3f6f1; --fs-border: #e1e8dd; --fs-border-strong: #c7d4c2;
+  --fs-text: #1a2a20; --fs-text-muted: #5c6b60; --fs-primary: #25834a; --fs-on-primary: #ffffff; --fs-primary-strong: #195d35;
+  --fs-primary-soft: #e3f3e7; --fs-primary-200: #b4e7c2; --fs-danger: #b53c35; --fs-danger-soft: #fdf1ef; --fs-danger-border: #f2c9c4;
+  --fs-warning: #a35f0c; --fs-warning-soft: #fff7e8; --fs-warning-border: #f1d6a6; --fs-warning-text: #6e4108;
+  --fs-accent: #f2b84b; --fs-radius-sm: 0.625rem; --fs-radius-md: 0.875rem; --fs-radius-lg: 1.125rem;
+  --fs-shadow-sm: 0 1px 2px rgb(26 42 32 / 0.05), 0 2px 8px rgb(26 42 32 / 0.04); --fs-shadow-md: 0 6px 20px rgb(26 42 32 / 0.08);
+  --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
+  --fs-target-sm: 2.25rem;
+  --fs-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+:root.fs-dark {
+  --fs-bg: #111611; --fs-surface: #1a201a; --fs-surface-muted: #212821; --fs-border: #2c352b; --fs-border-strong: #3d473b;
+  --fs-text: #ecf2ea; --fs-text-muted: #a3b09f; --fs-primary: #4cba70; --fs-on-primary: #0d1f13; --fs-primary-strong: #82d59b;
+  --fs-primary-soft: rgb(76 186 112 / 0.14); --fs-primary-200: #1f4a2f; --fs-danger: #f08a80; --fs-danger-soft: rgb(240 138 128 / 0.1);
+  --fs-danger-border: rgb(240 138 128 / 0.3); --fs-warning: #f2b84b; --fs-warning-soft: rgb(242 184 75 / 0.1);
+  --fs-warning-border: rgb(242 184 75 / 0.3); --fs-warning-text: #f6d79b; --fs-accent: #9c7a3c;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3); --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35); --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+:root.touch { --fs-target-sm: 2.75rem; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; color: var(--fs-text); font-family: var(--fs-font); font-size: 1rem; line-height: 1.55;
+  background: radial-gradient(60rem 30rem at 0% -10%, color-mix(in srgb, var(--fs-primary) 9%, transparent), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 70%), var(--fs-bg);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; }
+p { margin: 0; }
+a { color: var(--fs-primary-strong); font-weight: 600; text-underline-offset: 0.18em; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- mockup controls (not part of the product) ---- */
+.ctl {
+  position: sticky; top: 0; z-index: 200; display: flex; flex-wrap: wrap; gap: 0.45rem 1.1rem; align-items: center;
+  padding: 0.55rem 1rem; border-bottom: 1px solid var(--fs-border); background: var(--fs-surface); font-size: 0.82rem; box-shadow: var(--fs-shadow-sm);
+}
+.ctl strong { font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fs-text-muted); margin-right: 0.2rem; }
+.ctl fieldset { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.ctl label { display: inline-flex; align-items: center; padding: 0.28rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px; cursor: pointer; }
+.ctl label:has(input:checked) { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-weight: 650; }
+.ctl label:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); }
+.ctl input { position: absolute; opacity: 0; width: 0; height: 0; }
+.mock-note { margin: 0.75rem auto 0; width: min(100% - 2rem, 1100px); padding: 0.5rem 0.8rem; border: 1px dashed var(--fs-border-strong); border-radius: var(--fs-radius-sm); color: var(--fs-text-muted); font-size: 0.82rem; }
+.mock-inline { color: var(--fs-text-muted); font-size: 0.75rem; font-style: italic; }
+
+/* ---- app frame ---- */
+.frame { margin: 0.75rem auto 2rem; width: min(100% - 2rem, 1100px); border: 1px solid var(--fs-border-strong); border-radius: var(--fs-radius-md); overflow: hidden; background: var(--fs-bg); box-shadow: var(--fs-shadow-md); transition: width 200ms ease; }
+.phone .frame { width: 412px; max-width: calc(100% - 1rem); }
+.page { display: grid; gap: 1.25rem; padding: 1.25rem clamp(1rem, 0.6rem + 2vw, 2rem) 2.5rem; min-width: 0; }
+.phone .page { padding: 1rem 1rem 2rem; }
+
+/* ---- existing product styles (styles.scss, intro-pickups.scss, funnel page) ---- */
+.fs-card { padding: clamp(1.1rem, 1rem + 1vw, 1.5rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-sm); }
+.fs-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.125rem; border: 1px solid var(--fs-primary); border-radius: 0.75rem; background: var(--fs-primary); color: var(--fs-on-primary); font-weight: 650; line-height: 1.2; text-decoration: none; white-space: nowrap; transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+.fs-btn:hover { border-color: var(--fs-primary-strong); background: var(--fs-primary-strong); box-shadow: 0 4px 12px color-mix(in srgb, var(--fs-primary) 28%, transparent); }
+:root.fs-dark .fs-btn:hover { color: var(--fs-on-primary); background: var(--fs-primary); filter: brightness(1.1); }
+.fs-btn--outlined { border-color: var(--fs-border-strong); background: var(--fs-surface); color: var(--fs-text); }
+.fs-btn--outlined:hover { border-color: var(--fs-primary); background: var(--fs-primary-soft); color: var(--fs-primary-strong); box-shadow: none; filter: none; }
+.fs-btn--text { border-color: transparent; background: transparent; color: var(--fs-text-muted); }
+.fs-btn--text:hover { border-color: transparent; background: var(--fs-surface-muted); color: var(--fs-text); box-shadow: none; filter: none; }
+.fs-btn--sm { padding: 0.45rem 0.85rem; font-size: 0.9rem; }
+.touch .fs-btn { min-height: 2.75rem; }
+.muted { color: var(--fs-text-muted); font-size: 0.9rem; }
+.back { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.88rem; text-decoration: none; }
+.ph { display: flex; gap: 0.85rem; align-items: flex-start; }
+.ph__icon { display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-size: 1.25rem; }
+.ph h1 { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.7rem); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; }
+.spacer { flex: 1; }
+.field { display: grid; gap: 0.3rem; min-width: 0; }
+.field > label, .field__label { font-size: 0.85rem; font-weight: 650; }
+.field--inline { display: flex; align-items: center; gap: 0.5rem; }
+.field--inline label { font-weight: 500; font-size: 0.95rem; }
+.input { width: 100%; min-height: 2.5rem; padding: 0.4rem 0.75rem; border: 1px solid var(--fs-border-strong); border-radius: 0.75rem; background: var(--fs-surface); }
+.touch .input { min-height: 2.75rem; }
+textarea.input { resize: vertical; }
+input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--fs-primary); flex: none; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.stat { display: grid; gap: 0.2rem; padding: 0.9rem 1rem; }
+.stat strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat span { color: var(--fs-text-muted); font-size: 0.85rem; }
+.stat--warn { border-color: var(--fs-warning-border); background: var(--fs-warning-soft); }
+.section-title { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; font-size: 1.1rem; }
+.list { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.step { display: grid; gap: 0.5rem; padding: 0.85rem 1rem; }
+.step__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.bar { height: 0.5rem; overflow: hidden; border-radius: 999px; background: var(--fs-surface-muted); }
+.bar span { display: block; height: 100%; border-radius: inherit; background: var(--fs-primary); }
+.tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.12rem 0.55rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.78rem; font-weight: 650; white-space: nowrap; }
+.tag--OK { background: var(--fs-primary-soft); color: var(--fs-primary-strong); }
+.tag--LOW, .tag--warn { background: var(--fs-warning-soft); color: var(--fs-warning-text); }
+.tag--MISSING { background: var(--fs-danger-soft); color: var(--fs-danger); }
+.table-wrap { position: relative; overflow-x: auto; border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); }
+.table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.table th, .table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--fs-border); text-align: left; vertical-align: middle; }
+.table th { color: var(--fs-text-muted); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; white-space: nowrap; }
+.table tr:last-child td { border-bottom: 0; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.error-text { color: var(--fs-danger); font-size: 0.85rem; }
+
+/* ---- NEW: the date check (proposal §3) ---- */
+.check { display: grid; gap: 1rem; min-width: 0; }
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.9rem 1rem; align-items: start; border-inline-start: 4px solid var(--st); }
+.verdict[data-status="OK"] { --st: var(--fs-primary); --st-soft: var(--fs-primary-soft); --st-text: var(--fs-primary-strong); }
+.verdict[data-status="PARTIAL"] { --st: var(--fs-warning); --st-soft: var(--fs-warning-soft); --st-text: var(--fs-warning-text); }
+.verdict[data-status="NONE"] { --st: var(--fs-danger); --st-soft: var(--fs-danger-soft); --st-text: var(--fs-danger); }
+.verdict__icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 999px; background: var(--st-soft); color: var(--st-text); font-size: 1.5rem; }
+.verdict__body { display: grid; gap: 0.5rem; min-width: 0; }
+.verdict__tag { justify-self: start; background: var(--st-soft); color: var(--st-text); }
+.verdict__headline { font-size: clamp(1.15rem, 1rem + 0.7vw, 1.4rem); font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; text-wrap: balance; }
+.verdict__headline strong { font-weight: 800; color: var(--st-text); }
+.meter { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.1rem; }
+.meter span { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; font-size: 0.8rem; }
+.meter .m-ok { background: var(--fs-primary); color: var(--fs-on-primary); }
+.meter .m-stuck { border: 2px dashed var(--st); color: var(--st-text); background: var(--st-soft); }
+.totals { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 0.6rem; margin: 0; padding: 0.9rem 0 0; border-top: 1px solid var(--fs-border); list-style: none; }
+.total { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.15rem 0.7rem; padding: 0.6rem 0.8rem; border-radius: var(--fs-radius-md); background: var(--fs-surface-muted); }
+.total strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; line-height: 1.1; white-space: nowrap; }
+.total > span { color: var(--fs-text-muted); font-size: 0.85rem; }
+.phone .verdict { grid-template-columns: minmax(0, 1fr); }
+.phone .verdict__icon { width: 2.5rem; height: 2.5rem; font-size: 1.25rem; }
+
+.needs-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.6rem; font-size: 1rem; }
+.needs-title .muted { font-weight: 400; }
+.needs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: 0.85rem; margin: 0; padding: 0; list-style: none; }
+.need { display: grid; grid-template-rows: auto auto 1fr auto; gap: 0.8rem; align-content: start; padding: 1.1rem; min-width: 0; }
+.need__head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.75rem; align-items: start; }
+.need__icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: var(--fs-radius-md); background: var(--fs-warning-soft); color: var(--fs-warning-text); font-size: 1.15rem; }
+.need__kind { color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.need h4 { font-size: 1.08rem; line-height: 1.3; overflow-wrap: anywhere; }
+.need__why { font-size: 0.88rem; }
+.people { display: grid; gap: 0.15rem; margin: 0; padding: 0.3rem; border-radius: var(--fs-radius-md); background: var(--fs-surface-muted); list-style: none; align-self: start; }
+.person { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 0.65rem; align-items: center; padding: 0.4rem 0.5rem; }
+.avatar { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 999px; background: var(--fs-primary-soft); color: var(--fs-primary-strong); font-size: 0.8rem; font-weight: 750; box-shadow: 0 0 0 2px var(--fs-surface-muted); }
+.avatar--anon { background: var(--fs-surface); color: var(--fs-text-muted); border: 1px solid var(--fs-border-strong); font-size: 1rem; }
+.avatars { display: flex; } .avatars .avatar + .avatar { margin-inline-start: -0.6rem; }
+.person__name { display: block; font-weight: 650; overflow-wrap: anywhere; }
+.person__sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; color: var(--fs-text-muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.also { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.05rem 0.5rem; border: 1px dashed var(--fs-border-strong); border-radius: 999px; background: var(--fs-surface); color: var(--fs-text-muted); font-size: 0.75rem; font-weight: 600; text-decoration: none; }
+a.also:hover { border-color: var(--fs-primary); color: var(--fs-primary-strong); }
+.need__fits { display: flex; gap: 0.4rem; align-items: flex-start; font-size: 0.85rem; color: var(--fs-text-muted); }
+.need__fits .i { margin-top: 0.25rem; }
+.need__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.7rem; padding-top: 0.8rem; border-top: 1px solid var(--fs-border); }
+.need__help { display: flex; gap: 0.45rem; align-items: flex-start; flex: 1 1 12rem; font-size: 0.92rem; font-weight: 600; }
+.need__help .i { margin-top: 0.22rem; color: var(--fs-primary-strong); }
+.need__cannot { display: flex; gap: 0.45rem; align-items: flex-start; flex: 1 1 100%; padding: 0.55rem 0.7rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); color: var(--fs-text-muted); font-size: 0.86rem; }
+.need__cannot .i { margin-top: 0.22rem; }
+.phone .need__foot .fs-btn { flex: 1 1 100%; }
+.need:target, .need.flash { outline: 3px solid color-mix(in srgb, var(--fs-primary) 45%, transparent); outline-offset: 2px; }
+.names-note { display: flex; gap: 0.4rem; align-items: center; font-size: 0.82rem; color: var(--fs-text-muted); }
+
+/* data states (fs-data-state look) */
+.sk { border-radius: var(--fs-radius-sm); background: linear-gradient(90deg, var(--fs-surface-muted) 25%, var(--fs-border) 37%, var(--fs-surface-muted) 63%); background-size: 400% 100%; animation: sk 1.4s ease infinite; }
+@keyframes sk { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+.state { display: grid; justify-items: center; gap: 0.6rem; padding: 2rem 1.25rem; text-align: center; }
+.state__icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 999px; background: var(--fs-surface-muted); color: var(--fs-text-muted); font-size: 1.4rem; }
+.state--error .state__icon { background: var(--fs-danger-soft); color: var(--fs-danger); }
+.state h3 { font-size: 1.05rem; }
+
+/* dialog (p-dialog look) */
+.overlay { position: fixed; inset: 0; z-index: 300; display: none; place-items: center; padding: 1rem; background: rgb(10 18 12 / 0.45); }
+.overlay[data-open="true"] { display: grid; }
+.dialog { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: min(42rem, 96vw); max-height: min(92vh, 52rem); border: 1px solid var(--fs-border); border-radius: var(--fs-radius-lg); background: var(--fs-surface); box-shadow: var(--fs-shadow-lg); }
+.phone .dialog { width: min(396px, 96vw); }
+.dialog__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem 0.6rem; }
+.dialog__head h2 { font-size: 1.2rem; }
+.btn-icon { display: inline-grid; place-items: center; width: var(--fs-target-sm); height: var(--fs-target-sm); border: 0; border-radius: 999px; background: none; color: var(--fs-text-muted); font-size: 1.1rem; }
+.btn-icon:hover { background: var(--fs-surface-muted); color: var(--fs-text); }
+.dialog__body { display: grid; gap: 0.9rem; padding: 0.4rem 1.25rem 1rem; overflow-y: auto; }
+.dialog__foot { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0.8rem 1.25rem 1.1rem; border-top: 1px solid var(--fs-border); }
+.form__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0.9rem; }
+.purpose { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.2rem 0.65rem; padding: 0.75rem 0.9rem; border: 1px solid var(--fs-primary-200); border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); font-size: 0.92rem; }
+.purpose > .i { margin-top: 0.25rem; color: var(--fs-primary-strong); font-size: 1.05rem; }
+.purpose strong { font-weight: 700; }
+.purpose__check { grid-column: 2; display: flex; gap: 0.35rem; align-items: flex-start; font-size: 0.85rem; font-weight: 650; color: var(--fs-primary-strong); }
+.purpose__check .i { margin-top: 0.22rem; }
+.purpose[data-fit="false"] { border-color: var(--fs-warning-border); background: var(--fs-warning-soft); }
+.purpose[data-fit="false"] > .i, .purpose[data-fit="false"] .purpose__check { color: var(--fs-warning-text); }
+.stepper { display: inline-flex; width: 9rem; border: 1px solid var(--fs-border-strong); border-radius: 0.75rem; background: var(--fs-surface); overflow: hidden; }
+.stepper input { flex: 1; min-width: 0; width: 3rem; border: 0; background: none; text-align: center; font-variant-numeric: tabular-nums; padding: 0.4rem; outline: none; }
+.stepper button { width: 2.5rem; min-height: var(--fs-target-sm); border: 0; background: var(--fs-surface-muted); color: var(--fs-text-muted); }
+.hint { color: var(--fs-text-muted); font-size: 0.82rem; }
+.toast { position: fixed; z-index: 400; right: 1rem; bottom: 1rem; display: none; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--fs-primary-200); border-radius: var(--fs-radius-md); background: var(--fs-surface); box-shadow: var(--fs-shadow-lg); font-weight: 650; }
+.toast[data-open="true"] { display: flex; }
+.toast .i { color: var(--fs-primary); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.7.4 4.5 2.7 4.5 5.8"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></symbol>
+  <symbol id="i-shop" viewBox="0 0 24 24"><path d="M4 10v10h16V10"/><path d="M3 10l2-6h14l2 6H3z"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-shelf" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+<div class="ctl" role="group" aria-label="Mockup-Steuerung">
+  <fieldset><strong>Ansicht</strong>
+    <label><input type="radio" name="view" value="new" checked>Vorschlag</label>
+    <label><input type="radio" name="view" value="today">Heute</label>
+  </fieldset>
+  <fieldset><strong>Fall</strong>
+    <label><input type="radio" name="sc" value="two" checked>Zwei Gruppen</label>
+    <label><input type="radio" name="sc" value="double">Person in zwei Gruppen</label>
+    <label><input type="radio" name="sc" value="fine">Alles gut</label>
+    <label><input type="radio" name="sc" value="none">Niemand / keine Termine</label>
+    <label><input type="radio" name="sc" value="loading">Lädt</label>
+    <label><input type="radio" name="sc" value="error">Fehler</label>
+    <label><input type="radio" name="sc" value="empty">Keine Neuen</label>
+  </fieldset>
+  <fieldset><strong>Rolle</strong>
+    <label><input type="radio" name="role" value="amb" checked>Botschafter:in + Begleitung</label>
+    <label><input type="radio" name="role" value="guide">Begleitung (ohne Namen)</label>
+    <label><input type="radio" name="role" value="julien">Julien Favre (Begleitung)</label>
+    <label><input type="radio" name="role" value="ambOnly">Botschafter:in, keine Begleitung</label>
+  </fieldset>
+  <fieldset><strong>Thema</strong>
+    <label><input type="radio" name="theme" value="light" checked>Hell</label>
+    <label><input type="radio" name="theme" value="dark">Dunkel</label>
+  </fieldset>
+  <fieldset><strong>Breite</strong>
+    <label><input type="radio" name="vp" value="desktop" checked>Desktop</label>
+    <label><input type="radio" name="vp" value="phone">Handy 412 px</label>
+  </fieldset>
+</div>
+<p class="mock-note" id="mock-note"></p>
+
+<div class="frame">
+  <div class="page">
+    <a href="#" class="back" onclick="return false"><svg class="i"><use href="#i-left"/></svg>Zum Bezirk</a>
+    <header class="ph">
+      <span class="ph__icon" aria-hidden="true"><svg class="i"><use href="#i-filter"/></svg></span>
+      <div><h1>Neue Foodsaver:innen im Bezirk</h1><p class="muted">Wo stehen die Neuen – und reichen die Einführungstermine?</p></div>
+    </header>
+    <div class="toolbar">
+      <div class="field"><label for="win">Registriert in</label>
+        <select id="win" class="input" style="width:auto"><option>den letzten 30 Tagen</option><option>den letzten 90 Tagen</option><option selected>den letzten 180 Tagen</option><option>den letzten 365 Tagen</option><option>allen Zeiten</option></select></div>
+      <span class="spacer"></span>
+      <a href="#" class="fs-btn fs-btn--outlined fs-btn--sm" onclick="return false"><svg class="i"><use href="#i-shield"/></svg>Einführungen verwalten</a>
+    </div>
+    <ul class="stats" id="stats"></ul>
+
+    <h2 class="section-title"><svg class="i"><use href="#i-filter"/></svg>Schritte</h2>
+    <ol class="list" aria-label="Schritte (unverändert, gekürzt)">
+      <li class="fs-card step"><div class="step__head"><strong>Registriert</strong><span class="tags"><span class="tag">2 Personen</span><span class="tag">Median 4 Tage</span></span></div><div class="bar" aria-hidden="true"><span style="width:100%"></span></div></li>
+      <li class="fs-card step"><div class="step__head"><strong>In Einführung</strong><span class="tags"><span class="tag">6 Personen</span><span class="tag">Median 21 Tage</span><span class="tag tag--warn">2 stocken</span></span></div><div class="bar" aria-hidden="true"><span style="width:78%"></span></div></li>
+      <li class="fs-card step"><div class="step__head"><strong>Verifiziert</strong><span class="tags"><span class="tag">1 Person</span></span></div><div class="bar" aria-hidden="true"><span style="width:11%"></span></div></li>
+    </ol>
+
+    <h2 class="section-title" id="check-title"><svg class="i"><use id="title-icon" href="#i-calendar"/></svg>Reichen die Termine?</h2>
+    <section id="section" aria-labelledby="check-title"></section>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" data-open="false">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-purpose">
+    <div class="dialog__head"><h2 id="dlg-title">Neue Einführungsabholung</h2><button type="button" class="btn-icon" aria-label="Schliessen" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+    <form class="dialog__body" id="dlg-form" onsubmit="return false">
+      <div class="purpose" id="dlg-purpose" data-fit="true" data-testid="introPickups.form.purpose"></div>
+      <div class="form__row">
+        <div class="field"><label for="ea-category">Art des Betriebs</label>
+          <select id="ea-category" class="input"></select><span class="hint" id="ea-category-hint"></span></div>
+        <div class="field"><label for="ea-start">Datum und Uhrzeit</label>
+          <input id="ea-start" class="input" type="datetime-local"><span class="hint">Zählt für die Prüfung, wenn er in den nächsten 30 Tagen liegt. <span class="mock-inline">(Mockup: Beispielwert, im Produkt leer)</span></span></div>
+      </div>
+      <div class="form__row">
+        <div class="field"><label for="ea-slots">Plätze (1–3)</label>
+          <span class="stepper"><button type="button" aria-label="Weniger Plätze" data-step="-1">−</button><input id="ea-slots" inputmode="numeric" value="2" readonly><button type="button" aria-label="Mehr Plätze" data-step="1">+</button></span>
+          <span class="hint" id="ea-slots-hint"></span></div>
+        <div class="field"><label for="ea-min">Mindestanzahl bisheriger Abholungen</label><input id="ea-min" class="input" inputmode="numeric" style="width:9rem"></div>
+      </div>
+      <div class="field field--inline"><input type="checkbox" id="ea-fairteiler"><label for="ea-fairteiler">Mit Fairteiler-Besuch</label></div>
+      <div class="field"><label for="ea-business">Betrieb</label><input id="ea-business" class="input"></div>
+      <div class="form__row">
+        <div class="field"><label for="ea-address">Treffpunkt (nur für Gebuchte sichtbar)</label><input id="ea-address" class="input"></div>
+        <div class="field"><label for="ea-area">Ungefähre Gegend (öffentlich)</label><input id="ea-area" class="input" placeholder="z. B. Kreis 4"></div>
+      </div>
+      <div class="field"><label for="ea-private">Infos für Gebuchte</label><textarea id="ea-private" class="input" rows="2"></textarea><span class="hint">Zum Beispiel Treffpunkt-Details oder was mitzubringen ist.</span></div>
+    </form>
+    <div class="dialog__foot">
+      <button type="button" class="fs-btn fs-btn--text" data-close>Abbrechen</button>
+      <button type="button" class="fs-btn" id="dlg-save" data-testid="introPickups.form.save"><svg class="i"><use href="#i-check"/></svg>Speichern</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"><svg class="i"><use href="#i-check-circle"/></svg><span>Einführungsabholung gespeichert</span></div>
+
+<script>
+(function () {
+  var DAYS = 30, MAX = 3;
+  var CATS = ['Supermarkt', 'Take-away', 'Markt', 'Bäckerei', 'Restaurant', 'Fairteiler-Reinigung', 'Messe', 'Grossabholung', 'Online'];
+  var KIND = {
+    OTHER_GUIDE: { label: 'Andere Begleitung', icon: 'users' },
+    FAIRTEILER: { label: 'Fairteiler-Besuch', icon: 'shelf' },
+    CATEGORY: { label: 'Betriebsart', icon: 'shop' },
+    ANY: { label: 'Freie Plätze', icon: 'calendar' }
+  };
+  var P = {
+    luca: { name: 'Luca Meier', need: 2, can: 1 }, nora: { name: 'Nora Keller', need: 2, can: 1 },
+    elif: { name: 'Elif Yilmaz', need: 1, can: 0 }, samira: { name: 'Samira Haddad', need: 1, can: 0 }
+  };
+  var SC = {
+    two: { total: 6, slots: [27, 8], ft: [5, 1], groups: [
+      { id: 'g1', kind: 'OTHER_GUIDE', guides: ['Julien Favre'], blocked: 14, dates: 15, fits: ['Anna Roth', 'Mirjam Vogel'], people: ['luca', 'nora'] },
+      { id: 'g2', kind: 'CATEGORY', categories: ['Bäckerei', 'Markt'], people: ['elif'] } ] },
+    double: { total: 6, slots: [22, 8], ft: [0, 2], groups: [
+      { id: 'g1', kind: 'OTHER_GUIDE', guides: ['Julien Favre'], blocked: 11, dates: 12, fits: ['Anna Roth', 'Mirjam Vogel'], people: ['luca', 'nora'] },
+      { id: 'g2', kind: 'FAIRTEILER', people: ['nora', 'elif'] } ] },
+    fine: { total: 6, slots: [27, 8], ft: [5, 1], groups: [] },
+    none: { total: 4, slots: [0, 6], ft: [0, 2], noDates: true, people: { luca: { can: 0 }, nora: { can: 0 } }, groups: [
+      { id: 'g1', kind: 'ANY', people: ['luca', 'nora', 'elif', 'samira'] } ] }
+  };
+  var TODAY = [['Supermarkt', 2, 14, 'OK'], ['Supermarkt · Mit Fairteiler-Besuch', 1, 3, 'OK'], ['Take-away', 3, 4, 'OK'], ['Take-away · Mit Fairteiler-Besuch', 1, 0, 'MISSING'],
+    ['Markt', 3, 1, 'LOW'], ['Markt · Mit Fairteiler-Besuch', 1, 0, 'MISSING'], ['Bäckerei', 4, 2, 'LOW'], ['Bäckerei · Mit Fairteiler-Besuch', 1, 2, 'OK'],
+    ['Restaurant', 4, 1, 'LOW'], ['Restaurant · Mit Fairteiler-Besuch', 1, 0, 'MISSING'], ['Fairteiler-Reinigung', 4, 0, 'MISSING'], ['Fairteiler-Reinigung · Mit Fairteiler-Besuch', 0, 0, 'OK'],
+    ['Messe', 4, 0, 'MISSING'], ['Messe · Mit Fairteiler-Besuch', 0, 0, 'OK'], ['Grossabholung', 0, 0, 'OK'], ['Grossabholung · Mit Fairteiler-Besuch', 0, 0, 'OK']];
+  var SEV = { OK: 'Genug', LOW: 'Knapp', MISSING: 'Fehlt' };
+
+  var st = { view: 'new', sc: 'two', role: 'amb', theme: 'light', vp: 'desktop' };
+  var live = null, current = null, opener = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var ic = function (n) { return '<svg class="i" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; };
+  var join = function (a, w) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' ' + w + ' ' + a[a.length - 1]; };
+  var initials = function (n) { return n.split(' ').map(function (x) { return x[0]; }).join(''); };
+  var seesNames = function () { return st.role === 'amb' || st.role === 'ambOnly'; };
+  var isSelf = function (g) { return st.role === 'julien' && g.kind === 'OTHER_GUIDE' && g.guides.indexOf('Julien Favre') >= 0; };
+  var person = function (k) { var o = (SC[st.sc].people || {})[k] || {}; return { name: P[k].name, need: P[k].need, can: o.can !== undefined ? o.can : P[k].can }; };
+
+  function reset() { var s = SC[st.sc]; live = s ? JSON.parse(JSON.stringify(s)) : null; }
+
+  function needTitle(g) {
+    if (g.kind === 'OTHER_GUIDE') return 'Termin mit einer anderen Begleitung als ' + (isSelf(g) ? 'dir' : join(g.guides, 'oder'));
+    if (g.kind === 'FAIRTEILER') return 'Termin mit Fairteiler-Besuch';
+    if (g.kind === 'CATEGORY') return 'Termin in einer Betriebsart, die noch fehlt: ' + join(g.categories, 'oder');
+    return 'Irgendein Termin mit freien Plätzen';
+  }
+  function why(g) {
+    if (g.kind === 'OTHER_GUIDE') return isSelf(g)
+      ? 'Sie waren schon mit dir unterwegs, und ' + g.blocked + ' der ' + g.dates + ' freien Termine bietest du an.'
+      : 'Sie waren schon mit ' + join(g.guides, 'und') + ' unterwegs, und ' + g.blocked + ' der ' + g.dates + ' freien Termine bietet ' + join(g.guides, 'oder') + ' an.';
+    if (g.kind === 'FAIRTEILER') return 'Kein freier Termin der nächsten ' + DAYS + ' Tage hat einen Fairteiler-Besuch.';
+    if (g.kind === 'CATEGORY') return 'Die freien Termine sind alle in Betriebsarten, die schon erledigt sind.';
+    return 'In den nächsten ' + DAYS + ' Tagen ist kein Termin mit freien Plätzen angeboten.';
+  }
+  function help(n) {
+    if (n === 1) return 'Ein Termin mit 1 Platz reicht.';
+    if (n === 2) return 'Ein Termin mit 2 Plätzen hilft beiden.';
+    if (n <= MAX) return 'Ein Termin mit ' + n + ' Plätzen hilft allen ' + n + '.';
+    return 'Ein Termin mit ' + MAX + ' Plätzen hilft ' + MAX + ' von ' + n + '. Für alle braucht es ' + Math.ceil(n / MAX) + ' Termine.';
+  }
+  function stuckKeys() { var seen = {}; live.groups.forEach(function (g) { g.people.forEach(function (k) { seen[k] = 1; }); }); return Object.keys(seen); }
+
+  function renderStats() {
+    var s = live || SC.two, today = st.view === 'today';
+    var total = st.sc === 'empty' ? 0 : s.total;
+    var h = '<li class="fs-card stat"><strong>' + (st.sc === 'empty' ? 0 : 9) + '</strong><span>Neue</span></li>' +
+      '<li class="fs-card stat"><strong>' + total + '</strong><span>in Einführung</span></li>' +
+      '<li class="fs-card stat' + (total ? ' stat--warn' : '') + '"><strong>' + (total ? 2 : 0) + '</strong><span>stocken</span></li>';
+    if (today) h += '<li class="fs-card stat"><strong>27 / 8</strong><span>freie Plätze / noch nötig</span></li><li class="fs-card stat"><strong>5 / 1</strong><span>Fairteiler-Plätze / noch nötig</span></li>';
+    $('stats').innerHTML = h;
+  }
+
+  function renderToday() {
+    $('title-icon').setAttribute('href', '#i-chart');
+    var rows = TODAY.map(function (r) {
+      return '<tr><td>' + r[0] + '</td><td class="num">' + r[1] + '</td><td class="num">' + r[2] + '</td><td><span class="tag tag--' + r[3] + '">' + SEV[r[3]] + '</span></td></tr>';
+    }).join('');
+    $('section').innerHTML = '<div class="check"><p class="muted">Freie Plätze der nächsten 30 Tage pro Art im Vergleich zu den Neuen, die diese Art noch brauchen.</p>' +
+      '<div class="table-wrap" tabindex="0" role="region" aria-label="Tabelle, seitlich scrollbar"><table class="table"><thead><tr><th>Art des Betriebs</th><th class="num">Brauchen es</th><th class="num">Freie Plätze</th><th>Lage</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }
+
+  function totalTile(pair, label, testid) {
+    var ok = pair[0] >= pair[1];
+    return '<li class="total" data-testid="' + testid + '"><strong>' + pair[0] + ' / ' + pair[1] + '</strong><span>' + label + '</span>' +
+      '<span class="tag ' + (ok ? 'tag--OK' : 'tag--MISSING') + '">' + ic(ok ? 'check' : 'alert') + (ok ? 'reicht' : 'zu wenig') + '</span></li>';
+  }
+
+  function renderVerdict() {
+    var stuck = stuckKeys().length, total = live.total, able = total - stuck;
+    var status = stuck === 0 ? 'OK' : able === 0 ? 'NONE' : 'PARTIAL';
+    var tail = ' mit den Terminen der nächsten ' + DAYS + ' Tage abschliessen.';
+    var head = status === 'OK' ? '<strong>Alle ' + total + '</strong> Neuen können' + tail
+      : status === 'PARTIAL' ? '<strong>' + able + ' von ' + total + '</strong> Neuen können' + tail
+      : '<strong>Niemand</strong> von den ' + total + ' Neuen kann' + tail;
+    var sub = '';
+    if (status !== 'OK') {
+      sub = live.noDates ? 'In den nächsten ' + DAYS + ' Tagen ist kein Termin mit freien Plätzen angeboten.'
+        : (stuck === 1 ? '1 Person kommt' : stuck + ' Personen kommen') + ' mit den heutigen Terminen nicht weiter.' +
+          (live.slots[0] >= live.slots[1] ? ' Plätze gibt es genug – sie passen nur nicht zu allen.' : '');
+    }
+    var meter = '';
+    if (status !== 'OK') {
+      for (var i = 0; i < total; i++) meter += i < able ? '<span class="m-ok">' + ic('check') + '</span>' : '<span class="m-stuck">' + ic('user') + '</span>';
+      meter = '<div class="meter" aria-hidden="true">' + meter + '</div>';
+    }
+    var tag = { OK: ['check', 'Reicht'], PARTIAL: ['alert', 'Reicht nicht für alle'], NONE: ['x-circle', 'Reicht nicht'] }[status];
+    return '<div class="fs-card verdict" data-status="' + status + '" data-testid="introPickups.funnel.check">' +
+      '<span class="verdict__icon" aria-hidden="true">' + ic({ OK: 'check-circle', PARTIAL: 'alert', NONE: 'x-circle' }[status]) + '</span>' +
+      '<div class="verdict__body"><span class="tag verdict__tag">' + ic(tag[0]) + tag[1] + '</span>' +
+      '<p class="verdict__headline" data-testid="introPickups.funnel.check.headline">' + head + '</p>' +
+      (sub ? '<p class="muted">' + sub + '</p>' : '') + meter + '</div>' +
+      '<ul class="totals">' + totalTile(live.slots, 'freie Plätze / noch nötig', 'introPickups.funnel.need') +
+      totalTile(live.ft, 'Fairteiler-Plätze / noch nötig', 'introPickups.funnel.fairteilerNeed') + '</ul></div>';
+  }
+
+  function renderGroup(g) {
+    var k = KIND[g.kind], n = g.people.length, names = seesNames(), title = needTitle(g);
+    var people;
+    if (names) {
+      people = '<ul class="people">' + g.people.map(function (key) {
+        var p = person(key);
+        var also = live.groups.filter(function (o) { return o.id !== g.id && o.people.indexOf(key) >= 0; }).map(function (o) {
+          return '<a class="also" href="#need-' + o.id + '" data-jump="' + o.id + '">auch bei «' + KIND[o.kind].label + '»</a>';
+        }).join('');
+        return '<li class="person" data-testid="introPickups.funnel.checkGroup.person"><span class="avatar" aria-hidden="true">' + initials(p.name) + '</span>' +
+          '<span><span class="person__name">' + p.name + '</span><span class="person__sub"><span>braucht noch ' + p.need + ', kann ' + p.can + ' buchen</span>' + also + '</span></span></li>';
+      }).join('') + '</ul>';
+    } else {
+      var need = 0, can = 0, av = '';
+      g.people.forEach(function (key) { var p = person(key); need += p.need; can += p.can; av += '<span class="avatar avatar--anon">' + ic('user') + '</span>'; });
+      people = '<div class="people"><div class="person"><span class="avatars" aria-hidden="true">' + av + '</span><span><span class="person__name">' + (n === 1 ? '1 Neue:r' : n + ' Neue') +
+        '</span><span class="person__sub">' + (n === 1 ? 'braucht noch ' + need + ', kann ' + can + ' buchen' : 'brauchen zusammen noch ' + need + ', können ' + can + ' buchen') + '</span></span></div></div>';
+    }
+    var fits = g.fits ? '<p class="need__fits">' + ic('users') + '<span>Anbieten könnten: ' + join(g.fits, 'oder') + '</span></p>' : '';
+    var foot;
+    if (isSelf(g)) {
+      foot = '<p class="need__cannot" data-testid="introPickups.funnel.checkGroup.cannot">' + ic('info') + '<span>Ein Termin von dir würde hier nicht zählen. Bitte eine andere Begleitung um einen Termin.</span></p>';
+    } else if (st.role === 'ambOnly') {
+      foot = '<p class="need__help">' + ic('bulb') + '<span>' + help(n) + '</span></p>' +
+        '<a href="#" class="fs-btn fs-btn--outlined" data-noop>' + ic('users') + 'Begleitungen ansehen</a>' +
+        '<p class="need__cannot" data-testid="introPickups.funnel.checkGroup.cannot">' + ic('info') + '<span>Termine bieten Begleitungen an. Du bist in diesem Bezirk keine Begleitung.</span></p>';
+    } else {
+      foot = '<p class="need__help" data-testid="introPickups.funnel.checkGroup.help">' + ic('bulb') + '<span>' + help(n) + '</span></p>' +
+        '<button type="button" class="fs-btn" data-create="' + g.id + '" aria-label="Termin anlegen: ' + title + '" data-testid="introPickups.funnel.checkGroup.create">' + ic('plus') + 'Termin anlegen</button>';
+    }
+    return '<li class="fs-card need" id="need-' + g.id + '" data-kind="' + g.kind + '" data-testid="introPickups.funnel.checkGroup">' +
+      '<div class="need__head"><span class="need__icon" aria-hidden="true">' + ic(k.icon) + '</span><div><p class="need__kind">' + k.label + '</p><h4>' + title + '</h4></div></div>' +
+      '<p class="muted need__why">' + why(g) + '</p>' + people + fits + '<div class="need__foot">' + foot + '</div></li>';
+  }
+
+  function renderNew() {
+    $('title-icon').setAttribute('href', '#i-calendar');
+    var el = $('section');
+    if (st.sc === 'loading') {
+      el.innerHTML = '<div class="check" role="status" aria-label="Inhalt wird geladen" data-testid="introPickups.funnel.check.state"><div class="fs-card" style="display:grid;gap:.7rem"><div class="sk" style="height:1.2rem;width:8rem"></div><div class="sk" style="height:1.6rem;width:85%"></div><div class="sk" style="height:3rem"></div></div>' +
+        '<div class="needs"><div class="fs-card sk" style="height:13rem"></div><div class="fs-card sk" style="height:13rem"></div></div></div>';
+      return;
+    }
+    if (st.sc === 'error') {
+      el.innerHTML = '<div class="fs-card state state--error" role="alert" data-testid="introPickups.funnel.check.state"><span class="state__icon" aria-hidden="true">' + ic('alert') + '</span><h3>Etwas ist schiefgelaufen</h3>' +
+        '<p class="muted">Die Prüfung der Termine konnte nicht geladen werden. Der Rest der Seite ist aktuell.</p><button type="button" class="fs-btn fs-btn--outlined" id="retry" data-testid="introPickups.funnel.check.state.retry">' + ic('refresh') + 'Nochmals versuchen</button></div>';
+      $('retry').onclick = function () { setRadio('sc', 'loading'); st.sc = 'loading'; render(); setTimeout(function () { setRadio('sc', 'two'); st.sc = 'two'; reset(); render(); }, 900); };
+      return;
+    }
+    if (st.sc === 'empty') {
+      el.innerHTML = '<div class="fs-card state" data-testid="introPickups.funnel.check.state"><span class="state__icon" aria-hidden="true">' + ic('users') + '</span><h3>Keine Neuen in Einführung</h3>' +
+        '<p class="muted">Sobald jemand in Einführung ist, siehst du hier, ob die Termine reichen.</p></div>';
+      return;
+    }
+    var h = '<div class="check">' + renderVerdict();
+    if (live.groups.length) {
+      h += '<h3 class="needs-title">Diese Termine fehlen <span class="muted">Gruppiert nach dem, was gebraucht wird – ein Termin kann mehreren helfen.</span></h3>' +
+        '<ul class="needs">' + live.groups.map(renderGroup).join('') + '</ul>';
+      if (!seesNames()) h += '<p class="names-note">' + ic('lock') + 'Namen sehen Botschafter:innen und das Begrüssungsteam.</p>';
+    }
+    el.innerHTML = h + '</div>';
+  }
+
+  function render() {
+    document.documentElement.classList.toggle('fs-dark', st.theme === 'dark');
+    document.documentElement.classList.toggle('phone', st.vp === 'phone');
+    document.documentElement.classList.toggle('touch', st.vp === 'phone');
+    renderStats();
+    if (st.view === 'today') renderToday(); else renderNew();
+    $('mock-note').textContent = st.view === 'today'
+      ? 'Heute: 16 Zeilen, 5× «Fehlt», obwohl 27 Plätze für 8 nötige frei sind. Dass Luca Meier nur 1 von 15 Terminen buchen kann, steht nirgends.'
+      : 'Vorschlag: «Termin anlegen» öffnet den vorausgefüllten Dialog; «Speichern» zeigt, wie sich die Lage danach ändert. Die beiden Summen wandern aus der Kachelreihe oben in diesen Abschnitt (Frage 1).';
+  }
+
+  /* ---- dialog ---- */
+  function fitCheck() {
+    var g = current; if (!g) return;
+    var n = g.people.length, slots = +$('ea-slots').value, problems = [];
+    if (g.kind === 'CATEGORY' && g.categories.indexOf($('ea-category').value) < 0) problems.push('die Art des Betriebs muss ' + join(g.categories, 'oder') + ' sein');
+    if (g.kind === 'FAIRTEILER' && !$('ea-fairteiler').checked) problems.push('es braucht den Fairteiler-Besuch');
+    var who = seesNames() ? join(g.people.map(function (k) { return P[k].name; }), 'und') : (n === 1 ? '1 Neue:n' : n + ' Neue');
+    var okLine = slots >= Math.min(n, MAX) ? (n > MAX ? 'Passt für ' + MAX + ' von ' + n + ' – für alle braucht es einen weiteren Termin.' : 'Passt für die Gruppe.')
+      : 'Passt – mit ' + slots + (slots === 1 ? ' Platz' : ' Plätzen') + ' hilft er ' + slots + ' von ' + n + '.';
+    var fit = problems.length === 0;
+    $('dlg-purpose').dataset.fit = fit;
+    $('dlg-purpose').innerHTML = ic(fit ? 'info' : 'alert') + '<span>Gedacht für <strong>' + who + '</strong>: ' + needTitle(g) + '.' +
+      (g.kind === 'OTHER_GUIDE' ? ' Du bist die Begleitung dieses Termins.' : '') + '</span>' +
+      '<span class="purpose__check" role="status" data-testid="introPickups.form.purposeFit">' + ic(fit ? 'check' : 'alert') +
+      '<span>' + (fit ? okLine : 'So hilft der Termin dieser Gruppe nicht: ' + problems.join('; ') + '.') + '</span></span>';
+  }
+  function openDialog(g, btn) {
+    current = g; opener = btn;
+    var n = g.people.length;
+    $('ea-category').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
+    $('ea-category').value = g.kind === 'CATEGORY' ? g.categories[0] : 'Supermarkt';
+    $('ea-category-hint').textContent = g.kind === 'CATEGORY' ? 'Vorausgewählt. Der Gruppe hilft: ' + join(g.categories, 'oder') + '.' : '';
+    $('ea-slots').value = Math.min(n, MAX);
+    $('ea-slots-hint').textContent = 'Vorausgefüllt: ' + (n === 1 ? '1 Person braucht' : n + ' Personen brauchen') + ' diesen Termin.';
+    $('ea-fairteiler').checked = g.kind === 'FAIRTEILER';
+    var d = new Date(Date.now() + 7 * 864e5); d.setHours(18, 0, 0, 0);
+    $('ea-start').value = new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
+    ['ea-min', 'ea-business', 'ea-address', 'ea-area', 'ea-private'].forEach(function (id) { $(id).value = ''; });
+    fitCheck();
+    $('overlay').dataset.open = 'true';
+    $('ea-category').focus();
+  }
+  function closeDialog() { $('overlay').dataset.open = 'false'; current = null; if (opener && document.contains(opener)) opener.focus(); }
+  function save() {
+    var g = current, slots = +$('ea-slots').value, fit = $('dlg-purpose').dataset.fit === 'true';
+    live.slots[0] += slots;
+    if ($('ea-fairteiler').checked) live.ft[0] += slots;
+    if (fit) {
+      var lg = live.groups.filter(function (x) { return x.id === g.id; })[0];
+      lg.people.splice(0, slots);
+      if (!lg.people.length) live.groups = live.groups.filter(function (x) { return x.id !== g.id; });
+      live.noDates = false;
+    }
+    closeDialog(); render();
+    $('toast').dataset.open = 'true'; setTimeout(function () { $('toast').dataset.open = 'false'; }, 2600);
+    $('check-title').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  function setRadio(name, value) { document.querySelector('input[name="' + name + '"][value="' + value + '"]').checked = true; }
+  document.querySelector('.ctl').addEventListener('change', function (e) {
+    st[e.target.name] = e.target.value;
+    if (e.target.name === 'sc') reset();
+    render();
+  });
+  $('section').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-create]');
+    if (b) { openDialog(live.groups.filter(function (g) { return g.id === b.dataset.create; })[0], b); return; }
+    var j = e.target.closest('[data-jump]');
+    if (j) { e.preventDefault(); var t = $('need-' + j.dataset.jump); t.scrollIntoView({ block: 'center', behavior: 'smooth' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1400); return; }
+    if (e.target.closest('[data-noop]')) e.preventDefault();
+  });
+  $('overlay').addEventListener('click', function (e) { if (e.target === $('overlay') || e.target.closest('[data-close]')) closeDialog(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('overlay').dataset.open === 'true') closeDialog(); });
+  $('dlg-form').addEventListener('change', fitCheck);
+  $('dlg-form').addEventListener('click', function (e) {
+    var s = e.target.closest('[data-step]'); if (!s) return;
+    $('ea-slots').value = Math.max(1, Math.min(MAX, +$('ea-slots').value + +s.dataset.step)); fitCheck();
+  });
+  $('dlg-save').addEventListener('click', save);
+
+  reset(); render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "principles": {
+    "de": "Wofür foodsharing steht: Lebensmittel retten, kein Geld, Toleranz und Fairness.",
+    "en": "What foodsharing stands for: saving food, no money, tolerance and fairness.",
+    "gws": "Wofür foodsharing staht: Läbesmittel rette, kei Gäld, Toleranz und Fairness.",
+    "fr": "Ce que défend foodsharing : sauver des aliments, pas d’argent, tolérance et équité.",
+    "it": "Ciò per cui si impegna foodsharing: salvare cibo, niente denaro, tolleranza ed equità."
+  },
+  "code-of-conduct": {
+    "de": "Wie wir miteinander umgehen und wie Abholungen im Betrieb ablaufen.",
+    "en": "How we treat each other and how pickups at stores work.",
+    "gws": "Wie mir mitenand umgönd und wie Abholige im Betrieb ablaufed.",
+    "fr": "Comment nous nous comportons entre nous et comment se déroulent les collectes.",
+    "it": "Come ci comportiamo tra noi e come si svolgono i ritiri nei negozi."
+  },
+  "rule-violations": {
+    "de": "Was passiert, wenn Regeln verletzt werden, und wie Meldungen fair bearbeitet werden.",
+    "en": "What happens when rules are broken and how reports are handled fairly.",
+    "gws": "Was passiert, wänn Regle verletzt wärded, und wie Meldige fair bearbeitet wärded.",
+    "fr": "Ce qui se passe quand des règles sont enfreintes et comment les signalements sont traités équitablement.",
+    "it": "Cosa succede quando le regole vengono violate e come le segnalazioni vengono trattate in modo equo."
+  },
+  "hygiene-rules": {
+    "de": "Kühlkette, Haltbarkeit, saubere Hände: so gibst du Lebensmittel sicher weiter.",
+    "en": "Cold chain, shelf life, clean hands: how to pass on food safely.",
+    "gws": "Chüehlchette, Haltbarkeit, suuberi Händ: so gisch du Läbesmittel sicher wiiter.",
+    "fr": "Chaîne du froid, conservation, mains propres : donner des aliments en toute sécurité.",
+    "it": "Catena del freddo, conservazione, mani pulite: come cedere il cibo in sicurezza."
+  },
+  "role-requirements": {
+    "de": "Was du für jede Rolle brauchst, vom Foodsharer bis zur Botschafterin.",
+    "en": "What you need for each role, from foodsharer to ambassador.",
+    "gws": "Was du für jedi Rolle bruchsch, vom Foodsharer bis zur Botschafterin.",
+    "fr": "Ce qu’il faut pour chaque rôle, de foodsharer à ambassadeur·rice.",
+    "it": "Cosa serve per ogni ruolo, da foodsharer ad ambasciatore o ambasciatrice."
+  },
+  "legal-agreement": {
+    "de": "Was du als Foodsaver versprichst und wer für die geretteten Lebensmittel haftet.",
+    "en": "What you promise as a foodsaver and who is liable for the saved food.",
+    "gws": "Was du als Foodsaver versprichsch und wer für di gerettete Läbesmittel haftet.",
+    "fr": "Ce que tu promets en tant que foodsaver et qui est responsable des aliments sauvés.",
+    "it": "Cosa prometti come foodsaver e chi risponde degli alimenti salvati."
+  },
+  "context-and-self-image": {
+    "de": "Warum Lebensmittel verschwendet werden und wie foodsharing dagegen vorgeht.",
+    "en": "Why food is wasted and how foodsharing tackles it.",
+    "gws": "Werum Läbesmittel verschwändet wärded und wie foodsharing dergäge vorgaht.",
+    "fr": "Pourquoi des aliments sont gaspillés et comment foodsharing agit contre cela.",
+    "it": "Perché il cibo viene sprecato e come foodsharing lo contrasta."
+  }
+}

@@ -91,6 +91,15 @@ export function nextFoldCount(
   return overflowing && current < collapsibleCount ? current + 1 : current;
 }
 
+/**
+ * The rail folds by height only (mode and item changes start their own fold), so a resize of the side menu
+ * re-folds only when its height changed. A width-only resize (sidebar ↔ rail, a scrollbar) must not rebuild the
+ * flyout buttons: an open flyout would lose its trigger and Escape could not give the focus back.
+ */
+export function needsRefold(lastHeight: number | null, height: number): boolean {
+  return lastHeight === null || Math.abs(height - lastHeight) >= 1;
+}
+
 /** Viewport state of the side menu, shared by the shell (layout) and the side menu (contents). */
 @Injectable({ providedIn: 'root' })
 export class SidenavStateService {

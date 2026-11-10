@@ -29,7 +29,7 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
  * full text; accepting all of them refreshes the session and continues to `?returnUrl`. consentGuard sends users
  * here while `SessionInfo.pendingConsents` is not empty. The mobile number is asked in onboarding step 2 and the
  * profile, not here (D2). A first-time user (A6: no pending document accepted in an earlier version) gets a
- * welcoming subtitle instead of "new or changed documents". The page has minimal chrome (no menu, decision 175), so it
+ * welcoming subtitle instead of "new or changed documents". The page has minimal chrome (no menu, decision 176), so it
  * carries its own logout button, outside the data state so it also works when the documents fail to load.
  */
 @Component({

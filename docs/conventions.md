@@ -273,7 +273,7 @@ Implemented with Angular `resource()`/`rxResource` + `httpResource` is not used 
 ### A15. Time zones and "today"
 - Every region has `time_zone` (default `Europe/Zurich`); services use `RegionService.zoneOf(regionId)`, never a
   constant.
-- Client dates (decision 176): only through `fsDate` / `DateTimeFormatter` with `date` ("10.11.2026"), `time`
+- Client dates (decision 177): only through `fsDate` / `DateTimeFormatter` with `date` ("10.11.2026"), `time`
   ("18:30") or `dateTime` ("10.11.2026, 18:30"), the same in every language; no weekday or month names except the
   graphic date tiles and month headings. Relative times carry the full `dateTime` as `title`.
 

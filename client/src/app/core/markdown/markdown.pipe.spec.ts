@@ -31,6 +31,13 @@ describe('renderMarkdown', () => {
     expect(renderMarkdown('[@Ana](https://example.org/profile/x)')).not.toContain('fs-mention');
   });
 
+  it('keeps heading anchors and in-app section links (C1 learning chapters)', () => {
+    const html = renderMarkdown('## <a id="b-verhalten-bei-abholungen"></a>B) Verhalten\n\n[B5](/learn/code-of-conduct#b-verhalten-bei-abholungen)');
+    expect(html).toContain('<a id="b-verhalten-bei-abholungen"></a>');
+    expect(html).toContain('href="/learn/code-of-conduct#b-verhalten-bei-abholungen"');
+    expect(html).not.toContain('target="_blank"');
+  });
+
   it('handles empty input', () => {
     expect(renderMarkdown(null)).toBe('');
   });

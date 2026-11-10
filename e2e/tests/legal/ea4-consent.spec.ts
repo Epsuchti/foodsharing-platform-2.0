@@ -92,7 +92,7 @@ test('EA4 the consent wall has its own logout (minimal chrome) @EA4', async ({ a
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/consent\?/);
   await expect(page.getByTestId('legal.consent.documents')).toHaveAttribute('data-state', 'success');
-  // decision 175: no menu, footer or tab bar here, so the page carries the logout itself
+  // decision 176: no menu, footer or tab bar here, so the page carries the logout itself
   await expect(page.getByTestId('shell.userMenu')).toHaveCount(0);
   const logout = page.getByTestId('legal.consent.logout').locator('button');
   await expect(logout).toHaveText('Abmelden');

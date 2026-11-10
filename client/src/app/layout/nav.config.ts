@@ -294,6 +294,16 @@ export const NAV_ITEMS: readonly NavItem[] = [
     route: '/guide',
     visible: when('guide', canGuide),
   },
+  {
+    // C1: the knowledge area ("Wissen") stays reachable after the journey, so members can reread the chapters
+    id: 'learn',
+    section: 'community',
+    secondary: true,
+    labelKey: 'nav.learn',
+    icon: 'pi pi-book',
+    route: '/learn',
+    visible: loggedIn,
+  },
   // --- M2: admin section ---
   {
     id: 'newcomers',
@@ -412,6 +422,17 @@ export const NAV_ITEMS: readonly NavItem[] = [
     area: 'user',
   },
   // --- footer (CMS pages arrive in M6) ---
+  {
+    // C1: visitors find the knowledge area with the public pages ("Über foodsharing", after education)
+    id: 'learnAbout',
+    labelKey: 'nav.learn',
+    icon: 'pi pi-book',
+    route: '/learn',
+    visible: loggedOut,
+    area: 'footer',
+    group: 'about',
+    section: 'about',
+  },
   {
     id: 'privacy',
     labelKey: 'nav.privacy',
@@ -696,7 +717,7 @@ export const NAV_SECTIONS: readonly NavSectionDef[] = [
     icon: 'pi pi-users',
     collapsible: true,
     defaultOpen: true,
-    order: ['map', 'events', 'regions', 'polls', 'forum', 'mailboxes', 'introPickups', 'guide'],
+    order: ['map', 'events', 'regions', 'polls', 'forum', 'mailboxes', 'introPickups', 'guide', 'learn'],
   },
   {
     id: 'manage',
@@ -735,7 +756,7 @@ export const NAV_SECTIONS: readonly NavSectionDef[] = [
     icon: 'pi pi-info-circle',
     collapsible: true,
     defaultOpen: true,
-    order: ['partners', 'press', 'education', 'donate', 'faq'],
+    order: ['partners', 'press', 'education', 'learnAbout', 'donate', 'faq'],
   },
 ];
 

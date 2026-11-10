@@ -1,0 +1,21 @@
+# C1 learning wiki: the real foodsharing-Grundlagen (changelog 195, production data) replace the four seed placeholder
+# chapters rules, hygiene, how-a-pickup-works and etiquette (ids 00000012-0001-…-01 to -04, no longer in
+# content/content_page.csv). onboarding/learning_progress.csv now marks the seven required chapters read for everybody
+# who had read the four placeholders (users 03-14), so every persona keeps its journey state. This changeset removes the
+# placeholders and any progress on them from databases seeded before.
+databaseChangeLog:
+  - changeSet:
+      id: seed-195-1
+      author: platform
+      context: seed
+      comment: 'C1: drop the placeholder learning chapters and the progress on them.'
+      changes:
+        - delete:
+            tableName: learning_progress
+            where: "chapter_key IN ('rules', 'hygiene', 'how-a-pickup-works', 'etiquette')"
+        - delete:
+            tableName: content_page_i18n
+            where: "owner_id IN ('00000012-0001-4000-8000-000000000001', '00000012-0001-4000-8000-000000000002', '00000012-0001-4000-8000-000000000003', '00000012-0001-4000-8000-000000000004')"
+        - delete:
+            tableName: content_page
+            where: "id IN ('00000012-0001-4000-8000-000000000001', '00000012-0001-4000-8000-000000000002', '00000012-0001-4000-8000-000000000003', '00000012-0001-4000-8000-000000000004')"

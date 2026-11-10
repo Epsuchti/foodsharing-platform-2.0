@@ -7,7 +7,7 @@ import { Language, NavCapability, Role, Theme, UnitMembership, UnitType } from '
 import { SessionService } from '../core/auth/session.service';
 import { provideDataStateTesting } from '../core/testing/data-state-testing';
 import { journeyProgress } from '../features/onboarding/components/journey-meter.component';
-import { NAV_ITEMS, NavContext, activeNavId, matchesPrefix, sidenavSections } from './nav.config';
+import { NAV_ITEMS, NavContext, activeNavId, drawerItems, matchesPrefix, sidenavSections } from './nav.config';
 import { filterUnits } from './region-switcher.component';
 import { ShellComponent } from './shell.component';
 import { SidenavStateService } from './sidenav-state';
@@ -59,7 +59,7 @@ describe('side menu nav.config (decision 133)', () => {
     // store chains from store manager up (owner feedback 2026-11-04)
     expect(shape(foodsaver)).toEqual({
       daily: ['dashboard', 'pickups', 'stores', 'messages', 'bells', 'baskets'],
-      community: ['map', 'events', 'regions', 'polls', 'forum'],
+      community: ['map', 'events', 'regions', 'polls', 'forum', 'learn'],
     });
   });
 
@@ -96,6 +96,7 @@ describe('side menu nav.config (decision 133)', () => {
       'polls',
       'forum',
       'mailboxes',
+      'learn',
     ]);
     expect(ids(withFlag(true, []))).not.toContain('forum');
     expect(ids(withFlag(true, [unit({ homeRegion: false })]))).not.toContain('forum');
@@ -115,7 +116,7 @@ describe('side menu nav.config (decision 133)', () => {
     });
     expect(shape(newcomer)).toEqual({
       daily: ['dashboard', 'onboarding', 'messages', 'bells', 'baskets'],
-      community: ['map', 'events', 'regions', 'polls', 'introPickups'],
+      community: ['map', 'events', 'regions', 'polls', 'introPickups', 'learn'],
     });
 
     const ambassador = context({
@@ -143,7 +144,7 @@ describe('side menu nav.config (decision 133)', () => {
       'storeChains',
     ]);
     expect(shape(ambassador)['daily']).not.toContain('mailboxes');
-    expect(shape(ambassador)['community']).toEqual(['map', 'events', 'regions', 'polls', 'forum', 'mailboxes']);
+    expect(shape(ambassador)['community']).toEqual(['map', 'events', 'regions', 'polls', 'forum', 'mailboxes', 'learn']);
     expect(shape(ambassador)['orga']).toBeUndefined();
 
     const orga = context({
@@ -179,8 +180,18 @@ describe('side menu nav.config (decision 133)', () => {
     expect(shape(context())).toEqual({
       daily: ['home', 'map', 'statistics', 'blog'],
       // decision 172: Vision, About us, Team, Cities and Demands are gone
-      about: ['partners', 'press', 'education', 'donate', 'faq'],
+      about: ['partners', 'press', 'education', 'learnAbout', 'donate', 'faq'],
     });
+  });
+
+  it('puts the knowledge area (C1) under about for visitors and in Community for members, also in the drawer', () => {
+    const learn = (ctx: NavContext) =>
+      sidenavSections(ctx).flatMap((section) =>
+        section.items.filter((item) => item.route === '/learn').map((item) => [section.def.id, item.id]),
+      );
+    expect(learn(context())).toEqual([['about', 'learnAbout']]);
+    expect(learn(foodsaver)).toEqual([['community', 'learn']]);
+    expect(drawerItems(foodsaver).map((item) => item.id)).toContain('learn');
   });
 
   it('marks the item of the current page by the longest route prefix', () => {

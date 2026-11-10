@@ -56,6 +56,8 @@
   "quiz.intro.passed": "You passed this quiz.",
   "quiz.intro.failed": "Last try failed ({tries} since the last pass). You can try again right away.",
   "quiz.intro.rules": "How the quiz works",
+  "quiz.intro.prepare": "Preparation: the questions are based on the foodsharing basics.",
+  "quiz.intro.prepareLink": "Read the basics",
   "quiz.intro.ruleFailurePoints": "You pass with at most {count, plural, one {# failure point} other {# failure points}}.",
   "quiz.intro.ruleMultiple": "Several answers per question can be correct – choose all correct ones.",
   "quiz.intro.ruleSolution": "After each question you see the solution with explanations.",

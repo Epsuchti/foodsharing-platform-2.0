@@ -939,7 +939,7 @@ is dropped; things that only existed to talk to foodsharing.network become their
 | Region landing page with region picker; landing guard sends logged-in users to their home region | Explainer "find your region" + dashboard redirect to home region |
 | Public page of available EinAb slots per region (public location only), notification subscription widget | Public "next EinAb dates" on explainer & region page; "notify me" for newcomers |
 | "What is my Foodsharing ID" help page with screenshot | "Your foodsaver ID" shown on profile & passport, with a help tooltip |
-| Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | §8 login, step 5 consent, phone in step 2 and the profile (same validation, mandatory there; decision 174) |
+| Passwordless email login per region, privacy consent (versioned), phone required & validated, phone prompt dialog | §8 login, step 5 consent, phone in step 2 and the profile (same validation, mandatory there; decision 175) |
 | Booking rules per region: max active bookings (default 3), no duplicate guide, no duplicate category, Fairteiler visit required by 3rd EinAb, ignored categories | Region settings; enforced in `IntroPickupBookingService` |
 | EinAb categories: supermarket, takeout, market, bakery, restaurant, Fairteiler cleaning, Messe, Grossabholung, online | Same enum; online EinAbs with call link |
 | My bookings, cancel booking | Journey page + "my EinAbs" |
