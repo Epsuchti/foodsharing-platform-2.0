@@ -1,16 +1,27 @@
 import { LANGUAGES, acceptPendingConsents, expect, expectNoMissingKeys, setLanguage, test } from '../../fixtures';
 
-/** C1 (partial, M2): learning chapters in five languages marked read via the journey; content pages edited by ORGA. */
+/**
+ * C1: the knowledge area ("Wissen", decision 175): the foodsharing-Grundlagen in five languages, grouped, marked read via
+ * the journey and reread without marking again; content pages edited by ORGA.
+ */
 
 test.use({ seedReset: 'test' });
 
-const CHAPTERS = ['rules', 'hygiene', 'how-a-pickup-works', 'etiquette'];
-const RULES_TITLE: Record<string, string> = {
-  de: 'Die Regeln',
-  en: 'The rules',
-  gws: 'D Regle',
-  fr: 'Les règles',
-  it: 'Le regole',
+const CHAPTERS = [
+  'principles',
+  'code-of-conduct',
+  'rule-violations',
+  'hygiene-rules',
+  'role-requirements',
+  'legal-agreement',
+  'context-and-self-image',
+];
+const FIRST_TITLE: Record<string, string> = {
+  de: 'Grundsätze',
+  en: 'Principles',
+  gws: 'Grundsätz',
+  fr: 'Principes',
+  it: 'Principi',
 };
 
 test('C1 learning chapters readable in five languages and marked read @C1 @page', async ({ as, apiOf, page: guest }) => {
@@ -20,11 +31,14 @@ test('C1 learning chapters readable in five languages and marked read @C1 @page'
     await guest.goto('/learn');
     await expect(guest.getByTestId('content.learn.state')).toHaveAttribute('data-state', 'success');
     await expect(guest.getByTestId('content.learn.chapter')).toHaveCount(CHAPTERS.length);
-    await expect(guest.getByTestId('content.learn.chapter').first()).toContainText(RULES_TITLE[lang]);
+    await expect(guest.getByTestId('content.learn.chapter').first()).toContainText(FIRST_TITLE[lang]);
+    // all seven are foodsharing-Grundlagen, so there is one group heading
+    await expect(guest.getByTestId('content.learn.group')).toHaveCount(1);
+    await expect(guest.getByTestId('content.learn.group')).toHaveAttribute('data-group', 'BASICS');
     await expectNoMissingKeys(guest);
   }
   await guest.getByTestId('content.learn.chapter').first().click();
-  await expect(guest).toHaveURL(/\/learn\/rules$/);
+  await expect(guest).toHaveURL(/\/learn\/principles$/);
   await expect(guest.getByTestId('content.chapter.body')).not.toBeEmpty();
   await expect(guest.getByTestId('content.chapter.markRead')).toHaveCount(0);
 
@@ -34,12 +48,12 @@ test('C1 learning chapters readable in five languages and marked read @C1 @page'
   await page.goto('/learn');
   const progress = page.getByTestId('content.learn.progress');
   await expect(progress).toHaveAttribute('data-read', '0');
-  await expect(page.locator(`[data-testid="content.learn.chapter"][data-key="rules"]`)).toHaveAttribute(
+  await expect(page.locator(`[data-testid="content.learn.chapter"][data-key="principles"]`)).toHaveAttribute(
     'data-read-state',
     'next',
   );
   await page.getByTestId('content.learn.continue').click();
-  await expect(page).toHaveURL(/\/learn\/rules$/);
+  await expect(page).toHaveURL(/\/learn\/principles$/);
   await expect(page.getByTestId('content.chapter.minutes')).toBeVisible();
 
   // mark every chapter read: each one continues to the next, the last one shows the done state
@@ -62,6 +76,47 @@ test('C1 learning chapters readable in five languages and marked read @C1 @page'
   }
   const journey = await apiOf(page).getJson<{ steps: { key: string; status: string }[] }>('/api/onboarding/journey');
   expect(journey.steps.find((step) => step.key === 'LEARN')?.status).toBe('DONE');
+
+  // rereading: the overview offers it, a read chapter says so and marks nothing again (no API call)
+  await expect(page.getByTestId('content.learn.reread')).toBeVisible();
+  const marks: string[] = [];
+  page.on('request', (request) => {
+    if (request.method() === 'POST' && request.url().includes('/api/onboarding/learning/')) marks.push(request.url());
+  });
+  await page.getByTestId('content.learn.reread').click();
+  await expect(page).toHaveURL(/\/learn\/principles$/);
+  await expect(page.getByTestId('content.chapter.alreadyRead')).toBeVisible();
+  await expect(page.getByTestId('content.chapter.markRead')).toHaveCount(0);
+  await page.getByTestId('content.chapter.next').click();
+  await expect(page).toHaveURL(/\/learn\/code-of-conduct$/);
+  await expect(page.getByTestId('content.chapter.alreadyRead')).toBeVisible();
+  await page.getByTestId('content.chapter.overview').click();
+  await expect(progress).toHaveAttribute('data-read', String(CHAPTERS.length));
+  expect(marks).toEqual([]);
+});
+
+test('C1 the knowledge area stays reachable: visitor menu, a finished foodsaver\'s menu and journey @C1', async ({ as, page: guest }) => {
+  // visitors: with the public pages (side menu on desktop, footer everywhere)
+  await guest.goto('/statistics');
+  await expect(guest.getByTestId('nav.footer.learnAbout')).toHaveAttribute('href', '/learn');
+  if ((guest.viewportSize()?.width ?? 0) >= 1024) await expect(guest.getByTestId('nav.learnAbout')).toBeAttached();
+
+  // foodsaver@local finished the journey: "Wissen" in Community and the relearn link on the done LEARN step
+  const page = await as('foodsaver');
+  await page.goto('/dashboard');
+  if ((page.viewportSize()?.width ?? 0) >= 1024) await expect(page.getByTestId('nav.learn')).toBeAttached();
+  await page.goto('/onboarding');
+  await expect(page.getByTestId('onboarding.journey.stepper.step.LEARN')).toHaveAttribute('data-status', 'DONE');
+  await page.getByTestId('onboarding.journey.stepper.relearn.LEARN').click();
+  await expect(page).toHaveURL(/\/learn$/);
+  await expect(page.getByTestId('content.learn.progress')).toHaveAttribute('data-read', String(CHAPTERS.length));
+  await page.locator('[data-testid="content.learn.chapter"][data-key="hygiene-rules"]').click();
+  await expect(page.getByTestId('content.chapter.alreadyRead')).toBeVisible();
+  // a section link of another chapter navigates in the app and lands on the section
+  await page.goto('/learn/rule-violations');
+  await page.getByTestId('content.chapter.body').getByRole('link', { name: 'C6)' }).click();
+  await expect(page).toHaveURL(/\/learn\/code-of-conduct#c-betriebe-betriebsteam-planung-von-abholungen$/);
+  await expect(page.locator('[id="c-betriebe-betriebsteam-planung-von-abholungen"]')).toBeInViewport();
 });
 
 test('C1 orga edits a content page in five languages @C1', async ({ as, page: guest }) => {

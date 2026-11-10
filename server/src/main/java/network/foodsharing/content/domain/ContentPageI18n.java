@@ -26,4 +26,8 @@ public class ContentPageI18n extends BaseEntity {
 
     @Column(name = "body", nullable = false, length = 32600)
     private String body;
+
+    /** Learning chapters (C1): short summary for the overview; null = derived from the body. */
+    @Column(name = "summary", length = 300)
+    private String summary;
 }

@@ -124,7 +124,7 @@ describe('ShellComponent', () => {
     expect(byTestId('nav.tab.stores')).not.toBeNull();
   });
 
-  it('reskins the page in the old colours only while logged out (fs-public on main, decision 174)', async () => {
+  it('reskins the page in the old colours only while logged out (fs-public on main, decision 175)', async () => {
     const main = () => host.querySelector('main#main-content') as HTMLElement;
     expect(main().classList).toContain('fs-public');
     logIn();
@@ -226,6 +226,7 @@ describe('nav.config', () => {
       'stores',
       'map',
       'baskets',
+      'learn',
       'events',
       'polls',
     ]);
@@ -254,6 +255,7 @@ describe('nav.config', () => {
       'dashboard',
       'messages',
       'regions',
+      'learn',
       'events',
       'polls',
       'map',
@@ -334,6 +336,7 @@ describe('nav.config', () => {
         'regions',
         'polls',
         'forum',
+        'learn',
         'search',
       ]);
       expect(ids(drawerItems(newcomer))).toEqual([
@@ -346,6 +349,7 @@ describe('nav.config', () => {
         'regions',
         'polls',
         'introPickups',
+        'learn',
         'search',
       ]);
       // logged out: no drawer (footer pages stay out)
@@ -386,8 +390,8 @@ describe('nav.config', () => {
       expect(ids(foodsaver, 'user')).toContain('profile');
       // the "about" pages are in the logged-out footer only
       const about = NAV_ITEMS.filter((item) => item.group === 'about').map((item) => item.id);
-      // decision 172: team, cities and demands are gone
-      expect(about).toHaveLength(9);
+      // decision 172: team, cities and demands are gone; C1 adds the knowledge area (learnAbout)
+      expect(about).toHaveLength(10);
       expect(ids(context(), 'footer')).toEqual(expect.arrayContaining(about));
       expect(ids(foodsaver, 'footer').filter((id) => about.includes(id))).toEqual([]);
       // Q11: blog management with the server capability BLOG_MANAGE (decision 162: editors and region ambassadors,

@@ -210,7 +210,7 @@ export interface NearResult {
       color: var(--fs-text-muted);
       font-size: 0.9rem;
     }
-    /* every card is a brand panel (decision 174): border, radius, gradient and shadow come from .fs-panel--brand */
+    /* every card is a brand panel (decision 175): border, radius, gradient and shadow come from .fs-panel--brand */
     .card {
       display: grid;
       gap: 0.5rem;

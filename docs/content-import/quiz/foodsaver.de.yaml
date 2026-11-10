@@ -1,0 +1,1103 @@
+# Question pool of the foodsaver quiz (C1, owner decision 2026-11-10), written from the converted foodsharing-Grundlagen
+# in docs/content-import/learning/*.de.md. German only for now; reviewed by the owner on staging, then edited in the
+# quiz editor. server/scripts/gen-quiz-pool.py turns this file into changes/197-quiz-foodsaver-pool.yaml.
+#
+# Format (a strict YAML subset the generator reads): every question has a fixed number n (never reuse or renumber:
+# n gives the fixed ids), the chapter key and optionally an anchor of it (wiki link /learn/<chapter>#<anchor>),
+# mandatory, failurePoints (1-3), durationSeconds (timed mode), the text and its answers. Ratings: CORRECT, WRONG,
+# NEUTRAL (does not count). Strings are double-quoted. Mandatory questions are always asked.
+questions:
+  - n: 1
+    chapter: "principles"
+    anchor: "das-bedeutet"
+    mandatory: true
+    failurePoints: 3
+    durationSeconds: 60
+    text: "Wie dürfen gerettete Lebensmittel weitergegeben werden?"
+    answers:
+      - rating: CORRECT
+        text: "Nur unentgeltlich, ohne jede Gegenleistung"
+        explanation: "Grundsatz 2: Lebensmittel und andere überschüssige Waren werden nur unentgeltlich weitergegeben."
+      - rating: WRONG
+        text: "Gegen eine kleine Spende für foodsharing"
+        explanation: "Auch eine Spende wäre eine Gegenleistung."
+      - rating: WRONG
+        text: "Zum Selbstkostenpreis, damit die Fahrkosten gedeckt sind"
+        explanation: ""
+  - n: 2
+    chapter: "principles"
+    anchor: "grundsatz-2-bekaempfung-der-lebensmittelverschwendung"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "An wen verteilt foodsharing gerettete Lebensmittel?"
+    answers:
+      - rating: CORRECT
+        text: "An bedürftige und an nicht bedürftige Personen, Gruppen und Einrichtungen"
+        explanation: "Der Fokus liegt darauf, dass nichts im Müll landet, nicht darauf, wer die Lebensmittel isst."
+      - rating: WRONG
+        text: "Nur an Bedürftige mit einem Nachweis"
+        explanation: ""
+      - rating: WRONG
+        text: "Nur an Foodsaver"
+        explanation: ""
+  - n: 3
+    chapter: "principles"
+    anchor: "das-bedeutet"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Welche Verwendung von geretteten Lebensmitteln hat Vorrang vor anderen Abholungen?"
+    answers:
+      - rating: CORRECT
+        text: "foodsharing-Veranstaltungen wie Bildungsarbeit, Schnippelpartys oder Aktionen für die Öffentlichkeitsarbeit"
+        explanation: "So steht es in Grundsatz 2."
+      - rating: WRONG
+        text: "Der eigene Vorrat für die nächste Woche"
+        explanation: ""
+      - rating: WRONG
+        text: "Abholungen bei grossen Supermarktketten"
+        explanation: ""
+  - n: 4
+    chapter: "principles"
+    anchor: "das-bedeutet-sowohl-fuer-den-foodsharing-e-v-als-auch-fuer-die-bezirksvereine-und-ortsgruppen"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Ein Betrieb bietet dir für die gerettete Ware Geld an. Was gilt?"
+    answers:
+      - rating: CORRECT
+        text: "Für gerettete Lebensmittel darf kein Geld angenommen werden"
+        explanation: "Grundsatz 3: Für gerettete Lebensmittel darf kein Geld angenommen werden."
+      - rating: WRONG
+        text: "Ich darf es annehmen, wenn ich es an foodsharing weitergebe"
+        explanation: ""
+      - rating: WRONG
+        text: "Ich darf es annehmen, wenn der Betrieb darauf besteht"
+        explanation: ""
+  - n: 5
+    chapter: "principles"
+    anchor: "das-bedeutet-sowohl-fuer-den-foodsharing-e-v-als-auch-fuer-die-bezirksvereine-und-ortsgruppen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was kostet der Zugang zur foodsharing-Plattform?"
+    answers:
+      - rating: CORRECT
+        text: "Nichts – der Zugang ist und bleibt kostenlos"
+        explanation: ""
+      - rating: WRONG
+        text: "Einen jährlichen Mitgliederbeitrag"
+        explanation: ""
+      - rating: WRONG
+        text: "Ab zehn Abholungen eine kleine Gebühr"
+        explanation: ""
+  - n: 6
+    chapter: "principles"
+    anchor: "grundsatz-4-parteipolitik-und-toleranz"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Mit wem kooperiert foodsharing nicht?"
+    answers:
+      - rating: CORRECT
+        text: "Mit Parteien, Organisationen oder Personen, die diskriminierende Positionen vertreten"
+        explanation: "Grundsatz 4: Diskriminierung, Belästigung und faschistische Äusserungen werden nicht toleriert."
+      - rating: WRONG
+        text: "Mit anderen Initiativen gegen Lebensmittelverschwendung, zum Beispiel den Tafeln"
+        explanation: ""
+      - rating: WRONG
+        text: "Mit kleinen Betrieben wie Bäckereien"
+        explanation: ""
+  - n: 7
+    chapter: "principles"
+    anchor: "grundsatz-7-umgang-mit-konflikten"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Wie werden Streitigkeiten unter Foodsavern ausgetragen?"
+    answers:
+      - rating: CORRECT
+        text: "Zuerst intern, sachlich und höflich – nicht öffentlich"
+        explanation: "Grundsatz 7: Streitigkeiten werden nicht öffentlich ausgetragen."
+      - rating: WRONG
+        text: "Öffentlich in den sozialen Medien, damit alle Bescheid wissen"
+        explanation: ""
+      - rating: WRONG
+        text: "Über einen Leserbrief in der Lokalzeitung"
+        explanation: ""
+  - n: 8
+    chapter: "principles"
+    anchor: "grundsatz-8-einhaltung-der-grundsaetze"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Gibt es einen Anspruch auf Zugang zur foodsharing-Plattform?"
+    answers:
+      - rating: CORRECT
+        text: "Nein – wer die Grundsätze nicht einhält, kann ausgeschlossen werden"
+        explanation: ""
+      - rating: WRONG
+        text: "Ja, für alle, die sich registrieren"
+        explanation: ""
+      - rating: WRONG
+        text: "Ja, nach drei Abholungen"
+        explanation: ""
+  - n: 9
+    chapter: "code-of-conduct"
+    anchor: "a-allgemeines-verhalten-bei-foodsharing"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie sprechen sich Foodsaver untereinander an?"
+    answers:
+      - rating: CORRECT
+        text: "Mit „Du“"
+        explanation: "Regel A2."
+      - rating: WRONG
+        text: "Mit „Sie“, bis man sich besser kennt"
+        explanation: ""
+      - rating: WRONG
+        text: "So, wie es der Betrieb wünscht"
+        explanation: ""
+  - n: 10
+    chapter: "code-of-conduct"
+    anchor: "a-allgemeines-verhalten-bei-foodsharing"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Du hast einen persönlichen Streit mit einem anderen Foodsaver. Wo klärst du ihn?"
+    answers:
+      - rating: CORRECT
+        text: "Per privater Nachricht, persönlich oder mit Unterstützung der zuständigen Gruppen des Bezirks"
+        explanation: "Regel A3: Persönliche Streitigkeiten gehören nicht in Foren, auf Pinnwände oder in den Teamchat."
+      - rating: WRONG
+        text: "Im Teamchat des Betriebs, damit alle mitlesen können"
+        explanation: ""
+      - rating: WRONG
+        text: "Im Forum des Bezirks"
+        explanation: ""
+  - n: 11
+    chapter: "code-of-conduct"
+    anchor: "a-allgemeines-verhalten-bei-foodsharing"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Darfst du eine private Nachricht an andere weitergeben?"
+    answers:
+      - rating: CORRECT
+        text: "Nur mit Erlaubnis der Person, die sie geschrieben hat"
+        explanation: "Regel A5."
+      - rating: WRONG
+        text: "Ja, an alle im Betriebsteam"
+        explanation: ""
+      - rating: WRONG
+        text: "Ja, wenn sie für den Bezirk interessant ist"
+        explanation: ""
+  - n: 12
+    chapter: "code-of-conduct"
+    anchor: "a-allgemeines-verhalten-bei-foodsharing"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Welche Angaben musst du in deinem Profil korrekt eintragen und aktuell halten?"
+    answers:
+      - rating: CORRECT
+        text: "Name, Postadresse, Geburtsdatum und ein Profilfoto, auf dem du erkennbar bist"
+        explanation: "Regel A8; auf Anfrage weist du sie mit einem Ausweisdokument nach."
+      - rating: NEUTRAL
+        text: "Eine Telefonnummer – sie ist empfohlen, falls du eine hast"
+        explanation: "Die Telefonnummer ist empfohlen, aber nur Pflicht, falls vorhanden."
+      - rating: WRONG
+        text: "Nur einen Spitznamen, alles andere ist freiwillig"
+        explanation: ""
+  - n: 13
+    chapter: "code-of-conduct"
+    anchor: "b-verhalten-bei-abholungen"
+    mandatory: true
+    failurePoints: 3
+    durationSeconds: 90
+    text: "Wer darf bei einer Abholung den Betrieb betreten?"
+    answers:
+      - rating: CORRECT
+        text: "Foodsaver mit Ausweis, die für den Termin eingetragen sind oder als Ersatz einspringen"
+        explanation: "Regel B5."
+      - rating: CORRECT
+        text: "Angehende Foodsaver nach Akzeptierung der Rechtsvereinbarung bei einer Einführungsabholung zusammen mit einem Foodsaver"
+        explanation: "Regel B5."
+      - rating: WRONG
+        text: "Freund:innen, die beim Tragen helfen"
+        explanation: "Weitere Personen warten als Tragehilfe abseits des Betriebs."
+  - n: 14
+    chapter: "code-of-conduct"
+    anchor: "b-verhalten-bei-abholungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Darfst du ein Tier in den Betrieb mitnehmen?"
+    answers:
+      - rating: CORRECT
+        text: "Nein, das ist verboten"
+        explanation: "Regel B1."
+      - rating: WRONG
+        text: "Ja, wenn es angeleint ist"
+        explanation: ""
+      - rating: WRONG
+        text: "Ja, wenn der Betrieb nichts dagegen sagt"
+        explanation: ""
+  - n: 15
+    chapter: "code-of-conduct"
+    anchor: "b-verhalten-bei-abholungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Der Betrieb bittet dich, zehn Minuten länger zu warten. Was tust du?"
+    answers:
+      - rating: CORRECT
+        text: "Ich warte – eine Wartezeit bis 15 Minuten ist zu akzeptieren, sofern der Bezirk nichts anderes festlegt"
+        explanation: "Regel B7 (kann vom Bezirk angepasst werden)."
+      - rating: WRONG
+        text: "Ich gehe sofort, der Termin war abgemacht"
+        explanation: ""
+      - rating: WRONG
+        text: "Ich diskutiere mit den Mitarbeitenden über die Verspätung"
+        explanation: ""
+  - n: 16
+    chapter: "code-of-conduct"
+    anchor: "b-verhalten-bei-abholungen"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Die Mitarbeitenden eines Betriebs sind unfreundlich zu dir. Wie reagierst du?"
+    answers:
+      - rating: CORRECT
+        text: "Ich bleibe höflich und informiere danach eine:n Betriebsverantwortliche:n"
+        explanation: "Regel B8."
+      - rating: WRONG
+        text: "Ich beschwere mich direkt bei der Filialleitung"
+        explanation: ""
+      - rating: WRONG
+        text: "Ich schreibe darüber öffentlich im Forum"
+        explanation: ""
+  - n: 17
+    chapter: "code-of-conduct"
+    anchor: "b-verhalten-bei-abholungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wer entscheidet, an wen du die geretteten Lebensmittel weitergibst?"
+    answers:
+      - rating: CORRECT
+        text: "Ich selbst – Bedürftigkeit ist nicht entscheidend"
+        explanation: "Regel B12."
+      - rating: WRONG
+        text: "Der Betrieb"
+        explanation: ""
+      - rating: WRONG
+        text: "Die Botschafter:innen des Bezirks"
+        explanation: ""
+  - n: 18
+    chapter: "code-of-conduct"
+    anchor: "c-betriebe-betriebsteam-planung-von-abholungen"
+    mandatory: true
+    failurePoints: 3
+    durationSeconds: 90
+    text: "Du kannst einen Abholtermin, für den du eingetragen bist, nicht wahrnehmen. Was tust du?"
+    answers:
+      - rating: CORRECT
+        text: "Mich sofort austragen und per Nachricht an das Team Ersatz suchen"
+        explanation: "Regel C3."
+      - rating: CORRECT
+        text: "Bei weniger als 24 Stunden vor dem Termin zusätzlich telefonisch Ersatz suchen und im Notfall eine:n Betriebsverantwortliche:n anrufen"
+        explanation: "Regel C3."
+      - rating: WRONG
+        text: "Einfach nicht hingehen – es kommt sicher jemand anderes"
+        explanation: "Ein verpasster Termin gefährdet die Kooperation mit dem Betrieb."
+  - n: 19
+    chapter: "code-of-conduct"
+    anchor: "c-betriebe-betriebsteam-planung-von-abholungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Worüber werden die Abholungen bei Betrieben koordiniert?"
+    answers:
+      - rating: CORRECT
+        text: "Über die Betriebsseite auf der foodsharing-Plattform"
+        explanation: "Regel C2."
+      - rating: WRONG
+        text: "Nur über private Chatgruppen"
+        explanation: ""
+      - rating: WRONG
+        text: "Direkt über die Filialleitung"
+        explanation: ""
+  - n: 20
+    chapter: "code-of-conduct"
+    anchor: "c-betriebe-betriebsteam-planung-von-abholungen"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Wer darf einen neuen Betrieb für eine Kooperation ansprechen?"
+    answers:
+      - rating: CORRECT
+        text: "Nur wer das Quiz für Betriebsverantwortliche bestanden hat, in Absprache mit einer Botschafterin oder einem Botschafter"
+        explanation: "Regel C6; bei Betriebsketten zusätzlich mit der zuständigen KAM oder der Gruppe Betriebsketten."
+      - rating: WRONG
+        text: "Jede:r Foodsaver, der den Betrieb kennt"
+        explanation: ""
+      - rating: WRONG
+        text: "Jede:r, sobald der Betrieb auf der Plattform eingetragen ist"
+        explanation: ""
+  - n: 21
+    chapter: "rule-violations"
+    anchor: "konsequenzen-fuer-regelverletzungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Welche Konsequenz kann bei allen Regelverletzungen ausgesprochen werden?"
+    answers:
+      - rating: CORRECT
+        text: "Eine Verwarnung"
+        explanation: ""
+      - rating: WRONG
+        text: "Sofort eine rote Karte"
+        explanation: ""
+      - rating: WRONG
+        text: "Eine Geldbusse"
+        explanation: ""
+  - n: 22
+    chapter: "rule-violations"
+    anchor: "konsequenzen-fuer-regelverletzungen"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Was bedeutet eine gelbe Karte?"
+    answers:
+      - rating: CORRECT
+        text: "Eine vorübergehende Suspendierung von Abholungen durch Entzug der Verifizierung, für bis zu 3 Monate"
+        explanation: ""
+      - rating: WRONG
+        text: "Eine dauerhafte Sperrung des Accounts"
+        explanation: "Das ist die rote Karte."
+      - rating: WRONG
+        text: "Die Herabstufung zum Foodsharer"
+        explanation: "Das ist die gelb-rote Karte."
+  - n: 23
+    chapter: "rule-violations"
+    anchor: "konsequenzen-fuer-regelverletzungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wann kann eine gelb-rote Karte (Herabstufung zum Foodsharer) ausgesprochen werden?"
+    answers:
+      - rating: CORRECT
+        text: "Wenn 2 gelbe Karten vorliegen"
+        explanation: ""
+      - rating: WRONG
+        text: "Bei der ersten Verwarnung"
+        explanation: ""
+      - rating: WRONG
+        text: "Nach einer einzigen verpassten Abholung"
+        explanation: ""
+  - n: 24
+    chapter: "rule-violations"
+    anchor: "a-umgang-mit-regelverletzungen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Welchen Zweck hat die Meldung einer Regelverletzung?"
+    answers:
+      - rating: CORRECT
+        text: "Verständnis für die Regeln schaffen und eine Lösung finden, die alle Beteiligten akzeptieren können"
+        explanation: "Eine Konsequenz auszusprechen sollte nur die letzte Möglichkeit sein."
+      - rating: WRONG
+        text: "Unangemessenes Verhalten möglichst streng bestrafen"
+        explanation: ""
+      - rating: WRONG
+        text: "Die gemeldete Person öffentlich bekannt machen"
+        explanation: ""
+  - n: 25
+    chapter: "rule-violations"
+    anchor: "c-zustaendigkeiten"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Wer bearbeitet eine Meldung grundsätzlich?"
+    answers:
+      - rating: CORRECT
+        text: "Die Lokale Meldungsgruppe (LMG) des Stammbezirks der gemeldeten Person"
+        explanation: ""
+      - rating: WRONG
+        text: "Der Betrieb, in dem es passiert ist"
+        explanation: ""
+      - rating: WRONG
+        text: "Die Person, die die Meldung gemacht hat"
+        explanation: "Betroffene Personen dürfen Meldungen nicht bearbeiten."
+  - n: 26
+    chapter: "rule-violations"
+    anchor: "d-bearbeitung-einer-meldung"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Bis wann muss eine Regelverletzung gemeldet werden, damit sie bearbeitet wird?"
+    answers:
+      - rating: CORRECT
+        text: "Innerhalb von 2 Monaten nach dem Ereignis"
+        explanation: ""
+      - rating: WRONG
+        text: "Innerhalb eines Jahres"
+        explanation: ""
+      - rating: WRONG
+        text: "Jederzeit, es gibt keine Frist"
+        explanation: ""
+  - n: 27
+    chapter: "rule-violations"
+    anchor: "e-datenschutz-vertraulichkeit-selbstauskunft"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "In welcher Form erfährt die gemeldete Person von einer Meldung?"
+    answers:
+      - rating: CORRECT
+        text: "In anonymisierter Form, ohne den Namen der meldenden Person"
+        explanation: "Ausnahme: Ist die gemeldete Person Mitglied einer beteiligten Gruppe, ist das nicht möglich."
+      - rating: WRONG
+        text: "Mit dem vollen Namen der meldenden Person"
+        explanation: ""
+      - rating: WRONG
+        text: "Gar nicht"
+        explanation: "Sie wird informiert und kann innerhalb von 2 Wochen Stellung nehmen."
+  - n: 28
+    chapter: "rule-violations"
+    anchor: "e-datenschutz-vertraulichkeit-selbstauskunft"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 45
+    text: "Wie wird alles behandelt, was eine Meldung betrifft?"
+    answers:
+      - rating: CORRECT
+        text: "Streng vertraulich"
+        explanation: ""
+      - rating: WRONG
+        text: "Öffentlich im Forum des Bezirks"
+        explanation: ""
+      - rating: WRONG
+        text: "Im Teamchat des betroffenen Betriebs"
+        explanation: ""
+  - n: 29
+    chapter: "hygiene-rules"
+    anchor: "2-weitergabe-allgemein"
+    mandatory: true
+    failurePoints: 3
+    durationSeconds: 60
+    text: "Was machst du mit Lebensmitteln, deren Verbrauchsdatum abgelaufen ist?"
+    answers:
+      - rating: CORRECT
+        text: "Ich sortiere sie aus und gebe sie nicht weiter"
+        explanation: "Die Weitergabe nach dem Verbrauchsdatum ist verboten."
+      - rating: WRONG
+        text: "Ich gebe sie weiter, wenn sie noch gut riechen"
+        explanation: "Das Verbrauchsdatum gilt strikt, anders als das Mindesthaltbarkeitsdatum."
+      - rating: WRONG
+        text: "Ich stelle sie in einen Fairteiler"
+        explanation: ""
+  - n: 30
+    chapter: "hygiene-rules"
+    anchor: "2-weitergabe-allgemein"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was ist der Auge-Nase-Mund-Test?"
+    answers:
+      - rating: CORRECT
+        text: "Aussehen, Geruch und gegebenenfalls Geschmack prüfen, bevor ich etwas weitergebe"
+        explanation: "Weitergeben nur, was man auch noch selbst essen würde."
+      - rating: WRONG
+        text: "Ein Gesundheitstest für neue Foodsaver"
+        explanation: ""
+      - rating: WRONG
+        text: "Eine Kontrolle, die der Betrieb durchführt"
+        explanation: ""
+  - n: 31
+    chapter: "hygiene-rules"
+    anchor: "1-direkter-umgang-transport-und-lagerung"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Wie transportierst du Kühlwaren?"
+    answers:
+      - rating: CORRECT
+        text: "In einer Kühltasche oder Kühlbox mit Kühlelementen, mit höchstens 20 Minuten Unterbrechung und ohne Sonne oder Hitze"
+        explanation: ""
+      - rating: WRONG
+        text: "In einer Plastiktüte, egal wie lange"
+        explanation: ""
+      - rating: WRONG
+        text: "Im Kofferraum, auch wenn das Auto in der Sonne steht"
+        explanation: ""
+  - n: 32
+    chapter: "hygiene-rules"
+    anchor: "1-direkter-umgang-transport-und-lagerung"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Worin darfst du unverpackte Lebensmittel transportieren und lagern?"
+    answers:
+      - rating: CORRECT
+        text: "In sauberen, lebensmittelechten Verpackungen"
+        explanation: "Erkennbar an der Angabe „für Lebensmittel“ oder am Glas-und-Gabel-Symbol."
+      - rating: WRONG
+        text: "In einem Müllsack"
+        explanation: ""
+      - rating: WRONG
+        text: "In einer leeren Waschmittelbox"
+        explanation: ""
+  - n: 33
+    chapter: "hygiene-rules"
+    anchor: "a-taetigkeitsverbote-beim-umgang-mit-lebensmitteln-42-43-ifsg"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Du hast Durchfall und Fieber über 38,5 °C. Was gilt für den Umgang mit offenen, empfindlichen Lebensmitteln?"
+    answers:
+      - rating: CORRECT
+        text: "Vorher zum Arzt; erst mit einer schriftlichen Unbedenklichkeitsbescheinigung wieder"
+        explanation: ""
+      - rating: WRONG
+        text: "Mit Handschuhen ist es erlaubt"
+        explanation: ""
+      - rating: WRONG
+        text: "Ich hole nur ab und verteile nicht"
+        explanation: ""
+  - n: 34
+    chapter: "hygiene-rules"
+    anchor: "stufe-1-nicht-persoenliche-weitergabe"
+    mandatory: true
+    failurePoints: 3
+    durationSeconds: 90
+    text: "Was darfst du bei der nicht-persönlichen Weitergabe (zum Beispiel in einen Fairteiler) weitergeben?"
+    answers:
+      - rating: CORRECT
+        text: "Verpacktes Brot vom Vortag"
+        explanation: ""
+      - rating: WRONG
+        text: "Hackfleisch"
+        explanation: "Hackfleisch, roher Fisch und Produkte aus Rohmilch sind verboten."
+      - rating: WRONG
+        text: "Alkoholische Getränke"
+        explanation: ""
+      - rating: WRONG
+        text: "Selbstgesammelte Pilze"
+        explanation: ""
+  - n: 35
+    chapter: "hygiene-rules"
+    anchor: "stufe-1-nicht-persoenliche-weitergabe"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was muss auf selbstgemachten Speisen stehen, die du nicht persönlich weitergibst?"
+    answers:
+      - rating: CORRECT
+        text: "Alle Zutaten und das Datum der Zubereitung"
+        explanation: ""
+      - rating: WRONG
+        text: "Nur der Name der Speise"
+        explanation: ""
+      - rating: WRONG
+        text: "Nichts"
+        explanation: ""
+  - n: 36
+    chapter: "hygiene-rules"
+    anchor: "2-weitergabe-allgemein"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Darfst du gerettete Arzneimittel weitergeben?"
+    answers:
+      - rating: CORRECT
+        text: "Nein, das ist verboten"
+        explanation: ""
+      - rating: WRONG
+        text: "Ja, wenn sie ungeöffnet sind"
+        explanation: ""
+      - rating: WRONG
+        text: "Ja, an Bekannte"
+        explanation: ""
+  - n: 37
+    chapter: "hygiene-rules"
+    anchor: "2-weitergabe-allgemein"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie gibst du Nicht-Essbares wie Kosmetik oder Putzmittel weiter?"
+    answers:
+      - rating: CORRECT
+        text: "Klar getrennt von Lebens- und Futtermitteln, sodass nichts verwechselt werden kann"
+        explanation: ""
+      - rating: WRONG
+        text: "In derselben Kiste wie die Lebensmittel"
+        explanation: ""
+      - rating: WRONG
+        text: "Gar nicht, Nicht-Essbares darf nie mitgenommen werden"
+        explanation: ""
+  - n: 38
+    chapter: "hygiene-rules"
+    anchor: "2-weitergabe-allgemein"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Wer ist für Lebensmittel verantwortlich, die du weitergibst?"
+    answers:
+      - rating: CORRECT
+        text: "Ich als Foodsaver; ein Haftungsanspruch besteht nur bei grober Fahrlässigkeit oder Vorsatz"
+        explanation: ""
+      - rating: WRONG
+        text: "Der Betrieb, der sie abgegeben hat"
+        explanation: ""
+      - rating: WRONG
+        text: "Die Empfänger:innen, sobald sie die Lebensmittel annehmen"
+        explanation: ""
+  - n: 39
+    chapter: "hygiene-rules"
+    anchor: "stufe-2-persoenliche-weitergabe"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Was gilt bei der persönlichen Weitergabe?"
+    answers:
+      - rating: CORRECT
+        text: "Ich gebe nur weiter, wenn ich den Empfänger:innen eine verantwortungsvolle Beurteilung zutraue"
+        explanation: ""
+      - rating: CORRECT
+        text: "Ich weise gegebenenfalls darauf hin, dass die Lebensmittel schnell verbraucht werden müssen"
+        explanation: ""
+      - rating: WRONG
+        text: "Sehr unansehnliche Lebensmittel gebe ich ohne Hinweis weiter"
+        explanation: ""
+  - n: 40
+    chapter: "hygiene-rules"
+    anchor: "stufe-4-entsorgung"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was machst du mit Lebensmitteln, die weder weitergegeben noch selbst gegessen werden können?"
+    answers:
+      - rating: CORRECT
+        text: "Ich entsorge sie fachgerecht (Mülltonne, Kompost)"
+        explanation: ""
+      - rating: WRONG
+        text: "Ich lasse sie im Betrieb liegen"
+        explanation: ""
+      - rating: WRONG
+        text: "Ich stelle sie in einen Fairteiler"
+        explanation: ""
+  - n: 41
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-foodsharer-innen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie alt musst du mindestens sein, um bei foodsharing mitzumachen?"
+    answers:
+      - rating: CORRECT
+        text: "18 Jahre"
+        explanation: ""
+      - rating: WRONG
+        text: "14 Jahre"
+        explanation: ""
+      - rating: WRONG
+        text: "16 Jahre"
+        explanation: ""
+  - n: 42
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-unverifizierte-foodsaver-innen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Was brauchst du, um unverifizierte:r Foodsaver:in zu werden?"
+    answers:
+      - rating: CORRECT
+        text: "Ein bestandenes Foodsaver-Quiz"
+        explanation: ""
+      - rating: CORRECT
+        text: "Die Bestätigung der Rechtsvereinbarung"
+        explanation: ""
+      - rating: WRONG
+        text: "30 Abholungen"
+        explanation: "Das gilt für Botschafter:innen."
+  - n: 43
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-verifizierte-foodsaver-innen"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 45
+    text: "Wie viele Einführungsabholungen brauchst du für die Verifizierung?"
+    answers:
+      - rating: CORRECT
+        text: "Mindestens 3 innerhalb von 6 Monaten"
+        explanation: ""
+      - rating: WRONG
+        text: "Eine"
+        explanation: ""
+      - rating: WRONG
+        text: "Zehn"
+        explanation: ""
+  - n: 44
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-verifizierte-foodsaver-innen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Welche Profildaten müssen für die Verifizierung korrekt sein?"
+    answers:
+      - rating: CORRECT
+        text: "Name, Adresse, Geburtsdatum und ein repräsentatives Foto"
+        explanation: ""
+      - rating: WRONG
+        text: "Nur die E-Mail-Adresse"
+        explanation: ""
+      - rating: WRONG
+        text: "Die Kontonummer"
+        explanation: ""
+  - n: 45
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-betriebsverantwortliche"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Was brauchst du, um Betriebsverantwortliche:r zu werden?"
+    answers:
+      - rating: CORRECT
+        text: "Verifizierte:r Foodsaver:in sein"
+        explanation: ""
+      - rating: CORRECT
+        text: "Das Quiz für Betriebsverantwortliche bestehen"
+        explanation: ""
+      - rating: WRONG
+        text: "Mindestens 100 Abholungen"
+        explanation: ""
+  - n: 46
+    chapter: "role-requirements"
+    anchor: "allgemeines-fuer-alle-rollen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was passiert, wenn eine Voraussetzung für deine Rolle wegfällt?"
+    answers:
+      - rating: CORRECT
+        text: "Der Status wird entzogen und kommt zurück, wenn die Voraussetzung wieder erfüllt ist"
+        explanation: ""
+      - rating: WRONG
+        text: "Nichts, eine Rolle bleibt für immer"
+        explanation: ""
+      - rating: WRONG
+        text: "Der Account wird gelöscht"
+        explanation: ""
+  - n: 47
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-botschafter-innen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie viele Abholungen brauchen Botschafter:innen in einem bestehenden Bezirk mindestens?"
+    answers:
+      - rating: CORRECT
+        text: "30"
+        explanation: "In den ersten 2 Jahren nach Gründung eines Bezirks entfällt diese Voraussetzung."
+      - rating: WRONG
+        text: "3"
+        explanation: ""
+      - rating: WRONG
+        text: "Keine"
+        explanation: ""
+  - n: 48
+    chapter: "role-requirements"
+    anchor: "voraussetzungen-fuer-botschafter-innen"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie werden Botschafter:innen in einem Bezirk bestimmt?"
+    answers:
+      - rating: CORRECT
+        text: "Sie werden demokratisch im Bezirk gewählt"
+        explanation: ""
+      - rating: WRONG
+        text: "Die Filialleitung eines Betriebs bestimmt sie"
+        explanation: ""
+      - rating: WRONG
+        text: "Wer sich zuerst meldet"
+        explanation: ""
+  - n: 49
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-i-eigenerklaerung-verhaltenskodex-und-sorgfaltspflichten"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Wozu verpflichtest du dich mit der Rechtsvereinbarung bei abgeholten Lebensmitteln?"
+    answers:
+      - rating: CORRECT
+        text: "Sie selbst zu verbrauchen oder ausschliesslich unentgeltlich an Dritte weiterzugeben"
+        explanation: ""
+      - rating: WRONG
+        text: "Sie günstig an Bekannte zu verkaufen"
+        explanation: ""
+      - rating: WRONG
+        text: "Sie dem Betrieb zurückzugeben, wenn ich sie nicht brauche"
+        explanation: ""
+  - n: 50
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-ii-haftungsausschluss"
+    mandatory: true
+    failurePoints: 3
+    durationSeconds: 60
+    text: "Wer haftet für die Geniessbarkeit der Lebensmittel, die du abholst und weitergibst?"
+    answers:
+      - rating: CORRECT
+        text: "Ich als Foodsaver – die abgebenden Betriebe sind von jeder Haftung befreit"
+        explanation: "Haftungsausschluss in Teil II der Rechtsvereinbarung; auch foodsharing e.V. übernimmt keine Haftung."
+      - rating: WRONG
+        text: "Der Betrieb, der sie abgegeben hat"
+        explanation: ""
+      - rating: WRONG
+        text: "Der foodsharing e.V."
+        explanation: ""
+  - n: 51
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-i-eigenerklaerung-verhaltenskodex-und-sorgfaltspflichten"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 90
+    text: "Du fällst für eine Abholung aus und findest keinen Ersatz. Was verlangt die Rechtsvereinbarung?"
+    answers:
+      - rating: CORRECT
+        text: "Ab 24 Stunden vor dem Termin per Telefon und E-Mail weitersuchen; eine Stunde vorher ohne Ersatz die Filiale anrufen"
+        explanation: ""
+      - rating: WRONG
+        text: "Nichts, das Team merkt es schon"
+        explanation: ""
+      - rating: WRONG
+        text: "Am nächsten Tag einfach doppelt so viel abholen"
+        explanation: ""
+  - n: 52
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-i-eigenerklaerung-verhaltenskodex-und-sorgfaltspflichten"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Trotz aller Bemühungen hat eine Abholung nicht stattgefunden. Was tust du?"
+    answers:
+      - rating: CORRECT
+        text: "Das Team per Pinnwandeintrag informieren und das Nichtabholen als eigenen Verstoss melden"
+        explanation: ""
+      - rating: WRONG
+        text: "Nichts sagen, damit es nicht auffällt"
+        explanation: ""
+      - rating: WRONG
+        text: "Den Betrieb bitten, den Termin aus dem Kalender zu löschen"
+        explanation: ""
+  - n: 53
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-i-eigenerklaerung-verhaltenskodex-und-sorgfaltspflichten"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie hinterlässt du den Ort, an dem du die Ware entgegennimmst oder sortierst?"
+    answers:
+      - rating: CORRECT
+        text: "Mindestens so sauber, wie ich ihn vorgefunden habe"
+        explanation: ""
+      - rating: WRONG
+        text: "Den Müll räumt der Betrieb weg"
+        explanation: ""
+      - rating: WRONG
+        text: "Das ist egal"
+        explanation: ""
+  - n: 54
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-i-eigenerklaerung-verhaltenskodex-und-sorgfaltspflichten"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was gilt für Aussagen über foodsharing?"
+    answers:
+      - rating: CORRECT
+        text: "Ich unterlasse diskreditierende Aussagen gegen foodsharing, auch nachdem ich nicht mehr Foodsaver bin"
+        explanation: ""
+      - rating: WRONG
+        text: "Nach meinem Austritt darf ich alles sagen"
+        explanation: ""
+      - rating: WRONG
+        text: "Kritik darf ich nur in der Presse äussern"
+        explanation: ""
+  - n: 55
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-ii-haftungsausschluss"
+    mandatory: false
+    failurePoints: 2
+    durationSeconds: 60
+    text: "Worauf verzichtest du gegenüber dem foodsharing e.V. und den Lebensmittelspendenden?"
+    answers:
+      - rating: CORRECT
+        text: "Auf die Geltendmachung jeglichen Schadenersatzes"
+        explanation: ""
+      - rating: WRONG
+        text: "Auf nichts"
+        explanation: ""
+      - rating: WRONG
+        text: "Nur auf kleine Beträge"
+        explanation: ""
+  - n: 56
+    chapter: "legal-agreement"
+    anchor: "rechtsvereinbarung-teil-ii-haftungsausschluss"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wer kümmert sich bei Bedarf um eine Haftpflicht- und Unfallversicherung?"
+    answers:
+      - rating: CORRECT
+        text: "Ich selbst"
+        explanation: ""
+      - rating: WRONG
+        text: "Der foodsharing e.V. versichert alle Foodsaver"
+        explanation: ""
+      - rating: WRONG
+        text: "Der Betrieb"
+        explanation: ""
+  - n: 57
+    chapter: "context-and-self-image"
+    anchor: "selbstverstaendnis"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie versteht sich foodsharing?"
+    answers:
+      - rating: CORRECT
+        text: "Als Umweltbewegung"
+        explanation: "Ziel ist die Schonung der natürlichen Ressourcen."
+      - rating: WRONG
+        text: "Als mildtätige Organisation nur für Bedürftige"
+        explanation: ""
+      - rating: WRONG
+        text: "Als Unternehmen"
+        explanation: ""
+  - n: 58
+    chapter: "context-and-self-image"
+    anchor: "selbstverstaendnis"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Wie steht foodsharing zu den Tafeln und anderen mildtätigen Organisationen?"
+    answers:
+      - rating: CORRECT
+        text: "Wir kooperieren und lassen ihnen gerne den Vortritt – foodsharing ist die letzte Bastion vor der Mülltonne"
+        explanation: ""
+      - rating: WRONG
+        text: "Wir konkurrieren mit ihnen um die Lebensmittel"
+        explanation: ""
+      - rating: WRONG
+        text: "Wir arbeiten nie mit ihnen zusammen"
+        explanation: ""
+  - n: 59
+    chapter: "context-and-self-image"
+    anchor: "selbstverstaendnis"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was ist das langfristige Ziel von foodsharing?"
+    answers:
+      - rating: CORRECT
+        text: "Sich selbst überflüssig zu machen, indem die systematische Verschwendung von Lebensmitteln endet"
+        explanation: ""
+      - rating: WRONG
+        text: "Möglichst viele Mitglieder zu haben"
+        explanation: ""
+      - rating: WRONG
+        text: "Möglichst viele Läden zu betreiben"
+        explanation: ""
+  - n: 60
+    chapter: "context-and-self-image"
+    anchor: "foodsharing"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Wie will foodsharing wachsen?"
+    answers:
+      - rating: CORRECT
+        text: "Organisch und zuverlässig – lieber sorgfältig als schnell"
+        explanation: ""
+      - rating: WRONG
+        text: "Möglichst schnell mit möglichst vielen Kooperationen"
+        explanation: ""
+      - rating: NEUTRAL
+        text: "Gar nicht, die Zahl der Foodsaver ist begrenzt"
+        explanation: ""
+  - n: 61
+    chapter: "context-and-self-image"
+    anchor: "selbstverstaendnis"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Warum ist Lebensmittelverschwendung auch ein Umweltproblem?"
+    answers:
+      - rating: CORRECT
+        text: "Weil die Ressourcen verschwendet werden, die für die Lebensmittel aufgewendet wurden (Wasser, Energie, Fläche, Arbeitszeit)"
+        explanation: ""
+      - rating: WRONG
+        text: "Ist es nicht, es ist nur ein soziales Problem"
+        explanation: ""
+      - rating: WRONG
+        text: "Weil Lebensmittel im Müll schneller verrotten"
+        explanation: ""
+  - n: 62
+    chapter: "context-and-self-image"
+    anchor: "ansatzpunkte"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 60
+    text: "Wo setzt foodsharing gegen Verschwendung an?"
+    answers:
+      - rating: CORRECT
+        text: "Bei Lebensmittelhändlern und Betrieben"
+        explanation: ""
+      - rating: CORRECT
+        text: "Bei Verbraucher:innen im privaten Bereich"
+        explanation: ""
+      - rating: CORRECT
+        text: "Bei Produktionsbetrieben, zum Beispiel mit Ernteaktionen"
+        explanation: ""
+      - rating: WRONG
+        text: "Nur bei Restaurants"
+        explanation: ""
+  - n: 63
+    chapter: "context-and-self-image"
+    anchor: "foodsharing"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Womit kannst du dich als Foodsaver jederzeit ausweisen?"
+    answers:
+      - rating: CORRECT
+        text: "Mit dem Foodsaver-Ausweis"
+        explanation: ""
+      - rating: WRONG
+        text: "Mit einem Kassenbon des Betriebs"
+        explanation: ""
+      - rating: WRONG
+        text: "Das ist nicht nötig"
+        explanation: ""
+  - n: 64
+    chapter: "context-and-self-image"
+    anchor: "die-foodsharing-plattform"
+    mandatory: false
+    failurePoints: 1
+    durationSeconds: 45
+    text: "Was gilt für die foodsharing-Plattform?"
+    answers:
+      - rating: CORRECT
+        text: "Sie ist kostenlos, nicht kommerziell und ohne Werbung"
+        explanation: ""
+      - rating: WRONG
+        text: "Sie finanziert sich über Werbung"
+        explanation: ""
+      - rating: WRONG
+        text: "Sie kostet für Betriebe eine Gebühr"
+        explanation: ""

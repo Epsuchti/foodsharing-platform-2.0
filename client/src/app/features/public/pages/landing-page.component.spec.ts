@@ -155,7 +155,7 @@ describe('LandingPageComponent (C17)', () => {
     expect(host.querySelector('img')).toBeNull();
   });
 
-  it('puts each "way" icon in a decorative tile (decision 174)', () => {
+  it('puts each "way" icon in a decorative tile (decision 175)', () => {
     http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
     for (const id of ['member', 'home', 'business']) {
       const tile = byTestId(`public.landing.way.${id}`)!.querySelector('.fs-tile');

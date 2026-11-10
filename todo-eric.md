@@ -38,6 +38,10 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Have the ambassadors confirm or correct the Zürich regions and stores (`docs/data/zuerich/`).
 - [ ] Name the first ambassadors and guides for staging.
 
+- [ ] Swiss legal agreement (C1, decision 174): the wiki only has the German and the Austrian Rechtsvereinbarung. The German one is now the binding `LEGAL_AGREEMENT` (version 2026-11, changeset 196). Ask foodsharing Schweiz for a Swiss text; publish it as a new version in the admin legal editor (decide there whether everybody has to accept it again).
+- [ ] Review the 64 foodsaver quiz questions on staging in the quiz editor (C1, changeset 197, `docs/content-import/quiz/foodsaver.de.yaml`) and the machine translations of the learning chapters (en/fr/it/gws, `docs/content-import/learning/`); edit in the CMS / quiz editor.
+- [ ] Supply the text of "Regelverletzungen – Erläuterungen" (the wiki page is only a redirect); it becomes the optional chapter `rule-violations-explained` (group MORE).
+
 ## Quick check
 - [ ] Map tile service on K3s (MT2, decision 163, runbook §10.4; hosting branch `feat/foodsharing-tiles`, not merged). The MT1 check now runs on K3s:
   1. Free RAM of the node, recorded in runbook §10.3: `free -g` and `sudo kubectl describe node | sed -n '/Allocated resources/,/Events/p'`. The build asks for 16Gi (request = limit).

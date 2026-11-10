@@ -14,6 +14,7 @@ import network.foodsharing.content.domain.ContentAction;
 import network.foodsharing.content.domain.ContentPage;
 import network.foodsharing.content.domain.ContentPageI18n;
 import network.foodsharing.content.domain.ContentPageKind;
+import network.foodsharing.content.domain.LearningChapterGroup;
 import network.foodsharing.content.repository.ContentPageI18nRepository;
 import network.foodsharing.content.repository.ContentPageRepository;
 import network.foodsharing.history.service.HistoryService;
@@ -34,8 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ContentService {
 
+    /** {@code summary}: the text's own summary, else derived from the body ({@link #summary(String)}). */
     public record LocalizedPage(ContentPage page, String title, String body, String language, boolean fallback,
-                                Instant updatedAt, String nextChapterKey) {
+                                Instant updatedAt, String nextChapterKey, String summary) {
     }
 
     public record PageTexts(ContentPage page, Map<String, String> titles, Map<String, String> bodies) {
@@ -43,11 +45,20 @@ public class ContentService {
 
     /**
      * {@code editorFunction}/{@code imageUploadIds} null = unchanged ({@code imageUploadIds} adds);
-     * {@code removeImageUploadIds} removes images of the page and deletes their uploads.
+     * {@code removeImageUploadIds} removes images of the page and deletes their uploads. {@code group}/{@code required}
+     * apply to learning chapters only; null = unchanged (new chapters: BASICS, required).
      */
     public record PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
                             Integer sortOrder, Integer estimatedMinutes, boolean published, String reason,
-                            String editorFunction, List<UUID> imageUploadIds, List<UUID> removeImageUploadIds) {
+                            String editorFunction, List<UUID> imageUploadIds, List<UUID> removeImageUploadIds,
+                            LearningChapterGroup group, Boolean required) {
+
+        public PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
+                         Integer sortOrder, Integer estimatedMinutes, boolean published, String reason,
+                         String editorFunction, List<UUID> imageUploadIds, List<UUID> removeImageUploadIds) {
+            this(titles, bodies, kind, sortOrder, estimatedMinutes, published, reason, editorFunction,
+                    imageUploadIds, removeImageUploadIds, null, null);
+        }
 
         public PageInput(Map<String, String> titles, Map<String, String> bodies, ContentPageKind kind,
                          Integer sortOrder, Integer estimatedMinutes, boolean published, String reason,
@@ -135,18 +146,42 @@ public class ContentService {
         throw ApiException.notFound(ApiErrorCode.CONTENT_NOT_FOUND);
     }
 
-    /** Keys of the published learning chapters (onboarding step 3). */
+    /** Keys of the published learning chapters in reading order (any of them can be marked read). */
     @Transactional(readOnly = true)
     public List<String> learningChapterKeys() {
         return publishedChapters().stream().map(ContentPage::getSlug).toList();
     }
 
-    /** First characters of the body without markdown markers. */
+    /** Keys of the published required learning chapters in reading order (LEARN step, learningDone; C1). */
+    @Transactional(readOnly = true)
+    public List<String> requiredChapterKeys() {
+        return publishedChapters().stream().filter(ContentPage::isRequired).map(ContentPage::getSlug).toList();
+    }
+
+    /** The chapter's group; chapters without one count as BASICS. */
+    public static LearningChapterGroup groupOf(ContentPage page) {
+        return page.getChapterGroup() == null ? LearningChapterGroup.BASICS : page.getChapterGroup();
+    }
+
+    /** Reading order of chapters: group order (BASICS first), then sort order, slug and id (C1). */
+    static final java.util.Comparator<ContentPage> READING_ORDER = java.util.Comparator
+            .comparing((ContentPage page) -> groupOf(page).ordinal()).thenComparingInt(ContentPage::getSortOrder)
+            .thenComparing(ContentPage::getSlug);
+
+    /**
+     * First characters of the body as plain text: HTML tags (anchors), link targets, hard breaks, escapes and markdown
+     * markers are dropped.
+     */
     public static String summary(String body) {
         if (body == null) {
             return null;
         }
-        String plain = body.replaceAll("(?m)^#+\\s*", "").replaceAll("[*_`>\\[\\]]", "").replaceAll("\\s+", " ").strip();
+        String plain = body.replaceAll("<[^>]*>", "")
+                .replaceAll("!?\\[([^\\]]*)\\]\\([^)]*\\)", "$1")
+                .replaceAll("(?m)^\\s*(#+|[-*+]|\\d+[.)])\\s+", "")
+                .replaceAll("\\\\(\\r?\\n)", " ")
+                .replaceAll("\\\\([\\\\`*_{}\\[\\]()#+\\-.!>])", "$1")
+                .replaceAll("[*_`>\\[\\]]", "").replaceAll("\\s+", " ").strip();
         return plain.length() <= SUMMARY_LENGTH ? plain : plain.substring(0, SUMMARY_LENGTH - 1).strip() + "…";
     }
 
@@ -251,6 +286,9 @@ public class ContentService {
         page.setKind(kind == null ? ContentPageKind.PAGE : kind);
         page.setEditorFunction(function.name());
         page.setPublished(false);
+        if (page.getKind() == ContentPageKind.LEARNING_CHAPTER) {
+            page.setChapterGroup(LearningChapterGroup.BASICS);
+        }
         ContentPage saved = pages.saveAndFlush(page);
         ContentPageI18n text = new ContentPageI18n();
         text.setOwnerId(saved.getId());
@@ -350,6 +388,16 @@ public class ContentService {
         if (input.editorFunction() != null) {
             page.setEditorFunction(requestedFunction(input.editorFunction()).name());
         }
+        if (page.getKind() == ContentPageKind.LEARNING_CHAPTER) {
+            if (input.group() != null || page.getChapterGroup() == null) {
+                page.setChapterGroup(input.group() == null ? LearningChapterGroup.BASICS : input.group());
+            }
+            if (input.required() != null) {
+                page.setRequired(input.required());
+            }
+        } else {
+            page.setChapterGroup(null);
+        }
         List<UUID> remove = input.removeImageUploadIds() == null ? List.of() : input.removeImageUploadIds();
         if (!remove.isEmpty() && (input.imageUploadIds() != null && remove.stream()
                 .anyMatch(input.imageUploadIds()::contains)
@@ -376,6 +424,10 @@ public class ContentService {
         Map<String, Object> metadata = new java.util.LinkedHashMap<>();
         metadata.put("slug", slug);
         metadata.put("languages", String.join(",", input.titles().keySet()));
+        if (saved.getKind() == ContentPageKind.LEARNING_CHAPTER) {
+            metadata.put("group", saved.getChapterGroup().name());
+            metadata.put("required", saved.isRequired());
+        }
         if (!removedImages.isEmpty()) {
             metadata.put("removedImages", String.join(",", removedImages));
         }
@@ -389,7 +441,7 @@ public class ContentService {
 
     private List<ContentPage> publishedChapters() {
         return pages.findByKindOrderBySortOrderAscSlugAscIdAsc(ContentPageKind.LEARNING_CHAPTER).stream()
-                .filter(ContentPage::isPublished).toList();
+                .filter(ContentPage::isPublished).sorted(READING_ORDER).toList();
     }
 
     private LocalizedPage localize(ContentPage page, String language, String nextChapterKey) {
@@ -401,8 +453,10 @@ public class ContentService {
         }
         Instant updated = byLanguage.values().stream().map(ContentPageI18n::getUpdatedAt).filter(Objects::nonNull)
                 .max(Instant::compareTo).orElse(page.getUpdatedAt());
+        String summary = text.getSummary() == null || text.getSummary().isBlank() ? summary(text.getBody())
+                : text.getSummary().strip();
         return new LocalizedPage(page, text.getTitle(), text.getBody(), text.getLanguage(),
-                !text.getLanguage().equals(language), updated, nextChapterKey);
+                !text.getLanguage().equals(language), updated, nextChapterKey, summary);
     }
 
     private static PageTexts texts(ContentPage page, List<ContentPageI18n> rows) {

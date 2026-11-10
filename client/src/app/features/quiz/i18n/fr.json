@@ -56,6 +56,8 @@
   "quiz.intro.passed": "Tu as réussi ce quiz.",
   "quiz.intro.failed": "Dernière tentative échouée ({tries} depuis la dernière réussite). Tu peux réessayer tout de suite.",
   "quiz.intro.rules": "Comment fonctionne le quiz",
+  "quiz.intro.prepare": "Préparation : les questions reposent sur les bases de foodsharing.",
+  "quiz.intro.prepareLink": "Lire les bases",
   "quiz.intro.ruleFailurePoints": "Réussi avec au maximum {count, plural, one {# point d’erreur} other {# points d’erreur}}.",
   "quiz.intro.ruleMultiple": "Plusieurs réponses peuvent être correctes – choisis toutes les bonnes.",
   "quiz.intro.ruleSolution": "Après chaque question, tu vois la solution avec des explications.",

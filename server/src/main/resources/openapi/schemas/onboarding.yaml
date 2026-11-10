@@ -80,7 +80,7 @@ JourneyStep:
     details:
       type: object
       additionalProperties: true
-      description: 'Step-specific extras: PROFILE_REGION missing (field keys), LEARN readChapters (read chapter keys in chapter order).'
+      description: 'Step-specific extras: PROFILE_REGION missing (field keys), LEARN readChapters (read required chapter keys in chapter order) and readKeys (every chapter read, optional ones too).'
 
 JourneyTrack:
   type: object
