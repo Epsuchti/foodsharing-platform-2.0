@@ -167,6 +167,7 @@
   "automation.policy.gapHint": "Days between two pickups of the same person in this store.",
   "automation.policy.gapStatus.on": "On",
   "automation.policy.gapStatus.off": "Off",
+  "automation.policy.inactiveHint": "Takes effect only once the rules are switched on.",
   "automation.policy.gapOwnTitle": "In this store",
   "automation.policy.gapOwnEnabled": "Own gap",
   "automation.policy.gapGroupTitle": "Store group (optional)",

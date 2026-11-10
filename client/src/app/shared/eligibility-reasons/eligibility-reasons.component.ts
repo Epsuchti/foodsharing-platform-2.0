@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-import { PickupEligibility } from '../../api';
+import { PickupEligibility, PickupEligibilityReason, RegionPickupRuleState } from '../../api';
 import { TPipe } from '../../core/i18n/t.pipe';
 
 /**
  * Why a pickup sign-up is not possible (PU4/PU5): translated `pickups.eligibility.<REASON>` sentences and, when the
- * region pickup rule applies, its counters.
+ * region pickup rule applies, one line per limit (review fix A3): the counters are the user's other sign-ups dated
+ * within ±timespanDays of the pickup's date, and on the same date. A limit ≤ 0 (no limit) gets no line, and nothing is
+ * said about the rule when the user is already signed up.
  */
 @Component({
   selector: 'fs-eligibility-reasons',
@@ -22,21 +24,17 @@ import { TPipe } from '../../core/i18n/t.pipe';
           }
         </ul>
       }
-      @if (e.regionRule; as rule) {
-        @if (rule.active) {
-          <p class="rule" data-testid="shared.eligibility.rule">
+      @if (ruleShown(e); as rule) {
+        @if ((rule.limitNumber ?? 0) > 0) {
+          <p class="rule" data-testid="shared.eligibility.ruleTimespan">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
-            {{
-              'shared.eligibility.rule'
-                | t
-                  : {
-                      count: rule.pickupsInTimespan ?? 0,
-                      limit: rule.limitNumber ?? 0,
-                      days: rule.timespanDays ?? 0,
-                      sameDay: rule.pickupsSameDay ?? 0,
-                      dayLimit: rule.limitDayNumber ?? 0,
-                    }
-            }}
+            {{ 'shared.eligibility.ruleTimespan' | t: { limit: rule.limitNumber ?? 0, days: rule.timespanDays ?? 0, count: rule.pickupsInTimespan ?? 0 } }}
+          </p>
+        }
+        @if ((rule.limitDayNumber ?? 0) > 0) {
+          <p class="rule" data-testid="shared.eligibility.ruleDay">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            {{ 'shared.eligibility.ruleDay' | t: { dayLimit: rule.limitDayNumber ?? 0, sameDay: rule.pickupsSameDay ?? 0 } }}
           </p>
         }
       }
@@ -50,4 +48,13 @@ import { TPipe } from '../../core/i18n/t.pipe';
 })
 export class EligibilityReasonsComponent {
   readonly eligibility = input<PickupEligibility | null | undefined>(undefined);
+
+  /** The active region rule, unless the user is already signed up for this pickup. */
+  protected ruleShown(e: PickupEligibility): RegionPickupRuleState | null {
+    const rule = e.regionRule;
+    if (!rule?.active || e.reasons.includes(PickupEligibilityReason.AlreadySignedUp)) {
+      return null;
+    }
+    return rule;
+  }
 }

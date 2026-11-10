@@ -129,6 +129,8 @@
   "pickups.page.showMore": "{count} weitere anzeigen",
   "pickups.mine.signOutLabel": "Austragen: {store}, {date}",
   "pickups.options.signUpLabel": "Eintragen: {store}, {date}",
+  "pickups.options.signedUpConfirmed": "Eingetragen · bestätigt",
+  "pickups.options.signedUpUnconfirmed": "Eingetragen · noch unbestätigt",
   "pickups.dashboard.help": "Bald Hilfe gesucht",
   "pickups.dashboard.helpAll": "Alle {count, plural, one {# Abholung} other {# Abholungen}} mit freien Plätzen",
   "pickups.eligibility.AUTOMATION_RULE": "Eine Regel dieses Betriebs verhindert die Eintragung.",

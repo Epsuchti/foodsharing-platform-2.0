@@ -129,6 +129,8 @@
   "pickups.page.showMore": "Mostra altri {count}",
   "pickups.mine.signOutLabel": "Annulla iscrizione: {store}, {date}",
   "pickups.options.signUpLabel": "Iscriviti: {store}, {date}",
+  "pickups.options.signedUpConfirmed": "Iscritto · confermato",
+  "pickups.options.signedUpUnconfirmed": "Iscritto · non ancora confermato",
   "pickups.dashboard.help": "Serve aiuto a breve",
   "pickups.dashboard.helpAll": "{count, plural, one {Il # ritiro} other {Tutti i # ritiri}} con posti liberi",
   "pickups.eligibility.AUTOMATION_RULE": "Una regola di questo negozio impedisce l’iscrizione.",

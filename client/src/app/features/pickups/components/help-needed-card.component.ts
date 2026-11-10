@@ -12,12 +12,13 @@ import { TPipe } from '../../../core/i18n/t.pipe';
 import { RegionContextService } from '../../../core/region/region-context.service';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { HELP_NEEDED_SHOWN } from '../../dashboard/dashboard.util';
-import { openOptions } from '../pickups.util';
+import { isSignedUp, openOptions } from '../pickups.util';
 import { PickupSignupDialogComponent, SignupTarget } from './signup-dialog.component';
 
 /**
  * Home card "Help needed soon" (owner feedback 2026-11-04): the next three pickups with free slots in my stores
- * (`listPickupOptions`), each with Sign up (the dialog of /pickups), and a link to all of them (`/pickups#options`).
+ * that I may take (`listPickupOptions`), each with Sign up (the dialog of /pickups) or, when I am in, a "Signed up" chip
+ * (review fix A2), and a link to all of them (`/pickups#options`).
  * Verified foodsavers and above only; hidden when nothing is free.
  */
 @Component({
@@ -40,14 +41,26 @@ import { PickupSignupDialogComponent, SignupTarget } from './signup-dialog.compo
                       <span>{{ 'pickups.options.free' | t: { free: option.slotCount - option.occupiedSlots.length, total: option.slotCount } }}</span>
                     </span>
                   </div>
-                  <p-button
-                    [label]="'pickups.options.signUp' | t"
-                    [ariaLabel]="'pickups.options.signUpLabel' | t: { store: option.store.name, date: (option.pickupAt | fsDate: 'dateTime') }"
-                    icon="pi pi-plus"
-                    size="small"
-                    (onClick)="open(option)"
-                    data-testid="dashboard.help.signUp"
-                  />
+                  @if (isSignedUp(option)) {
+                    <span
+                      class="signed-up"
+                      [class.signed-up--wait]="!option.isConfirmed"
+                      [attr.data-confirmed]="option.isConfirmed"
+                      data-testid="dashboard.help.signedUp"
+                    >
+                      <i class="pi" [class.pi-check-circle]="option.isConfirmed" [class.pi-hourglass]="!option.isConfirmed" aria-hidden="true"></i>
+                      {{ (option.isConfirmed ? 'pickups.options.signedUpConfirmed' : 'pickups.options.signedUpUnconfirmed') | t }}
+                    </span>
+                  } @else {
+                    <p-button
+                      [label]="'pickups.options.signUp' | t"
+                      [ariaLabel]="'pickups.options.signUpLabel' | t: { store: option.store.name, date: (option.pickupAt | fsDate: 'dateTime') }"
+                      icon="pi pi-plus"
+                      size="small"
+                      (onClick)="open(option)"
+                      data-testid="dashboard.help.signUp"
+                    />
+                  }
                 </li>
               }
             </ul>
@@ -63,6 +76,11 @@ import { PickupSignupDialogComponent, SignupTarget } from './signup-dialog.compo
     }
   `,
   styleUrls: ['../../dashboard/components/home-card.scss', '../../../shared/date-tile/date-rows.scss'],
+  styles: `
+    /* own sign-up (review fix A2): a state, not an action; same colours as "My pickups" */
+    .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); text-align: end; max-width: 9.5rem; }
+    .signed-up--wait { color: var(--fs-warning-text); }
+  `,
 })
 export class HelpNeededCardComponent {
   private readonly api = inject(PickupsService);
@@ -83,6 +101,7 @@ export class HelpNeededCardComponent {
   protected readonly all = computed(() => openOptions(this.options.data() ?? []));
   protected readonly next = computed(() => this.all().slice(0, HELP_NEEDED_SHOWN));
 
+  protected readonly isSignedUp = isSignedUp;
   protected readonly signupOpen = signal(false);
   protected readonly target = signal<SignupTarget | null>(null);
 

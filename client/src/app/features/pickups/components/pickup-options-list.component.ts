@@ -7,15 +7,16 @@ import { DataState } from '../../../core/data/data-state';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
-import { SlotSummary, countSummary, openOptions } from '../pickups.util';
+import { SlotSummary, countSummary, isSignedUp, openOptions } from '../pickups.util';
 import { PickupSummaryComponent } from './pickup-summary.component';
 
 /** Cards shown at first and per "Show more" (docs/design/ui-polish-batch-proposal.md §3). */
 export const OPTIONS_PAGE = 10;
 
 /**
- * "Where can I help?" section of /pickups (PU7): pickups with free slots in my stores, sorted by time, first 10 and
- * "Show N more"; Sign up opens the page's sign-up dialog. `id="options"` for the `#options` fragment.
+ * "Where can I help?" section of /pickups (PU7): pickups with free slots in my stores that I may take, sorted by time,
+ * first 10 and "Show N more"; Sign up opens the page's sign-up dialog, my own sign-ups show a "Signed up" chip instead
+ * (review fix A2). `id="options"` for the `#options` fragment.
  */
 @Component({
   selector: 'fs-pickup-options-list',
@@ -65,14 +66,26 @@ export const OPTIONS_PAGE = 10;
                     }
                   </span>
                 </div>
-                <p-button
-                  [label]="'pickups.options.signUp' | t"
-                  [ariaLabel]="'pickups.options.signUpLabel' | t: { store: option.store.name, date: (option.pickupAt | fsDate: 'dateTime') }"
-                  icon="pi pi-plus"
-                  size="small"
-                  (onClick)="signUp.emit(option)"
-                  data-testid="pickups.options.signUp"
-                />
+                @if (isSignedUp(option)) {
+                  <span
+                    class="signed-up"
+                    [class.signed-up--wait]="!option.isConfirmed"
+                    [attr.data-confirmed]="option.isConfirmed"
+                    data-testid="pickups.options.signedUp"
+                  >
+                    <i class="pi" [class.pi-check-circle]="option.isConfirmed" [class.pi-hourglass]="!option.isConfirmed" aria-hidden="true"></i>
+                    {{ (option.isConfirmed ? 'pickups.options.signedUpConfirmed' : 'pickups.options.signedUpUnconfirmed') | t }}
+                  </span>
+                } @else {
+                  <p-button
+                    [label]="'pickups.options.signUp' | t"
+                    [ariaLabel]="'pickups.options.signUpLabel' | t: { store: option.store.name, date: (option.pickupAt | fsDate: 'dateTime') }"
+                    icon="pi pi-plus"
+                    size="small"
+                    (onClick)="signUp.emit(option)"
+                    data-testid="pickups.options.signUp"
+                  />
+                }
               </li>
             }
           </ul>
@@ -98,6 +111,9 @@ export const OPTIONS_PAGE = 10;
     .option__when { font-variant-numeric: tabular-nums; }
     .muted { color: var(--fs-text-muted); font-size: 0.88rem; }
     .option__slots { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.75rem; row-gap: 0.15rem; }
+    /* own sign-up (review fix A2): a state, not an action; same colours as "My pickups" */
+    .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); text-align: end; max-width: 9.5rem; }
+    .signed-up--wait { color: var(--fs-warning-text); }
   `,
 })
 export class PickupOptionsListComponent {
@@ -108,11 +124,12 @@ export class PickupOptionsListComponent {
   readonly signUp = output<PickupOption>();
 
   protected readonly Math = Math;
+  protected readonly isSignedUp = isSignedUp;
   protected readonly page = OPTIONS_PAGE;
   private readonly list = viewChild<ElementRef<HTMLElement>>('list');
   private readonly shown = signal(OPTIONS_PAGE);
 
-  /** Full pickups are never offered (PU7). */
+  /** Full pickups are never offered (PU7); own sign-ups stay (A2). */
   protected readonly sorted = computed(() => openOptions(this.state().data() ?? []));
   protected readonly visible = computed(() => this.sorted().slice(0, this.shown()));
   protected readonly hidden = computed(() => Math.max(0, this.sorted().length - this.shown()));

@@ -343,6 +343,32 @@ public class PickupScheduleService {
         return new EligibilityContext(store, person, rule, zoneOf(store));
     }
 
+    /**
+     * {@link #context(Store, UUID)} for several stores of one user (pickup options): the user, the team statuses, the
+     * hygiene pass (only when a store requires it) and each region's pickup rule are loaded once, not per store.
+     */
+    public Map<UUID, EligibilityContext> contexts(Collection<Store> storeList, UUID userId) {
+        if (storeList.isEmpty()) {
+            return Map.of();
+        }
+        User user = users.require(userId);
+        Map<UUID, network.foodsharing.store.domain.UserTeamStatus> statuses = rights.teamStatuses(userId);
+        Instant hygiene = storeList.stream().anyMatch(Store::isRequiresHygiene)
+                ? quizzes.hygieneValidUntil(userId).orElse(null) : null;
+        boolean hasPhone = notBlank(user.getMobilePhone()) || notBlank(user.getLandlinePhone());
+        Map<UUID, RegionOptionsService.PickupRule> rules = new HashMap<>();
+        Map<UUID, EligibilityContext> result = new HashMap<>();
+        for (Store store : storeList) {
+            PickupEligibilityRules.Person person = new PickupEligibilityRules.Person(userId,
+                    statuses.getOrDefault(store.getId(), network.foodsharing.store.domain.UserTeamStatus.NO_MEMBER),
+                    user.isVerified(), store.isRequiresHygiene(), hygiene, store.isRequiresPhone(), hasPhone);
+            RegionOptionsService.PickupRule rule = store.isUseRegionPickupRule()
+                    ? rules.computeIfAbsent(store.getRegionId(), id -> regionOptions.read(id).pickupRule()) : null;
+            result.put(store.getId(), new EligibilityContext(store, person, rule, zoneOf(store)));
+        }
+        return result;
+    }
+
     /** Evaluates the chain for several pickups of one store and user. */
     public final class EligibilityContext {
         private final Store store;
