@@ -90,6 +90,8 @@
   "account.profile.dateOfBirth": "Date de naissance",
   "account.profile.contact": "Contact",
   "account.profile.mobilePhone": "Numéro mobile",
+  "account.profile.mobileRequired": "Indique ton numéro de portable. Il est obligatoire pour que ton équipe puisse te joindre lors des collectes ; sans lui, le profil ne peut pas être enregistré.",
+  "account.profile.required": "(obligatoire)",
   "account.profile.landlinePhone": "Téléphone fixe",
   "account.profile.homepage": "Site web",
   "account.profile.contactVisibility": "Qui voit mes coordonnées ?",

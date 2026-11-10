@@ -101,5 +101,5 @@
   "verification.passports.jobLabel": "Creating ID cards …",
   "verification.passports.jobDone": "ID cards are ready.",
   "verification.passports.downloadResult": "Download PDF",
-  "verification.queue.identityFirstHint": "Check the ID and confirm the identity first, then verify."
+  "verification.queue.identityRequired": "Confirm the identity first."
 }

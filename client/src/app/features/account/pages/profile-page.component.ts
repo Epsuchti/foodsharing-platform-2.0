@@ -74,7 +74,8 @@ export class ProfilePageComponent {
     displayName: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(100)] }),
     gender: new FormControl<Gender>(Gender.NotSelected, { nonNullable: true }),
     dateOfBirth: new FormControl('', { nonNullable: true }),
-    mobilePhone: new FormControl<string | null>(null),
+    // D2: mandatory on the own profile (the server refuses clearing it); validity comes from fs-phone-input
+    mobilePhone: new FormControl<string | null>(null, { validators: [Validators.required] }),
     landlinePhone: new FormControl<string | null>(null),
     homepage: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^(https?:\/\/\S+)?$/)] }),
     contactVisibility: new FormControl<ContactVisibility>(ContactVisibility.Team, { nonNullable: true }),

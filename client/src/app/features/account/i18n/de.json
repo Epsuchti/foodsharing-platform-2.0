@@ -90,6 +90,8 @@
   "account.profile.dateOfBirth": "Geburtsdatum",
   "account.profile.contact": "Kontakt",
   "account.profile.mobilePhone": "Mobilnummer",
+  "account.profile.mobileRequired": "Bitte gib deine Handynummer an. Sie ist Pflicht, damit dich dein Team bei Abholungen erreichen kann; ohne sie lässt sich das Profil nicht speichern.",
+  "account.profile.required": "(Pflicht)",
   "account.profile.landlinePhone": "Festnetz",
   "account.profile.homepage": "Webseite",
   "account.profile.contactVisibility": "Wer sieht meine Kontaktdaten?",

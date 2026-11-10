@@ -98,4 +98,31 @@ describe('ProfilePageComponent', () => {
     await fixture.whenStable();
     expect(save().disabled).toBe(true);
   });
+
+  it('requires the mobile number (D2): no number, no save, with an error that says why', async () => {
+    http.expectOne('/api/users/me').flush(PROFILE);
+    await fixture.whenStable();
+    const save = () => host.querySelector('[data-testid="account.profile.save"] button') as HTMLButtonElement;
+    const error = () => host.querySelector('[data-testid="account.profile.mobileRequired"]');
+    expect(error()).not.toBeNull();
+
+    const street = host.querySelector('[data-testid="account.profile.street"]') as HTMLInputElement;
+    street.value = 'Langstrasse 1';
+    street.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(save().disabled).toBe(true);
+
+    const mobile = host.querySelector('[data-testid="account.profile.mobilePhone"]') as HTMLInputElement;
+    mobile.value = '079 123 45 67';
+    mobile.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(error()).toBeNull();
+    expect(save().disabled).toBe(false);
+
+    // an invalid number keeps it disabled too
+    mobile.value = '12';
+    mobile.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(save().disabled).toBe(true);
+  });
 });

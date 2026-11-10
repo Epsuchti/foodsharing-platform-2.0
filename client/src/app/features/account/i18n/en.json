@@ -90,6 +90,8 @@
   "account.profile.dateOfBirth": "Date of birth",
   "account.profile.contact": "Contact",
   "account.profile.mobilePhone": "Mobile number",
+  "account.profile.mobileRequired": "Please add your mobile number. It’s required so your team can reach you around pickups; the profile can’t be saved without it.",
+  "account.profile.required": "(required)",
   "account.profile.landlinePhone": "Landline",
   "account.profile.homepage": "Website",
   "account.profile.contactVisibility": "Who sees my contact details?",
