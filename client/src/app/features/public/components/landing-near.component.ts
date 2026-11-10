@@ -23,7 +23,7 @@ export interface NearResult {
   readonly pin: { readonly lat: number; readonly lon: number } | null;
 }
 
-/** Zoom of the map on a found region (decision 176, D4). */
+/** Zoom of the map on a found region (decision 179, D4). */
 export const NEAR_RESULT_ZOOM = 11;
 
 /**
@@ -218,7 +218,7 @@ export const NEAR_RESULT_ZOOM = 11;
       color: var(--fs-text-muted);
       font-size: 0.9rem;
     }
-    /* every card is a brand panel (decision 175): border, radius, gradient and shadow come from .fs-panel--brand */
+    /* every card is a brand panel (decision 178): border, radius, gradient and shadow come from .fs-panel--brand */
     .card {
       display: grid;
       gap: 0.5rem;

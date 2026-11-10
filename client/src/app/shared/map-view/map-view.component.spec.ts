@@ -48,8 +48,8 @@ async function create(inputs: Record<string, unknown> = {}): Promise<ComponentFi
 })
 class TilesActionHost {}
 
-/** MapView opt-ins of decision 176 (C17 landing map, M1 deep link). */
-describe('MapViewComponent options (decision 176)', () => {
+/** MapView opt-ins of decision 179 (C17 landing map, M1 deep link). */
+describe('MapViewComponent options (decision 179)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...provideDataStateTesting(), provideOptimus()] });
   });

@@ -1,7 +1,7 @@
 import type { MapFocus } from './map-view.component';
 
 /**
- * Deep link of a map view (M1, decision 176): `/map?lat=<deg>&lon=<deg>&z=<int>`, written with 4 decimals
+ * Deep link of a map view (M1, decision 179): `/map?lat=<deg>&lon=<deg>&z=<int>`, written with 4 decimals
  * (about 11 m). Shared by the landing map ("Karte öffnen") and `/map`, so neither feature imports the other.
  * Pure functions, no Angular.
  */

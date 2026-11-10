@@ -5,7 +5,7 @@ import { StartupService } from './startup.service';
 
 /**
  * Loads the code of a deferred overlay (header popovers, menu drawers) after the first page, while online
- * (D11.5.3, decision 175 follow-up). `@defer (… prefetch when ready())` then finds the module in the browser's module
+ * (D11.5.3, decision 178 follow-up). `@defer (… prefetch when ready())` then finds the module in the browser's module
  * cache and cannot fail. Letting `@defer` prefetch on its own broke offline: a chunk request that started offline (or
  * was cut by the connection going away) failed for good, Angular reported NG0750 for the block without `@error` (the
  * shell's "Etwas ist schiefgelaufen" toast) and the menu never opened again until a reload. Here a failed import is

@@ -55,7 +55,7 @@ export function landingMapZoom(wide: boolean): number {
 }
 
 /**
- * The real map in "In deiner Nähe" (C17, decision 176, amends decision 160 map option 1): the shared MapView on the
+ * The real map in "In deiner Nähe" (C17, decision 179, amends decision 160 map option 1): the shared MapView on the
  * self-hosted basemap with the public region and Fairteiler pins of LandingMarkersResource. A second
  * `@defer (on viewport)` keeps the Leaflet, PMTiles and protomaps chunks and every tile request back until the map
  * frame is in view; the placeholder is a plain frame of the same height. On phones one finger scrolls the page and
@@ -208,7 +208,7 @@ export function landingMapZoom(wide: boolean): number {
   `,
   styles: `
     :host {
-      /* MapView colours from the public tokens (decision 176, D8); inside main.fs-public they are the reskin's */
+      /* MapView colours from the public tokens (decision 179, D8); inside main.fs-public they are the reskin's */
       --fs-map-surface: var(--fs-pub-map-land);
       --fs-map-pin-region-bg: var(--fs-primary);
       --fs-map-pin-region-fg: var(--fs-on-primary);

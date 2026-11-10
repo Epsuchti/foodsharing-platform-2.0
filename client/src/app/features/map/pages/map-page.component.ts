@@ -88,7 +88,7 @@ interface Selected {
  * precision). A pin opens its bubble (`getMapBubble` / `getPublicMapBubble`); a place search (`searchMapLocation`)
  * and "near me" (browser location) move the map.
  *
- * Deep link (decision 176): `/map?lat=<deg>&lon=<deg>&z=<int>` opens at that view (`parseMapView`, read once on
+ * Deep link (decision 179): `/map?lat=<deg>&lon=<deg>&z=<int>` opens at that view (`parseMapView`, read once on
  * init; an invalid link falls back to the default view, Zürich at zoom 8). After every move the URL follows the map
  * (debounced, `replaceUrl`, so history does not grow), except at the default view (plain `/map`). A move from
  * "near me" is never written — the URL drops its params until the user moves the map by hand — so the browser
@@ -773,7 +773,7 @@ export class MapPageComponent {
         const position: [number, number] = [result.coords.latitude, result.coords.longitude];
         this.ownPosition.set(position);
         this.focusLabel.set(null);
-        // the browser location never goes into the URL (decision 176, data protection)
+        // the browser location never goes into the URL (decision 179, data protection)
         this.suppressSync = true;
         this.focus.set({ lat: position[0], lon: position[1], zoom: 13 });
       },

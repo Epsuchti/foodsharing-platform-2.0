@@ -92,7 +92,7 @@ const KIND_ICON: Record<MapMarkerKind, string> = {
  * or dark with the theme, labels in the UI language). A raster template in `tileUrl` or `window.__fsTileUrl`
  * (screenshots: a local stub PNG) replaces it.
  *
- * Opt-ins (decision 176): `cooperative` (touch: one finger scrolls the page, two move the map, with a hint),
+ * Opt-ins (decision 179): `cooperative` (touch: one finger scrolls the page, two move the map, with a hint),
  * `markerTabStops=false` (pins are no Tab stops and get no hidden list; the map itself stays one), `viewChange`
  * after every move, a `[fsMapTilesAction]` element projected into the tile error, and the colour variables
  * `--fs-map-surface`, `--fs-map-pin-region-bg/-fg` and `--fs-map-pin-fsp-bg/-fg` (fallbacks = the old values).

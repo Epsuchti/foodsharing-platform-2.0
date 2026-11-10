@@ -157,7 +157,7 @@ test('M1 location search centres the map @M1', async ({ apiOf, as }) => {
   await expect(member.getByTestId('map.page.searchResult').first()).toHaveText('8400');
   // the postcode centre of Winterthur (static geocoding seed)
   await expect(member.getByTestId('map.page.map')).toHaveAttribute('data-center', '47.500,8.724');
-  // a search hit is a place the user typed: the URL carries it (decision 176)
+  // a search hit is a place the user typed: the URL carries it (decision 179)
   await expect(member).toHaveURL(/\/map\?lat=47\.(49|50)\d\d&lon=8\.72\d\d&z=13$/);
 
   // a region name finds the region
@@ -210,7 +210,7 @@ test('M1 phone: the map stays below the tab bar, a tab over the map still naviga
   const member = await as('foodsaver');
   await acceptPendingConsents(apiOf(member));
   if (!isMobile) await member.setViewportSize({ width: 412, height: 800 });
-  // reduced motion too: without Leaflet's animations the map's panes once painted over the shell (decision 176)
+  // reduced motion too: without Leaflet's animations the map's panes once painted over the shell (decision 179)
   await member.emulateMedia({ reducedMotion: 'reduce' });
   await member.goto('/map');
   await expectDataState(member, 'map.page.map.state', 'success');
@@ -222,7 +222,7 @@ test('M1 phone: the map stays below the tab bar, a tab over the map still naviga
   const barBox = (await bar.boundingBox())!;
   expect(frame.y + frame.height).toBeGreaterThan(barBox.y + barBox.height / 2);
   // the map is its own stacking context below the bar: Leaflet's panes (z-index 200–1000) can't reach the shell.
-  // Without it the panes painted over the fixed tab bar in full-page renders (M1 baselines, decision 176 follow-up).
+  // Without it the panes painted over the fixed tab bar in full-page renders (M1 baselines, decision 179 follow-up).
   const stacking = await member.evaluate(() => {
     const pane = document.querySelector('[data-testid="map.page.map"] .leaflet-map-pane')!;
     const bar = document.querySelector('fs-mobile-tab-bar')!;

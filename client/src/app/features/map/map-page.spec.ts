@@ -229,7 +229,7 @@ class OtherPage {}
 
 const ZURICH_DEFAULT: MapViewChange = { lat: 47.3769, lon: 8.5417, zoom: 8, byUser: true };
 
-/** M1 deep link and URL sync of /map (decision 176, D12/D13). */
+/** M1 deep link and URL sync of /map (decision 179, D12/D13). */
 describe('MapPageComponent deep link (M1)', () => {
   let router: Router;
   let harness: RouterTestingHarness | undefined;

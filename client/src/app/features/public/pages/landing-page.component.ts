@@ -80,7 +80,7 @@ export const PARTNER_SUPPORT_QUERY = { from: '/', subject: 'partner' } as const;
  * Public landing page (`/`, `/de|gws|fr|it|en`; C17, decision 160 = Variant D of
  * docs/design/landing-page-proposal.md): hero with E-Mail first and Google second, "Worum es geht", the live
  * impact counters (the only DataState of the explainer call), four static start steps, "In deiner Nähe" (postcode
- * search and the real map, decision 176: the section is deferred until it scrolls into view, and the MapView inside
+ * search and the real map, decision 179: the section is deferred until it scrolls into view, and the MapView inside
  * it once more until the map frame is in view), Fairteiler, businesses, other ways to help, duties, FAQ in three
  * groups, a CTA band and on phones a sticky "Jetzt mitmachen". Before the map frame is in view no Leaflet chunk,
  * no tile and no marker is requested; the tiles are self-hosted, so no third-party host is ever requested.

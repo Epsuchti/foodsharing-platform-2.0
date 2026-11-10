@@ -5,7 +5,7 @@ import { expect, forEachVariant, screenshotTest, variants } from './_setup';
 
 /**
  * Landing page, Variant D (C17, decision 160): full page, the result card of the postcode search, the counters'
- * skeleton and error, the search's empty and error states, and the real map (decision 176: map, popup, tile error,
+ * skeleton and error, the search's empty and error states, and the real map (decision 179: map, popup, tile error,
  * placeholder; tiles are the raster stub of `_setup.ts`) — × light/dark on the desktop and mobile projects.
  * Moved here from onboarding.screen.ts (the old `explainer-*` baselines are gone). Baselines are generated in the
  * end batch in Docker (`e2e/scripts/screenshots.sh`, decision 69).

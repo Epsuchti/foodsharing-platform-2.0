@@ -20,7 +20,7 @@ const FSPS: ApiMapMarker[] = [{ id: FSP_ID, kind: MapMarkerKind.Fsp, lat: 47.369
 const REGIONS_URL = '/api/public/map/markers/regions';
 const FSPS_URL = '/api/public/map/markers/food-share-points';
 
-/** C17 landing map (decision 176): pins, counts, popup, focus and the `/map` deep link. */
+/** C17 landing map (decision 179): pins, counts, popup, focus and the `/map` deep link. */
 describe('LandingMapComponent (C17)', () => {
   let fixture: ComponentFixture<LandingMapComponent>;
   let http: HttpTestingController;

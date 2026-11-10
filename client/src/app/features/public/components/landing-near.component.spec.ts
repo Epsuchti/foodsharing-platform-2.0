@@ -161,7 +161,7 @@ describe('LandingNearComponent (C17)', () => {
     expect(byTestId('public.landing.near.regionLink')!.getAttribute('href')).toBe(
       '/r/zuerich-stadt',
     );
-    // decision 176: "Karte öffnen" opens /map at the region's pin, zoom 11, and the landing map moves there
+    // decision 179: "Karte öffnen" opens /map at the region's pin, zoom 11, and the landing map moves there
     expect(byTestId('public.landing.near.openMap')!.getAttribute('href')).toBe(
       '/map?lat=47.3779&lon=8.5403&z=11',
     );

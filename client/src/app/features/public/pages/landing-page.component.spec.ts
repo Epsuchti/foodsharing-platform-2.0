@@ -147,7 +147,7 @@ describe('LandingPageComponent (C17)', () => {
     }
   });
 
-  it('defers "In deiner Nähe" and embeds the MapView only after the inner defer (decision 176)', async () => {
+  it('defers "In deiner Nähe" and embeds the MapView only after the inner defer (decision 179)', async () => {
     http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
     expect(byTestId('public.landing.near.search')).toBeNull();
     expect(host.querySelector('fs-landing-map')).toBeNull();
@@ -170,7 +170,7 @@ describe('LandingPageComponent (C17)', () => {
     }
   });
 
-  it('puts each "way" icon in a decorative tile (decision 175)', () => {
+  it('puts each "way" icon in a decorative tile (decision 178)', () => {
     http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
     for (const id of ['member', 'home', 'business']) {
       const tile = byTestId(`public.landing.way.${id}`)!.querySelector('.fs-tile');

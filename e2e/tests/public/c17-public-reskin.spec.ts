@@ -3,7 +3,7 @@ import { type Page } from '@playwright/test';
 import { expect, test } from '../../fixtures';
 
 /**
- * C17 public reskin (decision 175, docs/tasks/2026-11-10-public-reskin-old-colours.md): while nobody is logged in, the
+ * C17 public reskin (decision 178, docs/tasks/2026-11-10-public-reskin-old-colours.md): while nobody is logged in, the
  * shell's <main> carries `fs-public` and every page inside it uses the old foodsharing palette, Optimus components
  * included (their primary tokens are re-declared in the scope). A logged-in user keeps the app colours everywhere.
  */

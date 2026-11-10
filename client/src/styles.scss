@@ -89,7 +89,7 @@
   --fs-pub-map-water: #c6dfe4;
   --fs-pub-map-park: #d8e8cf;
   --fs-pub-map-line: #d5dccf;
-  /* old foodsharing brand of the public pages (decision 175, docs/design/landing-old-colours-d-proposal.md §3.2):
+  /* old foodsharing brand of the public pages (decision 178, docs/design/landing-old-colours-d-proposal.md §3.2):
      warm tint source of the panels' right edge (never text), panel mix "Mittel", tile shadow, counters band and the
      exact old green (only as numbers on the brown band or as a fill without text) */
   --fs-brand-tan: #b8905c;
@@ -193,7 +193,7 @@
 }
 
 // ---------------------------------------------------------------------------------------------------
-// Public scope (decision 175, docs/design/landing-old-colours-d-proposal.md §3.3): the old foodsharing palette
+// Public scope (decision 178, docs/design/landing-old-colours-d-proposal.md §3.3): the old foodsharing palette
 // (brown ink, old green, warm surfaces) on every page a logged-out visitor sees. ShellComponent puts `fs-public`
 // on <main> while nobody is logged in; header, side menu, footer, page background and overlays outside <main>
 // keep the app colours. A custom property that uses var() is computed where it is declared, so every token
@@ -726,7 +726,7 @@
     box-shadow: var(--fs-shadow-sm);
   }
 
-  // Brand panel and icon tile (decision 175, docs/design/landing-old-colours-d-proposal.md §3.1): green (primary of
+  // Brand panel and icon tile (decision 178, docs/design/landing-old-colours-d-proposal.md §3.1): green (primary of
   // the scope it sits in) on the left fading out, warm tan on the right fading in. Used on the public pages; inside
   // the app the same class would take the app green. -soft / -strong are one intensity step down / up.
   .fs-panel--brand,

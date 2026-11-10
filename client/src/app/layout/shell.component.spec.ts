@@ -126,7 +126,7 @@ describe('ShellComponent', () => {
     expect(byTestId('nav.tab.stores')).not.toBeNull();
   });
 
-  it('reskins the page in the old colours only while logged out (fs-public on main, decision 175)', async () => {
+  it('reskins the page in the old colours only while logged out (fs-public on main, decision 178)', async () => {
     const main = () => host.querySelector('main#main-content') as HTMLElement;
     expect(main().classList).toContain('fs-public');
     logIn();

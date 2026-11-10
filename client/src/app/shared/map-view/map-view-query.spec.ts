@@ -6,7 +6,7 @@ function params(query: string): MapViewParams {
   return { get: (name) => search.get(name) };
 }
 
-/** M1 deep link `?lat&lon&z` (decision 176, D12). */
+/** M1 deep link `?lat&lon&z` (decision 179, D12). */
 describe('map view query', () => {
   it('round-trips a view at 4 decimals', () => {
     const query = mapViewQuery({ lat: 47.376912345, lon: 8.541694, zoom: 13 });

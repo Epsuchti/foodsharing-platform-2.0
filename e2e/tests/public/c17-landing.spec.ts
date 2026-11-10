@@ -4,7 +4,7 @@ import { expect, expectNoSeriousViolations, injectApiError, test } from '../../f
 
 /**
  * C17 public landing page (decision 160, Variant D of docs/design/landing-page-proposal.md): every section, the live
- * counters, the postcode search with its result card and states, the real map (decision 176: deferred until it is in
+ * counters, the postcode search with its result card and states, the real map (decision 179: deferred until it is in
  * view, pins, popup, search focus, tile failure, one-finger page scroll on phones, the `/map` deep link), the partner
  * CTA, no third-party request, reduced motion and the sticky join on phones.
  */
@@ -21,7 +21,7 @@ interface PublicRegionDto {
   pin?: { latitude: number; longitude: number };
 }
 
-/** The `/map` deep link of a region pin at zoom 11 (decision 176, D14). */
+/** The `/map` deep link of a region pin at zoom 11 (decision 179, D14). */
 function regionMapHref(region: PublicRegionDto): string {
   return `/map?lat=${region.pin!.latitude.toFixed(4)}&lon=${region.pin!.longitude.toFixed(4)}&z=11`;
 }
@@ -75,7 +75,7 @@ async function searchPostcode(page: Page, postcode: string): Promise<void> {
 }
 
 test('C17 landing shows every section of Variant D @C17 @page', async ({ page }) => {
-  // the map loads only once it is in view (decision 176): no tile, no marker request and no Leaflet chunk before
+  // the map loads only once it is in view (decision 179): no tile, no marker request and no Leaflet chunk before
   const mapRequests: string[] = [];
   const leafletChunks: string[] = [];
   page.on('request', (request) => {
