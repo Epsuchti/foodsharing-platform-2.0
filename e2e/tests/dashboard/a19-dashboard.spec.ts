@@ -99,6 +99,28 @@ test('A19 activity feed shows forum, store wall, mailbox, event and FSP items; f
   await expect(noAddress).toHaveURL(/\/account\/profile$/);
 });
 
+test('A19 activity feed shows mentions as names, not as raw markup (review 2026-11-10 F4) @A19', async ({ as, apiOf }) => {
+  const page = await as('bot');
+  const api = apiOf(page);
+  await acceptPendingConsents(api);
+  // forum only: the seeded post "Merci! @[Jonas Weber](user:…) übernimmt den Montag." is on the first pages
+  await api.putJson('/api/users/me/activity-filters', { excluded: ['STORE_WALL', 'MAILBOX', 'EVENT_WALL', 'FSP_WALL', 'BUDDY_WALL'] });
+  const feed = await api.getJson<{ items: { excerpt?: string }[] }>('/api/activity?page=0&size=50');
+  const excerpts = feed.items.map((item) => item.excerpt ?? '');
+  expect(excerpts).toContain('Merci! @Jonas Weber übernimmt den Montag.');
+  expect(excerpts.filter((excerpt) => excerpt.includes('(user:'))).toEqual([]);
+
+  await page.goto('/dashboard');
+  await expectDataState(page, 'dashboard.activity.state', 'success');
+  const mention = items(page, 'FORUM').filter({ hasText: 'übernimmt den Montag' });
+  while ((await mention.count()) === 0 && (await page.getByTestId('dashboard.activity.loadMore').count()) > 0) {
+    await page.getByTestId('dashboard.activity.loadMore').click();
+    await expectDataState(page, 'dashboard.activity.state', 'success');
+  }
+  await expect(mention.first()).toContainText('Merci! @Jonas Weber übernimmt den Montag.');
+  await expect(page.getByTestId('dashboard.activity.list')).not.toContainText('(user:');
+});
+
 test('A19 activity feed shows the error state and loads again on retry @A19', async ({ as, apiOf }) => {
   const page = await as('foodsaver');
   await acceptPendingConsents(apiOf(page));

@@ -164,6 +164,13 @@ class SearchServiceTest {
     }
 
     @Test
+    void snippetShowsMentionsAsPlainNames() {
+        String body = "Danke @[Jonas Weber](user:00000001-0001-4000-8000-000000000007), der Kühlschrank läuft wieder.";
+        assertThat(SearchService.snippet(body, List.of("kuhlschrank")))
+                .isEqualTo("Danke @Jonas Weber, der Kühlschrank läuft wieder.");
+    }
+
+    @Test
     void transliteratedUmlautsAreIndexedTwice() {
         assertThat(SearchIndexer.withFoldedWords("baeckereien zuerich nord")).isEqualTo(
                 "baeckereien zuerich nord backereien zurich");
