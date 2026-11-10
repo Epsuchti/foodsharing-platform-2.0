@@ -78,19 +78,26 @@ export interface NearResult {
     </form>
 
     @if (near.status() === 'idle') {
-      <div class="card card--idle" data-testid="public.landing.near.idle">
-        <p>{{ 'public.landing.near.idle' | t }}</p>
+      <div class="card card--idle fs-panel--brand" data-testid="public.landing.near.idle">
+        <div class="card__head">
+          <span class="fs-tile fs-tile--lg" aria-hidden="true"><i class="pi pi-search"></i></span>
+          <p>{{ 'public.landing.near.idle' | t }}</p>
+        </div>
       </div>
     }
-    <fs-data-state
-      [state]="near"
-      [compact]="true"
-      emptyIcon="pi pi-map-marker"
-      [emptyTitle]="'public.landing.near.search.noMatch' | t"
-      data-testid="public.landing.near.state"
-    >
+    <fs-data-state [state]="near" [compact]="true" data-testid="public.landing.near.state">
+      <ng-template fsEmpty>
+        <div class="card card--idle fs-panel--brand">
+          <div class="card__head">
+            <span class="fs-tile fs-tile--lg" aria-hidden="true"
+              ><i class="pi pi-map-marker"></i
+            ></span>
+            <p>{{ 'public.landing.near.search.noMatch' | t }}</p>
+          </div>
+        </div>
+      </ng-template>
       <ng-template fsSkeleton>
-        <div class="card" aria-hidden="true">
+        <div class="card fs-panel--brand" aria-hidden="true">
           <p-skeleton width="30%" height="0.8rem" />
           <p-skeleton width="55%" height="1.3rem" />
           <p-skeleton width="80%" height="0.9rem" />
@@ -110,40 +117,49 @@ export interface NearResult {
       </ng-template>
       <ng-template [fsData]="near" let-result>
         @if (result; as r) {
-          <div class="card" aria-live="polite" data-testid="public.landing.near.result">
-            <span class="card__kind">{{ 'public.landing.near.result.kind' | t }}</span>
-            <h3 class="card__title" data-testid="public.landing.near.result.name">{{ r.name }}</h3>
-            <p class="card__facts">
-              <span data-testid="public.landing.near.result.cooperations">{{
-                'public.landing.near.result.cooperations' | t: { count: r.storeCount }
-              }}</span>
-              <span data-testid="public.landing.near.result.members">{{
-                'public.landing.near.result.members' | t: { count: r.memberCount }
-              }}</span>
-            </p>
-            <p class="card__fsp" data-testid="public.landing.near.result.fsps">
-              <i class="pi pi-box" aria-hidden="true"></i>
-              @if (r.fspNames.length) {
-                {{ 'public.landing.near.result.fsps' | t: { names: r.fspNames.join(', ') } }}
-              } @else {
-                {{ 'public.landing.near.result.noFsp' | t }}
-              }
-            </p>
-            <div class="card__actions">
-              <a
-                class="fs-btn fs-btn--sm"
-                [routerLink]="['/r', r.slug]"
-                data-testid="public.landing.near.regionLink"
-                >{{ 'public.landing.near.result.regionLink' | t }}</a
-              >
-              <a
-                class="fs-btn fs-btn--sm fs-btn--outlined"
-                routerLink="/map"
-                data-testid="public.landing.near.openMap"
-              >
-                <i class="pi pi-map-marker" aria-hidden="true"></i>
-                <span>{{ 'public.landing.near.openMap' | t }}</span>
-              </a>
+          <div
+            class="card card--result fs-panel--brand"
+            aria-live="polite"
+            data-testid="public.landing.near.result"
+          >
+            <span class="fs-tile fs-tile--lg" aria-hidden="true"><i class="pi pi-users"></i></span>
+            <div class="card__body">
+              <span class="card__kind">{{ 'public.landing.near.result.kind' | t }}</span>
+              <h3 class="card__title" data-testid="public.landing.near.result.name">
+                {{ r.name }}
+              </h3>
+              <p class="card__facts">
+                <span data-testid="public.landing.near.result.cooperations">{{
+                  'public.landing.near.result.cooperations' | t: { count: r.storeCount }
+                }}</span>
+                <span data-testid="public.landing.near.result.members">{{
+                  'public.landing.near.result.members' | t: { count: r.memberCount }
+                }}</span>
+              </p>
+              <p class="card__fsp" data-testid="public.landing.near.result.fsps">
+                <i class="pi pi-box" aria-hidden="true"></i>
+                @if (r.fspNames.length) {
+                  {{ 'public.landing.near.result.fsps' | t: { names: r.fspNames.join(', ') } }}
+                } @else {
+                  {{ 'public.landing.near.result.noFsp' | t }}
+                }
+              </p>
+              <div class="card__actions">
+                <a
+                  class="fs-btn fs-btn--sm"
+                  [routerLink]="['/r', r.slug]"
+                  data-testid="public.landing.near.regionLink"
+                  >{{ 'public.landing.near.result.regionLink' | t }}</a
+                >
+                <a
+                  class="fs-btn fs-btn--sm fs-btn--outlined"
+                  routerLink="/map"
+                  data-testid="public.landing.near.openMap"
+                >
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  <span>{{ 'public.landing.near.openMap' | t }}</span>
+                </a>
+              </div>
             </div>
           </div>
         }
@@ -194,19 +210,26 @@ export interface NearResult {
       color: var(--fs-text-muted);
       font-size: 0.9rem;
     }
+    /* every card is a brand panel (decision 174): border, radius, gradient and shadow come from .fs-panel--brand */
     .card {
       display: grid;
       gap: 0.5rem;
       padding: 1.2rem 1.4rem;
-      border: 1px solid var(--fs-border);
-      border-radius: var(--fs-radius-lg);
-      background: var(--fs-surface);
-      box-shadow: var(--fs-shadow-sm);
     }
-    .card--idle {
-      border-style: dashed;
-      background: var(--fs-surface-muted);
-      box-shadow: none;
+    .card--result {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .card__head {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .card__body {
+      display: grid;
+      gap: 0.5rem;
+      min-width: 0;
     }
     .card p {
       margin: 0;

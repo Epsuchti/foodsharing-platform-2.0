@@ -34,7 +34,7 @@
   </section>
 
   <section
-    class="split split--flip"
+    class="split split--flip fs-panel--brand"
     data-testid="public.landing.mission"
     aria-labelledby="landing-mission"
   >
@@ -44,7 +44,7 @@
       <ul class="rows">
         @for (way of ways; track way.id) {
           <li class="row" [attr.data-testid]="'public.landing.way.' + way.id">
-            <i class="pi {{ way.icon }}" aria-hidden="true"></i>
+            <span class="fs-tile" aria-hidden="true"><i class="pi {{ way.icon }}"></i></span>
             <div>
               <strong>{{ 'public.landing.way.' + way.id + '.title' | t }}</strong>
               <span>{{ 'public.landing.way.' + way.id + '.text' | t }}</span>
@@ -107,11 +107,20 @@
     }
   </section>
 
-  <section class="split" data-testid="public.landing.fairteiler" aria-labelledby="landing-fsp">
+  <section
+    class="split fs-panel--brand"
+    data-testid="public.landing.fairteiler"
+    aria-labelledby="landing-fsp"
+  >
     <fs-landing-bubble kind="fsp" size="sm" />
     <div>
-      <h2 id="landing-fsp" class="title">{{ 'public.landing.fairteiler.title' | t }}</h2>
-      <p class="lead">{{ 'public.landing.fairteiler.text' | t }}</p>
+      <div class="head">
+        <span class="fs-tile fs-tile--lg" aria-hidden="true"><i class="pi pi-box"></i></span>
+        <div>
+          <h2 id="landing-fsp" class="title">{{ 'public.landing.fairteiler.title' | t }}</h2>
+          <p class="lead">{{ 'public.landing.fairteiler.text' | t }}</p>
+        </div>
+      </div>
       <ul class="chips">
         <li>
           <i class="pi pi-check" aria-hidden="true"></i>{{ 'public.landing.fairteiler.rule1' | t }}
@@ -127,7 +136,7 @@
   </section>
 
   <section class="biz" data-testid="public.explainer.business" aria-labelledby="landing-business">
-    <div class="card biz__card">
+    <div class="card biz__card fs-panel--brand">
       <p class="eyebrow">{{ 'public.landing.business.eyebrow' | t }}</p>
       <h2 id="landing-business" class="title title--sm">
         {{ 'public.explainer.businessTitle' | t }}
@@ -147,7 +156,7 @@
       <ul class="rows rows--grid">
         @for (benefit of benefits; track benefit.id) {
           <li class="row" [attr.data-testid]="'public.landing.business.benefit.' + benefit.id">
-            <i class="pi {{ benefit.icon }}" aria-hidden="true"></i>
+            <span class="fs-tile" aria-hidden="true"><i class="pi {{ benefit.icon }}"></i></span>
             <div>
               <strong>{{ 'public.landing.business.benefit.' + benefit.id + '.title' | t }}</strong>
               <span>{{ 'public.landing.business.benefit.' + benefit.id + '.text' | t }}</span>
@@ -159,7 +168,7 @@
         <i class="pi pi-sparkles" aria-hidden="true"></i> {{ 'public.landing.business.tag' | t }}
       </p>
     </div>
-    <div class="biz__panel">
+    <div class="biz__panel fs-panel--brand-soft">
       <fs-landing-bubble kind="business" size="sm" />
       <blockquote class="biz__quote" data-testid="public.landing.business.quote">
         <p>{{ 'public.landing.business.quote' | t }}</p>
@@ -169,7 +178,7 @@
   </section>
 
   <section
-    class="split split--flip"
+    class="split split--flip fs-panel--brand"
     data-testid="public.landing.moreWays"
     aria-labelledby="landing-ways"
   >
@@ -179,7 +188,7 @@
       <ul class="rows">
         @for (way of moreWays; track way.id) {
           <li class="row" [attr.data-testid]="'public.landing.moreWays.' + way.id">
-            <i class="pi {{ way.icon }}" aria-hidden="true"></i>
+            <span class="fs-tile" aria-hidden="true"><i class="pi {{ way.icon }}"></i></span>
             <div>
               <strong>{{ 'public.landing.moreWays.' + way.id + '.title' | t }}</strong>
               <span>{{ 'public.landing.moreWays.' + way.id + '.text' | t }}</span>
@@ -195,12 +204,12 @@
     <h2 id="landing-duties" class="title">{{ 'public.landing.duties.title' | t }}</h2>
     <p class="lead">{{ 'public.landing.duties.lead' | t }}</p>
     <div class="duties">
-      <div class="card">
+      <div class="card fs-panel--brand">
         <h3>{{ 'public.landing.duties.yesTitle' | t }}</h3>
         <ul class="rows">
           @for (duty of duties; track duty.id) {
             <li class="row" [attr.data-testid]="'public.landing.duties.' + duty.id">
-              <i class="pi {{ duty.icon }}" aria-hidden="true"></i>
+              <span class="fs-tile" aria-hidden="true"><i class="pi {{ duty.icon }}"></i></span>
               <div>
                 <strong>{{ 'public.landing.duties.' + duty.id + '.title' | t }}</strong>
                 <span>{{ 'public.landing.duties.' + duty.id + '.text' | t }}</span>
@@ -215,12 +224,12 @@
           }}</a>
         </p>
       </div>
-      <div class="card card--soft">
+      <div class="card fs-panel--brand-soft">
         <h3>{{ 'public.landing.duties.noTitle' | t }}</h3>
         <ul class="rows">
           @for (id of notDuties; track id) {
             <li class="row" [attr.data-testid]="'public.landing.duties.not.' + id">
-              <i class="pi pi-check" aria-hidden="true"></i>
+              <span class="fs-tile" aria-hidden="true"><i class="pi pi-check"></i></span>
               <div>
                 <strong>{{ 'public.landing.duties.not.' + id + '.title' | t }}</strong>
                 <span>{{ 'public.landing.duties.not.' + id + '.text' | t }}</span>
@@ -236,10 +245,16 @@
     <h2 id="landing-faq" class="title">{{ 'public.explainer.faqTitle' | t }}</h2>
     <div class="faq-groups">
       @for (group of faqGroups; track group.id) {
-        <div class="faq-group" [attr.data-testid]="'public.explainer.faq.group.' + group.id">
-          <h3 [id]="'landing-faq-' + group.id">
-            {{ 'public.explainer.faq.group.' + group.id | t }}
-          </h3>
+        <div
+          class="faq-group fs-panel--brand"
+          [attr.data-testid]="'public.explainer.faq.group.' + group.id"
+        >
+          <div class="head head--center">
+            <span class="fs-tile" aria-hidden="true"><i class="pi {{ group.icon }}"></i></span>
+            <h3 [id]="'landing-faq-' + group.id">
+              {{ 'public.explainer.faq.group.' + group.id | t }}
+            </h3>
+          </div>
           <div class="faq">
             @for (id of group.items; track id) {
               <details [attr.data-testid]="'public.explainer.faq.' + id">
@@ -266,7 +281,11 @@
     </p>
   </section>
 
-  <section class="band" data-testid="public.landing.band" aria-labelledby="landing-band">
+  <section
+    class="band fs-panel--brand-strong"
+    data-testid="public.landing.band"
+    aria-labelledby="landing-band"
+  >
     <h2 id="landing-band" class="title">{{ 'public.landing.band.title' | t }}</h2>
     <p class="muted">{{ 'public.landing.band.text' | t }}</p>
     <div class="actions">

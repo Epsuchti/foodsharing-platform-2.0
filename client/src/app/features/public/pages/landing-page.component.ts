@@ -34,9 +34,9 @@ export const GOOGLE_JOIN_URL = '/oauth2/authorization/google?returnUrl=/onboardi
 
 /** FAQ of the landing page in three groups (keys `public.explainer.faq.<id>.q/a`, `…faq.group.<group>`). */
 export const LANDING_FAQ_GROUPS = [
-  { id: 'join', items: ['what', 'who', 'cost', 'time', 'id'] },
-  { id: 'pickup', items: ['duties', 'cancel', 'all', 'safe'] },
-  { id: 'share', items: ['fairteiler', 'basket', 'business'] },
+  { id: 'join', icon: 'pi-users', items: ['what', 'who', 'cost', 'time', 'id'] },
+  { id: 'pickup', icon: 'pi-shopping-bag', items: ['duties', 'cancel', 'all', 'safe'] },
+  { id: 'share', icon: 'pi-box', items: ['fairteiler', 'basket', 'business'] },
 ] as const;
 
 /** Ways to take part ("Worum es geht"), keys `public.landing.way.<id>.title/text`. */

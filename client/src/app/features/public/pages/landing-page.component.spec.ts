@@ -155,6 +155,16 @@ describe('LandingPageComponent (C17)', () => {
     expect(host.querySelector('img')).toBeNull();
   });
 
+  it('puts each "way" icon in a decorative tile (decision 174)', () => {
+    http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
+    for (const id of ['member', 'home', 'business']) {
+      const tile = byTestId(`public.landing.way.${id}`)!.querySelector('.fs-tile');
+      expect(tile, id).not.toBeNull();
+      expect(tile!.getAttribute('aria-hidden'), id).toBe('true');
+      expect(tile!.querySelector('.pi'), id).not.toBeNull();
+    }
+  });
+
   it('marks the bubbles as decorative', () => {
     http.expectOne('/api/public/onboarding/explainer').flush(EXPLAINER);
     const bubbles = host.querySelectorAll('fs-landing-bubble');

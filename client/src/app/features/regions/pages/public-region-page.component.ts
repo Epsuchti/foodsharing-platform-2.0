@@ -23,7 +23,7 @@ import { IntroPickupDatesComponent } from '../shared/intro-pickup-dates.componen
   template: `
     <fs-data-state [state]="region" skeleton="card" testId="regions.public.state" data-testid="regions.public.state" backLink="/find-region">
       <ng-template [fsData]="region" let-r>
-        <header class="hero fs-card" data-testid="regions.public.hero">
+        <header class="hero fs-card fs-panel--brand" data-testid="regions.public.hero">
           @if (r.photoUrl) {
             <img class="hero__photo" [src]="r.photoUrl" alt="" width="160" height="160" />
           }
