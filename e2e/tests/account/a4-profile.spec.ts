@@ -44,6 +44,14 @@ test('A4 the mobile number is required: clearing it blocks saving, the server re
   await page.getByTestId('account.profile.city').fill('Zürich');
   await expect(page.getByTestId('account.profile.mobileRequired')).toBeVisible();
   await expect(save).toBeDisabled();
+  // review 2026-11-10 F2: the error below the mobile number moves neither input; both keep the same height
+  const mobile = (await page.getByTestId('account.profile.mobilePhone').boundingBox())!;
+  const landline = (await page.getByTestId('account.profile.landlinePhone').boundingBox())!;
+  expect(Math.abs(mobile.height - landline.height)).toBeLessThanOrEqual(1);
+  if (Math.abs(mobile.x - landline.x) > 1) {
+    // side by side (from 40rem)
+    expect(Math.abs(mobile.y - landline.y)).toBeLessThanOrEqual(1);
+  }
   await page.getByTestId('account.profile.mobilePhone').fill('079 123 45 67');
   await expect(page.getByTestId('account.profile.mobileRequired')).toHaveCount(0);
   await expect(save).toBeEnabled();

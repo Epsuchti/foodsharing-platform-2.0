@@ -69,6 +69,7 @@ let nextId = 0;
   styles: `
     :host {
       display: grid;
+      align-content: start;
       gap: 0.35rem;
     }
     input {

@@ -82,6 +82,8 @@
 
 .field {
   display: grid;
+  /* a field stretched by its taller neighbour (an error below it) keeps label and input at the top */
+  align-content: start;
   gap: 0.35rem;
   min-width: 0;
 }
