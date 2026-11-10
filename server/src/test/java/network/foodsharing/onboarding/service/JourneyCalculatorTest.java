@@ -49,6 +49,7 @@ class JourneyCalculatorTest {
         Summary einabs;
         List<ExtraStep> extras = List.of();
         TrackInputs tracks = NO_TRACKS;
+        Integer typicalDays = 12;
 
         Case() {
             user.setId(UUID.randomUUID());
@@ -95,7 +96,7 @@ class JourneyCalculatorTest {
 
         JourneyView compute() {
             return JourneyCalculator.compute(new Inputs(user, phone, region, mandatory, CHAPTERS, read, quiz,
-                    List.of(CONTACT), agreement, einabs, extras, List.of(CONTACT), 12, tracks));
+                    List.of(CONTACT), agreement, einabs, extras, List.of(CONTACT), typicalDays, tracks));
         }
     }
 
@@ -219,6 +220,20 @@ class JourneyCalculatorTest {
     }
 
     @Test
+    void idCheckShowsOneFigureOnly() {
+        Case c = new Case().profile().learned().quizPassed().agreed()
+                .einabs(Stage.COMPLETE, NextStep.WAIT_FOR_VERIFICATION, 3, 0);
+        StepView known = step(c.compute(), "ID_CHECK");
+        assertThat(known.waitingFor().typicalDays()).isEqualTo(12);
+        assertThat(known.estimatedDuration()).isNull();
+
+        c.typicalDays = null;
+        StepView unknown = step(c.compute(), "ID_CHECK");
+        assertThat(unknown.waitingFor().typicalDays()).isNull();
+        assertThat(unknown.estimatedDuration()).isEqualTo("P7D");
+    }
+
+    @Test
     void idCheckWaitsForTheRegionThenThePassport() {
         Case c = new Case().profile().learned().quizPassed().agreed()
                 .einabs(Stage.COMPLETE, NextStep.WAIT_FOR_VERIFICATION, 3, 0);
@@ -226,6 +241,7 @@ class JourneyCalculatorTest {
         expectCurrent(waiting, "ID_CHECK", JourneyStepStatus.WAITING_FOR_OTHERS);
         assertThat(step(waiting, "ID_CHECK").waitingFor().typicalDays()).isEqualTo(12);
         assertThat(step(waiting, "ID_CHECK").waitingFor().contacts()).containsExactly(CONTACT);
+        assertThat(step(waiting, "ID_CHECK").estimatedDuration()).isNull();
         assertThat(step(waiting, "INTRO_PICKUPS").status()).isEqualTo(JourneyStepStatus.DONE);
 
         JourneyView passport = c.verified().compute();

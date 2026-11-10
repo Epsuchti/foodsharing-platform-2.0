@@ -3,6 +3,7 @@ package network.foodsharing.intropickup.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Language;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.intropickup.domain.IntroPickup;
@@ -54,6 +56,7 @@ class IntroPickupNotificationsTest {
             notifications, mails, regions, users, properties, cities);
     private final UUID region = UUID.randomUUID();
     private final IntroPickup pickup = new IntroPickup();
+    private final User user = new User();
 
     @BeforeEach
     void setUp() {
@@ -63,7 +66,6 @@ class IntroPickupNotificationsTest {
         pickup.setCategory(IntroPickupCategory.BAKERY);
         pickup.setBusinessName("Bäckerei Vohdin");
         pickup.setStartAt(Instant.parse("2026-11-20T17:00:00Z"));
-        User user = new User();
         user.setId(UUID.randomUUID());
         user.setDisplayName("Mia");
         when(users.findActive(user.getId())).thenReturn(Optional.of(user));
@@ -93,6 +95,18 @@ class IntroPickupNotificationsTest {
         assertThat(bell.getValue().params()).doesNotContainKeys("businessName", "category")
                 .containsEntry("city", "Zürich");
         assertThat(bell.getValue().params().values()).doesNotContain("Bäckerei Vohdin");
+    }
+
+    /** B2 (review 2026-11-10): only bookable dates are announced; a blocked subscriber gets no bell and no mail. */
+    @Test
+    void aSubscriberWhoCannotBookTheDateIsNotNotified() {
+        when(booking.notBookableReason(user.getId(), pickup))
+                .thenReturn(Optional.of(ApiErrorCode.USER_BOOKING_LIMIT_REACHED));
+
+        assertThat(service.notifySubscribers(pickup)).isZero();
+
+        verify(mails, never()).enqueue(any());
+        verify(notifications, never()).notify(any());
     }
 
     @Test

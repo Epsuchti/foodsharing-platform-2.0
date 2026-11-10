@@ -45,6 +45,17 @@ public interface IntroPickupSlotRepository extends JpaRepository<IntroPickupSlot
             + "and s.bookingUserId = :userId")
     List<IntroPickupSlot> findBookingsOfUser(@Param("userId") UUID userId);
 
+    /**
+     * (booking user id, start of the latest counted EinAb) of the given users, all regions, live EinAbs only. Counted
+     * as in {@code IntroPickupViews.counts}: DONE, or BOOKED and started before {@code now}.
+     */
+    @Query("select s.bookingUserId, max(p.startAt) from IntroPickupSlot s, IntroPickup p "
+            + "where p.id = s.introPickupId and p.deletedAt is null and s.bookingUserId in :userIds "
+            + "and (s.status = network.foodsharing.intropickup.domain.SlotStatus.DONE "
+            + "or (s.status = network.foodsharing.intropickup.domain.SlotStatus.BOOKED and p.startAt < :now)) "
+            + "group by s.bookingUserId")
+    List<Object[]> lastCountedStartOfUsers(@Param("userIds") Collection<UUID> userIds, @Param("now") Instant now);
+
     /** Bookings (slots with a user) of a region, live EinAbs only. */
     @Query("select s from IntroPickupSlot s, IntroPickup p where p.id = s.introPickupId and p.deletedAt is null "
             + "and p.regionId = :regionId and s.bookingUserId is not null")
