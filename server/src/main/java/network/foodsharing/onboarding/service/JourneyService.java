@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -61,7 +62,9 @@ public class JourneyService {
     public record RegionStepConfirmed(UUID userId, UUID regionId, String stepKey) {
     }
 
+    /** Window and minimum number of cases for {@link #typicalVerificationDays}. */
     static final Duration TYPICAL_WINDOW = Duration.ofDays(365);
+    static final int TYPICAL_MIN_CASES = 3;
 
     private final UserService users;
     private final RegionService regions;
@@ -257,15 +260,32 @@ public class JourneyService {
                 .flatMap(g -> regionReads.ambassadorsOf(g.getId()).stream()).distinct().toList();
     }
 
-    /** Median days from registration to verification of the region's members verified in the last year. */
+    /**
+     * Q3 (review 2026-11-10): median days from the last counted EinAb to verification of the region's members verified
+     * within {@link #TYPICAL_WINDOW}; null with fewer than {@link #TYPICAL_MIN_CASES} such members (the step then
+     * shows its static estimate instead).
+     */
     Integer typicalVerificationDays(UUID regionId) {
         Instant since = clock.instant().minus(TYPICAL_WINDOW);
-        List<Long> days = users.findActive(memberships.membersOf(regionId)).stream()
+        List<User> verified = users.findActive(memberships.membersOf(regionId)).stream()
                 .filter(u -> u.isVerified() && u.getVerifiedAt() != null && u.getVerifiedAt().isAfter(since))
-                .map(u -> Math.max(0, Duration.between(u.getRegisteredAt() != null ? u.getRegisteredAt()
-                        : u.getCreatedAt(), u.getVerifiedAt()).toDays()))
+                .toList();
+        if (verified.size() < TYPICAL_MIN_CASES) {
+            return null;
+        }
+        return medianDaysToVerification(verified,
+                introPickups.lastIntroPickupAt(verified.stream().map(User::getId).toList()));
+    }
+
+    /**
+     * Median whole days from the last counted EinAb to verification over the users that have one; null with fewer
+     * than {@link #TYPICAL_MIN_CASES} cases. Negative spans (EinAb after verification) count as 0.
+     */
+    static Integer medianDaysToVerification(List<User> verified, Map<UUID, Instant> lastIntroPickupAt) {
+        List<Long> days = verified.stream().filter(u -> lastIntroPickupAt.containsKey(u.getId()))
+                .map(u -> Math.max(0, Duration.between(lastIntroPickupAt.get(u.getId()), u.getVerifiedAt()).toDays()))
                 .sorted().toList();
-        if (days.isEmpty()) {
+        if (days.size() < TYPICAL_MIN_CASES) {
             return null;
         }
         int middle = days.size() / 2;

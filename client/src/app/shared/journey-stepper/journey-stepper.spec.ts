@@ -1,6 +1,10 @@
+import { HttpTestingController } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockState, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 
+import { Language, Role, Theme } from '../../api';
+import { SessionService } from '../../core/auth/session.service';
 import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { JourneyStepperComponent } from './journey-stepper.component';
 import {
@@ -23,6 +27,9 @@ describe('JourneyStepperComponent', () => {
           'onboarding.blocked.FAIRTEILER_VISIT_REQUIRED': 'Fairteiler nötig',
           'shared.journey.stepOf': 'Schritt {n} von {total}',
           'shared.journey.duration.weeks': '{count, plural, one {ca. # Woche} other {ca. # Wochen}}',
+          'shared.journey.typicalDays': 'dauert hier meist {days} Tage',
+          'shared.journey.message': 'Nachricht',
+          'shared.journey.messageAria': 'Nachricht an {name}',
         },
       }),
     }),
@@ -71,6 +78,50 @@ describe('JourneyStepperComponent', () => {
     const waiting = el.querySelector('[data-step="ID_CHECK"]') as HTMLElement;
     expect(waiting.getAttribute('data-status')).toBe('WAITING_FOR_OTHERS');
     expect(waiting.querySelector('fs-user-chip')?.textContent).toContain('Reto Baumann');
+  });
+
+  it('a waiting step shows one time figure: the typical days, no estimate (review 2026-11-10 Q3)', async () => {
+    const { el } = await create({ journey: DEMO_JOURNEY_WAITING });
+    const waiting = el.querySelector('[data-step="ID_CHECK"]') as HTMLElement;
+    expect(waiting.textContent).toContain('dauert hier meist 5 Tage');
+    expect(waiting.querySelector('.step__meta')).toBeNull();
+  });
+
+  it('"Nachricht" opens the direct conversation with a waiting step contact (A4)', async () => {
+    const { el, fixture } = await create({ journey: DEMO_JOURNEY_WAITING });
+    // the button is loaded deferred (it keeps messaging out of the shell's initial bundle)
+    for (const block of await fixture.getDeferBlocks()) await block.render(DeferBlockState.Complete);
+    const button = el.querySelector('[data-testid="t.journey.message"]') as HTMLButtonElement;
+    expect(button.textContent).toContain('Nachricht');
+    expect(button.getAttribute('aria-label')).toBe('Nachricht an Reto Baumann');
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    button.click();
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/conversations/lookup');
+    expect(request.request.body).toEqual({ memberIds: ['00000001-0001-4000-8000-000000000011'] });
+    request.flush({ id: 'c1' });
+    await fixture.whenStable();
+    expect(navigate).toHaveBeenCalledWith(['/messages', 'c1']);
+  });
+
+  it('no "Nachricht" button for the user themselves', async () => {
+    TestBed.inject(SessionService).applySession({
+      authenticated: true,
+      permissions: [],
+      units: [],
+      user: {
+        id: '00000001-0001-4000-8000-000000000011',
+        email: 'reto@local',
+        displayName: 'Reto Baumann',
+        role: Role.Ambassador,
+        language: Language.De,
+        theme: Theme.System,
+        verified: true,
+      },
+    });
+    const { el, fixture } = await create({ journey: DEMO_JOURNEY_WAITING });
+    expect(await fixture.getDeferBlocks()).toHaveLength(0);
+    expect(el.querySelector('fs-user-chip')).not.toBeNull();
+    expect(el.querySelector('[data-testid="t.journey.message"]')).toBeNull();
   });
 
   it('compact mode shows the step count and the next action', async () => {

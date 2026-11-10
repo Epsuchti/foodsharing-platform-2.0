@@ -42,6 +42,8 @@ export const DEMO_JOURNEY_WAITING: Journey = {
       return {
         ...step,
         status: JourneyStepStatus.WaitingForOthers,
+        // the server sends one figure only: the region's typical days, or the static estimate (review 2026-11-10 Q3)
+        estimatedDuration: undefined,
         waitingFor: {
           labelKey: 'onboarding.waiting.verification',
           typicalDays: 5,

@@ -48,7 +48,7 @@ JourneyWaitingFor:
 
 JourneyStep:
   type: object
-  required: [key, status, estimatedDuration]
+  required: [key, status]
   properties:
     key:
       description: 'JourneyStepKey or region extra step key'
@@ -65,7 +65,7 @@ JourneyStep:
     nextAction:
       $ref: './onboarding.yaml#/JourneyNextAction'
     estimatedDuration:
-      description: 'ISO-8601 duration, e.g. PT10M'
+      description: 'ISO-8601 duration, e.g. PT10M. Missing on ID_CHECK when waitingFor.typicalDays is set (one figure only).'
       type: string
     blockedReason:
       type: string
