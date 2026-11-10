@@ -158,8 +158,19 @@ class LegalServiceTest {
                 network.foodsharing.content.domain.ContentPageKind.PAGE, 1, null, false, null));
         assertThat(content.page("rules", "fr").title()).isEqualTo("Règles");
         assertThat(content.page("rules", "it").fallback()).isTrue();
-        assertThat(content.learningChapters("en")).singleElement()
-                .satisfies(chapter -> assertThat(chapter.title()).isEqualTo("Regeln"));
+        // the new chapter (sort order 1, BASICS) comes before the Grundlagen of changeset 195 (sort 10-70), with the
+        // German title as fallback; the imported chapters have an English text of their own
+        var english = content.learningChapters("en");
+        assertThat(english).first().satisfies(chapter -> {
+            assertThat(chapter.page().getSlug()).isEqualTo("rules");
+            assertThat(chapter.title()).isEqualTo("Regeln");
+            assertThat(chapter.fallback()).isTrue();
+        });
+        assertThat(english).filteredOn(chapter -> chapter.page().getSlug().equals("principles")).singleElement()
+                .satisfies(chapter -> {
+                    assertThat(chapter.title()).isEqualTo("Principles");
+                    assertThat(chapter.fallback()).isFalse();
+                });
         assertThatThrownBy(() -> content.page("draft", "de")).isInstanceOfSatisfying(ApiException.class,
                 e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.CONTENT_NOT_FOUND));
         assertThat(ContentService.summary("## Titel\n\n**fett** und [Link](x)")).isEqualTo("Titel fett und Link(x)");

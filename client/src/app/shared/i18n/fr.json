@@ -145,6 +145,8 @@
   "shared.historyTimeline.meta.kgSaved": "kg sauvés",
   "shared.historyTimeline.meta.kind": "Type",
   "shared.historyTimeline.meta.languages": "Langues",
+  "shared.historyTimeline.meta.group": "Section",
+  "shared.historyTimeline.meta.required": "Chapitre obligatoire",
   "shared.historyTimeline.meta.lastLoginAt": "Dernière connexion",
   "shared.historyTimeline.meta.lifetimeDays": "Durée (jours)",
   "shared.historyTimeline.meta.location": "Lieu",

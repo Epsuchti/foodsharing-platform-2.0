@@ -145,6 +145,8 @@
   "shared.historyTimeline.meta.kgSaved": "Gerettete kg",
   "shared.historyTimeline.meta.kind": "Art",
   "shared.historyTimeline.meta.languages": "Sprachen",
+  "shared.historyTimeline.meta.group": "Bereich",
+  "shared.historyTimeline.meta.required": "Pflichtkapitel",
   "shared.historyTimeline.meta.lastLoginAt": "Letzte Anmeldung",
   "shared.historyTimeline.meta.lifetimeDays": "Laufzeit (Tage)",
   "shared.historyTimeline.meta.location": "Ort",

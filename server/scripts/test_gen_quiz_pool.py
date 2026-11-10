@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests of gen-quiz-pool.py: python3 -m unittest server/scripts/test_gen_quiz_pool.py"""
+"""Tests of gen-quiz-pool.py: python3 -m unittest discover -s server/scripts -p 'test_*.py'"""
 import importlib.util
 import os
 import unittest

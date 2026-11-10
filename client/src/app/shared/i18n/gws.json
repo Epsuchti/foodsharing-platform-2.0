@@ -145,6 +145,8 @@
   "shared.historyTimeline.meta.kgSaved": "Gretteti kg",
   "shared.historyTimeline.meta.kind": "Art",
   "shared.historyTimeline.meta.languages": "Sprache",
+  "shared.historyTimeline.meta.group": "Bereich",
+  "shared.historyTimeline.meta.required": "Pflichtkapitel",
   "shared.historyTimeline.meta.lastLoginAt": "Letschti Aamäldig",
   "shared.historyTimeline.meta.lifetimeDays": "Loufziit (Täg)",
   "shared.historyTimeline.meta.location": "Ort",

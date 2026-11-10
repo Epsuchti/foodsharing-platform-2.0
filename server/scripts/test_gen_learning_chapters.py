@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests of gen-learning-chapters.py with tiny fixtures of our own: python3 -m unittest server/scripts/test_gen_learning_chapters.py"""
+"""Tests of gen-learning-chapters.py with tiny fixtures of our own: python3 -m unittest discover -s server/scripts -p 'test_*.py'"""
 import importlib.util
 import os
 import tempfile
