@@ -5,7 +5,7 @@ import { legalKindAt } from './legal-kind';
 
 /**
  * Mounted at '' in app.routes.ts; paths inside are full paths.
- * `consent` (pending legal consents, target of consentGuard, EA4), `legal/:kind` (public documents, Ve1) and
+ * `consent` (pending legal consents, target of consentGuard, EA4; minimal chrome), `legal/:kind` (public documents, Ve1) and
  * `admin/legal` (versions, ORGA; the server answers 403 for everybody else).
  */
 export const LEGAL_ROUTES: Routes = [
@@ -13,6 +13,8 @@ export const LEGAL_ROUTES: Routes = [
     path: 'consent',
     canActivate: [authGuard],
     title: 'legal.consent.pageTitle',
+    // D3 (review 2026-11-10): no menu behind the consent wall, none of its items is usable before consenting
+    data: { chrome: 'minimal' },
     loadComponent: () =>
       import('./pages/consent-page.component').then((m) => m.ConsentPageComponent),
   },

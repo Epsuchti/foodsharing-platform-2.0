@@ -16,7 +16,6 @@ import {
   TeamSearchStatus,
   Theme,
   UnitType,
-  UserPickup,
   UserTeamStatus,
 } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
@@ -43,13 +42,6 @@ const store = (over: Partial<StoreListItem>): StoreListItem => ({
   freeSlotStatus: FreeSlotStatus.Green,
   freeSlotCount: 0,
   ...over,
-});
-
-const pickup = (storeName: string, confirmed: boolean): UserPickup => ({
-  store: { id: storeName, name: storeName },
-  pickupAt: '2026-11-05T17:00:00Z',
-  confirmed,
-  slotCount: 2,
 });
 
 const option = (storeName: string, pickupAt: string, taken: number, total: number): PickupOption => ({
@@ -88,7 +80,7 @@ describe('home rules (owner feedback 2026-11-04)', () => {
     expect(nextStepFor({ role: Role.Orga, avatarUrl: '', phone: '+41' })?.id).toBe('profile');
   });
 
-  it('lists the waiting rows in their order and only with a count', () => {
+  it('lists the waiting rows in their order and only with a count; nothing that only waits on others (D4)', () => {
     const rows = waitingRows({
       stores: [
         store({ name: 'A', membership: UserTeamStatus.Applied }),
@@ -96,17 +88,15 @@ describe('home rules (owner feedback 2026-11-04)', () => {
         store({ name: 'C', membership: UserTeamStatus.Invited }),
         store({ name: 'D' }),
       ],
-      unreadConversations: 0,
-      pickups: [pickup('X', false), pickup('Y', true)],
+      unreadConversations: 4,
     });
-    expect(rows.map((row) => [row.id, row.count, row.warn])).toEqual([
-      ['invitations', 2, false],
-      ['unconfirmed', 1, true],
-      ['applications', 1, true],
+    // an open application waits on the team: no row
+    expect(rows.map((row) => [row.id, row.count, row.link])).toEqual([
+      ['invitations', 2, '/stores/mine'],
+      ['unread', 4, '/messages'],
     ]);
-    expect(rows.find((row) => row.id === 'unconfirmed')).toMatchObject({ link: '/pickups', fragment: 'mine' });
-    expect(waitingRows({ stores: null, unreadConversations: 3, pickups: null }).map((row) => row.id)).toEqual(['unread']);
-    expect(waitingRows({ stores: [], unreadConversations: 0, pickups: [] })).toEqual([]);
+    expect(waitingRows({ stores: null, unreadConversations: 3 }).map((row) => row.id)).toEqual(['unread']);
+    expect(waitingRows({ stores: [store({ name: 'A', membership: UserTeamStatus.Applied })], unreadConversations: 0 })).toEqual([]);
   });
 
   it('keeps the next three events from now on, without "won\'t join"', () => {
@@ -221,16 +211,15 @@ describe('home cards (DataState)', () => {
     await settle(fixture);
     http.expectOne((req) => req.url === '/api/users/me/stores').flush([store({ name: 'I', membership: UserTeamStatus.Invited })]);
     http.expectOne('/api/conversations/unread-count').flush({ conversations: 2, messages: 5 });
-    http.expectOne('/api/users/me/pickups').flush([pickup('X', false)]);
+    // D4: unconfirmed pickups are not a row any more, so the card does not load them
+    http.expectNone('/api/users/me/pickups');
     await settle(fixture);
     expect([...all(fixture, '.wait__row')].map((row) => row.getAttribute('data-testid'))).toEqual([
       'dashboard.waiting.invitations',
       'dashboard.waiting.unread',
-      'dashboard.waiting.unconfirmed',
     ]);
     expect(q(fixture, '[data-testid="dashboard.waiting.unread"]')?.getAttribute('href')).toBe('/messages');
-    expect(q(fixture, '[data-testid="dashboard.waiting.unconfirmed"]')?.getAttribute('href')).toBe('/pickups#mine');
-    expect(q(fixture, '[data-testid="dashboard.waiting.unconfirmed"] .wait__count')?.textContent?.trim()).toBe('1');
+    expect(q(fixture, '[data-testid="dashboard.waiting.unread"] .wait__count')?.textContent?.trim()).toBe('2');
     fixture.destroy();
 
     signIn(Role.Foodsharer, false);

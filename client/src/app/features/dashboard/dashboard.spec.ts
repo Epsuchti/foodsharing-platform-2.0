@@ -8,7 +8,9 @@ import { FeatureToggleService } from '../../core/feature-toggles/feature-toggle.
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { ActivityFeedCardComponent } from './components/activity-feed-card.component';
 import { NearbyBasketsCardComponent } from './components/nearby-baskets-card.component';
-import { mergeActivityPages, nearestBaskets, toggleExcluded } from './dashboard.util';
+import { activityTypesFor, mergeActivityPages, nearestBaskets, toggleExcluded } from './dashboard.util';
+import { SessionService } from '../../core/auth/session.service';
+import { sessionInfo } from '../auth/testing';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve));
 const serverError = { status: 500, statusText: 'Server Error' };
@@ -39,6 +41,19 @@ describe('dashboard util', () => {
     expect(toggleExcluded([], ActivityType.Mailbox)).toEqual([ActivityType.Mailbox]);
     expect(toggleExcluded([ActivityType.FspWall], ActivityType.Forum)).toEqual([ActivityType.Forum, ActivityType.FspWall]);
     expect(toggleExcluded([ActivityType.Forum, ActivityType.FspWall], ActivityType.Forum)).toEqual([ActivityType.FspWall]);
+  });
+
+  it('offers only the activity types the user can use (D3)', () => {
+    const all = [ActivityType.Forum, ActivityType.StoreWall, ActivityType.Mailbox, ActivityType.EventWall, ActivityType.FspWall, ActivityType.BuddyWall];
+    expect(activityTypesFor({ stores: true, mailboxes: true })).toEqual(all);
+    expect(activityTypesFor({ stores: false, mailboxes: true })).toEqual(all.filter((type) => type !== ActivityType.StoreWall));
+    expect(activityTypesFor({ stores: true, mailboxes: false })).toEqual(all.filter((type) => type !== ActivityType.Mailbox));
+    expect(activityTypesFor({ stores: false, mailboxes: false })).toEqual([
+      ActivityType.Forum,
+      ActivityType.EventWall,
+      ActivityType.FspWall,
+      ActivityType.BuddyWall,
+    ]);
   });
 
   it('appends feed pages without repeating items', () => {
@@ -111,6 +126,29 @@ describe('dashboard cards', () => {
       await settle(fixture);
       expect(all(fixture, '[data-testid="dashboard.activity.item"]').length).toBe(1);
       expect(q(fixture, `[data-testid="dashboard.activity.filter.${ActivityType.Forum}"]`)?.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('a newcomer gets no store wall or mailbox chip; a verified foodsaver with mailboxes gets both (D3)', async () => {
+      const chips = (fixture: ComponentFixture<unknown>) =>
+        [...all(fixture, '[data-testid^="dashboard.activity.filter."]')].map((chip) => chip.getAttribute('data-testid')!.split('.').pop());
+      const session = TestBed.inject(SessionService);
+      session.applySession(sessionInfo({ role: Role.Foodsharer, verified: false }));
+      const newcomer = TestBed.createComponent(ActivityFeedCardComponent);
+      await settle(newcomer);
+      http.expectOne('/api/users/me/activity-filters').flush({ excluded: [] });
+      http.expectOne(feed(0)).flush(page([], 0, 0));
+      await settle(newcomer);
+      expect(chips(newcomer)).toEqual([ActivityType.Forum, ActivityType.EventWall, ActivityType.FspWall, ActivityType.BuddyWall]);
+      newcomer.destroy();
+
+      session.applySession({ ...sessionInfo({ role: Role.Foodsaver, verified: true }), mailboxes: true });
+      const foodsaver = TestBed.createComponent(ActivityFeedCardComponent);
+      await settle(foodsaver);
+      http.expectOne('/api/users/me/activity-filters').flush({ excluded: [] });
+      http.expectOne(feed(0)).flush(page([], 0, 0));
+      await settle(foodsaver);
+      expect(chips(foodsaver)).toContain(ActivityType.StoreWall);
+      expect(chips(foodsaver)).toContain(ActivityType.Mailbox);
     });
 
     it('shows the empty state and the error state with retry', async () => {

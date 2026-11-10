@@ -33,8 +33,6 @@
   "dashboard.waiting.title": "Wartet uf dich",
   "dashboard.waiting.invitations": "{count, plural, one {Iiladig in es Betriibsteam} other {Iiladige in Betriibsteams}}",
   "dashboard.waiting.unread": "Ungläsni {count, plural, one {Unterhaltig} other {Unterhaltige}}",
-  "dashboard.waiting.unconfirmed": "{count, plural, one {Dini Abholig isch} other {Dini Abholige sind}} no unbestätigt",
-  "dashboard.waiting.applications": "{count, plural, one {Dini Bewerbig isch} other {Dini Bewerbige sind}} no offe",
   "dashboard.stores.title": "Dini Betriib",
   "dashboard.stores.all": "Alli mini Betriib",
   "dashboard.stores.freeSlots": "{count, plural, one {# freie Platz} other {# freii Plätz}} i de nächschte 7 Täg",
