@@ -1,5 +1,5 @@
 // Landing page, Variant D (C17, docs/design/landing-page-proposal.md §6) in the old foodsharing colours (decision
-// 174, docs/design/landing-old-colours-d-proposal.md §3.4): the tokens come from the `.fs-public` scope of the shell,
+// 175, docs/design/landing-old-colours-d-proposal.md §3.4): the tokens come from the `.fs-public` scope of the shell,
 // the panels (`.fs-panel--brand*`) and icon tiles (`.fs-tile`) from styles.scss. Breakpoints follow the page container
 // (`landing`, 900px) so the bubbles, the steps and the splits switch together; the sticky join sits outside the
 // container because a size container would trap `position: fixed`.
