@@ -200,8 +200,8 @@
 // derived from a redefined one (our tile shadow, the Optimus primary tokens and each component token that reads
 // them, directly or through highlight/focus ring/list option) is declared here again with the preset's own
 // expression. The list is the closure over the emitted theme variables, limited to the components public pages
-// render (the app-only ones: badge, chip, datepicker, editor, multiselect, progressbar, tag, timeline, togglebutton
-// keep the app green; the start-up CSS budget, D11.5.3). A token missing here keeps the app green on public pages.
+// render (the app-only ones: badge, chip, datepicker, editor, multiselect, progressbar, radiobutton, tag, timeline,
+// togglebutton, toggleswitch keep the app green; the start-up CSS budget, D11.5.3). A token missing here keeps the app green on public pages.
 // ---------------------------------------------------------------------------------------------------
 .fs-public {
   --fs-surface: #ffffff;
@@ -238,7 +238,7 @@
   --p-primary-active-color: var(--p-primary-700);
 
   /* tokens derived from the primary ones (same expressions as the light preset), for the components that public
-     pages render: button, checkbox, radio button, toggle switch, text fields, select (list option) and paginator */
+     pages render: button, checkbox, text fields, select (list option) and paginator */
   --p-form-field-focus-border-color: var(--p-primary-color);
   --p-form-field-float-label-focus-color: var(--p-primary-600);
   --p-highlight-background: var(--p-primary-50);
@@ -278,14 +278,6 @@
   --p-paginator-nav-button-selected-background: var(--p-highlight-background);
   --p-paginator-nav-button-selected-color: var(--p-highlight-color);
   --p-paginator-nav-button-focus-ring-color: var(--p-focus-ring-color);
-  --p-radiobutton-icon-checked-color: var(--p-primary-contrast-color);
-  --p-radiobutton-icon-checked-hover-color: var(--p-primary-contrast-color);
-  --p-radiobutton-checked-background: var(--p-primary-color);
-  --p-radiobutton-checked-hover-background: var(--p-primary-hover-color);
-  --p-radiobutton-checked-border-color: var(--p-primary-color);
-  --p-radiobutton-checked-hover-border-color: var(--p-primary-hover-color);
-  --p-radiobutton-checked-focus-border-color: var(--p-primary-color);
-  --p-radiobutton-focus-ring-color: var(--p-focus-ring-color);
   --p-select-focus-border-color: var(--p-form-field-focus-border-color);
   --p-tabs-active-bar-background: var(--p-primary-color);
   --p-tabs-nav-button-focus-ring-color: var(--p-focus-ring-color);
@@ -294,11 +286,6 @@
   --p-tabs-tab-active-color: var(--p-primary-color);
   --p-tabs-tab-focus-ring-color: var(--p-focus-ring-color);
   --p-textarea-focus-border-color: var(--p-form-field-focus-border-color);
-  --p-toggleswitch-handle-checked-color: var(--p-primary-color);
-  --p-toggleswitch-handle-checked-hover-color: var(--p-primary-hover-color);
-  --p-toggleswitch-checked-background: var(--p-primary-color);
-  --p-toggleswitch-checked-hover-background: var(--p-primary-hover-color);
-  --p-toggleswitch-focus-ring-color: var(--p-focus-ring-color);
   --p-list-option-selected-background: var(--p-highlight-background);
   --p-list-option-selected-focus-background: var(--p-highlight-focus-background);
   --p-list-option-selected-color: var(--p-highlight-color);
