@@ -1,5 +1,6 @@
-import { Signal, effect, inject } from '@angular/core';
+import { Signal, computed, effect, inject } from '@angular/core';
 
+import { OnlineStatusService } from '../core/online/online-status.service';
 import { StartupService } from '../core/startup/startup.service';
 
 /** What LazyPopover needs of `p-popover` (kept structural so the Popover class stays out of the start-up bundle). */
@@ -17,8 +18,15 @@ export interface PopoverLike {
  * an effect).
  */
 export class LazyPopover {
-  /** Fetch the code after the first page has been shown (StartupService). */
-  readonly prefetch = inject(StartupService).pageShown;
+  private readonly pageShown = inject(StartupService).pageShown;
+  private readonly online = inject(OnlineStatusService).online;
+  /**
+   * Fetch the code after the first page has been shown (StartupService), and only while the app is online: a prefetch
+   * that starts offline fails, Angular reports NG0750 for a `@defer` block without `@error` (the shell's "something
+   * went wrong" toast) and the block stays failed, so the menu never opens again until a reload. Offline, the
+   * prefetch waits for the connection to come back.
+   */
+  readonly prefetch = computed(() => this.pageShown() && this.online());
   private pending: EventTarget | null = null;
 
   constructor(private readonly popover: Signal<PopoverLike | undefined>) {

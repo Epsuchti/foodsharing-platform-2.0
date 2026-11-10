@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Drawer } from '@openng/optimus-ui/drawer';
 
 import { TPipe } from '../core/i18n/t.pipe';
+import { OnlineStatusService } from '../core/online/online-status.service';
 import { StartupService } from '../core/startup/startup.service';
 import { NavContextService } from './nav-context.service';
 import { SidenavSection, sidenavSections } from './nav.config';
@@ -31,7 +32,7 @@ import { SidenavSection, sidenavSections } from './nav.config';
     </button>
 
     <!-- not part of the start-up bundle (D11.5.3): the drawer's code loads after the first page, it renders on the first tap -->
-    @defer (on interaction(menuTrigger); prefetch when startup.pageShown()) {
+    @defer (on interaction(menuTrigger); prefetch when startup.pageShown() && connection.online()) {
       <p-drawer
         [visible]="menuOpen()"
         (visibleChange)="menuOpen.set($event)"
@@ -134,6 +135,8 @@ import { SidenavSection, sidenavSections } from './nav.config';
 })
 export class VisitorMenuComponent {
   protected readonly startup = inject(StartupService);
+  /** Prefetch only online (LazyPopover): an offline prefetch fails for good and reports NG0750. */
+  protected readonly connection = inject(OnlineStatusService);
   private readonly nav = inject(NavContextService);
 
   protected readonly menuOpen = signal(false);

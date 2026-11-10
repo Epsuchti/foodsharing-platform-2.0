@@ -12,6 +12,7 @@ import { UserAvatarComponent } from '../shared/user-chip/user-avatar.component';
 import { BellStore } from '../features/bells/bells.resource';
 import { NavBadgeComponent } from './nav-badge.component';
 import { NavContextService } from './nav-context.service';
+import { OnlineStatusService } from '../core/online/online-status.service';
 import { StartupService } from '../core/startup/startup.service';
 
 /** User menu items the drawer shows directly under the profile block. */
@@ -62,7 +63,7 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
     </nav>
 
     <!-- the menu drawer is not part of the start-up bundle (D11.5.3): its code loads after the first page, it renders on the first tap -->
-    @defer (on interaction(menuTrigger); prefetch when startup.pageShown()) {
+    @defer (on interaction(menuTrigger); prefetch when startup.pageShown() && connection.online()) {
     <p-drawer
       [visible]="menuOpen()"
       (visibleChange)="menuOpen.set($event)"
@@ -332,6 +333,8 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
 })
 export class MobileTabBarComponent {
   protected readonly startup = inject(StartupService);
+  /** Prefetch only online (LazyPopover): an offline prefetch fails for good and reports NG0750. */
+  protected readonly connection = inject(OnlineStatusService);
   protected readonly nav = inject(NavContextService);
   protected readonly session = inject(SessionService);
   protected readonly i18n = inject(I18nService);
