@@ -166,7 +166,7 @@ forEachVariant((variant) => {
         await expect(page.getByTestId('content.admin.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `content-admin-${variant.name}`);
 
-        await page.goto('/admin/content/rules');
+        await page.goto('/admin/content/principles');
         await expect(page.getByTestId('content.editor.state')).toHaveAttribute('data-state', 'success');
         await visual.expectScreen(page, `content-editor-${variant.name}`);
       });
