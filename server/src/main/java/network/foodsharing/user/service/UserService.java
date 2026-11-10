@@ -193,9 +193,11 @@ public class UserService {
     /**
      * Changes the current user's own profile (plan §8.3). One PROFILE_UPDATED entry per changed field
      * (PHONE_CHANGED for the mobile phone, HOME_REGION_CHANGED for the home region; phone numbers and the date of
-     * birth are redacted). Phone numbers are stored in E.164 form.
+     * birth are redacted). Phone numbers are stored in E.164 form. The mobile number may not be cleared
+     * ({@link ProfilePhoneRules#mobileOk}, D2).
      *
-     * @throws ApiException 400 INVALID_PHONE_NUMBER / VALIDATION_FAILED, 404 REGION_NOT_FOUND, 409 NOT_A_MEMBER
+     * @throws ApiException 400 INVALID_PHONE_NUMBER / VALIDATION_FAILED (also mobilePhone/NotBlank), 404
+     *                      REGION_NOT_FOUND, 409 NOT_A_MEMBER
      */
     @Transactional
     public User updateMyProfile(ProfileChange change) {
@@ -561,12 +563,17 @@ public class UserService {
         if (!phoneErrors.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.INVALID_PHONE_NUMBER, phoneErrors, Map.of());
         }
+        boolean own = action == UserAction.PROFILE_UPDATED;
+        if (!ProfilePhoneRules.mobileOk(own, change.mobilePhone())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED,
+                    List.of(new ApiFieldError("mobilePhone", "NotBlank", "a mobile phone number is required")),
+                    Map.of());
+        }
         if (change.displayName() != null && change.displayName().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED,
                     List.of(new ApiFieldError("displayName", "NotBlank", "display name must not be blank")), Map.of());
         }
         UUID userId = user.getId();
-        boolean own = action == UserAction.PROFILE_UPDATED;
         Recorder recorder = (field, oldValue, newValue, redact, specificAction) -> history.record(
                 history.event(specificAction == null ? action : specificAction, userId)
                         .change(field, redact && oldValue != null ? REDACTED : oldValue,

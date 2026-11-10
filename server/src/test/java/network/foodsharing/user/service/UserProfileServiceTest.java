@@ -105,6 +105,37 @@ class UserProfileServiceTest {
     }
 
     @Test
+    void ownSaveMayNotClearTheMobileNumberButPartialSavesAndAdminsMay() {
+        TestAuth.login(TestUsers.principal(user));
+        service.updateMyProfile(change(null, "079 123 45 67", null, null));
+
+        // D2: the profile form always sends the field, so it can't be saved without a number
+        assertThatThrownBy(() -> service.updateMyProfile(change("Lea", "", null, null)))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+                    assertThat(e.getStatus().value()).isEqualTo(400);
+                    assertThat(e.getFieldErrors()).singleElement().satisfies(error -> {
+                        assertThat(error.field()).isEqualTo("mobilePhone");
+                        assertThat(error.code()).isEqualTo("NotBlank");
+                    });
+                });
+        User unchanged = users.findById(user.getId()).orElseThrow();
+        assertThat(unchanged.getMobilePhone()).isEqualTo("+41791234567");
+        assertThat(unchanged.getFirstName()).isEqualTo("First");
+
+        // saves that leave the field out (null) keep the number and still work
+        service.updateMyProfile(change("Lea", null, "Weststrasse 1", null));
+        User partial = users.findById(user.getId()).orElseThrow();
+        assertThat(partial.getFirstName()).isEqualTo("Lea");
+        assertThat(partial.getMobilePhone()).isEqualTo("+41791234567");
+
+        // administrators may still clear it
+        TestAuth.login(TestUsers.principal(orga));
+        service.updateProfileAsAdmin(user.getId(), change(null, "", null, null), "number no longer in use");
+        assertThat(users.findById(user.getId()).orElseThrow().getMobilePhone()).isNull();
+    }
+
+    @Test
     void blankDisplayNameIsRefusedAndEmptyStringsClearFields() {
         TestAuth.login(TestUsers.principal(user));
         assertThatThrownBy(() -> service.updateMyProfile(new ProfileChange(null, null, " ", null, null, null, null,
