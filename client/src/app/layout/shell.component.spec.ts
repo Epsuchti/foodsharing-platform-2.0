@@ -19,6 +19,7 @@ import {
   NavContext,
   drawerItems,
   mobileTabs,
+  sidenavSections,
   splitHeaderNav,
   visibleNavItems,
 } from './nav.config';
@@ -200,7 +201,7 @@ describe('nav.config', () => {
     const foodsaver = context({
       isAuthenticated: true,
       hasRole: (role) => role === Role.Foodsaver,
-      session: { user: { verified: true }, permissions: [], units: [] } as unknown as NavContext['session'],
+      session: { user: { verified: true }, permissions: [], units: [{ id: 'g1', member: true, type: 'WORKING_GROUP' }] } as unknown as NavContext['session'],
     });
     const ordered = orderHeaderNav(
       visibleNavItems(foodsaver).filter((item) => item.id !== 'search'),
@@ -241,13 +242,12 @@ describe('nav.config', () => {
   it('filters by area and session', () => {
     // the map (M1) is public
     expect(visibleNavItems(context()).map((item) => item.id)).toEqual(['home', 'map']);
+    // F3: without any region or group no Termine and Abstimmungen (their pages list only what comes from units)
     expect(visibleNavItems(context({ isAuthenticated: true })).map((item) => item.id)).toEqual([
       'dashboard',
       'messages',
       'regions',
       'learn',
-      'events',
-      'polls',
       'map',
       'baskets',
       'search',
@@ -329,21 +329,50 @@ describe('nav.config', () => {
         'learn',
         'search',
       ]);
-      expect(ids(drawerItems(newcomer))).toEqual([
-        'dashboard',
-        'onboarding',
-        'messages',
-        'baskets',
-        'map',
-        'events',
-        'regions',
-        'polls',
-        'introPickups',
-        'learn',
-        'search',
-      ]);
+      // F3: a newcomer without a region has no Termine, Abstimmungen or Einführungsabholungen
+      expect(ids(drawerItems(newcomer))).toEqual(['dashboard', 'onboarding', 'messages', 'baskets', 'map', 'regions', 'learn', 'search']);
       // logged out: no drawer (footer pages stay out)
       expect(drawerItems(context())).toEqual([]);
+    });
+  });
+
+  describe('newcomer menu (review 2026-11-10 F3, decision 176)', () => {
+    const region = { id: 'r1', name: 'Zürich', homeRegion: true, admin: false, member: true, type: 'CITY' };
+    const newcomer = (units: unknown[], currentStep: string) =>
+      context({
+        isAuthenticated: true,
+        // journey role FOODSHARER: hasRole(FOODSAVER) is false
+        hasRole: (role) => role === Role.Foodsharer,
+        session: { user: { verified: false, role: Role.Foodsharer }, onboarding: { complete: false, currentStep }, units, permissions: [] } as unknown as NavContext['session'],
+      });
+    const main = (ctx: NavContext) => [...visibleNavItems(ctx).map((item) => item.id), ...sidenavSections(ctx).flatMap((s) => s.items.map((item) => item.id))];
+
+    it('hides Termine, Abstimmungen and Einführungsabholungen from a newcomer without a region', () => {
+      const ids = new Set(main(newcomer([], 'PROFILE_REGION')));
+      for (const id of ['dashboard', 'onboarding', 'messages', 'bells', 'baskets', 'map', 'regions', 'learn']) {
+        expect(ids.has(id), id).toBe(true);
+      }
+      for (const id of ['events', 'polls', 'forum', 'introPickups', 'pickups', 'stores', 'mailboxes', 'guide']) {
+        expect(ids.has(id), id).toBe(false);
+      }
+    });
+
+    it('gives a newcomer with a region Forum and Termine, Einführungsabholungen once the journey reached the step', () => {
+      const atIntro = new Set(main(newcomer([region], 'INTRO_PICKUPS')));
+      expect(['forum', 'events', 'introPickups'].every((id) => atIntro.has(id))).toBe(true);
+      // polls: every poll scope needs FOODSAVER, so /polls/mine is always empty for a FOODSHARER
+      expect(atIntro.has('polls')).toBe(false);
+      expect(main(newcomer([region], 'ID_CHECK'))).toContain('introPickups');
+      for (const step of ['PROFILE_REGION', 'LEARN', 'QUIZ', 'AGREEMENT']) {
+        expect(main(newcomer([region], step)), step).not.toContain('introPickups');
+      }
+      // a working group is no region to book intro pickups in, but brings events
+      const group = { ...region, homeRegion: false, type: 'WORKING_GROUP' };
+      expect(main(newcomer([group], 'INTRO_PICKUPS'))).not.toContain('introPickups');
+      expect(main(newcomer([group], 'INTRO_PICKUPS'))).toContain('events');
+      // a quiz-passed FOODSAVER member may vote: Abstimmungen comes back
+      const foodsaver = context({ ...newcomer([region], 'AGREEMENT'), hasRole: (role) => role === Role.Foodsaver || role === Role.Foodsharer });
+      expect(main(foodsaver)).toContain('polls');
     });
   });
 

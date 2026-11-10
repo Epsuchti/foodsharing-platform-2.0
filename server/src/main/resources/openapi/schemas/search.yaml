@@ -17,6 +17,10 @@ SearchHit:
       type: string
     subtitle:
       type: string
+    startsAt:
+      description: 'EVENT: start of the event; the client formats it (decision 177) and shows it as the subtitle.'
+      type: string
+      format: date-time
     link:
       description: "Client route: /profile/<id>, /regions/<id>, /groups/<id>, /stores/<id>, /forum/threads/<id>, /food-share-points/<id>, /events/<id>, /polls/<id> (index data: /messages/<conversationId>); docs/conventions.md 'Search links'."
       type: string

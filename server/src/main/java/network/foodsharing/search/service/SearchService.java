@@ -17,6 +17,7 @@ import network.foodsharing.admin.domain.FeatureToggle;
 import network.foodsharing.admin.service.FeatureToggleService;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.text.MentionText;
 import network.foodsharing.common.web.SlidingWindowRateLimiter;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.region.domain.Region;
@@ -157,10 +158,11 @@ public class SearchService {
      * ±{@value #SNIPPET_RADIUS} characters around the first term found in the body (case- and accent-insensitive),
      * with ellipses where cut; the start of the body when no term occurs literally (stemmed match).
      */
-    static String snippet(String body, List<String> terms) {
-        if (body == null || body.isBlank()) {
+    static String snippet(String raw, List<String> terms) {
+        if (raw == null || raw.isBlank()) {
             return null;
         }
+        String body = MentionText.plain(raw);
         String folded = foldPreservingLength(body);
         int at = -1;
         int length = 0;

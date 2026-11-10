@@ -21,6 +21,7 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimeEvent;
 import network.foodsharing.common.realtime.RealtimeEventType;
 import network.foodsharing.common.realtime.RealtimePublisher;
+import network.foodsharing.common.text.MentionText;
 import network.foodsharing.common.web.SlidingWindowRateLimiter;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.history.HistoryEvent;
@@ -461,7 +462,7 @@ public class MessagingService {
 
     private static NotificationRequest.Builder request(Collection<UUID> recipients, Conversation conversation,
                                                        ConversationMessage message, String sender) {
-        String body = message.getBody();
+        String body = MentionText.plain(message.getBody());
         return NotificationRequest.to(recipients, NotificationType.NEW_MESSAGE)
                 .param("conversationId", conversation.getId().toString()).param("userName", sender)
                 .param("message", body.length() > 200 ? body.substring(0, 200) + "…" : body)

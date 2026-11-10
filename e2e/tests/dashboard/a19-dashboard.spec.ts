@@ -99,6 +99,36 @@ test('A19 activity feed shows forum, store wall, mailbox, event and FSP items; f
   await expect(noAddress).toHaveURL(/\/account\/profile$/);
 });
 
+test('A19 activity feed shows mentions as names, not as raw markup (review 2026-11-10 F4) @A19', async ({ as, apiOf }) => {
+  const page = await as('bot');
+  const api = apiOf(page);
+  await acceptPendingConsents(api);
+  // all types: the merged feed pages on as long as several sources have items (one type alone stops after the first
+  // page, see ActivityFeedService.merge); find the page of the seeded forum post
+  // "Merci! @[Jonas Weber](user:…) übernimmt den Montag." the way the card loads it (10 per page)
+  await api.putJson('/api/users/me/activity-filters', { excluded: [] });
+  const text = 'Merci! @Jonas Weber übernimmt den Montag.';
+  let found = -1;
+  for (let p = 0; p < 20 && found < 0; p++) {
+    const feed = await api.getJson<{ items: { excerpt?: string }[] }>(`/api/activity?page=${p}&size=10`);
+    const excerpts = feed.items.map((item) => item.excerpt ?? '');
+    expect(excerpts.filter((excerpt) => excerpt.includes('(user:'))).toEqual([]);
+    if (excerpts.includes(text)) found = p;
+    if (feed.items.length === 0) break;
+  }
+  expect(found).toBeGreaterThanOrEqual(0);
+
+  await page.goto('/dashboard');
+  await expectDataState(page, 'dashboard.activity.state', 'success');
+  for (let p = 0; p < found; p++) {
+    await expect(items(page)).toHaveCount((p + 1) * 10);
+    await page.getByTestId('dashboard.activity.loadMore').click();
+  }
+  const mention = items(page, 'FORUM').filter({ hasText: 'übernimmt den Montag' });
+  await expect(mention.first()).toContainText(text);
+  await expect(page.getByTestId('dashboard.activity.list')).not.toContainText('(user:');
+});
+
 test('A19 activity feed shows the error state and loads again on retry @A19', async ({ as, apiOf }) => {
   const page = await as('foodsaver');
   await acceptPendingConsents(apiOf(page));

@@ -4,6 +4,7 @@ import { map } from 'rxjs';
 
 import { SearchIndexData, SearchResults, SearchService } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
+import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { SessionService } from '../../../core/auth/session.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
@@ -41,7 +42,7 @@ const ALL_KEY = '\u0000all';
  */
 @Component({
   selector: 'fs-global-search',
-  imports: [...DATA_STATE_IMPORTS, TPipe],
+  imports: [...DATA_STATE_IMPORTS, DateTimePipe, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'fs-global-search',
@@ -97,7 +98,9 @@ const ALL_KEY = '\u0000all';
                       <i [class]="option.icon + ' gs__option-icon'" aria-hidden="true"></i>
                       <span class="gs__option-text">
                         <span class="gs__option-title">{{ option.title }}</span>
-                        @if (option.subtitle) {
+                        @if (option.startsAt) {
+                          <time class="gs__option-sub" [attr.datetime]="option.startsAt">{{ option.startsAt | fsDate: 'dateTime' }}</time>
+                        } @else if (option.subtitle) {
                           <span class="gs__option-sub">{{ option.subtitle }}</span>
                         }
                       </span>

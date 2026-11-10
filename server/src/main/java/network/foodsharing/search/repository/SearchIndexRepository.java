@@ -125,9 +125,8 @@ public class SearchIndexRepository {
         jdbc.query("select t.id, t.name, t.region_id, t.is_public, t.starts_at, t.deleted_at from event t" + changed, p,
                 rs -> {
                     UUID id = rs.getObject(1, UUID.class);
-                    Timestamp starts = rs.getTimestamp(5);
-                    out.add(new Source(SearchKind.EVENT, id, rs.getString(2),
-                            starts == null ? null : starts.toInstant().toString().substring(0, 10), null, null,
+                    // no subtitle: the hit carries the start (event.starts_at) and the client formats it
+                    out.add(new Source(SearchKind.EVENT, id, rs.getString(2), null, null, null,
                             rs.getObject(3, UUID.class), rs.getBoolean(4) ? "PUBLIC" : "REGION_MEMBERS",
                             "/events/" + id, null, rs.getTimestamp(6) == null));
                 });
@@ -243,11 +242,17 @@ public class SearchIndexRepository {
             jdbc.queryForObject("select set_config('pg_trgm.word_similarity_threshold', :threshold, true)",
                     new MapSqlParameterSource("threshold", WORD_SIMILARITY_THRESHOLD), String.class);
         }
+        boolean event = kind == SearchKind.EVENT;
+        String startsAt = event ? ", (select e.starts_at from event e where e.id = si.entity_id) as starts_at" : "";
         String sql = "select si.kind, si.entity_id, si.title, si.subtitle, si.link, si.image_url, " + ownRank(kind)
-                + " as own_rank, " + relevance + " as relevance from search_index si" + where
+                + " as own_rank, " + relevance + " as relevance" + startsAt + " from search_index si" + where
                 + " order by own_rank, relevance desc, si.title, si.entity_id limit :limit";
-        return jdbc.query(sql, p, (rs, n) -> new SearchHitRow(SearchKind.valueOf(rs.getString(1)),
-                rs.getObject(2, UUID.class), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)));
+        return jdbc.query(sql, p, (rs, n) -> {
+            Timestamp starts = event ? rs.getTimestamp("starts_at") : null;
+            return new SearchHitRow(SearchKind.valueOf(rs.getString(1)), rs.getObject(2, UUID.class),
+                    rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6),
+                    starts == null ? null : starts.toInstant());
+        });
     }
 
     /**

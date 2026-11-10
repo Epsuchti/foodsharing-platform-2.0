@@ -223,6 +223,23 @@ class SearchFlowIT {
     }
 
     @Test
+    void eventHitsCarryTheirStartInsteadOfADateSubtitle() throws Exception {
+        Map<String, Object> event = jdbc.queryForMap("select id, name from event where deleted_at is null"
+                + " and is_public = true order by id limit 1");
+        java.time.Instant starts = jdbc.queryForObject("select starts_at from event where id = ?",
+                java.sql.Timestamp.class, event.get("id")).toInstant();
+        String word = ((String) event.get("name")).split(" ")[0];
+        String body = search(login(SeedUsers.ORGA), word, "EVENT");
+        String id = event.get("id").toString();
+
+        List<String> startsAt = JsonPath.read(body, "$.events[?(@.id == '" + id + "')].startsAt");
+        assertThat(startsAt).singleElement().satisfies(value -> assertThat(java.time.OffsetDateTime.parse(value)
+                .toInstant()).isEqualTo(starts));
+        List<Object> subtitles = JsonPath.read(body, "$.events[?(@.id == '" + id + "')].subtitle");
+        assertThat(subtitles).allSatisfy(subtitle -> assertThat(subtitle).isNull());
+    }
+
+    @Test
     void storesAndUsersAreVisibleToRegionMembersOnly() throws Exception {
         assertThat(jdbc.queryForObject("select count(*) from search_index", Integer.class)).isPositive();
         Map<String, Object> store = jdbc.queryForMap("select id, name from store where region_id = ? and deleted_at is null"

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.common.text.MentionText;
 import network.foodsharing.forum.domain.ForumPost;
 import network.foodsharing.forum.domain.ForumThread;
 import network.foodsharing.forum.domain.ForumThreadFollow;
@@ -91,7 +92,8 @@ public class ForumSearchService {
     }
 
     /** ±{@value #SNIPPET_RADIUS} characters around the first match, with ellipses where cut. */
-    static String snippet(String body, String needle) {
+    static String snippet(String raw, String needle) {
+        String body = MentionText.plain(raw);
         int at = body.toLowerCase(Locale.ROOT).indexOf(needle);
         if (at < 0) {
             return null;

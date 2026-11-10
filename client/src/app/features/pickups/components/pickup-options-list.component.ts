@@ -74,7 +74,7 @@ export const OPTIONS_PAGE = 10;
                     data-testid="pickups.options.signedUp"
                   >
                     <i class="pi" [class.pi-check-circle]="option.isConfirmed" [class.pi-hourglass]="!option.isConfirmed" aria-hidden="true"></i>
-                    {{ (option.isConfirmed ? 'pickups.options.signedUpConfirmed' : 'pickups.options.signedUpUnconfirmed') | t }}
+                    <span>{{ (option.isConfirmed ? 'pickups.options.signedUpConfirmed' : 'pickups.options.signedUpUnconfirmed') | t }}</span>
                   </span>
                 } @else {
                   <p-button
@@ -112,7 +112,11 @@ export const OPTIONS_PAGE = 10;
     .muted { color: var(--fs-text-muted); font-size: 0.88rem; }
     .option__slots { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.75rem; row-gap: 0.15rem; }
     /* own sign-up (review fix A2): a state, not an action; same colours as "My pickups" */
-    .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); text-align: end; max-width: 9.5rem; }
+    .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); white-space: nowrap; }
+    /* one line where there is room; only narrow phones wrap it, the icon stays right beside the text */
+    @media (max-width: 30rem) {
+      .signed-up { white-space: normal; max-width: 9.5rem; }
+    }
     .signed-up--wait { color: var(--fs-warning-text); }
   `,
 })

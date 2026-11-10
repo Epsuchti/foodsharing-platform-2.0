@@ -49,7 +49,7 @@ import { PickupSignupDialogComponent, SignupTarget } from './signup-dialog.compo
                       data-testid="dashboard.help.signedUp"
                     >
                       <i class="pi" [class.pi-check-circle]="option.isConfirmed" [class.pi-hourglass]="!option.isConfirmed" aria-hidden="true"></i>
-                      {{ (option.isConfirmed ? 'pickups.options.signedUpConfirmed' : 'pickups.options.signedUpUnconfirmed') | t }}
+                      <span>{{ (option.isConfirmed ? 'pickups.options.signedUpConfirmed' : 'pickups.options.signedUpUnconfirmed') | t }}</span>
                     </span>
                   } @else {
                     <p-button
@@ -78,7 +78,11 @@ import { PickupSignupDialogComponent, SignupTarget } from './signup-dialog.compo
   styleUrls: ['../../dashboard/components/home-card.scss', '../../../shared/date-tile/date-rows.scss'],
   styles: `
     /* own sign-up (review fix A2): a state, not an action; same colours as "My pickups" */
-    .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); text-align: end; max-width: 9.5rem; }
+    .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); white-space: nowrap; }
+    /* one line where there is room; only narrow phones wrap it, the icon stays right beside the text */
+    @media (max-width: 30rem) {
+      .signed-up { white-space: normal; max-width: 9.5rem; }
+    }
     .signed-up--wait { color: var(--fs-warning-text); }
   `,
 })

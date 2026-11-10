@@ -44,6 +44,8 @@ export interface SearchOption {
   key: string;
   title: string;
   subtitle?: string;
+  /** Event start (ISO); shown formatted (fsDate 'dateTime', decision 177) in place of the subtitle. */
+  startsAt?: string;
   link: string;
   icon: string;
   imageUrl?: string;
@@ -104,7 +106,7 @@ export function resultGroups(results: SearchResults | undefined, seenLinks: Read
       labelKey: `search.group.${key}`,
       options: (results[key] ?? [])
         .filter((hit) => !seenLinks.has(hit.link))
-        .map((hit: SearchHit) => ({ key: `remote.${key}:${hit.id}`, title: hit.title, subtitle: hit.subtitle, link: hit.link, icon, imageUrl: hit.imageUrl })),
+        .map((hit: SearchHit) => ({ key: `remote.${key}:${hit.id}`, title: hit.title, subtitle: hit.subtitle, startsAt: hit.startsAt, link: hit.link, icon, imageUrl: hit.imageUrl })),
     }))
     .filter((group) => group.options.length > 0);
 }
