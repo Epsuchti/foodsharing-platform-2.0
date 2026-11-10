@@ -296,6 +296,7 @@
   "shared.map.label": "Carte",
   "shared.map.tilesFailed": "La carte n’a pas pu être chargée.",
   "shared.map.retry": "Recharger",
+  "shared.map.twoFingers": "Utilise deux doigts pour déplacer la carte",
   "shared.regionPicker.how": "Comment veux-tu trouver ta région ?",
   "shared.regionPicker.mode.postcode": "Code postal",
   "shared.regionPicker.mode.tree": "Liste",

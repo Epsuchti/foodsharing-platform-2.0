@@ -296,6 +296,7 @@
   "shared.map.label": "Map",
   "shared.map.tilesFailed": "The map could not be loaded.",
   "shared.map.retry": "Load again",
+  "shared.map.twoFingers": "Use two fingers to move the map",
   "shared.regionPicker.how": "How do you want to find your region?",
   "shared.regionPicker.mode.postcode": "Postcode",
   "shared.regionPicker.mode.tree": "List",

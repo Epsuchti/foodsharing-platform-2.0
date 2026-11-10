@@ -296,6 +296,7 @@
   "shared.map.label": "Karte",
   "shared.map.tilesFailed": "Die Karte konnte nicht geladen werden.",
   "shared.map.retry": "Nochmals laden",
+  "shared.map.twoFingers": "Mit zwei Fingern bewegen",
   "shared.regionPicker.how": "Wie möchtest du deinen Bezirk finden?",
   "shared.regionPicker.mode.postcode": "Postleitzahl",
   "shared.regionPicker.mode.tree": "Liste",
