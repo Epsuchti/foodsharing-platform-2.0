@@ -11,7 +11,6 @@ import {
   LegalDocument,
   LegalService,
   PublicLegalService,
-  UsersService,
 } from '../../../api';
 import { safeReturnUrl } from '../../../core/auth/return-url';
 import { SessionService } from '../../../core/auth/session.service';
@@ -20,16 +19,16 @@ import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
-import { isValidPhoneNumber, normalizePhoneNumber } from '../../../core/validation/phone-number';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
-import { PhoneInputComponent } from '../../../shared/phone/phone-input.component';
 
 /**
  * /consent (EA4): every pending legal document (new privacy policy version, legal agreement, …) with summary and
- * full text, plus the mobile phone number when the account has none (EA4 phone prompt); accepting all of them refreshes the session and continues to `?returnUrl`. consentGuard sends users
- * here while `SessionInfo.pendingConsents` is not empty.
+ * full text; accepting all of them refreshes the session and continues to `?returnUrl`. consentGuard sends users
+ * here while `SessionInfo.pendingConsents` is not empty. The mobile number is asked in onboarding step 2 and the
+ * profile, not here (D2). A first-time user (A6: no pending document accepted in an earlier version) gets a
+ * welcoming subtitle instead of "new or changed documents".
  */
 @Component({
   selector: 'fs-consent-page',
@@ -41,7 +40,6 @@ import { PhoneInputComponent } from '../../../shared/phone/phone-input.component
     FormsModule,
     MarkdownComponent,
     PageHeaderComponent,
-    PhoneInputComponent,
     TPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,7 +47,7 @@ import { PhoneInputComponent } from '../../../shared/phone/phone-input.component
     <fs-page-header
       [eyebrow]="'legal.consent.eyebrow' | t"
       [title]="'legal.consent.title' | t"
-      [subtitle]="'legal.consent.subtitle' | t"
+      [subtitle]="(firstTime() ? 'legal.consent.subtitleFirst' : 'legal.consent.subtitle') | t"
       icon="pi pi-file-check"
     />
 
@@ -106,37 +104,17 @@ import { PhoneInputComponent } from '../../../shared/phone/phone-input.component
             </li>
           }
         </ol>
-        @if (askPhone()) {
-          <section class="fs-card phone" data-testid="legal.consent.phone">
-            <div class="phone__icon" aria-hidden="true"><i class="pi pi-mobile"></i></div>
-            <div class="phone__body">
-              <h2 class="doc__title">
-                <label for="consent-phone">{{ 'legal.consent.phoneTitle' | t }}</label>
-              </h2>
-              <p class="phone__text">{{ 'legal.consent.phoneText' | t }}</p>
-              <fs-phone-input
-                inputId="consent-phone"
-                [mobile]="true"
-                [ngModel]="phone()"
-                (ngModelChange)="phone.set($event ?? '')"
-                testId="legal.consent.phoneInput"
-              />
-            </div>
-          </section>
-        }
         <div class="actions">
           <p-button
             [label]="'legal.consent.submit' | t"
             icon="pi pi-check"
-            [disabled]="!allChecked() || !phoneOk()"
+            [disabled]="!allChecked()"
             [loading]="accept.busy()"
             (onClick)="accept.run()"
             data-testid="legal.consent.submit"
           />
           @if (!allChecked()) {
             <p class="actions__hint">{{ 'legal.consent.checkAll' | t }}</p>
-          } @else if (!phoneOk()) {
-            <p class="actions__hint">{{ 'legal.consent.phoneMissing' | t }}</p>
           }
         </div>
       </ng-template>
@@ -205,33 +183,6 @@ import { PhoneInputComponent } from '../../../shared/phone/phone-input.component
     .doc__accept label {
       cursor: pointer;
     }
-    .phone {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 1rem;
-      margin-top: 1.25rem;
-      padding: clamp(1.1rem, 0.8rem + 1.5vw, 1.75rem);
-    }
-    .phone__icon {
-      display: grid;
-      place-items: center;
-      width: 2.75rem;
-      height: 2.75rem;
-      border-radius: 50%;
-      background: var(--fs-primary-soft);
-      color: var(--fs-primary-strong);
-      font-size: 1.25rem;
-    }
-    .phone__body {
-      display: grid;
-      gap: 0.6rem;
-      max-width: 28rem;
-    }
-    .phone__text {
-      margin: 0;
-      color: var(--fs-text-muted);
-      font-size: 0.92rem;
-    }
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -250,7 +201,6 @@ export class ConsentPageComponent {
   private readonly legalApi = inject(LegalService);
   private readonly publicLegalApi = inject(PublicLegalService);
   private readonly authApi = inject(AuthService);
-  private readonly usersApi = inject(UsersService);
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
@@ -259,6 +209,8 @@ export class ConsentPageComponent {
   readonly returnUrl = input<string | undefined>(undefined);
 
   protected readonly checked = signal<ReadonlySet<string>>(new Set());
+  /** A6: none of the pending documents was accepted in an earlier version (a new account, not a changed text). */
+  protected readonly firstTime = signal(false);
 
   /** The pending documents in the UI language. */
   protected readonly documents = loadResource<LegalDocument[], string>({
@@ -266,6 +218,7 @@ export class ConsentPageComponent {
     loader: (lang) =>
       this.legalApi.getMyConsents().pipe(
         map((consents) => consents.filter((consent) => consent.pending)),
+        tap((pending) => this.firstTime.set(pending.length > 0 && pending.every((consent) => !consent.acceptedVersion))),
         switchMap((pending) =>
           pending.length === 0
             ? of([] as LegalDocument[])
@@ -282,14 +235,6 @@ export class ConsentPageComponent {
       ),
   });
 
-  /**
-   * EA4: the mobile phone number is required. Asked here (once, together with the documents) when the account has
-   * none or an invalid one; saved with `updateMyProfile` before the consents.
-   */
-  protected readonly askPhone = computed(() => !isValidPhoneNumber(this.session.user()?.phone));
-  protected readonly phone = signal('');
-  protected readonly phoneOk = computed(() => !this.askPhone() || isValidPhoneNumber(this.phone()));
-
   protected readonly allChecked = computed(() => {
     const docs = this.documents.data() ?? [];
     return docs.length > 0 && docs.every((doc) => this.checked().has(doc.kind));
@@ -298,16 +243,7 @@ export class ConsentPageComponent {
   /** Accepts every pending document (exact versions shown), then reloads the session and continues. */
   protected readonly accept = runMutation(
     () =>
-      (this.askPhone()
-        ? this.usersApi
-            .updateMyProfile({
-              userProfileUpdate: {
-                mobilePhone: normalizePhoneNumber(this.phone()) ?? this.phone(),
-              },
-            })
-            .pipe(switchMap(() => from(this.documents.data() ?? [])))
-        : from(this.documents.data() ?? [])
-      ).pipe(
+      from(this.documents.data() ?? []).pipe(
         concatMap((doc) =>
           this.legalApi.acceptLegalDocument({
             legalConsentRequest: { kind: doc.kind, version: doc.version },

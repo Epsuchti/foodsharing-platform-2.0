@@ -101,5 +101,5 @@
   "verification.passports.jobLabel": "Ausweise werden erstellt …",
   "verification.passports.jobDone": "Die Ausweise sind bereit.",
   "verification.passports.downloadResult": "PDF herunterladen",
-  "verification.queue.identityFirstHint": "Prüfe zuerst den Ausweis und bestätige die Identität, dann verifiziere."
+  "verification.queue.identityRequired": "Bestätige zuerst die Identität."
 }

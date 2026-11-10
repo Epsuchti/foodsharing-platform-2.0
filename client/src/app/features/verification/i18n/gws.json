@@ -101,5 +101,5 @@
   "verification.passports.jobLabel": "Uswiis werdet erstellt …",
   "verification.passports.jobDone": "D Uswiis sind parat.",
   "verification.passports.downloadResult": "PDF abelade",
-  "verification.queue.identityFirstHint": "Prüef zerscht de Uswiis und bestätig d Identität, denn verifizier."
+  "verification.queue.identityRequired": "Bestätig zerscht d Identität."
 }

@@ -72,6 +72,13 @@ class VerificationApiIT {
         mvc.perform(json(post(url).cookie(foodsaver), "{\"message\":\"Alles bestens erledigt\"}"))
                 .andExpect(status().isForbidden());
         mvc.perform(json(post(url).cookie(bot), "{\"message\":\"kurz\"}")).andExpect(status().isBadRequest());
+        // C1: no verification before the identity is confirmed (changed on purpose: confirm it first)
+        mvc.perform(json(post(url).cookie(bot), "{\"message\":\"Drei EinAbs, Ausweis geprüft\"}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("IDENTITY_NOT_CONFIRMED"));
+        assertThat(jdbc.queryForObject("select verified from user_account where id = ?", Boolean.class,
+                SeedUsers.PENDING.id())).isFalse();
+        mvc.perform(json(post("/api/users/" + SeedUsers.PENDING.id() + "/identity").cookie(bot), ""))
+                .andExpect(status().isOk());
         mvc.perform(json(post(url).cookie(bot), "{\"message\":\"Drei EinAbs, Ausweis geprüft\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(SeedUsers.PENDING.id().toString()))
                 .andExpect(jsonPath("$.verified").value(true));

@@ -73,11 +73,11 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
       <p class="muted">{{ 'verification.queue.noComments' | t }}</p>
     }
 
-    @let identityFirst = !verified() && !c.identityConfirmedAt && canConfirmIdentity();
-    @if (identityFirst) {
-      <!-- the expected order (design review M7 R1 #18): check the ID first, then verify; verifying stays possible -->
-      <p class="identity-hint" data-testid="verification.queue.identityFirst">
-        <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'verification.queue.identityFirstHint' | t }}
+    @let identityMissing = !verified() && !c.identityConfirmedAt;
+    @if (identityMissing) {
+      <!-- C1: verifying needs a confirmed identity (the server refuses it otherwise) -->
+      <p class="identity-hint" data-testid="verification.queue.identityRequired">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'verification.queue.identityRequired' | t }}
       </p>
     }
     <div class="actions">
@@ -85,8 +85,8 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
         <p-button
           [label]="'verification.queue.confirmIdentity' | t"
           icon="pi pi-id-card"
-          [severity]="identityFirst ? undefined : 'secondary'"
-          [outlined]="!identityFirst"
+          [severity]="identityMissing ? undefined : 'secondary'"
+          [outlined]="!identityMissing"
           size="small"
           [loading]="confirmBusy()"
           (onClick)="confirmIdentity.emit()"
@@ -97,8 +97,9 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
         <p-button
           [label]="'verification.queue.verify' | t"
           icon="pi pi-verified"
-          [severity]="identityFirst ? 'secondary' : undefined"
-          [outlined]="identityFirst"
+          [severity]="identityMissing ? 'secondary' : undefined"
+          [outlined]="identityMissing"
+          [disabled]="identityMissing"
           size="small"
           (onClick)="verify.emit()"
           data-testid="verification.queue.verify"

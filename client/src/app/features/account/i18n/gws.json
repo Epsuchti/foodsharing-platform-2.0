@@ -90,6 +90,8 @@
   "account.profile.dateOfBirth": "Geburtsdatum",
   "account.profile.contact": "Kontakt",
   "account.profile.mobilePhone": "Handynummer",
+  "account.profile.mobileRequired": "Bitte gib dini Handynummere a. Sie isch Pflicht, damit di dis Team bi Abholige erreiche cha; ohni sie chasch s Profil nöd speichere.",
+  "account.profile.required": "(Pflicht)",
   "account.profile.landlinePhone": "Feschtnetz",
   "account.profile.homepage": "Websiite",
   "account.profile.contactVisibility": "Wer gseht mini Kontaktdate?",

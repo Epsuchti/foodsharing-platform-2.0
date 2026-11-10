@@ -39,7 +39,17 @@ export async function confirmMessage(page: Page, dialog: string, message: string
   await expect(field).toBeHidden();
 }
 
-/** Verifies a user through the API as the given ambassador client. */
+/** Confirms the identity of a user through the API as the given ambassador client (no-op when already confirmed). */
+export async function confirmIdentityViaApi(ambassador: ApiClient, userId: string): Promise<void> {
+  const identity = await ambassador.getJson<{ confirmed: boolean }>(`/api/users/${userId}/identity`);
+  if (!identity.confirmed) await ambassador.postJson(`/api/users/${userId}/identity`);
+}
+
+/**
+ * Verifies a user through the API as the given ambassador client. Changed on purpose (C1): verifying needs a
+ * confirmed identity, so the identity is confirmed first.
+ */
 export async function verifyViaApi(ambassador: ApiClient, userId: string, message = VERIFY_MESSAGE): Promise<void> {
+  await confirmIdentityViaApi(ambassador, userId);
   await ambassador.postJson(`/api/users/${userId}/verification`, { message });
 }

@@ -1,11 +1,13 @@
 import { expect, injectApiError, test } from '../../fixtures';
-import { USERS, ZH } from './_verification';
+import { USERS, ZH, confirmIdentityViaApi } from './_verification';
 
 /** Error, retry, forbidden and not-found states of the verification and passport pages (DataState + mutations). */
 test.use({ seedReset: 'test' });
 
-test('verification: queue error with retry, verify conflict shows a toast @Ve2', async ({ as }) => {
+test('verification: queue error with retry, verify conflict shows a toast @Ve2', async ({ as, apiOf }) => {
   const page = await as('bot');
+  // changed on purpose (C1): verify is only offered once the identity is confirmed
+  await confirmIdentityViaApi(apiOf(page), USERS.pending);
   await injectApiError(page, { url: `**/api/regions/${ZH}/verification/queue**`, status: 400, code: 'VALIDATION_FAILED', times: 1 });
   await page.goto(`/regions/${ZH}/verification`);
   const state = page.getByTestId('verification.queue.state');

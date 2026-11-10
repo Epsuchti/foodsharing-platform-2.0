@@ -90,6 +90,8 @@
   "account.profile.dateOfBirth": "Data di nascita",
   "account.profile.contact": "Contatto",
   "account.profile.mobilePhone": "Numero di cellulare",
+  "account.profile.mobileRequired": "Inserisci il tuo numero di cellulare. È obbligatorio perché il tuo team possa contattarti durante i ritiri; senza non puoi salvare il profilo.",
+  "account.profile.required": "(obbligatorio)",
   "account.profile.landlinePhone": "Telefono fisso",
   "account.profile.homepage": "Sito web",
   "account.profile.contactVisibility": "Chi vede i miei contatti?",

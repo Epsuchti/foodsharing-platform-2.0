@@ -34,8 +34,6 @@ test('D11.5.5 newcomer: consent, profile, learning, quiz, first EinAb booking @D
     const count = await checks.count();
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) await walk.check(checks.nth(i));
-    const phone = page.getByTestId('legal.consent.phoneInput');
-    if (await phone.isVisible()) await walk.fill(phone, '079 123 45 99');
     await walk.click(page.getByTestId('legal.consent.submit'));
     await expect(page).not.toHaveURL(/\/consent/);
   });

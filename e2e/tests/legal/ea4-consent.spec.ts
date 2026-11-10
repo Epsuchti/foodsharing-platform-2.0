@@ -21,6 +21,10 @@ test('EA4 pending consent gates every page and continues after accepting @EA4 @p
   const docs = page.getByTestId('legal.consent.document');
   await expect(docs.first()).toBeVisible();
   await expect(page.locator('[data-kind="PRIVACY_POLICY"]')).toBeVisible();
+  // A6: a new account accepts for the first time, nothing has "changed" for it
+  await expect(page.locator('fs-page-header .ph__subtitle')).toHaveText(
+    'Bevor du startest: Bitte lies diese Dokumente und stimme ihnen zu.',
+  );
 
   // the full text is available, accepting needs every checkbox
   await page.getByTestId('legal.consent.fullText.PRIVACY_POLICY').click();
@@ -29,15 +33,10 @@ test('EA4 pending consent gates every page and continues after accepting @EA4 @p
   await expect(submit).toBeDisabled();
   const checks = page.locator('[data-testid^="legal.consent.check."] input');
   for (let i = 0; i < (await checks.count()); i++) await checks.nth(i).check();
-  // newbie@local has no mobile number yet: the phone prompt is part of the consent step and validated
-  const phone = page.getByTestId('legal.consent.phoneInput');
-  await expect(phone).toBeVisible();
-  await expect(submit).toBeDisabled();
-  await phone.fill('12345');
-  await phone.blur();
-  await expect(phone).toHaveAttribute('aria-invalid', 'true');
-  await expect(submit).toBeDisabled();
-  await phone.fill('079 555 12 34');
+  // changed on purpose (D2): newbie@local has no mobile number, but it is asked in onboarding step 2 and the
+  // profile, no longer here
+  await expect(page.getByTestId('legal.consent.phone')).toHaveCount(0);
+  await expect(page.getByTestId('legal.consent.phoneInput')).toHaveCount(0);
   await expect(submit).toBeEnabled();
   await submit.click();
 
@@ -51,8 +50,8 @@ test('EA4 pending consent gates every page and continues after accepting @EA4 @p
   expect((session as { pendingConsents?: string[] }).pendingConsents ?? []).toEqual([]);
   const history = await api.getJson<HistoryEntryPage>('/api/history/me?actions=CONSENT_GIVEN');
   expect(history.items.length).toBeGreaterThan(0);
-  const profile = await api.getJson<{ mobilePhone?: string; phoneValid?: boolean }>('/api/users/me');
-  expect(profile.mobilePhone).toBe('+41795551234');
+  const profile = await api.getJson<{ mobilePhone?: string }>('/api/users/me');
+  expect(profile.mobilePhone ?? null).toBeNull();
 });
 
 test('EA4 consent is versioned and recorded in history @EA4', async ({ as, apiOf }) => {
@@ -65,7 +64,6 @@ test('EA4 consent is versioned and recorded in history @EA4', async ({ as, apiOf
   await page.goto('/dashboard');
   await expect(page.locator('[data-kind="PRIVACY_POLICY"]')).toContainText(privacy.currentVersion);
   await page.locator('[data-testid^="legal.consent.check."] input').first().check();
-  await page.getByTestId('legal.consent.phoneInput').fill('+41 79 555 12 35');
   await page.getByTestId('legal.consent.submit').click();
   await expect(page).toHaveURL(/\/dashboard$/);
 

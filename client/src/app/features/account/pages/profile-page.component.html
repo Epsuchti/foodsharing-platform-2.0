@@ -69,8 +69,14 @@
         <h2 class="card__title">{{ 'account.profile.contact' | t }}</h2>
         <div class="grid">
           <div class="field">
-            <label for="pf-mobile">{{ 'account.profile.mobilePhone' | t }}</label>
+            <label for="pf-mobile">{{ 'account.profile.mobilePhone' | t }}<span class="req" aria-hidden="true">*</span><span class="fs-visually-hidden">{{ 'account.profile.required' | t }}</span></label>
             <fs-phone-input inputId="pf-mobile" formControlName="mobilePhone" [mobile]="true" testId="account.profile.mobilePhone" />
+            @if (form.controls.mobilePhone.hasError('required')) {
+              <!-- D2: the mobile number is mandatory on the own profile (also asked of existing accounts without one) -->
+              <small class="field-error" role="alert" data-testid="account.profile.mobileRequired">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>{{ 'account.profile.mobileRequired' | t }}
+              </small>
+            }
           </div>
           <div class="field">
             <label for="pf-landline">{{ 'account.profile.landlinePhone' | t }}</label>
