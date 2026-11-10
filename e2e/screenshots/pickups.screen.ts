@@ -109,6 +109,22 @@ forEachVariant((variant) => {
         await expect(row.locator('[data-testid="stores.pickups.slot.taken"][data-confirmed="false"]')).toHaveCount(1);
         await visual.expectScreen(page, `pickups-booked-${variant.name}`);
       });
+
+      screenshotTest('help needed card with an own sign-up @PU7 @A19 @screenshot', async ({ page, api, visual }) => {
+        // review fix A2: the first option of the card is the foodsaver's, shown as "Eingetragen · noch unbestätigt"
+        const first = zurichPickupAt(0, '19:00');
+        expect((await api.post(`/api/stores/${S01}/pickups/${encodeURIComponent(first)}/signups`)).ok()).toBe(true);
+        await page.goto('/dashboard');
+        const card = page.getByTestId('dashboard.help');
+        await expect(async () => {
+          if (!(await card.count())) await page.locator('.defer-slot.o-help').scrollIntoViewIfNeeded({ timeout: 1_000 });
+          await expect(card).toBeAttached({ timeout: 1_000 });
+        }).toPass();
+        await card.scrollIntoViewIfNeeded();
+        await expect(page.getByTestId('dashboard.help.state')).toHaveAttribute('data-state', 'success');
+        await expect(card.getByTestId('dashboard.help.signedUp')).toBeVisible();
+        await visual.expectElement(card, `pickups-help-signed-up-${variant.name}`);
+      });
     });
 
     screenshotTest.describe('jumper', () => {

@@ -129,6 +129,8 @@
   "pickups.page.showMore": "Show {count} more",
   "pickups.mine.signOutLabel": "Sign out: {store}, {date}",
   "pickups.options.signUpLabel": "Sign up: {store}, {date}",
+  "pickups.options.signedUpConfirmed": "Signed up · confirmed",
+  "pickups.options.signedUpUnconfirmed": "Signed up · not yet confirmed",
   "pickups.dashboard.help": "Help needed soon",
   "pickups.dashboard.helpAll": "All {count, plural, one {# pickup} other {# pickups}} with free slots",
   "pickups.eligibility.AUTOMATION_RULE": "A rule of this store prevents the sign-up.",

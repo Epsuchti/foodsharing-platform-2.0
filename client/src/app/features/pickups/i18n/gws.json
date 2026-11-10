@@ -129,6 +129,8 @@
   "pickups.page.showMore": "{count} wiiteri aazeige",
   "pickups.mine.signOutLabel": "Ustrage: {store}, {date}",
   "pickups.options.signUpLabel": "Iitrage: {store}, {date}",
+  "pickups.options.signedUpConfirmed": "Iitreit · bestätigt",
+  "pickups.options.signedUpUnconfirmed": "Iitreit · no nöd bestätigt",
   "pickups.dashboard.help": "Bald Hilf gsuecht",
   "pickups.dashboard.helpAll": "Alli {count, plural, one {# Abholig} other {# Abholige}} mit freie Plätz",
   "pickups.eligibility.AUTOMATION_RULE": "E Regle vo dem Betrieb verhinderet d Iitragig.",

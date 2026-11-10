@@ -21,7 +21,7 @@ async function reveal(page: Page, card: 'help' | 'events' | 'stores') {
  * slots.
  */
 
-test.use({ role: 'foodsaver' });
+test.use({ role: 'foodsaver', seedReset: 'test' });
 
 test('A19 home cards link to their pages and help signs up inline @A19 @PU7', async ({ page }) => {
   await page.goto('/dashboard');
@@ -49,9 +49,15 @@ test('A19 home cards link to their pages and help signs up inline @A19 @PU7', as
 
   // sign up from the help card: the same dialog as /pickups
   await help.scrollIntoViewIfNeeded();
-  await help.getByTestId('dashboard.help.signUp').first().click();
+  const first = help.getByTestId('dashboard.help.option').first();
+  const pickupAt = await first.getAttribute('data-pickup-at');
+  await first.getByTestId('dashboard.help.signUp').click();
   await expectDataState(page, 'pickups.signup.state', 'success');
-  await expect(page.getByTestId('pickups.signup.confirm')).toBeVisible();
+  await page.getByTestId('pickups.signup.confirm').click();
+  // review fix A2: the card reloads and shows the own sign-up as a state instead of "Eintragen"
+  const signedUp = help.locator(`[data-testid="dashboard.help.option"][data-pickup-at="${pickupAt}"]`);
+  await expect(signedUp.getByTestId('dashboard.help.signedUp')).toHaveText('Eingetragen · noch unbestätigt');
+  await expect(signedUp.getByTestId('dashboard.help.signUp')).toHaveCount(0);
 });
 
 test('A19 a newcomer sees no pickup cards on the home screen @A19', async ({ as }) => {
