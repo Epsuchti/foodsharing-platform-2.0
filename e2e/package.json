@@ -24,7 +24,7 @@
     "@types/node": "^24.19.2",
     "chrome-launcher": "^1.2.2",
     "lighthouse": "^13.6.0",
-    "pdfjs-dist": "^6.4.299",
+    "pdfjs-dist": "^6.5.438",
     "puppeteer-core": "^25.16.0",
     "tsx": "^4.23.15",
     "typescript": "~7.0.2",
