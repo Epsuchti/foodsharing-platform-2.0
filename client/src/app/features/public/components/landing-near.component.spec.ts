@@ -161,8 +161,36 @@ describe('LandingNearComponent (C17)', () => {
     expect(byTestId('public.landing.near.regionLink')!.getAttribute('href')).toBe(
       '/r/zuerich-stadt',
     );
-    expect(byTestId('public.landing.near.openMap')!.getAttribute('href')).toBe('/map');
+    // decision 179: "Karte öffnen" opens /map at the region's pin, zoom 11, and the landing map moves there
+    expect(byTestId('public.landing.near.openMap')!.getAttribute('href')).toBe(
+      '/map?lat=47.3779&lon=8.5403&z=11',
+    );
+    expect(TestBed.inject(LandingMarkersResource).focus()).toEqual({
+      lat: 47.3779,
+      lon: 8.5403,
+      zoom: 11,
+    });
     expect(byTestId('public.landing.near.idle')).toBeNull();
+  });
+
+  it('keeps the map and links plain /map for a region without a pin', async () => {
+    await flushMarkers();
+    await search('8004');
+    expectSuggest('8004').flush([SUGGESTION]);
+    http.expectOne('/api/public/regions/zuerich-stadt').flush(region({ pin: undefined }));
+    await fixture.whenStable();
+    expect(state()).toBe('success');
+    expect(byTestId('public.landing.near.openMap')!.getAttribute('href')).toBe('/map');
+    expect(TestBed.inject(LandingMarkersResource).focus()).toBeNull();
+  });
+
+  it('leaves the map where it is when the search finds nothing', async () => {
+    await flushMarkers();
+    await search('9999');
+    expectSuggest('9999').flush([]);
+    await fixture.whenStable();
+    expect(state()).toBe('empty');
+    expect(TestBed.inject(LandingMarkersResource).focus()).toBeNull();
   });
 
   it('leaves out a name whose bubble fails', async () => {

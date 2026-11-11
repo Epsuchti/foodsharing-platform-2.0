@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 
 import {
@@ -28,7 +28,8 @@ import { FeatureToggleService } from '../../../core/feature-toggles/feature-togg
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
-import { MapFocus, MapMarker, MapViewComponent } from '../../../shared/map-view/map-view.component';
+import { mapViewQuery, parseMapView } from '../../../shared/map-view/map-view-query';
+import { MAP_DEFAULT_CENTER, MapFocus, MapMarker, MapViewChange, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { MarkerFilter, MarkerFilterBarComponent } from '../../../shared/marker-filter-bar/marker-filter-bar.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import {
@@ -67,6 +68,13 @@ const LAYER_ICONS: Record<MapLayer, string> = {
   users: 'pi pi-user',
 };
 
+/** Zoom of plain `/map` (centre: MapView's default, Zürich). */
+const DEFAULT_ZOOM = 8;
+/** The deep link of the default view: while the map shows it, the URL stays plain `/map`. */
+const DEFAULT_QUERY = mapViewQuery({ lat: MAP_DEFAULT_CENTER[0], lon: MAP_DEFAULT_CENTER[1], zoom: DEFAULT_ZOOM });
+/** Wait this long after the last move before the URL follows the map (ms). */
+const URL_SYNC_DELAY_MS = 300;
+
 interface Selected {
   kind: MapMarkerKind;
   id: string;
@@ -79,6 +87,12 @@ interface Selected {
  * region — that region's members (`listUserMarkers`, positions rounded by the server; the client adds no
  * precision). A pin opens its bubble (`getMapBubble` / `getPublicMapBubble`); a place search (`searchMapLocation`)
  * and "near me" (browser location) move the map.
+ *
+ * Deep link (decision 179): `/map?lat=<deg>&lon=<deg>&z=<int>` opens at that view (`parseMapView`, read once on
+ * init; an invalid link falls back to the default view, Zürich at zoom 8). After every move the URL follows the map
+ * (debounced, `replaceUrl`, so history does not grow), except at the default view (plain `/map`). A move from
+ * "near me" is never written — the URL drops its params until the user moves the map by hand — so the browser
+ * location stays out of shared links; a search hit is a place the user typed and is written.
  */
 @Component({
   selector: 'fs-map-page',
@@ -197,11 +211,12 @@ interface Selected {
         [state]="layerState"
         [fitMarkers]="false"
         [focus]="focus()"
-        [zoom]="8"
+        [zoom]="defaultZoom"
         height="min(38rem, 70vh)"
         [ariaLabel]="'map.page.mapLabel' | t"
         testId="map.page.map"
         (markerClick)="open($event)"
+        (viewChange)="syncUrl($event)"
       />
       @if (selectedArea(); as area) {
         <aside class="fs-card bubble" [attr.aria-label]="'map.bubble.label' | t" data-kind="store-area" data-testid="map.area">
@@ -470,6 +485,8 @@ export class MapPageComponent {
   private readonly toggles = inject(FeatureToggleService);
   private readonly i18n = inject(I18nService);
   private readonly dates = inject(DateTimeFormatter);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly loggedIn = this.session.isAuthenticated;
   /** The open store count bubble (its text is all there is, no request and no link). */
@@ -490,7 +507,12 @@ export class MapPageComponent {
     member: UserMarkerMember.All,
   });
   protected readonly selected = signal<Selected | null>(null);
-  protected readonly focus = signal<MapFocus | null>(null);
+  protected readonly defaultZoom = DEFAULT_ZOOM;
+  /** The deep link's view, parsed once (later URL changes are our own and never move the map). */
+  protected readonly focus = signal<MapFocus | null>(parseMapView(this.route.snapshot.queryParamMap));
+  /** After "near me": the URL carries no position until the user moves the map by hand. */
+  private suppressSync = false;
+  private syncTimer: ReturnType<typeof setTimeout> | undefined;
   protected readonly focusLabel = signal<string | null>(null);
   protected readonly query = signal('');
   protected readonly searchTerm = signal<string | null>(null);
@@ -658,6 +680,7 @@ export class MapPageComponent {
 
   constructor() {
     void this.toggles.load();
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.syncTimer));
     // the first administered region preselects the user layer
     effect(() => {
       const first = this.regionsToAdminister()[0]?.id ?? '';
@@ -692,7 +715,34 @@ export class MapPageComponent {
     }
   }
 
+  /** The URL follows the map (public for tests): debounced, `replaceUrl`, nothing at the default view or after "near me". */
+  syncUrl(change: MapViewChange): void {
+    if (change.byUser) {
+      this.suppressSync = false;
+    }
+    const query = mapViewQuery(change);
+    const plain =
+      this.suppressSync || (query.lat === DEFAULT_QUERY.lat && query.lon === DEFAULT_QUERY.lon && query.z === DEFAULT_QUERY.z);
+    clearTimeout(this.syncTimer);
+    this.syncTimer = setTimeout(() => this.writeUrl(plain ? null : query), URL_SYNC_DELAY_MS);
+  }
+
+  private writeUrl(query: { lat: string; lon: string; z: number } | null): void {
+    const current = this.router.parseUrl(this.router.url).queryParamMap;
+    const same = query
+      ? current.get('lat') === query.lat && current.get('lon') === query.lon && current.get('z') === String(query.z)
+      : !current.has('lat') && !current.has('lon') && !current.has('z');
+    if (same) return;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: query ?? { lat: null, lon: null, z: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   protected goTo(hit: GeoResult): void {
+    this.suppressSync = false;
     this.focusLabel.set(hit.label);
     this.focus.set({ lat: hit.lat, lon: hit.lon, zoom: 13 });
   }
@@ -723,6 +773,8 @@ export class MapPageComponent {
         const position: [number, number] = [result.coords.latitude, result.coords.longitude];
         this.ownPosition.set(position);
         this.focusLabel.set(null);
+        // the browser location never goes into the URL (decision 179, data protection)
+        this.suppressSync = true;
         this.focus.set({ lat: position[0], lon: position[1], zoom: 13 });
       },
       () => {

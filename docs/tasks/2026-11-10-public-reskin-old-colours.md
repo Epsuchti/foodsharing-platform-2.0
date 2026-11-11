@@ -1,6 +1,6 @@
 # Public reskin in the old foodsharing colours (direction D "Leichter Reskin")
 
-Status: plan, waiting for owner answers to Q1–Q5 (in the planner report; defaults = recommendations, marked in Decisions). Design: `docs/design/landing-old-colours-d-proposal.md` + `-mockup.html`, contrast background `landing-old-colours-b-proposal.md`.
+Status: approved 2026-11-10, owner accepted every recommendation of Q1–Q5 (marked in Decisions). Design: `docs/design/landing-old-colours-d-proposal.md` + `-mockup.html`, contrast background `landing-old-colours-b-proposal.md`.
 
 ## Goal
 Every page a logged-out visitor sees uses the old foodsharing palette (brown ink `#533a20`, old green family, warm surfaces).
@@ -16,7 +16,7 @@ The landing page also gets the green-left/brown-right brand panels, icon tiles a
   - each PrimeNG component token that references `{primary.*}` and is used on public pages: button primary/outlined/text, checkbox, radiobutton, toggleswitch, form-field focus border, select/listbox selected option, progressspinner, tabs, and `--p-primary-50…950` if anything reads them. The implementer gets the list from the emitted theme CSS (DevTools or `document.styleSheets`) and copies the same expressions into the scope, which re-computes them there.
 - **D5 Header, side menu, footer, page background unchanged** (designer Q4/Q5, our Q3): they sit outside `<main>`. Body-appended overlays (toasts, confirm dialog, PrimeNG overlay panels) also stay in app colours. Accepted.
 - **D6 Panels beyond the landing page** (Q5): only the `/r/:slug` hero, whose 135° green gradient would clash, becomes `.fs-panel--brand` (it keeps the accent radial glow). Every other public page gets the token swap only: no layout, copy or test-id changes.
-- **D7 Bookkeeping:** decision **174** (the next free number; re-check at merge) amends decision 160. The ledger C17 row notes "public reskin D (decision 174)". E2E tag `@C17`.
+- **D7 Bookkeeping:** decision **178** (174–177 were taken by the learning wiki and review fixes 3–5 at merge) amends decision 160. The ledger C17 row notes "public reskin D (decision 178)". E2E tag `@C17`.
 
 ## Scope
 **In: public routes** (no `authGuard`; reskinned whenever logged out):
@@ -46,7 +46,7 @@ The landing page also gets the green-left/brown-right brand panels, icon tiles a
 
 **Client, shell** (`client/src/app/layout/shell.component.ts`):
 - add `[class.fs-public]="!session.isAuthenticated()"` on `<main>`. `session` is already injected; make it `protected`.
-- doc comment pointing to decision 174.
+- doc comment pointing to decision 178.
 
 **Client, landing** (`client/src/app/features/public/pages/landing-page.component.html` + `.scss`):
 - Apply proposal §3.4 element by element: split sections, Betriebe card, quote, duties, "Das musst du nicht" and FAQ groups get `fs-panel--brand`. The row icons become `<span class="fs-tile" aria-hidden="true"><i class="pi …"></i></span>`, and the Fairteiler head and FAQ group labels get `.fs-tile--lg` / `.fs-tile`.
@@ -63,7 +63,7 @@ The landing page also gets the green-left/brown-right brand panels, icon tiles a
 **Docs:**
 - `git add` `landing-old-colours-d-proposal.md` + `-mockup.html`.
 - Delete the A/B/C mockups and proposals (Q5); keep B's proposal if the owner wants the contrast notes.
-- Add decision 174, the ledger C17 note, and a "public scope" line in `docs/conventions.md` A7 (Theme).
+- Add decision 178, the ledger C17 note, and a "public scope" line in `docs/conventions.md` A7 (Theme).
 
 ## UI
 Visible change on every logged-out page; the designer's mockup D exists already. Nothing new is needed, unless the owner wants to see the `/r/:slug` hero first (optional quick mockup).
@@ -88,7 +88,7 @@ Visible change on every logged-out page; the designer's mockup D exists already.
 - [ ] The `/r/:slug` hero is a brand panel; the other public pages change only by token swap
 - [ ] The `@C17` e2e spec, axe sweep (light, dark, mobile), `npm run lint`, `i18n:check` and client unit tests are green
 - [ ] CI baselines are regenerated and reviewed, with logged-in screens unchanged
-- [ ] Decision 174, ledger C17 note and conventions A7 line written; D files committed, A/B/C removed
+- [ ] Decision 175, ledger C17 note and conventions A7 line written; D files committed, A/B/C removed
 
 ## Risks
 - **PrimeNG tokens resolved at `:root`:** if a component token is missed, that component stays app-green on a public page. The e2e button check and a visual pass over login, support, map and blog catch this.

@@ -89,6 +89,17 @@
   --fs-pub-map-water: #c6dfe4;
   --fs-pub-map-park: #d8e8cf;
   --fs-pub-map-line: #d5dccf;
+  /* old foodsharing brand of the public pages (decision 178, docs/design/landing-old-colours-d-proposal.md §3.2):
+     warm tint source of the panels' right edge (never text), panel mix "Mittel", tile shadow, counters band and the
+     exact old green (only as numbers on the brown band or as a fill without text) */
+  --fs-brand-tan: #b8905c;
+  --fs-panel-green: 14%;
+  --fs-panel-brown: 9%;
+  --fs-tile-shadow: 0 4px 12px color-mix(in srgb, var(--fs-primary) 32%, transparent);
+  --fs-band-bg: #3a2814;
+  --fs-band-text: #f4ece0;
+  --fs-band-muted: #efe6d9;
+  --fs-brand-green: #64ae24;
 
   --fs-radius-sm: 0.625rem;
   --fs-radius-md: 0.875rem;
@@ -160,6 +171,13 @@
   --fs-pub-map-water: #1d3a42;
   --fs-pub-map-park: #24351f;
   --fs-pub-map-line: #2f3a2d;
+  --fs-panel-green: 18%;
+  --fs-panel-brown: 14%;
+  --fs-tile-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
+  --fs-band-bg: #2e2217;
+  --fs-band-text: #f4ece0;
+  --fs-band-muted: #c4b39c;
+  --fs-brand-green: #8fd14d;
   --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
   --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
   --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
@@ -172,6 +190,164 @@
   --fs-on-warning: #1a201a;
 
   color-scheme: dark;
+}
+
+// ---------------------------------------------------------------------------------------------------
+// Public scope (decision 178, docs/design/landing-old-colours-d-proposal.md §3.3): the old foodsharing palette
+// (brown ink, old green, warm surfaces) on every page a logged-out visitor sees. ShellComponent puts `fs-public`
+// on <main> while nobody is logged in; header, side menu, footer, page background and overlays outside <main>
+// keep the app colours. A custom property that uses var() is computed where it is declared, so every token
+// derived from a redefined one (our tile shadow, the Optimus primary tokens and each component token that reads
+// them, directly or through highlight/focus ring/list option) is declared here again with the preset's own
+// expression. The list is the closure over the emitted theme variables, limited to the components public pages
+// render (the app-only ones: badge, chip, datepicker, editor, multiselect, progressbar, radiobutton, tag, timeline,
+// togglebutton, toggleswitch keep the app green; the start-up CSS budget, D11.5.3). A token missing here keeps the app green on public pages.
+// ---------------------------------------------------------------------------------------------------
+.fs-public {
+  --fs-surface: #ffffff;
+  --fs-surface-muted: #f5f0e8;
+  --fs-border: #e9dfd0;
+  --fs-border-strong: #cdbfa8;
+  --fs-text: #533a20;
+  --fs-text-muted: #725a3c;
+  --fs-primary: #44801a;
+  --fs-on-primary: #ffffff;
+  --fs-primary-strong: #35690f;
+  --fs-primary-soft: #e9f3dc;
+  --fs-primary-200: #c5e3a3;
+  --fs-shadow-sm: 0 1px 2px rgb(83 58 32 / 0.06), 0 2px 8px rgb(83 58 32 / 0.05);
+  --fs-shadow-md: 0 6px 20px rgb(83 58 32 / 0.1);
+  --fs-shadow-lg: 0 18px 44px rgb(83 58 32 / 0.14);
+  --fs-tile-shadow: 0 4px 12px color-mix(in srgb, var(--fs-primary) 32%, transparent);
+
+  /* Optimus primary: the old green family (500 = --fs-primary, 600 = --fs-primary-strong, 400 = dark primary) */
+  --p-primary-50: #f3f8ec;
+  --p-primary-100: #e9f3dc;
+  --p-primary-200: #c5e3a3;
+  --p-primary-300: #a8de70;
+  --p-primary-400: #8fd14d;
+  --p-primary-500: #44801a;
+  --p-primary-600: #35690f;
+  --p-primary-700: #2d5a0c;
+  --p-primary-800: #244a09;
+  --p-primary-900: #1d3b07;
+  --p-primary-950: #0f2104;
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-contrast-color: var(--fs-on-primary);
+  --p-primary-hover-color: var(--p-primary-600);
+  --p-primary-active-color: var(--p-primary-700);
+
+  /* tokens derived from the primary ones (same expressions as the light preset), for the components that public
+     pages render: button, checkbox, text fields, select (list option) and paginator */
+  --p-form-field-focus-border-color: var(--p-primary-color);
+  --p-form-field-float-label-focus-color: var(--p-primary-600);
+  --p-highlight-background: var(--p-primary-50);
+  --p-highlight-focus-background: var(--p-primary-100);
+  --p-highlight-color: var(--p-primary-700);
+  --p-highlight-focus-color: var(--p-primary-800);
+  --p-focus-ring-color: color-mix(in srgb, var(--p-primary-500) 45%, transparent);
+  --p-button-link-color: var(--p-primary-color);
+  --p-button-link-hover-color: var(--p-primary-color);
+  --p-button-link-active-color: var(--p-primary-color);
+  --p-button-text-primary-hover-background: var(--p-primary-50);
+  --p-button-text-primary-active-background: var(--p-primary-100);
+  --p-button-text-primary-color: var(--p-primary-600);
+  --p-button-outlined-primary-hover-background: var(--p-primary-50);
+  --p-button-outlined-primary-active-background: var(--p-primary-100);
+  --p-button-outlined-primary-border-color: var(--p-primary-200);
+  --p-button-outlined-primary-color: var(--p-primary-600);
+  --p-button-primary-background: var(--p-primary-color);
+  --p-button-primary-hover-background: var(--p-primary-hover-color);
+  --p-button-primary-active-background: var(--p-primary-active-color);
+  --p-button-primary-border-color: var(--p-primary-color);
+  --p-button-primary-hover-border-color: var(--p-primary-hover-color);
+  --p-button-primary-active-border-color: var(--p-primary-active-color);
+  --p-button-primary-color: var(--p-primary-contrast-color);
+  --p-button-primary-hover-color: var(--p-primary-contrast-color);
+  --p-button-primary-active-color: var(--p-primary-contrast-color);
+  --p-button-primary-focus-ring-color: var(--p-primary-color);
+  --p-checkbox-icon-checked-color: var(--p-primary-contrast-color);
+  --p-checkbox-icon-checked-hover-color: var(--p-primary-contrast-color);
+  --p-checkbox-checked-background: var(--p-primary-color);
+  --p-checkbox-checked-hover-background: var(--p-primary-hover-color);
+  --p-checkbox-checked-border-color: var(--p-primary-color);
+  --p-checkbox-checked-hover-border-color: var(--p-primary-hover-color);
+  --p-checkbox-checked-focus-border-color: var(--p-primary-color);
+  --p-checkbox-focus-ring-color: var(--p-focus-ring-color);
+  --p-inputtext-focus-border-color: var(--p-form-field-focus-border-color);
+  --p-paginator-nav-button-selected-background: var(--p-highlight-background);
+  --p-paginator-nav-button-selected-color: var(--p-highlight-color);
+  --p-paginator-nav-button-focus-ring-color: var(--p-focus-ring-color);
+  --p-select-focus-border-color: var(--p-form-field-focus-border-color);
+  --p-tabs-active-bar-background: var(--p-primary-color);
+  --p-tabs-nav-button-focus-ring-color: var(--p-focus-ring-color);
+  --p-tabs-tabpanel-focus-ring-color: var(--p-focus-ring-color);
+  --p-tabs-tab-active-border-color: var(--p-primary-color);
+  --p-tabs-tab-active-color: var(--p-primary-color);
+  --p-tabs-tab-focus-ring-color: var(--p-focus-ring-color);
+  --p-textarea-focus-border-color: var(--p-form-field-focus-border-color);
+  --p-list-option-selected-background: var(--p-highlight-background);
+  --p-list-option-selected-focus-background: var(--p-highlight-focus-background);
+  --p-list-option-selected-color: var(--p-highlight-color);
+  --p-list-option-selected-focus-color: var(--p-highlight-focus-color);
+  --p-select-option-selected-background: var(--p-list-option-selected-background);
+  --p-select-option-selected-focus-background: var(--p-list-option-selected-focus-background);
+  --p-select-option-selected-color: var(--p-list-option-selected-color);
+  --p-select-option-selected-focus-color: var(--p-list-option-selected-focus-color);
+
+  color: var(--fs-text);
+}
+
+:root.fs-dark .fs-public {
+  --fs-surface: #251a10;
+  --fs-surface-muted: #2e2217;
+  --fs-border: #3d2f20;
+  --fs-border-strong: #574735;
+  --fs-text: #f4ece0;
+  --fs-text-muted: #c4b39c;
+  --fs-primary: #8fd14d;
+  --fs-on-primary: #1b130b;
+  --fs-primary-strong: #a8de70;
+  --fs-primary-soft: rgb(143 209 77 / 0.14);
+  --fs-primary-200: #3d5a1e;
+  --fs-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --fs-shadow-md: 0 6px 20px rgb(0 0 0 / 0.35);
+  --fs-shadow-lg: 0 18px 44px rgb(0 0 0 / 0.45);
+  --fs-tile-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
+
+  --p-primary-color: var(--p-primary-400);
+  --p-primary-hover-color: var(--p-primary-300);
+  --p-primary-active-color: var(--p-primary-200);
+
+  /* the derived tokens whose dark preset expression differs from the light one */
+  --p-form-field-float-label-focus-color: var(--p-primary-color);
+  --p-highlight-background: color-mix(in srgb, var(--p-primary-400) 16%, transparent);
+  --p-highlight-focus-background: color-mix(in srgb, var(--p-primary-400) 24%, transparent);
+  --p-highlight-color: rgba(255, 255, 255, 0.87);
+  --p-highlight-focus-color: rgba(255, 255, 255, 0.87);
+  --p-button-text-primary-hover-background: color-mix(
+    in srgb,
+    var(--p-primary-color),
+    transparent 96%
+  );
+  --p-button-text-primary-active-background: color-mix(
+    in srgb,
+    var(--p-primary-color),
+    transparent 84%
+  );
+  --p-button-text-primary-color: var(--p-primary-color);
+  --p-button-outlined-primary-hover-background: color-mix(
+    in srgb,
+    var(--p-primary-color),
+    transparent 96%
+  );
+  --p-button-outlined-primary-active-background: color-mix(
+    in srgb,
+    var(--p-primary-color),
+    transparent 84%
+  );
+  --p-button-outlined-primary-border-color: var(--p-primary-700);
+  --p-button-outlined-primary-color: var(--p-primary-color);
 }
 
 @media (pointer: coarse) {
@@ -548,6 +724,67 @@
     border-radius: var(--fs-radius-lg);
     background: var(--fs-surface);
     box-shadow: var(--fs-shadow-sm);
+  }
+
+  // Brand panel and icon tile (decision 178, docs/design/landing-old-colours-d-proposal.md §3.1): green (primary of
+  // the scope it sits in) on the left fading out, warm tan on the right fading in. Used on the public pages; inside
+  // the app the same class would take the app green. -soft / -strong are one intensity step down / up.
+  .fs-panel--brand,
+  .fs-panel--brand-soft,
+  .fs-panel--brand-strong {
+    border: 1px solid var(--fs-border);
+    border-radius: var(--fs-radius-lg);
+    box-shadow: var(--fs-shadow-sm);
+    /* declared on the panel itself, so it mixes the primary of the panel's scope; a component that adds a layer on
+       top (the region hero's accent glow) writes `background: <layer>, var(--fs-panel-bg)` */
+    --fs-panel-bg: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--fs-primary) var(--fs-panel-green), var(--fs-surface)) 0%,
+      color-mix(in srgb, var(--fs-primary) calc(var(--fs-panel-green) / 3), var(--fs-surface)) 38%,
+      color-mix(in srgb, var(--fs-brand-tan) calc(var(--fs-panel-brown) / 3), var(--fs-surface)) 62%,
+      color-mix(in srgb, var(--fs-brand-tan) var(--fs-panel-brown), var(--fs-surface)) 100%
+    );
+    background: var(--fs-panel-bg);
+  }
+  .fs-panel--brand-soft {
+    --fs-panel-green: 9%;
+    --fs-panel-brown: 6%;
+  }
+  .fs-panel--brand-strong {
+    --fs-panel-green: 20%;
+    --fs-panel-brown: 13%;
+  }
+  :root.fs-dark .fs-panel--brand-soft {
+    --fs-panel-green: 12%;
+    --fs-panel-brown: 9%;
+  }
+  :root.fs-dark .fs-panel--brand-strong {
+    --fs-panel-green: 26%;
+    --fs-panel-brown: 20%;
+  }
+
+  .fs-tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--fs-radius-md);
+    background: var(--fs-primary);
+    color: var(--fs-on-primary);
+    box-shadow: var(--fs-tile-shadow);
+
+    .pi {
+      font-size: 1.2rem;
+    }
+  }
+  .fs-tile--lg {
+    width: 3.25rem;
+    height: 3.25rem;
+
+    .pi {
+      font-size: 1.5rem;
+    }
   }
 
   // Number fields shrink with their grid column (the input's intrinsic width pushed region options 7px past the

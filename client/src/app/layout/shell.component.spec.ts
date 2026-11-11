@@ -126,6 +126,17 @@ describe('ShellComponent', () => {
     expect(byTestId('nav.tab.stores')).not.toBeNull();
   });
 
+  it('reskins the page in the old colours only while logged out (fs-public on main, decision 178)', async () => {
+    const main = () => host.querySelector('main#main-content') as HTMLElement;
+    expect(main().classList).toContain('fs-public');
+    logIn();
+    await fixture.whenStable();
+    expect(main().classList).not.toContain('fs-public');
+    TestBed.inject(SessionService).clear();
+    await fixture.whenStable();
+    expect(main().classList).toContain('fs-public');
+  });
+
   it('hides navigation, footer and tab bar on minimal-chrome routes', async () => {
     logIn();
     await TestBed.inject(Router).navigateByUrl('/login');
