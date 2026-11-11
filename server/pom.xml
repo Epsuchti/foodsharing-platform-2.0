@@ -30,7 +30,7 @@
         <openpdf.version>2.0.3</openpdf.version>
         <zxing.version>3.5.4</zxing.version>
         <pdfbox.version>3.0.8</pdfbox.version>
-        <google-auth.version>1.33.0</google-auth.version>
+        <google-auth.version>1.57.0</google-auth.version>
         <bouncycastle.version>1.86</bouncycastle.version>
         <shedlock.version>7.10.1</shedlock.version>
         <web-push.version>5.1.2</web-push.version>
