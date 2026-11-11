@@ -121,7 +121,7 @@ jobs:
       - name: Axe sweep lists every route (e2e/tests/a11y/routes.ts)
         run: PATH="$PWD/client/node:$PATH" node e2e/scripts/a11y-route-coverage.mjs
       - name: Upload jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-jar
           path: server/target/foodsharing-platform-*.jar
@@ -192,14 +192,14 @@ jobs:
         run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/${{ env.E2E_SHARDS }}
       - name: Upload blob report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blob-report-${{ matrix.project }}-${{ matrix.shard }}
           path: e2e/blob-report
           retention-days: 7
       - name: Upload failure artifacts
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-artifacts-${{ matrix.project }}-${{ matrix.shard }}
           path: |
@@ -240,7 +240,7 @@ jobs:
         run: npx playwright test --project=lighthouse
       - name: Upload blob report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blob-report-lighthouse
           path: e2e/blob-report
@@ -280,7 +280,7 @@ jobs:
         run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict
       - name: Upload report and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-report
           path: |
@@ -314,7 +314,7 @@ jobs:
         run: node e2e/scripts/run-sharded.mjs --step-summary "Screenshot tests" e2e/test-results/results.json
       - name: Upload screenshot report (expected / actual / diff)
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: screenshot-report
           path: |
