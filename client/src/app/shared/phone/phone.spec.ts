@@ -12,6 +12,7 @@ import { PhoneInputComponent } from './phone-input.component';
   template: `
     <fs-phone-input [formControl]="control" [mobile]="true" testId="t.phone" />
     <fs-phone-button [phone]="control.value" label="Anna" testId="t.call" />
+    <fs-phone-button [phone]="control.value" label="Anna" testId="t.callCompact" compact />
   `,
 })
 class HostComponent {
@@ -35,6 +36,20 @@ describe('phone input and button', () => {
     const call = el.querySelector('[data-testid="t.call"]') as HTMLAnchorElement;
     expect(call.getAttribute('href')).toBe('tel:+41791234567');
     expect(call.textContent).toContain('+41 79 123 45 67');
+  });
+
+  it('compact renders an icon-only call link with the number in the accessible name and tooltip', async () => {
+    const { el } = await create();
+    const call = el.querySelector('[data-testid="t.callCompact"]') as HTMLAnchorElement;
+    expect(call.getAttribute('href')).toBe('tel:+41791234567');
+    expect(call.classList).toContain('phone--compact');
+    expect(call.getAttribute('aria-label')).toContain('shared.phone.call');
+    expect(call.getAttribute('title')).toBe('+41 79 123 45 67');
+    expect(call.querySelector('.phone__number')).toBeNull();
+    expect(call.textContent?.trim()).toBe('');
+    expect(call.querySelector('.pi-phone')).not.toBeNull();
+    // the regular button has no tooltip
+    expect(el.querySelector('[data-testid="t.call"]')?.getAttribute('title')).toBeNull();
   });
 
   it('writes E.164 for valid input and reports invalid input', async () => {

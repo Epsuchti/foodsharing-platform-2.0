@@ -271,7 +271,7 @@ interface TeamQuery {
         />
         <div class="tm__line1">
           <a class="tm__name" [routerLink]="['/profile', member.user.id]" data-testid="stores.team.name">
-            {{ member.user.displayName }}
+            <span class="tm__nameText">{{ member.user.displayName }}</span>
             @if (member.verified) {
               <i class="pi pi-verified tm__verified" role="img" [attr.aria-label]="'stores.team.verified' | t"></i>
             }
@@ -299,7 +299,7 @@ interface TeamQuery {
         </div>
         <div class="tm__btns">
           @if (member.phone && member.user.id !== myId()) {
-            <fs-phone-button [phone]="member.phone" [label]="member.user.displayName" testId="stores.team.call" />
+            <fs-phone-button [phone]="member.phone" [label]="member.user.displayName" testId="stores.team.call" compact />
           }
           @if (mayEditTeam() && member.user.id !== myId()) {
             <p-button
@@ -431,9 +431,11 @@ interface TeamQuery {
     .tm__av { grid-row: 1 / span 2; }
     .tm__line1 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.4rem; min-width: 0; line-height: 1.3; }
     .tm__name {
-      display: inline-flex; align-items: center; gap: 0.3rem; min-width: 0; color: inherit; font-weight: 650;
-      text-decoration: none; overflow-wrap: anywhere;
+      display: inline-flex; align-items: center; gap: 0.3rem; min-width: 0; max-width: 100%; color: inherit;
+      font-weight: 650; text-decoration: none;
     }
+    /* one line, ellipsis when it really doesn't fit: never letter by letter (phone-width report 2026-11-12) */
+    .tm__nameText { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tm__name:hover, .tm__name:focus-visible { text-decoration: underline; }
     .tm__verified { color: var(--fs-primary); font-size: 0.85em; }
     .flag {
@@ -447,13 +449,20 @@ interface TeamQuery {
       grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.35rem; margin: 0;
       color: var(--fs-text-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; line-height: 1.3;
     }
-    .tm__stats div { display: inline-flex; align-items: center; gap: 0.3rem; }
-    /* number, word and value are separate nodes: the gap keeps "5 Abholungen" apart (whitespace between tags is dropped) */
+    /* items wrap as a whole ("icon + number + word"), only between items; words never break inside */
+    .tm__stats div { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+    /* number, word and value are separate nodes: the gap keeps "5 Abholungen" apart (whitespace between tags is dropped);
+       they only wrap apart when one item alone is wider than the column (320px) */
     .tm__stats dd { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.25em; margin: 0; }
     .tm__stats .pi { font-size: 0.8rem; opacity: 0.8; }
     .tm__stats .sep { color: var(--fs-border-strong); }
     .tm__stats b { color: var(--fs-text); font-weight: 650; }
     .tm__btns { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 0.1rem; }
+    /* phones: the buttons stay next to the name, the stats use the full width below them (320px: "6 Abholungen" whole) */
+    @media (max-width: 30rem) {
+      .tm__btns { grid-row: 1; }
+      .tm__stats { grid-column: 2 / span 2; }
+    }
     .empty-filter { display: grid; justify-items: center; gap: 0.5rem; }
     .text { margin: 0; white-space: pre-line; color: var(--fs-text); }
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
