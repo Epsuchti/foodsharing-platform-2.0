@@ -59,6 +59,7 @@ const job = (status: JobStatus, done: number, total: number, message?: string): 
         <header class="specimen__head"><code>phone + calendar</code></header>
         <div class="stack">
           <fs-phone-button phone="+41791234567" label="Sarah Müller" testId="gallery.phoneButton" />
+          <fs-phone-button phone="+41791234567" label="Sarah Müller" testId="gallery.phoneButtonCompact" compact />
           <fs-calendar-export-button [ics]="ics" fileName="gallery.ics" feedUrl="https://foodsharing.example/api/public/intro-pickups/ical/demo.ics" testId="gallery.calendar" />
         </div>
       </section>
