@@ -151,4 +151,25 @@ test.describe('phone buttons', () => {
     await expectDataState(jumperPage, 'stores.team.list', 'success');
     await expect(jumperPage.getByTestId('stores.team.call')).toHaveCount(jumperExpected);
   });
+
+  test('S9 team card with a call button keeps the name on one line at phone width @S9', async ({ page }) => {
+    // owner report 2026-11-12: the full number squeezed the name to one letter per line
+    await page.setViewportSize({ width: 375, height: 812 });
+    await openStore(page, 'S-01', 'team');
+    await expectDataState(page, 'stores.team.list', 'success');
+    const card = page.getByTestId('stores.team.member').filter({ has: page.getByTestId('stores.team.call') }).first();
+    await expect(card).toBeVisible();
+    const call = card.getByTestId('stores.team.call');
+    await expect(call).toBeVisible();
+    await expect(call).toHaveAttribute('href', /^tel:/);
+    await expect(call).toHaveAttribute('aria-label', /.+/);
+    /** Rendered height of an element and its line height (px). */
+    const lines = (locator: typeof card) =>
+      locator.evaluate((el) => ({ height: el.getBoundingClientRect().height, line: parseFloat(getComputedStyle(el).lineHeight) }));
+    const name = await lines(card.getByTestId('stores.team.name'));
+    expect(name.height).toBeLessThan(2 * name.line);
+    // the stats stay whole items ("6 Abholungen"), not one word per line
+    const count = await lines(card.getByTestId('stores.team.pickupCount'));
+    expect(count.height).toBeLessThan(2 * count.line);
+  });
 });

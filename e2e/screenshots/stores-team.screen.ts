@@ -5,7 +5,7 @@ import { expect, forEachVariant, screenshotTest, tickFixedClock } from './_setup
 /**
  * Store team screens (M3 F3, resume item 14): team tab as manager and member, filtered by status, empty filter,
  * page 2, row menu, required-message dialog, invite dialog, apply dialog with a refusal, invitations on /stores/mine,
- * loading and error; the per-member statistics card filtered to former members and with an empty filter. Baselines
+ * loading and error, the cards with call button and menu at 375px; the per-member statistics card filtered to former members and with an empty filter. Baselines
  * in the end batch (decision 69).
  */
 const ZURICH = '00000010-0001-4000-8000-000000000040';
@@ -33,6 +33,15 @@ forEachVariant((variant) => {
         await page.getByTestId('stores.team.filter.jumper').click();
         await expect(page.locator('[data-testid="stores.team.member"][data-status="MEMBER"]')).toHaveCount(0);
         await visual.expectScreen(page, `stores-team-filtered-${variant.name}`);
+      });
+
+      screenshotTest('team cards with call button and menu at phone width @S9 @screenshot', async ({ page, visual }) => {
+        // owner report 2026-11-12: name and stats collapsed letter by letter next to the full phone number
+        await page.setViewportSize({ width: 375, height: 812 });
+        await page.goto(`/stores/${S01}/team`);
+        await expect(page.getByTestId('stores.team.list')).toHaveAttribute('data-state', 'success');
+        await expect(page.getByTestId('stores.team.call').first()).toBeVisible();
+        await visual.expectScreen(page, `stores-team-phone-width-${variant.name}`);
       });
 
       screenshotTest('team tab with an empty filter @S9 @screenshot', async ({ page, visual }) => {
