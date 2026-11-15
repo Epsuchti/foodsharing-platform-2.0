@@ -170,8 +170,13 @@ export async function settle(page: Page, options: { waitForData?: boolean } = {}
   // that arrive afterwards change the list's height and leave that scroll at an offset which depends on arrival
   // order (C10 uploads). Everything has arrived now: repeat the app's own scroll so the menu is at rest, always.
   await page.evaluate(() =>
-    document.querySelector<HTMLElement>('#sn-nav [aria-current="page"]')?.scrollIntoView({ block: 'nearest' }),
-  );
+{
+    // the menu's own scroll only: scrollIntoView also scrolled the window, so a viewport capture of a popover further
+    // down the page showed the top of the page (store team menu). The window keeps its position.
+    const { scrollX, scrollY } = window;
+    document.querySelector<HTMLElement>('#sn-nav [aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
+    window.scrollTo({ left: scrollX, top: scrollY, behavior: 'instant' });
+  });
   await page.evaluate(
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );
@@ -180,6 +185,8 @@ export async function settle(page: Page, options: { waitForData?: boolean } = {}
 /** Running requests per page (started, neither finished nor failed yet). */
 const PENDING_TYPES = new Set(['document', 'stylesheet', 'script', 'font', 'image', 'fetch', 'xhr']);
 const pendingRequests = new WeakMap<Page, Set<Request>>();
+const requestStarts = new WeakMap<Request, number>();
+const STALE_REQUEST_MS = 10_000;
 
 export function trackPendingRequests(page: Page): void {
   const pending = new Set<Request>();
@@ -191,7 +198,10 @@ export function trackPendingRequests(page: Page): void {
   let documentRequested = false;
   page.on('request', (request) => {
     if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentRequested = true;
-    if (PENDING_TYPES.has(request.resourceType())) pending.add(request);
+    if (PENDING_TYPES.has(request.resourceType())) {
+      pending.add(request);
+      requestStarts.set(request, Date.now());
+    }
   });
   page.on('framenavigated', (frame) => {
     if (frame !== page.mainFrame() || !documentRequested) return;
@@ -206,7 +216,13 @@ export function trackPendingRequests(page: Page): void {
 /** Running requests except the ones `injectApiError({ delayMs })` holds on purpose (they never end during a capture). */
 function pendingCount(page: Page): number {
   let count = 0;
-  for (const request of pendingRequests.get(page) ?? []) if (!isHeldRequest(request)) count++;
+  const now = Date.now();
+  for (const request of pendingRequests.get(page) ?? []) {
+    // A request cut off by a navigation does not always report an end (a goto right after logout cut the landing
+    // page's explainer request): after STALE_REQUEST_MS it no longer counts as running.
+    if (now - (requestStarts.get(request) ?? now) > STALE_REQUEST_MS) continue;
+    if (!isHeldRequest(request)) count++;
+  }
   return count;
 }
 
@@ -352,17 +368,47 @@ export interface CheckpointOptions {
 
 /** Hides transient toasts in a capture unless the checkpoint is about one. */
 const HIDE_TOASTS = '[data-testid="shell.toast"] { visibility: hidden !important; }';
+/**
+ * Full-page captures on the phone: the fixed tab bar would be drawn where the viewport ended (mid-page). It is put at
+ * the end of the document instead, into the room the shell reserves for it.
+ */
+const TAB_BAR_AT_END =
+  'html { position: relative !important; } fs-mobile-tab-bar { position: absolute !important; }';
 
-/** Runs `capture` with toasts hidden (unless `toasts`); the style tag is removed again afterwards. */
-async function withCaptureStyle<T>(page: Page, options: { toasts?: boolean }, capture: () => Promise<T>): Promise<T> {
-  if (options.toasts) return capture();
-  const style = await page.addStyleTag({ content: HIDE_TOASTS });
+/** Runs `capture` with masks painted, toasts hidden (unless `toasts`) and, full-page, the tab bar at the end; all removed afterwards. */
+async function withCaptureStyle<T>(
+  page: Page,
+  options: { toasts?: boolean; fullPage?: boolean; mask?: Locator[] },
+  capture: () => Promise<T>,
+): Promise<T> {
+  // Masks are painted by the page itself: Playwright's mask boxes land off their element in full-page phone captures
+  // (measured before the capture resizes the device metrics) and covered the tab bar's labels.
+  for (const locator of options.mask ?? []) {
+    await locator.evaluateAll((nodes, attr) => nodes.forEach((node) => node.setAttribute(attr, '')), CAPTURE_MASK_ATTR);
+  }
+  const color = await maskColor(page);
+  const css = [
+    MASK_CSS(color),
+    options.toasts ? '' : HIDE_TOASTS,
+    options.fullPage ? TAB_BAR_AT_END : '',
+  ].join(' ');
+  const style = await page.addStyleTag({ content: css });
   try {
     return await capture();
   } finally {
     await style.evaluate((node) => (node as Element).remove()).catch(() => undefined);
+    await page
+      .evaluate((attr) => document.querySelectorAll(`[${attr}]`).forEach((node) => node.removeAttribute(attr)), CAPTURE_MASK_ATTR)
+      .catch(() => undefined);
   }
 }
+
+const CAPTURE_MASK_ATTR = 'data-fs-capture-mask';
+/** Masked regions keep their size and show the muted surface colour, their content hidden. */
+const MASK_CSS = (color: string): string =>
+  `[data-screenshot-mask], [${CAPTURE_MASK_ATTR}] { background: ${color} !important; border-color: ${color} !important; ` +
+  `color: transparent !important; box-shadow: none !important; } ` +
+  `[data-screenshot-mask] *, [${CAPTURE_MASK_ATTR}] * { visibility: hidden !important; }`;
 
 /**
  * A checkpoint of a journey: page at rest; on the checkpoint projects axe, and inside the Playwright image a
@@ -384,14 +430,7 @@ export async function checkpoint(page: Page, name: string, options: CheckpointOp
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await animationsDone(page);
     }
-    const color = await maskColor(page);
-    await withCaptureStyle(page, options, () =>
-      expect(page).toHaveScreenshot(`${name}.png`, {
-        fullPage,
-        mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
-        maskColor: color,
-      }),
-    );
+    await withCaptureStyle(page, { ...options, fullPage }, () => expect(page).toHaveScreenshot(`${name}.png`, { fullPage }));
   });
 }
 
@@ -420,13 +459,7 @@ export async function checkpointElement(locator: Locator, name: string, options:
       await settle(page, { waitForData: false });
     }
     try {
-      const color = await maskColor(page);
-      await withCaptureStyle(page, options, () =>
-        expect(locator).toHaveScreenshot(`${name}.png`, {
-          mask: [page.locator('[data-screenshot-mask]'), ...(options.mask ?? [])],
-          maskColor: color,
-        }),
-      );
+      await withCaptureStyle(page, { toasts: options.toasts, mask: options.mask }, () => expect(locator).toHaveScreenshot(`${name}.png`));
     } finally {
       if (restore) await page.setViewportSize(restore);
     }
