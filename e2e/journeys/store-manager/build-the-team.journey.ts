@@ -1,5 +1,5 @@
 import { expectDataState, seedStore } from '../../fixtures';
-import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
+import { checkpoint, checkpointElement, expect, journey as test } from '../../fixtures/checkpoint';
 import { NAMES, ZURICH, memberRow } from '../../fixtures/flows/stores';
 import { Walk, isPhone } from '../../fixtures/persona';
 
@@ -102,7 +102,8 @@ test('store manager accepts an application, sorts the team and invites people @S
     await expect(page.getByTestId('stores.team.toStandby')).toBeVisible();
     // a foodsaver (role below store manager) is never offered "appoint"
     await expect(page.getByTestId('stores.team.appointManager')).toHaveCount(0);
-    await checkpoint(page, 'member-menu', { fullPage: false });
+    // the open menu itself (a viewport capture of the page shows the page from the top)
+    await checkpointElement(page.getByTestId('stores.team.toStandby').locator('xpath=..'), 'member-menu');
     await walk.click(page.getByTestId('stores.team.toStandby'));
     await walk.fill(
       page.getByTestId('stores.team.messageDialog.message'),
