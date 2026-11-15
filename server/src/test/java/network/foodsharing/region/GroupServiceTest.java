@@ -160,7 +160,10 @@ class GroupServiceTest {
         regions.flush();
         as(member);
         assertThat(groups.detail(open.getId()).mayJoin()).isTrue();
+        // R12: the conference room of a group is for its members only
+        assertThat(groups.detail(open.getId()).conferenceUrl()).isNull();
         groups.joinOpen(open.getId());
+        assertThat(groups.detail(open.getId()).conferenceUrl()).isEqualTo("https://meet.jit.si/foodsharing-kochen");
         assertThatThrownBy(() -> groups.joinOpen(open.getId())).isInstanceOfSatisfying(ApiException.class,
                 e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ALREADY_MEMBER));
 
