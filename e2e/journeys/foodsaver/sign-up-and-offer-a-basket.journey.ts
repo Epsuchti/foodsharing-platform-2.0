@@ -1,19 +1,20 @@
-import { S07_WEDNESDAY, expect, expectDataState, seedStore, test } from '../../fixtures';
-import { pickupRow } from '../pickups/_pickups';
-import { NAMES } from '../stores/_stores';
-import { Walk, openNewestBell } from './_persona';
+import { S07_WEDNESDAY, expectDataState, seedStore } from '../../fixtures';
+import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
+import { bellCount, pickupRow } from '../../fixtures/flows/pickups';
+import { NAMES } from '../../fixtures/flows/stores';
+import { Walk, openNewestBell } from '../../fixtures/persona';
 
 /**
- * D11.5.5 persona walkthrough "foodsaver" (decision 3, design review M7 round 3): Sarah (foodsaver@local) finds
- * her store through the navigation, signs up for a free pickup, gets the manager's confirmation as a bell, then
- * offers a food basket and is told about the first request. The store manager (welcome@local) and the requester
- * (jumper@local) act through their own API sessions. Runs on desktop and on the phone project.
+ * Foodsaver Sarah (foodsaver@local) finds her store through the navigation, signs up for a free pickup, gets the
+ * manager's confirmation as a bell, then offers a food basket and is told about the first request (D11.5.5 persona
+ * walkthrough, design review M7 round 3). The store manager (welcome@local, Hiltl S-07) and the requester
+ * (jumper@local) act through their own API sessions.
  */
-test.use({ seedReset: 'test', role: 'foodsaver' });
+test.use({ role: 'foodsaver' });
 
 const S07 = seedStore('S-07');
 
-test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested @D11.5.5 @PU3 @N3 @B1 @B2 @S1 @page', async ({
+test('foodsaver signs up for a pickup, is confirmed and offers a basket @D11.5.5 @PU3 @N3 @B1 @B2 @S1', async ({
   page,
   api,
   as,
@@ -24,6 +25,7 @@ test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested 
   test.setTimeout(120_000);
   const walk = new Walk(page, testInfo, 'foodsaver');
   const manager = apiOf(await as('welcome'));
+  const managerBells = await bellCount(manager, 'PICKUP_SIGNUP_UNCONFIRMED');
   const me = await dev.user('foodsaver');
   let basketId = '';
 
@@ -45,9 +47,14 @@ test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested 
     await walk.click(row.getByTestId('stores.pickups.slot.free').first());
     await expectDataState(page, 'pickups.signup.state', 'success');
     await expect(page.getByTestId('pickups.signup.eligible')).toBeVisible();
+    await checkpoint(page, 'signup-dialog');
     await walk.click(page.getByTestId('pickups.signup.confirm'));
     await expect(row.getByTestId('stores.pickups.unconfirmed')).toBeVisible();
     await expect(row.locator(`[data-testid="stores.pickups.slot.taken"][data-user="${NAMES.foodsaver}"]`)).toHaveAttribute('data-confirmed', 'false');
+    await expect(row.locator('[data-testid="stores.pickups.slot.taken"][data-confirmed="false"]')).toHaveCount(1);
+    await checkpoint(page, 'signed-up-unconfirmed');
+    // the managers are told about the unconfirmed sign-up
+    await expect.poll(() => bellCount(manager, 'PICKUP_SIGNUP_UNCONFIRMED')).toBeGreaterThan(managerBells);
   });
 
   await walk.step('gets the confirmation as a bell and sees the confirmed slot', async () => {
@@ -58,6 +65,7 @@ test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested 
     await expectDataState(page, 'stores.pickups.state', 'success');
     const slot = pickupRow(page, S07_WEDNESDAY).locator(`[data-testid="stores.pickups.slot.taken"][data-user="${NAMES.foodsaver}"]`);
     await expect(slot).toHaveAttribute('data-confirmed', 'true');
+    await checkpoint(page, 'signed-up-confirmed');
   });
 
   await walk.step('offers a food basket', async () => {
@@ -67,8 +75,9 @@ test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested 
     await walk.click(page.getByTestId('baskets.nearby.offer'));
     await expect(page).toHaveURL(/\/baskets\/new$/);
     await expectDataState(page, 'baskets.form.state', 'success');
-    await walk.fill(page.getByTestId('baskets.form.description'), `Zwei Zöpfe und Gipfeli vom Samstag ${Date.now()}`);
+    await walk.fill(page.getByTestId('baskets.form.description'), 'Zwei Zöpfe und Gipfeli vom Samstag');
     await walk.check(page.getByTestId('baskets.form.kind.BAKED_GOODS'));
+    await checkpoint(page, 'basket-form');
     await walk.click(page.getByTestId('baskets.form.submit'));
     await expect(page).toHaveURL(/\/baskets\/[0-9a-f-]{36}$/);
     await expectDataState(page, 'baskets.detail.state', 'success');
@@ -84,6 +93,7 @@ test('D11.5.5 foodsaver: pickup sign-up confirmed, basket offered and requested 
     await expect(page).toHaveURL(new RegExp(`/baskets/${basketId}$`));
     await expectDataState(page, 'baskets.detail.state', 'success');
     await expect(page.getByTestId('baskets.detail.requests')).toContainText(NAMES.jumper);
+    await checkpoint(page, 'basket-requested');
   });
 
   // round 3: 14 clicks on desktop, 17 on the phone; decision 149: Betriebe is a phone tab, 16 on the phone
