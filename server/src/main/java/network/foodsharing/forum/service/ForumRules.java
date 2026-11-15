@@ -100,4 +100,14 @@ public final class ForumRules {
     public static boolean maySearchEveryForum(Actor actor) {
         return actor.orga();
     }
+
+    /** The text of a hidden post stays readable for its author and the moderators; others see the note only. */
+    public static boolean maySeePostBody(Actor actor, Forum forum, boolean hidden, UUID authorId) {
+        return !hidden || actor.userId().equals(authorId) || mayModerate(actor, forum);
+    }
+
+    /** The moderation log of a region is for its moderators and ORGA. */
+    public static boolean mayReadModerationLog(Actor actor) {
+        return actor.orga() || actor.moderator();
+    }
 }

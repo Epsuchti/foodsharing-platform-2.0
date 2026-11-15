@@ -92,4 +92,28 @@ class ForumPermissionMatrixTest {
         assertThat(ForumRules.maySearchEveryForum(actor(Who.ORGA))).isTrue();
         assertThat(ForumRules.maySearchEveryForum(actor(Who.MODERATOR))).isFalse();
     }
+
+    /** G3: a hidden post shows its text to the author and the moderators only (e2e f3-posts, decision 180). */
+    @Test
+    void hiddenPostTextIsForTheAuthorAndModeratorsOnly() {
+        assertThat(ForumRules.maySeePostBody(actor(Who.MEMBER_VERIFIED), MODERATED, false, OTHER)).isTrue();
+        assertThat(ForumRules.maySeePostBody(actor(Who.MEMBER_VERIFIED), MODERATED, true, OTHER)).isFalse();
+        assertThat(ForumRules.maySeePostBody(actor(Who.MEMBER_VERIFIED), MODERATED, true, ME)).isTrue();
+        assertThat(ForumRules.maySeePostBody(actor(Who.MODERATOR), MODERATED, true, OTHER)).isTrue();
+        assertThat(ForumRules.maySeePostBody(actor(Who.ORGA), MODERATED, true, OTHER)).isTrue();
+        assertThat(ForumRules.maySeePostBody(actor(Who.AMBASSADOR_NOT_MODERATOR), MODERATED, true, OTHER)).isFalse();
+        // the moderator of another region sees no text of a forum he cannot access
+        assertThat(ForumRules.maySeePostBody(new ForumRules.Actor(ME, false, false, false, true, true), MODERATED, true,
+                OTHER)).isFalse();
+    }
+
+    /** G3/D10.3: the moderation log is for moderators and ORGA, not for members or other ambassadors. */
+    @Test
+    void moderationLogIsForModeratorsAndOrga() {
+        assertThat(ForumRules.mayReadModerationLog(actor(Who.ORGA))).isTrue();
+        assertThat(ForumRules.mayReadModerationLog(actor(Who.MODERATOR))).isTrue();
+        assertThat(ForumRules.mayReadModerationLog(actor(Who.AMBASSADOR_NOT_MODERATOR))).isFalse();
+        assertThat(ForumRules.mayReadModerationLog(actor(Who.MEMBER_VERIFIED))).isFalse();
+        assertThat(ForumRules.mayReadModerationLog(actor(Who.OUTSIDER))).isFalse();
+    }
 }
