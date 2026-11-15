@@ -1,0 +1,3 @@
+{
+  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository."
+}
