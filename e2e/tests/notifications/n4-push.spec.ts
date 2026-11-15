@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { acceptPendingConsents, expect, test } from '../../fixtures';
-import { stubPush } from './_push';
+import { stubPush } from '../../fixtures/flows/notifications';
 
 /** N4: web push on this device (fake browser push, server in LOG mode) and the dashboard opt-in card. */
 test.use({ seedReset: 'test' });
