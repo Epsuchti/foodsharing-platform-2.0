@@ -1,3 +1,4 @@
+import type { Type } from '@angular/core';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
@@ -22,6 +23,7 @@ import { SessionService } from '../../core/auth/session.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { UpcomingEventsCardComponent } from '../events/components/upcoming-events-card.component';
 import { HelpNeededCardComponent } from '../pickups/components/help-needed-card.component';
+import { MyNextPickupsCardComponent } from '../pickups/components/my-next-pickups-card.component';
 import { WaitingCardComponent } from './components/waiting-card.component';
 import { YourStoresCardComponent } from './components/your-stores-card.component';
 import { storesNeedingPeople, upcomingEvents, waitingRows } from './dashboard.util';
@@ -248,6 +250,32 @@ describe('home cards (DataState)', () => {
     http.expectOne('/api/events/mine').flush([]);
     await settle(none);
     expect(q(none, '[data-testid="dashboard.events"]')).toBeNull();
+  });
+
+  it('my next pickups and your stores: nothing for newcomers who cannot pick up yet (A19)', async () => {
+    for (const [role, verified] of [
+      [Role.Foodsharer, false],
+      [Role.Foodsaver, false],
+    ] as const) {
+      signIn(role, verified);
+      for (const card of [MyNextPickupsCardComponent, YourStoresCardComponent] as Type<unknown>[]) {
+        const fixture = TestBed.createComponent(card);
+        await settle(fixture);
+        http.expectNone('/api/users/me/pickups');
+        http.expectNone((req) => req.url === '/api/users/me/stores');
+        expect(q(fixture, '[data-testid="dashboard.pickups"], [data-testid="dashboard.stores"]')).toBeNull();
+        fixture.destroy();
+      }
+    }
+
+    signIn(Role.Foodsaver, true);
+    const fixture = TestBed.createComponent(MyNextPickupsCardComponent);
+    await settle(fixture);
+    expect(q(fixture, '[data-testid="dashboard.pickups"]')).not.toBeNull();
+    http.expectOne('/api/users/me/pickups').flush([]);
+    http.expectOne('/api/users/me/cleaning-shifts').flush([]);
+    await settle(fixture);
+    expect(q(fixture, '[data-testid="dashboard.pickups.state"]')?.getAttribute('data-state')).toBe('empty');
   });
 
   it('your stores: teams with free slots, urgent first, error with retry', async () => {
