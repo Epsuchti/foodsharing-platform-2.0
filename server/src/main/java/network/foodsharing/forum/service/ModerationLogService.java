@@ -40,7 +40,7 @@ public class ModerationLogService {
     public Page<HistoryEntry> log(UUID regionId, Instant from, Instant to, int page, int size) {
         ForumRules.Forum forum = access.forum(regionId, false);
         ForumRules.Actor actor = access.actor(currentActor.requirePrincipal(), regionId);
-        if (!(actor.orga() || actor.moderator()) || forum == null) {
+        if (!ForumRules.mayReadModerationLog(actor) || forum == null) {
             throw ApiException.forbidden(ApiErrorCode.ACCESS_DENIED);
         }
         return historyQuery.listForRegion(SubjectType.THREAD, regionId, ACTIONS, from, to, page, size);

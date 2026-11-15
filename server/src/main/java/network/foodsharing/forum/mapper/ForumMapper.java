@@ -128,14 +128,12 @@ public class ForumMapper {
 
     private ForumPost toPost(network.foodsharing.forum.domain.ForumPost post, List<ForumPostReaction> reactions,
                              ForumRules.Actor actor, ForumRules.Forum forum, Map<UUID, UserSummary> summaries) {
-        boolean author = actor.userId().equals(post.getAuthorId());
-        boolean moderator = ForumRules.mayModerate(actor, forum);
         ForumPost result = new ForumPost().id(post.getId()).author(summaries.get(post.getAuthorId()))
                 .createdAt(TimeMapper.toOffset(post.getCreatedAt())).editedAt(TimeMapper.toOffset(post.getEditedAt()))
                 .mayEdit(ForumRules.mayEditPost(actor, forum, post.getAuthorId()))
                 .mayDelete(ForumRules.mayDeletePost(actor, post.getAuthorId()))
                 .mayHide(post.isHidden() ? ForumRules.mayUnhidePosts(actor, forum) : ForumRules.mayHidePosts(actor, forum));
-        if (!post.isHidden() || author || moderator) {
+        if (ForumRules.maySeePostBody(actor, forum, post.isHidden(), post.getAuthorId())) {
             result.setBody(post.getBody());
         }
         if (post.isHidden()) {
