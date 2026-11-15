@@ -114,7 +114,8 @@ test('foodsaver clears a bounce, signs out her devices, exports her data, change
     await expect(current).toHaveAttribute('data-current', 'true');
     await expect(current.getByTestId('account.sessions.current')).toBeVisible();
     await expect(page.getByTestId(`account.sessions.item.${phoneSession}`)).toHaveAttribute('data-current', 'false');
-    await checkpoint(page, 'sessions');
+    // the phone's "last active N seconds ago" counts the run's own seconds
+    await checkpoint(page, 'sessions', { mask: [list.locator('[data-current="false"] .row__meta')] });
     await walk.click(page.getByTestId(`account.sessions.item.${phoneSession}.revoke`));
     walk.count(1);
     await acceptConfirm(page);

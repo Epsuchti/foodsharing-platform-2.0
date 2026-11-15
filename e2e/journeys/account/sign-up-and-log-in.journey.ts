@@ -1,3 +1,4 @@
+import { expectDataState } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
 import { logoutWithMenu, myActions, useFreshClientIp } from '../../fixtures/flows/auth';
 import { Walk } from '../../fixtures/persona';
@@ -52,7 +53,8 @@ test('newcomer signs up with an email link and links Google to her account @A1 @
     // first login on this device with a link → "log in faster next time"; never without WebAuthn (Linux WebKit)
     if (await page.evaluate(() => typeof window.PublicKeyCredential === 'function')) {
       await expect(page.getByTestId('auth.passkeyNudge')).toBeVisible();
-      await checkpoint(page, 'dashboard-passkey-nudge');
+      // the new account's avatar colour comes from its random id
+      await checkpoint(page, 'dashboard-passkey-nudge', { mask: [page.locator('fs-user-avatar')] });
       await walk.click(page.getByTestId('auth.passkeyNudge.dismiss'));
     }
     await expect(page.getByTestId('auth.passkeyNudge')).toBeHidden();
@@ -79,6 +81,8 @@ test('newcomer signs up with an email link and links Google to her account @A1 @
     walk.count(2);
     await logoutWithMenu(page);
     await expect(page).toHaveURL(/\/$/);
+    // the start page at rest before the next page load (its counters request must not be cut off, see passkey-login)
+    await expectDataState(page, 'public.explainer.state', 'success');
     expect((await apiOf(page).session()).authenticated).toBe(false);
   });
 
@@ -94,7 +98,10 @@ test('newcomer signs up with an email link and links Google to her account @A1 @
     await expect(page).toHaveURL(/\/account\/settings$/);
     await expect(page.getByTestId('account.settings.methods')).toHaveAttribute('data-state', 'success');
     await expect(page.getByTestId('account.settings.identity.GOOGLE')).toBeVisible();
-    await checkpoint(page, 'login-methods');
+    // the new account's avatar colour comes from its random id; "last used N seconds ago" counts the run's seconds
+    await checkpoint(page, 'login-methods', {
+      mask: [page.locator('fs-user-avatar'), page.getByTestId('account.settings.methods').locator('.row__meta')],
+    });
     const api = apiOf(page);
     expect((await api.session()).user?.email).toBe(EMAIL);
     expect(await myActions(api)).toContain('ACCOUNT_LINKED');

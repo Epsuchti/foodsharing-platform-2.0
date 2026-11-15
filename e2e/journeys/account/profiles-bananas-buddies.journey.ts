@@ -5,8 +5,8 @@ import { Walk, openNewestBell } from '../../fixtures/persona';
 
 /**
  * Store manager Nina (bieb@local) on the social side of the platform: she opens her own profile from the user menu
- * and writes on her wall (A6), gives the welcome team member Mia a trust banana with exactly 100 characters, which
- * Mia then deletes from her received bananas (A15, G4, bell N3), and accepts the buddy request of Julien (guide@local)
+ * and writes on her wall (A6), gives the welcome team member Priya a trust banana with exactly 100 characters, which
+ * Priya then deletes from her received bananas (A15, G4, bell N3), and accepts the buddy request of Julien (guide@local)
  * from its bell, finds him in her buddies and removes him again (A16, N3). Seed: bieb has not given welcome a banana;
  * bieb and guide are not buddies. Rules (100 characters, once per pair, who may delete, who sees stores and the
  * foodsaver number) are unit tests: ProfilePermissionMatrixTest, client profiles.util.spec.
@@ -52,7 +52,7 @@ test('store manager gives a banana, accepts a buddy request and writes on her wa
   const message = BANANA_TEXT.slice(0, 100);
   expect(message.trim()).toHaveLength(100);
 
-  await walk.step('gives Mia a banana', async () => {
+  await walk.step('gives Priya a banana', async () => {
     await page.goto(`/profile/${welcomeId}`);
     await expectDataState(page, 'profiles.page.state', 'success');
     await expect(page.getByTestId('profiles.wall.composer')).toHaveCount(0);
@@ -72,7 +72,7 @@ test('store manager gives a banana, accepts a buddy request and writes on her wa
     await expect(page.getByTestId('profiles.page.banana')).toHaveCount(0);
   });
 
-  await walk.step('Mia finds the banana and deletes it', async () => {
+  await walk.step('Priya finds the banana and deletes it', async () => {
     await expect.poll(async () => (await notifications.bells('welcome', 'BANANA_GIVEN')).length).toBe(1);
     const welcome = await as('welcome');
     await acceptPendingConsents(apiOf(welcome));

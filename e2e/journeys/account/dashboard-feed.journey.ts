@@ -4,7 +4,7 @@ import { checkpoint, checkpointElement, expect, journey as test } from '../../fi
 import { Walk } from '../../fixtures/persona';
 
 /**
- * Ambassador Daniel (bot@local, Zürich Stadt, region mailbox, events) starts his day on the dashboard (A19): the
+ * Ambassador Reto (bot@local, Zürich Stadt, region mailbox, events) starts his day on the dashboard (A19): the
  * activity feed (10 per page, "load more"), filter chips stored on the server, an event item that links to its
  * event, and the three nearest food baskets around his home address; a member without an address is sent to the
  * profile instead. Seed: bot sees MAILBOX and STORE_WALL on the first page, EVENT_WALL, FORUM and FSP_WALL further

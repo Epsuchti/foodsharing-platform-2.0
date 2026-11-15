@@ -178,7 +178,8 @@ test('foodsaver edits her profile, photo, sleep mode, language, theme, calendar 
 
   await walk.step('tries every language and goes back to German', async () => {
     await expect(page.getByTestId('account.settings.methods')).toHaveAttribute('data-state', 'success');
-    await checkpoint(page, 'settings');
+    // "last used N … ago" of the login methods counts from the run's own clock
+    await checkpoint(page, 'settings', { mask: [page.getByTestId('account.settings.methods').locator('.row__meta')] });
     // from the other end of the list, so every language is a real switch; German comes last
     for (const language of [...LANGUAGES].reverse()) {
       const option = page.getByTestId(`account.settings.language.${language}`);

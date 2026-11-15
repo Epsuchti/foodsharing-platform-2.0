@@ -5,10 +5,10 @@ import { Walk } from '../../fixtures/persona';
 import { fillDate } from '../../support/date-inputs';
 
 /**
- * Ambassador Daniel (bot@local, administers Zürich Stadt) looks after the members of his region. He defines a
+ * Ambassador Reto (bot@local, administers Zürich Stadt) looks after the members of his region. He defines a
  * regional achievement with translations, icon, visibility and validity, awards it to Julien (guide@local), who sees
- * it on his profile until Daniel makes it HIDDEN; he edits the award's end date and notice, revokes it and deletes
- * the definition (AC1). Then he keeps an internal note about the sleeping member Lena (sleepy@local) on her admin
+ * it on his profile until Reto makes it HIDDEN; he edits the award's end date and notice, revokes it and deletes
+ * the definition (AC1). Then he keeps an internal note about the sleeping member Marco (sleepy@local) on her admin
  * page and deletes it again (A7). Seed (`168-achievement-seed.yaml`): Putzheld, Sommerfest-Helfer and the HIDDEN
  * Vertrauensperson awarded to guide; bot's note "Seit Monaten inaktiv" about sleepy. Visibility, validity and
  * automatic awards (hygiene quiz Q2, KAM appointment S3) are unit tests: AchievementVisibilityTest,
@@ -134,7 +134,7 @@ test('ambassador defines, awards and revokes an achievement and keeps a note abo
     await expect(card(page, achievementId)).toHaveCount(0);
   });
 
-  await walk.step('keeps a note about Lena and deletes it again', async () => {
+  await walk.step('keeps a note about Marco and deletes it again', async () => {
     await page.goto(`/users/${SLEEPY_ID}`);
     const posts = page.getByTestId('usersAdmin.user.notes.post');
     await expect(posts).toHaveCount(1);
@@ -144,7 +144,8 @@ test('ambassador defines, awards and revokes an achievement and keeps a note abo
     await expect(posts).toHaveCount(2);
     const added = posts.filter({ hasText: NOTE });
     await expect(added).toBeVisible();
-    await checkpoint(page, 'member-notes');
+    // the new note is "N seconds ago": the run's own seconds
+    await checkpoint(page, 'member-notes', { mask: [page.locator('fs-wall time')] });
     await walk.click(added.getByTestId('usersAdmin.user.notes.delete'));
     walk.count(1);
     await confirm(page);

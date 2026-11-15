@@ -1,4 +1,4 @@
-import { addVirtualAuthenticator } from '../../fixtures';
+import { addVirtualAuthenticator, expectDataState } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
 import { logoutWithMenu, skipPasskeyNudge, type HistoryEntryPage } from '../../fixtures/flows/auth';
 import { Walk } from '../../fixtures/persona';
@@ -15,6 +15,9 @@ test('foodsaver registers a passkey and logs in with it @A2 @D8.3 @chromium-only
   const walk = new Walk(page, testInfo, 'foodsaver');
   await skipPasskeyNudge(page);
   const authenticator = await addVirtualAuthenticator(page);
+  // Logging out lands on the start page, which loads its counters. A page.goto right away can replace that document
+  // while the request is starting: it then never reports an end and the next checkpoint waits for it in vain.
+  const landingAtRest = () => expectDataState(page, 'public.explainer.state', 'success');
 
   await walk.step('adds a passkey in the settings', async () => {
     await page.goto('/account/settings');
@@ -27,12 +30,14 @@ test('foodsaver registers a passkey and logs in with it @A2 @D8.3 @chromium-only
     await walk.click(page.getByTestId('account.settings.passkeyDialog.save'));
     await expect(page.getByTestId('account.settings.passkeys')).toContainText('Laptop');
     expect(await authenticator.credentials()).toHaveLength(1);
-    await checkpoint(page, 'passkey-added');
+    // "last used N seconds ago" counts the run's own seconds
+    await checkpoint(page, 'passkey-added', { mask: [page.getByTestId('account.settings.methods').locator('.row__meta')] });
   });
 
   await walk.step('logs in again through passkey autofill', async () => {
     walk.count(2);
     await logoutWithMenu(page);
+    await landingAtRest();
     // the virtual authenticator answers the conditional request right away
     await page.goto('/login?returnUrl=%2Faccount%2Fsecurity-log');
     await expect(page).toHaveURL(/\/account\/security-log$/);
@@ -41,6 +46,7 @@ test('foodsaver registers a passkey and logs in with it @A2 @D8.3 @chromium-only
   await walk.step('logs in with the passkey button', async () => {
     walk.count(2);
     await logoutWithMenu(page);
+    await landingAtRest();
     // as in browsers without passkey autofill
     await page.addInitScript(() => {
       Object.defineProperty(PublicKeyCredential, 'isConditionalMediationAvailable', { value: undefined });
