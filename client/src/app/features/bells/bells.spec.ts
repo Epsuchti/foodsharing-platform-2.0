@@ -5,7 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { ApiErrorCode, Bell } from '../../api';
+import { ApiErrorCode, Bell, NotificationType } from '../../api';
 import { REALTIME_MAX_DELAY_MS, nextReconnectDelay } from '../../core/realtime/realtime.service';
 import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { badgeText } from './components/bell-button.component';
@@ -63,6 +63,14 @@ describe('bell helpers', () => {
       expect(keys(catalog)).toEqual(keys(de));
     }
     expect(keys(de).filter((key) => /^bell\.[A-Z_]+$/.test(key)).length).toBeGreaterThan(50);
+  });
+
+  it('every notification type has a bell title in all five languages', () => {
+    const catalogs = { de, en, fr, gws, it: itCatalog } as Record<string, Record<string, string>>;
+    for (const [language, catalog] of Object.entries(catalogs)) {
+      const missing = Object.values(NotificationType).filter((type) => !catalog[`bell.${type}`]?.trim());
+      expect(missing, language).toEqual([]);
+    }
   });
 });
 

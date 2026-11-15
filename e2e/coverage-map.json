@@ -7,6 +7,10 @@
   ],
   "AU13": "server/src/test/java/network/foodsharing/automation/service/PickupCountGroupingAndMetricsTest.java",
   "D17.3": "server/src/test/java/network/foodsharing/user/AccountDeletionIT.java",
+  "D6.3": [
+    "server/src/test/java/network/foodsharing/common/jobs/JobRunnerScheduleTest.java",
+    "server/src/test/java/network/foodsharing/mailbox/service/MailboxFetcherJobTest.java"
+  ],
   "EA16": "server/src/test/java/network/foodsharing/pickup/service/IntroPickupLinkSyncTest.java",
   "EA20": "server/src/test/java/network/foodsharing/intropickup/service/PastImportJobTest.java",
   "N7": "server/src/test/java/network/foodsharing/notification/newsletter/service/NewsletterServiceTest.java",

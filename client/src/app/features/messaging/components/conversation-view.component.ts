@@ -275,9 +275,9 @@ interface DayGroup {
             </div>
           }
           @if (mentionHits().length > 0) {
-            <ul class="mentions" role="listbox" [attr.aria-label]="'messaging.mentionSuggestions' | t" data-testid="messaging.conversation.mentionSuggestions">
+            <ul class="mentions" [attr.aria-label]="'messaging.mentionSuggestions' | t" data-testid="messaging.conversation.mentionSuggestions">
               @for (u of mentionHits(); track u.id) {
-                <li role="option" [attr.aria-selected]="false">
+                <li>
                   <button type="button" class="mentions__pick" (click)="pickMention(u)" data-testid="messaging.conversation.mentionPick">
                     <fs-user-avatar [name]="u.displayName" [avatarUrl]="u.avatarUrl" size="xs" />
                     {{ u.displayName }}
