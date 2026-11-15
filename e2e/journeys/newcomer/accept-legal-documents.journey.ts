@@ -1,6 +1,6 @@
 import { type ApiClient, SEED_NOW, expectDataState, journeyIndicator } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
-import { skipPasskeyNudge } from '../../fixtures/flows/auth';
+import { acceptConfirm, skipPasskeyNudge } from '../../fixtures/flows/auth';
 import { singleQuestionQuiz, solutionKey } from '../../fixtures/flows/quiz';
 import { Walk } from '../../fixtures/persona';
 import type { Page } from '@playwright/test';
@@ -131,15 +131,35 @@ test.describe(() => {
     page,
     api,
     apiOf,
+    as,
     dev,
   }, testInfo) => {
     test.setTimeout(120_000);
     const walk = new Walk(page, testInfo, 'foodsaver');
     const me = apiOf(page);
     await api.loginAs('orga');
-    // the orga team publishes a new privacy policy that needs everybody's consent again (orga area: /admin/legal)
-    await publishPrivacyPolicy(api, '2026-11', true);
     const privacy = document(page, 'PRIVACY_POLICY');
+
+    // the orga team publishes a new privacy policy that needs everybody's consent again (its own journey captures the
+    // page; here only what Sarah gets to see matters)
+    const orga = await as('orga');
+    await orga.goto('/admin/legal');
+    await expectDataState(orga, 'legal.admin.versions', 'success');
+    await expect(orga.getByTestId('legal.admin.version')).toHaveCount(1);
+    const publish = orga.getByTestId('legal.admin.publish').locator('button');
+    await expect(publish).toBeDisabled();
+    await orga.getByTestId('legal.admin.version.input').fill('2026-11');
+    await orga.getByTestId('legal.admin.bodies.field.de').fill('## Datenschutz 2026-11\n\nNeue Fassung mit kürzerer Aufbewahrung.');
+    await orga.getByTestId('legal.admin.reconsent').locator('input').check();
+    await expect(publish).toBeEnabled();
+    await publish.click();
+    await acceptConfirm(orga);
+    const published = orga.locator('[data-testid="legal.admin.version"][data-version="2026-11"]');
+    await expect(published).toBeVisible();
+    await expect(published.getByTestId('legal.admin.reconsentChip')).toBeVisible();
+    // the form is reset after publishing
+    await expect(orga.getByTestId('legal.admin.version.input')).toHaveValue('');
+    await orga.close();
 
     await walk.step('is asked to accept the changed privacy policy', async () => {
       await page.goto('/me/activity');
@@ -149,7 +169,7 @@ test.describe(() => {
       await expect(page.locator('fs-page-header .ph__subtitle')).toContainText('geänderte Dokumente');
       await expect(page.getByTestId('legal.consent.document')).toHaveCount(1);
       await expect(privacy).toContainText('2026-11');
-      await expect(privacy).toContainText('kürzere Aufbewahrung');
+      await expect(privacy).toContainText('kürzerer Aufbewahrung');
       await checkpoint(page, 'consent-changed');
     });
 
