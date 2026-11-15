@@ -180,7 +180,6 @@
   "pickups.linked.repairText": "Il tuo ritiro nel negozio collegato è stato annullato. Scegline uno nuovo entro {until}, altrimenti questo posto viene liberato.",
   "pickups.linked.missing": "Collegamento mancante – scegli di nuovo entro {until}",
   "pickups.linked.missingOther": "{name}: collegamento mancante fino a {until}",
-  "pickups.linked.missingLabel": "Manca il ritiro collegato: scegline uno nuovo entro {until}",
   "pickups.blocked.EXPERIENCE": "Non hai ancora avuto un ritiro confermato qui.",
   "pickups.blocked.EXPERIENCE.fix": "una persona esperta nello stesso ritiro, oppure chiedi ai responsabili.",
   "pickups.blocked.CLEANING_REQUIRED": "Il tuo ultimo turno di pulizia risale a {ago, plural, one {# mese} other {# mesi}} fa; ne serve uno negli ultimi {required, plural, one {# mese} other {# mesi}}.",

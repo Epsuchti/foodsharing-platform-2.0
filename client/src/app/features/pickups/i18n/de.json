@@ -180,7 +180,6 @@
   "pickups.linked.repairText": "Deine Abholung im verknüpften Betrieb ist weggefallen. Wähle bis {until} eine neue, sonst wird dieser Platz frei.",
   "pickups.linked.missing": "Verknüpfung fehlt – bis {until} neu wählen",
   "pickups.linked.missingOther": "{name}: Verknüpfung fehlt bis {until}",
-  "pickups.linked.missingLabel": "Verknüpfte Abholung fehlt: bis {until} eine neue wählen",
   "pickups.blocked.EXPERIENCE": "Du hattest hier noch keine bestätigte Abholung.",
   "pickups.blocked.EXPERIENCE.fix": "eine erfahrene Person in derselben Abholung, oder frag die Verantwortlichen.",
   "pickups.blocked.CLEANING_REQUIRED": "Dein letzter Putzeinsatz war vor {ago, plural, one {# Monat} other {# Monaten}}; nötig ist einer in den letzten {required, plural, one {# Monat} other {# Monaten}}.",

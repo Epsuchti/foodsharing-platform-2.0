@@ -293,7 +293,7 @@ interface SlotTarget {
                         type="button"
                         class="link-missing"
                         aria-haspopup="dialog"
-                        [attr.aria-label]="'pickups.linked.missingLabel' | t: { until: (until | fsDate: 'dateTime' : tz()) }"
+                        [attr.aria-label]="'pickups.linked.missing' | t: { until: (until | fsDate: 'dateTime' : tz()) }"
                         (click)="openRepair(pickup, until)"
                         data-testid="stores.pickups.linkMissing"
                       >

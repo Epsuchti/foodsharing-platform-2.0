@@ -180,7 +180,6 @@
   "pickups.linked.repairText": "Dini Abholig im verchnüpfte Betrieb isch wegfalle. Wähl bis {until} e neui, susch wird dä Platz frei.",
   "pickups.linked.missing": "Verchnüpfig fehlt – bis {until} neu wähle",
   "pickups.linked.missingOther": "{name}: Verchnüpfig fehlt bis {until}",
-  "pickups.linked.missingLabel": "Verchnüpfti Abholig fehlt: bis {until} e neui wähle",
   "pickups.blocked.EXPERIENCE": "Du häsch da no kei bestätigti Abholig gha.",
   "pickups.blocked.EXPERIENCE.fix": "e erfahreni Person i de glichen Abholig, oder frög d Verantwortliche.",
   "pickups.blocked.CLEANING_REQUIRED": "Din letschte Putzisatz isch vor {ago, plural, one {# Monet} other {# Mönet}} gsi; nötig isch eine i de letschte {required, plural, one {# Monet} other {# Mönet}}.",
