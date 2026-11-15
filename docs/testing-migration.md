@@ -95,27 +95,27 @@ A removed test without a row here is a bug in the rework.
 | `fsp/fs2-cleaning-agenda.spec.ts` | 3 | A11 A19 FS2 PU8 |  |
 | `fsp/fs2-cleaning-shifts.spec.ts` | 3 | AU1 FS2 |  |
 | `history/d10-history.spec.ts` | 9 | A22 D10.1 D10.3 |  |
-| `intro-pickups/ea1-landing.spec.ts` | 1 | EA1 |  |
-| `intro-pickups/ea10-guide.spec.ts` | 1 | EA10 |  |
-| `intro-pickups/ea11-templates.spec.ts` | 1 | EA11 |  |
-| `intro-pickups/ea12-assign.spec.ts` | 1 | EA12 |  |
-| `intro-pickups/ea13-comments.spec.ts` | 1 | EA13 |  |
-| `intro-pickups/ea14-done.spec.ts` | 1 | EA14 |  |
-| `intro-pickups/ea15-ics.spec.ts` | 1 | EA15 |  |
-| `intro-pickups/ea16-pickup-candidates.spec.ts` | 1 | EA16 |  |
-| `intro-pickups/ea17-guides.spec.ts` | 4 | EA17 Q4 |  |
-| `intro-pickups/ea18-admin.spec.ts` | 2 | D10.3 EA13 EA18 |  |
-| `intro-pickups/ea19-import.spec.ts` | 1 | EA19 |  |
-| `intro-pickups/ea2-public-slots.spec.ts` | 2 | EA2 |  |
-| `intro-pickups/ea20-progress-job.spec.ts` | 1 | EA20 |  |
-| `intro-pickups/ea21-funnel.spec.ts` | 1 | EA21 |  |
-| `intro-pickups/ea22-settings.spec.ts` | 2 | EA22 Q4 |  |
-| `intro-pickups/ea3-foodsaver-id.spec.ts` | 1 | EA3 |  |
-| `intro-pickups/ea5-booking-rules.spec.ts` | 6 | EA5 |  |
-| `intro-pickups/ea6-categories.spec.ts` | 1 | EA6 |  |
-| `intro-pickups/ea7-my-bookings.spec.ts` | 1 | EA7 |  |
-| `intro-pickups/ea8-progress.spec.ts` | 1 | EA8 |  |
-| `intro-pickups/ea9-notifications.spec.ts` | 2 | EA9 |  |
+| `intro-pickups/ea1-landing.spec.ts` | 1 | EA1 | journey `journeys/einab/newcomer-books-intro-pickups.journey.ts` (checkpoints `bookable-list`, `my-bookings`); journey `journeys/einab/newcomer-becomes-foodsaver.journey.ts` (checkpoint `no-region`); dropped: the API count of 15 dates is a seed count |
+| `intro-pickups/ea10-guide.spec.ts` | 1 | EA10 | journey `journeys/einab/guide-offers-intro-pickups.journey.ts` (checkpoints `online-form-error`, `take-away-form`, `upcoming-einabs`); unit `IntroPickupValidationTest` (call link, address); unit `IntroPickupGuideServiceRulesTest` (past EinAbs) |
+| `intro-pickups/ea11-templates.spec.ts` | 1 | EA11 | journey `journeys/einab/guide-offers-intro-pickups.journey.ts` (checkpoints `take-away-form`, `guide-settings`) |
+| `intro-pickups/ea12-assign.spec.ts` | 1 | EA12 | journey `journeys/einab/guide-hosts-a-newcomer.journey.ts` (checkpoints `book-for-dialog`, `booked-for-chiara`, `assign-dialog`) |
+| `intro-pickups/ea13-comments.spec.ts` | 1 | EA13 | journey `journeys/einab/guide-hosts-a-newcomer.journey.ts` (checkpoint `comment-written`) |
+| `intro-pickups/ea14-done.spec.ts` | 1 | EA14 | journey `journeys/einab/guide-hosts-a-newcomer.journey.ts` (checkpoint `marked-done`); unit `IntroPickupGuideServiceRulesTest` (done only after the start) |
+| `intro-pickups/ea15-ics.spec.ts` | 1 | EA15 | journey `journeys/einab/guide-offers-intro-pickups.journey.ts` (checkpoint `guide-settings`); unit `IcalServicesTest` (feed token, unknown token 404) |
+| `intro-pickups/ea16-pickup-candidates.spec.ts` | 1 | EA16 | journey `journeys/einab/guide-offers-intro-pickups.journey.ts` (checkpoints `guide-dashboard`, `linked-form`, `signout-warning`); unit `IntroPickupLinkedPickupTest` |
+| `intro-pickups/ea17-guides.spec.ts` | 4 | EA17 Q4 | journey `journeys/einab/foodsaver-becomes-guide.journey.ts` (checkpoints `ready-for-release`, `release-dialog`); journey `journeys/einab/ambassador-manages-intro-pickups.journey.ts` (checkpoint `guides-tab`); unit `IntroPickupAdminServiceGuideTest` (release needs a pass and a region administrator, user managers only); unit `IntroPickupGuideServiceRulesTest` (no EinAb without the guide right) |
+| `intro-pickups/ea18-admin.spec.ts` | 2 | D10.3 EA13 EA18 | journey `journeys/einab/ambassador-manages-intro-pickups.journey.ts` (checkpoints `admin-einabs`, `delete-dialog`, `past-bookings`, `admin-comment`); unit `IntroPickupAdminServiceGuideTest` (delete reason); unit `NewcomerProgressServiceTest` (counted bookings) |
+| `intro-pickups/ea19-import.spec.ts` | 1 | EA19 | journey `journeys/einab/ambassador-manages-intro-pickups.journey.ts` (checkpoint `import-preview`); unit `IntroPickupValidationTest` (import keys) |
+| `intro-pickups/ea2-public-slots.spec.ts` | 2 | EA2 | journey `journeys/einab/newcomer-subscribes-to-new-dates.journey.ts` (checkpoint `public-dates`) (the unknown region step too) |
+| `intro-pickups/ea20-progress-job.spec.ts` | 1 | EA20 | unit `PastImportJobTest` (imports above the threshold run as a job that always ends; e2e/coverage-map.json EA20) |
+| `intro-pickups/ea21-funnel.spec.ts` | 1 | EA21 | journey `journeys/einab/ambassador-manages-intro-pickups.journey.ts` (checkpoint `funnel`); unit `NewcomerFunnelAccessTest` (names for user managers, counts for guides); unit `NewcomerProgressServiceTest` (steps, gaps) |
+| `intro-pickups/ea22-settings.spec.ts` | 2 | EA22 Q4 | journey `journeys/einab/ambassador-manages-intro-pickups.journey.ts` (checkpoint `booking-rules`); journey `journeys/einab/foodsaver-becomes-guide.journey.ts` (checkpoint `threshold-setting`); unit `BookingRulesTest` |
+| `intro-pickups/ea3-foodsaver-id.spec.ts` | 1 | EA3 | journey `journeys/einab/newcomer-subscribes-to-new-dates.journey.ts` (checkpoint `foodsaver-id-help`) |
+| `intro-pickups/ea5-booking-rules.spec.ts` | 6 | EA5 | journey `journeys/einab/newcomer-books-intro-pickups.journey.ts` (checkpoints `bookable-list`, `nothing-left`); unit `BookingRulesTest` (each rule); unit `intro-pickups-pages.spec.ts` (empty kinds) |
+| `intro-pickups/ea6-categories.spec.ts` | 1 | EA6 | journey `journeys/einab/newcomer-books-intro-pickups.journey.ts` (checkpoints `bookable-list`, `booking-success`) |
+| `intro-pickups/ea7-my-bookings.spec.ts` | 1 | EA7 | journey `journeys/einab/newcomer-books-intro-pickups.journey.ts` (checkpoints `confirm-booking`, `booking-success`, `my-bookings`, `after-cancel`) |
+| `intro-pickups/ea8-progress.spec.ts` | 1 | EA8 | journey `journeys/einab/newcomer-becomes-foodsaver.journey.ts` (checkpoints `progress-one-done`, `waiting-for-id-check`); unit `NewcomerProgressServiceTest` (stages and next steps) |
+| `intro-pickups/ea9-notifications.spec.ts` | 2 | EA9 | journey `journeys/einab/newcomer-subscribes-to-new-dates.journey.ts` (checkpoints `subscribed`, `unsubscribed`); unit `IntroPickupSubscriptionServiceTest` (verified users, members only, tokens); unit `intro-pickups-pages.spec.ts` (unsubscribe without token) |
 | `intro-pickups/intro-pickups-error-states.spec.ts` | 3 | EA7 EA10 |  |
 | `legal/ea4-consent.spec.ts` | 5 | EA4 |  |
 | `legal/legal-error-states.spec.ts` | 3 | Ve1 |  |
@@ -136,7 +136,7 @@ A removed test without a row here is a bug in the rework.
 | `oauth/c13-oauth.spec.ts` | 5 | C13 |  |
 | `onboarding/d11-journey.spec.ts` | 5 | A19 D11.5.1 D11.5.2 D11.5.4 EA8 |  |
 | `onboarding/d11-lighthouse.spec.ts` | 1 | D11.5.3 | kept: moved to `e2e/lighthouse/d11-lighthouse.spec.ts` (project `lighthouse`) |
-| `onboarding/ea8-journey.spec.ts` | 1 | D11.5.2 EA8 |  |
+| `onboarding/ea8-journey.spec.ts` | 1 | D11.5.2 EA8 | journey `journeys/einab/newcomer-becomes-foodsaver.journey.ts` (checkpoints `journey-start`, `first-booking`, `progress-one-done`, `waiting-for-id-check`, `journey-complete`) |
 | `onboarding/onboarding-error-states.spec.ts` | 2 | D11.5.2 EA8 |  |
 | `onboarding/onboarding-nudges.spec.ts` | 2 | EA8 EA21 N3 |  |
 | `personas/ambassador.spec.ts` | 1 | D11.5.5 G1 N7 Ve2 |  |
@@ -170,7 +170,7 @@ A removed test without a row here is a bug in the rework.
 | `quiz/q1-quizzes.spec.ts` | 2 | Q1 |  |
 | `quiz/q2-session.spec.ts` | 7 | A8 D10.3 Q2 |  |
 | `quiz/q3-editor.spec.ts` | 2 | Q3 |  |
-| `quiz/q4-guide-quiz.spec.ts` | 2 | Q4 |  |
+| `quiz/q4-guide-quiz.spec.ts` | 2 | Q4 | journey `journeys/einab/foodsaver-becomes-guide.journey.ts` (checkpoints `guide-track-locked`, `quiz-passed`, `guide-track-waiting`, `ready-for-release`); unit `GuideQuizGateTest` (threshold) |
 | `quiz/quiz-error-states.spec.ts` | 4 | A8 Q1 Q2 |  |
 | `regions/ad1-users.spec.ts` | 3 | A4 AD1 D10.3 R8 |  |
 | `regions/r12-conference.spec.ts` | 3 | R12 |  |
@@ -241,7 +241,7 @@ A removed test without a row here is a bug in the rework.
 | `fsp.screen.ts` | 20 | AU1 FS1 FS2 | |
 | `gallery.screen.ts` | 2 |  | |
 | `history.screen.ts` | 7 | D10.3 | |
-| `intro-pickups.screen.ts` | 11 | EA1 EA2 EA5 EA7 EA8 EA9 EA10 EA11 EA13 EA15 EA16 EA17 EA18 EA19 EA21 Q4 | |
+| `intro-pickups.screen.ts` | 11 | EA1 EA2 EA5 EA7 EA8 EA9 EA10 EA11 EA13 EA15 EA16 EA17 EA18 EA19 EA21 Q4 | journey `journeys/einab/newcomer-books-intro-pickups.journey.ts` (checkpoints `bookable-list`, `booking-success`, `nothing-left`, `my-bookings`); journey `journeys/einab/newcomer-subscribes-to-new-dates.journey.ts` (checkpoints `public-dates`, `unsubscribed`); journey `journeys/einab/guide-offers-intro-pickups.journey.ts` (checkpoints `guide-dashboard`, `online-form-error`, `linked-form`, `upcoming-einabs`, `guide-settings`, `signout-warning`); journey `journeys/einab/guide-hosts-a-newcomer.journey.ts` (checkpoint `comment-written`); journey `journeys/einab/ambassador-manages-intro-pickups.journey.ts` (checkpoints `admin-einabs`, `past-bookings`, `guides-tab`, `import-preview`, `funnel`); journey `journeys/einab/foodsaver-becomes-guide.journey.ts` (checkpoint `ready-for-release`); journey `journeys/einab/newcomer-becomes-foodsaver.journey.ts` (checkpoint `no-region`); unit `intro-pickups-pages.spec.ts` (empty kinds none, fairteiler, noMatch); dropped: dark and French variants (decision 180: light German only); dropped: loading, error and forbidden captures (shared `fs-data-state` states, gallery and things-go-wrong journey) |
 | `landing.screen.ts` | 10 | C17 | |
 | `layout.screen.ts` | 11 | D4.3 | |
 | `legal.screen.ts` | 3 | EA4 Ve1 | |

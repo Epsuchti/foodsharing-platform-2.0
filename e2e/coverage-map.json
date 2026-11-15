@@ -1,3 +1,4 @@
 {
-  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository."
+  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository.",
+  "EA20": "server/src/test/java/network/foodsharing/intropickup/service/PastImportJobTest.java"
 }
