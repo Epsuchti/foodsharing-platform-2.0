@@ -5,5 +5,9 @@
     "server/src/test/java/network/foodsharing/notification/mail/service/MailOutboxJobTest.java",
     "server/src/test/java/network/foodsharing/notification/mail/service/MailTemplateServiceTest.java"
   ],
-  "AU13": "server/src/test/java/network/foodsharing/automation/service/PickupCountGroupingAndMetricsTest.java"
+  "AU13": "server/src/test/java/network/foodsharing/automation/service/PickupCountGroupingAndMetricsTest.java",
+  "EA16": "server/src/test/java/network/foodsharing/pickup/service/IntroPickupLinkSyncTest.java",
+  "PU2": "server/src/test/java/network/foodsharing/pickup/service/PickupSignupEditAndConfirmTest.java",
+  "PU10": "server/src/test/java/network/foodsharing/pickup/service/PickupMoveTest.java",
+  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts"
 }

@@ -173,6 +173,20 @@ public class PickupScheduleService {
                 .filter(s -> s.pickupAt().equals(pickupAt)).findFirst();
     }
 
+    /** The listed range of {@link #listPickups}: from/to as given, by default now .. now + the prefetch days (PU1). */
+    record ListRange(Instant start, Instant end) {
+    }
+
+    /** @throws ApiException 400 VALIDATION_FAILED when from ≥ to */
+    static ListRange listRange(Instant now, Instant from, Instant to, int prefetchDays) {
+        Instant start = from == null ? now : from;
+        Instant end = to == null ? now.plus(Duration.ofDays(prefetchDays)) : to;
+        if (!start.isBefore(end)) {
+            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
+        }
+        return new ListRange(start, end);
+    }
+
     /**
      * Pickups of a store; default range now .. now + prefetch days, plus sign-ups after the range (upstream
      * {@code getPickupSlots}). Future pickups carry the caller's eligibility.
@@ -185,11 +199,9 @@ public class PickupScheduleService {
         StorePermissionService.Rights actorRights = rights.rights(actor, store);
         StorePermissionService.require(actorRights.maySeePickups());
         Instant now = clock.instant();
-        Instant start = from == null ? now : from;
-        Instant end = to == null ? now.plus(Duration.ofDays(store.getPrefetchDays())) : to;
-        if (!start.isBefore(end)) {
-            throw ApiException.badRequest(ApiErrorCode.VALIDATION_FAILED);
-        }
+        ListRange range = listRange(now, from, to, store.getPrefetchDays());
+        Instant start = range.start();
+        Instant end = range.end();
         List<PickupSchedule.Slot> slots = new ArrayList<>(schedule(store, start, end));
         if (to == null) {
             Map<Instant, List<PickupSignup>> later = signups.findInRange(List.of(storeId), end, OPEN_END).stream()
