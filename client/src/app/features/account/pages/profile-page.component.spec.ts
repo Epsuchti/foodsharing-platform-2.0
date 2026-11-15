@@ -125,4 +125,20 @@ describe('ProfilePageComponent', () => {
     await fixture.whenStable();
     expect(save().disabled).toBe(true);
   });
+
+  it('requires the display name (moved from the e2e spec a4-profile)', async () => {
+    http.expectOne('/api/users/me').flush({ ...PROFILE, mobilePhone: '+41791234567' });
+    await fixture.whenStable();
+    const save = () => host.querySelector('[data-testid="account.profile.save"] button') as HTMLButtonElement;
+    const name = host.querySelector('[data-testid="account.profile.displayName"]') as HTMLInputElement;
+    name.value = 'Sarah';
+    name.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(save().disabled).toBe(false);
+
+    name.value = '';
+    name.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(save().disabled).toBe(true);
+  });
 });

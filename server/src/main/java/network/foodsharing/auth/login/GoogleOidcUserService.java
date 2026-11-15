@@ -34,7 +34,7 @@ public class GoogleOidcUserService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
         String email = oidcUser.getEmail();
-        if (email == null || email.isBlank() || !Boolean.TRUE.equals(oidcUser.getEmailVerified())) {
+        if (!hasVerifiedEmail(email, oidcUser.getEmailVerified())) {
             throw failure(ApiErrorCode.GOOGLE_EMAIL_NOT_VERIFIED, "Google email missing or not verified", null);
         }
         VerifiedIdentity identity = new VerifiedIdentity(IdentityProvider.GOOGLE, oidcUser.getSubject(), email, email,
@@ -47,6 +47,11 @@ public class GoogleOidcUserService extends OidcUserService {
         } catch (ApiException ex) {
             throw failure(ex.getCode(), ex.getMessage(), ex);
         }
+    }
+
+    /** A1: Google must report an address and {@code email_verified=true}; anything else is GOOGLE_EMAIL_NOT_VERIFIED. */
+    static boolean hasVerifiedEmail(String email, Boolean emailVerified) {
+        return email != null && !email.isBlank() && Boolean.TRUE.equals(emailVerified);
     }
 
     /** Google locale ({@code de}, {@code de-CH}, {@code fr-CH}, {@code gsw} …) → platform language, else null. */
