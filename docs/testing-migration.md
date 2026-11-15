@@ -120,19 +120,19 @@ A removed test without a row here is a bug in the rework.
 | `legal/ea4-consent.spec.ts` | 5 | EA4 |  |
 | `legal/legal-error-states.spec.ts` | 3 | Ve1 |  |
 | `legal/ve1-consent.spec.ts` | 5 | Ve1 |  |
-| `mailboxes/mb1-mailbox-admin.spec.ts` | 2 | MB1 MB6 |  |
-| `mailboxes/mb2-folders.spec.ts` | 4 | MB2 MB3 |  |
-| `mailboxes/mb4-compose.spec.ts` | 2 | MB4 N6 |  |
-| `mailboxes/mb5-inbound.spec.ts` | 2 | D6.3 MB5 |  |
+| `mailboxes/mb1-mailbox-admin.spec.ts` | 2 | MB1 MB6 | journey `journeys/messaging/set-up-mailboxes.journey.ts` (checkpoints `invalid-name`, `taken-name`, `new-mailbox`, `manage-readers`, `personal-mailbox-form`, `lea-mailboxes`); name rules, uniqueness, who creates which mailbox, member rights: unit `MailboxServiceTest`, `MailboxAccessServiceTest`; ORGA deletes (API only, no UI lists personal mailboxes for ORGA): server `MailboxApiIT` |
+| `mailboxes/mb2-folders.spec.ts` | 4 | MB2 MB3 | journey `journeys/messaging/answer-mail-in-the-region-mailbox.journey.ts` (checkpoints `inbox`, `trash`, `mail-with-attachment`, `html-mail`, `bounce-mail`; nav badge, read/unread, trash/restore, sent, search, download); folder rules, unread total: unit `MailServiceTest`; sanitising: unit `MailHtmlSanitizerTest`, client `mailboxes.resource.spec`; error states dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `mailboxes/mb4-compose.spec.ts` | 2 | MB4 N6 | journey `journeys/messaging/answer-mail-in-the-region-mailbox.journey.ts` (checkpoints `reply`, `compose`, `sent`; invalid recipient hint, bold text, attachment, reply sets answered, forward keeps the PDF); recipients, rate limit, reply headers, sent from the mailbox address: unit `MailServiceTest`; draft kept after a failed send: dropped, shared `runMutation` behaviour (navigates only on success), decision 180 #5 |
+| `mailboxes/mb5-inbound.spec.ts` | 2 | D6.3 MB5 | journey `journeys/messaging/answer-mail-in-the-region-mailbox.journey.ts` (checkpoint `reply`; live arrival, unread +1, sanitised HTML, reply); unknown recipient dropped: unit `IncomingMailProcessorTest`; D6.3 (fetcher job): unit `MailboxFetcherJobTest`, `JobRunnerScheduleTest` (coverage map) |
 | `map/m1-map.spec.ts` | 6 | C11 M1 |  |
 | `map/mt1-tiles.spec.ts` | 4 | MT1 MT2 |  |
-| `messaging/n1-conversations.spec.ts` | 8 | N1 N2 S10 |  |
-| `messaging/n2-realtime.spec.ts` | 6 | N1 N2 N3 |  |
-| `newsletters/n7-newsletter.spec.ts` | 4 | N7 |  |
-| `notifications/n3-bell-icons.spec.ts` | 1 | N3 |  |
-| `notifications/n3-bells.spec.ts` | 7 | N3 |  |
-| `notifications/n4-push.spec.ts` | 4 | N4 |  |
-| `notifications/n5-telegram-link.spec.ts` | 3 | A10 N4 N5 N6 |  |
+| `messaging/n1-conversations.spec.ts` | 8 | N1 N2 S10 | journey `journeys/messaging/talk-in-direct-and-group-chats.journey.ts` (checkpoints `conversation-list`, `new-message-dialog`, `direct-conversation`, `group-members`, `edit-mode`, `deleted-message`); mentions, mark read, nav badge live, the other member sees edits/deletes: journey `journeys/messaging/chat-live-with-the-store-manager.journey.ts` (checkpoints `live-message`, `mention-suggestions`, `live-edit-and-delete`); moderation delete with reason, locked store chat, accepted member in the team chat: journey `journeys/messaging/moderate-the-store-team-chat.journey.ts` (checkpoints `store-chat-tab`, `moderation-dialog`, `moderated`); lookup reuse, group and locked-chat rules: unit `MessagingServiceTest`; edit window, moderation: unit `MessageEditRulesTest`, `ChatModerationTest`; standby → jumper chat: unit `StoreConversationSyncTest`; mention tokens: client `message-body.spec`, `conversation-view.spec`; failed send keeps a pending bubble with retry: client `conversation-view.spec`; list 500 and not-found dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `messaging/n2-realtime.spec.ts` | 6 | N1 N2 N3 | journey `journeys/messaging/chat-live-with-the-store-manager.journey.ts` (checkpoints `live-message`, `live-edit-and-delete`, `after-reconnect`; two contexts within 2 s, offline edits and missed messages after the reconnect); new bell live: journey `journeys/messaging/follow-bells.journey.ts` (step "buddy request without reloading"); reload on reconnect: client `conversation-view.spec`; dropped connection: dropped, the same reconnect + refetch path as `after-reconnect`, backoff: client `bells.spec` (`nextReconnectDelay`); anonymous handshake refused: server `WebSocketHandshakeIT` |
+| `newsletters/n7-newsletter.spec.ts` | 4 | N7 | journey `journeys/messaging/send-a-newsletter.journey.ts` (checkpoints `newsletter-list`, `newsletter-editor`, `queue-confirmation`, `newsletter-sent`, `unsubscribe`, `unsubscribed`); legacy and unknown tokens, opted-out users get no newsletter, region scope, foodsaver forbidden: unit `NewsletterServiceTest`, `NewsletterCapabilityTest`, client `newsletters.spec`; error states dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `notifications/n3-bell-icons.spec.ts` | 1 | N3 | client `lucide-icons.spec` (every server icon resolves to an icon of the font) |
+| `notifications/n3-bells.spec.ts` | 7 | N3 | journey `journeys/messaging/follow-bells.journey.ts` (checkpoints `bell-list`, `unread-bells`, `bells-page`, `bells-empty`; badge, open newest, live bell, filter, delete, mark all read; second test: long titles inside the card, open and collapsed rail, and on the phone page); every type titled in five languages: client `bells.spec`; own-only delete, unread counts: unit `BellServiceTest`; error states and failed mark-read dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `notifications/n4-push.spec.ts` | 4 | N4 | journey `journeys/messaging/choose-notification-channels.journey.ts` (checkpoints `push-opt-in`, `push-on`, `channels-off`; enable in one click, test push captured, off again); denied permission, opt-in card once per device and dismissed: client `notifications.spec`; subscriptions: unit `PushSubscriptionServiceTest` |
+| `notifications/n5-telegram-link.spec.ts` | 3 | A10 N4 N5 N6 | journey `journeys/messaging/choose-notification-channels.journey.ts` (checkpoints `telegram-waiting`, `pickup-channels`, `channels-off`); link tokens: unit `TelegramLinkServiceTest`; mail off for pickups, bell stays: unit `ChannelDispatcherTest`, `NotificationSettingsServiceTest`; failed save rolls the switch back: client `notifications.spec`; settings 500 and link-token failure dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
 | `oauth/c13-oauth.spec.ts` | 5 | C13 |  |
 | `onboarding/d11-journey.spec.ts` | 5 | A19 D11.5.1 D11.5.2 D11.5.4 EA8 |  |
 | `onboarding/d11-lighthouse.spec.ts` | 1 | D11.5.3 | kept: moved to `e2e/lighthouse/d11-lighthouse.spec.ts` (project `lighthouse`) |
@@ -245,10 +245,10 @@ A removed test without a row here is a bug in the rework.
 | `landing.screen.ts` | 10 | C17 | |
 | `layout.screen.ts` | 11 | D4.3 | |
 | `legal.screen.ts` | 3 | EA4 Ve1 | |
-| `mailboxes.screen.ts` | 3 | MB1 MB2 MB3 MB4 | |
+| `mailboxes.screen.ts` | 3 | MB1 MB2 MB3 MB4 | journey `journeys/messaging/answer-mail-in-the-region-mailbox.journey.ts` (checkpoints `inbox`, `mail-with-attachment`, `bounce-mail`, `reply`); journey `journeys/messaging/set-up-mailboxes.journey.ts` (checkpoint `invalid-name`); list error dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
 | `map.screen.ts` | 7 | M1 MT1 S17 | |
-| `messaging.screen.ts` | 7 | N1 S10 | |
-| `notifications.screen.ts` | 3 | N3 | |
+| `messaging.screen.ts` | 7 | N1 S10 | journey `journeys/messaging/talk-in-direct-and-group-chats.journey.ts` (checkpoints `conversation-list`, `new-message-dialog`, `group-members`, `edit-mode`); journey `journeys/messaging/chat-live-with-the-store-manager.journey.ts` (checkpoint `live-message`: mention pills); journey `journeys/messaging/moderate-the-store-team-chat.journey.ts` (checkpoints `store-chat-tab`, `own-message-menu`, `moderation-dialog`); list error dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `notifications.screen.ts` | 3 | N3 | journey `journeys/messaging/follow-bells.journey.ts` (checkpoints `bell-list`, `unread-bells`, `bells-page`, `bells-empty`); page error dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
 | `oauth.screen.ts` | 7 | C13 | |
 | `onboarding.screen.ts` | 4 | D11.5.2 EA8 Q4 | |
 | `pages.screen.ts` | 6 | AU12 D4.3 | |
