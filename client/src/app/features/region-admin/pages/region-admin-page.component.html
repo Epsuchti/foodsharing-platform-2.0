@@ -158,13 +158,13 @@
 >
   <div class="dialog">
     <p class="muted">{{ 'regionAdmin.importText' | t }}</p>
-    <code class="columns">parent_slug;slug;name;type;time_zone;country;postcodes</code>
+    <code class="columns" tabindex="0">parent_slug;slug;name;type;time_zone;country;postcodes</code>
     <fs-csv-dropzone (fileChange)="onCsv($event)" testId="regionAdmin.csv" />
     @if (preview(); as result) {
       <p class="summary" data-testid="regionAdmin.importSummary">
         {{ 'regionAdmin.importSummary' | t: { created: result.created, updated: result.updated, errors: result.errors } }}
       </p>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" [attr.aria-label]="'regionAdmin.importTitle' | t">
         <table class="preview">
           <thead>
             <tr>
