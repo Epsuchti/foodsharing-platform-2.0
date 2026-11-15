@@ -218,4 +218,49 @@ describe('regions pages', () => {
     // fields the form does not edit are kept
     expect(body.introPickups.ignoredCategories).toEqual([IntroPickupCategory.Online]);
   });
+
+  it('settings tab: only https conference links can be saved (R12)', async () => {
+    await harness.navigateByUrl(`/regions/${REGION_ID}/settings`);
+    http.match(`/api/regions/${REGION_ID}`).forEach((req) => req.flush(null));
+    const settings: RegionSettings = {
+      introPickups: {
+        maxActiveBookingsPerUser: 3,
+        preventDuplicateGuideBookings: true,
+        preventDuplicateCategoryBookings: true,
+        requireFairteilerVisitByThirdIntroPickup: false,
+        ignoredCategories: [],
+        guideQuizMinPickups: 25,
+      },
+      onboarding: { learningPagesMandatory: true, extraSteps: [] },
+      joinMode: RegionJoinMode.Open,
+      timeZone: 'Europe/Zurich',
+    };
+    http.expectOne(`/api/regions/${REGION_ID}/settings`).flush(settings);
+    await settle();
+    const input = q('[data-testid="regions.settings.conferenceUrl"]') as HTMLInputElement;
+    const save = () => q('[data-testid="regions.settings.save"] button') as HTMLButtonElement;
+    const hint = () => input.parentElement!.querySelector('.field__hint');
+    const type = async (value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      await settle();
+    };
+
+    for (const wrong of ['ftp://meet.example.org', 'http://meet.jit.si/zuerich', 'meet.jit.si/zuerich']) {
+      await type(wrong);
+      expect(save().disabled, wrong).toBe(true);
+      expect(hint()?.textContent?.trim(), wrong).toBeTruthy();
+    }
+    await type('https://meet.jit.si/foodsharing-zuerich');
+    expect(save().disabled).toBe(false);
+    expect(hint()).toBeNull();
+    // clearing the link is allowed too
+    await type('');
+    expect(save().disabled).toBe(false);
+
+    await type('https://meet.jit.si/foodsharing-zuerich');
+    save().click();
+    const patch = http.expectOne((req) => req.method === 'PATCH' && req.url === `/api/regions/${REGION_ID}/settings`);
+    expect(patch.request.body.conferenceUrl).toBe('https://meet.jit.si/foodsharing-zuerich');
+  });
 });
