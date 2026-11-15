@@ -1,3 +1,7 @@
 {
-  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository."
+  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository.",
+  "PU2": "server/src/test/java/network/foodsharing/pickup/service/PickupSignupEditAndConfirmTest.java",
+  "PU10": "server/src/test/java/network/foodsharing/pickup/service/PickupMoveTest.java",
+  "EA16": "server/src/test/java/network/foodsharing/pickup/service/IntroPickupLinkSyncTest.java",
+  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts"
 }

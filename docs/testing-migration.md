@@ -140,26 +140,26 @@ A removed test without a row here is a bug in the rework.
 | `onboarding/onboarding-error-states.spec.ts` | 2 | D11.5.2 EA8 |  |
 | `onboarding/onboarding-nudges.spec.ts` | 2 | EA8 EA21 N3 |  |
 | `personas/ambassador.spec.ts` | 1 | D11.5.5 G1 N7 Ve2 |  |
-| `personas/foodsaver.spec.ts` | 1 | B1 B2 D11.5.5 N3 PU3 S1 |  |
+| `personas/foodsaver.spec.ts` | 1 | B1 B2 D11.5.5 N3 PU3 S1 | journey `journeys/foodsaver/sign-up-and-offer-a-basket.journey.ts` (checkpoints `signup-dialog`, `signed-up-unconfirmed`, `signed-up-confirmed`, `basket-form`, `basket-requested`) |
 | `personas/newcomer.spec.ts` | 1 | A19 C1 D11.5.5 EA7 EA8 Q2 |  |
 | `personas/orga.spec.ts` | 1 | C11 D11.5.5 |  |
 | `personas/store-manager.spec.ts` | 1 | D11.5.5 PU1 PU3 S1 S12 |  |
-| `pickups/a19-dashboard-pickups.spec.ts` | 1 | A19 |  |
-| `pickups/a19-home-cards.spec.ts` | 2 | A19 PU7 |  |
+| `pickups/a19-dashboard-pickups.spec.ts` | 1 | A19 | journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoint `dashboard`); newcomer without the card: unit `home-cards.spec.ts` (my next pickups and your stores: nothing for newcomers) |
+| `pickups/a19-home-cards.spec.ts` | 2 | A19 PU7 | journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoints `dashboard`, `help-card-signed-up`); newcomer cards and card rules (3 options, events without WONT_JOIN, stores urgent first): unit `home-cards.spec.ts` |
 | `pickups/pickups-error-states.spec.ts` | 4 | PU1 PU3 PU4 PU7 |  |
-| `pickups/pu1-regular.spec.ts` | 2 | PU1 PU3 |  |
-| `pickups/pu10-move-pickup.spec.ts` | 4 | EA16 PU10 |  |
-| `pickups/pu2-one-time.spec.ts` | 2 | PU2 |  |
-| `pickups/pu3-day-chat.spec.ts` | 2 | PU3 |  |
-| `pickups/pu3-signup.spec.ts` | 8 | PU3 |  |
-| `pickups/pu3-slot-details.spec.ts` | 3 | PU3 S9 |  |
-| `pickups/pu4-eligibility.spec.ts` | 8 | PU4 |  |
-| `pickups/pu5-region-rule.spec.ts` | 3 | PU5 |  |
-| `pickups/pu6-history.spec.ts` | 2 | D10.3 PU6 |  |
-| `pickups/pu7-options.spec.ts` | 3 | PU7 |  |
-| `pickups/pu7-pickups-page.spec.ts` | 2 | PU3 PU7 |  |
-| `pickups/pu8-agenda.spec.ts` | 1 | PU8 |  |
-| `pickups/pu9-reminders.spec.ts` | 1 | PU9 |  |
+| `pickups/pu1-regular.spec.ts` | 2 | PU1 PU3 | regular editor flow: journey `journeys/store-manager/confirm-and-plan-pickups.journey.ts` (checkpoint `regular-slots-dialog`); duplicate day/time: unit `RegularPickupServiceTest`, `weekday-time-picker.spec.ts`; team bell: unit `RegularPickupReplaceTest`; prefetch horizon: unit `PickupListRangeTest`, `PickupEligibilityRulesTest`; two-weeks range click: store-manager journey (pending, routed to the store-manager area) |
+| `pickups/pu10-move-pickup.spec.ts` | 4 | EA16 PU10 | store-manager journey (pending, routed to the store-manager area); rules: unit `PickupMoveTest`, `IntroPickupLinkSyncTest`, `move-pickup-dialog.component.spec.ts` |
+| `pickups/pu2-one-time.spec.ts` | 2 | PU2 | add/edit/cancel flow: store-manager journey (pending, routed to the store-manager area); fewer slots than sign-ups, 0 slots cancel: unit `PickupSignupEditAndConfirmTest` |
+| `pickups/pu3-day-chat.spec.ts` | 2 | PU3 | journey `journeys/foodsaver/coordinate-a-pickup-day.journey.ts` (checkpoint `day-chat`); manager joins the chat: store-manager journey (pending, routed to the store-manager area) + unit `DayChatRuleTest`; no button when only I am signed up: unit `store-pickups.tab.spec.ts` |
+| `pickups/pu3-signup.spec.ts` | 8 | PU3 | sign-up, bells, confirmation seen: journey `journeys/foodsaver/sign-up-and-offer-a-basket.journey.ts`; sign out self: journey `journeys/foodsaver/coordinate-a-pickup-day.journey.ts` (checkpoints `sign-out-confirm`, `signed-out`); manager pre-confirmed: unit `PickupSignupEditAndConfirmTest`; remove other, confirm from ✓, confirm-all, pending filter: store-manager journey (pending, routed to the store-manager area) + unit `store-pickups.tab.spec.ts`; slot names: unit `pickup-slot.component.spec.ts`; before the horizon: unit `PickupEligibilityRulesTest` |
+| `pickups/pu3-slot-details.spec.ts` | 3 | PU3 S9 | co-pickup and team member dialogs: journey `journeys/foodsaver/coordinate-a-pickup-day.journey.ts` (checkpoints `slot-co-pickup`, `slot-team-member`); manager dialog with phone: store-manager journey (pending, routed to the store-manager area) + unit `store-pickups.tab.spec.ts`, `SlotDetailRuleTest` |
+| `pickups/pu4-eligibility.spec.ts` | 8 | PU4 | already signed up: journey `journeys/foodsaver/coordinate-a-pickup-day.journey.ts` (checkpoint `pickups-tab`); every reason (phone, past, already, full, hygiene, jumper, not a member): unit `PickupEligibilityRulesTest`; Gesperrt chip and dialog: journey `journeys/foodsaver/coordinate-a-pickup-day.journey.ts` (checkpoint `blocked-region-rule`) + unit `pickup-slot.component.spec.ts`, `store-pickups.tab.spec.ts`; own profile cannot clear the mobile number: unit `UserProfileServiceTest`; jumper/unverified refused: unit `StorePermissionMatrixTest`; five languages: `npm run i18n:check` |
+| `pickups/pu5-region-rule.spec.ts` | 3 | PU5 | journey `journeys/foodsaver/coordinate-a-pickup-day.journey.ts` (checkpoint `blocked-region-rule`); 24 h exemption, day limit, store without rule: unit `PickupEligibilityRulesTest`; rule lines: unit `eligibility-reasons.component.spec.ts` |
+| `pickups/pu6-history.spec.ts` | 2 | D10.3 PU6 | own past pickups: journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoint `history`); admin deletes future pickups: journey `journeys/foodsaver/plan-my-pickups.journey.ts` (orga test, checkpoint `delete-future-dialog`) + unit `pickup-history-page.component.spec.ts`; store history by range: store-manager journey (pending, routed to the store-manager area); KAM may, member may not: unit `StorePermissionMatrixTest` |
+| `pickups/pu7-options.spec.ts` | 3 | PU7 | journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoints `pickups-page`, `options-signed-up`); left-out and full options: unit `PickupOptionsRuleTest`; order and summary counts: unit `pickups.util.spec.ts` |
+| `pickups/pu7-pickups-page.spec.ts` | 2 | PU3 PU7 | journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoint `pickups-page`); 5 first of my pickups, /pickups/mine redirect: unit `pickups-page.spec.ts` |
+| `pickups/pu8-agenda.spec.ts` | 1 | PU8 | journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoints `agenda`, `agenda-empty-day`) |
+| `pickups/pu9-reminders.spec.ts` | 1 | PU9 | journey `journeys/foodsaver/pickup-reminders.journey.ts` (checkpoints `settings-reminders-on`, `settings-reminders-off`, `reminder-opened`); job window and setting: unit `PickupReminderJobTest` |
 | `polls/v1-polls.spec.ts` | 4 | N3 V1 |  |
 | `profiles/a15-bananas.spec.ts` | 1 | A15 G4 N3 |  |
 | `profiles/a16-buddies.spec.ts` | 1 | A16 N3 |  |
@@ -252,7 +252,7 @@ A removed test without a row here is a bug in the rework.
 | `oauth.screen.ts` | 7 | C13 | |
 | `onboarding.screen.ts` | 4 | D11.5.2 EA8 Q4 | |
 | `pages.screen.ts` | 6 | AU12 D4.3 | |
-| `pickups.screen.ts` | 19 | A19 AU1 EA16 FS2 PU1 PU2 PU3 PU4 PU7 PU8 PU10 S9 | |
+| `pickups.screen.ts` | 19 | A19 AU1 EA16 FS2 PU1 PU2 PU3 PU4 PU7 PU8 PU10 S9 || foodsaver captures: journeys `journeys/foodsaver/coordinate-a-pickup-day.journey.ts`, `journeys/foodsaver/sign-up-and-offer-a-basket.journey.ts`, `journeys/foodsaver/plan-my-pickups.journey.ts` (tab, slot dialogs, sign-up, booked, Gesperrt reasons, pickups page, agenda, dashboard, help card); manager captures (regular editor, one-time dialog, manager tab, manager slot dialog, move dialog): store-manager journey (pending, routed to the store-manager area); loading/error captures: dropped: per-page states, replaced by the shared fs-data-state spec and gallery (decision 180.5); guide cleaning row (FS2) and store-rule/linked-step captures (AU1): dropped here, walked by the Fairteiler and automation journeys |
 | `polls.screen.ts` | 2 | V1 | |
 | `profiles.screen.ts` | 6 | A6 A15 A16 | |
 | `quiz.screen.ts` | 12 | A8 Q1 Q2 Q3 | |
