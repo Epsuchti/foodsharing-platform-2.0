@@ -1,3 +1,7 @@
 {
-  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository."
+  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository.",
+  "D17.3": "server/src/test/java/network/foodsharing/user/AccountDeletionIT.java",
+  "N7": "server/src/test/java/network/foodsharing/notification/newsletter/service/NewsletterServiceTest.java",
+  "Q2": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
+  "S3": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java"
 }
