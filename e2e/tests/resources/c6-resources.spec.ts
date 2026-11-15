@@ -14,7 +14,7 @@ const RESOURCES_GROUP = regionId('ressourcen-zuerich');
 const JUMPER = '00000001-0001-4000-8000-000000000007';
 const CATEGORY = { tools: '00000056-0001-4000-8000-000000000001', kitchen: '00000056-0001-4000-8000-000000000002', transport: '00000056-0001-4000-8000-000000000003' };
 const RESOURCE = { infostand: '00000056-0003-4000-8000-000000000009' };
-const PHOTO = path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png');
+const PHOTO = path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png');
 
 const card = (page: Page, id: string) => page.locator(`[data-testid="resources.card"][data-resource-id="${id}"]`);
 

@@ -308,6 +308,9 @@ jobs:
           path: server/target
       # Starts the jar on the runner and runs Playwright inside mcr.microsoft.com/playwright:v1.64.1-noble.
       - name: Compare with e2e/__screenshots__
+        env:
+          E2E_PROJECTS: screenshots-desktop screenshots-mobile
+          E2E_SHARDS: 1
         run: bash e2e/scripts/screenshots.sh
       - name: Add results and flaky tests to the run summary
         if: ${{ !cancelled() }}

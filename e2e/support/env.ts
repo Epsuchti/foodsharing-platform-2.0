@@ -45,12 +45,23 @@ export type Role = (typeof ROLES)[number];
 export const roleEmail = (role: Role): string => `${role}@local`;
 export const authFile = (role: Role): string => path.join(AUTH_DIR, `${role}.json`);
 
-export interface ServerState {
+/**
+ * Playwright workers and jars of one run (decision 180): global setup starts one jar per worker, and every worker
+ * talks to the jar of its `parallelIndex` only, so two tests never share an in-memory database. Default 2.
+ */
+export const WORKERS = Math.max(1, Number(process.env.E2E_WORKERS ?? 2) || 1);
+
+export interface JarState {
   baseURL: string;
   /** PID of the jar started by global setup; absent when an existing server is reused. */
   pid?: number;
   port?: number;
   logFile?: string;
+}
+
+export interface ServerState {
+  /** One entry per worker slot (`parallelIndex`), in order. */
+  jars: JarState[];
 }
 
 export function readServerState(): ServerState | undefined {
@@ -70,16 +81,31 @@ export function clearServerState(): void {
   fs.rmSync(SERVER_STATE_FILE, { force: true });
 }
 
+/** `E2E_BASE_URL`: one URL, or several separated by spaces or commas (one running app per worker slot). */
+export function baseURLsFromEnv(): string[] {
+  return (process.env.E2E_BASE_URL ?? '')
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map((url) => url.replace(/\/+$/, ''));
+}
+
 /**
- * Base URL of the app under test: `E2E_BASE_URL` (reuse a running server, e.g. inside the screenshot container),
- * else the URL global setup wrote after starting the jar.
+ * Base URL of the app under test for the worker slot `parallelIndex`: `E2E_BASE_URL` (reuse running servers, e.g.
+ * inside the screenshot container), else the URLs global setup wrote after starting the jars. A slot without an
+ * app of its own fails: two workers on one in-memory database would reset each other's seed (`--workers` above
+ * `E2E_WORKERS` or the number of `E2E_BASE_URL`s).
  */
-export function resolveBaseURL(): string {
-  const fromEnv = process.env.E2E_BASE_URL;
-  if (fromEnv) return fromEnv.replace(/\/+$/, '');
-  const state = readServerState();
-  if (state?.baseURL) return state.baseURL;
+export function resolveBaseURL(parallelIndex = 0): string {
+  const fromEnv = baseURLsFromEnv();
+  const urls = fromEnv.length ? fromEnv : (readServerState()?.jars ?? []).map((jar) => jar.baseURL);
+  if (parallelIndex < urls.length) return urls[parallelIndex];
+  if (urls.length) {
+    throw new Error(
+      `Worker slot ${parallelIndex} has no app of its own (${urls.length} running). Set E2E_WORKERS (or one ` +
+        'E2E_BASE_URL per worker) instead of --workers.',
+    );
+  }
   throw new Error(
-    'No app under test: set E2E_BASE_URL or run through `npx playwright test` so global-setup.ts starts the jar.',
+    'No app under test: set E2E_BASE_URL or run through `npx playwright test` so global-setup.ts starts the jars.',
   );
 }

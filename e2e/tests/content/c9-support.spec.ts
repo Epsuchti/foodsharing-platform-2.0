@@ -10,7 +10,7 @@ import { expect, expectNoMissingKeys, injectApiError, setLanguage, test } from '
 test.use({ seedReset: 'test' });
 
 const SUPPORT_MAIL = 'support@local.test';
-const ATTACHMENT = path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png');
+const ATTACHMENT = path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png');
 
 test.describe('signed in', () => {
   test.use({ role: 'foodsaver' });

@@ -11,7 +11,7 @@ import { acceptConfirm } from '../auth/_auth';
  */
 test.use({ seedReset: 'test', role: 'orga' });
 
-const PNG = fs.readFileSync(path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png'));
+const PNG = fs.readFileSync(path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png'));
 
 async function upload(api: ApiClient, name: string): Promise<string> {
   const response = await api.fetch('POST', '/api/uploads', undefined, {

@@ -1,96 +1,22 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import type { Locator, Page, PageScreenshotOptions, Request } from '@playwright/test';
+import type { Locator, Page, PageScreenshotOptions } from '@playwright/test';
 import { SEED_NOW, expect, test, type Language } from '../fixtures';
 import { animationsDone } from '../fixtures/a11y';
-import { isHeldRequest } from '../fixtures/errors';
+import {
+  assertInter,
+  fixedOrigin,
+  maskColor,
+  overlayOpen,
+  pinInter,
+  settle,
+  stubVisuals,
+  tickFixedClock,
+  trackPendingRequests,
+} from '../fixtures/checkpoint';
 import { LANG_STORAGE_KEY, THEME_STORAGE_KEY } from '../fixtures/i18n';
 
-/**
- * Every capture is rendered in Inter, what a returning user sees (the product makes Inter a progressive enhancement:
- * system font on the first visit, `fs.font=inter` + `font-display: optional` afterwards, see client/src/styles.scss).
- * `fs.font` alone is not enough: with `optional` the browser keeps the fallback for the whole page lifetime when the
- * download misses its ~100 ms block period (machine load). So the init script below also adds the two Inter faces to
- * `document.fonts` from bytes it carries itself (the app's own /fonts files, fetched once per worker). A FontFace made
- * from a buffer needs no network, and it is declared `display: 'block'`: text waits for it and can never be painted in
- * the fallback. It is added after the CSS faces, so it wins the match for the same family and unicode ranges.
- * `assertInter` fails a capture that still is not in Inter.
- */
-const INTER_FAMILY = 'Inter Variable';
-const FONT_STORAGE_KEY = 'fs.font';
-const INTER_FACES = [
-  {
-    file: '/fonts/inter-latin-ext-wght-normal.woff2',
-    unicodeRange:
-      'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF',
-  },
-  {
-    file: '/fonts/inter-latin-wght-normal.woff2',
-    unicodeRange:
-      'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD',
-  },
-];
-const interBytes = new Map<string, Promise<string>>();
-
-async function interFaces(page: Page): Promise<{ data: string; unicodeRange: string }[]> {
-  return Promise.all(
-    INTER_FACES.map(async ({ file, unicodeRange }) => {
-      let bytes = interBytes.get(file);
-      if (!bytes) {
-        bytes = page
-          .context()
-          .request.get(file)
-          .then(async (response) => {
-            expect(response.ok(), `GET ${file} → ${response.status()}`).toBe(true);
-            return (await response.body()).toString('base64');
-          });
-        interBytes.set(file, bytes);
-        bytes.catch(() => interBytes.delete(file));
-      }
-      return { data: await bytes, unicodeRange };
-    }),
-  );
-}
-
-/** Pins Inter for every document of the page's context (also pages opened later). */
-async function pinInter(page: Page): Promise<void> {
-  const faces = await interFaces(page);
-  await page.context().addInitScript(
-    ([family, storageKey, list]) => {
-      try {
-        window.localStorage.setItem(storageKey, 'inter');
-      } catch {
-        /* storage disabled */
-      }
-      const pinned: FontFace[] = [];
-      (window as unknown as { __fsPinnedInter: FontFace[] }).__fsPinnedInter = pinned;
-      for (const { data, unicodeRange } of list) {
-        const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
-        const face = new FontFace(family, bytes.buffer, { style: 'normal', weight: '100 900', display: 'block', unicodeRange });
-        document.fonts.add(face);
-        pinned.push(face);
-        face.load().catch(() => undefined);
-      }
-    },
-    [INTER_FAMILY, FONT_STORAGE_KEY, faces] as const,
-  );
-}
-
-/** Fails when the page is not rendered in Inter: `.fs-inter` set, both pinned faces loaded, body resolves to Inter. */
-async function assertInter(page: Page): Promise<void> {
-  const state = await page.evaluate(async (family) => {
-    const faces = (window as unknown as { __fsPinnedInter?: FontFace[] }).__fsPinnedInter ?? [];
-    await Promise.all(faces.map((f) => f.loaded.catch(() => undefined)));
-    return {
-      isInter: document.documentElement.classList.contains('fs-inter'),
-      loaded: faces.filter((f) => f.status === 'loaded').length,
-      faces: faces.length,
-      resolved: document.body ? getComputedStyle(document.body).fontFamily.includes(family) : false,
-    };
-  }, INTER_FAMILY);
-  const ok = state.isInter && state.loaded >= INTER_FACES.length && state.resolved;
-  expect(ok, `screenshot is not rendered in Inter: ${JSON.stringify(state)}`).toBe(true);
-}
+// The stability, font and stub code moved to fixtures/checkpoint.ts (decision 180); this file goes with the old
+// screenshot suite.
+export { tickFixedClock };
 
 /**
  * Base for `screenshots/<area>.screen.ts` (plan §18.4). Every page gets: browser clock fixed at SEED_NOW, map tiles and
@@ -131,15 +57,6 @@ export function forEachVariant(define: (variant: Variant) => void, matrix: Varia
   for (const variant of matrix) define(variant);
 }
 
-const TILE = fs.readFileSync(path.join(__dirname, 'fixtures', 'tile.png'));
-const AVATAR = fs.readFileSync(path.join(__dirname, 'fixtures', 'avatar.svg'));
-/**
- * MT1 (decision 159): screenshots draw the map from this raster stub (`window.__fsTileUrl`), not the vector basemap,
- * so the baselines stay the same in every engine. `useVectorBasemap` switches a test back to the real basemap.
- */
-const STUB_TILE_PATH = '/__fs-stub-tile/';
-const AVATAR_HOSTS = /(^|\.)(googleusercontent\.com|gravatar\.com)$/;
-
 export interface ExpectScreenOptions {
   /** Default true. */
   fullPage?: boolean;
@@ -157,144 +74,6 @@ export interface ScreenHelpers {
   expectScreen(page: Page, name: string, options?: ExpectScreenOptions): Promise<void>;
   /** Element screenshot (gallery sections, dialogs). */
   expectElement(locator: Locator, name: string, options?: Omit<ExpectScreenOptions, 'fullPage' | 'clip'>): Promise<void>;
-}
-
-async function settle(page: Page, options: { waitForData?: boolean } = {}): Promise<void> {
-  await page.evaluate(() => document.fonts.ready.then(() => undefined));
-  const waitForData = options.waitForData ?? true;
-  if (waitForData) {
-    await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
-  }
-  // banners, the release-notes dot and toggled nav items appear after the first page (StartupService.markPageShown);
-  // its idle callback falls back to a 5 s timeout under the fixed page clock. A loading-state capture (waitForData
-  // false) holds a request of its own on purpose; neither this marker nor the quiet check waits for that one, so the
-  // shell is still at rest with its data, like in every other capture.
-  if (await page.evaluate(() => document.body?.querySelector('fs-shell') !== null)) {
-    await expect(page.locator('html[data-page-shown]')).toHaveCount(1, { timeout: 15_000 });
-  }
-  await networkQuiet(page);
-  if (waitForData) {
-    await expect(page.locator('[data-state="loading"], [data-state="refreshing"]')).toHaveCount(0);
-    await expect(page.getByTestId('shell.requestBar')).toHaveCount(0);
-  }
-  // Opening dialogs, drawers and popovers animate in and move the focus when their animation ends; a field filled
-  // during that animation kept or lost its focus ring depending on machine load (AC1 define, C13 create, N3 bells
-  // under parallel shards). Wait for running animations/transitions, then take the focus off form fields: a capture
-  // shows fields at rest, never a focus ring that depends on timing.
-  await animationsDone(page);
-  await page.evaluate(() => {
-    const active = document.activeElement as HTMLElement | null;
-    const field = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]';
-    // a combobox/autocomplete keeps its focus: blurring it closes the open list the capture is about (C5 search)
-    const opensList = '[role="combobox"], [aria-autocomplete], [aria-expanded="true"], [aria-controls]';
-    if (active && active.matches(field) && !active.matches(opensList)) active.blur();
-  });
-  await animationsDone(page);
-  // The side menu scrolls the current item into view once after each navigation (SidenavComponent). Toggled nav items
-  // that arrive afterwards change the list's height and leave that scroll at an offset which depends on arrival
-  // order (C10 uploads). Everything has arrived now: repeat the app's own scroll so the menu is at rest, always.
-  await page.evaluate(() =>
-    document.querySelector<HTMLElement>('#sn-nav [aria-current="page"]')?.scrollIntoView({ block: 'nearest' }),
-  );
-  await page.evaluate(
-    () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
-  );
-}
-
-/** Running requests per page (started, neither finished nor failed yet). */
-const PENDING_TYPES = new Set(['document', 'stylesheet', 'script', 'font', 'image', 'fetch', 'xhr']);
-const pendingRequests = new WeakMap<Page, Set<Request>>();
-
-function trackPendingRequests(page: Page): void {
-  const pending = new Set<Request>();
-  pendingRequests.set(page, pending);
-  // A request the previous document started shortly before a page load replaced it does not always report
-  // `requestfailed` (a resize right before `page.goto` loads a chunk and the release notes, AU1 phone step): it stayed
-  // "running" for good and the quiet check timed out. When a new document commits in the main frame after a document
-  // request (a real page load, not an SPA route change), what the old document left is dropped.
-  let documentRequested = false;
-  page.on('request', (request) => {
-    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentRequested = true;
-    if (PENDING_TYPES.has(request.resourceType())) pending.add(request);
-  });
-  page.on('framenavigated', (frame) => {
-    if (frame !== page.mainFrame() || !documentRequested) return;
-    documentRequested = false;
-    for (const request of pending) if (!(request.isNavigationRequest() && request.frame() === frame)) pending.delete(request);
-  });
-  const done = (request: Request): void => void pending.delete(request);
-  page.on('requestfinished', done);
-  page.on('requestfailed', done);
-}
-
-/** Running requests except the ones `injectApiError({ delayMs })` holds on purpose (they never end during a capture). */
-function pendingCount(page: Page): number {
-  let count = 0;
-  for (const request of pendingRequests.get(page) ?? []) if (!isHeldRequest(request)) count++;
-  return count;
-}
-
-/**
- * Waits until no request has finished for 500 ms (wall clock, so it also works under `page.clock.setFixedTime`) and no
- * request is running, except the ones a loading-state capture holds on purpose. The after-first-page requests
- * (feature toggles, nav badges, banners) otherwise land in some captures and not in others. The browser must also have
- * answered several polls in that time: under load one slow answer can use up the 500 ms while the page is still busy.
- */
-async function networkQuiet(page: Page): Promise<void> {
-  let last = -1;
-  let since = Date.now();
-  let quietPolls = 0;
-  await expect
-    .poll(
-      async () => {
-        const count = await page.evaluate(() => {
-          performance.setResourceTimingBufferSize(100_000);
-          return performance.getEntriesByType('resource').length;
-        });
-        if (count !== last || pendingCount(page) > 0) {
-          last = count;
-          since = Date.now();
-          quietPolls = 0;
-        } else {
-          quietPolls++;
-        }
-        return Date.now() - since >= 500 && quietPolls >= 5;
-      },
-      { intervals: [100], timeout: 15_000 },
-    )
-    .toBe(true);
-}
-
-/**
- * Every shard runs on a free port, and some screens show the app's own address (AU5 adverts, surveys, support). A
- * capture always shows the same address, so a baseline never depends on the port of the run that took it.
- */
-async function fixedOrigin(page: Page): Promise<void> {
-  await page.evaluate((shown) => {
-    const origin = location.origin;
-    if (origin === shown) return;
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    while (walker.nextNode()) {
-      const node = walker.currentNode;
-      if (node.nodeValue?.includes(origin)) node.nodeValue = node.nodeValue.split(origin).join(shown);
-    }
-    for (const field of document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')) {
-      if (field.value.includes(origin)) field.value = field.value.split(origin).join(shown);
-    }
-  }, 'http://localhost:8081');
-}
-
-async function overlayOpen(page: Page): Promise<boolean> {
-  return page.locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible, .sn-card:visible').count().then((n) => n > 0);
-}
-
-/**
- * Masked regions (version, trace ids) are painted in the page's muted surface colour instead of Playwright's
- * magenta, so the screenshots stay readable in reviews (review-m1 round 2 #4).
- */
-async function maskColor(page: Page): Promise<string> {
-  const dark = await page.evaluate(() => document.documentElement.classList.contains('fs-dark'));
-  return dark ? '#212821' : '#f3f6f1';
 }
 
 const screen: ScreenHelpers = {
@@ -366,29 +145,15 @@ export async function useVectorBasemap(page: Page): Promise<void> {
   });
 }
 
-export async function tickFixedClock(page: Page, ms = 1_000): Promise<void> {
-  const now = await page.evaluate(() => Date.now());
-  await page.clock.setFixedTime(new Date(now + ms));
-}
 
 export const screenshotTest = test.extend<{ variant: Variant | undefined; visual: ScreenHelpers }>({
   variant: [undefined, { option: true }],
 
   page: async ({ page, variant, role, apiOf }, use) => {
-    await pinInter(page);
+    await pinInter(page.context());
     trackPendingRequests(page);
     await page.clock.setFixedTime(new Date(SEED_NOW));
-    await page.addInitScript((template) => {
-      (window as unknown as { __fsTileUrl?: string }).__fsTileUrl = template;
-    }, `${STUB_TILE_PATH}{z}/{x}/{y}.png`);
-    await page.route(
-      (url) => url.pathname.startsWith(STUB_TILE_PATH),
-      (route) => route.fulfill({ status: 200, contentType: 'image/png', body: TILE }),
-    );
-    await page.route(
-      (url) => AVATAR_HOSTS.test(url.hostname),
-      (route) => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: AVATAR }),
-    );
+    await stubVisuals(page.context());
     if (variant) {
       await page.emulateMedia({ colorScheme: variant.theme, reducedMotion: 'reduce' });
       await page.addInitScript(

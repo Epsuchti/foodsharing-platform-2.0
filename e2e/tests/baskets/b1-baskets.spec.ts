@@ -21,7 +21,7 @@ import {
 test.use({ seedReset: 'test' });
 
 /** A 256 px PNG to crop (the screenshot tile stub). */
-const PHOTO = path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png');
+const PHOTO = path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png');
 
 test.describe('foodsaver', () => {
   test.use({ role: 'foodsaver' });

@@ -24,7 +24,7 @@ const WELCOME_GROUP = '00000011-0001-4000-8000-000000000020';
 const AWAITING_POST = '00000012-0006-4000-8000-000000000007';
 const ZURICH = '00000010-0001-4000-8000-000000000040';
 /** A 256 px PNG to crop (the screenshot tile stub). */
-const PICTURE = path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png');
+const PICTURE = path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png');
 
 test('C2 ambassador drafts a region post, PR admin gets check bell and publishes, public list shows it @C2 @N3 @page', async ({
   as,

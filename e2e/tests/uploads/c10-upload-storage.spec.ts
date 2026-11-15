@@ -9,7 +9,7 @@ import { expect, test } from '../../fixtures';
  */
 test.use({ seedReset: 'test', role: 'foodsaver' });
 
-const PNG = fs.readFileSync(path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png'));
+const PNG = fs.readFileSync(path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png'));
 const PDF = Buffer.from('%PDF-1.4\n% c10 upload storage\n');
 
 test('C10 upload bytes round-trip with ETag, 304 and Cache-Control per visibility @C10', async ({ api }) => {

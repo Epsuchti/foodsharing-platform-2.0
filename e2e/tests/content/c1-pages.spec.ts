@@ -122,7 +122,7 @@ test('C1 FAQ lists the published questions and filters them @C1 @page', async ({
 });
 
 /** A 256 px PNG (the screenshot tile stub). */
-const PICTURE = path.join(__dirname, '..', '..', 'screenshots', 'fixtures', 'tile.png');
+const PICTURE = path.join(__dirname, '..', '..', 'fixtures', 'visual', 'tile.png');
 
 test('C1 editor edits a page body and image @C1', async ({ as, apiOf, page }) => {
   // Q11: ORGA uploads an image, inserts it into the German body, picks another editor function and saves

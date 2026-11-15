@@ -1,11 +1,18 @@
 import { defineConfig, devices, type PlaywrightTestConfig, type Project } from '@playwright/test';
 import path from 'node:path';
-import { RESULTS_DIR } from './support/env';
+import { RESULTS_DIR, WORKERS, baseURLsFromEnv } from './support/env';
 
 /**
  * E2E against the packaged jar (profile `e2e`: in-memory H2 + seed, fixed clock, captured mails).
  * global-setup.ts starts the jar (or reuses E2E_BASE_URL); the base URL reaches the tests through the `baseURL`
  * fixture override in fixtures/index.ts (see support/env.ts), not through `use.baseURL` here.
+ *
+ * Journeys (decision 180): `journeys/<persona>/<slug>.journey.ts` walk a persona through a real process and call
+ * `checkpoint()` (fixtures/checkpoint.ts) at the states worth looking at. `chromium` (1280x800) and `mobile-chrome`
+ * are the checkpoint projects (axe at every checkpoint; screenshots inside the Playwright image, scripts/screenshots.sh);
+ * `firefox`, `webkit` and `mobile-safari` only wait for stability there. The axe route sweep (light + dark) is its
+ * own project `a11y` (chromium). `E2E_WORKERS` (default 2) workers run files in parallel, each against a jar of its
+ * own (global-setup.ts), and every journey starts from the seed.
  *
  * Tags: every test carries the ledger ID(s) it proves (`@A2`, `@D4.3`), see docs/conventions.md A8 and
  * scripts/feature-coverage.mjs. Meta tags: `@page` (auto axe check), `@screenshot`, `@chromium-only`
@@ -17,6 +24,11 @@ const CHROMIUM_ONLY = /@chromium-only/;
 /** CPU-sensitive Lighthouse thresholds (D11.5.3): only in the dedicated `lighthouse` project / CI job. */
 const LIGHTHOUSE = /@D11\.5\.3/;
 const TESTS = 'tests/**/*.spec.ts';
+const JOURNEYS = 'journeys/**/*.journey.ts';
+/** The axe route sweep and the CSP check: project `a11y` only. */
+const A11Y = 'tests/a11y/**/*.spec.ts';
+/** One worker per running app: `E2E_BASE_URL` with several URLs, else the jars global setup starts. */
+const WORKER_COUNT = baseURLsFromEnv().length || WORKERS;
 const SCREENS = 'screenshots/**/*.screen.ts';
 /**
  * Screenshot projects only exist when E2E_SCREENSHOTS=1 (set by scripts/screenshots.sh inside the official Playwright
@@ -52,11 +64,15 @@ const shared: PlaywrightTestConfig['use'] = {
 
 const e2eProject = (name: string, use: Project['use'], extra: Partial<Project> = {}): Project => ({
   name,
-  testMatch: TESTS,
+  testMatch: [TESTS, JOURNEYS],
+  testIgnore: A11Y,
   dependencies: ['setup'],
   use: { ...use },
   ...extra,
 });
+
+/** Checkpoint projects: axe at every checkpoint, screenshots inside the Playwright image. */
+const CHECKPOINTS = { metadata: { checkpoints: true } } satisfies Partial<Project>;
 
 export default defineConfig({
   testDir: '.',
@@ -64,9 +80,9 @@ export default defineConfig({
   outputDir: path.join(RESULTS_DIR, 'artifacts'),
   globalSetup: './global-setup.ts',
   globalTeardown: './global-teardown.ts',
-  // One shared in-memory database per jar: tests run serially; parallelism comes from shards with their own jar
-  // (CI matrix, locally scripts/run-sharded.mjs and screenshots.sh --shards, decision 137).
-  workers: 1,
+  // One in-memory database per jar and one jar per worker (decision 180): files run in parallel, the tests of a file
+  // in order on their worker's jar.
+  workers: WORKER_COUNT,
   fullyParallel: false,
   // CI runs a failed test up to 3 more times: a pass on a retry counts as flaky, not as failed, and stays listed in the
   // reports. Locally a failure stays a failure.
@@ -101,12 +117,18 @@ export default defineConfig({
       name: 'setup',
       testMatch: /auth\.setup\.ts$/,
     },
-    e2eProject('chromium', { ...devices['Desktop Chrome'] }, { grepInvert: LIGHTHOUSE }),
+    e2eProject('chromium', { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
     e2eProject('firefox', { ...devices['Desktop Firefox'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
     e2eProject('webkit', { ...devices['Desktop Safari'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
-    e2eProject('mobile-chrome', { ...devices['Pixel 7'] }, { grepInvert: LIGHTHOUSE }),
+    e2eProject('mobile-chrome', { ...devices['Pixel 7'] }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
     e2eProject('lighthouse', { ...devices['Desktop Chrome'] }, { grep: LIGHTHOUSE }),
     e2eProject('mobile-safari', { ...devices['iPhone 14'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
+    {
+      name: 'a11y',
+      testMatch: A11Y,
+      dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
     ...(SCREENSHOTS ? screenshotProjects() : []),
   ],
 });
