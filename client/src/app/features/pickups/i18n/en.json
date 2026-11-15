@@ -180,7 +180,6 @@
   "pickups.linked.repairText": "Your pickup in the linked store is gone. Choose a new one by {until}, otherwise this place is freed.",
   "pickups.linked.missing": "Link missing – choose again by {until}",
   "pickups.linked.missingOther": "{name}: link missing until {until}",
-  "pickups.linked.missingLabel": "Linked pickup missing: choose a new one by {until}",
   "pickups.blocked.EXPERIENCE": "You have not had a confirmed pickup here yet.",
   "pickups.blocked.EXPERIENCE.fix": "an experienced person in the same pickup, or ask the store managers.",
   "pickups.blocked.CLEANING_REQUIRED": "Your last cleaning shift was {ago, plural, one {# month} other {# months}} ago; one in the last {required, plural, one {# month} other {# months}} is needed.",

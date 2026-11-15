@@ -107,10 +107,10 @@ export type SignupDone = SignupResult & { linkedStores?: string[] };
                 <p class="lead">
                   {{ (rule.stores.length > 1 ? 'pickups.linked.chooseAny' : 'pickups.linked.choose') | t: windowParams(rule) }}
                 </p>
-                <ul class="opts" role="radiogroup" [attr.aria-label]="storeList(rule)">
+                <div class="opts" role="radiogroup" [attr.aria-label]="storeList(rule)">
                   @for (option of rule.options; track option.store.id + option.pickupAt) {
                     @if (isBookable(option)) {
-                      <li>
+                      <div>
                         <label class="opt" data-testid="pickups.signup.linked.option" [attr.data-store]="option.store.id" [attr.data-at]="option.pickupAt">
                           <input
                             type="radio"
@@ -124,19 +124,19 @@ export type SignupDone = SignupResult & { linkedStores?: string[] };
                           }
                           <span class="badge badge--ok">{{ 'pickups.linked.free' | t: { count: option.freeCount } }}</span>
                         </label>
-                      </li>
+                      </div>
                     } @else {
-                      <li class="opt opt--blocked" aria-disabled="true" data-testid="pickups.signup.linked.option" data-blocked="true" [attr.data-store]="option.store.id" [attr.data-at]="option.pickupAt">
+                      <div class="opt opt--blocked" aria-disabled="true" data-testid="pickups.signup.linked.option" data-blocked="true" [attr.data-store]="option.store.id" [attr.data-at]="option.pickupAt">
                         <input type="radio" disabled [attr.aria-label]="'pickups.linked.blockedThere' | t" />
                         <span class="opt__when">{{ option.pickupAt | fsDate: 'dateTime' : zone() }}</span>
                         @if (rule.stores.length > 1) {
                           <span class="opt__store">{{ option.store.name }}</span>
                         }
                         <span class="badge"><i class="pi pi-lock" aria-hidden="true"></i>{{ 'pickups.linked.blockedThere' | t }}</span>
-                      </li>
+                      </div>
                     }
                   }
-                </ul>
+                </div>
                 <p class="muted small"><i class="pi pi-info-circle" aria-hidden="true"></i> {{ 'pickups.linked.atomic' | t }}</p>
               } @else if (!rule.notMember.length) {
                 <p class="banner banner--danger" data-testid="pickups.signup.linked.noneFree">

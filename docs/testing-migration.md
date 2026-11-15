@@ -50,20 +50,20 @@ A removed test without a row here is a bug in the rework.
 | `auth/a2-login.spec.ts` | 6 | A2 D8.3 |  |
 | `auth/auth-error-states.spec.ts` | 5 | A2 A22 D4.3 D7.3 |  |
 | `auth/d7-dev-switcher.spec.ts` | 1 | D7.3 |  |
-| `automation/au1-au10-link-picker-channels.spec.ts` | 4 | AU1 AU10 N5 |  |
-| `automation/au1-blocked-signup.spec.ts` | 3 | AU1 PU3 PU4 |  |
-| `automation/au1-gap-store-list.spec.ts` | 5 | AU1 |  |
-| `automation/au1-linked-signup.spec.ts` | 2 | AU1 PU3 |  |
-| `automation/au1-pickup-policy.spec.ts` | 6 | AU1 D10.3 |  |
-| `automation/au11-region-sender.spec.ts` | 2 | AU11 |  |
-| `automation/au13-audit-retention.spec.ts` | 1 | AU13 |  |
-| `automation/au2-ownership.spec.ts` | 3 | AU2 |  |
-| `automation/au3-auto-accept.spec.ts` | 1 | AU3 |  |
-| `automation/au4-adverts.spec.ts` | 4 | AU4 AU9 |  |
-| `automation/au5-signout-alerts.spec.ts` | 2 | AU5 |  |
-| `automation/au6-extra-slot.spec.ts` | 2 | AU6 |  |
-| `automation/au7-au9-au10-region.spec.ts` | 3 | AU7 AU9 AU10 N5 |  |
-| `automation/au8-audits.spec.ts` | 1 | AU8 D10.3 |  |
+| `automation/au1-au10-link-picker-channels.spec.ts` | 4 | AU1 AU10 N5 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoints `store-picker`, `linked-rule-one-way`); picker idle/empty: unit `channels-picker.spec.ts`; Kanäle: journey `journeys/store-manager/advertise-open-slots.journey.ts` (checkpoint `store-chats`); region overview: journey `journeys/store-manager/review-region-automation.journey.ts` (checkpoint `region-overview`) |
+| `automation/au1-blocked-signup.spec.ts` | 3 | AU1 PU3 PU4 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoints `blocked-reason`, `protocol`); managers never blocked: unit `PickupEligibilityRulesTest`; rules off, /pickups options: unit `PickupRuleGateImplTest` |
+| `automation/au1-gap-store-list.spec.ts` | 5 | AU1 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoint `gap-rule-with-store-list`); save, locks, leave, conflict: unit `PickupPolicyServiceGapTest`, `automation.spec.ts`; own vs group gap decisions: unit `PickupPolicyEvaluatorTest` |
+| `automation/au1-linked-signup.spec.ts` | 2 | AU1 PU3 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (member test, checkpoints `linked-step`, `link-repair`); LINKED_PICKUP_REQUIRED, deadline job: unit `PickupRuleGateImplTest`, `PickupPolicyEvaluatorTest` |
+| `automation/au1-pickup-policy.spec.ts` | 6 | AU1 D10.3 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoints `pickup-policy`, `protocol`); rules off, excluded date, cleaning: unit `PickupPolicyRunnerTest`, `PickupPolicyEvaluatorTest`; bidirectional rule + mirror: unit `PickupPolicyServiceGapTest`, `AutomationRulesTest`; one switch: unit `automation.spec.ts` |
+| `automation/au11-region-sender.spec.ts` | 2 | AU11 | unit `RegionSenderTelegramTest`, `MailOutboxJobTest`, `MailTemplateServiceTest`, `StoreTeamServiceTest` (automatedRequestDecisionsAreSentOnBehalfOfTheStoresRegion) |
+| `automation/au13-audit-retention.spec.ts` | 1 | AU13 | unit `PickupCountGroupingAndMetricsTest` (archiveCountsThenDeletesAndAddsToExistingRows, seriesCountsDoneIntroPickupsAndMergesTheArchive) |
+| `automation/au2-ownership.spec.ts` | 3 | AU2 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoint `pickup-policy`); access: unit `PickupPolicyServiceGapTest` (theAutomationOfAStoreNeedsItsEditRight), `AutomationAuditServiceTest`, `StorePermissionMatrixTest`; error + retry, rendered error code: dropped: generic DataState/error rendering (decision 180 §5, shared fs-data-state spec and things-go-wrong journey) |
+| `automation/au3-auto-accept.spec.ts` | 1 | AU3 | journey `journeys/store-manager/advertise-open-slots.journey.ts` (checkpoint `auto-accept`); accept/decline by distance: unit `RequestPolicyRunnerTest` |
+| `automation/au4-adverts.spec.ts` | 4 | AU4 AU9 | journey `journeys/store-manager/advertise-open-slots.journey.ts` (checkpoint `advert-unsaved`); filled-after-advert, late sign-out: unit `OpenSlotAdvertRunnerTest` |
+| `automation/au5-signout-alerts.spec.ts` | 2 | AU5 | journey `journeys/store-manager/advertise-open-slots.journey.ts` (checkpoint `signout-alerts`); daily NOT_REPLACED once per day: unit `SignoutAlertServiceTest` |
+| `automation/au6-extra-slot.spec.ts` | 2 | AU6 | journey `journeys/store-manager/advertise-open-slots.journey.ts` (checkpoint `extra-places`); limits: unit `ExtraSlotRuleTest`, `MayAddExtraSlotTest`, `extra-slot.section.spec.ts` |
+| `automation/au7-au9-au10-region.spec.ts` | 3 | AU7 AU9 AU10 N5 | journey `journeys/store-manager/review-region-automation.journey.ts` (checkpoints `grouping`, `metrics`, `region-telegram`); member forbidden: unit `PickupCountGroupingAndMetricsTest` (groupingIsForRegionAdministratorsAndOrgaOnly) |
+| `automation/au8-audits.spec.ts` | 1 | AU8 D10.3 | journey `journeys/store-manager/review-region-automation.journey.ts` (checkpoint `region-decisions`); member sees only own: unit `AutomationAuditServiceTest` |
 | `baskets/b1-baskets.spec.ts` | 4 | B1 |  |
 | `baskets/b2-requests.spec.ts` | 4 | B2 N1 N3 |  |
 | `content/c1-content.spec.ts` | 4 | C1 |  |
@@ -143,7 +143,7 @@ A removed test without a row here is a bug in the rework.
 | `personas/foodsaver.spec.ts` | 1 | B1 B2 D11.5.5 N3 PU3 S1 |  |
 | `personas/newcomer.spec.ts` | 1 | A19 C1 D11.5.5 EA7 EA8 Q2 |  |
 | `personas/orga.spec.ts` | 1 | C11 D11.5.5 |  |
-| `personas/store-manager.spec.ts` | 1 | D11.5.5 PU1 PU3 S1 S12 |  |
+| `personas/store-manager.spec.ts` | 1 | D11.5.5 PU1 PU3 S1 S12 | journey `journeys/store-manager/confirm-and-plan-pickups.journey.ts` (checkpoints `my-stores`, `store-overview`, `slot-menu`, `pickups-confirmed`, `regular-slots-dialog`, `store-log`) |
 | `pickups/a19-dashboard-pickups.spec.ts` | 1 | A19 |  |
 | `pickups/a19-home-cards.spec.ts` | 2 | A19 PU7 |  |
 | `pickups/pickups-error-states.spec.ts` | 4 | PU1 PU3 PU4 PU7 |  |
@@ -197,24 +197,24 @@ A removed test without a row here is a bug in the rework.
 | `shell/d4-sidenav.spec.ts` | 7 | D4.3 |  |
 | `shell/i18n-smoke.spec.ts` | 4 | A6 AC1 B1 C1 C5 C13 D18.3 FS1 G1 M1 |  |
 | `shell/phone-width.spec.ts` | 5 | EA18 S4 S14 V1 |  |
-| `stores/s1-store-list.spec.ts` | 3 | S1 |  |
-| `stores/s11-wall.spec.ts` | 2 | S11 |  |
-| `stores/s12-store-log.spec.ts` | 1 | D10.3 S12 |  |
-| `stores/s13-delete.spec.ts` | 1 | S13 |  |
-| `stores/s14-statistics.spec.ts` | 3 | S14 |  |
-| `stores/s15-navigation.spec.ts` | 1 | S15 |  |
-| `stores/s16-region.spec.ts` | 1 | S16 |  |
-| `stores/s17-store-visibility.spec.ts` | 5 | S17 |  |
-| `stores/s2-import-api.spec.ts` | 2 | D16.2 S2 |  |
-| `stores/s2-import.spec.ts` | 2 | D16.2 S2 |  |
-| `stores/s2-store-form.spec.ts` | 6 | S2 S12 |  |
-| `stores/s3-chains.spec.ts` | 2 | S3 |  |
-| `stores/s4-categories.spec.ts` | 2 | S4 |  |
-| `stores/s5-team.spec.ts` | 2 | S5 |  |
-| `stores/s6-apply.spec.ts` | 5 | S6 |  |
-| `stores/s7-invitations.spec.ts` | 2 | S7 |  |
-| `stores/s8-standby-managers.spec.ts` | 4 | PU6 S8 |  |
-| `stores/s9-team-list.spec.ts` | 6 | S9 |  |
+| `stores/s1-store-list.spec.ts` | 3 | S1 | journey `journeys/store-manager/set-up-a-store.journey.ts` (checkpoint `region-stores-search`), `journeys/store-manager/confirm-and-plan-pickups.journey.ts` (checkpoint `my-stores`); groups, inactive toggle, chip: unit `StoreListServiceTest`, `stores-pages.spec.ts`, `m3-shared.spec.ts`; jumper tabs: unit `stores-pages.spec.ts`, `StorePermissionMatrixTest` |
+| `stores/s11-wall.spec.ts` | 2 | S11 | journey `journeys/store-manager/follow-wall-log-and-statistics.journey.ts` (checkpoint `store-wall`); delete matrix, jumper forbidden: unit `StoreWallServiceTest`, `store-wall-stats.spec.ts` |
+| `stores/s12-store-log.spec.ts` | 1 | D10.3 S12 | journey `journeys/store-manager/follow-wall-log-and-statistics.journey.ts` (checkpoint `store-log-details`); date range, right: unit `StoreLogServiceTest`, `store-wall-stats.spec.ts` |
+| `stores/s13-delete.spec.ts` | 1 | S13 | journey `journeys/store-manager/curate-stores-as-coordinator.journey.ts` (checkpoints `delete-dialog`, `delete-refused`); unit `StoreServiceTest` (deleteRefusedWhenTheStoreEverHadSignups, deleteArchivesStoreLogsAndNotifiesTeamJumpersApplicants) |
+| `stores/s14-statistics.spec.ts` | 3 | S14 | journey `journeys/store-manager/follow-wall-log-and-statistics.journey.ts` (checkpoints `statistics`, `statistics-kg-member-search`); kg, sort, former, managers only: unit `StoreStatisticsServiceTest`, `store-wall-stats.spec.ts` |
+| `stores/s15-navigation.spec.ts` | 1 | S15 | journey `journeys/store-manager/follow-wall-log-and-statistics.journey.ts` (checkpoint `navigate-menu`) |
+| `stores/s16-region.spec.ts` | 1 | S16 | journey `journeys/store-manager/curate-stores-as-coordinator.journey.ts` (checkpoint `move-refused`); unit `StoreServiceTest` (moveNeedsWholeTeamInTargetRegion) |
+| `stores/s17-store-visibility.spec.ts` | 5 | S17 | journey `journeys/store-manager/set-up-a-store.journey.ts` (map bubbles and partners page, checkpoint `store-form-edit`); unverified and booking: server `StoreIdentityLeakIT`, unit `StoreVisibilityTest`, `StoreAreaRulesTest`, `MarkerServiceTest`, `StoreListServiceTest`; public name switch: unit `PublicNamingRulesTest` |
+| `stores/s2-import-api.spec.ts` | 2 | D16.2 S2 | server `StoresCsvImportServiceTest` (dry run writes nothing, row errors/warnings, rerun UNCHANGED, coordination right), `StoresCsvImportZuerichIT`; mayCoordinateStores: unit `stores-import.spec.ts`; empty body 400: dropped: contract `minLength: 1` (generated validation); runbook CLI: dropped: also run by `foundation/m7-launch-api.spec.ts` |
+| `stores/s2-import.spec.ts` | 2 | D16.2 S2 | journey `journeys/store-manager/import-stores-from-csv.journey.ts` (checkpoints `import-form`, `import-preview`, `import-preview-stale`, `import-result`); forbidden: unit `stores-import.spec.ts`, `StoresCsvImportServiceTest` |
+| `stores/s2-store-form.spec.ts` | 6 | S2 S12 | journey `journeys/store-manager/set-up-a-store.journey.ts` (checkpoints `store-form-address`, `new-store-overview`, `store-form-edit`); who may create/edit: unit `StorePermissionMatrixTest`; description vs public info: unit `StoreMapperTest`, `store-overview.tab.spec.ts` |
+| `stores/s3-chains.spec.ts` | 2 | S3 | journey `journeys/store-manager/set-up-a-store.journey.ts` (checkpoints `chain-edit-dialog`, `chain-page`); create, KAMs, read-only: unit `StoreChainServiceTest` |
+| `stores/s4-categories.spec.ts` | 2 | S4 | journey `journeys/store-manager/curate-stores-as-coordinator.journey.ts` (checkpoints `categories`, `merge-dialog`); ORGA only, in use, merge: unit `StoreCategoryServiceTest` |
+| `stores/s5-team.spec.ts` | 2 | S5 | journey `journeys/store-manager/build-the-team.journey.ts` (checkpoint `team-with-application`); members without actions: unit `store-team.spec.ts`, `StoreTeamServiceTest` (teamViewHasOnlyApplicationsAndInvitations); team status badge: journey `journeys/store-manager/set-up-a-store.journey.ts` |
+| `stores/s6-apply.spec.ts` | 5 | S6 | journey `journeys/store-manager/build-the-team.journey.ts` (checkpoints `apply-dialog-text-required`, `team-with-application`); decline, cancel, accept bell: unit `StoreTeamServiceTest` (decliningAnApplicationNeedsAMessageThatReachesTheApplicant, anApplicantCancelsOnlyTheirOwnOpenApplication, acceptingAnApplicationMakesAMemberAndRingsTheApplicantsBell), `m2-shared.spec.ts`; closed team, hygiene: unit `StorePermissionMatrixTest`, `StoreTeamServiceTest` (requirementsInUpstreamOrder), `store-team.spec.ts` |
+| `stores/s7-invitations.spec.ts` | 2 | S7 | journey `journeys/store-manager/build-the-team.journey.ts` (checkpoint `invite-dialog`); decline, withdraw: unit `StoreTeamServiceTest` (anInvitationIsWithdrawnByTheManagerOrDeclinedByTheInvitedPerson); who can be invited: unit `StoreTeamServiceTest` (inviteCandidatesAreRegionMembersInviteWouldAccept, inviteBlockerNamesEachReasonInTheOrderInviteChecks) |
+| `stores/s8-standby-managers.spec.ts` | 4 | PU6 S8 | journey `journeys/store-manager/build-the-team.journey.ts` (checkpoints `member-menu`, `standby-message`); limits, last manager: unit `StoreTeamServiceTest` (appointManagerLimitsUnlessCoordinator, lastManagerStaysUnlessCoordinator, managerCannotLeaveAndLeavingDeletesFutureSignups), `store-team.spec.ts`; future pickups (PU6): unit `StoreTeamServiceTest` (removingSomeoneElseDeletesTheirFutureSignups) |
+| `stores/s9-team-list.spec.ts` | 6 | S9 | journey `journeys/store-manager/build-the-team.journey.ts` (checkpoints `team-with-application`, `team-jumpers`; phone width on mobile-chrome); sort, pages, distance, phone: unit `StoreTeamServiceTest` (teamListSortsByPickupsAndLastPickupWithNoPickupLast, teamListPagesWithinBounds, teamListKeepsDistanceAndPhoneVisibility, appointBlockerNamesEachReasonInTheOrderAppointManagerChecks), `store-team.spec.ts` |
 | `stores/stores-error-states.spec.ts` | 4 | S1 S2 S6 |  |
 | `stores/team-error-states.spec.ts` | 4 | S5 S6 S8 S9 |  |
 | `stores/wall-log-stats-error-states.spec.ts` | 3 | PU6 S11 S12 S14 |  |
@@ -232,7 +232,7 @@ A removed test without a row here is a bug in the rework.
 | `achievements.screen.ts` | 8 | AC1 | |
 | `admin.screen.ts` | 12 | AD1 C10 C11 C12 C14 D17.2 | |
 | `auth.screen.ts` | 13 | A1 A2 A12 A17 A22 D7.3 | |
-| `automation.screen.ts` | 6 | AU1 AU4 AU5 AU7 AU8 AU9 AU10 | |
+| `automation.screen.ts` | 6 | AU1 AU4 AU5 AU7 AU8 AU9 AU10 | journeys `journeys/store-manager/set-pickup-rules.journey.ts` (`pickup-policy`, `store-picker`, `linked-rule-one-way`, `gap-rule-with-store-list`, `protocol`), `journeys/store-manager/advertise-open-slots.journey.ts` (`advert-unsaved`, `store-chats`, `signout-alerts`), `journeys/store-manager/review-region-automation.journey.ts` (`region-overview`, `grouping`, `metrics`, `metrics-decline-reasons`); picker loading/error, gap conflict, empty channels: dropped: states shown once in the gallery (decision 180 §2, §5) |
 | `baskets.screen.ts` | 8 | B1 B2 | |
 | `content.screen.ts` | 15 | C1 C2 C3 C4 C7 C8 C9 S17 | |
 | `dashboard.screen.ts` | 8 | A19 | |
@@ -260,11 +260,11 @@ A removed test without a row here is a bug in the rework.
 | `reports.screen.ts` | 9 | D10.3 G1 G2 | |
 | `resources.screen.ts` | 7 | C6 | |
 | `search.screen.ts` | 6 | C5 | |
-| `store-chains.screen.ts` | 5 | PU9 S3 S4 | |
-| `stores-import.screen.ts` | 5 | D16.2 S2 | |
-| `stores-team.screen.ts` | 14 | S5 S6 S7 S8 S9 S14 | |
-| `stores-wall-log.screen.ts` | 8 | PU6 S11 S12 S13 S14 | |
-| `stores.screen.ts` | 12 | S1 S2 S15 S17 | |
+| `store-chains.screen.ts` | 5 | PU9 S3 S4 | journeys `journeys/store-manager/set-up-a-store.journey.ts` (`chain-page`, `chain-edit-dialog`), `journeys/store-manager/curate-stores-as-coordinator.journey.ts` (`categories`, `merge-dialog`); chain list error: dropped: generic error state (decision 180 §5); pickup reminder setting (PU9): dropped: belongs to the foodsaver pickups area, not a store-manager state |
+| `stores-import.screen.ts` | 5 | D16.2 S2 | journey `journeys/store-manager/import-stores-from-csv.journey.ts` (`import-form`, `import-preview`, `import-result`); loading, forbidden: dropped: generic DataState states (decision 180 §5) |
+| `stores-team.screen.ts` | 14 | S5 S6 S7 S8 S9 S14 | journey `journeys/store-manager/build-the-team.journey.ts` (`team-with-application`, `team-jumpers`, `member-menu`, `standby-message`, `invite-dialog`; phone width on mobile-chrome), apply refusal: `apply-dialog-text-required`; empty filter, page 2, appoint blocked, member view, invitations on my stores, statistics former: dropped: state variants of the same screens (decision 180 §2); loading/error: dropped: generic DataState states (decision 180 §5) |
+| `stores-wall-log.screen.ts` | 8 | PU6 S11 S12 S13 S14 | journey `journeys/store-manager/follow-wall-log-and-statistics.journey.ts` (`store-wall`, `store-log-details`, `statistics`, `pickup-history`), `journeys/store-manager/curate-stores-as-coordinator.journey.ts` (`delete-dialog`); store pickup history (PU6): `pickup-history`; my past pickups: dropped: the foodsaver's own history belongs to the foodsaver pickups area; wall error, empty wall: dropped: generic DataState states (decision 180 §5) |
+| `stores.screen.ts` | 12 | S1 S2 S15 S17 | journeys `journeys/store-manager/confirm-and-plan-pickups.journey.ts` (`my-stores`, `store-overview`), `journeys/store-manager/set-up-a-store.journey.ts` (`region-stores-search`, `store-form-address`, `store-form-edit`), `journeys/store-manager/follow-wall-log-and-statistics.journey.ts` (`navigate-menu`); jumper store page, region empty, forbidden, loading, my stores error: dropped: generic DataState and role variants (decision 180 §2, §5) |
 | `surveys.screen.ts` | 2 | SV1 | |
 | `verification.screen.ts` | 8 | A8 Ve2 Ve3 | |
 

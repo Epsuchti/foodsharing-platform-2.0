@@ -69,6 +69,26 @@ class PickupCountGroupingAndMetricsTest {
     }
 
     @Test
+    void groupingIsForRegionAdministratorsAndOrgaOnly() {
+        // AU7: a plain member of the region (jumper@local in the seed) is refused
+        PermissionService permissions = mock(PermissionService.class);
+        CurrentActorService currentActor = mock(CurrentActorService.class);
+        network.foodsharing.security.SessionPrincipal actor = new network.foodsharing.security.SessionPrincipal(
+                UUID.randomUUID(), UUID.randomUUID(), network.foodsharing.api.model.Role.FOODSAVER, "a@local");
+        when(currentActor.requirePrincipal()).thenReturn(actor);
+        PickupCountGroupingService grouping = new PickupCountGroupingService(mock(PickupAutomationQueries.class),
+                mock(network.foodsharing.store.service.StoreService.class), mock(RegionService.class),
+                mock(network.foodsharing.user.service.UserService.class), permissions, currentActor,
+                Clock.fixed(NOW, ZoneOffset.UTC));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> grouping.groups(REGION, null))
+                .hasFieldOrPropertyWithValue("code", network.foodsharing.api.model.ApiErrorCode.ACCESS_DENIED);
+        when(permissions.mayAdministrateRegion(actor, REGION)).thenReturn(true);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> grouping.groups(REGION, 61))
+                .hasFieldOrPropertyWithValue("code", network.foodsharing.api.model.ApiErrorCode.VALIDATION_FAILED);
+        assertThat(grouping.groups(REGION, 7)).isEmpty();
+    }
+
+    @Test
     void archiveCountsThenDeletesAndAddsToExistingRows() {
         PickupPolicyAuditRepository pickupAudits = mock(PickupPolicyAuditRepository.class);
         RequestPolicyAuditRepository requestAudits = mock(RequestPolicyAuditRepository.class);

@@ -409,6 +409,67 @@ class StoreTeamServiceTest {
     }
 
     @Test
+    void removingSomeoneElseDeletesTheirFutureSignups() {
+        // S8 / PU6: a removed member's future pickups go with them
+        UUID other = member(StoreMembershipStatus.MEMBER, false).getUserId();
+        service.remove(STORE, other, "Wir haben uns im Team darauf geeinigt.");
+        verify(pickupInfo).deleteFutureSignups(STORE, other);
+    }
+
+    @Test
+    void acceptingAnApplicationMakesAMemberAndRingsTheApplicantsBell() {
+        StoreMembership applied = member(StoreMembershipStatus.APPLIED, false);
+        User applicant = new User();
+        applicant.setId(applied.getUserId());
+        applicant.setVerified(true);
+        when(users.require(applied.getUserId())).thenReturn(applicant);
+        service.accept(STORE, applied.getUserId(), false);
+        assertThat(applied.getStatus()).isEqualTo(StoreMembershipStatus.MEMBER);
+        assertThat(sent(NotificationType.STORE_REQUEST_ACCEPTED).recipientIds()).containsExactly(applied.getUserId());
+        StoreMembership member = member(StoreMembershipStatus.MEMBER, false);
+        when(users.require(member.getUserId())).thenReturn(applicant);
+        assertThat(codeOf(() -> service.accept(STORE, member.getUserId(), false))).isEqualTo(ApiErrorCode.NOT_APPLIED);
+    }
+
+    @Test
+    void decliningAnApplicationNeedsAMessageThatReachesTheApplicant() {
+        when(currentActor.currentUserId()).thenReturn(Optional.of(user.getId()));
+        StoreMembership applied = member(StoreMembershipStatus.APPLIED, false);
+        assertThat(codeOf(() -> service.decline(STORE, applied.getUserId(), " "))).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        verify(memberships, never()).delete(applied);
+        service.decline(STORE, applied.getUserId(), " Das Team ist im Moment leider komplett. ");
+        verify(memberships).delete(applied);
+        assertThat(sent(NotificationType.STORE_REQUEST_DECLINED).params())
+                .containsEntry("message", "Das Team ist im Moment leider komplett.");
+        verify(teamChat).sendDirect(user.getId(), applied.getUserId(), "Das Team ist im Moment leider komplett.");
+    }
+
+    @Test
+    void anApplicantCancelsOnlyTheirOwnOpenApplication() {
+        assertThat(codeOf(() -> service.cancelApplication(STORE))).isEqualTo(ApiErrorCode.NOT_APPLIED);
+        StoreMembership own = member(StoreMembershipStatus.APPLIED, false);
+        when(currentActor.requireUserId()).thenReturn(own.getUserId());
+        service.cancelApplication(STORE);
+        verify(memberships).delete(own);
+    }
+
+    @Test
+    void anInvitationIsWithdrawnByTheManagerOrDeclinedByTheInvitedPerson() {
+        StoreMembership withdrawn = member(StoreMembershipStatus.INVITED, false);
+        service.withdrawInvitation(STORE, withdrawn.getUserId());
+        verify(memberships).delete(withdrawn);
+        StoreMembership member = member(StoreMembershipStatus.MEMBER, false);
+        assertThat(codeOf(() -> service.withdrawInvitation(STORE, member.getUserId()))).isEqualTo(ApiErrorCode.NOT_INVITED);
+
+        member(StoreMembershipStatus.MEMBER, true); // the manager hears of it
+        StoreMembership declined = member(StoreMembershipStatus.INVITED, false);
+        user.setId(declined.getUserId());
+        service.declineInvitation(STORE);
+        verify(memberships).delete(declined);
+        assertThat(sent(NotificationType.STORE_INVITATION_DECLINED).params()).containsEntry("userName", "Fo");
+    }
+
+    @Test
     void teamChangesPublishEventsAndRequiredMessagesGoToTheChat() {
         when(currentActor.currentUserId()).thenReturn(Optional.of(user.getId()));
         StoreMembership m = member(StoreMembershipStatus.MEMBER, false);

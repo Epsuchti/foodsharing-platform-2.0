@@ -254,6 +254,17 @@ class PickupPolicyServiceGapTest {
     // ------------------------------------------------------------------ D1 limits
 
     @Test
+    void theAutomationOfAStoreNeedsItsEditRight() {
+        // AU2 (decision 167): no automation permissions of their own, the store's mayEditStore decides
+        assertThat(service.requireAutomationStore(a).getId()).isEqualTo(a);
+        allowed.remove(b);
+        assertThatThrownBy(() -> service.requireAutomationStore(b)).isInstanceOf(ApiException.class)
+                .hasFieldOrPropertyWithValue("code", ApiErrorCode.ACCESS_DENIED);
+        assertThatThrownBy(() -> service.requireAutomationStore(UUID.randomUUID())).isInstanceOf(ApiException.class)
+                .hasFieldOrPropertyWithValue("code", ApiErrorCode.STORE_NOT_FOUND);
+    }
+
+    @Test
     void atMostTenStoresIncludingThisOne() {
         List<UUID> nine = new ArrayList<>(List.of(b, c, d));
         while (nine.size() < 9) {
