@@ -165,6 +165,24 @@ describe('account settings cards (Q3)', () => {
       expect(q(host, 'account.settings.photo.avatar')?.getAttribute('data-has-photo')).toBe('true');
       expect(q(host, 'account.settings.photo.remove')).not.toBeNull();
     });
+
+    it('a failed upload sets no photo and keeps the crop dialog open (moved from the e2e spec a5-photo)', async () => {
+      const { fixture } = await mount(PhotoCardComponent);
+      http.expectOne('/api/users/me').flush(PROFILE);
+      await settle(fixture);
+      const card = fixture.componentInstance as unknown as {
+        dialogOpen: { set(open: boolean): void; (): boolean };
+        upload: { run(blob: Blob): Promise<boolean> };
+      };
+      card.dialogOpen.set(true);
+      const done = card.upload.run(new Blob(['jpeg'], { type: 'image/jpeg' }));
+      http
+        .expectOne('/api/uploads')
+        .flush({ code: 'UPLOAD_TOO_LARGE', message: 'too large' }, { status: 413, statusText: 'Payload Too Large' });
+      expect(await done).toBe(false);
+      http.expectNone('/api/users/me/photo');
+      expect(card.dialogOpen()).toBe(true);
+    });
   });
 
   describe('sleep mode', () => {

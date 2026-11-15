@@ -18,22 +18,22 @@ A removed test without a row here is a bug in the rework.
 |---|---|---|---|
 | `a11y/csp.spec.ts` | 1 | D17.2 | kept (a11y project) |
 | `a11y/pages.spec.ts` | 4 | AD1 | kept (a11y project) |
-| `account/a11-calendar.spec.ts` | 2 | A11 E3 |  |
-| `account/a12-language.spec.ts` | 1 | A12 |  |
-| `account/a13-delete.spec.ts` | 2 | A13 |  |
-| `account/a14-business-card.spec.ts` | 2 | A14 |  |
-| `account/a17-theme.spec.ts` | 1 | A17 |  |
-| `account/a18-bounce.spec.ts` | 2 | A18 MB5 |  |
-| `account/a20-info-mail.spec.ts` | 1 | A20 N7 |  |
-| `account/a21-export.spec.ts` | 2 | A21 |  |
-| `account/a22-sessions.spec.ts` | 4 | A22 D8.4 D10.3 |  |
-| `account/a3-email-change.spec.ts` | 3 | A3 N6 |  |
-| `account/a4-profile.spec.ts` | 4 | A4 |  |
-| `account/a5-photo.spec.ts` | 2 | A5 C10 |  |
-| `account/a7-notes.spec.ts` | 2 | A7 |  |
-| `account/a9-sleep.spec.ts` | 2 | A9 |  |
-| `account/d17-3-privacy-api.spec.ts` | 1 | D17.3 |  |
-| `achievements/ac1-achievements.spec.ts` | 3 | AC1 Q2 S3 |  |
+| `account/a11-calendar.spec.ts` | 2 | A11 E3 | journey `journeys/account/profile-and-settings.journey.ts` (checkpoint `calendar-card`; filters, regenerate, delete, create again); unit `CalendarFeedServiceTest` (pickups, intro pickups, events, alarms, filters); error state dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `account/a12-language.spec.ts` | 1 | A12 | journey `journeys/account/profile-and-settings.journey.ts` (checkpoint `settings`; all five languages, saved with the account) |
+| `account/a13-delete.spec.ts` | 2 | A13 | journey `journeys/account/privacy-and-sessions.journey.ts` (checkpoint `delete-dialog`); ORGA-only deletion of others: unit `AccountAdminRulesTest`, anonymising: unit `AccountDeletionServiceTest`, the ORGA delete dialog: client `users-admin-pages.spec` |
+| `account/a14-business-card.spec.ts` | 2 | A14 | journey `journeys/account/profile-and-settings.journey.ts` (PDF download); refusals and unverified users: unit `BusinessCardServiceTest`, client `account-q4.spec` |
+| `account/a17-theme.spec.ts` | 1 | A17 | journey `journeys/account/profile-and-settings.journey.ts` (dark, light, system); unit client `theme.service.spec` |
+| `account/a18-bounce.spec.ts` | 2 | A18 MB5 | journey `journeys/account/privacy-and-sessions.journey.ts` (checkpoints `bounce-banner`, `bounced-list`); access: unit `AccountAdminRulesTest`; error state dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `account/a20-info-mail.spec.ts` | 1 | A20 N7 | journey `journeys/account/profile-and-settings.journey.ts` (mail switches); recipients of an info mail: unit `NewsletterServiceTest` (+ derived query `findByActiveTrueAndInfoMailMessageTrueAndDeletedAtIsNull`), client `account-q3.spec`; composing/sending a newsletter is the newsletter (N7) area's |
+| `account/a21-export.spec.ts` | 2 | A21 | journey `journeys/account/privacy-and-sessions.journey.ts` (zip sections, 10-minute limit); unit `DataExportServiceTest`; failing start: client `account-q4.spec` |
+| `account/a22-sessions.spec.ts` | 4 | A22 D8.4 D10.3 | journey `journeys/account/privacy-and-sessions.journey.ts` (checkpoints `sessions`, `session-expired`, `security-log`) |
+| `account/a3-email-change.spec.ts` | 3 | A3 N6 | journey `journeys/account/privacy-and-sessions.journey.ts` (checkpoint `email-confirmed`; taken address, abort link, confirm link); taken address: unit `EmailChangeServiceTest`; cancel in the settings: client `account-q3.spec`, unit `EmailChangeServiceTest`; error states dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `account/a4-profile.spec.ts` | 4 | A4 | journey `journeys/account/profile-and-settings.journey.ts` (checkpoints `profile-form`, `profile-mobile-required`); display name and mobile required: client `profile-page.component.spec`, unit `ProfilePhoneRulesTest`, `PhoneNumberValidatorTest` |
+| `account/a5-photo.spec.ts` | 2 | A5 C10 | journey `journeys/account/profile-and-settings.journey.ts` (checkpoint `photo-crop`; JPEG ≤ 1 MB, public sm/md/lg); unit `ImageVariantsTest`; failed upload keeps the dialog: client `account-q3.spec`; error state dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `account/a7-notes.spec.ts` | 2 | A7 | journey `journeys/account/achievements-and-notes.journey.ts` (checkpoint `member-notes`); who reads notes: unit `AccountAdminRulesTest`, `ProfilePermissionMatrixTest`; error state dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `account/a9-sleep.spec.ts` | 2 | A9 | journey `journeys/account/profile-and-settings.journey.ts` (checkpoint `sleep-mode-temporary`; moon on profile, member list, store team); unit `SleepModeTest`; full sleep and a failed save: client `account-q3.spec` |
+| `account/d17-3-privacy-api.spec.ts` | 1 | D17.3 | server `AccountDeletionIT` (`exportContainsEverySection`: every export file of the data inventory is in the zip) |
+| `achievements/ac1-achievements.spec.ts` | 3 | AC1 Q2 S3 | journey `journeys/account/achievements-and-notes.journey.ts` (checkpoints `achievements-board`, `define-dialog`, `award-dialog`, `profile-with-award`, `awards-list`); visibility for members and recipients: unit `AchievementVisibilityTest`, `AchievementServiceTest`; translations: unit `AchievementMapperTest`; automatic awards (Q2, S3): unit `AutoAwardListenerTest`; error states dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
 | `admin-ops/ad1-admins.spec.ts` | 1 | AD1 |  |
 | `admin-ops/au12-integrations.spec.ts` | 3 | AU12 D6.3 N6 |  |
 | `admin-ops/c15-maintenance-jobs.spec.ts` | 2 | C15 |  |
@@ -45,11 +45,11 @@ A removed test without a row here is a bug in the rework.
 | `admin/c12-blocklist.spec.ts` | 2 | A1 C12 |  |
 | `admin/c14-configuration.spec.ts` | 3 | C7 C14 |  |
 | `admin/d17-2-rate-limit-blocks.spec.ts` | 1 | D17.2 |  |
-| `auth/a1-signup.spec.ts` | 7 | A1 D8.1 D8.2 |  |
-| `auth/a2-login-translations.spec.ts` | 1 | A2 |  |
-| `auth/a2-login.spec.ts` | 6 | A2 D8.3 |  |
+| `auth/a1-signup.spec.ts` | 7 | A1 D8.1 D8.2 | journey `journeys/account/sign-up-and-log-in.journey.ts` (checkpoints `login`, `magic-link-sent`, `consent`, `login-methods`; link sign-up, Google linking); account creation via Google, blocked domain and the recorded attempt: unit `AccountServiceTest`; unverified Google address: unit `GoogleOidcUserServiceTest`; rate limit: unit `LoginRateLimiterTest`; their messages: client `login-page.component.spec` |
+| `auth/a2-login-translations.spec.ts` | 1 | A2 | dropped: `npm run i18n:check` fails on a key used in code that is missing in any of the five languages; the five-language smoke journey (public area) renders the pages |
+| `auth/a2-login.spec.ts` | 6 | A2 D8.3 | journey `journeys/account/sign-up-and-log-in.journey.ts` (checkpoints `dashboard-passkey-nudge`, `link-used`; link login, used link, logout), journey `journeys/account/passkey-login.journey.ts` (passkey registration and both logins), journey `journeys/account/privacy-and-sessions.journey.ts` (checkpoint `session-expired`); session refresh after a role change: client `auth-facade.service.spec`; open redirect: unit `ReturnUrlValidatorTest`, client `return-url.spec`, `login-page.component.spec`; tokens: unit `MagicLinkServiceTest` |
 | `auth/auth-error-states.spec.ts` | 5 | A2 A22 D4.3 D7.3 |  |
-| `auth/d7-dev-switcher.spec.ts` | 1 | D7.3 |  |
+| `auth/d7-dev-switcher.spec.ts` | 1 | D7.3 | journey `journeys/account/privacy-and-sessions.journey.ts` (dev switcher login); every seed user in the catalog: unit `DevUserCatalogTest`; every seed role logs in: `e2e/auth.setup.ts` |
 | `automation/au1-au10-link-picker-channels.spec.ts` | 4 | AU1 AU10 N5 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoints `store-picker`, `linked-rule-one-way`); picker idle/empty: unit `channels-picker.spec.ts`; Kanäle: journey `journeys/store-manager/advertise-open-slots.journey.ts` (checkpoint `store-chats`); region overview: journey `journeys/store-manager/review-region-automation.journey.ts` (checkpoint `region-overview`) |
 | `automation/au1-blocked-signup.spec.ts` | 3 | AU1 PU3 PU4 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoints `blocked-reason`, `protocol`); managers never blocked: unit `PickupEligibilityRulesTest`; rules off, /pickups options: unit `PickupRuleGateImplTest` |
 | `automation/au1-gap-store-list.spec.ts` | 5 | AU1 | journey `journeys/store-manager/set-pickup-rules.journey.ts` (checkpoint `gap-rule-with-store-list`); save, locks, leave, conflict: unit `PickupPolicyServiceGapTest`, `automation.spec.ts`; own vs group gap decisions: unit `PickupPolicyEvaluatorTest` |
@@ -75,7 +75,7 @@ A removed test without a row here is a bug in the rework.
 | `content/c8-petition.spec.ts` | 1 | C8 C11 |  |
 | `content/c9-support.spec.ts` | 2 | C9 N6 |  |
 | `content/content-error-states.spec.ts` | 6 | C1 |  |
-| `dashboard/a19-dashboard.spec.ts` | 3 | A19 |  |
+| `dashboard/a19-dashboard.spec.ts` | 3 | A19 | journey `journeys/account/dashboard-feed.journey.ts` (checkpoints `dashboard`, `feed-filtered`, `nearby-baskets`, `baskets-without-address`); disjoint pages and mentions as names: unit `ActivityFeedServiceTest`; error state dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
 | `events/e1-events.spec.ts` | 5 | E1 |  |
 | `events/e2-rsvp.spec.ts` | 1 | E2 N3 |  |
 | `events/e3-ics.spec.ts` | 1 | E3 |  |
@@ -94,7 +94,7 @@ A removed test without a row here is a bug in the rework.
 | `fsp/fs1-food-share-points.spec.ts` | 4 | FS1 N3 N6 R3 |  |
 | `fsp/fs2-cleaning-agenda.spec.ts` | 3 | A11 A19 FS2 PU8 |  |
 | `fsp/fs2-cleaning-shifts.spec.ts` | 3 | AU1 FS2 |  |
-| `history/d10-history.spec.ts` | 9 | A22 D10.1 D10.3 |  |
+| `history/d10-history.spec.ts` | 9 | A22 D10.1 D10.3 | journey `journeys/account/my-activity.journey.ts` (checkpoints `my-activity`, `activity-details`, `activity-date-range`; D10.1 old/new values), journey `journeys/account/privacy-and-sessions.journey.ts` (security log → logins); access to other subjects: unit `HistoryAccessPolicyTest`; labels: unit `HistoryI18nCoverageTest` + `i18n:check`; ORGA CSV export: server `HistoryControllerTest`, client `my-activity-page.spec`; ORGA reads another user's logins: unit `HistoryAccessPolicyTest`; loading/error/offline and the filter overlay error dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
 | `intro-pickups/ea1-landing.spec.ts` | 1 | EA1 |  |
 | `intro-pickups/ea10-guide.spec.ts` | 1 | EA10 |  |
 | `intro-pickups/ea11-templates.spec.ts` | 1 | EA11 |  |
@@ -161,10 +161,10 @@ A removed test without a row here is a bug in the rework.
 | `pickups/pu8-agenda.spec.ts` | 1 | PU8 | journey `journeys/foodsaver/plan-my-pickups.journey.ts` (checkpoints `agenda`, `agenda-empty-day`) |
 | `pickups/pu9-reminders.spec.ts` | 1 | PU9 | journey `journeys/foodsaver/pickup-reminders.journey.ts` (checkpoints `settings-reminders-on`, `settings-reminders-off`, `reminder-opened`); job window and setting: unit `PickupReminderJobTest` |
 | `polls/v1-polls.spec.ts` | 4 | N3 V1 |  |
-| `profiles/a15-bananas.spec.ts` | 1 | A15 G4 N3 |  |
-| `profiles/a16-buddies.spec.ts` | 1 | A16 N3 |  |
-| `profiles/a6-profile.spec.ts` | 3 | A6 D10.3 |  |
-| `profiles/c10-seed-avatars.spec.ts` | 1 | A6 C10 |  |
+| `profiles/a15-bananas.spec.ts` | 1 | A15 G4 N3 | journey `journeys/account/profiles-bananas-buddies.journey.ts` (checkpoints `other-profile`, `banana-dialog`, `received-bananas`); 100 characters, once per pair, who deletes: unit `ProfilePermissionMatrixTest`, client `profiles.util.spec` |
+| `profiles/a16-buddies.spec.ts` | 1 | A16 N3 | journey `journeys/account/profiles-bananas-buddies.journey.ts` (checkpoints `buddy-request`, `buddies`; request bell, accept, remove); relations: client `profiles.util.spec` |
+| `profiles/a6-profile.spec.ts` | 3 | A6 D10.3 | journey `journeys/account/profiles-bananas-buddies.journey.ts` (checkpoint `own-profile`; own profile, wall post, a foreign profile without composer); what ORGA and strangers see: unit `ProfilePermissionMatrixTest`, client `profiles-pages.spec`; deleted/unknown user: unit `AccountAdminRulesTest`, client `profiles-pages.spec`; error state dropped: per-page data states, decision 180 #5 (shared `fs-data-state` spec + things-go-wrong journey) |
+| `profiles/c10-seed-avatars.spec.ts` | 1 | A6 C10 | journey `journeys/account/profile-and-settings.journey.ts` (photo variants served as JPEG); unit `ImageVariantsTest`; uploads restored by the seed reset: server `SeedResetServiceIT` (every table as after startup, incl. `UPLOAD`) |
 | `public/c17-landing.spec.ts` | 18 | C17 M1 |  |
 | `public/c17-public-reskin.spec.ts` | 3 | C17 |  |
 | `quiz/q1-quizzes.spec.ts` | 2 | Q1 |  |
@@ -228,19 +228,19 @@ A removed test without a row here is a bug in the rework.
 
 | Old screen file | Captures | IDs | Now covered by |
 |---|---|---|---|
-| `account.screen.ts` | 12 | A3 A4 A5 A9 A11 A13 A18 A20 AD1 | |
-| `achievements.screen.ts` | 8 | AC1 | |
+| `account.screen.ts` | 12 | A3 A4 A5 A9 A11 A13 A18 A20 AD1 | journey `journeys/account/profile-and-settings.journey.ts` (`profile-mobile-required`, `photo-crop`, `sleep-mode-temporary`, `calendar-card`), journey `journeys/account/privacy-and-sessions.journey.ts` (`bounce-banner`, `bounced-list`, `email-confirmed`, `delete-dialog`); the bad confirm token, the settings error and the two date-input captures (AD1): dropped: shared states and components go to the gallery journey (step 4) |
+| `achievements.screen.ts` | 8 | AC1 | journey `journeys/account/achievements-and-notes.journey.ts` (`achievements-board`, `define-dialog`, `award-dialog`, `awards-list`, `profile-with-award`); the member view, the global admin page, loading and error: dropped: the member view differs only by hidden buttons (unit `AchievementVisibilityTest`), states go to the gallery journey (step 4) |
 | `admin.screen.ts` | 12 | AD1 C10 C11 C12 C14 D17.2 | |
-| `auth.screen.ts` | 13 | A1 A2 A12 A17 A22 D7.3 | |
+| `auth.screen.ts` | 13 | A1 A2 A12 A17 A22 D7.3 | journey `journeys/account/sign-up-and-log-in.journey.ts` (`login`, `magic-link-sent`, `consent`, `dashboard-passkey-nudge`, `link-used`, `login-methods`), journey `journeys/account/passkey-login.journey.ts` (`passkey-dialog`, `passkey-added`, `login-passkey-button`, `security-log`), journey `journeys/account/privacy-and-sessions.journey.ts` (`sessions`, `security-log`), journey `journeys/account/profile-and-settings.journey.ts` (`settings`, `profile-form`); the Google error, verify loading and the sessions/security-log/methods states: dropped: shared states go to the gallery journey (step 4) |
 | `automation.screen.ts` | 6 | AU1 AU4 AU5 AU7 AU8 AU9 AU10 | journeys `journeys/store-manager/set-pickup-rules.journey.ts` (`pickup-policy`, `store-picker`, `linked-rule-one-way`, `gap-rule-with-store-list`, `protocol`), `journeys/store-manager/advertise-open-slots.journey.ts` (`advert-unsaved`, `store-chats`, `signout-alerts`), `journeys/store-manager/review-region-automation.journey.ts` (`region-overview`, `grouping`, `metrics`, `metrics-decline-reasons`); picker loading/error, gap conflict, empty channels: dropped: states shown once in the gallery (decision 180 §2, §5) |
 | `baskets.screen.ts` | 8 | B1 B2 | |
 | `content.screen.ts` | 15 | C1 C2 C3 C4 C7 C8 C9 S17 | |
-| `dashboard.screen.ts` | 8 | A19 | |
+| `dashboard.screen.ts` | 8 | A19 | journey `journeys/account/dashboard-feed.journey.ts` (`dashboard`, `feed-filtered`, `nearby-baskets`, `baskets-without-address`); the single home cards, the newcomer's chips and loading/error: dropped: the `dashboard` checkpoint shows the cards of the first screen, the newcomer journeys start on the dashboard, states go to the gallery journey (step 4) |
 | `events.screen.ts` | 3 | E1 E2 E3 | |
 | `forum.screen.ts` | 4 | D10.3 F1 F2 F3 F5 G3 | |
 | `fsp.screen.ts` | 20 | AU1 FS1 FS2 | |
 | `gallery.screen.ts` | 2 |  | |
-| `history.screen.ts` | 7 | D10.3 | |
+| `history.screen.ts` | 7 | D10.3 | journey `journeys/account/my-activity.journey.ts` (`my-activity`, `activity-details`, `activity-date-range`); empty, loading, error, forbidden and the ORGA export view: dropped: shared states go to the gallery journey (step 4), the export button is client `my-activity-page.spec` |
 | `intro-pickups.screen.ts` | 11 | EA1 EA2 EA5 EA7 EA8 EA9 EA10 EA11 EA13 EA15 EA16 EA17 EA18 EA19 EA21 Q4 | |
 | `landing.screen.ts` | 10 | C17 | |
 | `layout.screen.ts` | 11 | D4.3 | |
@@ -254,7 +254,7 @@ A removed test without a row here is a bug in the rework.
 | `pages.screen.ts` | 6 | AU12 D4.3 | |
 | `pickups.screen.ts` | 19 | A19 AU1 EA16 FS2 PU1 PU2 PU3 PU4 PU7 PU8 PU10 S9 || foodsaver captures: journeys `journeys/foodsaver/coordinate-a-pickup-day.journey.ts`, `journeys/foodsaver/sign-up-and-offer-a-basket.journey.ts`, `journeys/foodsaver/plan-my-pickups.journey.ts` (tab, slot dialogs, sign-up, booked, Gesperrt reasons, pickups page, agenda, dashboard, help card); manager captures (regular editor, one-time dialog, manager tab, manager slot dialog, move dialog): store-manager journey (pending, routed to the store-manager area); loading/error captures: dropped: per-page states, replaced by the shared fs-data-state spec and gallery (decision 180.5); guide cleaning row (FS2) and store-rule/linked-step captures (AU1): dropped here, walked by the Fairteiler and automation journeys |
 | `polls.screen.ts` | 2 | V1 | |
-| `profiles.screen.ts` | 6 | A6 A15 A16 | |
+| `profiles.screen.ts` | 6 | A6 A15 A16 | journey `journeys/account/profiles-bananas-buddies.journey.ts` (`own-profile`, `other-profile`, `received-bananas`, `buddies`); sleep banner, loading and error: dropped: the sleep banner is client `profiles-pages.spec` and the moon is asserted in the profile-and-settings journey, states go to the gallery journey (step 4) |
 | `quiz.screen.ts` | 12 | A8 Q1 Q2 Q3 | |
 | `regions.screen.ts` | 19 | A4 AD1 R2 R3 R4 R5 R7 R8 R9 R13 | |
 | `reports.screen.ts` | 9 | D10.3 G1 G2 | |
