@@ -1,7 +1,7 @@
 import fs from 'node:fs';
-import { expect, test } from '../../fixtures';
+import { expect, test } from '../fixtures';
 // @ts-expect-error plain ESM script without type declarations (also runnable as CLI)
-import { THRESHOLDS, belowThreshold, defaultPages, runLighthouseMedian } from '../../scripts/lighthouse.mjs';
+import { THRESHOLDS, belowThreshold, defaultPages, runLighthouseMedian } from '../scripts/lighthouse.mjs';
 
 /**
  * D11.5.3: Lighthouse mobile ≥ 70 performance (decision 153) and ≥ 95 accessibility on `/` and `/onboarding` (newbie).

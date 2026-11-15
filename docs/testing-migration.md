@@ -135,7 +135,7 @@ A removed test without a row here is a bug in the rework.
 | `notifications/n5-telegram-link.spec.ts` | 3 | A10 N4 N5 N6 |  |
 | `oauth/c13-oauth.spec.ts` | 5 | C13 |  |
 | `onboarding/d11-journey.spec.ts` | 5 | A19 D11.5.1 D11.5.2 D11.5.4 EA8 |  |
-| `onboarding/d11-lighthouse.spec.ts` | 1 | D11.5.3 |  |
+| `onboarding/d11-lighthouse.spec.ts` | 1 | D11.5.3 | kept: moved to `e2e/lighthouse/d11-lighthouse.spec.ts` (project `lighthouse`) |
 | `onboarding/ea8-journey.spec.ts` | 1 | D11.5.2 EA8 |  |
 | `onboarding/onboarding-error-states.spec.ts` | 2 | D11.5.2 EA8 |  |
 | `onboarding/onboarding-nudges.spec.ts` | 2 | EA8 EA21 N3 |  |

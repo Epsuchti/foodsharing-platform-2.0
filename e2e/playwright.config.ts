@@ -23,6 +23,7 @@ const CI = !!process.env.CI;
 const CHROMIUM_ONLY = /@chromium-only/;
 /** CPU-sensitive Lighthouse thresholds (D11.5.3): only in the dedicated `lighthouse` project / CI job. */
 const LIGHTHOUSE = /@D11\.5\.3/;
+const LIGHTHOUSE_SPECS = 'lighthouse/**/*.spec.ts';
 const TESTS = 'tests/**/*.spec.ts';
 const JOURNEYS = 'journeys/**/*.journey.ts';
 /** The axe route sweep and the CSP check: project `a11y` only. */
@@ -121,7 +122,12 @@ export default defineConfig({
     e2eProject('firefox', { ...devices['Desktop Firefox'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
     e2eProject('webkit', { ...devices['Desktop Safari'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
     e2eProject('mobile-chrome', { ...devices['Pixel 7'] }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
-    e2eProject('lighthouse', { ...devices['Desktop Chrome'] }, { grep: LIGHTHOUSE }),
+    {
+      name: 'lighthouse',
+      testMatch: LIGHTHOUSE_SPECS,
+      dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'] },
+    },
     e2eProject('mobile-safari', { ...devices['iPhone 14'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
     {
       name: 'a11y',
