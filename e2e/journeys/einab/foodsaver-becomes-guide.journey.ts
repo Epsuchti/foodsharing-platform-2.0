@@ -59,8 +59,9 @@ test('foodsaver passes the guide quiz after the region threshold and is released
     // per question "submit" and "next" ("results" after the last one); the ticked answers vary with the shuffle
     walk.count(answered * 2);
     await expect(page.getByTestId('quiz.results.summary')).toHaveAttribute('data-status', 'PASSED');
-    // the server shuffles questions and answers
-    await checkpoint(page, 'quiz-passed', { mask: [page.getByTestId('quiz.results.question')] });
+    // the server picks and shuffles the questions: the list changes height, so the capture is the first screen with the
+    // verdict, the questions masked
+    await checkpoint(page, 'quiz-passed', { fullPage: false, mask: [page.getByTestId('quiz.results.question')] });
   });
 
   await walk.step('waits for the release', async () => {

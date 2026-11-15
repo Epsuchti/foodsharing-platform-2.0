@@ -105,6 +105,8 @@ test('guide offers online, linked and on-site intro pickups and manages template
     await walk.fill(form.getByTestId('introPickups.form.area'), 'Oerlikon');
     await walk.fill(form.getByTestId('introPickups.form.privateInfo'), 'Hintereingang, bitte klingeln.');
     await walk.click(form.getByTestId('introPickups.form.saveTemplate'));
+    // the fields scrolled the dialog body by an amount that depends on timing: capture it from its top
+    await form.evaluate((el) => el.closest('.p-dialog-content')?.scrollTo({ top: 0, behavior: 'instant' }));
     await checkpoint(page, 'take-away-form');
     await walk.click(page.getByTestId('introPickups.form.save'));
     await expect(form).toBeHidden();
