@@ -46,7 +46,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
-/** Q4 (decision 168): release needs a region administrator and an EinAb guide quiz pass; candidates list. */
+/**
+ * Q4 (decision 168): release needs a region administrator and an EinAb guide quiz pass; candidates list. EA18: the
+ * EinAb administration is for CAN_MANAGE_USERS holders, and an admin delete needs a reason.
+ */
 class IntroPickupAdminServiceGuideTest {
 
     private static final UUID REGION = UUID.randomUUID();
@@ -166,5 +169,23 @@ class IntroPickupAdminServiceGuideTest {
         assertThat(page.getContent()).extracting(view -> view.user().getId()).containsExactly(CANDIDATE, later);
         assertThat(page.getContent().getFirst().pickupCount()).isEqualTo(31);
         verify(permissions).require(ACTOR, Permission.CAN_MANAGE_USERS, REGION);
+    }
+
+    @Test
+    void theEinAbAdministrationIsForUserManagersAndADeleteNeedsAReason() {
+        doThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED)).when(permissions)
+                .require(ACTOR, Permission.CAN_MANAGE_USERS, REGION);
+        assertThatThrownBy(() -> service.pickups(REGION, false, null, null))
+                .isInstanceOfSatisfying(ApiException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.ACCESS_DENIED));
+        verify(pickups, never()).findByRegion(any());
+
+        org.mockito.Mockito.reset(permissions);
+        for (String reason : new String[] {null, " ", "x".repeat(1001)}) {
+            assertThatThrownBy(() -> service.delete(REGION, UUID.randomUUID(), reason))
+                    .isInstanceOfSatisfying(ApiException.class,
+                            e -> assertThat(e.getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED));
+        }
+        verify(views, never()).requirePickup(any());
     }
 }
