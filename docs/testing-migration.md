@@ -307,10 +307,10 @@ A removed test without a row here is a bug in the rework.
 | `dev/service/AuthSeedContractIT` | kept (seed: auth seed files against the column contract, no Spring context) |
 | `dev/service/SeedResetServiceIT` | kept (seed: reset restores every table, mails and clock; every journey relies on it) |
 | `dev/web/FakeOidcFlowIT` | unit `FakeOidcProviderTest` (discovery, seed accounts, single-use code, RS256 id token checked with the JWKS, userinfo, error codes), `FakeOidcAuthorizeTest` (foreign redirect URIs refused, cancel, new-user code); journey `journeys/account/sign-up-and-log-in.journey.ts` (browser round trip through the fake provider); dropped: rendering of the dev account buttons |
-| `event/EventFlowIT` | |
-| `forum/ForumFlowIT` | |
-| `fsp/FspCleaningFlowIT` | |
-| `fsp/FspFlowIT` | |
+| `event/EventFlowIT` | unit `EventServiceFlowTest` (author attends, invite all, update rings participants not the editor, delete removes bells, RSVP rules, non-members see public events only, history), `EventRulesTest`, `EventIcsServiceTest`; journey `journeys/community/hold-an-event.journey.ts`; `ApiSmokeIT` (EventsController); dropped: seed list counts |
+| `forum/ForumFlowIT` | unit `ForumPermissionMatrixTest`, `ForumServiceFlowTest` (THREAD_CLOSED, THREAD_NOT_ACTIVE, POST_ALREADY_HIDDEN, hidden texts never searched), `ForumMentionBellsTest`, `ForumTextTest`, `ForumPermissionServiceTest`; journeys `community/discuss-in-the-forum`, `community/moderate-the-forum`; `ApiSmokeIT` (ForumController) |
+| `fsp/FspCleaningFlowIT` | unit `FspCleaningRulesTest`, `FspCleaningRegionServiceTest`, `FspContributorsTest`, `FspCleaningFlowTest` (reminder, deletion removes future sign-ups and the bell, removal rings the person, unknown time zone refused); slice `FspCleaningControllerTest`; journeys `community/manage-cleaning-shifts`, `community/sign-up-for-cleaning`; `ApiSmokeIT` (FspCleaningController) |
+| `fsp/FspFlowIT` | unit `FspPermissionMatrixTest`, `FspServiceFlowTest` (wall post rings bell followers and mails mail followers, never the author; managers must be region members; activation); journeys `community/propose-a-food-share-point`, `community/follow-a-food-share-point`; `ApiSmokeIT` (FoodSharePointsController) |
 | `intropickup/GuideQuizApiIT` | unit `GuideQuizGateTest`, `QuizRuleServiceTest`, `GuideQuizNotificationsTest` (a pass rings the home-region ambassadors), `IntroPickupAdminServiceGuideTest` (release by region admins only with a pass), `RegionMembersServiceTest`, `GuideQuizTransitionServiceTest` (reminder once, revoke at the deadline); journey `journeys/einab/foodsaver-becomes-guide.journey.ts`; quiz row: changelog 190 (`LiquibasePostgresIT`) |
 | `intropickup/IntroPickupApiIT` | unit `BookingRulesTest`, `IntroPickupGuideServiceRulesTest`, `IntroPickupValidationTest`, `IntroPickupOwnershipRulesTest` (own intro pickups and bookings only, iCal for guide/booked/ORGA, store aliases), `NewcomerFunnelAccessTest`, `IntroPickupAdminServiceGuideTest`, `IcalServicesTest`, `IntroPickupSubscriptionServiceTest`, `IntroPickupNotificationsTest`, `IntroPickupCitiesTest`; kept `StoreIdentityLeakIT` (nothing identifying before booking), `PastImportZuerichIT`; journeys `journeys/einab/*`; `ApiSmokeIT` (IntroPickup* controllers) |
 | `intropickup/IntroPickupLinkedPickupIT` | unit `IntroPickupLinkedPickupTest` (candidates, link rules, start change unlinks, no reassign, auto-cancel tells newcomers), `IntroPickupLinkSyncTest` (sign-out, left team, all future deleted cancel the EinAb), `IntroPickupOwnershipRulesTest`, `PickupLinkedIntroVisibilityTest`; journey `journeys/einab/guide-offers-intro-pickups.journey.ts`; dropped: ical-candidates 404 (endpoint no longer in the contract) |
@@ -329,14 +329,14 @@ A removed test without a row here is a bug in the rework.
 | `pickup/PickupMoveIT` | unit `PickupMoveTest` (rights, guards, cancelled occurrence becomes a one-time pickup, sign-ups keep confirmation, mover not notified), `IntroPickupLinkSyncTest`, `IntroPickupLinkedPickupTest` (linked EinAb moves along); journey `journeys/store-manager/move-a-pickup.journey.ts` |
 | `pickup/PickupUserApiIT` | unit `PickupUserServiceAccessTest` (past pickups and sign out of all for self or user admins, ALL_FUTURE_PICKUPS_DELETED, store history right, RANGE_TOO_LARGE, options for verified foodsavers), `PickupOptionsRuleTest`; kept `IdorSpotCheckIT`; journeys `foodsaver/plan-my-pickups`, `foodsaver/pickup-reminders`, `ambassador/manage-region-members` |
 | `pickup/PickupsApiIT` | kept `LoadPathsPostgresIT` (`concurrentSignupsForTheLastSlotLetExactlyOneThrough`, now on PostgreSQL); unit `PickupEligibilityRulesTest`, `PickupScheduleTest`, `PickupSignupEditAndConfirmTest`, `PickupSignupServiceRulesTest` (confirm, removal with message and mail, self sign-out silent), `RegularPickupServiceTest` (DUPLICATE_PICKUP_DAY_TIME), `SlotDetailRuleTest`, `ExtraSlotTest`, `DayChatRuleTest`, `PickupDayConversationServiceTest`, `StoreVisibilityTest`; `ApiSmokeIT` (PickupsController); dropped: seed counts |
-| `poll/PollFlowIT` | |
+| `poll/PollFlowIT` | unit `PollRulesTest`, `PollEligibilityServiceTest`, `PollNotificationServiceTest`, `PollVoteFlowTest` (POLL_NOT_OPEN, ALREADY_VOTED, NOT_ELIGIBLE, INVALID_VOTE, history without values, cancel); journey `journeys/community/run-a-poll.journey.ts`; `ApiSmokeIT` (PollsController) |
 | `profile/ProfileFlowIT` | |
 | `quiz/QuizApiIT` | |
 | `region/RegionApiIT` | |
 | `region/RegionsCsvImportZuerichIT` | kept (D16.1: the real Zürich regions file on an empty production schema, PostgreSQL) |
-| `report/ReportFlowIT` | |
-| `resource/ResourceFlowIT` | |
-| `search/SearchFlowIT` | |
+| `report/ReportFlowIT` | unit `ReportPermissionMatrixTest`, `ReportHandlerRuleTest`, `ReportReminderTest`, `ReportUpdateClearTest`, `MediationServiceTest`, `ReportServiceFlowTest` (REPORT_NEW to handlers only, confirmation mail, reason set, ORGA delete removes bells); journey `journeys/ambassador/handle-reports-and-mediation.journey.ts`; `ApiSmokeIT` (ReportsController) |
+| `resource/ResourceFlowIT` | unit `ResourceRulesTest`, `ResourceServiceFlowTest` (private resources hidden from strangers, favourites, commons need the RESOURCES function, RESOURCE_LIMIT_REACHED); journey `journeys/orga/share-resources-in-the-region.journey.ts`; `ApiSmokeIT` (ResourcesController); dropped: image file name in the list (mapper wiring) |
+| `search/SearchFlowIT` | kept `SearchPostgresIT` (own units first, address with two words, permission filter, forum posts, now also `contactsAreConversationsStoreTeamsAndConfirmedBuddiesOnly`); unit `SearchServiceTest`, `SearchVisibilityTest`, `UserSearchServiceTest`, `SearchIndexerTest` (built on start, incremental refresh); journey `journeys/public/member-searches.journey.ts`; `ApiSmokeIT` (SearchController); dropped: the H2 LIKE path as such (e2e/local only) |
 | `search/SearchPostgresIT` | kept (PostgreSQL full-text search; now also the contact rule of people search) |
 | `statistics/StatisticsFlowIT` | unit `StatisticsAggregationServiceTest` (one row per Zurich day, rerun updates, history, user counters), `RegionStatisticsAccessTest` (members or admins, 1–36 months), `RegionStatisticsQueryServiceTest`; journey `journeys/orga/watch-the-operations.journey.ts`; `ApiSmokeIT` (StatisticsController); dropped: seeded daily rows (seed fact) |
 | `store/StoreApiIT` | |
@@ -347,7 +347,7 @@ A removed test without a row here is a bug in the rework.
 | `store/StoreTeamFlowIT` | |
 | `store/StoreWallApiIT` | |
 | `store/StoresCsvImportZuerichIT` | kept (D16.2: the real Zürich stores file on an empty production schema, PostgreSQL) |
-| `survey/SurveyFlowIT` | |
+| `survey/SurveyFlowIT` | unit `SurveyServiceTest`, `SurveyServiceAccessTest` (results for owner and co-authors, once-only), `SurveyCoauthorTest` (co-authors need CAN_MANAGE_SURVEYS, SURVEY_SHARED bell); journey `journeys/community/run-a-survey.journey.ts`; `ApiSmokeIT` (SurveysController) |
 | `upload/UploadPublicAccessIT` | kept (privacy: uploads readable without login only through a public usage; ETag and Cache-Control per visibility) |
 | `user/AccountDeletionIT` | kept (privacy: GDPR export, self and ORGA deletion with anonymisation and archive) |
 | `user/AccountFlowIT` | |
