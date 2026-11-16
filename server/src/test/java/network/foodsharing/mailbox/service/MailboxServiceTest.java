@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -22,36 +23,33 @@ import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
-import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** A35/MB1/MB6: email-name rules, uniqueness across region and personal mailboxes, creation and member rights. */
 @JpaSliceTest
-@Import({MailboxService.class, MailboxAccessService.class, MailAttachmentStore.class, UserService.class})
+@Import(SharedJpaSliceConfig.class)
 class MailboxServiceTest {
 
     @Autowired
+    private ApplicationContext context;
     private MailboxService service;
-    @Autowired
     private MailboxAccessService access;
     @Autowired
     private MailboxMemberRepository members;
     @Autowired
     private UserRepository users;
-    @MockitoBean
-    private RegionService regions;
-    @MockitoBean
-    private PermissionService permissions;
-    @MockitoBean
-    private UploadService uploads;
+    private final RegionService regions = mock(RegionService.class);
+    private final PermissionService permissions = mock(PermissionService.class);
+    private final UploadService uploads = mock(UploadService.class);
 
     private final UUID regionId = UUID.randomUUID();
     private SessionPrincipal admin;
@@ -61,6 +59,10 @@ class MailboxServiceTest {
 
     @BeforeEach
     void setUp() {
+        MailboxTestServices services = new MailboxTestServices(context, regions, permissions, uploads, null, null,
+                null);
+        service = services.mailboxes;
+        access = services.access;
         ambassador = users.saveAndFlush(TestUsers.user("mb-amb@test.local", Role.AMBASSADOR));
         storeManager = users.saveAndFlush(TestUsers.user("mb-sm@test.local", Role.STORE_MANAGER));
         foodsaver = users.saveAndFlush(TestUsers.user("mb-fs@test.local", Role.FOODSAVER));
