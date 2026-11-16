@@ -134,6 +134,14 @@ class VerificationServiceTest {
     }
 
     @Test
+    void unverifyingSomeoneWhoIsNotVerifiedIsAConflict() {
+        newcomer.setVerified(false);
+        assertThat(code(() -> service.unverify(newcomer.getId(), "Ist gar nicht verifiziert")))
+                .isEqualTo(ApiErrorCode.NOT_VERIFIED);
+        verify(users, never()).setVerified(any(), anyBoolean(), any());
+    }
+
+    @Test
     void onlyAdministratorsOfTheUserVerify() {
         newcomer.setIdentityConfirmedAt(NOW);
         doThrow(ApiException.forbidden(ApiErrorCode.ACCESS_DENIED)).when(permissions)

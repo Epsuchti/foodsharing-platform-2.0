@@ -347,6 +347,31 @@ class StoreIdentityLeakIT {
         assertThat(body).doesNotContain("Coop");
     }
 
+    /** Decision 156 (moved from MapIT): a deleted store leaves its region's public count, and the bubble goes at 0. */
+    @Test
+    void deletedStoresLeaveTheStoreAreaCounts() throws Exception {
+        String winterthur = "00000010-0001-4000-8000-000000000041";
+        java.util.UUID store = jdbc.queryForObject("select min(id) from store where region_id = ? and "
+                + "cooperation_status = 'COOPERATION_ESTABLISHED' and deleted_at is null", java.util.UUID.class,
+                java.util.UUID.fromString(winterthur));
+        try {
+            jdbc.update("update store set deleted_at = current_timestamp where id = ?", store);
+            assertThat(storeAreaCount("Winterthur")).containsExactly(1);
+            jdbc.update("update store set deleted_at = current_timestamp where region_id = ?",
+                    java.util.UUID.fromString(winterthur));
+            assertThat(storeAreaCount("Winterthur")).isEmpty();
+        } finally {
+            jdbc.update("update store set deleted_at = null where region_id = ?", java.util.UUID.fromString(winterthur));
+        }
+        assertThat(storeAreaCount("Winterthur")).containsExactly(2);
+    }
+
+    private List<Integer> storeAreaCount(String name) throws Exception {
+        String body = mvc.perform(get("/api/public/map/store-areas")).andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsString(StandardCharsets.UTF_8);
+        return JsonPath.read(body, "$[?(@.name == '" + name + "')].count");
+    }
+
     @Test
     void theExplainerSendsNoLongDurations() throws Exception {
         String body = mvc.perform(get("/api/public/onboarding/explainer")).andExpect(status().isOk()).andReturn().getResponse()

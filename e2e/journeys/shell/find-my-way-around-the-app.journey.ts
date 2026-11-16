@@ -15,7 +15,7 @@ import { dateField, fillDate } from '../../support/date-inputs';
  * links the web manifest, and the jar serves it with the service worker configuration.
  *
  * Rule permutations are unit tests: menu items per role and capability (sidenav.component.spec.ts,
- * shell.component.spec.ts, SessionCapabilitiesIT), side menu state (sidenav-state.spec.ts), next step
+ * shell.component.spec.ts, AuthMapperCapabilitiesTest, ApiSmokeIT), side menu state (sidenav-state.spec.ts), next step
  * (home-cards.spec.ts), request bar counting (loading.interceptor.spec.ts), date parsing (date-input.util.spec.ts),
  * calendar names per language (optimus-locale.spec.ts).
  */

@@ -667,4 +667,81 @@ class PickupPolicyServiceGapTest {
         assertThatCode(() -> service.put(a, withLinks(0, sameDay(b)))).doesNotThrowAnyException();
         assertThatCode(() -> service.put(a, withLinks(0))).doesNotThrowAnyException();
     }
+
+    // ------------------------------------------------------------------ link rule validation and mirrors (was PickupPolicyFlowIT, LinkCandidateFlowIT)
+
+    @Test
+    void aStoreCannotLinkToItself() {
+        policy(a, true, 0, false);
+        ApiException ex = error(() -> service.put(a, withLinks(0, sameDay(a))));
+        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.LINKED_STORE_SELF);
+    }
+
+    @Test
+    void aLastDaysWindowNeedsAtLeastOneDay() {
+        policy(a, true, 0, false);
+        LinkInput empty = new LinkInput(List.of(b), false, LinkedStoreWindowMode.LAST_DAYS, 0, 0, 20, null, null);
+        assertThat(error(() -> service.put(a, withLinks(0, empty))).getCode())
+                .isEqualTo(ApiErrorCode.LINKED_STORE_WINDOW_INVALID);
+        LinkInput tooLong = new LinkInput(List.of(b), false, LinkedStoreWindowMode.LAST_DAYS, 0, 31, 20, null, null);
+        assertThat(error(() -> service.put(a, withLinks(0, tooLong))).getCode())
+                .isEqualTo(ApiErrorCode.LINKED_STORE_WINDOW_INVALID);
+    }
+
+    @Test
+    void anUnknownPlaceholderInTheLinkMessageIsRefused() {
+        policy(a, true, 0, false);
+        LinkInput rule = new LinkInput(List.of(b), false, LinkedStoreWindowMode.SAME_DAY, 0, 0, 20,
+                "Hallo {{vorname}}", null);
+        ApiException ex = error(() -> service.put(a, withLinks(0, rule)));
+        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.INVALID_TEMPLATE_VARIABLE);
+        assertThat(ex.getArgs()).containsEntry("variable", "vorname");
+    }
+
+    @Test
+    void aOneWayLinkWritesNothingIntoTheLinkedStore() {
+        allowed.remove(d);
+        service.put(a, withLinks(0, sameDay(d)));
+        org.mockito.ArgumentCaptor<PickupPolicyLinkedStore> saved =
+                org.mockito.ArgumentCaptor.forClass(PickupPolicyLinkedStore.class);
+        verify(links, atLeastOnce()).saveAndFlush(saved.capture());
+        assertThat(saved.getAllValues()).allSatisfy(link -> assertThat(link.getMirrorOf()).isNull());
+        assertThat(policyOf(d)).isNull();
+    }
+
+    @Test
+    void aBidirectionalLinkWritesADisabledMirrorWithTheWindowTurnedRound() {
+        policy(a, true, 0, false);
+        service.put(a, withLinks(0, bidirectional(LinkedStoreWindowMode.LAST_DAYS, 1, 2, 45, null, b)));
+        org.mockito.ArgumentCaptor<PickupPolicyLinkedStore> saved =
+                org.mockito.ArgumentCaptor.forClass(PickupPolicyLinkedStore.class);
+        verify(links, atLeastOnce()).saveAndFlush(saved.capture());
+        PickupPolicyLinkedStore own = saved.getAllValues().stream().filter(l -> l.getMirrorOf() == null)
+                .findFirst().orElseThrow();
+        PickupPolicyLinkedStore mirror = saved.getAllValues().stream().filter(l -> l.getMirrorOf() != null)
+                .findFirst().orElseThrow();
+        assertThat(policyOf(b)).isNotNull();
+        assertThat(policyOf(b).isEnabled()).isFalse();
+        assertThat(mirror.getPolicyId()).isEqualTo(policyOf(b).getId());
+        assertThat(mirror.getMirrorOf()).isEqualTo(own.getId());
+        assertThat(mirror.isBidirectional()).isTrue();
+        assertThat(mirror.getWindowDaysBefore()).isEqualTo(2);
+        assertThat(mirror.getWindowDaysAfter()).isEqualTo(1);
+        assertThat(mirror.getGraceMinutes()).isEqualTo(45);
+    }
+
+    @Test
+    void deletingThePolicyDeletesTheMirrorsOfItsRulesAndASecondDeleteIsNotFound() {
+        policy(a, true, 0, false);
+        bidirectionalLink(a, LinkedStoreWindowMode.SAME_DAY, 0, 0, b);
+        UUID own = linksByPolicy.get(policyOf(a).getId()).getFirst().getId();
+        org.mockito.Mockito.doAnswer(inv -> policiesByStore.remove(inv.<PickupPolicy>getArgument(0).getStoreId()))
+                .when(policies).delete(any());
+        service.delete(a);
+        verify(links).findByMirrorOfIn(List.of(own));
+        assertThat(policyOf(a)).isNull();
+        ApiException ex = error(() -> service.delete(a));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(ex.getCode()).isEqualTo(ApiErrorCode.POLICY_NOT_FOUND);
+    }
 }

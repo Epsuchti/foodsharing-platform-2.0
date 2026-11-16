@@ -8,7 +8,7 @@ import { Walk } from '../../fixtures/persona';
  * works; he adds Nina (bieb@local) as a reader and removes her again — deleting is not offered to him. ORGA creates a
  * personal mailbox for ambassador Lea (welcome@local), who finds it in her mailboxes. The name rules, uniqueness, who
  * may create which mailbox and member rights are unit tests (MailboxServiceTest, MailboxAccessServiceTest); ORGA
- * deleting a mailbox (no UI lists personal mailboxes for ORGA) is MailboxApiIT.
+ * deleting a mailbox (no UI lists personal mailboxes for ORGA) is unit MailboxDeleteTest.
  */
 
 test.describe('ambassador', () => {
