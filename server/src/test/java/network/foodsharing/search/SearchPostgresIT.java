@@ -19,6 +19,8 @@ import network.foodsharing.search.repository.SearchIndexRepository.Source;
 import network.foodsharing.search.service.SearchIndexer;
 import network.foodsharing.search.service.SearchService;
 import network.foodsharing.testsupport.SeedUsers;
+import network.foodsharing.user.domain.User;
+import network.foodsharing.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,9 @@ class SearchPostgresIT {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private UserRepository users;
 
     @Autowired
     private Clock clock;
@@ -226,5 +231,49 @@ class SearchPostgresIT {
 
         jdbc.update("update forum_post set hidden_at = ? where id = ?", Timestamp.from(clock.instant()), post.get("id"));
         assertThat(index.threadsByPostContent(SearchService.terms("quokkabackerei", 2), member, 20)).isEmpty();
+    }
+
+    /**
+     * Decision 147 contacts (UserContacts.CONDITION, formerly SearchFlowIT on H2): a shared conversation, a shared
+     * store team (member or jumper) and a confirmed buddy make a contact, a requested buddy does not; people search
+     * and the user picker show contacts only.
+     */
+    @Test
+    void contactsAreConversationsStoreTeamsAndConfirmedBuddiesOnly() {
+        UUID foodsaver = SeedUsers.FOODSAVER.id();
+        UUID newbie = SeedUsers.NEWBIE.id();
+        Scope member = new Scope(foodsaver, false, Set.of(), Set.of());
+        Timestamp now = Timestamp.from(clock.instant());
+        assertThat(pick("lea", foodsaver)).doesNotContain(newbie);
+        assertThat(ids(SearchKind.USER, "lea brunner", member)).doesNotContain(newbie);
+
+        UUID conversation = jdbc.queryForObject("select conversation_id from conversation_member where user_id = ?"
+                + " order by conversation_id limit 1", UUID.class, foodsaver);
+        UUID membership = UUID.randomUUID();
+        jdbc.update("insert into conversation_member (id, version, created_at, updated_at, conversation_id, user_id,"
+                + " joined_at) values (?, 0, ?, ?, ?, ?, ?)", membership, now, now, conversation, newbie, now);
+        assertThat(pick("lea", foodsaver)).contains(newbie);
+        assertThat(ids(SearchKind.USER, "lea brunner", member)).contains(newbie);
+        jdbc.update("delete from conversation_member where id = ?", membership);
+
+        UUID store = jdbc.queryForObject("select store_id from store_membership where user_id = ? and status = 'MEMBER'"
+                + " order by store_id limit 1", UUID.class, foodsaver);
+        UUID team = UUID.randomUUID();
+        jdbc.update("insert into store_membership (id, version, created_at, updated_at, store_id, user_id, status,"
+                + " manager) values (?, 0, ?, ?, ?, ?, 'JUMPER', false)", team, now, now, store, newbie);
+        assertThat(pick("lea", foodsaver)).contains(newbie);
+        jdbc.update("delete from store_membership where id = ?", team);
+
+        UUID buddy = UUID.randomUUID();
+        jdbc.update("insert into buddy (id, version, created_at, updated_at, user_id, buddy_id, status)"
+                + " values (?, 0, ?, ?, ?, ?, 'REQUESTED')", buddy, now, now, newbie, foodsaver);
+        assertThat(pick("lea", foodsaver)).doesNotContain(newbie);
+        jdbc.update("update buddy set status = 'CONFIRMED' where id = ?", buddy);
+        assertThat(pick("lea", foodsaver)).contains(newbie);
+        assertThat(ids(SearchKind.USER, "lea brunner", member)).contains(newbie);
+    }
+
+    private List<UUID> pick(String prefix, UUID contactOf) {
+        return users.searchContactsByNamePrefix(prefix + "%", null, contactOf, 50).stream().map(User::getId).toList();
     }
 }

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -386,6 +387,23 @@ class ApiSmokeIT {
     @MethodSource("deniedRows")
     void otherRoleIsRefused(Row row) throws Exception {
         check(row.denied(), "denied");
+    }
+
+    /** Decision 162: the capability enrichers of the modules are wired into SessionInfo (rules: unit tests). */
+    @Test
+    void sessionCapabilitiesFollowTheSeedRoles() throws Exception {
+        assertThat(capabilities(BIEB)).as("working group admin").isEmpty();
+        assertThat(capabilities(FS)).isEmpty();
+        assertThat(capabilities(BOT)).as("ambassador of Zürich, PR group admin").contains("MANAGE_NEWCOMERS", "VERIFY",
+                "MANAGE_MEMBERS", "NEWSLETTERS", "BLOG_MANAGE", "CONTENT_EDIT");
+        assertThat(capabilities(ORGA)).containsExactlyInAnyOrder("QUIZ_EDIT", "MANAGE_NEWCOMERS", "VERIFY",
+                "MANAGE_MEMBERS", "NEWSLETTERS", "BLOG_MANAGE", "CONTENT_EDIT");
+    }
+
+    private List<String> capabilities(SeedUsers user) throws Exception {
+        String body = mvc.perform(MockMvcRequestBuildersGet.of("/api/auth/session").cookie(session(user))).andReturn()
+                .getResponse().getContentAsString();
+        return JsonPath.read(body, "$.capabilities");
     }
 
     @Test

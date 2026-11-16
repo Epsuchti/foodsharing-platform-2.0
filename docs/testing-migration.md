@@ -272,39 +272,40 @@ A removed test without a row here is a bug in the rework.
 
 | Class | Now covered by |
 |---|---|
-| `BackupRestoreIT` | |
-| `IdorSpotCheckIT` | |
-| `IndexUsagePostgresIT` | |
-| `LiquibasePostgresIT` | |
-| `LoadPathsPostgresIT` | |
-| `LocalProfileSmokeIT` | |
-| `QueryCountIT` | |
-| `StagingSeedOnExistingSchemaPostgresIT` | |
+| `ApiSmokeIT` | new (decision 180): one smoke per `@RestController` (71 controllers: anonymous, one 2xx, 46 refusals) + guard test for missing controllers; the persona panel (staging only) is covered by `PersonaPanelStagingTest` |
+| `BackupRestoreIT` | kept (D19.2 backup/restore round trip on PostgreSQL) |
+| `IdorSpotCheckIT` | kept (security: IDOR spot checks) |
+| `IndexUsagePostgresIT` | kept (PostgreSQL: index usage of the hot queries) |
+| `LiquibasePostgresIT` | kept (PostgreSQL: full changelog + Hibernate validation) |
+| `LoadPathsPostgresIT` | kept (PostgreSQL: load-test read paths, concurrent logins; now also `concurrentSignupsForTheLastSlotLetExactlyOneThrough`, the store row lock moved here from `PickupsApiIT`) |
+| `LocalProfileSmokeIT` | kept (H2 seed boot of the `local` profile, seed users, dev beans) |
+| `QueryCountIT` | kept (N+1 guard) |
+| `StagingSeedOnExistingSchemaPostgresIT` | kept (PostgreSQL: decision 173 seed on an existing schema) |
 | `achievement/AchievementFlowIT` | |
-| `activity/ActivitySourcesIT` | |
+| `activity/ActivitySourcesIT` | kept (privacy: the JPQL `ForumPostRepository.feed` alone decides which forum posts reach a feed: ambassador forum only for region admins, hidden/deleted posts excluded, member regions only; no unit test can prove a query) |
 | `admin/AdminOperationsIT` | |
 | `admin/AdminSettingsIT` | |
-| `auth/GoogleLoginIT` | |
+| `auth/GoogleLoginIT` | kept (security: the production `oauth2Login` client config against an independent OIDC stub: callback, `fs_session`, account creation and linking by verified email) |
 | `auth/MagicLinkFlowIT` | |
 | `auth/PasskeyRepositoriesIT` | |
 | `auth/SessionCapabilitiesIT` | |
-| `auth/WebAuthnEndpointsIT` | |
+| `auth/WebAuthnEndpointsIT` | kept (security: WebAuthn endpoints in the filter chain: registration options need `fs_session`, authentication options public, bad assertion JSON 401, credential DELETE denied, CSRF) |
 | `automation/AdvertFlowIT` | |
-| `automation/GapGroupMigrationIT` | |
+| `automation/GapGroupMigrationIT` | kept (Liquibase: changelog 182 data migration, no Spring context) |
 | `automation/LinkCandidateFlowIT` | |
 | `automation/LinkedBookingFlowIT` | |
 | `automation/PickupPolicyFlowIT` | |
 | `basket/BasketFlowIT` | |
 | `calendar/CalendarFeedIT` | |
-| `common/jobs/ShedLockIT` | |
-| `common/realtime/WebSocketHandshakeIT` | |
-| `config/ForwardedHeadersIT` | |
-| `config/StaticResourceTilesIT` | |
+| `common/jobs/ShedLockIT` | kept (PostgreSQL: two parallel scheduled runs, one executes) |
+| `common/realtime/WebSocketHandshakeIT` | kept (security: cookie-authenticated handshake, subscription guard, per-user delivery) |
+| `config/ForwardedHeadersIT` | kept (security: forwarded headers only from trusted proxies, on a real Tomcat) |
+| `config/StaticResourceTilesIT` | kept (MT2: range requests 206, media type, no compression, caching on a real Tomcat) |
 | `config/StaticResourceTilesOffIT` | |
 | `content/BlogFlowIT` | |
 | `content/ContentApiIT` | |
-| `dev/service/AuthSeedContractIT` | |
-| `dev/service/SeedResetServiceIT` | |
+| `dev/service/AuthSeedContractIT` | kept (seed: auth seed files against the column contract, no Spring context) |
+| `dev/service/SeedResetServiceIT` | kept (seed: reset restores every table, mails and clock; every journey relies on it) |
 | `dev/web/FakeOidcFlowIT` | |
 | `event/EventFlowIT` | |
 | `forum/ForumFlowIT` | |
@@ -313,18 +314,18 @@ A removed test without a row here is a bug in the rework.
 | `intropickup/GuideQuizApiIT` | |
 | `intropickup/IntroPickupApiIT` | |
 | `intropickup/IntroPickupLinkedPickupIT` | |
-| `intropickup/PastImportZuerichIT` | |
-| `mailbox/ImapMailSourceIT` | |
+| `intropickup/PastImportZuerichIT` | kept (D16.3: the real EinAb file on an empty production schema, PostgreSQL) |
+| `mailbox/ImapMailSourceIT` | kept (A35: IMAP adapter against an in-process server, no Spring context) |
 | `mailbox/MailboxApiIT` | |
 | `map/MapIT` | |
 | `messaging/ConversationSyncIT` | |
-| `messaging/MessageSeqPostgresIT` | |
+| `messaging/MessageSeqPostgresIT` | kept (PostgreSQL: gap-free message seqs under concurrency) |
 | `messaging/MessagingApiIT` | |
 | `notification/NotificationFlowIT` | |
 | `notification/telegram/TelegramLinkFlowIT` | |
 | `oauthserver/OAuthFlowIT` | |
 | `onboarding/OnboardingApiIT` | |
-| `pickup/ExtraSlotMigrationIT` | |
+| `pickup/ExtraSlotMigrationIT` | kept (Liquibase: changelog 187 data migration, no Spring context) |
 | `pickup/PickupMoveIT` | |
 | `pickup/PickupUserApiIT` | |
 | `pickup/PickupsApiIT` | |
@@ -332,23 +333,23 @@ A removed test without a row here is a bug in the rework.
 | `profile/ProfileFlowIT` | |
 | `quiz/QuizApiIT` | |
 | `region/RegionApiIT` | |
-| `region/RegionsCsvImportZuerichIT` | |
+| `region/RegionsCsvImportZuerichIT` | kept (D16.1: the real Zürich regions file on an empty production schema, PostgreSQL) |
 | `report/ReportFlowIT` | |
 | `resource/ResourceFlowIT` | |
 | `search/SearchFlowIT` | |
-| `search/SearchPostgresIT` | |
+| `search/SearchPostgresIT` | kept (PostgreSQL full-text search; now also the contact rule of people search) |
 | `statistics/StatisticsFlowIT` | |
 | `store/StoreApiIT` | |
 | `store/StoreChainApiIT` | |
-| `store/StoreIdentityLeakIT` | |
+| `store/StoreIdentityLeakIT` | kept (identity leak, decision 156; now also `deletedStoresLeaveTheStoreAreaCounts` from `MapIT`) |
 | `store/StorePublicNamingIT` | |
 | `store/StoreSeedIT` | |
 | `store/StoreTeamFlowIT` | |
 | `store/StoreWallApiIT` | |
-| `store/StoresCsvImportZuerichIT` | |
+| `store/StoresCsvImportZuerichIT` | kept (D16.2: the real Zürich stores file on an empty production schema, PostgreSQL) |
 | `survey/SurveyFlowIT` | |
-| `upload/UploadPublicAccessIT` | |
-| `user/AccountDeletionIT` | |
+| `upload/UploadPublicAccessIT` | kept (privacy: uploads readable without login only through a public usage; ETag and Cache-Control per visibility) |
+| `user/AccountDeletionIT` | kept (privacy: GDPR export, self and ORGA deletion with anonymisation and archive) |
 | `user/AccountFlowIT` | |
 | `user/EmailChangeFlowIT` | |
 | `verification/VerificationApiIT` | |
