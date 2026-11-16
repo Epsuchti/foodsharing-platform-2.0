@@ -277,7 +277,10 @@ export async function fixedOrigin(page: Page): Promise<void> {
 }
 
 export async function overlayOpen(page: Page): Promise<boolean> {
-  return page.locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible, .sn-card:visible').count().then((n) => n > 0);
+  return page
+    .locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible, .p-drawer:visible, .p-overlay-mask:visible, .sn-card:visible')
+    .count()
+    .then((n) => n > 0);
 }
 
 /**
@@ -368,17 +371,46 @@ export interface CheckpointOptions {
 
 /** Hides transient toasts in a capture unless the checkpoint is about one. */
 const HIDE_TOASTS = '[data-testid="shell.toast"] { visibility: hidden !important; }';
+/** Element captures are about the element: the fixed phone tab bar would be drawn over its lower part. */
+const HIDE_TAB_BAR = 'fs-mobile-tab-bar { visibility: hidden !important; }';
+
+/** Height of the app's content: the end of the shell (its padding holds the phone tab bar), else the body. */
+async function contentHeight(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const root = document.querySelector('fs-shell') ?? document.body;
+    return Math.ceil(root.getBoundingClientRect().bottom + window.scrollY);
+  });
+}
+
+/** Moves the pointer off the page, so the last click leaves no hover highlight in the capture. */
+async function releaseHover(page: Page): Promise<void> {
+  await page.mouse.move(-1, -1).catch(() => undefined);
+  await animationsDone(page);
+}
+
 /**
- * Full-page captures on the phone: the fixed tab bar would be drawn where the viewport ended (mid-page). It is put at
- * the end of the document instead, into the room the shell reserves for it.
+ * Times counted from the browser clock ("vor 18 Sekunden", "vor 2 Minuten") depend on how fast the journey ran:
+ * their elements are masked in every capture.
  */
-const TAB_BAR_AT_END =
-  'html { position: relative !important; } fs-mobile-tab-bar { position: absolute !important; }';
+const RELATIVE_TIME = '\\bvor (\\d+|einer|einem) (Sekunden?|Minuten?)\\b|\\bgerade eben\\b|\\bsoeben\\b';
+async function maskRelativeTimes(page: Page): Promise<void> {
+  await page.evaluate(
+    ([pattern, attr]) => {
+      const re = new RegExp(pattern, 'i');
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (node.nodeValue && re.test(node.nodeValue)) node.parentElement?.setAttribute(attr, '');
+      }
+    },
+    [RELATIVE_TIME, CAPTURE_MASK_ATTR] as const,
+  );
+}
 
 /** Runs `capture` with masks painted, toasts hidden (unless `toasts`) and, full-page, the tab bar at the end; all removed afterwards. */
 async function withCaptureStyle<T>(
   page: Page,
-  options: { toasts?: boolean; fullPage?: boolean; mask?: Locator[] },
+  options: { toasts?: boolean; mask?: Locator[]; hideTabBar?: boolean },
   capture: () => Promise<T>,
 ): Promise<T> {
   // Masks are painted by the page itself: Playwright's mask boxes land off their element in full-page phone captures
@@ -386,12 +418,9 @@ async function withCaptureStyle<T>(
   for (const locator of options.mask ?? []) {
     await locator.evaluateAll((nodes, attr) => nodes.forEach((node) => node.setAttribute(attr, '')), CAPTURE_MASK_ATTR);
   }
+  await maskRelativeTimes(page);
   const color = await maskColor(page);
-  const css = [
-    MASK_CSS(color),
-    options.toasts ? '' : HIDE_TOASTS,
-    options.fullPage ? TAB_BAR_AT_END : '',
-  ].join(' ');
+  const css = [MASK_CSS(color), options.toasts ? '' : HIDE_TOASTS, options.hideTabBar ? HIDE_TAB_BAR : ''].join(' ');
   const style = await page.addStyleTag({ content: css });
   try {
     return await capture();
@@ -422,15 +451,38 @@ export async function checkpoint(page: Page, name: string, options: CheckpointOp
     if (!COMPARE_SCREENSHOTS) return;
     await assertInter(page);
     await fixedOrigin(page);
-    // A full-page capture of an open modal shows its backdrop only over the first viewport, and a full-page capture
-    // resizes the viewport (open side menu cards close): overlays are captured as the viewport the user sees.
+    // An open modal, drawer or side menu card is captured as the viewport the user sees (its backdrop only covers
+    // the viewport).
     const fullPage = (options.fullPage ?? true) && !(await overlayOpen(page));
-    // A full-page capture draws the sticky side menu at the page's scroll offset: always capture from the top.
-    if (fullPage) {
-      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-      await animationsDone(page);
+    await releaseHover(page);
+    if (!fullPage) {
+      await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
+      return;
     }
-    await withCaptureStyle(page, { ...options, fullPage }, () => expect(page).toHaveScreenshot(`${name}.png`, { fullPage }));
+    // A full page is captured as one tall viewport: Playwright's full-page capture draws everything sized to the
+    // viewport (side menu, backdrops) and the fixed phone tab bar only over the first 800 px, and its page height
+    // counted invisible overflow (empty strips under the tab bar). The viewport grows to the end of the shell, from
+    // the top of the page; only the height changes.
+    const viewport = page.viewportSize()!;
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    // The shell's "at least one viewport high" rules (main, column, body: 100vh) would grow with the tall viewport and
+    // push the footer and tab bar down by another viewport: they keep the height of the real viewport.
+    const pinVh = await page.addStyleTag({
+      content: `body, fs-shell, fs-shell .shell__col, fs-shell .shell__main { min-height: ${viewport.height}px !important; }`,
+    });
+    try {
+      for (let round = 0; round < 3; round++) {
+        const height = await contentHeight(page);
+        const current = page.viewportSize()!.height;
+        if (Math.abs(height - current) <= 1 || (round > 0 && height <= current)) break;
+        await page.setViewportSize({ width: viewport.width, height: Math.max(height, viewport.height) });
+        await settle(page, { waitForData: false });
+      }
+      await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
+    } finally {
+      await pinVh.evaluate((node) => (node as Element).remove()).catch(() => undefined);
+      await page.setViewportSize(viewport);
+    }
   });
 }
 
@@ -459,7 +511,10 @@ export async function checkpointElement(locator: Locator, name: string, options:
       await settle(page, { waitForData: false });
     }
     try {
-      await withCaptureStyle(page, { toasts: options.toasts, mask: options.mask }, () => expect(locator).toHaveScreenshot(`${name}.png`));
+      await releaseHover(page);
+      await withCaptureStyle(page, { toasts: options.toasts, mask: options.mask, hideTabBar: true }, () =>
+        expect(locator).toHaveScreenshot(`${name}.png`),
+      );
     } finally {
       if (restore) await page.setViewportSize(restore);
     }

@@ -29,7 +29,7 @@ test('a visitor and a member find help in the FAQ, the chapters and the support 
   test.setTimeout(150_000);
   const guest = await as(null);
   const visitor = new Walk(guest, testInfo, 'visitor');
-  const visitorSubject = `Frage zur Registrierung ${Date.now()}`;
+  const visitorSubject = 'Frage zur Registrierung';
 
   await visitor.step('follows an old bookmark to the start page', async () => {
     // decision 172: the team and about pages are gone
@@ -77,7 +77,7 @@ test('a visitor and a member find help in the FAQ, the chapters and the support 
 
   await acceptPendingConsents(apiOf(page));
   const walk = new Walk(page, testInfo, 'member');
-  const memberSubject = `Abholung lässt sich nicht eintragen ${Date.now()}`;
+  const memberSubject = 'Abholung lässt sich nicht eintragen';
 
   await walk.step('rereads the chapters she already knows', async () => {
     await page.goto('/onboarding');

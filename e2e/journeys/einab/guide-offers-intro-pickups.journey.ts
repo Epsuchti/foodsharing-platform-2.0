@@ -61,11 +61,15 @@ test('guide offers online, linked and on-site intro pickups and manages template
     await expect(page.getByTestId('introPickups.form.error')).toBeVisible();
     await checkpoint(page, 'online-form-error');
     await walk.fill(form.getByTestId('introPickups.form.callLink'), 'https://meet.jit.si/foodsharing-einab');
-    const saved = page.waitForResponse((r) => r.request().method() === 'POST' && /\/guide\/intro-pickups$/.test(r.url()));
+    // the new EinAb is the one id that was not listed before (reading the POST answer raced the list's reload)
+    const before = await einabs.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id')));
     await walk.click(page.getByTestId('introPickups.form.save'));
-    onlineId = ((await (await saved).json()) as { id: string }).id;
     await expect(form).toBeHidden();
     await expect(einabs).toHaveCount(12);
+    const after = await einabs.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id')));
+    const added = after.filter((id) => !before.includes(id));
+    expect(added, 'one new EinAb').toHaveLength(1);
+    onlineId = added[0]!;
     const online = page.locator(`[data-testid="introPickups.guide.einab"][data-id="${onlineId}"]`);
     await expect(online).toHaveAttribute('data-category', 'ONLINE');
     await expect(online.getByTestId('introPickups.slot')).toHaveCount(1);

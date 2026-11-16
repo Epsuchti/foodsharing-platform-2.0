@@ -16,8 +16,11 @@ import { Walk } from '../../fixtures/persona';
  */
 test.use({ role: 'jumper' });
 
-/** The Telegram waiting text names the token's expiry time (browser clock). */
-const clockTexts = (page: Page) => [page.getByTestId('notifications.telegram.waiting'), page.getByTestId('notifications.telegram.token')];
+/** Run-dependent parts of the Telegram waiting card: the random token and the line with its expiry time. */
+const clockTexts = (page: Page) => [
+  page.getByTestId('notifications.telegram.token'),
+  page.getByTestId('notifications.telegram.waiting').locator('p.muted').last(),
+];
 
 test('jumper turns on push and Telegram, sets pickup channels and turns them off again @N4 @N5 @A10', async ({
   page,
