@@ -23,6 +23,7 @@ import network.foodsharing.config.TraceIdFilter;
 import network.foodsharing.testsupport.AppContextTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.yaml.snakeyaml.Yaml;
 import tools.jackson.databind.JsonNode;
@@ -32,7 +33,8 @@ import tools.jackson.databind.json.JsonMapper;
  * D19.3: every metric used by {@code server/deploy/monitoring/alerts.yml} and {@code grafana-dashboard.json} exists in
  * a real {@code /actuator/prometheus} scrape, the files are well-formed, and the operations events reach the scrape.
  * Also the packaged app reports its build version without login (D4.1, D19.1: the version health group and info agree
- * with app-info), and API errors carry the trace id of the response header (D5.1).
+ * with app-info), and API errors carry the trace id of the response header (D5.1). AD1 (plan §14.4): Prometheus is
+ * open without login, every other actuator endpoint stays closed.
  */
 @AppContextTest
 class MetricsContractTest {
@@ -133,6 +135,27 @@ class MetricsContractTest {
                 .andReturn().getResponse();
         JsonNode error = JsonMapper.builder().build().readTree(response.getContentAsString());
         assertThat(error.path("traceId").asString()).isEqualTo(response.getHeader(TraceIdFilter.HEADER));
+    }
+
+    /** AD1: Prometheus answers without login in its text format, with the HTTP (per URI) and JVM metrics. */
+    @Test
+    void prometheusExposesHttpAndJvmMetricsWithoutLogin() throws Exception {
+        mvc.perform(get("/api/public/app-info")).andExpect(status().isOk());
+        var response = mvc.perform(get("/actuator/prometheus").accept(MediaType.TEXT_PLAIN))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        assertThat(response.getContentType()).containsAnyOf("text/plain", "openmetrics");
+        String body = response.getContentAsString(StandardCharsets.UTF_8);
+        assertThat(body).contains("http_server_requests_seconds_count", "jvm_memory_used_bytes");
+        assertThat(body).containsPattern("uri=\"/api/public/app-info\"");
+    }
+
+    /** AD1: every other actuator endpoint stays closed. */
+    @Test
+    void otherActuatorEndpointsAreNotPublic() throws Exception {
+        for (String path : new String[] {"/actuator/env", "/actuator/beans", "/actuator/loggers"}) {
+            int status = mvc.perform(get(path)).andReturn().getResponse().getStatus();
+            assertThat(status).as(path).isIn(401, 403, 404);
+        }
     }
 
     private String scrape() throws Exception {

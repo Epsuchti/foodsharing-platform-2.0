@@ -26,7 +26,10 @@ import org.springframework.context.annotation.Import;
  * The one bean set of all {@link JpaSliceTest}s without {@code @MockitoBean}s or own properties (docs/conventions.md
  * A60): they share a single Spring context and H2 database instead of starting one each. Every test still runs in its
  * own rolled-back transaction. Add the services a new slice test needs here rather than a class-specific
- * {@code @Import}; no event listeners that react to recorded events (the slices only record them).
+ * {@code @Import}; no event listeners that react to recorded events (the slices only record them). A test that needs
+ * mocked collaborators builds its service with {@code new} from the shared beans and plain Mockito mocks (for example
+ * {@code BasketServiceTest}) instead of {@code @MockitoBean}, which would start a context of its own. Put a changed
+ * {@code MutableClock} back to {@code SEED_NOW} after each test.
  */
 @TestConfiguration(proxyBeanMethods = false)
 @Import({RegionSliceConfig.class, AuthSessionService.class, SessionCookieWriter.class, IpHasher.class,

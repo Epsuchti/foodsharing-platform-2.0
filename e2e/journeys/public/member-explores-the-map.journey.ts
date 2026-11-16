@@ -12,8 +12,8 @@ import { Walk, isPhone } from '../../fixtures/persona';
  * self-hosted vector basemap (MT1, decision 159; checkpoints use the raster stub, so this is asserted, not captured).
  * The region's ambassador sees its members on the map while MAP_USERS is on, and not after orga switched it off.
  *
- * Rules behind it (unit): MarkerServiceTest (store status/help and user filters), UserMarkersPermissionTest
- * (anonymous, plain members, region admins, rounding), FeatureToggleServiceTest (404 when off), map-page.spec (layers
+ * Rules behind it (unit): MarkerServiceTest (store status/help and user filters; member layer: plain members,
+ * region admins, rounding), MapControllerTest (anonymous), FeatureToggleServiceTest (404 when off), map-page.spec (layers
  * per role, member layer only with MAP_USERS, deep link written debounced with replaceUrl, "near me" never in the URL,
  * failed layer + retry), map.util.spec (layers in localStorage, filters), map-view-query.spec (link parsing, invalid
  * links), basemap.spec (dark flavour, labels per language, own origin), MapSearchServiceTest; the range request

@@ -355,8 +355,38 @@ A removed test without a row here is a bug in the rework.
 
 ## Slow Spring-context unit classes (over 10 s)
 
+Fork seconds from CI run 43465186721 (surefire, 4 forks); 1192 fork-seconds for the whole unit phase. A class that is
+first in its fork pays the boot of the context it uses, so shared-context classes appear here by chance.
+
 | Class | Fork seconds | Now |
 |---|---|---|
+| `notification/NotificationServiceTest` | 76.2 | shared slice: built from `SharedJpaSliceConfig` beans, mail outbox a plain mock |
+| `notification/service/BellServiceTest` | 75.1 | kept: already on the shared slice (pays its boot) |
+| `map/UserMarkersPermissionTest` | 74.6 | deleted (own seeded `e2e` context) → unit `map/MarkerServiceTest#theMemberLayerIsForRegionAdministratorsWithRoundedPositions` (404, 403, rounding), `map/MapControllerTest#anonymousCallsNeedAuthentication` (401), `map/BubbleServiceTest` (user bubble), `region/PermissionServiceMatrixTest#scopedRoleMatrix` (who administers a region) |
+| `basket/BasketRequestRateLimitTest` | 70.9 | deleted (own property context) → `basket/BasketServiceTest#theThirdRequestWithinAnHourIsRejected` (limited instance) |
+| `basket/BasketServiceTest` | 69.2 | shared slice: built from shared beans, other modules plain mocks |
+| `ModulesTest` | 69.0 | kept (guardrail, no Spring context): direct dependencies computed once per class, about 18 s → 1 s locally |
+| `persona/PersonaPanelWithoutPasswordTest` | 54.5 | deleted (own `test,staging` context) → plain `persona/PersonaPanelConditionTest` (condition, no persona beans via `ApplicationContextRunner`, app-info flags); 404 without beans: `ProdLikeProfileTest#noPersonaPanelNoBannerNoNoindex` |
+| `persona/PersonaPanelStagingTest` | 50.8 | kept: the one staging + seed context (decision 173) |
+| `config/SecurityHeadersTest` | 38.1 | shared full context: `@AppContextTest` (with `ProdLikeProfileTest`, `MetricsContractTest`; `OpsEndpointsTest` (under 10 s, same context) merged into `MetricsContractTest`) |
+| `ArchitectureTest` | 32.4 | kept (guardrail, no Spring context) |
+| `ProdLikeProfileTest` | 30.1 | shared full context: `@AppContextTest` |
+| `auth/service/AuthRecordsCleanupTest` | 28.2 | kept: already on the shared slice (pays its boot; the test itself takes 0.1 s) |
+| `mailbox/service/IncomingMailProcessorTest` | 28.1 | shared slice: built with `MailboxTestServices`, region/permission/outbox/realtime/notification plain mocks |
+| `common/metrics/MetricsContractTest` | 26.6 | shared full context: `@AppContextTest` |
+| `mailbox/service/MailServiceTest` | 23.3 | shared slice: built with `MailboxTestServices` |
+| `StableOrderTest` | 22.0 | kept (guardrail, no Spring context) |
+| `region/RegionAdminServiceTest` | 21.7 | kept: already on the shared slice (pays its boot) |
+| `mailbox/service/MailboxServiceTest` | 21.3 | shared slice: built with `MailboxTestServices` |
+| `notification/web/BellsControllerTest` | 18.6 | kept: `*ControllerTest` slice (plan: kept) |
+| `upload/service/DbUploadStorageTest` | 17.4 | shared slice (upload beans added to `SharedJpaSliceConfig`) |
+| `messaging/MessagingRateLimitTest` | 17.2 | deleted (own property context) → `messaging/MessagingServiceTest#theThirdMessageWithinAMinuteIsRejected` (limited instance) |
+| `upload/UploadServiceTest` | 16.6 | shared slice: built from shared beans with the test module's access rule |
+| `upload/service/UploadDiskImportTest` | 16.4 | shared slice |
+| `content/LegalServiceTest` | 16.0 | shared slice (legal and content services added to `SharedJpaSliceConfig`) |
+| `messaging/MessagingServiceTest` | 15.5 | shared slice: built from shared beans, notifications/realtime/moderation/settings plain mocks |
+| `OpenApiContractTest` | 10.3 | kept (guardrail, no Spring context) |
+| `map/MapControllerTest` | 10.1 | kept: `*ControllerTest` slice (plan: kept) |
 
 ## Client specs (`client/src/app/**/*.spec.ts`)
 
