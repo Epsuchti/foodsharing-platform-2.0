@@ -1,22 +1,33 @@
 package network.foodsharing.map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
+import network.foodsharing.admin.domain.FeatureToggle;
+import network.foodsharing.admin.service.FeatureToggleService;
+import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
+import network.foodsharing.common.error.ApiException;
 import network.foodsharing.map.domain.StoreMarkerHelp;
 import network.foodsharing.map.domain.StoreMarkerStatus;
 import network.foodsharing.map.domain.UserMarkerMember;
 import network.foodsharing.map.domain.UserMarkerRole;
 import network.foodsharing.map.service.MarkerService;
 import network.foodsharing.map.service.MarkerService.StoreMarker;
+import network.foodsharing.region.service.RegionService;
 import network.foodsharing.store.domain.CooperationStatus;
 import network.foodsharing.store.domain.TeamSearchStatus;
 import network.foodsharing.user.domain.User;
+import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.Test;
 
-/** M1 marker filters and rounding. */
+/** M1 marker filters and rounding; the member layer only while MAP_USERS is on (C11). */
 class MarkerServiceTest {
 
     private static StoreMarker store(CooperationStatus status, TeamSearchStatus team) {
@@ -58,5 +69,22 @@ class MarkerServiceTest {
         assertThat(MarkerService.matches(user, region, null, null, UserMarkerMember.OTHER)).isFalse();
         assertThat(MarkerService.matches(user, UUID.randomUUID(), UserMarkerRole.ALL, null, UserMarkerMember.OTHER))
                 .isTrue();
+    }
+
+    @Test
+    void theMemberLayerAnswers404WhileMapUsersIsOff() {
+        FeatureToggleService toggles = mock(FeatureToggleService.class);
+        doThrow(ApiException.notFound(ApiErrorCode.FEATURE_DISABLED)).when(toggles)
+                .requireEnabled(FeatureToggle.MAP_USERS);
+        RegionService regions = mock(RegionService.class);
+        UserService users = mock(UserService.class);
+        MarkerService service = new MarkerService(null, null, null, null, regions, users, null, null,
+                Clock.systemUTC(), toggles, null);
+        assertThatThrownBy(() -> service.users(UUID.randomUUID(), null, null, null))
+                .isInstanceOfSatisfying(ApiException.class, ex -> {
+                    assertThat(ex.getCode()).isEqualTo(ApiErrorCode.FEATURE_DISABLED);
+                    assertThat(ex.getStatus().value()).isEqualTo(404);
+                });
+        verifyNoInteractions(regions, users);
     }
 }
