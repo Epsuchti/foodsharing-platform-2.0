@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -28,28 +29,27 @@ import network.foodsharing.notification.service.NotificationService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
-import network.foodsharing.upload.repository.UploadBlobRepository;
-import network.foodsharing.upload.service.DbUploadStorage;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
-import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** MB5/A35: one test per .eml fixture (folder, flags, attachments, unknown recipients, bounces, dedupe). */
 @JpaSliceTest
-@Import({IncomingMailProcessor.class, MailService.class, MailboxService.class, MailboxAccessService.class,
-        MailAttachmentStore.class, MailHtmlSanitizer.class, UserService.class, UploadService.class,
-        DbUploadStorage.class, UploadBlobRepository.class})
+@Import(SharedJpaSliceConfig.class)
 class IncomingMailProcessorTest {
 
     @Autowired
+    private ApplicationContext context;
+    @Autowired
+    private UploadService uploads;
     private IncomingMailProcessor processor;
     @Autowired
     private MailboxRepository mailboxes;
@@ -59,16 +59,11 @@ class IncomingMailProcessorTest {
     private MailAttachmentRepository attachments;
     @Autowired
     private UserRepository users;
-    @MockitoBean
-    private RegionService regions;
-    @MockitoBean
-    private PermissionService permissions;
-    @MockitoBean
-    private MailOutboxService outbox;
-    @MockitoBean
-    private RealtimePublisher realtime;
-    @MockitoBean
-    private NotificationService notifications;
+    private final RegionService regions = mock(RegionService.class);
+    private final PermissionService permissions = mock(PermissionService.class);
+    private final MailOutboxService outbox = mock(MailOutboxService.class);
+    private final RealtimePublisher realtime = mock(RealtimePublisher.class);
+    private final NotificationService notifications = mock(NotificationService.class);
 
     private Mailbox zuerich;
     private Mailbox welcome;
@@ -76,6 +71,8 @@ class IncomingMailProcessorTest {
 
     @BeforeEach
     void setUp() {
+        processor = new MailboxTestServices(context, regions, permissions, uploads, outbox, realtime, notifications)
+                .incoming;
         reader = users.saveAndFlush(TestUsers.user("in-reader@test.local", Role.AMBASSADOR)).getId();
         zuerich = mailbox("zuerich");
         welcome = mailbox("welcome-zuerich");

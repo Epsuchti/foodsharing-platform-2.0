@@ -4,22 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
+import network.foodsharing.testsupport.AppContextTest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /** A58: CSP without inline scripts, Permissions-Policy, HSTS on HTTPS only, secure cookies in prod. */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@AppContextTest
 class SecurityHeadersTest {
 
     @Autowired

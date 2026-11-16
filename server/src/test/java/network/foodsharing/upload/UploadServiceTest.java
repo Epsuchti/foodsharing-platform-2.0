@@ -5,17 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
+import network.foodsharing.config.AppProperties;
+import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.config.MutableClock;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.upload.domain.Upload;
 import network.foodsharing.upload.repository.UploadRepository;
 import network.foodsharing.upload.repository.UploadBlobRepository;
-import network.foodsharing.upload.service.DbUploadStorage;
 import network.foodsharing.upload.service.UploadAccessRule;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.upload.service.UploadUsage;
@@ -23,8 +26,6 @@ import network.foodsharing.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -32,36 +33,37 @@ import org.springframework.context.annotation.Import;
  * database (decision 158): written with the row, rolled back with it, deleted with it.
  */
 @JpaSliceTest
-@Import({UploadService.class, DbUploadStorage.class, UploadBlobRepository.class, UploadServiceTest.Rules.class})
+@Import(SharedJpaSliceConfig.class)
 class UploadServiceTest {
 
     static final UUID READABLE_OWNER = UUID.fromString("00000000-0000-0000-0000-00000000abcd");
     static final UUID GONE_OWNER = UUID.fromString("00000000-0000-0000-0000-00000000dead");
 
-    @TestConfiguration(proxyBeanMethods = false)
-    static class Rules {
-        @Bean
-        UploadAccessRule testRule() {
-            return new UploadAccessRule() {
-                @Override
-                public String module() {
-                    return "test";
-                }
-
-                @Override
-                public boolean mayRead(UUID userId, UUID usageOwnerId) {
-                    return READABLE_OWNER.equals(usageOwnerId);
-                }
-
-                @Override
-                public boolean exists(UUID usageOwnerId) {
-                    return !GONE_OWNER.equals(usageOwnerId);
-                }
-            };
+    /** The claiming module "test": readable for {@link #READABLE_OWNER}, gone for {@link #GONE_OWNER}. */
+    private static final UploadAccessRule TEST_RULE = new UploadAccessRule() {
+        @Override
+        public String module() {
+            return "test";
         }
-    }
+
+        @Override
+        public boolean mayRead(UUID userId, UUID usageOwnerId) {
+            return READABLE_OWNER.equals(usageOwnerId);
+        }
+
+        @Override
+        public boolean exists(UUID usageOwnerId) {
+            return !GONE_OWNER.equals(usageOwnerId);
+        }
+    };
 
     @Autowired
+    private HistoryService history;
+
+    @Autowired
+    private AppProperties properties;
+
+    /** The shared slice's service with only the test module's access rule. */
     private UploadService uploads;
 
     @Autowired
@@ -87,6 +89,7 @@ class UploadServiceTest {
 
     @BeforeEach
     void setUp() {
+        uploads = new UploadService(repository, storage, history, properties, clock, List.of(TEST_RULE));
         me = users.saveAndFlush(TestUsers.user("up-me@test.local", Role.FOODSAVER)).getId();
         other = users.saveAndFlush(TestUsers.user("up-other@test.local", Role.FOODSAVER)).getId();
     }

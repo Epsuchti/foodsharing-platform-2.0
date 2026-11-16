@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import network.foodsharing.admin.service.FeatureToggleService;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.api.model.Role;
 import network.foodsharing.basket.domain.Basket;
@@ -19,18 +21,27 @@ import network.foodsharing.basket.domain.BasketKind;
 import network.foodsharing.basket.domain.BasketLocationType;
 import network.foodsharing.basket.domain.BasketRequestStatus;
 import network.foodsharing.basket.domain.BasketStatus;
+import network.foodsharing.basket.repository.BasketGroceryRepository;
+import network.foodsharing.basket.repository.BasketKindEntryRepository;
 import network.foodsharing.basket.repository.BasketRepository;
+import network.foodsharing.basket.repository.BasketRequestEntryRepository;
 import network.foodsharing.basket.service.BasketQueryService;
 import network.foodsharing.basket.service.BasketRules;
 import network.foodsharing.basket.service.BasketService;
 import network.foodsharing.basket.service.BasketService.BasketInput;
 import network.foodsharing.common.error.ApiException;
+import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.MutableClock;
+import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
+import network.foodsharing.security.CurrentActorService;
+import network.foodsharing.security.PermissionService;
 import network.foodsharing.store.service.StoreCategoryService;
 import network.foodsharing.store.service.TeamChatPort;
+import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.upload.service.UploadService;
@@ -42,21 +53,33 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.HttpStatus;
 
-/** B1/B2: basket validation, contact rules, requests, answers, nearby, expiry and permissions. */
+/** B1/B2: basket validation, contact rules, requests, answers, nearby, expiry, permissions and the request limit. */
 @JpaSliceTest
-@Import({BasketService.class, BasketQueryService.class})
+@Import(SharedJpaSliceConfig.class)
 class BasketServiceTest {
 
     @Autowired
-    private BasketService service;
-
-    @Autowired
-    private BasketQueryService queries;
-
-    @Autowired
     private BasketRepository baskets;
+
+    @Autowired
+    private BasketGroceryRepository basketGroceries;
+
+    @Autowired
+    private BasketKindEntryRepository kinds;
+
+    @Autowired
+    private BasketRequestEntryRepository requests;
+
+    @Autowired
+    private CurrentActorService actors;
+
+    @Autowired
+    private PermissionService permissions;
+
+    @Autowired
+    private HistoryService history;
 
     @Autowired
     private UserRepository users;
@@ -64,20 +87,15 @@ class BasketServiceTest {
     @Autowired
     private MutableClock clock;
 
-    @MockitoBean
-    private StoreCategoryService groceries;
+    private final StoreCategoryService groceries = mock(StoreCategoryService.class);
+    private final UploadService uploads = mock(UploadService.class);
+    private final NotificationService notifications = mock(NotificationService.class);
+    private final TeamChatPort chat = mock(TeamChatPort.class);
+    private final FeatureToggleService toggles = mock(FeatureToggleService.class);
 
-    @MockitoBean
-    private UploadService uploads;
-
-    @MockitoBean
-    private NotificationService notifications;
-
-    @MockitoBean
-    private TeamChatPort chat;
-
-    @MockitoBean
-    private network.foodsharing.admin.service.FeatureToggleService toggles;
+    /** The real basket services on the shared slice; the other modules are mocked. */
+    private BasketService service;
+    private BasketQueryService queries;
 
     private User owner;
     private User other;
@@ -85,6 +103,9 @@ class BasketServiceTest {
 
     @BeforeEach
     void setUp() {
+        service = service(1000);
+        queries = new BasketQueryService(baskets, basketGroceries, kinds, requests, actors, permissions, groceries,
+                clock, toggles);
         owner = TestUsers.user("owner@test.local", Role.FOODSAVER);
         owner.setLatitude(47.3891);
         owner.setLongitude(8.5487);
@@ -97,6 +118,14 @@ class BasketServiceTest {
     @AfterEach
     void tearDown() {
         TestAuth.clear();
+        clock.fixAt(FixedClockConfig.SEED_NOW);
+    }
+
+    private BasketService service(int maxRequestsPerHour) {
+        AppProperties properties = new AppProperties();
+        properties.getBaskets().setMaxRequestsPerHour(maxRequestsPerHour);
+        return new BasketService(baskets, basketGroceries, kinds, requests, actors, permissions, groceries, uploads,
+                notifications, chat, history, clock, toggles, properties);
     }
 
     private static BasketInput input(BasketLocationType type, Double lat, Double lon, boolean message, boolean phone,
@@ -315,5 +344,31 @@ class BasketServiceTest {
         // READ is still open: the requester may withdraw, the owner may answer
         service.answer(basket.getId(), other.getId(), BasketRequestStatus.DENIED);
         assertThat(service.markRequestsRead(basket.getId())).isZero();
+    }
+
+    /** Basket requests per user and hour are limited (429 BASKET_REQUEST_RATE_LIMITED). */
+    @Test
+    void theThirdRequestWithinAnHourIsRejected() {
+        BasketService limited = service(2);
+        TestAuth.login(TestUsers.principal(owner));
+        List<Basket> created = List.of(rateLimitBasket(limited), rateLimitBasket(limited), rateLimitBasket(limited),
+                rateLimitBasket(limited));
+
+        TestAuth.login(TestUsers.principal(other));
+        limited.request(created.get(0).getId(), null);
+        limited.request(created.get(1).getId(), null);
+        assertThatThrownBy(() -> limited.request(created.get(2).getId(), null))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo(ApiErrorCode.BASKET_REQUEST_RATE_LIMITED);
+                    assertThat(e.getStatus()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+                });
+
+        clock.fixAt(clock.instant().plus(Duration.ofMinutes(61)));
+        assertThat(limited.request(created.get(3).getId(), null)).isNotNull();
+    }
+
+    private static Basket rateLimitBasket(BasketService limited) {
+        return limited.create(new BasketInput("Brot", BasketLocationType.CUSTOM, true, false, false, null, 500, null,
+                List.of(BasketKind.BAKED_GOODS), 47.5, 8.72, null, null, null));
     }
 }
