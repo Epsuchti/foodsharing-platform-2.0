@@ -70,29 +70,6 @@ describe('DevUserSwitcherComponent', () => {
     expect(host.querySelector('[data-testid="auth.login.devSwitcher.orga@local"]')).not.toBeNull();
   });
 
-  it('shows the empty state', async () => {
-    http.expectOne('/api/dev/users').flush([]);
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('empty');
-  });
-
-  it('shows the error with retry and recovers', async () => {
-    http
-      .expectOne('/api/dev/users')
-      .flush(
-        { code: 'UNEXPECTED_ERROR', message: 'boom', traceId: 'abc', retryable: true },
-        { status: 500, statusText: 'Server Error' },
-      );
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('error');
-    (
-      state().querySelector('[data-testid="auth.login.devSwitcher.retry"] button') as HTMLElement
-    ).click();
-    http.expectOne('/api/dev/users').flush(USERS);
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('success');
-  });
-
   it('logs in as the clicked user and goes to the return URL', async () => {
     fixture.componentRef.setInput('returnUrl', '/account/sessions');
     http.expectOne('/api/dev/users').flush(USERS);

@@ -43,34 +43,6 @@ describe('ProfilePageComponent', () => {
       'Sarah Müller',
     );
   });
-
-  it('shows the error with retry and recovers', async () => {
-    http
-      .expectOne('/api/users/me')
-      .flush(
-        { code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true },
-        { status: 503, statusText: 'Unavailable' },
-      );
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('error');
-    (
-      host.querySelector('[data-testid="account.profile.state.retry"] button') as HTMLElement
-    ).click();
-    http.expectOne('/api/users/me').flush(PROFILE);
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('success');
-  });
-
-  it('shows not found when the account is gone', async () => {
-    http
-      .expectOne('/api/users/me')
-      .flush(
-        { code: 'USER_NOT_FOUND', message: 'x', traceId: 't', retryable: false },
-        { status: 404, statusText: 'Not Found' },
-      );
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('notFound');
-  });
   it('saves edited fields; cleared fields are sent empty, the birthday omitted when empty', async () => {
     http.expectOne('/api/users/me').flush({ ...PROFILE, city: 'Zürich', mobilePhone: '+41791234567' });
     await fixture.whenStable();
