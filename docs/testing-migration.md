@@ -286,9 +286,9 @@ A removed test without a row here is a bug in the rework.
 | `admin/AdminOperationsIT` | |
 | `admin/AdminSettingsIT` | |
 | `auth/GoogleLoginIT` | kept (security: the production `oauth2Login` client config against an independent OIDC stub: callback, `fs_session`, account creation and linking by verified email) |
-| `auth/MagicLinkFlowIT` | |
-| `auth/PasskeyRepositoriesIT` | |
-| `auth/SessionCapabilitiesIT` | |
+| `auth/MagicLinkFlowIT` | unit `MagicLinkServiceTest` (hash only, language, guards, single use, unknown/expired tokens), `AccountServiceTest` (identity linking, blocked domains), `LoginRateLimiterTest`, `ReturnUrlValidatorTest`, `MailTemplateServiceTest` (magic-link mail in every language), `ApiExceptionHandlerTest` (429 Retry-After); slice `CsrfCookieTest` (no CSRF token: 403); journey `journeys/account/sign-up-and-log-in.journey.ts` (request, mail, verify, session, reused link refused) |
+| `auth/PasskeyRepositoriesIT` | unit `PasskeyCredentialAdaptersTest` (every credential field round trip, user handles), `PasskeyServiceTest` (registration needs a session and the own handle, default label, use updates counter, history), `AuthMethodsServiceTest` (rename, delete, never the last login method); journey `journeys/account/passkey-login.journey.ts`; schema on PostgreSQL: kept `LiquibasePostgresIT` |
+| `auth/SessionCapabilitiesIT` | unit `AuthMapperCapabilitiesTest` (enricher capabilities reach SessionInfo, a failing enricher drops only its own), `RegionCapabilitiesTest`, `ContentCapabilitiesTest`, `NewsletterCapabilityTest`, `QuizEditorCapabilityTest`; `ApiSmokeIT` (`sessionCapabilitiesFollowTheSeedRoles`: the same four seed users) |
 | `auth/WebAuthnEndpointsIT` | kept (security: WebAuthn endpoints in the filter chain: registration options need `fs_session`, authentication options public, bad assertion JSON 401, credential DELETE denied, CSRF) |
 | `automation/AdvertFlowIT` | |
 | `automation/GapGroupMigrationIT` | kept (Liquibase: changelog 182 data migration, no Spring context) |
@@ -301,12 +301,12 @@ A removed test without a row here is a bug in the rework.
 | `common/realtime/WebSocketHandshakeIT` | kept (security: cookie-authenticated handshake, subscription guard, per-user delivery) |
 | `config/ForwardedHeadersIT` | kept (security: forwarded headers only from trusted proxies, on a real Tomcat) |
 | `config/StaticResourceTilesIT` | kept (MT2: range requests 206, media type, no compression, caching on a real Tomcat) |
-| `config/StaticResourceTilesOffIT` | |
+| `config/StaticResourceTilesOffIT` | unit `StaticResourceConfigTilesTest` (no `/tiles/**` mapping without `app.map.tiles-dir`); slice `SpaForwardingControllerTest` (the SPA never answers `/tiles`); kept `StaticResourceTilesIT` |
 | `content/BlogFlowIT` | |
 | `content/ContentApiIT` | |
 | `dev/service/AuthSeedContractIT` | kept (seed: auth seed files against the column contract, no Spring context) |
 | `dev/service/SeedResetServiceIT` | kept (seed: reset restores every table, mails and clock; every journey relies on it) |
-| `dev/web/FakeOidcFlowIT` | |
+| `dev/web/FakeOidcFlowIT` | unit `FakeOidcProviderTest` (discovery, seed accounts, single-use code, RS256 id token checked with the JWKS, userinfo, error codes), `FakeOidcAuthorizeTest` (foreign redirect URIs refused, cancel, new-user code); journey `journeys/account/sign-up-and-log-in.journey.ts` (browser round trip through the fake provider); dropped: rendering of the dev account buttons |
 | `event/EventFlowIT` | |
 | `forum/ForumFlowIT` | |
 | `fsp/FspCleaningFlowIT` | |
