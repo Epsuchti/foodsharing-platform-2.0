@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { Language, Role, Theme, UnitType } from '../../api';
 import { SessionService } from '../auth/session.service';
+import { RegionSwitcherComponent } from '../../layout/region-switcher.component';
 import { DateTimeFormatter } from '../dates/date-time.pipe';
 import { provideDataStateTesting } from '../testing/data-state-testing';
 import { REGION_STORAGE_KEY, RegionContextService } from './region-context.service';
@@ -14,6 +15,7 @@ class BlankComponent {}
 const ZH = '00000010-0001-4000-8000-000000000040';
 const WT = '00000010-0001-4000-8000-000000000041';
 const BERLIN = '00000010-0001-4000-8000-000000000060';
+const GROUP = '00000011-0001-4000-8000-000000000001';
 
 describe('RegionContextService (A15)', () => {
   let context: RegionContextService;
@@ -63,5 +65,25 @@ describe('RegionContextService (A15)', () => {
     expect(context.timeZone()).toBe('Europe/Lisbon');
     const formatter = TestBed.inject(DateTimeFormatter);
     expect(formatter.format('2026-11-02T09:00:00Z', 'time', context.timeZone())).toBe('09:00');
+  });
+
+  it('hides the region switcher without regions; working groups alone do not count (D4.3)', () => {
+    const session = TestBed.inject(SessionService);
+    const user = session.session()!.user!;
+    const switcher = () => {
+      const fixture = TestBed.createComponent(RegionSwitcherComponent);
+      fixture.detectChanges();
+      return (fixture.nativeElement as HTMLElement).querySelector('[data-testid="shell.regionSwitcher"]');
+    };
+    expect(switcher()).not.toBeNull();
+
+    session.applySession({
+      authenticated: true,
+      permissions: [],
+      user,
+      units: [{ id: GROUP, name: 'Betriebskoordination', slug: 'bk', type: UnitType.WorkingGroup, member: true, admin: true, homeRegion: false }],
+    });
+    expect(context.regions()).toEqual([]);
+    expect(switcher()).toBeNull();
   });
 });

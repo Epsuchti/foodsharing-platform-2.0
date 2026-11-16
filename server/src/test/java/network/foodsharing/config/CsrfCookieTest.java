@@ -81,4 +81,23 @@ class CsrfCookieTest {
                 .andExpect(status().isNoContent());
         verify(sessionService).logout(any());
     }
+
+    /** D8.4: the token stays the same for the session: no new cookie per request, one token for many mutations. */
+    @Test
+    void theCsrfTokenStaysStableAcrossRequestsAndMutations() throws Exception {
+        Cookie token = mvc.perform(get("/api/auth/session")).andExpect(status().isOk()).andReturn()
+                .getResponse().getCookie("XSRF-TOKEN");
+        assertThat(token).isNotNull();
+
+        for (int i = 0; i < 2; i++) {
+            MvcResult again = mvc.perform(get("/api/auth/session").cookie(token)).andExpect(status().isOk()).andReturn();
+            assertThat(again.getResponse().getCookie("XSRF-TOKEN")).as("no new token cookie").isNull();
+        }
+        for (int i = 0; i < 2; i++) {
+            MvcResult mutation = mvc.perform(post("/api/auth/logout").cookie(token)
+                            .header("X-XSRF-TOKEN", token.getValue()))
+                    .andExpect(status().isNoContent()).andReturn();
+            assertThat(mutation.getResponse().getCookie("XSRF-TOKEN")).as("no new token cookie").isNull();
+        }
+    }
 }
