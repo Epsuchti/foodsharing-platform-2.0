@@ -18,5 +18,24 @@
   "PU10": "server/src/test/java/network/foodsharing/pickup/service/PickupMoveTest.java",
   "Q2": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
   "S3": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
-  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts"
+  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts",
+  "D4.1": "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java",
+  "D4.2": "server/src/test/java/network/foodsharing/LocalProfileSmokeIT.java",
+  "D5.1": [
+    "server/src/test/java/network/foodsharing/OpenApiContractTest.java",
+    "server/src/test/java/network/foodsharing/common/web/PublicControllerTest.java",
+    "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java"
+  ],
+  "D7.1": [
+    "server/src/test/java/network/foodsharing/LiquibasePostgresIT.java",
+    "server/src/test/java/network/foodsharing/LocalProfileSmokeIT.java"
+  ],
+  "D7.2": "server/src/test/java/network/foodsharing/LocalProfileSmokeIT.java",
+  "D16.1": [
+    "server/src/test/java/network/foodsharing/region/RegionsCsvImportZuerichIT.java",
+    "server/src/test/java/network/foodsharing/region/ZuerichRegionsFileTest.java"
+  ],
+  "D16.3": "server/src/test/java/network/foodsharing/intropickup/PastImportZuerichIT.java",
+  "D19.1": "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java",
+  "D19.3": "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java"
 }
