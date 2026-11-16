@@ -281,10 +281,10 @@ A removed test without a row here is a bug in the rework.
 | `LocalProfileSmokeIT` | kept (H2 seed boot of the `local` profile, seed users, dev beans) |
 | `QueryCountIT` | kept (N+1 guard) |
 | `StagingSeedOnExistingSchemaPostgresIT` | kept (PostgreSQL: decision 173 seed on an existing schema) |
-| `achievement/AchievementFlowIT` | |
+| `achievement/AchievementFlowIT` | unit `AchievementServiceTest` (award rules, never to oneself, recipient must be a member, OVERRIDE/MULTIPLE, revoke, auto award, bells), `AchievementVisibilityTest`, `AchievementPermissionServiceTest` (global ORGA only, regional by region admins), `AchievementListAccessTest` (region list members only, HIDDEN for admins), `AutoAwardListenerTest`; journey `journeys/account/achievements-and-notes.journey.ts`; `ApiSmokeIT` (AchievementsController) |
 | `activity/ActivitySourcesIT` | kept (privacy: the JPQL `ForumPostRepository.feed` alone decides which forum posts reach a feed: ambassador forum only for region admins, hidden/deleted posts excluded, member regions only; no unit test can prove a query) |
-| `admin/AdminOperationsIT` | |
-| `admin/AdminSettingsIT` | |
+| `admin/AdminOperationsIT` | unit `AdminOperationsServiceTest` (run now MANUAL with actor and history, unknown job 404), `AdminIntegrationsControllerAccessTest` (integrations, probe, test ORGA only), `CircuitBreakerTest`; slice `AdminJobsControllerTest`; journey `journeys/orga/watch-the-operations.journey.ts`; `ApiSmokeIT` (AdminJobsController, AdminIntegrationsController) |
+| `admin/AdminSettingsIT` | unit `FeatureToggleServiceTest` (FEATURE_DISABLED, unknown key, history), `ConfigurationServiceTest`, `AdminSettingsAccessTest` (ORGA only, audit values, upload admin paging and delete), `BlocklistAdminServiceTest` (blocklist, IP and rate-limit blocks ORGA only, lift, history), `EmailBlocklistServiceTest`, `IpBlockServiceTest`, `RateLimitBlockRegistryTest`, `DonationSettingsServiceTest`; journeys `orga/pause-a-feature`, `orga/block-spam-sign-ups`, `orga/run-donation-and-petition-campaigns`, `orga/watch-the-operations`; `ApiSmokeIT` (AdminSettingsController, AdminUploadsController, PublicSettingsController); dropped: seed counts (toggles, blocklist entries) |
 | `auth/GoogleLoginIT` | kept (security: the production `oauth2Login` client config against an independent OIDC stub: callback, `fs_session`, account creation and linking by verified email) |
 | `auth/MagicLinkFlowIT` | unit `MagicLinkServiceTest` (hash only, language, guards, single use, unknown/expired tokens), `AccountServiceTest` (identity linking, blocked domains), `LoginRateLimiterTest`, `ReturnUrlValidatorTest`, `MailTemplateServiceTest` (magic-link mail in every language), `ApiExceptionHandlerTest` (429 Retry-After); slice `CsrfCookieTest` (no CSRF token: 403); journey `journeys/account/sign-up-and-log-in.journey.ts` (request, mail, verify, session, reused link refused) |
 | `auth/PasskeyRepositoriesIT` | unit `PasskeyCredentialAdaptersTest` (every credential field round trip, user handles), `PasskeyServiceTest` (registration needs a session and the own handle, default label, use updates counter, history), `AuthMethodsServiceTest` (rename, delete, never the last login method); journey `journeys/account/passkey-login.journey.ts`; schema on PostgreSQL: kept `LiquibasePostgresIT` |
@@ -295,15 +295,15 @@ A removed test without a row here is a bug in the rework.
 | `automation/LinkCandidateFlowIT` | |
 | `automation/LinkedBookingFlowIT` | |
 | `automation/PickupPolicyFlowIT` | |
-| `basket/BasketFlowIT` | |
-| `calendar/CalendarFeedIT` | |
+| `basket/BasketFlowIT` | unit `BasketServiceTest` (request bell and chat message, BASKET_ALREADY_REQUESTED, owner answers, PICKED_UP, nearby by distance, delete rights), `BasketRulesTest`; journeys `community/offer-and-hand-over-baskets`, `community/find-and-request-a-basket`; kept `UploadPublicAccessIT` (photo public); `ApiSmokeIT` (BasketsController); dropped: seed counts |
+| `calendar/CalendarFeedIT` | unit `CalendarFeedServiceTest` (filters, reminders, window, unknown tokens), `CalendarTokenServiceTest` (regenerate, delete, 404); journey `journeys/account/profile-and-settings.journey.ts` (calendar feed step); `ApiSmokeIT` (CalendarController, PublicCalendarController) |
 | `common/jobs/ShedLockIT` | kept (PostgreSQL: two parallel scheduled runs, one executes) |
 | `common/realtime/WebSocketHandshakeIT` | kept (security: cookie-authenticated handshake, subscription guard, per-user delivery) |
 | `config/ForwardedHeadersIT` | kept (security: forwarded headers only from trusted proxies, on a real Tomcat) |
 | `config/StaticResourceTilesIT` | kept (MT2: range requests 206, media type, no compression, caching on a real Tomcat) |
 | `config/StaticResourceTilesOffIT` | unit `StaticResourceConfigTilesTest` (no `/tiles/**` mapping without `app.map.tiles-dir`); slice `SpaForwardingControllerTest` (the SPA never answers `/tiles`); kept `StaticResourceTilesIT` |
-| `content/BlogFlowIT` | |
-| `content/ContentApiIT` | |
+| `content/BlogFlowIT` | unit `BlogRulesTest`, `BlogServiceTest` (check request bells the editors, publish, unpublished not public, strangers 403), `ContentUploadRulesTest`, `ContentPageCreateTest` (ORGA/PR only, slug rules, 409), `ContentEditorPermissionTest`, `ReleaseNoteServiceTest`, `CampaignServiceTest`, `SupportServiceTest`; journeys `orga/publish-a-blog-post`, `orga/answer-questions-through-support`, `public/read-in-five-languages`; `ApiSmokeIT` (PublicContentController, PublicSupportController); dropped: seed content counts |
+| `content/ContentApiIT` | unit `LearningChapterOrderTest`, `LegalServiceTest` (required kinds, consents, LEGAL_VERSION_OUTDATED, publish ORGA only, German fallback), `LegalConsentRulesTest`, `QuizSessionServiceTest` (CONFIDENTIALITY_NOTICE), `ContentEditorPermissionTest`, `ContentCapabilitiesTest`; journeys `newcomer/accept-legal-documents`, `orga/edit-pages-and-release-notes`; `ApiSmokeIT` (ContentController, LegalController, PublicLegalController); dropped: seed page counts |
 | `dev/service/AuthSeedContractIT` | kept (seed: auth seed files against the column contract, no Spring context) |
 | `dev/service/SeedResetServiceIT` | kept (seed: reset restores every table, mails and clock; every journey relies on it) |
 | `dev/web/FakeOidcFlowIT` | unit `FakeOidcProviderTest` (discovery, seed accounts, single-use code, RS256 id token checked with the JWKS, userinfo, error codes), `FakeOidcAuthorizeTest` (foreign redirect URIs refused, cancel, new-user code); journey `journeys/account/sign-up-and-log-in.journey.ts` (browser round trip through the fake provider); dropped: rendering of the dev account buttons |
@@ -338,7 +338,7 @@ A removed test without a row here is a bug in the rework.
 | `resource/ResourceFlowIT` | |
 | `search/SearchFlowIT` | |
 | `search/SearchPostgresIT` | kept (PostgreSQL full-text search; now also the contact rule of people search) |
-| `statistics/StatisticsFlowIT` | |
+| `statistics/StatisticsFlowIT` | unit `StatisticsAggregationServiceTest` (one row per Zurich day, rerun updates, history, user counters), `RegionStatisticsAccessTest` (members or admins, 1–36 months), `RegionStatisticsQueryServiceTest`; journey `journeys/orga/watch-the-operations.journey.ts`; `ApiSmokeIT` (StatisticsController); dropped: seeded daily rows (seed fact) |
 | `store/StoreApiIT` | |
 | `store/StoreChainApiIT` | |
 | `store/StoreIdentityLeakIT` | kept (identity leak, decision 156; now also `deletedStoresLeaveTheStoreAreaCounts` from `MapIT`) |
