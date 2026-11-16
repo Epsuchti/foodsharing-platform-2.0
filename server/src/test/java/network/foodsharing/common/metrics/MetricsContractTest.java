@@ -2,6 +2,8 @@ package network.foodsharing.common.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
@@ -17,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import network.foodsharing.common.jobs.JobRunner;
+import network.foodsharing.config.TraceIdFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +33,8 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * D19.3: every metric used by {@code server/deploy/monitoring/alerts.yml} and {@code grafana-dashboard.json} exists in
  * a real {@code /actuator/prometheus} scrape, the files are well-formed, and the operations events reach the scrape.
+ * Also the packaged app reports its build version without login (D4.1, D19.1: the version health group and info agree
+ * with app-info), and API errors carry the trace id of the response header (D5.1).
  */
 @SpringBootTest(properties = {"management.prometheus.metrics.export.enabled=true", "app.scheduling.enabled=false"})
 @AutoConfigureMockMvc
@@ -109,6 +114,29 @@ class MetricsContractTest {
         assertThat(scrape).containsPattern("fs_notification_delivery_failures_total\\{[^}]*channel=\"push\"[^}]*} [1-9]");
         assertThat(scrape).containsPattern("fs_circuit_breaker_state\\{[^}]*integration=\"SMTP\"[^}]*} 0");
         assertThat(scrape).contains("fs_outbox_pending ", "fs_websocket_connected_users ", "fs_async_jobs_running ");
+    }
+
+    @Test
+    void healthVersionGroupAndInfoReportTheBuildVersion() throws Exception {
+        String version = JsonMapper.builder().build().readTree(mvc.perform(get("/api/public/app-info"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("version").asString();
+        assertThat(version).isNotBlank();
+        mvc.perform(get("/actuator/health/version"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components.appVersion.details.version").value(version));
+        mvc.perform(get("/actuator/info")).andExpect(status().isOk()).andExpect(jsonPath("$.app.version").value(version));
+    }
+
+    @Test
+    void anonymousApiCallsGetAnApiErrorWithTheTraceIdOfTheHeader() throws Exception {
+        var response = mvc.perform(get("/api/users/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string(TraceIdFilter.HEADER, org.hamcrest.Matchers.matchesPattern("[0-9a-f]{12}")))
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
+                .andReturn().getResponse();
+        JsonNode error = JsonMapper.builder().build().readTree(response.getContentAsString());
+        assertThat(error.path("traceId").asString()).isEqualTo(response.getHeader(TraceIdFilter.HEADER));
     }
 
     private String scrape() throws Exception {
