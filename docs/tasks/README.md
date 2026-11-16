@@ -15,6 +15,9 @@ with a file of the same name in `.claude/agents/`.
 4. **Implement.** `implementer` (Opus) works in its own worktree from the plan file, runs only targeted checks,
    and reports.
 5. **Test.** `tester` (Haiku) runs the full suites on the implementer's branch and reports failures compactly.
+   Since decision 180 the suites are: `./mvnw verify` (unit, slice, guardrails, the few ITs incl. `ApiSmokeIT`), the
+   client specs and lint, the journeys of the touched personas on all five browsers (`npx playwright test
+   journeys/<persona>`), the `a11y` project when routes changed, and `node e2e/scripts/feature-coverage.mjs --strict`.
 6. **Fix.** Findings go back to the same implementer (SendMessage), so it reuses its context. If its context is
    nearly full, start a fresh implementer with the plan file and the tester's report instead; that's cheaper.
 7. **Merge.** The main session merges into `main` (check `git diff --name-only --diff-filter=U` first), updates

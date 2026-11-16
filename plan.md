@@ -1105,57 +1105,54 @@ Deliverable:
 The reference repo keeps no test suite; this platform does, because it replaces a production system.
 
 ### 18.1 Backend
-- Unit tests for rules: booking rules, pickup policies, region pickup rule, quiz wait/expiry, permission
-  matrix, journey state machine, history recording.
+Decision 180: thin layers, each test where it is cheapest.
+- Unit tests (plain JUnit + Mockito/fakes, no Spring context) for every rule: booking rules, pickup policies, region
+  pickup rule, quiz wait/expiry, permission matrix, journey state machine, history recording, mapper edge cases.
+  Database-touching service tests share one cached slice (`testsupport/SharedJpaSliceConfig`).
 - Slice tests (`@WebMvcTest`) against generated interfaces, including every documented error response.
-- Integration tests with Testcontainers Postgres proving every Liquibase changelog runs on Postgres; one
-  smoke test boots the `local` profile on H2 with seed data.
+- Integration tests only where a database or the whole app is the point: every Liquibase changelog and the hot
+  queries on Testcontainers Postgres, H2 seed boot (`LocalProfileSmokeIT`), IDOR/identity-leak/privacy, backup and
+  restore, and one parameterised `ApiSmokeIT` (every controller: anonymous, an allowed role 2xx, a refused role 403).
 - ArchUnit: controllers implement generated APIs, no repository access from `web`, module boundaries,
   mutating services record history.
 
 ### 18.2 Frontend unit/component tests
-- Component tests for `DataState`/`ErrorState`, journey stepper, booking flows.
-- Every data-loading component has a test for loading, empty and error (with retry) states.
+- Specs for utils, rules, pinned rule cases (decision 128), core services and shared components.
+- One shared spec proves every `loadResource` / `fs-data-state` state (loading, empty, error + retry, forbidden,
+  not found, offline); pages do not repeat it.
 
-### 18.3 Playwright end-to-end tests ("we know it works")
+### 18.3 Playwright persona journeys ("we know it works")
 
-Playwright (`@playwright/test`, folder `e2e/` at repo root) runs against the **packaged jar** with the
-`local` profile and seed data, so tests cover the real single deployable.
+Playwright (`@playwright/test`, folder `e2e/`) runs against the **packaged jar** (profile `e2e`, seed data).
 
-- **Setup:** `globalSetup` builds/starts the jar (or reuses a running one), waits for `/actuator/health`,
-  resets the H2 database to the seed state before each test file. Auth via the dev user switcher stored
-  as `storageState` per role, so tests start logged in as `newbie`, `foodsaver`, `bieb`, `guide`, `bot`, `orga`.
-- **Google login** tested with a fake OIDC provider (mock-oauth2-server container) configured in the
-  test profile; **magic link** tested by reading the mail through the Mailpit API.
-- **Coverage rule:** every feature row in §13 and §14 has at least one e2e test tagged with its ID
-  (e.g. `test('S6 apply to team @S6', …)`). A script compares the tags with the feature list and fails CI
-  if a row has no test. This is the launch checklist in executable form.
-- **Key journeys** (each one test file): landing → Google sign-up → full onboarding → Foodsaver;
-  EinAb guide creates EinAb → newcomer books → guide confirms → ambassador verifies → passport;
-  store manager creates store, regular pickups, invites, confirms slots; pickup policy declines a
-  sign-up with reason; open-slot alert reaches push + Telegram mock; messaging in realtime between two
-  browser contexts; regional mailbox receive/reply via Mailpit; forum post + moderation; basket request;
-  poll and survey; report flow; account deletion and data export.
-- **Error states:** Playwright `page.route()` injects 500/403/404/409/429 and network failures for every
-  page's API calls and asserts the skeleton, error message, retry button and recovery (§12.2/§12.3).
-- **Languages:** smoke run of the main journeys in all five languages (no missing keys, no overflowing text).
-- **Accessibility:** `@axe-core/playwright` on every page; no serious/critical violations allowed.
-- **Devices:** projects for desktop Chrome, desktop Firefox, WebKit (Safari) and mobile (Pixel 7, iPhone 14).
+- **Journeys:** `e2e/journeys/<persona>/<slug>.journey.ts`, a persona doing a real multi-step process through the
+  UI (`Walk` counts steps and clicks against a budget). The title carries every ledger ID the journey proves.
+  Rule permutations and API-only checks belong to unit/integration tests, not journeys.
+- **Setup:** global setup starts one jar per worker (`E2E_WORKERS`, default 2); every journey starts from the seed
+  (reset before each test), logged in through the dev login (`role` / `as(role)`), in German and the light theme.
+- **Google login** through the embedded fake OIDC provider; **magic link** and other mails through the captured
+  outbox.
+- **Coverage rule:** every feature row in §13 and §14 has a journey tagged with its ID or an entry in
+  `e2e/coverage-map.json` naming the unit/integration test that proves it. `feature-coverage.mjs --strict` fails CI
+  otherwise. This is the launch checklist in executable form.
+- **Things go wrong:** one journey shows a server error with retry, forbidden and not-found states and pages,
+  offline and an unreachable server; per-page states are proven by the shared `fs-data-state` spec.
+- **Languages:** one journey walks the main modules in all five languages; `i18n:check` finds missing keys.
+- **Accessibility:** axe at every checkpoint (chromium, mobile-chrome); the route sweep (`e2e/tests/a11y/`, light
+  and dark) runs in the `a11y` project. No serious/critical violations allowed.
+- **Devices:** desktop Chrome, Firefox, WebKit (Safari) and mobile (Pixel 7, iPhone 14) all run every journey.
 
-### 18.4 Screenshot (visual regression) tests ("it looks correct")
+### 18.4 Screenshots at journey checkpoints ("it looks correct")
 
-- Playwright `expect(page).toHaveScreenshot()` for **every page and every important state**: loading
-  skeleton, empty, error, filled; dialogs; journey steps 1-8; mobile and desktop, light theme, German
-  (decision 109: dark mode is covered by the axe sweep in both themes, other languages by the i18n checks).
-- Stable screenshots: fixed clock (`page.clock`), seed data with fixed UUIDs/dates, animations disabled,
-  web fonts preloaded, map tiles stubbed, avatars from local fixtures; screenshots generated inside the
-  official Playwright Docker image so CI and local runs match.
-- Baselines committed in `e2e/__screenshots__/`; a diff above the threshold fails CI and the HTML report
-  shows expected / actual / diff. Updating baselines (`--update-snapshots`) is a deliberate step reviewed in
-  the PR.
-- Component-level screenshots for shared components (`DataState`, `JourneyStepper`, `PickupSlotList`, …)
-  in a component gallery page (`/dev/gallery`, local profile only), so design changes to a shared
-  component are reviewed once.
+- `checkpoint(page, name)` in a journey waits until the page is at rest, runs axe, and on chromium (1280x800) and
+  mobile-chrome compares a full-page screenshot: light theme, German (decision 109, 180). About 300 captures plus a
+  gallery journey with one capture per shared component group and every `fs-data-state` state.
+- Stable captures: browser clock from the seed time, seed data with fixed UUIDs/dates, animations disabled, Inter
+  pinned, map tiles stubbed, avatars from local fixtures, toasts hidden, run-dependent text masked; compared only
+  inside the official Playwright Docker image so CI and local runs match.
+- Baselines committed in `e2e/__screenshots__/{chromium,mobile-chrome}/`; a diff above the threshold fails CI and
+  the report shows expected / actual / diff. Baselines are regenerated in CI (`screenshots-update.yml`, decision 161)
+  and every changed PNG is reviewed.
 
 ### 18.5 Design rework rounds ("as user friendly and good looking as possible")
 
@@ -1184,8 +1181,9 @@ milestone cheaply before humans test.
 ### 18.6 CI (GitHub Actions)
 1. `openapi validate` + `oasdiff breaking` (PRs).
 2. `./mvnw verify` (backend tests, client build, `i18n:check` for 5 languages, ESLint, Prettier).
-3. Playwright e2e (sharded) + feature-coverage check against §13/§14 + axe.
-4. Playwright screenshot tests; HTML report with diffs uploaded as an artifact.
+3. Playwright journeys, one job per browser (5), chromium and mobile-chrome with checkpoint screenshots inside the
+   Playwright image; HTML report with diffs uploaded as an artifact.
+4. Axe route sweep (`a11y`), Lighthouse, feature-coverage check against §13/§14 and `e2e/coverage-map.json`.
 5. On tag: multi-arch Docker image to GHCR.
 
 ### 18.7 `AGENTS.md` (created with the skeleton)
