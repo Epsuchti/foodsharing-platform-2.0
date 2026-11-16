@@ -14,8 +14,8 @@ import { RESULTS_DIR, WORKERS, baseURLsFromEnv } from './support/env';
  * own project `a11y` (chromium). `E2E_WORKERS` (default 2) workers run files in parallel, each against a jar of its
  * own (global-setup.ts), and every journey starts from the seed.
  *
- * Tags: every test carries the ledger ID(s) it proves (`@A2`, `@D4.3`), see docs/conventions.md A8 and
- * scripts/feature-coverage.mjs. Meta tags: `@page` (auto axe check), `@screenshot`, `@chromium-only`
+ * Tags: every journey carries the ledger ID(s) it proves (`@A2`, `@D4.3`) in its title; IDs proven below e2e are listed
+ * in coverage-map.json (docs/conventions.md A8, scripts/feature-coverage.mjs). Meta tags: `@chromium-only`
  * (CDP features such as the virtual WebAuthn authenticator; filtered out of the other browser projects), `@infra`
  * (tests of the test infrastructure itself) and `@gallery` (component gallery screenshots).
  */
@@ -24,19 +24,11 @@ const CHROMIUM_ONLY = /@chromium-only/;
 /** CPU-sensitive Lighthouse thresholds (D11.5.3): only in the dedicated `lighthouse` project / CI job. */
 const LIGHTHOUSE = /@D11\.5\.3/;
 const LIGHTHOUSE_SPECS = 'lighthouse/**/*.spec.ts';
-const TESTS = 'tests/**/*.spec.ts';
 const JOURNEYS = 'journeys/**/*.journey.ts';
 /** The axe route sweep and the CSP check: project `a11y` only. */
 const A11Y = 'tests/a11y/**/*.spec.ts';
 /** One worker per running app: `E2E_BASE_URL` with several URLs, else the jars global setup starts. */
 const WORKER_COUNT = baseURLsFromEnv().length || WORKERS;
-const SCREENS = 'screenshots/**/*.screen.ts';
-/**
- * Screenshot projects only exist when E2E_SCREENSHOTS=1 (set by scripts/screenshots.sh inside the official Playwright
- * image, and by the coverage script for listing). A plain `npx playwright test` on a developer machine therefore never
- * writes host-rendered baselines (plan-m1 risk 6).
- */
-const SCREENSHOTS = process.env.E2E_SCREENSHOTS === '1';
 
 /**
  * Windows worker crashes (exit code 3221226505 = 0xC0000409, a fast-fail/abort inside the node test worker, about once
@@ -65,8 +57,7 @@ const shared: PlaywrightTestConfig['use'] = {
 
 const e2eProject = (name: string, use: Project['use'], extra: Partial<Project> = {}): Project => ({
   name,
-  testMatch: [TESTS, JOURNEYS],
-  testIgnore: A11Y,
+  testMatch: JOURNEYS,
   dependencies: ['setup'],
   use: { ...use },
   ...extra,
@@ -135,27 +126,5 @@ export default defineConfig({
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
-    ...(SCREENSHOTS ? screenshotProjects() : []),
   ],
 });
-
-function screenshotProjects(): Project[] {
-  return [
-    {
-      name: 'screenshots-desktop',
-      testMatch: SCREENS,
-      dependencies: ['setup'],
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 800 },
-        reducedMotion: 'reduce',
-      },
-    },
-    {
-      name: 'screenshots-mobile',
-      testMatch: SCREENS,
-      dependencies: ['setup'],
-      use: { ...devices['Pixel 7'], reducedMotion: 'reduce' },
-    },
-  ];
-}
