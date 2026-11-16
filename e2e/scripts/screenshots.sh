@@ -55,10 +55,7 @@ for ((i = 0; i < ${#ARGS[@]}; i++)); do
       i=$((i + 1))
       SHARDS="${ARGS[i]:-}"
       ;;
-    --shard | --shard=*)
-      echo "Use --shards=N; the script sets --shard itself." >&2
-      exit 1
-      ;;
+    # --shard=k/N (a Playwright shard, e.g. one CI job of several) is passed through; --shards=N is the jar count.
     --update-snapshots | -u)
       next="${ARGS[i + 1]:-}"
       if [[ "${next}" =~ ^(all|changed|missing|none)$ ]]; then

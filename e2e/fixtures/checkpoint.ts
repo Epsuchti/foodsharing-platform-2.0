@@ -456,6 +456,12 @@ export async function checkpoint(page: Page, name: string, options: CheckpointOp
     const fullPage = (options.fullPage ?? true) && !(await overlayOpen(page));
     await releaseHover(page);
     if (!fullPage) {
+      // A dialog or drawer is captured from the top of its content: how far a fill or a validation message had
+      // scrolled it depended on timing.
+      await page.evaluate(() => {
+        for (const node of document.querySelectorAll<HTMLElement>('.p-dialog-content, .p-drawer-content')) node.scrollTop = 0;
+      });
+      await animationsDone(page);
       await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
       return;
     }

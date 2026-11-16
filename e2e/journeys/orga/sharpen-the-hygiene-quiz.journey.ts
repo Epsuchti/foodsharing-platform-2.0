@@ -60,7 +60,7 @@ test('orga makes the hygiene quiz stricter, adds a question with an answer and a
     await walk.fill(dialog.getByTestId('quiz.editor.explanation.field.de'), 'Hackfleisch muss durchgehend gekühlt sein.');
     await walk.click(dialog.getByTestId('quiz.editor.rating'));
     await walk.click(page.getByRole('option', { name: 'Richtig' }));
-    await expect(page.getByRole('listbox')).toBeHidden();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
     await checkpoint(page, 'question-dialog', { fullPage: false });
     await walk.click(dialog.getByTestId('quiz.editor.saveAnswer'));
     await expect(dialog.getByTestId('quiz.editor.answer')).toHaveCount(1);

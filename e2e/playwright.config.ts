@@ -63,8 +63,12 @@ const e2eProject = (name: string, use: Project['use'], extra: Partial<Project> =
   ...extra,
 });
 
-/** Checkpoint projects: axe at every checkpoint, screenshots inside the Playwright image. */
+/**
+ * Checkpoint projects: axe at every checkpoint, screenshots inside the Playwright image. Reduced motion, like the old
+ * screenshot projects: counters and smooth scrolling otherwise stopped at a point that depended on timing.
+ */
 const CHECKPOINTS = { metadata: { checkpoints: true } } satisfies Partial<Project>;
+const CHECKPOINT_USE = { reducedMotion: 'reduce' } satisfies Project['use'];
 
 export default defineConfig({
   testDir: '.',
@@ -109,10 +113,10 @@ export default defineConfig({
       name: 'setup',
       testMatch: /auth\.setup\.ts$/,
     },
-    e2eProject('chromium', { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
+    e2eProject('chromium', { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, ...CHECKPOINT_USE }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
     e2eProject('firefox', { ...devices['Desktop Firefox'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
     e2eProject('webkit', { ...devices['Desktop Safari'] }, { grepInvert: [CHROMIUM_ONLY, LIGHTHOUSE] }),
-    e2eProject('mobile-chrome', { ...devices['Pixel 7'] }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
+    e2eProject('mobile-chrome', { ...devices['Pixel 7'], ...CHECKPOINT_USE }, { grepInvert: LIGHTHOUSE, ...CHECKPOINTS }),
     {
       name: 'lighthouse',
       testMatch: LIGHTHOUSE_SPECS,

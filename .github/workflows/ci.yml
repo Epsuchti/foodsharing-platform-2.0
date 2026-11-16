@@ -131,7 +131,7 @@ jobs:
           retention-days: 7
 
   e2e:
-    name: E2E ${{ matrix.project }}
+    name: E2E ${{ matrix.project }} ${{ matrix.shard }}/2
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -139,6 +139,9 @@ jobs:
       fail-fast: false
       matrix:
         project: [chromium, firefox, webkit, mobile-chrome, mobile-safari]
+        # Two Playwright shards per browser: one 4-CPU runner with two workers took 18-30 min for all journeys
+        # (decision 180's fallback; the jobs start together after the build, so none is queued).
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
@@ -199,22 +202,22 @@ jobs:
           E2E_SHARDS: ${{ env.E2E_WORKERS }}
         run: |
           if [ "${{ steps.browser.outputs.name }}" = container ]; then
-            bash scripts/screenshots.sh
+            bash scripts/screenshots.sh --shard=${{ matrix.shard }}/2
           else
-            npx playwright test --project=${{ matrix.project }}
+            npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
           fi
       - name: Upload blob report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: blob-report-${{ matrix.project }}
+          name: blob-report-${{ matrix.project }}-${{ matrix.shard }}
           path: e2e/blob-report
           retention-days: 7
       - name: Upload failure artifacts (traces, screenshot diffs, server logs)
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-artifacts-${{ matrix.project }}
+          name: e2e-artifacts-${{ matrix.project }}-${{ matrix.shard }}
           path: |
             e2e/test-results/server*.log
             e2e/test-results/artifacts
