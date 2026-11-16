@@ -19,7 +19,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Decision 171 (D4): the store description is for the team ({@code mayReadWall}: members, coordinators, ORGA and
- * the region's store coordinators); the public information goes to everyone who may open the store. Which actor
+ * the region's store coordinators); the public information goes to everyone who may open the store. The contact
+ * (phone, person) and the special notes follow the same right (B2, formerly asserted by StoreApiIT). Which actor
  * gets {@code mayReadWall} is pinned in {@code StorePermissionMatrixTest}.
  */
 class StoreMapperTest {
@@ -50,12 +51,17 @@ class StoreMapperTest {
         store.setName("Bio-Laden");
         store.setDescription("Team notes **in Markdown**");
         store.setPublicInfo("Open for everyone");
+        store.setContactPhone("+41 44 000 00 00");
+        store.setSpecialNotes("Hintereingang");
 
         StoreDetail detail = mapper.toDetail(new StoreQueryService.Detail(store, null, null, List.of(), null,
                 "Europe/Zurich", List.of(), Map.of(), rights(viewer)));
 
         assertThat(detail.getDescription()).isEqualTo(seesDescription ? "Team notes **in Markdown**" : null);
         assertThat(detail.getPublicInfo()).isEqualTo("Open for everyone");
+        assertThat(detail.getContact() == null ? null : detail.getContact().getPhone())
+                .isEqualTo(seesDescription ? "+41 44 000 00 00" : null);
+        assertThat(detail.getSpecialNotes()).isEqualTo(seesDescription ? "Hintereingang" : null);
     }
 
     private static StorePermissionService.Rights rights(Viewer v) {

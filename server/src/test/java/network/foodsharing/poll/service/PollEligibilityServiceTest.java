@@ -8,7 +8,7 @@ import network.foodsharing.poll.domain.PollScope;
 import network.foodsharing.user.domain.User;
 import org.junit.jupiter.api.Test;
 
-/** Member scopes of upstream listActiveRegionMemberIds (AMBASSADORS is covered by PollFlowIT scope counts). */
+/** Member scopes of upstream listActiveRegionMemberIds (AMBASSADORS: PollVoteFlowTest). */
 class PollEligibilityServiceTest {
 
     static final UUID REGION = UUID.randomUUID();
