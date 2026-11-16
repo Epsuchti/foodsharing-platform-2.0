@@ -2,6 +2,7 @@ package network.foodsharing.map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Optional;
+import java.util.UUID;
 import network.foodsharing.api.model.ApiErrorCode;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.map.service.BubbleService;
@@ -54,6 +56,10 @@ class MapControllerTest {
     @Test
     void anonymousCallsNeedAuthentication() throws Exception {
         expect(mvc.perform(get(URL).param("postcode", "8001")), 401, ApiErrorCode.AUTHENTICATION_REQUIRED);
+        // M1: the user layer is never anonymous
+        expect(mvc.perform(get("/api/map/markers/users").param("regionId", UUID.randomUUID().toString())), 401,
+                ApiErrorCode.AUTHENTICATION_REQUIRED);
+        verifyNoInteractions(markers);
     }
 
     @Test

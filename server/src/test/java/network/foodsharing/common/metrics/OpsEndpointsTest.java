@@ -7,22 +7,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import network.foodsharing.config.AppVersionResolver;
+import network.foodsharing.testsupport.AppContextTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * AD1 (plan §14.4): the operations endpoints that are open without login: the {@code version} health group and
  * {@code /actuator/info} report the build version that the app-info endpoint shows, Prometheus exposes the HTTP and JVM
- * metrics, and every other actuator endpoint stays closed. Same context as {@link MetricsContractTest} (cached).
+ * metrics, and every other actuator endpoint stays closed. Shares the {@link AppContextTest} context.
  */
-@SpringBootTest(properties = {"management.prometheus.metrics.export.enabled=true", "app.scheduling.enabled=false"})
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@AppContextTest
 class OpsEndpointsTest {
 
     @Autowired

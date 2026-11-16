@@ -20,11 +20,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import network.foodsharing.common.jobs.JobRunner;
 import network.foodsharing.config.TraceIdFilter;
+import network.foodsharing.testsupport.AppContextTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.yaml.snakeyaml.Yaml;
 import tools.jackson.databind.JsonNode;
@@ -36,9 +34,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Also the packaged app reports its build version without login (D4.1, D19.1: the version health group and info agree
  * with app-info), and API errors carry the trace id of the response header (D5.1).
  */
-@SpringBootTest(properties = {"management.prometheus.metrics.export.enabled=true", "app.scheduling.enabled=false"})
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@AppContextTest
 class MetricsContractTest {
 
     private static final Path MONITORING = Path.of("deploy", "monitoring");
