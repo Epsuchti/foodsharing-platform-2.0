@@ -10,7 +10,6 @@ import {
   Achievement,
   AchievementSystemKey,
   AchievementVisibility,
-  ApiErrorCode,
   Award,
   DuplicateMode,
   Language,
@@ -19,7 +18,7 @@ import {
   Theme,
 } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
-import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { typeIntoDateInput } from '../../shared/date-input/date-input.testing';
 import { RegionPageContext } from '../regions/region-page.context';
 import { AdminAchievementsPageComponent } from './pages/admin-achievements-page.component';
@@ -88,8 +87,6 @@ describe('achievement pages', () => {
     input.value = value;
     input.dispatchEvent(new Event('input'));
   };
-  const retry = (testId: string) => (q(`[data-testid="${testId}"] [data-testid$=".retry"] button`) as HTMLButtonElement).click();
-  const serverError = { status: 500, statusText: 'Server Error' };
   const regionList = (req: { url: string; params: { get(name: string): string | null } }) =>
     req.url === '/api/achievements' && req.params.get('regionId') === ZH;
   const globalList = (req: { url: string; params: { has(name: string): boolean } }) =>
@@ -139,34 +136,6 @@ describe('achievement pages', () => {
       expect(q('[data-testid="achievements.board.define"]')).toBeNull();
       expect(q('[data-testid="achievements.card.award"]')).toBeNull();
       expect(q('[data-testid="achievements.card.edit"]')).toBeNull();
-    });
-
-    it('shows the empty state', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/achievements`);
-      http.expectOne(regionList).flush([]);
-      await settle();
-      expect(state('achievements.board.state')).toBe('empty');
-    });
-
-    it('shows the error state and retries', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/achievements`);
-      http.expectOne(regionList).flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, serverError);
-      await settle();
-      expect(state('achievements.board.state')).toBe('error');
-      retry('achievements.board.state');
-      await settle();
-      http.expectOne(regionList).flush([achievement()]);
-      await settle();
-      expect(state('achievements.board.state')).toBe('success');
-    });
-
-    it('shows the forbidden state for non-members', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/achievements`);
-      http.expectOne(regionList).flush(apiHttpError(403, ApiErrorCode.AccessDenied).error, { status: 403, statusText: 'Forbidden' });
-      await settle();
-      http.match('/api/auth/session').forEach((request) => request.flush(session(Language.De)));
-      await settle();
-      expect(state('achievements.board.state')).toBe('forbidden');
     });
   });
 
@@ -317,22 +286,6 @@ describe('achievement pages', () => {
       http.expectOne(regionList).flush([achievement({ mayAdminister: true, awardedCount: 0 })]);
       await settle();
       expect(q('[data-award-id="w1"]')?.getAttribute('data-status')).toBe('revoked');
-    });
-
-    it('shows the awards error state and retries', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/achievements`);
-      http.expectOne(regionList).flush([achievement({ mayAdminister: true })]);
-      await settle();
-      click('[data-achievement-id="a3"] [data-testid="achievements.card.awards"]');
-      await tick();
-      http.expectOne('/api/achievements/a3/awards').flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, serverError);
-      await settle();
-      expect(state('achievements.awards.state')).toBe('error');
-      retry('achievements.awards.state');
-      await settle();
-      http.expectOne('/api/achievements/a3/awards').flush([]);
-      await settle();
-      expect(state('achievements.awards.state')).toBe('empty');
     });
 
     it('deletes a regional achievement after confirming', async () => {

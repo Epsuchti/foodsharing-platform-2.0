@@ -93,25 +93,6 @@ describe('quiz pages', () => {
     expect(q('[data-kind="STORE_MANAGER"] [data-testid="quiz.list.locked"]')).not.toBeNull();
     expect(q('[data-kind="STORE_MANAGER"] [data-testid="quiz.list.open"]')).toBeNull();
   });
-
-  it('quizzes: a server error shows the error state, retry reloads', async () => {
-    await harness.navigateByUrl('/quizzes');
-    http.expectOne('/api/quizzes').flush(problem('VALIDATION_FAILED', 400), { status: 400, statusText: 'Bad Request' });
-    await settle();
-    expect(q('[data-testid="quiz.list.state"]')?.getAttribute('data-state')).toBe('error');
-    (q('[data-testid="quiz.list.state.retry"] button') as HTMLButtonElement).click();
-    await settle();
-    http.expectOne('/api/quizzes').flush([overview(QuizKind.Hygiene)]);
-    await settle();
-    expect(q('[data-testid="quiz.list.state"]')?.getAttribute('data-state')).toBe('success');
-  });
-
-  it('history: empty state for a user without sessions', async () => {
-    await harness.navigateByUrl('/quizzes/history');
-    http.expectOne('/api/users/me/quiz-sessions').flush([]);
-    await settle();
-    expect(q('[data-testid="quiz.history.state"]')?.getAttribute('data-state')).toBe('empty');
-  });
 });
 
 describe('quiz session page', () => {

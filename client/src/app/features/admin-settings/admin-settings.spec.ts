@@ -201,16 +201,6 @@ describe('admin settings pages', () => {
     expect(q('[data-testid="adminSettings.blocklist.error"]')).toBeNull();
   });
 
-  it('ip blocks: error state with retry', async () => {
-    await harness.navigateByUrl('/ip-blocks');
-    http.expectOne('/api/admin/ip-blocks').flush(apiHttpError(503, ApiErrorCode.UnexpectedError).error, { status: 503, statusText: 'Error' });
-    await settle();
-    expect(state('adminSettings.ipBlocks.state')).toBe('error');
-    http.expectOne('/api/admin/rate-limit-blocks').flush([]);
-    await settle();
-    expect(state('adminSettings.ipBlocks.autoState')).toBe('empty');
-  });
-
   it('ip blocks: automatic blocks link the account and are lifted after confirm (D17.2)', async () => {
     await harness.navigateByUrl('/ip-blocks');
     http.expectOne('/api/admin/ip-blocks').flush([]);

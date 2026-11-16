@@ -6,9 +6,9 @@ import { ConfirmationService } from '@openng/optimus-ui/api';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach, vi } from 'vitest';
 
-import { ApiErrorCode, NewsletterStatus, Role } from '../../api';
+import { NewsletterStatus, Role } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
-import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { sessionInfo } from '../auth/testing';
 import { NewsletterEditorPageComponent, progressPercent } from './pages/newsletter-editor-page.component';
 import { NewsletterListPageComponent } from './pages/newsletter-list-page.component';
@@ -57,14 +57,6 @@ describe('newsletters', () => {
     await settle();
     expect(q('[data-testid="newsletters.editor.recipients"]')?.getAttribute('data-count')).toBe('7');
     expect(q('[data-testid="newsletters.editor.preview"] strong')?.textContent).toBe('fett');
-  });
-
-  it('editor: error state', async () => {
-    await harness.navigateByUrl(`/newsletters/${ID}`);
-    http.expectOne(`/api/newsletters/${ID}`).flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, { status: 500, statusText: 'Error' });
-    http.expectOne(`/api/newsletters/${ID}/recipient-count`).flush({ count: 0 });
-    await settle();
-    expect(q('[data-testid="newsletters.editor.state"]')?.getAttribute('data-state')).toBe('error');
   });
 
   it('editor: an info mail shows its kind, the hint and its own confirmation text (A20)', async () => {

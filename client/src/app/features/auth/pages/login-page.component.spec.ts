@@ -71,6 +71,16 @@ describe('LoginPageComponent', () => {
     expect(byTestId('auth.login.passkey')).toBeNull();
   });
 
+  it('offers Google and the email link when the app info could not be loaded (A2)', async () => {
+    // AppInfoService.load() resolved to null (server error or no connection): every login method stays on
+    fixture = TestBed.createComponent(LoginPageComponent);
+    host = fixture.nativeElement as HTMLElement;
+    await fixture.whenStable();
+    expect(byTestId('auth.login.google')).not.toBeNull();
+    expect(byTestId('auth.login.email')).not.toBeNull();
+    expect(host.querySelector('fs-dev-user-switcher')).toBeNull();
+  });
+
   it('shows the error handed over by the Google callback', async () => {
     await create({ error: ApiErrorCode.GoogleEmailNotVerified });
     expect(byTestId('auth.login.error')?.textContent).toContain(

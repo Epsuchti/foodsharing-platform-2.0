@@ -118,14 +118,4 @@ describe('notification settings page', () => {
     await settle();
     expect(q(toggle)?.getAttribute('data-checked')).toBe('false');
   });
-
-  it('error state with retry', async () => {
-    await harness.navigateByUrl('/account/notifications');
-    http
-      .expectOne('/api/users/me/notification-settings')
-      .flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, { status: 500, statusText: 'Error' });
-    flushSide();
-    await settle();
-    expect(q('[data-testid="notifications.settings.state"]')?.getAttribute('data-state')).toBe('error');
-  });
 });

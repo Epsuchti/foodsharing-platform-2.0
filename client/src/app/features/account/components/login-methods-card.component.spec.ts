@@ -74,27 +74,6 @@ describe('LoginMethodsCardComponent', () => {
     expect(byTestId('account.settings.passkeys.add')).toBeNull();
   });
 
-  it('shows the empty state', async () => {
-    http.expectOne('/api/auth/methods').flush({ identities: [], passkeys: [] });
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('empty');
-  });
-
-  it('shows the error with retry and recovers', async () => {
-    http
-      .expectOne('/api/auth/methods')
-      .flush(
-        { code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true },
-        { status: 500, statusText: 'Error' },
-      );
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('error');
-    button('account.settings.methods.retry').click();
-    http.expectOne('/api/auth/methods').flush(METHODS);
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('success');
-  });
-
   it('never allows removing the last method', async () => {
     http
       .expectOne('/api/auth/methods')

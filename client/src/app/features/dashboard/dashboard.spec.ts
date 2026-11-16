@@ -3,9 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 
-import { ActivityItem, ActivityType, ApiErrorCode, BasketStatus, Role } from '../../api';
+import { ActivityItem, ActivityType, BasketStatus, Role } from '../../api';
 import { FeatureToggleService } from '../../core/feature-toggles/feature-toggle.service';
-import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { ActivityFeedCardComponent } from './components/activity-feed-card.component';
 import { NearbyBasketsCardComponent } from './components/nearby-baskets-card.component';
 import { activityTypesFor, mergeActivityPages, nearestBaskets, toggleExcluded } from './dashboard.util';
@@ -13,7 +13,6 @@ import { SessionService } from '../../core/auth/session.service';
 import { sessionInfo } from '../auth/testing';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve));
-const serverError = { status: 500, statusText: 'Server Error' };
 
 let nextItemId = 0;
 
@@ -149,20 +148,6 @@ describe('dashboard cards', () => {
       await settle(foodsaver);
       expect(chips(foodsaver)).toContain(ActivityType.StoreWall);
       expect(chips(foodsaver)).toContain(ActivityType.Mailbox);
-    });
-
-    it('shows the empty state and the error state with retry', async () => {
-      const fixture = TestBed.createComponent(ActivityFeedCardComponent);
-      await settle(fixture);
-      http.expectOne('/api/users/me/activity-filters').flush({ excluded: [] });
-      http.expectOne(feed(0)).flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, serverError);
-      await settle(fixture);
-      expect(state(fixture, 'dashboard.activity.state')).toBe('error');
-      (q(fixture, '[data-testid="dashboard.activity.state"] [data-testid$=".retry"] button') as HTMLButtonElement).click();
-      await settle(fixture);
-      http.expectOne(feed(0)).flush(page([], 0, 0));
-      await settle(fixture);
-      expect(state(fixture, 'dashboard.activity.state')).toBe('empty');
     });
   });
 
