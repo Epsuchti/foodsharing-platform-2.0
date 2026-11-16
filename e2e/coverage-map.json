@@ -18,5 +18,10 @@
   "PU10": "server/src/test/java/network/foodsharing/pickup/service/PickupMoveTest.java",
   "Q2": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
   "S3": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
-  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts"
+  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts",
+  "C15": [
+    "server/src/test/java/network/foodsharing/common/jobs/ScheduledJobInventoryTest.java",
+    "server/src/test/java/network/foodsharing/admin/service/AdminOperationsServiceTest.java",
+    "server/src/test/java/network/foodsharing/admin/web/AdminJobsControllerTest.java"
+  ]
 }
