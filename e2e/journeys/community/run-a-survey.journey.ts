@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { expectDataState, expectNoOverflow, seedStore } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
 import { loginWithSwitcher, skipPasskeyNudge } from '../../fixtures/flows/auth';
-import { Walk } from '../../fixtures/persona';
+import { Walk, isPhone } from '../../fixtures/persona';
 
 /**
  * Surveys (A36). Bot (bot@local, may manage surveys) builds a survey with every question type and a co-author; the
@@ -124,8 +124,9 @@ test.describe('survey manager', () => {
     });
 
     // measured 2026-11-15, desktop and phone
-    // 21 clicks: the side menu item replaces the direct link Bot used while the item was missing
-    walk.finish({ steps: 4, clicks: 21, fields: 11 });
+    // 21 clicks: the side menu item replaces the direct link Bot used while the item was missing; on a phone
+    // Umfragen sits in the drawer, one tap more
+    walk.finish({ steps: 4, clicks: isPhone(page) ? 22 : 21, fields: 11 });
   });
 });
 
