@@ -125,7 +125,7 @@ jobs:
       - name: Axe sweep lists every route (e2e/tests/a11y/routes.ts)
         run: PATH="$PWD/client/node:$PATH" node e2e/scripts/a11y-route-coverage.mjs
       - name: Upload jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-jar
           path: server/target/foodsharing-platform-*.jar
@@ -210,14 +210,14 @@ jobs:
           fi
       - name: Upload blob report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blob-report-${{ matrix.project }}-${{ matrix.shard }}
           path: e2e/blob-report
           retention-days: 7
       - name: Upload failure artifacts (traces, screenshot diffs, server logs)
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-artifacts-${{ matrix.project }}-${{ matrix.shard }}
           path: |
@@ -256,14 +256,14 @@ jobs:
         run: npx playwright test --project=a11y
       - name: Upload blob report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blob-report-a11y
           path: e2e/blob-report
           retention-days: 7
       - name: Upload failure artifacts
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-artifacts-a11y
           path: |
@@ -304,7 +304,7 @@ jobs:
         run: npx playwright test --project=lighthouse
       - name: Upload blob report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blob-report-lighthouse
           path: e2e/blob-report
@@ -347,7 +347,7 @@ jobs:
         run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict
       - name: Upload report and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-report
           path: |
