@@ -5,7 +5,8 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
  * Animated impact counter of the explainer (§11.2): counts up from 0 to `value` once (ease-out, ~1.2 s); shows the
- * final value at once when the user prefers reduced motion. `data-value` always carries the real number.
+ * final value at once when the user prefers reduced motion. `data-value` always carries the real number. Numbers are
+ * formatted for Switzerland like every other number of the app (`1'481'927`, I18nService.locale).
  */
 @Component({
   selector: 'fs-count-up',
@@ -23,7 +24,7 @@ export class CountUpComponent {
 
   private readonly shown = signal(0);
   protected readonly text = computed(() =>
-    new Intl.NumberFormat(this.i18n.language() === 'gws' ? 'de-CH' : this.i18n.language(), {
+    new Intl.NumberFormat(this.i18n.locale(), {
       maximumFractionDigits: 0,
     }).format(this.shown()),
   );

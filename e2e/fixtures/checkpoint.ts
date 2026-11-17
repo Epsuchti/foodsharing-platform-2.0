@@ -411,6 +411,52 @@ async function countersAtRest(page: Page): Promise<void> {
     .toBe(true);
 }
 
+/**
+ * Chromium switches its touch emulation off while it captures beyond the viewport (Playwright switches it on again
+ * afterwards), so a full-page phone capture was laid out for a mouse: the `(pointer: coarse)` rules (44 px touch
+ * targets) fell away during the capture, the page got shorter than the height measured before it, and a blank strip
+ * of 35 to 1000 px stayed under the tab bar. For the capture, the touch conditions of every media rule are made always
+ * true and the mouse ones always false, so the capture shows the layout the phone shows; afterwards they are restored.
+ * Returns the number of rules changed.
+ */
+async function pinTouchMedia(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const touch = /\((?:any-)?(?:pointer:\s*coarse|hover:\s*none)\)/g;
+    const mouse = /\((?:any-)?(?:pointer:\s*fine|hover:\s*hover)\)/g;
+    const pinned: [MediaList, string][] = [];
+    const visit = (rules: CSSRuleList): void => {
+      for (const rule of Array.from(rules)) {
+        if (rule instanceof CSSMediaRule) {
+          const text = rule.media.mediaText;
+          const next = text.replace(touch, '(min-width: 0px)').replace(mouse, '(max-width: 0px)');
+          if (next !== text) {
+            rule.media.mediaText = next;
+            pinned.push([rule.media, text]);
+          }
+        }
+        if (rule instanceof CSSGroupingRule) visit(rule.cssRules);
+      }
+    };
+    for (const sheet of [...Array.from(document.styleSheets), ...document.adoptedStyleSheets]) {
+      try {
+        visit(sheet.cssRules);
+      } catch {
+        /* a cross-origin sheet: its rules cannot be read */
+      }
+    }
+    (window as unknown as { __fsPinnedTouch?: [MediaList, string][] }).__fsPinnedTouch = pinned;
+    return pinned.length;
+  });
+}
+
+async function unpinTouchMedia(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const holder = window as unknown as { __fsPinnedTouch?: [MediaList, string][] };
+    for (const [media, text] of holder.__fsPinnedTouch ?? []) media.mediaText = text;
+    delete holder.__fsPinnedTouch;
+  });
+}
+
 /** Full-page phone captures: the fixed tab bar sits at the end of the shell instead of where the viewport ended. */
 const TAB_BAR_AT_END = 'fs-shell { position: relative !important; } fs-mobile-tab-bar { position: absolute !important; }';
 
@@ -450,12 +496,16 @@ async function maskRelativeTimes(page: Page): Promise<void> {
   );
 }
 
-/** Runs `capture` with masks painted, toasts hidden (unless `toasts`) and, full-page, the tab bar at the end; all removed afterwards. */
+/**
+ * Runs `capture` with masks painted, toasts hidden (unless `toasts`), on touch projects the touch media rules pinned
+ * (pinTouchMedia) and, full-page, the tab bar at the end; all removed afterwards.
+ */
 async function withCaptureStyle<T>(
   page: Page,
   options: { toasts?: boolean; mask?: Locator[]; hideTabBar?: boolean; tabBarAtEnd?: boolean },
   capture: () => Promise<T>,
 ): Promise<T> {
+  const touch = base.info().project.use.hasTouch === true;
   // Masks are painted by the page itself: Playwright's mask boxes land off their element in full-page phone captures
   // (measured before the capture resizes the device metrics) and covered the tab bar's labels.
   for (const locator of options.mask ?? []) {
@@ -466,9 +516,11 @@ async function withCaptureStyle<T>(
   const color = await maskColor(page);
   const css = [MASK_CSS(color), options.toasts ? '' : HIDE_TOASTS, options.hideTabBar ? HIDE_TAB_BAR : '', options.tabBarAtEnd ? TAB_BAR_AT_END : ''].join(' ');
   const style = await page.addStyleTag({ content: css });
+  if (touch) await pinTouchMedia(page);
   try {
     return await capture();
   } finally {
+    if (touch) await unpinTouchMedia(page).catch(() => undefined);
     await style.evaluate((node) => (node as Element).remove()).catch(() => undefined);
     await page
       .evaluate(
@@ -482,11 +534,10 @@ async function withCaptureStyle<T>(
 const CAPTURE_MASK_ATTR = 'data-fs-capture-mask';
 /**
  * Masked regions keep their size and show the muted surface colour, their content hidden. The public totals
- * (`fs-animated-counter`) are always masked: the server keeps them in memory, a dev seed reset does not drop that
- * cache and under the fixed e2e clock it never expires, so they depend on which journeys ran on the jar before
- * (journeys assert the numbers themselves).
+ * (`fs-animated-counter`) are shown: the dev seed reset drops the server's cache of them (PublicStatisticsService), so
+ * every journey sees the totals of its own seed.
  */
-const MASKED = `[data-screenshot-mask], [${CAPTURE_MASK_ATTR}], fs-animated-counter`;
+const MASKED = `[data-screenshot-mask], [${CAPTURE_MASK_ATTR}]`;
 const MASK_CSS = (color: string): string =>
   `:is(${MASKED}) { background: ${color} !important; border-color: ${color} !important; ` +
   `color: transparent !important; box-shadow: none !important; } ` +
@@ -533,13 +584,14 @@ async function captureCheckpoint(page: Page, name: string, options: CheckpointOp
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   // Phones: no viewport resize (the mobile browser kept a changed zoom for the rest of the journey, and the tab bar
   // then covered the next button). Playwright's full-page capture, cut at the end of the shell, with the fixed tab
-  // bar moved to the shell's end (into the room the shell keeps for it).
+  // bar moved to the shell's end (into the room the shell keeps for it). The height is measured with the capture
+  // style and the touch media pinned, the layout the capture draws (pinTouchMedia).
   if (base.info().project.use.isMobile) {
-    const height = await contentHeight(page);
     const width = page.viewportSize()!.width;
-    await withCaptureStyle(page, { ...options, tabBarAtEnd: true }, () =>
-      expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true, clip: { x: 0, y: 0, width, height } }),
-    );
+    await withCaptureStyle(page, { ...options, tabBarAtEnd: true }, async () => {
+      const height = await contentHeight(page);
+      await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true, clip: { x: 0, y: 0, width, height } });
+    });
     return;
   }
   const viewport = page.viewportSize()!;
