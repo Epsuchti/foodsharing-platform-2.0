@@ -50,6 +50,10 @@ class StagingSeedOnExistingSchemaPostgresIT {
         liquibase.afterPropertiesSet();
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(jdbc.queryForObject("select count(*) from user_account", Integer.class)).isZero();
+        // changelog 198: production names the EinAb guide quiz in all five languages (190 left it without texts)
+        assertThat(jdbc.queryForObject("select string_agg(i.language, ',' order by i.language) from quiz_i18n i "
+                + "join quiz q on q.id = i.owner_id where q.kind = 'EINAB_GUIDE'", String.class))
+                .isEqualTo("de,en,fr,gws,it");
         sequenceBeforeSeed = jdbc.queryForObject("select last_value from foodsaver_number_seq", Long.class);
     }
 
