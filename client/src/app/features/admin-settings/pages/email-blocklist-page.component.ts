@@ -73,8 +73,8 @@ const reasonControl = () => new FormControl('', { nonNullable: true, validators:
               @for (entry of list; track entry.id) {
                 <tr data-testid="adminSettings.blocklist.row" [attr.data-id]="entry.id" [attr.data-pattern]="entry.pattern">
                   <td><code data-testid="adminSettings.blocklist.rowPattern">{{ entry.pattern }}</code></td>
-                  <td data-testid="adminSettings.blocklist.rowReason">{{ entry.reason || '–' }}</td>
-                  <td>
+                  <td [attr.data-label]="'adminSettings.blocklist.reason' | t" data-testid="adminSettings.blocklist.rowReason">{{ entry.reason || '–' }}</td>
+                  <td [attr.data-label]="'adminSettings.blocklist.created' | t">
                     {{ entry.createdAt | fsDate: 'dateTime' }}
                     @if (entry.createdBy) {
                       <span class="muted">{{ entry.createdBy.displayName }}</span>

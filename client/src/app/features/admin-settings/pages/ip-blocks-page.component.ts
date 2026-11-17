@@ -101,14 +101,14 @@ const PERMANENT = 0;
               @for (block of list; track block.id) {
                 <tr data-testid="adminSettings.ipBlocks.row" [attr.data-id]="block.id" [attr.data-ip]="block.ip" [attr.data-context]="block.context">
                   <td><code>{{ block.ip }}</code></td>
-                  <td><span class="chip">{{ 'adminSettings.ipBlocks.context.' + block.context | t }}</span></td>
-                  <td>
+                  <td [attr.data-label]="'adminSettings.ipBlocks.context' | t"><span class="chip">{{ 'adminSettings.ipBlocks.context.' + block.context | t }}</span></td>
+                  <td [attr.data-label]="'adminSettings.ipBlocks.created' | t">
                     {{ block.createdAt | fsDate: 'dateTime' }}
                     @if (block.createdBy) {
                       <span class="muted">{{ block.createdBy.displayName }}</span>
                     }
                   </td>
-                  <td>{{ block.expiresAt ? (block.expiresAt | fsDate: 'dateTime') : ('adminSettings.ipBlocks.permanent' | t) }}</td>
+                  <td [attr.data-label]="'adminSettings.ipBlocks.until' | t">{{ block.expiresAt ? (block.expiresAt | fsDate: 'dateTime') : ('adminSettings.ipBlocks.permanent' | t) }}</td>
                   <td class="actions">
                     <p-button
                       icon="pi pi-trash"
@@ -155,7 +155,7 @@ const PERMANENT = 0;
               @for (block of list; track block.id) {
                 <tr data-testid="adminSettings.ipBlocks.autoRow" [attr.data-id]="block.id" [attr.data-scope]="block.scope">
                   <td><span class="chip">{{ 'adminSettings.ipBlocks.auto.scope.' + block.scope | t }}</span></td>
-                  <td>
+                  <td [attr.data-label]="'adminSettings.ipBlocks.auto.subject' | t">
                     @if (block.user; as user) {
                       <a [routerLink]="['/profile', user.id]">{{ user.displayName }}</a>
                     } @else if (block.ip) {
@@ -164,8 +164,8 @@ const PERMANENT = 0;
                       <span class="muted">{{ 'adminSettings.ipBlocks.auto.unknownUser' | t }}</span>
                     }
                   </td>
-                  <td>{{ block.level }}</td>
-                  <td>{{ block.expiresAt | fsDate: 'dateTime' }}</td>
+                  <td [attr.data-label]="'adminSettings.ipBlocks.auto.level' | t">{{ block.level }}</td>
+                  <td [attr.data-label]="'adminSettings.ipBlocks.until' | t">{{ block.expiresAt | fsDate: 'dateTime' }}</td>
                   <td class="actions">
                     <p-button
                       icon="pi pi-lock-open"

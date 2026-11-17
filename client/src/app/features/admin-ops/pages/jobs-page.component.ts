@@ -36,8 +36,8 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
               @for (job of list; track job.name) {
                 <tr data-testid="adminOps.jobs.row" [attr.data-job]="job.name" [attr.data-outcome]="job.lastRun?.outcome ?? 'NEVER'">
                   <th scope="row"><code>{{ job.name }}</code></th>
-                  <td><code class="muted">{{ job.cron ?? '–' }}</code></td>
-                  <td>
+                  <td [attr.data-label]="'adminOps.jobs.cron' | t"><code class="muted">{{ job.cron ?? '–' }}</code></td>
+                  <td [attr.data-label]="'adminOps.jobs.lastRun' | t">
                     @if (job.lastRun; as run) {
                       {{ run.startedAt | fsDate: 'dateTime' }}
                       <span class="muted">· {{ 'adminOps.jobs.trigger.' + run.trigger | t }}</span>
@@ -45,7 +45,7 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
                       <span class="muted">{{ 'adminOps.jobs.never' | t }}</span>
                     }
                   </td>
-                  <td>
+                  <td [attr.data-label]="'adminOps.jobs.outcome' | t">
                     @if (job.lastRun; as run) {
                       <span [class]="'badge badge--' + run.outcome" data-testid="adminOps.jobs.outcome">{{ 'adminOps.jobs.outcome.' + run.outcome | t }}</span>
                       @if (run.message) {

@@ -68,10 +68,10 @@ import { CHAIN_STATUSES, mayAdministrateChains } from '../store-chains.util';
               @for (chain of page.items; track chain.id) {
                 <tr data-testid="storeChains.list.row" [attr.data-chain]="chain.name">
                   <td><a [routerLink]="['/store-chains', chain.id]" data-testid="storeChains.list.link">{{ chain.name }}</a></td>
-                  <td><span class="badge" [attr.data-status]="chain.status">{{ 'storeChains.status.' + chain.status | t }}</span></td>
-                  <td>{{ (chain.pressAllowed ? 'storeChains.press.yes' : 'storeChains.press.no') | t }}</td>
-                  <td class="num" data-testid="storeChains.list.count">{{ chain.storeCount }} / {{ chain.estimatedStoreCount }}</td>
-                  <td>
+                  <td [attr.data-label]="'storeChains.field.status' | t"><span class="badge" [attr.data-status]="chain.status">{{ 'storeChains.status.' + chain.status | t }}</span></td>
+                  <td [attr.data-label]="'storeChains.field.press' | t">{{ (chain.pressAllowed ? 'storeChains.press.yes' : 'storeChains.press.no') | t }}</td>
+                  <td class="num" [attr.data-label]="'storeChains.field.stores' | t" data-testid="storeChains.list.count">{{ chain.storeCount }} / {{ chain.estimatedStoreCount }}</td>
+                  <td [attr.data-label]="'storeChains.field.kams' | t">
                     @for (kam of chain.kams; track kam.id; let last = $last) {
                       <span data-testid="storeChains.list.kam">{{ kam.displayName }}</span>{{ last ? '' : ', ' }}
                     }
@@ -110,13 +110,15 @@ import { CHAIN_STATUSES, mayAdministrateChains } from '../store-chains.util';
     </p-dialog>
   `,
   styles: `
+    @use '../../../shared/styles/table-stack' as table;
+
     :host { display: block; width: min(100%, 64rem); margin: 0 auto; }
     .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; margin-bottom: 1rem; }
     .toolbar .field { min-width: min(100%, 14rem); }
     .toolbar__create { margin-left: auto; }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .wrap { padding: 0.5rem 1rem; overflow-x: auto; }
-    .table { width: 100%; border-collapse: collapse; }
+    .table { width: 100%; border-collapse: collapse; @include table.stack; }
     .table th, .table td { padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--fs-border); text-align: left; }
     .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }

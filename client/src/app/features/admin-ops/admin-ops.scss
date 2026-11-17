@@ -1,6 +1,10 @@
 // Shared look of the admin operation pages (integrations, jobs, mail outbox; M4 F6).
+@use '../../shared/styles/table-stack' as table;
+
 :host {
   display: grid;
+  // one column that may shrink below its content: a wide table must not widen the page on a phone
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
@@ -115,6 +119,15 @@
 .field {
   display: grid;
   gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// the status filter wraps on a phone instead of running past the screen
+p-selectbutton {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .table-wrap {
@@ -137,6 +150,8 @@
   .num {
     text-align: end;
   }
+
+  @include table.stack;
 }
 
 .muted {

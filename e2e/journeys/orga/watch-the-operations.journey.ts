@@ -4,7 +4,8 @@ import type { Page } from '@playwright/test';
 import { type ApiClient, SEED_NOW, acceptPendingConsents, expectDataState, pickOption } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
 import { acceptConfirm } from '../../fixtures/flows/auth';
-import { Walk, isPhone, openNewestBell } from '../../fixtures/persona';
+import { expectFitsScreen, expectTableFits } from '../../fixtures/flows/shell';
+import { Walk, openNewestBell } from '../../fixtures/persona';
 
 /**
  * ORGA (orga@local) on operations duty: checks the integrations (every channel in log mode, probe and test message),
@@ -82,18 +83,6 @@ test('orga checks the integrations, follows an outage, runs jobs, reads the outb
   const success = page.locator('.p-toast-message-success');
   /** Times and errors of earlier outages live in memory across tests. */
   const integrationNoise = () => [page.getByTestId('adminOps.integrations.downSince'), page.getByTestId('adminOps.integrations.lastError')];
-  /**
-   * Leaves the job list or the mail outbox through the menu. On the phone both are wider than the screen (the job
-   * table: 437 px layout on a 412 px phone; the outbox: its status filter), the browser zooms the page out and the tab
-   * bar ends below the visible screen or under the main area, so the menu cannot be tapped: the orga types the address
-   * instead (reported as a product bug).
-   */
-  const leaveWidePage = async (id: string, route: string) => {
-    if (!isPhone(page)) return walk.nav(id);
-    walk.note('job list and mail outbox wider than the phone: the page is zoomed out and the tab bar is out of reach');
-    walk.count(2);
-    await page.goto(route);
-  };
   const jobRow = (name: string) => page.locator(`[data-testid="adminOps.jobs.row"][data-job="${name}"]`);
 
   await walk.step('checks the integrations and sends a test mail', async () => {
@@ -137,6 +126,9 @@ test('orga checks the integrations, follows an outage, runs jobs, reads the outb
     await walk.click(jobRow('statistics-aggregation').getByTestId('adminOps.jobs.run'));
     await expect(jobRow('statistics-aggregation')).toHaveAttribute('data-outcome', 'OK');
     await expect(jobRow('statistics-aggregation')).toContainText('von Hand');
+    // the job table fits a phone: every row is a block, nothing pushes the page sideways
+    await expectFitsScreen(page, 'job list');
+    await expectTableFits(page.getByTestId('adminOps.jobs.table'));
     // no capture of the job list: the last runs (real clock), outcomes and locks of the frequent jobs wrap differently
     // from run to run and move the rows and column widths of the whole table
 
@@ -157,12 +149,15 @@ test('orga checks the integrations, follows an outage, runs jobs, reads the outb
   });
 
   await walk.step('looks for failed mails in the outbox', async () => {
-    await leaveWidePage('adminMailOutbox', '/admin/mail-outbox');
+    await walk.nav('adminMailOutbox');
     await expect(page).toHaveURL(/\/admin\/mail-outbox$/);
     const state = page.getByTestId('adminOps.outbox.state');
     await expectDataState(page, 'adminOps.outbox.state', 'success');
     // the test mail of the first step
     await expect(page.getByTestId('adminOps.outbox.row').first()).toContainText('orga@local');
+    // status filter and table fit a phone (the filter wraps, rows are blocks)
+    await expectFitsScreen(page, 'mail outbox');
+    await expectTableFits(page.getByTestId('adminOps.outbox.table'));
     // the seed mails share one creation time and come in any order (reported): only the newest row is shown
     await checkpoint(page, 'outbox', {
       mask: [
@@ -187,7 +182,7 @@ test('orga checks the integrations, follows an outage, runs jobs, reads the outb
   const uploadRow = (id: string) => page.locator(`[data-testid="adminSettings.uploads.row"][data-id="${id}"]`);
 
   await walk.step('deletes an unused upload', async () => {
-    await leaveWidePage('adminUploads', '/admin/uploads');
+    await walk.nav('adminUploads');
     await expect(page).toHaveURL(/\/admin\/uploads$/);
     await expectDataState(page, 'adminSettings.uploads.state', 'success');
     // the seed avatars count as profile photos; the new upload is unused
@@ -202,6 +197,7 @@ test('orga checks the integrations, follows an outage, runs jobs, reads the outb
     await expect(preview).toHaveAttribute('src', `/api/uploads/${flyer}?size=sm`);
     await expect.poll(() => preview.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     await expect(page.locator('[data-testid="adminSettings.uploads.row"]:not([data-module="UNCLAIMED"])')).toHaveCount(0);
+    await expectTableFits(page.getByTestId('adminSettings.uploads.table'));
     // upload times come from the real clock
     await checkpoint(page, 'uploads-unclaimed', { mask: [row.locator('td').filter({ hasText: /\d{2}:\d{2}/ })] });
     await walk.click(row.getByTestId('adminSettings.uploads.delete'));
@@ -226,7 +222,7 @@ test('orga checks the integrations, follows an outage, runs jobs, reads the outb
     await expectDataState(page, 'adminOps.jobs.state', 'success');
     await walk.click(jobRow('cleanup').getByTestId('adminOps.jobs.run'));
     await expect(jobRow('cleanup')).toHaveAttribute('data-outcome', 'OK');
-    await leaveWidePage('adminUploads', '/admin/uploads');
+    await walk.nav('adminUploads');
     await expectDataState(page, 'adminSettings.uploads.state', 'success');
     await pickOption(page, 'adminSettings.uploads.filterSelect', 'UNCLAIMED');
     walk.count(2);

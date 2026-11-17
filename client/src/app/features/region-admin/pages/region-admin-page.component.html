@@ -99,11 +99,11 @@
       <label for="ra-move-reason">{{ 'regionAdmin.form.reason' | t }}</label>
       <input pInputText id="ra-move-reason" [ngModel]="moveReason()" (ngModelChange)="moveReason.set($event)" maxlength="500" />
     </div>
-    <div class="actions">
-      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="moveOpen.set(false)" />
-      <p-button [label]="'regionAdmin.moveConfirm' | t" icon="pi pi-check" [disabled]="!moveParent()" [loading]="move.busy()" (onClick)="move.run()" data-testid="regionAdmin.moveConfirm" />
-    </div>
   </div>
+  <ng-template #footer>
+    <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="moveOpen.set(false)" />
+    <p-button [label]="'regionAdmin.moveConfirm' | t" icon="pi pi-check" [disabled]="!moveParent()" [loading]="move.busy()" (onClick)="move.run()" data-testid="regionAdmin.moveConfirm" />
+  </ng-template>
 </p-dialog>
 
 <p-dialog [closeAriaLabel]="'common.close' | t"
@@ -181,10 +181,10 @@
               <tr [class.error]="row.status === 'ERROR'" data-testid="regionAdmin.importRow">
                 <td class="number">{{ row.line }}</td>
                 <td>{{ row.name }}</td>
-                <td><code>{{ row.slug }}</code></td>
-                <td><code>{{ row.parentSlug }}</code></td>
-                <td>{{ row.type ? ('regionAdmin.type.' + row.type | t) : '' }}</td>
-                <td>
+                <td [attr.data-label]="'regionAdmin.form.slug' | t"><code>{{ row.slug }}</code></td>
+                <td [attr.data-label]="'regionAdmin.parent' | t"><code>{{ row.parentSlug }}</code></td>
+                <td [attr.data-label]="'regionAdmin.form.type' | t">{{ row.type ? ('regionAdmin.type.' + row.type | t) : '' }}</td>
+                <td [attr.data-label]="'regionAdmin.status' | t">
                   {{ 'regionAdmin.importStatus.' + row.status | t }}
                   @for (error of row.errors; track error) {
                     <span class="error-text">{{ 'regionAdmin.importError.' + error | t }}</span>
@@ -196,16 +196,16 @@
         </table>
       </div>
     }
-    <div class="actions">
-      <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="importOpen.set(false)" />
-      <p-button
-        [label]="'regionAdmin.importConfirm' | t"
-        icon="pi pi-check"
-        [disabled]="!preview() || preview()!.errors > 0 || !preview()!.dryRun"
-        [loading]="runImport.busy()"
-        (onClick)="runImport.run(false)"
-        data-testid="regionAdmin.importConfirm"
-      />
-    </div>
   </div>
+  <ng-template #footer>
+    <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="importOpen.set(false)" />
+    <p-button
+      [label]="'regionAdmin.importConfirm' | t"
+      icon="pi pi-check"
+      [disabled]="!preview() || preview()!.errors > 0 || !preview()!.dryRun"
+      [loading]="runImport.busy()"
+      (onClick)="runImport.run(false)"
+      data-testid="regionAdmin.importConfirm"
+    />
+  </ng-template>
 </p-dialog>

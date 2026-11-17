@@ -1,5 +1,6 @@
 import { acceptPendingConsents, expectDataState } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
+import { expectTableFits, expectWithin } from '../../fixtures/flows/shell';
 import { Walk } from '../../fixtures/persona';
 
 /**
@@ -36,6 +37,8 @@ test('orga creates, renames and deletes a region, assigns a function and imports
     await walk.click(page.getByTestId('regionAdmin.create'));
     await walk.fill(page.getByTestId('regionAdmin.form.name'), 'Testbezirk Uster');
     await walk.fill(page.getByTestId('regionAdmin.form.slug'), 'testbezirk-uster');
+    // the buttons sit in the dialog's footer: on a phone they stay on screen below the long form
+    await expect(page.getByTestId('regionAdmin.form.save')).toBeInViewport();
     await checkpoint(page, 'create-dialog');
     await walk.click(page.getByTestId('regionAdmin.form.save'));
     await expect(row).toBeVisible();
@@ -87,6 +90,12 @@ test('orga creates, renames and deletes a region, assigns a function and imports
     walk.count(1);
     await expect(page.getByTestId('regionAdmin.importSummary')).toBeVisible();
     await expect(page.getByTestId('regionAdmin.importRow')).toHaveCount(1);
+    // the column list wraps and the preview rows are blocks on a phone: nothing runs out of the dialog
+    const importDialog = page.getByTestId('regionAdmin.importDialog');
+    const columns = importDialog.locator('code.columns');
+    await expectWithin(columns, page.locator('.p-dialog').filter({ has: page.locator('code.columns') }), 'CSV column list');
+    await expectTableFits(importDialog.locator('table'));
+    await expect(page.getByTestId('regionAdmin.importConfirm')).toBeInViewport();
     await checkpoint(page, 'import-preview');
     await walk.click(page.getByTestId('regionAdmin.importConfirm'));
     await expect(page.getByTestId('regionAdmin.importDialog')).toBeHidden();

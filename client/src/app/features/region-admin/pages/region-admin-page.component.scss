@@ -1,3 +1,5 @@
+@use '../../../shared/styles/table-stack' as table;
+
 :host {
   display: grid;
   gap: 1.25rem;
@@ -134,12 +136,6 @@
   width: 100%;
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
 .assignments {
   display: grid;
   gap: 0.4rem;
@@ -170,7 +166,9 @@
 }
 
 .columns {
-  overflow-x: auto;
+  // the column list wraps instead of running out of the dialog on a phone
+  display: block;
+  overflow-wrap: anywhere;
   font-size: 0.85rem;
 }
 
@@ -183,6 +181,8 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
+
+  @include table.stack;
 }
 
 .preview th,
