@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { expectDataState, seedStore } from '../../fixtures';
+import { expectDataState, expectNoOverflow, seedStore } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
 import { loginWithSwitcher, skipPasskeyNudge } from '../../fixtures/flows/auth';
 import { Walk } from '../../fixtures/persona';
@@ -150,6 +150,11 @@ test.describe('respondent', () => {
       await expect(page.getByTestId('surveys.fill.title')).toHaveText('Zufriedenheit Abholungen 2026');
       await expect(page.getByTestId('surveys.fill.store')).toContainText(s02.name);
       await checkpoint(page, 'fill-page');
+      // on a 360px phone every question wraps inside the screen, nothing is cut off sideways
+      const size = page.viewportSize();
+      await page.setViewportSize({ width: 360, height: 740 });
+      await expectNoOverflow(page, 'survey fill page at 360px');
+      if (size) await page.setViewportSize(size);
       await walk.click(page.getByTestId('surveys.fill.submit'));
       await expect(page.getByTestId('surveys.fill.requiredError').first()).toBeVisible();
       await checkpoint(page, 'fill-required');
