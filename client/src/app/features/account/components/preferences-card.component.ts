@@ -205,9 +205,14 @@ const THEME_ICONS: Record<ThemePreference, string> = {
       display: grid;
       gap: 0.5rem;
     }
-    /* 12rem fits "CH Schwiizerdütsch ✓"; narrower columns cut the longest name off on a phone */
     .options--lang {
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+    }
+    /* on a phone two 10rem columns cut "CH Schwiizerdütsch ✓" off: 12rem gives one chip per row there */
+    @media (max-width: 39.99rem) {
+      .options--lang {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+      }
     }
     .options--theme {
       grid-template-columns: repeat(3, minmax(0, 1fr));
