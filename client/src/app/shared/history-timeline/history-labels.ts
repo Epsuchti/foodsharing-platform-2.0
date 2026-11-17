@@ -21,6 +21,12 @@ const SYSTEM_REASON = /^[a-z]+( [a-z]+)*$/;
 const WEEKDAY = /\b(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)\b/g;
 const WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 const WEEKLY_FIELDS = ['regularPickups', 'regularShifts'];
+/**
+ * Comma-separated lists the server writes as one value: hidden activity types (codes, translated item by item with
+ * `shared.historyTimeline.value.<field>.<CODE>`) and the region's extra onboarding steps (keys the ambassadors chose
+ * themselves, shown as they are).
+ */
+const LIST_FIELDS = ['activityFilters', 'onboardingSteps'];
 
 /** Enum catalogs a metadata value may come from when the key has no own `shared.historyTimeline.value.<key>.*`. */
 const ENUM_CATALOGS = ['shared.store.cooperation', 'shared.store.team', 'common.role'];
@@ -187,6 +193,14 @@ export class HistoryLabeler {
     }
     if (field && WEEKLY_FIELDS.includes(field)) {
       return this.weekly(value);
+    }
+    if (field && LIST_FIELDS.includes(field)) {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map((item) => this.metaValue(field, item))
+        .join(', ');
     }
     const lookup = this.valueKey(field, value);
     return lookup && this.i18n.has(lookup) ? this.i18n.t(lookup) : this.metaValue(field ?? '', value);

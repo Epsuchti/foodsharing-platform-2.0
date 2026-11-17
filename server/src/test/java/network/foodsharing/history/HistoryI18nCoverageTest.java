@@ -46,6 +46,9 @@ class HistoryI18nCoverageTest {
     private static final Pattern CHANGED_FIELD = Pattern.compile("\\.(?:change|field)\\(\\s*\"([A-Za-z]+)\"");
     private static final Pattern TRACKED_FIELD =
             Pattern.compile("@Tracked\\b(?:\\([^)]*\\))?\\s+(?:@\\w+(?:\\([^)]*\\))?\\s+)*(?:private|protected)\\s+[\\w<>, ?]+\\s+(\\w+)\\s*[;=]");
+    private static final Pattern CHANGED_VARIABLE = Pattern.compile("\\.change\\(\\s*([a-z]\\w*)\\s*,");
+    private static final Pattern DECLARATION =
+            Pattern.compile("(?:private|protected|public|static)[\\w<>,?\\s]*\\s(\\w+)\\(([^()]*)\\)\\s*(?:throws [\\w., ]+)?\\{");
     private static final Pattern AUTOMATION_LITERAL = Pattern.compile("actorAutomation\\(\\s*\"([a-z-]+)\"");
     private static final Pattern AUTOMATION_CONSTANT = Pattern.compile("String\\s+(ACTOR|NAME)\\s*=\\s*\"([a-z-]+)\"");
     private static final Pattern SYSTEM_REASON = Pattern.compile("\\.reason\\(\\s*\"([a-z]+(?: [a-z]+)*)\"\\s*\\)");
@@ -104,6 +107,13 @@ class HistoryI18nCoverageTest {
                     @Column(name = "x")
                     private String street;
                     @Tracked(redact = true) private Set<String> codes = Set.of();
+                    private void record(Action action, Region region, String field, Object a, Object b) {
+                        history.record(event(action).change(field, a, b).build());
+                    }
+                    void b() {
+                        record(action, region, "joinMode", x, y);
+                        record(action, region, label, x, y);
+                    }
                     void a() {
                         history.record(event.change("regularPickups", a, b).field(
                                 "folder").actorAutomation(NAME).reason("sleep period ended").build());
@@ -112,7 +122,7 @@ class HistoryI18nCoverageTest {
                 }
                 """;
         Map<Path, String> sources = Map.of(Path.of("A.java"), source);
-        assertThat(changedFields(sources)).containsExactly("codes", "folder", "regularPickups", "street");
+        assertThat(changedFields(sources)).containsExactly("codes", "folder", "joinMode", "regularPickups", "street");
         assertThat(automationNames(sources)).containsExactly("audit-retention", "nightly-job");
         assertThat(systemReasons(sources)).containsExactly("sleep period ended");
         assertThat(camelCase("sleep period ended")).isEqualTo("sleepPeriodEnded");
@@ -148,6 +158,35 @@ class HistoryI18nCoverageTest {
         for (String text : sources.values()) {
             fields.addAll(matches(CHANGED_FIELD, text, 1));
             fields.addAll(matches(TRACKED_FIELD, text, 1));
+            fields.addAll(helperFields(text));
+        }
+        return fields;
+    }
+
+    /**
+     * Fields passed to helpers ({@code record(action, region, "joinMode", …)}, {@code text(…, "firstName", recorder)}):
+     * when a file calls {@code .change(field, …)} with a variable, every method of the file with a {@code String field}
+     * parameter counts, and the string literals its callers pass at that position are fields.
+     */
+    private static Set<String> helperFields(String text) {
+        Set<String> fields = new TreeSet<>();
+        for (String variable : new TreeSet<>(matches(CHANGED_VARIABLE, text, 1))) {
+            Matcher declaration = DECLARATION.matcher(text);
+            while (declaration.find()) {
+                String[] params = declaration.group(2).split(",");
+                for (int i = 0; i < params.length; i++) {
+                    if (!params[i].strip().matches("(final\\s+)?String\\s+" + Pattern.quote(variable))) {
+                        continue;
+                    }
+                    Matcher call = Pattern.compile("\\b" + Pattern.quote(declaration.group(1)) + "\\(").matcher(text);
+                    while (call.find()) {
+                        List<String> args = arguments(text, call.end());
+                        if (args.size() == params.length && args.get(i).matches("\"[a-z][A-Za-z]*\"")) {
+                            fields.add(args.get(i).substring(1, args.get(i).length() - 1));
+                        }
+                    }
+                }
+            }
         }
         return fields;
     }

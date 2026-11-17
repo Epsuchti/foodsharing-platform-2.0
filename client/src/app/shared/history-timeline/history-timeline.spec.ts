@@ -44,6 +44,8 @@ const TRANSLATIONS: Record<string, string> = {
   'shared.historyTimeline.value.sleepStatus.TEMPORARY': 'Eine Zeit lang',
   'shared.historyTimeline.systemReason.accountDeleted': 'Konto gelöscht',
   'shared.historyTimeline.automation.pickup-policy': 'Abholregeln',
+  'shared.historyTimeline.value.activityFilters.FORUM': 'Forum',
+  'shared.historyTimeline.value.activityFilters.STORE_WALL': 'Betriebe',
   'shared.historyTimeline.actor.automation': 'Automatik: {name}',
 };
 
@@ -192,6 +194,10 @@ describe('HistoryLabeler', () => {
       newValue: 'Montag 19:00 ×3; Sonntag 08:30 ×1',
     });
     expect(labeler.value('sleepStatus', 'TEMPORARY')).toBe('Eine Zeit lang');
+    // lists: activity types item by item, own onboarding step keys as they are, a removed list as empty
+    expect(labeler.value('activityFilters', 'FORUM,STORE_WALL')).toBe('Forum, Betriebe');
+    expect(labeler.value('activityFilters', null)).toBe('(leer)');
+    expect(labeler.value('onboardingSteps', 'newcomer-meeting,BUDDY_CALL')).toBe('newcomer-meeting, BUDDY_CALL');
     expect(labeler.reason('account deleted')).toBe('Konto gelöscht');
     // typed reasons stay as they are, also when they happen to be lower-case words
     expect(labeler.reason('zu spät abgesagt')).toBe('zu spät abgesagt');
