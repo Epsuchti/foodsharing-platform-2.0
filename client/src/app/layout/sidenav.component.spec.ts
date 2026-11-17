@@ -177,6 +177,27 @@ describe('side menu nav.config (decision 133)', () => {
     ]);
   });
 
+  it('shows Umfragen for CAN_MANAGE_SURVEYS in any region, as the server checks it (A36)', () => {
+    const surveys = NAV_ITEMS.find((item) => item.id === 'surveys')!;
+    const withPermissions = (permissions: string[], isAuthenticated = true) =>
+      context({
+        isAuthenticated,
+        hasRole: (role) => role === Role.Foodsaver,
+        // the session only carries scoped grants: a bare check must never decide
+        hasPermission: (permission) => permissions.includes(permission),
+        session: { user: { verified: true }, permissions, units: [unit({ homeRegion: true })] } as unknown as NavContext['session'],
+      });
+    // a region-level grant (directly or through the VOTING working group) and ORGA's wildcard
+    expect(surveys.visible(withPermissions(['CAN_MANAGE_SURVEYS@r1']))).toBe(true);
+    expect(surveys.visible(withPermissions(['CAN_MANAGE_USERS@r1', 'CAN_MANAGE_SURVEYS@r2']))).toBe(true);
+    expect(surveys.visible(withPermissions(['CAN_MANAGE_SURVEYS@*']))).toBe(true);
+    // other permissions, a look-alike name or no session give nothing
+    expect(surveys.visible(withPermissions([]))).toBe(false);
+    expect(surveys.visible(withPermissions(['CAN_MANAGE_USERS@r1']))).toBe(false);
+    expect(surveys.visible(withPermissions(['CAN_MANAGE_SURVEYS_X@r1']))).toBe(false);
+    expect(surveys.visible(withPermissions(['CAN_MANAGE_SURVEYS@r1'], false))).toBe(false);
+  });
+
   it('gives visitors the public pages: start, map, statistics, blog, then the about pages', () => {
     expect(shape(context())).toEqual({
       daily: ['home', 'map', 'statistics', 'blog'],

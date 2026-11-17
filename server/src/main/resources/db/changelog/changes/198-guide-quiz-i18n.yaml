@@ -1,0 +1,55 @@
+# EinAb guide quiz texts (Q4 follow-up): changelog 190 created the EINAB_GUIDE quiz without quiz_i18n rows, so outside
+# the seed the quiz had no name in any language. Adds name and description in all five languages (seed ids and texts),
+# each only where the quiz has no row for that language yet, so quiz-editor edits and seeded databases stay as they
+# are. Plain SQL that runs unchanged on PostgreSQL and H2 (MODE=PostgreSQL); a no-op when there is no EINAB_GUIDE quiz.
+databaseChangeLog:
+  - changeSet:
+      id: 198-1
+      author: platform
+      comment: 'Q4: EINAB_GUIDE quiz name and description in de, en, gws, fr, it where missing.'
+      changes:
+        - sql:
+            sql: >-
+              INSERT INTO quiz_i18n (id, version, created_at, updated_at, owner_id, language, name, description)
+              SELECT CAST('00000013-0002-4000-8000-000000000036' AS UUID), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, q.id, 'de',
+              'EinAb-Begleitungs-Quiz',
+              'Für Foodsaver, die Einführungsabholungen begleiten möchten.'
+              FROM quiz q WHERE q.kind = 'EINAB_GUIDE'
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.owner_id = q.id AND i.language = 'de')
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.id = CAST('00000013-0002-4000-8000-000000000036' AS UUID))
+        - sql:
+            sql: >-
+              INSERT INTO quiz_i18n (id, version, created_at, updated_at, owner_id, language, name, description)
+              SELECT CAST('00000013-0002-4000-8000-000000000037' AS UUID), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, q.id, 'en',
+              'EinAb guide quiz',
+              'For foodsavers who want to guide intro pickups.'
+              FROM quiz q WHERE q.kind = 'EINAB_GUIDE'
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.owner_id = q.id AND i.language = 'en')
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.id = CAST('00000013-0002-4000-8000-000000000037' AS UUID))
+        - sql:
+            sql: >-
+              INSERT INTO quiz_i18n (id, version, created_at, updated_at, owner_id, language, name, description)
+              SELECT CAST('00000013-0002-4000-8000-000000000038' AS UUID), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, q.id, 'gws',
+              'EinAb-Begleitigs-Quiz',
+              'Für Foodsaver, wo Iifüehrigsabholige begleite wänd.'
+              FROM quiz q WHERE q.kind = 'EINAB_GUIDE'
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.owner_id = q.id AND i.language = 'gws')
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.id = CAST('00000013-0002-4000-8000-000000000038' AS UUID))
+        - sql:
+            sql: >-
+              INSERT INTO quiz_i18n (id, version, created_at, updated_at, owner_id, language, name, description)
+              SELECT CAST('00000013-0002-4000-8000-000000000039' AS UUID), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, q.id, 'fr',
+              'Quiz accompagnateur·rice EinAb',
+              'Pour les foodsavers qui veulent accompagner des collectes d’introduction.'
+              FROM quiz q WHERE q.kind = 'EINAB_GUIDE'
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.owner_id = q.id AND i.language = 'fr')
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.id = CAST('00000013-0002-4000-8000-000000000039' AS UUID))
+        - sql:
+            sql: >-
+              INSERT INTO quiz_i18n (id, version, created_at, updated_at, owner_id, language, name, description)
+              SELECT CAST('00000013-0002-4000-8000-000000000040' AS UUID), 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, q.id, 'it',
+              'Quiz accompagnatore EinAb',
+              'Per i foodsaver che vogliono accompagnare ritiri introduttivi.'
+              FROM quiz q WHERE q.kind = 'EINAB_GUIDE'
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.owner_id = q.id AND i.language = 'it')
+              AND NOT EXISTS (SELECT 1 FROM quiz_i18n i WHERE i.id = CAST('00000013-0002-4000-8000-000000000040' AS UUID))

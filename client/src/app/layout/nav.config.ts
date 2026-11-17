@@ -548,7 +548,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'nav.surveys',
     icon: 'pi pi-list-check',
     route: '/surveys',
-    visible: (ctx) => ctx.isAuthenticated && ctx.hasPermission('CAN_MANAGE_SURVEYS'),
+    visible: (ctx) => ctx.isAuthenticated && hasPermissionAnywhere(ctx, 'CAN_MANAGE_SURVEYS'),
   },
   // --- M6 (hidden until M6_PAGES_READY flips) ---
   {

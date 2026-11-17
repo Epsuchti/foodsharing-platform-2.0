@@ -44,6 +44,8 @@ jobs:
       - run: npm ci
       - name: Validate spec and contract rules
         run: node scripts/check-openapi.mjs
+      - name: Self-test of the runbook import script
+        run: node --test scripts/import-csv.test.mjs
       - name: Breaking changes against the base branch (oasdiff)
         if: github.event_name == 'pull_request'
         run: |
