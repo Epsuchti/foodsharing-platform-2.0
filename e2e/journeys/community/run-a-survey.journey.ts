@@ -40,8 +40,11 @@ test.describe('survey manager', () => {
     }
 
     await walk.step('opens the surveys and starts a new one', async () => {
-      // the side menu has no survey item for a region-level survey permission: Bot keeps the link
-      await page.goto('/surveys');
+      // Bot holds the survey permission for a region only: the side menu still offers Umfragen
+      await page.goto('/dashboard');
+      await expect(page.getByTestId('dashboard.page.welcome')).toBeVisible();
+      await walk.nav('surveys');
+      await expect(page).toHaveURL(/\/surveys$/);
       await expectDataState(page, 'surveys.list.state', 'success');
       await expect(page.locator(`[data-testid="surveys.list.item"][data-survey-id="${SEED_SURVEY}"]`)).toBeVisible();
       await checkpoint(page, 'surveys-list');
@@ -121,7 +124,8 @@ test.describe('survey manager', () => {
     });
 
     // measured 2026-11-15, desktop and phone
-    walk.finish({ steps: 4, clicks: 20, fields: 11 });
+    // 21 clicks: the side menu item replaces the direct link Bot used while the item was missing
+    walk.finish({ steps: 4, clicks: 21, fields: 11 });
   });
 });
 
