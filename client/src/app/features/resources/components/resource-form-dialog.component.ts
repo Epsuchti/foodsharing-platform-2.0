@@ -106,7 +106,7 @@ import {
               @for (value of opennessValues; track value) {
                 <label class="radio">
                   <input type="radio" name="resource-openness" [value]="value" [checked]="openness() === value" (change)="openness.set(value)" [attr.data-value]="value" data-testid="resources.form.openness" />
-                  {{ 'resources.openness.' + value | t }}
+                  <span>{{ 'resources.openness.' + value | t }}</span>
                 </label>
               }
             </div>
@@ -155,7 +155,8 @@ import {
     .form { display: grid; gap: 1rem; }
     .field { display: grid; gap: 0.4rem; min-width: 0; margin: 0; padding: 0; border: 0; }
     .field label, .field legend, .label { padding: 0; font-weight: 650; font-size: 0.88rem; }
-    .field input, .field textarea { width: 100%; }
+    /* text fields span the column; a radio stays its own size (it took the full width and pushed its label out) */
+    .field input:not([type='radio']), .field textarea { width: 100%; }
     .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
     .chip {
       display: inline-flex; align-items: center; gap: 0.35rem; min-height: var(--fs-target-sm); padding: 0.25rem 0.75rem;
@@ -167,7 +168,8 @@ import {
     .chip:disabled { cursor: not-allowed; opacity: 0.6; }
     .chip:focus-visible { outline: 2px solid var(--fs-primary); outline-offset: 2px; }
     .radios, .checks { display: grid; gap: 0.4rem; }
-    .radio { display: flex; align-items: center; gap: 0.5rem; min-height: 1.5rem; font-size: 0.92rem; }
+    .radio { display: flex; align-items: center; gap: 0.5rem; min-width: 0; min-height: 1.5rem; font-size: 0.92rem; }
+    .radio span { min-width: 0; overflow-wrap: anywhere; }
     .error { color: var(--fs-danger); font-size: 0.82rem; font-weight: 600; }
   `,
 })

@@ -1,0 +1,60 @@
+// Phone layout of a data table: below the breakpoint every row becomes a block and every cell a "column name / value"
+// pair, so no column is cut off at the right edge of a 360 px phone (testing rework: admin tables wider than the
+// screen). Cells name their column with `[attr.data-label]`; a cell without it (the row title) shows only its value.
+// The header row stays for screen readers (visually hidden). Include it in the table's own rule:
+//
+//   @use '../../shared/styles/table-stack' as table;
+//   .table { @include table.stack; }
+@mixin stack($below: 40rem) {
+  @media (max-width: ($below - 0.01rem)) {
+    &,
+    > tbody,
+    > tbody > tr,
+    > tbody > tr > th,
+    > tbody > tr > td {
+      display: block;
+      width: 100%;
+    }
+
+    > thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    > tbody > tr {
+      display: grid;
+      gap: 0.375rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--fs-border);
+    }
+
+    > tbody > tr:last-child {
+      border-bottom: 0;
+    }
+
+    > tbody > tr > th,
+    > tbody > tr > td {
+      padding: 0;
+      border-bottom: 0;
+      text-align: start;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    > tbody > tr > td:empty {
+      display: none;
+    }
+
+    > tbody > tr > [data-label]::before {
+      content: attr(data-label);
+      display: block;
+      color: var(--fs-text-muted);
+      font-size: 0.75rem;
+      font-weight: 650;
+    }
+  }
+}

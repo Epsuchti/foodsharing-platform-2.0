@@ -100,11 +100,13 @@ const ZONES = ['Europe/Zurich', 'Europe/Berlin', 'Europe/Vienna', 'Europe/Luxemb
           <label for="ra-reason">{{ (region() ? 'regionAdmin.form.reasonRequired' : 'regionAdmin.form.reason') | t }}</label>
           <input pInputText id="ra-reason" formControlName="reason" maxlength="500" data-testid="regionAdmin.form.reason" />
         </div>
-        <div class="actions">
-          <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
-          <p-button type="submit" [label]="'common.save' | t" icon="pi pi-check" [disabled]="form.invalid" [loading]="busy()" data-testid="regionAdmin.form.save" />
-        </div>
+        <!-- Enter in a field still submits; the visible buttons sit in the footer, so they stay on screen on a phone -->
+        <button type="submit" hidden></button>
       </form>
+      <ng-template #footer>
+        <p-button [label]="'common.cancel' | t" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+        <p-button [label]="'common.save' | t" icon="pi pi-check" [disabled]="form.invalid" [loading]="busy()" (onClick)="submit()" data-testid="regionAdmin.form.save" />
+      </ng-template>
     </p-dialog>
   `,
   styles: `
@@ -137,11 +139,6 @@ const ZONES = ['Europe/Zurich', 'Europe/Berlin', 'Europe/Vienna', 'Europe/Luxemb
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-    }
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
     }
   `,
 })

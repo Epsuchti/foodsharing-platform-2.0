@@ -100,12 +100,12 @@ export function uploadQuery(filter: string, page: number): { unclaimed?: boolean
                       <i class="pi pi-file" aria-hidden="true"></i>
                     }
                   </td>
-                  <td>
+                  <td [attr.data-label]="'adminSettings.uploads.file' | t">
                     <span class="name">{{ upload.fileName }}</span>
                     <span class="muted">{{ upload.mimeType }}</span>
                   </td>
-                  <td>{{ upload.owner?.displayName ?? ('adminSettings.uploads.system' | t) }}</td>
-                  <td>
+                  <td [attr.data-label]="'adminSettings.uploads.owner' | t">{{ upload.owner?.displayName ?? ('adminSettings.uploads.system' | t) }}</td>
+                  <td [attr.data-label]="'adminSettings.uploads.usage' | t">
                     @if (upload.usageModule) {
                       <span class="chip">{{ moduleLabel(upload.usageModule) }}</span>
                     } @else {
@@ -115,8 +115,8 @@ export function uploadQuery(filter: string, page: number): { unclaimed?: boolean
                       }
                     }
                   </td>
-                  <td>{{ upload.createdAt | fsDate: 'dateTime' }}</td>
-                  <td class="num">{{ bytes(upload.size) }}</td>
+                  <td [attr.data-label]="'adminSettings.uploads.created' | t">{{ upload.createdAt | fsDate: 'dateTime' }}</td>
+                  <td class="num" [attr.data-label]="'adminSettings.uploads.size' | t">{{ bytes(upload.size) }}</td>
                   <td class="actions">
                     <p-button
                       icon="pi pi-trash"
