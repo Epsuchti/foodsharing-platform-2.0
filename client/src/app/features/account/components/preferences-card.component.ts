@@ -205,14 +205,9 @@ const THEME_ICONS: Record<ThemePreference, string> = {
       display: grid;
       gap: 0.5rem;
     }
+    /* 13rem fits "CH Schwiizerdütsch ✓" (10rem columns cut it off on phones and on the 1280px desktop) */
     .options--lang {
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
-    }
-    /* on a phone two 10rem columns cut "CH Schwiizerdütsch ✓" off: 12rem gives one chip per row there */
-    @media (max-width: 39.99rem) {
-      .options--lang {
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
-      }
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
     }
     .options--theme {
       grid-template-columns: repeat(3, minmax(0, 1fr));
