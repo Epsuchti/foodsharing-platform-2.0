@@ -85,11 +85,16 @@ test('guide offers online, linked and on-site intro pickups and manages template
     await expect(form.getByTestId('introPickups.form.linkedHint')).toBeVisible();
     await expect(form.getByTestId('introPickups.form.unlinkHint')).toHaveCount(0);
     await checkpoint(page, 'linked-form');
-    const saved = page.waitForResponse((r) => r.request().method() === 'POST' && /\/guide\/intro-pickups$/.test(r.url()));
+    // the new EinAb is the one id that was not listed before, as in the online step: the POST answer's body is not
+    // always readable through the browser protocol once the list has reloaded (chromium, both checkpoint projects)
+    const before = await einabs.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id')));
     await walk.click(page.getByTestId('introPickups.form.save'));
-    const createdId = ((await (await saved).json()) as { id: string }).id;
     await expect(form).toBeHidden();
-    const created = page.locator(`[data-testid="introPickups.guide.einab"][data-id="${createdId}"]`);
+    await expect(einabs).toHaveCount(before.length + 1);
+    const after = await einabs.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id')));
+    const added = after.filter((id) => !before.includes(id));
+    expect(added, 'one new EinAb').toHaveLength(1);
+    const created = page.locator(`[data-testid="introPickups.guide.einab"][data-id="${added[0]}"]`);
     await expect(created.getByTestId('introPickups.guide.linked')).toBeVisible();
     await expect(created.getByTestId('introPickups.guide.assign')).toHaveCount(0);
     await expect(candidates).toHaveCount(1);
