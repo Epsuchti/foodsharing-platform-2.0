@@ -82,7 +82,13 @@ test('store manager confirms a sign-up, adds a regular slot and reads the store 
     await walk.click(page.getByTestId('stores.page.tab.log'));
     await expectDataState(page, 'stores.log.list', 'success');
     await expect(page.locator('[data-testid="stores.log.entry"][data-action="STORE.SLOT_CONFIRMED"]').first()).toBeVisible();
-    await expect(page.locator('[data-testid="stores.log.entry"][data-action="STORE.UPDATE_REGULAR_PICKUP_SETTINGS"]').first()).toBeVisible();
+    const regular = page.locator('[data-testid="stores.log.entry"][data-action="STORE.UPDATE_REGULAR_PICKUP_SETTINGS"]').first();
+    await expect(regular).toBeVisible();
+    // the change in words: the field's name and the weekdays in German, no field code or English weekday
+    const change = regular.getByTestId('stores.log.entry.change');
+    await expect(change).toContainText('Regelmässige Abholzeiten');
+    await expect(change).toContainText('Dienstag 19:00');
+    await expect(change).not.toContainText(/Regular pickups|TUESDAY/);
     await checkpoint(page, 'store-log');
   });
 

@@ -2,6 +2,7 @@ import path from 'node:path';
 import type { Page } from '@playwright/test';
 import { acceptPendingConsents, expectDataState, expectErrorState, expectStatus, regionId } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
+import { expectWithin } from '../../fixtures/flows/shell';
 import { Walk, openNewestBell } from '../../fixtures/persona';
 
 /**
@@ -71,6 +72,9 @@ test('a member lends a dehydrator, keeps a favourite and reaches the limit; the 
     await page.getByTestId('resources.form.images.input').setInputFiles(PHOTO);
     walk.count(1);
     await expect(page.getByTestId('resources.form.images.file')).toHaveCount(1);
+    // the openness labels sit next to their radios, inside the dialog (they ran out of it on a phone)
+    const radio = page.locator('[data-testid="resources.form.openness"][data-value="FREE_TO_BORROW"]');
+    await expectWithin(radio.locator('xpath=..'), page.locator('.p-dialog').filter({ has: radio }), 'openness label');
     await checkpoint(page, 'resource-form', { fullPage: false });
     await walk.click(page.getByTestId('resources.form.submit'));
     await expect(page.getByTestId('resources.form.name')).toBeHidden();

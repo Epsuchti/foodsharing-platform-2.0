@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { LANGUAGES, PHONE_MAX, expectDataState, expectNoMissingKeys, type ApiClient, type Language, type Theme } from '../../fixtures';
 import { checkpoint, checkpointElement, expect, journey as test } from '../../fixtures/checkpoint';
+import { expectWithin } from '../../fixtures/flows/shell';
 import { NAMES, ZURICH, memberRow, openStore } from '../../fixtures/flows/stores';
 import { Walk } from '../../fixtures/persona';
 import { fillDate } from '../../support/date-inputs';
@@ -178,6 +179,11 @@ test('foodsaver edits her profile, photo, sleep mode, language, theme, calendar 
 
   await walk.step('tries every language and goes back to German', async () => {
     await expect(page.getByTestId('account.settings.methods')).toHaveAttribute('data-state', 'success');
+    // every language name fits its chip, also the longest (Schwiizerdütsch) on a phone
+    for (const language of LANGUAGES) {
+      const chip = page.getByTestId(`account.settings.language.${language}`);
+      await expectWithin(chip.locator('.option__label'), chip, `language chip ${language}`);
+    }
     // "last used N … ago" of the login methods counts from the run's own clock
     await checkpoint(page, 'settings', { mask: [page.getByTestId('account.settings.methods').locator('.row__meta')] });
     // from the other end of the list, so every language is a real switch; German comes last

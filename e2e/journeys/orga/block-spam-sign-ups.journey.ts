@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { acceptPendingConsents, expectDataState, pickOption } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
 import { acceptConfirm, newEmail, useFreshClientIp } from '../../fixtures/flows/auth';
+import { expectTableFits } from '../../fixtures/flows/shell';
 import { Walk } from '../../fixtures/persona';
 
 /**
@@ -61,6 +62,8 @@ test('orga blocks a spam domain and address, lifts an automatic block and remove
     await walk.click(page.getByTestId('adminSettings.blocklist.addButton'));
     await expect(page.getByTestId('adminSettings.blocklist.error')).toBeVisible();
     await expect(blocklistRow(page, DOMAIN)).toHaveCount(1);
+    // no column (the edit and remove buttons last) hides behind the right edge on a phone
+    await expectTableFits(page.getByTestId('adminSettings.blocklist.table'));
     await checkpoint(page, 'blocklist-duplicate');
 
     // a sign-up with that domain is refused in the login form
@@ -112,6 +115,8 @@ test('orga blocks a spam domain and address, lifts an automatic block and remove
     await expect(autoRow(account.id).getByRole('link', { name: foodsaver.displayName })).toHaveAttribute('href', `/profile/${foodsaver.id}`);
     await expect(autoRow(automatic.id)).toHaveAttribute('data-scope', 'IP');
     await expect(autoRow(automatic.id).locator('code')).toHaveText(AUTO_IP);
+    await expectTableFits(page.getByTestId('adminSettings.ipBlocks.table'));
+    await expectTableFits(page.getByTestId('adminSettings.ipBlocks.autoTable'));
     await checkpoint(page, 'ip-blocks');
 
     // a sign-up from the blocked address is refused

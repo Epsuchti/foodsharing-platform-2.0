@@ -60,3 +60,40 @@ export async function expectFitsScreen(page: Page, what: string): Promise<void> 
     .poll(async () => (await overflow(page)).over, { message: `${what}: ${JSON.stringify(await overflow(page))}` })
     .toBeLessThanOrEqual(0);
 }
+
+/**
+ * A data table shows all its columns without scrolling sideways: on a phone its rows are blocks
+ * (`shared/styles/_table-stack.scss`), so no column hides behind the right edge of its card.
+ */
+export async function expectTableFits(table: Locator): Promise<void> {
+  await expect(table).toBeVisible();
+  await expect
+    .poll(() => table.evaluate((el) => el.scrollWidth - (el.parentElement?.clientWidth ?? el.scrollWidth)), {
+      message: 'table wider than its container',
+    })
+    .toBeLessThanOrEqual(1);
+}
+
+/** `inner` lies within the left and right edges of `outer` (text that ran out of its dialog or chip on a phone). */
+export async function expectWithin(inner: Locator, outer: Locator, what: string): Promise<void> {
+  // both boxes are read on every poll: dialogs scale in while they open
+  const edges = async () => {
+    const outerBox = await box(outer);
+    const text = await inner.evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const r = range.getBoundingClientRect();
+      return { left: r.left, right: r.right };
+    });
+    return { text, outer: { left: outerBox.x, right: outerBox.x + outerBox.width } };
+  };
+  await expect
+    .poll(
+      async () => {
+        const { text, outer: o } = await edges();
+        return text.left >= o.left - 0.5 && text.right <= o.right + 0.5;
+      },
+      { message: `${what} sticks out sideways: ${JSON.stringify(await edges().catch(() => null))}` },
+    )
+    .toBe(true);
+}

@@ -1,6 +1,7 @@
 import type { Locator } from '@playwright/test';
 import { expectDataState, seedStore } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
+import { expectTableFits } from '../../fixtures/flows/shell';
 import { NAMES, ZURICH, center } from '../../fixtures/flows/stores';
 import { Walk } from '../../fixtures/persona';
 import { fillDate } from '../../support/date-inputs';
@@ -194,6 +195,7 @@ test('store manager creates a store, edits it and updates the chain @S1 @S2 @S3 
     const coop = page.locator('[data-testid="storeChains.list.row"][data-chain="Coop"]');
     await expect(coop.getByTestId('storeChains.list.kam')).toHaveText(NAMES.bieb);
     await expect(page.locator('[data-testid="storeChains.list.row"][data-chain="Migros"]')).toBeVisible();
+    await expectTableFits(page.getByTestId('storeChains.list.table'));
     await walk.click(coop.getByTestId('storeChains.list.link'));
     await expect(page).toHaveURL(new RegExp(`/store-chains/${COOP}$`));
     await expectDataState(page, 'storeChains.chain.state', 'success');
