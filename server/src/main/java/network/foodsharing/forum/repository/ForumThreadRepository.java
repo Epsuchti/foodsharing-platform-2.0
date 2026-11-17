@@ -1,14 +1,22 @@
 package network.foodsharing.forum.repository;
 
+import jakarta.persistence.LockModeType;
+import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.forum.domain.ForumThread;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ForumThreadRepository extends JpaRepository<ForumThread, UUID> {
+
+    /** Row lock that serialises follow changes of one thread (concurrent saves of one user's follow row, F5). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from ForumThread t where t.id = :id")
+    Optional<ForumThread> findForUpdate(@Param("id") UUID id);
 
     /** Listing: sticky first, then latest post (inactive threads only for moderators or their authors). */
     @Query("""

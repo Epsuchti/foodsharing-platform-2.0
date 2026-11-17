@@ -105,19 +105,22 @@ test('foodsaver searches the forum, replies, reacts, follows a thread and starts
     const bell = page.getByTestId('forum.thread.followBell');
     const mail = page.getByTestId('forum.thread.followMail');
     await expect(bell.locator('input')).not.toBeChecked();
-    // each switch saves both settings from the thread as loaded: wait until the first one is saved and the thread
-    // reloaded (a second click before it would send the old bell setting again)
-    const saving = async (toggle: typeof bell) => {
-      const put = page.waitForResponse((r) => r.request().method() === 'PUT' && r.url().endsWith(`/api/forum/threads/${FORUM.thread(5)}/follow`));
-      await walk.click(toggle);
-      expect((await put).ok()).toBe(true);
-      await settle(page);
-    };
-    await saving(bell);
+    // bell and mail right after each other, without waiting for the first save: the saves run one after another and
+    // the second builds on the first, so neither undoes the other (the race the journey found)
+    const follows: { bell: boolean; mail: boolean }[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'PUT' && r.url().endsWith(`/api/forum/threads/${FORUM.thread(5)}/follow`)) follows.push(r.postDataJSON());
+    });
+    await walk.click(bell);
+    await walk.click(mail);
     await expect(bell.locator('input')).toBeChecked();
-    await saving(mail);
     await expect(mail.locator('input')).toBeChecked();
+    await expect.poll(() => follows.at(-1)).toEqual({ bell: true, mail: true });
+    await settle(page);
     await expect(bell.locator('input')).toBeChecked();
+    await expect(mail.locator('input')).toBeChecked();
+    const saved = await api.getJson<{ following: { bell: boolean; mail: boolean } }>(`/api/forum/threads/${FORUM.thread(5)}`);
+    expect(saved.following).toEqual({ bell: true, mail: true });
     const answer = 'Ich hätte am Samstag einen Anhänger frei.';
     // she has moved on when Nina answers (an open thread marks its own bells read)
     await page.goto('/dashboard');

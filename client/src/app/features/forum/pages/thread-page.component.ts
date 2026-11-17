@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,8 +9,9 @@ import { InputText } from '@openng/optimus-ui/inputtext';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { debounceTime, filter } from 'rxjs';
 
-import { ForumPost, ForumService, ForumThread, ForumThreadUpdate, RealtimeEventType, ThreadStatus } from '../../../api';
+import { ForumFollow, ForumPost, ForumService, ForumThread, ForumThreadUpdate, RealtimeEventType, ThreadStatus } from '../../../api';
 import { loadResource } from '../../../core/data/data-state';
+import { latestWins } from '../../../core/data/latest-wins';
 import { runMutation } from '../../../core/data/mutation';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
@@ -55,8 +56,8 @@ import { quotePost } from '../forum.resource';
           </div>
           <fieldset class="follow">
             <legend class="fs-visually-hidden">{{ 'forum.follow.legend' | t }}</legend>
-            <span class="check"><p-checkbox [binary]="true" [ngModel]="t.following.bell" (ngModelChange)="follow.run({ bell: $event, mail: t.following.mail })" inputId="follow-bell" data-testid="forum.thread.followBell" /> <label for="follow-bell">{{ 'forum.follow.bell' | t }}</label></span>
-            <span class="check"><p-checkbox [binary]="true" [ngModel]="t.following.mail" (ngModelChange)="follow.run({ bell: t.following.bell, mail: $event })" inputId="follow-mail" data-testid="forum.thread.followMail" /> <label for="follow-mail">{{ 'forum.follow.mail' | t }}</label></span>
+            <span class="check"><p-checkbox [binary]="true" [ngModel]="following(t).bell" (ngModelChange)="saveFollow({ bell: $event, mail: following(t).mail })" inputId="follow-bell" data-testid="forum.thread.followBell" /> <label for="follow-bell">{{ 'forum.follow.bell' | t }}</label></span>
+            <span class="check"><p-checkbox [binary]="true" [ngModel]="following(t).mail" (ngModelChange)="saveFollow({ bell: following(t).bell, mail: $event })" inputId="follow-mail" data-testid="forum.thread.followMail" /> <label for="follow-mail">{{ 'forum.follow.mail' | t }}</label></span>
           </fieldset>
         </div>
 
@@ -155,6 +156,11 @@ export class ThreadPageComponent {
       .subscribe(() => this.thread.refresh());
     const unregister = realtime.onReconnect(() => this.thread.refresh());
     inject(DestroyRef).onDestroy(unregister);
+    // fresh thread data replaces the follow draft once nothing is saving any more
+    effect(() => {
+      this.thread.data();
+      untracked(() => this.followSaver.clear());
+    });
     // deep links from bells: #post-<id> scrolls once the posts are rendered
     let scrolled = false;
     effect(() => {
@@ -199,10 +205,28 @@ export class ThreadPageComponent {
     },
   );
 
-  protected readonly follow = runMutation(
-    (forumFollow: { bell: boolean; mail: boolean }) => this.api.followForumThread({ threadId: this.threadId(), forumFollow }),
-    { successToastKey: 'forum.followSaved', onSuccess: () => this.thread.reload() },
+  private readonly follow = runMutation(
+    (threadId: string, forumFollow: ForumFollow) => this.api.followForumThread({ threadId, forumFollow }),
+    { successToastKey: 'forum.followSaved' },
   );
+
+  /**
+   * Both switches save the full follow state: each toggle builds on the state last asked for (not on the thread as
+   * loaded) and saves run one after another, latest wins, so quick toggles of bell and mail cannot undo each other.
+   */
+  private readonly followSaver = latestWins<{ threadId: string; follow: ForumFollow }>(
+    (s) => this.follow.run(s.threadId, s.follow),
+    () => this.thread.reload(),
+  );
+
+  protected following(t: ForumThread): ForumFollow {
+    const draft = this.followSaver.draft();
+    return draft && draft.threadId === t.id ? draft.follow : t.following;
+  }
+
+  protected saveFollow(follow: ForumFollow): void {
+    this.followSaver.push({ threadId: this.threadId(), follow });
+  }
 
   protected readonly reply = runMutation(
     () => this.api.createForumPost({ threadId: this.threadId(), forumPostWrite: { body: this.draft.trim() } }),

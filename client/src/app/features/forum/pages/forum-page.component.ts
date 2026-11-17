@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
@@ -9,12 +9,19 @@ import { ForumFollowState, ForumSearchPage, ForumService, ForumThreadPage } from
 import { isAmbassador } from '../../../core/auth/permission.util';
 import { SessionService } from '../../../core/auth/session.service';
 import { loadResource } from '../../../core/data/data-state';
+import { latestWins } from '../../../core/data/latest-wins';
 import { runMutation } from '../../../core/data/mutation';
 import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
 import { highlight } from '../forum.resource';
+
+interface ForumFollowTarget {
+  regionId: string;
+  ambassadorForum: boolean;
+  following: boolean;
+}
 
 /**
  * /regions/:regionId/forum[/ambassadors] (F1, F2, F4, F5): thread list (sticky first, closed lock, "awaiting
@@ -53,13 +60,12 @@ import { highlight } from '../forum.resource';
       <span class="spacer"></span>
       @if (follow.data(); as f) {
         <p-button
-          [label]="(f.following ? 'forum.unfollowForum' : 'forum.followForum') | t"
-          [icon]="f.following ? 'pi pi-bell-slash' : 'pi pi-bell'"
+          [label]="(followingForum(f) ? 'forum.unfollowForum' : 'forum.followForum') | t"
+          [icon]="followingForum(f) ? 'pi pi-bell-slash' : 'pi pi-bell'"
           severity="secondary" [outlined]="true"
           size="small"
-          [loading]="toggleFollow.busy()"
-          (onClick)="toggleFollow.run(!f.following)"
-          [attr.data-following]="f.following"
+          (onClick)="saveForumFollow(!followingForum(f))"
+          [attr.data-following]="followingForum(f)"
           data-testid="forum.list.follow"
         />
       }
@@ -203,11 +209,36 @@ export class ForumPageComponent {
     isEmpty: () => false,
   });
 
-  protected readonly toggleFollow = runMutation(
-    (following: boolean) =>
-      this.api.setForumFollow({ regionId: this.regionId(), ambassadorForum: this.ambassadorForum(), forumFollowState: { following } }),
-    { successToastKey: 'forum.followSaved', onSuccess: () => this.follow.reload() },
+  private readonly toggleFollow = runMutation(
+    (s: ForumFollowTarget) =>
+      this.api.setForumFollow({ regionId: s.regionId, ambassadorForum: s.ambassadorForum, forumFollowState: { following: s.following } }),
+    { successToastKey: 'forum.followSaved' },
   );
+
+  /** Follow toggles build on the state last asked for and save one after another, latest wins (no stale toggles). */
+  private readonly followSaver = latestWins<ForumFollowTarget>(
+    (s) => this.toggleFollow.run(s),
+    () => this.follow.reload(),
+  );
+
+  constructor() {
+    // fresh follow data replaces the draft once nothing is saving any more
+    effect(() => {
+      this.follow.data();
+      untracked(() => this.followSaver.clear());
+    });
+  }
+
+  protected followingForum(loaded: ForumFollowState): boolean {
+    const draft = this.followSaver.draft();
+    return draft && draft.regionId === this.regionId() && draft.ambassadorForum === this.ambassadorForum()
+      ? draft.following
+      : loaded.following;
+  }
+
+  protected saveForumFollow(following: boolean): void {
+    this.followSaver.push({ regionId: this.regionId(), ambassadorForum: this.ambassadorForum(), following });
+  }
 
   protected search(): void {
     this.searchBody.set(this.bodyInput);
