@@ -40,6 +40,11 @@ const TRANSLATIONS: Record<string, string> = {
   'shared.historyTimeline.value.false': 'Nein',
   'shared.historyTimeline.value.channel.PUSH': 'Push',
   'shared.store.cooperation.IN_NEGOTIATION': 'In Verhandlung',
+  'shared.historyTimeline.field.regularPickups': 'Regelmässige Abholzeiten',
+  'shared.historyTimeline.value.sleepStatus.TEMPORARY': 'Eine Zeit lang',
+  'shared.historyTimeline.systemReason.accountDeleted': 'Konto gelöscht',
+  'shared.historyTimeline.automation.pickup-policy': 'Abholregeln',
+  'shared.historyTimeline.actor.automation': 'Automatik: {name}',
 };
 
 function entry(partial: Partial<HistoryEntry> & Pick<HistoryEntry, 'action'>): HistoryEntry {
@@ -169,6 +174,31 @@ describe('HistoryLabeler', () => {
     expect(facts.find((fact) => fact.key === 'previousCount')?.label).toBe('Bisherige Anzahl');
     expect(labeler.value('cooperationStatus', 'IN_NEGOTIATION')).toBe('In Verhandlung');
     expect(labeler.value('active', 'false')).toBe('Nein');
+  });
+
+  it('shows server-written codes in words: weekly rules, enum values, system reasons, automations', () => {
+    expect(
+      labeler.change(
+        entry({
+          action: 'REGULAR_PICKUPS_CHANGED',
+          field: 'regularPickups',
+          oldValue: 'MONDAY 19:00 ×3',
+          newValue: 'MONDAY 19:00 ×3; SUNDAY 08:30 ×1',
+        }),
+      ),
+    ).toEqual({
+      field: 'Regelmässige Abholzeiten',
+      oldValue: 'Montag 19:00 ×3',
+      newValue: 'Montag 19:00 ×3; Sonntag 08:30 ×1',
+    });
+    expect(labeler.value('sleepStatus', 'TEMPORARY')).toBe('Eine Zeit lang');
+    expect(labeler.reason('account deleted')).toBe('Konto gelöscht');
+    // typed reasons stay as they are, also when they happen to be lower-case words
+    expect(labeler.reason('zu spät abgesagt')).toBe('zu spät abgesagt');
+    expect(labeler.reason('moved away')).toBe('moved away');
+    expect(labeler.automationName('pickup-policy')).toBe('Abholregeln');
+    expect(labeler.automationName('new-runner')).toBe('new-runner');
+    expect(labeler.metaValue('automation', 'pickup-policy')).toBe('Abholregeln');
   });
 
   it('chooses icons by action with suffix rules for new actions', () => {
@@ -373,6 +403,23 @@ describe('HistoryTimelineComponent', () => {
     );
     expect(panel.textContent).not.toContain('STORE.');
     expect(panel.textContent).not.toContain('s1');
+  });
+
+  it('names automations and system reasons in words', async () => {
+    const declined = entry({
+      action: 'REMOVED_FROM_SLOT',
+      subjectType: HistorySubjectType.Store,
+      actorType: HistoryActorType.Automation,
+      actor: { displayName: 'pickup-policy', type: HistoryActorType.Automation },
+      reason: 'account deleted',
+    });
+    const { fixture, entries } = await create(() => of(demoPage([declined])));
+    await fixture.whenStable();
+    const text = entries()[0].textContent ?? '';
+    expect(text).toContain('Automatik: Abholregeln');
+    expect(text).toContain('Konto gelöscht');
+    expect(text).not.toContain('pickup-policy');
+    expect(text).not.toContain('account deleted');
   });
 
   it('says "by you" for the viewer’s own actions', async () => {
