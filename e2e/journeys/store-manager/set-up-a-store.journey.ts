@@ -80,7 +80,12 @@ test('store manager creates a store, edits it and updates the chain @S1 @S2 @S3 
     await checkpoint(page, 'store-form-address');
     // … until it is set by hand; the button puts it back on the address
     await center(page, 'stores.form.address.map');
-    await walk.click(field('stores.form.address.map'));
+    // a tap beside the marker in the middle (on iPhone a tap on the marker itself did not move it; the zoom buttons
+    // sit in the top corner)
+    walk.count(1);
+    const map = field('stores.form.address.map');
+    const box = (await map.boundingBox())!;
+    await map.click({ position: { x: box.width / 2 + 60, y: box.height / 2 + 30 } });
     await expect(coordinates).not.toHaveText('47.37170, 8.54230');
     const manual = await coordinates.textContent();
     await walk.fill(field('stores.form.address.postcode'), '8003');
