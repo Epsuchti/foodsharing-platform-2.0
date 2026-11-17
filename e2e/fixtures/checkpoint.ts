@@ -502,7 +502,7 @@ export async function checkpoint(page: Page, name: string, options: CheckpointOp
     if (!isCheckpointProject()) return;
     if (!options.skipAxe) await expectNoSeriousViolations(page, options.a11y);
     if (!COMPARE_SCREENSHOTS) return;
-    await withReducedMotion(page, () => captureCheckpoint(page, name, options));
+    await captureCheckpoint(page, name, options);
   });
 }
 
@@ -565,20 +565,6 @@ async function captureCheckpoint(page: Page, name: string, options: CheckpointOp
 }
 
 /**
- * Captures run with reduced motion (counters show their final value at once; a counter that entered the tall
- * viewport would otherwise be caught counting) and set it back afterwards: the journey itself runs with the motion a
- * user has (with reduced motion a select option inside a dialog could not be clicked, see the report of decision 180).
- */
-async function withReducedMotion(page: Page, capture: () => Promise<void>): Promise<void> {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  try {
-    await capture();
-  } finally {
-    await page.emulateMedia({ reducedMotion: null });
-  }
-}
-
-/**
  * An element checkpoint (gallery sections, dialogs). An element taller than the viewport is captured in a viewport
  * that holds it from the top of the page (sticky bars stay above it, the fixed tab bar below it).
  */
@@ -593,7 +579,7 @@ export async function checkpointElement(
     if (!isCheckpointProject()) return;
     if (!options.skipAxe) await expectNoSeriousViolations(page, options.a11y);
     if (!COMPARE_SCREENSHOTS) return;
-    await withReducedMotion(page, () => captureElement(locator, name, options));
+    await captureElement(locator, name, options);
   });
 }
 
