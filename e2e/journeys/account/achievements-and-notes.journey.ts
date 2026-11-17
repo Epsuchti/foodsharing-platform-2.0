@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { acceptPendingConsents, expectDataState, pickOption, regionId } from '../../fixtures';
 import { checkpoint, expect, journey as test } from '../../fixtures/checkpoint';
+import { togglesInPlace } from '../../fixtures/nav';
 import { Walk } from '../../fixtures/persona';
 import { fillDate } from '../../support/date-inputs';
 
@@ -43,6 +44,8 @@ test('ambassador defines, awards and revokes an achievement and keeps a note abo
 
   await walk.step('opens the achievements of his region', async () => {
     await page.goto(`/regions/${ZURICH}`);
+    // the toggled tabs (Fairteiler, resources) slot in before this one once the toggles are loaded
+    await togglesInPlace(page);
     await walk.click(page.getByTestId('regions.page.tab.achievements'));
     await expect(page).toHaveURL(new RegExp(`/regions/${ZURICH}/achievements$`));
     await expectDataState(page, 'achievements.board.state', 'success');

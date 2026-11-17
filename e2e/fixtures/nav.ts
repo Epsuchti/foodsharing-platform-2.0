@@ -9,15 +9,27 @@ export const SIDENAV_WIDE_MIN = 1200;
 const USER_MENU_ITEMS: readonly string[] = ['activity', 'quizzes', 'account', 'notifications', 'passport', 'help', 'profile'];
 
 /**
+ * Waits until the feature toggles are loaded (`<html data-feature-toggles>`, FeatureToggleService). They load after
+ * the first page, and their nav items and page tabs then slot in among the others: a click right after a page load
+ * (WebKit runs) hit a menu entry or tab while it moved, and the navigation never happened. No-op outside the shell.
+ */
+export async function togglesInPlace(page: Page): Promise<void> {
+  if (await page.locator('fs-shell').count()) {
+    await expect(page.locator('html[data-feature-toggles]')).toHaveCount(1, { timeout: 15_000 });
+  }
+}
+
+/**
  * Opens a main navigation item the way a user would, on every layout:
  * - phones: the bottom tab when the item is a tab, otherwise "Menu" → drawer entry (`nav.drawer.<id>`);
  * - desktop, user menu items: the user menu `shell.userMenu` → `nav.user.<id>`;
  * - desktop (decision 133): the side menu link `nav.<id>`. A link in a closed section (Orga is closed by default)
  *   opens its section heading `nav.section.<section>` first; in the collapsed rail a folded section opens its flyout
  *   `nav.flyout.<section>` first.
- * Returns the number of clicks it took.
+ * Waits for the toggled items first (togglesInPlace). Returns the number of clicks it took.
  */
 export async function openNav(page: Page, id: string): Promise<number> {
+  await togglesInPlace(page);
   const width = page.viewportSize()?.width ?? 1280;
   if (width <= PHONE_MAX) {
     const tab = page.getByTestId(`nav.tab.${id}`);

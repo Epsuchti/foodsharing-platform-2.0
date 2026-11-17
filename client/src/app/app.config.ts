@@ -33,6 +33,8 @@ import { SessionService } from './core/auth/session.service';
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
 import { installClickFocus } from './core/focus/click-focus';
 import { provideBufferedOverlayServices } from './core/overlays/buffered-overlay.services';
+import { keepFocusTakenWhileDialogsOpen } from './core/overlays/dialog-focus';
+import { runOverlayMotionUnderReducedMotion } from './core/overlays/reduced-motion';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
 import { retryInterceptor } from './core/http/retry.interceptor';
@@ -58,6 +60,8 @@ async function initializeApp(): Promise<void> {
   }
   warmInitialRoute(inject(PlatformLocation).pathname);
   installClickFocus(inject(DOCUMENT));
+  runOverlayMotionUnderReducedMotion();
+  keepFocusTakenWhileDialogsOpen();
   const session = inject(SessionService);
   const appInfo = inject(AppInfoService);
   const i18n = inject(I18nService);

@@ -15,7 +15,10 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
 
-/** {@code app.jobs.scheduled}: only the listed jobs run on their schedule; manual runs always run. */
+/**
+ * {@code app.jobs.scheduled}: only the listed jobs run on their schedule; manual runs always run. The dev seed reset
+ * forgets the in-memory last runs.
+ */
 class JobRunnerScheduleTest {
 
     private final AtomicInteger runs = new AtomicInteger();
@@ -64,5 +67,15 @@ class JobRunnerScheduleTest {
         assertThat(skipped.getFinishedAt()).isNull();
         runner.run(job("pickup-policy"), JobRun.Trigger.MANUAL, null);
         assertThat(runs).hasValue(2);
+    }
+
+    @Test
+    void theSeedResetForgetsTheLastRunsKeptInMemory() {
+        JobRunner runner = runner("");
+        runner.run(job("statistics-aggregation"), JobRun.Trigger.MANUAL, null);
+        assertThat(runner.lastRun("statistics-aggregation")).get()
+                .extracting(JobRun::getOutcome).isEqualTo(JobRun.Outcome.OK);
+        runner.rebuildAfterSeedReset();
+        assertThat(runner.lastRun("statistics-aggregation")).isEmpty();
     }
 }
