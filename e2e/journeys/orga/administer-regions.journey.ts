@@ -67,13 +67,8 @@ test('orga creates, renames and deletes a region, assigns a function and imports
     await expect(pr).toBeVisible();
     await walk.click(pr.getByTestId('regionAdmin.removeFunction'));
     await expect(pr).toHaveCount(0);
-    // the dialog renders again when the removal's answer arrives, which detaches the open option list (seen on busy
-    // phone runs): open the list again if it closed, then pick the function
-    walk.count(2);
-    await expect(async () => {
-      if (!(await page.getByRole('listbox').isVisible())) await page.getByTestId('regionAdmin.newFunction').click();
-      await page.getByRole('option', { name: 'Öffentlichkeitsarbeit', exact: true }).click({ timeout: 2_000 });
-    }).toPass();
+    await walk.click(page.getByTestId('regionAdmin.newFunction'));
+    await walk.click(page.getByRole('option', { name: 'Öffentlichkeitsarbeit', exact: true }));
     await walk.click(page.getByTestId('regionAdmin.newGroup'));
     await walk.click(page.getByRole('option', { name: 'Öffentlichkeitsarbeit Zürich' }));
     // wait for the select overlay to close: on touch devices the next tap would only dismiss it
