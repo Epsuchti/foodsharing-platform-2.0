@@ -29,9 +29,9 @@ source scripts/env.sh
 | Everything incl. ITs | `cd server && ./mvnw verify` |
 | Client API after a contract change | `cd client && npm run openapi:generate` |
 | Client checks | in `client/`: `npm run lint`, `npm run i18n:check`, `npx ng test --watch=false` |
-| e2e, parallel | `npm run e2e:sharded -- --project=chromium` (also `mobile-chrome`, `firefox`, `webkit`, `mobile-safari`) |
+| e2e journeys | in `e2e/`: `npx playwright test --project=chromium` (also `firefox`, `webkit`, `mobile-chrome`, `mobile-safari`; `a11y` for the axe sweep); `E2E_WORKERS` jars, default 2 |
 | Feature coverage | `node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict` |
-| Screenshots, compare | `npm run e2e:screenshots -- --shards=4` |
+| Checkpoint screenshots, compare | `npm run e2e:screenshots` (chromium + mobile-chrome journeys in the Playwright image) |
 | Local app | `cd server && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local` → http://localhost:8080, test-person switcher on `/login`, H2 data in `server/data/` |
 | Mail for local login links | `server/start_smtp_server.sh` (Mailpit, UI http://localhost:8025) |
 
@@ -48,7 +48,7 @@ source scripts/env.sh
   only the low zooms have data. Rebuild it with `scripts/tiles-fixture.sh` (Docker and network; extract from the
   Protomaps world build, or `--method=planetiler` for our own run, about 3 GB of downloads). `ng serve` proxies
   `/tiles` to the jar like `/api`. Screenshots draw a raster stub instead
-  (`window.__fsTileUrl`, `e2e/screenshots/_setup.ts`).
+  (`window.__fsTileUrl`, `e2e/fixtures/checkpoint.ts`).
 - Map tile builder (MT2, decision 163): `server/deploy/tiles.sh` and so `scripts/tiles-fixture.sh` run the build in
   the image `ghcr.io/epsuchti/foodsharing-tiles-builder:<server/deploy/tiles-builder/version.txt>`. It is pulled
   when missing; if the pull fails (not published yet, no GHCR access) or with `tiles.sh --build-image` it is built

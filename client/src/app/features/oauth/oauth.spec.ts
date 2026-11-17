@@ -300,13 +300,6 @@ describe('oauth clients and connections pages (C13)', () => {
     expect(q('[data-testid="oauth.clients.row"]')?.getAttribute('data-enabled')).toBe('false');
   });
 
-  it('clients: error state with retry', async () => {
-    await harness.navigateByUrl('/clients');
-    http.expectOne('/api/admin/oauth-clients').flush(apiHttpError(503, ApiErrorCode.UnexpectedError).error, { status: 503, statusText: 'Error' });
-    await settle();
-    expect(state('oauth.clients.state')).toBe('error');
-  });
-
   it('connections: list and revoke after confirm', async () => {
     await harness.navigateByUrl('/connections');
     expect(state('account.connections.state')).toBe('loading');

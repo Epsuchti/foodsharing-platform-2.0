@@ -18,12 +18,33 @@ export interface A11yOptions {
  */
 export async function animationsDone(page: Page): Promise<void> {
   await page.evaluate(async () => {
+    // Firefox leaves transitions of elements behind an open modal (the members filter's toggle button under the user
+    // edit dialog) "running" at currentTime 0 for good: their `finished` never settles. Such an animation gets its
+    // remaining time plus a second; if it has not moved by then it is stuck and ignored from then on.
+    const host = window as unknown as { __fsStuckAnimations?: WeakSet<Animation> };
+    const stuck = (host.__fsStuckAnimations ??= new WeakSet<Animation>());
+    const settled = (animation: Animation): Promise<void> => {
+      const startedAt = Number(animation.currentTime ?? 0);
+      const left = Math.max(0, Number(animation.effect?.getComputedTiming().endTime ?? 0) - startedAt);
+      return Promise.race([
+        animation.finished.then(
+          () => undefined,
+          () => undefined,
+        ),
+        new Promise<void>((resolve) => setTimeout(resolve, left + 1_000)),
+      ]).then(() => {
+        if (animation.playState === 'running' && Number(animation.currentTime ?? 0) === startedAt) stuck.add(animation);
+      });
+    };
     for (let round = 0; round < 5; round++) {
       const running = document
         .getAnimations()
-        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity && animation.playState === 'running');
+        .filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity && animation.playState === 'running' && !stuck.has(animation),
+        );
       if (!running.length) return;
-      await Promise.all(running.map((animation) => animation.finished.catch(() => undefined)));
+      await Promise.all(running.map(settled));
     }
   });
 }

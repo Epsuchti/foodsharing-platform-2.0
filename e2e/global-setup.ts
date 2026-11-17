@@ -1,74 +1,82 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import type { FullConfig } from '@playwright/test';
-import { RESULTS_DIR, SERVER_DIR, clearServerState, writeServerState } from './support/env';
+import { RESULTS_DIR, SERVER_DIR, WORKERS, baseURLsFromEnv, clearServerState, writeServerState, type JarState } from './support/env';
 
 const HEALTH_TIMEOUT_MS = Number(process.env.E2E_STARTUP_TIMEOUT_MS ?? 120_000);
 
 /**
- * Starts the packaged jar with profile `e2e` on a free port (or reuses `E2E_BASE_URL`) and waits for
- * `/actuator/health/readiness` (fallback `/actuator/health`). The URL is handed to workers through `.state/server.json` (see support/env.ts);
- * global-teardown.ts stops the process again.
+ * Starts `E2E_WORKERS` (default 2) packaged jars with profile `e2e`, each on a free port with its own in-memory
+ * database and log, or reuses `E2E_BASE_URL` (one URL per worker, space- or comma-separated), and waits for
+ * `/actuator/health/readiness` (fallback `/actuator/health`). Worker slot `parallelIndex` uses jar `parallelIndex`
+ * (fixtures/index.ts). The URLs reach the workers through `.state/server.json` (see support/env.ts);
+ * global-teardown.ts stops the processes again.
  *
  * Env:
- * - `E2E_BASE_URL`  reuse a running app (no jar is started).
+ * - `E2E_BASE_URL`  reuse running apps (no jar is started); one per worker.
+ * - `E2E_WORKERS`   number of workers and jars (default 2).
  * - `E2E_JAR`       explicit jar path (default: newest `server/target/foodsharing-platform-*.jar`).
  * - `E2E_BUILD=1`   build the jar with `./mvnw -q -DskipTests package` first when none exists
  *                   (`E2E_BUILD=always` rebuilds every time).
- * - `E2E_PORT`      fixed port instead of a free one.
+ * - `E2E_PORT`      fixed port of the first jar instead of a free one (the others count up from it).
  * - `E2E_JAVA_OPTS` extra JVM options.
  * - `E2E_INSTANCE`  name of a parallel run in this checkout (own state and log; see support/env.ts).
  */
 export default async function globalSetup(_config: FullConfig): Promise<void> {
-  const reuse = process.env.E2E_BASE_URL?.replace(/\/+$/, '');
-  if (reuse) {
-    await waitForHealth(reuse, HEALTH_TIMEOUT_MS);
-    writeServerState({ baseURL: reuse });
+  const reuse = baseURLsFromEnv();
+  if (reuse.length) {
+    await Promise.all(reuse.map((url) => waitForHealth(url, HEALTH_TIMEOUT_MS)));
+    writeServerState({ jars: reuse.map((baseURL) => ({ baseURL })) });
     return;
   }
 
   clearServerState();
   const jar = findOrBuildJar();
-  const port = process.env.E2E_PORT ? Number(process.env.E2E_PORT) : await freePort();
-  const baseURL = `http://localhost:${port}`;
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
-  const logFile = path.join(RESULTS_DIR, 'server.log');
-  const log = fs.openSync(logFile, 'w');
+  const fixedPort = process.env.E2E_PORT ? Number(process.env.E2E_PORT) : undefined;
+  const ports: number[] = [];
+  for (let slot = 0; slot < WORKERS; slot++) ports.push(fixedPort !== undefined ? fixedPort + slot : await freePort(ports));
+  const started = ports.map((port, slot) => startJar(jar, port, slot));
+  writeServerState({ jars: started.map(({ state }) => state) });
 
+  try {
+    await Promise.all(started.map(({ ready }) => ready));
+  } catch (error) {
+    for (const { child } of started) child.kill('SIGKILL');
+    clearServerState();
+    throw error;
+  }
+  // Do not keep the runner alive because of the child handles; teardown kills them by PID.
+  for (const { child } of started) child.unref();
+  for (const { state } of started) {
+    process.stdout.write(`[e2e] ${path.basename(jar)} is up at ${state.baseURL} (log: ${path.relative(process.cwd(), state.logFile!)})\n`);
+  }
+}
+
+/** Starts one jar; `ready` resolves once it reports UP and rejects when it exits or times out. */
+function startJar(jar: string, port: number, slot: number): { child: ChildProcess; state: JarState; ready: Promise<void> } {
+  const baseURL = `http://localhost:${port}`;
+  // slot 0 keeps the classic log name (server.log), so single-worker runs and docs stay as they were
+  const logFile = path.join(RESULTS_DIR, slot === 0 ? 'server.log' : `server-${slot + 1}.log`);
+  const log = fs.openSync(logFile, 'w');
   const javaOpts = (process.env.E2E_JAVA_OPTS ?? '').split(' ').filter(Boolean);
-  const child = spawn(
-    'java',
-    [...javaOpts, '-jar', jar, '--spring.profiles.active=e2e', `--server.port=${port}`],
-    {
-      cwd: SERVER_DIR,
-      // application-e2e.properties derives app.base-url and the fake OIDC URIs from E2E_PORT.
-      env: { ...process.env, E2E_PORT: String(port) },
-      stdio: ['ignore', log, log],
-    },
-  );
+  const child = spawn('java', [...javaOpts, '-jar', jar, '--spring.profiles.active=e2e', `--server.port=${port}`], {
+    cwd: SERVER_DIR,
+    // application-e2e.properties derives app.base-url and the fake OIDC URIs from E2E_PORT.
+    env: { ...process.env, E2E_PORT: String(port) },
+    stdio: ['ignore', log, log],
+  });
   let exited: number | null | undefined;
   child.on('exit', (code) => {
     exited = code;
   });
   if (!child.pid) throw new Error('Could not start java; is a JDK 21 on the PATH?');
-  writeServerState({ baseURL, pid: child.pid, port, logFile });
-
-  try {
-    await waitForHealth(baseURL, HEALTH_TIMEOUT_MS, () => {
-      if (exited !== undefined) {
-        throw new Error(`The jar exited with code ${exited} during startup.\n${tail(logFile)}`);
-      }
-    });
-  } catch (error) {
-    child.kill('SIGKILL');
-    clearServerState();
-    throw error;
-  }
-  // Do not keep the runner alive because of the child handle; teardown kills it by PID.
-  child.unref();
-  process.stdout.write(`[e2e] ${path.basename(jar)} is up at ${baseURL} (log: ${path.relative(process.cwd(), logFile)})\n`);
+  const ready = waitForHealth(baseURL, HEALTH_TIMEOUT_MS, () => {
+    if (exited !== undefined) throw new Error(`The jar on port ${port} exited with code ${exited} during startup.\n${tail(logFile)}`);
+  });
+  return { child, state: { baseURL, pid: child.pid, port, logFile }, ready };
 }
 
 function findOrBuildJar(): string {
@@ -104,7 +112,15 @@ function newestJar(): string | undefined {
     .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
 }
 
-function freePort(): Promise<number> {
+/** A free port that is not one of `taken` (two jars must never get the same one). */
+async function freePort(taken: number[] = []): Promise<number> {
+  for (;;) {
+    const port = await anyFreePort();
+    if (!taken.includes(port)) return port;
+  }
+}
+
+function anyFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
     server.unref();

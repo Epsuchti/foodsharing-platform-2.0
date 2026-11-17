@@ -60,9 +60,9 @@ export const OUTBOX_PAGE_SIZE = 25;
             <tbody>
               @for (mail of result.items; track mail.id) {
                 <tr data-testid="adminOps.outbox.row" [attr.data-status]="mail.status" [attr.data-id]="mail.id">
-                  <td>{{ mail.createdAt | fsDate: 'dateTime' }}</td>
-                  <td>{{ mail.to }}</td>
-                  <td>
+                  <td [attr.data-label]="'adminOps.outbox.created' | t">{{ mail.createdAt | fsDate: 'dateTime' }}</td>
+                  <td [attr.data-label]="'adminOps.outbox.to' | t">{{ mail.to }}</td>
+                  <td [attr.data-label]="'adminOps.outbox.subject' | t">
                     {{ mail.subject }}
                     @if (mail.template) {
                       <code class="muted">{{ mail.template }}</code>
@@ -74,7 +74,7 @@ export const OUTBOX_PAGE_SIZE = 25;
                       </details>
                     }
                   </td>
-                  <td>
+                  <td [attr.data-label]="'adminOps.outbox.status' | t">
                     <span [class]="'badge badge--' + mail.status" data-testid="adminOps.outbox.statusBadge">{{ 'adminOps.outbox.status.' + mail.status | t }}</span>
                     @if (mail.sentAt) {
                       <span class="muted">{{ mail.sentAt | fsDate: 'dateTime' }}</span>

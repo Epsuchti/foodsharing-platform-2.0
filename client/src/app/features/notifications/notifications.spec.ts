@@ -100,13 +100,22 @@ describe('notification settings page', () => {
     expect(q('[data-testid="notifications.settings.toggle.REGION.mail"]')?.getAttribute('data-checked')).toBe('true');
   });
 
-  it('error state with retry', async () => {
+  it('a failed save rolls the switch back', async () => {
     await harness.navigateByUrl('/account/notifications');
-    http
-      .expectOne('/api/users/me/notification-settings')
-      .flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, { status: 500, statusText: 'Error' });
+    http.expectOne('/api/users/me/notification-settings').flush(SETTINGS);
     flushSide();
     await settle();
-    expect(q('[data-testid="notifications.settings.state"]')?.getAttribute('data-state')).toBe('error');
+    const toggle = '[data-testid="notifications.settings.toggle.REGION.mail"]';
+    expect(q(toggle)?.getAttribute('data-checked')).toBe('false');
+
+    const page = harness.routeDebugElement!.componentInstance as { toggle(c: NotificationCategory, ch: string, v: boolean): void };
+    page.toggle(NotificationCategory.Region, 'mail', true);
+    await settle();
+    expect(q(toggle)?.getAttribute('data-checked')).toBe('true');
+    http
+      .expectOne((req) => req.url === '/api/users/me/notification-settings' && req.method !== 'GET')
+      .flush(apiHttpError(409, ApiErrorCode.UnexpectedError).error, { status: 409, statusText: 'Conflict' });
+    await settle();
+    expect(q(toggle)?.getAttribute('data-checked')).toBe('false');
   });
 });

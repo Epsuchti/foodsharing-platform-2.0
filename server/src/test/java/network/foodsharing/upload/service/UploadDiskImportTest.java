@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 import network.foodsharing.config.AppProperties;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.upload.domain.Upload;
 import network.foodsharing.upload.repository.UploadBlobRepository;
 import network.foodsharing.upload.repository.UploadRepository;
@@ -26,7 +27,7 @@ import org.springframework.context.annotation.Import;
  * there, else renders them), leaves missing and mismatching files alone and is idempotent.
  */
 @JpaSliceTest
-@Import({UploadService.class, DbUploadStorage.class, UploadBlobRepository.class})
+@Import(SharedJpaSliceConfig.class)
 class UploadDiskImportTest {
 
     @Autowired

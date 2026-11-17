@@ -11,6 +11,7 @@ import java.util.HexFormat;
 import java.util.Random;
 import java.util.UUID;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.upload.domain.Upload;
 import network.foodsharing.upload.repository.UploadBlobRepository;
 import network.foodsharing.upload.repository.UploadRepository;
@@ -22,7 +23,7 @@ import org.springframework.context.annotation.Import;
 
 /** Decision 158: bytes split into 1 MiB chunk rows and joined again, with size and sha256; lazy chunk reads. */
 @JpaSliceTest
-@Import({DbUploadStorage.class, UploadBlobRepository.class})
+@Import(SharedJpaSliceConfig.class)
 class DbUploadStorageTest {
 
     private static final int MIB = UploadBlobRepository.CHUNK_SIZE;

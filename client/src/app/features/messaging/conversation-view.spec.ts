@@ -206,6 +206,36 @@ describe('ConversationViewComponent edit/delete (item 16)', () => {
     expect(composer.value).toBe('');
   });
 
+  it('a failed send keeps the pending bubble, and retry sends it again with the same client key', async () => {
+    await open([message(1)]);
+    const composer = q('[data-testid="messaging.conversation.composer"]') as HTMLTextAreaElement;
+    composer.value = 'Kommt das an?';
+    composer.dispatchEvent(new Event('input'));
+    await settle();
+    composer.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await settle();
+    const first = http.expectOne((req) => req.method === 'POST' && messagesRequest(req));
+    const clientKey = (first.request.body as { clientKey: string }).clientKey;
+    expect(clientKey).toBeTruthy();
+    first.flush({ code: 'RATE_LIMITED' }, { status: 429, statusText: 'Too Many Requests' });
+    // the mutation settles first, then the pending bubble is marked failed
+    await settle();
+    await settle();
+    const pending = q('[data-testid="messaging.conversation.pending"]')!;
+    expect(pending.getAttribute('data-failed')).toBe('true');
+    expect(pending.textContent).toContain('Kommt das an?');
+
+    (pending.querySelector('[data-testid="messaging.conversation.retry"] button') as HTMLButtonElement).click();
+    await settle();
+    const retry = http.expectOne((req) => req.method === 'POST' && messagesRequest(req));
+    expect(retry.request.body).toEqual({ body: 'Kommt das an?', clientKey });
+    expect(q('[data-testid="messaging.conversation.pending"]')?.getAttribute('data-failed')).toBe('false');
+    retry.flush(message(2, { body: 'Kommt das an?', clientKey }));
+    await settle();
+    expect(q('[data-testid="messaging.conversation.pending"]')).toBeNull();
+    expect(row(2).textContent).toContain('Kommt das an?');
+  });
+
   it('edits a message with a mention as plain text and keeps the token on save', async () => {
     const body = `Danke @[Nina Schneider](user:${NINA})`;
     await open([message(1, { body, mayEdit: true, mayDelete: true })]);

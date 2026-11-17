@@ -14,15 +14,13 @@ import network.foodsharing.content.service.ContentService;
 import network.foodsharing.content.service.LegalService;
 import network.foodsharing.content.service.LegalService.Consent;
 import network.foodsharing.content.service.LegalService.VersionInput;
-import network.foodsharing.region.repository.RegionClosureRepository;
-import network.foodsharing.region.service.RegionService;
 import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestAuth;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
-import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,12 +29,8 @@ import org.springframework.context.annotation.Import;
 
 /** Consent rules (plan §13.9 Ve1): required kinds, pending, re-consent, outdated versions; content fallback. */
 @JpaSliceTest
-@Import({LegalService.class, ContentService.class, UserService.class, RegionService.class,
-        RegionClosureRepository.class})
+@Import(SharedJpaSliceConfig.class)
 class LegalServiceTest {
-
-    @org.springframework.test.context.bean.override.mockito.MockitoBean
-    private network.foodsharing.upload.service.UploadService uploads;
 
     @Autowired
     private LegalService legal;

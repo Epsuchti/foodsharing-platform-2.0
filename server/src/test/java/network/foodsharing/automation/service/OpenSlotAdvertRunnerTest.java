@@ -329,4 +329,38 @@ class OpenSlotAdvertRunnerTest {
         verify(notifications, never()).pushOnly(any());
         verify(telegram, never()).sendForStore(any(), any(), anyList(), anyString(), anyString());
     }
+
+    /** Coordinator bug report (was AdvertFlowIT): PUSH + TELEGRAM sends both, the Telegram id is audited. */
+    @Test
+    void pushAndTelegramSendBoth() {
+        advert.setChannels("PUSH,TELEGRAM");
+        advert.setPushMessages(json.writeValueAsString(List.of("Push {{freeSlots}} Platz frei")));
+        advert.setTelegramChatId("-1001");
+        advert.setTelegramMessages(json.writeValueAsString(List.of("{{storeName}}: {{freeSlots}} Platz frei")));
+        when(telegram.sendForStore(eq(STORE), any(), anyCollection(), anyString(), anyString()))
+                .thenReturn(List.of(new TelegramChatService.SentMessage("-1001", 9L)));
+        slots(slot(PICKUP, 2));
+        var result = runner.run(List.of(advert));
+        assertThat(result.confirmed()).isEqualTo(1);
+        assertThat(result.failed()).isZero();
+        verify(notifications).pushOnly(any());
+        ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
+        verify(telegram).sendForStore(eq(STORE), any(), eq(List.of("-1001")), text.capture(), anyString());
+        assertThat(text.getValue()).isEqualTo("Bäckerei: 2 Platz frei");
+        assertThat(saved).singleElement().satisfies(a -> {
+            assertThat(a.getStatus()).isEqualTo(AdvertStatus.SENT);
+            assertThat(a.getTelegramMessageId()).isEqualTo(9L);
+        });
+    }
+
+    /** "Run now" again (was AdvertFlowIT): nothing new, and the result says why. */
+    @Test
+    void aSecondRunReportsTheAdvertAsAlreadySent() {
+        existingAudit(AdvertStatus.SENT);
+        slots(slot(PICKUP, 2));
+        var result = runner.run(List.of(advert));
+        assertThat(result.confirmed()).isZero();
+        assertThat(result.messages()).anySatisfy(m -> assertThat(m).contains("already sent for " + PICKUP));
+        verify(teamChat, never()).postToTeamChat(any(), any(), anyString());
+    }
 }

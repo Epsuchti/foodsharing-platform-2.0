@@ -1,0 +1,47 @@
+{
+  "$comment": "IDs proven by unit/integration tests instead of a journey tag (decision 180, scripts/feature-coverage.mjs). Paths relative to the repository.",
+  "AU11": [
+    "server/src/test/java/network/foodsharing/notification/telegram/service/RegionSenderTelegramTest.java",
+    "server/src/test/java/network/foodsharing/notification/mail/service/MailOutboxJobTest.java",
+    "server/src/test/java/network/foodsharing/notification/mail/service/MailTemplateServiceTest.java"
+  ],
+  "AU13": "server/src/test/java/network/foodsharing/automation/service/PickupCountGroupingAndMetricsTest.java",
+  "C15": [
+    "server/src/test/java/network/foodsharing/common/jobs/ScheduledJobInventoryTest.java",
+    "server/src/test/java/network/foodsharing/admin/service/AdminOperationsServiceTest.java",
+    "server/src/test/java/network/foodsharing/admin/web/AdminJobsControllerTest.java"
+  ],
+  "D4.1": "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java",
+  "D4.2": "server/src/test/java/network/foodsharing/LocalProfileSmokeIT.java",
+  "D5.1": [
+    "server/src/test/java/network/foodsharing/OpenApiContractTest.java",
+    "server/src/test/java/network/foodsharing/common/web/PublicControllerTest.java",
+    "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java"
+  ],
+  "D6.3": [
+    "server/src/test/java/network/foodsharing/common/jobs/JobRunnerScheduleTest.java",
+    "server/src/test/java/network/foodsharing/mailbox/service/MailboxFetcherJobTest.java"
+  ],
+  "D7.1": [
+    "server/src/test/java/network/foodsharing/LiquibasePostgresIT.java",
+    "server/src/test/java/network/foodsharing/LocalProfileSmokeIT.java"
+  ],
+  "D7.2": "server/src/test/java/network/foodsharing/LocalProfileSmokeIT.java",
+  "D16.1": [
+    "server/src/test/java/network/foodsharing/region/RegionsCsvImportZuerichIT.java",
+    "server/src/test/java/network/foodsharing/region/ZuerichRegionsFileTest.java"
+  ],
+  "D16.3": "server/src/test/java/network/foodsharing/intropickup/PastImportZuerichIT.java",
+  "D17.3": "server/src/test/java/network/foodsharing/user/AccountDeletionIT.java",
+  "D19.1": "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java",
+  "D19.3": "server/src/test/java/network/foodsharing/common/metrics/MetricsContractTest.java",
+  "EA16": "server/src/test/java/network/foodsharing/pickup/service/IntroPickupLinkSyncTest.java",
+  "EA20": "server/src/test/java/network/foodsharing/intropickup/service/PastImportJobTest.java",
+  "MT2": "server/src/test/java/network/foodsharing/config/StaticResourceTilesIT.java",
+  "N7": "server/src/test/java/network/foodsharing/notification/newsletter/service/NewsletterServiceTest.java",
+  "PU2": "server/src/test/java/network/foodsharing/pickup/service/PickupSignupEditAndConfirmTest.java",
+  "PU10": "server/src/test/java/network/foodsharing/pickup/service/PickupMoveTest.java",
+  "Q2": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
+  "S3": "server/src/test/java/network/foodsharing/achievement/AutoAwardListenerTest.java",
+  "S9": "client/src/app/features/pickups/tabs/store-pickups.tab.spec.ts"
+}

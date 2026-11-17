@@ -15,6 +15,18 @@ export const ID_KEY = /^(id|.*Id|.*Ids)$/;
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ENUM_VALUE = /^[A-Z][A-Z0-9_]*$/;
+/** A reason the server writes itself (`"account deleted"`), as opposed to text a person typed. */
+const SYSTEM_REASON = /^[a-z]+( [a-z]+)*$/;
+/** Weekly rules as the server writes them: `MONDAY 19:00 ×3; THURSDAY 19:00 ×3` (regular pickups, cleaning shifts). */
+const WEEKDAY = /\b(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)\b/g;
+const WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+const WEEKLY_FIELDS = ['regularPickups', 'regularShifts'];
+/**
+ * Comma-separated lists the server writes as one value: hidden activity types (codes, translated item by item with
+ * `shared.historyTimeline.value.<field>.<CODE>`) and the region's extra onboarding steps (keys the ambassadors chose
+ * themselves, shown as they are).
+ */
+const LIST_FIELDS = ['activityFilters', 'onboardingSteps'];
 
 /** Enum catalogs a metadata value may come from when the key has no own `shared.historyTimeline.value.<key>.*`. */
 const ENUM_CATALOGS = ['shared.store.cooperation', 'shared.store.team', 'common.role'];
@@ -45,6 +57,11 @@ const VISUALS: Record<string, HistoryVisual> = {
   MAIL_SENT: { icon: 'pi pi-send', tone: 'info' },
   MAIL_FAILED: { icon: 'pi pi-exclamation-circle', tone: 'danger' },
 };
+
+/** `sleep period ended` → `sleepPeriodEnded`. */
+export function camelCase(words: string): string {
+  return words.replace(/ ([a-z])/g, (_, letter: string) => letter.toUpperCase());
+}
 
 /** `SOME_NEW_ACTION` → `Some new action`, `displayName` → `Display name`. */
 export function humanize(code: string | null | undefined): string {
@@ -135,6 +152,29 @@ export class HistoryLabeler {
     return params;
   }
 
+  /**
+   * The reason in words: reasons the server writes itself (`account deleted`, `sleep period ended`) are translated
+   * (`shared.historyTimeline.systemReason.<camelCase>`); text a person typed is shown as it is.
+   */
+  reason(reason: string | null | undefined): string {
+    if (!reason) {
+      return '';
+    }
+    if (SYSTEM_REASON.test(reason)) {
+      const key = `shared.historyTimeline.systemReason.${camelCase(reason)}`;
+      if (this.i18n.has(key)) {
+        return this.i18n.t(key);
+      }
+    }
+    return reason;
+  }
+
+  /** Name of an automation actor (`pickup-policy` → "Abholregeln"); unknown names are shown as they are. */
+  automationName(name: string | null | undefined): string {
+    const key = `shared.historyTimeline.automation.${name ?? ''}`;
+    return name && this.i18n.has(key) ? this.i18n.t(key) : (name ?? '');
+  }
+
   fieldLabel(field: string): string {
     const key = `shared.historyTimeline.field.${field}`;
     return this.i18n.has(key) ? this.i18n.t(key) : humanize(field);
@@ -150,6 +190,17 @@ export class HistoryLabeler {
     }
     if (value === REDACTED_VALUE) {
       return this.i18n.t('shared.historyTimeline.redacted');
+    }
+    if (field && WEEKLY_FIELDS.includes(field)) {
+      return this.weekly(value);
+    }
+    if (field && LIST_FIELDS.includes(field)) {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map((item) => this.metaValue(field, item))
+        .join(', ');
     }
     const lookup = this.valueKey(field, value);
     return lookup && this.i18n.has(lookup) ? this.i18n.t(lookup) : this.metaValue(field ?? '', value);
@@ -223,10 +274,20 @@ export class HistoryLabeler {
       case 'language':
         lookup = `lang.${value.toLowerCase()}`;
         break;
+      case 'automation':
+        lookup = `shared.historyTimeline.automation.${value}`;
+        break;
       default:
         lookup = ENUM_VALUE.test(value) ? this.enumKey(key, value) : null;
     }
     return lookup && this.i18n.has(lookup) ? this.i18n.t(lookup) : value;
+  }
+
+  /** `MONDAY 19:00 ×3; …` with the weekdays in the UI language (`Montag 19:00 ×3; …`). */
+  private weekly(value: string): string {
+    const names = new Intl.DateTimeFormat(this.i18n.locale(), { weekday: 'long', timeZone: 'UTC' });
+    // 2024-01-01 was a Monday
+    return value.replace(WEEKDAY, (day) => names.format(Date.UTC(2024, 0, 1 + WEEKDAYS.indexOf(day))));
   }
 
   private enumKey(key: string, value: string): string | null {

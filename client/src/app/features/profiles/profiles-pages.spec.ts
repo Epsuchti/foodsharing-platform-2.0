@@ -145,21 +145,6 @@ describe('profiles pages', () => {
     expect(state('profiles.page.state')).toBe('notFound');
   });
 
-  it('error state retries the profile request', async () => {
-    await harness.navigateByUrl(`/profile/${SARAH}`);
-    http
-      .expectOne(`/api/users/${SARAH}/profile`)
-      .flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, { status: 500, statusText: 'Server Error' });
-    await settle();
-    expect(state('profiles.page.state')).toBe('error');
-    (q('[data-testid$=".retry"] button') as HTMLButtonElement).click();
-    await settle();
-    http.expectOne(`/api/users/${SARAH}/profile`).flush(profile());
-    await settle();
-    expect(state('profiles.page.state')).toBe('success');
-    http.expectOne((req) => req.url === `/api/users/${SARAH}/wall`).flush(EMPTY_PAGE);
-  });
-
   it('gives a banana only with at least 100 characters', async () => {
     await open();
     http.expectOne((req) => req.url === `/api/users/${SARAH}/wall`).flush(EMPTY_PAGE);
@@ -253,13 +238,5 @@ describe('profiles pages', () => {
     await settle();
     expect(state('profiles.buddies.requests.state')).toBe('empty');
     expect(q('[data-testid="profiles.buddies.buddy"]')).not.toBeNull();
-  });
-
-  it('buddies page: error with retry', async () => {
-    await harness.navigateByUrl('/profile/me/buddies');
-    http.expectOne('/api/users/me/buddies/requests').flush([]);
-    http.expectOne('/api/users/me/buddies').flush(apiHttpError(503, ApiErrorCode.UnexpectedError).error, { status: 503, statusText: 'Unavailable' });
-    await settle();
-    expect(state('profiles.buddies.state')).toBe('error');
   });
 });

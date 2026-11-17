@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.javacrumbs.shedlock.core.ClockProvider;
 import network.foodsharing.common.jobs.repository.JobRunRepository;
 import network.foodsharing.common.metrics.OperationsMetrics;
+import network.foodsharing.common.seed.SeedDerivedData;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.slf4j.Logger;
@@ -29,10 +30,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Wraps every job run, scheduled or manual (A25): a {@code job_run} row (RUNNING → OK/FAILED), a log line and the
  * last run per job. Rows are written in their own transactions, so a failing job still leaves its FAILED row.
- * Scheduled runs rethrow nothing (the scheduler would only log it again); manual runs rethrow.
+ * Scheduled runs rethrow nothing (the scheduler would only log it again); manual runs rethrow. The in-memory last runs
+ * and failure streaks are dropped by the dev seed reset ({@link SeedDerivedData}): the restored database has no such
+ * runs, and a stale "OK" made a journey read results before its own run had finished.
  */
 @Component
-public class JobRunner {
+public class JobRunner implements SeedDerivedData {
 
     private static final Logger log = LoggerFactory.getLogger(JobRunner.class);
     private static final int MAX_MESSAGE = 2000;
@@ -164,6 +167,18 @@ public class JobRunner {
             return Optional.of(memory);
         }
         return stored;
+    }
+
+    @Override
+    public String derivedDataName() {
+        return "in-memory job runs";
+    }
+
+    /** The seed reset restored a database without these runs: forget the last runs and failure streaks too. */
+    @Override
+    public void rebuildAfterSeedReset() {
+        lastInMemory.clear();
+        consecutiveFailures.clear();
     }
 
     /** Whether a ShedLock lock on {@code jobName} is currently held (ShedLock compares with the real time). */

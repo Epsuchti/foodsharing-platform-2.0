@@ -56,7 +56,7 @@ import { HistoryLabeler, historyVisual } from './history-labels';
               <i class="pi pi-bolt" aria-hidden="true"></i>
               {{
                 'shared.historyTimeline.actor.automation'
-                  | t: { name: entry().actor?.displayName ?? '' }
+                  | t: { name: automationName() }
               }}
             </span>
           }
@@ -88,7 +88,7 @@ import { HistoryLabeler, historyVisual } from './history-labels';
     }
 
     @if (entry().reason && !compact()) {
-      <blockquote class="he__reason">{{ entry().reason }}</blockquote>
+      <blockquote class="he__reason">{{ reason() }}</blockquote>
     }
 
     @if (facts().length > 0) {
@@ -141,7 +141,7 @@ import { HistoryLabeler, historyVisual } from './history-labels';
         @if (entry().reason) {
           <div>
             <dt>{{ 'shared.historyTimeline.detail.reason' | t }}</dt>
-            <dd>{{ entry().reason }}</dd>
+            <dd>{{ reason() }}</dd>
           </div>
         }
         @for (item of metadata(); track item.key) {
@@ -203,6 +203,16 @@ export class HistoryEntryComponent {
     this.i18n.language();
     return this.labeler.label(this.entry());
   });
+  /** A reason the server wrote itself translated, a typed one as it is. */
+  protected readonly reason = computed(() => {
+    this.i18n.language();
+    return this.labeler.reason(this.entry().reason);
+  });
+  /** The automation that acted, in words (`pickup-policy` → "Abholregeln"). */
+  protected readonly automationName = computed(() => {
+    this.i18n.language();
+    return this.labeler.automationName(this.entry().actor?.displayName);
+  });
   /** The action in words for the details (no raw codes, decision row amending 54). */
   protected readonly actionLabel = computed(() => {
     this.i18n.language();
@@ -235,7 +245,7 @@ export class HistoryEntryComponent {
         return this.i18n.t('shared.historyTimeline.actor.system');
       case 'AUTOMATION':
         return this.i18n.t('shared.historyTimeline.actor.automation', {
-          name: entry.actor?.displayName ?? '',
+          name: this.automationName(),
         });
       default:
         return entry.actor?.displayName ?? this.i18n.t('shared.historyTimeline.actor.unknown');

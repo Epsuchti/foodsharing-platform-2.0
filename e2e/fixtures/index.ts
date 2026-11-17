@@ -61,6 +61,11 @@ export interface Fixtures {
   baskets: BasketHelpers;
   /** internal: performs the automatic seed reset according to `seedReset`. */
   _seed: void;
+  /**
+   * internal: prepares every browser context of a test after its login (`context` and `as(role)`); `role` is the
+   * logged-in seed user or null. Journeys (fixtures/checkpoint.ts) pin language, theme, fonts and map tiles here.
+   */
+  _prepareContext: (context: BrowserContext, role: Role | null) => Promise<void>;
 }
 
 let lastResetFile: string | undefined;
@@ -79,9 +84,14 @@ export const test = base.extend<Options & Fixtures>({
   role: [undefined, { option: true }],
   seedReset: ['file', { option: true }],
 
-  // The app URL is only known after global setup started the jar; resolve it per test instead of in the config.
-  baseURL: async ({}, use) => {
-    await use(resolveBaseURL());
+  // The app URLs are only known after global setup started the jars; every worker slot has a jar of its own
+  // (decision 180), so the URL is resolved per test from its parallelIndex instead of in the config.
+  baseURL: async ({}, use, testInfo) => {
+    await use(resolveBaseURL(testInfo.parallelIndex));
+  },
+
+  _prepareContext: async ({}, use) => {
+    await use(async () => undefined);
   },
 
   _seed: [
@@ -103,10 +113,11 @@ export const test = base.extend<Options & Fixtures>({
     { auto: true },
   ],
 
-  context: async ({ context, role, baseURL, _seed }, use) => {
+  context: async ({ context, role, baseURL, _seed, _prepareContext }, use) => {
     void _seed;
     await startAtSeedNow(context);
     if (role) await new ApiClient(context.request, baseURL!).loginAs(role);
+    await _prepareContext(context, role ?? null);
     await use(context);
   },
 
@@ -136,7 +147,7 @@ export const test = base.extend<Options & Fixtures>({
   },
 
   as: async (
-    { browser, baseURL, _seed, viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, locale, timezoneId, colorScheme, reducedMotion },
+    { browser, baseURL, _seed, _prepareContext, viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, locale, timezoneId, colorScheme, reducedMotion },
     use,
   ) => {
     void _seed;
@@ -157,6 +168,7 @@ export const test = base.extend<Options & Fixtures>({
       contexts.push(context);
       await startAtSeedNow(context);
       if (role) await new ApiClient(context.request, baseURL!).loginAs(role);
+      await _prepareContext(context, role);
       return context.newPage();
     });
     for (const context of contexts) await context.close();

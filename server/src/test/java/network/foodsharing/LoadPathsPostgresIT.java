@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.http.Cookie;
@@ -36,6 +37,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  * concurrent logins of one user all succeed. Both broke only on PostgreSQL / under concurrency and were found by
  * the load test: {@code Instant.MAX} as a query parameter ("timestamp out of range" in the pickup list) and the
  * optimistic lock on {@code user_account.version} when two sessions of one user were created at the same time (409).
+ * Also the store row lock of a pickup sign-up: two parallel sign-ups for the last slot let exactly one through (moved
+ * here from the deleted PickupsApiIT, decision 180; the sign-up rules themselves are unit-tested).
  */
 @SpringBootTest(properties = "app.scheduling.enabled=false")
 @AutoConfigureMockMvc
@@ -97,5 +100,32 @@ class LoadPathsPostgresIT {
         } finally {
             pool.shutdownNow();
         }
+    }
+
+    @Test
+    void concurrentSignupsForTheLastSlotLetExactlyOneThrough() throws Exception {
+        Cookie bieb = login(SeedUsers.BIEB);
+        Cookie guide = login(SeedUsers.GUIDE);
+        String pickup = "/api/stores/00000020-0001-4000-8000-000000000009/pickups/2026-11-10T17:00:00Z";
+        mvc.perform(put(pickup).cookie(bieb).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"slotCount\":1}")).andExpect(status().isOk());
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            List<Callable<Integer>> signups = new ArrayList<>();
+            for (Cookie who : List.of(bieb, guide)) {
+                signups.add(() -> mvc.perform(post(pickup + "/signups").cookie(who).with(csrf())).andReturn()
+                        .getResponse().getStatus());
+            }
+            List<Integer> statuses = new ArrayList<>();
+            for (Future<Integer> f : pool.invokeAll(signups)) {
+                statuses.add(f.get());
+            }
+            assertThat(statuses).containsExactlyInAnyOrder(200, 409);
+        } finally {
+            pool.shutdownNow();
+        }
+        assertThat(jdbc.queryForObject("select count(*) from pickup_signup where store_id = "
+                + "'00000020-0001-4000-8000-000000000009' and pickup_at = timestamp with time zone "
+                + "'2026-11-10 17:00:00+00'", Integer.class)).isEqualTo(1);
     }
 }

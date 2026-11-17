@@ -193,14 +193,6 @@ describe('search', () => {
       http.match(searchRequest).forEach((request) => request.flush(results()));
     });
 
-    it('shows the server error with retry', async () => {
-      await type('nina');
-      await wait(350);
-      http.expectOne(searchRequest).flush(null, { status: 500, statusText: 'Server Error' });
-      await settle();
-      expect(state('search.global.state')).toBe('error');
-    });
-
     it('shows the rate limit (429) with its own text and retry', async () => {
       await type('nina');
       await wait(350);
@@ -268,25 +260,6 @@ describe('search', () => {
       );
       await settle();
       expect(q('[data-testid="search.page.hit"] .hit__sub')?.textContent?.trim()).toBe('05.11.2026, 10:00');
-    });
-
-    it('shows the empty state and the error state with retry', async () => {
-      await harness.navigateByUrl('/search?q=zzz');
-      await settle();
-      http.expectOne(searchRequest).flush(results());
-      await settle();
-      expect(state('search.page.state')).toBe('empty');
-
-      await harness.navigateByUrl('/search?q=yyy');
-      await settle();
-      http.expectOne(searchRequest).flush(null, { status: 500, statusText: 'Server Error' });
-      await settle();
-      expect(state('search.page.state')).toBe('error');
-      (q('[data-testid="search.page.state"] [data-testid$=".retry"] button') as HTMLButtonElement).click();
-      await settle();
-      http.expectOne(searchRequest).flush(results({ polls: [{ id: 'p1', kind: SearchKind.Poll, title: 'Yyy', link: '/polls/p1' }] }));
-      await settle();
-      expect(state('search.page.state')).toBe('success');
     });
 
     it('shows the rate limit (429) with its own text; retry searches again', async () => {

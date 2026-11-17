@@ -180,7 +180,6 @@
   "pickups.linked.repairText": "Ta collecte dans le commerce lié a été annulée. Choisis-en une nouvelle d’ici {until}, sinon cette place sera libérée.",
   "pickups.linked.missing": "Lien manquant – à rechoisir d’ici {until}",
   "pickups.linked.missingOther": "{name} : lien manquant jusqu’à {until}",
-  "pickups.linked.missingLabel": "Collecte liée manquante : en choisir une nouvelle d’ici {until}",
   "pickups.blocked.EXPERIENCE": "Tu n’as pas encore eu de collecte confirmée ici.",
   "pickups.blocked.EXPERIENCE.fix": "une personne expérimentée dans la même collecte, ou demande aux responsables.",
   "pickups.blocked.CLEANING_REQUIRED": "Ton dernier service de nettoyage date de {ago, plural, one {# mois} other {# mois}} ; il en faut un au cours des {required, plural, one {# dernier mois} other {# derniers mois}}.",

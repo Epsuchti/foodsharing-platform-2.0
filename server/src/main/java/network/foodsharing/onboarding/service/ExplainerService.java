@@ -5,6 +5,7 @@ import java.util.UUID;
 import network.foodsharing.onboarding.domain.JourneyStepKey;
 import network.foodsharing.region.service.PublicRegionService;
 import network.foodsharing.region.service.RegionService;
+import network.foodsharing.statistics.service.PublicStatisticsService;
 import network.foodsharing.user.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,6 +71,21 @@ public class ExplainerService {
         @Bean
         ExplainerCounterContributor regionCounter(RegionService regions) {
             return counters -> counters.addRegions(regions.countRegionsWithAmbassadors());
+        }
+    }
+
+    /** M3 counters: rescued kilograms, pickups and stores, the public platform totals (C3, same as /statistics). */
+    @Configuration(proxyBeanMethods = false)
+    static class StatisticsCounters {
+
+        @Bean
+        ExplainerCounterContributor statisticsCounter(PublicStatisticsService statistics) {
+            return counters -> {
+                PublicStatisticsService.PublicTotals totals = statistics.current();
+                counters.addKgSaved(totals.kgSaved());
+                counters.addPickups(totals.pickups());
+                counters.addStores(totals.stores());
+            };
         }
     }
 }

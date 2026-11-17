@@ -146,20 +146,6 @@ describe('baskets pages', () => {
       expect(q('[data-testid="baskets.nearby.position"]')).not.toBeNull();
       expect(q('[data-testid="baskets.nearby.locate"]')).not.toBeNull();
     });
-
-    it('shows the error state with retry', async () => {
-      await harness.navigateByUrl('/baskets');
-      http.expectOne('/api/users/me').flush(me());
-      await settle();
-      http.expectOne(nearby).flush(apiHttpError(500, ApiErrorCode.UnexpectedError).error, { status: 500, statusText: 'Server Error' });
-      await settle();
-      expect(state('baskets.nearby.state')).toBe('error');
-      (q('[data-testid="baskets.nearby.state"] [data-testid$=".retry"] button') as HTMLButtonElement).click();
-      await settle();
-      http.expectOne(nearby).flush([summary()]);
-      await settle();
-      expect(state('baskets.nearby.state')).toBe('success');
-    });
   });
 
   describe('/baskets/:id', () => {

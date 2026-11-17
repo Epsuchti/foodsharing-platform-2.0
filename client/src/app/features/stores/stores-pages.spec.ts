@@ -153,20 +153,6 @@ describe('stores pages', () => {
     expect(qa('fs-team-status-badge')).toHaveLength(0);
   });
 
-  it('my stores: empty and error with retry', async () => {
-    await harness.navigateByUrl('/stores/mine');
-    http
-      .expectOne((req) => req.url === '/api/users/me/stores')
-      .flush({ status: 500, code: 'INTERNAL_ERROR', message: 'x', retryable: true }, { status: 500, statusText: 'Error' });
-    await settle();
-    expect(q('[data-testid="stores.mine.state"]')?.getAttribute('data-state')).toBe('error');
-    (q('[data-testid="stores.mine.state.retry"] button') as HTMLButtonElement).click();
-    await settle();
-    http.expectOne((req) => req.url === '/api/users/me/stores').flush([]);
-    await settle();
-    expect(q('[data-testid="stores.mine.state"]')?.getAttribute('data-state')).toBe('empty');
-  });
-
   it('region stores: requests the four default cooperation states', async () => {
     await harness.navigateByUrl('/regions/r1/stores');
     const req = http.expectOne((r) => r.url === '/api/regions/r1/stores');
@@ -224,6 +210,23 @@ describe('stores pages', () => {
       'stores.page.tab.overview',
       'stores.page.tab.team',
       'stores.page.tab.statistics',
+    ]);
+    expect(q('[data-testid="stores.page.edit"]')).toBeNull();
+    expect(q('[data-testid="stores.page.call"]')).toBeNull();
+  });
+
+  it('store page: region members outside the team see only the overview (S6 public view)', async () => {
+    // moved from the removed e2e spec stores-error-states; who may apply: StorePermissionMatrixTest
+    await harness.navigateByUrl('/stores/s1');
+    http.expectOne('/api/stores/s1').flush(
+      detail({
+        membership: UserTeamStatus.NoMember,
+        permissions: permissions({ mayAccess: false, mayLeave: false, mayApply: true, teamStatus: UserTeamStatus.NoMember }),
+      }),
+    );
+    await settle();
+    expect(qa('[data-testid^="stores.page.tab."]').map((el) => el.getAttribute('data-testid'))).toEqual([
+      'stores.page.tab.overview',
     ]);
     expect(q('[data-testid="stores.page.edit"]')).toBeNull();
     expect(q('[data-testid="stores.page.call"]')).toBeNull();

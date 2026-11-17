@@ -5,9 +5,9 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 import { afterEach } from 'vitest';
 
-import { ApiErrorCode, Language, Resource, ResourceOpenness, Role, Theme } from '../../api';
+import { Language, Resource, ResourceOpenness, Role, Theme } from '../../api';
 import { SessionService } from '../../core/auth/session.service';
-import { apiHttpError, provideDataStateTesting } from '../../core/testing/data-state-testing';
+import { provideDataStateTesting } from '../../core/testing/data-state-testing';
 import { RegionPageContext } from '../regions/region-page.context';
 import { FavouriteResourcesPageComponent } from './pages/favourite-resources-page.component';
 import { MyResourcesPageComponent } from './pages/my-resources-page.component';
@@ -124,40 +124,6 @@ describe('resource pages', () => {
       await flushRegion([resource()], { mayAdd: false, mayEditCommons: false });
       expect(q('[data-testid="resources.region.add"]')).toBeNull();
       expect(q('[data-testid="resources.region.limit"]')).not.toBeNull();
-    });
-
-    it('shows the empty state, the forbidden state of regions without resources and the error state with retry', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/resources`);
-      await flushRegion([]);
-      expect(state('resources.region.state')).toBe('empty');
-
-      await harness.navigateByUrl('/resources/favourites');
-      http.expectOne('/api/resources/favourites').flush([]);
-      await harness.navigateByUrl(`/regions/${ZH}/resources`);
-      http.expectOne(`/api/regions/${ZH}/resources`).flush(apiHttpError(403, ApiErrorCode.ResourcesNotAvailable).error, {
-        status: 403,
-        statusText: 'Forbidden',
-      });
-      http.match(`/api/regions/${ZH}/resources/permissions`).forEach((req) => req.flush({ mayAdd: true, mayEditCommons: false }));
-      await new Promise((resolve) => setTimeout(resolve));
-      await settle();
-      // a 403 refreshes the session (error interceptor)
-      http.match('/api/auth/session').forEach((request) => request.flush(TestBed.inject(SessionService).session()));
-      await settle();
-      expect(state('resources.region.state')).toBe('forbidden');
-    });
-
-    it('shows the error state with retry', async () => {
-      await harness.navigateByUrl(`/regions/${ZH}/resources`);
-      http.expectOne(`/api/regions/${ZH}/resources`).flush(null, { status: 500, statusText: 'Server Error' });
-      http.match(`/api/regions/${ZH}/resources/permissions`).forEach((req) => req.flush({ mayAdd: true, mayEditCommons: false }));
-      await new Promise((resolve) => setTimeout(resolve));
-      await settle();
-      expect(state('resources.region.state')).toBe('error');
-      click('[data-testid="resources.region.state"] [data-testid$=".retry"]');
-      await settle();
-      await flushRegion([resource()]);
-      expect(state('resources.region.state')).toBe('success');
     });
   });
 

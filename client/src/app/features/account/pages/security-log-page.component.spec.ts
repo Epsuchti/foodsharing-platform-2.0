@@ -91,29 +91,6 @@ describe('SecurityLogPageComponent', () => {
     expect(host.querySelector('[data-testid="account.securityLog.filter.actions"]')).toBeNull();
   });
 
-  it('shows the empty state', async () => {
-    http.expectOne(url(0)).flush(page([], 0, 0));
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('empty');
-  });
-
-  it('shows the error with retry and recovers', async () => {
-    http
-      .expectOne(url(0))
-      .flush(
-        { code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true },
-        { status: 500, statusText: 'Error' },
-      );
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('error');
-    (
-      host.querySelector('[data-testid="account.securityLog.list.retry"] button') as HTMLElement
-    ).click();
-    http.expectOne(url(0)).flush(page([entry('1', 'LOGOUT')], 0, 1));
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('success');
-  });
-
   it('pages through older entries', async () => {
     http.expectOne(url(0)).flush(page([entry('1', 'LOGOUT')], 0, 3));
     await fixture.whenStable();

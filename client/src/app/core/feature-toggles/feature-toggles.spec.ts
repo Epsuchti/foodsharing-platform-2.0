@@ -17,7 +17,10 @@ describe('feature toggles', () => {
     TestBed.configureTestingModule({ providers: [...provideDataStateTesting()] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    document.documentElement.removeAttribute('data-feature-toggles');
+  });
 
   it('are all off until loaded, loaded once and shared by concurrent callers', async () => {
     const toggles = TestBed.inject(FeatureToggleService);
@@ -27,6 +30,7 @@ describe('feature toggles', () => {
     http.expectOne(URL).flush({ BASKETS: true, BLOG: false });
     await Promise.all([first, second]);
     expect(toggles.loaded()).toBe(true);
+    expect(document.documentElement.hasAttribute('data-feature-toggles')).toBe(true);
     expect(toggles.isEnabled(FeatureToggleKey.Baskets)).toBe(true);
     expect(toggles.isEnabled(FeatureToggleKey.Blog)).toBe(false);
     expect(toggles.isEnabled(FeatureToggleKey.GlobalSearch)).toBe(false);
@@ -40,6 +44,7 @@ describe('feature toggles', () => {
     http.expectOne(URL).flush(null, { status: 503, statusText: 'down' });
     expect(await failed).toEqual({});
     expect(toggles.loaded()).toBe(false);
+    expect(document.documentElement.hasAttribute('data-feature-toggles')).toBe(false);
     const retry = toggles.load();
     http.expectOne(URL).flush({ BASKETS: true });
     await retry;

@@ -1,7 +1,8 @@
 name: Update screenshots
 
-# Regenerates screenshot baselines (e2e/__screenshots__) on a branch and commits them back to it, so baselines can be
-# updated without Docker on a local machine (decision 69: deliberate batch updates, reviewed in the PR).
+# Regenerates the journey checkpoint baselines (e2e/__screenshots__/{chromium,mobile-chrome}) on a branch and commits
+# them back to it, so baselines can be updated without Docker on a local machine (decision 69: deliberate batch
+# updates, reviewed in the PR; decision 180: checkpoints of the chromium and mobile-chrome journeys).
 #
 #   gh workflow run screenshots-update.yml --ref <branch> [-f mode=changed|all|missing] [-f grep=@S6] [-f shards=2]
 #   gh run watch "$(gh run list -w screenshots-update.yml -b <branch> -L 1 --json databaseId -q '.[0].databaseId')"
@@ -18,13 +19,13 @@ on:
         options: [changed, all, missing]
         default: changed
       grep:
-        description: 'Optional --grep filter (e.g. @S6); empty = every screenshot spec'
+        description: 'Optional --grep filter (e.g. @S6); empty = every journey'
         type: string
         default: ''
       shards:
-        description: 'Jars / Playwright shards on the runner (screenshots.sh --shards)'
+        description: 'Jars / Playwright workers on the runner (screenshots.sh --shards)'
         type: string
-        default: '1'
+        default: '2'
 
 concurrency:
   group: screenshots-update-${{ github.ref }}

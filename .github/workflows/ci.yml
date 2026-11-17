@@ -1,8 +1,9 @@
 name: CI
 
-# plan §18.6: contract (validate + oasdiff), build (./mvnw verify), sharded Playwright e2e + feature coverage,
-# screenshot tests in the official Playwright image, ER diagram check, shellcheck, dependency review on PRs, release
-# image on tags (D18.1). Weekly/on-demand: security.yml (dependency-check), load.yml (k6).
+# plan §18.6, decision 180: contract (validate + oasdiff), build (./mvnw verify), persona journeys on five browsers
+# (one job per browser, two workers with a jar each; chromium and mobile-chrome inside the official Playwright image
+# with checkpoint screenshots), the axe route sweep, Lighthouse, feature coverage, ER diagram check, shellcheck,
+# dependency review on PRs, release image on tags (D18.1). Weekly/on-demand: security.yml (dependency-check), load.yml (k6).
 on:
   push:
     branches: [main]
@@ -20,7 +21,8 @@ permissions:
 env:
   JAVA_VERSION: '21'
   NODE_VERSION: '24.15.0'
-  E2E_SHARDS: 4
+  # Playwright workers per e2e job, each with a jar of its own (decision 180).
+  E2E_WORKERS: 2
 
 jobs:
   contract:
@@ -42,6 +44,8 @@ jobs:
       - run: npm ci
       - name: Validate spec and contract rules
         run: node scripts/check-openapi.mjs
+      - name: Self-test of the runbook import script
+        run: node --test scripts/import-csv.test.mjs
       - name: Breaking changes against the base branch (oasdiff)
         if: github.event_name == 'pull_request'
         run: |
@@ -129,15 +133,17 @@ jobs:
           retention-days: 7
 
   e2e:
-    name: E2E ${{ matrix.project }} ${{ matrix.shard }}/4
+    name: E2E ${{ matrix.project }} ${{ matrix.shard }}/2
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, firefox, webkit, mobile-chrome, mobile-safari]
-        shard: [1, 2, 3, 4]
+        # Two Playwright shards per browser: one 4-CPU runner with two workers took 18-30 min for all journeys
+        # (decision 180's fallback; the jobs start together after the build, so none is queued).
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
@@ -153,18 +159,21 @@ jobs:
         with:
           name: app-jar
           path: server/target
+      # chromium and mobile-chrome are the checkpoint projects: they run inside the Playwright image so the
+      # screenshots match the baselines (scripts/screenshots.sh); the other browsers run on the runner.
       - name: Pick the Playwright browser
         id: browser
         run: |
           case "${{ matrix.project }}" in
+            chromium|mobile-chrome) echo "name=container" >> "$GITHUB_OUTPUT" ;;
             firefox) echo "name=firefox" >> "$GITHUB_OUTPUT" ;;
             webkit|mobile-safari) echo "name=webkit" >> "$GITHUB_OUTPUT" ;;
-            *) echo "name=chromium" >> "$GITHUB_OUTPUT" ;;
           esac
       # The browser's system packages come from the runner's Ubuntu mirror, which at times serves one package every
-      # 10-20 s and runs the job into its timeout (mostly webkit, the largest set). Keep the downloaded .debs in the
-      # Actions cache, and give a download three tries of 10 minutes each.
+      # 10-20 s and runs the job into its timeout. Keep the downloaded .debs in the Actions cache, and give a download
+      # three tries of 10 minutes each.
       - name: Restore browser system packages
+        if: steps.browser.outputs.name != 'container'
         uses: actions/cache@v4
         with:
           path: ~/apt-archives
@@ -174,6 +183,7 @@ jobs:
         working-directory: e2e
         run: |
           npm ci
+          if [ "${{ steps.browser.outputs.name }}" = container ]; then exit 0; fi
           mkdir -p ~/apt-archives/partial
           echo "Dir::Cache::Archives \"$HOME/apt-archives\";" | sudo tee /etc/apt/apt.conf.d/99-apt-archives >/dev/null
           for attempt in 1 2 3; do
@@ -183,13 +193,21 @@ jobs:
           done
           sudo chown -R "$(id -u):$(id -g)" ~/apt-archives
           npx playwright install "${{ steps.browser.outputs.name }}"
-      - name: Type-check specs
+      - name: Type-check journeys
         working-directory: e2e
         run: npx tsc --noEmit -p .
-      # Each shard starts its own jar (global-setup.ts) with its own in-memory database.
-      - name: Playwright
+      # E2E_WORKERS jars, one per worker (global-setup.ts / screenshots.sh), each with its own in-memory database.
+      - name: Journeys
         working-directory: e2e
-        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/${{ env.E2E_SHARDS }}
+        env:
+          E2E_PROJECTS: ${{ matrix.project }}
+          E2E_SHARDS: ${{ env.E2E_WORKERS }}
+        run: |
+          if [ "${{ steps.browser.outputs.name }}" = container ]; then
+            bash scripts/screenshots.sh --shard=${{ matrix.shard }}/2
+          else
+            npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
+          fi
       - name: Upload blob report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -197,13 +215,59 @@ jobs:
           name: blob-report-${{ matrix.project }}-${{ matrix.shard }}
           path: e2e/blob-report
           retention-days: 7
-      - name: Upload failure artifacts
+      - name: Upload failure artifacts (traces, screenshot diffs, server logs)
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
           name: e2e-artifacts-${{ matrix.project }}-${{ matrix.shard }}
           path: |
-            e2e/test-results/server.log
+            e2e/test-results/server*.log
+            e2e/test-results/artifacts
+          retention-days: 7
+
+  # Decision 180 #7: the full axe route sweep (light + dark) and the CSP check, chromium only, in a job of its own.
+  a11y:
+    name: Accessibility sweep
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - uses: actions/download-artifact@v8
+        with:
+          name: app-jar
+          path: server/target
+      - name: Install e2e dependencies and Chromium
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Axe sweep
+        working-directory: e2e
+        run: npx playwright test --project=a11y
+      - name: Upload blob report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-a11y
+          path: e2e/blob-report
+          retention-days: 7
+      - name: Upload failure artifacts
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-a11y
+          path: |
+            e2e/test-results/server*.log
             e2e/test-results/artifacts
           retention-days: 7
 
@@ -236,7 +300,7 @@ jobs:
       - name: Lighthouse thresholds
         working-directory: e2e
         # own Playwright project (playwright.config.ts): serial, warm-up, median of 3 runs; CPU-sensitive, so kept
-        # out of the sharded e2e projects. Its blob report joins the coverage merge (@D11.5.3).
+        # out of the browser jobs. Its blob report joins the coverage merge (@D11.5.3).
         run: npx playwright test --project=lighthouse
       - name: Upload blob report
         if: ${{ !cancelled() }}
@@ -248,7 +312,7 @@ jobs:
 
   coverage:
     name: Feature coverage
-    needs: [e2e, lighthouse]
+    needs: [e2e, a11y, lighthouse]
     if: ${{ !cancelled() && needs.e2e.result != 'skipped' }}
     runs-on: ubuntu-latest
     steps:
@@ -265,18 +329,21 @@ jobs:
           pattern: blob-report-*
           path: e2e/all-blob-reports
           merge-multiple: true
-      - name: Merge shard reports
+      - name: Self-test of the coverage gate
+        run: node --test e2e/scripts/feature-coverage.test.mjs
+      - name: Merge the reports of the browser jobs
         working-directory: e2e
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
         run: |
           mkdir -p test-results
-          npx playwright merge-reports --reporter json,html ./all-blob-reports
+          npx playwright merge-reports --config=merge.config.ts --reporter json,html ./all-blob-reports
       - name: Add results and flaky tests to the run summary
         if: ${{ !cancelled() }}
         run: node e2e/scripts/run-sharded.mjs --step-summary "E2E tests" e2e/test-results/results.json
-      # --strict since F6 (decision 126): every feature row of docs/ledger.md needs a tagged test.
-      - name: Coverage gate (docs/ledger.md vs @ID tags)
+      # --strict since F6 (decision 126): every feature row of docs/ledger.md needs a passing journey tag or an entry
+      # in e2e/coverage-map.json naming the unit/integration test that proves it (decision 180).
+      - name: Coverage gate (docs/ledger.md vs journey tags and coverage map)
         run: node e2e/scripts/feature-coverage.mjs --results e2e/test-results/results.json --strict
       - name: Upload report and coverage
         if: ${{ !cancelled() }}
@@ -286,40 +353,6 @@ jobs:
           path: |
             e2e/playwright-report
             docs/coverage.md
-          retention-days: 14
-
-  screenshots:
-    name: Screenshot tests
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-      - uses: actions/setup-node@v5
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/download-artifact@v8
-        with:
-          name: app-jar
-          path: server/target
-      # Starts the jar on the runner and runs Playwright inside mcr.microsoft.com/playwright:v1.64.1-noble.
-      - name: Compare with e2e/__screenshots__
-        run: bash e2e/scripts/screenshots.sh
-      - name: Add results and flaky tests to the run summary
-        if: ${{ !cancelled() }}
-        run: node e2e/scripts/run-sharded.mjs --step-summary "Screenshot tests" e2e/test-results/results.json
-      - name: Upload screenshot report (expected / actual / diff)
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshot-report
-          path: |
-            e2e/playwright-report
-            e2e/test-results/server-screenshots.log
           retention-days: 14
 
   er-diagram:
@@ -345,7 +378,7 @@ jobs:
   release:
     name: Release image
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [contract, build, e2e, screenshots, er-diagram, shellcheck]
+    needs: [contract, build, e2e, a11y, lighthouse, er-diagram, shellcheck]
     runs-on: ubuntu-latest
     permissions:
       contents: read

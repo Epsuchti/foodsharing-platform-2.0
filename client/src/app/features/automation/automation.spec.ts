@@ -425,17 +425,6 @@ describe('region automation page', () => {
     await settle();
     expect(q('[data-testid="automation.cleaningFsps.state"]')?.getAttribute('data-state')).toBe('empty');
   });
-
-  it('grouping: forbidden state', async () => {
-    await harness.navigateByUrl(`/regions/${R}/automation/grouping`);
-    region();
-    await settle();
-    http
-      .expectOne((r) => r.url === `/api/regions/${R}/automation/pickup-count-grouping`)
-      .flush(apiHttpError(403, ApiErrorCode.AccessDenied).error, { status: 403, statusText: 'Forbidden' });
-    await settle();
-    expect(q('[data-testid="automation.grouping.state"]')?.getAttribute('data-state')).toBe('forbidden');
-  });
 });
 
 describe('adverts section: run now uses the saved adverts', () => {

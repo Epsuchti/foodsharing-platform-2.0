@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -21,39 +22,58 @@ import network.foodsharing.common.error.ApiException;
 import network.foodsharing.common.realtime.RealtimeEvent;
 import network.foodsharing.common.realtime.RealtimeEventType;
 import network.foodsharing.common.realtime.RealtimePublisher;
+import network.foodsharing.config.AppProperties;
 import network.foodsharing.config.MutableClock;
 import network.foodsharing.history.domain.HistoryEntry;
 import network.foodsharing.history.repository.HistoryEntryRepository;
+import network.foodsharing.history.service.HistoryService;
 import network.foodsharing.messaging.domain.Conversation;
 import network.foodsharing.messaging.domain.ConversationKind;
 import network.foodsharing.messaging.domain.ConversationMessage;
 import network.foodsharing.messaging.repository.ConversationMemberRepository;
+import network.foodsharing.messaging.repository.ConversationMessageRepository;
+import network.foodsharing.messaging.repository.ConversationRepository;
 import network.foodsharing.messaging.service.ChatModeration;
 import network.foodsharing.messaging.service.MessagingService;
 import network.foodsharing.notification.service.NotificationRequest;
 import network.foodsharing.notification.service.NotificationService;
 import network.foodsharing.security.SessionPrincipal;
+import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.user.repository.UserRepository;
 import network.foodsharing.user.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.HttpStatus;
 
-/** A33: lookup reuse, seq, idempotent client keys, locked/group rules, read state, push vs digest mail. */
+/** A33: lookup reuse, seq, idempotent client keys, locked/group rules, read state, push vs digest mail, rate limit. */
 @JpaSliceTest
-@Import({MessagingService.class, UserService.class})
+@Import(SharedJpaSliceConfig.class)
 class MessagingServiceTest {
 
     @Autowired
-    private MessagingService messaging;
+    private ConversationRepository conversations;
 
     @Autowired
     private ConversationMemberRepository members;
+
+    @Autowired
+    private ConversationMessageRepository messages;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private HistoryService historyService;
+
+    @Autowired
+    private AppProperties properties;
 
     @Autowired
     private UserRepository users;
@@ -61,17 +81,13 @@ class MessagingServiceTest {
     @Autowired
     private MutableClock clock;
 
-    @MockitoBean
-    private NotificationService notifications;
+    private final NotificationService notifications = mock(NotificationService.class);
+    private final RealtimePublisher realtime = mock(RealtimePublisher.class);
+    private final ChatModeration moderation = mock(ChatModeration.class);
+    private final MessagingSettings settings = mock(MessagingSettings.class);
 
-    @MockitoBean
-    private RealtimePublisher realtime;
-
-    @MockitoBean
-    private ChatModeration moderation;
-
-    @MockitoBean
-    private MessagingSettings settings;
+    /** The real messaging service on the shared slice; notifications, realtime, moderation and settings mocked. */
+    private MessagingService messaging;
 
     @Autowired
     private HistoryEntryRepository history;
@@ -82,12 +98,23 @@ class MessagingServiceTest {
 
     @BeforeEach
     void setUp() {
+        messaging = messaging(properties);
         me = users.saveAndFlush(TestUsers.user("msg-me@test.local", Role.FOODSAVER)).getId();
         bob = users.saveAndFlush(TestUsers.user("msg-bob@test.local", Role.FOODSAVER)).getId();
         carol = users.saveAndFlush(TestUsers.user("msg-carol@test.local", Role.FOODSAVER)).getId();
         when(realtime.connectedUsers()).thenReturn(Set.of());
         when(notifications.mailOnly(any())).thenAnswer(i -> ((NotificationRequest) i.getArgument(0)).recipientIds());
         when(settings.editWindowHours()).thenReturn(24);
+    }
+
+    @AfterEach
+    void resetClock() {
+        clock.fixAt(FixedClockConfig.SEED_NOW);
+    }
+
+    private MessagingService messaging(AppProperties appProperties) {
+        return new MessagingService(conversations, members, messages, userService, notifications, realtime,
+                historyService, appProperties, clock, moderation, settings);
     }
 
     private static SessionPrincipal principal(UUID userId) {
@@ -301,5 +328,27 @@ class MessagingServiceTest {
             assertThat(entry.getOldValue()).isEqualTo("Spam");
             assertThat(entry.getReason()).isEqualTo("Werbung gehört nicht in den Team-Chat");
         });
+    }
+
+    /** Messages per user and minute are limited (429 MESSAGE_RATE_LIMITED); idempotent resends do not count. */
+    @Test
+    void theThirdMessageWithinAMinuteIsRejected() {
+        AppProperties limit = new AppProperties();
+        limit.getMessaging().setMaxMessagesPerMinute(2);
+        MessagingService limited = messaging(limit);
+        UUID id = limited.lookup(me, List.of(bob)).getId();
+
+        limited.send(me, id, "one", "k1");
+        limited.send(me, id, "two", "k2");
+        assertThat(limited.send(me, id, "one", "k1").getBody()).isEqualTo("one");
+        assertThatThrownBy(() -> limited.send(me, id, "three", "k3"))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo(ApiErrorCode.MESSAGE_RATE_LIMITED);
+                    assertThat(e.getStatus()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+                });
+        limited.send(bob, id, "bob is not limited by me", null);
+
+        clock.fixAt(clock.instant().plus(Duration.ofSeconds(61)));
+        limited.send(me, id, "three", "k3");
     }
 }

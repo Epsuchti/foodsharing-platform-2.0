@@ -33,7 +33,7 @@ import { AnswerDraft, buildAnswers, missingRequired } from '../surveys.resource'
             <form class="questions" (submit)="$event.preventDefault(); submit(f)" novalidate data-testid="surveys.fill.form">
               @for (q of f.questions; track q.id; let i = $index) {
                 <fieldset class="question" data-testid="surveys.fill.question" [attr.data-type]="q.type" [attr.aria-invalid]="submitted() && missing() === q.id">
-                  <legend>{{ q.label }} @if (q.required) {<span class="req" aria-hidden="true">*</span><span class="fs-visually-hidden">{{ 'surveys.fill.required' | t }}</span>}</legend>
+                  <legend><span class="legend__text">{{ q.label }}</span> @if (q.required) {<span class="req" aria-hidden="true">*</span><span class="fs-visually-hidden">{{ 'surveys.fill.required' | t }}</span>}</legend>
                   @switch (q.type) {
                     @case ('TEXT') {
                       <label class="fs-visually-hidden" [for]="'a-' + i">{{ q.label }}</label>
@@ -84,7 +84,9 @@ import { AnswerDraft, buildAnswers, missingRequired } from '../surveys.resource'
     h1 { margin: 0; font-size: 1.5rem; }
     .questions { display: grid; gap: 1rem; }
     .question { display: grid; gap: 0.35rem; margin: 0; padding: 0; border: 0; min-width: 0; }
-    legend { font-weight: 600; margin-bottom: 0.35rem; padding: 0; }
+    /* the question wraps on a 360px phone; the label sits in its own span so the hidden "(required)" text of the
+       legend never counts as visible text running past the screen */
+    legend { max-width: 100%; font-weight: 600; margin-bottom: 0.35rem; padding: 0; overflow-wrap: anywhere; }
     .req { color: var(--fs-danger); margin-left: 0.2rem; }
     textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; border: 1px solid var(--fs-border-strong, var(--fs-border)); border-radius: 0.4rem; background: var(--fs-surface); color: var(--fs-text); }
     .choice { display: flex; align-items: center; gap: 0.5rem; min-height: var(--fs-target-sm); }

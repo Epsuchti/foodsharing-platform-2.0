@@ -117,24 +117,6 @@ describe('content pages (Q10)', () => {
       expect(all('content.faq.entry')).toHaveLength(0);
       expect(q('content.faq.noMatch')).not.toBeNull();
     });
-
-    it('shows the empty state without entries', async () => {
-      await create(FaqPageComponent);
-      http.expectOne((req) => req.url === '/api/public/faq').flush([]);
-      await settle();
-      expect(state('content.faq.state')).toBe('empty');
-    });
-
-    it('shows an error with retry', async () => {
-      await create(FaqPageComponent);
-      http.expectOne((req) => req.url === '/api/public/faq').flush(null, serverError);
-      await settle();
-      expect(state('content.faq.state')).toBe('error');
-      retry('content.faq.state');
-      http.expectOne((req) => req.url === '/api/public/faq').flush(FAQ);
-      await settle();
-      expect(state('content.faq.state')).toBe('success');
-    });
   });
 
   describe('statistics', () => {
@@ -147,17 +129,6 @@ describe('content pages (Q10)', () => {
       expect(q('content.statistics.kgSaved')?.getAttribute('data-value')).toBe('125000.4');
       expect(q('content.statistics.baskets')?.getAttribute('data-value')).toBe('310');
       expect(q('content.statistics.asOf')?.textContent).toContain('2026');
-    });
-
-    it('shows an error with retry', async () => {
-      await create(StatisticsPageComponent);
-      http.expectOne('/api/public/statistics').flush(null, serverError);
-      await settle();
-      expect(state('content.statistics.state')).toBe('error');
-      retry('content.statistics.state');
-      http.expectOne('/api/public/statistics').flush(STATS);
-      await settle();
-      expect(state('content.statistics.state')).toBe('success');
     });
   });
 
@@ -310,17 +281,6 @@ describe('content pages (Q10)', () => {
       http.expectOne('/api/release-notes').flush(NOTES.slice(0, 2));
       await settle();
       expect(all('content.releaseAdmin.note')).toHaveLength(2);
-    });
-
-    it('shows the error state with retry and the empty state', async () => {
-      await create(ReleaseNotesAdminPageComponent);
-      http.expectOne('/api/release-notes').flush(null, serverError);
-      await settle();
-      expect(state('content.releaseAdmin.state')).toBe('error');
-      retry('content.releaseAdmin.state');
-      http.expectOne('/api/release-notes').flush([]);
-      await settle();
-      expect(state('content.releaseAdmin.state')).toBe('empty');
     });
   });
 

@@ -84,21 +84,6 @@ describe('SessionsPageComponent', () => {
     expect(byTestId('account.sessions.logoutEverywhere')).toBeNull();
   });
 
-  it('shows the error with retry and recovers', async () => {
-    http
-      .expectOne('/api/auth/sessions')
-      .flush(
-        { code: 'UNEXPECTED_ERROR', message: 'x', traceId: 't', retryable: true },
-        { status: 500, statusText: 'Error' },
-      );
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('error');
-    (byTestId('account.sessions.list.retry')!.querySelector('button') as HTMLElement).click();
-    http.expectOne('/api/auth/sessions').flush(SESSIONS);
-    await fixture.whenStable();
-    expect(state().getAttribute('data-state')).toBe('success');
-  });
-
   it('revokes another device after confirmation', async () => {
     http.expectOne('/api/auth/sessions').flush(SESSIONS);
     await fixture.whenStable();

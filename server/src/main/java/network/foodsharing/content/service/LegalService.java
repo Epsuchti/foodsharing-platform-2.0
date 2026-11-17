@@ -11,7 +11,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import network.foodsharing.api.model.ApiErrorCode;
-import network.foodsharing.api.model.Role;
 import network.foodsharing.common.error.ApiException;
 import network.foodsharing.content.domain.ContentAction;
 import network.foodsharing.content.domain.LegalAcceptance;
@@ -209,12 +208,7 @@ public class LegalService {
     }
 
     private boolean required(User user, LegalDocumentKind kind) {
-        return switch (kind) {
-            case PRIVACY_POLICY -> true;
-            case LEGAL_AGREEMENT -> PermissionService.isAtLeast(user.getRole(), Role.FOODSAVER)
-                    || PermissionService.isAtLeast(user.getQuizRole(), Role.FOODSAVER);
-            case CONFIDENTIALITY_NOTICE -> PermissionService.isAtLeast(user.getRole(), Role.STORE_MANAGER);
-        };
+        return LegalConsentRules.required(user.getRole(), user.getQuizRole(), kind);
     }
 
     /** No version requiring a new consent was published after the accepted one. */

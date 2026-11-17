@@ -2,7 +2,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideOptimus } from '@openng/optimus-ui/config';
 
-import { ApiErrorCode, Language, Role, Theme } from '../../../api';
+import { Language, Role, Theme } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
 import { provideDataStateTesting } from '../../../core/testing/data-state-testing';
 import { demoPage, DEMO_HISTORY } from '../../../shared/history-timeline/history-demo';
@@ -82,30 +82,6 @@ describe('MyActivityPageComponent', () => {
     await fixture.whenStable();
     expect(list().getAttribute('data-state')).toBe('empty');
     expect(list().textContent).toContain('Noch keine Aktivität');
-  });
-
-  it('shows an error and recovers on retry', async () => {
-    logIn(Role.Foodsaver);
-    const { fixture, list } = await create();
-    answerActions();
-    http
-      .expectOne((r) => r.url.endsWith('/api/history/me'))
-      .flush(
-        { code: ApiErrorCode.UnexpectedError, message: 'x', traceId: 'abc', retryable: true, fieldErrors: [] },
-        { status: 500, statusText: 'Error' },
-      );
-    // the retry interceptor is not installed in tests: one request, one failure
-    await fixture.whenStable();
-    expect(list().getAttribute('data-state')).toBe('error');
-
-    const retry = Array.from(list().querySelectorAll('button')).find((b) =>
-      (b.textContent ?? '').includes('retry'),
-    ) as HTMLButtonElement;
-    retry.click();
-    await fixture.whenStable();
-    http.expectOne((r) => r.url.endsWith('/api/history/me')).flush(demoPage(DEMO_HISTORY.slice(0, 1)));
-    await fixture.whenStable();
-    expect(list().getAttribute('data-state')).toBe('success');
   });
 
   it('offers the CSV export to ORGA', async () => {

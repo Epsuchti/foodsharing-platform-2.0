@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -28,30 +29,30 @@ import network.foodsharing.notification.mail.service.MailOutboxService;
 import network.foodsharing.region.service.RegionService;
 import network.foodsharing.security.PermissionService;
 import network.foodsharing.security.SessionPrincipal;
+import network.foodsharing.testsupport.FixedClockConfig;
 import network.foodsharing.testsupport.JpaSliceTest;
+import network.foodsharing.testsupport.SharedJpaSliceConfig;
 import network.foodsharing.testsupport.TestUsers;
 import network.foodsharing.upload.service.UploadService;
 import network.foodsharing.user.domain.User;
 import network.foodsharing.user.repository.UserRepository;
-import network.foodsharing.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** A35/MB2–MB4: compose validation, recipient limit, rate limit, reply headers, folder and delete semantics. */
 @JpaSliceTest
-@Import({MailService.class, MailboxService.class, MailboxAccessService.class, MailAttachmentStore.class,
-        MailHtmlSanitizer.class, UserService.class})
+@Import(SharedJpaSliceConfig.class)
 class MailServiceTest {
 
     @Autowired
+    private ApplicationContext context;
     private MailService service;
-    @Autowired
     private MailboxService mailboxes;
     @Autowired
     private MailMessageRepository mails;
@@ -61,16 +62,11 @@ class MailServiceTest {
     private AppProperties properties;
     @Autowired
     private MutableClock clock;
-    @MockitoBean
-    private RegionService regions;
-    @MockitoBean
-    private PermissionService permissions;
-    @MockitoBean
-    private UploadService uploads;
-    @MockitoBean
-    private MailOutboxService outbox;
-    @MockitoBean
-    private RealtimePublisher realtime;
+    private final RegionService regions = mock(RegionService.class);
+    private final PermissionService permissions = mock(PermissionService.class);
+    private final UploadService uploads = mock(UploadService.class);
+    private final MailOutboxService outbox = mock(MailOutboxService.class);
+    private final RealtimePublisher realtime = mock(RealtimePublisher.class);
 
     private SessionPrincipal me;
     private Mailbox mailbox;
@@ -78,6 +74,10 @@ class MailServiceTest {
 
     @BeforeEach
     void setUp() {
+        MailboxTestServices services = new MailboxTestServices(context, regions, permissions, uploads, outbox, realtime,
+                null);
+        service = services.mail;
+        mailboxes = services.mailboxes;
         User owner = users.saveAndFlush(TestUsers.user("mail-owner@test.local", Role.AMBASSADOR));
         me = TestUsers.principal(owner);
         when(permissions.isOrga(any())).thenReturn(true);
@@ -90,7 +90,7 @@ class MailServiceTest {
     void tearDown() {
         properties.getMailbox().setMaxMailsPerHourPerUser(originalLimit);
         properties.getMailbox().setDomain("local.test");
-        clock.release();
+        clock.fixAt(FixedClockConfig.SEED_NOW);
     }
 
     private MailService.Compose compose(List<String> to) {

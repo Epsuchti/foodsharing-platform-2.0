@@ -205,14 +205,16 @@ const THEME_ICONS: Record<ThemePreference, string> = {
       display: grid;
       gap: 0.5rem;
     }
+    /* 13rem fits "CH Schwiizerdütsch ✓" (10rem columns cut it off on phones and on the 1280px desktop) */
     .options--lang {
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
     }
     .options--theme {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .option {
       display: flex;
+      min-width: 0;
       align-items: center;
       gap: 0.6rem;
       min-height: 3rem;
@@ -264,6 +266,7 @@ const THEME_ICONS: Record<ThemePreference, string> = {
     .option__label {
       flex: 1 1 auto;
       min-width: 0;
+      overflow-wrap: anywhere;
     }
     .option__check {
       color: var(--fs-primary);

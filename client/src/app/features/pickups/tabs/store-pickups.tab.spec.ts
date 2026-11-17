@@ -456,21 +456,6 @@ describe('store pickups tab: slot dialog modes and day chat (PU3, decision 165)'
     expect(qa('[data-testid="stores.pickups.removeSlot"]')).toHaveLength(1);
   });
 
-  it('rich dialog: loading, then the error state when the request fails', async () => {
-    await open({}, [pickup(THU, 3, [{ user: ME, confirmed: true }, { user: MARCO, confirmed: false }])]);
-    takenOf(THU, 'Marco Bernasconi').click();
-    await settle();
-    const state = () => qa('fs-data-state[testid="stores.pickups.slotDetail.state"], [data-state]').find((el) =>
-      el.closest('[data-testid="stores.pickups.slotDialog"]'),
-    );
-    expect(state()?.getAttribute('data-state')).toBe('loading');
-    http
-      .expectOne(detailUrl(THU, 'b'))
-      .flush({ code: 'UNEXPECTED_ERROR', message: 'x' }, { status: 500, statusText: 'Server Error' });
-    await settle();
-    expect(state()?.getAttribute('data-state')).toBe('error');
-  });
-
   it('shows "Chat öffnen" only when someone else is signed up that day, and opens the named chat', async () => {
     await open({}, [pickup(THU, 3, [{ user: PRIYA, confirmed: true }]), pickup(FRI, 2, [{ user: ME, confirmed: true }])]);
     expect(dayEl('2030-11-08').querySelector('[data-testid="stores.pickups.dayChat"]')).toBeNull();

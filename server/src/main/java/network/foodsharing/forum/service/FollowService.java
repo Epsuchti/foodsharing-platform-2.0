@@ -5,6 +5,7 @@ import network.foodsharing.forum.domain.ForumFollow;
 import network.foodsharing.forum.domain.ForumThreadFollow;
 import network.foodsharing.forum.repository.ForumFollowRepository;
 import network.foodsharing.forum.repository.ForumThreadFollowRepository;
+import network.foodsharing.forum.repository.ForumThreadRepository;
 import network.foodsharing.forum.service.ForumPermissionService.ForumContext;
 import network.foodsharing.forum.service.ForumPermissionService.ThreadContext;
 import network.foodsharing.history.NoHistory;
@@ -21,21 +22,29 @@ public class FollowService {
 
     private final ForumThreadFollowRepository threadFollows;
     private final ForumFollowRepository forumFollows;
+    private final ForumThreadRepository threads;
     private final ForumPermissionService access;
 
     public FollowService(ForumThreadFollowRepository threadFollows, ForumFollowRepository forumFollows,
-                         ForumPermissionService access) {
+                         ForumThreadRepository threads, ForumPermissionService access) {
         this.threadFollows = threadFollows;
+        this.threads = threads;
         this.forumFollows = forumFollows;
         this.access = access;
     }
 
-    /** @throws network.foodsharing.common.error.ApiException 404 THREAD_NOT_FOUND, 403 FORUM_NOT_ACCESSIBLE */
+    /**
+     * Sets the full follow state of a thread. Concurrent calls (two tabs, quick toggles) are serialised by a row lock
+     * on the thread, so the follow row is never inserted twice and the last call wins instead of failing.
+     *
+     * @throws network.foodsharing.common.error.ApiException 404 THREAD_NOT_FOUND, 403 FORUM_NOT_ACCESSIBLE
+     */
     @Transactional
     @NoHistory(reason = "personal notification preference")
     public ThreadFollowState followThread(UUID threadId, boolean bell, boolean mail) {
         ThreadContext context = access.visibleThread(threadId);
         UUID userId = context.actor().userId();
+        threads.findForUpdate(threadId);
         ForumThreadFollow follow = threadFollows.findByThreadIdAndUserId(threadId, userId).orElse(null);
         if (!bell && !mail) {
             if (follow != null) {

@@ -2,17 +2,21 @@
 // Feature coverage gate (plan §18.3 "coverage rule", plan-m1 T5).
 //
 // Compares the IDs in docs/ledger.md (feature table: §13/§14 rows; deliverable table: D<section>.<n>) with the
-// `@ID` tags of the Playwright tests and writes docs/coverage.md.
+// `@ID` tags of the Playwright journeys and writes docs/coverage.md. An ID whose rules are proven below e2e (decision
+// 180) passes with an entry in e2e/coverage-map.json instead: `{ "EA20": "server/src/test/java/…/IntroProgressJobTest.java" }`
+// (a path or a list of paths, relative to the repository); the gate fails when a named file does not exist.
 //
 // Usage:
 //   node e2e/scripts/feature-coverage.mjs                 # list mode: `playwright test --list --reporter=json`
 //   node e2e/scripts/feature-coverage.mjs --results [file] # results mode: a JSON report (default e2e/test-results/results.json)
-//   options: --strict (M7: every feature row needs a test)  --ledger <file>  --out <file>  --no-write  --quiet
+//   options: --strict (M7: every feature row needs a test)  --ledger <file>  --map <file>  --out <file>  --no-write  --quiet
 //
 // Exit 1 when
-//   (a) a ledger row with status `done` has no passing tagged test (list mode: no tagged test at all),
+//   (a) a ledger row with status `done` has neither a passing tagged test (list mode: no tagged test at all) nor a
+//       coverage-map entry,
 //   (b) a test carries a tag that is neither a ledger ID nor an allowed meta tag,
-//   (c) --strict and a feature row has no tagged test.
+//   (c) --strict and a feature row has neither a tagged test nor a coverage-map entry,
+//   (d) a coverage-map entry names an unknown ID or a file that does not exist.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -28,7 +32,15 @@ const NON_FEATURE_TAGS = new Set(['infra', 'gallery']);
 const ID_PATTERN = /^[A-Z][A-Za-z]*\d+(?:\.\d+)*$/;
 
 function parseArgs(argv) {
-  const args = { strict: false, write: true, quiet: false, results: undefined, ledger: 'docs/ledger.md', out: 'docs/coverage.md' };
+  const args = {
+    strict: false,
+    write: true,
+    quiet: false,
+    results: undefined,
+    ledger: 'docs/ledger.md',
+    map: 'e2e/coverage-map.json',
+    out: 'docs/coverage.md',
+  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const next = () => (argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : undefined);
@@ -37,6 +49,7 @@ function parseArgs(argv) {
     else if (arg === '--quiet') args.quiet = true;
     else if (arg === '--results') args.results = next() ?? 'e2e/test-results/results.json';
     else if (arg === '--ledger') args.ledger = next();
+    else if (arg === '--map') args.map = next();
     else if (arg === '--out') args.out = next();
     else if (arg === '--help' || arg === '-h') {
       console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 17).join('\n'));
@@ -120,10 +133,34 @@ function listTests() {
   return report;
 }
 
+/**
+ * Reads the coverage map (`{ "ID": "path" | ["path", …] }`, paths relative to `repoDir`). Returns the entries as
+ * `Map<id, string[]>` and a problem for every file that does not exist. A missing map file is an empty map.
+ */
+export function readCoverageMap(file, repoDir = REPO_DIR, exists = fs.existsSync) {
+  const map = new Map();
+  const problems = [];
+  if (!exists(file)) return { map, problems };
+  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  for (const [id, value] of Object.entries(raw)) {
+    if (id.startsWith('$')) continue; // "$comment"
+    const files = Array.isArray(value) ? value : [value];
+    if (!files.length || files.some((entry) => typeof entry !== 'string' || !entry)) {
+      problems.push(`coverage map: ${id} needs a file path`);
+      continue;
+    }
+    for (const entry of files) {
+      if (!exists(path.resolve(repoDir, entry))) problems.push(`coverage map: ${id} names ${entry}, which does not exist`);
+    }
+    map.set(id, files);
+  }
+  return { map, problems };
+}
+
 const isPass = (status) => status === 'expected' || status === 'flaky';
 const isScreenshotProject = (project) => project?.startsWith('screenshots-');
 
-export function evaluate(rows, tests, { strict, mode }) {
+export function evaluate(rows, tests, { strict, mode, map = new Map() }) {
   const ids = new Map(rows.map((row) => [row.id, row]));
   const byId = new Map(rows.map((row) => [row.id, { e2e: new Set(), screenshot: new Set(), pass: 0, fail: 0 }]));
   const unknownTags = new Map();
@@ -149,6 +186,9 @@ export function evaluate(rows, tests, { strict, mode }) {
   }
 
   const problems = [];
+  for (const id of map.keys()) {
+    if (!ids.has(id)) problems.push(`coverage map: ${id} is not in docs/ledger.md`);
+  }
   for (const [tag, where] of unknownTags) {
     problems.push(`unknown tag @${tag} (not in docs/ledger.md) in: ${[...where].join('; ')}`);
   }
@@ -156,8 +196,9 @@ export function evaluate(rows, tests, { strict, mode }) {
   for (const row of rows) {
     const entry = byId.get(row.id);
     const total = entry.e2e.size + entry.screenshot.size;
+    const mapped = map.get(row.id) ?? [];
     let result;
-    if (total === 0) result = 'missing';
+    if (total === 0) result = mapped.length ? 'unit/integration' : 'missing';
     else if (mode === 'list') result = 'listed';
     else if (entry.fail > 0) result = entry.pass > 0 ? 'partly failing' : 'failing';
     else if (entry.pass > 0) result = 'passing';
@@ -165,12 +206,14 @@ export function evaluate(rows, tests, { strict, mode }) {
     // Build-time deliverables (ArchUnit, lint, config) are proven by the Maven build, not by Playwright:
     // the ledger notes say "proved by <test>" and the e2e column stays empty.
     const buildProven = row.kind === 'deliverable' && /^proved by /i.test((row.notes ?? '').trim());
-    if (row.status === 'done' && !buildProven) {
+    if (row.status === 'done' && !buildProven && !mapped.length) {
       const ok = mode === 'list' ? total > 0 : entry.pass > 0;
-      if (!ok) problems.push(`${row.id} is done in the ledger but has no ${mode === 'list' ? '' : 'passing '}tagged test`);
+      if (!ok) problems.push(`${row.id} is done in the ledger but has no ${mode === 'list' ? '' : 'passing '}tagged test and no coverage-map entry`);
     }
-    if (strict && row.kind === 'feature' && total === 0) problems.push(`${row.id} has no tagged test (--strict)`);
-    lines.push({ ...row, e2e: entry.e2e.size, screenshot: entry.screenshot.size, pass: entry.pass, fail: entry.fail, result });
+    if (strict && row.kind === 'feature' && total === 0 && !mapped.length) {
+      problems.push(`${row.id} has no tagged test and no coverage-map entry (--strict)`);
+    }
+    lines.push({ ...row, e2e: entry.e2e.size, screenshot: entry.screenshot.size, mapped, pass: entry.pass, fail: entry.fail, result });
   }
   return { lines, problems, untagged: [...untagged] };
 }
@@ -181,11 +224,13 @@ function renderMarkdown({ lines, problems, untagged }, { mode, source, strict })
   const covered = (list) => list.filter((line) => line.result !== 'missing').length;
   const table = (list, label) =>
     [
-      `| ID | ${label} | Ledger | E2E tests | Screenshot tests | Result |`,
-      '|---|---|---|---|---|---|',
+      `| ID | ${label} | Ledger | E2E tests | Screenshot tests | Unit/integration | Result |`,
+      '|---|---|---|---|---|---|---|',
       ...list.map(
         (line) =>
-          `| ${line.id} | ${line.title.replace(/\|/g, '\\|')} | ${line.status || '-'} | ${line.e2e} | ${line.screenshot} | ${line.result}${
+          `| ${line.id} | ${line.title.replace(/\|/g, '\\|')} | ${line.status || '-'} | ${line.e2e} | ${line.screenshot} | ${
+            line.mapped.map((file) => `\`${path.basename(file)}\``).join(', ') || '-'
+          } | ${line.result}${
             mode === 'results' && (line.pass || line.fail) ? ` (${line.pass} passed, ${line.fail} failed)` : ''
           } |`,
       ),
@@ -195,8 +240,8 @@ function renderMarkdown({ lines, problems, untagged }, { mode, source, strict })
     '',
     `Generated by \`e2e/scripts/feature-coverage.mjs\` (${mode} mode${strict ? ', strict' : ''}, source: ${source}). Do not edit by hand.`,
     '',
-    `- Features with at least one tagged test: **${covered(features)} / ${features.length}**`,
-    `- Deliverables with at least one tagged test: **${covered(deliverables)} / ${deliverables.length}**`,
+    `- Features with a tagged test or a coverage-map entry: **${covered(features)} / ${features.length}**`,
+    `- Deliverables with a tagged test or a coverage-map entry: **${covered(deliverables)} / ${deliverables.length}**`,
     `- Gate: ${problems.length ? `**FAILED** (${problems.length} problem${problems.length === 1 ? '' : 's'})` : 'passed'}`,
     '',
     ...(problems.length ? ['## Problems', '', ...problems.map((problem) => `- ${problem}`), ''] : []),
@@ -229,7 +274,9 @@ function main() {
     report = listTests();
     source = 'playwright test --list';
   }
-  const evaluation = evaluate(rows, collectTests(report), { strict: args.strict, mode });
+  const coverageMap = readCoverageMap(path.resolve(REPO_DIR, args.map));
+  const evaluation = evaluate(rows, collectTests(report), { strict: args.strict, mode, map: coverageMap.map });
+  evaluation.problems.unshift(...coverageMap.problems);
   const markdown = renderMarkdown(evaluation, { mode, source, strict: args.strict });
   if (args.write) {
     const outPath = path.resolve(REPO_DIR, args.out);

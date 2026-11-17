@@ -1,5 +1,7 @@
 // Shared look of the admin settings pages (plan-m7 Q13: toggles, configuration, donations, blocklist, IP blocks,
 // uploads, admins).
+@use '../../shared/styles/table-stack' as table;
+
 :host {
   display: grid;
   gap: 1rem;
@@ -158,6 +160,8 @@
     text-align: end;
     white-space: nowrap;
   }
+
+  @include table.stack;
 }
 
 .pager {

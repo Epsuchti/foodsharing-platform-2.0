@@ -10,6 +10,9 @@ Tasks only a person can do: decisions, accounts, money, other people. Everything
 - [ ] Refactor the intro pickups (Einführungsabholungen): where they are managed and who may give them.
 - [ ] Refactor the store automations (Automatisierung tab).
 
+## CI (testing rework, decision 180)
+- [ ] Once `rework/testing` is merged, set the required checks on `main` to: `OpenAPI contract`, `Dependency review`, `shellcheck`, `npm audit .`, `npm audit client`, `npm audit e2e`, `Build and verify`, `E2E chromium 1/2`, `E2E chromium 2/2`, `E2E firefox 1/2`, `E2E firefox 2/2`, `E2E webkit 1/2`, `E2E webkit 2/2`, `E2E mobile-chrome 1/2`, `E2E mobile-chrome 2/2`, `E2E mobile-safari 1/2`, `E2E mobile-safari 2/2`, `Accessibility sweep`, `Lighthouse`, `Feature coverage`, `ER diagram` (the old `E2E <browser> n/4` and `Screenshot tests` checks no longer exist; each browser runs as two shards because one runner needed 18–30 min for all journeys).
+
 ## Infrastructure and accounts
 - [ ] Register the domain and set up DNS. This blocks mail DNS, OAuth redirect URIs, the passkey RP id, wallet pass identifiers and the Telegram bot name.
 - [ ] Choose hosting: server, Postgres with backups, TLS reverse proxy, monitoring (Swiss hosting for nDSG?).

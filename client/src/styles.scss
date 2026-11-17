@@ -441,8 +441,19 @@
     *::before,
     *::after {
       scroll-behavior: auto !important;
-      transition-duration: 0.01ms !important;
+      // 1ms, not 0.01ms: the computed value of 0.01ms is "1e-05s", which Optimus's motion reads as 105 s (its toMs
+      // drops the exponent), so overlays that left with a transition stayed on the page for good
+      transition-duration: 1ms !important;
       animation-iteration-count: 1 !important;
+    }
+
+    // Optimus enter/leave motions (`<name>-enter-active`, `<name>-leave-active`) still run under reduced motion, so
+    // their hooks fire after the animation (core/overlays/reduced-motion.ts), but end at once: nothing moves.
+    [class*='-enter-active'],
+    [class*='-leave-active'] {
+      animation-duration: 1ms !important;
+      animation-delay: 0s !important;
+      transition-delay: 0s !important;
     }
   }
 }
