@@ -335,7 +335,7 @@ jobs:
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
         run: |
           mkdir -p test-results
-          npx playwright merge-reports --reporter json,html ./all-blob-reports
+          npx playwright merge-reports --config=merge.config.ts --reporter json,html ./all-blob-reports
       - name: Add results and flaky tests to the run summary
         if: ${{ !cancelled() }}
         run: node e2e/scripts/run-sharded.mjs --step-summary "E2E tests" e2e/test-results/results.json
