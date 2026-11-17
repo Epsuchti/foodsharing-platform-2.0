@@ -28,6 +28,8 @@ export async function openNav(page: Page, id: string): Promise<number> {
     }
     await page.getByTestId('nav.tab.menu').click();
     await page.getByTestId(`nav.drawer.${id}`).click();
+    // the drawer closes with an animation; its mask takes the next tap until it is gone (busy container runs)
+    await expect(page.locator('.p-drawer-mask')).toHaveCount(0);
     return 2;
   }
   if (USER_MENU_ITEMS.includes(id)) {

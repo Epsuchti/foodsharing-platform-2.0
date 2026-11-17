@@ -1,6 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { test as base, type BrowserContext, type Locator, type Page, type Request, type TestInfo } from '@playwright/test';
+import {
+  test as base,
+  type BrowserContext,
+  type Locator,
+  type Page,
+  type Request,
+  type TestInfo,
+} from '@playwright/test';
 import { expect, test, type Role } from './index';
 import { animationsDone, expectNoSeriousViolations, type A11yOptions } from './a11y';
 import { ApiClient } from './api';
@@ -56,12 +63,10 @@ async function interFaces(context: BrowserContext): Promise<{ data: string; unic
     INTER_FACES.map(async ({ file, unicodeRange }) => {
       let bytes = interBytes.get(file);
       if (!bytes) {
-        bytes = context.request
-          .get(file)
-          .then(async (response) => {
-            expect(response.ok(), `GET ${file} → ${response.status()}`).toBe(true);
-            return (await response.body()).toString('base64');
-          });
+        bytes = context.request.get(file).then(async (response) => {
+          expect(response.ok(), `GET ${file} → ${response.status()}`).toBe(true);
+          return (await response.body()).toString('base64');
+        });
         interBytes.set(file, bytes);
         bytes.catch(() => interBytes.delete(file));
       }
@@ -84,7 +89,12 @@ export async function pinInter(context: BrowserContext): Promise<void> {
       (window as unknown as { __fsPinnedInter: FontFace[] }).__fsPinnedInter = pinned;
       for (const { data, unicodeRange } of list) {
         const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
-        const face = new FontFace(family, bytes.buffer, { style: 'normal', weight: '100 900', display: 'block', unicodeRange });
+        const face = new FontFace(family, bytes.buffer, {
+          style: 'normal',
+          weight: '100 900',
+          display: 'block',
+          unicodeRange,
+        });
         document.fonts.add(face);
         pinned.push(face);
         face.load().catch(() => undefined);
@@ -131,7 +141,12 @@ export async function stubVisuals(context: BrowserContext): Promise<void> {
   );
   await context.route(
     (url) => AVATAR_HOSTS.test(url.hostname),
-    (route) => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: AVATAR }),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: AVATAR,
+      }),
   );
 }
 
@@ -146,7 +161,9 @@ export async function settle(page: Page, options: { waitForData?: boolean } = {}
   // false) holds a request of its own on purpose; neither this marker nor the quiet check waits for that one, so the
   // shell is still at rest with its data, like in every other capture.
   if (await page.evaluate(() => document.body?.querySelector('fs-shell') !== null)) {
-    await expect(page.locator('html[data-page-shown]')).toHaveCount(1, { timeout: 15_000 });
+    await expect(page.locator('html[data-page-shown]')).toHaveCount(1, {
+      timeout: 15_000,
+    });
   }
   await networkQuiet(page);
   if (waitForData) {
@@ -169,8 +186,7 @@ export async function settle(page: Page, options: { waitForData?: boolean } = {}
   // The side menu scrolls the current item into view once after each navigation (SidenavComponent). Toggled nav items
   // that arrive afterwards change the list's height and leave that scroll at an offset which depends on arrival
   // order (C10 uploads). Everything has arrived now: repeat the app's own scroll so the menu is at rest, always.
-  await page.evaluate(() =>
-{
+  await page.evaluate(() => {
     // the menu's own scroll only: scrollIntoView also scrolled the window, so a viewport capture of a popover further
     // down the page showed the top of the page (store team menu). The window keeps its position.
     const { scrollX, scrollY } = window;
@@ -206,7 +222,8 @@ export function trackPendingRequests(page: Page): void {
   page.on('framenavigated', (frame) => {
     if (frame !== page.mainFrame() || !documentRequested) return;
     documentRequested = false;
-    for (const request of pending) if (!(request.isNavigationRequest() && request.frame() === frame)) pending.delete(request);
+    for (const request of pending)
+      if (!(request.isNavigationRequest() && request.frame() === frame)) pending.delete(request);
   });
   const done = (request: Request): void => void pending.delete(request);
   page.on('requestfinished', done);
@@ -278,7 +295,9 @@ export async function fixedOrigin(page: Page): Promise<void> {
 
 export async function overlayOpen(page: Page): Promise<boolean> {
   return page
-    .locator('[aria-modal="true"]:visible, [data-pc-section="mask"]:visible, .p-drawer:visible, .p-overlay-mask:visible, .sn-card:visible')
+    .locator(
+      '[aria-modal="true"]:visible, [data-pc-section="mask"]:visible, .p-drawer:visible, .p-overlay-mask:visible, .sn-card:visible',
+    )
     .count()
     .then((n) => n > 0);
 }
@@ -371,6 +390,30 @@ export interface CheckpointOptions {
 
 /** Hides transient toasts in a capture unless the checkpoint is about one. */
 const HIDE_TOASTS = '[data-testid="shell.toast"] { visibility: hidden !important; }';
+/**
+ * Animated counters (`fs-animated-counter`, statistics) count up when they appear, also when the tall capture
+ * viewport brings them into view: the capture waits until every counter shows its final value (the text screen readers get).
+ */
+async function countersAtRest(page: Page): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('fs-animated-counter')].every(
+            // the visible (aria-hidden) number against the final one the screen reader text carries
+            (node) =>
+              (node.querySelector('[aria-hidden="true"]')?.textContent ?? '') ===
+              (node.querySelector('.fs-visually-hidden')?.textContent ?? ''),
+          ),
+        ),
+      { message: 'animated counters at their final value' },
+    )
+    .toBe(true);
+}
+
+/** Full-page phone captures: the fixed tab bar sits at the end of the shell instead of where the viewport ended. */
+const TAB_BAR_AT_END = 'fs-shell { position: relative !important; } fs-mobile-tab-bar { position: absolute !important; }';
+
 /** Element captures are about the element: the fixed phone tab bar would be drawn over its lower part. */
 const HIDE_TAB_BAR = 'fs-mobile-tab-bar { visibility: hidden !important; }';
 
@@ -410,7 +453,7 @@ async function maskRelativeTimes(page: Page): Promise<void> {
 /** Runs `capture` with masks painted, toasts hidden (unless `toasts`) and, full-page, the tab bar at the end; all removed afterwards. */
 async function withCaptureStyle<T>(
   page: Page,
-  options: { toasts?: boolean; mask?: Locator[]; hideTabBar?: boolean },
+  options: { toasts?: boolean; mask?: Locator[]; hideTabBar?: boolean; tabBarAtEnd?: boolean },
   capture: () => Promise<T>,
 ): Promise<T> {
   // Masks are painted by the page itself: Playwright's mask boxes land off their element in full-page phone captures
@@ -418,26 +461,36 @@ async function withCaptureStyle<T>(
   for (const locator of options.mask ?? []) {
     await locator.evaluateAll((nodes, attr) => nodes.forEach((node) => node.setAttribute(attr, '')), CAPTURE_MASK_ATTR);
   }
+  await countersAtRest(page);
   await maskRelativeTimes(page);
   const color = await maskColor(page);
-  const css = [MASK_CSS(color), options.toasts ? '' : HIDE_TOASTS, options.hideTabBar ? HIDE_TAB_BAR : ''].join(' ');
+  const css = [MASK_CSS(color), options.toasts ? '' : HIDE_TOASTS, options.hideTabBar ? HIDE_TAB_BAR : '', options.tabBarAtEnd ? TAB_BAR_AT_END : ''].join(' ');
   const style = await page.addStyleTag({ content: css });
   try {
     return await capture();
   } finally {
     await style.evaluate((node) => (node as Element).remove()).catch(() => undefined);
     await page
-      .evaluate((attr) => document.querySelectorAll(`[${attr}]`).forEach((node) => node.removeAttribute(attr)), CAPTURE_MASK_ATTR)
+      .evaluate(
+        (attr) => document.querySelectorAll(`[${attr}]`).forEach((node) => node.removeAttribute(attr)),
+        CAPTURE_MASK_ATTR,
+      )
       .catch(() => undefined);
   }
 }
 
 const CAPTURE_MASK_ATTR = 'data-fs-capture-mask';
-/** Masked regions keep their size and show the muted surface colour, their content hidden. */
+/**
+ * Masked regions keep their size and show the muted surface colour, their content hidden. The public totals
+ * (`fs-animated-counter`) are always masked: the server keeps them in memory, a dev seed reset does not drop that
+ * cache and under the fixed e2e clock it never expires, so they depend on which journeys ran on the jar before
+ * (journeys assert the numbers themselves).
+ */
+const MASKED = `[data-screenshot-mask], [${CAPTURE_MASK_ATTR}], fs-animated-counter`;
 const MASK_CSS = (color: string): string =>
-  `[data-screenshot-mask], [${CAPTURE_MASK_ATTR}] { background: ${color} !important; border-color: ${color} !important; ` +
+  `:is(${MASKED}) { background: ${color} !important; border-color: ${color} !important; ` +
   `color: transparent !important; box-shadow: none !important; } ` +
-  `[data-screenshot-mask] *, [${CAPTURE_MASK_ATTR}] * { visibility: hidden !important; }`;
+  `:is(${MASKED}) * { visibility: hidden !important; }`;
 
 /**
  * A checkpoint of a journey: page at rest; on the checkpoint projects axe, and inside the Playwright image a
@@ -449,82 +502,131 @@ export async function checkpoint(page: Page, name: string, options: CheckpointOp
     if (!isCheckpointProject()) return;
     if (!options.skipAxe) await expectNoSeriousViolations(page, options.a11y);
     if (!COMPARE_SCREENSHOTS) return;
-    await assertInter(page);
-    await fixedOrigin(page);
-    // An open modal, drawer or side menu card is captured as the viewport the user sees (its backdrop only covers
-    // the viewport).
-    const fullPage = (options.fullPage ?? true) && !(await overlayOpen(page));
-    await releaseHover(page);
-    if (!fullPage) {
-      // A dialog or drawer is captured from the top of its content: how far a fill or a validation message had
-      // scrolled it depended on timing.
-      await page.evaluate(() => {
-        for (const node of document.querySelectorAll<HTMLElement>('.p-dialog-content, .p-drawer-content')) node.scrollTop = 0;
-      });
-      await animationsDone(page);
-      await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
-      return;
-    }
-    // A full page is captured as one tall viewport: Playwright's full-page capture draws everything sized to the
-    // viewport (side menu, backdrops) and the fixed phone tab bar only over the first 800 px, and its page height
-    // counted invisible overflow (empty strips under the tab bar). The viewport grows to the end of the shell, from
-    // the top of the page; only the height changes.
-    const viewport = page.viewportSize()!;
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-    // The shell's "at least one viewport high" rules (main, column, body: 100vh) would grow with the tall viewport and
-    // push the footer and tab bar down by another viewport: they keep the height of the real viewport.
-    const pinVh = await page.addStyleTag({
-      content: `body, fs-shell, fs-shell .shell__col, fs-shell .shell__main { min-height: ${viewport.height}px !important; }`,
-    });
-    try {
-      for (let round = 0; round < 3; round++) {
-        const height = await contentHeight(page);
-        const current = page.viewportSize()!.height;
-        if (Math.abs(height - current) <= 1 || (round > 0 && height <= current)) break;
-        await page.setViewportSize({ width: viewport.width, height: Math.max(height, viewport.height) });
-        await settle(page, { waitForData: false });
-      }
-      await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
-    } finally {
-      await pinVh.evaluate((node) => (node as Element).remove()).catch(() => undefined);
-      await page.setViewportSize(viewport);
-    }
+    await withReducedMotion(page, () => captureCheckpoint(page, name, options));
   });
+}
+
+async function captureCheckpoint(page: Page, name: string, options: CheckpointOptions): Promise<void> {
+  await assertInter(page);
+  await fixedOrigin(page);
+  // An open modal, drawer or side menu card is captured as the viewport the user sees (its backdrop only covers
+  // the viewport).
+  const fullPage = (options.fullPage ?? true) && !(await overlayOpen(page));
+  await releaseHover(page);
+  if (!fullPage) {
+    // A dialog or drawer is captured from the top of its content: how far a fill or a validation message had
+    // scrolled it depended on timing.
+    await page.evaluate(() => {
+      for (const node of document.querySelectorAll<HTMLElement>('.p-dialog-content, .p-drawer-content'))
+        node.scrollTop = 0;
+    });
+    await animationsDone(page);
+    await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
+    return;
+  }
+  // A full page is captured as one tall viewport: Playwright's full-page capture draws everything sized to the
+  // viewport (side menu, backdrops) and the fixed phone tab bar only over the first 800 px, and its page height
+  // counted invisible overflow (empty strips under the tab bar). The viewport grows to the end of the shell, from
+  // the top of the page; only the height changes.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  // Phones: no viewport resize (the mobile browser kept a changed zoom for the rest of the journey, and the tab bar
+  // then covered the next button). Playwright's full-page capture, cut at the end of the shell, with the fixed tab
+  // bar moved to the shell's end (into the room the shell keeps for it).
+  if (base.info().project.use.isMobile) {
+    const height = await contentHeight(page);
+    const width = page.viewportSize()!.width;
+    await withCaptureStyle(page, { ...options, tabBarAtEnd: true }, () =>
+      expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true, clip: { x: 0, y: 0, width, height } }),
+    );
+    return;
+  }
+  const viewport = page.viewportSize()!;
+  // The shell's "at least one viewport high" rules (main, column, body: 100vh) would grow with the tall viewport and
+  // push the footer and tab bar down by another viewport: they keep the height of the real viewport.
+  const pinVh = await page.addStyleTag({
+    content: `body, fs-shell, fs-shell .shell__col, fs-shell .shell__main { min-height: ${viewport.height}px !important; }`,
+  });
+  try {
+    for (let round = 0; round < 3; round++) {
+      const height = await contentHeight(page);
+      const current = page.viewportSize()!.height;
+      if (Math.abs(height - current) <= 1 || (round > 0 && height <= current)) break;
+      await page.setViewportSize({
+        width: viewport.width,
+        height: Math.max(height, viewport.height),
+      });
+      await settle(page, { waitForData: false });
+    }
+    await withCaptureStyle(page, options, () => expect(page).toHaveScreenshot(`${name}.png`));
+  } finally {
+    await pinVh.evaluate((node) => (node as Element).remove()).catch(() => undefined);
+    await page.setViewportSize(viewport);
+  }
+}
+
+/**
+ * Captures run with reduced motion (counters show their final value at once; a counter that entered the tall
+ * viewport would otherwise be caught counting) and set it back afterwards: the journey itself runs with the motion a
+ * user has (with reduced motion a select option inside a dialog could not be clicked, see the report of decision 180).
+ */
+async function withReducedMotion(page: Page, capture: () => Promise<void>): Promise<void> {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  try {
+    await capture();
+  } finally {
+    await page.emulateMedia({ reducedMotion: null });
+  }
 }
 
 /**
  * An element checkpoint (gallery sections, dialogs). An element taller than the viewport is captured in a viewport
  * that holds it from the top of the page (sticky bars stay above it, the fixed tab bar below it).
  */
-export async function checkpointElement(locator: Locator, name: string, options: Omit<CheckpointOptions, 'fullPage'> = {}): Promise<void> {
+export async function checkpointElement(
+  locator: Locator,
+  name: string,
+  options: Omit<CheckpointOptions, 'fullPage'> = {},
+): Promise<void> {
   const page = locator.page();
   await base.step(`checkpoint ${name}`, async () => {
     await settle(page, { waitForData: options.waitForData });
     if (!isCheckpointProject()) return;
     if (!options.skipAxe) await expectNoSeriousViolations(page, options.a11y);
     if (!COMPARE_SCREENSHOTS) return;
-    await assertInter(page);
-    await fixedOrigin(page);
-    const viewport = page.viewportSize();
-    const box = await locator.evaluate((el) => {
-      const rect = el.getBoundingClientRect();
-      return { bottom: rect.bottom + window.scrollY, height: rect.height };
-    });
-    const restore = viewport !== null && box.height > viewport.height ? viewport : null;
-    if (restore) {
-      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-      await page.setViewportSize({ width: restore.width, height: Math.ceil(box.bottom) + 120 });
-      await settle(page, { waitForData: false });
-    }
-    try {
-      await releaseHover(page);
-      await withCaptureStyle(page, { toasts: options.toasts, mask: options.mask, hideTabBar: true }, () =>
-        expect(locator).toHaveScreenshot(`${name}.png`),
-      );
-    } finally {
-      if (restore) await page.setViewportSize(restore);
-    }
+    await withReducedMotion(page, () => captureElement(locator, name, options));
   });
+}
+
+async function captureElement(
+  locator: Locator,
+  name: string,
+  options: Omit<CheckpointOptions, 'fullPage'>,
+): Promise<void> {
+  const page = locator.page();
+  await assertInter(page);
+  await fixedOrigin(page);
+  const viewport = page.viewportSize();
+  const box = await locator.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return { bottom: rect.bottom + window.scrollY, height: rect.height };
+  });
+  const restore = viewport !== null && box.height > viewport.height ? viewport : null;
+  if (restore) {
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await page.setViewportSize({
+      width: restore.width,
+      height: Math.ceil(box.bottom) + 120,
+    });
+    await settle(page, { waitForData: false });
+  }
+  try {
+    await releaseHover(page);
+    await withCaptureStyle(page, { toasts: options.toasts, mask: options.mask, hideTabBar: true }, () =>
+      expect(locator).toHaveScreenshot(`${name}.png`),
+    );
+  } finally {
+    if (restore) await page.setViewportSize(restore);
+  }
 }
 
 /**
