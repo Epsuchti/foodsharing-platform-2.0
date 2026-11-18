@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { Button } from '@openng/optimus-ui/button';
 
 import { StoreDetail } from '../../../api';
@@ -31,6 +33,8 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
 /**
  * /stores/:storeId (S1, S15, S16): header with name, region, badges, navigation and contact buttons, the tab
  * navigation (gated by StorePermissions, A19) and the active tab. Tabs read the store from StorePageContext.
+ * The full hero (category, address, badges) shows on the overview tab only; every other tab gets a compact title bar
+ * (region, name, icon actions) so its content starts on the first phone screen (design review B3).
  */
 @Component({
   selector: 'fs-store-page',
@@ -61,30 +65,32 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
       data-testid="stores.page.state"
     >
       <ng-template [fsData]="ctx.store" let-store>
-        <header class="hero" data-testid="stores.page.header">
+        <header class="hero" [class.hero--compact]="compact()" data-testid="stores.page.header">
           <div class="hero__body">
             <a class="hero__parent" [routerLink]="['/regions', store.region.id, 'stores']" data-testid="stores.page.region">
               <i class="pi pi-map-marker" aria-hidden="true"></i>{{ store.region.name }}
             </a>
-            @if (store.category) {
+            @if (store.category && !compact()) {
               <p class="hero__type">{{ store.category.name }}</p>
             }
             <h1 class="hero__name" data-testid="stores.page.name">{{ store.name }}</h1>
-            <p class="hero__teaser" data-testid="stores.page.address">
-              {{ store.address.street }}, {{ store.address.postcode }} {{ store.address.city }}
-            </p>
-            <ul class="hero__facts">
-              <li><fs-cooperation-status-badge [status]="store.cooperationStatus" /></li>
-              <li><fs-team-status-badge [status]="store.teamStatus" /></li>
-              @if (store.membership !== 'NO_MEMBER') {
-                <li data-testid="stores.page.membership"><fs-membership-badge [status]="store.membership" /></li>
-              }
-              @if (store.permissions.isKam) {
-                <li class="hero__badge hero__badge--admin">
-                  <i class="pi pi-briefcase" aria-hidden="true"></i>{{ 'stores.page.kam' | t }}
-                </li>
-              }
-            </ul>
+            @if (!compact()) {
+              <p class="hero__teaser" data-testid="stores.page.address">
+                {{ store.address.street }}, {{ store.address.postcode }} {{ store.address.city }}
+              </p>
+              <ul class="hero__facts">
+                <li><fs-cooperation-status-badge [status]="store.cooperationStatus" /></li>
+                <li><fs-team-status-badge [status]="store.teamStatus" /></li>
+                @if (store.membership !== 'NO_MEMBER') {
+                  <li data-testid="stores.page.membership"><fs-membership-badge [status]="store.membership" /></li>
+                }
+                @if (store.permissions.isKam) {
+                  <li class="hero__badge hero__badge--admin">
+                    <i class="pi pi-briefcase" aria-hidden="true"></i>{{ 'stores.page.kam' | t }}
+                  </li>
+                }
+              </ul>
+            }
           </div>
           <div class="hero__actions">
             @if (links(store); as nav) {
@@ -97,7 +103,9 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
             }
             @if (store.permissions.mayEditStore) {
               <p-button
+                class="hero__edit"
                 [label]="'stores.page.edit' | t"
+                [ariaLabel]="'stores.page.edit' | t"
                 icon="pi pi-pencil"
                 size="small"
                 [routerLink]="['/stores', store.id, 'edit']"
@@ -135,16 +143,21 @@ export const STORE_TABS_READY = new Set<string>(['overview', 'team', 'pickups', 
     .hero__facts li:has(fs-membership-badge) {
       display: contents;
     }
-    .hero__actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
   `,
 })
 export class StorePageComponent {
   protected readonly ctx = inject(StorePageContext);
+  private readonly router = inject(Router);
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  /** Every tab except the overview shows the compact title bar (design review B3). */
+  protected readonly compact = computed(() => !/\/overview(?:[?#]|$)/.test(this.url()));
 
   protected readonly tabs = computed<StoreTab[]>(() => {
     const p = this.ctx.permissions();

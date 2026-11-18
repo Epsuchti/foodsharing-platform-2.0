@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 
 /** The settings pages behind the "Settings & toggles" nav entry, as links (each page is its own route). */
 export const SETTINGS_TABS = [
@@ -14,10 +15,10 @@ export const SETTINGS_TABS = [
 
 @Component({
   selector: 'fs-settings-tabs',
-  imports: [RouterLink, RouterLinkActive, TPipe],
+  imports: [RouterLink, RouterLinkActive, ScrollHintDirective, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="tabs" [attr.aria-label]="'adminSettings.tabs.label' | t" data-testid="adminSettings.tabs">
+    <nav class="tabs" fsScrollHint [attr.aria-label]="'adminSettings.tabs.label' | t" data-testid="adminSettings.tabs">
       @for (tab of tabs; track tab.id) {
         <a
           class="tab"
@@ -39,15 +40,22 @@ export const SETTINGS_TABS = [
       min-width: 0;
       max-width: 100%;
     }
+    /* fsScrollHint fades the edge where more tabs follow and keeps the active tab in view; no scrollbar over the tabs (D9) */
     .tabs {
       display: flex;
       gap: 0.25rem;
       overflow-x: auto;
       border-bottom: 1px solid var(--fs-border);
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar {
+      display: none;
     }
     .tab {
       display: inline-flex;
+      flex: 0 0 auto;
       align-items: center;
+      min-height: 2.75rem;
       gap: 0.4rem;
       padding: 0.6rem 0.85rem;
       border-bottom: 2px solid transparent;

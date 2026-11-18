@@ -25,7 +25,8 @@ const FOLDERS: { id: MailFolder; icon: string }[] = [
 /**
  * /mailboxes[/:mailboxId/:folder[/:mailId]] (MB2, MB3): mailboxes with unread counts and folders on the left, the
  * folder's mails (search, paging, unread bold, answered/bounce/attachment icons) and the open mail. Narrow screens
- * stack the panes and show only the open mail when one is selected.
+ * stack the panes, show the folders as a chip row per mailbox, leave out the empty reading pane and show only the
+ * open mail when one is selected.
  */
 @Component({
   selector: 'fs-mailbox-page',
@@ -44,8 +45,13 @@ const FOLDERS: { id: MailFolder; icon: string }[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class.has-mail]': '!!mailId()' },
   template: `
+    <!-- "New mail", the most frequent action, sits in the header on every screen; on a phone it was below 30 mails
+         in the empty reading pane (design review D5) -->
     <fs-page-header class="title" [title]="'mailboxes.title' | t" icon="pi pi-envelope">
-      <p-button [label]="'mailboxes.create.button' | t" icon="pi pi-plus" [outlined]="true" routerLink="/mailboxes/new" data-testid="mailboxes.create" />
+      @if (mailboxId(); as id) {
+        <p-button [label]="'mailboxes.compose.button' | t" icon="pi pi-pencil" [routerLink]="['/mailboxes', id, 'compose']" data-testid="mailboxes.compose" />
+      }
+      <p-button [label]="'mailboxes.create.button' | t" icon="pi pi-plus" severity="secondary" [outlined]="true" routerLink="/mailboxes/new" data-testid="mailboxes.create" />
     </fs-page-header>
     <fs-data-state
       [state]="mailboxes"
@@ -150,10 +156,8 @@ const FOLDERS: { id: MailFolder; icon: string }[] = [
               </fs-mail-view>
             } @else {
               <div class="pick">
+                <i class="pi pi-envelope pick__icon" aria-hidden="true"></i>
                 <p class="muted">{{ 'mailboxes.pickMail' | t }}</p>
-                @if (mailboxId(); as id) {
-                  <p-button [label]="'mailboxes.compose.button' | t" icon="pi pi-pencil" [routerLink]="['/mailboxes', id, 'compose']" data-testid="mailboxes.compose" />
-                }
               </div>
             }
           </section>

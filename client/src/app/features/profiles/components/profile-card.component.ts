@@ -93,6 +93,16 @@ import { photoInSize } from '../profiles.util';
     .head__number { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.9rem; }
     .head__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.35rem; }
     .head__actions:empty { display: none; }
+    /*
+     * phones (design review B11): the primary "write a message" takes the first row, the other actions share the
+     * following rows and stretch to fill them instead of four ragged rows of different widths
+     */
+    @media (max-width: 30rem) {
+      .head__actions ::ng-deep > * { flex: 1 1 auto; }
+      .head__actions ::ng-deep > :first-child { flex-basis: 100%; }
+      .head__actions ::ng-deep > :has(.p-button-icon-only) { flex: none; }
+      .head__actions ::ng-deep .p-button:not(.p-button-icon-only) { width: 100%; }
+    }
     .sleep {
       display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem 1rem;
       border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface-muted);

@@ -23,11 +23,12 @@ import { fspMarkers } from '../fsp.util';
   template: `
     <div class="head">
       <p class="muted">{{ 'foodSharePoints.region.intro' | t }}</p>
+      <!-- primary action first, the secondary link beside it in the same wrapping row (design review C18) -->
       <div class="head__actions">
-        <p-button [label]="'foodSharePoints.region.mine' | t" icon="pi pi-list" severity="secondary" [outlined]="true" routerLink="/food-share-points/mine" data-testid="foodSharePoints.region.mine" />
         @if (mayPropose()) {
           <p-button [label]="'foodSharePoints.region.add' | t" icon="pi pi-plus" (onClick)="add()" data-testid="foodSharePoints.region.add" />
         }
+        <p-button [label]="'foodSharePoints.region.mine' | t" icon="pi pi-list" severity="secondary" [outlined]="true" routerLink="/food-share-points/mine" data-testid="foodSharePoints.region.mine" />
       </div>
     </div>
     <fs-data-state

@@ -336,6 +336,15 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalSlug } from '../legal-kind';
       gap: 0.35rem;
       max-width: 20rem;
     }
+    /* phones: the version field as wide as the text areas below (D7) */
+    @media (max-width: 39.99rem) {
+      .field {
+        max-width: none;
+      }
+      .field input {
+        width: 100%;
+      }
+    }
     .field label {
       font-weight: 600;
     }

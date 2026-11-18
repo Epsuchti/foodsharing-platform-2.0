@@ -202,6 +202,18 @@ import {
       flex-wrap: wrap;
       gap: 0.5rem 1.1rem;
     }
+    /* phones (design review B15): two even columns of 44px rows, with room before the next field */
+    @media (max-width: 47.99rem) {
+      .reminders {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .reminder {
+        min-height: 2.75rem;
+      }
+    }
     .field {
       display: grid;
       gap: 0.35rem;

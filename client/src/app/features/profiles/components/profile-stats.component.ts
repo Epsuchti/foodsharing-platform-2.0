@@ -47,7 +47,7 @@ import { TPipe } from '../../../core/i18n/t.pipe';
   styles: `
     :host { display: block; }
     .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
-    .tile { display: grid; justify-items: start; gap: 0.15rem; padding: 0.8rem 0.9rem; margin: 0; }
+    .tile { display: grid; align-content: start; justify-items: start; gap: 0.15rem; padding: 0.8rem 0.9rem; margin: 0; }
     .tile .pi { color: var(--fs-primary); }
     .tile strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
     .tile span { color: var(--fs-text-muted); font-size: 0.85rem; }
@@ -57,6 +57,8 @@ import { TPipe } from '../../../core/i18n/t.pipe';
       .tile { padding: 0.65rem 0.7rem; }
       /* a seventh tile (cleaning shifts) takes its own row instead of sitting alone in a third of it */
       .tile:last-child:nth-child(3n + 1) { grid-column: 1 / -1; }
+      /* ...laid out as one line (icon, number, label), so it does not read as a different kind of element (review B11) */
+      .tile:last-child:nth-child(3n + 1) { display: flex; align-items: center; gap: 0.5rem; }
       .tile strong { font-size: 1.15rem; }
       .tile span { font-size: 0.78rem; line-height: 1.3; overflow-wrap: anywhere; }
     }

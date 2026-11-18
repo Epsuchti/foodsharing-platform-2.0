@@ -145,6 +145,22 @@ export function withChannel(
     .matrix thead th:first-child {
       text-align: start;
     }
+    /*
+     * design review B16: channel headers never break ("E-" / "Mail"); the channel columns take only their width and
+     * the topic column the rest (long topics may hyphenate there); the lock sits centred and muted under "Bell"
+     */
+    .matrix thead th:not(:first-child) {
+      width: 1%;
+      white-space: nowrap;
+      hyphens: none;
+    }
+    .matrix th[scope='row'] {
+      hyphens: auto;
+      overflow-wrap: anywhere;
+    }
+    .matrix td .pi-lock {
+      color: var(--fs-text-muted);
+    }
     .hint {
       margin: 0.75rem 0 0;
     }

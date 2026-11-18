@@ -40,6 +40,7 @@ const TRANSLATIONS: Record<string, string> = {
   'shared.historyTimeline.value.false': 'Nein',
   'shared.historyTimeline.value.channel.PUSH': 'Push',
   'shared.store.cooperation.IN_NEGOTIATION': 'In Verhandlung',
+  'reports.status.IN_PROGRESS': 'In Bearbeitung',
   'shared.historyTimeline.field.regularPickups': 'Regelmässige Abholzeiten',
   'shared.historyTimeline.value.sleepStatus.TEMPORARY': 'Eine Zeit lang',
   'shared.historyTimeline.systemReason.accountDeleted': 'Konto gelöscht',
@@ -175,6 +176,7 @@ describe('HistoryLabeler', () => {
     expect(value('kind')).toBe('SOMETHING_NEW');
     expect(facts.find((fact) => fact.key === 'previousCount')?.label).toBe('Bisherige Anzahl');
     expect(labeler.value('cooperationStatus', 'IN_NEGOTIATION')).toBe('In Verhandlung');
+    expect(labeler.value('status', 'IN_PROGRESS')).toBe('In Bearbeitung');
     expect(labeler.value('active', 'false')).toBe('Nein');
   });
 

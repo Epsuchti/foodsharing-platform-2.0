@@ -234,6 +234,16 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
     .flag--manager { color: var(--fs-primary-strong); }
     .flag--former { color: var(--fs-text-muted); }
     .empty-filter { display: grid; justify-items: center; gap: 0.5rem; }
+    /*
+     * phones (design review B14): the number columns take only what they need (their headers may wrap, the date is
+     * smaller), the member column takes the rest, so names are no longer cut after a few letters
+     */
+    @media (max-width: 47.99rem) {
+      .members th:first-child { width: 100%; }
+      .members th.num { white-space: normal; hyphens: none; line-height: 1.2; }
+      .members td.date { font-size: 0.85rem; }
+      .members th, .members td { padding-inline: 0.2rem; }
+    }
   `,
 })
 export class StoreStatisticsTab {

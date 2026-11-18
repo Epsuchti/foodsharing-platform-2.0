@@ -10,7 +10,10 @@
 .landing {
   container: landing / inline-size;
   display: grid;
-  gap: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+  // one track that may shrink below its content's min-content, so a wide child (the postcode row of the near-you
+  // block) can never make the page wider than the screen
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 1.5rem + 3vw, 4.5rem);
 }
 
 .eyebrow {
@@ -169,7 +172,12 @@
     display: block;
   }
 
-  span {
+  > div {
+    min-width: 0;
+  }
+
+  // only the text line, not the icon tile (`span.fs-tile`), which keeps its own colour and size
+  > div > span {
     color: var(--fs-text-muted);
     font-size: 0.93rem;
   }
@@ -216,6 +224,7 @@
 // ---- near you ----
 .near {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
   margin-top: 1.2rem;
 }
@@ -226,7 +235,7 @@
 
 @container landing (min-width: 900px) {
   .near {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
   }
   .near--placeholder {
@@ -375,27 +384,47 @@
 
 .faq {
   display: grid;
-  gap: 0.5rem;
 
-  details {
-    padding: 0.85rem 1rem;
-    border: 1px solid var(--fs-border);
-    border-radius: 0.75rem;
-    background: var(--fs-surface);
-  }
-
-  details[open] {
-    border-color: var(--fs-border-strong);
+  // same accordion as /faq: divider lines, chevron on the right
+  details + details {
+    border-top: 1px solid var(--fs-border);
   }
 
   summary {
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0;
     font-weight: 650;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__chevron {
+    flex: none;
+    color: var(--fs-text-muted);
+    transition: transform 150ms ease;
+  }
+
+  details[open] .faq__chevron {
+    transform: rotate(180deg);
   }
 
   p {
-    margin: 0.6rem 0 0;
+    margin: 0 0 0.85rem;
     color: var(--fs-text-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq .faq__chevron {
+    transition: none;
   }
 }
 

@@ -305,6 +305,7 @@
   "regions.statistics.noPickups": "Noch keine Abholungen erfasst",
   "regions.statistics.onlyHomeRegion": "Nur Mitglieder mit diesem Stammbezirk",
   "regions.statistics.onlyHomeRegionHint": "Gilt für Geschlecht und Altersgruppen.",
+  "regions.statistics.ageUnknown": "Unbekannt",
   "regions.statistics.noMembers": "Keine Mitglieder",
   "regions.members.permissionsShort": "Rechte",
   "regions.members.removeShort": "Entfernen",

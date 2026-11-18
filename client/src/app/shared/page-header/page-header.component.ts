@@ -99,6 +99,9 @@ import { TPipe } from '../../core/i18n/t.pipe';
       font-weight: 750;
       letter-spacing: -0.025em;
       line-height: 1.15;
+      /* long one-word titles ("Iifüehrigsabholige verwalte") hyphenate or break instead of overflowing at 360px (C18) */
+      overflow-wrap: anywhere;
+      hyphens: auto;
     }
     .ph__subtitle {
       margin: 0;

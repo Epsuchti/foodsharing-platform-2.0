@@ -58,7 +58,7 @@ const HIDDEN = new Set(['idle', 'empty', 'forbidden', 'notFound']);
     }
   `,
   styles: `
-    .rules { padding: 0; margin-bottom: 1rem; }
+    .rules { padding: 0; }
     .rules__summary {
       display: flex; align-items: center; gap: 0.6rem; min-height: var(--fs-target-sm); padding: 0.8rem 1.15rem;
       cursor: pointer; list-style: none; font-weight: 650;

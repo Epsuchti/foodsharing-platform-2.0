@@ -179,8 +179,12 @@ export const SUBJECT_PRESETS: Readonly<Record<string, string>> = {
           </div>
         }
 
-        <fieldset class="context">
-          <legend>{{ 'content.support.context' | t }}</legend>
+        <!-- A18: the technical values that go along are folded away and read as plain text, not as fields -->
+        <details class="context">
+          <summary>
+            <span>{{ 'content.support.context' | t }}</span>
+            <i class="pi pi-chevron-down context__chevron" aria-hidden="true"></i>
+          </summary>
           <div class="field">
             <label for="support-page">{{ 'content.support.page' | t }}</label>
             <input
@@ -204,9 +208,9 @@ export const SUBJECT_PRESETS: Readonly<Record<string, string>> = {
             />
           </div>
           <small>{{ 'content.support.contextHint' | t }}</small>
-        </fieldset>
+        </details>
 
-        <div class="actions">
+        <div class="actions fs-actions--fluid">
           <p-button
             type="submit"
             [label]="'content.support.send' | t"
@@ -255,20 +259,58 @@ export const SUBJECT_PRESETS: Readonly<Record<string, string>> = {
       width: 100%;
     }
     .context {
-      display: grid;
-      gap: 0.75rem;
-      margin: 0;
-      padding: 0.85rem 1rem 1rem;
+      padding: 0 1rem;
       border: 1px solid var(--fs-border);
       border-radius: var(--fs-radius-md);
       background: var(--fs-surface-muted);
     }
-    .context legend {
-      padding: 0 0.35rem;
-      font-weight: 600;
+    .context[open] {
+      display: grid;
+      gap: 0.5rem;
+      padding-bottom: 0.85rem;
     }
-    .context input {
+    .context summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      min-height: 2.75rem;
+      font-weight: 600;
+      list-style: none;
+      cursor: pointer;
+    }
+    .context summary::-webkit-details-marker {
+      display: none;
+    }
+    .context__chevron {
       color: var(--fs-text-muted);
+      transition: transform 150ms ease;
+    }
+    .context[open] .context__chevron {
+      transform: rotate(180deg);
+    }
+    .context .field {
+      gap: 0.1rem;
+    }
+    .context label {
+      font-size: 0.82rem;
+    }
+    /* read-only values as plain muted text */
+    .context input {
+      width: 100%;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      box-shadow: none;
+      color: var(--fs-text-muted);
+      font-size: 0.82rem;
+      text-overflow: ellipsis;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .context__chevron {
+        transition: none;
+      }
     }
     .context small {
       color: var(--fs-text-muted);

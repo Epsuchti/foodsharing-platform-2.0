@@ -123,12 +123,133 @@
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
   padding: 0 clamp(1.1rem, 0.9rem + 1vw, 1.75rem) clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
 }
 
 .hero__actions:empty {
   display: none;
+}
+
+/* visually hidden button label (the accessible name stays), like .phone-icon-only on the map page */
+@mixin icon-only-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/*
+ * Phones (design review B3): the hero took about 390px on every tab. Tighter padding and title, badges closer
+ * together, and all actions in one row: the phone number and "Bearbeiten" become icon buttons (the number stays in
+ * the button's accessible name and on the overview's contact card).
+ */
+@media (max-width: 47.99rem) {
+  .hero {
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero__body {
+    gap: 0.25rem;
+    padding: 0.9rem 1rem 0;
+  }
+
+  .hero__name {
+    font-size: 1.35rem;
+  }
+
+  .hero__teaser {
+    font-size: 0.92rem;
+  }
+
+  .hero__facts {
+    gap: 0.3rem 0.4rem;
+    margin-top: 0.25rem;
+  }
+
+  .hero__actions {
+    flex-wrap: nowrap;
+    padding: 0 1rem 0.9rem;
+  }
+
+  .hero__actions > * {
+    min-width: 0;
+  }
+
+  .hero__actions ::ng-deep .phone__number,
+  .hero__edit ::ng-deep .p-button-label {
+    @include icon-only-label;
+  }
+
+  .hero__edit ::ng-deep .p-button {
+    min-width: 2.75rem;
+    padding-inline: 0.7rem;
+  }
+
+  .tabs {
+    margin-bottom: 1rem;
+  }
+}
+
+/*
+ * Every tab except the overview (design review B3): a one-row title bar with region, name and the actions on the
+ * right; category, address and badges stay on the overview.
+ */
+.hero--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+
+  .hero__body {
+    gap: 0.15rem;
+    padding: 0.75rem 0 0.75rem clamp(1rem, 0.9rem + 1vw, 1.75rem);
+  }
+
+  .hero__name {
+    font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
+  }
+
+  .hero__actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    padding: 0.75rem clamp(1rem, 0.9rem + 1vw, 1.75rem) 0.75rem 0;
+  }
+
+  .hero__actions:empty {
+    display: none;
+  }
+
+  &:has(.hero__actions:empty) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .hero__body {
+      padding-right: clamp(1rem, 0.9rem + 1vw, 1.75rem);
+    }
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .hero--compact {
+    margin-bottom: 0.5rem;
+
+    .hero__actions {
+      gap: 0.4rem;
+    }
+
+    .hero__actions ::ng-deep fs-navigate-button .p-button-label,
+    .hero__actions ::ng-deep fs-navigate-button .trigger__chevron {
+      @include icon-only-label;
+    }
+
+    .hero__actions ::ng-deep fs-navigate-button .p-button {
+      min-width: 2.75rem;
+      padding-inline: 0.7rem;
+    }
+  }
 }
 
 .tabs {

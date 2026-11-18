@@ -210,10 +210,24 @@ interface Params {
     .name { font-weight: 650; color: inherit; }
     .total { margin-top: 0.5rem; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    /*
+     * phones (design review C10): search on its own row, the two status filters side by side; each store is one
+     * compact block: name (with "apply" at the right end), address, then both badges on one line
+     */
     @media (max-width: 40rem) {
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem 0.75rem; }
+      .filters .field:first-child { grid-column: 1 / -1; }
       .table thead { display: none; }
-      .table tr { display: grid; padding: 0.5rem 0; border-bottom: 1px solid var(--fs-border); }
-      .table td { border: 0; padding: 0.2rem 0.75rem; }
+      .table tr {
+        display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.1rem 0.5rem; align-items: center;
+        padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--fs-border);
+      }
+      .table td { border: 0; padding: 0; }
+      .table td:nth-child(-n + 2) { grid-column: 1 / -1; }
+      .table td:first-child { flex-wrap: nowrap; min-height: var(--fs-target-sm); }
+      .table td:first-child .name { min-width: 0; overflow-wrap: anywhere; }
+      .table td:first-child > :not(.name) { flex: none; margin-left: auto; }
+      .table td:nth-child(n + 3) { padding-top: 0.2rem; }
     }
   `,
 })

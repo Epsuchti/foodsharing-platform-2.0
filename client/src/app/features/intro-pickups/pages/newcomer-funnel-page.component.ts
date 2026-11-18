@@ -103,10 +103,10 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
             <tbody>
               @for (gap of f.gaps; track gap.category + gap.withFairteiler) {
                 <tr [attr.data-severity]="gap.severity" data-testid="introPickups.funnel.gap">
-                  <td>{{ 'common.introCategory.' + gap.category | t }}@if (gap.withFairteiler) { · {{ 'introPickups.card.fairteiler' | t }} }</td>
-                  <td class="num">{{ gap.students }}</td>
-                  <td class="num">{{ gap.openSlots }}</td>
-                  <td><span [class]="'tag tag--' + gap.severity">{{ 'introPickups.funnel.gap.' + gap.severity | t }}</span></td>
+                  <td class="table__title">{{ 'common.introCategory.' + gap.category | t }}@if (gap.withFairteiler) { · {{ 'introPickups.card.fairteiler' | t }} }</td>
+                  <td class="num" [attr.data-label]="'introPickups.funnel.students' | t">{{ gap.students }}</td>
+                  <td class="num" [attr.data-label]="'introPickups.funnel.openSlots' | t">{{ gap.openSlots }}</td>
+                  <td [attr.data-label]="'introPickups.funnel.severity' | t"><span [class]="'tag tag--' + gap.severity">{{ 'introPickups.funnel.gap.' + gap.severity | t }}</span></td>
                 </tr>
               } @empty {
                 <tr><td colspan="4" class="muted">{{ 'introPickups.funnel.noGaps' | t }}</td></tr>

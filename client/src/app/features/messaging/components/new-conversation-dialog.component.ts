@@ -88,6 +88,16 @@ import { UserPickerComponent } from '../../../shared/user-picker/user-picker.com
       justify-content: flex-end;
       gap: 0.5rem;
     }
+    /* phones (design review B18): full-width buttons, the primary one on top, so "start" never wraps */
+    @media (max-width: 30rem) {
+      .actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+      .actions ::ng-deep .p-button {
+        width: 100%;
+      }
+    }
   `,
 })
 export class NewConversationDialogComponent {

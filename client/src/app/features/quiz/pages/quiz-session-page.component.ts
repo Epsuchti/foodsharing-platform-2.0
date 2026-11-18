@@ -47,6 +47,8 @@ import { quizKindOf } from '../quiz-kind';
         <ng-template [fsData]="question">
 <div class="stack">
           @if (question.data(); as q) {
+          <!-- A13: progress and countdown stay in view on long questions -->
+          <div class="meter">
           <div class="top">
             <span class="progress-label" data-testid="quiz.session.progress">
               {{ 'quiz.session.progress' | t: { index: q.index + 1, total: q.total } }}
@@ -76,6 +78,7 @@ import { quizKindOf } from '../quiz-kind';
           >
             <span [style.width.%]="((q.index + (result() ? 1 : 0)) / q.total) * 100"></span>
           </div>
+          </div>
 
           <section class="fs-card question" data-testid="quiz.session.question" [attr.data-question]="q.question.id">
             <h1 class="question__text">{{ q.question.text }}</h1>
@@ -104,7 +107,7 @@ import { quizKindOf } from '../quiz-kind';
                   </li>
                 }
               </ul>
-              <div class="actions">
+              <div class="actions fs-actions--fluid">
                 <p-button
                   [label]="'quiz.session.submit' | t"
                   icon="pi pi-check"
@@ -140,7 +143,7 @@ import { quizKindOf } from '../quiz-kind';
                   <i class="pi pi-external-link" aria-hidden="true"></i>{{ 'quiz.session.wiki' | t }}
                 </a>
               }
-              <div class="actions">
+              <div class="actions fs-actions--fluid">
                 @if (r.finished) {
                   <p-button
                     [label]="'quiz.session.toResults' | t"
@@ -169,6 +172,16 @@ import { quizKindOf } from '../quiz-kind';
   `,
   styleUrl: '../quiz.scss',
   styles: `
+    .meter {
+      position: sticky;
+      z-index: 2;
+      top: var(--fs-header-h);
+      display: grid;
+      gap: 0.5rem;
+      margin-block: -0.5rem;
+      padding-block: 0.5rem;
+      background: var(--fs-bg);
+    }
     .top {
       display: flex;
       flex-wrap: wrap;
@@ -203,13 +216,15 @@ import { quizKindOf } from '../quiz-kind';
       color: var(--fs-danger);
     }
     .bar {
-      height: 0.4rem;
+      height: 0.5rem;
       overflow: hidden;
       border-radius: 999px;
-      background: var(--fs-surface-muted);
+      background: var(--fs-border);
     }
     .bar span {
       display: block;
+      /* a visible sliver on the first question, so the track reads as a progress bar */
+      min-width: 0.5rem;
       height: 100%;
       border-radius: inherit;
       background: var(--fs-primary);

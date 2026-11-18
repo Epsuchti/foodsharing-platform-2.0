@@ -460,11 +460,14 @@ interface SlotTarget {
   `,
   styleUrl: '../../stores/stores.scss',
   styles: `
-    .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+    /* the host grid gap separates the toolbar from the list; no extra margin (design review B17) */
+    .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; }
     .chips, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
-    /* phones: the actions start left under the range chips, the primary one first (M7 R2 action placement) */
+    /* the rule summary renders nothing while the rules are off: no empty grid row with a second gap */
+    fs-rule-summary-card:empty { display: none; }
+    /* phones: the actions start left under the range chips, the primary one first (M7 R2 action placement, B17) */
     @media (max-width: 47.99rem) {
-      .actions { width: 100%; }
+      .actions { width: 100%; justify-content: flex-start; }
       .actions p-button[data-testid='stores.pickups.add'] { order: -1; }
     }
     .chip {
@@ -523,9 +526,29 @@ interface SlotTarget {
       .day__chatLabel { display: none; }
       .pickup__desc { white-space: normal; }
     }
-    /* phones: the summary takes its own line under the time, the pencil stays on the first line */
+    /*
+     * phones: the summary and the description take their own lines under the time, the pencil stays at the right
+     * end of the first line in every variant (design review B17)
+     */
     @media (max-width: 47.99rem) {
-      .pickup__head fs-pickup-summary { flex-basis: 100%; order: 1; }
+      .pickup__head fs-pickup-summary,
+      .pickup__head .pickup__desc { flex-basis: 100%; order: 1; }
+      .pickup__head fs-pickup-summary + p-button[data-testid='stores.pickups.edit'] { margin-left: auto; }
+    }
+    /*
+     * phones (design review B17): the date tile already shows the day, so the numeric heading is only read out
+     * (it stays the section's accessible name and focus target); the day chat button moves to the card's top-right
+     * corner instead of taking a row of its own
+     */
+    @media (max-width: 47.99rem) {
+      .day { position: relative; }
+      .day__head { display: contents; }
+      .day__title {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .day__chat { position: absolute; top: 0.3rem; right: 0.4rem; }
+      .day__head + .pickup { border-top: 0; }
+      .day:has(.day__chat) .day__head + .pickup .pickup__head { padding-right: 2.9rem; }
     }
     .pickup__time { font-weight: 700; font-variant-numeric: tabular-nums; }
     .pickup__desc { min-width: 0; max-width: 100%; overflow: hidden; color: var(--fs-text-muted); font-size: 0.85rem; text-overflow: ellipsis; white-space: nowrap; }

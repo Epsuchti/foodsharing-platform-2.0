@@ -48,7 +48,17 @@ const newQuestion = (): SurveyQuestion => ({ type: SurveyQuestionType.Text, labe
           <h2>{{ 'surveys.editor.questions' | t }}</h2>
           @for (q of questions(); track $index; let i = $index, first = $first, last = $last) {
             <fieldset class="question" data-testid="surveys.editor.question" [attr.data-type]="q.type">
-              <legend>{{ 'surveys.editor.questionN' | t: { n: i + 1 } }}</legend>
+              <legend class="fs-visually-hidden">{{ 'surveys.editor.questionN' | t: { n: i + 1 } }}</legend>
+              <!-- move / delete sit on the title line instead of a row of their own (design review D3); the legend
+                   above names the group for screen readers, this title is its visible copy -->
+              <div class="question__head">
+                <span class="question__title" aria-hidden="true">{{ 'surveys.editor.questionN' | t: { n: i + 1 } }}</span>
+                <div class="question__actions">
+                <p-button icon="pi pi-arrow-up" [text]="true" [disabled]="first" [ariaLabel]="'surveys.editor.up' | t" (onClick)="move(i, -1)" />
+                <p-button icon="pi pi-arrow-down" [text]="true" [disabled]="last" [ariaLabel]="'surveys.editor.down' | t" (onClick)="move(i, 1)" />
+                <p-button icon="pi pi-trash" severity="danger" [text]="true" [ariaLabel]="'surveys.editor.removeQuestion' | t" (onClick)="removeQuestion(i)" data-testid="surveys.editor.removeQuestion" />
+                </div>
+              </div>
               <div class="row">
                 <span class="field field--type">
                   <label [for]="'q-type-' + i">{{ 'surveys.editor.type' | t }}</label>
@@ -79,11 +89,6 @@ const newQuestion = (): SurveyQuestion => ({ type: SurveyQuestionType.Text, labe
                   <p-button icon="pi pi-plus" size="small" [text]="true" [label]="'surveys.editor.addOption' | t" (onClick)="addOption(i)" data-testid="surveys.editor.addOption" />
                 </div>
               }
-              <div class="question__actions">
-                <p-button icon="pi pi-arrow-up" [text]="true" [disabled]="first" [ariaLabel]="'surveys.editor.up' | t" (onClick)="move(i, -1)" />
-                <p-button icon="pi pi-arrow-down" [text]="true" [disabled]="last" [ariaLabel]="'surveys.editor.down' | t" (onClick)="move(i, 1)" />
-                <p-button icon="pi pi-trash" severity="danger" [text]="true" [ariaLabel]="'surveys.editor.removeQuestion' | t" (onClick)="removeQuestion(i)" data-testid="surveys.editor.removeQuestion" />
-              </div>
             </fieldset>
           }
           <p-button icon="pi pi-plus" [outlined]="true" [label]="'surveys.editor.addQuestion' | t" (onClick)="questions.set([...questions(), newQuestion()])" data-testid="surveys.editor.addQuestion" />
@@ -123,16 +128,24 @@ const newQuestion = (): SurveyQuestion => ({ type: SurveyQuestionType.Text, labe
     .form input, .form textarea { width: 100%; min-width: 0; box-sizing: border-box; }
     label, legend { font-weight: 600; }
     h2 { margin: 0.75rem 0 0; font-size: 1.05rem; }
-    .question { display: grid; gap: 0.5rem; margin: 0; padding: 0.75rem; border: 1px solid var(--fs-border); border-radius: 0.5rem; min-width: 0; }
+    /*
+     * One column that may shrink below its content: a choice question's option rows made the implicit auto column
+     * wider than the fieldset on a phone, so the question field ran out of its box (design review D3).
+     */
+    .question { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; margin: 0; padding: 0.5rem 0.75rem 0.75rem; border: 1px solid var(--fs-border); border-radius: 0.5rem; min-width: 0; }
+    .question__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-width: 0; }
+    .question__title { font-weight: 600; }
     .row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
     .field { display: grid; gap: 0.25rem; flex: 1 1 14rem; min-width: 0; }
-    .field--type { flex: 0 1 13rem; }
+    .field--type { flex: 1 1 13rem; }
+    .field p-select { width: 100%; }
     .check { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; }
     .check label { font-weight: 400; }
-    .options { display: grid; gap: 0.3rem; padding-left: 0.75rem; }
-    .option { display: flex; align-items: center; gap: 0.25rem; }
-    .option input { flex: 1; width: auto; }
-    .question__actions { display: flex; justify-content: flex-end; gap: 0.25rem; }
+    .options { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.3rem; padding-left: 0.75rem; }
+    .options > p-button { justify-self: start; }
+    .option { display: flex; align-items: center; gap: 0.25rem; min-width: 0; }
+    .option input { flex: 1 1 0; width: auto; min-width: 0; }
+    .question__actions { display: flex; justify-content: flex-end; gap: 0; }
     .coauthors { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
     .coauthors li { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
     .hint { color: var(--fs-text-muted); }

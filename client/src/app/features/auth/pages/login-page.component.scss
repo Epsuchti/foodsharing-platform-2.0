@@ -162,6 +162,30 @@
   }
 }
 
+// phones and tablets: a short greeting so the form starts high on the screen (design review A16)
+@media (max-width: 59.99rem) {
+  .login {
+    gap: 1rem;
+  }
+
+  .welcome {
+    gap: 0.35rem;
+  }
+
+  .welcome__art {
+    display: none;
+  }
+
+  .welcome__title {
+    font-size: 1.5rem;
+  }
+
+  .welcome__lead {
+    margin: 0 auto;
+    font-size: 0.95rem;
+  }
+}
+
 // --- login card ----------------------------------------------------------------------------------
 .card {
   display: grid;
@@ -314,5 +338,13 @@
   .pi {
     margin-top: 0.2rem;
     color: var(--fs-primary);
+  }
+}
+
+// phones and tablets: "Neu hier?" as a plain muted line, no box
+@media (max-width: 59.99rem) {
+  .card__note {
+    padding: 0;
+    background: none;
   }
 }

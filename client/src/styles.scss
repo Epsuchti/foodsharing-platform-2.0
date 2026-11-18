@@ -110,6 +110,10 @@
   --fs-shadow-lg: 0 18px 44px rgb(26 42 32 / 0.12);
 
   --fs-page-max: 76rem;
+  /* page widths (design review A17): text pages (legal, FAQ, learn), form and step pages, wide grids and tables */
+  --fs-measure-text: 48rem;
+  --fs-measure-form: 44rem;
+  --fs-measure-wide: 72rem;
   --fs-gutter: clamp(1rem, 0.6rem + 2vw, 2rem);
   --fs-header-h: 4rem;
   --fs-tabbar-h: 4.25rem;
@@ -436,6 +440,19 @@
     font-size: 0.9em;
   }
 
+  /* native controls in the brand green instead of browser blue (design review B10, D12); 20px like p-checkbox */
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'],
+  progress {
+    accent-color: var(--fs-primary);
+  }
+  input[type='checkbox']:not([class*='p-']),
+  input[type='radio']:not([class*='p-']) {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -700,6 +717,83 @@
 
   .p-button:not(.p-button-text):not(.p-button-link):not(.p-button-outlined):not(:disabled):hover {
     box-shadow: 0 4px 12px color-mix(in srgb, var(--p-primary-color) 28%, transparent);
+  }
+
+  /*
+   * A disabled filled button is neutral grey, not the brand colour at 60% opacity: on the pale page that read as a
+   * second, lighter button style and white on pale green was hard to read (design review D17). A loading button keeps
+   * its colour (rule above); outlined, text and link buttons keep the Optimus look.
+   */
+  .p-button:is(:disabled, .p-disabled):not(.p-button-loading):not(.p-button-text):not(.p-button-link):not(
+      .p-button-outlined
+    ) {
+    border-color: var(--fs-border-strong);
+    background: var(--fs-surface-muted);
+    color: var(--fs-text-muted);
+    opacity: 1;
+  }
+
+  /*
+   * Main action row of a form or step page: on phones every button takes the full width, one per row, in the order
+   * of the markup (design review A11: 180px buttons on the left on one page, on the right on the next).
+   * `<div class="actions fs-actions--fluid">…</div>`
+   */
+  @media (max-width: 29.99rem) {
+    .fs-actions--fluid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: stretch;
+      gap: 0.5rem;
+    }
+    .fs-actions--fluid > p-button,
+    .fs-actions--fluid > .fs-btn,
+    .fs-actions--fluid > p-button > .p-button {
+      width: 100%;
+    }
+  }
+
+  /*
+   * Toolbar of a list page (search, filters, the page's action): a wrapping row on wide screens, one field per row at
+   * the full width on phones (design review D7: fields kept their desktop widths and wrapped unevenly).
+   * `.fs-toolbar--pair` puts two short fields side by side on phones; `.fs-toolbar__action` stretches a button.
+   */
+  .fs-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+  }
+  @media (max-width: 39.99rem) {
+    .fs-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fs-toolbar--pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .fs-toolbar > *,
+    .fs-toolbar :is(input, textarea, .p-inputtext, .p-select, .p-multiselect, p-select, p-multiselect, .p-datepicker) {
+      width: 100%;
+      min-width: 0;
+    }
+    .fs-toolbar > .fs-toolbar__action > .p-button {
+      width: 100%;
+    }
+  }
+
+  /* phones: dialog footer buttons one per row at the full width ("Unterhaltung starten" wrapped next to "Abbrechen",
+     design review B18), in the order of the markup, so the main action is the lowest, next to the thumb */
+  @media (max-width: 29.99rem) {
+    .p-dialog-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .p-dialog-footer > p-button,
+    .p-dialog-footer > p-button > .p-button,
+    .p-dialog-footer > .p-button,
+    .p-dialog-footer > .fs-btn {
+      width: 100%;
+    }
   }
 
   .p-popover {

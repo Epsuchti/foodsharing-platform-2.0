@@ -26,6 +26,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { DATE_INPUT_IMPORTS } from '../../../shared/date-input';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { UserChipComponent } from '../../../shared/user-chip/user-chip.component';
 import { UserPickerComponent } from '../../../shared/user-picker/user-picker.component';
 import { AutomationAuditLoaders } from '../automation.resource';
@@ -50,8 +51,9 @@ const MAX_LINES = 5;
       <h2>{{ 'automation.region.section.overview' | t }}</h2>
       <fs-data-state [state]="overview" skeleton="table" [emptyTitle]="'automation.region.noStores' | t" testId="automation.region.overview" data-testid="automation.region.overview" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="overview" let-o>
+          <!-- phones: every store becomes a block of label/value pairs, no column is cut off (design review C4) -->
           <div class="table-wrap" tabindex="0">
-            <table>
+            <table class="table">
               <thead>
                 <tr>
                   <th>{{ 'automation.region.store' | t }}</th>
@@ -65,8 +67,8 @@ const MAX_LINES = 5;
               <tbody>
                 @for (row of o.stores; track row.store.id) {
                   <tr data-testid="automation.region.overviewRow" [attr.data-store]="row.store.name">
-                    <td><a [routerLink]="['/stores', row.store.id, 'automation']">{{ row.store.name }}</a></td>
-                    <td>
+                    <td class="store"><a [routerLink]="['/stores', row.store.id, 'automation']">{{ row.store.name }}</a></td>
+                    <td [attr.data-label]="'automation.section.policy' | t">
                       <span
                         class="pill"
                         [class.pill--on]="row.pickupPolicyEnabled"
@@ -76,10 +78,10 @@ const MAX_LINES = 5;
                         >{{ (row.pickupPolicyEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</span
                       >
                     </td>
-                    <td>{{ (row.requestPolicyEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</td>
-                    <td>{{ row.advertCount }}</td>
-                    <td>{{ (row.signoutAlertEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</td>
-                    <td data-testid="automation.region.overviewChannels" [attr.data-count]="row.telegramChatCount">
+                    <td [attr.data-label]="'automation.section.auto-accept' | t">{{ (row.requestPolicyEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</td>
+                    <td [attr.data-label]="'automation.section.adverts' | t">{{ row.advertCount }}</td>
+                    <td [attr.data-label]="'automation.section.signout-alerts' | t">{{ (row.signoutAlertEnabled ? 'automation.common.on' : 'automation.common.off') | t }}</td>
+                    <td [attr.data-label]="'automation.region.channels' | t" data-testid="automation.region.overviewChannels" [attr.data-count]="row.telegramChatCount">
                       @if (row.telegramChatCount) {
                         <i class="pi pi-send" aria-hidden="true"></i> {{ row.telegramChatCount }}
                       } @else {
@@ -96,6 +98,25 @@ const MAX_LINES = 5;
     </section>
   `,
   styleUrl: '../automation.scss',
+  styles: `
+    @use '../../../shared/styles/table-stack' as table;
+    .table {
+      @include table.stack;
+    }
+    @media (max-width: 39.99rem) {
+      .table > tbody > tr {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 1rem;
+      }
+      .table > tbody > tr > td.store {
+        grid-column: 1 / -1;
+        font-weight: 650;
+      }
+      .table-wrap {
+        overflow-x: visible;
+      }
+    }
+  `,
 })
 export class RegionOverviewSection {
   private readonly ctx = inject(RegionAutomationContext);
@@ -148,9 +169,9 @@ export class RegionAuditsSection {
         <ng-template [fsData]="list" let-rows>
           <ul class="list">
             @for (row of rows; track row.id) {
-              <li class="row" data-testid="automation.exemptions.row" [attr.data-user]="row.user.displayName">
+              <li class="row exemption" data-testid="automation.exemptions.row" [attr.data-user]="row.user.displayName">
                 <fs-user-chip [name]="row.user.displayName" [avatarUrl]="row.user.avatarUrl" [userId]="row.user.id" />
-                <span class="grow muted">{{ row.reason }}</span>
+                <span class="grow muted exemption__reason">{{ row.reason }}</span>
                 <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" [ariaLabel]="'automation.common.remove' | t" [loading]="remove.busy()" (onClick)="remove.run(row)" data-testid="automation.exemptions.remove" />
               </li>
             }
@@ -160,7 +181,19 @@ export class RegionAuditsSection {
     </section>
   `,
   styleUrl: '../automation.scss',
-  styles: `.add { align-items: flex-start; }`,
+  styles: `
+    .add { align-items: flex-start; }
+    .add fs-user-picker { flex: 1 1 16rem; min-width: 0; }
+    /* phones: person search, reason and button each across the card; in the list the reason goes under the name and
+       the delete button stays at the right (design review C9) */
+    @media (max-width: 39.99rem) {
+      .add > * { flex: 1 1 100%; }
+      .add > p-button:last-child { flex: 0 0 auto; margin-left: auto; }
+      .exemption { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 0.5rem; }
+      .exemption__reason { grid-column: 1; grid-row: 2; min-width: 0; }
+      .exemption > p-button { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+    }
+  `,
 })
 export class RegionExemptionsSection {
   protected readonly ctx = inject(RegionAutomationContext);
@@ -231,7 +264,7 @@ export class RegionExemptionsSection {
               </li>
             }
           </ul>
-          <div class="actions">
+          <div class="actions actions--save">
             <p-button [label]="'common.save' | t" icon="pi pi-save" [disabled]="!dirty()" [loading]="save.busy()" (onClick)="save.run()" data-testid="automation.cleaningFsps.save" />
           </div>
         </ng-template>
@@ -343,12 +376,12 @@ export class RegionGroupingSection {
 /** Daily anonymous counts (AU9): range, key multiselect, line chart. */
 @Component({
   selector: 'fs-region-metrics',
-  imports: [...DATA_STATE_IMPORTS, ...DATE_INPUT_IMPORTS, DailyLineChartComponent, FormsModule, MetricTotalsComponent, SelectButton, TPipe],
+  imports: [...DATA_STATE_IMPORTS, ...DATE_INPUT_IMPORTS, DailyLineChartComponent, FormsModule, MetricTotalsComponent, ScrollHintDirective, SelectButton, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="card fs-card">
       <h2>{{ 'automation.region.section.metrics' | t }}</h2>
-      <div class="row">
+      <div class="range">
         <label class="field">
           <span class="muted">{{ 'automation.common.from' | t }}</span>
           <fs-date-input [required]="true" [ngModel]="from()" (ngModelChange)="$event && from.set($event)" testId="automation.metrics.from" />
@@ -358,20 +391,23 @@ export class RegionGroupingSection {
           <fs-date-input [required]="true" [ngModel]="to()" (ngModelChange)="$event && to.set($event)" testId="automation.metrics.to" />
         </label>
       </div>
-      <p-selectbutton
-        [options]="groupOptions()"
-        optionLabel="label"
-        optionValue="id"
-        [allowEmpty]="false"
-        [ngModel]="group()"
-        (ngModelChange)="$event && group.set($event)"
-        [ariaLabel]="'automation.metrics.groupLabel' | t"
-        data-testid="automation.metrics.group"
-      >
-        <ng-template #item let-option>
-          <span [attr.data-testid]="'automation.metrics.group.' + option.id">{{ option.label }}</span>
-        </ng-template>
-      </p-selectbutton>
+      <!-- one swipeable row on phones instead of three ragged rows (design review C9) -->
+      <div class="groups" fsScrollHint>
+        <p-selectbutton
+          [options]="groupOptions()"
+          optionLabel="label"
+          optionValue="id"
+          [allowEmpty]="false"
+          [ngModel]="group()"
+          (ngModelChange)="$event && group.set($event)"
+          [ariaLabel]="'automation.metrics.groupLabel' | t"
+          data-testid="automation.metrics.group"
+        >
+          <ng-template #item let-option>
+            <span [attr.data-testid]="'automation.metrics.group.' + option.id">{{ option.label }}</span>
+          </ng-template>
+        </p-selectbutton>
+      </div>
       <fs-data-state [state]="metrics" skeleton="card" [emptyTitle]="'automation.metrics.empty' | t" testId="automation.metrics.state" data-testid="automation.metrics.state" [askWho]="'automation.region.askWho' | t">
         <ng-template [fsData]="metrics">
           @if (totals().length) {
@@ -387,6 +423,14 @@ export class RegionGroupingSection {
   styleUrl: '../automation.scss',
   styles: `
     p-selectbutton { display: flex; flex-wrap: wrap; justify-self: start; max-width: 100%; }
+    .groups { min-width: 0; }
+    .range { display: grid; grid-template-columns: repeat(2, minmax(0, 12rem)); gap: 0.6rem; }
+    @media (max-width: 39.99rem) {
+      .range { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .groups { overflow-x: auto; scrollbar-width: none; }
+      .groups p-selectbutton { flex-wrap: nowrap; width: max-content; max-width: none; }
+      .groups p-selectbutton ::ng-deep .p-togglebutton { flex: none; white-space: nowrap; }
+    }
   `,
 })
 export class RegionMetricsSection {

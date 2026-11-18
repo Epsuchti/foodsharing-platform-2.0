@@ -22,7 +22,7 @@ import { JourneyLoader } from '../onboarding.resource';
   host: { '[class.hidden]': '!visible()' },
   template: `
     @if (visible()) {
-      <div class="bar" data-testid="onboarding.bar">
+      <div class="bar" [class.bar--slim]="slim()" data-testid="onboarding.bar">
         <fs-data-state
           [state]="journey"
           skeleton="list"
@@ -35,7 +35,7 @@ import { JourneyLoader } from '../onboarding.resource';
               <fs-journey-stepper
                 mode="compact"
                 [journey]="j"
-                [hideAction]="onJourneyPage()"
+                [hideAction]="hideActionFor(j)"
                 testId="onboarding.bar.stepper"
                 [attr.data-current]="j.currentStep"
               />
@@ -63,6 +63,11 @@ import { JourneyLoader } from '../onboarding.resource';
       .bar {
         padding: 0.3rem 0.75rem;
       }
+      /* without its action the bar is a single slim progress line */
+      .bar--slim {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.82rem;
+      }
     }
   `,
 })
@@ -83,6 +88,17 @@ export class JourneyBarComponent {
 
   /** On `/onboarding` the page's own call to action is the next step: the bar shows progress only. */
   protected readonly onJourneyPage = computed(() => isJourneyPage(this.url()));
+
+  /** The bar's action is hidden on the journey page, on its step pages and on the page the action leads to. */
+  protected hideActionFor(journey: Journey): boolean {
+    return hidesJourneyAction(this.url(), currentRoute(journey));
+  }
+
+  /** Bar without its action (phones: one slim line). */
+  protected readonly slim = computed(() => {
+    const journey = this.journey.data();
+    return !!journey && this.hideActionFor(journey);
+  });
 
   protected readonly journey = loadResource<Journey, true | undefined>({
     params: () => (this.visible() ? true : undefined),
@@ -114,7 +130,33 @@ export class JourneyBarComponent {
  * straight back from, next to the page's own primary action (design review M7 R1).
  */
 export function journeyBarAllowedOn(url: string): boolean {
-  return !/^\/consent(?:[/?#]|$)/.test(url);
+  // a quiz attempt (`/quizzes/:kind/session`): the bar's action would invite leaving the running attempt (design
+  // review A8)
+  return !/^\/consent(?:[/?#]|$)/.test(url) && !/^\/quizzes\/[^/?#]+\/session(?:[/?#]|$)/.test(url);
+}
+
+/** The route of the current step's next action, if any. */
+function currentRoute(journey: Journey): string | undefined {
+  const steps = [...(journey.steps ?? []), ...(journey.extraSteps ?? [])];
+  const current = steps.find((step) => step.key === journey.currentStep);
+  return current?.nextAction?.route;
+}
+
+/** Path of a URL without query and fragment, without a trailing slash. */
+function pathOf(url: string): string {
+  return url.replace(/[?#].*$/, '').replace(/(.)\/$/, '$1');
+}
+
+/**
+ * The bar drops its action on the journey page, on its step pages (`/onboarding/…`) and on the page the action leads
+ * to: the user is already there, and the page's own primary action is the next step (design review A8).
+ */
+export function hidesJourneyAction(url: string, actionRoute: string | undefined): boolean {
+  return (
+    isJourneyPage(url) ||
+    /^\/onboarding\/[^?#]/.test(url) ||
+    (!!actionRoute && pathOf(url) === pathOf(actionRoute))
+  );
 }
 
 /**

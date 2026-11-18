@@ -143,10 +143,26 @@ export interface WallPost {
     .muted { color: var(--fs-text-muted); font-size: 0.85rem; }
     .empty { margin: 0; }
     .posts { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
-    .post { position: relative; display: grid; gap: 0.4rem; padding: 0.9rem 3rem 0.9rem 1rem; min-width: 0; }
+    .post { position: relative; display: grid; gap: 0.4rem; padding: 0.9rem 1rem; min-width: 0; }
+    /* room for the delete button only where there is one (most viewers have none) */
+    .post:has(> .post__delete) { padding-inline-end: 3rem; }
     .post__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 0.75rem; }
     .post__body { overflow-wrap: anywhere; }
-    .post__delete { position: absolute; top: 0.5rem; right: 0.5rem; }
+    .post__delete { position: absolute; top: 0.5rem; inset-inline-end: 0.5rem; }
+    /* a wall inside a card (food-share point, report, group): no cards in the card, posts separated by lines
+       (design review C7: three nested frames left about 280px of text width on a phone) */
+    :host-context(.fs-card) .composer,
+    :host-context(.fs-card) .post {
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+    }
+    :host-context(.fs-card) .composer { padding: 0; }
+    :host-context(.fs-card) .posts { gap: 0; }
+    :host-context(.fs-card) .post { padding: 0.75rem 0; border-top: 1px solid var(--fs-border); }
+    :host-context(.fs-card) .post:has(> .post__delete) { padding-inline-end: 3rem; }
+    :host-context(.fs-card) .post__delete { top: 0.35rem; inset-inline-end: 0; }
   `,
 })
 export class WallComponent {

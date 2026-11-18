@@ -25,7 +25,12 @@ import { CHAIN_STATUSES, mayAdministrateChains } from '../store-chains.util';
   imports: [...DATA_STATE_IMPORTS, Button, Dialog, FormsModule, InputText, MultiSelect, PageHeaderComponent, RouterLink, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fs-page-header [title]="'storeChains.list.title' | t" [subtitle]="'storeChains.list.subtitle' | t" icon="pi pi-link" />
+    <!-- the page action sits in the header, like on every other page (design review D7) -->
+    <fs-page-header [title]="'storeChains.list.title' | t" [subtitle]="'storeChains.list.subtitle' | t" icon="pi pi-link">
+      @if (mayAdmin()) {
+        <p-button [label]="'storeChains.list.create' | t" icon="pi pi-plus" (onClick)="createOpen.set(true)" data-testid="storeChains.list.create" />
+      }
+    </fs-page-header>
     <div class="toolbar">
       <div class="field">
         <label for="chains-search">{{ 'storeChains.list.search' | t }}</label>
@@ -46,9 +51,6 @@ import { CHAIN_STATUSES, mayAdministrateChains } from '../store-chains.util';
           data-testid="storeChains.list.statusFilter"
         />
       </div>
-      @if (mayAdmin()) {
-        <p-button class="toolbar__create" [label]="'storeChains.list.create' | t" icon="pi pi-plus" (onClick)="createOpen.set(true)" data-testid="storeChains.list.create" />
-      }
     </div>
 
     <fs-data-state [state]="chains" skeleton="table" [emptyTitle]="'storeChains.list.empty' | t" testId="storeChains.list.state" data-testid="storeChains.list.state">
@@ -113,13 +115,17 @@ import { CHAIN_STATUSES, mayAdministrateChains } from '../store-chains.util';
     @use '../../../shared/styles/table-stack' as table;
 
     :host { display: block; width: min(100%, 64rem); margin: 0 auto; }
-    .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; margin-bottom: 1rem; }
-    .toolbar .field { min-width: min(100%, 14rem); }
-    .toolbar__create { margin-left: auto; }
+    /* search and status share the row; on phones both are full width, one per line (design review D7) */
+    .toolbar { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: end; gap: 0.75rem; margin-bottom: 1rem; }
+    .toolbar input { width: 100%; }
+    @media (max-width: 39.99rem) {
+      .toolbar { grid-template-columns: minmax(0, 1fr); }
+    }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .wrap { padding: 0.5rem 1rem; overflow-x: auto; }
     .table { width: 100%; border-collapse: collapse; @include table.stack; }
     .table th, .table td { padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--fs-border); text-align: left; }
+    .table td:first-child a { font-weight: 650; }
     .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .badge { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--fs-surface-muted); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
     .form { display: grid; gap: 0.85rem; }

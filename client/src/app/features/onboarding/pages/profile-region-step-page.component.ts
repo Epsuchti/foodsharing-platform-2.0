@@ -85,7 +85,7 @@ import { RegionCardComponent } from '../components/region-card.component';
             }
           </section>
 
-          <div class="actions">
+          <div class="actions fs-actions--fluid">
             <p-button type="submit" [label]="'onboarding.profile.save' | t" icon="pi pi-check" [loading]="save.busy()" [disabled]="form.invalid || !region()" data-testid="onboarding.profile.save" />
           </div>
         </form>

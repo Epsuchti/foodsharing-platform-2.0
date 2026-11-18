@@ -106,7 +106,7 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
             </li>
           }
         </ol>
-        <div class="actions">
+        <div class="actions fs-actions--fluid">
           <p-button
             [label]="'legal.consent.submit' | t"
             icon="pi pi-check"

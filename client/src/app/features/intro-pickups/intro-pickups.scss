@@ -1,4 +1,6 @@
 // Shared layout of the intro pickup pages (T21).
+@use '../../shared/styles/table-stack' as table;
+
 :host {
   display: grid;
   gap: 1.25rem;
@@ -169,6 +171,47 @@
   gap: 0.35rem;
 }
 
+// nothing projected (visitors), no meta lines (online slots), no tags: no empty row with its grid gap
+.einab__foot:empty,
+.einab__meta:empty,
+.tags:empty {
+  display: none;
+}
+
+// phones: a compact card; the free-places tag sits beside the mode, the date reads as the main fact
+@media (max-width: 30rem) {
+  .einab {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem 0.75rem;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .einab > * {
+    grid-column: 1 / -1;
+  }
+
+  .einab > .einab__head {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .einab > .tags {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    justify-content: flex-end;
+  }
+
+  .einab__title strong + .muted {
+    color: var(--fs-text);
+    font-weight: 650;
+  }
+
+  .einab__meta {
+    font-size: 0.85rem;
+  }
+}
+
 .tag {
   display: inline-flex;
   align-items: center;
@@ -262,6 +305,30 @@
 .table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+// phones: every row a block of "column / value" pairs (C4), so the booked count, status and actions are not cut off
+.table {
+  @include table.stack;
+}
+
+@media (max-width: 39.99rem) {
+  .table > tbody > tr {
+    padding-inline: 0.9rem;
+  }
+
+  .table > tbody > tr > td.num {
+    text-align: start;
+  }
+
+  .table > tbody > tr > .table__title {
+    font-weight: 650;
+  }
+
+  .table > tbody > tr > td.row-actions {
+    display: flex;
+    justify-content: flex-start;
+  }
 }
 
 .row-actions {

@@ -129,7 +129,7 @@ export function unitLink(unit: RegionRef): string[] {
         <p class="muted" data-testid="admin.admins.count">{{ 'adminSettings.admins.count' | t: { count: result.page.totalItems } }}</p>
         <ul class="list fs-card">
           @for (entry of result.items; track entry.user.id) {
-            <li class="row" data-testid="admin.admins.row" [attr.data-user-id]="entry.user.id" [attr.data-active]="entry.active">
+            <li class="row row--inline" data-testid="admin.admins.row" [attr.data-user-id]="entry.user.id" [attr.data-active]="entry.active">
               <div class="admin">
                 <div class="admin__head">
                   <fs-user-chip

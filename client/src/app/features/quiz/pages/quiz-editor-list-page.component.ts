@@ -68,10 +68,34 @@ import { QUIZ_ICONS, quizSlug } from '../quiz-kind';
     }
     .item__name {
       font-weight: 650;
+      overflow-wrap: anywhere;
+      hyphens: auto;
     }
     .item__meta {
       color: var(--fs-text-muted);
       font-size: 0.85rem;
+    }
+    /* phones: "edit / read only" goes under the name, so a long name gets the whole row (design review D4) */
+    @media (max-width: 30rem) {
+      .item {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        row-gap: 0.1rem;
+      }
+      .item > .pi:first-child {
+        grid-row: 1 / span 2;
+      }
+      .item__name {
+        grid-column: 2;
+      }
+      .item__meta {
+        grid-column: 2;
+        grid-row: 2;
+        font-size: 0.8rem;
+      }
+      .item > .pi-angle-right {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+      }
     }
   `,
 })

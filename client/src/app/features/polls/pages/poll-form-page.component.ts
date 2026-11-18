@@ -99,6 +99,14 @@ import { datesValid, optionErrors } from '../polls.resource';
     .option { display: flex; align-items: center; gap: 0.25rem; }
     .option input { flex: 1; width: auto; }
     .option label { flex: none; }
+    /* phones: the option text across the row, move/remove buttons right-aligned below it, so long options are not cut
+       while editing (design review C16) */
+    @media (max-width: 29.99rem) {
+      .option { flex-wrap: wrap; row-gap: 0; }
+      .option input { flex: 1 1 100%; }
+      .option p-button:first-of-type { margin-left: auto; }
+      .option + .option { margin-top: 0.5rem; }
+    }
     .row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
     .field { display: grid; gap: 0.25rem; flex: 1 1 12rem; min-width: 0; }
     .switch { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; }
@@ -106,6 +114,10 @@ import { datesValid, optionErrors } from '../polls.resource';
     .hint { color: var(--fs-text-muted); }
     .error { color: var(--fs-danger); }
     .actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+    /* phones: the single submit button across the form, not a small button at the far end (design review C18) */
+    @media (max-width: 29.99rem) {
+      .actions p-button, .actions p-button ::ng-deep .p-button { width: 100%; }
+    }
   `,
 })
 export class PollFormPageComponent {

@@ -11,7 +11,7 @@ import { ANIMATION_FRAMES, AnimatedCounterComponent, easeOutCubic } from './anim
 import { BlobSource, ImageCropComponent, clampOffset, cropRect, encodeJpeg } from './image-crop/image-crop.component';
 import { MapMarker, MapViewComponent } from './map-view/map-view.component';
 import { MarkerFilterBarComponent } from './marker-filter-bar/marker-filter-bar.component';
-import { updateScrollHint } from './scroll-hint/scroll-hint.directive';
+import { scrollToReveal, updateScrollHint } from './scroll-hint/scroll-hint.directive';
 import { UploadDropzoneComponent } from './upload-dropzone/upload-dropzone.component';
 import { UserAvatarComponent } from './user-chip/user-avatar.component';
 import { UserChipComponent } from './user-chip/user-chip.component';
@@ -371,6 +371,17 @@ describe('MarkerFilterBarComponent', () => {
     metrics.scrollWidth = 300;
     updateScrollHint(el);
     expect([el.hasAttribute('data-more-start'), el.hasAttribute('data-more-end')]).toEqual([false, false]);
+  });
+
+  it('scrolls the current tab of a row to the middle only when it is hidden or under the edge fade', () => {
+    const row = { left: 0, right: 400 };
+    expect(scrollToReveal(row, { left: 60, right: 160 })).toBe(0);
+    expect(scrollToReveal(row, { left: 320, right: 420 })).toBe(170);
+    expect(scrollToReveal(row, { left: 380, right: 480 })).toBe(230);
+    expect(scrollToReveal(row, { left: -150, right: -50 })).toBe(-300);
+    expect(scrollToReveal(row, { left: 10, right: 110 })).toBe(-140);
+    // an item wider than the row minus both fades counts as visible when it is inside the row
+    expect(scrollToReveal(row, { left: 20, right: 380 })).toBe(0);
   });
 
   it('has no toggle unless collapseOnPhone is set', async () => {

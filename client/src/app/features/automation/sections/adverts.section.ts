@@ -218,6 +218,13 @@ const LIST_OF: Record<AdvertChannel, MessageList> = {
     .channels { border: 0; margin: 0; padding: 0; }
     .messages { padding: 0.6rem; border: 1px dashed var(--fs-border); border-radius: var(--fs-radius-md); }
     .message { display: grid; grid-template-columns: 1fr auto; gap: 0.35rem; align-items: start; }
+    /* phones: textarea and preview use the full card width; the delete button sits in the textarea's top-right corner
+       instead of taking a column of its own (design review B5) */
+    @media (max-width: 47.99rem) {
+      .message { grid-template-columns: minmax(0, 1fr); position: relative; }
+      .message > p-button { position: absolute; top: 0.25rem; right: 0.25rem; }
+      .message:has(> p-button) fs-template-editor ::ng-deep textarea { padding-right: 2.75rem; }
+    }
     .late { display: grid; gap: 0.6rem; }
     .late summary { cursor: pointer; font-weight: 600; margin-bottom: 0.5rem; }
     p-select { width: 100%; }

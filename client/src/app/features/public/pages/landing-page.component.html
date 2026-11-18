@@ -258,7 +258,10 @@
           <div class="faq">
             @for (id of group.items; track id) {
               <details [attr.data-testid]="'public.explainer.faq.' + id">
-                <summary>{{ 'public.explainer.faq.' + id + '.q' | t }}</summary>
+                <summary>
+                  <span>{{ 'public.explainer.faq.' + id + '.q' | t }}</span>
+                  <i class="pi pi-chevron-down faq__chevron" aria-hidden="true"></i>
+                </summary>
                 <p>{{ 'public.explainer.faq.' + id + '.a' | t }}</p>
               </details>
             }

@@ -124,12 +124,15 @@ const PAGE_SIZE = 20;
       min-width: 0;
       gap: 0.1rem;
     }
+    /* up to two lines before it is cut */
     .row__title {
+      display: -webkit-box;
       overflow: hidden;
       color: inherit;
       font-weight: 650;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      overflow-wrap: anywhere;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
     .row__meta {
       color: var(--fs-text-muted);

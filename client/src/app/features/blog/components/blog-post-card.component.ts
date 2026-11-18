@@ -61,6 +61,8 @@ import { pictureVariant } from '../blog.util';
       display: grid;
       grid-template-rows: auto 1fr;
       height: 100%;
+      /* the picture runs to the card edge (clipped to its radius); only the body has padding */
+      padding: 0;
       overflow: hidden;
       transition: box-shadow 0.15s ease;
     }
@@ -85,7 +87,12 @@ import { pictureVariant } from '../blog.util';
       display: grid;
       align-content: start;
       gap: 0.45rem;
-      padding: 1rem 1.1rem 1.15rem;
+      padding: 0.9rem 1rem 1rem;
+    }
+    @media (max-width: 30rem) {
+      .card__media {
+        aspect-ratio: 2 / 1;
+      }
     }
     .card__meta {
       display: flex;

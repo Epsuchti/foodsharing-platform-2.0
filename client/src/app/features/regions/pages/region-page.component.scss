@@ -2,6 +2,11 @@
   display: block;
 }
 
+.region {
+  display: block;
+  min-width: 0;
+}
+
 .hero {
   display: grid;
   gap: 1rem;
@@ -31,10 +36,13 @@
   gap: 0.35rem;
   min-width: 0;
   padding: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
-  padding-bottom: 0;
+}
 
-  @media (min-width: 48rem) {
-    padding-bottom: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
+/* phones: the actions row (join, make home) follows directly under the facts; without actions the facts keep the
+   card's bottom padding, so the member badge no longer touches the hero border (design review C3) */
+@media (max-width: 47.99rem) {
+  .hero:has(.hero__actions:not(:empty)) .hero__body {
+    padding-bottom: 0;
   }
 }
 
@@ -87,6 +95,48 @@
   max-width: 44rem;
   margin: 0;
   color: var(--fs-text-muted);
+}
+
+@media (max-width: 47.99rem) {
+  .hero__teaser {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.92rem;
+  }
+
+  .hero__name {
+    font-size: 1.45rem;
+  }
+}
+
+/* every tab but the overview: name, parent link and facts only (design review C3) */
+.hero--compact {
+  gap: 0.5rem;
+}
+
+.hero--compact .hero__body {
+  gap: 0.25rem;
+  padding-block: 0.85rem;
+}
+
+.hero--compact .hero__name {
+  font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.7rem);
+}
+
+.hero--compact .hero__facts {
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 47.99rem) {
+  .hero--compact:has(.hero__actions:not(:empty)) .hero__body {
+    padding-bottom: 0;
+  }
+
+  .hero--compact .hero__actions {
+    padding-bottom: 0.85rem;
+  }
 }
 
 .hero__facts {
@@ -173,6 +223,24 @@
 
 .tabs__tab--later {
   opacity: 0.75;
+}
+
+/* phones: tighter tabs, so three and a half fit and the cut one reads as "more to swipe" (design review C2); the
+   "coming later" placeholders are left out of the long strip unless one of them is open (design review C18) */
+@media (max-width: 47.99rem) {
+  .tabs {
+    gap: 0.2rem;
+  }
+
+  .tabs__tab {
+    gap: 0.35rem;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.88rem;
+  }
+
+  .tabs__tab--later:not(.tabs__tab--active) {
+    display: none;
+  }
 }
 
 .tabs__tab .pi {

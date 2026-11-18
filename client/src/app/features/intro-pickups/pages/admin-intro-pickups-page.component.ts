@@ -77,7 +77,17 @@ type Tab = 'einabs' | 'bookings' | 'guides';
     <div class="toolbar">
       <div class="switch" role="group" [attr.aria-label]="'introPickups.admin.title' | t">
         @for (t of tabs; track t) {
-          <p-button [label]="'introPickups.admin.tab.' + t | t" size="small" [outlined]="tab() !== t" (onClick)="tab.set(t)" [attr.data-testid]="'introPickups.admin.tab.' + t" />
+          <!-- C17: views are pills (as in the forum), so they do not look like the filled primary action -->
+          <button
+            type="button"
+            class="tab"
+            [class.tab--active]="tab() === t"
+            [attr.aria-pressed]="tab() === t"
+            (click)="tab.set(t)"
+            [attr.data-testid]="'introPickups.admin.tab.' + t"
+          >
+            {{ 'introPickups.admin.tab.' + t | t }}
+          </button>
         }
       </div>
       <span class="spacer"></span>
@@ -104,10 +114,10 @@ type Tab = 'einabs' | 'bookings' | 'guides';
                 <tbody>
                   @for (einab of page.items; track einab.id) {
                     <tr [attr.data-id]="einab.id" data-testid="introPickups.admin.einab">
-                      <td>{{ einab.startAt | fsDate: 'dateTime' }}</td>
-                      <td>{{ 'common.introCategory.' + einab.category | t }}@if (einab.businessName) { · {{ einab.businessName }} }</td>
-                      <td>{{ einab.guide.displayName }}</td>
-                      <td class="num">{{ bookedCount(einab) }} / {{ einab.slots.length }}</td>
+                      <td class="table__title">{{ einab.startAt | fsDate: 'dateTime' }}</td>
+                      <td [attr.data-label]="'introPickups.admin.col.einab' | t">{{ 'common.introCategory.' + einab.category | t }}@if (einab.businessName) { · {{ einab.businessName }} }</td>
+                      <td [attr.data-label]="'introPickups.admin.col.guide' | t">{{ einab.guide.displayName }}</td>
+                      <td class="num" [attr.data-label]="'introPickups.admin.col.booked' | t">{{ bookedCount(einab) }} / {{ einab.slots.length }}</td>
                       <td class="row-actions">
                         @if (!einab.booked) {
                           <p-button icon="pi pi-trash" [label]="'introPickups.guide.delete' | t" size="small" [text]="true" severity="danger" (onClick)="deleting.set(einab)" data-testid="introPickups.admin.delete" />
@@ -143,12 +153,12 @@ type Tab = 'einabs' | 'bookings' | 'guides';
                   @for (booking of page.items; track booking.slotId) {
                     <tr [attr.data-status]="booking.status" data-testid="introPickups.admin.booking">
                       <td><fs-user-chip [name]="booking.user.displayName" [avatarUrl]="booking.user.avatarUrl" [foodsaverNumber]="booking.user.foodsaverNumber" /></td>
-                      <td>
+                      <td [attr.data-label]="'introPickups.admin.col.einab' | t">
                         {{ 'common.introCategory.' + booking.introPickup.category | t }}
                         <span class="muted">{{ booking.introPickup.startAt | fsDate: 'dateTime' }} · {{ booking.introPickup.guide.displayName }}</span>
                       </td>
-                      <td><span [class]="'tag tag--' + booking.status">{{ 'introPickups.status.' + booking.status | t }}</span></td>
-                      <td>
+                      <td [attr.data-label]="'introPickups.admin.col.status' | t"><span [class]="'tag tag--' + booking.status">{{ 'introPickups.status.' + booking.status | t }}</span></td>
+                      <td [attr.data-label]="'introPickups.admin.col.counted' | t">
                         @if (canSetCounted(booking)) {
                           <p-toggleswitch [ngModel]="!!booking.counted" (ngModelChange)="setCounted.run(booking, $event)" [ariaLabel]="'introPickups.admin.col.counted' | t" data-testid="introPickups.admin.counted" />
                         }
@@ -358,10 +368,37 @@ type Tab = 'einabs' | 'bookings' | 'guides';
     .switch {
       display: inline-flex;
       flex-wrap: wrap;
-      gap: 0.25rem;
+      gap: 0.35rem;
+    }
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.5rem;
+      padding: 0.35rem 0.9rem;
+      border: 1px solid var(--fs-border);
+      border-radius: 999px;
+      background: var(--fs-surface);
+      color: inherit;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab:hover {
+      border-color: var(--fs-border-strong);
+    }
+    .tab--active {
+      border-color: var(--fs-primary);
+      background: var(--fs-primary-soft);
+      color: var(--fs-primary-strong);
     }
     .spacer {
       flex: 1;
+    }
+    /* phones: the views on one row, the actions on the next */
+    @media (max-width: 39.99rem) {
+      .spacer {
+        flex-basis: 100%;
+      }
     }
     .guide {
       display: flex;

@@ -384,6 +384,13 @@ interface RegionOption {
       object-fit: cover;
       border-radius: var(--fs-radius-sm);
     }
+    /* phones: the empty drop zone as wide as the fields above, in the picture's 16:9 (not a centred square) */
+    @media (max-width: 30rem) {
+      fs-image-crop ::ng-deep .empty {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+      }
+    }
     .actions {
       display: grid;
       gap: 0.6rem;

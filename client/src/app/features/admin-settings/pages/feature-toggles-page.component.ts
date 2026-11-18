@@ -38,7 +38,7 @@ import { SettingsTabsComponent } from '../components/settings-tabs.component';
       <ng-template [fsData]="toggles" let-list>
         <ul class="list fs-card" data-testid="adminSettings.toggles.list">
           @for (toggle of list; track toggle.key) {
-            <li class="row" data-testid="adminSettings.toggles.row" [attr.data-key]="toggle.key" [attr.data-enabled]="toggle.enabled">
+            <li class="row row--inline" data-testid="adminSettings.toggles.row" [attr.data-key]="toggle.key" [attr.data-enabled]="toggle.enabled">
               <div>
                 <h2 class="row__title">
                   {{ 'adminSettings.toggles.key.' + toggle.key | t }}
