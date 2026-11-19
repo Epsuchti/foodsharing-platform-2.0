@@ -59,12 +59,12 @@ interface ChainForm {
   template: `
     <fs-data-state [state]="chain" skeleton="detail" backLink="/store-chains" testId="storeChains.chain.state" data-testid="storeChains.chain.state">
       <ng-template [fsData]="chain" let-c>
-        <fs-page-header [title]="c.name" [subtitle]="'storeChains.status.' + c.status | t" icon="pi pi-link" backLink="/store-chains" [backLabel]="'common.back' | t" />
-        @if (mayEdit()) {
-          <div class="toolbar">
+        <!-- the page action sits in the header, like on every other page (design review D7) -->
+        <fs-page-header [title]="c.name" [subtitle]="'storeChains.status.' + c.status | t" icon="pi pi-link" backLink="/store-chains" [backLabel]="'common.back' | t">
+          @if (mayEdit()) {
             <p-button [label]="'storeChains.chain.edit' | t" icon="pi pi-pencil" (onClick)="openEdit(c)" data-testid="storeChains.chain.edit" />
-          </div>
-        }
+          }
+        </fs-page-header>
 
         <div class="grid">
           <section class="fs-card card" data-testid="storeChains.chain.details">
@@ -207,7 +207,6 @@ interface ChainForm {
   `,
   styles: `
     :host { display: block; width: min(100%, 64rem); margin: 0 auto; }
-    .toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin-bottom: 1rem; }
     .card { display: grid; gap: 0.6rem; align-content: start; padding: 1rem; margin-bottom: 1rem; }
     .grid .card { margin-bottom: 0; }

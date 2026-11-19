@@ -34,6 +34,7 @@ import {
   TranslatedText,
 } from '../../../shared/language-tabs-editor/language-tabs-editor.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { LEGAL_ICONS, LEGAL_KINDS, legalSlug } from '../legal-kind';
 
 /**
@@ -52,6 +53,7 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalSlug } from '../legal-kind';
     LanguageTabsEditorComponent,
     PageHeaderComponent,
     RouterLink,
+    ScrollHintDirective,
     TPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,7 +66,8 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalSlug } from '../legal-kind';
       [backLabel]="'legal.admin.backToContent' | t"
     />
 
-    <div class="kinds" role="tablist" [attr.aria-label]="'legal.admin.documents' | t">
+    <!-- one row that scrolls sideways on phones, like the public document switch (A12) -->
+    <div class="kinds" fsScrollHint role="tablist" [attr.aria-label]="'legal.admin.documents' | t">
       @for (k of kinds; track k) {
         <button
           type="button"
@@ -220,12 +223,19 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalSlug } from '../legal-kind';
     }
     .kinds {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 0.5rem;
       margin-bottom: 1.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .kinds::-webkit-scrollbar {
+      display: none;
     }
     .kinds__tab {
       display: inline-flex;
+      flex: none;
+      white-space: nowrap;
       align-items: center;
       gap: 0.45rem;
       padding: 0.5rem 0.95rem;
@@ -335,6 +345,15 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalSlug } from '../legal-kind';
       display: grid;
       gap: 0.35rem;
       max-width: 20rem;
+    }
+    /* phones: the version field as wide as the text areas below (D7) */
+    @media (max-width: 39.99rem) {
+      .field {
+        max-width: none;
+      }
+      .field input {
+        width: 100%;
+      }
     }
     .field label {
       font-weight: 600;

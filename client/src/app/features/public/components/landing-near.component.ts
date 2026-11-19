@@ -177,11 +177,14 @@ export const NEAR_RESULT_ZOOM = 11;
   styles: `
     :host {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       align-content: start;
       gap: 0.5rem;
+      min-width: 0;
     }
     .search {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.35rem;
     }
     .search__label {
@@ -192,8 +195,10 @@ export const NEAR_RESULT_ZOOM = 11;
       display: flex;
       gap: 0.5rem;
     }
+    /* width 0 + flex-grow: the input's intrinsic ~20-character width must not widen the page on phones */
     .search__field input {
-      flex: 1;
+      flex: 1 1 0;
+      width: 0;
       min-width: 0;
       min-height: 2.75rem;
       padding: 0.5rem 0.9rem;

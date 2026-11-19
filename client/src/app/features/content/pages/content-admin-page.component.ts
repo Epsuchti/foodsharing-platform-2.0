@@ -74,11 +74,15 @@ const KIND_ORDER: readonly ContentPageKind[] = [
                       <span class="row__title">{{ title(page) }}</span>
                       <code class="row__slug">{{ page.slug }}</code>
                     </span>
+                    <!-- one "5/5" count instead of five identical chips on every row; only missing languages are
+                         named, struck through (design review D18) -->
+                    @let missing = missingLanguages(page);
                     <span class="row__langs" [attr.aria-label]="'content.admin.languages' | t">
-                      @for (lang of languages; track lang) {
-                        <span class="lang" [class.lang--missing]="!has(page, lang)">{{
-                          lang
-                        }}</span>
+                      <span class="lang" [class.lang--partial]="missing.length > 0" data-testid="content.admin.languageCount">{{
+                        languages.length - missing.length
+                      }}/{{ languages.length }}</span>
+                      @for (lang of missing; track lang) {
+                        <span class="lang lang--missing">{{ lang }}</span>
                       }
                     </span>
                     <span class="row__status">
@@ -171,6 +175,10 @@ const KIND_ORDER: readonly ContentPageKind[] = [
       text-align: center;
       text-transform: uppercase;
     }
+    .lang--partial {
+      background: var(--fs-warning-soft);
+      color: var(--fs-warning-text);
+    }
     .lang--missing {
       background: transparent;
       color: var(--fs-text-muted);
@@ -239,6 +247,10 @@ export class ContentAdminPageComponent {
   protected title(page: ContentPageSummary): string {
     const titles = page.titles ?? {};
     return titles[this.i18n.language()] || titles['de'] || Object.values(titles)[0] || page.slug;
+  }
+
+  protected missingLanguages(page: ContentPageSummary): string[] {
+    return this.languages.filter((lang) => !this.has(page, lang));
   }
 
   protected has(page: ContentPageSummary, lang: string): boolean {

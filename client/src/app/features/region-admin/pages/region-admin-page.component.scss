@@ -14,11 +14,6 @@
   gap: 0.75rem;
 }
 
-.toolbar__actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-}
 
 .crumbs {
   display: flex;
@@ -44,8 +39,28 @@
   cursor: default;
 }
 
+.search {
+  margin-left: auto;
+}
+
 .search input {
   width: min(18rem, 100%);
+}
+
+// Phones (design review D7): path on its own line, the search below it at full width.
+@media (max-width: 39.99rem) {
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .search {
+    margin-left: 0;
+  }
+
+  .search input {
+    width: 100%;
+  }
 }
 
 .rows {

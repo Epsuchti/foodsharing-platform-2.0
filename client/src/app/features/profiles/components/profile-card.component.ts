@@ -93,6 +93,19 @@ import { photoInSize } from '../profiles.util';
     .head__number { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.9rem; }
     .head__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.35rem; }
     .head__actions:empty { display: none; }
+    /*
+     * phones (design review B11): the primary "write a message" takes the first row, the other actions share the
+     * following rows and stretch to fill them instead of four ragged rows of different widths
+     */
+    @media (max-width: 30rem) {
+      /* two even columns (sign-off: the flex rows stretched every button to a row of its own) */
+      .head__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .head__actions ::ng-deep > * { min-width: 0; }
+      .head__actions ::ng-deep > :first-child { grid-column: 1 / -1; }
+      .head__actions ::ng-deep > p-button:not(:has(.p-button-icon-only)) { width: 100%; }
+      .head__actions ::ng-deep > p-button > .p-button:not(.p-button-icon-only) { width: 100%; min-width: 0; height: 100%; }
+      .head__actions ::ng-deep > :is(span, a):not(p-button) { align-self: center; justify-self: center; }
+    }
     .sleep {
       display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem 1rem;
       border: 1px solid var(--fs-border); border-radius: var(--fs-radius-md); background: var(--fs-surface-muted);

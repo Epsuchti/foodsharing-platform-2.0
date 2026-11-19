@@ -96,6 +96,27 @@
     white-space: normal;
     text-align: center;
   }
+  /* without an action: count and title on one line, cut at the end (design review A8: 55px of a small screen) */
+  .compact--bare .compact__text {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+  .compact--bare .compact__count {
+    flex: none;
+  }
+  .compact--bare .compact__count:has(+ strong)::after {
+    content: '·';
+    margin-inline-start: 0.35rem;
+  }
+  .compact--bare .compact__text strong {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 /* --- full / preview ------------------------------------------------------------------------- */

@@ -114,7 +114,7 @@
             </div>
             <div class="member__actions">
               @if (member.user.phone) {
-                <fs-phone-button [phone]="member.user.phone" [label]="member.user.displayName" />
+                <fs-phone-button [phone]="member.user.phone" [label]="member.user.displayName" [compact]="narrow()" />
               }
               @if (ctx.manageUsers()) {
                 <p-button

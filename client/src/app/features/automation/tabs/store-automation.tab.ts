@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { activeRuleCount } from '../policy-sentences';
 import { StoreAutomationContext } from '../store-automation.context';
 
@@ -15,7 +16,7 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
  */
 @Component({
   selector: 'fs-store-automation-tab',
-  imports: [...DATA_STATE_IMPORTS, RouterLink, RouterLinkActive, RouterOutlet, TPipe],
+  imports: [...DATA_STATE_IMPORTS, RouterLink, RouterLinkActive, RouterOutlet, ScrollHintDirective, TPipe],
   providers: [StoreAutomationContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -27,7 +28,7 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
       data-testid="automation.store.state"
     >
       <ng-template [fsData]="ctx.automation">
-        <div class="strip" role="group" [attr.aria-label]="'automation.store.summary' | t" data-testid="automation.store.summary">
+        <div class="strip" fsScrollHint role="group" [attr.aria-label]="'automation.store.summary' | t" data-testid="automation.store.summary">
           <span class="pill" [class.pill--on]="summary().on" [class.pill--off]="!summary().on" data-testid="automation.store.summary.mode" [attr.data-mode]="summary().on ? 'ON' : 'OFF'">
             <i class="pi" [class.pi-shield]="summary().on" [class.pi-circle]="!summary().on" aria-hidden="true"></i>
             {{ 'automation.store.summary.mode' | t: { state: ((summary().on ? 'automation.common.on' : 'automation.common.off') | t) } }}
@@ -50,7 +51,7 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
             }
           </span>
         </div>
-        <nav class="subnav" [attr.aria-label]="'automation.store.nav' | t" data-testid="automation.store.nav">
+        <nav class="subnav" fsScrollHint [attr.aria-label]="'automation.store.nav' | t" data-testid="automation.store.nav">
           @for (section of sections; track section) {
             <a
               class="subnav__item"
@@ -75,6 +76,11 @@ export const STORE_AUTOMATION_SECTIONS = ['policy', 'auto-accept', 'adverts', 's
     .strip {
       display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; padding: 0.6rem;
       border-radius: var(--fs-radius-md); background: var(--fs-surface-raised);
+    }
+    /* phones: the status pills as one swipeable row instead of three wrapped rows (design review B3) */
+    @media (max-width: 47.99rem) {
+      .strip { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-bottom: 0.25rem; padding: 0.45rem; }
+      .strip > .pill { flex: none; }
     }
     .subnav__count {
       display: inline-grid; place-items: center; min-width: 1.3rem; height: 1.3rem; margin-left: 0.35rem; padding: 0 0.3rem;

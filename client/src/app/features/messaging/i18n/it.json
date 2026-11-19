@@ -20,6 +20,7 @@
   "messaging.retry": "Invia di nuovo",
   "messaging.composer": "Messaggio",
   "messaging.composerPlaceholder": "Scrivi un messaggio … (@ menziona qualcuno)",
+  "messaging.composerPlaceholderShort": "Scrivi un messaggio …",
   "messaging.send": "Invia",
   "messaging.mentionSuggestions": "Menziona persone",
   "messaging.search": "Cerca conversazioni",

@@ -66,6 +66,22 @@
   min-width: 0;
 }
 
+// Text inputs fill their field; on phones every filter field spans the row (design review C18: the search kept its
+// intrinsic width).
+.field > input {
+  width: 100%;
+}
+
+.filters > .field:has(> input) {
+  flex: 1 1 14rem;
+}
+
+@media (max-width: 39.99rem) {
+  .filters > .field {
+    flex: 1 1 100%;
+  }
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

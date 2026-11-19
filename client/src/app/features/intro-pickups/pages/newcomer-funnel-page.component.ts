@@ -103,10 +103,10 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
             <tbody>
               @for (gap of f.gaps; track gap.category + gap.withFairteiler) {
                 <tr [attr.data-severity]="gap.severity" data-testid="introPickups.funnel.gap">
-                  <td>{{ 'common.introCategory.' + gap.category | t }}@if (gap.withFairteiler) { · {{ 'introPickups.card.fairteiler' | t }} }</td>
-                  <td class="num">{{ gap.students }}</td>
-                  <td class="num">{{ gap.openSlots }}</td>
-                  <td><span [class]="'tag tag--' + gap.severity">{{ 'introPickups.funnel.gap.' + gap.severity | t }}</span></td>
+                  <td class="table__title">{{ 'common.introCategory.' + gap.category | t }}@if (gap.withFairteiler) { · {{ 'introPickups.card.fairteiler' | t }} }</td>
+                  <td class="num" [attr.data-label]="'introPickups.funnel.students' | t">{{ gap.students }}</td>
+                  <td class="num" [attr.data-label]="'introPickups.funnel.openSlots' | t">{{ gap.openSlots }}</td>
+                  <td class="severity" [attr.data-label]="'introPickups.funnel.severity' | t"><span [class]="'tag tag--' + gap.severity">{{ 'introPickups.funnel.gap.' + gap.severity | t }}</span></td>
                 </tr>
               } @empty {
                 <tr><td colspan="4" class="muted">{{ 'introPickups.funnel.noGaps' | t }}</td></tr>
@@ -119,6 +119,47 @@ import { UserChipComponent } from '../../../shared/user-chip/user-chip.component
   `,
   styleUrl: '../intro-pickups.scss',
   styles: `
+    /* phones: one row per type is the title with its status badge at the right, then "needed 2 · free 0" on one line
+       (three labelled lines per row made the section twice as long, sign-off R5) */
+    @media (max-width: 39.99rem) {
+      .table > tbody > tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.3rem 1rem;
+      }
+      /* the title leaves room for the badge only, so the numbers wrap to the next line */
+      .table > tbody > tr > .table__title {
+        flex: 1 1 calc(100% - 7.5rem);
+        min-width: 0;
+      }
+      .table > tbody > tr > .severity {
+        order: -1;
+        flex: none;
+        width: auto;
+        margin-inline-start: auto;
+        padding-inline-start: 0;
+      }
+      .table > tbody > tr > .table__title {
+        order: -2;
+      }
+      .table > tbody > tr > .severity::before {
+        display: none;
+      }
+      .table > tbody > tr > td.num {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.35rem;
+        width: auto;
+        padding-inline-start: 0;
+      }
+      .table > tbody > tr > td.num::before {
+        float: none;
+        width: auto;
+        margin: 0;
+        padding: 0;
+      }
+    }
     .toolbar {
       display: flex;
       flex-wrap: wrap;

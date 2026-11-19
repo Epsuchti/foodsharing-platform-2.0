@@ -98,7 +98,6 @@ import { chapterState, learningProgress } from '../learning-progress';
                   <p-button
                     [label]="'content.learn.toJourney' | t"
                     icon="pi pi-map"
-                    severity="secondary"
                     routerLink="/onboarding"
                     data-testid="content.learn.toJourney"
                   />
@@ -178,6 +177,22 @@ import { chapterState, learningProgress } from '../learning-progress';
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
+    }
+    /* phones: text, bar, then the buttons below at full width (beside the text they squeezed it to one word a line) */
+    @media (max-width: 40rem) {
+      .progress {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .progress fs-progress-bar {
+        grid-row: auto;
+      }
+      .progress__actions > p-button {
+        flex: 1 1 auto;
+      }
+      .progress__actions > p-button ::ng-deep .p-button,
+      .progress > p-button ::ng-deep .p-button {
+        width: 100%;
+      }
     }
     .group + .group {
       margin-top: 1.75rem;

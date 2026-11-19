@@ -113,9 +113,10 @@ export const OPTIONS_PAGE = 10;
     .option__slots { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.75rem; row-gap: 0.15rem; }
     /* own sign-up (review fix A2): a state, not an action; same colours as "My pickups" */
     .signed-up { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.88rem; font-weight: 600; color: var(--fs-primary-strong); white-space: nowrap; }
-    /* one line where there is room; only narrow phones wrap it, the icon stays right beside the text */
+    /* narrow phones (design review B18): the own sign-up state takes its own line under the pickup, in one piece */
     @media (max-width: 30rem) {
-      .signed-up { white-space: normal; max-width: 9.5rem; }
+      .option:has(.signed-up) { grid-template-columns: minmax(0, 1fr); gap: 0.35rem; }
+      .signed-up { justify-self: start; }
     }
     .signed-up--wait { color: var(--fs-warning-text); }
   `,

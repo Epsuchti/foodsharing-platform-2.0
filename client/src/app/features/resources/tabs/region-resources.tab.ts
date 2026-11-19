@@ -32,13 +32,14 @@ interface RegionResources {
     <div class="head">
       <p class="muted">{{ 'resources.region.intro' | t }}</p>
       <div class="head__actions">
-        <p-button [label]="'resources.region.mine' | t" icon="pi pi-user" severity="secondary" [outlined]="true" routerLink="/resources/mine" data-testid="resources.region.mine" />
-        <p-button [label]="'resources.region.favourites' | t" icon="pi pi-star" severity="secondary" [outlined]="true" routerLink="/resources/favourites" data-testid="resources.region.favourites" />
+        <!-- primary action first, the secondary links after it in the same wrapping row (design review C18) -->
         @if (permissions(); as perms) {
           @if (perms.mayAdd || perms.mayEditCommons) {
             <p-button [label]="'resources.region.add' | t" icon="pi pi-plus" (onClick)="adding.set(true)" data-testid="resources.region.add" />
           }
         }
+        <p-button [label]="'resources.region.mine' | t" icon="pi pi-user" severity="secondary" [outlined]="true" routerLink="/resources/mine" data-testid="resources.region.mine" />
+        <p-button [label]="'resources.region.favourites' | t" icon="pi pi-star" severity="secondary" [outlined]="true" routerLink="/resources/favourites" data-testid="resources.region.favourites" />
       </div>
     </div>
     @if (permissions(); as perms) {

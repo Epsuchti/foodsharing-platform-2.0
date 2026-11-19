@@ -85,6 +85,11 @@ export function journeyProgress(journey: Pick<Journey, 'steps' | 'currentStep'>)
     fs-data-state {
       height: 100%;
     }
+    /* the meter is placed by its insets (left and right): the data-state content grid would otherwise align it to
+       the start, and an absolutely positioned box aligned to the start shrinks to its content (0 px) */
+    .sn-meter {
+      justify-self: stretch;
+    }
     .jm__count {
       position: absolute;
       top: 50%;

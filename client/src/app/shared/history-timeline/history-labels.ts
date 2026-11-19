@@ -28,8 +28,12 @@ const WEEKLY_FIELDS = ['regularPickups', 'regularShifts'];
  */
 const LIST_FIELDS = ['activityFilters', 'onboardingSteps'];
 
-/** Enum catalogs a metadata value may come from when the key has no own `shared.historyTimeline.value.<key>.*`. */
-const ENUM_CATALOGS = ['shared.store.cooperation', 'shared.store.team', 'common.role'];
+/**
+ * Enum catalogs a metadata value may come from when the key has no own `shared.historyTimeline.value.<key>.*`, in this
+ * order. `reports.status` (report log "TO_DO → IN_PROGRESS", design review C12) comes last: its catalog is only loaded
+ * with the reports module, where the report timeline is shown.
+ */
+const ENUM_CATALOGS = ['shared.store.cooperation', 'shared.store.team', 'common.role', 'reports.status'];
 
 /** Metadata keys shown as small facts below the label (everything else only in the details). */
 const VISIBLE_FACTS = ['label', 'reason', 'count', 'template', 'language'] as const;

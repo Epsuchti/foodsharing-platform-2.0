@@ -161,6 +161,21 @@ import { MessagingStore } from '../messaging.resource';
         clip-path: inset(50%);
         white-space: nowrap;
       }
+      /*
+       * design review B9: the open conversation is as tall as the screen between header and tab bar (the composer
+       * sits right above the tab bar) and drops the card frame, so the bubbles get the full width
+       */
+      :host(.has-open) .open {
+        height: calc(100vh - var(--fs-header-h) - var(--fs-tabbar-h) - env(safe-area-inset-bottom) - 2rem);
+        height: calc(100dvh - var(--fs-header-h) - var(--fs-tabbar-h) - env(safe-area-inset-bottom) - 2rem);
+        min-height: 22rem;
+        margin: -0.5rem calc(var(--fs-gutter) * -1) 0;
+        padding: 0 0.5rem;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+      }
     }
     .items {
       display: grid;

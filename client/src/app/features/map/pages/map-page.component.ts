@@ -32,6 +32,7 @@ import { mapViewQuery, parseMapView } from '../../../shared/map-view/map-view-qu
 import { MAP_DEFAULT_CENTER, MapFocus, MapMarker, MapViewChange, MapViewComponent } from '../../../shared/map-view/map-view.component';
 import { MarkerFilter, MarkerFilterBarComponent } from '../../../shared/marker-filter-bar/marker-filter-bar.component';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import {
   BubbleText,
   ALL_LAYERS,
@@ -96,7 +97,7 @@ interface Selected {
  */
 @Component({
   selector: 'fs-map-page',
-  imports: [...DATA_STATE_IMPORTS, Button, MapViewComponent, MarkerFilterBarComponent, PageHeaderComponent, RouterLink, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, MapViewComponent, MarkerFilterBarComponent, PageHeaderComponent, RouterLink, ScrollHintDirective, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'map.page.title' | t" [subtitle]="'map.page.subtitle' | t" icon="pi pi-map" />
@@ -167,7 +168,7 @@ interface Selected {
         </fs-data-state>
       }
 
-      <div class="layers" role="group" [attr.aria-label]="'map.layers.label' | t" data-testid="map.page.layers">
+      <div class="layers" fsScrollHint role="group" [attr.aria-label]="'map.layers.label' | t" data-testid="map.page.layers">
         @for (layer of availableLayers(); track layer.id) {
           <button
             type="button"
@@ -260,12 +261,16 @@ interface Selected {
     </div>
   `,
   styles: `
+    /* minmax(0, 1fr): the swipeable layer-chip row must not size the track wider than the phone (review B1). */
     :host {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
     .controls {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      min-width: 0;
       gap: 0.85rem;
       padding: 1rem;
     }
@@ -334,6 +339,7 @@ interface Selected {
     .layers {
       display: flex;
       flex-wrap: wrap;
+      min-width: 0;
       gap: 0.4rem;
     }
     /*

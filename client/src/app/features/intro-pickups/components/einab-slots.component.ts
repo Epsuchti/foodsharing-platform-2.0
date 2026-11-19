@@ -105,6 +105,16 @@ export type SlotAction = 'bookFor' | 'done' | 'cancel' | 'count' | 'comments';
       grid-column: 1 / -1;
       justify-content: flex-start;
     }
+    /* phones: a free slot is one row (number, "free", action); its status tag repeats "free" */
+    @media (max-width: 47.99rem) {
+      .slot[data-status='AVAILABLE'] .tag {
+        display: none;
+      }
+      .slot[data-status='AVAILABLE'] .row-actions {
+        grid-column: auto;
+        justify-content: flex-end;
+      }
+    }
     @media (min-width: 48rem) {
       .slot {
         grid-template-columns: auto minmax(0, 1fr) auto auto;

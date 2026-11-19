@@ -91,8 +91,9 @@ import { filterFaq } from '../content.util';
       width: 100%;
       padding-left: 2.4rem;
     }
+    /* no margin: the data-state content grid already spaces the count from the list (sign-off minor) */
     .count {
-      margin: 0 0 0.75rem;
+      margin: 0;
       color: var(--fs-text-muted);
       font-size: 0.85rem;
     }

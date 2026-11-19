@@ -62,9 +62,15 @@ export function withChannel(
                 <thead>
                   <tr>
                     <th scope="col">{{ 'notifications.settings.category' | t }}</th>
-                    <th scope="col">{{ 'notifications.channel.bell' | t }}</th>
+                    <th scope="col" [title]="'notifications.channel.bell' | t">
+                      <i class="pi pi-bell ch__icon" aria-hidden="true"></i
+                      ><span class="ch__label">{{ 'notifications.channel.bell' | t }}</span>
+                    </th>
                     @for (channel of channels; track channel) {
-                      <th scope="col">{{ 'notifications.channel.' + channel | t }}</th>
+                      <th scope="col" [title]="'notifications.channel.' + channel | t">
+                        <i [class]="'pi ' + channelIcons[channel] + ' ch__icon'" aria-hidden="true"></i
+                        ><span class="ch__label">{{ 'notifications.channel.' + channel | t }}</span>
+                      </th>
                     }
                   </tr>
                 </thead>
@@ -145,6 +151,46 @@ export function withChannel(
     .matrix thead th:first-child {
       text-align: start;
     }
+    /*
+     * design review B16: channel headers never break ("E-" / "Mail"); the channel columns take only their width and
+     * the topic column the rest (long topics may hyphenate there); the lock sits centred and muted under "Bell"
+     */
+    .matrix thead th:not(:first-child) {
+      width: 1%;
+      white-space: nowrap;
+      hyphens: none;
+    }
+    /* the topic keeps a readable width; long words break at syllables only, never anywhere (sign-off 1.6) */
+    .matrix th[scope='row'] {
+      min-width: 7.5rem;
+      hyphens: auto;
+    }
+    .ch__icon {
+      display: none;
+    }
+    /* phones: icon-only channel headers (bell, envelope, phone, paper plane; the name stays for screen readers and as
+       a tooltip), so the four switch columns leave room for the topic (design review B16, sign-off 1.6) */
+    @media (max-width: 39.99rem) {
+      .matrix th,
+      .matrix td {
+        padding-inline: 0.3rem;
+      }
+      .ch__icon {
+        display: inline-block;
+        font-size: 1.05rem;
+      }
+      .ch__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+    }
+    .matrix td .pi-lock {
+      color: var(--fs-text-muted);
+    }
     .hint {
       margin: 0.75rem 0 0;
     }
@@ -153,6 +199,11 @@ export function withChannel(
 export class NotificationSettingsPageComponent {
   private readonly api = inject(BellsService);
   protected readonly channels = CHANNELS;
+  protected readonly channelIcons: Record<SwitchableChannel, string> = {
+    mail: 'pi-envelope',
+    push: 'pi-mobile',
+    telegram: 'pi-send',
+  };
 
   protected readonly settings = loadResource<NotificationSettings>({
     loader: () => this.api.getNotificationSettings(),

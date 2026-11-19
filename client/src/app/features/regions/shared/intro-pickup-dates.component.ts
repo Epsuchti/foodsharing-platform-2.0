@@ -42,9 +42,9 @@ import { TPipe } from '../../../core/i18n/t.pipe';
       color: var(--fs-text-muted);
       font-size: 0.9rem;
     }
+    /* a list with dividers, not bordered cards inside the surrounding card (design review C7) */
     .dates {
       display: grid;
-      gap: 0.5rem;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -54,10 +54,15 @@ import { TPipe } from '../../../core/i18n/t.pipe';
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.85rem;
-      padding: 0.65rem 0.8rem;
-      border: 1px solid var(--fs-border);
-      border-radius: var(--fs-radius-md);
-      background: var(--fs-surface);
+      padding: 0.65rem 0;
+      border-top: 1px solid var(--fs-border);
+    }
+    .date:first-child {
+      border-top: 0;
+      padding-top: 0.25rem;
+    }
+    .date:last-child {
+      padding-bottom: 0;
     }
     .date__day {
       display: grid;

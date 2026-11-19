@@ -564,6 +564,9 @@ interface SlotTarget {
     .shift:first-of-type {
       border-top: 0;
     }
+    .shift:last-child {
+      padding-bottom: 0;
+    }
     .shift__head {
       display: flex;
       flex-wrap: wrap;
@@ -581,6 +584,27 @@ interface SlotTarget {
       color: var(--fs-text-muted);
       font-size: 0.88rem;
       overflow-wrap: anywhere;
+    }
+    /* phones: time, badge and the edit pencil on one line, the description below; no row that holds only the pencil
+       (design review C8) */
+    @media (max-width: 39.99rem) {
+      .shift__head {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0.25rem 0.5rem;
+      }
+      .shift__head .badge {
+        justify-self: start;
+      }
+      .shift__desc {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+      .shift__head p-button[data-testid='fsp.cleaning.edit'] {
+        grid-column: 3;
+        grid-row: 1;
+        margin-left: 0;
+      }
     }
     .badge {
       padding: 0.05rem 0.5rem;

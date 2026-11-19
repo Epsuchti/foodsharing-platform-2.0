@@ -20,6 +20,7 @@
   "messaging.retry": "Nomal schicke",
   "messaging.composer": "Nachricht",
   "messaging.composerPlaceholder": "Nachricht schriibe … (@ erwähnt öpper)",
+  "messaging.composerPlaceholderShort": "Nachricht schriibe …",
   "messaging.send": "Schicke",
   "messaging.mentionSuggestions": "Persone erwähne",
   "messaging.search": "Unterhaltige durchsueche",

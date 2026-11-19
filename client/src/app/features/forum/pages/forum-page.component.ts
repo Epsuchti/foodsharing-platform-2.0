@@ -41,6 +41,18 @@ interface ForumFollowTarget {
       [backLink]="['/regions', regionId()]"
       [backLabel]="regionName() ?? ('forum.region' | t)"
     >
+      <!-- following the forum is a bell next to "new thread", not a row of its own (design review C13) -->
+      @if (follow.data(); as f) {
+        <p-button
+          [icon]="followingForum(f) ? 'pi pi-bell-slash' : 'pi pi-bell'"
+          severity="secondary" [outlined]="true"
+          [ariaLabel]="(followingForum(f) ? 'forum.unfollowForum' : 'forum.followForum') | t"
+          [attr.title]="(followingForum(f) ? 'forum.unfollowForum' : 'forum.followForum') | t"
+          (onClick)="saveForumFollow(!followingForum(f))"
+          [attr.data-following]="followingForum(f)"
+          data-testid="forum.list.follow"
+        />
+      }
       <p-button
         [label]="'forum.newThread' | t"
         icon="pi pi-plus"
@@ -49,39 +61,28 @@ interface ForumFollowTarget {
       />
     </fs-page-header>
 
-    <div class="bar">
-      @if (ambassador()) {
+    @if (ambassador()) {
+      <div class="bar">
         <nav class="tabs" [attr.aria-label]="'forum.tabs' | t">
           <a class="tab" [class.tab--active]="!ambassadorForum()" [routerLink]="['/regions', regionId(), 'forum']" [attr.aria-current]="!ambassadorForum() ? 'page' : null" data-testid="forum.list.tabForum">{{ 'forum.title' | t }}</a>
           <a class="tab" [class.tab--active]="ambassadorForum()" [routerLink]="['/regions', regionId(), 'forum', 'ambassadors']" [attr.aria-current]="ambassadorForum() ? 'page' : null" data-testid="forum.list.tabAmbassadors">{{ 'forum.ambassadors' | t }}</a>
         </nav>
         <a class="log" [routerLink]="['/regions', regionId(), 'moderation-log']" data-testid="forum.list.log"><i class="pi pi-history" aria-hidden="true"></i> {{ 'forum.log.title' | t }}</a>
-      }
-      <span class="spacer"></span>
-      @if (follow.data(); as f) {
-        <p-button
-          [label]="(followingForum(f) ? 'forum.unfollowForum' : 'forum.followForum') | t"
-          [icon]="followingForum(f) ? 'pi pi-bell-slash' : 'pi pi-bell'"
-          severity="secondary" [outlined]="true"
-          size="small"
-          (onClick)="saveForumFollow(!followingForum(f))"
-          [attr.data-following]="followingForum(f)"
-          data-testid="forum.list.follow"
-        />
-      }
-    </div>
+      </div>
+    }
 
     <form class="search" role="search" (ngSubmit)="search()">
       <label class="fs-visually-hidden" for="forum-search">{{ 'forum.search.label' | t }}</label>
+      <!-- one row: field, search (icon only on phones), clear; "also search posts" small below (design review C13) -->
       <input pInputText id="forum-search" type="search" name="q" [placeholder]="'forum.search.label' | t" [(ngModel)]="queryInput" data-testid="forum.search.input" />
+      <p-button type="submit" class="search__submit" icon="pi pi-search" [label]="'forum.search.submit' | t" [ariaLabel]="'forum.search.submit' | t" severity="secondary" [outlined]="true" data-testid="forum.search.submit" />
+      @if (query()) {
+        <p-button icon="pi pi-times" [text]="true" [ariaLabel]="'forum.search.clear' | t" (onClick)="clear()" data-testid="forum.search.clear" />
+      }
       <span class="check">
         <p-checkbox name="body" [binary]="true" [(ngModel)]="bodyInput" inputId="forum-search-body" data-testid="forum.search.body" />
         <label for="forum-search-body">{{ 'forum.search.body' | t }}</label>
       </span>
-      <p-button type="submit" icon="pi pi-search" [label]="'forum.search.submit' | t" severity="secondary" [outlined]="true" data-testid="forum.search.submit" />
-      @if (query()) {
-        <p-button icon="pi pi-times" [text]="true" [ariaLabel]="'forum.search.clear' | t" (onClick)="clear()" data-testid="forum.search.clear" />
-      }
     </form>
 
     @if (query()) {
@@ -122,7 +123,7 @@ interface ForumFollowTarget {
                   <span class="thread__title">
                     @if (t.sticky) {<i class="pi pi-thumbtack" [attr.aria-label]="'forum.sticky' | t" role="img" data-testid="forum.list.sticky"></i>}
                     @if (t.status === 'CLOSED') {<i class="pi pi-lock" [attr.aria-label]="'forum.closed' | t" role="img" data-testid="forum.list.closed"></i>}
-                    {{ t.title }}
+                    <span class="thread__text">{{ t.title }}</span>
                     @if (!t.active) {<span class="badge badge--warn" data-testid="forum.list.inactive">{{ 'forum.inactive' | t }}</span>}
                     @if (t.following.bell || t.following.mail) {<i class="pi pi-bell muted" [attr.aria-label]="'forum.following' | t" role="img"></i>}
                   </span>
@@ -146,20 +147,28 @@ interface ForumFollowTarget {
   styles: `
     :host { display: grid; gap: 0.75rem; width: min(100%, 60rem); margin: 0 auto; }
     .bar, .search { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-    .spacer { flex: 1; }
     .tabs { display: flex; gap: 0.35rem; }
     .tab, .log {
       display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2.5rem; padding: 0.35rem 0.8rem;
       border-radius: 999px; border: 1px solid var(--fs-border); color: inherit; text-decoration: none; font-weight: 600;
     }
     .tab--active { background: var(--fs-primary-soft); border-color: var(--fs-primary); color: var(--fs-primary-strong); }
-    .search input { flex: 1 1 14rem; }
+    .search input { flex: 1 1 14rem; min-width: 0; }
     .check { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; }
+    @media (max-width: 47.99rem) {
+      .search { flex-wrap: wrap; row-gap: 0.25rem; }
+      .search input { flex: 1 1 0; }
+      .search__submit ::ng-deep .p-button-label { display: none; }
+      .check { flex-basis: 100%; min-height: var(--fs-target-sm); font-size: 0.88rem; }
+    }
     .threads { list-style: none; margin: 0; padding: 0; }
     .threads li + li { border-top: 1px solid var(--fs-border); }
     .thread { display: grid; gap: 0.2rem; padding: 0.75rem 1rem; color: inherit; text-decoration: none; }
     .thread:hover, .thread:focus-visible { background: var(--fs-surface-muted); }
-    .thread__title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; font-weight: 600; }
+    /* pin and lock stay in front of the title's first line instead of standing on a line of their own (design review C13) */
+    .thread__title { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 0.4rem; font-weight: 600; }
+    .thread__title > .pi, .thread__title > .badge { flex: none; }
+    .thread__text { min-width: 0; overflow-wrap: anywhere; }
     .thread__meta, .muted, .snippet { color: var(--fs-text-muted); font-size: 0.9rem; }
     mark { background: var(--fs-warning-soft); color: inherit; }
     .badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--fs-border); background: var(--fs-surface-muted); color: var(--fs-text); font-size: 0.8rem; font-weight: 600; }

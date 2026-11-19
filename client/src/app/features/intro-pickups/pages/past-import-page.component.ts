@@ -73,12 +73,12 @@ type RowFilter = 'all' | 'CREATE' | 'SKIP_DUPLICATE' | 'NEEDS_ATTENTION';
             <tbody>
               @for (row of rows(); track row.line) {
                 <tr [attr.data-status]="row.status" data-testid="introPickups.import.row">
-                  <td class="num">{{ row.line }}</td>
-                  <td>{{ row.userDisplayName ?? row.foodsaverNumber ?? '–' }}</td>
-                  <td>{{ row.date ?? row.rawDate }}</td>
-                  <td>{{ row.store || row.rawStore }}</td>
-                  <td>{{ row.category ? ('common.introCategory.' + row.category | t) : row.rawCategory }}@if (row.visitFairteiler) { · FT }</td>
-                  <td>
+                  <td class="num" [attr.data-label]="'introPickups.import.col.line' | t">{{ row.line }}</td>
+                  <td [attr.data-label]="'introPickups.import.col.person' | t">{{ row.userDisplayName ?? row.foodsaverNumber ?? '–' }}</td>
+                  <td [attr.data-label]="'introPickups.import.col.date' | t">{{ row.date ?? row.rawDate }}</td>
+                  <td [attr.data-label]="'introPickups.import.col.store' | t">{{ row.store || row.rawStore }}</td>
+                  <td [attr.data-label]="'introPickups.form.category' | t">{{ row.category ? ('common.introCategory.' + row.category | t) : row.rawCategory }}@if (row.visitFairteiler) { · FT }</td>
+                  <td [attr.data-label]="'introPickups.import.col.status' | t">
                     <span class="tags">
                       <span [class]="'tag ' + statusClass(row.status)" data-testid="introPickups.import.status">{{ 'introPickups.import.status.' + row.status | t }}</span>
                       @for (reason of row.reasons; track reason) {

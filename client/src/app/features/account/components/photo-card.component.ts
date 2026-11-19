@@ -101,15 +101,17 @@ export function photoFile(blob: Blob): File {
   `,
   styleUrl: './account-card.scss',
   styles: `
+    /* avatar and buttons side by side, top-aligned, on every width (design review B15) */
     .photo {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+      flex-wrap: nowrap;
+      align-items: flex-start;
       gap: 1rem 1.5rem;
     }
     .photo__actions {
       display: flex;
-      flex: 1 1 14rem;
+      flex: 1 1 0;
+      min-width: 0;
       flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;

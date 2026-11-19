@@ -33,6 +33,19 @@ export function pickupBars(months: readonly MonthlyPickups[], metric: PickupMetr
   return months.map((month) => ({ month: month.month, value: metric === 'kg' ? month.kg : month.pickups }));
 }
 
+/**
+ * Age bands in reading order: "<18" before the adult bands, members without a plausible date of birth ("invalid",
+ * "unknown") last and only when there are any (design review C11).
+ */
+export function orderedAgeBands(bands: readonly AgeBand[]): AgeBand[] {
+  const unknown = (label: string) => label === 'invalid' || label === 'unknown';
+  return [
+    ...bands.filter((band) => band.label === '<18'),
+    ...bands.filter((band) => band.label !== '<18' && !unknown(band.label)),
+    ...bands.filter((band) => unknown(band.label) && band.count > 0),
+  ];
+}
+
 interface Demographics {
   regionId: string;
   onlyHomeRegion: boolean;
@@ -147,6 +160,12 @@ interface Demographics {
       padding: 0;
       list-style: none;
     }
+    /* two columns on a phone: an odd last counter spans both instead of standing alone (design review C11) */
+    @media (max-width: 33rem) {
+      .counter:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+    }
     .counter {
       display: grid;
       gap: 0.15rem;
@@ -201,7 +220,9 @@ interface Demographics {
       outline: 2px solid var(--fs-primary);
       outline-offset: 2px;
     }
+    /* the switch comes first here, so the label sits next to it instead of at the far edge (design review C11) */
     .only-home {
+      justify-content: flex-start;
       border-top: 0;
       padding-top: 0;
     }
@@ -283,7 +304,11 @@ export class RegionStatisticsTab {
     );
   });
 
-  protected readonly ageBars = computed(() =>
-    bars((this.ages.data() ?? []).map((band) => [band.label, band.count]), (label) => label),
-  );
+  protected readonly ageBars = computed(() => {
+    this.i18n.language();
+    return bars(
+      orderedAgeBands(this.ages.data() ?? []).map((band) => [band.label, band.count]),
+      (label) => (label === 'invalid' || label === 'unknown' ? this.i18n.t('regions.statistics.ageUnknown') : label),
+    );
+  });
 }

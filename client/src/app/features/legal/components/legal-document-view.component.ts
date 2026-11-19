@@ -77,6 +77,10 @@ import { MarkdownComponent } from '../../../shared/markdown/markdown.component';
     .doc__body {
       max-width: 44rem;
     }
+    /* the documents start with their own title, which the page header already shows (design review A12) */
+    .doc__body ::ng-deep .md > h1:first-child {
+      display: none;
+    }
   `,
 })
 export class LegalDocumentViewComponent {

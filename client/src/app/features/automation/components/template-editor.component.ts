@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Textarea } from '@openng/optimus-ui/textarea';
 
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { appendPlaceholder, renderTemplate, unknownPlaceholders } from '../automation.util';
 
 /**
@@ -11,7 +12,7 @@ import { appendPlaceholder, renderTemplate, unknownPlaceholders } from '../autom
  */
 @Component({
   selector: 'fs-template-editor',
-  imports: [FormsModule, Textarea, TPipe],
+  imports: [FormsModule, ScrollHintDirective, Textarea, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="editor">
@@ -28,7 +29,7 @@ import { appendPlaceholder, renderTemplate, unknownPlaceholders } from '../autom
         (ngModelChange)="value.set($event)"
         [attr.data-testid]="testId() + '.text'"
       ></textarea>
-      <ul class="chips" [attr.aria-label]="'automation.template.placeholders' | t">
+      <ul class="chips" fsScrollHint [attr.aria-label]="'automation.template.placeholders' | t">
         @for (key of placeholders(); track key) {
           <li>
             <button type="button" class="chip" (click)="insert(key)" [attr.data-testid]="testId() + '.placeholder.' + key">{{ chipLabel(key) }}</button>
@@ -50,6 +51,11 @@ import { appendPlaceholder, renderTemplate, unknownPlaceholders } from '../autom
     :host { display: block; }
     .editor { display: grid; gap: 0.35rem; }
     textarea { width: 100%; }
+    /* phones: the placeholder chips as one swipeable row instead of four wrapped rows under every message (design review B5) */
+    @media (max-width: 47.99rem) {
+      .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -0.25rem; padding: 0.1rem 0.25rem; }
+      .chips > li { flex: none; }
+    }
   `,
 })
 export class TemplateEditorComponent {

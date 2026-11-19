@@ -151,9 +151,49 @@ import { SkeletonPreset, SkeletonPresetComponent } from './skeleton-presets.comp
       font-size: 0.78rem;
       font-weight: 600;
     }
+    /*
+     * The content is a one-column grid that takes the host's gap (1rem, compact 0.5rem; a page sets another one with
+     * "fs-data-state { gap: … }"). Pages lay out their cards with ":host { display: grid; gap }", but the cards sit in
+     * this wrapper, so before it was a grid they touched each other (design review A5, B2, C1, D1). The grid track is
+     * "minmax(0, 1fr)" so a wide child cannot widen the page.
+     */
     .ds__content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: inherit;
       min-width: 0;
       transition: filter 200ms ease;
+    }
+    /*
+     * Side effects of the grid, neutralised with zero specificity so page rules still win:
+     * - inline-level children (a link button, a select) keep their own width instead of stretching to the row;
+     * - browser margins of text blocks between siblings no longer add to the gap (block flow collapsed them);
+     * - dialog/popover hosts (empty or only a fixed overlay) do not become rows with a gap of their own;
+     * - a page header inside the content keeps its usual distance to the first card.
+     */
+    :host ::ng-deep :where(.ds__content) > :where(a, button, span, label, img, p-button, p-select, p-multiselect) {
+      justify-self: start;
+    }
+    :host ::ng-deep :where(.ds__content) > :where(p, h1, h2, h3, h4, ul, ol, dl):where(:not(:first-child)) {
+      margin-top: 0;
+    }
+    :host ::ng-deep :where(.ds__content) > :where(p, h1, h2, h3, h4, ul, ol, dl):where(:not(:last-child)) {
+      margin-bottom: 0;
+    }
+    :host ::ng-deep :where(.ds__content) > :where(p-dialog, p-popover, p-drawer, p-confirmdialog, p-toast):where(:not(:has(*))) {
+      display: none;
+    }
+    :host ::ng-deep :where(.ds__content) > :where(p-dialog, p-popover, p-drawer, p-confirmdialog, p-toast):where(:has(*)),
+    :host ::ng-deep :where(.ds__content) > :where(:has(> :is(p-dialog, p-popover, p-drawer, p-confirmdialog))):where(:not(:has(> :not(p-dialog, p-popover, p-drawer, p-confirmdialog)))) {
+      display: contents;
+    }
+    :host ::ng-deep :where(.ds__content) > fs-page-header {
+      margin-bottom: 0.5rem;
+    }
+    @media (max-width: 47.99rem) {
+      :host ::ng-deep :where(.ds__content) > fs-page-header {
+        margin-bottom: 0.1rem;
+      }
     }
     /* Stale data is desaturated instead of faded: fading drops muted text below WCAG AA contrast. */
     .ds__content--stale {

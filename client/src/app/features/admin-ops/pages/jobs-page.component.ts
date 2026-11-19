@@ -35,12 +35,19 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
             <tbody>
               @for (job of list; track job.name) {
                 <tr data-testid="adminOps.jobs.row" [attr.data-job]="job.name" [attr.data-outcome]="job.lastRun?.outcome ?? 'NEVER'">
-                  <th scope="row"><code>{{ job.name }}</code></th>
-                  <td [attr.data-label]="'adminOps.jobs.cron' | t"><code class="muted">{{ job.cron ?? '–' }}</code></td>
+                  <th scope="row">
+                    <code>{{ job.name }}</code>
+                    @if (job.cron) {
+                      <code class="muted cron-inline">{{ job.cron }}</code>
+                    }
+                  </th>
+                  <td class="cron-col" [attr.data-label]="'adminOps.jobs.cron' | t"><code class="muted">{{ job.cron ?? '–' }}</code></td>
                   <td [attr.data-label]="'adminOps.jobs.lastRun' | t">
                     @if (job.lastRun; as run) {
-                      {{ run.startedAt | fsDate: 'dateTime' }}
-                      <span class="muted">· {{ 'adminOps.jobs.trigger.' + run.trigger | t }}</span>
+                      <span class="fs-dot-list">
+                        <span>{{ run.startedAt | fsDate: 'dateTime' }}</span>
+                        <span class="muted">{{ 'adminOps.jobs.trigger.' + run.trigger | t }}</span>
+                      </span>
                     } @else {
                       <span class="muted">{{ 'adminOps.jobs.never' | t }}</span>
                     }
@@ -56,7 +63,7 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
                       <span class="badge badge--HALF_OPEN" data-testid="adminOps.jobs.locked">{{ 'adminOps.jobs.locked' | t }}</span>
                     }
                   </td>
-                  <td class="num">
+                  <td class="num actions--corner">
                     <p-button
                       [label]="'adminOps.jobs.run' | t"
                       icon="pi pi-play"

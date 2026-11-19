@@ -30,11 +30,12 @@ interface MyResources {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'resources.mine.title' | t" [subtitle]="'resources.mine.subtitle' | t" icon="pi pi-th-large">
+      <!-- primary action first (design review C18) -->
+      <p-button [label]="'resources.mine.add' | t" icon="pi pi-plus" [disabled]="!canAdd()" (onClick)="adding.set(true)" data-testid="resources.mine.add" />
       <p-button [label]="'resources.mine.favourites' | t" icon="pi pi-star" severity="secondary" [outlined]="true" routerLink="/resources/favourites" data-testid="resources.mine.favourites" />
       @if (homeRegionId(); as regionId) {
         <p-button [label]="'resources.mine.region' | t" icon="pi pi-map" severity="secondary" [outlined]="true" [routerLink]="['/regions', regionId, 'resources']" data-testid="resources.mine.region" />
       }
-      <p-button [label]="'resources.mine.add' | t" icon="pi pi-plus" [disabled]="!canAdd()" (onClick)="adding.set(true)" data-testid="resources.mine.add" />
     </fs-page-header>
 
     @if (resources.data(); as mine) {

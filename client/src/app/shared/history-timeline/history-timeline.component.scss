@@ -130,6 +130,12 @@
 }
 
 /* --- list ------------------------------------------------------------------------------------- */
+/* the count, day groups and paginator keep their own margins: the data-state content grid would add its gap on top,
+   and the date chip no longer read as the heading of its cards (sign-off R2) */
+fs-data-state ::ng-deep .ds__content {
+  gap: 0;
+}
+
 .ht__count {
   margin: 0 0 0.75rem;
   color: var(--fs-text-muted);

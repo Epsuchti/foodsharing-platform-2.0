@@ -109,7 +109,7 @@ const PERMANENT = 0;
                     }
                   </td>
                   <td [attr.data-label]="'adminSettings.ipBlocks.until' | t">{{ block.expiresAt ? (block.expiresAt | fsDate: 'dateTime') : ('adminSettings.ipBlocks.permanent' | t) }}</td>
-                  <td class="actions">
+                  <td class="actions actions--corner">
                     <p-button
                       icon="pi pi-trash"
                       severity="danger"
@@ -166,7 +166,7 @@ const PERMANENT = 0;
                   </td>
                   <td [attr.data-label]="'adminSettings.ipBlocks.auto.level' | t">{{ block.level }}</td>
                   <td [attr.data-label]="'adminSettings.ipBlocks.until' | t">{{ block.expiresAt | fsDate: 'dateTime' }}</td>
-                  <td class="actions">
+                  <td class="actions actions--corner">
                     <p-button
                       icon="pi pi-lock-open"
                       severity="danger"

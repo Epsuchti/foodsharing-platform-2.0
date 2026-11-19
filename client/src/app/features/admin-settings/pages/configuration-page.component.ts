@@ -26,7 +26,7 @@ interface ConfigGroup {
 }
 
 /** Groups with a heading text; other key prefixes show the prefix itself. */
-const KNOWN_GROUPS = ['support', 'petition', 'donation', 'statistics', 'oauth'];
+const KNOWN_GROUPS = ['support', 'petition', 'donation', 'statistics', 'oauth', 'messaging'];
 
 /**
  * `/admin/configuration` (C14, ORGA): every configuration value grouped by its key prefix, with an input that
@@ -78,9 +78,8 @@ const KNOWN_GROUPS = ['support', 'petition', 'donation', 'statistics', 'oauth'];
               @let type = typeOf(entry);
               @let inputId = 'config-' + entry.key;
               <li class="row" data-testid="adminSettings.configuration.row" [attr.data-key]="entry.key" [attr.data-type]="type">
-                <div class="field">
+                <div class="field" [class.field--switch]="type === 'BOOLEAN'">
                   <label [for]="inputId">{{ labelOf(entry.key) }}</label>
-                  <code class="muted">{{ entry.key }}</code>
                   @if (type === 'BOOLEAN') {
                     <p-toggleswitch
                       [inputId]="inputId"
@@ -102,33 +101,39 @@ const KNOWN_GROUPS = ['support', 'petition', 'donation', 'statistics', 'oauth'];
                       data-testid="adminSettings.configuration.input"
                     />
                   }
-                  <span class="muted" [id]="inputId + '-hint'">
-                    {{ 'adminSettings.configuration.type.' + type | t }}
-                    · {{ 'adminSettings.configuration.default' | t: { value: entry.defaultValue || '–' } }}
-                    @if (entry.updatedAt) {
-                      @if (entry.updatedBy) {
-                        · {{ 'adminSettings.configuration.changedAtBy' | t: { date: (entry.updatedAt | fsDate: 'dateTime'), name: entry.updatedBy.displayName } }}
-                      } @else {
-                        · {{ 'adminSettings.configuration.changedAt' | t: { date: (entry.updatedAt | fsDate: 'dateTime') } }}
+                  <!-- key, type, default and last change on one muted line; "use default" sits next to the default (design review D10) -->
+                  <div class="config-meta">
+                    <code class="muted">{{ entry.key }}</code>
+                    <span class="muted" [id]="inputId + '-hint'">
+                      {{ 'adminSettings.configuration.type.' + type | t }}
+                      · {{ 'adminSettings.configuration.default' | t: { value: entry.defaultValue || '–' } }}
+                      @if (entry.updatedAt) {
+                        @if (entry.updatedBy) {
+                          · {{ 'adminSettings.configuration.changedAtBy' | t: { date: (entry.updatedAt | fsDate: 'dateTime'), name: entry.updatedBy.displayName } }}
+                        } @else {
+                          · {{ 'adminSettings.configuration.changedAt' | t: { date: (entry.updatedAt | fsDate: 'dateTime') } }}
+                        }
                       }
+                    </span>
+                    @if (draftOf(entry) !== entry.defaultValue) {
+                      <!-- a small inline link at the end of the meta line, not a button row of its own (D10) -->
+                      <button
+                        type="button"
+                        class="link-btn"
+                        (click)="setDraft(entry.key, entry.defaultValue)"
+                        data-testid="adminSettings.configuration.useDefault"
+                      >
+                        <i class="pi pi-undo" aria-hidden="true"></i>{{ 'adminSettings.configuration.useDefault' | t }}
+                      </button>
                     }
-                  </span>
+                  </div>
                   @if (errorOf(entry.key); as error) {
                     <p class="field-error" role="alert" data-testid="adminSettings.configuration.error">{{ error }}</p>
                   }
                 </div>
-                <div class="row__actions">
-                  @if (draftOf(entry) !== entry.defaultValue) {
-                    <p-button
-                      [label]="'adminSettings.configuration.useDefault' | t"
-                      icon="pi pi-undo"
-                      size="small"
-                      severity="secondary"
-                      [text]="true"
-                      (onClick)="setDraft(entry.key, entry.defaultValue)"
-                      data-testid="adminSettings.configuration.useDefault"
-                    />
-                  }
+                <!-- Save appears only once the value was changed (a disabled button on every row read as broken, D10);
+                     it stays in the DOM, disabled, so its state can still be checked -->
+                <div class="row__actions" [class.row__actions--idle]="!isDirty(entry) && savingKey() !== entry.key">
                   <p-button
                     [label]="'common.save' | t"
                     icon="pi pi-check"

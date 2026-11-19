@@ -294,6 +294,43 @@ import { QUIZ_ICONS, localized, quizKindOf } from '../quiz-kind';
       flex-wrap: wrap;
       gap: 0.35rem;
     }
+    /* phones: questions as a divided list (no card inside the card); the actions sit on the badge line (D11) */
+    @media (max-width: 47.99rem) {
+      .questions {
+        gap: 0;
+      }
+      .question {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.35rem 0.75rem;
+        padding: 0.65rem 0;
+        border: 0;
+        border-top: 1px solid var(--fs-border);
+        border-radius: 0;
+      }
+      .question:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .question__no {
+        align-self: start;
+      }
+      .question__main {
+        display: contents;
+      }
+      .question__text {
+        grid-column: 2 / -1;
+        grid-row: 1;
+      }
+      .badges {
+        grid-column: 2;
+        grid-row: 2;
+      }
+      .question__actions {
+        grid-column: 3;
+        grid-row: 2;
+      }
+    }
     .badge {
       padding: 0.08rem 0.5rem;
       border-radius: 999px;

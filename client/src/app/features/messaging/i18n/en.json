@@ -20,6 +20,7 @@
   "messaging.retry": "Send again",
   "messaging.composer": "Message",
   "messaging.composerPlaceholder": "Write a message … (@ mentions someone)",
+  "messaging.composerPlaceholderShort": "Write a message …",
   "messaging.send": "Send",
   "messaging.mentionSuggestions": "Mention people",
   "messaging.search": "Search conversations",

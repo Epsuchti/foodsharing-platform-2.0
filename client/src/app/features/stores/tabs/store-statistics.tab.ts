@@ -100,7 +100,7 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
           <p class="hint" data-testid="stores.statistics.weightHint">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
             @if (s.weightCategory; as category) {
-              {{ 'stores.statistics.weightHint' | t: { category: category.label, kg: (category.averageKg | number: '1.0-1') ?? '' } }}
+              {{ 'stores.statistics.weightHint' | t: { category: ('stores.weight.' + category.code | t), kg: (category.averageKg | number: '1.0-1') ?? '' } }}
             } @else {
               {{ 'stores.statistics.noWeight' | t }}
             }
@@ -234,6 +234,18 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
     .flag--manager { color: var(--fs-primary-strong); }
     .flag--former { color: var(--fs-text-muted); }
     .empty-filter { display: grid; justify-items: center; gap: 0.5rem; }
+    /*
+     * phones (design review B14): the number columns take only what they need (their headers may wrap, the date is
+     * smaller), the member column takes the rest, so names are no longer cut after a few letters
+     */
+    @media (max-width: 47.99rem) {
+      .members th:first-child { width: 100%; }
+      .members th.num { white-space: normal; hyphens: none; line-height: 1.2; }
+      .members td.date { font-size: 0.85rem; }
+      .members th, .members td { padding-inline: 0.2rem; }
+      /* a long name wraps to a second line instead of being cut ("Marco Berna…", sign-off B14) */
+      .members fs-user-chip ::ng-deep .chip__name-text { white-space: normal; overflow-wrap: anywhere; }
+    }
   `,
 })
 export class StoreStatisticsTab {
