@@ -178,28 +178,12 @@
   display: none;
 }
 
-// phones: a compact card; the free-places tag sits beside the mode, the date reads as the main fact
+// phones: a compact card where the date reads as the main fact. One column: the card host belongs to fs-einab-card
+// (view encapsulation), so a two-column grid set from here could not place the card's children (sign-off 1.1–1.3).
 @media (max-width: 30rem) {
   .einab {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.4rem 0.75rem;
+    gap: 0.45rem;
     padding: 0.75rem 0.9rem;
-  }
-
-  .einab > * {
-    grid-column: 1 / -1;
-  }
-
-  .einab > .einab__head {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .einab > .tags {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
-    justify-content: flex-end;
   }
 
   .einab__title strong + .muted {
@@ -315,6 +299,23 @@
 @media (max-width: 39.99rem) {
   .table > tbody > tr {
     padding-inline: 0.9rem;
+  }
+
+  // the table box has a border but no padding of its own: the first and last row keep their inner space (sign-off R5)
+  .table > tbody > tr:first-child {
+    padding-top: 0.75rem;
+  }
+
+  .table > tbody > tr:last-child {
+    padding-bottom: 0.75rem;
+  }
+
+  .table > tbody > tr > .actions--corner {
+    inset-inline-end: 0.5rem;
+  }
+
+  .table > tbody > tr:first-child > .actions--corner {
+    inset-block-start: 0.4rem;
   }
 
   .table > tbody > tr > td.num {

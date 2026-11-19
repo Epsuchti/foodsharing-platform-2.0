@@ -12,6 +12,7 @@ import { DateTimePipe } from '../../../core/dates/date-time.pipe';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { MailViewComponent } from '../components/mail-view.component';
 import { MailboxManageDialogComponent } from '../components/mailbox-manage-dialog.component';
 import { MailboxStore } from '../mailboxes.resource';
@@ -40,6 +41,7 @@ const FOLDERS: { id: MailFolder; icon: string }[] = [
     MailboxManageDialogComponent,
     PageHeaderComponent,
     RouterLink,
+    ScrollHintDirective,
     TPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,7 +75,8 @@ const FOLDERS: { id: MailFolder; icon: string }[] = [
                   }
                 </div>
                 <span class="box__address">{{ box.address }}</span>
-                <ul class="folders">
+                <!-- phones: a chip row that fades at the edge where more folders wait (sign-off) -->
+                <ul class="folders" fsScrollHint>
                   @for (f of folders; track f.id) {
                     <li>
                       <a

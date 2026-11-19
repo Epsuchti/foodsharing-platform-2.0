@@ -52,7 +52,7 @@ import { MarkdownPipe } from '../../core/markdown/markdown.pipe';
       font-size: 1.25rem;
     }
     .fs-markdown .md h3 {
-      font-size: 1.08rem;
+      font-size: 1.05rem;
     }
     .fs-markdown .md h4 {
       font-size: 1rem;
@@ -120,12 +120,11 @@ import { MarkdownPipe } from '../../core/markdown/markdown.pipe';
       border: 1px solid var(--fs-border);
       text-align: left;
     }
+    /* phones: a smaller h1; h2 stays clearly above h3 (1.25 / 1.05 rem), so a chapter heading stands out from a
+       sub-heading like "Das bedeutet:" (sign-off) */
     @media (max-width: 29.99rem) {
       .fs-markdown .md h1 {
-        font-size: 1.3rem;
-      }
-      .fs-markdown .md h2 {
-        font-size: 1.15rem;
+        font-size: 1.4rem;
       }
     }
   `,
@@ -143,6 +142,12 @@ export class MarkdownComponent {
       const me = this.session.user()?.id;
       for (const link of Array.from(this.host.nativeElement.querySelectorAll<HTMLAnchorElement>('a.fs-mention'))) {
         link.classList.toggle('fs-mention--me', !!me && link.getAttribute('href') === `/profile/${me}`);
+      }
+      // a wide table or code block scrolls sideways: without a link inside, the keyboard reaches it only as a tab stop
+      for (const box of Array.from(this.host.nativeElement.querySelectorAll<HTMLElement>('.md table, .md pre'))) {
+        if (box.scrollWidth - box.clientWidth > 1 && !box.querySelector('a[href], button, input')) {
+          box.tabIndex = 0;
+        }
       }
     });
   }

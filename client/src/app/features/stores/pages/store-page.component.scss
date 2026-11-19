@@ -236,6 +236,14 @@
   .hero--compact {
     margin-bottom: 0.5rem;
 
+    /* one line with an ellipsis: the slim bar stays slim next to the icon buttons (sign-off R6); the full name is on
+       the overview and in the accessible text */
+    .hero__name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .hero__actions {
       gap: 0.4rem;
     }

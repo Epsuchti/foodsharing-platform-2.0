@@ -44,8 +44,10 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
                   <td class="cron-col" [attr.data-label]="'adminOps.jobs.cron' | t"><code class="muted">{{ job.cron ?? '–' }}</code></td>
                   <td [attr.data-label]="'adminOps.jobs.lastRun' | t">
                     @if (job.lastRun; as run) {
-                      {{ run.startedAt | fsDate: 'dateTime' }}
-                      <span class="muted">· {{ 'adminOps.jobs.trigger.' + run.trigger | t }}</span>
+                      <span class="fs-dot-list">
+                        <span>{{ run.startedAt | fsDate: 'dateTime' }}</span>
+                        <span class="muted">{{ 'adminOps.jobs.trigger.' + run.trigger | t }}</span>
+                      </span>
                     } @else {
                       <span class="muted">{{ 'adminOps.jobs.never' | t }}</span>
                     }

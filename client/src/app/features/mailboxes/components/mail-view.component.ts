@@ -190,6 +190,11 @@ import { formatSize } from '../mailboxes.resource';
         min-height: 2.75rem;
         justify-content: center;
       }
+      /* the icon buttons share one look: no border on reply-all and forward either (sign-off) */
+      .actions ::ng-deep .action--compact.p-button-outlined {
+        border-color: transparent;
+        background: transparent;
+      }
     }
     .attachments {
       display: grid;

@@ -4,10 +4,10 @@
   gap: 1rem;
 }
 
-// Equal columns instead of content-sized selects; one full-width select per line on a phone (design review D7).
+// Equal columns instead of content-sized selects; the two short selects stay side by side on a phone (D7, sign-off).
 .filters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
   gap: 0.75rem 1rem;
   align-items: end;
   max-width: 48rem;

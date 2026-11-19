@@ -149,12 +149,15 @@ function pathOf(url: string): string {
 
 /**
  * The bar drops its action on the journey page, on its step pages (`/onboarding/…`) and on the page the action leads
- * to: the user is already there, and the page's own primary action is the next step (design review A8).
+ * to: the user is already there, and the page's own primary action is the next step (design review A8). On the
+ * dashboard too: while the journey is open (the only time the bar shows) the dashboard has its own "your next step"
+ * card with the same action, so the bar's button showed the next step twice (design review B18).
  */
 export function hidesJourneyAction(url: string, actionRoute: string | undefined): boolean {
   return (
     isJourneyPage(url) ||
     /^\/onboarding\/[^?#]/.test(url) ||
+    pathOf(url) === '/dashboard' ||
     (!!actionRoute && pathOf(url) === pathOf(actionRoute))
   );
 }

@@ -57,7 +57,7 @@ import { SettingsTabsComponent } from '../components/settings-tabs.component';
               <div class="row__actions">
                 <p-button
                   [label]="(toggle.enabled ? 'adminSettings.toggles.disable' : 'adminSettings.toggles.enable') | t"
-                  [icon]="toggle.enabled ? 'pi pi-power-off' : 'pi pi-check'"
+                  icon="pi pi-power-off"
                   [severity]="toggle.enabled ? 'danger' : 'primary'"
                   [outlined]="toggle.enabled"
                   size="small"

@@ -123,7 +123,7 @@ import { CHAIN_STATUSES, mayAdministrateChains } from '../store-chains.util';
     }
     .field { display: grid; gap: 0.3rem; font-weight: 600; }
     .wrap { padding: 0.5rem 1rem; overflow-x: auto; }
-    .table { width: 100%; border-collapse: collapse; @include table.stack; }
+    .table { width: 100%; border-collapse: collapse; @include table.stack($label: 9rem); }
     .table th, .table td { padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--fs-border); text-align: left; }
     .table td:first-child a { font-weight: 650; }
     .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }

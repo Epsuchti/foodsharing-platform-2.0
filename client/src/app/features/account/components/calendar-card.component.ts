@@ -206,12 +206,14 @@ import {
     @media (max-width: 47.99rem) {
       .reminders {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+        gap: 0.15rem 0.75rem;
         margin-bottom: 0.5rem;
       }
+      /* each label on one line ("15 Minuten vorher" wrapped in a half-width column, sign-off 1.9) */
       .reminder {
         min-height: 2.75rem;
+        white-space: nowrap;
       }
     }
     .field {

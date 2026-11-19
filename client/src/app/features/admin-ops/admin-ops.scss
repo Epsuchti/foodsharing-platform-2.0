@@ -115,6 +115,8 @@
   align-items: center;
   gap: 0.5rem;
 
+  // the host too: the global "p-button { width: fit-content }" kept it at the label's width (sign-off 1.7)
+  p-button,
   ::ng-deep .p-button {
     width: 100%;
   }
@@ -161,13 +163,19 @@ p-selectbutton {
     width: 100%;
   }
 
+  // one control: one background and radius around the four options (sign-off: two grey bars with odd corners)
   p-selectbutton {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.2rem;
     width: 100%;
+    padding: 0.2rem;
+    border-radius: var(--fs-radius-md);
+    background: var(--fs-surface-muted);
 
     ::ng-deep .p-togglebutton {
       width: 100%;
+      border-radius: var(--fs-radius-sm);
     }
   }
 }
@@ -219,6 +227,12 @@ p-selectbutton {
     // jobs: the schedule is one muted line under the name instead of a labelled block of its own
     > tbody > tr > .cron-col {
       display: none;
+    }
+
+    // the title is at least as tall as the corner button, so the next line never runs under it (a job without a
+    // schedule line, sign-off)
+    > tbody > tr:has(> .actions--corner) > :first-child {
+      min-height: 2.5rem;
     }
   }
 }

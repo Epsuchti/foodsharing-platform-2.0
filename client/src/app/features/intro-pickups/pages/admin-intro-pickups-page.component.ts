@@ -118,7 +118,7 @@ type Tab = 'einabs' | 'bookings' | 'guides';
                       <td [attr.data-label]="'introPickups.admin.col.einab' | t">{{ 'common.introCategory.' + einab.category | t }}@if (einab.businessName) { · {{ einab.businessName }} }</td>
                       <td [attr.data-label]="'introPickups.admin.col.guide' | t">{{ einab.guide.displayName }}</td>
                       <td class="num" [attr.data-label]="'introPickups.admin.col.booked' | t">{{ bookedCount(einab) }} / {{ einab.slots.length }}</td>
-                      <td class="row-actions">
+                      <td class="row-actions actions--corner">
                         @if (!einab.booked) {
                           <p-button icon="pi pi-trash" [label]="'introPickups.guide.delete' | t" size="small" [text]="true" severity="danger" (onClick)="deleting.set(einab)" data-testid="introPickups.admin.delete" />
                         }

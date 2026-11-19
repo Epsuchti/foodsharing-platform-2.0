@@ -94,6 +94,8 @@ import { UserPickerComponent } from '../../../shared/user-picker/user-picker.com
         flex-direction: column-reverse;
         align-items: stretch;
       }
+      /* the host too: the global "p-button { width: fit-content }" kept it at the label's width (sign-off 1.7) */
+      .actions p-button,
       .actions ::ng-deep .p-button {
         width: 100%;
       }

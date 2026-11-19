@@ -97,11 +97,11 @@ import { datesValid, optionErrors } from '../polls.resource';
     label, legend { margin-top: 0.4rem; font-weight: 600; }
     fieldset { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; min-width: 0; margin: 0; padding: 0; border: 0; }
     .option { display: flex; align-items: center; gap: 0.25rem; }
-    .option input { flex: 1; width: auto; }
+    .option input { flex: 1; width: auto; min-width: 0; }
     .option label { flex: none; }
-    /* phones: the option text across the row, move/remove buttons right-aligned below it, so long options are not cut
-       while editing (design review C16) */
-    @media (max-width: 29.99rem) {
+    /* small phones: the option text across the row, move/remove buttons right-aligned below it, so long options are
+       not cut while editing (design review C16); 390–430 px phones keep one row (sign-off) */
+    @media (max-width: 22.49rem) {
       .option { flex-wrap: wrap; row-gap: 0; }
       .option input { flex: 1 1 100%; }
       .option p-button:first-of-type { margin-left: auto; }

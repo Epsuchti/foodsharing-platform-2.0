@@ -79,8 +79,8 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
               <button type="button" class="audit__head" [attr.aria-expanded]="open().has(audit.id)" (click)="toggle(audit.id)" [attr.data-testid]="testId() + '.toggle'">
                 <span [class]="'badge badge--' + tone(audit.status)" [attr.data-testid]="testId() + '.status'">{{ statusLabel(audit) | t }}</span>
                 <span class="badge">{{ 'automation.kind.' + audit.kind | t }}</span>
-                <!-- parts as separate items: the "·" opens the next part and never ends a line; no "–" for a missing person (design review B13) -->
-                <span class="grow audit__title">
+                <!-- parts as separate items: the "·" never starts or ends a line (.fs-dot-list); no "–" for a missing person (design review B13) -->
+                <span class="grow audit__title fs-dot-list">
                   @if (showStore()) {
                     <strong class="audit__part">{{ audit.storeName }}</strong>
                   }
@@ -140,9 +140,10 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
       display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; width: 100%;
       padding: 0.6rem 0.8rem; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
     }
-    .audit__title { display: flex; flex-wrap: wrap; column-gap: 0.35rem; min-width: 0; overflow-wrap: anywhere; }
-    .audit__part + .audit__part::before { content: '·'; margin-inline-end: 0.35rem; color: var(--fs-text-muted); font-weight: 400; }
+    /* the "·" between the parts never starts or ends a line (global .fs-dot-list, sign-off B13) */
+    .audit__title { overflow-wrap: anywhere; }
     .audit__part--date { white-space: nowrap; }
+    .audit__head time { white-space: nowrap; }
     /* date range: "from" and "to" side by side, each as wide as its half (design review B12, C5) */
     .range { display: grid; grid-template-columns: repeat(2, minmax(0, 12rem)); gap: 0.6rem; }
     .range fs-date-input { width: 100%; }

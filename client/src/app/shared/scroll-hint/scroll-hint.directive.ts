@@ -59,12 +59,28 @@ export class ScrollHintDirective {
   }
 }
 
-/** Sets `data-more-start` / `data-more-end` on a horizontally scrolling element (1px tolerance for sub-pixel widths). */
+/** Elements a keyboard user can tab to; a row with one of them can be scrolled by moving the focus through it. */
+const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Sets `data-more-start` / `data-more-end` on a horizontally scrolling element (1px tolerance for sub-pixel widths).
+ * A row that scrolls but holds nothing focusable (status pills, a preview strip) becomes a tab stop itself while it
+ * scrolls, so it can be scrolled with the arrow keys (WCAG 2.1.1, axe "scrollable-region-focusable"); the row keeps
+ * its own name (`aria-label`). A tabindex the template sets is left alone.
+ */
 export function updateScrollHint(el: HTMLElement): void {
   const max = el.scrollWidth - el.clientWidth;
   const left = Math.abs(el.scrollLeft);
   el.toggleAttribute('data-more-start', max > 1 && left > 1);
   el.toggleAttribute('data-more-end', max > 1 && left < max - 1);
+  const added = el.hasAttribute('data-scroll-focus');
+  if (max > 1 && !added && !el.hasAttribute('tabindex') && !el.querySelector(FOCUSABLE)) {
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('data-scroll-focus', '');
+  } else if (max <= 1 && added) {
+    el.removeAttribute('tabindex');
+    el.removeAttribute('data-scroll-focus');
+  }
 }
 
 /**

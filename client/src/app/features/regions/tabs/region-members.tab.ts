@@ -117,6 +117,24 @@ interface MemberQuery {
     .member:first-child {
       border-top: 0;
     }
+    .member__actions:empty {
+      display: none;
+    }
+    /* phones, members without admin actions: the phone button sits right of the name instead of on a row of its own
+       (sign-off C6) */
+    @media (max-width: 47.99rem) {
+      .member:has(> .member__actions > fs-phone-button:only-child) {
+        grid-template-columns: minmax(0, 1fr) auto;
+        > .member__meta {
+          grid-column: 1 / -1;
+        }
+        > .member__actions {
+          grid-column: 2;
+          grid-row: 1;
+          align-self: center;
+        }
+      }
+    }
     .member__meta {
       display: flex;
       flex-wrap: wrap;

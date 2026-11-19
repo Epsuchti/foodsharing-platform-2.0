@@ -31,9 +31,15 @@ describe('hidesJourneyAction', () => {
     expect(hidesJourneyAction('/learn/', '/learn')).toBe(true);
   });
 
+  it('hides the action on the dashboard, which shows the next step in its own card', () => {
+    expect(hidesJourneyAction('/dashboard', '/onboarding/profile')).toBe(true);
+    expect(hidesJourneyAction('/dashboard?tab=x', '/intro-pickups')).toBe(true);
+    expect(hidesJourneyAction('/dashboard', undefined)).toBe(true);
+  });
+
   it('keeps the action everywhere else', () => {
-    expect(hidesJourneyAction('/dashboard', '/onboarding/profile')).toBe(false);
+    expect(hidesJourneyAction('/quizzes', '/onboarding/profile')).toBe(false);
     expect(hidesJourneyAction('/learn/hygiene', '/learn')).toBe(false);
-    expect(hidesJourneyAction('/dashboard', undefined)).toBe(false);
+    expect(hidesJourneyAction('/quizzes', undefined)).toBe(false);
   });
 });

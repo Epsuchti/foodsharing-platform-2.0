@@ -99,9 +99,16 @@ import { TPipe } from '../../core/i18n/t.pipe';
       font-weight: 750;
       letter-spacing: -0.025em;
       line-height: 1.15;
-      /* long one-word titles ("Iifüehrigsabholige verwalte") hyphenate or break instead of overflowing at 360px (C18) */
-      overflow-wrap: anywhere;
-      hyphens: auto;
+      /* a word longer than the line breaks instead of overflowing at 360px (C18); ordinary titles wrap at word
+         boundaries, they are not hyphenated (sign-off 1.8) */
+      overflow-wrap: break-word;
+      hyphens: manual;
+    }
+    /* very small phones only: a long compound word hyphenates at a syllable instead of breaking anywhere */
+    @media (max-width: 22.99rem) {
+      .ph__title {
+        hyphens: auto;
+      }
     }
     .ph__subtitle {
       margin: 0;

@@ -100,7 +100,7 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
           <p class="hint" data-testid="stores.statistics.weightHint">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
             @if (s.weightCategory; as category) {
-              {{ 'stores.statistics.weightHint' | t: { category: category.label, kg: (category.averageKg | number: '1.0-1') ?? '' } }}
+              {{ 'stores.statistics.weightHint' | t: { category: ('stores.weight.' + category.code | t), kg: (category.averageKg | number: '1.0-1') ?? '' } }}
             } @else {
               {{ 'stores.statistics.noWeight' | t }}
             }
@@ -243,6 +243,8 @@ const MEMBER_CHIPS: StatusChip<StatisticsMemberStatus>[] = [
       .members th.num { white-space: normal; hyphens: none; line-height: 1.2; }
       .members td.date { font-size: 0.85rem; }
       .members th, .members td { padding-inline: 0.2rem; }
+      /* a long name wraps to a second line instead of being cut ("Marco Berna…", sign-off B14) */
+      .members fs-user-chip ::ng-deep .chip__name-text { white-space: normal; overflow-wrap: anywhere; }
     }
   `,
 })

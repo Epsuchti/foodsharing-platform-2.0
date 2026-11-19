@@ -104,6 +104,28 @@
   .muted {
     font-size: 0.75rem;
   }
+
+  // "use default": an inline link in the muted line (a 40 px button row on every row before, sign-off D10)
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 1.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--fs-primary-strong);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+
+    .pi {
+      font-size: 0.7rem;
+    }
+  }
 }
 
 // configuration: a switch sits right of its label on the same line

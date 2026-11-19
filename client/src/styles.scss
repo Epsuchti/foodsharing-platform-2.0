@@ -727,9 +727,12 @@
   .p-button:is(:disabled, .p-disabled):not(.p-button-loading):not(.p-button-text):not(.p-button-link):not(
       .p-button-outlined
     ) {
-    border-color: var(--fs-border-strong);
-    background: var(--fs-surface-muted);
-    color: var(--fs-text-muted);
+    /* a flat grey fill without a border: with a border it looked like the outlined secondary button (sign-off R3) */
+    border-color: transparent;
+    background: color-mix(in srgb, var(--fs-text) 11%, var(--fs-surface));
+    color: color-mix(in srgb, var(--fs-text-muted) 85%, var(--fs-surface));
+    box-shadow: none;
+    cursor: not-allowed;
     opacity: 1;
   }
 
@@ -920,6 +923,34 @@
 
   .fs-muted {
     color: var(--fs-text-muted);
+  }
+
+  /*
+   * Parts of one line separated by "·" that wrap without a separator at a line start or end (sign-off B13, C5, jobs):
+   * every part draws its "·" in front of it, the row is pulled left by the width of one separator and its first
+   * 0.9em are clipped away, so the separator of the first part on each line is cut off.
+   * `<span class="fs-dot-list"><span>a</span><span>b</span></span>`
+   */
+  .fs-dot-list {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 0;
+    margin-inline-start: -0.9em;
+    clip-path: inset(-0.25em -0.25em -0.25em 0.9em);
+  }
+  [dir='rtl'] .fs-dot-list {
+    clip-path: inset(-0.25em 0.9em -0.25em -0.25em);
+  }
+  .fs-dot-list > * {
+    min-width: 0;
+  }
+  .fs-dot-list > ::before {
+    content: '·';
+    display: inline-block;
+    width: 0.9em;
+    color: var(--fs-text-muted);
+    font-weight: 400;
+    text-align: center;
   }
 
   .fs-visually-hidden {

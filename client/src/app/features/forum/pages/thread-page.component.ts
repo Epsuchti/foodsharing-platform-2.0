@@ -113,8 +113,9 @@ import { quotePost } from '../forum.resource';
     /* the two follow options as one compact group, not two rows 56 px apart (design review C14) */
     .follow { margin: 0; padding: 0; border: 0; gap: 0.25rem 1rem; }
     .follow .check { display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--fs-target-sm); }
+    /* phones: one option per line, each label on one line (side by side both labels wrapped, sign-off) */
     @media (max-width: 29.99rem) {
-      .follow { flex-wrap: nowrap; font-size: 0.9rem; }
+      .follow { display: grid; gap: 0; }
     }
     .moderation, .rename, .composer { padding: 0.75rem 1rem; }
     .rename input { flex: 1 1 14rem; }

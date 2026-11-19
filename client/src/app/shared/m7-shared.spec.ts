@@ -373,6 +373,27 @@ describe('MarkerFilterBarComponent', () => {
     expect([el.hasAttribute('data-more-start'), el.hasAttribute('data-more-end')]).toEqual([false, false]);
   });
 
+  it('makes a scrolling row without focusable items a tab stop while it scrolls', () => {
+    const el = document.createElement('div');
+    el.innerHTML = '<span>pill</span>';
+    const metrics = { scrollWidth: 600, clientWidth: 300, scrollLeft: 0 };
+    for (const key of Object.keys(metrics) as (keyof typeof metrics)[]) {
+      Object.defineProperty(el, key, { get: () => metrics[key] });
+    }
+    updateScrollHint(el);
+    expect(el.getAttribute('tabindex')).toBe('0');
+    metrics.scrollWidth = 300;
+    updateScrollHint(el);
+    expect(el.hasAttribute('tabindex')).toBe(false);
+
+    const withLink = document.createElement('nav');
+    withLink.innerHTML = '<a href="/x">x</a>';
+    Object.defineProperty(withLink, 'scrollWidth', { get: () => 600 });
+    Object.defineProperty(withLink, 'clientWidth', { get: () => 300 });
+    updateScrollHint(withLink);
+    expect(withLink.hasAttribute('tabindex')).toBe(false);
+  });
+
   it('scrolls the current tab of a row to the middle only when it is hidden or under the edge fade', () => {
     const row = { left: 0, right: 400 };
     expect(scrollToReveal(row, { left: 60, right: 160 })).toBe(0);

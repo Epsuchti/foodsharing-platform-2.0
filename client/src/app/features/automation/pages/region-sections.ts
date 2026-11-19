@@ -103,14 +103,33 @@ const MAX_LINES = 5;
     .table {
       @include table.stack;
     }
+    /* phones: the store name, then its five values as one wrapping line of short "label value" pairs; a two-column
+       grid of label/value cells left about 40 px per value (pills over labels, "Bezi/rk", sign-off R1) */
     @media (max-width: 39.99rem) {
       .table > tbody > tr {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        column-gap: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.3rem 1rem;
       }
       .table > tbody > tr > td.store {
-        grid-column: 1 / -1;
+        flex: 1 1 100%;
         font-weight: 650;
+      }
+      .table > tbody > tr > [data-label] {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.35rem;
+        width: auto;
+        padding-inline-start: 0;
+        white-space: nowrap;
+        overflow-wrap: normal;
+      }
+      .table > tbody > tr > [data-label]::before {
+        float: none;
+        width: auto;
+        margin: 0;
+        padding: 0;
       }
       .table-wrap {
         overflow-x: visible;

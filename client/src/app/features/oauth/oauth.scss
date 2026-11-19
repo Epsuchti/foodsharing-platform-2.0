@@ -120,6 +120,8 @@
     grid-column: 1 / -1;
   }
 
+  // the host too: the global "p-button { width: fit-content }" left each button at its label's width (sign-off)
+  .client__actions > p-button,
   .client__actions ::ng-deep .p-button {
     width: 100%;
   }

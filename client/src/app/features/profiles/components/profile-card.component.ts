@@ -98,10 +98,13 @@ import { photoInSize } from '../profiles.util';
      * following rows and stretch to fill them instead of four ragged rows of different widths
      */
     @media (max-width: 30rem) {
-      .head__actions ::ng-deep > * { flex: 1 1 auto; }
-      .head__actions ::ng-deep > :first-child { flex-basis: 100%; }
-      .head__actions ::ng-deep > :has(.p-button-icon-only) { flex: none; }
-      .head__actions ::ng-deep .p-button:not(.p-button-icon-only) { width: 100%; }
+      /* two even columns (sign-off: the flex rows stretched every button to a row of its own) */
+      .head__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .head__actions ::ng-deep > * { min-width: 0; }
+      .head__actions ::ng-deep > :first-child { grid-column: 1 / -1; }
+      .head__actions ::ng-deep > p-button:not(:has(.p-button-icon-only)) { width: 100%; }
+      .head__actions ::ng-deep > p-button > .p-button:not(.p-button-icon-only) { width: 100%; min-width: 0; height: 100%; }
+      .head__actions ::ng-deep > :is(span, a):not(p-button) { align-self: center; justify-self: center; }
     }
     .sleep {
       display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem 1rem;

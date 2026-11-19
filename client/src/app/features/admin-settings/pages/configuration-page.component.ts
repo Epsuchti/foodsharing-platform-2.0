@@ -116,15 +116,15 @@ const KNOWN_GROUPS = ['support', 'petition', 'donation', 'statistics', 'oauth', 
                       }
                     </span>
                     @if (draftOf(entry) !== entry.defaultValue) {
-                      <p-button
-                        [label]="'adminSettings.configuration.useDefault' | t"
-                        icon="pi pi-undo"
-                        size="small"
-                        severity="secondary"
-                        [text]="true"
-                        (onClick)="setDraft(entry.key, entry.defaultValue)"
+                      <!-- a small inline link at the end of the meta line, not a button row of its own (D10) -->
+                      <button
+                        type="button"
+                        class="link-btn"
+                        (click)="setDraft(entry.key, entry.defaultValue)"
                         data-testid="adminSettings.configuration.useDefault"
-                      />
+                      >
+                        <i class="pi pi-undo" aria-hidden="true"></i>{{ 'adminSettings.configuration.useDefault' | t }}
+                      </button>
                     }
                   </div>
                   @if (errorOf(entry.key); as error) {
