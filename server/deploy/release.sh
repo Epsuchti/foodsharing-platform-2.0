@@ -93,7 +93,7 @@ if ! docker buildx inspect "${BUILDER_NAME}" > /dev/null 2>&1; then
   docker buildx create --name "${BUILDER_NAME}" --driver docker-container > /dev/null
 fi
 
-COMMON=(--builder "${BUILDER_NAME}" --file "${SERVER_DIR}/Dockerfile"
+COMMON=(--pull --builder "${BUILDER_NAME}" --file "${SERVER_DIR}/Dockerfile"
   --build-arg "JAR_FILE=${JAR_REL}" --build-arg "APP_VERSION=${VERSION}"
   --label "org.opencontainers.image.version=${VERSION}"
   --label "org.opencontainers.image.revision=$(git -C "${REPO_DIR}" rev-parse HEAD)"
