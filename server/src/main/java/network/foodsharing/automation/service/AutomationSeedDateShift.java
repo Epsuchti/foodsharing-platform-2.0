@@ -3,6 +3,8 @@ package network.foodsharing.automation.service;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import network.foodsharing.common.seed.SeedDateShiftContributor;
@@ -48,27 +50,62 @@ public class AutomationSeedDateShift implements SeedDateShiftContributor {
         for (String column : List.of("created_at", "updated_at", "pickup_at", "deadline_at")) {
             shiftTimestamp("pickup_link_pending", column, delta);
         }
-        long days = delta.toDays();
-        if (days != 0) {
-            // Row by row, latest first when moving forward, so (region, day, key) stays unique on Postgres.
-            List<Object[]> metricRows = jdbc.query("select id, metric_day from metric_daily_count order by metric_day "
-                    + (days > 0 ? "desc" : "asc"), (rs, n) -> new Object[] {rs.getObject(1, UUID.class),
-                    rs.getDate(2)});
-            for (Object[] row : metricRows) {
-                if (row[0].toString().startsWith(SEED_PREFIX)) {
-                    jdbc.update("update metric_daily_count set metric_day = ? where id = ?",
-                            Date.valueOf(((Date) row[1]).toLocalDate().plusDays(days)), row[0]);
-                }
+        shiftMetricDays(delta.toDays());
+        shiftExcludedDates(delta);
+    }
+
+    /**
+     * Seed metric rows move by whole days, latest first when moving forward, so (region, day, key) stays unique among
+     * them. On staging the nightly archive also writes real rows for seed regions (from the seeded audits); a seed row
+     * whose target (region, day, key) is already taken by such a row is dropped instead of crashing the start.
+     */
+    void shiftMetricDays(long days) {
+        if (days == 0) {
+            return;
+        }
+        List<Object[]> metricRows = jdbc.query("select id, region_id, metric_day, metric_key from metric_daily_count "
+                + "order by metric_day " + (days > 0 ? "desc" : "asc"), (rs, n) -> new Object[] {
+                    rs.getObject(1, UUID.class), rs.getObject(2, UUID.class), rs.getDate(3), rs.getString(4)});
+        for (Object[] row : metricRows) {
+            if (!row[0].toString().startsWith(SEED_PREFIX)) {
+                continue;
+            }
+            Date shifted = Date.valueOf(((Date) row[2]).toLocalDate().plusDays(days));
+            Integer taken = jdbc.queryForObject("select count(*) from metric_daily_count where region_id = ? "
+                    + "and metric_day = ? and metric_key = ? and id <> ?", Integer.class, row[1], shifted, row[3],
+                    row[0]);
+            if (taken != null && taken > 0) {
+                jdbc.update("delete from metric_daily_count where id = ?", row[0]);
+            } else {
+                jdbc.update("update metric_daily_count set metric_day = ? where id = ?", shifted, row[0]);
             }
         }
-        // The excluded date follows the seeded one-time pickup on that day (10:00 Zurich), which moves by delta.
-        java.time.ZoneId zurich = java.time.ZoneId.of("Europe/Zurich");
-        List<Object[]> rows = jdbc.query("select id, excluded_date from pickup_policy_excluded_date",
-                (rs, n) -> new Object[] {rs.getObject(1, UUID.class), rs.getDate(2)});
+    }
+
+    /**
+     * The excluded date follows the seeded one-time pickup on that day (10:00 Zurich), which moves by delta. Latest
+     * first when moving forward so (policy, date) stays unique among seed rows; a target date a real row of the same
+     * policy already holds drops the seed row.
+     */
+    void shiftExcludedDates(Duration delta) {
+        if (delta.isZero()) {
+            return;
+        }
+        ZoneId zurich = ZoneId.of("Europe/Zurich");
+        List<Object[]> rows = jdbc.query("select id, policy_id, excluded_date from pickup_policy_excluded_date "
+                + "order by excluded_date " + (delta.isNegative() ? "asc" : "desc"), (rs, n) -> new Object[] {
+                    rs.getObject(1, UUID.class), rs.getObject(2, UUID.class), rs.getDate(3)});
         for (Object[] row : rows) {
-            if (row[0].toString().startsWith(SEED_PREFIX)) {
-                java.time.LocalDate moved = ((Date) row[1]).toLocalDate().atTime(10, 0).atZone(zurich).toInstant()
-                        .plus(delta).atZone(zurich).toLocalDate();
+            if (!row[0].toString().startsWith(SEED_PREFIX)) {
+                continue;
+            }
+            LocalDate moved = ((Date) row[2]).toLocalDate().atTime(10, 0).atZone(zurich).toInstant().plus(delta)
+                    .atZone(zurich).toLocalDate();
+            Integer taken = jdbc.queryForObject("select count(*) from pickup_policy_excluded_date where policy_id = ? "
+                    + "and excluded_date = ? and id <> ?", Integer.class, row[1], Date.valueOf(moved), row[0]);
+            if (taken != null && taken > 0) {
+                jdbc.update("delete from pickup_policy_excluded_date where id = ?", row[0]);
+            } else {
                 jdbc.update("update pickup_policy_excluded_date set excluded_date = ? where id = ?",
                         Date.valueOf(moved), row[0]);
             }
