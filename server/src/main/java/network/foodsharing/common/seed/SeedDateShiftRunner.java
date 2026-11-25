@@ -47,9 +47,17 @@ public class SeedDateShiftRunner implements ApplicationRunner {
         this.clock = clock;
     }
 
+    /**
+     * Shifting seed dates is a convenience: a failure (e.g. real staging rows colliding with a shifted seed row) rolls
+     * the shift back, keeps the anchor and is logged, but never stops the application from starting.
+     */
     @Override
     public void run(ApplicationArguments args) {
-        shiftIfNeeded();
+        try {
+            shiftIfNeeded();
+        } catch (RuntimeException e) {
+            log.error("Seed date shift failed and was rolled back; starting with unshifted seed data", e);
+        }
     }
 
     /** @return the number of days shifted (0 when already current) */

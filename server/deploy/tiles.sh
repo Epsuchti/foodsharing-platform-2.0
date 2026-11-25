@@ -48,7 +48,7 @@ WORK="$(cd "${WORK}" && pwd)"
 
 build_image() {
   log INFO "building ${IMAGE} from ${BUILDER_DIR}"
-  docker build -q --build-arg TILES_BUILDER_VERSION="${VERSION}" -t "${IMAGE}" "${BUILDER_DIR}" > /dev/null
+  docker build --pull -q --build-arg TILES_BUILDER_VERSION="${VERSION}" -t "${IMAGE}" "${BUILDER_DIR}" > /dev/null
 }
 if [[ "${BUILD_IMAGE}" == true ]]; then
   build_image || die "building ${IMAGE} failed"
