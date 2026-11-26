@@ -169,7 +169,12 @@
     display: block;
   }
 
-  span {
+  > div {
+    min-width: 0;
+  }
+
+  // only the text line, not the icon tile (`span.fs-tile`), which keeps its own colour and size
+  > div > span {
     color: var(--fs-text-muted);
     font-size: 0.93rem;
   }
