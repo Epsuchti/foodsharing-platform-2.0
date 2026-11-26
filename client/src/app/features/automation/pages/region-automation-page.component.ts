@@ -7,6 +7,7 @@ import { isAmbassador } from '../../../core/auth/permission.util';
 import { loadResource } from '../../../core/data/data-state';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { RegionAutomationContext } from '../region-automation.context';
 
 /**
@@ -16,7 +17,7 @@ import { RegionAutomationContext } from '../region-automation.context';
  */
 @Component({
   selector: 'fs-region-automation-page',
-  imports: [PageHeaderComponent, RouterLink, RouterLinkActive, RouterOutlet, TPipe],
+  imports: [PageHeaderComponent, RouterLink, RouterLinkActive, RouterOutlet, ScrollHintDirective, TPipe],
   providers: [RegionAutomationContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -27,7 +28,7 @@ import { RegionAutomationContext } from '../region-automation.context';
       [backLink]="['/regions', ctx.regionId()]"
       [backLabel]="'automation.region.back' | t"
     />
-    <nav class="subnav" [attr.aria-label]="'automation.region.nav' | t" data-testid="automation.region.nav">
+    <nav class="subnav" fsScrollHint [attr.aria-label]="'automation.region.nav' | t" data-testid="automation.region.nav">
       @for (section of sections(); track section) {
         <a class="subnav__item" [routerLink]="section" routerLinkActive="subnav__item--active" ariaCurrentWhenActive="page" [attr.data-testid]="'automation.region.nav.' + section">
           {{ 'automation.region.section.' + section | t }}

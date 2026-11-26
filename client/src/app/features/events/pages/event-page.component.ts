@@ -63,10 +63,10 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
         <section class="facts fs-card">
           <p class="when" data-testid="events.event.when">
             <i class="pi pi-clock" aria-hidden="true"></i>
-            <time [attr.datetime]="e.startsAt">{{ e.startsAt | fsDate: 'dateTime' }}</time> –
-            <time [attr.datetime]="e.endsAt">{{ e.endsAt | fsDate: (sameDay(e) ? 'time' : 'dateTime') }}</time>
+            <span><time [attr.datetime]="e.startsAt">{{ e.startsAt | fsDate: 'dateTime' }}</time> –
+            <time [attr.datetime]="e.endsAt">{{ e.endsAt | fsDate: (sameDay(e) ? 'time' : 'dateTime') }}</time></span>
           </p>
-          <p><i class="pi pi-tag" aria-hidden="true"></i> {{ 'events.type.' + e.type | t }} @if (e.public) {· <span data-testid="events.event.public">{{ 'events.public' | t }}</span>}</p>
+          <p><i class="pi pi-tag" aria-hidden="true"></i> <span>{{ 'events.type.' + e.type | t }} @if (e.public) {· <span data-testid="events.event.public">{{ 'events.public' | t }}</span>}</span></p>
           @if (e.location; as loc) {
             <p data-testid="events.event.location"><i class="pi pi-map-marker" aria-hidden="true"></i> <span><strong>{{ loc.name }}</strong>@if (loc.street) {, {{ loc.street }}}@if (loc.zip || loc.city) {, {{ loc.zip }} {{ loc.city }}}</span></p>
             @if (navigation(e); as nav) {
@@ -93,6 +93,7 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
           <h2 id="rsvp-title">{{ 'events.rsvp.title' | t }}</h2>
           @if (e.permissions.mayRsvp) {
           <p-selectbutton
+            class="rsvp"
             [options]="rsvpOptions()"
             optionLabel="label"
             optionValue="value"
@@ -167,17 +168,27 @@ import { EVENT_TYPE_ICON, eventIcs } from '../events.resource';
   styles: `
     :host { display: grid; gap: 0.75rem; width: min(100%, 52rem); margin: 0 auto; }
     .facts, .block { display: grid; gap: 0.5rem; padding: 1rem; }
-    .facts p { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; }
+    /* the icon stays at the start of the first line, the text wraps beside it (design review C15) */
+    .facts p { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 0.4rem; margin: 0; }
+    .facts p > .pi { flex: none; margin-top: 0.3rem; }
+    .facts p > span { min-width: 0; overflow-wrap: anywhere; }
+    /* RSVP: three equal segments across the card; unselected ones white with a border, so they read as choices and
+       not as disabled (design review C15) */
+    .rsvp { display: flex; width: 100%; }
+    .rsvp ::ng-deep .p-togglebutton { flex: 1 1 0; min-width: 0; }
+    .rsvp ::ng-deep .p-togglebutton:not(.p-togglebutton-checked) { background: var(--fs-surface); border: 1px solid var(--fs-border); }
     .link { justify-self: start; display: inline-flex; gap: 0.4rem; text-decoration: none; }
     .map-placeholder { height: 14rem; border-radius: var(--fs-radius-md); background: var(--fs-surface-muted); }
     h2 { margin: 0; font-size: 1.1rem; }
     h3 { margin: 0.4rem 0 0; font-size: 0.95rem; }
-    .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    /* more space between people than inside a chip, so a name is not read as the next avatar's (design review C15) */
+    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; }
     .muted { color: var(--fs-text-muted); margin: 0; }
     .invite, .wall-form { display: grid; gap: 0.5rem; justify-items: start; }
     .wall-form textarea { width: 100%; }
     .wall-form label { font-weight: 600; }
     .wall { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+    .wall-form + .wall { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--fs-border); }
     .wall__head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
     .wall__body { margin: 0.25rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
   `,

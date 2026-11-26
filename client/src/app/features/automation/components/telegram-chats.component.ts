@@ -87,7 +87,7 @@ export type TelegramChatsScope = { regionId: string } | { storeId: string };
             [attr.data-testid]="testId() + '.add'"
           />
         </div>
-        <div class="actions">
+        <div class="actions actions--save">
           <p-button
             [label]="'common.save' | t"
             icon="pi pi-save"
@@ -108,6 +108,7 @@ export type TelegramChatsScope = { regionId: string } | { storeId: string };
       min-height: var(--fs-target-sm); padding: 0.4rem 0; border-bottom: 1px solid var(--fs-border);
     }
     .chat__name { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
+    .row > p-select { flex: 1 1 14rem; min-width: 0; }
     .chat__actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; }
   `,
 })

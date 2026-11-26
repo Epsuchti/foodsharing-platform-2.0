@@ -40,6 +40,8 @@ import { StatisticsTilesComponent } from '../components/statistics-tiles.compone
   styles: `
     :host {
       display: block;
+      width: min(100%, 60rem);
+      margin: 0 auto;
     }
     .as-of {
       margin: 1rem 0 0;

@@ -4,6 +4,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -295,7 +296,7 @@ interface DayGroup {
             rows="1"
             [autoResize]="true"
             maxlength="10000"
-            [placeholder]="'messaging.composerPlaceholder' | t"
+            [placeholder]="(narrow() ? 'messaging.composerPlaceholderShort' : 'messaging.composerPlaceholder') | t"
             [ngModel]="draft()"
             (ngModelChange)="draft.set($event)"
             (keydown)="onKeydown($event)"
@@ -423,6 +424,16 @@ interface DayGroup {
       min-height: 0;
     }
     fs-data-state {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+    /*
+     * header, message list and composer form one column, so the list can take the remaining height when the host
+     * is sized (the conversation page on phones, design review B9); unsized hosts keep the list's 65vh cap
+     */
+    fs-data-state ::ng-deep > .ds__content {
       display: flex;
       flex: 1;
       flex-direction: column;
@@ -743,6 +754,7 @@ export class ConversationViewComponent {
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
   private readonly document = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly conversationId = input.required<string>();
   /** Emitted after the user left the conversation. */
@@ -759,6 +771,8 @@ export class ConversationViewComponent {
   private readonly oldestReached = signal(false);
   private lastMarkedSeq = 0;
   private readonly list = viewChild<ElementRef<HTMLElement>>('list');
+  /** Phones get the short composer placeholder: the long one wrapped to two lines (design review B9). */
+  protected readonly narrow = signal(false);
   private readonly composer = viewChild<ElementRef<HTMLTextAreaElement>>('composer');
   private readonly messageMenu = viewChild<Popover>('messageMenu');
   /** The message whose menu is open. */
@@ -815,6 +829,14 @@ export class ConversationViewComponent {
   });
 
   constructor() {
+    afterNextRender(() => {
+      const query = this.document.defaultView?.matchMedia?.('(max-width: 47.99rem)');
+      if (!query) return;
+      const update = () => this.narrow.set(query.matches);
+      update();
+      query.addEventListener('change', update);
+      this.destroyRef.onDestroy(() => query.removeEventListener('change', update));
+    });
     // a fresh detail (first load, reload, other conversation) replaces the message list
     effect(() => {
       const detail = this.detail.data();

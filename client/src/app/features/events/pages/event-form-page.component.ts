@@ -119,6 +119,10 @@ import { eventErrors, fromLocalInput, toLocalInput } from '../events.resource';
     .field--zip { flex: 0 1 7rem; }
     .error { color: var(--fs-danger); }
     .actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+    /* phones: the single submit button across the form, not a small button at the far end (design review C18) */
+    @media (max-width: 29.99rem) {
+      .actions p-button, .actions p-button ::ng-deep .p-button { width: 100%; }
+    }
   `,
 })
 export class EventFormPageComponent {

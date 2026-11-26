@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, computed, inject, input, viewChild } from '@angular/core';
 
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { ScrollHintDirective, updateScrollHint } from '../../../shared/scroll-hint/scroll-hint.directive';
 
 export interface MonthBar {
   /** `YYYY-MM` (or `YYYY-MM-DD`, only year and month are used). */
@@ -18,18 +19,20 @@ export function monthLabel(month: string, locale: string): string {
 
 /**
  * `<fs-month-bar-chart [bars]="…" [label]="…" unit="kg" />` (S14): accessible bar chart, one bar per month (CSS, no
- * chart library). The values are also exposed as a list for screen readers.
+ * chart library). The values are also exposed as a list for screen readers. When the months do not fit (phones), the
+ * row scrolls sideways, starts at the newest month and fades the cut-off edge (design review B14 / C11).
  */
 let nextChartId = 0;
 
 @Component({
   selector: 'fs-month-bar-chart',
+  imports: [ScrollHintDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <figure class="chart" [attr.data-testid]="testId()">
       <figcaption class="chart__caption" [id]="captionId">{{ label() }}</figcaption>
       <!-- the months scroll sideways on phones: the scroll area is focusable so keyboards can scroll it (axe) -->
-      <div class="chart__scroll" tabindex="0" role="group" [attr.aria-labelledby]="captionId" [attr.data-testid]="testId() + '.scroll'">
+      <div #scroll class="chart__scroll" fsScrollHint tabindex="0" role="group" [attr.aria-labelledby]="captionId" [attr.data-testid]="testId() + '.scroll'">
       <ol class="chart__bars" [attr.aria-label]="label()">
         @for (bar of view(); track bar.month) {
           <li class="chart__item" [attr.data-month]="bar.month" [attr.data-value]="bar.value" [attr.data-testid]="testId() + '.bar'">
@@ -62,11 +65,23 @@ let nextChartId = 0;
 export class MonthBarChartComponent {
   private readonly i18n = inject(I18nService);
   protected readonly captionId = `fs-month-chart-${nextChartId++}`;
+  private readonly scroll = viewChild<ElementRef<HTMLElement>>('scroll');
 
   readonly bars = input.required<readonly MonthBar[]>();
   readonly label = input.required<string>();
   readonly unit = input<string>('');
   readonly testId = input('stores.chart');
+
+  constructor() {
+    // the newest months are the relevant ones: show the end of the row whenever the bars change
+    afterRenderEffect(() => {
+      this.view();
+      const el = this.scroll()?.nativeElement;
+      if (!el) return;
+      el.scrollLeft = el.scrollWidth;
+      updateScrollHint(el);
+    });
+  }
 
   protected readonly view = computed(() => {
     const bars = this.bars();

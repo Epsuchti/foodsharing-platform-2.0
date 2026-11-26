@@ -254,6 +254,31 @@ const ICONS: Record<ErrorKind, string> = {
     .err__details code {
       overflow-wrap: anywhere;
     }
+    /* the retry label stays on one line ("Nochmals versuchen" wrapped in a tall button, design review D13) */
+    :host ::ng-deep .err__actions .p-button-label {
+      white-space: nowrap;
+    }
+    /* phones: the compact sizes, so the text column is not squeezed next to a 3rem icon (design review D13) */
+    @media (max-width: 29.99rem) {
+      :host {
+        gap: 0.75rem;
+        padding: 1rem;
+      }
+      .err__icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1rem;
+      }
+      /* inside a card no second box: icon above the text, full card width for the text (design review A15) */
+      :host-context(.fs-card) {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+      }
+    }
   `,
 })
 export class ErrorStateComponent {

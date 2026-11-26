@@ -57,7 +57,7 @@ const CARDS: Readonly<Record<LandingBubbleKind, BubbleCards>> = {
  * Bubble illustration of the landing page (C17, proposal §2 "Bubbles"): a green blob, a warm blob (`--fs-accent`
  * at 45 %, the only place the accent appears besides the Fairteiler pins), one main card tilted −3° and one side
  * card tilted +4°. Decorative only: `aria-hidden`, no pointer events, every card is labelled "Beispiel".
- * Below 900 px of the page container it is 14 rem high and clipped.
+ * Below 900 px of the page container the hero bubble is 11 rem high and clipped; the small ones are hidden.
  */
 @Component({
   selector: 'fs-landing-bubble',
@@ -175,26 +175,27 @@ const CARDS: Readonly<Record<LandingBubbleKind, BubbleCards>> = {
       right: 4%;
       bottom: 10%;
     }
-    /* phone: the bubble shrinks, is clipped and sits below (or above) the text; nothing overflows */
+    /* phone: only the hero bubble stays (smaller, clipped); the small section bubbles would add about four
+       screens of scrolling without information, so they are left out below 900 px */
     @container landing (max-width: 899px) {
-      :host,
-      :host(.bub--sm) {
-        min-height: 14rem;
+      :host {
+        min-height: 11rem;
         overflow: hidden;
         border-radius: var(--fs-radius-xl);
+      }
+      :host(.bub--sm) {
+        display: none;
       }
       .bub__card {
         padding: 0.7rem 0.9rem;
         font-size: 0.85rem;
       }
-      .bub__card--main,
-      :host(.bub--sm) .bub__card--main {
-        top: 16%;
+      .bub__card--main {
+        top: 10%;
         left: 4%;
         width: 12rem;
       }
-      .bub__card--side,
-      :host(.bub--sm) .bub__card--side {
+      .bub__card--side {
         right: 3%;
         bottom: 8%;
       }

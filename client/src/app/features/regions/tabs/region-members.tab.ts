@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
@@ -75,6 +76,15 @@ interface MemberQuery {
     .filters {
       display: grid;
       gap: 0.75rem;
+      /* phones: search across, the selects two per row, so the first member starts higher (design review C6) */
+      @media (max-width: 47.99rem) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+        > .field:first-child,
+        > .field:nth-child(4) {
+          grid-column: 1 / -1;
+        }
+      }
       @media (min-width: 48rem) {
         grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
       }
@@ -107,6 +117,24 @@ interface MemberQuery {
     .member:first-child {
       border-top: 0;
     }
+    .member__actions:empty {
+      display: none;
+    }
+    /* phones, members without admin actions: the phone button sits right of the name instead of on a row of its own
+       (sign-off C6) */
+    @media (max-width: 47.99rem) {
+      .member:has(> .member__actions > fs-phone-button:only-child) {
+        grid-template-columns: minmax(0, 1fr) auto;
+        > .member__meta {
+          grid-column: 1 / -1;
+        }
+        > .member__actions {
+          grid-column: 2;
+          grid-row: 1;
+          align-self: center;
+        }
+      }
+    }
     .member__meta {
       display: flex;
       flex-wrap: wrap;
@@ -132,19 +160,24 @@ interface MemberQuery {
     .member__actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.35rem;
       justify-content: flex-start;
       @media (min-width: 48rem) {
         justify-content: flex-end;
       }
     }
+    /* a round chevron button, not an underlined ">" on a line of its own (design review C6, D11) */
     .member__open {
       display: inline-grid;
-      width: 2.25rem;
-      height: 2.25rem;
+      flex: none;
+      width: var(--fs-target-sm);
+      height: var(--fs-target-sm);
+      margin-inline-start: auto;
       place-items: center;
       border-radius: 999px;
       color: var(--fs-text);
+      text-decoration: none;
     }
     .member__open:hover {
       background: var(--fs-surface-muted);
@@ -183,6 +216,9 @@ export class RegionMembersTab {
   private readonly api = inject(RegionsService);
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
+
+  /** Phones: icon-only phone button, so phone, rights, remove and the chevron fit on one row (design review C6). */
+  protected readonly narrow = signal(false);
 
   protected readonly pageSize = MEMBERS_PAGE_SIZE;
   protected readonly permissions = PERMISSIONS;
@@ -255,6 +291,13 @@ export class RegionMembersTab {
         this.appliedSearch.set(value.trim());
         this.page.set(0);
       });
+    const media = inject(DOCUMENT).defaultView?.matchMedia?.('(max-width: 47.99rem)');
+    if (media) {
+      this.narrow.set(media.matches);
+      const listener = (event: MediaQueryListEvent) => this.narrow.set(event.matches);
+      media.addEventListener?.('change', listener);
+      inject(DestroyRef).onDestroy(() => media.removeEventListener?.('change', listener));
+    }
   }
 
   protected onSearch(value: string): void {

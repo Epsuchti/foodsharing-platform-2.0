@@ -81,9 +81,11 @@ interface MergeTarget {
                         </td>
                         <td class="num" [attr.data-testid]="'storeCategories.' + kind + '.count'">{{ item.storeCount ?? 0 }}</td>
                         <td class="row-actions">
+                          <div class="row-actions__inner">
                           <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.rename' | t" (onClick)="startRename(item)" [attr.data-testid]="'storeCategories.' + kind + '.rename'" />
                           <p-button icon="pi pi-arrow-right-arrow-left" size="small" severity="secondary" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.merge' | t" (onClick)="openMerge(kind, item)" [attr.data-testid]="'storeCategories.' + kind + '.merge'" />
                           <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true" [rounded]="true" [ariaLabel]="'storeCategories.delete' | t" (onClick)="askDelete(kind, item)" [attr.data-testid]="'storeCategories.' + kind + '.delete'" />
+                          </div>
                         </td>
                       </tr>
                     }
@@ -137,9 +139,19 @@ interface MergeTarget {
     .add input, .rename input { flex: 1; min-width: 0; }
     .table-wrap { position: relative; overflow-x: auto; }
     .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { padding: 0.35rem 0.25rem; border-bottom: 1px solid var(--fs-border); text-align: left; }
-    .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .row-actions { display: flex; justify-content: flex-end; gap: 0.1rem; }
+    /* the line sits on the row, not on each cell: the taller action cell drew it a few pixels lower (design review D15) */
+    .table tr { border-bottom: 1px solid var(--fs-border); }
+    .table tbody tr:last-child { border-bottom: 0; }
+    .table th, .table td { padding: 0.25rem; text-align: left; vertical-align: middle; }
+    .table th { color: var(--fs-text-muted); font-size: 0.8125rem; font-weight: 650; }
+    .num { width: 3.5rem; padding-inline-end: 0.75rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .row-actions { width: 1%; white-space: nowrap; }
+    .row-actions__inner { display: flex; justify-content: flex-end; gap: 0.25rem; }
+    /* phones: each icon gets a full 44 px target */
+    @media (max-width: 39.99rem) {
+      .row-actions__inner { gap: 0; }
+      .row-actions__inner ::ng-deep .p-button { width: 2.75rem; height: 2.75rem; }
+    }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .form { display: grid; gap: 0.75rem; }
     .field { font-weight: 600; }

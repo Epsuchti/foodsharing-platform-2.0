@@ -54,8 +54,12 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
     }
   `,
   styles: `
+    /* grid gap instead of a sibling rule: the partners card follows the fs-data-state host, not a card */
     :host {
-      display: block;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: 1rem;
       width: min(100%, 48rem);
       margin: 0 auto;
     }
@@ -63,9 +67,6 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
       display: grid;
       gap: 1rem;
       padding: clamp(1.1rem, 0.6rem + 2vw, 2.25rem);
-    }
-    .fs-card + .fs-card {
-      margin-top: 1rem;
     }
     .partners__title {
       margin: 0;

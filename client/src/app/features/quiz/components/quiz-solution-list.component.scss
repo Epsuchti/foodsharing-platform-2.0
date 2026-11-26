@@ -75,3 +75,17 @@
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+// phones: lighter boxes; neutral and wrong (not chosen) answers lose their frame, so only the answers that matter
+// (correct, missed, chosen wrong) stand out (design review A15)
+@media (max-width: 30rem) {
+  .solution {
+    padding: 0.55rem 0.7rem;
+  }
+
+  .solution--NEUTRAL,
+  .solution--WRONG:not(.solution--chosen-wrong) {
+    border-color: transparent;
+    background: none;
+  }
+}

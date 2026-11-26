@@ -9,12 +9,13 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { cellText, resultsCsv } from '../surveys.resource';
 
 /** /surveys/:surveyId/results (SV1, owner and co-authors): table questions × responses and a client-side CSV export. */
 @Component({
   selector: 'fs-survey-results-page',
-  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, TPipe],
+  imports: [...DATA_STATE_IMPORTS, Button, DateTimePipe, PageHeaderComponent, ScrollHintDirective, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fs-page-header [title]="'surveys.results.title' | t" icon="pi pi-table" [backLink]="['/surveys', surveyId()]" [backLabel]="'surveys.editor.editTitle' | t" />
@@ -24,25 +25,27 @@ import { cellText, resultsCsv } from '../surveys.resource';
           <span data-testid="surveys.results.count">{{ 'surveys.responseCount' | t: { count: r.responseCount } }}</span>
           <p-button icon="pi pi-download" [outlined]="true" [label]="'surveys.results.csv' | t" (onClick)="exportCsv(r)" data-testid="surveys.results.csv" />
         </div>
-        <div class="scroll fs-card" tabindex="0" role="region" [attr.aria-label]="'surveys.results.title' | t">
-          <table data-testid="surveys.results.table">
-            <thead>
-              <tr>
-                <th scope="col">{{ 'surveys.results.user' | t }}</th>
-                <th scope="col">{{ 'surveys.results.submittedAt' | t }}</th>
-                @for (q of r.questions; track q.id) {<th scope="col">{{ q.label }}</th>}
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of r.rows; track $index; let i = $index) {
-                <tr data-testid="surveys.results.row">
-                  <td>{{ row.user.displayName }}</td>
-                  <td>{{ row.submittedAt | fsDate: 'dateTime' }}</td>
-                  @for (q of r.questions; track q.id) {<td>{{ cell(r, i, q) }}</td>}
+        <div class="results fs-card">
+          <div class="scroll" fsScrollHint tabindex="0" role="region" [attr.aria-label]="'surveys.results.title' | t">
+            <table data-testid="surveys.results.table">
+              <thead>
+                <tr>
+                  <th scope="col">{{ 'surveys.results.user' | t }}</th>
+                  <th scope="col">{{ 'surveys.results.submittedAt' | t }}</th>
+                  @for (q of r.questions; track q.id) {<th scope="col">{{ q.label }}</th>}
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (row of r.rows; track $index; let i = $index) {
+                  <tr data-testid="surveys.results.row">
+                    <td>{{ row.user.displayName }}</td>
+                    <td>{{ row.submittedAt | fsDate: 'dateTime' }}</td>
+                    @for (q of r.questions; track q.id) {<td>{{ cell(r, i, q) }}</td>}
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-template>
     </fs-data-state>
@@ -50,10 +53,22 @@ import { cellText, resultsCsv } from '../surveys.resource';
   styles: `
     :host { display: grid; gap: 0.75rem; width: min(100%, 72rem); margin: 0 auto; }
     .bar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+    /*
+     * Wide results (design review D14): the edge fade of fsScrollHint shows there are more columns, the name column
+     * stays in place while the answers scroll, and the date stays on one line.
+     */
+    .results { padding: 0; overflow: hidden; }
     .scroll { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    /* the name column stays put, so only the end edge fades */
+    .scroll[data-more-start] { mask-image: none; }
+    .scroll[data-more-start][data-more-end] { mask-image: linear-gradient(to left, transparent, black 2.75rem); }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.9rem; }
     th, td { padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--fs-border); }
     th { background: var(--fs-surface-muted); font-weight: 600; white-space: nowrap; }
+    th:first-child, td:first-child { position: sticky; inset-inline-start: 0; z-index: 1; padding-inline-start: 1rem; background: var(--fs-surface); box-shadow: inset -1px 0 0 var(--fs-border); }
+    th:first-child { background: var(--fs-surface-muted); }
+    td:nth-child(2) { white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
   `,
 })
 export class SurveyResultsPageComponent {

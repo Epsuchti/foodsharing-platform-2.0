@@ -42,6 +42,14 @@ import { ConversationViewComponent } from '../components/conversation-view.compo
       .back {
         display: grid;
       }
+      /* the page sizes the conversation to the screen (design review B9): the list fills it instead of the 65vh cap */
+      fs-conversation-view {
+        min-height: 0;
+      }
+      fs-conversation-view ::ng-deep .list {
+        min-height: 0;
+        max-height: none;
+      }
     }
   `,
 })

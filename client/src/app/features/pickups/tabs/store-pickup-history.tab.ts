@@ -105,6 +105,13 @@ interface HistoryQuery {
     .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; }
     .toolbar__back { margin-left: auto; }
     .field { display: grid; gap: 0.25rem; font-size: 0.88rem; font-weight: 600; }
+    /* phones (design review B12): "from" and "to" share one row and fill it, the buttons follow below */
+    @media (max-width: 47.99rem) {
+      .field { flex: 1 1 calc(50% - 0.3rem); min-width: 0; }
+      .field ::ng-deep .p-datepicker, .field ::ng-deep .p-datepicker input { width: 100%; }
+      /* the button row: "show" at the start, the link at the end on one line (it wrapped in a half-width cell, R4) */
+      .toolbar > .toolbar__back ::ng-deep .p-button-label { white-space: nowrap; }
+    }
     .card { padding: 0.5rem 1rem; overflow-x: auto; }
     .table { width: 100%; border-collapse: collapse; }
     .table th, .table td { padding: 0.5rem 0.25rem; border-bottom: 1px solid var(--fs-border); text-align: left; vertical-align: top; }

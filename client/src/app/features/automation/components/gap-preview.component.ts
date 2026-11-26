@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, computed, inject, input, viewChild } from '@angular/core';
 
 import { DateTimeFormatter } from '../../../core/dates/date-time.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { GapDayResult, fromIsoDate, gapPreview, joinAll } from '../automation.util';
 
 const ICONS: Record<GapDayResult, string> = { PICKUP: 'pi-shopping-bag', BLOCKED: 'pi-times', OK: 'pi-check' };
@@ -21,13 +22,13 @@ let nextId = 0;
  */
 @Component({
   selector: 'fs-gap-preview',
-  imports: [TPipe],
+  imports: [ScrollHintDirective, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="gap-preview" [attr.data-testid]="testId()" [attr.aria-labelledby]="titleId">
       <h4 class="gap-preview__title" [id]="titleId"><i class="pi pi-eye" aria-hidden="true"></i>{{ 'automation.policy.gapPreview.title' | t }}</h4>
       <p class="muted">{{ 'automation.policy.gapPreview.intro' | t: { date: long(pickup()) } }}</p>
-      <ol class="days" [attr.aria-label]="'automation.policy.gapPreview.label' | t">
+      <ol class="days" #days fsScrollHint [attr.aria-label]="'automation.policy.gapPreview.label' | t">
         @for (day of preview().days; track day.date) {
           <li
             class="day"
@@ -86,11 +87,14 @@ let nextId = 0;
       white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.92rem;
     }
     .preview__t { display: block; margin-bottom: 0.2rem; font-size: 0.78rem; font-weight: 700; color: var(--fs-text-muted); }
+    /* phones: readable cells (at least 44 px) in a swipeable row instead of 27 px cells with 10 px text whose dates
+       run into each other; the example pickup is scrolled into the middle (design review B8) */
     @media (max-width: 600px) {
+      .days { grid-template-columns: repeat(11, minmax(2.75rem, 1fr)); overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
       .day { min-height: 3.2rem; padding: 0.25rem 0; }
       .day__wd { display: none; }
-      .day__date { font-size: 0.64rem; }
-      .day__word { font-size: 0.62rem; }
+      .day__date { font-size: 0.72rem; }
+      .day__word { font-size: 0.75rem; }
       .day__word--long { display: none; }
       .day__word--short { display: inline; }
     }
@@ -109,6 +113,18 @@ export class GapPreviewComponent {
   readonly testId = input('automation.policy.gapPreview');
 
   protected readonly titleId = `gap-preview-title-${nextId++}`;
+  private readonly daysList = viewChild<ElementRef<HTMLElement>>('days');
+
+  constructor() {
+    afterNextRender(() => {
+      const list = this.daysList()?.nativeElement;
+      const current = list?.querySelector<HTMLElement>('[aria-current="date"]');
+      if (!list || !current || list.scrollWidth <= list.clientWidth) return;
+      // horizontal only: scrollIntoView would also move the page
+      const offset = current.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft;
+      list.scrollLeft = offset - (list.clientWidth - current.offsetWidth) / 2;
+    });
+  }
 
   protected readonly icons = ICONS;
   protected readonly words = WORDS;

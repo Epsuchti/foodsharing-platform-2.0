@@ -384,6 +384,20 @@ interface RegionOption {
       object-fit: cover;
       border-radius: var(--fs-radius-sm);
     }
+    /* phones: the empty drop zone as wide as the fields above, in the picture's 16:9 (not a centred square) */
+    @media (max-width: 30rem) {
+      fs-image-crop {
+        min-width: 0;
+      }
+      /* stretched by its grid cell: "width: 100%" of an auto-sized, centred cell grew past the card (sign-off 1.5) */
+      fs-image-crop ::ng-deep .empty {
+        justify-self: stretch;
+        width: auto;
+        max-width: 100%;
+        min-width: 0;
+        aspect-ratio: 16 / 9;
+      }
+    }
     .actions {
       display: grid;
       gap: 0.6rem;

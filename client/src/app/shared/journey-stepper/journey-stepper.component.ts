@@ -47,7 +47,7 @@ const STATUS_ICON: Record<JourneyStepStatus, string> = {
     @switch (mode()) {
       @case ('compact') {
         @if (journey(); as data) {
-          <div class="compact">
+          <div class="compact" [class.compact--bare]="bare()">
             <div
               class="meter"
               role="progressbar"
@@ -230,6 +230,11 @@ export class JourneyStepperComponent {
     ...(this.journey()?.steps ?? []),
     ...(this.journey()?.extraSteps ?? []),
   ]);
+  /** Compact without an action (the page shows it, or there is none): on phones one slim line "Step 2 of 8 · Title". */
+  protected readonly bare = computed(
+    () => this.progressOnly() || this.hideAction() || (!this.current()?.nextAction && !this.linkToJourney()),
+  );
+
   protected readonly current = computed(
     () =>
       this.steps().find((step) => step.key === this.journey()?.currentStep) ??

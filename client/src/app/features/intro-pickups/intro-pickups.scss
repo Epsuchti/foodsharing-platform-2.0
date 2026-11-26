@@ -1,4 +1,6 @@
 // Shared layout of the intro pickup pages (T21).
+@use '../../shared/styles/table-stack' as table;
+
 :host {
   display: grid;
   gap: 1.25rem;
@@ -169,6 +171,31 @@
   gap: 0.35rem;
 }
 
+// nothing projected (visitors), no meta lines (online slots), no tags: no empty row with its grid gap
+.einab__foot:empty,
+.einab__meta:empty,
+.tags:empty {
+  display: none;
+}
+
+// phones: a compact card where the date reads as the main fact. One column: the card host belongs to fs-einab-card
+// (view encapsulation), so a two-column grid set from here could not place the card's children (sign-off 1.1–1.3).
+@media (max-width: 30rem) {
+  .einab {
+    gap: 0.45rem;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .einab__title strong + .muted {
+    color: var(--fs-text);
+    font-weight: 650;
+  }
+
+  .einab__meta {
+    font-size: 0.85rem;
+  }
+}
+
 .tag {
   display: inline-flex;
   align-items: center;
@@ -262,6 +289,47 @@
 .table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+// phones: every row a block of "column / value" pairs (C4), so the booked count, status and actions are not cut off
+.table {
+  @include table.stack;
+}
+
+@media (max-width: 39.99rem) {
+  .table > tbody > tr {
+    padding-inline: 0.9rem;
+  }
+
+  // the table box has a border but no padding of its own: the first and last row keep their inner space (sign-off R5)
+  .table > tbody > tr:first-child {
+    padding-top: 0.75rem;
+  }
+
+  .table > tbody > tr:last-child {
+    padding-bottom: 0.75rem;
+  }
+
+  .table > tbody > tr > .actions--corner {
+    inset-inline-end: 0.5rem;
+  }
+
+  .table > tbody > tr:first-child > .actions--corner {
+    inset-block-start: 0.4rem;
+  }
+
+  .table > tbody > tr > td.num {
+    text-align: start;
+  }
+
+  .table > tbody > tr > .table__title {
+    font-weight: 650;
+  }
+
+  .table > tbody > tr > td.row-actions {
+    display: flex;
+    justify-content: flex-start;
+  }
 }
 
 .row-actions {

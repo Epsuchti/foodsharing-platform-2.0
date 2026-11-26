@@ -69,6 +69,7 @@
   "adminSettings.configuration.group.donation": "Donazioni",
   "adminSettings.configuration.group.statistics": "Statistiche",
   "adminSettings.configuration.group.oauth": "Accesso per app partner",
+  "adminSettings.configuration.group.messaging": "Messaggi",
   "adminSettings.configuration.key.support_email": "Indirizzo e-mail del supporto",
   "adminSettings.configuration.key.petition_url": "Link alla petizione",
   "adminSettings.configuration.key.petition_signatures": "Firme della petizione",

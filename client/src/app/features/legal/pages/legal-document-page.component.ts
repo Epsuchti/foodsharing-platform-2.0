@@ -7,6 +7,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
 import { DATA_STATE_IMPORTS } from '../../../shared/data-state';
 import { PageHeaderComponent } from '../../../shared/page-header/page-header.component';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 import { LegalDocumentViewComponent } from '../components/legal-document-view.component';
 import { LEGAL_ICONS, LEGAL_KINDS, legalKindOf, legalSlug } from '../legal-kind';
 
@@ -19,6 +20,7 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalKindOf, legalSlug } from '../legal-kind'
     PageHeaderComponent,
     RouterLink,
     RouterLinkActive,
+    ScrollHintDirective,
     TPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,7 +30,7 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalKindOf, legalSlug } from '../legal-kind'
       [title]="'legal.kind.' + legalKind() | t"
       [icon]="icons[legalKind()]"
     />
-    <nav class="others" [attr.aria-label]="'legal.document.others' | t">
+    <nav class="others" fsScrollHint [attr.aria-label]="'legal.document.others' | t">
       @for (kind of kinds; track kind) {
         <a
           class="others__link"
@@ -59,15 +61,24 @@ import { LEGAL_ICONS, LEGAL_KINDS, legalKindOf, legalSlug } from '../legal-kind'
       width: min(100%, 52rem);
       margin: 0 auto;
     }
+    /* one row that scrolls sideways on phones (three wrapped rows cost 130 px before the text) */
     .others {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 0.5rem;
       margin-bottom: 1.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .others::-webkit-scrollbar {
+      display: none;
     }
     .others__link {
       display: inline-flex;
+      flex: none;
       align-items: center;
+      min-height: var(--fs-target-sm, 2.5rem);
+      white-space: nowrap;
       gap: 0.45rem;
       padding: 0.45rem 0.85rem;
       border: 1px solid var(--fs-border);

@@ -53,14 +53,19 @@ import { pictureVariant } from '../blog.util';
     </article>
   `,
   styles: `
+    /* a grid host stretches the card to the height of its row (equal card heights) without "height: 100%" */
     :host {
-      display: block;
+      display: grid;
+      min-width: 0;
     }
     .card {
       position: relative;
       display: grid;
+      /* one column as wide as the card: an auto column grew to the teaser's width and the card clipped it */
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: auto 1fr;
-      height: 100%;
+      /* the picture runs to the card edge (clipped to its radius); only the body has padding */
+      padding: 0;
       overflow: hidden;
       transition: box-shadow 0.15s ease;
     }
@@ -84,8 +89,14 @@ import { pictureVariant } from '../blog.util';
     .card__body {
       display: grid;
       align-content: start;
+      min-width: 0;
       gap: 0.45rem;
-      padding: 1rem 1.1rem 1.15rem;
+      padding: 0.9rem 1rem 1rem;
+    }
+    @media (max-width: 30rem) {
+      .card__media {
+        aspect-ratio: 2 / 1;
+      }
     }
     .card__meta {
       display: flex;

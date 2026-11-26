@@ -269,6 +269,10 @@ import { REQUEST_MESSAGE_MAX, answerActions, isOpenRequest, photoVariant } from 
     .sub { margin: 0.25rem 0 0; font-size: 0.9rem; }
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
     .photo { width: 100%; max-width: 28rem; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--fs-radius-md); }
+    /* phones (design review B18): a landscape crop, so the contact buttons are not pushed a screen down */
+    @media (max-width: 47.99rem) {
+      .photo { aspect-ratio: 4 / 3; max-height: 14rem; }
+    }
     .description { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .status {
       display: flex;

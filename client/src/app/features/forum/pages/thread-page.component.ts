@@ -110,8 +110,13 @@ import { quotePost } from '../forum.resource';
     :host { display: grid; gap: 0.75rem; width: min(100%, 52rem); margin: 0 auto; }
     .bar, .tags, .moderation, .rename, .follow, .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
     .bar { justify-content: space-between; }
-    .follow { margin: 0; padding: 0; border: 0; gap: 1rem; }
-    .follow .check { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; }
+    /* the two follow options as one compact group, not two rows 56 px apart (design review C14) */
+    .follow { margin: 0; padding: 0; border: 0; gap: 0.25rem 1rem; }
+    .follow .check { display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--fs-target-sm); }
+    /* phones: one option per line, each label on one line (side by side both labels wrapped, sign-off) */
+    @media (max-width: 29.99rem) {
+      .follow { display: grid; gap: 0; }
+    }
     .moderation, .rename, .composer { padding: 0.75rem 1rem; }
     .rename input { flex: 1 1 14rem; }
     .posts { display: grid; gap: 0.75rem; }

@@ -98,6 +98,10 @@ const PAGE_SIZE = 12;
       padding: 0;
       list-style: none;
     }
+    /* equal card heights in a row */
+    .grid > li {
+      display: grid;
+    }
     .filter {
       display: flex;
       flex-wrap: wrap;

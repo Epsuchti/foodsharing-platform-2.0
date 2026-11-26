@@ -211,11 +211,14 @@ function mapTexts(note: ReleaseNote, field: 'title' | 'body'): TranslatedText {
       display: grid;
       min-width: 0;
     }
+    /* up to two lines before it is cut (one line showed only about 16 characters on a phone) */
     .row__title {
+      display: -webkit-box;
       overflow: hidden;
       font-weight: 650;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      overflow-wrap: anywhere;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
     .row__date {
       color: var(--fs-text-muted);
@@ -223,7 +226,7 @@ function mapTexts(note: ReleaseNote, field: 'title' | 'body'): TranslatedText {
     }
     .row__actions {
       display: flex;
-      gap: 0.25rem;
+      gap: 0;
     }
     .form {
       display: grid;

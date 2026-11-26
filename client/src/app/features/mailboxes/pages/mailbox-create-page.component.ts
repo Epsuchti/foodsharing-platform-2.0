@@ -93,20 +93,36 @@ export const EMAIL_NAME = /^[a-z0-9][a-z0-9.-]{1,62}$/;
       margin-top: 0.4rem;
       font-weight: 600;
     }
+    /*
+     * The kind choice (design review D12): the options stacked tight under their legend, which lines up with the
+     * other field labels; the native radios in the theme colour and at checkbox size. They stay native inputs (the
+     * journeys check them), styled like the rest of the form.
+     */
     .kind {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+      display: grid;
+      gap: 0;
       margin: 0;
       padding: 0;
       border: 0;
     }
+    .kind legend {
+      padding: 0;
+      margin-bottom: 0.15rem;
+    }
     .kind label {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 0.35rem;
-      min-height: 2.5rem;
+      gap: 0.6rem;
+      min-height: 2.75rem;
+      margin-top: 0;
       font-weight: 400;
+      cursor: pointer;
+    }
+    .kind input[type='radio'] {
+      width: 1.25rem;
+      height: 1.25rem;
+      margin: 0;
+      accent-color: var(--fs-primary);
     }
     .picked {
       display: flex;

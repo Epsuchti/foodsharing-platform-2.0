@@ -1,4 +1,10 @@
-<fs-page-header [title]="'regionAdmin.title' | t" [subtitle]="'regionAdmin.subtitle' | t" icon="pi pi-sitemap" />
+<!-- page actions in the header (left under the title on phones), not right-aligned in the content (design review D7) -->
+<fs-page-header [title]="'regionAdmin.title' | t" [subtitle]="'regionAdmin.subtitle' | t" icon="pi pi-sitemap">
+  @if (parent()) {
+    <p-button [label]="'regionAdmin.create' | t" icon="pi pi-plus" (onClick)="openCreate()" data-testid="regionAdmin.create" />
+  }
+  <p-button [label]="'regionAdmin.import' | t" icon="pi pi-upload" severity="secondary" [outlined]="true" (onClick)="openImport()" data-testid="regionAdmin.import" />
+</fs-page-header>
 
 <div class="toolbar">
   <nav class="crumbs" [attr.aria-label]="'regionAdmin.path' | t" data-testid="regionAdmin.path">
@@ -11,12 +17,6 @@
   <span class="search">
     <label class="sr-only" for="ra-search">{{ 'regionAdmin.search' | t }}</label>
     <input pInputText id="ra-search" type="search" [placeholder]="'regionAdmin.search' | t" (input)="onSearch($any($event.target).value)" data-testid="regionAdmin.search" />
-  </span>
-  <span class="toolbar__actions">
-    <p-button [label]="'regionAdmin.import' | t" icon="pi pi-upload" severity="secondary" [outlined]="true" (onClick)="openImport()" data-testid="regionAdmin.import" />
-    @if (parent()) {
-      <p-button [label]="'regionAdmin.create' | t" icon="pi pi-plus" (onClick)="openCreate()" data-testid="regionAdmin.create" />
-    }
   </span>
 </div>
 

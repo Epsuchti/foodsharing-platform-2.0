@@ -56,6 +56,10 @@ import { PageHeaderComponent } from '../../../shared/page-header/page-header.com
     .notice { display: flex; gap: 0.5rem; margin: 0 0 0.5rem; padding: 0.75rem; border-radius: var(--fs-radius-md); background: var(--fs-primary-soft); color: var(--fs-text); }
     .hint { color: var(--fs-text-muted); }
     .actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+    /* phones: the single submit button across the form, not a small button at the far end (design review C18) */
+    @media (max-width: 29.99rem) {
+      .actions p-button, .actions p-button ::ng-deep .p-button { width: 100%; }
+    }
   `,
 })
 export class NewThreadPageComponent {

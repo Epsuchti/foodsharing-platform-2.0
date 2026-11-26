@@ -59,7 +59,7 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
         <p-checkbox inputId="audit-exclude" [binary]="true" [ngModel]="excludeConfirmed()" (ngModelChange)="excludeConfirmed.set($event)" [attr.data-testid]="testId() + '.excludeConfirmed'" />
         <label for="audit-exclude">{{ 'automation.audits.excludeConfirmed' | t }}</label>
       </div>
-      <div class="row">
+      <div class="range">
         <label class="field">
           <span class="muted">{{ 'automation.common.from' | t }}</span>
           <fs-date-input [ngModel]="from()" (ngModelChange)="from.set($event || undefined)" [testId]="testId() + '.from'" />
@@ -79,13 +79,19 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
               <button type="button" class="audit__head" [attr.aria-expanded]="open().has(audit.id)" (click)="toggle(audit.id)" [attr.data-testid]="testId() + '.toggle'">
                 <span [class]="'badge badge--' + tone(audit.status)" [attr.data-testid]="testId() + '.status'">{{ statusLabel(audit) | t }}</span>
                 <span class="badge">{{ 'automation.kind.' + audit.kind | t }}</span>
-                <span class="grow audit__title">
+                <!-- parts as separate items: the "·" never starts or ends a line (.fs-dot-list); no "–" for a missing person (design review B13) -->
+                <span class="grow audit__title fs-dot-list">
                   @if (showStore()) {
-                    <strong>{{ audit.storeName }}</strong> ·
+                    <strong class="audit__part">{{ audit.storeName }}</strong>
                   }
-                  {{ audit.user?.displayName ?? '–' }}
+                  @if (audit.user) {
+                    <span class="audit__part">{{ audit.user.displayName }}</span>
+                  }
                   @if (audit.pickupAt) {
-                    · {{ audit.pickupAt | fsDate: 'dateTime' }}
+                    <span class="audit__part audit__part--date">{{ audit.pickupAt | fsDate: 'dateTime' }}</span>
+                  }
+                  @if (!showStore() && !audit.user && !audit.pickupAt) {
+                    <span class="audit__part">–</span>
                   }
                 </span>
                 <time class="muted" [attr.datetime]="audit.createdAt" [title]="audit.createdAt | fsDate: 'dateTime'">{{ audit.createdAt | fsDate: 'relative' }}</time>
@@ -134,7 +140,21 @@ const KINDS: AuditKind[] = [AuditKind.Pickup, AuditKind.Request, AuditKind.Adver
       display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; width: 100%;
       padding: 0.6rem 0.8rem; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
     }
+    /* the "·" between the parts never starts or ends a line (global .fs-dot-list, sign-off B13) */
     .audit__title { overflow-wrap: anywhere; }
+    .audit__part--date { white-space: nowrap; }
+    .audit__head time { white-space: nowrap; }
+    /* date range: "from" and "to" side by side, each as wide as its half (design review B12, C5) */
+    .range { display: grid; grid-template-columns: repeat(2, minmax(0, 12rem)); gap: 0.6rem; }
+    .range fs-date-input { width: 100%; }
+    /* phones: badges, time and chevron on the first line, the title across the full width below, so every row has
+       the same shape (design review C5, B13) */
+    @media (max-width: 39.99rem) {
+      .range { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .audit__head { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; column-gap: 0.4rem; row-gap: 0.3rem; }
+      .audit__head time { justify-self: end; }
+      .audit__title { grid-column: 1 / -1; grid-row: 2; }
+    }
     .audit__body { display: grid; gap: 0.5rem; padding: 0 0.8rem 0.8rem; }
     .more { justify-content: center; }
   `,

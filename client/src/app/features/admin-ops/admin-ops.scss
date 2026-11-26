@@ -1,6 +1,16 @@
 // Shared look of the admin operation pages (integrations, jobs, mail outbox; M4 F6).
 @use '../../shared/styles/table-stack' as table;
 
+// Hides a button label visually; it stays the button's accessible name (icon-only buttons on phones).
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 :host {
   display: grid;
   // one column that may shrink below its content: a wide table must not widen the page on a phone
@@ -97,16 +107,26 @@
   font-size: 0.8125rem;
 }
 
+// Integration card actions (design review D7): the optional target field on its own full-width line, then
+// "Probe" and "Send test" as two equal buttons, so cards with and without a target line up.
 .actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   gap: 0.5rem;
+
+  // the host too: the global "p-button { width: fit-content }" kept it at the label's width (sign-off 1.7)
+  p-button,
+  ::ng-deep .p-button {
+    width: 100%;
+  }
 }
 
 .target {
-  flex: 1;
-  min-width: 8rem;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
 }
 
 .filters {
@@ -128,6 +148,36 @@ p-selectbutton {
   display: flex;
   flex-wrap: wrap;
   max-width: 100%;
+}
+
+// Phones (design review D7): filter fields full width, one per line; the status choice as an even 2 × 2 grid
+// instead of three options and an orphan on the second line.
+@media (max-width: 39.99rem) {
+  .filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .filters input {
+    width: 100%;
+  }
+
+  // one control: one background and radius around the four options (sign-off: two grey bars with odd corners)
+  p-selectbutton {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.2rem;
+    width: 100%;
+    padding: 0.2rem;
+    border-radius: var(--fs-radius-md);
+    background: var(--fs-surface-muted);
+
+    ::ng-deep .p-togglebutton {
+      width: 100%;
+      border-radius: var(--fs-radius-sm);
+    }
+  }
 }
 
 .table-wrap {
@@ -152,6 +202,50 @@ p-selectbutton {
   }
 
   @include table.stack;
+
+  // a key as the row title reads as the title, not smaller than the values below it (design review D18)
+  th code,
+  td:first-child code {
+    font-size: 0.9375rem;
+    font-weight: 650;
+  }
+
+  // Phones (design review D2): "Run now" sits in the top corner of the row (shared stack, `actions--corner`) as an
+  // icon button; its label stays the accessible name.
+  @media (max-width: 39.99rem) {
+    > tbody > tr > .actions--corner {
+      ::ng-deep .p-button-label {
+        @include visually-hidden;
+      }
+
+      ::ng-deep .p-button {
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+      }
+    }
+
+    // jobs: the schedule is one muted line under the name instead of a labelled block of its own
+    > tbody > tr > .cron-col {
+      display: none;
+    }
+
+    // the title is at least as tall as the corner button, so the next line never runs under it (a job without a
+    // schedule line, sign-off)
+    > tbody > tr:has(> .actions--corner) > :first-child {
+      min-height: 2.5rem;
+    }
+  }
+}
+
+.table th code.cron-inline {
+  display: none;
+
+  @media (max-width: 39.99rem) {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+  }
 }
 
 .muted {

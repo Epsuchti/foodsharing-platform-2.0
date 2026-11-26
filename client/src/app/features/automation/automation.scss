@@ -84,6 +84,12 @@ h3 {
   align-items: center;
 }
 
+// The save row under a list: the button at the end of the row, not glued to the start (design review C9); the space
+// above it comes from the fs-data-state content grid.
+.actions--save {
+  justify-content: flex-end;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;

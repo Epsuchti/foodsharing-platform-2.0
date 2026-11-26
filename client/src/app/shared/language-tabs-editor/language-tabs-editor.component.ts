@@ -7,6 +7,7 @@ import {
   ValidationErrors,
   Validator,
 } from '@angular/forms';
+import { UpperCasePipe } from '@angular/common';
 import { InputText } from '@openng/optimus-ui/inputtext';
 import { Textarea } from '@openng/optimus-ui/textarea';
 
@@ -28,7 +29,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'fs-language-tabs-editor',
-  imports: [InputText, MarkdownPipe, TPipe, Textarea],
+  imports: [InputText, MarkdownPipe, TPipe, Textarea, UpperCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
@@ -60,7 +61,8 @@ let nextId = 0;
           (click)="active.set(lang)"
           [attr.data-testid]="testId() + '.tab.' + lang"
         >
-          <span>{{ 'lang.' + lang | t }}</span>
+          <span class="tab__name">{{ 'lang.' + lang | t }}</span>
+          <span class="tab__code" aria-hidden="true">{{ lang | uppercase }}</span>
           @if (filled(lang)) {
             <i class="pi pi-check tab__state tab__state--ok" aria-hidden="true"></i>
           } @else if (requiredLanguages().includes(lang)) {
@@ -160,6 +162,35 @@ let nextId = 0;
     .tab:focus-visible {
       outline: 2px solid var(--fs-primary);
       outline-offset: 1px;
+    }
+    .tab__code {
+      display: none;
+    }
+    /* phones: five full language names wrapped to two rows of tabs; codes (DE, GWS, …) fit in one (design review D8).
+       The full name stays the tab's accessible name. */
+    @media (max-width: 29.99rem) {
+      .tabs {
+        flex-wrap: nowrap;
+        gap: 0.15rem;
+      }
+      .tab {
+        flex: 1 1 0;
+        justify-content: center;
+        min-width: 0;
+        min-height: 2.75rem;
+        padding-inline: 0.4rem;
+      }
+      .tab__name {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .tab__code {
+        display: inline;
+      }
     }
     .tab__state {
       font-size: 0.65rem;

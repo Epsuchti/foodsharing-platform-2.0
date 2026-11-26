@@ -254,6 +254,11 @@ const FALLBACK_CENTER: [number, number] = [47.3769, 8.5417];
     .photo img { width: 10rem; height: 10rem; object-fit: cover; border-radius: var(--fs-radius-md); }
     fs-image-crop { flex: 1 1 18rem; min-width: 0; }
     .actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+    /* phones: "save" across the form, "cancel" as a text button above it (design review C18) */
+    @media (max-width: 29.99rem) {
+      .actions { flex-direction: column; align-items: stretch; gap: 0.25rem; }
+      .actions p-button, .actions p-button ::ng-deep .p-button { width: 100%; }
+    }
   `,
 })
 export class FspFormPageComponent {

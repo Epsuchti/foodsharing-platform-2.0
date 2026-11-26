@@ -32,8 +32,9 @@ import { statisticsTiles } from '../content.util';
     }
     .tiles {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
-      gap: 0.9rem;
+      /* phones: two columns (one tall tile per number wasted a screen); wider: rows that fill the width */
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+      gap: 0.75rem;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -42,7 +43,22 @@ import { statisticsTiles } from '../content.util';
       display: grid;
       justify-items: start;
       gap: 0.35rem;
-      padding: 1.1rem 1.2rem;
+      padding: 0.9rem 1rem;
+    }
+    @media (min-width: 40rem) {
+      .tiles {
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+        gap: 0.9rem;
+      }
+      .tile {
+        padding: 1.1rem 1.2rem;
+      }
+    }
+    /* phones: the first number (kg saved) is the headline across both columns */
+    @media (max-width: 30rem) {
+      .tile:first-child {
+        grid-column: 1 / -1;
+      }
     }
     .tile__icon {
       display: grid;
@@ -54,7 +70,8 @@ import { statisticsTiles } from '../content.util';
       color: var(--fs-primary-strong);
     }
     .tile__value {
-      font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.2rem);
+      font-size: clamp(1.35rem, 1rem + 1.6vw, 2.2rem);
+      font-variant-numeric: tabular-nums;
       font-weight: 800;
       line-height: 1.15;
     }

@@ -202,6 +202,20 @@ import {
       flex-wrap: wrap;
       gap: 0.5rem 1.1rem;
     }
+    /* phones (design review B15): two even columns of 44px rows, with room before the next field */
+    @media (max-width: 47.99rem) {
+      .reminders {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+        gap: 0.15rem 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+      /* each label on one line ("15 Minuten vorher" wrapped in a half-width column, sign-off 1.9) */
+      .reminder {
+        min-height: 2.75rem;
+        white-space: nowrap;
+      }
+    }
     .field {
       display: grid;
       gap: 0.35rem;

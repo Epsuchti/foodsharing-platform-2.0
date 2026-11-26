@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FeatureToggleKey } from '../../../api';
 import { FeatureToggleService } from '../../../core/feature-toggles/feature-toggle.service';
 import { TPipe } from '../../../core/i18n/t.pipe';
+import { ScrollHintDirective } from '../../../shared/scroll-hint/scroll-hint.directive';
 
 interface AccountTab {
   id: string;
@@ -38,10 +39,10 @@ const TABS: readonly AccountTab[] = [
 /** Switches between the account pages (scrolls horizontally on narrow phones). */
 @Component({
   selector: 'fs-account-tabs',
-  imports: [RouterLink, RouterLinkActive, TPipe],
+  imports: [RouterLink, RouterLinkActive, ScrollHintDirective, TPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="tabs" [attr.aria-label]="'account.tabs.label' | t">
+    <nav class="tabs" fsScrollHint [attr.aria-label]="'account.tabs.label' | t">
       @for (tab of tabs(); track tab.id) {
         <a
           class="tab"
@@ -96,6 +97,15 @@ const TABS: readonly AccountTab[] = [
       background: var(--fs-surface);
       box-shadow: var(--fs-shadow-sm);
       color: var(--fs-primary-strong);
+    }
+    /* phones (design review B4): tabs keep their own width, so a cut-off tab at the edge shows there is more */
+    @media (max-width: 47.99rem) {
+      .tabs {
+        scroll-padding-inline: 0.75rem;
+      }
+      .tab {
+        flex: 0 0 auto;
+      }
     }
   `,
 })

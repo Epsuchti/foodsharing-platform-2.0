@@ -87,11 +87,13 @@ const PAGE_SIZE = 25;
   styles: `
     :host { display: block; width: min(100%, 56rem); margin: 0 auto; }
     .toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
-    .count { margin: 0 0 0.6rem; color: var(--fs-text-muted); }
+    /* no margins: the data-state content grid spaces count, cards and "more" (sign-off minor) */
+    fs-data-state { gap: 0.6rem; }
+    .count { margin: 0; color: var(--fs-text-muted); }
     .cards { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
     .item { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.8rem 1rem; }
     .item__store { font-weight: 700; color: inherit; }
-    .more { display: flex; justify-content: center; margin-top: 1rem; }
+    .more { display: flex; justify-content: center; margin-top: 0.4rem; }
   `,
 })
 export class PickupHistoryPageComponent {

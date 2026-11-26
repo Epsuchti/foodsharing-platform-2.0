@@ -134,7 +134,7 @@ function notFound(): ApiErrorView {
                 <p class="muted">
                   {{ 'quiz.intro.runningText' | t: { answered: d.status.running.questionsAnswered, total: d.status.running.questionCount } }}
                 </p>
-                <div class="actions">
+                <div class="actions fs-actions--fluid">
                   <p-button
                     [label]="'quiz.list.continue' | t"
                     icon="pi pi-play"
@@ -174,7 +174,7 @@ function notFound(): ApiErrorView {
                     <span>{{ 'quiz.intro.timedText' | t: { count: d.quiz.questionCountTimed } }}</span>
                   </button>
                 </div>
-                <div class="actions">
+                <div class="actions fs-actions--fluid">
                   <p-button
                     [label]="(isPractice() ? 'quiz.intro.startPractice' : 'quiz.intro.start') | t"
                     icon="pi pi-play"

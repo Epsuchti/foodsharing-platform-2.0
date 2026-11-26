@@ -81,7 +81,7 @@ import { REACTION_EMOJI, REACTION_KEYS, renderMentions } from '../forum.resource
           <p-button icon="pi pi-face-smile" [text]="true" [rounded]="true" [ariaLabel]="'forum.post.addReaction' | t" (onClick)="picker.toggle($event)" data-testid="forum.post.addReaction" />
         }
         @if (p.reactions.length) {
-          <p-button [label]="'forum.post.whoReacted' | t" [text]="true" size="small" (onClick)="who.toggle($event)" data-testid="forum.post.whoReacted" />
+          <p-button class="who-button" icon="pi pi-users" [label]="'forum.post.whoReacted' | t" [ariaLabel]="'forum.post.whoReacted' | t" [text]="true" size="small" (onClick)="who.toggle($event)" data-testid="forum.post.whoReacted" />
         }
       </div>
       <div class="actions">
@@ -137,8 +137,16 @@ import { REACTION_EMOJI, REACTION_KEYS, renderMentions } from '../forum.resource
     .head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
     .meta, .hidden-note { color: var(--fs-text-muted); font-size: 0.875rem; }
     .hidden-note { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; }
-    .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem; }
+    /* reactions left, actions right on one row for every post; the reactions wrap inside their own column (design review C14) */
+    .foot { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 0.25rem; }
     .reactions, .actions, .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+    .reactions { min-width: 0; }
+    .actions { flex: none; flex-wrap: nowrap; }
+    @media (max-width: 29.99rem) {
+      .who-button ::ng-deep .p-button-label { display: none; }
+    }
+    /* no paragraph margin under the last line of the post */
+    .body ::ng-deep .md > :last-child { margin-bottom: 0; }
     .row { justify-content: flex-end; }
     .reaction {
       min-height: 2rem; padding: 0.15rem 0.6rem; border: 1px solid var(--fs-border); border-radius: 999px;

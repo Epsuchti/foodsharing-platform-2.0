@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Button } from '@openng/optimus-ui/button';
 import { ConfirmationService } from '@openng/optimus-ui/api';
-import { switchMap } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs';
 
 import { AuthService, FeatureToggleKey, RegionsService } from '../../../api';
 import { SessionService } from '../../../core/auth/session.service';
@@ -54,6 +55,24 @@ export class RegionPageComponent {
   private readonly confirm = inject(ConfirmationService);
   private readonly i18n = inject(I18nService);
   private readonly toggles = inject(FeatureToggleService);
+  private readonly router = inject(Router);
+
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  /**
+   * The overview tab shows the full hero (photo, type, teaser) and the membership footer; every other tab a compact
+   * hero, so its own content starts higher on a phone (design review C3).
+   */
+  protected readonly overview = computed(() => {
+    const path = this.url().split(/[?#]/)[0];
+    return /\/regions\/[^/]+(\/overview)?\/?$/.test(path);
+  });
 
   /** Region automation pages (M4 F4): ambassadors of the region and ORGA (decision 167: no automation permissions). */
   private readonly automation = computed(() => isAmbassador(this.session.session(), this.ctx.regionId()));

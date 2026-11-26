@@ -55,16 +55,17 @@ import { formatSize } from '../mailboxes.resource';
             <dd><time [attr.datetime]="m.receivedAt">{{ m.receivedAt | fsDate: 'dateTime' }}</time></dd>
           }
         </dl>
+        <!-- phones: "Reply" keeps its label, the others become icon buttons in one row (design review D6) -->
         <div class="actions">
           <p-button [label]="'mailboxes.mail.reply' | t" icon="pi pi-reply" size="small" [outlined]="true" [routerLink]="['/mailboxes', m.mailboxId, 'compose']" [queryParams]="{ replyTo: m.id }" data-testid="mailboxes.mail.reply" />
-          <p-button [label]="'mailboxes.mail.replyAll' | t" icon="pi pi-users" size="small" [outlined]="true" [routerLink]="['/mailboxes', m.mailboxId, 'compose']" [queryParams]="{ replyTo: m.id, all: 1 }" data-testid="mailboxes.mail.replyAll" />
-          <p-button [label]="'mailboxes.mail.forward' | t" icon="pi pi-share-alt" size="small" [outlined]="true" [routerLink]="['/mailboxes', m.mailboxId, 'compose']" [queryParams]="{ forwardOf: m.id }" data-testid="mailboxes.mail.forward" />
-          <p-button [label]="'mailboxes.mail.markUnread' | t" icon="pi pi-eye-slash" size="small" [text]="true" (onClick)="update.run(m, { read: false })" data-testid="mailboxes.mail.markUnread" />
+          <p-button [label]="'mailboxes.mail.replyAll' | t" icon="pi pi-users" size="small" [outlined]="true" [routerLink]="['/mailboxes', m.mailboxId, 'compose']" [queryParams]="{ replyTo: m.id, all: 1 }" styleClass="action--compact" data-testid="mailboxes.mail.replyAll" />
+          <p-button [label]="'mailboxes.mail.forward' | t" icon="pi pi-share-alt" size="small" [outlined]="true" [routerLink]="['/mailboxes', m.mailboxId, 'compose']" [queryParams]="{ forwardOf: m.id }" styleClass="action--compact" data-testid="mailboxes.mail.forward" />
+          <p-button [label]="'mailboxes.mail.markUnread' | t" icon="pi pi-eye-slash" size="small" [text]="true" (onClick)="update.run(m, { read: false })" styleClass="action--compact" data-testid="mailboxes.mail.markUnread" />
           @if (m.folder === folders.Trash) {
-            <p-button [label]="'mailboxes.mail.restore' | t" icon="pi pi-undo" size="small" [text]="true" (onClick)="update.run(m, { folder: folders.Inbox })" data-testid="mailboxes.mail.restore" />
-            <p-button [label]="'mailboxes.mail.delete' | t" icon="pi pi-times" size="small" [text]="true" severity="danger" (onClick)="remove.run(m)" data-testid="mailboxes.mail.delete" />
+            <p-button [label]="'mailboxes.mail.restore' | t" icon="pi pi-undo" size="small" [text]="true" (onClick)="update.run(m, { folder: folders.Inbox })" styleClass="action--compact" data-testid="mailboxes.mail.restore" />
+            <p-button [label]="'mailboxes.mail.delete' | t" icon="pi pi-times" size="small" [text]="true" severity="danger" (onClick)="remove.run(m)" styleClass="action--compact" data-testid="mailboxes.mail.delete" />
           } @else {
-            <p-button [label]="'mailboxes.mail.trash' | t" icon="pi pi-trash" size="small" [text]="true" severity="danger" (onClick)="update.run(m, { folder: folders.Trash })" data-testid="mailboxes.mail.trash" />
+            <p-button [label]="'mailboxes.mail.trash' | t" icon="pi pi-trash" size="small" [text]="true" severity="danger" (onClick)="update.run(m, { folder: folders.Trash })" styleClass="action--compact" data-testid="mailboxes.mail.trash" />
           }
         </div>
         @if (m.attachments.length) {
@@ -153,6 +154,47 @@ import { formatSize } from '../mailboxes.resource';
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem;
+    }
+    @media (max-width: 47.99rem) {
+      /* plain text instead of outlined pills, which read as form fields (D6) */
+      .meta {
+        grid-template-columns: minmax(3.5rem, auto) minmax(0, 1fr);
+      }
+      .meta dd {
+        gap: 0.1rem 0.4rem;
+      }
+      .addr {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+      }
+      .addr:not(:last-child)::after {
+        content: ',';
+      }
+      .actions {
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.25rem;
+      }
+      .actions ::ng-deep .action--compact .p-button-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .actions ::ng-deep .action--compact {
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+        justify-content: center;
+      }
+      /* the icon buttons share one look: no border on reply-all and forward either (sign-off) */
+      .actions ::ng-deep .action--compact.p-button-outlined {
+        border-color: transparent;
+        background: transparent;
+      }
     }
     .attachments {
       display: grid;

@@ -28,8 +28,11 @@ export interface MetricTotal {
     .track { height: 0.75rem; border-radius: var(--fs-radius-sm); background: var(--fs-surface-muted); overflow: hidden; }
     .bar { display: block; height: 100%; min-width: 2px; background: var(--fs-primary); }
     .total { font-variant-numeric: tabular-nums; text-align: right; }
+    /* phones: label and total above the bar; more space between rows than inside one, so each bar reads as its own
+       label's (design review C9) */
     @media (max-width: 480px) {
-      .row { grid-template-columns: 1fr auto; }
+      .totals { gap: 0.85rem; }
+      .row { grid-template-columns: 1fr auto; row-gap: 0.25rem; }
       .track { grid-column: 1 / -1; grid-row: 2; }
     }
   `,

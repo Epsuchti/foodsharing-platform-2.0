@@ -20,6 +20,7 @@
   "messaging.retry": "Erneut senden",
   "messaging.composer": "Nachricht",
   "messaging.composerPlaceholder": "Nachricht schreiben … (@ erwähnt jemanden)",
+  "messaging.composerPlaceholderShort": "Nachricht schreiben …",
   "messaging.send": "Senden",
   "messaging.mentionSuggestions": "Personen erwähnen",
   "messaging.search": "Unterhaltungen durchsuchen",

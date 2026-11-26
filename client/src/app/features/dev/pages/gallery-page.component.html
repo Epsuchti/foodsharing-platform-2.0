@@ -20,11 +20,12 @@
   <a href="#g-people">UserChip, Phone, Calendar, Job</a>
 </nav>
 
+<!-- Every specimen is a card (fs-card), so a state inside it renders as in the cards of real pages (A15). -->
 <!-- DataState -->
 <h2 class="group" id="g-data-state">DataState</h2>
 <div class="grid">
   @for (item of states; track item.label) {
-    <section class="specimen" [attr.data-testid]="'gallery.dataState.' + item.label">
+    <section class="specimen fs-card" [attr.data-testid]="'gallery.dataState.' + item.label">
       <header class="specimen__head">
         <code>{{ item.label }}</code>
       </header>
@@ -55,11 +56,11 @@
       </fs-data-state>
     </section>
   }
-  <section class="specimen" data-testid="gallery.dataState.compact">
+  <section class="specimen fs-card" data-testid="gallery.dataState.compact">
     <header class="specimen__head"><code>compact (error)</code></header>
     <fs-data-state [state]="states[4].state" [compact]="true" />
   </section>
-  <section class="specimen" data-testid="gallery.dataState.live">
+  <section class="specimen fs-card" data-testid="gallery.dataState.live">
     <header class="specimen__head specimen__head--split">
       <code>live (GET /api/public/app-info)</code>
       <p-button
@@ -93,7 +94,7 @@
 <h2 class="group" id="g-skeleton">Skeleton</h2>
 <div class="grid">
   @for (preset of skeletons; track preset) {
-    <section class="specimen" [attr.data-testid]="'gallery.skeleton.' + preset">
+    <section class="specimen fs-card" [attr.data-testid]="'gallery.skeleton.' + preset">
       <header class="specimen__head">
         <code>{{ preset }}</code>
       </header>
@@ -105,7 +106,7 @@
 <!-- EmptyState -->
 <h2 class="group" id="g-empty">EmptyState</h2>
 <div class="grid">
-  <section class="specimen" data-testid="gallery.emptyState.default">
+  <section class="specimen fs-card" data-testid="gallery.emptyState.default">
     <header class="specimen__head"><code>default</code></header>
     <fs-empty-state
       icon="pi pi-calendar"
@@ -117,7 +118,7 @@
       (action)="noop()"
     />
   </section>
-  <section class="specimen" data-testid="gallery.emptyState.compact">
+  <section class="specimen fs-card" data-testid="gallery.emptyState.compact">
     <header class="specimen__head"><code>compact</code></header>
     <fs-empty-state
       [compact]="true"
@@ -131,19 +132,19 @@
 <!-- ErrorState -->
 <h2 class="group" id="g-error">ErrorState</h2>
 <div class="grid">
-  <section class="specimen" data-testid="gallery.errorState.error">
+  <section class="specimen fs-card" data-testid="gallery.errorState.error">
     <header class="specimen__head"><code>error (500, traceId)</code></header>
     <fs-error-state [error]="errors.error" (retry)="noop()" />
   </section>
-  <section class="specimen" data-testid="gallery.errorState.tooManyRequests">
+  <section class="specimen fs-card" data-testid="gallery.errorState.tooManyRequests">
     <header class="specimen__head"><code>429</code></header>
     <fs-error-state [error]="errors.tooMany" (retry)="noop()" />
   </section>
-  <section class="specimen" data-testid="gallery.errorState.conflict">
+  <section class="specimen fs-card" data-testid="gallery.errorState.conflict">
     <header class="specimen__head"><code>409</code></header>
     <fs-error-state [error]="errors.conflict" [retryable]="true" (retry)="noop()" />
   </section>
-  <section class="specimen" data-testid="gallery.errorState.forbidden">
+  <section class="specimen fs-card" data-testid="gallery.errorState.forbidden">
     <header class="specimen__head"><code>forbidden</code></header>
     <fs-error-state
       [error]="errors.forbidden"
@@ -151,15 +152,15 @@
       backLink="/dev/gallery"
     />
   </section>
-  <section class="specimen" data-testid="gallery.errorState.notFound">
+  <section class="specimen fs-card" data-testid="gallery.errorState.notFound">
     <header class="specimen__head"><code>notFound</code></header>
     <fs-error-state [error]="errors.notFound" backLink="/dev/gallery" />
   </section>
-  <section class="specimen" data-testid="gallery.errorState.offline">
+  <section class="specimen fs-card" data-testid="gallery.errorState.offline">
     <header class="specimen__head"><code>offline</code></header>
     <fs-error-state [error]="errors.offline" (retry)="noop()" />
   </section>
-  <section class="specimen" data-testid="gallery.errorState.compact">
+  <section class="specimen fs-card" data-testid="gallery.errorState.compact">
     <header class="specimen__head"><code>compact</code></header>
     <fs-error-state [error]="errors.error" [compact]="true" (retry)="noop()" />
   </section>
@@ -168,7 +169,7 @@
 <!-- UserChip / UserAvatar -->
 <h2 class="group" id="g-users">UserChip &amp; UserAvatar</h2>
 <div class="grid">
-  <section class="specimen" data-testid="gallery.userChip.variants">
+  <section class="specimen fs-card" data-testid="gallery.userChip.variants">
     <header class="specimen__head"><code>chips</code></header>
     <div class="stack">
       <fs-user-chip name="Anna Muster" userId="u1" [role]="Role.Foodsaver" [showRole]="true" />
@@ -195,7 +196,7 @@
       />
     </div>
   </section>
-  <section class="specimen" data-testid="gallery.userAvatar.sizes">
+  <section class="specimen fs-card" data-testid="gallery.userAvatar.sizes">
     <header class="specimen__head"><code>sizes &amp; roles</code></header>
     <div class="row">
       <fs-user-avatar name="Anna Muster" size="xs" />
@@ -209,7 +210,7 @@
 
 <!-- PageHeader -->
 <h2 class="group" id="g-header">PageHeader</h2>
-<section class="specimen" data-testid="gallery.pageHeader.default">
+<section class="specimen fs-card" data-testid="gallery.pageHeader.default">
   <fs-page-header
     [eyebrow]="'dev.gallery.headerEyebrow' | t"
     [title]="'dev.gallery.headerTitle' | t"
@@ -225,7 +226,7 @@
 
 <!-- HistoryTimeline (history section, M1 T7) -->
 <h2 class="group" id="g-history">HistoryTimeline</h2>
-<section class="specimen" data-testid="gallery.historyTimeline.filled">
+<section class="specimen fs-card" data-testid="gallery.historyTimeline.filled">
   <header class="specimen__head"><code>filled (filters, export)</code></header>
   <fs-history-timeline
     [source]="history.filled"
@@ -236,7 +237,7 @@
   />
 </section>
 <div class="grid">
-  <section class="specimen" data-testid="gallery.historyTimeline.cards">
+  <section class="specimen fs-card" data-testid="gallery.historyTimeline.cards">
     <header class="specimen__head"><code>cards (mobile layout)</code></header>
     <fs-history-timeline
       [source]="history.filled"
@@ -247,7 +248,7 @@
       testId="gallery.historyTimeline.cardsTimeline"
     />
   </section>
-  <section class="specimen" data-testid="gallery.historyTimeline.compact">
+  <section class="specimen fs-card" data-testid="gallery.historyTimeline.compact">
     <header class="specimen__head"><code>compact</code></header>
     <fs-history-timeline
       [source]="history.filled"
@@ -256,7 +257,7 @@
       testId="gallery.historyTimeline.compactTimeline"
     />
   </section>
-  <section class="specimen" data-testid="gallery.historyTimeline.empty">
+  <section class="specimen fs-card" data-testid="gallery.historyTimeline.empty">
     <header class="specimen__head"><code>empty</code></header>
     <fs-history-timeline
       [source]="history.empty"
@@ -264,7 +265,7 @@
       testId="gallery.historyTimeline.emptyTimeline"
     />
   </section>
-  <section class="specimen" data-testid="gallery.historyTimeline.loading">
+  <section class="specimen fs-card" data-testid="gallery.historyTimeline.loading">
     <header class="specimen__head"><code>loading</code></header>
     <fs-history-timeline
       [source]="history.loading"
@@ -272,7 +273,7 @@
       testId="gallery.historyTimeline.loadingTimeline"
     />
   </section>
-  <section class="specimen" data-testid="gallery.historyTimeline.error">
+  <section class="specimen fs-card" data-testid="gallery.historyTimeline.error">
     <header class="specimen__head"><code>error</code></header>
     <fs-history-timeline
       [source]="history.error"
@@ -285,7 +286,7 @@
 <!-- Buttons, forms, tags, messages, toasts -->
 <h2 class="group" id="g-kit">{{ 'dev.gallery.kit' | t }}</h2>
 <div class="grid">
-  <section class="specimen" data-testid="gallery.buttons.default">
+  <section class="specimen fs-card" data-testid="gallery.buttons.default">
     <header class="specimen__head"><code>buttons</code></header>
     <div class="row">
       <p-button [label]="'dev.gallery.primary' | t" icon="pi pi-check" />
@@ -297,7 +298,7 @@
       <p-button icon="pi pi-heart" [rounded]="true" [ariaLabel]="'dev.gallery.primary' | t" />
     </div>
   </section>
-  <section class="specimen" data-testid="gallery.forms.default">
+  <section class="specimen fs-card" data-testid="gallery.forms.default">
     <header class="specimen__head"><code>form</code></header>
     <form class="form" (submit)="$event.preventDefault()">
       <label class="field">
@@ -381,7 +382,7 @@
       </div>
     </form>
   </section>
-  <section class="specimen" data-testid="gallery.tags.default">
+  <section class="specimen fs-card" data-testid="gallery.tags.default">
     <header class="specimen__head"><code>tags &amp; messages</code></header>
     <div class="row">
       <p-tag value="Foodsaver" />
@@ -397,7 +398,7 @@
       <p-message severity="error" [text]="'dev.gallery.toastDetail' | t" />
     </div>
   </section>
-  <section class="specimen" data-testid="gallery.toasts.default">
+  <section class="specimen fs-card" data-testid="gallery.toasts.default">
     <header class="specimen__head"><code>toasts</code></header>
     <div class="row">
       <p-button

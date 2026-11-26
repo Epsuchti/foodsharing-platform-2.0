@@ -100,7 +100,7 @@ export function uploadQuery(filter: string, page: number): { unclaimed?: boolean
                       <i class="pi pi-file" aria-hidden="true"></i>
                     }
                   </td>
-                  <td [attr.data-label]="'adminSettings.uploads.file' | t">
+                  <td class="file">
                     <span class="name">{{ upload.fileName }}</span>
                     <span class="muted">{{ upload.mimeType }}</span>
                   </td>
@@ -117,7 +117,7 @@ export function uploadQuery(filter: string, page: number): { unclaimed?: boolean
                   </td>
                   <td [attr.data-label]="'adminSettings.uploads.created' | t">{{ upload.createdAt | fsDate: 'dateTime' }}</td>
                   <td class="num" [attr.data-label]="'adminSettings.uploads.size' | t">{{ bytes(upload.size) }}</td>
-                  <td class="actions">
+                  <td class="actions actions--corner">
                     <p-button
                       icon="pi pi-trash"
                       severity="danger"
@@ -167,6 +167,34 @@ export function uploadQuery(filter: string, page: number): { unclaimed?: boolean
     }
     .muted {
       display: block;
+    }
+    /*
+     * Phones (design review D2): the thumbnail sits left of the facts instead of on a line of its own, the file name
+     * is the row title (no "File" label) and the delete button sits in the row's top corner (actions--corner).
+     */
+    @media (max-width: 39.99rem) {
+      .table > tbody > tr[data-id] {
+        grid-template-columns: 3rem minmax(0, 1fr);
+        column-gap: 0.75rem;
+      }
+      .table > tbody > tr[data-id] > :not(.actions--corner) {
+        grid-column: 2;
+      }
+      .table > tbody > tr[data-id] > td.preview {
+        grid-column: 1;
+        grid-row: 1 / span 5;
+        width: auto;
+        padding-inline-end: 0;
+      }
+      /* the delete button in the corner sits beside the file name, not beside the thumbnail */
+      .table > tbody > tr[data-id] > td.file {
+        padding-inline-end: 3rem;
+      }
+      .name {
+        max-width: none;
+        font-size: 0.9375rem;
+        font-weight: 650;
+      }
     }
   `,
 })

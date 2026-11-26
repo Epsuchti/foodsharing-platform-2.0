@@ -38,7 +38,7 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
           [attr.data-testid]="'nav.tab.' + item.id"
         >
           <i [class]="item.icon" aria-hidden="true"></i>
-          <span>{{ item.labelKey | t }}</span>
+          <span class="tabs__label">{{ item.labelKey | t }}</span>
           <fs-nav-badge [item]="item" [overlay]="true" />
         </a>
       }
@@ -57,7 +57,7 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
             <span class="tabs__badge" data-testid="nav.tab.menu.badge">{{ bells.unreadCount() > 99 ? '99+' : bells.unreadCount() }}</span>
           }
         </span>
-        <span>{{ 'nav.menu' | t }}</span>
+        <span class="tabs__label">{{ 'nav.menu' | t }}</span>
       </button>
     </nav>
 
@@ -247,9 +247,11 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      /* icons on one line in every tab, also when a label takes two lines (FR "Tableau de bord", design review B7) */
+      justify-content: flex-start;
       gap: 0.2rem;
       min-width: 0;
+      padding: 0.55rem 0 0;
       border: 0;
       background: none;
       color: var(--fs-text-muted);
@@ -267,6 +269,17 @@ const DRAWER_TOP: readonly string[] = ['activity', 'quizzes'];
       border-radius: 999px;
       font-size: 1.15rem;
       transition: background-color 150ms ease;
+    }
+    .tabs__label {
+      display: -webkit-box;
+      max-width: 100%;
+      padding-inline: 0.2rem;
+      overflow: hidden;
+      line-height: 1.15;
+      text-align: center;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
     .tabs__tab--active {
       color: var(--fs-primary-strong);

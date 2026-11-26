@@ -263,6 +263,10 @@ import { MANAGERS_MAX, addManager, photoVariant, removeManager } from '../fsp.ut
     .muted { margin: 0; color: var(--fs-text-muted); font-size: 0.9rem; }
     .error { margin: 0; color: var(--fs-danger); }
     .photo { width: 100%; max-width: 28rem; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--fs-radius-md); }
+    /* phones: a wide photo instead of a 334 px square that pushes the description below the fold (design review C18) */
+    @media (max-width: 47.99rem) {
+      .photo { max-width: none; aspect-ratio: 16 / 10; max-height: 14rem; }
+    }
     .description { margin: 0; overflow-wrap: anywhere; }
     .meta { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0; color: var(--fs-text-muted); font-size: 0.85rem; }
     .inactive {

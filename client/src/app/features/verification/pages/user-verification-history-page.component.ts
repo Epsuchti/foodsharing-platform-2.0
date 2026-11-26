@@ -125,6 +125,11 @@ import { VerificationResources } from '../verification.resource';
   `,
   styleUrl: '../verification.scss',
   styles: `
+    /* the two dialogs render nothing until opened: out of the card's grid flow, so they leave no empty gap under the
+       action (design review D18) */
+    .card > fs-required-message-dialog {
+      position: absolute;
+    }
     .head {
       display: flex;
       flex-wrap: wrap;

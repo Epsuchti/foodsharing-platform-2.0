@@ -6,117 +6,124 @@
   data-testid="regions.page.state"
 >
   <ng-template [fsData]="ctx.region" let-region>
-    <header class="hero" [class.hero--photo]="region.photoUrl" data-testid="regions.page.header">
-      @if (region.photoUrl) {
-        <img class="hero__photo" [src]="region.photoUrl" alt="" />
-      }
-      <div class="hero__body">
-        @if (region.parent; as parent) {
-          <a class="hero__parent" [routerLink]="['/regions', parent.id]" data-testid="regions.page.parent">
-            <i class="pi pi-arrow-up" aria-hidden="true"></i>{{ parent.name }}
+    <!-- own block wrapper: hero, sticky tabs and content keep their own spacing, whatever layout fs-data-state uses -->
+    <div class="region">
+      <!-- outside the overview the hero is compact (no photo, type line or teaser): the tab content starts higher (design review C3) -->
+      <header class="hero" [class.hero--photo]="region.photoUrl && overview()" [class.hero--compact]="!overview()" data-testid="regions.page.header">
+        @if (region.photoUrl && overview()) {
+          <img class="hero__photo" [src]="region.photoUrl" alt="" />
+        }
+        <div class="hero__body">
+          @if (region.parent; as parent) {
+            <a class="hero__parent" [routerLink]="['/regions', parent.id]" data-testid="regions.page.parent">
+              <i class="pi pi-arrow-up" aria-hidden="true"></i>{{ parent.name }}
+            </a>
+          }
+          @if (overview()) {
+            <p class="hero__type">{{ 'regions.type.' + region.type | t }}</p>
+          }
+          <h1 class="hero__name" data-testid="regions.page.name">{{ region.name }}</h1>
+          @if (region.teaser && overview()) {
+            <p class="hero__teaser">{{ region.teaser }}</p>
+          }
+          <ul class="hero__facts">
+            <li>
+              <i class="pi pi-users" aria-hidden="true"></i>
+              {{ 'regions.page.members' | t: { count: region.memberCount } }}
+            </li>
+            @if (region.membership.member) {
+              <li class="hero__badge" data-testid="regions.page.memberBadge">
+                <i class="pi pi-check" aria-hidden="true"></i>
+                {{ (region.membership.homeRegion ? 'regions.page.isHome' : 'regions.page.isMember') | t }}
+              </li>
+            }
+            @if (region.membership.admin) {
+              <li class="hero__badge hero__badge--admin">
+                <i class="pi pi-star" aria-hidden="true"></i>{{ 'regions.page.isAdmin' | t }}
+              </li>
+            }
+          </ul>
+        </div>
+        <div class="hero__actions">
+          @if (!region.membership.member) {
+            @if (canJoin(region.type)) {
+              <p-button
+                [label]="'regions.page.join' | t"
+                icon="pi pi-sign-in"
+                [loading]="join.busy()"
+                (onClick)="join.run()"
+                data-testid="regions.page.join"
+              />
+            }
+          } @else {
+            @if (!region.membership.homeRegion && canJoin(region.type)) {
+              <p-button
+                [label]="'regions.page.makeHome' | t"
+                icon="pi pi-home"
+                severity="secondary"
+                [outlined]="true"
+                [loading]="makeHome.busy()"
+                (onClick)="makeHome.run()"
+                data-testid="regions.page.makeHome"
+              />
+            }
+          }
+        </div>
+      </header>
+
+      <nav class="tabs" fsScrollHint [attr.aria-label]="'regions.page.tabs' | t" data-testid="regions.page.tabs">
+        @for (tab of tabs(); track tab.id) {
+          <a
+            class="tabs__tab"
+            [routerLink]="tab.route"
+            routerLinkActive="tabs__tab--active"
+            #active="routerLinkActive"
+            [attr.aria-current]="active.isActive ? 'page' : null"
+            [attr.data-testid]="'regions.page.tab.' + tab.id"
+          >
+            <i [class]="tab.icon" aria-hidden="true"></i>
+            <span>{{ tab.labelKey | t }}</span>
           </a>
         }
-        <p class="hero__type">{{ 'regions.type.' + region.type | t }}</p>
-        <h1 class="hero__name" data-testid="regions.page.name">{{ region.name }}</h1>
-        @if (region.teaser) {
-          <p class="hero__teaser">{{ region.teaser }}</p>
+        @for (tab of laterTabs(); track tab.id) {
+          <a
+            class="tabs__tab tabs__tab--later"
+            [routerLink]="tab.route"
+            routerLinkActive="tabs__tab--active"
+            #activeLater="routerLinkActive"
+            [attr.aria-current]="activeLater.isActive ? 'page' : null"
+            [attr.data-testid]="'regions.page.tab.' + tab.id"
+          >
+            <i [class]="tab.icon" aria-hidden="true"></i>
+            <span>{{ tab.labelKey | t }}</span>
+          </a>
         }
-        <ul class="hero__facts">
-          <li>
-            <i class="pi pi-users" aria-hidden="true"></i>
-            {{ 'regions.page.members' | t: { count: region.memberCount } }}
-          </li>
-          @if (region.membership.member) {
-            <li class="hero__badge" data-testid="regions.page.memberBadge">
-              <i class="pi pi-check" aria-hidden="true"></i>
-              {{ (region.membership.homeRegion ? 'regions.page.isHome' : 'regions.page.isMember') | t }}
-            </li>
-          }
-          @if (region.membership.admin) {
-            <li class="hero__badge hero__badge--admin">
-              <i class="pi pi-star" aria-hidden="true"></i>{{ 'regions.page.isAdmin' | t }}
-            </li>
-          }
-        </ul>
-      </div>
-      <div class="hero__actions">
-        @if (!region.membership.member) {
-          @if (canJoin(region.type)) {
-            <p-button
-              [label]="'regions.page.join' | t"
-              icon="pi pi-sign-in"
-              [loading]="join.busy()"
-              (onClick)="join.run()"
-              data-testid="regions.page.join"
-            />
-          }
-        } @else {
-          @if (!region.membership.homeRegion && canJoin(region.type)) {
-            <p-button
-              [label]="'regions.page.makeHome' | t"
-              icon="pi pi-home"
-              severity="secondary"
-              [outlined]="true"
-              [loading]="makeHome.busy()"
-              (onClick)="makeHome.run()"
-              data-testid="regions.page.makeHome"
-            />
-          }
-        }
-      </div>
-    </header>
+      </nav>
 
-    <nav class="tabs" fsScrollHint [attr.aria-label]="'regions.page.tabs' | t" data-testid="regions.page.tabs">
-      @for (tab of tabs(); track tab.id) {
-        <a
-          class="tabs__tab"
-          [routerLink]="tab.route"
-          routerLinkActive="tabs__tab--active"
-          #active="routerLinkActive"
-          [attr.aria-current]="active.isActive ? 'page' : null"
-          [attr.data-testid]="'regions.page.tab.' + tab.id"
-        >
-          <i [class]="tab.icon" aria-hidden="true"></i>
-          <span>{{ tab.labelKey | t }}</span>
-        </a>
-      }
-      @for (tab of laterTabs(); track tab.id) {
-        <a
-          class="tabs__tab tabs__tab--later"
-          [routerLink]="tab.route"
-          routerLinkActive="tabs__tab--active"
-          #activeLater="routerLinkActive"
-          [attr.aria-current]="activeLater.isActive ? 'page' : null"
-          [attr.data-testid]="'regions.page.tab.' + tab.id"
-        >
-          <i [class]="tab.icon" aria-hidden="true"></i>
-          <span>{{ tab.labelKey | t }}</span>
-        </a>
-      }
-    </nav>
+      <div class="content">
+        <router-outlet />
+      </div>
 
-    <div class="content">
-      <router-outlet />
+      @if (region.membership.member && overview()) {
+        <!-- shown on the overview only, not repeated under every tab (design review C3) -->
+        <!-- leaving is a rare, consequential action: below the content, not next to the page title (design review M7 R2) -->
+        <footer class="membership" data-testid="regions.page.membership">
+          <p class="membership__text">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            {{ (region.membership.homeRegion ? 'regions.page.membershipHome' : 'regions.page.membershipMember') | t: { name: region.name } }}
+          </p>
+          <p-button
+            [label]="'regions.page.leave' | t"
+            icon="pi pi-sign-out"
+            severity="danger"
+            [text]="true"
+            size="small"
+            [loading]="leave.busy()"
+            (onClick)="confirmLeave(region.name)"
+            data-testid="regions.page.leave"
+          />
+        </footer>
+      }
     </div>
-
-    @if (region.membership.member) {
-      <!-- leaving is a rare, consequential action: below the content, not next to the page title (design review M7 R2) -->
-      <footer class="membership" data-testid="regions.page.membership">
-        <p class="membership__text">
-          <i class="pi pi-check-circle" aria-hidden="true"></i>
-          {{ (region.membership.homeRegion ? 'regions.page.membershipHome' : 'regions.page.membershipMember') | t: { name: region.name } }}
-        </p>
-        <p-button
-          [label]="'regions.page.leave' | t"
-          icon="pi pi-sign-out"
-          severity="danger"
-          [text]="true"
-          size="small"
-          [loading]="leave.busy()"
-          (onClick)="confirmLeave(region.name)"
-          data-testid="regions.page.leave"
-        />
-      </footer>
-    }
   </ng-template>
 </fs-data-state>

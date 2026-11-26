@@ -72,7 +72,7 @@ const reasonControl = () => new FormControl('', { nonNullable: true, validators:
             <tbody>
               @for (entry of list; track entry.id) {
                 <tr data-testid="adminSettings.blocklist.row" [attr.data-id]="entry.id" [attr.data-pattern]="entry.pattern">
-                  <td><code data-testid="adminSettings.blocklist.rowPattern">{{ entry.pattern }}</code></td>
+                  <td class="title--wide"><code data-testid="adminSettings.blocklist.rowPattern">{{ entry.pattern }}</code></td>
                   <td [attr.data-label]="'adminSettings.blocklist.reason' | t" data-testid="adminSettings.blocklist.rowReason">{{ entry.reason || '–' }}</td>
                   <td [attr.data-label]="'adminSettings.blocklist.created' | t">
                     {{ entry.createdAt | fsDate: 'dateTime' }}
@@ -80,7 +80,7 @@ const reasonControl = () => new FormControl('', { nonNullable: true, validators:
                       <span class="muted">{{ entry.createdBy.displayName }}</span>
                     }
                   </td>
-                  <td class="actions">
+                  <td class="actions actions--corner">
                     <p-button
                       icon="pi pi-pencil"
                       severity="secondary"

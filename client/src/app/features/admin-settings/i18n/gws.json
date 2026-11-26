@@ -69,6 +69,7 @@
   "adminSettings.configuration.group.donation": "Spände",
   "adminSettings.configuration.group.statistics": "Statistik",
   "adminSettings.configuration.group.oauth": "Login für Partner-Apps",
+  "adminSettings.configuration.group.messaging": "Nachrichte",
   "adminSettings.configuration.key.support_email": "Support-E-Mail-Adrässe",
   "adminSettings.configuration.key.petition_url": "Link zur Petition",
   "adminSettings.configuration.key.petition_signatures": "Unterschrifte vo de Petition",
